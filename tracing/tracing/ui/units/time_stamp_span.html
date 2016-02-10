@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/scalar.html">
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
-<link rel="import" href="/tracing/base/units/time_stamp.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
@@ -41,9 +41,12 @@ tr.exportTo('tr.ui.units', function() {
     },
 
     set timestamp(timestamp) {
-      if (timestamp instanceof tr.b.u.TimeStamp) {
-        this.value = timestamp;
-        return;
+      if (timestamp instanceof tr.b.u.Scalar) {
+        if (timestamp.unit !== tr.b.u.Unit.byName.timeStampInMs) {
+          throw new Error(
+              'Invalid time timestamp scalar unit: ' + timestamp.unit);
+        }
+        timestamp = timestamp.value;
       }
       this.setValueAndUnit(timestamp, tr.b.u.Unit.byName.timeStampInMs);
     }

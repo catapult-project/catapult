@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time_stamp.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
@@ -71,7 +71,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Process memory dump at ' +
-          tr.b.u.TimeStamp.format(this.start);
+          tr.b.u.Unit.byName.timeStampInMs.format(this.start);
     },
 
     get containerName() {

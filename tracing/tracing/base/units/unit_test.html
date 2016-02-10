@@ -37,6 +37,46 @@ tr.b.unittest.testSuite(function() {
     }
   });
 
+  function checkTimeUnit(unit) {
+    try {
+      // Use milliseconds to display time (default behavior).
+      Unit.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ms;
+
+      assert.strictEqual(unit.format(0), '0.000 ms');
+      assert.strictEqual(unit.format(0.02), '0.020 ms');
+      assert.strictEqual(unit.format(0.001), '0.001 ms');
+      assert.strictEqual(unit.format(0.0005), '0.001 ms');
+      assert.strictEqual(unit.format(0.00049), '0.000 ms');
+      assert.strictEqual(unit.format(999.999), '999.999 ms');
+      assert.strictEqual(unit.format(1000.001), '1,000.001 ms');
+      assert.strictEqual(unit.format(123456789), '123,456,789.000 ms');
+      assert.strictEqual(unit.format(-0.00051), '-0.001 ms');
+      assert.strictEqual(unit.format(-123456789), '-123,456,789.000 ms');
+
+      // Change the unit to nanoseconds.
+      Unit.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ns;
+
+      assert.strictEqual(unit.format(0), '0 ns');
+      assert.strictEqual(unit.format(1), '1,000,000 ns');
+      assert.strictEqual(unit.format(0.000042), '42 ns');
+      assert.strictEqual(unit.format(0.000001), '1 ns');
+      assert.strictEqual(unit.format(0.0000005), '1 ns');
+      assert.strictEqual(unit.format(0.00000049), '0 ns');
+      assert.strictEqual(unit.format(123.456), '123,456,000 ns');
+      assert.strictEqual(unit.format(-0.07), '-70,000 ns');
+    } finally {
+      Unit.reset();
+    }
+  }
+
+  test('timeStampInMs', function() {
+    checkTimeUnit(tr.b.u.Unit.byName.timeStampInMs);
+  });
+
+  test('timeDurationInMs', function() {
+    checkTimeUnit(tr.b.u.Unit.byName.timeDurationInMs);
+  });
+
   test('sizeInBytes', function() {
     var SOURCE_VALUES = [0, 1, 1536, 424.5 * 1024 * 1024,
         1025 * 1024 * 1024 * 1024 * 1024, -2.5 * 1024 * 1024];

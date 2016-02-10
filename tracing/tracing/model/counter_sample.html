@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
-<link rel="import" href="/tracing/base/units/time_stamp.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_registry.html">
 
@@ -84,7 +84,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Counter sample from ' + this.series_.title + ' at ' +
-          tr.b.u.TimeStamp.format(this.timestamp);
+          tr.b.u.Unit.byName.timeStampInMs.format(this.timestamp);
     }
   };
 

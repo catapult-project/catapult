@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/extension_registry.html">
-<link rel="import" href="/tracing/base/units/time_stamp.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/event.html">
 
 <script>
@@ -65,7 +65,7 @@ tr.exportTo('tr.model', function() {
       return 'Snapshot of ' +
              this.objectInstance.typeName + ' ' +
              this.objectInstance.id + ' @ ' +
-             tr.b.u.TimeStamp.format(this.ts);
+             tr.b.u.Unit.byName.timeStampInMs.format(this.ts);
     }
   };
 
