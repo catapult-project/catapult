@@ -153,7 +153,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.wpr_mode == wpr_modes.WPR_OFF:
       return []
     replay_args = []
-    if self.should_ignore_certificate_errors:
+    if not self._platform_backend.is_test_ca_installed:
       # Ignore certificate errors if the platform backend has not created
       # and installed a root certificate.
       replay_args.append('--ignore-certificate-errors')

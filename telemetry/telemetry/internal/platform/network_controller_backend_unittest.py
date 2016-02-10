@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 import mock
 import unittest
 
@@ -12,12 +13,26 @@ from telemetry.util import wpr_modes
 
 DEFAULT_PORTS = forwarders.PortSet(http=1111, https=2222, dns=3333)
 FORWARDER_HOST_IP = '123.321.123.321'
+EXPECTED_WPR_CA_CERT_PATH = os.path.join('[tempdir]', 'testca.pem')
 
 
 class FakePlatformBackend(object):
   def __init__(self):
-    self.wpr_ca_cert_path = None
     self.forwarder_factory = FakeForwarderFactory()
+    self.supports_test_ca = True
+    self.is_test_ca_installed = False
+    self.faulty_cert_installer = False
+
+  def InstallTestCa(self, ca_cert_path):
+    del ca_cert_path  # Unused argument.
+    self.is_test_ca_installed = True
+    # Exception is raised after setting the "installed" value to confirm that
+    # cleaup code is being called in case of errors.
+    if self.faulty_cert_installer:
+      raise Exception('Cert install failed!')
+
+  def RemoveTestCa(self):
+    self.is_test_ca_installed = False
 
 
 class FakeForwarderFactory(object):
@@ -63,6 +78,10 @@ class TestNetworkControllerBackend(
         forwarders.PortPair(*dns) if dns is not None else None)
 
   @property
+  def wpr_ca_cert_path(self):
+    return self._wpr_ca_cert_path
+
+  @property
   def replay_server(self):
     return self._wpr_server
 
@@ -87,29 +106,47 @@ class FakeBrowserBackend(object):
 
 
 class NetworkControllerBackendTest(unittest.TestCase):
+  def Patch(self, *args, **kwargs):
+    """Patch an object for the duration of a test, and return its mock."""
+    patcher = mock.patch(*args, **kwargs)
+    mock_object = patcher.start()
+    self.addCleanup(patcher.stop)
+    return mock_object
+
+  def PatchImportedModule(self, name):
+    """Shorthand to patch a module imported by network_controller_backend."""
+    return self.Patch(
+        'telemetry.internal.platform.network_controller_backend.%s' % name)
 
   def setUp(self):
     # Always use our FakeReplayServer.
     FakeReplayServer.DEFAULT_PORTS = DEFAULT_PORTS  # Use global defaults.
-    patcher = mock.patch(
+    self.Patch(
         'telemetry.internal.util.webpagereplay.ReplayServer', FakeReplayServer)
-    patcher.start()
-    self.addCleanup(patcher.stop)
 
     # Pretend that only some predefined set of files exist.
     def fake_path_exists(filename):
       return filename in ['some-archive.wpr', 'another-archive.wpr']
 
-    patcher = mock.patch('os.path.exists', side_effect=fake_path_exists)
-    self.mock_path_exists = patcher.start()
-    self.addCleanup(patcher.stop)
+    self.Patch('os.path.exists', side_effect=fake_path_exists)
+
+    # Mock some imported modules.
+    mock_certutils = self.PatchImportedModule('certutils')
+    mock_certutils.openssl_import_error = None
+    mock_certutils.generate_dummy_ca_cert.return_value = ('-', '-')
+
+    mock_platformsettings = self.PatchImportedModule('platformsettings')
+    mock_platformsettings.HasSniSupport.return_value = True
+
+    mock_tempfile = self.PatchImportedModule('tempfile')
+    mock_tempfile.mkdtemp.return_value = '[tempdir]'
+
+    self.PatchImportedModule('shutil')
 
     self.network_controller_backend = TestNetworkControllerBackend(
         FakePlatformBackend())
 
   def testOpenCloseController(self):
-    # TODO(perezju): Add checks for installing/uninstalling test certificates
-    # where appropriate.
     b = self.network_controller_backend
     self.assertFalse(b.is_open)
     b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
@@ -124,6 +161,25 @@ class NetworkControllerBackendTest(unittest.TestCase):
     b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
     with self.assertRaises(AssertionError):
       b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
+
+  def testInstallTestCaSuccess(self):
+    b = self.network_controller_backend
+    b.InstallTestCa()
+    self.assertTrue(b.platform_backend.is_test_ca_installed)
+    self.assertEqual(b.wpr_ca_cert_path, EXPECTED_WPR_CA_CERT_PATH)
+    b.RemoveTestCa()
+    self.assertFalse(b.platform_backend.is_test_ca_installed)
+    self.assertIsNone(b.wpr_ca_cert_path)
+
+  def testInstallTestCaFailure(self):
+    b = self.network_controller_backend
+    b.platform_backend.faulty_cert_installer = True
+    b.InstallTestCa()  # Fails with warning but execution continues.
+    self.assertFalse(b.platform_backend.is_test_ca_installed)
+    self.assertIsNone(b.wpr_ca_cert_path)
+    b.RemoveTestCa()
+    self.assertFalse(b.platform_backend.is_test_ca_installed)
+    self.assertIsNone(b.wpr_ca_cert_path)
 
   def testStartStopReplay(self):
     b = self.network_controller_backend
@@ -220,8 +276,8 @@ class NetworkControllerBackendTest(unittest.TestCase):
 
   def testReplayServerSettings(self):
     b = self.network_controller_backend
-    b.platform_backend.wpr_ca_cert_path = 'CERT_FILE'
     b.Open(wpr_modes.WPR_RECORD, '3g', ['--some-arg'])
+    b.InstallTestCa()
     b.StartReplay('some-archive.wpr')
 
     # Externally visible properties
@@ -235,7 +291,8 @@ class NetworkControllerBackendTest(unittest.TestCase):
     self.assertEqual(b.replay_server.host_ip, FORWARDER_HOST_IP)
     self.assertEqual(b.replay_server.replay_args, [
         '--some-arg', '--net=3g', '--record', '--inject_scripts=',
-        '--should_generate_certs', '--https_root_ca_cert_path=CERT_FILE'])
+        '--should_generate_certs',
+        '--https_root_ca_cert_path=%s' % EXPECTED_WPR_CA_CERT_PATH])
 
   def testReplayServerOffSettings(self):
     b = self.network_controller_backend

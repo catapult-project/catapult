@@ -90,8 +90,9 @@ class PlatformBackend(object):
     browser_options = browser_backend.browser_options
     self.SetFullPerformanceModeEnabled(browser_options.full_performance_mode)
 
-    # TODO(slamm): Remove this call when replay browser_backend dependencies
-    # get moved to platform. https://crbug.com/423962
+    # TODO(perezju): Remove these calls when replay's life cycle is no longer
+    # tied to the browser.
+    self._network_controller_backend.InstallTestCa()
     self._network_controller_backend.UpdateReplay(browser_backend)
 
   def DidStartBrowser(self, browser, browser_backend):
@@ -99,9 +100,10 @@ class PlatformBackend(object):
     self._running_browser_backends.add(browser_backend)
 
   def WillCloseBrowser(self, browser, browser_backend):
-    # TODO(slamm): Move this call when replay's life cycle is no longer
-    # tied to the browser. https://crbug.com/424777
+    # TODO(perezju): Remove these calls when replay's life cycle is no longer
+    # tied to the browser.
     self._network_controller_backend.StopReplay()
+    self._network_controller_backend.RemoveTestCa()
 
     is_last_browser = len(self._running_browser_backends) <= 1
     if is_last_browser:
@@ -252,8 +254,22 @@ class PlatformBackend(object):
     raise NotImplementedError()
 
   @property
-  def wpr_ca_cert_path(self):
-    return None
+  def supports_test_ca(self):
+    """Indicates whether the platform supports installing test CA."""
+    return False
+
+  @property
+  def is_test_ca_installed(self):
+    """Indicates whether a test CA is currently installed."""
+    return False
+
+  def InstallTestCa(self, ca_cert_path):
+    """Install a test CA on the platform."""
+    raise NotImplementedError()
+
+  def RemoveTestCa(self):
+    """Remove a previously installed test CA from the platform."""
+    raise NotImplementedError()
 
   def CanTakeScreenshot(self):
     return False

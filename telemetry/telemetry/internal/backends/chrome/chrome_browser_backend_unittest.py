@@ -15,6 +15,7 @@ class FakePlatformBackend(object):
     self.wpr_https_device_port = wpr_https_device_port
     self.does_forwarder_override_dns = does_forwarder_override_dns
     self.is_host_platform = is_host_platform
+    self.is_test_ca_installed = False
 
   @property
   def forwarder_factory(self):
@@ -164,4 +165,3 @@ class ReplayStartupArgsTest(unittest.TestCase):
     self.assertEqual(
         expected_args,
         sorted(browser_backend.GetReplayBrowserStartupArgs()))
-

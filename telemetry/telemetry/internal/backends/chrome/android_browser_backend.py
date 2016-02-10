@@ -46,9 +46,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._target_arch = target_arch
     self._saved_sslflag = ''
 
-    # TODO(wuhu): Move to network controller backend.
-    self.platform_backend.InstallTestCa()
-
     # Kill old browser.
     self._KillBrowser()
 
@@ -207,8 +204,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
 
-    self.platform_backend.RemoveTestCa()
-
     self._KillBrowser()
 
     self.platform_backend.StopForwardingHost(self._port)
@@ -225,7 +220,3 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetStackTrace(self):
     return self.platform_backend.GetStackTrace(self._target_arch)
-
-  @property
-  def should_ignore_certificate_errors(self):
-    return not self.platform_backend.is_test_ca_installed

@@ -26,9 +26,6 @@ class Override(object):
              'sys': SysModuleStub,
              'thermal_throttle': ThermalThrottleModuleStub,
              'logging': LoggingStub,
-             'certutils': CertUtilsStub,
-             'adb_install_cert': AdbInstallCertStub,
-             'platformsettings': PlatformSettingsStub,
     }
     self.adb_commands = None
     self.os = None
@@ -475,31 +472,3 @@ class ThermalThrottleModuleStub(object):
 
   def __init__(self):
     self.ThermalThrottle = ThermalThrottleModuleStub.ThermalThrottleStub
-
-class CertUtilsStub(object):
-  openssl_import_error = None
-
-  @staticmethod
-  def write_dummy_ca_cert(_ca_cert_str, _key_str, cert_path):
-    pass
-
-  @staticmethod
-  def generate_dummy_ca_cert():
-    return '-', '-'
-
-class AdbInstallCertStub(object):
-  class AndroidCertInstaller(object):
-    def __init__(self, device_id, cert_name, cert_path):
-      del cert_name, cert_path  # unused
-      if device_id == 'success':
-        pass
-      elif device_id == 'failure':
-        raise Exception('Test exception.')
-
-    def install_cert(self, overwrite_cert=False):
-      pass
-
-class PlatformSettingsStub(object):
-  @staticmethod
-  def HasSniSupport():
-    return True
