@@ -170,8 +170,7 @@ def FindAllAvailableBrowsers(finder_options, device):
         finder_options.browser_executable.endswith(x)]) != 0
 
     # It is okay if the executable name doesn't match any of known chrome
-    # browser executables, since it may be of a different browser (say,
-    # mandoline).
+    # browser executables, since it may be of a different browser.
     if is_chrome_or_chromium or is_content_shell:
       normalized_executable = os.path.expanduser(
           finder_options.browser_executable)
