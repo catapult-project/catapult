@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/scalar.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/frame.html">
 <link rel="import" href="/tracing/extras/android/android_auditor.html">
@@ -18,7 +20,8 @@ tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.TestUtils.newSliceEx;
   var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
   var newThreadSlice = tr.c.TestUtils.newThreadSlice;
-  var TimeDuration = tr.b.u.TimeDuration;
+  var Scalar = tr.b.u.Scalar;
+  var timeDurationInMs = tr.b.u.Unit.byName.timeDurationInMs;
 
   test('saveLayerAlert_badAlpha', function() {
     var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
@@ -77,7 +80,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 1);
 
     var alert = model.alerts[0];
-    assert.deepEqual(alert.args['Time spent'], new TimeDuration(9));
+    assert.deepEqual(alert.args['Time spent'], new Scalar(9, timeDurationInMs));
     assert.equal(alert.associatedEvents.length, 3);
   });
 
@@ -95,7 +98,8 @@ tr.b.unittest.testSuite(function() {
 
     var alert = model.alerts[0];
     assert.equal(alert.args['Pixels uploaded'], '1.00 million');
-    assert.deepEqual(alert.args['Time spent'], new TimeDuration(15));
+    assert.deepEqual(alert.args['Time spent'],
+        new Scalar(15, timeDurationInMs));
     assert.equal(alert.associatedEvents.length, 2);
   });
 
@@ -134,12 +138,14 @@ tr.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 2);
     var alert = model.alerts[0];
     assert.equal(alert.args['ListView items rebound'], 2);
-    assert.deepEqual(alert.args['Time spent'], new TimeDuration(20));
+    assert.deepEqual(alert.args['Time spent'],
+        new Scalar(20, timeDurationInMs));
     assert.equal(alert.associatedEvents.length, 5);
 
     var alert = model.alerts[1];
     assert.equal(alert.args['ListView items inflated'], 1);
-    assert.deepEqual(alert.args['Time spent'], new TimeDuration(20));
+    assert.deepEqual(alert.args['Time spent'],
+        new Scalar(20, timeDurationInMs));
     assert.equal(alert.associatedEvents.length, 3); // note: inflate not assoc.
   });
 
@@ -157,7 +163,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 1);
 
     var alert = model.alerts[0];
-    assert.deepEqual(alert.args['Time spent'], new TimeDuration(10));
+    assert.deepEqual(alert.args['Time spent'],
+        new Scalar(10, timeDurationInMs));
     assert.equal(alert.associatedEvents.length, 3);
   });
 
@@ -178,8 +185,10 @@ tr.b.unittest.testSuite(function() {
     }, tr.e.audits.AndroidAuditor);
 
     assert.equal(model.alerts.length, 2);
-    assert.deepEqual(model.alerts[0].args['Time spent'], new TimeDuration(10));
-    assert.deepEqual(model.alerts[1].args['Time spent'], new TimeDuration(10));
+    assert.deepEqual(model.alerts[0].args['Time spent'],
+        new Scalar(10, timeDurationInMs));
+    assert.deepEqual(model.alerts[1].args['Time spent'],
+        new Scalar(10, timeDurationInMs));
   });
 
   test('blockingGcAlert', function() {
@@ -199,9 +208,9 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(model.alerts.length, 2);
     assert.deepEqual(model.alerts[0].args['Blocked duration'],
-        new TimeDuration(15));
+        new Scalar(15, timeDurationInMs));
     assert.deepEqual(model.alerts[1].args['Blocked duration'],
-        new TimeDuration(15));
+        new Scalar(15, timeDurationInMs));
   });
 
   test('lockContentionAlert', function() {
@@ -216,7 +225,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(model.alerts.length, 1);
     assert.deepEqual(model.alerts[0].args['Blocked duration'],
-        new TimeDuration(15));
+        new Scalar(15, timeDurationInMs));
   });
 
   test('schedulingAlerts', function() {
@@ -233,7 +242,7 @@ tr.b.unittest.testSuite(function() {
     var alert = model.alerts[0];
     assert.equal(alert.info.title, 'Scheduling delay');
     assert.deepEqual(alert.args['Not scheduled, but runnable'],
-        new TimeDuration(10));
+        new Scalar(10, timeDurationInMs));
 
     model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var uiThread = model.getOrCreateProcess(1).getOrCreateThread(1);
@@ -247,7 +256,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(model.alerts.length, 1);
     var alert = model.alerts[0];
     assert.equal(alert.info.title, 'Scheduling delay');
-    assert.deepEqual(alert.args['Blocking I/O delay'], new TimeDuration(10));
+    assert.deepEqual(alert.args['Blocking I/O delay'],
+        new Scalar(10, timeDurationInMs));
   });
 
   test('addFramesToModel', function() {
@@ -319,11 +329,11 @@ tr.b.unittest.testSuite(function() {
       var pushInfoSlice = function(slice) {
         eventsExpectingInfo.push(slice);
         uiThread.sliceGroup.pushSlice(slice);
-      }
+      };
       var pushNonInfoSlice = function(slice) {
         eventsNotExpectingInfo.push(slice);
         uiThread.sliceGroup.pushSlice(slice);
-      }
+      };
 
       pushInfoSlice(newSliceEx(
           {title: 'performTraversals', start: 0, duration: 10}));

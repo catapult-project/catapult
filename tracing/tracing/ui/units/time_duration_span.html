@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/scalar.html">
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
-<link rel="import" href="/tracing/base/units/time_duration.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
@@ -14,10 +14,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-// TODO(petrcermak): Similarly to base/units/time_duration.html and
-// base/units/time_stamp.html, the classes defined in this file are almost
-// identical to the ones defined in time_stamp_span. Consider sharing more
-// code between the two files.
+// TODO(petrcermak): The classes defined in this file are almost identical to
+// the ones defined in time_stamp_span. Consider sharing more code between the
+// two files.
 tr.exportTo('tr.ui.units', function() {
   function createTimeDurationSpan(duration, opt_config) {
     if (duration === undefined)
@@ -52,9 +51,12 @@ tr.exportTo('tr.ui.units', function() {
     },
 
     set duration(duration) {
-      if (duration instanceof tr.b.u.TimeDuration) {
-        this.value = duration;
-        return;
+      if (duration instanceof tr.b.u.Scalar) {
+        if (duration.unit !== tr.b.u.Unit.byName.timeDurationInMs) {
+          throw new Error(
+              'Invalid time duration scalar unit: ' + duration.unit);
+        }
+        duration = duration.value;
       }
       this.setValueAndUnit(duration, tr.b.u.Unit.byName.timeDurationInMs);
     }

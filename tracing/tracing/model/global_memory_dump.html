@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/units/time_stamp.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
@@ -80,7 +79,8 @@ tr.exportTo('tr.model', function() {
     __proto__: tr.model.ContainerMemoryDump.prototype,
 
     get userFriendlyName() {
-      return 'Global memory dump at ' + tr.b.u.TimeStamp.format(this.start);
+      return 'Global memory dump at ' +
+          tr.b.u.Unit.byName.timeStampInMs.format(this.start);
     },
 
     get containerName() {

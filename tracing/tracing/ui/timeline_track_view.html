@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/base/task.html">
-<link rel="import" href="/tracing/base/units/time_duration.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -798,7 +798,7 @@ found in the LICENSE file.
         results.width = results.right - results.left;
         results.height = results.bottom - results.top;
         return results;
-      }
+      };
 
       // TODO(dsinclair): intersectRect_ can return false (which should actually
       // be undefined) but we use finalDragBox without checking the return value
@@ -819,7 +819,8 @@ found in the LICENSE file.
       var hiWX = dt.xViewToWorld(
           (hiX - canv.offsetLeft) * pixelRatio);
 
-      this.$.drag_box.textContent = tr.b.u.TimeDuration.format(hiWX - loWX);
+      this.$.drag_box.textContent =
+          tr.b.u.Unit.byName.timeDurationInMs.format(hiWX - loWX);
 
       var e = new tr.b.Event('selectionChanging');
       e.loWX = loWX;

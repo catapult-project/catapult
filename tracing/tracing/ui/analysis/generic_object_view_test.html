@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/scalar.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/object_instance.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
@@ -171,14 +172,14 @@ tr.b.unittest.testSuite(function() {
 
   test('timeDurationValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
-    view.object = new tr.b.u.TimeDuration(3);
+    view.object = new tr.b.u.Scalar(3, tr.b.u.Unit.byName.timeDurationInMs);
     assert.isDefined(tr.b.findDeepElementMatching(
       view.$.content, 'tr-ui-u-scalar-span'));
   });
 
   test('timeStampValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
-    view.object = new tr.b.u.TimeStamp(3);
+    view.object = new tr.b.u.Scalar(3, tr.b.u.Unit.byName.timeStampInMs);
     assert.isDefined(tr.b.findDeepElementMatching(
       view.$.content, 'tr-ui-u-scalar-span'));
   });

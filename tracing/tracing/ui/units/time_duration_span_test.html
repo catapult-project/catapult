@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/units/scalar.html">
 <link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
@@ -38,7 +39,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiateWithObject', function() {
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
-    timeSpan.duration = new tr.b.u.TimeDuration(73);
+    timeSpan.duration =
+        new tr.b.u.Scalar(73, tr.b.u.Unit.byName.timeDurationInMs);
     this.addHTMLOutput(timeSpan);
     assert.equal(timeSpan.duration, 73);
   });

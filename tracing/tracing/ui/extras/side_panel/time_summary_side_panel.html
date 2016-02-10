@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/base/units/time_duration.html">
+<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/pie_chart.html">
@@ -214,7 +214,7 @@ found in the LICENSE file.
           data.push({
             label: resultsForGroup.name,
             value: value,
-            valueText: tr.b.u.TimeDuration.format(value),
+            valueText: tr.b.u.Unit.byName.timeDurationInMs.format(value),
             resultsForGroup: resultsForGroup
           });
         }
@@ -363,7 +363,7 @@ found in the LICENSE file.
           extraData.push({
             label: 'CPU Idle',
             value: idleTime,
-            valueText: tr.b.u.TimeDuration.format(idleTime)
+            valueText: tr.b.u.Unit.byName.timeDurationInMs.format(idleTime)
           });
           extraValue += idleTime;
         }
