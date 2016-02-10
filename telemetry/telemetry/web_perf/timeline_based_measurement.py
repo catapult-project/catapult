@@ -206,10 +206,12 @@ class Options(object):
     return self._config
 
   def SetTimelineBasedMetrics(self, metrics):
-    self.SetLegacyTimelineBasedMetrics(metrics)
+    # TODO(eakuefner@): implement this
+    raise NotImplementedError()
 
   def GetTimelineBasedMetrics(self):
-    return self.GetLegacyTimelineBasedMetrics()
+    # TODO(eakuefner@): implement this
+    raise NotImplementedError()
 
   def SetLegacyTimelineBasedMetrics(self, metrics):
     assert isinstance(metrics, collections.Iterable)
