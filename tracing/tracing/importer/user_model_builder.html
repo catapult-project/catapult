@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/tracing/extras/rail/find_input_irs.html">
+<link rel="import" href="/tracing/importer/find_input_expectations.html">
 <link rel="import" href="/tracing/extras/rail/proto_ir.html">
 <link rel="import" href="/tracing/model/event_info.html">
 <link rel="import" href="/tracing/model/ir_coverage.html">
@@ -19,7 +19,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.rail', function() {
+tr.exportTo('tr.importer', function() {
   var RENDER_FRAME_IMPL_PREFIX = 'RenderFrameImpl::';
   var CREATE_CHILD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'createChildFrame';
   var START_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didStartProvisionalLoad';
@@ -36,20 +36,21 @@ tr.exportTo('tr.e.rail', function() {
 
   var INSIGNIFICANT_MS = 1;
 
-  function RAILIRFinder(model, modelHelper) {
+  function UserModelBuilder(model, modelHelper) {
     this.model = model;
     this.modelHelper = modelHelper;
   };
 
-  RAILIRFinder.supportsModelHelper = function(modelHelper) {
+  UserModelBuilder.supportsModelHelper = function(modelHelper) {
     return modelHelper.browserHelper !== undefined;
   };
 
-  RAILIRFinder.prototype = {
+  UserModelBuilder.prototype = {
     findAllInteractionRecords: function() {
       var rirs = [];
       rirs.push.apply(rirs, this.findLoadExpectations());
-      rirs.push.apply(rirs, tr.e.rail.findInputIRs(this.modelHelper));
+      rirs.push.apply(rirs, tr.importer.findInputExpectations(
+          this.modelHelper));
       // findIdleExpectations must be called last!
       rirs.push.apply(rirs, this.findIdleExpectations(rirs));
       this.collectUnassociatedEvents_(rirs);
@@ -120,7 +121,7 @@ tr.exportTo('tr.e.rail', function() {
         frameEvents.push.apply(frameEvents, renderer.getFrameEventsInRange(
             tr.model.helpers.IMPL_FRAMETIME_TYPE, this.model.bounds));
       }, this);
-      return frameEvents.sort(tr.e.rail.compareEvents);
+      return frameEvents.sort(tr.importer.compareEvents);
     },
 
     getStartLoadEvents: function() {
@@ -128,7 +129,7 @@ tr.exportTo('tr.e.rail', function() {
         return slice.title === START_LOAD_TITLE;
       }
       return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isStartLoadSlice).sort(tr.e.rail.compareEvents);
+          isStartLoadSlice).sort(tr.importer.compareEvents);
     },
 
     getFailLoadEvents: function() {
@@ -136,7 +137,7 @@ tr.exportTo('tr.e.rail', function() {
         return slice.title === FAIL_LOAD_TITLE;
       }
       return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isFailLoadSlice).sort(tr.e.rail.compareEvents);
+          isFailLoadSlice).sort(tr.importer.compareEvents);
     },
 
     // If a thread contains a typical initialization slice, then the first event
@@ -334,7 +335,7 @@ tr.exportTo('tr.e.rail', function() {
       modelEvents.addEventSet(ir.sourceEvents);
     });
     modelEvents = modelEvents.toArray();
-    modelEvents.sort(tr.e.rail.compareEvents);
+    modelEvents.sort(tr.importer.compareEvents);
 
     modelEvents.forEach(function(event) {
       var startAndEnd = 'start: ' + parseInt(event.start) + ', ' +
@@ -349,7 +350,7 @@ tr.exportTo('tr.e.rail', function() {
         modelLines.push('      audits.addFlingAnimationEvent(model,');
       } else if (event.title === tr.model.helpers.IMPL_RENDERING_STATS) {
         modelLines.push('      audits.addFrameEvent(model,');
-      } else if (event.title === tr.e.rail.CSS_ANIMATION_TITLE) {
+      } else if (event.title === tr.importer.CSS_ANIMATION_TITLE) {
         modelLines.push('      audits.addEvent(model.rendererMain, {');
         modelLines.push('        title: \'Animation\', ' + startAndEnd);
         return;
@@ -416,7 +417,7 @@ tr.exportTo('tr.e.rail', function() {
   }
 
   return {
-    RAILIRFinder: RAILIRFinder,
+    UserModelBuilder: UserModelBuilder,
     createIRFinderTestCaseStringFromModel: createIRFinderTestCaseStringFromModel
   };
 });
