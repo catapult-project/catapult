@@ -5,25 +5,60 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
-<link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/base/range_utils.html">
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/model/compound_event_selection_state.html">
+<link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/model/timed_event.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.model.um', function() {
+  var CompoundEventSelectionState = tr.model.CompoundEventSelectionState;
+
   function UserExpectation(parentModel, initiatorTitle, start, duration) {
+    tr.model.TimedEvent.call(this, start);
+    this.associatedEvents = new tr.model.EventSet();
+    this.duration = duration;
     this.initiatorTitle_ = initiatorTitle;
+    this.parentModel = parentModel;
     this.typeInfo_ = undefined;
 
-    tr.model.InteractionRecord.call(
-        this, parentModel, -1, start, duration);
+    // sourceEvents are the ones that caused the IR Finder to create this IR.
+    this.sourceEvents = new tr.model.EventSet();
   }
 
   UserExpectation.prototype = {
-    __proto__: tr.model.InteractionRecord.prototype,
+    __proto__: tr.model.TimedEvent.prototype,
+
+    computeCompoundEvenSelectionState: function(selection) {
+      var cess = CompoundEventSelectionState.NOT_SELECTED;
+      if (selection.contains(this))
+        cess |= CompoundEventSelectionState.EVENT_SELECTED;
+
+      if (this.associatedEvents.intersectionIsEmpty(selection))
+        return cess;
+
+      var allContained = this.associatedEvents.every(function(event) {
+        return selection.contains(event);
+      });
+
+      if (allContained)
+        cess |= CompoundEventSelectionState.ALL_ASSOCIATED_EVENTS_SELECTED;
+      else
+        cess |= CompoundEventSelectionState.SOME_ASSOCIATED_EVENTS_SELECTED;
+      return cess;
+    },
+
+    get userFriendlyName() {
+      return this.title + ' User Expectation at ' +
+          tr.b.u.Unit.byName.timeStampInMs.format(this.start);
+    },
+
+    get stableId() {
+      return 'IR.' + this.parentModel.interactionRecords.indexOf(this);
+    },
 
     get typeInfo() {
       if (!this.typeInfo_)
@@ -93,9 +128,8 @@ tr.exportTo('tr.model.um', function() {
       {
         name: 'user-expectation',
         pluralName: 'user-expectations',
-        singleViewElementName:
-          'tr-ui-a-single-rail-interaction-record-sub-view',
-        multiViewElementName: 'tr-ui-a-multi-interaction-record-sub-view'
+        singleViewElementName: 'tr-ui-a-single-user-expectation-sub-view',
+        multiViewElementName: 'tr-ui-a-multi-user-expectation-sub-view'
       });
 
   return {

@@ -7,11 +7,16 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
+<link rel="import" href="/tracing/metrics/system_health/system_health_metric.html">
 
-<polymer-element name="tr-ui-a-single-rail-interaction-record-sub-view"
+<polymer-element name="tr-ui-a-single-user-expectation-sub-view"
     extends="tr-ui-a-sub-view">
   <script>
   'use strict';
+
+  var ResponsivenessMetric = tr.metrics.sh.ResponsivenessMetric;
+  var SystemHealthMetric = tr.metrics.sh.SystemHealthMetric;
+  var EfficiencyMetric = tr.metrics.sh.EfficiencyMetric;
 
   Polymer({
     created: function() {
@@ -25,43 +30,43 @@ found in the LICENSE file.
 
     set selection(selection) {
       this.textContent = '';
-      this.realView_ = document.createElement(
-          'tr-ui-a-single-interaction-record-sub-view');
+      this.realView_ = document.createElement('tr-ui-a-single-event-sub-view');
       this.realView_.addEventListener('customize-rows',
           this.onCustomizeRows_.bind(this));
 
       this.appendChild(this.realView_);
       this.currentSelection_ = selection;
-      this.realView_.selection = selection;
+      this.realView_.setSelectionWithoutErrorChecks(selection);
     },
 
     get relatedEventsToHighlight() {
-      if (!this.realView_)
+      if (!this.currentSelection_)
         return undefined;
-      return this.realView_.relatedEventsToHighlight;
+      return this.currentSelection_[0].associatedEvents;
     },
 
     onCustomizeRows_: function(event) {
       var ir = this.selection[0];
-      event.rows.push({
-        name: 'RAIL Score',
-        value: tr.ui.b.toThreeDigitLocaleString(ir.railScore)
+
+      var metrics = [
+        {name: 'System Health', metric: SystemHealthMetric},
+        {name: 'Responsiveness', metric: ResponsivenessMetric},
+        {name: 'Efficiency', metric: EfficiencyMetric}];
+
+      metrics.forEach(function(spec) {
+        var score = spec.metric.forExpectation(ir);
+        if (score === undefined)
+          return;
+
+        event.rows.push({
+          name: spec.name,
+          value: tr.ui.b.toThreeDigitLocaleString(score)
+        });
       });
-      event.rows.push({
-        name: 'Comfort',
-        value: tr.ui.b.toThreeDigitLocaleString(ir.normalizedUserComfort)
-      });
-      event.rows.push({
-        name: 'Efficiency',
-        value: tr.ui.b.toThreeDigitLocaleString(ir.normalizedEfficiency)
-      });
-      event.rows.push({
-        name: 'CPU Efficiency',
-        value: tr.ui.b.toThreeDigitLocaleString(ir.normalizedCpuEfficiency)
-      });
+
       if (ir.rawCpuMs) {
         var cpuEl = document.createElement('tr-ui-u-time-duration-span');
-        cpuEl.duration = ir.rawCpuMs;
+        cpuEl.duration = ir.totalCpuMs;
         event.rows.push({name: 'Total CPU', value: cpuEl});
       }
     }

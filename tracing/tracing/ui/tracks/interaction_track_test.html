@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 <link rel="import" href="/tracing/ui/timeline_viewport.html">
 <link rel="import" href="/tracing/ui/tracks/interaction_track.html">
 
@@ -14,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  // InteractionRecords should be sorted by start time, not title, so that
+  // UserExpectations should be sorted by start time, not title, so that
   // AsyncSliceGroupTrack.buildSubRows_ can lay them out in as few tracks as
   // possible, so that they mesh instead of stacking unnecessarily.
   test('instantiate', function() {
@@ -27,16 +28,16 @@ tr.b.unittest.testSuite(function() {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSlice(0, 200));
-      model.interactionRecords.push(new tr.model.InteractionRecord(
-          model, 0, 100, 100));
-      model.interactionRecords.push(new tr.model.InteractionRecord(
-          model, 1, 0, 100));
-      model.interactionRecords.push(new tr.model.InteractionRecord(
-          model, 2, 150, 50));
-      model.interactionRecords.push(new tr.model.InteractionRecord(
-          model, 3, 50, 100));
-      model.interactionRecords.push(new tr.model.InteractionRecord(
-          model, 4, 0, 50));
+      model.interactionRecords.push(new tr.model.um.StubExpectation(
+          {parentModel: model, start: 100, duration: 100}));
+      model.interactionRecords.push(new tr.model.um.StubExpectation(
+          {parentModel: model, start: 0, duration: 100}));
+      model.interactionRecords.push(new tr.model.um.StubExpectation(
+          {parentModel: model, start: 150, duration: 50}));
+      model.interactionRecords.push(new tr.model.um.StubExpectation(
+          {parentModel: model, start: 50, duration: 100}));
+      model.interactionRecords.push(new tr.model.um.StubExpectation(
+          {parentModel: model, start: 0, duration: 50}));
       // Model.createImportTracesTask() automatically sorts IRs by start time.
     });
     assert.equal(2, track.subRows_.length);

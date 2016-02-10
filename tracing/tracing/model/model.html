@@ -21,7 +21,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/frame.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/instant_event.html">
-<link rel="import" href="/tracing/model/interaction_record.html">
 <link rel="import" href="/tracing/model/kernel.html">
 <link rel="import" href="/tracing/model/model_indices.html">
 <link rel="import" href="/tracing/model/model_stats.html">
@@ -30,6 +29,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/sample.html">
 <link rel="import" href="/tracing/model/stack_frame.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 
 <script>
@@ -59,7 +59,7 @@ tr.exportTo('tr', function() {
   var GlobalInstantEvent = tr.model.GlobalInstantEvent;
   var FlowEvent = tr.model.FlowEvent;
   var Alert = tr.model.Alert;
-  var InteractionRecord = tr.model.InteractionRecord;
+  var UserExpectation = tr.model.um.UserExpectation;
   var Sample = tr.model.Sample;
 
   // TODO(charliea): Rethink what ClockSyncRecords should look like in the
@@ -159,7 +159,7 @@ tr.exportTo('tr', function() {
       if (eventTypePredicate.call(opt_this, Alert))
         this.alerts.forEach(callback, opt_this);
 
-      if (eventTypePredicate.call(opt_this, InteractionRecord))
+      if (eventTypePredicate.call(opt_this, UserExpectation))
         this.interactionRecords.forEach(callback, opt_this);
 
       if (eventTypePredicate.call(opt_this, Sample))
