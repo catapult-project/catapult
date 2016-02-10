@@ -12,7 +12,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.e.rail', function() {
+tr.exportTo('tr.importer', function() {
   var ProtoIR = tr.e.rail.ProtoIR;
 
   var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
@@ -940,7 +940,7 @@ tr.exportTo('tr.e.rail', function() {
   }
 
   // Find ProtoIRs, post-process them, convert them to real IRs.
-  function findInputIRs(modelHelper) {
+  function findInputExpectations(modelHelper) {
     var sortedInputEvents = getSortedInputEvents(modelHelper);
     var protoIRs = findProtoIRs(modelHelper, sortedInputEvents);
     protoIRs = postProcessProtoIRs(protoIRs);
@@ -956,7 +956,7 @@ tr.exportTo('tr.e.rail', function() {
   }
 
   return {
-    findInputIRs: findInputIRs,
+    findInputExpectations: findInputExpectations,
     compareEvents: compareEvents,
     CSS_ANIMATION_TITLE: CSS_ANIMATION_TITLE
   };
