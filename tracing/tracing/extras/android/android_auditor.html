@@ -4,16 +4,17 @@ Copyright (c) 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/units/scalar.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/model/alert.html">
 <link rel="import" href="/tracing/model/frame.html">
-<link rel="import" href="/tracing/model/interaction_record.html">
 <link rel="import" href="/tracing/model/helpers/android_model_helper.html">
-<link rel="import" href="/tracing/base/range_utils.html">
+<link rel="import" href="/tracing/model/user_model/response_expectation.html">
 
 <script>
 'use strict';
@@ -28,7 +29,6 @@ tr.exportTo('tr.e.audits', function() {
   var ColorScheme = tr.b.ColorScheme;
   var Statistics = tr.b.Statistics;
   var FRAME_PERF_CLASS = tr.model.FRAME_PERF_CLASS;
-  var InteractionRecord = tr.model.InteractionRecord;
   var Alert = tr.model.Alert;
   var EventInfo = tr.model.EventInfo;
   var Scalar = tr.b.u.Scalar;
@@ -531,9 +531,8 @@ tr.exportTo('tr.e.audits', function() {
       });
 
       var mergerFunction = function(events) {
-        var ir = new InteractionRecord(
+        var ir = new tr.model.um.ResponseExpectation(
             this.model, 'Rendering',
-            ColorScheme.getColorIdForGeneralPurposeString('mt_rendering'),
             events[0].min,
             events[events.length - 1].max - events[0].min);
         this.model.addInteractionRecord(ir);
@@ -548,9 +547,8 @@ tr.exportTo('tr.e.audits', function() {
       });
 
       var mergerFunction = function(events) {
-        var ir = new InteractionRecord(
+        var ir = new tr.model.um.ResponseExpectation(
             this.model, 'Input',
-            ColorScheme.getColorIdForGeneralPurposeString('mt_input'),
             events[0].min,
             events[events.length - 1].max - events[0].min);
         this.model.addInteractionRecord(ir);

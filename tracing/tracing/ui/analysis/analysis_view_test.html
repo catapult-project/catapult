@@ -10,9 +10,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/counter_sample.html">
 <link rel="import" href="/tracing/model/counter_series.html">
 <link rel="import" href="/tracing/model/event_set.html">
-<link rel="import" href="/tracing/model/interaction_record.html">
+<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_view.html">
 <link rel="import" href="/tracing/ui/brushing_state_controller.html">
+<link rel="import" href="/tracing/ui/extras/full_config.html">
 
 <script>
 'use strict';
@@ -26,7 +27,7 @@ tr.b.unittest.testSuite(function() {
   var CounterSample = tr.model.CounterSample;
   var newThreadSlice = tr.c.TestUtils.newThreadSlice;
   var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
-  var InteractionRecord = tr.model.InteractionRecord;
+  var StubExpectation = tr.model.um.StubExpectation;
 
   function assertEventSet(actualEventSet, expectedEvents) {
     var expectedEventSet = new EventSet(expectedEvents);
@@ -55,10 +56,12 @@ tr.b.unittest.testSuite(function() {
     var slice2 = newThreadSlice(thread, SCHEDULING_STATE.SLEEPING, 1, 2.718);
     thread.timeSlices = [slice1, slice2];
 
-    var record1 = new InteractionRecord(model, 'r1', 0, 200, 300);
+    var record1 = new StubExpectation(
+        {parentModel: model, initiatorTitle: 'r1', start: 200, duration: 300});
     record1.associatedEvents.push(sample1);
     record1.associatedEvents.push(slice1);
-    var record2 = new InteractionRecord(model, 'r2', 0, 600, 100);
+    var record2 = new StubExpectation(
+        {parentModel: model, initiatorTitle: 'r2', start: 600, duration: 100});
     record2.associatedEvents.push(sample2);
     record2.associatedEvents.push(sample3);
     record2.associatedEvents.push(slice1);
@@ -99,8 +102,8 @@ tr.b.unittest.testSuite(function() {
     tabView.selectedTab = singleThreadSliceTab2;
     checkSelectedTab(singleThreadSliceTab2, []);
 
-    // 4. Event selection: one sample, two thread slices, and one interaction
-    // record.
+    // 4. Event selection: one sample, two thread slices, and one
+    // user expectation.
     controller.changeSelectionFromRequestSelectionChangeEvent(
         new EventSet([slice1, slice2, sample3, record1]));
     assert.lengthOf(tabView.tabs, 3);
@@ -112,7 +115,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(sampleTab4, sampleTab2);
     var singleRecordTab4 = tabView.tabs[2];
     checkTab(singleRecordTab4,
-        'tr-ui-a-single-interaction-record-sub-view',
+        'tr-ui-a-single-user-expectation-sub-view',
         [record1]);
     var multiThreadSliceTab4 = tabView.tabs[0];
     checkTab(multiThreadSliceTab4,
@@ -121,17 +124,17 @@ tr.b.unittest.testSuite(function() {
     // Remember selected tab (even though the tab was destroyed).
     checkSelectedTab(multiThreadSliceTab4, []);
 
-    // 5. Tab selection: single interaction record tab.
+    // 5. Tab selection: single user expectation tab.
     tabView.selectedTab = singleRecordTab4;
     checkSelectedTab(singleRecordTab4, [sample1, slice1]);
 
-    // 6. Event selection: one interaction record.
+    // 6. Event selection: one user expectation.
     controller.changeSelectionFromRequestSelectionChangeEvent(
         new EventSet([record2]));
     assert.lengthOf(tabView.tabs, 1);
     var singleRecordTab6 = tabView.tabs[0];
     checkTab(singleRecordTab6,
-        'tr-ui-a-single-interaction-record-sub-view',
+        'tr-ui-a-single-user-expectation-sub-view',
         [record2]);
     // Reuse tab (same event type and sub-view tag name).
     assert.strictEqual(singleRecordTab6, singleRecordTab4);

@@ -7,12 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/counter.html">
-<link rel="import" href="/tracing/model/interaction_record.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/slice.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/stack_frame.html">
 <link rel="import" href="/tracing/model/thread_time_slice.html">
+<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 
 <script>
 'use strict';
@@ -68,12 +68,12 @@ tr.exportTo('tr.c', function() {
   TestUtils.getStartAndDurationFromDict = function(options) {
     return _getStartAndCpuDurationFromDict(
         options, true, 'start', 'duration', 'end');
-  }
+  };
 
   TestUtils.newAsyncSlice = function(start, duration, startThread, endThread) {
     return TestUtils.newAsyncSliceNamed(
         'a', start, duration, startThread, endThread);
-  }
+  };
 
   TestUtils.newAsyncSliceNamed = function(
       name, start, duration, startThread, endThread) {
@@ -85,7 +85,7 @@ tr.exportTo('tr.c', function() {
     s.startThread = startThread;
     s.endThread = endThread;
     return s;
-  }
+  };
 
   TestUtils.newAsyncSliceEx = function(options) {
     var sd = TestUtils.getStartAndDurationFromDict(options);
@@ -140,26 +140,26 @@ tr.exportTo('tr.c', function() {
     if (options.endThread)
       slice.endThread = options.endThread;
     return slice;
-  }
+  };
 
   TestUtils.newCounter = function(parent) {
     return TestUtils.newCounterNamed(parent, 'a');
-  }
+  };
 
   TestUtils.newCounterNamed = function(parent, name) {
     var s = new tr.model.Counter(parent, name, null, name);
     return s;
-  }
+  };
 
   TestUtils.newCounterCategory = function(parent, category, name) {
     var s = new tr.model.Counter(parent, name, category, name);
     return s;
-  }
+  };
 
   TestUtils.newCounterSeries = function() {
     var s = new tr.model.CounterSeries('a', 0);
     return s;
-  }
+  };
 
   TestUtils.newFlowEventEx = function(options) {
     if (options.start === undefined)
@@ -201,16 +201,16 @@ tr.exportTo('tr.c', function() {
       event.endSlice.inFlowEvents.push(event);
     }
     return event;
-  }
+  };
 
   TestUtils.newSlice = function(start, duration) {
     return TestUtils.newSliceNamed('a', start, duration);
-  }
+  };
 
   TestUtils.newSliceNamed = function(name, start, duration) {
     var s = new tr.model.Slice('', name, 0, start, {}, duration);
     return s;
-  }
+  };
 
   TestUtils.newThreadSlice = function(thread, state, start, duration, opt_cpu) {
     var s = new tr.model.ThreadTimeSlice(
@@ -218,7 +218,7 @@ tr.exportTo('tr.c', function() {
     if (opt_cpu)
       s.cpuOnWhichThreadWasRunning = opt_cpu;
     return s;
-  }
+  };
 
   TestUtils.newSampleNamed = function(
       thread, sampleName, category, frameNames, start) {
@@ -233,13 +233,13 @@ tr.exportTo('tr.c', function() {
                                         sf,
                                         1);
     return s;
-  }
+  };
 
   TestUtils.newSliceCategory = function(category, name, start, duration) {
     var s = new tr.model.Slice(
         category, name, 0, start, {}, duration);
     return s;
-  }
+  };
 
   TestUtils.newSliceEx = function(options) {
     var sd = TestUtils.getStartAndDurationFromDict(options);
@@ -267,7 +267,7 @@ tr.exportTo('tr.c', function() {
 
 
     return slice;
-  }
+  };
 
   TestUtils.newStackTrace = function(model, titles) {
     var frame = undefined;
@@ -277,7 +277,7 @@ tr.exportTo('tr.c', function() {
         model.addStackFrame(frame);
     });
     return frame;
-  }
+  };
 
   TestUtils.findSliceNamed = function(slices, name) {
     if (slices instanceof tr.model.SliceGroup)
@@ -286,11 +286,12 @@ tr.exportTo('tr.c', function() {
       if (slices[i].title == name)
         return slices[i];
       return undefined;
-  }
+  };
 
   TestUtils.newInteractionRecord = function(parentModel, start, duration) {
-    return new tr.model.InteractionRecord(parentModel, 'a', 0, start, duration);
-  }
+    return new tr.model.um.StubExpectation({
+      parentModel: parentModel, start: start, duration: duration});
+  };
 
   TestUtils.newModel = function(customizeModelCallback) {
     return TestUtils.newModelWithEvents([], {
@@ -298,7 +299,7 @@ tr.exportTo('tr.c', function() {
       pruneEmptyContainers: false,
       customizeModelCallback: customizeModelCallback
     });
-  }
+  };
 
   TestUtils.newModelWithEvents = function(events, opts) {
     if (!(events instanceof Array))
@@ -320,7 +321,7 @@ tr.exportTo('tr.c', function() {
     var i = new tr.importer.Import(m, io);
     i.importTraces(events);
     return m;
-  }
+  };
 
   TestUtils.newModelWithAuditor = function(customizeModelCallback, auditor) {
     return TestUtils.newModelWithEvents([], {
@@ -329,12 +330,12 @@ tr.exportTo('tr.c', function() {
       customizeModelCallback: customizeModelCallback,
       auditorConstructors: [auditor]
     });
-  }
+  };
 
   TestUtils.newFakeThread = function() {
     var process = {model: {}};
     return new tr.model.Thread(process);
-  }
+  };
 
   return {
     TestUtils: TestUtils

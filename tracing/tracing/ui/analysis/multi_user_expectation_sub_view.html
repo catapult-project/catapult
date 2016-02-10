@@ -5,10 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/ui/analysis/multi_event_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-interaction-record-sub-view"
+<polymer-element name="tr-ui-a-multi-user-expectation-sub-view"
     extends="tr-ui-a-sub-view">
   <script>
   'use strict';
@@ -18,31 +19,31 @@ found in the LICENSE file.
       this.currentSelection_ = undefined;
     },
 
-    get selection() {
-      return this.currentSelection_;
-    },
-
     set selection(selection) {
+      this.currentSelection_ = selection;
       this.textContent = '';
-      var realView = document.createElement('tr-ui-a-single-event-sub-view');
-      realView.addEventListener('customize-rows',
-          this.onCustomizeRows_.bind(this));
+      var realView = document.createElement('tr-ui-a-multi-event-sub-view');
 
       this.appendChild(realView);
       realView.setSelectionWithoutErrorChecks(selection);
+
       this.currentSelection_ = selection;
     },
 
-    onCustomizeRows_: function(event) {
-      var event2 = new tr.b.Event('customize-rows');
-      event2.rows = event.rows;
-      this.dispatchEvent(event2);
+    get selection() {
+      return this.currentSelection_;
     },
 
     get relatedEventsToHighlight() {
       if (!this.currentSelection_)
         return undefined;
-      return this.currentSelection_[0].associatedEvents;
+      var selection = new tr.model.EventSet();
+      this.currentSelection_.forEach(function(ir) {
+        ir.associatedEvents.forEach(function(event) {
+          selection.push(event);
+        });
+      });
+      return selection;
     }
   });
   </script>
