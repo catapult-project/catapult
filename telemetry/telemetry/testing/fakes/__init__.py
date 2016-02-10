@@ -250,6 +250,12 @@ class _FakeCredentials(object):
 
 
 class _FakeNetworkController(object):
+  def Open(self):
+    pass
+
+  def Close(self):
+    pass
+
   def SetReplayArgs(self, *args, **kwargs):
     pass
 

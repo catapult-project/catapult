@@ -20,8 +20,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self._options = options_for_unittests.GetCopy()
     self._stubs = system_stub.Override(
         android_platform_backend,
-        ['perf_control', 'thermal_throttle', 'certutils', 'adb_install_cert',
-         'platformsettings'])
+        ['perf_control', 'thermal_throttle'])
 
     # Skip _FixPossibleAdbInstability by setting psutil to None.
     self._actual_ps_util = android_platform_backend.psutil
@@ -109,17 +108,15 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       for state in result[cpu]:
         self.assertAlmostEqual(result[cpu][state], expected_cstate[cpu][state])
 
-  def testInstallTestCaFailure(self):
-    backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('failure'), self._options)
-    backend.InstallTestCa()
-    self.assertFalse(backend.is_test_ca_installed)
-
   def testInstallTestCaSuccess(self):
     backend = android_platform_backend.AndroidPlatformBackend(
         android_device.AndroidDevice('success'), self._options)
-    backend.InstallTestCa()
-    self.assertTrue(backend.is_test_ca_installed)
+    with mock.patch('adb_install_cert.AndroidCertInstaller'):
+      backend.InstallTestCa('testca.pem')
+      self.assertTrue(backend.is_test_ca_installed)
+
+      backend.RemoveTestCa()
+      self.assertFalse(backend.is_test_ca_installed)
 
   def testIsScreenLockedTrue(self):
     test_input = ['a=b', 'mHasBeenInactive=true']
