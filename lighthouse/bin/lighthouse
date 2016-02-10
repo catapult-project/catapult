@@ -4,16 +4,4 @@
 // found in the LICENSE file.
 'use strict';
 
-var fs = require('fs');
-var path = require('path');
-
-var catapultPath = fs.realpathSync(path.join(__dirname, '..', '..'));
-var catapultBuildPath = path.join(catapultPath, 'catapult_build');
-
-var node_bootstrap = require(path.join(catapultBuildPath, 'node_bootstrap.js'));
-
-HTMLImportsLoader.addArrayToSourcePath(
-    node_bootstrap.getSourcePathsForProject('lighthouse'));
-
-// Go!
-HTMLImportsLoader.loadHTML('/lighthouse/core/lighthouse.html');
+require('../../lighthouse');
