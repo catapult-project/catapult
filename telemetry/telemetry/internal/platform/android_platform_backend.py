@@ -168,11 +168,10 @@ class AndroidPlatformBackend(
     return self._system_ui
 
   def IsSvelte(self):
-    try:
-      self._device.RunShellCommand(
-          'getprop ro.build.description | grep svelte', check_return=True)
-      return True
-    except device_errors.AdbCommandFailedError:
+    description = self._device.GetProp('ro.build.description', cache=True)
+    if description is not None:
+      return 'svelte' in description
+    else:
       return False
 
   def IsDisplayTracingSupported(self):

@@ -12,7 +12,6 @@ from telemetry.testing import system_stub
 import mock
 
 from devil.android import battery_utils
-from devil.android import device_errors
 from devil.android import device_utils
 
 class AndroidPlatformBackendTest(unittest.TestCase):
@@ -46,16 +45,16 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
   @decorators.Disabled('chromeos')
   def testIsSvelte(self):
-    with mock.patch('devil.android.device_utils.DeviceUtils.RunShellCommand',
-                    return_value=0):
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='svelte'):
       backend = android_platform_backend.AndroidPlatformBackend(
           android_device.AndroidDevice('12345'), self._options)
       self.assertTrue(backend.IsSvelte())
 
   @decorators.Disabled('chromeos')
   def testIsNotSvelte(self):
-    with mock.patch('devil.android.device_utils.DeviceUtils.RunShellCommand',
-                    side_effect=device_errors.AdbCommandFailedError('m', 'n')):
+    with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
+                    return_value='foo'):
       backend = android_platform_backend.AndroidPlatformBackend(
           android_device.AndroidDevice('12345'), self._options)
       self.assertFalse(backend.IsSvelte())
