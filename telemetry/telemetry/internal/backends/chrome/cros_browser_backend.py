@@ -26,14 +26,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri = cri
     self._is_guest = is_guest
     self._forwarder = None
-    self.wpr_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(self.wpr_port_pairs.http.local_port,
-                                 self._platform_backend.GetRemotePort(
-                                     self.wpr_port_pairs.http.local_port)),
-        https=forwarders.PortPair(self.wpr_port_pairs.https.local_port,
-                                  self._platform_backend.GetRemotePort(
-                                      self.wpr_port_pairs.http.local_port)),
-        dns=None)
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
 
@@ -117,6 +109,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._cri.RunCmdOnDevice(args)
 
     if not self._cri.local:
+      # TODO(crbug.com/404771): Move port forwarding to network_controller.
       self._port = util.GetUnreservedAvailableLocalPort()
       self._forwarder = self._platform_backend.forwarder_factory.Create(
           forwarders.PortPairs(

@@ -17,9 +17,7 @@ from telemetry.internal.backends.chrome import tab_list_backend
 from telemetry.internal.backends.chrome_inspector import devtools_client_backend
 from telemetry.internal.browser import user_agent
 from telemetry.internal.browser import web_contents
-from telemetry.internal import forwarders
 from telemetry.testing import options_for_unittests
-from telemetry.util import wpr_modes
 
 
 class ChromeBrowserBackend(browser_backend.BrowserBackend):
@@ -43,17 +41,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
 
     self._output_profile_path = output_profile_path
     self._extensions_to_load = extensions_to_load
-
-    if browser_options.netsim:
-      self.wpr_port_pairs = forwarders.PortPairs(
-          http=forwarders.PortPair(80, 80),
-          https=forwarders.PortPair(443, 443),
-          dns=forwarders.PortPair(53, 53))
-    else:
-      self.wpr_port_pairs = forwarders.PortPairs(
-          http=forwarders.PortPair(0, 0),
-          https=forwarders.PortPair(0, 0),
-          dns=None)
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):
@@ -135,6 +122,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
       args.append('--v=1')
     return args
 
+  # TODO(crbug.com/404771): Move this check to network_controller_backend
   def _UseHostResolverRules(self):
     """Returns True to add --host-resolver-rules to send requests to replay."""
     if self._platform_backend.forwarder_factory.does_forwarder_override_dns:
@@ -150,25 +138,25 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return True
 
   def GetReplayBrowserStartupArgs(self):
-    if self.browser_options.wpr_mode == wpr_modes.WPR_OFF:
+    network_backend = self.platform_backend.network_controller_backend
+    if not network_backend.is_replay_active:
       return []
     replay_args = []
-    if not self._platform_backend.is_test_ca_installed:
+    if not network_backend.is_test_ca_installed:
       # Ignore certificate errors if the platform backend has not created
       # and installed a root certificate.
       replay_args.append('--ignore-certificate-errors')
     if self._UseHostResolverRules():
       # Force hostnames to resolve to the replay's host_ip.
       replay_args.append('--host-resolver-rules=MAP * %s,EXCLUDE localhost' %
-                         self._platform_backend.forwarder_factory.host_ip)
+                         network_backend.host_ip)
     # Force the browser to send HTTP/HTTPS requests to fixed ports if they
     # are not the standard HTTP/HTTPS ports.
-    http_port = self.platform_backend.wpr_http_device_port
-    https_port = self.platform_backend.wpr_https_device_port
-    if http_port != 80:
-      replay_args.append('--testing-fixed-http-port=%s' % http_port)
-    if https_port != 443:
-      replay_args.append('--testing-fixed-https-port=%s' % https_port)
+    device_ports = network_backend.wpr_device_ports
+    if device_ports.http != 80:
+      replay_args.append('--testing-fixed-http-port=%s' % device_ports.http)
+    if device_ports.https != 443:
+      replay_args.append('--testing-fixed-https-port=%s' % device_ports.https)
     return replay_args
 
   def HasBrowserFinishedLaunching(self):

@@ -3,23 +3,29 @@
 # found in the LICENSE file.
 
 import unittest
+import mock
 
+from telemetry.internal import forwarders
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.util import wpr_modes
 
 
 class FakePlatformBackend(object):
-  def __init__(self, wpr_http_device_port, wpr_https_device_port,
-               is_host_platform, does_forwarder_override_dns):
-    self.wpr_http_device_port = wpr_http_device_port
-    self.wpr_https_device_port = wpr_https_device_port
-    self.does_forwarder_override_dns = does_forwarder_override_dns
+  def __init__(self, is_replay_active, wpr_http_device_port,
+               wpr_https_device_port, is_host_platform,
+               does_forwarder_override_dns):
     self.is_host_platform = is_host_platform
-    self.is_test_ca_installed = False
 
-  @property
-  def forwarder_factory(self):
-    return FakeForwarderFactory(self.does_forwarder_override_dns)
+    self.forwarder_factory = mock.Mock()
+    self.forwarder_factory.does_forwarder_override_dns = (
+        does_forwarder_override_dns)
+
+    self.network_controller_backend = mock.Mock()
+    self.network_controller_backend.is_replay_active = is_replay_active
+    self.network_controller_backend.wpr_device_ports = forwarders.PortSet(
+        http=wpr_http_device_port, https=wpr_https_device_port, dns=None)
+    self.network_controller_backend.host_ip = '127.0.0.1'
+    self.network_controller_backend.is_test_ca_installed = False
 
 
 class FakeBrowserOptions(object):
@@ -37,13 +43,6 @@ class FakeBrowserOptions(object):
     self.enable_logging = False
 
 
-class FakeForwarderFactory(object):
-  host_ip = '127.0.0.1'
-
-  def __init__(self, does_forwarder_override_dns):
-    self.does_forwarder_override_dns = does_forwarder_override_dns
-
-
 class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   # The test does not need to define the abstract methods.
   # pylint: disable=abstract-method
@@ -53,6 +52,7 @@ class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                is_running_locally=False):
     super(TestChromeBrowserBackend, self).__init__(
         platform_backend=FakePlatformBackend(
+            browser_options.wpr_mode != wpr_modes.WPR_OFF,
             wpr_http_device_port, wpr_https_device_port, is_running_locally,
             does_forwarder_override_dns),
         supports_tab_control=False,

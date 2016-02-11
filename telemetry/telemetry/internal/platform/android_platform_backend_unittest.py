@@ -113,10 +113,10 @@ class AndroidPlatformBackendTest(unittest.TestCase):
         android_device.AndroidDevice('success'), self._options)
     with mock.patch('adb_install_cert.AndroidCertInstaller'):
       backend.InstallTestCa('testca.pem')
-      self.assertTrue(backend.is_test_ca_installed)
+      self.assertIsNotNone(backend._device_cert_util)
 
       backend.RemoveTestCa()
-      self.assertFalse(backend.is_test_ca_installed)
+      self.assertIsNone(backend._device_cert_util)
 
   def testIsScreenLockedTrue(self):
     test_input = ['a=b', 'mHasBeenInactive=true']
