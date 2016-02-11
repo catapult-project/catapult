@@ -29,6 +29,8 @@ def _FakeCalulateHashNewHash(_):
 class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
 
   def setUp(self):
+    self.original_environ = os.environ.copy()
+    os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
     self.setUpPyfakefs()
     self.fs.CreateFile(
         os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil', 'gsutil'))
@@ -39,6 +41,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
 
   def tearDown(self):
     self.tearDownPyfakefs()
+    os.environ = self.original_environ
 
   def _FakeRunCommand(self, cmd):
     pass
@@ -209,3 +212,27 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage.Copy('bucket1', 'bucket2', 'remote_path1', 'remote_path2')
     finally:
       cloud_storage._RunCommand = orig_run_command
+
+
+  @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
+  def testDisableCloudStorageIo(self, unused_lock_mock):
+    os.environ['DISABLE_CLOUD_STORAGE_IO'] = '1'
+    dir_path = 'real_dir_path'
+    self.fs.CreateDirectory(dir_path)
+    file_path = os.path.join(dir_path, 'file1')
+    file_path_sha = file_path + '.sha1'
+    self.CreateFiles([file_path, file_path_sha])
+    with open(file_path_sha, 'w') as f:
+      f.write('hash1234')
+    with self.assertRaises(cloud_storage.CloudStorageIODisabled):
+      cloud_storage.Copy('bucket1', 'bucket2', 'remote_path1', 'remote_path2')
+    with self.assertRaises(cloud_storage.CloudStorageIODisabled):
+      cloud_storage.Get('bucket', 'foo', file_path)
+    with self.assertRaises(cloud_storage.CloudStorageIODisabled):
+      cloud_storage.GetIfChanged(file_path, 'foo')
+    with self.assertRaises(cloud_storage.CloudStorageIODisabled):
+      cloud_storage.GetIfHashChanged('bar', file_path, 'bucket', 'hash1234')
+    with self.assertRaises(cloud_storage.CloudStorageIODisabled):
+      cloud_storage.Insert('bucket', 'foo', file_path)
+    with self.assertRaises(cloud_storage.CloudStorageIODisabled):
+      cloud_storage.GetFilesInDirectoryIfChanged(dir_path, 'bucket')
