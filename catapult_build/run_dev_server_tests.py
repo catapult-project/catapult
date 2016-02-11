@@ -231,6 +231,9 @@ def Main(argv):
       channel = args.channel
       if sys.platform == 'linux2' and channel == 'canary':
         channel = 'dev'
+        # Skip canary channel on Linux temporarily
+        # https://github.com/catapult-project/catapult/issues/1939
+        return 0
       assert channel in ['stable', 'beta', 'dev', 'canary']
 
 
