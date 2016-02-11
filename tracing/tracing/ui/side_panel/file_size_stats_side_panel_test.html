@@ -13,10 +13,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var test_utils = tr.c.TestUtils;
+  var TestUtils = tr.c.TestUtils;
 
   function createModel(opt_customizeModelCallback) {
-    return test_utils.newModel(function(model) {
+    return TestUtils.newModel(function(model) {
       var modelStats = model.stats;
       modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
       modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1');
