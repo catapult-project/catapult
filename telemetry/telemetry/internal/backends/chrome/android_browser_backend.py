@@ -13,7 +13,6 @@ from telemetry.internal.backends import android_command_line_backend
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
-from telemetry.internal import forwarders
 
 from devil.android.sdk import intent
 
@@ -59,14 +58,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             self._backend_settings.package,
             self._backend_settings.profile_ignore_list)
 
-    if self.browser_options.netsim:
-      assert self.platform_backend.use_rndis_forwarder, (
-          'Netsim requires RNDIS forwarding.')
-      self.wpr_port_pairs = forwarders.PortPairs(
-          http=forwarders.PortPair(0, 80),
-          https=forwarders.PortPair(0, 443),
-          dns=forwarders.PortPair(0, 53))
-
     # Set the debug app if needed.
     self.platform_backend.SetDebugApp(self._backend_settings.package)
 
@@ -110,6 +101,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
                         extras=user_agent_dict),
           blocking=True)
 
+      # TODO(crbug.com/404771): Move port forwarding to network_controller.
       remote_devtools_port = self._backend_settings.GetDevtoolsRemotePort(
           self.device)
       try:

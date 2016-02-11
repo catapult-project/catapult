@@ -81,10 +81,6 @@ class BrowserBackend(app_backend.AppBackend):
     return self._supports_extensions
 
   @property
-  def wpr_mode(self):
-    return self.browser_options.wpr_mode
-
-  @property
   def supports_tab_control(self):
     raise NotImplementedError()
 

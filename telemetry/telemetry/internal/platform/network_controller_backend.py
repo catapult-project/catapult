@@ -52,12 +52,12 @@ class NetworkControllerBackend(object):
     return self._wpr_mode is not None
 
   @property
-  def host_ip(self):
-    return self._platform_backend.forwarder_factory.host_ip
+  def is_replay_active(self):
+    return self._forwarder is not None
 
   @property
-  def wpr_mode(self):
-    return self._wpr_mode
+  def host_ip(self):
+    return self._platform_backend.forwarder_factory.host_ip
 
   @property
   def wpr_device_ports(self):
@@ -67,14 +67,8 @@ class NetworkControllerBackend(object):
       return None
 
   @property
-  def wpr_http_device_port(self):
-    # TODO(perezju): Remove and switch clients to wpr_device_ports.http
-    return self.wpr_device_ports.http
-
-  @property
-  def wpr_https_device_port(self):
-    # TODO(perezju): Remove and switch clients to wpr_device_ports.https
-    return self.wpr_device_ports.https
+  def is_test_ca_installed(self):
+    return self._wpr_ca_cert_path is not None
 
   def Open(self, wpr_mode, netsim, extra_wpr_args):
     """Configure and prepare target platform for network control.
@@ -96,13 +90,13 @@ class NetworkControllerBackend(object):
     self._wpr_mode = wpr_mode
     self._netsim = netsim
     self._extra_wpr_args = extra_wpr_args
-
-    # TODO(perezju): Determine correct ports for different platform backends,
-    # and install test certificates if needed.
-    self._wpr_port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(0, 0),
-        https=forwarders.PortPair(0, 0),
-        dns=forwarders.PortPair(0, 0))
+    self._wpr_port_pairs = self._platform_backend.GetWprPortPairs(bool(netsim))
+    # TODO(perezju): If supported, always try to install test certificates.
+    # This is temporarilly special-cased in case the browser already installed
+    # the certificates during platform.DidCreateBrowser; or if we're re-opening
+    # during UpdateReplayForExistingBrowser.
+    if not self.is_test_ca_installed:
+      self.InstallTestCa()
 
   def Close(self):
     """Undo changes in the target platform used for network control.
@@ -122,7 +116,7 @@ class NetworkControllerBackend(object):
     # TODO(perezju): Make this method private, and have it called during Open.
     if not self._platform_backend.supports_test_ca:
       return
-    assert self._wpr_ca_cert_path is None, 'Test CA is already installed'
+    assert not self.is_test_ca_installed, 'Test CA is already installed'
     if certutils.openssl_import_error:
       logging.warning(
           'The OpenSSL module is unavailable. '
@@ -134,8 +128,8 @@ class NetworkControllerBackend(object):
           'to generate certificates from a test CA. '
           'Browsers may fall back to ignoring certificate errors.')
       return
+    self._wpr_ca_cert_path = os.path.join(tempfile.mkdtemp(), 'testca.pem')
     try:
-      self._wpr_ca_cert_path = os.path.join(tempfile.mkdtemp(), 'testca.pem')
       certutils.write_dummy_ca_cert(*certutils.generate_dummy_ca_cert(),
                                     cert_path=self._wpr_ca_cert_path)
       self._platform_backend.InstallTestCa(self._wpr_ca_cert_path)
@@ -148,7 +142,7 @@ class NetworkControllerBackend(object):
 
   def RemoveTestCa(self):
     # TODO(perezju): Make this method private, and have it called during Close.
-    if not self._platform_backend.supports_test_ca:
+    if not self.is_test_ca_installed:
       return
     try:
       self._platform_backend.RemoveTestCa()
@@ -156,8 +150,9 @@ class NetworkControllerBackend(object):
       # Best effort cleanup - show the error and continue.
       logging.exception(
           'Error trying to remove certificate authority from target platform.')
-    if self._wpr_ca_cert_path is not None:
+    try:
       shutil.rmtree(os.path.dirname(self._wpr_ca_cert_path), ignore_errors=True)
+    finally:
       self._wpr_ca_cert_path = None
 
   def StartReplay(self, archive_path, make_javascript_deterministic=False):
@@ -284,8 +279,6 @@ class NetworkControllerBackend(object):
       # In some cases (e.g., unit tests), the browser is used without replay.
       return
 
-    # TODO(perezju): Move code to figure out WPR port pairts out of browser
-    # backends and into the Open method above.
     if browser_backend is None:
       # If no browser_backend, then this is an update for an existing browser.
       assert self.is_open and self._wpr_port_pairs is not None
@@ -296,8 +289,7 @@ class NetworkControllerBackend(object):
           self._pending_replay_args['netsim'] == self._netsim and
           self._pending_replay_args['extra_wpr_args'] == self._extra_wpr_args)
     else:
-      # Use WPR port pairs selected by the browser backend.
-      wpr_port_pairs = browser_backend.wpr_port_pairs
+      wpr_port_pairs = None  # Let the platform choose the port pairs.
       may_reuse_session = False
 
     if not may_reuse_session:
@@ -305,8 +297,9 @@ class NetworkControllerBackend(object):
       self.Open(self._pending_replay_args['wpr_mode'],
                 self._pending_replay_args['netsim'],
                 self._pending_replay_args['extra_wpr_args'])
-      # Override port pairs with those chosen by the browser.
-      self._wpr_port_pairs = wpr_port_pairs
+      # Override port pairs if we already have an existing browser.
+      if wpr_port_pairs is not None:
+        self._wpr_port_pairs = wpr_port_pairs
 
     self.StartReplay(self._pending_replay_args['archive_path'],
                      self._pending_replay_args['make_javascript_deterministic'])
