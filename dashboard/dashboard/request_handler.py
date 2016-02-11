@@ -57,6 +57,8 @@ class RequestHandler(webapp2.RequestHandler):
       login_url = users.create_login_url('/')
     user_info = '<a href="%s" title="%s">%s</a>' % (
         login_url, title, display_username)
+    template_values['login_url'] = login_url
+    template_values['display_username'] = display_username
     template_values['user_info'] = user_info
     template_values['is_admin'] = is_admin
     template_values['is_internal_user'] = utils.IsInternalUser()

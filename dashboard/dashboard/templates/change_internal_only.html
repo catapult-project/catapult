@@ -2,6 +2,7 @@
 <html>
 <head>
   <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <link rel="import" href="/dashboard/elements/nav-bar.html">
   <style>
     /* The content container contains everything after the title. */
     #content {
@@ -27,7 +28,9 @@
   </style>
 </head>
 <body>
-  {% include 'nav.html' %}
+  <nav-bar isAdmin="{{is_admin}}"
+           displayUsername="{{display_username}}"
+           loginUrl="{{login_url}}"></nav-bar>
   <h1>Change internal_only Property</h1>
   <div id="content">
 
