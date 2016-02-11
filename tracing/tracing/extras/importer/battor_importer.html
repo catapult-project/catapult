@@ -29,11 +29,15 @@ tr.exportTo('tr.e.importer.battor', function() {
     this.sampleRate_ = undefined;
     this.model_ = model;
     this.events_ = events;
+    this.explicitSyncMark_ = undefined;
   }
 
   var TestExports = {};
 
-  var battorDataLineRE = /^(\d+\.\d+)\s+(\d+\.\d+)\s+(\d+\.\d+)$/;
+  var battorDataLineRE = new RegExp(
+      '^(\\d+\\.\\d+)\\s+(\\d+\\.\\d+)\\s+(\\d+\\.\\d+)' +
+      '(?:\\s+<(\\S+)>)?$'
+  );
   var battorHeaderLineRE = /^# BattOr/;
   var sampleRateLineRE = /^# sample_rate (\d+) Hz/;
 
@@ -83,7 +87,10 @@ tr.exportTo('tr.e.importer.battor', function() {
       var battorSyncMarks = this.model_.getClockSyncRecordsNamed('battor');
 
       // Try each of the clock sync techinques in order of their accuracy.
-      var shiftTs = this.correlationClockSync(battorSyncMarks, series);
+      var shiftTs = undefined;
+      shiftTs = this.correlationClockSync(battorSyncMarks, series);
+      if (shiftTs === undefined)
+        shiftTs = this.explicitClockSync();
 
       if (shiftTs === undefined) {
         this.model_.importWarning({
@@ -131,23 +138,26 @@ tr.exportTo('tr.e.importer.battor', function() {
             return;
           }
 
+          // Add power sample.
           var time = parseFloat(groups[1]) + minTs;
           var voltage_mV = parseFloat(groups[2]);
           var current_mA = parseFloat(groups[3]);
           series.addPowerSample(time, (voltage_mV * current_mA) / 1000);
+
+          // Found first explicit clock sync - save it.
+          if (groups[4] !== undefined &&
+            this.explicitSyncMark_ === undefined) {
+            var id = groups[4];
+            this.explicitSyncMark_ = {'id' : id, 'ts' : time};
+          }
         }
       }, this);
     },
 
     correlationClockSync: function(syncMarks, series) {
       // Check for the two markers that surround the sync signal are present.
-      if (syncMarks.length !== 2) {
-        this.model_.importWarning({
-          type: 'clock_sync',
-          message: 'Cannot correlate BattOr power trace without a sync signal.'
-        });
+      if (syncMarks.length !== 2)
         return undefined;
-      }
 
       // Find the regulator counter for the sync.
       var syncCtr = this.model_.kernel.counters[
@@ -242,8 +252,45 @@ tr.exportTo('tr.e.importer.battor', function() {
       var shiftTs = syncStartTs - corrPeakTs;
 
       return shiftTs;
+    },
+
+    explicitClockSync: function() {
+      // Check to see if an explicit clock sync was found in the BattOr trace.
+      if (this.explicitSyncMark_ === undefined)
+        return undefined;
+
+      // Try to get the matching clock sync record for this explicit sync.
+      var syncMarks = this.model.getClockSyncRecordsNamed(
+                          this.explicitSyncMark_['id']);
+      if (syncMarks.length !== 1) {
+        this.model_.importWarning({
+          type: 'missing_sync_marker',
+          message: 'No single clock sync record found for explicit clock sync.'
+        });
+        return undefined;
+      }
+
+      var clockSync = syncMarks[0];
+
+      // TODO(aschulman) Actual time of sync is assumed to be half-way between
+      // when the sync message was sent and when it was received.  Chromium's
+      // serial I/O library sends bytes within a millisecond, however it seems
+      // to take tens of milliseconds to receive bytes. Therefore, until we
+      // figure out how to receive bytes without this delay, time of sync is
+      // set to the time when the the bytes are sent.
+      var syncTs = clockSync.ts;
+      var traceTs = this.explicitSyncMark_['ts'];
+
+      // Shift by the difference between the explicit sync timestamps.
+      return syncTs - traceTs;
+    },
+
+    foundExplicitSyncMark: function() {
+      return this.explicitSyncMark_ !== undefined;
     }
   };
+
+
 
   tr.importer.Importer.register(BattorImporter);
 
