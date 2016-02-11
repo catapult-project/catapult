@@ -2,10 +2,13 @@
 <html>
 <head>
   <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <link rel="import" href="/dashboard/elements/nav-bar.html">
   <title>Result</title>
 </head>
 <body>
-  {% include 'nav.html' %}
+  <nav-bar isAdmin="{{is_admin}}"
+           displayUsername="{{display_username}}"
+           loginUrl="{{login_url}}"></nav-bar>
   {% if errors %}
     {% for error in errors %}
       <h1 class="error">{{error}}</h1>

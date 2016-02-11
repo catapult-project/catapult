@@ -33,6 +33,8 @@
   <link rel="import" href="/dashboard/elements/quick-log.html">
   <link rel="import" href="/dashboard/elements/triage-dialog.html">
   <link rel="import" href="/dashboard/static/group_report.html">
+  <link rel="import" href="/dashboard/elements/load-analytics.html">
+  <link rel="import" href="/dashboard/elements/nav-bar.html">
 
   <script>
     // Workaround for document.contains returning false for elements in the
@@ -106,7 +108,9 @@
   </style>
 </head>
 <body>
-  {% include 'nav.html' %}
+  <nav-bar isAdmin="{{is_admin}}"
+           displayUsername="{{display_username}}"
+           loginUrl="{{login_url}}"></nav-bar>
   <h1>Chrome Performance Dashboard</h1>
   <overlay-message id="message-bar"></overlay-message>
   {% if warning_message %}
@@ -144,6 +148,6 @@
   </div>
 
   <custom-tooltip id="tooltip"></custom-tooltip>
-  {% include 'analytics.html' %}
+  <load-analytics></load-analytics>
 </body>
 </html>

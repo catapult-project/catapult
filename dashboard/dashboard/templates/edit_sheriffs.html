@@ -2,6 +2,7 @@
 <html>
 <head>
   <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <link rel="import" href="/dashboard/elements/nav-bar.html">
   <title>Edit Sheriff Rotations</title>
   <script>
   'use strict';
@@ -95,7 +96,9 @@
   </script>
 </head>
 <body>
-  {% include 'nav.html' %}
+  <nav-bar isAdmin="{{is_admin}}"
+           displayUsername="{{display_username}}"
+           loginUrl="{{login_url}}"></nav-bar>
   <h1>Edit Sheriffs</h1>
 
   <p><b>Note</b>: If the test path patterns of two different sheriffs

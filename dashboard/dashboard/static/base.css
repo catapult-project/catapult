@@ -22,6 +22,10 @@ body {
   min-height: 100%;
 }
 
+nav-bar {
+  width: 100%;
+}
+
 h1 {
   align-self: center;
   -webkit-align-self: center;
