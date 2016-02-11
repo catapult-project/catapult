@@ -49,6 +49,12 @@ _GSUTIL_PATH = os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil',
 _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
 
 
+# If Environment variables has DISABLE_CLOUD_STORAGE_IO set to '1', any method
+# calls that invoke cloud storage network io will throw exceptions.
+DISABLE_CLOUD_STORAGE_IO = 'DISABLE_CLOUD_STORAGE_IO'
+
+
+
 class CloudStorageError(Exception):
 
   @staticmethod
@@ -76,6 +82,10 @@ class CredentialsError(CloudStorageError):
     super(CredentialsError, self).__init__(
         'Attempted to access a file from Cloud Storage but you have no '
         'configured credentials. ' + self._GetConfigInstructions())
+
+
+class CloudStorageIODisabled(CloudStorageError):
+  pass
 
 
 class NotFoundError(CloudStorageError):
@@ -123,6 +133,12 @@ def _RunCommand(args):
     # Don't do it on POSIX, in case someone is using a shell script to redirect.
     args = [_GSUTIL_PATH] + args
     _EnsureExecutable(_GSUTIL_PATH)
+
+  if (os.getenv(DISABLE_CLOUD_STORAGE_IO) == '1' and
+      args[0] not in ('help', 'hash', 'version')):
+    raise CloudStorageIODisabled(
+        "Environment variable DISABLE_CLOUD_STORAGE_IO is set to 1. "
+        'Command %s is not allowed to run' % args)
 
   gsutil = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, env=gsutil_env)
@@ -322,7 +338,8 @@ def GetFilesInDirectoryIfChanged(directory, bucket):
   there is no local copy.
   """
   if not os.path.isdir(directory):
-    raise ValueError('%s does not exist. Must provide a valid directory path.')
+    raise ValueError(
+        '%s does not exist. Must provide a valid directory path.' % directory)
   # Don't allow the root directory to be a serving_dir.
   if directory == os.path.abspath(os.sep):
     raise ValueError('Trying to serve root directory from HTTP server.')
