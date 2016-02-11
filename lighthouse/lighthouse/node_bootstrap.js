@@ -18,4 +18,4 @@ HTMLImportsLoader.addArrayToSourcePath(
 HTMLImportsLoader.loadHTML('/lighthouse/lighthouse.html');
 
 // Make the lh namespace the main lighthouse export.
-exports = lh;
+module.exports = global.lh;
