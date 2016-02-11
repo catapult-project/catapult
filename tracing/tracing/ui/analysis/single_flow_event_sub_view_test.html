@@ -16,19 +16,19 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Model = tr.Model;
   var EventSet = tr.model.EventSet;
-  var test_utils = tr.c.TestUtils;
+  var TestUtils = tr.c.TestUtils;
 
   test('analyzeSelectionWithSingleEvent', function() {
-    var model = test_utils.newModel(function(model) {
+    var model = TestUtils.newModel(function(model) {
       model.p1 = model.getOrCreateProcess(1);
       model.t2 = model.p1.getOrCreateThread(model.p1);
-      model.sA = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+      model.sA = model.t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
         title: 'a', start: 0, end: 2
       }));
-      model.sB = model.t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+      model.sB = model.t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
         title: 'b', start: 9, end: 11
       }));
-      model.fe = test_utils.newFlowEventEx({
+      model.fe = TestUtils.newFlowEventEx({
         cat: 'cat',
         id: 1234,
         title: 'MyFlow',
