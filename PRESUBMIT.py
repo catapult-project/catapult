@@ -52,11 +52,13 @@ def GetPreferredTryMasters(project, change):
 
 def CheckChangeLogBug(input_api, output_api):
   if input_api.change.BUG is None or re.match(
-      r'catapult\:\#\d+(,\s*catapult\:\#\d+)*$', input_api.change.BUG):
+      r'((chromium\:|catapult\:\#)\d+)(,\s*(chromium\:|catapult\:\#)\d+)*$',
+      input_api.change.BUG):
     return []
   return [output_api.PresubmitError(
-      ('Invalid bug "%s". BUG= should either not be present or start with '
-       '"catapult:#"" for a github issue.' % input_api.change.BUG))]
+      ('Invalid bug "%s". Chromium issues should be prefixed with "chromium:" '
+       'and Catapult issues should be prefixed with "catapult:#".' %
+       input_api.change.BUG))]
 
 
 def CheckChange(input_api, output_api):
