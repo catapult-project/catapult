@@ -2,9 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
-
-
 class NetworkController(object):
   """Control network settings and servers to simulate the Web.
 
@@ -27,20 +24,3 @@ class NetworkController(object):
 
   def StopReplay(self):
     self._network_controller_backend.StopReplay()
-
-  @decorators.Deprecated(2016, 2, 29, 'Clients should switch to new network '
-                         'controller API. See https://goo.gl/UzzrQA .')
-  def SetReplayArgs(self,
-                    archive_path,
-                    wpr_mode,
-                    netsim,
-                    extra_wpr_args,
-                    make_javascript_deterministic=False):
-    self._network_controller_backend.SetReplayArgs(
-        archive_path, wpr_mode, netsim, extra_wpr_args,
-        make_javascript_deterministic)
-
-  @decorators.Deprecated(2016, 2, 29, 'Clients should switch to new network '
-                         'controller API. See https://goo.gl/UzzrQA .')
-  def UpdateReplayForExistingBrowser(self):
-    self._network_controller_backend.UpdateReplay()
