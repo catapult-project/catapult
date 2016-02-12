@@ -145,9 +145,9 @@ tr.exportTo('tr.e.importer', function() {
       this.systemTraceEvents_ = container.systemTraceEvents;
 
       // Some trace_event implementations put battor power traces as a
-      // huge string inside container.battorLogAsString. If we see that, pull
+      // huge string inside container.powerTraceAsString. If we see that, pull
       // it out. It will be picked up by extractSubtraces later on.
-      this.battorData_ = container.battorLogAsString;
+      this.battorData_ = container.powerTraceAsString;
 
       // Sampling data.
       this.sampleEvents_ = container.samples;
@@ -164,7 +164,7 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       var knownFieldNames = {
-        battorLogAsString: true,
+        powerTraceAsString: true,
         samples: true,
         stackFrames: true,
         systemTraceEvents: true,
