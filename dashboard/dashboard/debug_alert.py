@@ -52,7 +52,7 @@ class DebugAlertHandler(request_handler.RequestHandler):
 
     revision = self.request.get('rev')
     if revision:
-      rows = _FetchRowsAroundRev(test.key, int(revision), num_before, num_after)
+      rows = _FetchRowsAroundRev(test, int(revision), num_before, num_after)
     else:
       rows = _FetchLatestRows(test, num_before)
 
@@ -257,11 +257,11 @@ def _FetchLatestRows(test, num_points):
   return rows
 
 
-def _FetchRowsAroundRev(test_key, revision, num_before, num_after):
+def _FetchRowsAroundRev(test, revision, num_before, num_after):
   """Fetches Row entities before and after a given revision.
 
   Args:
-    test_key: A Test entity key.
+    test: A Test entity.
     revision: A Row ID.
     num_before: Maximum number of Rows before |revision| to fetch.
     num_after: Max number of Rows starting from |revision| to fetch.
@@ -271,15 +271,18 @@ def _FetchRowsAroundRev(test_key, revision, num_before, num_after):
     the "revision" and "value" properties, which are the only ones relevant
     to their use in this module.
   """
+  assert utils.IsInternalUser() or not test.internal_only
   query = graph_data.Row.query(projection=['revision', 'value'])
-  query = query.filter(graph_data.Row.parent_test == test_key)
+  query = query.filter(graph_data.Row.parent_test == test.key)
 
   before_query = query.filter(graph_data.Row.revision < revision)
   before_query = before_query.order(-graph_data.Row.revision)
+  datastore_hooks.SetSinglePrivilegedRequest()
   rows_before = list(reversed(before_query.fetch(limit=num_before)))
 
   after_query = query.filter(graph_data.Row.revision >= revision)
   after_query = after_query.order(graph_data.Row.revision)
+  datastore_hooks.SetSinglePrivilegedRequest()
   rows_at_and_after = after_query.fetch(num_after)
 
   return rows_before + rows_at_and_after
