@@ -101,12 +101,6 @@ class TestNetworkControllerBackend(
     return self._platform_backend
 
 
-# TODO(perezju): Remove once network_controller_backend is no longer tied to
-# the browser_backend.
-class FakeBrowserBackend(object):
-  pass
-
-
 class NetworkControllerBackendTest(unittest.TestCase):
   def Patch(self, *args, **kwargs):
     """Patch an object for the duration of a test, and return its mock."""
@@ -151,10 +145,14 @@ class NetworkControllerBackendTest(unittest.TestCase):
   def testOpenCloseController(self):
     b = self.network_controller_backend
     self.assertFalse(b.is_open)
-    b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
+    b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg']) # Also installs test CA.
     self.assertTrue(b.is_open)
-    b.Close()
+    self.assertTrue(b.is_test_ca_installed)
+    self.assertTrue(b.platform_backend.is_test_ca_installed)
+    b.Close() # Also removes test CA.
     self.assertFalse(b.is_open)
+    self.assertFalse(b.is_test_ca_installed)
+    self.assertFalse(b.platform_backend.is_test_ca_installed)
     b.Close()  # It's fine to close a closed controller.
     self.assertFalse(b.is_open)
 
@@ -164,22 +162,21 @@ class NetworkControllerBackendTest(unittest.TestCase):
     with self.assertRaises(AssertionError):
       b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg'])
 
-  def testInstallTestCaSuccess(self):
-    b = self.network_controller_backend
-    b.InstallTestCa()
-    self.assertTrue(b.is_test_ca_installed)
-    self.assertTrue(b.platform_backend.is_test_ca_installed)
-    b.RemoveTestCa()
-    self.assertFalse(b.is_test_ca_installed)
-    self.assertFalse(b.platform_backend.is_test_ca_installed)
-
   def testInstallTestCaFailure(self):
     b = self.network_controller_backend
     b.platform_backend.faulty_cert_installer = True
-    b.InstallTestCa()  # Fails with warning but execution continues.
+    b.Open(wpr_modes.WPR_REPLAY, '3g', ['--some-arg']) # Try to install test CA.
+
+    # Test CA is not installed, but the controller is otherwise open and safe
+    # to use.
+    self.assertTrue(b.is_open)
     self.assertFalse(b.is_test_ca_installed)
     self.assertFalse(b.platform_backend.is_test_ca_installed)
-    b.RemoveTestCa()
+    b.StartReplay('some-archive.wpr')
+    self.assertTrue(b.is_replay_active)
+
+    b.Close() # No test CA to remove.
+    self.assertFalse(b.is_open)
     self.assertFalse(b.is_test_ca_installed)
     self.assertFalse(b.platform_backend.is_test_ca_installed)
 
@@ -368,32 +365,3 @@ class NetworkControllerBackendTest(unittest.TestCase):
     FakeReplayServer.DEFAULT_PORTS = forwarders.PortSet(987, 654, 321)
     b.StartReplay('another-archive.wpr')
     self.assertEqual(b.wpr_device_ports, forwarders.PortSet(987, 654, 321))
-
-  # TODO(perezju): Remove when old API is gone.
-  def testUpdateReplayWithoutArgsIsOkay(self):
-    b = self.network_controller_backend
-    b.UpdateReplay(FakeBrowserBackend())  # Does not raise.
-
-  # TODO(perezju): Remove when old API is gone.
-  def testSameBrowserUsesSamePorts(self):
-    FakeReplayServer.DEFAULT_PORTS = forwarders.PortSet(222, 444, 555)
-    b = self.network_controller_backend
-    # Use default ports but no DNS traffic.
-    b.platform_backend.SetWprPortPairs(http=(0, 0), https=(0, 0), dns=None)
-    b.SetReplayArgs('some-archive.wpr', wpr_modes.WPR_REPLAY, '3g', [])
-    b.UpdateReplay(FakeBrowserBackend())
-    self.assertEqual(b.wpr_device_ports, forwarders.PortSet(222, 444, None))
-
-    # If replay restarts, use a different set of default ports.
-    FakeReplayServer.DEFAULT_PORTS = forwarders.PortSet(987, 654, 321)
-
-    old_replay_server = b.replay_server
-    b.SetReplayArgs('another-archive.wpr', wpr_modes.WPR_REPLAY, None, [])
-    b.UpdateReplay()  # No browser backend means use the previous one.
-
-    # Even though WPR is restarted, it uses the same ports because
-    # the browser was configured to a particular port set.
-    self.assertIsNot(b.replay_server, old_replay_server)
-    self.assertTrue(b.replay_server.is_running)
-    self.assertFalse(old_replay_server.is_running)
-    self.assertEqual(b.wpr_device_ports, forwarders.PortSet(222, 444, None))
