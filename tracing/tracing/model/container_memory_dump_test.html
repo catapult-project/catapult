@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 
 <script>
 'use strict';
@@ -16,11 +17,8 @@ tr.b.unittest.testSuite(function() {
   var ContainerMemoryDump = tr.model.ContainerMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var ScalarAttribute = tr.model.ScalarAttribute;
-
-  function setUpParentChildRelationship(parent, child) {
-    child.parent = parent;
-    parent.children.push(child);
-  }
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
 
   test('memoryAllocatorDumps_undefined', function() {
     var md = new ContainerMemoryDump(42);
@@ -40,16 +38,16 @@ tr.b.unittest.testSuite(function() {
   test('memoryAllocatorDumps_flat', function() {
     var md = new ContainerMemoryDump(42);
 
-    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
-    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
-    oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
-    oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
-
-    var v8Dump = new MemoryAllocatorDump(md, 'v8');
-    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
-    v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
-    v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
-
+    var oilpanDump = newAllocatorDump(md, 'oilpan', {
+      size: 1024,
+      objects_count: new ScalarAttribute('objects', 7),
+      inner_size: 768
+    });
+    var v8Dump = newAllocatorDump(md, 'v8', {
+      size: 2048,
+      objects_count: new ScalarAttribute('objects', 15),
+      inner_size: 1999
+    });
     md.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
     assert.lengthOf(md.memoryAllocatorDumps, 2);
@@ -64,45 +62,35 @@ tr.b.unittest.testSuite(function() {
   test('memoryAllocatorDumps_nested', function() {
     var md = new ContainerMemoryDump(42);
 
-    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
-    oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
-    oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
-    oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
+    var oilpanDump = newAllocatorDump(md, 'oilpan', {
+      size: 1024,
+      objects_count: new ScalarAttribute('objects', 7),
+      inner_size: 768
+    });
 
-    var oilpanBucket1Dump = new MemoryAllocatorDump(
-        md, 'oilpan/bucket1', oilpanDump);
-    oilpanBucket1Dump.addAttribute('size',
-        new ScalarAttribute('bytes', 512));
-    oilpanBucket1Dump.addAttribute('objects_count',
-        new ScalarAttribute('objects', 3));
-    oilpanBucket1Dump.addAttribute('inner_size',
-        new ScalarAttribute('bytes', 256));
-    setUpParentChildRelationship(oilpanDump, oilpanBucket1Dump);
+    var oilpanBucket1Dump = newChildDump(oilpanDump, 'bucket1', {
+      size: 512,
+      objects_count: new ScalarAttribute('objects', 3),
+      inner_size: 256
+    });
 
-    var oilpanBucket2Dump = new MemoryAllocatorDump(
-        md, 'oilpan/bucket2', oilpanDump);
-    oilpanBucket2Dump.addAttribute('size',
-        new ScalarAttribute('bytes', 512));
-    oilpanBucket2Dump.addAttribute('objects_count',
-        new ScalarAttribute('objects', 4));
-    oilpanBucket2Dump.addAttribute('inner_size',
-        new ScalarAttribute('bytes', 512));
-    setUpParentChildRelationship(oilpanDump, oilpanBucket2Dump);
+    var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2', {
+      size: 512,
+      objects_count: new ScalarAttribute('objects', 4),
+      inner_size: 512
+    });
 
-    var oilpanBucket2StringsDump = new MemoryAllocatorDump(
-        md, 'oilpan/bucket2/strings', oilpanBucket2Dump);
-    oilpanBucket2StringsDump.addAttribute('size',
-        new ScalarAttribute('bytes', 512));
-    oilpanBucket2StringsDump.addAttribute('objects_count',
-        new ScalarAttribute('objects', 4));
-    oilpanBucket2StringsDump.addAttribute('inner_size',
-        new ScalarAttribute('bytes', 512));
-    setUpParentChildRelationship(oilpanBucket2Dump, oilpanBucket2StringsDump);
+    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings', {
+      size: 512,
+      objects_count: new ScalarAttribute('objects', 4),
+      inner_size: 512
+    });
 
-    var v8Dump = new MemoryAllocatorDump(md, 'v8');
-    v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
-    v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
-    v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
+    var v8Dump = newAllocatorDump(md, 'v8', {
+      size: 2048,
+      objects_count: new ScalarAttribute('objects', 15),
+      inner_size: 1999
+    });
 
     md.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
@@ -126,8 +114,7 @@ tr.b.unittest.testSuite(function() {
 
     var oilpanDump = new MemoryAllocatorDump(containerDump, 'oilpan');
     var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
-    var v8HeapsDump = new MemoryAllocatorDump(containerDump, 'v8/heaps');
-    setUpParentChildRelationship(v8Dump, v8HeapsDump);
+    newChildDump(v8Dump, 'heaps');
 
     containerDump.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
@@ -142,10 +129,8 @@ tr.b.unittest.testSuite(function() {
     var containerDump = new ContainerMemoryDump(42);
 
     var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
-    var v8HeapsDump = new MemoryAllocatorDump(containerDump, 'v8/heaps');
-    var v8HeapSmallDump = new MemoryAllocatorDump(containerDump, 'v8/heaps/S');
-    setUpParentChildRelationship(v8Dump, v8HeapsDump);
-    setUpParentChildRelationship(v8HeapsDump, v8HeapSmallDump);
+    var v8HeapsDump = newChildDump(v8Dump, 'heaps');
+    var v8HeapSmallDump = newChildDump(v8HeapsDump, 'S');
 
     // Setting the memory allocator dumps should update the index properly.
     containerDump.memoryAllocatorDumps = [v8Dump];
@@ -157,8 +142,7 @@ tr.b.unittest.testSuite(function() {
         'v8/heaps/S'), v8HeapSmallDump);
 
     // Add a second grandchild (v8/heaps/L).
-    var v8HeapLargeDump = new MemoryAllocatorDump(containerDump, 'v8/heaps/L');
-    setUpParentChildRelationship(v8HeapsDump, v8HeapLargeDump);
+    var v8HeapLargeDump = newChildDump(v8HeapsDump, 'L');
 
     // Setting the memory allocator dumps again should update the index
     // properly again.

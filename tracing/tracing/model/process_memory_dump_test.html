@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
-<link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 
 <script>
@@ -18,10 +18,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var VMRegion = tr.model.VMRegion;
   var ScalarAttribute = tr.model.ScalarAttribute;
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   function createProcessMemoryDump(timestamp, model) {
     var gmd = new GlobalMemoryDump(model, timestamp);
@@ -169,37 +170,33 @@ tr.b.unittest.testSuite(function() {
     // A dump with VM regions and malloc and Oilpan allocator dumps.
     var dump2 = createProcessMemoryDump(2, m);
     dump2.vmRegions = [];
-    dump2.memoryAllocatorDumps = (function() {
-      var oilpanDump = new MemoryAllocatorDump('oilpan');
-      oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
-      oilpanDump.addAttribute('objects_count',
-          new ScalarAttribute('objects', 7));
-      oilpanDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
-
-      var v8Dump = new MemoryAllocatorDump('v8');
-      v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
-      v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
-      v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
-
-      return [oilpanDump. v8Dump];
-    })();
+    dump2.memoryAllocatorDumps = [
+      newAllocatorDump(dump2, 'oilpan', {
+        size: 1024,
+        objects_count: new ScalarAttribute('objects', 7),
+        inner_size: 768
+      }),
+      newAllocatorDump(dump2, 'v8', {
+        size: 2048,
+        objects_count: new ScalarAttribute('objects', 15),
+        inner_size: 1999
+      })
+    ];
 
     // A dump with malloc and V8 allocator dumps.
     var dump3 = createProcessMemoryDump(3, m);
-    dump3.memoryAllocatorDumps = (function() {
-      var mallocDump = new MemoryAllocatorDump('malloc');
-      mallocDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
-      mallocDump.addAttribute('objects_count',
-          new ScalarAttribute('objects', 7));
-      mallocDump.addAttribute('inner_size', new ScalarAttribute('bytes', 768));
-
-      var v8Dump = new MemoryAllocatorDump('v8');
-      v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
-      v8Dump.addAttribute('objects_count', new ScalarAttribute('objects', 15));
-      v8Dump.addAttribute('inner_size', new ScalarAttribute('bytes', 1999));
-
-      return [mallocDump. v8Dump];
-    })();
+    dump3.memoryAllocatorDumps = [
+      newAllocatorDump(dump3, 'malloc', {
+        size: 1024,
+        objects_count: new ScalarAttribute('bytes', 7),
+        inner_size: 768
+      }),
+      newAllocatorDump(dump3, 'v8', {
+        size: 2048,
+        objects_count: new ScalarAttribute('objects', 15),
+        inner_size: 1999
+      })
+    ];
 
     // A dump with VM regions.
     var dump4 = createProcessMemoryDump(4, m);
@@ -250,13 +247,10 @@ tr.b.unittest.testSuite(function() {
 
   test('checkDiscountTracingOverhead_undefinedFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      var v8Dump = new MemoryAllocatorDump(pmd, 'v8');
-      v8Dump.addAttribute('size', new ScalarAttribute('bytes', 2048));
-
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
-
-      pmd.memoryAllocatorDumps = [v8Dump, tracingDump];
+      pmd.memoryAllocatorDumps = [
+        newAllocatorDump(pmd, 'v8', { size: 2048 }),
+        newAllocatorDump(pmd, 'tracing', { size: 1024 })
+      ];
     });
 
     assert.isUndefined(pmd.totals);
@@ -289,19 +283,11 @@ tr.b.unittest.testSuite(function() {
         })
       ];
 
-      var mallocDump = new MemoryAllocatorDump(pmd, 'malloc');
-      mallocDump.addAttribute('size', new ScalarAttribute('bytes', 3072));
-      var allocatedObjectsDump = new MemoryAllocatorDump(
-          pmd, 'malloc/allocated_objects');
-      allocatedObjectsDump.addAttribute(
-          'size', new ScalarAttribute('bytes', 2560));
-      allocatedObjectsDump.parent = mallocDump;
-      mallocDump.children.push(allocatedObjectsDump);
+      var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
+      newChildDump(mallocDump, 'allocated_objects', { size: 2560 });
 
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute('size', new ScalarAttribute('bytes', 1024));
-      tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1000));
+      var tracingDump = newAllocatorDump(
+          pmd, 'tracing', { size: 1024, resident_size: 1000 });
 
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump];
     });
@@ -352,13 +338,10 @@ tr.b.unittest.testSuite(function() {
 
   test('checkDiscountTracingOverhead_winheap', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      var winheapDump = new MemoryAllocatorDump(pmd, 'winheap');
-      winheapDump.addAttribute('size', new ScalarAttribute('bytes', 5120));
-
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute('size', new ScalarAttribute('bytes', 2048));
-
-      pmd.memoryAllocatorDumps = [tracingDump, winheapDump];
+      pmd.memoryAllocatorDumps = [
+        newAllocatorDump(pmd, 'tracing', { size: 2048 }),
+        newAllocatorDump(pmd, 'winheap', { size: 5120 })
+      ];
     });
 
     assert.isUndefined(pmd.totals);
@@ -410,22 +393,14 @@ tr.b.unittest.testSuite(function() {
           }
         })
       ];
-      pmds[0].memoryAllocatorDumps = (function() {
-        var tracingDump = new MemoryAllocatorDump(pmds[0], 'tracing');
-        tracingDump.addAttribute(
-            'resident_size', new ScalarAttribute('bytes', 100));
-        tracingDump.addAttribute(
-            'size', new ScalarAttribute('bytes', 300));
-        return [tracingDump];
-      })();
+      pmds[0].memoryAllocatorDumps = [
+        newAllocatorDump(pmds[0], 'tracing', { size: 300, resident_size: 100 })
+      ];
 
       pmds[1].totals = { peakResidentBytes: 3000 };
-      pmds[1].memoryAllocatorDumps = (function() {
-        var tracingDump = new MemoryAllocatorDump(pmds[0], 'tracing');
-        tracingDump.addAttribute(
-            'resident_size', new ScalarAttribute('bytes', 200));
-        return [tracingDump];
-      })();
+      pmds[1].memoryAllocatorDumps = [
+        newAllocatorDump(pmds[0], 'tracing', { resident_size: 200 })
+      ];
     });
 
     // First PMD: Both total resident and private dirty resident size should be
@@ -460,12 +435,9 @@ tr.b.unittest.testSuite(function() {
           }
         })
       ];
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute(
-          'size', new ScalarAttribute('bytes', 1000));
-      tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1024));
-      pmd.memoryAllocatorDumps = [tracingDump];
+      pmd.memoryAllocatorDumps = [
+        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+      ];
     });
 
     var vmRegions = pmd.mostRecentVmRegions;
@@ -498,12 +470,9 @@ tr.b.unittest.testSuite(function() {
           }
         })
       ];
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute(
-          'size', new ScalarAttribute('bytes', 1000));
-      tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1024));
-      pmd.memoryAllocatorDumps = [tracingDump];
+      pmd.memoryAllocatorDumps = [
+        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+      ];
     });
 
     var vmRegions = pmd.mostRecentVmRegions;
@@ -533,12 +502,9 @@ tr.b.unittest.testSuite(function() {
           byteStats: {}
         })
       ];
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute(
-          'size', new ScalarAttribute('bytes', 1000));
-      tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1024));
-      pmd.memoryAllocatorDumps = [tracingDump];
+      pmd.memoryAllocatorDumps = [
+        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+      ];
     });
 
     var vmRegions = pmd.mostRecentVmRegions;
@@ -569,10 +535,9 @@ tr.b.unittest.testSuite(function() {
           }
         })
       ];
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1024));
-      pmd.memoryAllocatorDumps = [tracingDump];
+      pmd.memoryAllocatorDumps = [
+        newAllocatorDump(pmd, 'tracing', { resident_size: 1024 })
+      ];
     });
 
     var vmRegions = pmd.mostRecentVmRegions;
@@ -605,22 +570,14 @@ tr.b.unittest.testSuite(function() {
         })
       ];
 
-      var mallocDump = new MemoryAllocatorDump(pmd, 'malloc');
-      mallocDump.addAttribute('size', new ScalarAttribute('bytes', 3072));
-
-      var tracingDump = new MemoryAllocatorDump(pmd, 'tracing');
-      tracingDump.addAttribute(
-          'size', new ScalarAttribute('bytes', 1024));
-      tracingDump.addAttribute(
-          'resident_size', new ScalarAttribute('bytes', 1000));
-
-      var ownedDump = new MemoryAllocatorDump(pmd, 'owned');
+      var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
+      var tracingDump = newAllocatorDump(pmd, 'tracing',
+          { size: 1024, resident_size: 1000 });
+      var ownedDump = newAllocatorDump(pmd, 'owned');
 
       // The code for discounting tracing overhead should *not* override an
       // existing ownership.
-      var ownershipLink = new MemoryAllocatorDumpLink(tracingDump, ownedDump);
-      tracingDump.owns = ownershipLink;
-      ownedDump.ownedBy.push(ownershipLink);
+      addOwnershipLink(tracingDump, ownedDump);
 
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump, ownedDump];
     });

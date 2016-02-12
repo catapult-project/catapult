@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
-<link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
@@ -19,8 +19,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var ScalarAttribute = tr.model.ScalarAttribute;
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var StringAttribute = tr.model.StringAttribute;
   var VMRegion = tr.model.VMRegion;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
@@ -105,11 +104,9 @@ tr.b.unittest.testSuite(function() {
 
       // This is here so that we could test that tracing is discounted from the
       // 'Native heap' category.
-      var tracingDump = new MemoryAllocatorDump(pmd1, 'tracing');
-      tracingDump.addAttribute('size', new ScalarAttribute('bytes', 500));
-      tracingDump.addAttribute('resident_size',
-          new ScalarAttribute('bytes', 32));
-      pmd1.memoryAllocatorDumps = [tracingDump];
+      pmd1.memoryAllocatorDumps = [
+        newAllocatorDump(pmd1, 'tracing', { size: 500, resident_size: 32 })
+      ];
 
       // Second timestamp.
       var gmd2 = addGlobalMemoryDump(model, 42);

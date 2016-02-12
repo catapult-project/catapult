@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
-<link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/selection_state.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -21,12 +20,12 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.tracks', function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var VMRegion = tr.model.VMRegion;
   var VMRegionByteStats = tr.model.VMRegionByteStats;
   var ScalarAttribute = tr.model.ScalarAttribute;
   var SelectionState = tr.model.SelectionState;
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   function createVMRegions(pssValues) {
     return pssValues.map(function(pssValue, i) {
@@ -49,9 +48,7 @@ tr.exportTo('tr.ui.tracks', function() {
     var allocatorDumps = tr.b.mapItems(dumpData, function(allocatorName, data) {
       var size = data.size;
       assert.typeOf(size, 'number');  // Sanity check.
-      var dump = new MemoryAllocatorDump(memoryDump, allocatorName);
-      dump.addAttribute('size', new ScalarAttribute('bytes', size));
-      return dump;
+      return newAllocatorDump(memoryDump, allocatorName, { size: size });
     });
 
     // Add ownership links between them.
@@ -65,9 +62,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var ownedDump = allocatorDumps[owns];
       assert.isDefined(ownedDump);  // Sanity check.
 
-      var ownershipLink = new MemoryAllocatorDumpLink(ownerDump, ownedDump);
-      ownerDump.owns = ownershipLink;
-      ownedDump.ownedBy.push(ownershipLink);
+      addOwnershipLink(ownerDump, ownedDump);
     });
 
     return tr.b.dictionaryValues(allocatorDumps);

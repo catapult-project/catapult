@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
-<link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 
 <script>
@@ -25,11 +25,12 @@ tr.exportTo('tr.ui.analysis', function() {
   var ColorScheme = tr.b.ColorScheme;
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
-  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var VMRegion = tr.model.VMRegion;
   var ScalarAttribute = tr.model.ScalarAttribute;
   var HeapDump = tr.model.HeapDump;
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+
 
   function createMultipleTestGlobalMemoryDumps() {
     var model = tr.c.TestUtils.newModel(function(model) {
@@ -95,46 +96,30 @@ tr.exportTo('tr.ui.analysis', function() {
           }
         })
       ];
-      pmd1B.memoryAllocatorDumps = (function() {
-        var mallocDump = new MemoryAllocatorDump(pmd1B, 'malloc');
-        mallocDump.addAttribute('size',
-            new ScalarAttribute('bytes', 3145728) /* 3 MiB */);
-
-        var v8Dump = new MemoryAllocatorDump(pmd1B, 'v8');
-        v8Dump.addAttribute('size',
-            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
-
-        var tracingDump = new MemoryAllocatorDump(pmd1B, 'tracing');
-        tracingDump.addAttribute('size',
-            new ScalarAttribute('bytes', 1048576) /* 1 MiB */);
-        tracingDump.addAttribute('resident_size',
-            new ScalarAttribute('bytes', 1572864) /* 1.5 MiB */);
-
-        return [mallocDump, v8Dump, tracingDump];
-      })();
+      pmd1B.memoryAllocatorDumps = [
+        newAllocatorDump(pmd1B, 'malloc', { size: 3145728 /* 3 MiB */ }),
+        newAllocatorDump(pmd1B, 'v8', { size: 5242880 /* 5 MiB */ }),
+        newAllocatorDump(pmd1B, 'tracing', {
+          size: 1048576 /* 1 MiB */,
+          resident_size: 1572864 /* 1.5 MiB */
+        })
+      ];
 
       // Allocator dumps only.
       var pmd1C = addProcessMemoryDump(gmd1, pC, 43);
       pmd1C.memoryAllocatorDumps = (function() {
-        var oilpanDump = new MemoryAllocatorDump(pmd1C, 'oilpan');
-        oilpanDump.addAttribute('size',
-            new ScalarAttribute('bytes', 3221225472) /* 3 GiB */);
-        oilpanDump.addAttribute('inner_size',
-            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
-        oilpanDump.addAttribute('objects_count',
-            new ScalarAttribute('objects', 2015));
+        var oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {
+          size: 3221225472 /* 3 GiB */,
+          inner_size: 5242880 /* 5 MiB */,
+          objects_count: new ScalarAttribute('objects', 2015)
+        });
+        var v8Dump = newAllocatorDump(pmd1C, 'v8', {
+          size: 1073741824 /* 1 GiB */,
+          inner_size: 2097152 /* 2 MiB */,
+          objects_count: new ScalarAttribute('objects', 204)
+        });
 
-        var v8Dump = new MemoryAllocatorDump(pmd1C, 'v8');
-        v8Dump.addAttribute('size',
-            new ScalarAttribute('bytes', 1073741824) /* 1 GiB */);
-        v8Dump.addAttribute('inner_size',
-            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-        v8Dump.addAttribute('objects_count',
-            new ScalarAttribute('objects', 204));
-
-        var ownershipLink = new MemoryAllocatorDumpLink(v8Dump, oilpanDump);
-        v8Dump.owns = ownershipLink;
-        oilpanDump.ownedBy.push(ownershipLink);
+        addOwnershipLink(v8Dump, oilpanDump);
 
         return [oilpanDump, v8Dump];
       })();
@@ -181,19 +166,13 @@ tr.exportTo('tr.ui.analysis', function() {
           }
         })
       ];
-      pmd2A.memoryAllocatorDumps = (function() {
-        var mallocDump = new MemoryAllocatorDump(pmd2A, 'malloc');
-        mallocDump.addAttribute('size',
-            new ScalarAttribute('bytes', 9437184) /* 9 MiB */);
-
-        var tracingDump = new MemoryAllocatorDump(pmd2A, 'tracing');
-        tracingDump.addAttribute('size',
-            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-        tracingDump.addAttribute('resident_size',
-            new ScalarAttribute('bytes', 2621440) /* 2.5 MiB */);
-
-        return [mallocDump, tracingDump];
-      })();
+      pmd2A.memoryAllocatorDumps = [
+        newAllocatorDump(pmd2A, 'malloc', { size: 9437184 /* 9 MiB */ }),
+        newAllocatorDump(pmd2A, 'tracing', {
+          size: 2097152 /* 2 MiB */,
+          resident_size: 2621440 /* 2.5 MiB */
+        })
+      ];
 
       // Totals and allocator dumps only.
       var pmd2B = addProcessMemoryDump(gmd2, pB, 69);
@@ -205,30 +184,16 @@ tr.exportTo('tr.ui.analysis', function() {
           private_bytes: 8912896 /* 8.5 MiB */
         }
       };
-      pmd2B.memoryAllocatorDumps = (function() {
-        var mallocDump = new MemoryAllocatorDump(pmd2B, 'malloc');
-        mallocDump.addAttribute('size',
-            new ScalarAttribute('bytes', 2621440) /* 2.5 MiB */);
-
-        var v8Dump = new MemoryAllocatorDump(pmd2B, 'v8');
-        v8Dump.addAttribute('size',
-            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
-
-        var blinkDump = new MemoryAllocatorDump(pmd2B, 'blink');
-        blinkDump.addAttribute('size',
-            new ScalarAttribute('bytes', 7340032) /* 7 MiB */);
-
-        var oilpanDump = new MemoryAllocatorDump(pmd2B, 'oilpan');
-        oilpanDump.addAttribute('size', new ScalarAttribute('bytes', 1));
-
-        var tracingDump = new MemoryAllocatorDump(pmd2B, 'tracing');
-        tracingDump.addAttribute('size',
-            new ScalarAttribute('bytes', 1572864) /* 1.5 MiB */);
-        tracingDump.addAttribute('resident_size',
-            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-
-        return [mallocDump, v8Dump, blinkDump, oilpanDump, tracingDump];
-      })();
+      pmd2B.memoryAllocatorDumps = [
+        newAllocatorDump(pmd2B, 'malloc', { size: 2621440 /* 2.5 MiB */ }),
+        newAllocatorDump(pmd2B, 'v8', { size: 5242880 /* 5 MiB */ }),
+        newAllocatorDump(pmd2B, 'blink', { size: 7340032 /* 7 MiB */ }),
+        newAllocatorDump(pmd2B, 'oilpan', { size: 1 }),
+        newAllocatorDump(pmd2B, 'tracing', {
+          size: 1572864 /* 1.5 MiB */,
+          resident_size: 2097152 /* 2 MiB */
+        })
+      ];
 
       // Resettable peak total size only.
       var pmd2D = addProcessMemoryDump(gmd2, pD, 71);
@@ -266,50 +231,31 @@ tr.exportTo('tr.ui.analysis', function() {
           }
         })
       ];
-      pmd3B.memoryAllocatorDumps = (function() {
-        var mallocDump = new MemoryAllocatorDump(pmd3B, 'malloc');
-        mallocDump.addAttribute('size',
-            new ScalarAttribute('bytes', 2883584) /* 2.75 MiB */);
-
-        var v8Dump = new MemoryAllocatorDump(pmd3B, 'v8');
-        v8Dump.addAttribute('size',
-            new ScalarAttribute('bytes', 5767168) /* 5.5 MiB */);
-
-        var blinkDump = new MemoryAllocatorDump(pmd3B, 'blink');
-        blinkDump.addAttribute('size',
-            new ScalarAttribute('bytes', 6291456) /* 7 MiB */);
-
-        var tracingDump = new MemoryAllocatorDump(pmd3B, 'tracing');
-        tracingDump.addAttribute('size',
-            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-        tracingDump.addAttribute('resident_size',
-            new ScalarAttribute('bytes', 3145728) /* 3 MiB */);
-
-        return [mallocDump, v8Dump, blinkDump, tracingDump];
-      })();
+      pmd3B.memoryAllocatorDumps = [
+        newAllocatorDump(pmd3B, 'malloc', {size: 2883584 /* 2.75 MiB */ }),
+        newAllocatorDump(pmd3B, 'v8', { size: 5767168 /* 5.5 MiB */ }),
+        newAllocatorDump(pmd3B, 'blink', { size: 6291456 /* 7 MiB */ }),
+        newAllocatorDump(pmd3B, 'tracing', {
+          size: 2097152 /* 2 MiB */,
+          resident_size: 3145728 /* 3 MiB */
+        })
+      ];
 
       // Allocator dumps only.
       var pmd3C = addProcessMemoryDump(gmd3, pC, 100);
       pmd3C.memoryAllocatorDumps = (function() {
-        var oilpanDump = new MemoryAllocatorDump(pmd3C, 'oilpan');
-        oilpanDump.addAttribute('size',
-            new ScalarAttribute('bytes', 3221225472) /* 3 GiB */);
-        oilpanDump.addAttribute('inner_size',
-            new ScalarAttribute('bytes', 5242880) /* 5 MiB */);
-        oilpanDump.addAttribute('objects_count',
-            new ScalarAttribute('objects', 2015));
+        var oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {
+          size: 3221225472 /* 3 GiB */,
+          inner_size: 5242880 /* 5 MiB */,
+          objects_count: new ScalarAttribute('objects', 2015)
+        });
+        var v8Dump = newAllocatorDump(pmd3C, 'v8', {
+          size: 2147483648 /* 2 GiB */,
+          inner_size: 2097152 /* 2 MiB */,
+          objects_count: new ScalarAttribute('objects', 204)
+        });
 
-        var v8Dump = new MemoryAllocatorDump(pmd3C, 'v8');
-        v8Dump.addAttribute('size',
-            new ScalarAttribute('bytes', 2147483648) /* 2 GiB */);
-        v8Dump.addAttribute('inner_size',
-            new ScalarAttribute('bytes', 2097152) /* 2 MiB */);
-        v8Dump.addAttribute('objects_count',
-            new ScalarAttribute('objects', 204));
-
-        var ownershipLink = new MemoryAllocatorDumpLink(v8Dump, oilpanDump);
-        v8Dump.owns = ownershipLink;
-        oilpanDump.ownedBy.push(ownershipLink);
+        addOwnershipLink(v8Dump, oilpanDump);
 
         return [oilpanDump, v8Dump];
       })();
