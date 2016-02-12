@@ -69,7 +69,7 @@ tr.exportTo('tr.ui.b', function() {
 
       // Y.
       this.yScale_.range([this.chartAreaSize.height, 0]);
-      this.yScale_.domain([Math.min(yRange.min, 0), yRange.max]);
+      this.yScale_.domain(this.getYScaleDomain_(yRange.min, yRange.max));
     },
 
     updateDataContents_: function(dataSel) {
@@ -98,7 +98,7 @@ tr.exportTo('tr.ui.b', function() {
           var left = this.xScale_(currentX);
           var right = this.xScale_(currentX + width);
           var widthPx = right - left;
-          var top = this.yScale_(stack.y);
+          var top = this.yScale_(Math.max(stack.y, this.getYScaleMin_()));
           rectsSel.enter()
               .append('rect')
               .attr('fill', stack.color)

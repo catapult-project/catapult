@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
@@ -34,6 +35,7 @@ tr.exportTo('tr.ui.b', function() {
       this.classList.add('chart-base-2d');
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
+      this.isYLogScale_ = false;
 
       this.data_ = [];
       this.seriesKeys_ = [];
@@ -68,6 +70,24 @@ tr.exportTo('tr.ui.b', function() {
       this.data_ = data;
       this.updateSeriesKeys_();
       this.updateContents_();
+    },
+
+    set isYLogScale(logScale) {
+      if (logScale)
+        this.yScale_ = d3.scale.log(10);
+      else
+        this.yScale_ = d3.scale.linear();
+      this.isYLogScale_ = logScale;
+    },
+
+    getYScaleMin_: function() {
+      return this.isYLogScale_ ? 0.1 : 0;
+    },
+
+    getYScaleDomain_: function(minValue, maxValue) {
+      if (this.isYLogScale_)
+        return [this.getYScaleMin_(), maxValue];
+      return [Math.min(minValue, this.getYScaleMin_()), maxValue];
     },
 
     getSampleWidth_: function(data, index, leftSide) {
@@ -174,9 +194,39 @@ tr.exportTo('tr.ui.b', function() {
     updateYAxis_: function(yAxis) {
       yAxis.selectAll('*').remove();
       yAxis[0][0].style.opacity = 0;
-      yAxis.call(d3.svg.axis()
+
+      var axisModifier = d3.svg.axis()
         .scale(this.yScale_)
-        .orient('left'));
+        .orient('left');
+
+      if (this.isYLogScale_) {
+        var dataBySeriesKey = this.getDataBySeriesKey_();
+        var largestBin = 0;
+        tr.b.iterItems(dataBySeriesKey, function(series, values) {
+          for (var i = 0; i < values.length; i++) {
+            largestBin = Math.max(largestBin, values[i][series]);
+          }
+        });
+        if (largestBin == 0)
+          return;
+        var ticksNeeded = Math.ceil(
+            Math.log(largestBin) / Math.log(10)) + 1;
+        var tickValues = [];
+        for (var i = 0; i < ticksNeeded; i++) {
+          tickValues.push(Math.pow(10, i));
+        }
+
+        tickValues[tickValues.length - 1] = largestBin;
+
+        axisModifier = axisModifier
+          .tickValues(tickValues)
+          .tickFormat(function(d) {
+            return d;
+          });
+      }
+
+      yAxis.call(axisModifier);
+
       window.requestAnimationFrame(function() {
         var previousTop = undefined;
         var leftMargin = 0;
