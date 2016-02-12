@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 
 <script>
 'use strict';
@@ -17,14 +18,8 @@ tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
   var ScalarAttribute = tr.model.ScalarAttribute;
-
-  function newChildDump(parentDump, name) {
-    var childDump = new MemoryAllocatorDump(
-        parentDump.containerMemoryDump, parentDump.fullName + '/' + name);
-    childDump.parent = parentDump;
-    parentDump.children.push(childDump);
-    return childDump;
-  }
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
 
   test('memoryAllocatorDump_instantiate', function() {
     var containerDump = new ContainerMemoryDump(42);
@@ -40,30 +35,24 @@ tr.b.unittest.testSuite(function() {
   test('memoryAllocatorDumps_aggregateAttributes', function() {
     var md = new ContainerMemoryDump(42);
 
-    var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
-    oilpanDump.addAttribute('objects_count', new ScalarAttribute('objects', 7));
+    var oilpanDump = newAllocatorDump(md, 'oilpan',
+        { objects_count: new ScalarAttribute('objects', 7) });
 
-    var oilpanBucket1Dump = newChildDump(oilpanDump, 'bucket1');
-    oilpanBucket1Dump.addAttribute('size',
-        new ScalarAttribute('bytes', 512));
-    oilpanBucket1Dump.addAttribute('objects_count',
-        new ScalarAttribute('objects', 3));
-    oilpanBucket1Dump.addAttribute('inner_size',
-        new ScalarAttribute('bytes', 256));
-    oilpanBucket1Dump.addAttribute('outer_size',
-        new ScalarAttribute('bytes', 1024));
+    newChildDump(oilpanDump, 'bucket1', {
+      size: 512,
+      objects_count: new ScalarAttribute('objects', 3),
+      inner_size: 256,
+      outer_size: 1024
+    });
 
     var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2');
 
-    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings');
-    oilpanBucket2StringsDump.addAttribute('size',
-        new ScalarAttribute('bytes', 512));
-    oilpanBucket2StringsDump.addAttribute('objects_count',
-        new ScalarAttribute('objects', 4));
-    oilpanBucket2StringsDump.addAttribute('inner_size',
-        new ScalarAttribute('bytes', 512));
-    oilpanBucket2StringsDump.addAttribute('outer_size',
-        new ScalarAttribute('bytes', 2048));
+    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings', {
+      size: 512,
+      objects_count: new ScalarAttribute('objects', 4),
+      inner_size: 512,
+      outer_size: 2048
+    });
 
     oilpanDump.aggregateAttributes();
 

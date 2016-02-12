@@ -23,13 +23,26 @@ tr.exportTo('tr.model', function() {
     throw new Error('Static class');
   }
 
-  MemoryDumpTestUtils.newChildDump = function(parentDump, name, opt_size) {
-    var childDump = new MemoryAllocatorDump(
-        parentDump.containerMemoryDump, parentDump.fullName + '/' + name);
+  MemoryDumpTestUtils.newAllocatorDump = function(
+      containerDump, fullName, opt_attrs, opt_guid) {
+    var dump = new MemoryAllocatorDump(containerDump, fullName, opt_guid);
+    if (opt_attrs !== undefined) {
+      tr.b.iterItems(opt_attrs, function(attrName, attr) {
+        if (typeof attr === 'number')
+          attr = new ScalarAttribute('bytes', attr);
+        dump.addAttribute(attrName, attr);
+      });
+    }
+    return dump;
+  };
+
+  MemoryDumpTestUtils.newChildDump =
+      function(parentDump, name, opt_attrs, opt_guid) {
+    var childDump = MemoryDumpTestUtils.newAllocatorDump(
+        parentDump.containerMemoryDump, parentDump.fullName + '/' + name,
+        opt_attrs, opt_guid);
     childDump.parent = parentDump;
     parentDump.children.push(childDump);
-    if (opt_size !== undefined)
-      childDump.addAttribute('size', new ScalarAttribute('bytes', opt_size));
     return childDump;
   };
 
@@ -38,8 +51,8 @@ tr.exportTo('tr.model', function() {
     assert.isUndefined(ownerDump.owns);  // Sanity check.
     var ownershipLink =
         new MemoryAllocatorDumpLink(ownerDump, ownedDump, opt_importance);
-    ownedDump.owns = ownershipLink;
-    ownerDump.ownedBy.push(ownershipLink);
+    ownerDump.owns = ownershipLink;
+    ownedDump.ownedBy.push(ownershipLink);
     return ownershipLink;
   };
 
