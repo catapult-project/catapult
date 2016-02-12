@@ -26,6 +26,22 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
   });
 
+  test('instantiation_singleSeries_yLogScale', function() {
+    var chart = new tr.ui.b.BarChart();
+    chart.isYLogScale = true;
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 10, value: 10},
+      {x: 20, value: 100},
+      {x: 30, value: 1000},
+      {x: 40, value: 10000}
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+  });
+
   test('undefined', function() {
     var chart = new tr.ui.b.BarChart();
     assert.throws(function() {
@@ -36,6 +52,28 @@ tr.b.unittest.testSuite(function() {
   test('instantiation_twoSeries', function() {
     var chart = new tr.ui.b.BarChart();
 
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 10, alpha: 100, beta: 50},
+      {x: 20, alpha: 110, beta: 75},
+      {x: 30, alpha: 100, beta: 125},
+      {x: 40, alpha: 50, beta: 125}
+    ];
+    chart.data = data;
+
+    var r = new tr.b.Range();
+    r.addValue(20);
+    r.addValue(40);
+    chart.brushedRange = r;
+
+    this.addHTMLOutput(chart);
+  });
+
+  test('instantiation_twoSeries_yLogScale', function() {
+    var chart = new tr.ui.b.BarChart();
+    chart.isYLogScale = true;
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';
