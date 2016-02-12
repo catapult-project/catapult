@@ -154,7 +154,7 @@ class DebugAlertTest(testing_common.TestCase):
 
   def testFetchAroundRev(self):
     test_key = self._AddSampleData()
-    rows = debug_alert._FetchRowsAroundRev(test_key, 310, 5, 8)
+    rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 5, 8)
     revisions = [r.revision for r in rows]
     self.assertEqual(
         [305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317],
@@ -162,13 +162,13 @@ class DebugAlertTest(testing_common.TestCase):
 
   def testFetchRowsAroundRev_NotAllRowsAvailable(self):
     test_key = self._AddSampleData()
-    rows = debug_alert._FetchRowsAroundRev(test_key, 310, 100, 100)
+    rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 100, 100)
     # There are only 20 rows in the sample data, so only 20 can be fetched.
     self.assertEqual(20, len(rows))
 
   def testChartSeries(self):
     test_key = self._AddSampleData()
-    rows = debug_alert._FetchRowsAroundRev(test_key, 310, 5, 5)
+    rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 5, 5)
     # The indexes used in the chart series should match those in the lookup.
     self.assertEqual(
         [(0, 60.65), (1, 55.61), (2, 61.88), (3, 61.51), (4, 59.58),
@@ -177,7 +177,7 @@ class DebugAlertTest(testing_common.TestCase):
 
   def testRevisionList(self):
     test_key = self._AddSampleData()
-    rows = debug_alert._FetchRowsAroundRev(test_key, 310, 5, 5)
+    rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 5, 5)
     # The lookup dict maps indexes to x-values in the input series.
     self.assertEqual(
         [305, 306, 307, 308, 309, 310, 311, 312, 313, 314],
