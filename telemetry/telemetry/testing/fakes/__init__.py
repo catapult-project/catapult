@@ -23,18 +23,13 @@ from telemetry.testing.internal import fake_gpu_info
 # fakes API.
 
 class FakePlatform(object):
-  def __init__(self):
-    self._network_controller = None
-
   @property
   def is_host_platform(self):
     raise NotImplementedError
 
   @property
   def network_controller(self):
-    if self._network_controller is None:
-      self._network_controller = _FakeNetworkController()
-    return  self._network_controller
+    return _FakeNetworkController()
 
   @property
   def tracing_controller(self):
@@ -255,33 +250,17 @@ class _FakeCredentials(object):
 
 
 class _FakeNetworkController(object):
-  def __init__(self):
-    self.wpr_mode = None
-    self.netsim = None
-    self.extra_wpr_args = None
-    self.is_replay_active = False
-    self.is_open = False
-
-  def Open(self, wpr_mode, netsim, extra_wpr_args):
-    self.wpr_mode = wpr_mode
-    self.netsim = netsim
-    self.extra_wpr_args = extra_wpr_args
-    self.is_open = True
+  def Open(self):
+    pass
 
   def Close(self):
-    self.wpr_mode = None
-    self.netsim = None
-    self.extra_wpr_args = None
-    self.is_replay_active = False
-    self.is_open = False
+    pass
 
-  def StartReplay(self, archive_path, make_javascript_deterministic=False):
-    del make_javascript_deterministic  # Unused.
-    assert self.is_open
-    self.is_replay_active = archive_path is not None
+  def SetReplayArgs(self, *args, **kwargs):
+    pass
 
-  def StopReplay(self):
-    self.is_replay_active = False
+  def UpdateReplayForExistingBrowser(self):
+    pass
 
 
 class _FakeTab(object):
