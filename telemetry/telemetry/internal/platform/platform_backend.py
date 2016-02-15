@@ -91,11 +91,22 @@ class PlatformBackend(object):
     browser_options = browser_backend.browser_options
     self.SetFullPerformanceModeEnabled(browser_options.full_performance_mode)
 
+    # TODO(perezju): Remove these calls when replay's life cycle is no longer
+    # tied to the browser.
+    if not self._network_controller_backend.is_test_ca_installed:
+      self._network_controller_backend.InstallTestCa()
+    self._network_controller_backend.UpdateReplay(browser_backend)
+
   def DidStartBrowser(self, browser, browser_backend):
     assert browser not in self._running_browser_backends
     self._running_browser_backends.add(browser_backend)
 
   def WillCloseBrowser(self, browser, browser_backend):
+    # TODO(perezju): Remove these calls when replay's life cycle is no longer
+    # tied to the browser.
+    self._network_controller_backend.StopReplay()
+    self._network_controller_backend.RemoveTestCa()
+
     is_last_browser = len(self._running_browser_backends) <= 1
     if is_last_browser:
       self.SetFullPerformanceModeEnabled(False)

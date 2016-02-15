@@ -44,6 +44,9 @@ class NetworkControllerBackend(object):
     self._wpr_ca_cert_path = None
     self._wpr_server = None
 
+    # TODO(perezju) Remove when SetReplayArgs is gone.
+    self._pending_replay_args = None
+
   @property
   def is_open(self):
     return self._wpr_mode is not None
@@ -88,15 +91,20 @@ class NetworkControllerBackend(object):
     self._netsim = netsim
     self._extra_wpr_args = extra_wpr_args
     self._wpr_port_pairs = self._platform_backend.GetWprPortPairs(bool(netsim))
-    self._InstallTestCa()
+    # TODO(perezju): If supported, always try to install test certificates.
+    # This is temporarilly special-cased in case the browser already installed
+    # the certificates during platform.DidCreateBrowser; or if we're re-opening
+    # during UpdateReplayForExistingBrowser.
+    if not self.is_test_ca_installed:
+      self.InstallTestCa()
 
   def Close(self):
     """Undo changes in the target platform used for network control.
 
     Implicitly stops replay if currently active.
     """
+    # TODO(perezju): Uninstall test certificates if needed.
     self.StopReplay()
-    self._RemoveTestCa()
     self._make_javascript_deterministic = None
     self._archive_path = None
     self._wpr_port_pairs = None
@@ -104,7 +112,8 @@ class NetworkControllerBackend(object):
     self._netsim = None
     self._wpr_mode = None
 
-  def _InstallTestCa(self):
+  def InstallTestCa(self):
+    # TODO(perezju): Make this method private, and have it called during Open.
     if not self._platform_backend.supports_test_ca:
       return
     assert not self.is_test_ca_installed, 'Test CA is already installed'
@@ -129,9 +138,10 @@ class NetworkControllerBackend(object):
       logging.exception(
           'Failed to install test certificate authority on target platform. '
           'Browsers may fall back to ignoring certificate errors.')
-      self._RemoveTestCa()
+      self.RemoveTestCa()
 
-  def _RemoveTestCa(self):
+  def RemoveTestCa(self):
+    # TODO(perezju): Make this method private, and have it called during Close.
     if not self.is_test_ca_installed:
       return
     try:
@@ -250,3 +260,52 @@ class NetworkControllerBackend(object):
     self._forwarder = self._platform_backend.forwarder_factory.Create(
         forwarders.PortPairs.Zip(local_ports,
                                  self._wpr_port_pairs.remote_ports))
+
+  def SetReplayArgs(self, archive_path, wpr_mode, netsim, extra_wpr_args,
+                    make_javascript_deterministic=False):
+    """DEPRECATED: New clients should not call this method."""
+    if not archive_path:
+      return  # Same as above. Keep an existing replay server running.
+    self._pending_replay_args = dict(
+        archive_path=archive_path,
+        wpr_mode=wpr_mode,
+        netsim=netsim,
+        extra_wpr_args=extra_wpr_args,
+        make_javascript_deterministic=make_javascript_deterministic)
+
+  def UpdateReplay(self, browser_backend=None):
+    """DEPRECATED: New clients should not call this method."""
+    if not self._pending_replay_args:
+      # In some cases (e.g., unit tests), the browser is used without replay.
+      return
+
+    if browser_backend is None:
+      # If no browser_backend, then this is an update for an existing browser.
+      assert self.is_open and self._wpr_port_pairs is not None
+      wpr_port_pairs = self._wpr_port_pairs
+      may_reuse_session = (
+          self._pending_replay_args['wpr_mode'] in [wpr_modes.WPR_OFF,
+                                                    self._wpr_mode] and
+          self._pending_replay_args['netsim'] == self._netsim and
+          self._pending_replay_args['extra_wpr_args'] == self._extra_wpr_args)
+    else:
+      wpr_port_pairs = None  # Let the platform choose the port pairs.
+      may_reuse_session = False
+
+    if not may_reuse_session:
+      self.Close()  # In case it is already open.
+      self.Open(self._pending_replay_args['wpr_mode'],
+                self._pending_replay_args['netsim'],
+                self._pending_replay_args['extra_wpr_args'])
+      # Override port pairs if we already have an existing browser.
+      if wpr_port_pairs is not None:
+        self._wpr_port_pairs = wpr_port_pairs
+
+    self.StartReplay(self._pending_replay_args['archive_path'],
+                     self._pending_replay_args['make_javascript_deterministic'])
+
+    # Remember actual port pairs being used after defaults have been resolved.
+    # Note: the forwarder would be None if WPR mode is set to off.
+    if self._forwarder is not None:
+      self._wpr_port_pairs = self._forwarder.port_pairs
+    self._pending_replay_args = None
