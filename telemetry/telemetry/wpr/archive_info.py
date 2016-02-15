@@ -127,7 +127,7 @@ class WprArchiveInfo(object):
 
     # Update the hash file.
     target_wpr_file_hash = cloud_storage.CalculateHash(target_wpr_file_path)
-    with open(target_wpr_file_path + '.sha1', 'wb') as f:
+    with open(cloud_storage.GetKeyPathForFile(target_wpr_file_path), 'wb') as f:
       f.write(target_wpr_file_hash)
       f.flush()
 

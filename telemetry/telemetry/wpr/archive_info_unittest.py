@@ -63,8 +63,9 @@ class WprArchiveInfoTest(unittest.TestCase):
     old_ch = cloud_storage.CalculateHash
     cloud_storage.CalculateHash = self.overrides.cloud_storage.CalculateHash
     try:
-      self.assertTrue(os.path.exists(file_path + '.sha1'))
-      with open(file_path + '.sha1', 'rb') as f:
+      self.assertTrue(os.path.exists(
+          cloud_storage.GetKeyPathForFile(file_path)))
+      with open(cloud_storage.GetKeyPathForFile(file_path), 'rb') as f:
         self.assertEquals(cloud_storage.CalculateHash(file_path), f.read())
     finally:
       cloud_storage.CalculateHash = old_ch
