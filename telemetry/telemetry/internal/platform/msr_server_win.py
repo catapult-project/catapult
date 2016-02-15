@@ -21,6 +21,12 @@ import os
 import SocketServer
 import struct
 import sys
+try:
+  import win32api  # pylint: disable=import-error
+  import win32file  # pylint: disable=import-error
+except ImportError:
+  win32api = None
+  win32file = None
 
 
 WINRING0_STATUS_MESSAGES = (
@@ -83,14 +89,22 @@ class MsrRequestHandler(SocketServer.StreamRequestHandler):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('port', type=int)
+  parser.add_argument('pipe_name', type=str)
   args = parser.parse_args()
 
   _Initialize()
   try:
     SocketServer.TCPServer.allow_reuse_address = True
-    server_address = ('127.0.0.1', args.port)
+    server_address = ('127.0.0.1', 0)
     server = SocketServer.TCPServer(server_address, MsrRequestHandler)
+    handle = win32file.CreateFile(args.pipe_name,
+                                  win32file.GENERIC_WRITE,
+                                  0, None,
+                                  win32file.OPEN_EXISTING,
+                                  0, None)
+    _, port = server.server_address
+    win32file.WriteFile(handle, str(port))
+    win32api.CloseHandle(handle)
     server.serve_forever()
   finally:
     _Deinitialize()

@@ -21,7 +21,6 @@ from catapult_base import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 from telemetry.core import os_version as os_version_module
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.platform import desktop_platform_backend
 from telemetry.internal.platform.power_monitor import msr_power_monitor
@@ -33,7 +32,9 @@ try:
   from win32com.shell import shell  # pylint: disable=no-name-in-module
   from win32com.shell import shellcon  # pylint: disable=no-name-in-module
   import win32con  # pylint: disable=import-error
+  import win32file  # pylint: disable=import-error
   import win32gui  # pylint: disable=import-error
+  import win32pipe  # pylint: disable=import-error
   import win32process  # pylint: disable=import-error
   import win32security  # pylint: disable=import-error
 except ImportError:
@@ -42,7 +43,9 @@ except ImportError:
   shellcon = None
   win32api = None
   win32con = None
+  win32file = None
   win32gui = None
+  win32pipe = None
   win32process = None
   win32security = None
 
@@ -343,16 +346,24 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       return
 
     _InstallWinRing0()
-    self._msr_server_port = util.GetUnreservedAvailableLocalPort()
-    # It might be flaky to get a port number without reserving it atomically,
-    # but if the server process chooses a port, we have no way of getting it.
-    # The stdout of the elevated process isn't accessible.
+
+    pipe_name = r"\\.\pipe\msr_server_pipe_{}".format(os.getpid())
+    # Try to open a named pipe to receive a msr port number from server process.
+    pipe = win32pipe.CreateNamedPipe(
+        pipe_name,
+        win32pipe.PIPE_ACCESS_INBOUND,
+        win32pipe.PIPE_TYPE_MESSAGE | win32pipe.PIPE_WAIT,
+        1, 32, 32, 300, None)
     parameters = (
         os.path.join(os.path.dirname(__file__), 'msr_server_win.py'),
-        str(self._msr_server_port),
+        pipe_name,
     )
     self._msr_server_handle = self.LaunchApplication(
         sys.executable, parameters, elevate_privilege=True)
+    if pipe != win32file.INVALID_HANDLE_VALUE:
+      if win32pipe.ConnectNamedPipe(pipe, None) == 0:
+        self._msr_server_port = int(win32file.ReadFile(pipe, 32)[1])
+      win32api.CloseHandle(pipe)
     # Wait for server to start.
     try:
       socket.create_connection(('127.0.0.1', self._msr_server_port), 5).close()
