@@ -37,6 +37,15 @@ class RequestHandler(webapp2.RequestHandler):
     """
     self.response.set_status(status)
     template = JINJA2_ENVIRONMENT.get_template(template_file)
+    self.GetTemplateValues(template_values)
+    self.response.out.write(template.render(template_values))
+
+  def GetTemplateValues(self, template_values):
+    """Gets the values that go in the template for every page.
+
+    Args:
+      template_values: dict of name/value pairs
+    """
     user_info = ''
     xsrf_token = ''
     user = users.get_current_user()
@@ -66,7 +75,7 @@ class RequestHandler(webapp2.RequestHandler):
     template_values['xsrf_input'] = (
         '<input type="hidden" name="xsrf_token" value="%s">' % xsrf_token)
     template_values['login_url'] = login_url
-    self.response.out.write(template.render(template_values))
+    return template_values
 
   def ReportError(self, error_message, status=500):
     """Reports the given error to the client and logs the error.
