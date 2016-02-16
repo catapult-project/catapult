@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import tempfile
 import unittest
 
 from telemetry.internal import story_runner
@@ -27,19 +26,6 @@ class DummyTest(page_test.PageTest):
     pass
 
 
-class FakeNetworkController(object):
-
-  def __init__(self):
-    self.archive_path = None
-    self.wpr_mode = None
-
-  def SetReplayArgs(self, archive_path, wpr_mode, netsim, extra_wpr_args,
-                    make_javascript_deterministic=False):
-    del netsim, extra_wpr_args, make_javascript_deterministic  # unused
-    self.archive_path = archive_path
-    self.wpr_mode = wpr_mode
-
-
 class SharedPageStateTests(unittest.TestCase):
 
   def setUp(self):
@@ -48,21 +34,20 @@ class SharedPageStateTests(unittest.TestCase):
     self.options.output_formats = ['none']
     self.options.suppress_gtest_report = True
 
-  def TestUseLiveSitesFlag(self, expected_wpr_mode):
-    with tempfile.NamedTemporaryFile() as f:
-      run_state = shared_page_state.SharedPageState(
-          DummyTest(), self.options, story_module.StorySet())
-      fake_network_controller = FakeNetworkController()
-      run_state._PrepareWpr(fake_network_controller, f.name, None)
-      self.assertEquals(fake_network_controller.wpr_mode, expected_wpr_mode)
-      self.assertEquals(fake_network_controller.archive_path, f.name)
-
   def testUseLiveSitesFlagSet(self):
     self.options.use_live_sites = True
-    self.TestUseLiveSitesFlag(expected_wpr_mode=wpr_modes.WPR_OFF)
+    run_state = shared_page_state.SharedPageState(
+        DummyTest(), self.options, story_module.StorySet())
+    self.assertTrue(run_state.platform.network_controller.is_open)
+    self.assertEquals(run_state.platform.network_controller.wpr_mode,
+                      wpr_modes.WPR_OFF)
 
   def testUseLiveSitesFlagUnset(self):
-    self.TestUseLiveSitesFlag(expected_wpr_mode=wpr_modes.WPR_REPLAY)
+    run_state = shared_page_state.SharedPageState(
+        DummyTest(), self.options, story_module.StorySet())
+    self.assertTrue(run_state.platform.network_controller.is_open)
+    self.assertEquals(run_state.platform.network_controller.wpr_mode,
+                      wpr_modes.WPR_REPLAY)
 
   def testConstructorCallsSetOptions(self):
     test = DummyTest()

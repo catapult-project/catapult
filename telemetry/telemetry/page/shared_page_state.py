@@ -78,8 +78,6 @@ class SharedPageState(story.SharedState):
     self._possible_browser = self._GetPossibleBrowser(
         self._test, finder_options)
 
-    # TODO(slamm): Remove _append_to_existing_wpr when replay lifetime changes.
-    self._append_to_existing_wpr = False
     self._first_browser = True
     self._did_login_for_current_page = False
     self._current_page = None
@@ -88,6 +86,20 @@ class SharedPageState(story.SharedState):
 
     self._pregenerated_profile_archive_dir = None
     self._test.SetOptions(self._finder_options)
+
+    # TODO(crbug/404771): Move network controller options out of
+    # browser_options and into finder_options.
+    browser_options = self._finder_options.browser_options
+    if self._finder_options.use_live_sites:
+      wpr_mode = wpr_modes.WPR_OFF
+    elif browser_options.wpr_mode == wpr_modes.WPR_RECORD:
+      wpr_mode = wpr_modes.WPR_RECORD
+    else:
+      wpr_mode = wpr_modes.WPR_REPLAY
+
+    self.platform.network_controller.Open(
+        wpr_mode, browser_options.netsim, browser_options.extra_wpr_args)
+
 
   @property
   def browser(self):
@@ -168,28 +180,6 @@ class SharedPageState(story.SharedState):
   def platform(self):
     return self._possible_browser.platform
 
-  def _PrepareWpr(self, network_controller, archive_path,
-                  make_javascript_deterministic):
-    browser_options = self._finder_options.browser_options
-    if self._finder_options.use_live_sites:
-      browser_options.wpr_mode = wpr_modes.WPR_OFF
-    elif browser_options.wpr_mode != wpr_modes.WPR_RECORD:
-      browser_options.wpr_mode = (
-          wpr_modes.WPR_REPLAY
-          if archive_path and os.path.isfile(archive_path)
-          else wpr_modes.WPR_OFF)
-
-    # Replay's life-cycle is tied to the browser. Start and Stop are handled by
-    # platform_backend.DidCreateBrowser and platform_backend.WillCloseBrowser,
-    # respectively.
-    # TODO(slamm): Update life-cycle comment with https://crbug.com/424777 fix.
-    wpr_mode = browser_options.wpr_mode
-    if self._append_to_existing_wpr and wpr_mode == wpr_modes.WPR_RECORD:
-      wpr_mode = wpr_modes.WPR_APPEND
-    network_controller.SetReplayArgs(
-        archive_path, wpr_mode, browser_options.netsim,
-        browser_options.extra_wpr_args, make_javascript_deterministic)
-
   def _StartBrowser(self, page):
     assert self._browser is None
     self._possible_browser.SetCredentialsPath(page.credentials_path)
@@ -242,13 +232,19 @@ class SharedPageState(story.SharedState):
     if self._test.RestartBrowserBeforeEachPage() or page.startup_url:
       self._StopBrowser()
     started_browser = not self.browser
-    self._PrepareWpr(self.platform.network_controller,
-                     page_set.WprFilePathForStory(page),
-                     page.make_javascript_deterministic)
+
+    archive_path = page_set.WprFilePathForStory(page)
+    # TODO(nednguyen, perezju): Ideally we should just let the network
+    # controller raise an exception when the archive_path is not found.
+    if archive_path is not None and not os.path.isfile(archive_path):
+      logging.warning('WPR archive missing: %s', archive_path)
+      archive_path = None
+    self.platform.network_controller.StartReplay(
+        archive_path, page.make_javascript_deterministic)
+
     if self.browser:
       # Set new credential path for browser.
       self.browser.credentials.credentials_path = page.credentials_path
-      self.platform.network_controller.UpdateReplayForExistingBrowser()
     else:
       self._StartBrowser(page)
     if self.browser.supports_tab_control and self._test.close_tabs_before_run:
@@ -350,16 +346,12 @@ class SharedPageState(story.SharedState):
 
     self._StopBrowser()
     self.platform.StopAllLocalServers()
+    self.platform.network_controller.Close()
 
   def _StopBrowser(self):
     if self._browser:
       self._browser.Close()
       self._browser = None
-
-      # Restarting the state will also restart the wpr server. If we're
-      # recording, we need to continue adding into the same wpr archive,
-      # not overwrite it.
-      self._append_to_existing_wpr = True
 
   def _StartProfiling(self, page):
     output_file = os.path.join(self._finder_options.output_dir,
