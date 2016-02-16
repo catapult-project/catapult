@@ -577,6 +577,12 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
         body.append(tab.EvaluateJavaScript('document.body.innerText'))
+
+      def DidRunPage(self, platform):
+        # Force the replay server to restart between pages; this verifies that
+        # the restart mechanism works.
+        platform.network_controller.StopReplay()
+
     test = TestWpr()
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
