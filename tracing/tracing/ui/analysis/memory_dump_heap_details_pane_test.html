@@ -23,9 +23,12 @@ tr.b.unittest.testSuite(function() {
   var ROOT = RowDimension.ROOT;
   var STACK_FRAME = RowDimension.STACK_FRAME;
   var OBJECT_TYPE = RowDimension.OBJECT_TYPE;
+  var TitleColumn = tr.ui.analysis.TitleColumn;
+  var ScalarMemoryColumn = tr.ui.analysis.ScalarMemoryColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
+  var checkColumns = tr.ui.analysis.checkColumns;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
 
@@ -196,26 +199,10 @@ tr.b.unittest.testSuite(function() {
         displayExpectations.tableAndSelector);
   }
 
-  function checkColumns(columns, expectedAggregationMode) {
-    var EXPECTED_COLUMN_NAMES = [
-      'Stack frame',
-      'Size'
-    ];
-
-    // First column doesn't change value over time (no aggregation).
-    var VARIABLE_CELLS_START_INDEX = 1;
-
-    // Check column names.
-    assert.lengthOf(columns, EXPECTED_COLUMN_NAMES.length);
-    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++)
-      assert.equal(columns[i].title, EXPECTED_COLUMN_NAMES[i]);
-
-    // Check aggregation modes.
-    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++) {
-      assert.strictEqual(columns[i].aggregationMode,
-          i < VARIABLE_CELLS_START_INDEX ? undefined : expectedAggregationMode);
-    }
-  }
+  var EXPECTED_COLUMNS = [
+    { title: 'Stack frame', type: TitleColumn, noAggregation: true },
+    { title: 'Size', type: ScalarMemoryColumn }
+  ];
 
   function checkRow(columns, row, expectedDimension, expectedTitle,
       expectedSizes, expectedDefinedValues) {
@@ -278,7 +265,7 @@ tr.b.unittest.testSuite(function() {
     var table = viewEl.$.table;
     var columns = table.tableColumns;
     var rows = table.tableRows;
-    checkColumns(columns, expectedAggregationMode);
+    checkColumns(columns, EXPECTED_COLUMNS, expectedAggregationMode);
     checkRows(columns, rows, expectedStructure);
   }
 

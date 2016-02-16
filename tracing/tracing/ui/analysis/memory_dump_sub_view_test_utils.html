@@ -332,6 +332,32 @@ tr.exportTo('tr.ui.analysis', function() {
     checkAttributes(row, column, expectedAttrValues, ScalarAttribute, 'bytes');
   }
 
+  /**
+   * Check the titles, types and aggregation modes of a list of columns.
+   * expectedColumns is a list of dictionaries with the following fields:
+   *
+   *   - title: Either the expected title (string), or a matcher for it
+   *     (function that accepts the actual title as its argument).
+   *   - type: The expected class of the column.
+   *   - noAggregation: If true, the column is expected to have no aggregation
+   *     mode (regardless of expectedAggregationMode).
+   */
+  function checkColumns(columns, expectedColumns, expectedAggregationMode) {
+    assert.lengthOf(columns, expectedColumns.length);
+    for (var i = 0; i < expectedColumns.length; i++) {
+      var actualColumn = columns[i];
+      var expectedColumn = expectedColumns[i];
+      var expectedTitle = expectedColumn.title;
+      if (typeof expectedTitle === 'function')
+        expectedTitle(actualColumn.title);  // Custom title matcher.
+      else
+        assert.strictEqual(actualColumn.title, expectedTitle);  // String title.
+      assert.instanceOf(actualColumn, expectedColumn.type);
+      assert.strictEqual(actualColumn.aggregationMode,
+          expectedColumn.noAggregation ? undefined : expectedAggregationMode);
+    }
+  }
+
   function checkColumnInfosAndColor(
       column, attrs, contexts, expectedInfos, expectedColorReservedName) {
     // Test sanity checks.
@@ -521,6 +547,7 @@ tr.exportTo('tr.ui.analysis', function() {
     createMultipleTestProcessMemoryDumps: createMultipleTestProcessMemoryDumps,
     checkAttributes: checkAttributes,
     checkSizeAttributes: checkSizeAttributes,
+    checkColumns: checkColumns,
     checkColumnInfosAndColor: checkColumnInfosAndColor,
     checkColor: checkColor,
     createAndCheckEmptyPanes: createAndCheckEmptyPanes,

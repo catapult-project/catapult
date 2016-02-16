@@ -22,11 +22,15 @@ tr.b.unittest.testSuite(function() {
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var StringAttribute = tr.model.StringAttribute;
   var VMRegion = tr.model.VMRegion;
-  var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
+  var TitleColumn = tr.ui.analysis.TitleColumn;
+  var MemoryColumn = tr.ui.analysis.MemoryColumn;
+  var ScalarMemoryColumn = tr.ui.analysis.ScalarMemoryColumn;
+  var AggregationMode = MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
   var checkAttributes = tr.ui.analysis.checkAttributes;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var checkColumns = tr.ui.analysis.checkColumns;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
 
   function createVMRegions() {
@@ -194,31 +198,15 @@ tr.b.unittest.testSuite(function() {
     });
   }
 
-  function checkColumns(columns, expectedAggregationMode) {
-    var EXPECTED_COLUMN_NAMES = [
-      'Mapped file',
-      'Start address',
-      'Virtual size',
-      'Protection flags',
-      'PSS',
-      'Private dirty',
-      'Swapped'
-    ];
-
-    // First two columns don't change value over time (no aggregation).
-    var VARIABLE_CELLS_START_INDEX = 2;
-
-    // Check column names.
-    assert.lengthOf(columns, EXPECTED_COLUMN_NAMES.length);
-    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++)
-      assert.equal(columns[i].title, EXPECTED_COLUMN_NAMES[i]);
-
-    // Check aggregation modes.
-    for (var i = 0; i < EXPECTED_COLUMN_NAMES.length; i++) {
-      assert.strictEqual(columns[i].aggregationMode,
-          i < VARIABLE_CELLS_START_INDEX ? undefined : expectedAggregationMode);
-    }
-  }
+  var EXPECTED_COLUMNS = [
+    { title: 'Mapped file', type: TitleColumn, noAggregation: true },
+    { title: 'Start address', type: MemoryColumn, noAggregation: true },
+    { title: 'Virtual size', type: ScalarMemoryColumn },
+    { title: 'Protection flags', type: MemoryColumn },
+    { title: 'PSS', type: ScalarMemoryColumn },
+    { title: 'Private dirty', type: ScalarMemoryColumn },
+    { title: 'Swapped', type: ScalarMemoryColumn }
+  ];
 
   function checkRow(columns, row, expectedTitle, expectedStartAddress,
       expectedVirtualSize, expectedProtectionFlags,
@@ -269,7 +257,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, undefined /* no aggregation */);
+    checkColumns(columns, EXPECTED_COLUMNS, undefined /* no aggregation */);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
@@ -335,7 +323,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, AggregationMode.DIFF);
+    checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.DIFF);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
@@ -416,7 +404,7 @@ tr.b.unittest.testSuite(function() {
     // Just check that the aggregation mode was propagated to the columns.
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, AggregationMode.MAX);
+    checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.MAX);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
   });
@@ -439,7 +427,7 @@ tr.b.unittest.testSuite(function() {
     // Just check that the table has the right shape.
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, AggregationMode.DIFF);
+    checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.DIFF);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
   });
