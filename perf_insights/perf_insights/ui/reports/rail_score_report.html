@@ -15,9 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/units/generic_table_view.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
-<link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/caching_column.html">
-<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/trace_link_list.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
@@ -86,7 +84,7 @@ found in the LICENSE file.
     updateContents_: function() {
       var results = this.mapResults_;
       if (!results)
-        results = new tr.r.Results();
+        results = [];
 
       var table = this.$.table;
 
@@ -97,11 +95,13 @@ found in the LICENSE file.
       table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
 
       var railScoreHistograms = {};
-      results.allValuesFromFailureFreeRuns.map(function(v) {
-        if (!v.value.irTree)
+      results.map(function(r) {
+        var wr = r.pairs.wr;
+        var canonicalUrl = wr.canonicalUrl;
+        if (!wr.irTree)
           return;
-        this.addToHistograms_(railScoreHistograms, v.value.irTree,
-                              v.canonicalUrl);
+        this.addToHistograms_(railScoreHistograms, wr.irTree,
+                              canonicalUrl);
       }.bind(this));
 
       if (!railScoreHistograms.histogram)

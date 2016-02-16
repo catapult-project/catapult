@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/mappers/trace_stats.html">
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -27,18 +27,16 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var results = new pi.r.Results();
-    var canonicalUrl = 'my_test.json';
-    pi.m.traceStatsFunctionForTest(results, m);
+    var result = new pi.mre.MreResult();
+    pi.m.traceStatsFunctionForTest(result, m);
 
-    assert.equal(results.allValues.length, 1);
-    var dict = results.allValues[0];
-    assert.isTrue(dict instanceof tr.v.DictValue);
-    assert.equal(dict.value.totalEvents, 1);
-    assert.equal(dict.value.firstTimeInMS, 0);
-    assert.equal(dict.value.lastTimeInMS, 10);
-    assert.equal(dict.value.durationInMS, 10);
-    assert.equal(dict.value.eventsPerSecond, 100);
+    assert.equal(tr.b.dictionaryLength(result.pairs), 1);
+    var dict = result.pairs.stats;
+    assert.equal(dict.totalEvents, 1);
+    assert.equal(dict.firstTimeInMS, 0);
+    assert.equal(dict.lastTimeInMS, 10);
+    assert.equal(dict.durationInMS, 10);
+    assert.equal(dict.eventsPerSecond, 100);
   });
 });
 

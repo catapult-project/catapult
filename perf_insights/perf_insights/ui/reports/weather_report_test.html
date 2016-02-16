@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
 <link rel="import" href="/perf_insights/ui/reports/weather_report.html">
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/value/value.html">
@@ -20,7 +20,9 @@ tr.b.unittest.testSuite(function() {
     // use synthetic data.
     var dataString = tr.b.getSync(
         '/perf_insights/ui/reports/wr_result_view_test_data.json');
-    var results = pi.r.Results.fromDict(JSON.parse(dataString));
+    var results = JSON.parse(dataString).map(function(rd) {
+      return pi.mre.MreResult.fromDict(rd);
+    });
 
     var view = document.createElement('pi-ui-r-weather-report');
     view.mapResults = results;

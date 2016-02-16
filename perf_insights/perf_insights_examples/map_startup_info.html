@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pie', function() {
-  function mapStartupInfo(results, canonicalUrl, model) {
+  function mapStartupInfo(result, model) {
     var startupIRs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.model.um.LoadExpectation &&
              ir.initiatorTitle === tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP;
@@ -39,15 +39,14 @@ tr.exportTo('pie', function() {
     });
 
     if (browser_startup.isEmpty && renderer_startup.isEmpty) {
-      results.addValue(new tr.v.SkipValue(canonicalUrl, 'startup_info'));
+      result.addPair('startup_info', null);
     } else {
-      results.addValue(new tr.v.DictValue(
-          canonicalUrl,
+      result.addPair(
           'startup_info',
           {
             'browserStartup': browser_startup,
             'rendererStartup': renderer_startup
-          }));
+          });
     }
   }
 

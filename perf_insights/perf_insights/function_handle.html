@@ -77,6 +77,12 @@ tr.exportTo('pi', function() {
       };
     },
 
+    asUserFriendlyString: function() {
+      var parts = this.modulesToLoad.map(function(mtl) {return mtl.filename});
+      parts.push(this.functionName);
+      return parts.join(':');
+    },
+
     hasHrefs: function() {
       for (var module in this.modulesToLoad) {
         if (this.modulesToLoad[module].href !== undefined) {

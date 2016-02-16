@@ -1,14 +1,6 @@
-{
-  "canonical_urls": [
-    "trace_cnet.json.gz",
-    "trace_aol.json.gz"
-  ],
-  "values": [
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "wr", 
-      "value": {
+[
+  {"pairs": {
+      "wr": {
         "sliceCosts": [
           {
             "cpuSelfTime": 729.1589999999819, 
@@ -35204,13 +35196,11 @@
           "unassociatedEventsCount": 64901
         }
       }, 
-      "run_id": "5617c958-fa57-455f-85c5-0fdbb25d456a"
+      "canonical_url": "trace_aol.json.gz"
+      }
     }, 
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "wr", 
-      "value": {
+    {"pairs" : {
+      "wr": {
         "sliceCosts": [
           {
             "cpuSelfTime": 788.7029999999828, 
@@ -60284,7 +60274,7 @@
           "unassociatedEventsCount": 2390
         }
       }, 
-      "run_id": "555521ba-d4ee-432d-a9bc-aa25cbb74c39"
+      "canonical_url": "trace_cnet.json.gz"
     }
-  ]
-}
+  }
+]

@@ -5,7 +5,6 @@
 import time
 
 from perf_insights import progress_reporter
-from tracing import value as value_module
 
 
 class GTestRunReporter(progress_reporter.RunReporter):
@@ -19,14 +18,10 @@ class GTestRunReporter(progress_reporter.RunReporter):
     assert self._timestamp is not None, 'Did not call WillRun.'
     return (time.time() - self._timestamp) * 1000
 
-  def DidAddValue(self, value):
-    super(GTestRunReporter, self).DidAddValue(value)
-    if isinstance(value, value_module.FailureValue):
-      print >> self._output_stream, value.GetGTestPrintString()
-      self._output_stream.flush()
-    elif isinstance(value, value_module.SkipValue):
-      print >> self._output_stream, '===== SKIPPING TEST %s: %s =====' % (
-          value.canonical_url, value.description)
+  def DidAddFailure(self, failure):
+    super(GTestRunReporter, self).DidAddFailure(failure)
+    print >> self._output_stream, failure.stack
+    self._output_stream.flush()
 
   def DidRun(self, run_failed):
     super(GTestRunReporter, self).DidRun(run_failed)
@@ -50,10 +45,9 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, "[ OK ] %s" % testname
   """
 
-  def __init__(self, output_stream, output_skipped_tests_summary=False):
+  def __init__(self, output_stream):
     super(GTestProgressReporter, self).__init__()
     self._output_stream = output_stream
-    self._output_skipped_tests_summary = output_skipped_tests_summary
 
   def WillRun(self, canonical_url):
     super(GTestProgressReporter, self).WillRun(canonical_url)
@@ -61,23 +55,26 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
     self._output_stream.flush()
     return GTestRunReporter(canonical_url, self._output_stream, time.time())
 
-  def DidFinishAllRuns(self, results):
-    super(GTestProgressReporter, self).DidFinishAllRuns(results)
-    successful_runs = []
+  def DidFinishAllRuns(self, result_list):
+    super(GTestProgressReporter, self).DidFinishAllRuns(result_list)
+    successful_runs = 0
     failed_canonical_urls = []
-    for url in results.all_canonical_urls:
-      if results.DoesRunContainFailure(url):
-        failed_canonical_urls.append(url)
+    failed_runs = 0
+    for run in result_list:
+      if len(run.failures) != 0:
+        failed_runs += 1
+        for f in run.failures:
+          failed_canonical_urls.append(f.trace_canonical_url)
       else:
-        successful_runs.append(url)
+        successful_runs += 1
 
-    unit = 'test' if len(successful_runs) == 1 else 'tests'
+    unit = 'test' if successful_runs == 1 else 'tests'
     print >> self._output_stream, '[  PASSED  ] %d %s.' % (
-        (len(successful_runs), unit))
+        (successful_runs, unit))
     if len(failed_canonical_urls) > 0:
       unit = 'test' if len(failed_canonical_urls) == 1 else 'tests'
       print >> self._output_stream, '[  FAILED  ] %d %s, listed below:' % (
-          (len(results.failure_values), unit))
+          (failed_runs, unit))
       for failed_canonical_url in failed_canonical_urls:
         print >> self._output_stream, '[  FAILED  ]  %s' % (
             failed_canonical_url)
@@ -86,10 +83,5 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       unit = 'TEST' if count == 1 else 'TESTS'
       print >> self._output_stream, '%d FAILED %s' % (count, unit)
     print >> self._output_stream
-
-    if self._output_skipped_tests_summary:
-      if len(results.skip_values) > 0:
-        print >> self._output_stream, 'Skipped:\n%s\n' % ('\n'.join(
-            v.canonical_url for v in results.skip_values))
 
     self._output_stream.flush()

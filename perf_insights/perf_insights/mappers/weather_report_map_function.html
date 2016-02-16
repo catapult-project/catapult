@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import"
     href="/tracing/metrics/system_health/system_health_metric.html">
 <link rel="import" href="/tracing/model/ir_coverage.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -61,6 +60,7 @@ tr.exportTo('pi.m', function() {
     threadGrouping.autoInitUsingHelpers(model);
 
     var wr = {
+      canonicalUrl: model.canonicalUrlThatCreatedThisTrace,
       irTree: irTree,
       irCoverage: tr.model.getIRCoverageFromModel(model),
       sliceCosts: pi.m.getSliceCostReport(model, threadGrouping,
@@ -88,10 +88,9 @@ tr.exportTo('pi.m', function() {
     return stageTitleByGUID;
   }
 
-  function weatherReportMapFunction(results, model) {
-    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
+  function weatherReportMapFunction(result, model) {
     var wr = pi.m.getWeatherReportFromModel(model);
-    results.addValue(new tr.v.DictValue(canonicalUrl, 'wr', wr));
+    result.addPair('wr', wr);
   }
   pi.FunctionRegistry.register(weatherReportMapFunction);
 

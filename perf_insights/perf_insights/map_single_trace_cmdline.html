@@ -6,15 +6,16 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/perf_insights/map_single_trace.html">
+<link rel="import" href="/perf_insights/mre/failure.html">
 <link rel="import" href="/perf_insights/mre/file_handle.html">
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
 
 <script>
 'use strict';
 
 tr.exportTo('pi', function() {
 
-  var FailureValue = tr.v.FailureValue;
+  var Failure = pi.mre.Failure;
 
   function createModelFromTraceData(traceData, canonicalUrl) {
     var model = new tr.Model();
@@ -44,30 +45,22 @@ tr.exportTo('pi', function() {
       mapFunctionHandle: pi.FunctionHandle.fromDict(JSON.parse(args[1]))
     };
 
-    var results = new pi.r.Results();
+    var result = new pi.mre.MreResult();
 
     var canonicalUrl = options.traceHandle.canonicalUrl;
 
-    results.willRun(options.traceHandle);
-
-    pi.runAndConvertErrorsToFailureValues(
-        results, canonicalUrl,
+    pi.runAndConvertErrorsToFailures(
+        result, undefined, options.mapFunctionHandle, options.traceHandle,
         function() {
           var mapFunction = options.mapFunctionHandle.load();
 
           var traceData = options.traceHandle.load();
 
           var model = createModelFromTraceData(traceData, canonicalUrl);
-          pi.mapSingleTrace(results, model, mapFunction);
+          pi.mapSingleTrace(result, model, mapFunction);
         });
 
-    results.didRun(options.traceHandle);
-    results.didFinishAllRuns();
-
-    results.allValues.forEach(function(value) {
-      var valueAsDict = value.asDict();
-      console.log('MAP_RESULT_VALUE: ' + JSON.stringify(valueAsDict));
-    });
+    console.log('MRE_RESULT: ' + JSON.stringify(result.asDict()));
     return 0;
   }
 

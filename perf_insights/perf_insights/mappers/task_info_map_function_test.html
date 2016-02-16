@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/mappers/task_info_map_function.html">
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -49,29 +49,29 @@ tr.b.unittest.testSuite(function() {
       m.flowEvents.push(f2);
     });
 
-    var results = new pi.r.Results();
-    var canonicalUrl = 'my_test.json';
-    pi.m.taskInfoMapFunctionForTest(results, m);
+    var result = new pi.mre.MreResult();
+    pi.m.taskInfoMapFunctionForTest(result, m);
 
-    assert.equal(results.allValues.length, 3);
-    var value = results.allValues[0];
-    assert.equal(value.name, 'time_spent_in_queue');
-    assert.equal(Object.keys(value.value['Browser']).length, 1);
+    assert.equal(tr.b.dictionaryLength(result.pairs), 3);
+    var time_spent_in_queue = result.pairs.time_spent_in_queue;
+    assert.equal(tr.b.dictionaryLength(time_spent_in_queue.Browser), 1);
     var histogram = tr.b.u.Histogram.fromDict(
-        value.value['Browser']['CrBrowserMain']);
+        time_spent_in_queue['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(7.2).count, 1);
     assert.equal(histogram.getBinForValue(18.1).count, 1);
-    value = results.allValues[1];
-    assert.equal(value.name, 'time_spent_in_top_level_task');
-    assert.equal(Object.keys(value.value['Browser']).length, 1);
+    var time_spent_in_top_level_task = (
+        result.pairs.time_spent_in_top_level_task);
+    assert.equal(tr.b.dictionaryLength(
+        time_spent_in_top_level_task['Browser']), 1);
     histogram = tr.b.u.Histogram.fromDict(
-        value.value['Browser']['CrBrowserMain']);
+        time_spent_in_top_level_task['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(10.4).count, 1);
-    value = results.allValues[2];
-    assert.equal(value.name, 'cpu_time_spent_in_top_level_task');
-    assert.equal(Object.keys(value.value['Browser']).length, 1);
+    var cpu_time_spent_in_top_level_task = (
+        result.pairs.cpu_time_spent_in_top_level_task);
+    assert.equal(tr.b.dictionaryLength(
+        cpu_time_spent_in_top_level_task['Browser']), 1);
     histogram = tr.b.u.Histogram.fromDict(
-        value.value['Browser']['CrBrowserMain']);
+        cpu_time_spent_in_top_level_task['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(3.0).count, 1);
   });
 });

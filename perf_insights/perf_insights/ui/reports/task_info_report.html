@@ -12,9 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
-<link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/caching_column.html">
-<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/trace_link_list.html">
 <link rel="import" href="/perf_insights/mappers/reduce.html">
@@ -107,7 +105,7 @@ found in the LICENSE file.
 
       var results = this.mapResults_;
       if (!results)
-        results = new tr.r.Results();
+        results = [];
 
       var columns = this.createColumns_();
       table.tableColumns = columns;
@@ -115,18 +113,20 @@ found in the LICENSE file.
       table.sortDescending = true;
 
       var rows = [];
-      results.allValuesFromFailureFreeRuns.forEach(function(result) {
-        for (var process in result.value) {
-          for (var thread in result.value[process]) {
-            rows.push({
-              process: process,
-              thread: thread,
-              type: result.name,
-              histogram:
-                  tr.b.u.Histogram.fromDict(result.value[process][thread])
-            });
+      results.forEach(function(result) {
+        tr.b.iterItems(result.pairs, function(name, info) {
+          for (var process in info) {
+            for (var thread in info[process]) {
+              rows.push({
+                process: process,
+                thread: thread,
+                type: name,
+                histogram:
+                    tr.b.u.Histogram.fromDict(info[process][thread])
+              });
+            }
           }
-        }
+        });
       });
 
       var groupBy = [];

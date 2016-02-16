@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -87,7 +86,7 @@ tr.exportTo('pie', function() {
     }
   }
 
-  function mapWakeUps(results, canonicalUrl, model) {
+  function mapWakeUps(result, model) {
     var allWakeUps = {};
     for (var pid in model.processes) {
       var process = model.processes[pid];
@@ -116,13 +115,11 @@ tr.exportTo('pie', function() {
     }
 
     if (!foundAnyWakeUps) {
-      results.addValue(new tr.v.SkipValue(canonicalUrl, 'wakeUps'));
+      result.addPair('wakeUps', null);
       return;
     }
 
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
-        'wakeUps', allWakeUps));
+    result.addPair('wakeUps', allWakeUps);
   }
 
   pi.FunctionRegistry.register(mapWakeUps);
