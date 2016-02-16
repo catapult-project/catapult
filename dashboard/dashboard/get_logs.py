@@ -27,8 +27,7 @@ class GetLogsHandler(request_handler.RequestHandler):
       log_name: Name of log to retrieve.
       log_filter: Regex string to filter logs.
       log_size: Number of logs to get.
-      after_index: Get the logs after this index.
-      before_index: Get the logs before this index.
+      after_timestamp: Get the logs after this timestamp.
 
     Outputs:
       JSON which contains a list of quick_logger.Log.
@@ -37,8 +36,7 @@ class GetLogsHandler(request_handler.RequestHandler):
     log_name = self.request.get('name')
     log_filter = self.request.get('filter')
     log_size = self.request.get('size')
-    after_index = self.request.get('after_index')
-    before_index = self.request.get('before_index')
+    after_timestamp = self.request.get('after_timestamp')
 
     logs = quick_logger.Get(log_namespace, log_name)
     if logs is None:
@@ -49,18 +47,17 @@ class GetLogsHandler(request_handler.RequestHandler):
 
     if log_filter:
       logs = [l for l in logs if re.match(log_filter, l.message)]
-    if after_index:
-      after_index = float(after_index)
-      logs = [l for l in logs if l.index > after_index]
-    if before_index:
-      before_index = float(before_index)
-      logs = [l for l in logs if l.index < before_index]
+    if after_timestamp:
+      after_timestamp = float(after_timestamp)
+      logs = [l for l in logs if
+              getattr(l, 'timestamp', l.index) > after_timestamp]
     if log_size:
       logs = logs[0:int(log_size)]
 
     serializable_logs = []
     for log in logs:
       serializable_logs.append({
-          'index': log.index,
+          'id': getattr(log, 'id', log.index),
+          'timestamp': getattr(log, 'timestamp', log.index),
           'message': log.message})
     self.response.out.write(json.dumps(serializable_logs))

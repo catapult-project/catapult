@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
 <link rel="import" href="/components/core-icon-button/core-icon-button.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
@@ -173,7 +180,7 @@
     'use strict';
     Polymer('quick-log', {
 
-      MAX_LOG_SIZE: 100,
+      MAX_LOG_REQUEST_SIZE: 100,
 
       /**
        * Custom element lifecycle callback, called once this element is ready.
@@ -210,11 +217,9 @@
        * Sends XMLHttpRequest to get logs.
        * @param {boolean} latest True to get the latest logs,
                           False to get older logs.
-       * @param {Number} size Number of logs to retrieve.
        */
-      getLogs: function(latest, size) {
+      getLogs: function(latest) {
         latest = ((latest == undefined) ? true : latest);
-        size = size || this.MAX_LOG_SIZE;
         if (this.xhr) {
           this.xhr.abort();
           this.xhr = null;
@@ -223,7 +228,7 @@
         var params = {
            namespace: this.logNamespace,
            name: this.logName,
-           size: size,
+           size: this.MAX_LOG_REQUEST_SIZE,
            xsrf_token: this.xsrfToken
         };
         if (this.logFilter) {
@@ -231,10 +236,10 @@
         }
         if (this.logList.length > 0) {
           if (latest) {
-            params['after_index'] = this.logList[0].index;
+            params['after_timestamp'] = this.logList[0].timestamp;
           } else {
-            var lastIndex = this.logList[this.logList.length - 1].index;
-            params['before_index'] = lastIndex;
+            var lastLog = this.logList[this.logList.length - 1];
+            params['before_timestamp'] = lastLog.timestamp;
           }
         }
         this.xhr = simple_xhr.send('/get_logs', params,
@@ -257,61 +262,64 @@
        * @param {Array.<Object>} newLogs Array of log objects.
        */
       updateLogs: function(newLogs) {
-        if (this.logList.length == 0) {
-          this.logList = newLogs.slice(0, this.MAX_LOG_SIZE);
-          this.insertLogRows(this.logList);
-          return;
+        var insertBefore = true;
+        if (this.logList.length) {
+          var lastTimestamp = newLogs[newLogs.length - 1].timestamp;
+          insertBefore = lastTimestamp >= this.logList[0].timestamp;
         }
-        var lastIndex = this.logList[this.logList.length - 1].index;
-        var newIndex = newLogs[0].index;
-        if (lastIndex >= newIndex) {
-          // Prepend new logs.
-          this.logList.push.apply(this.logList, newLogs);
-          this.insertLogRows(newLogs);
-        } else {
-          // Append new logs.
-          this.logList.unshift.apply(this.logList, newLogs);
-          this.insertLogRows(newLogs, true);
+
+        var table = this.$.logs;
+        if (insertBefore) {
+          newLogs.reverse();
         }
+        for (var i = 0; i < newLogs.length; i++) {
+          this.removeLog(table, newLogs[i]);
+          this.insertLog(table, newLogs[i], insertBefore);
+        }
+        this.updateHeight();
       },
 
       /**
-       * Inserts list of logs into HTML table.
-       * @param {Array.<Object>} logs Array of log objects.
+       * Inserts a log into HTML table.
+       * @param {Object} table Table HTML element.
+       * @param {Object} log A log object.
        * @param {boolean} insertBefore true to prepend, false to append.
        */
-      insertLogRows: function(logs, insertBefore) {
-        var table = this.$.logs;
-        for (var i = 0; i < logs.length; i++) {
-          var row = document.createElement('tr');
+      insertLog: function(table, log, insertBefore) {
+        if (insertBefore) {
+          this.logList.unshift(log);
+        } else {
+          this.logList.push(log);
+        }
+        var row = document.createElement('tr');
+        var expandTd = document.createElement('td');
+        row.appendChild(expandTd);
+        var span = document.createElement('span');
+        span.className = 'toggle-arrow arrow-right';
+        expandTd.appendChild(span);
 
-          var expandTd = document.createElement('td');
-          row.appendChild(expandTd);
-          var span = document.createElement('span');
-          span.className = 'toggle-arrow arrow-right';
-          expandTd.appendChild(span);
+        var td = document.createElement('td');
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'message';
+        row.appendChild(td);
+        td.appendChild(messageDiv);
+        messageDiv.innerHTML = '<pre>' + log.message + '</pre>';
+        span.onclick = this.onLogToggleClick.bind(this, messageDiv);
+        table.insertBefore(row, table.childNodes[0]);
+      },
 
-          var td = document.createElement('td');
-          var messageDiv = document.createElement('div');
-          messageDiv.className = 'message';
-          row.appendChild(td);
-          td.appendChild(messageDiv);
-          messageDiv.innerHTML = '<pre>' + logs[i].message + '</pre>';
-          span.onclick = this.onLogToggleClick.bind(this, messageDiv);
-
-          if (insertBefore) {
-            if (table.rows.length >= this.MAX_LOG_SIZE) {
-              table.deleteRow(table.rows.length - 1);
-            }
-            table.insertBefore(row, table.childNodes[0]);
-          } else {
-            if (table.rows.length >= this.MAX_LOG_SIZE) {
-              table.deleteRow(0);
-            }
-            table.appendChild(row);
+      /**
+       * Removes a log.
+       * @param {Object} table Table HTML element.
+       * @param {Object} log A log object.
+       */
+      removeLog: function(table, log) {
+        for (var i = 0; i < this.logList.length; i++) {
+          if (log.id == this.logList[i].id) {
+            this.logList.splice(i, 1);
+            table.deleteRow(i);
           }
         }
-        this.updateHeight();
       },
 
       /**
