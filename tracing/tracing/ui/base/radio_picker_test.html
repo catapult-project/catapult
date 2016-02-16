@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/radio_picker.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('basic', function() {
+    var rp = document.createElement('tr-ui-b-radio-picker');
+    rp.items = [
+      {key: 'Toyota', label: 'I want to drive Toyota'},
+      {key: 'Boeing', label: 'I want to fly'},
+      {key: 'Submarine', label: 'I want to swim'}
+    ];
+    this.addHTMLOutput(rp);
+    assert.equal(rp.selectedKey, undefined);
+    rp.select('Toyota');
+    assert.equal(rp.selectedKey, 'Toyota');
+  });
+
+  test('persistentState_setSelectedKeyAfterSettingItems', function() {
+    var items = [
+      {key: 'Toyota', label: 'I want to drive Toyota'},
+      {key: 'Boeing', label: 'I want to fly'},
+      {key: 'Submarine', label: 'I want to swim'}
+    ];
+    var container1 = tr.ui.b.createDiv({textContent: 'Radio Picker One'});
+    container1.style.border = 'solid';
+    var rp = document.createElement('tr-ui-b-radio-picker');
+    rp.items = items;
+    rp.settingsKey = 'radio-picker-test-one';
+    container1.appendChild(rp);
+    this.addHTMLOutput(container1);
+    assert.equal(rp.selectedKey, undefined);
+    rp.select('Toyota');
+    assert.equal(rp.selectedKey, 'Toyota');
+
+    var container2 = tr.ui.b.createDiv({
+        textContent: 'Radio Picker Two (same settingKey as Radio Picker One)'});
+    container2.style.border = 'solid';
+    var rp2 = document.createElement('tr-ui-b-radio-picker');
+    rp2.items = items;
+    rp2.settingsKey = 'radio-picker-test-one';
+    container2.appendChild(rp2);
+    this.addHTMLOutput(container2);
+
+    assert.equal(rp2.selectedKey, 'Toyota');
+  });
+
+  test('persistentState_setSelectedKeyBeforeSettingItems', function() {
+    var items = [
+      {key: 'Toyota', label: 'I want to drive Toyota'},
+      {key: 'Boeing', label: 'I want to fly'},
+      {key: 'Submarine', label: 'I want to swim'}
+    ];
+    var container1 = tr.ui.b.createDiv({textContent: 'Radio Picker One'});
+    container1.style.border = 'solid';
+    var rp = document.createElement('tr-ui-b-radio-picker');
+    rp.settingsKey = 'radio-picker-test-two';
+    rp.items = items;
+    container1.appendChild(rp);
+    this.addHTMLOutput(container1);
+    assert.equal(rp.selectedKey, undefined);
+    rp.select('Boeing');
+    assert.equal(rp.selectedKey, 'Boeing');
+
+    var container2 = tr.ui.b.createDiv({
+        textContent: 'Radio Picker Two (same settingKey as Radio Picker One)'});
+    container2.style.border = 'solid';
+    var rp2 = document.createElement('tr-ui-b-radio-picker');
+    rp2.settingsKey = 'radio-picker-test-two';
+    container2.appendChild(rp2);
+    this.addHTMLOutput(container2);
+    rp2.items = items;
+
+    assert.equal(rp2.selectedKey, 'Boeing');
+  });
+
+
+
+});
+</script>
