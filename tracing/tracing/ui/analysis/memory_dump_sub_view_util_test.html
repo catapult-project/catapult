@@ -1050,43 +1050,43 @@ tr.b.unittest.testSuite(function() {
         data: 'allocated',
         subRows: [
           {
-            data: 'v8'
+            data: 'v8',
+            subRows: []
           },
           {
             data: 'oilpan',
             subRows: [
-              { data: 'heaps' },
-              { data: 'objects' }
-            ]
-          },
-          {
-            data: 'skia',
-            subRows: [
-              { data: 'way' },
-              { data: 'too' },
-              { data: 'many' },
-              { data: 'sub-' },
-              { data: 'rows' },
-              { data: 'so' },
-              { data: 'that' },
-              { data: 'they' },
-              { data: 'wouldn\'t' },
-              { data: 'be' },
-              { data: 'auto-' },
-              { data: 'expanded' }
+              {
+                data: 'still_visible',
+                subRows: [
+                  {
+                    data: 'not_visible_any_more'
+                  }
+                ]
+              },
+              {
+                data: 'also_visible'
+              }
             ]
           }
         ]
       },
       {
-        data: 'overhead',
+        data: 'no_sub_rows'
+      },
+      {
+        data: 'fragmentation',
         subRows: [
           {
-            data: 'internal_fragmentation'
+            data: 'internal'
           },
           {
-            data: 'external_fragmentation',
-            subRows: []
+            data: 'external',
+            subRows: [
+              {
+                data: 'unexpanded'
+              }
+            ]
           }
         ]
       }
@@ -1099,26 +1099,28 @@ tr.b.unittest.testSuite(function() {
 
     expandTableRowsRecursively(table);
 
-    // 'allocated' row should be expanded.
-    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+    function isExpanded(row) { return table.getExpandedForTableRow(row); }
 
-    // 'allocated/v8' row cannot be expanded (no sub-rows).
-    assert.isFalse(table.getExpandedForTableRow(rows[0].subRows[0]));
+    // Level 0 (3 rows) should be expanded (except for nodes which have no
+    // sub-rows).
+    assert.isTrue(isExpanded(rows[0] /* allocated */));
+    assert.isFalse(isExpanded(rows[1] /* no_sub_rows */));
+    assert.isTrue(isExpanded(rows[2] /* overhead */));
 
-    // 'allocated/oilpan' row should be expanded.
-    assert.isTrue(table.getExpandedForTableRow(rows[0].subRows[1]));
+    // Level 1 (4 rows) should be expanded (except for nodes which have no
+    // sub-rows).
+    assert.isFalse(isExpanded(rows[0].subRows[0] /* allocated/v8 */));
+    assert.isTrue(isExpanded(rows[0].subRows[1] /* allocated/oilpan */));
+    assert.isFalse(isExpanded(rows[2].subRows[0] /* fragmentation/internal */));
+    assert.isTrue(isExpanded(rows[2].subRows[1] /* fragmentation/external */));
 
-    // 'allocated/skia' row should not be expanded (more than 10 sub-rows).
-    assert.isFalse(table.getExpandedForTableRow(rows[0].subRows[2]));
-
-    // 'overhead' row should be expanded.
-    assert.isTrue(table.getExpandedForTableRow(rows[1]));
-
-    // 'overhead/internal_fragmentation' cannot be expanded (no sub-rows).
-    assert.isFalse(table.getExpandedForTableRow(rows[1].subRows[0]));
-
-    // 'overhead/external_fragmentation' cannot be expanded (no sub-rows).
-    assert.isFalse(table.getExpandedForTableRow(rows[1].subRows[1]));
+    // Level 2 (3 rows) should not be expanded any more.
+    assert.isFalse(isExpanded(
+        rows[0].subRows[1].subRows[0] /* allocated/oilpan/still_visible */));
+    assert.isFalse(isExpanded(
+        rows[0].subRows[1].subRows[1] /* allocated/oilpan/also_visible */));
+    assert.isFalse(isExpanded(
+        rows[2].subRows[1].subRows[0] /* fragmentation/external/unexpanded */));
   });
 
   test('checkMemoryCell_extractAttributes', function() {
