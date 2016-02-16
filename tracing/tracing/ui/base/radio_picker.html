@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/ui.html">
+
+<polymer-element name='tr-ui-b-radio-picker'>
+  <template>
+    <style>
+    #container {
+      display: flex;
+      flex-direction: column;
+    }
+    </style>
+
+    <div id="container">
+    </div>
+
+  </template>
+
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.needsInit_ = true;
+      this.settingsKey_ = undefined;
+      this.is_ready_ = false;
+      this.radio_buttons_ = undefined;
+      // Keeping track of which key is selected. This member should only be set
+      // set inside select() method to make sure that logical state & the UI
+      // state is consistent.
+      this.selectedKey_ = undefined;
+    },
+
+    ready: function() {
+      this.is_ready_ = true;
+      this.maybeInit_();
+      this.maybeRenderRadioButtons_();
+    },
+
+    get settingsKey() {
+      return this.settingsKey_;
+    },
+
+    set settingsKey(settingsKey) {
+      if (!this.needsInit_)
+        throw new Error('Already initialized.');
+      this.settingsKey_ = settingsKey;
+      this.maybeInit_();
+    },
+
+    maybeInit_: function() {
+      if (!this.needsInit_)
+        return;
+      if (this.settingsKey_ === undefined)
+        return;
+      this.needsInit_ = false;
+      this.select(tr.b.Settings.get(this.settingsKey_));
+    },
+
+    set items(items) {
+      this.radio_buttons_ = {};
+      items.forEach(function(e) {
+        if (e.key in this.radio_buttons_)
+          throw new Error(e.key + ' already exists');
+        var radio_button = document.createElement('div');
+        var input = document.createElement('input');
+        var label = document.createElement('div');
+        input.type = 'radio';
+        input.addEventListener('click', function() {
+          this.select(e.key);
+        }.bind(this));
+        label.innerHTML = e.label;
+        label.style.display = 'inline';
+        radio_button.appendChild(input);
+        radio_button.appendChild(label);
+        this.radio_buttons_[e.key] = input;
+      }.bind(this));
+
+      this.maybeInit_();
+      this.maybeRenderRadioButtons_();
+    },
+
+    maybeRenderRadioButtons_: function() {
+      if (!this.is_ready_)
+        return;
+      if (this.radio_buttons_ === undefined)
+        return;
+      for (var key in this.radio_buttons_)
+        this.$.container.appendChild(this.radio_buttons_[key].parentElement);
+      if (this.selectedKey_ !== undefined)
+        this.select(this.selectedKey_);
+    },
+
+    select: function(key) {
+      if (key === undefined)
+        return;
+     if (this.radio_buttons_ == undefined) {
+        this.selectedKey_ = key;
+        return;
+     }
+      if (!(key in this.radio_buttons_))
+        throw new Error(key + ' does not exists');
+      // Unselect the previous radio, update the key & select the new one.
+      if (this.selectedKey_ !== undefined)
+        this.radio_buttons_[this.selectedKey_].checked = false;
+      this.selectedKey_ = key;
+      tr.b.Settings.set(this.settingsKey_, this.selectedKey_);
+      if (this.selectedKey_ !== undefined)
+        this.radio_buttons_[this.selectedKey_].checked = true;
+    },
+
+    get selectedKey() {
+      return this.selectedKey_;
+    },
+  });
+  </script>
+</polymer-element>
