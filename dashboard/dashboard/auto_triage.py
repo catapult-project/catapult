@@ -232,12 +232,12 @@ def _AddLogForRecoveredAnomaly(anomaly_entity):
     return
   sheriff_name = sheriff_key.string_id()
   logger = quick_logger.QuickLogger('auto_triage', sheriff_name, formatter)
-  logger.Log(
-      'Alert on %s has recovered. See <a href="%s">graph</a>.%s',
-      utils.TestPath(anomaly_entity.test),
-      ('https://chromeperf.appspot.com/group_report?keys=' +
-       anomaly_entity.key.urlsafe()),
-      _BugLink(anomaly_entity))
+  message = ('Alert on %s has recovered. See <a href="%s">graph</a>.%s' %
+             (utils.TestPath(anomaly_entity.test),
+              ('https://chromeperf.appspot.com/group_report?keys=' +
+               anomaly_entity.key.urlsafe()),
+              _BugLink(anomaly_entity)))
+  logger.Log(message)
   logger.Save()
 
 

@@ -17,12 +17,13 @@ Example:
   logger.Save()
 """
 
+import uuid
+
 import collections
 import cPickle as pickle
 import logging
 import time
 
-from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
 # Maximum number of QuickLogPart entities to hold a log.
@@ -34,24 +35,17 @@ _MAX_NUM_RECORD = 64 * _MAX_NUM_PARTS
 _MAX_MSG_SIZE = 12288  # 12KB
 
 
-def Get(namespace, key, no_wait=True):
+def Get(namespace, key):
   """Gets list of Record from the datastore.
 
   Args:
     namespace: The namespace for key.
     key: The key name.
-    no_wait: True to get results without waiting for datastore to apply
-             pending changes, False otherwise.
 
   Returns:
     List of Record, None if key does not exist in datastore.
   """
-  namespaced_key = '%s__%s' % (namespace, key)
-  key = ndb.Key('QuickLog', namespaced_key)
-  if no_wait:
-    quick_log = key.get(read_policy=ndb.EVENTUAL_CONSISTENCY)
-  else:
-    quick_log = key.get()
+  quick_log = _GetQuickLog(namespace, key)
   if quick_log:
     return quick_log.GetRecords()
   return None
@@ -68,27 +62,25 @@ def Delete(namespace, key):
   ndb.Key('QuickLog', namespaced_key).delete()
 
 
-def _Set(namespace, key, records):
-  """Sets list of Record in the datastore.
-
-  Args:
-    namespace: A string namespace for the key.
-    key: A string key name which will be namespaced for QuickLog entity key.
-    records: List of Record entities.
-  """
+def _GetQuickLog(namespace, key):
+  """Gets QuickLog entity from a namespace and a key."""
   namespaced_key = '%s__%s' % (namespace, key)
-  try:
-    log = QuickLog(id=namespaced_key, namespace=namespace)
-    log.SetRecords(namespaced_key, records)
-  except datastore_errors.BadRequestError as e:
-    logging.warning('BadRequestError for namespaced key %s: %s',
-                    namespaced_key, e)
+  key = ndb.Key('QuickLog', namespaced_key)
+  return key.get()
+
+
+def _CreateQuickLog(namespace, key):
+  """Creates an empty QuickLog entity."""
+  namespaced_key = '%s__%s' % (namespace, key)
+  log = QuickLog(id=namespaced_key)
+  log.put()
+  return log
 
 
 class QuickLog(ndb.Model):
   """Represents a log entity."""
 
-  # Namespace for identifying logs.
+  # Used for querying existing logs.
   namespace = ndb.StringProperty(indexed=True)
 
   # The time log was first created.
@@ -122,13 +114,12 @@ class QuickLog(ndb.Model):
       logging.error('Failed to load QuickLog "%s".', string_id)
     return None
 
-  def SetRecords(self, key, records):
+  def SetRecords(self, records):
     """Sets records for this log and put into datastore.
 
     Serializes records and save over multiple entities if necessary.
 
     Args:
-      key: String key name of a QuickLog entity.
       records: List of Record object.
     """
     # Number of bytes less than 1MB for ndb.BlobProperty.
@@ -144,8 +135,7 @@ class QuickLog(ndb.Model):
       # +1 to start entity key at 1.
       part_id = i // chunk_size + 1
       part_value = serialized[i:i + chunk_size]
-      parent_key = ndb.Key('QuickLog', key)
-      log_part = QuickLogPart(id=part_id, parent=parent_key, value=part_value)
+      log_part = QuickLogPart(id=part_id, parent=self.key, value=part_value)
       log_parts.append(log_part)
 
     self.size = len(log_parts)
@@ -186,19 +176,29 @@ class Formatter(object):
     """Format the record."""
     self._kwargs['message'] = record.message
     if '{asctime}' in self._template:
-      lt = time.localtime(record.index)
+      # Support backward compatibility.
+      timestamp = getattr(record, 'timestamp', record.index)
+      lt = time.localtime(timestamp)
       self._kwargs['asctime'] = time.strftime(self._datefmt, lt)
     record.message = self._template.format(*self._args, **self._kwargs)
 
 
 # Not subclassing object (aka old-style class) reduces the serialization size.
-class Record:  # pylint: disable=old-style-class
-  """Class to hold a log."""
+class Record:  # pylint: disable=old-style-class, invalid-name
+  """Class to hold a log.
 
-  def __init__(self, message):
+  Properties:
+    message: A string.
+    id: A string ID.
+    timestamp: Seconds since the epoch which represents time when record was
+        created.
+  """
+
+  def __init__(self, message, record_id):
     self.message = message
-    self.index = time.time()
-
+    self.id = record_id
+    self.timestamp = time.time()
+    self.index = None  # Deprecated.  Remove this when we migrate old Records.
 
 class QuickLogger(object):
   """Logger class."""
@@ -211,30 +211,36 @@ class QuickLogger(object):
       name: Name of logger.
       formatter: Formatter object to format logs.
     """
-    self._namespace = namespace
-    self._name = name
     self._formatter = formatter
     self._records = collections.deque(maxlen=_MAX_NUM_RECORD)
+    self._record_count = 0
+    self._log = _GetQuickLog(namespace, name)
+    if not self._log:
+      self._log = _CreateQuickLog(namespace, name)
+    self._unique_id = uuid.uuid1().hex
 
-  def Log(self, message, *args):
+
+  def Log(self, message, record_id=None):
     """Add a message with 'message % args'.
 
     Must call Save() to save to datastore.
 
     Args:
       message: String message.
-      *args: Replacement field for positional argument.
+      record_id: ID of the record to update.
+
+    Returns:
+      The ID of updated or created Record.
     """
     message = str(message)
-    if args:
-      message %= args
-    record = Record(message)
+    record = self._CreateRecord(message, record_id)
     if self._formatter:
       self._formatter.Format(record)
     if len(record.message) > _MAX_MSG_SIZE:
       logging.error('Message must be less than (%s)', _MAX_MSG_SIZE)
       return
     self._records.appendleft(record)
+    return record.id
 
   @ndb.transactional
   def Save(self):
@@ -246,8 +252,34 @@ class QuickLogger(object):
     if not self._records:
       return
     records = list(self._records)
-    stored_records = Get(self._namespace, self._name, no_wait=False)
-    if stored_records:
-      records.extend(stored_records)
-    _Set(self._namespace, self._name, records[0:_MAX_NUM_RECORD])
+    stored_records = self._log.GetRecords()
+    self._MergeRecords(records, stored_records)
+    self._log.SetRecords(records[0:_MAX_NUM_RECORD])
     self._records.clear()
+
+  def _CreateRecord(self, message, record_id=None):
+    if not record_id:
+      return Record(message, self._CreateRecordId())
+
+    for record in list(self._records):
+      if getattr(record, 'id') == record_id:
+        self._records.remove(record)
+        return Record(message, record_id)
+    # If index provided doesn't exist, we'll create a log with this index.
+    return Record(message, record_id)
+
+  def _CreateRecordId(self):
+    """Creates an ID for a Record.
+
+    A record's ID is the current record count namespaced by self._unique_id.
+    """
+    self._record_count += 1
+    return '%s_%s' % (self._unique_id, self._record_count)
+
+  def _MergeRecords(self, records, stored_records):
+    """Updates |records| with stored records if id does not already exist."""
+    if not stored_records:
+      return
+    new_ids = {r.id for r in records}
+    records.extend(r for r in stored_records
+                   if getattr(r, 'id') not in new_ids)
