@@ -32,7 +32,7 @@ var testing_common = (function() {
       this.setRequestHeader = function() {};
       this.onload = function() {};
       this.send = function(param) {
-        var requestStr = this.url + '?' + param;
+        var requestStr = this.url + '?' + sortQueryPart(param);
         if (requestStr in self.responseMap_) {
           this.responseText = self.responseMap_[requestStr];
           this.onload();
@@ -44,6 +44,7 @@ var testing_common = (function() {
   };
 
   XMLHttpRequestMock.prototype.add = function(param, response) {
+    param = sortQueryPart(param);
     this.responseMap_[param] = response;
   };
 
@@ -82,12 +83,37 @@ var testing_common = (function() {
     }
   };
 
+  var paramString = function(params) {
+    var keys = Object.keys(params).sort();
+    return keys.map(function(key) {
+      return key + '=' + encodeURIComponent(params[key]);
+    }).join('&');
+  };
+
+  var sortQueryPart = function(paramStr) {
+    var params = {};
+    var path = paramStr.substring(0, paramStr.indexOf('?') + 1);
+    var query = paramStr.substring(paramStr.indexOf('?') + 1);
+    var queryParts = query.split('&');
+    for (var i = 0; i < queryParts.length; i++) {
+      var pair = queryParts[i].split('=');
+      params[pair[0]] = pair.length == 1 ? '' : pair[1];
+    }
+    var keys = Object.keys(params).sort();
+    query = keys.map(function(key) {
+      return key + '=' + params[key];
+    }).join('&');
+    return path + query;
+  };
+
   return {
     addXhrMock: addXhrMock,
     clearXhrMock: clearXhrMock,
     deepCopy: deepCopy,
     addToFixture: addToFixture,
-    clearFixture: clearFixture
+    clearFixture: clearFixture,
+    paramString: paramString,
+    sortQueryPart: sortQueryPart
   };
 })();
 
