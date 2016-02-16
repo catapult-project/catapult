@@ -9,13 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/units/histogram.html">
 <link rel="import" href="/tracing/base/units/unit.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('pi.m', function() {
-  function traceStatsFunction(results, model) {
+  function traceStatsFunction(result, model) {
     var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var eventCount = 0;
     var firstTime = Number.MAX_VALUE;
@@ -62,7 +61,7 @@ tr.exportTo('pi.m', function() {
       events_seconds: histogram.asDict()
     };
 
-    results.addValue(new tr.v.DictValue(canonicalUrl, 'stats', stats));
+    result.addPair('stats', stats);
   }
 
   pi.FunctionRegistry.register(traceStatsFunction);

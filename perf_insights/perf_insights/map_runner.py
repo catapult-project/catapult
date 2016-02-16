@@ -5,9 +5,7 @@ import multiprocessing
 import sys
 
 from perf_insights import map_single_trace
-from perf_insights import results as results_module
 from perf_insights.mre import threaded_work_queue
-from tracing import value as value_module
 
 from perf_insights.results import gtest_progress_reporter
 
@@ -47,27 +45,25 @@ class MapRunner(object):
 
   def _ProcessOneTrace(self, trace_handle):
     canonical_url = trace_handle.canonical_url
-    subresults = results_module.Results()
     run_reporter = self._progress_reporter.WillRun(canonical_url)
-    map_single_trace.MapSingleTrace(
-        subresults,
+    result = map_single_trace.MapSingleTrace(
         trace_handle,
         self._map_function_handle)
 
-    had_failure = subresults.DoesRunContainFailure(canonical_url)
+    had_failure = len(result.failures) > 0
 
-    for v in subresults.all_values:
-      run_reporter.DidAddValue(v)
+    for f in result.failures:
+      run_reporter.DidAddFailure(f)
     run_reporter.DidRun(had_failure)
 
-    self._wq.PostMainThreadTask(self._MergeResultsToIntoMaster,
-                                trace_handle, subresults)
+    self._wq.PostMainThreadTask(self._MergeResultIntoMaster,
+                                trace_handle, result)
 
-  def _MergeResultsToIntoMaster(self, trace_handle, subresults):
-    self._results.Merge(subresults)
+  def _MergeResultIntoMaster(self, trace_handle, result):
+    self._results.append(result)
 
     canonical_url = trace_handle.canonical_url
-    had_failure = subresults.DoesRunContainFailure(canonical_url)
+    had_failure = len(result.failures) > 0
     if self._stop_on_error and had_failure:
       err = MapError("Mapping error")
       err.canonical_url = canonical_url
@@ -85,7 +81,7 @@ class MapRunner(object):
     self._wq.Stop()
 
   def Run(self):
-    self._results = results_module.Results()
+    self._results = []
 
     for trace_handle in self._trace_handles:
       self._wq.PostAnyThreadTask(self._ProcessOneTrace, trace_handle)
@@ -106,9 +102,8 @@ class MapRunner(object):
   def _PrintFailedCanonicalUrl(self, canonical_url):
     sys.stderr.write('\n\nWhile mapping %s:\n' %
                      canonical_url)
-    failures = [v for v in self._results.all_values
-                if (v.canonical_url == canonical_url and
-                    isinstance(v, value_module.FailureValue))]
+    failures = [f for f in r.failures for r in self._results
+                if f.trace_canonical_url == canonical_url]
     for failure in failures:
-      sys.stderr.write(failure.GetGTestPrintString())
+      sys.stderr.write(failure.stack)
       sys.stderr.write('\n')

@@ -9,13 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
 <link rel="import" href="/perf_insights/mappers/thread_grouping.html">
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('pi.m', function() {
-  function startupMapFunction(results, model) {
+  function startupMapFunction(result, model) {
     var startupIR;
     var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     model.interactionRecords.forEach(function(ir) {
@@ -35,9 +34,10 @@ tr.exportTo('pi.m', function() {
         function(event) {
           return startupIR.bounds(event);
         });
-    results.addValue(new tr.v.DictValue(canonicalUrl, 'sr',
+    result.addPair('sr',
         {sliceCosts: sliceCosts,
-         startupDuration: startupIR.duration}));
+         startupDuration: startupIR.duration});
+    result.addPair('canonical_url', canonicalUrl);
   }
 
   pi.FunctionRegistry.register(startupMapFunction);

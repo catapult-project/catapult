@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/mappers/scheduling/map_gesture_timing.html">
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -35,14 +35,12 @@ tr.b.unittest.testSuite(function() {
       m.interactionRecords.push(scrollIr2);
     });
 
-    var results = new pi.r.Results();
-    var canonicalUrl = 'my_test.json';
-    pie.mapGestureTimingForTest(results, canonicalUrl, m);
+    var result = new pi.mre.MreResult();
+    pie.mapGestureTimingForTest(result, m);
 
-    assert.lengthOf(results.allValues, 1);
-    assert.instanceOf(results.allValues[0], tr.v.DictValue);
+    assert.equal(tr.b.dictionaryLength(result.pairs), 1);
 
-    var gestureTiming = results.allValues[0].value;
+    var gestureTiming = result.pairs.gestureTiming;
     assert.deepEqual(gestureTiming.firstGestureAfterLoadTime, [40]);
     assert.deepEqual(gestureTiming.gestureDuration, [10, 20]);
     assert.deepEqual(gestureTiming.intervalBetweenGestures, [50]);

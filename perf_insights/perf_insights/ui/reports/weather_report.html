@@ -9,12 +9,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/grouping_table.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
-<link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/perf_insights/ui/reports/rail_score_report.html">
 <link rel="import" href="/perf_insights/ui/reports/coverage_report.html">
 <link rel="import" href="/perf_insights/ui/reports/slice_cost_report.html">
-<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 
 <polymer-element name="pi-ui-r-weather-report"
     extends="pi-ui-r-pi-report"
@@ -69,10 +67,10 @@ found in the LICENSE file.
     updateContents_: function() {
       var results = this.mapResults_;
       if (!results)
-        results = new tr.r.Results();
+        results = [];
 
       var tabView = this.shadowRoot.querySelector('tr-ui-a-tab-view');
-      tabView.tabStripHeadingText = results.allCanonicalUrls.length +
+      tabView.tabStripHeadingText = results.length +
           ' traces: ';
 
       var reports = tr.b.asArray(

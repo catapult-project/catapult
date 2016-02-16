@@ -10,32 +10,30 @@ from perf_insights.mre import failure as failure_module
 class FailureTests(unittest.TestCase):
 
   def testAsDict(self):
-    failure = failure_module.Failure('1', '2', '3', 'err', 'desc', 'stack')
+    failure = failure_module.Failure(None, 'foo.html:Foo', 'file://foo.html',
+                                     'err', 'desc', 'stack')
 
     self.assertEquals(failure.AsDict(), {
-      'job_guid': '1',
-      'function_handle_guid': '2',
-      'trace_guid': '3',
-      'failure_type_name': 'err',
+      'function_handle_string': 'foo.html:Foo',
+      'trace_canonical_url': 'file://foo.html',
+      'type': 'err',
       'description': 'desc',
       'stack': 'stack'
     })
 
   def testFromDict(self):
     failure_dict = {
-        'job_guid': '1',
-        'function_handle_guid': '2',
-        'trace_guid': '3',
-        'failure_type_name': 'err',
+        'function_handle_string': 'foo.html:Foo',
+        'trace_canonical_url': 'file://foo.html',
+        'type': 'err',
         'description': 'desc',
         'stack': 'stack'
     }
 
     failure = failure_module.Failure.FromDict(failure_dict)
 
-    self.assertEquals(failure.job_guid, '1')
-    self.assertEquals(failure.function_handle_guid, '2')
-    self.assertEquals(failure.trace_guid, '3')
+    self.assertEquals(failure.function_handle_string, 'foo.html:Foo')
+    self.assertEquals(failure.trace_canonical_url, 'file://foo.html')
     self.assertEquals(failure.failure_type_name, 'err')
     self.assertEquals(failure.description, 'desc')
     self.assertEquals(failure.stack, 'stack')

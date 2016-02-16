@@ -12,12 +12,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pie', function() {
-  function mapProcessCount(results, canonicalUrl, model) {
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
+  function mapProcessCount(result, model) {
+    result.addPair(
         'load_info', {
           numProcesses: model.getAllProcesses().length
-        }));
+        });
   }
 
   pi.FunctionRegistry.register(mapProcessCount);

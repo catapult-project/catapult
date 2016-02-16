@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -14,7 +13,7 @@ found in the LICENSE file.
 tr.exportTo('pie', function() {
   // Reports the delay and length of scroll gestures relative to first paint.
   // See https://goo.gl/l7V5xg.
-  function mapGestureTiming(results, canonicalUrl, model) {
+  function mapGestureTiming(result, model) {
     var loadIRs = model.interactionRecords.filter(function(ir) {
       return ir instanceof tr.model.um.LoadExpectation;
     });
@@ -62,13 +61,12 @@ tr.exportTo('pie', function() {
       gestureDurations[index] = gestureDuration;
     });
 
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
+    result.addPair(
         'gestureTiming', {
           firstGestureAfterLoadTime: firstGestureAfterLoadTimes,
           gestureDuration: gestureDurations,
           intervalBetweenGestures: intervalBetweenGestures
-        }));
+        });
   }
 
   pi.FunctionRegistry.register(mapGestureTiming);

@@ -13,8 +13,8 @@ class JSONOutputFormatter(output_formatter.OutputFormatter):
     super(JSONOutputFormatter, self).__init__(output_file)
     self.output_file = output_file
 
-  def Format(self, results):
-    d = results.AsDict()
+  def Format(self, result_list):
+    d = [result.AsDict() for result in result_list]
     json.dump(d, self.output_file, indent=2)
     if hasattr(self.output_file, 'flush'):
       self.output_file.flush()

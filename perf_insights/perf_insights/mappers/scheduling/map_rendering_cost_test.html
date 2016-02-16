@@ -6,10 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/perf_insights/mappers/scheduling/map_rendering_cost.html">
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -55,14 +54,12 @@ tr.b.unittest.testSuite(function() {
       }));
     });
 
-    var results = new pi.r.Results();
-    var canonicalUrl = 'my_test.json';
-    pie.mapRenderingCostForTest(results, canonicalUrl, m);
+    var result = new pi.mre.MreResult();
+    pie.mapRenderingCostForTest(result, m);
 
-    assert.lengthOf(results.allValues, 1);
-    assert.instanceOf(results.allValues[0], tr.v.DictValue);
+    assert.equal(tr.b.dictionaryLength(result.pairs), 1);
 
-    var renderingCost = results.allValues[0].value;
+    var renderingCost = result.pairs.renderingCost;
     assert.deepEqual(renderingCost.loadingDuration, [10]);
     assert.deepEqual(renderingCost.loadingTotalCost, [4]);
     assert.deepEqual(renderingCost.loadingBeginMainFrameCost, [2]);

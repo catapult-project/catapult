@@ -12,9 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
-<link rel="import" href="/perf_insights/results/results.html">
 <link rel="import" href="/perf_insights/ui/reports/pi_report.html">
-<link rel="import" href="/perf_insights/ui/generic_results_view.html">
 <link rel="import" href="/perf_insights/ui/trace_link_list.html">
 <link rel="import" href="/perf_insights/mappers/slice_cost.html">
 
@@ -246,15 +244,17 @@ found in the LICENSE file.
       table.sortDescending = true;
 
       var allSliceCosts = [];
-      results.allValuesFromFailureFreeRuns.forEach(function(result) {
-        if (result.name != 'wr')
-          return;
+      results.forEach(function(result) {
+        tr.b.iterItems(result.pairs, function(name, value) {
+          if (name != 'wr')
+            return;
 
-        result.value.sliceCosts.forEach(function(item) {
-          var sliceCostInfo = pi.m.SliceCostInfo.fromDict(item);
-          allSliceCosts.push({
-            canonicalurl: result.canonicalUrl,
-            sliceCostInfo: sliceCostInfo
+          value.sliceCosts.forEach(function(item) {
+            var sliceCostInfo = pi.m.SliceCostInfo.fromDict(item);
+            allSliceCosts.push({
+              canonicalurl: result.canonicalUrl,
+              sliceCostInfo: sliceCostInfo
+            });
           });
         });
       });

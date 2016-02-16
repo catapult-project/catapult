@@ -59,15 +59,16 @@ found in the LICENSE file.
 
       var histograms;
       var total_from_categories = 0;
-      this.mapResults_.allValuesFromFailureFreeRuns.forEach(function(result) {
-        var histogram = tr.b.u.Histogram.fromDict(result.value.events_seconds);
+      this.mapResults_.forEach(function(result) {
+        var histogramDict = result.pairs.stats.events_seconds;
+        var histogram = tr.b.u.Histogram.fromDict(histogramDict);
         if (histograms !== undefined)
           histograms.addHistogram(histogram);
         else
           histograms = histogram;
 
-        for (var category in result.value.categories) {
-          var num = result.value.categories[category];
+        for (var category in result.pairs.categories) {
+          var num = result.pairs.categories[category];
 
           if (allCategoryStats[category] === undefined)
             allCategoryStats[category] = 0;

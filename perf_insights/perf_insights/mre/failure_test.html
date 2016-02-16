@@ -12,13 +12,13 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('failureAsDictTest', function() {
-    var failure = new pi.mre.Failure('1', '2', '3', 'err', 'desc', 'stack');
+    var failure = new pi.mre.Failure(undefined, 'foo.html:Foo',
+                                     'file://foo.html', 'err', 'desc', 'stack');
 
     assert.deepEqual(failure.asDict(), {
-      job_guid: '1',
-      function_handle_guid: '2',
-      trace_guid: '3',
-      failure_type_name: 'err',
+      function_handle_string: 'foo.html:Foo',
+      trace_canonical_url: 'file://foo.html',
+      type: 'err',
       description: 'desc',
       stack: 'stack'
     });
@@ -26,19 +26,17 @@ tr.b.unittest.testSuite(function() {
 
   test('failureFromDictTest', function() {
     var failureDict = {
-      job_guid: '1',
-      function_handle_guid: '2',
-      trace_guid: '3',
-      failure_type_name: 'err',
+      function_handle_string: 'foo.html:Foo',
+      trace_canonical_url: 'file://foo.html',
+      type: 'err',
       description: 'desc',
       stack: 'stack'
     };
 
     var failure = pi.mre.Failure.fromDict(failureDict);
 
-    assert.equal(failure.jobGuid, '1');
-    assert.equal(failure.functionHandleGuid, '2');
-    assert.equal(failure.traceGuid, '3');
+    assert.equal(failure.functionHandleString, 'foo.html:Foo');
+    assert.equal(failure.traceCanonicalUrl, 'file://foo.html');
     assert.equal(failure.failureTypeName, 'err');
     assert.equal(failure.description, 'desc');
     assert.equal(failure.stack, 'stack');

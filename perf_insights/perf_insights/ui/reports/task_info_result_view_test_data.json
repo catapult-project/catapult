@@ -1,14 +1,5 @@
-{
-  "canonical_urls": [
-    "trace_cnet.json.gz",
-    "trace_aol.json.gz"
-  ],
-  "values": [
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "time_spent_in_queue", 
-      "value": {
+[{"pairs": {
+      "time_spent_in_queue": {
         "Other": {
           "CrGpuMain": {
             "nanSourceInfos": [], 
@@ -3592,13 +3583,7 @@
           }
         }
       }, 
-      "run_id": "4d6b4cd6-f0b0-4369-9e8a-ccf340ec0b98"
-    }, 
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "time_spent_in_top_level_task", 
-      "value": {
+      "time_spent_in_top_level_task": {
         "Other": {
           "CrGpuMain": {
             "nanSourceInfos": [], 
@@ -5514,13 +5499,7 @@
           }
         }
       }, 
-      "run_id": "4d6b4cd6-f0b0-4369-9e8a-ccf340ec0b98"
-    }, 
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "cpu_time_spent_in_top_level_task", 
-      "value": {
+      "cpu_time_spent_in_top_level_task": {
         "Other": {
           "CrGpuMain": {
             "nanSourceInfos": [], 
@@ -7419,14 +7398,10 @@
             "unit": "ms"
           }
         }
-      }, 
-      "run_id": "4d6b4cd6-f0b0-4369-9e8a-ccf340ec0b98"
-    }, 
+      } 
+    }}, {"pairs":
     {
-      "important": false, 
-      "type": "dict", 
-      "name": "time_spent_in_queue", 
-      "value": {
+      "time_spent_in_queue": {
         "Other": {
           "CrGpuMain": {
             "nanSourceInfos": [], 
@@ -8974,13 +8949,7 @@
           }
         }
       }, 
-      "run_id": "8601fc46-415b-4939-a8c3-ad3cfee57c41"
-    }, 
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "time_spent_in_top_level_task", 
-      "value": {
+      "time_spent_in_top_level_task": {
         "Other": {
           "CrGpuMain": {
             "nanSourceInfos": [], 
@@ -10517,13 +10486,7 @@
           }
         }
       }, 
-      "run_id": "8601fc46-415b-4939-a8c3-ad3cfee57c41"
-    }, 
-    {
-      "important": false, 
-      "type": "dict", 
-      "name": "cpu_time_spent_in_top_level_task", 
-      "value": {
+      "cpu_time_spent_in_top_level_task": {
         "Other": {
           "CrGpuMain": {
             "nanSourceInfos": [], 
@@ -12058,8 +12021,7 @@
             "unit": "ms"
           }
         }
-      }, 
-      "run_id": "8601fc46-415b-4939-a8c3-ad3cfee57c41"
+      } 
     }
-  ]
-}
+  }
+]

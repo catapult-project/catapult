@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/mappers/reduce.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
 <link rel="import" href="/tracing/model/async_slice_group.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -31,7 +30,7 @@ tr.exportTo('pi.m', function() {
     }
   }
 
-  function getTraceImportCostReport(results, canonicalUrl, model) {
+  function getTraceImportCostReport(result, model) {
     var top_level_slices = [];
     model.iterateAllEvents(function(event) {
       if (event instanceof MeasureAsyncSlice &&
@@ -45,8 +44,8 @@ tr.exportTo('pi.m', function() {
       fetchSlicesInfo(top_level_slices[i], traceImportCostInfos);
     }
 
-    results.addValue(new tr.v.DictValue(canonicalUrl, 'trace_import_cost_info',
-                                        {'slices': traceImportCostInfos}));
+    result.addPair('trace_import_cost_info',
+                   {'slices': traceImportCostInfos});
   }
 
   pi.FunctionRegistry.register(getTraceImportCostReport);

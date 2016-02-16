@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -17,14 +16,14 @@ tr.exportTo('pie', function() {
   // Collects the set of tasks that are preventing user input from being
   // processed on the main thread.
   // See https://goo.gl/l7V5xg.
-  function mapInputBlockers(results, canonicalUrl, model) {
+  function mapInputBlockers(result, model) {
     var modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var rendererHelpers = modelHelper.rendererHelpers;
 
     if (!rendererHelpers) {
       // If we didn't detect any renderer processes, bail out.
-      results.addValue(new tr.v.SkipValue(canonicalUrl, 'inputBlockers'));
+      result.addPair('inputBlockers', null);
       return;
     }
 
@@ -66,13 +65,11 @@ tr.exportTo('pie', function() {
     }
 
     if (!foundInputBlockers) {
-      results.addValue(new tr.v.SkipValue(canonicalUrl, 'inputBlockers'));
+      result.addPair('inputBlockers', null);
       return;
     }
 
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
-        'inputBlockers', inputBlockers));
+    result.addPair('inputBlockers', inputBlockers);
   }
 
   pi.FunctionRegistry.register(mapInputBlockers);

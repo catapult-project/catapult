@@ -7,10 +7,11 @@ import re
 import sys
 import tempfile
 
-
-from tracing import value as value_module
 import perf_insights_project
 import vinn
+
+from perf_insights.mre import failure
+from perf_insights.mre import mre_result
 
 
 class TemporaryMapScript(object):
@@ -19,7 +20,6 @@ class TemporaryMapScript(object):
     self.file = tempfile.NamedTemporaryFile()
     self.file.write("""
 <!DOCTYPE html>
-<link rel="import" href="/tracing/value/value.html">
 <script>
 %s
 </script>
@@ -38,23 +38,22 @@ class TemporaryMapScript(object):
     return self.file.name
 
 
-class FunctionLoadingErrorValue(value_module.FailureValue):
+class FunctionLoadingFailure(failure.Failure):
   pass
 
-class FunctionNotDefinedErrorValue(value_module.FailureValue):
+class FunctionNotDefinedFailure(failure.Failure):
   pass
 
-class MapFunctionErrorValue(value_module.FailureValue):
+class MapFunctionFailure(failure.Failure):
   pass
 
-class FileLoadingErrorValue(value_module.FailureValue):
+class FileLoadingFailure(failure.Failure):
   pass
 
-class TraceImportErrorValue(value_module.FailureValue):
+class TraceImportFailure(failure.Failure):
   pass
 
-
-class NoResultsAddedErrorValue(value_module.FailureValue):
+class NoResultsAddedFailure(failure.Failure):
   pass
 
 
@@ -62,16 +61,16 @@ class InternalMapError(Exception):
   pass
 
 _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
-  'FileLoadingErrorValue': FileLoadingErrorValue,
-  'FunctionLoadingError': FunctionLoadingErrorValue,
-  'FunctionNotDefinedError': FunctionNotDefinedErrorValue,
-  'TraceImportError': TraceImportErrorValue,
-  'MapFunctionError': MapFunctionErrorValue,
-  'NoResultsAddedError': NoResultsAddedErrorValue
+  'FileLoadingError': FileLoadingFailure,
+  'FunctionLoadingError': FunctionLoadingFailure,
+  'FunctionNotDefinedError': FunctionNotDefinedFailure,
+  'TraceImportError': TraceImportFailure,
+  'MapFunctionError': MapFunctionFailure,
+  'NoResultsAddedError': NoResultsAddedFailure
 }
 
 
-def MapSingleTrace(results, trace_handle, map_function_handle):
+def MapSingleTrace(trace_handle, map_function_handle):
   project = perf_insights_project.PerfInsightsProject()
 
   all_source_paths = list(project.source_paths)
@@ -79,6 +78,8 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
   pi_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                          '..'))
   all_source_paths.append(pi_path)
+
+  result = mre_result.MreResult()
 
   with trace_handle.PrepareFileForProcessing() as prepared_trace_handle:
     js_args = [
@@ -96,32 +97,32 @@ def MapSingleTrace(results, trace_handle, map_function_handle):
       sys.stderr.write(res.stdout)
     except Exception:
       pass
-    results.AddValue(value_module.FailureValue(
-        trace_handle.canonical_url,
+    result.AddFailure(failure.Failure(
+        map_function_handle.AsUserFriendlyString(), trace_handle.canonical_url,
         'Error', 'vinn runtime error while mapping trace.',
         'vinn runtime error while mapping trace.', 'Unknown stack'))
     return
 
-  found_at_least_one_result = False
   for line in res.stdout.split('\n'):
-    m = re.match('^MAP_RESULT_VALUE: (.+)', line, re.DOTALL)
+    m = re.match('^MRE_RESULT: (.+)', line, re.DOTALL)
     if m:
       found_dict = json.loads(m.group(1))
-      if found_dict['type'] == 'failure':
-        cls = _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR.get(found_dict['name'], None)
-        if not cls:
-          cls = value_module.FailureValue
-      else:
-        cls = value_module.Value
-      found_value = cls.FromDict(found_dict)
+      failures = [failure.Failure.FromDict(
+                    f, _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR)
+                  for f in found_dict['failures']]
 
-      results.AddValue(found_value)
-      found_at_least_one_result = True
+      for f in failures:
+        result.AddFailure(f)
+
+      for k, v in found_dict['pairs'].iteritems():
+        result.AddPair(k, v)
 
     else:
       if len(line) > 0:
         sys.stderr.write(line)
         sys.stderr.write('\n')
 
-  if found_at_least_one_result == False:
+  if not (len(result.pairs) or len(result.failures)):
     raise InternalMapError('Internal error: No results were produced!')
+
+  return result

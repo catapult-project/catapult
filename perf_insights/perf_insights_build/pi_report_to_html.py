@@ -93,7 +93,7 @@ def PiReportToHTML(ofile, corpus_driver, pi_report_file, query,
     return 255
 
   if json_output:
-    json.dump(results.AsDict(), ofile, indent=2)
+    json.dump([result.AsDict() for result in results], ofile, indent=2)
   else:
     WriteResultsToFile(ofile, project,
                        pi_report_file, pi_report_element_name,
@@ -129,7 +129,7 @@ def WriteResultsToFile(ofile, project,
 
   load_sequence = vulcanizer.CalcLoadSequenceForModules(modules)
 
-  results_string = json.dumps(results.AsDict())
+  results_string = json.dumps([result.AsDict() for result in results])
 
   bootstrap_script = generate.ExtraScript(text_content="""
     document.addEventListener('DOMContentLoaded', function() {

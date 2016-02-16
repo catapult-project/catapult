@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/tracing/model/helpers/chrome_browser_helper.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -23,7 +22,7 @@ tr.exportTo('pie', function() {
   // Computes the thread time spent in BeginMainFrame during the loading phase
   // as a ratio of the overall main thread utilization during that time.
   // See https://goo.gl/l7V5xg.
-  function mapRenderingCost(results, canonicalUrl, model) {
+  function mapRenderingCost(result, model) {
     var modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var browserHelper = modelHelper.browserHelper;
@@ -31,7 +30,7 @@ tr.exportTo('pie', function() {
 
     if (!browserHelper || !rendererHelpers) {
       // If we couldn't find both a browser and a renderer process, bail out.
-      results.addValue(new tr.v.SkipValue(canonicalUrl, 'renderingCost'));
+      result.addPair('renderingCost', null);
       return;
     }
 
@@ -75,19 +74,17 @@ tr.exportTo('pie', function() {
     });
 
     if (loadingDurations.length === 0) {
-      results.addValue(new tr.v.SkipValue(canonicalUrl, 'renderingCost'));
+      result.addValue('renderingCost', null);
       return;
     }
 
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
-        'renderingCost', {
+    result.addPair('renderingCost', {
           loadingDuration: loadingDurations,
           loadingTotalCost: loadingTotalCost,
           loadingBeginMainFrameCost: loadingBeginMainFrameCost,
           loadingBeginMainFrameRelativeCost: loadingBeginMainFrameRelativeCost,
           beginMainFramesPerLoad: beginMainFrameCount / loadingDurations.length
-        }));
+        });
   }
 
   pi.FunctionRegistry.register(mapRenderingCost);

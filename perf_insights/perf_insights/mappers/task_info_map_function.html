@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/slice.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -21,12 +20,12 @@ tr.exportTo('pi.m', function() {
   var HISTOGRAM_MAX = 250;
   var NUM_BINS = 50;
 
-  function taskInfoMapFunction(results, model) {
+  function taskInfoMapFunction(result, model) {
     var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
     var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
-    addTimeInQueue(results, canonicalUrl, model, threadGrouping);
-    addTopLevelTasksDuration(results, canonicalUrl, model, threadGrouping);
+    addTimeInQueue(result, canonicalUrl, model, threadGrouping);
+    addTopLevelTasksDuration(result, canonicalUrl, model, threadGrouping);
   }
 
   function eatTrailingDigits(str) {
@@ -41,7 +40,7 @@ tr.exportTo('pi.m', function() {
     }
   }
 
-  function addTimeInQueue(results, canonicalUrl, model, threadGrouping) {
+  function addTimeInQueue(result, canonicalUrl, model, threadGrouping) {
     var timeInQueue = {};
     model.flowEvents.forEach(function(flowEvent) {
       if (!flowEvent.endSlice instanceof tr.model.Slice)
@@ -58,13 +57,10 @@ tr.exportTo('pi.m', function() {
           canonicalUrl);
     });
     histogramsToDict(timeInQueue);
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
-        'time_spent_in_queue',
-        timeInQueue));
+    result.addPair('time_spent_in_queue', timeInQueue);
   }
 
-  function addTopLevelTasksDuration(results, canonicalUrl, model,
+  function addTopLevelTasksDuration(result, canonicalUrl, model,
                                     threadGrouping) {
     var timeInTask = {};
     var cpuTimeInTask = {};
@@ -86,15 +82,9 @@ tr.exportTo('pi.m', function() {
       });
     });
     histogramsToDict(timeInTask);
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
-        'time_spent_in_top_level_task',
-        timeInTask));
+    result.addPair('time_spent_in_top_level_task', timeInTask);
     histogramsToDict(cpuTimeInTask);
-    results.addValue(new tr.v.DictValue(
-        canonicalUrl,
-        'cpu_time_spent_in_top_level_task',
-        cpuTimeInTask));
+    result.addPair('cpu_time_spent_in_top_level_task', cpuTimeInTask);
   }
 
   // A slice is top level if it's on the receiving end of a post task and no

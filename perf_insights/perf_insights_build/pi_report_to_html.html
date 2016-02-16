@@ -4,7 +4,7 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/perf_insights/results/results.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <script>
 'use strict';
@@ -54,7 +54,9 @@ tr.exportTo('pib', function() {
 
     var results;
     try {
-      results = pi.r.Results.fromDict(data);
+      results = data.map(function(rd) {
+        return pi.mre.MreResult.fromDict(rd);
+      });
     } catch (ex) {
       var overlay = new tr.ui.b.Overlay();
       overlay.title = 'Results.fromDict error';
@@ -67,6 +69,6 @@ tr.exportTo('pib', function() {
 
   return {
     initPiReportNamed: initPiReportNamed
-  }
+  };
 });
 </script>
