@@ -758,18 +758,46 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   /** Limit for the number of sub-rows for recursive table row expansion. */
-  var RECURSIVE_EXPANSION_MAX_SUB_ROW_COUNT = 10;
+  var RECURSIVE_EXPANSION_MAX_VISIBLE_ROW_COUNT = 10;
 
   function expandTableRowsRecursively(table) {
-    function expandRowRecursively(row) {
-      if (row.subRows === undefined || row.subRows.length === 0)
-        return;
-      if (row.subRows.length > RECURSIVE_EXPANSION_MAX_SUB_ROW_COUNT)
-        return;
-      table.setExpandedForTableRow(row, true);
-      row.subRows.forEach(expandRowRecursively);
+    var currentLevelRows = table.tableRows;
+    var totalVisibleRowCount = currentLevelRows.length;
+
+    while (currentLevelRows.length > 0) {
+      // Calculate the total number of sub-rows on the current level.
+      var nextLevelRowCount = 0;
+      currentLevelRows.forEach(function(currentLevelRow) {
+        var subRows = currentLevelRow.subRows;
+        if (subRows === undefined || subRows.length === 0)
+          return;
+        nextLevelRowCount += subRows.length;
+      });
+
+      // Determine whether expanding all rows on the current level would cause
+      // the total number of visible rows go over the limit.
+      if (totalVisibleRowCount + nextLevelRowCount >
+          RECURSIVE_EXPANSION_MAX_VISIBLE_ROW_COUNT) {
+        break;
+      }
+
+      // Expand all rows on the current level and gather their sub-rows.
+      var nextLevelRows = new Array(nextLevelRowCount);
+      var nextLevelRowIndex = 0;
+      currentLevelRows.forEach(function(currentLevelRow) {
+        var subRows = currentLevelRow.subRows;
+        if (subRows === undefined || subRows.length === 0)
+          return;
+        table.setExpandedForTableRow(currentLevelRow, true);
+        subRows.forEach(function(subRow) {
+          nextLevelRows[nextLevelRowIndex++] = subRow;
+        });
+      });
+
+      // Update the total number of visible rows and progress to the next level.
+      totalVisibleRowCount += nextLevelRowCount;
+      currentLevelRows = nextLevelRows;
     }
-    table.tableRows.forEach(expandRowRecursively);
   }
 
   // TODO(petrcermak): This code is almost the same as
