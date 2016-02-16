@@ -24,6 +24,7 @@ tr.b.unittest.testSuite(function() {
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var checkColor = tr.ui.analysis.checkColor;
+  var checkColumns = tr.ui.analysis.checkColumns;
   var checkColumnInfosAndColor = tr.ui.analysis.checkColumnInfosAndColor;
   var convertToProcessMemoryDumps = tr.ui.analysis.convertToProcessMemoryDumps;
   var extractProcessMemoryDumps = tr.ui.analysis.extractProcessMemoryDumps;
@@ -39,49 +40,45 @@ tr.b.unittest.testSuite(function() {
   var AllocatorColumn = tr.ui.analysis.AllocatorColumn;
   var TracingColumn = tr.ui.analysis.TracingColumn;
 
-  function getTitleText(title) {
-    if (!(title instanceof HTMLElement))
-      return title;
-    if (title.tagName === 'TR-UI-B-COLOR-LEGEND')
-      return title.label;
-    return title.textContent;
+  function spanMatcher(expectedTitle) {
+    return function(actualTitle) {
+      assert.instanceOf(actualTitle, HTMLElement);
+      assert.strictEqual(actualTitle.tagName, 'SPAN');
+      assert.strictEqual(actualTitle.textContent, expectedTitle);
+    };
   }
 
-  // TODO(petrcermak): Generalize this function and move it to
-  // memory_dump_sub_view_test_utils.html.
-  function checkColumns(columns, expectedAggregationMode) {
-    var EXPECTED_COLUMNS = [
-      { title: 'Process', type: ProcessNameColumn, noAggregation: true },
-      { title: 'Total resident', type: UsedMemoryColumn },
-      { title: 'Peak total resident', type: PeakMemoryColumn },
-      { title: 'PSS', type: ByteStatColumn },
-      { title: 'Private dirty', type: ByteStatColumn },
-      { title: 'Swapped', type: ByteStatColumn },
-      { title: 'Private', type: UsedMemoryColumn },
-      { title: 'blink', type: AllocatorColumn },
-      { title: 'malloc', type: AllocatorColumn },
-      { title: 'oilpan', type: AllocatorColumn },
-      { title: 'v8', type: AllocatorColumn },
-      { title: 'tracing', type: TracingColumn }
-    ];
-
-    assert.lengthOf(columns, EXPECTED_COLUMNS.length);
-    for (var i = 0; i < EXPECTED_COLUMNS.length; i++) {
-      var actualColumn = columns[i];
-      var expectedColumn = EXPECTED_COLUMNS[i];
-      assert.strictEqual(
-          getTitleText(actualColumn.title), expectedColumn.title);
-      assert.instanceOf(actualColumn, expectedColumn.type);
-      assert.strictEqual(actualColumn.aggregationMode,
-          expectedColumn.noAggregation ? undefined : expectedAggregationMode);
-    }
+  function colorLegendMatcher(expectedTitle) {
+    return function(actualTitle) {
+      assert.instanceOf(actualTitle, HTMLElement);
+      assert.strictEqual(actualTitle.tagName, 'TR-UI-B-COLOR-LEGEND');
+      assert.strictEqual(actualTitle.label, expectedTitle);
+    };
   }
+
+  var EXPECTED_COLUMNS = [
+    { title: 'Process', type: ProcessNameColumn, noAggregation: true },
+    { title: spanMatcher('Total resident'), type: UsedMemoryColumn },
+    { title: spanMatcher('Peak total resident'), type: PeakMemoryColumn },
+    { title: spanMatcher('PSS'), type: ByteStatColumn },
+    { title: spanMatcher('Private dirty'), type: ByteStatColumn },
+    { title: spanMatcher('Swapped'), type: ByteStatColumn },
+    { title: spanMatcher('Private'), type: UsedMemoryColumn },
+    { title: colorLegendMatcher('blink'), type: AllocatorColumn },
+    { title: colorLegendMatcher('malloc'), type: AllocatorColumn },
+    { title: colorLegendMatcher('oilpan'), type: AllocatorColumn },
+    { title: colorLegendMatcher('v8'), type: AllocatorColumn },
+    { title: spanMatcher('tracing'), type: TracingColumn }
+  ];
 
   function checkRow(columns, row, expectedTitle, expectedSizes,
       expectedContexts) {
     // Check title.
-    var formattedTitle = getTitleText(columns[0].formatTitle(row));
-    assert.equal(formattedTitle, expectedTitle);
+    var formattedTitle = columns[0].formatTitle(row);
+    if (typeof expectedTitle === 'function')
+      expectedTitle(formattedTitle);
+    else
+      assert.strictEqual(formattedTitle, expectedTitle);
 
     // Check all sizes. The first assert below is a test sanity check.
     assert.lengthOf(expectedSizes, columns.length - 1 /* all except title */);
@@ -140,7 +137,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, aggregationMode);
+    checkColumns(columns, EXPECTED_COLUMNS, aggregationMode);
     var rows = table.tableRows;
 
     checkRows(columns, table.tableRows, expectedRows);
@@ -199,19 +196,19 @@ tr.b.unittest.testSuite(function() {
         processMemoryDumps,
         [  // Table rows.
           {
-            title: 'Process 1',
+            title: colorLegendMatcher('Process 1'),
             sizes: [[29884416], undefined, [9437184], [5767168], [0], undefined,
                 undefined, [7340032], undefined, undefined, [2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
-            title: 'Process 2',
+            title: colorLegendMatcher('Process 2'),
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
                 [7340032], [1048576], [1], [5242880], [1572864]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
-            title: 'Process 4',
+            title: colorLegendMatcher('Process 4'),
             sizes: [undefined, [17825792], undefined, undefined, undefined,
                 undefined, undefined, undefined, undefined, undefined,
                 undefined],
@@ -236,7 +233,7 @@ tr.b.unittest.testSuite(function() {
         processMemoryDumps,
         [  // Table rows.
           {
-            title: 'Process 1',
+            title: colorLegendMatcher('Process 1'),
             sizes: [[31457280, 29884416, undefined], undefined,
                 [10485760, 9437184, undefined], [8388608, 5767168, undefined],
                 [0, 0, undefined], undefined, undefined,
@@ -245,7 +242,7 @@ tr.b.unittest.testSuite(function() {
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
-            title: 'Process 2',
+            title: colorLegendMatcher('Process 2'),
             sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
                 [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
@@ -255,14 +252,14 @@ tr.b.unittest.testSuite(function() {
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
-            title: 'Process 3',
+            title: colorLegendMatcher('Process 3'),
             sizes: [undefined, undefined, undefined, undefined, undefined,
                 undefined, undefined, undefined, [2147483648, undefined,
                 1073741824], [1073741824, undefined, 2147483648], undefined],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 3)
           },
           {
-            title: 'Process 4',
+            title: colorLegendMatcher('Process 4'),
             sizes: [undefined, [undefined, 17825792, 17825792], undefined,
                 undefined, undefined, undefined, undefined, undefined,
                 undefined, undefined, undefined],
@@ -291,7 +288,7 @@ tr.b.unittest.testSuite(function() {
         processMemoryDumps,
         [  // Table rows.
           {
-            title: 'Process 2',
+            title: colorLegendMatcher('Process 2'),
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
                 [7340032], [1048576], [1], [5242880], [1572864]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
@@ -308,7 +305,7 @@ tr.b.unittest.testSuite(function() {
         processMemoryDumps,
         [  // Table rows.
           {
-            title: 'Process 2',
+            title: colorLegendMatcher('Process 2'),
             sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
                 [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],

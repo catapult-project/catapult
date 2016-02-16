@@ -30,6 +30,7 @@ tr.b.unittest.testSuite(function() {
   var checkAttributes = tr.ui.analysis.checkAttributes;
   var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
   var checkColumnInfosAndColor = tr.ui.analysis.checkColumnInfosAndColor;
+  var checkColumns = tr.ui.analysis.checkColumns;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
   var AllocatorDumpNameColumn = tr.ui.analysis.AllocatorDumpNameColumn;
   var EffectiveSizeColumn = tr.ui.analysis.EffectiveSizeColumn;
@@ -143,28 +144,13 @@ tr.b.unittest.testSuite(function() {
     });
   }
 
-  // TODO(petrcermak): Generalize this function and move it to
-  // memory_dump_sub_view_test_utils.html.
-  function checkColumns(columns, expectedAggregationMode) {
-    var EXPECTED_COLUMNS = [
-      { title: 'Component', type: AllocatorDumpNameColumn,
-        noAggregation: true },
-      { title: 'effective_size', type: EffectiveSizeColumn },
-      { title: 'size', type: SizeColumn },
-      { title: 'inner_size', type: ScalarMemoryColumn },
-      { title: 'objects_count', type: ScalarMemoryColumn }
-    ];
-
-    assert.lengthOf(columns, EXPECTED_COLUMNS.length);
-    for (var i = 0; i < EXPECTED_COLUMNS.length; i++) {
-      var actualColumn = columns[i];
-      var expectedColumn = EXPECTED_COLUMNS[i];
-      assert.strictEqual(actualColumn.title, expectedColumn.title);
-      assert.instanceOf(actualColumn, expectedColumn.type);
-      assert.strictEqual(actualColumn.aggregationMode,
-          expectedColumn.noAggregation ? undefined : expectedAggregationMode);
-    }
-  }
+  var EXPECTED_COLUMNS = [
+    { title: 'Component', type: AllocatorDumpNameColumn, noAggregation: true },
+    { title: 'effective_size', type: EffectiveSizeColumn },
+    { title: 'size', type: SizeColumn },
+    { title: 'inner_size', type: ScalarMemoryColumn },
+    { title: 'objects_count', type: ScalarMemoryColumn }
+  ];
 
   function checkRow(columns, row, expectedTitle, expectedSizes,
       expectedEffectiveSizes, expectedInnerSizes, expectedObjectCounts,
@@ -251,7 +237,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, undefined /* no aggregation */);
+    checkColumns(columns, EXPECTED_COLUMNS, undefined /* no aggregation */);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
@@ -333,7 +319,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, AggregationMode.DIFF);
+    checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.DIFF);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
@@ -424,7 +410,7 @@ tr.b.unittest.testSuite(function() {
     // Just check that the aggregation mode was propagated to the columns.
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, AggregationMode.MAX);
+    checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.MAX);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
   });
@@ -447,7 +433,7 @@ tr.b.unittest.testSuite(function() {
 
     var table = viewEl.$.table;
     var columns = table.tableColumns;
-    checkColumns(columns, AggregationMode.DIFF);
+    checkColumns(columns, EXPECTED_COLUMNS, AggregationMode.DIFF);
     var rows = table.tableRows;
     assert.lengthOf(rows, 1);
 
