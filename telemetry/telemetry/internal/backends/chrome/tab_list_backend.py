@@ -91,7 +91,8 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
 
   def ShouldIncludeContext(self, context):
     if 'type' in context:
-      return context['type'] == 'page'
+      return (context['type'] == 'page' or
+              context['url'] == 'chrome://media-router/')
     # TODO: For compatibility with Chrome before r177683.
     # This check is not completely correct, see crbug.com/190592.
     return not context['url'].startswith('chrome-extension://')
