@@ -22,7 +22,7 @@ found in the LICENSE file.
 tr.exportTo('tr.e.rail', function() {
   // This is an intermediate data format between InputLatencyAsyncSlices and
   // Response and Animation IRs.
-  function ProtoIR(irType, name) {
+  function ProtoExpectation(irType, name) {
     this.irType = irType;
     this.names = new Set(name ? [name] : undefined);
     this.start = Infinity;
@@ -30,15 +30,15 @@ tr.exportTo('tr.e.rail', function() {
     this.associatedEvents = new tr.model.EventSet();
   }
 
-  ProtoIR.RESPONSE_TYPE = 'r';
-  ProtoIR.ANIMATION_TYPE = 'a';
+  ProtoExpectation.RESPONSE_TYPE = 'r';
+  ProtoExpectation.ANIMATION_TYPE = 'a';
 
   // Explicitly ignore some input events to allow
   // UserModelBuilder.checkAllInputEventsHandled() to determine which events
   // were unintentionally ignored due to a bug.
-  ProtoIR.IGNORED_TYPE = 'ignored';
+  ProtoExpectation.IGNORED_TYPE = 'ignored';
 
-  ProtoIR.prototype = {
+  ProtoExpectation.prototype = {
     get isValid() {
       return this.end > this.start;
     },
@@ -62,9 +62,9 @@ tr.exportTo('tr.e.rail', function() {
 
     getIRConstructor: function() {
       switch (this.irType) {
-        case ProtoIR.RESPONSE_TYPE:
+        case ProtoExpectation.RESPONSE_TYPE:
           return tr.model.um.ResponseExpectation;
-        case ProtoIR.ANIMATION_TYPE:
+        case ProtoExpectation.ANIMATION_TYPE:
           return tr.model.um.AnimationExpectation;
       }
       return undefined;
@@ -72,7 +72,7 @@ tr.exportTo('tr.e.rail', function() {
 
     createInteractionRecord: function(model) {
       if (!this.isValid) {
-        console.error('Invalid ProtoIR: ' + this.debug() +
+        console.error('Invalid ProtoExpectation: ' + this.debug() +
                       ' File a bug with this trace!');
         return undefined;
       }
@@ -113,10 +113,10 @@ tr.exportTo('tr.e.rail', function() {
       return ir;
     },
 
-    // Merge the other ProtoIR into this one.
-    // The irTypes need not match: ignored ProtoIRs might be merged into
-    // overlapping ProtoIRs, and Touch-only Animations are merged into Tap
-    // Responses.
+    // Merge the other ProtoExpectation into this one.
+    // The irTypes need not match: ignored ProtoExpectations might be merged
+    // into overlapping ProtoExpectations, and Touch-only Animations are merged
+    // into Tap Responses.
     merge: function(other) {
       other.names.forEach(function(name) { this.names.add(name); }.bind(this));
 
@@ -126,24 +126,25 @@ tr.exportTo('tr.e.rail', function() {
       this.end = Math.max(this.end, other.end);
     },
 
-    // Include |event| in this ProtoIR, expanding start/end to include it.
+    // Include |event| in this ProtoExpectation, expanding start/end to include
+    // it.
     pushEvent: function(event) {
       // Usually, this method will be called while iterating over a list of
       // events sorted by start time, so this method won't usually change
-      // this.start. However, this will sometimes be called for ProtoIRs created
-      // by previous handlers, in which case event.start could possibly be
-      // before this.start.
+      // this.start. However, this will sometimes be called for
+      // ProtoExpectations created by previous handlers, in which case
+      // event.start could possibly be before this.start.
       this.start = Math.min(this.start, event.start);
       this.end = Math.max(this.end, event.end);
       this.associatedEvents.push(event);
     },
 
-    // Returns true if timestamp is contained in this ProtoIR.
+    // Returns true if timestamp is contained in this ProtoExpectation.
     containsTimestampInclusive: function(timestamp) {
       return (this.start <= timestamp) && (timestamp <= this.end);
     },
 
-    // Return true if the other event intersects this ProtoIR.
+    // Return true if the other event intersects this ProtoExpectation.
     intersects: function(other) {
       // http://stackoverflow.com/questions/325933
       return (other.start < this.end) && (other.end > this.start);
@@ -153,7 +154,7 @@ tr.exportTo('tr.e.rail', function() {
       return (this.end + threshold) > event.start;
     },
 
-    // Return a string describing this ProtoIR for debugging.
+    // Return a string describing this ProtoExpectation for debugging.
     debug: function() {
       var debugString = this.irType + '(';
       debugString += parseInt(this.start) + ' ';
@@ -166,7 +167,7 @@ tr.exportTo('tr.e.rail', function() {
   };
 
   return {
-    ProtoIR: ProtoIR
+    ProtoExpectation: ProtoExpectation
   };
 });
 </script>

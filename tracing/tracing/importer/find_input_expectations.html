@@ -7,13 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/tracing/extras/rail/proto_ir.html">
+<link rel="import" href="/tracing/importer/proto_expectation.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.importer', function() {
-  var ProtoIR = tr.e.rail.ProtoIR;
+  var ProtoExpectation = tr.e.rail.ProtoExpectation;
 
   var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
 
@@ -157,8 +157,8 @@ tr.exportTo('tr.importer', function() {
     return inputEvents.sort(compareEvents);
   }
 
-  function findProtoIRs(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
+  function findProtoExpectations(modelHelper, sortedInputEvents) {
+    var protoExpectations = [];
     // This order is not important. Handlers are independent.
     var handlers = [
       handleKeyboardEvents,
@@ -173,33 +173,36 @@ tr.exportTo('tr.importer', function() {
       handleCSSAnimations
     ];
     handlers.forEach(function(handler) {
-      protoIRs.push.apply(protoIRs, handler(modelHelper, sortedInputEvents));
+      protoExpectations.push.apply(protoExpectations, handler(
+          modelHelper, sortedInputEvents));
     });
-    protoIRs.sort(compareEvents);
-    return protoIRs;
+    protoExpectations.sort(compareEvents);
+    return protoExpectations;
   }
 
   // Every keyboard event is a Response.
   function handleKeyboardEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
+    var protoExpectations = [];
     forEventTypesIn(sortedInputEvents, KEYBOARD_TYPE_NAMES, function(event) {
-      var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, KEYBOARD_IR_NAME);
-      pir.pushEvent(event);
-      protoIRs.push(pir);
+      var pe = new ProtoExpectation(
+          ProtoExpectation.RESPONSE_TYPE, KEYBOARD_IR_NAME);
+      pe.pushEvent(event);
+      protoExpectations.push(pe);
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // Some mouse events can be translated directly into Responses.
   function handleMouseResponseEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
+    var protoExpectations = [];
     forEventTypesIn(
         sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
-      var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
-      pir.pushEvent(event);
-      protoIRs.push(pir);
+      var pe = new ProtoExpectation(
+          ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+      pe.pushEvent(event);
+      protoExpectations.push(pe);
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // MouseWheel events are caused either by a physical wheel on a physical
@@ -210,11 +213,11 @@ tr.exportTo('tr.importer', function() {
   // together, and are expected to be 60fps, so the first event in a sequence
   // is turned into a Response, and the rest are merged into an Animation.
   // NB this threshold uses the two events' start times, unlike
-  // ProtoIR.isNear, which compares the end time of the previous event with
-  // the start time of the next.
+  // ProtoExpectation.isNear, which compares the end time of the previous event
+  // with the start time of the next.
   function handleMouseWheelEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
     var prevEvent_ = undefined;
     forEventTypesIn(
         sortedInputEvents, MOUSE_WHEEL_TYPE_NAMES, function(event) {
@@ -222,23 +225,24 @@ tr.exportTo('tr.importer', function() {
       var prevEvent = prevEvent_;
       prevEvent_ = event;
 
-      if (currentPIR &&
+      if (currentPE &&
           (prevEvent.start + MOUSE_WHEEL_THRESHOLD_MS) >= event.start) {
-        if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
-          currentPIR.pushEvent(event);
+        if (currentPE.irType === ProtoExpectation.ANIMATION_TYPE) {
+          currentPE.pushEvent(event);
         } else {
-          currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE,
+          currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
               MOUSEWHEEL_IR_NAME);
-          currentPIR.pushEvent(event);
-          protoIRs.push(currentPIR);
+          currentPE.pushEvent(event);
+          protoExpectations.push(currentPE);
         }
         return;
       }
-      currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSEWHEEL_IR_NAME);
-      currentPIR.pushEvent(event);
-      protoIRs.push(currentPIR);
+      currentPE = new ProtoExpectation(
+          ProtoExpectation.RESPONSE_TYPE, MOUSEWHEEL_IR_NAME);
+      currentPE.pushEvent(event);
+      protoExpectations.push(currentPE);
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // Down events followed closely by Up events are click Responses, but the
@@ -255,17 +259,18 @@ tr.exportTo('tr.importer', function() {
   // DDD MMM MMM MMM MMM MMM UUU
   //
   function handleMouseDragEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
     var mouseDownEvent = undefined;
     forEventTypesIn(
         sortedInputEvents, MOUSE_DRAG_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.MOUSE_DOWN:
           if (causedFrame(event)) {
-            var pir = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+            var pe = new ProtoExpectation(
+                ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
           } else {
             // Responses typically don't start until the mouse up event.
             // Add this MouseDown to the Response that starts at the MouseUp.
@@ -287,61 +292,66 @@ tr.exportTo('tr.importer', function() {
           if (!causedFrame(event)) {
             // Ignore MouseMoves that do not affect the screen. They are not
             // part of an interaction record by definition.
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
-          } else if (!currentPIR ||
-                      !currentPIR.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
+          } else if (!currentPE ||
+                      !currentPE.isNear(event, MOUSE_MOVE_THRESHOLD_MS)) {
             // The first MouseMove after a MouseDown or after a while is a
             // Response.
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
-            currentPIR.pushEvent(event);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+            currentPE.pushEvent(event);
             if (mouseDownEvent) {
-              currentPIR.associatedEvents.push(mouseDownEvent);
+              currentPE.associatedEvents.push(mouseDownEvent);
               mouseDownEvent = undefined;
             }
-            protoIRs.push(currentPIR);
+            protoExpectations.push(currentPE);
           } else {
             // Merge this event into an Animation.
-            if (currentPIR.irType === ProtoIR.ANIMATION_TYPE) {
-              currentPIR.pushEvent(event);
+            if (currentPE.irType === ProtoExpectation.ANIMATION_TYPE) {
+              currentPE.pushEvent(event);
             } else {
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, MOUSE_IR_NAME);
-              currentPIR.pushEvent(event);
-              protoIRs.push(currentPIR);
+              currentPE = new ProtoExpectation(
+                  ProtoExpectation.ANIMATION_TYPE, MOUSE_IR_NAME);
+              currentPE.pushEvent(event);
+              protoExpectations.push(currentPE);
             }
           }
           break;
 
         case INPUT_TYPE.MOUSE_UP:
           if (!mouseDownEvent) {
-            var pir = new ProtoIR(causedFrame(event) ? ProtoIR.RESPONSE_TYPE :
-                ProtoIR.IGNORED_TYPE, MOUSE_IR_NAME);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+            var pe = new ProtoExpectation(
+                causedFrame(event) ? ProtoExpectation.RESPONSE_TYPE :
+                ProtoExpectation.IGNORED_TYPE,
+                MOUSE_IR_NAME);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
             break;
           }
 
-          if (currentPIR) {
-            currentPIR.pushEvent(event);
+          if (currentPE) {
+            currentPE.pushEvent(event);
           } else {
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, MOUSE_IR_NAME);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
             if (mouseDownEvent)
-              currentPIR.associatedEvents.push(mouseDownEvent);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+              currentPE.associatedEvents.push(mouseDownEvent);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
           }
           mouseDownEvent = undefined;
-          currentPIR = undefined;
+          currentPE = undefined;
           break;
       }
     });
     if (mouseDownEvent) {
-      currentPIR = new ProtoIR(ProtoIR.IGNORED_TYPE);
-      currentPIR.pushEvent(mouseDownEvent);
-      protoIRs.push(currentPIR);
+      currentPE = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+      currentPE.pushEvent(mouseDownEvent);
+      protoExpectations.push(currentPE);
     }
-    return protoIRs;
+    return protoExpectations;
   }
 
   // Solitary Tap events are simple Responses:
@@ -364,49 +374,52 @@ tr.exportTo('tr.importer', function() {
   // DDD CCC
   //
   function handleTapResponseEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
     forEventTypesIn(sortedInputEvents, TAP_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.TAP_DOWN:
-          currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
-          currentPIR.pushEvent(event);
-          protoIRs.push(currentPIR);
+          currentPE = new ProtoExpectation(
+              ProtoExpectation.RESPONSE_TYPE, TAP_IR_NAME);
+          currentPE.pushEvent(event);
+          protoExpectations.push(currentPE);
           break;
 
         case INPUT_TYPE.TAP:
-          if (currentPIR) {
-            currentPIR.pushEvent(event);
+          if (currentPE) {
+            currentPE.pushEvent(event);
           } else {
             // Sometimes we get Tap events with no TapDown, sometimes we get
             // TapDown events. Handle both.
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.RESPONSE_TYPE, TAP_IR_NAME);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
           }
-          currentPIR = undefined;
+          currentPE = undefined;
           break;
 
         case INPUT_TYPE.TAP_CANCEL:
-          if (!currentPIR) {
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+          if (!currentPE) {
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
             break;
           }
 
-          if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
-            currentPIR.pushEvent(event);
+          if (currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPE.pushEvent(event);
           } else {
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TAP_IR_NAME);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.RESPONSE_TYPE, TAP_IR_NAME);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
           }
-          currentPIR = undefined;
+          currentPE = undefined;
           break;
       }
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // The PinchBegin and the first PinchUpdate comprise a Response, then the
@@ -416,21 +429,22 @@ tr.exportTo('tr.importer', function() {
   // BBB UUU UUU UUU UUU UUU EEE
   //
   function handlePinchEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
     var sawFirstUpdate = false;
     var modelBounds = modelHelper.model.bounds;
     forEventTypesIn(sortedInputEvents, PINCH_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.PINCH_BEGIN:
-          if (currentPIR &&
-              currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
-            currentPIR.pushEvent(event);
+          if (currentPE &&
+              currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPE.pushEvent(event);
             break;
           }
-          currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, PINCH_IR_NAME);
-          currentPIR.pushEvent(event);
-          protoIRs.push(currentPIR);
+          currentPE = new ProtoExpectation(
+              ProtoExpectation.RESPONSE_TYPE, PINCH_IR_NAME);
+          currentPE.pushEvent(event);
+          protoExpectations.push(currentPE);
           sawFirstUpdate = false;
           break;
 
@@ -440,32 +454,33 @@ tr.exportTo('tr.importer', function() {
           // that begins when the Response ends. If the user pauses in the
           // middle of an extended pinch gesture, then multiple Animations
           // will be created.
-          if (!currentPIR ||
-              ((currentPIR.irType === ProtoIR.RESPONSE_TYPE) &&
+          if (!currentPE ||
+              ((currentPE.irType === ProtoExpectation.RESPONSE_TYPE) &&
                 sawFirstUpdate) ||
-              !currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, PINCH_IR_NAME);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+              !currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.ANIMATION_TYPE, PINCH_IR_NAME);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
           } else {
-            currentPIR.pushEvent(event);
+            currentPE.pushEvent(event);
             sawFirstUpdate = true;
           }
           break;
 
         case INPUT_TYPE.PINCH_END:
-          if (currentPIR) {
-            currentPIR.pushEvent(event);
+          if (currentPE) {
+            currentPE.pushEvent(event);
           } else {
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
           }
-          currentPIR = undefined;
+          currentPE = undefined;
           break;
       }
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // Flings are defined by 3 types of events: FlingStart, FlingCancel, and the
@@ -482,8 +497,8 @@ tr.exportTo('tr.importer', function() {
   // SSS        CCC
   //
   function handleFlingEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
 
     function isRendererFling(event) {
       return event.title === RENDERER_FLING_TITLE;
@@ -499,34 +514,36 @@ tr.exportTo('tr.importer', function() {
 
     flingEvents.forEach(function(event) {
       if (event.title === RENDERER_FLING_TITLE) {
-        if (currentPIR) {
-          currentPIR.pushEvent(event);
+        if (currentPE) {
+          currentPE.pushEvent(event);
         } else {
-          currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, FLING_IR_NAME);
-          currentPIR.pushEvent(event);
-          protoIRs.push(currentPIR);
+          currentPE = new ProtoExpectation(
+              ProtoExpectation.ANIMATION_TYPE, FLING_IR_NAME);
+          currentPE.pushEvent(event);
+          protoExpectations.push(currentPE);
         }
         return;
       }
 
       switch (event.typeName) {
         case INPUT_TYPE.FLING_START:
-          if (currentPIR) {
+          if (currentPE) {
             console.error('Another FlingStart? File a bug with this trace!');
-            currentPIR.pushEvent(event);
+            currentPE.pushEvent(event);
           } else {
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, FLING_IR_NAME);
-            currentPIR.pushEvent(event);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.ANIMATION_TYPE, FLING_IR_NAME);
+            currentPE.pushEvent(event);
             // Set end to an invalid value so that it can be noticed and fixed
             // later.
-            currentPIR.end = 0;
-            protoIRs.push(currentPIR);
+            currentPE.end = 0;
+            protoExpectations.push(currentPE);
           }
           break;
 
         case INPUT_TYPE.FLING_CANCEL:
-          if (currentPIR) {
-            currentPIR.pushEvent(event);
+          if (currentPE) {
+            currentPE.pushEvent(event);
             // FlingCancel events start when TouchStart events start, which is
             // typically when a Response starts. FlingCancel events end when
             // chrome acknowledges them, not when they update the screen. So
@@ -534,22 +551,22 @@ tr.exportTo('tr.importer', function() {
             // this Animation ends. That won't affect the scoring algorithms,
             // and it will make the IRs look more correct if they don't
             // overlap unnecessarily.
-            currentPIR.end = event.start;
-            currentPIR = undefined;
+            currentPE.end = event.start;
+            currentPE = undefined;
           } else {
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
           }
           break;
       }
     });
     // If there was neither a FLING_CANCEL nor a renderer fling after the
     // FLING_START, then assume that it ends at the end of the model, so set
-    // the end of currentPIR to the end of the model.
-    if (currentPIR && !currentPIR.end)
-      currentPIR.end = modelHelper.model.bounds.max;
-    return protoIRs;
+    // the end of currentPE to the end of the model.
+    if (currentPE && !currentPE.end)
+      currentPE.end = modelHelper.model.bounds.max;
+    return protoExpectations;
   }
 
   // The TouchStart and the first TouchMove comprise a Response, then the
@@ -565,31 +582,33 @@ tr.exportTo('tr.importer', function() {
   // SSS EEE
   //
   function handleTouchEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
     var sawFirstMove = false;
     forEventTypesIn(sortedInputEvents, TOUCH_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.TOUCH_START:
-          if (currentPIR) {
-            // NB: currentPIR will probably be merged with something from
+          if (currentPE) {
+            // NB: currentPE will probably be merged with something from
             // handlePinchEvents(). Multiple TouchStart events without an
             // intervening TouchEnd logically implies that multiple fingers
             // are on the screen, so this is probably a pinch gesture.
-            currentPIR.pushEvent(event);
+            currentPE.pushEvent(event);
           } else {
-            currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, TOUCH_IR_NAME);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.RESPONSE_TYPE, TOUCH_IR_NAME);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
             sawFirstMove = false;
           }
           break;
 
         case INPUT_TYPE.TOUCH_MOVE:
-          if (!currentPIR) {
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, TOUCH_IR_NAME);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+          if (!currentPE) {
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.ANIMATION_TYPE, TOUCH_IR_NAME);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
             break;
           }
 
@@ -597,42 +616,43 @@ tr.exportTo('tr.importer', function() {
           // TouchStart plus the first TouchMove, then the rest of the
           // TouchMoves constitute an Animation.
           if ((sawFirstMove &&
-              (currentPIR.irType === ProtoIR.RESPONSE_TYPE)) ||
-              !currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
-            // If there's already a touchmove in the currentPIR or it's not
+              (currentPE.irType === ProtoExpectation.RESPONSE_TYPE)) ||
+              !currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            // If there's already a touchmove in the currentPE or it's not
             // near event, then finish it and start a new animation.
-            var prevEnd = currentPIR.end;
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, TOUCH_IR_NAME);
-            currentPIR.pushEvent(event);
+            var prevEnd = currentPE.end;
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.ANIMATION_TYPE, TOUCH_IR_NAME);
+            currentPE.pushEvent(event);
             // It's possible for there to be a gap between TouchMoves, but
             // that doesn't mean that there should be an Idle IR there.
-            currentPIR.start = prevEnd;
-            protoIRs.push(currentPIR);
+            currentPE.start = prevEnd;
+            protoExpectations.push(currentPE);
           } else {
-            currentPIR.pushEvent(event);
+            currentPE.pushEvent(event);
             sawFirstMove = true;
           }
           break;
 
         case INPUT_TYPE.TOUCH_END:
-          if (!currentPIR) {
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+          if (!currentPE) {
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
             break;
           }
-          if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
-            currentPIR.pushEvent(event);
+          if (currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
+            currentPE.pushEvent(event);
           } else {
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
           }
-          currentPIR = undefined;
+          currentPE = undefined;
           break;
       }
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // The first ScrollBegin and the first ScrollUpdate comprise a Response,
@@ -642,55 +662,57 @@ tr.exportTo('tr.importer', function() {
   // BBB UUU UUU UUU UUU UUU EEE
   //
   function handleScrollEvents(modelHelper, sortedInputEvents) {
-    var protoIRs = [];
-    var currentPIR = undefined;
+    var protoExpectations = [];
+    var currentPE = undefined;
     var sawFirstUpdate = false;
     forEventTypesIn(sortedInputEvents, SCROLL_TYPE_NAMES, function(event) {
       switch (event.typeName) {
         case INPUT_TYPE.SCROLL_BEGIN:
-          // Always begin a new PIR even if there already is one, unlike
+          // Always begin a new PE even if there already is one, unlike
           // PinchBegin.
-          currentPIR = new ProtoIR(ProtoIR.RESPONSE_TYPE, SCROLL_IR_NAME);
-          currentPIR.pushEvent(event);
-          protoIRs.push(currentPIR);
+          currentPE = new ProtoExpectation(
+              ProtoExpectation.RESPONSE_TYPE, SCROLL_IR_NAME);
+          currentPE.pushEvent(event);
+          protoExpectations.push(currentPE);
           sawFirstUpdate = false;
           break;
 
         case INPUT_TYPE.SCROLL_UPDATE:
-          if (currentPIR) {
-            if (currentPIR.isNear(event, INPUT_MERGE_THRESHOLD_MS) &&
-                ((currentPIR.irType === ProtoIR.ANIMATION_TYPE) ||
+          if (currentPE) {
+            if (currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS) &&
+                ((currentPE.irType === ProtoExpectation.ANIMATION_TYPE) ||
                 !sawFirstUpdate)) {
-              currentPIR.pushEvent(event);
+              currentPE.pushEvent(event);
               sawFirstUpdate = true;
             } else {
-              currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE,
+              currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
                   SCROLL_IR_NAME);
-              currentPIR.pushEvent(event);
-              protoIRs.push(currentPIR);
+              currentPE.pushEvent(event);
+              protoExpectations.push(currentPE);
             }
           } else {
             // ScrollUpdate without ScrollBegin.
-            currentPIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, SCROLL_IR_NAME);
-            currentPIR.pushEvent(event);
-            protoIRs.push(currentPIR);
+            currentPE = new ProtoExpectation(
+                ProtoExpectation.ANIMATION_TYPE, SCROLL_IR_NAME);
+            currentPE.pushEvent(event);
+            protoExpectations.push(currentPE);
           }
           break;
 
         case INPUT_TYPE.SCROLL_END:
-          if (!currentPIR) {
+          if (!currentPE) {
             console.error('ScrollEnd without ScrollUpdate? ' +
                           'File a bug with this trace!');
-            var pir = new ProtoIR(ProtoIR.IGNORED_TYPE);
-            pir.pushEvent(event);
-            protoIRs.push(pir);
+            var pe = new ProtoExpectation(ProtoExpectation.IGNORED_TYPE);
+            pe.pushEvent(event);
+            protoExpectations.push(pe);
             break;
           }
-          currentPIR.pushEvent(event);
+          currentPE.pushEvent(event);
           break;
       }
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // CSS Animations are merged into Animations when they intersect.
@@ -711,11 +733,12 @@ tr.exportTo('tr.importer', function() {
     });
 
     function merge(ranges) {
-      var protoIR = new ProtoIR(ProtoIR.ANIMATION_TYPE, CSS_IR_NAME);
+      var protoExpectation = new ProtoExpectation(
+          ProtoExpectation.ANIMATION_TYPE, CSS_IR_NAME);
       ranges.forEach(function(range) {
-        protoIR.pushEvent(range.event);
+        protoExpectation.pushEvent(range.event);
       });
-      return protoIR;
+      return protoExpectation;
     }
 
     return tr.b.mergeRanges(animationRanges,
@@ -723,63 +746,63 @@ tr.exportTo('tr.importer', function() {
                             merge);
   }
 
-  function postProcessProtoIRs(protoIRs) {
-    // protoIRs is input only. Returns a modified set of ProtoIRs.
-    // The order is important.
-    protoIRs = mergeIntersectingResponses(protoIRs);
-    protoIRs = mergeIntersectingAnimations(protoIRs);
-    protoIRs = fixResponseAnimationStarts(protoIRs);
-    protoIRs = fixTapResponseTouchAnimations(protoIRs);
-    return protoIRs;
+  function postProcessProtoExpectations(protoExpectations) {
+    // protoExpectations is input only. Returns a modified set of
+    // ProtoExpectations.  The order is important.
+    protoExpectations = mergeIntersectingResponses(protoExpectations);
+    protoExpectations = mergeIntersectingAnimations(protoExpectations);
+    protoExpectations = fixResponseAnimationStarts(protoExpectations);
+    protoExpectations = fixTapResponseTouchAnimations(protoExpectations);
+    return protoExpectations;
   }
 
   // TouchStarts happen at the same time as ScrollBegins.
   // It's easier to let multiple handlers create multiple overlapping
   // Responses and then merge them, rather than make the handlers aware of the
-  // other handlers' PIRs.
+  // other handlers' PEs.
   //
   // For example:
   // RR
   //  RRR  -> RRRRR
   //    RR
   //
-  // protoIRs is input only.
-  // Returns a modified set of ProtoIRs.
-  function mergeIntersectingResponses(protoIRs) {
-    var newPIRs = [];
-    while (protoIRs.length) {
-      var pir = protoIRs.shift();
-      newPIRs.push(pir);
+  // protoExpectations is input only.
+  // Returns a modified set of ProtoExpectations.
+  function mergeIntersectingResponses(protoExpectations) {
+    var newPEs = [];
+    while (protoExpectations.length) {
+      var pe = protoExpectations.shift();
+      newPEs.push(pe);
 
       // Only consider Responses for now.
-      if (pir.irType !== ProtoIR.RESPONSE_TYPE)
+      if (pe.irType !== ProtoExpectation.RESPONSE_TYPE)
         continue;
 
-      for (var i = 0; i < protoIRs.length; ++i) {
-        var otherPIR = protoIRs[i];
+      for (var i = 0; i < protoExpectations.length; ++i) {
+        var otherPE = protoExpectations[i];
 
-        if (otherPIR.irType !== pir.irType)
+        if (otherPE.irType !== pe.irType)
           continue;
 
-        if (!otherPIR.intersects(pir))
+        if (!otherPE.intersects(pe))
           continue;
 
         // Don't merge together Responses of the same type.
         // If handleTouchEvents wanted two of its Responses to be merged, then
         // it would have made them that way to begin with.
-        var typeNames = pir.associatedEvents.map(function(event) {
+        var typeNames = pe.associatedEvents.map(function(event) {
           return event.typeName;
         });
-        if (otherPIR.containsTypeNames(typeNames))
+        if (otherPE.containsTypeNames(typeNames))
           continue;
 
-        pir.merge(otherPIR);
-        protoIRs.splice(i, 1);
-        // Don't skip the next otherPIR!
+        pe.merge(otherPE);
+        protoExpectations.splice(i, 1);
+        // Don't skip the next otherPE!
         --i;
       }
     }
-    return newPIRs;
+    return newPEs;
   }
 
   // An animation is simply an expectation of 60fps between start and end.
@@ -790,45 +813,45 @@ tr.exportTo('tr.importer', function() {
   //  AAA  -> AAAAA
   //    AA
   //
-  // protoIRs is input only.
-  // Returns a modified set of ProtoIRs.
-  function mergeIntersectingAnimations(protoIRs) {
-    var newPIRs = [];
-    while (protoIRs.length) {
-      var pir = protoIRs.shift();
-      newPIRs.push(pir);
+  // protoExpectations is input only.
+  // Returns a modified set of ProtoExpectations.
+  function mergeIntersectingAnimations(protoExpectations) {
+    var newPEs = [];
+    while (protoExpectations.length) {
+      var pe = protoExpectations.shift();
+      newPEs.push(pe);
 
       // Only consider Animations for now.
-      if (pir.irType !== ProtoIR.ANIMATION_TYPE)
+      if (pe.irType !== ProtoExpectation.ANIMATION_TYPE)
         continue;
 
-      var isCSS = pir.containsSliceTitle(CSS_ANIMATION_TITLE);
-      var isFling = pir.containsTypeNames([INPUT_TYPE.FLING_START]);
+      var isCSS = pe.containsSliceTitle(CSS_ANIMATION_TITLE);
+      var isFling = pe.containsTypeNames([INPUT_TYPE.FLING_START]);
 
-      for (var i = 0; i < protoIRs.length; ++i) {
-        var otherPIR = protoIRs[i];
+      for (var i = 0; i < protoExpectations.length; ++i) {
+        var otherPE = protoExpectations[i];
 
-        if (otherPIR.irType !== pir.irType)
+        if (otherPE.irType !== pe.irType)
           continue;
 
         // Don't merge CSS Animations with any other types.
-        if (isCSS != otherPIR.containsSliceTitle(CSS_ANIMATION_TITLE))
+        if (isCSS != otherPE.containsSliceTitle(CSS_ANIMATION_TITLE))
           continue;
 
-        if (!otherPIR.intersects(pir))
+        if (!otherPE.intersects(pe))
           continue;
 
         // Don't merge Fling Animations with any other types.
-        if (isFling != otherPIR.containsTypeNames([INPUT_TYPE.FLING_START]))
+        if (isFling != otherPE.containsTypeNames([INPUT_TYPE.FLING_START]))
           continue;
 
-        pir.merge(otherPIR);
-        protoIRs.splice(i, 1);
-        // Don't skip the next otherPIR!
+        pe.merge(otherPE);
+        protoExpectations.splice(i, 1);
+        // Don't skip the next otherPE!
         --i;
       }
     }
-    return newPIRs;
+    return newPEs;
   }
 
   // The ends of responses frequently overlap the starts of animations.
@@ -839,92 +862,92 @@ tr.exportTo('tr.importer', function() {
   // RRR   -> RRRAA
   //  AAAA
   //
-  // protoIRs is input only.
-  // Returns a modified set of ProtoIRs.
-  function fixResponseAnimationStarts(protoIRs) {
-    protoIRs.forEach(function(apir) {
+  // protoExpectations is input only.
+  // Returns a modified set of ProtoExpectations.
+  function fixResponseAnimationStarts(protoExpectations) {
+    protoExpectations.forEach(function(ape) {
       // Only consider animations for now.
-      if (apir.irType !== ProtoIR.ANIMATION_TYPE)
+      if (ape.irType !== ProtoExpectation.ANIMATION_TYPE)
         return;
 
-      protoIRs.forEach(function(rpir) {
+      protoExpectations.forEach(function(rpe) {
         // Only consider responses for now.
-        if (rpir.irType !== ProtoIR.RESPONSE_TYPE)
+        if (rpe.irType !== ProtoExpectation.RESPONSE_TYPE)
           return;
 
         // Only consider responses that end during the animation.
-        if (!apir.containsTimestampInclusive(rpir.end))
+        if (!ape.containsTimestampInclusive(rpe.end))
           return;
 
         // Ignore Responses that are entirely contained by the animation.
-        if (apir.containsTimestampInclusive(rpir.start))
+        if (ape.containsTimestampInclusive(rpe.start))
           return;
 
         // Move the animation start to the response end.
-        apir.start = rpir.end;
+        ape.start = rpe.end;
       });
     });
-    return protoIRs;
+    return protoExpectations;
   }
 
   // Merge Tap Responses that overlap Touch-only Animations.
   // https://github.com/catapult-project/catapult/issues/1431
-  function fixTapResponseTouchAnimations(protoIRs) {
-    function isTapResponse(pir) {
-      return (pir.irType === ProtoIR.RESPONSE_TYPE) &&
-              pir.containsTypeNames([INPUT_TYPE.TAP]);
+  function fixTapResponseTouchAnimations(protoExpectations) {
+    function isTapResponse(pe) {
+      return (pe.irType === ProtoExpectation.RESPONSE_TYPE) &&
+              pe.containsTypeNames([INPUT_TYPE.TAP]);
     }
-    function isTouchAnimation(pir) {
-      return (pir.irType === ProtoIR.ANIMATION_TYPE) &&
-              pir.containsTypeNames([INPUT_TYPE.TOUCH_MOVE]) &&
-              !pir.containsTypeNames([
+    function isTouchAnimation(pe) {
+      return (pe.irType === ProtoExpectation.ANIMATION_TYPE) &&
+              pe.containsTypeNames([INPUT_TYPE.TOUCH_MOVE]) &&
+              !pe.containsTypeNames([
                   INPUT_TYPE.SCROLL_UPDATE, INPUT_TYPE.PINCH_UPDATE]);
     }
-    var newPIRs = [];
-    while (protoIRs.length) {
-      var pir = protoIRs.shift();
-      newPIRs.push(pir);
+    var newPEs = [];
+    while (protoExpectations.length) {
+      var pe = protoExpectations.shift();
+      newPEs.push(pe);
 
-      // protoIRs are sorted by start time, and we don't know whether the Tap
-      // Response or the Touch Animation will be first
-      var pirIsTapResponse = isTapResponse(pir);
-      var pirIsTouchAnimation = isTouchAnimation(pir);
-      if (!pirIsTapResponse && !pirIsTouchAnimation)
+      // protoExpectations are sorted by start time, and we don't know whether
+      // the Tap Response or the Touch Animation will be first
+      var peIsTapResponse = isTapResponse(pe);
+      var peIsTouchAnimation = isTouchAnimation(pe);
+      if (!peIsTapResponse && !peIsTouchAnimation)
         continue;
 
-      for (var i = 0; i < protoIRs.length; ++i) {
-        var otherPIR = protoIRs[i];
+      for (var i = 0; i < protoExpectations.length; ++i) {
+        var otherPE = protoExpectations[i];
 
-        if (!otherPIR.intersects(pir))
+        if (!otherPE.intersects(pe))
           continue;
 
-        if (pirIsTapResponse && !isTouchAnimation(otherPIR))
+        if (peIsTapResponse && !isTouchAnimation(otherPE))
           continue;
 
-        if (pirIsTouchAnimation && !isTapResponse(otherPIR))
+        if (peIsTouchAnimation && !isTapResponse(otherPE))
           continue;
 
-        // pir might be the Touch Animation, but the merged ProtoIR should be
-        // a Response.
-        pir.irType = ProtoIR.RESPONSE_TYPE;
+        // pe might be the Touch Animation, but the merged ProtoExpectation
+        // should be a Response.
+        pe.irType = ProtoExpectation.RESPONSE_TYPE;
 
-        pir.merge(otherPIR);
-        protoIRs.splice(i, 1);
-        // Don't skip the next otherPIR!
+        pe.merge(otherPE);
+        protoExpectations.splice(i, 1);
+        // Don't skip the next otherPE!
         --i;
       }
     }
-    return newPIRs;
+    return newPEs;
   }
 
   // Check that none of the handlers accidentally ignored an input event.
-  function checkAllInputEventsHandled(sortedInputEvents, protoIRs) {
+  function checkAllInputEventsHandled(sortedInputEvents, protoExpectations) {
     var handledEvents = [];
-    protoIRs.forEach(function(protoIR) {
-      protoIR.associatedEvents.forEach(function(event) {
+    protoExpectations.forEach(function(protoExpectation) {
+      protoExpectation.associatedEvents.forEach(function(event) {
         if (handledEvents.indexOf(event) >= 0) {
           console.error('double-handled event', event.typeName,
-              parseInt(event.start), parseInt(event.end), protoIR);
+              parseInt(event.start), parseInt(event.end), protoExpectation);
           return;
         }
         handledEvents.push(event);
@@ -939,16 +962,17 @@ tr.exportTo('tr.importer', function() {
     });
   }
 
-  // Find ProtoIRs, post-process them, convert them to real IRs.
+  // Find ProtoExpectations, post-process them, convert them to real IRs.
   function findInputExpectations(modelHelper) {
     var sortedInputEvents = getSortedInputEvents(modelHelper);
-    var protoIRs = findProtoIRs(modelHelper, sortedInputEvents);
-    protoIRs = postProcessProtoIRs(protoIRs);
-    checkAllInputEventsHandled(sortedInputEvents, protoIRs);
+    var protoExpectations = findProtoExpectations(
+        modelHelper, sortedInputEvents);
+    protoExpectations = postProcessProtoExpectations(protoExpectations);
+    checkAllInputEventsHandled(sortedInputEvents, protoExpectations);
 
     var irs = [];
-    protoIRs.forEach(function(protoIR) {
-      var ir = protoIR.createInteractionRecord(modelHelper.model);
+    protoExpectations.forEach(function(protoExpectation) {
+      var ir = protoExpectation.createInteractionRecord(modelHelper.model);
       if (ir)
         irs.push(ir);
     });
