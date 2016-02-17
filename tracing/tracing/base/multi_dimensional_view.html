@@ -125,6 +125,16 @@ tr.exportTo('tr.b', function() {
    * paths (in the collection from which the view was built) matching the node
    * excluding/including the node's descendants.
    *
+   * Terminology examples:
+   *
+   *   - Children of [A,*] wrt 0th dimension: [B,*], [C,*]
+   *   - Children of [A,*] (wrt all dimensions): [B,*], [C,*], [A,1]
+   *   - Descendants of [A,*] wrt 1st dimension: [A,1], [A,2], [A,3]
+   *   - Single-dimensional descendants of [A,*]: [A,1], [A,2], [A,3], [B,*],
+   *     [C,*]
+   *   - Descendants of [A,*] (wrt all dimensions): [A,1], [A,2], [A,3], [B,*],
+   *     [C,*], [B,1], [C,1], [B,2], [C,2], [B,3], [C,3]
+   *
    * @{constructor}
    */
   function MultiDimensionalViewNode(title, isLowerBound) {
@@ -153,10 +163,21 @@ tr.exportTo('tr.b', function() {
   };
 
   /**
+   * Types of multi-dimensional views provided by MultiDimensionalViewBuilder.
+   *
+   * @enum
+   */
+  var MultiDimensionalViewType = {
+    TOP_DOWN_TREE_VIEW: 0,
+    TOP_DOWN_HEAVY_VIEW: 1,
+    BOTTOM_UP_HEAVY_VIEW: 2
+  };
+
+  /**
    * Builder for multi-dimensional views.
    *
    * Given a collection of multi-dimensional paths, a builder can be used to
-   * construct the following four representations of the paths:
+   * construct the following three representations of the paths:
    *
    *   1. Top-down tree view
    *      A multi-dimensional path in the view corresponds to all paths in the
@@ -166,11 +187,7 @@ tr.exportTo('tr.b', function() {
    *      A multi-dimensional path in the view corresponds to all paths in the
    *      collection that have it as their substring
    *
-   *   3. Bottom-up tree view
-   *      A multi-dimensional path in the view corresponds to all paths in the
-   *      collection that have it as their suffix reversed.
-   *
-   *   4. Bottom-up heavy view
+   *   3. Bottom-up heavy view
    *      A multi-dimensional path in the view corresponds to all paths in the
    *      collection that have it as their substring reversed.
    *
@@ -236,13 +253,13 @@ tr.exportTo('tr.b', function() {
    *   builder.addPath([['Saturday'], ['Cooking']], 1, SELF);
    *   builder.addPath([['Saturday'], ['Sports', 'Football']], 2, SELF);
    *   builder.addPath([['Sunday'], ['Sports', 'Basketball']], 3, SELF);
-   *   var treeViewRoot = builder.buildTreeView();
+   *   var treeViewRoot = builder.buildTopDownTreeView();
    *
-   * The heavy view can be constructed analogously (by calling buildHeavyView()
-   * at the end instead).
+   * The heavy views can be constructed analogously (by calling
+   * buildTopDownHeavyView() or buildBottomUpHeavyView() at the end instead).
    *
    * Note that the same builder can be used to construct both the tree and
-   * heavy view (for the same collection of paths). However, no more paths can
+   * heavy views (for the same collection of paths). However, no more paths can
    * be added once either view has been built.
    *
    * @{constructor}
@@ -253,8 +270,9 @@ tr.exportTo('tr.b', function() {
     this.dimensions_ = dimensions;
 
     this.buildRoot_ = this.createRootNode_();
-    this.treeViewRoot_ = undefined;
-    this.heavyViewRoot_ = undefined;
+    this.topDownTreeViewRoot_ = undefined;
+    this.topDownHeavyViewRoot_ = undefined;
+    this.bottomUpHeavyViewNode_ = undefined;
 
     this.maxDimensionDepths_ = new Array(dimensions);
     for (var d = 0; d < dimensions; d++)
@@ -340,14 +358,27 @@ tr.exportTo('tr.b', function() {
       node.isLowerBound = false;
     },
 
+    buildView: function(viewType) {
+      switch (viewType) {
+        case MultiDimensionalViewType.TOP_DOWN_TREE_VIEW:
+          return this.buildTopDownTreeView();
+        case MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW:
+          return this.buildTopDownHeavyView();
+        case MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW:
+          return this.buildBottomUpHeavyView();
+        default:
+          throw new Error('Unknown multi-dimensional view type: ' + viewType);
+      }
+    },
+
     /**
-     * Build the tree view of the multi-dimensional view.
+     * Build the top-down tree view of the multi-dimensional view.
      *
      * Note that no more paths can be added to the builder once either view has
      * been built.
      */
-    buildTreeView: function() {
-      if (this.treeViewRoot_ === undefined) {
+    buildTopDownTreeView: function() {
+      if (this.topDownTreeViewRoot_ === undefined) {
         var treeViewRoot = this.buildRoot_;
         this.buildRoot_ = undefined;
 
@@ -357,43 +388,38 @@ tr.exportTo('tr.b', function() {
             0 /* firstDimensionToFinalize */,
             new WeakMap() /* dimensionalSelfSumsMap */);
 
-        this.treeViewRoot_ = treeViewRoot;
+        this.topDownTreeViewRoot_ = treeViewRoot;
       }
 
-      return this.treeViewRoot_;
+      return this.topDownTreeViewRoot_;
     },
 
     /**
-     * Build the heavy view of the multi-dimensional view.
+     * Build the top-down heavy view of the multi-dimensional view.
      *
      * Note that no more paths can be added to the builder once either view has
      * been built.
      */
-    buildHeavyView: function() {
-      if (this.heavyViewRoot_ === undefined) {
-        // Copy values from the tree-view root.
-        var treeViewRoot = this.buildTreeView();
-        var heavyViewRoot = this.createRootNode_();
-        heavyViewRoot.total = treeViewRoot.total;
-        heavyViewRoot.self = treeViewRoot.self;
-        heavyViewRoot.isLowerBound = treeViewRoot.isLowerBound;
-
-        var recursionDepthTrackers = new Array(this.dimensions_);
-        for (var d = 0; d < this.dimensions_; d++) {
-          recursionDepthTrackers[d] =
-              new RecursionDepthTracker(this.maxDimensionDepths_[d]);
-        }
-
-        this.addDimensionsToHeavyViewNode_(treeViewRoot, heavyViewRoot,
-            0 /* startDimension */, recursionDepthTrackers,
-            false /* previousDimensionsRecursive */);
-        this.setUpMissingChildRelationships_(heavyViewRoot,
-            0 /* firstDimensionToSetUp */);
-
-        this.heavyViewRoot_ = heavyViewRoot;
+    buildTopDownHeavyView: function() {
+      if (this.topDownHeavyViewRoot_ === undefined) {
+        this.topDownHeavyViewRoot_ = this.buildGenericHeavyView_(
+            this.addDimensionToTopDownHeavyViewNode_.bind(this));
       }
+      return this.topDownHeavyViewRoot_;
+    },
 
-      return this.heavyViewRoot_;
+    /**
+     * Build the bottom-up heavy view of the multi-dimensional view.
+     *
+     * Note that no more paths can be added to the builder once either view has
+     * been built.
+     */
+    buildBottomUpHeavyView: function() {
+      if (this.bottomUpHeavyViewNode_ === undefined) {
+        this.bottomUpHeavyViewNode_ = this.buildGenericHeavyView_(
+            this.addDimensionToBottomUpHeavyViewNode_.bind(this));
+      }
+      return this.bottomUpHeavyViewNode_;
     },
 
     createRootNode_: function() {
@@ -648,12 +674,90 @@ tr.exportTo('tr.b', function() {
     },
 
     /**
-     * Add descendants of a tree-view node wrt multiple dimensions to a
-     * heavy-view node.
+     * Build a generic heavy view of the multi-dimensional view.
+     */
+    buildGenericHeavyView_: function(treeViewNodeHandler) {
+      // 1. Clone the root node of the top-down tree view node (except
+      // children).
+      var treeViewRoot = this.buildTopDownTreeView();
+      var heavyViewRoot = this.createRootNode_();
+      heavyViewRoot.total = treeViewRoot.total;
+      heavyViewRoot.self = treeViewRoot.self;
+      heavyViewRoot.isLowerBound = treeViewRoot.isLowerBound;
+
+      // 2. Create recursion depth trackers (to avoid total value
+      // double-counting).
+      var recursionDepthTrackers = new Array(this.dimensions_);
+      for (var d = 0; d < this.dimensions_; d++) {
+        recursionDepthTrackers[d] =
+            new RecursionDepthTracker(this.maxDimensionDepths_[d], d);
+      }
+
+      // 3. Add all paths associated with the single-dimensional descendants of
+      // the top-down tree view root node to the heavy view root node
+      // (depending on the type of the target heavy view).
+      this.addDimensionsToGenericHeavyViewNode_(treeViewRoot, heavyViewRoot,
+          0 /* startDimension */, recursionDepthTrackers,
+          false /* previousDimensionsRecursive */, treeViewNodeHandler);
+
+      // 4. Set up missing child relationships.
+      this.setUpMissingChildRelationships_(heavyViewRoot,
+          0 /* firstDimensionToSetUp */);
+
+      return heavyViewRoot;
+    },
+
+    /**
+     * Add all paths associated with the single-dimensional descendants of a
+     * top-down tree-view node wrt multiple dimensions to a generic heavy-view
+     * node (depending on the type of the target heavy view).
+     */
+    addDimensionsToGenericHeavyViewNode_: function(treeViewParentNode,
+        heavyViewParentNode, startDimension, recursionDepthTrackers,
+        previousDimensionsRecursive, treeViewNodeHandler) {
+      for (var d = startDimension; d < this.dimensions_; d++) {
+        this.addDimensionDescendantsToGenericHeavyViewNode_(treeViewParentNode,
+            heavyViewParentNode, d, recursionDepthTrackers,
+            previousDimensionsRecursive, treeViewNodeHandler);
+      }
+    },
+
+    /**
+     * Add all paths associated with the descendants of a top-down tree-view
+     * node wrt a single dimension to a generic heavy-view node (depending on
+     * the type of the target heavy view).
+     */
+    addDimensionDescendantsToGenericHeavyViewNode_: function(treeViewParentNode,
+        heavyViewParentNode, currentDimension, recursionDepthTrackers,
+        previousDimensionsRecursive, treeViewNodeHandler) {
+      var treeViewChildren = treeViewParentNode.children[currentDimension];
+      var recursionDepthTracker = recursionDepthTrackers[currentDimension];
+      for (var treeViewChildNode of treeViewChildren.values()) {
+        recursionDepthTracker.push(treeViewChildNode);
+
+        // Add all paths associated with the child node to the heavy view-node
+        // parent node.
+        treeViewNodeHandler(
+            treeViewChildNode, heavyViewParentNode, currentDimension,
+            recursionDepthTrackers, previousDimensionsRecursive);
+
+        // Recursively add all paths associated with the descendants of the
+        // tree view child node wrt the current dimension to the heavy-view
+        // parent node.
+        this.addDimensionDescendantsToGenericHeavyViewNode_(treeViewChildNode,
+            heavyViewParentNode, currentDimension, recursionDepthTrackers,
+            previousDimensionsRecursive, treeViewNodeHandler);
+
+        recursionDepthTracker.pop();
+      }
+    },
+
+    /**
+     * Add a top-down tree-view child node together with its single-dimensional
+     * subtree to a top-down heavy-view parent node (tree-view node handler for
+     * top-down heavy view).
      *
-     * This method recursively adds all descendants of a tree-view parent node
-     * wrt dimensions starting from a given dimension with their subtrees as
-     * children of a heavy-view parent node. Example:
+     * Sample resulting top-down heavy view:
      *
      *       +----------------+                    +-----------------+
      *       |     source     |                    |   destination   |
@@ -690,57 +794,17 @@ tr.exportTo('tr.b', function() {
      * keep track of the path we traversed along the current dimension (to
      * determine whether total value should be added or not).
      */
-    addDimensionsToHeavyViewNode_: function(treeViewParentNode,
-        heavyViewParentNode, startDimension, recursionDepthTrackers,
-        previousDimensionsRecursive) {
-      for (var d = startDimension; d < this.dimensions_; d++) {
-        this.addDimensionDescendantsToHeavyViewNode_(treeViewParentNode,
-            heavyViewParentNode, d, recursionDepthTrackers,
-            previousDimensionsRecursive);
-      }
-    },
-
-    /**
-     * Add descendants of a tree-view node wrt a single dimension to a
-     * heavy-view node.
-     *
-     * This method recursively adds all descendants of a tree-view parent node
-     * wrt a given dimension with their subtrees as children of a heavy-view
-     * parent node.
-     */
-    addDimensionDescendantsToHeavyViewNode_: function(
-        treeViewParentNode, heavyViewParentNode, currentDimension,
+    addDimensionToTopDownHeavyViewNode_: function(
+        treeViewChildNode, heavyViewParentNode, currentDimension,
         recursionDepthTrackers, previousDimensionsRecursive) {
-      var treeViewChildren = treeViewParentNode.children[currentDimension];
-      var recursionDepthTracker = recursionDepthTrackers[currentDimension];
-      for (var treeViewChildNode of treeViewChildren.values()) {
-        recursionDepthTracker.push(treeViewChildNode.title[currentDimension]);
-
-        // Add the tree view child node (and its sub-tree) to the heavy view
-        // node.
-        this.addTreeToHeavyViewNode_(
-            treeViewChildNode, heavyViewParentNode, currentDimension,
-            recursionDepthTrackers, 1 /* subTreeDepth */,
-            previousDimensionsRecursive);
-
-        // Recursively add all descendants of the tree view child node to the
-        // heavy view parent node.
-        this.addDimensionDescendantsToHeavyViewNode_(treeViewChildNode,
-            heavyViewParentNode, currentDimension, recursionDepthTrackers,
-            previousDimensionsRecursive);
-
-        recursionDepthTracker.pop();
-      }
+      this.addDimensionToTopDownHeavyViewNodeRecursively_(treeViewChildNode,
+          heavyViewParentNode, currentDimension, recursionDepthTrackers,
+          previousDimensionsRecursive, 1 /* subTreeDepth */);
     },
 
-    /**
-     * Add a tree-view child node with its subtree to a heavy-view parent node.
-     *
-     * See addDimensionsToHeavyViewNode_ documentation for more details.
-     */
-    addTreeToHeavyViewNode_: function(treeViewChildNode, heavyViewParentNode,
-        currentDimension, recursionDepthTrackers, subTreeDepth,
-        previousDimensionsRecursive) {
+    addDimensionToTopDownHeavyViewNodeRecursively_: function(
+        treeViewChildNode, heavyViewParentNode, currentDimension,
+        recursionDepthTrackers, previousDimensionsRecursive, subTreeDepth) {
       var recursionDepthTracker = recursionDepthTrackers[currentDimension];
       var currentDimensionRecursive =
           subTreeDepth <= recursionDepthTracker.recursionDepth;
@@ -757,22 +821,108 @@ tr.exportTo('tr.b', function() {
 
       // Add the descendants of the tree-view child node wrt the next
       // dimensions as children of the heavy-view child node.
-      this.addDimensionsToHeavyViewNode_(treeViewChildNode, heavyViewChildNode,
-          currentDimension + 1, recursionDepthTrackers,
-          currentOrPreviousDimensionsRecursive);
+      this.addDimensionsToGenericHeavyViewNode_(treeViewChildNode,
+          heavyViewChildNode, currentDimension + 1, recursionDepthTrackers,
+          currentOrPreviousDimensionsRecursive,
+          this.addDimensionToTopDownHeavyViewNode_.bind(this));
 
       for (var treeViewGrandChildNode of
            treeViewChildNode.children[currentDimension].values()) {
-        recursionDepthTracker.push(
-            treeViewGrandChildNode.title[currentDimension]);
+        recursionDepthTracker.push(treeViewGrandChildNode);
 
         // Recursively add the tree-view grandchild node to the heavy-view
         // child node.
-        this.addTreeToHeavyViewNode_(treeViewGrandChildNode, heavyViewChildNode,
-            currentDimension, recursionDepthTrackers, subTreeDepth + 1,
-            previousDimensionsRecursive);
+        this.addDimensionToTopDownHeavyViewNodeRecursively_(
+            treeViewGrandChildNode, heavyViewChildNode, currentDimension,
+            recursionDepthTrackers, previousDimensionsRecursive,
+            subTreeDepth + 1);
 
         recursionDepthTracker.pop();
+      }
+    },
+
+    /**
+     * Add a top-down tree-view child node together with all its ancestors wrt
+     * the given dimension as descendants of a bottom-up heavy-view parent node
+     * in the reverse order (tree-view node handler for bottom-up heavy view).
+     *
+     * Sample resulting bottom-up heavy view:
+     *
+     *       +----------------+                    +-----------------+
+     *       |     source     |                    |   destination   |
+     *       | tree-view root |  ===============>  | heavy-view root |
+     *       |     self=0     |                    |     self=0      |
+     *       |    total=48    |                    |    total=48     |
+     *       +----------------+                    +-----------------+
+     *         |            |                  ______|      |      |______
+     *         v            v                 v             v             v
+     *    +----------+ +----------+      +----------+ +----------+ +----------+
+     *    |    A*    | |    B     |      |    A***  | |    B     | |    C     |
+     *    | self=10  | | self=12  |      | self=13  | | self=13  | | self=2   |
+     *    | total=30 | | total=18 |      | total=30 | | total=34 | | total=7  |
+     *    +----------+ +----------+      +----------+ +----------+ +----------+
+     *         |                              :            :            :
+     *         v                              v            v            v
+     *    +----------+                   ............ ............ ............
+     *    |    B#    |                   :    B     : :    A     : :    B##   :
+     *    | self=1   |                   : self=3   : : self=1   : : self=2   :
+     *    | total=16 |                   : total=8  : : total=16 : : total=7  :
+     *    +----------+                   ............ ............ ............
+     *         |   |________                  :                         :
+     *         v            v                 v                         v
+     *    +----------+ +----------+      ............              ............
+     *    |    A**   | |    C     |      :    A     :              :    A     :
+     *    | self=3   | | self=2   |      : self=3   :              : self=2   :
+     *    | total=8  | | total=7  |      : total=8  :              : total=7  :
+     *    +----------+ +----------+      ............              ............
+     *
+     * Similarly to the construction of the top-down heavy view, care needs to
+     * be taken when dealing with recursion to avoid double-counting, e.g. the
+     * total value of A** (8) was not added to the total value of A*** (30)
+     * because it is already included in the total value of A* (30) (which was
+     * also added to A***). That is why we need to keep track of the path we
+     * traversed along the current dimension (to determine whether total value
+     * should be added or not).
+     *
+     * Note that when we add an ancestor (B#) of a top-down tree-view node (C)
+     * to the bottom-up heavy view, the values of the original tree-view node
+     * (C) (rather than the ancestor's values) are added to the corresponding
+     * heavy-view node (B##).
+     */
+    addDimensionToBottomUpHeavyViewNode_: function(
+        treeViewChildNode, heavyViewParentNode, currentDimension,
+        recursionDepthTrackers, previousDimensionsRecursive) {
+      var recursionDepthTracker = recursionDepthTrackers[currentDimension];
+      var bottomIndex = recursionDepthTracker.bottomIndex;
+      var topIndex = recursionDepthTracker.topIndex;
+      var firstNonRecursiveIndex =
+          bottomIndex + recursionDepthTracker.recursionDepth;
+      var viewNodePath = recursionDepthTracker.viewNodePath;
+
+      var trackerAncestorNode = recursionDepthTracker.trackerAncestorNode;
+      var heavyViewDescendantNode = heavyViewParentNode;
+      for (var i = bottomIndex; i < topIndex; i++) {
+        var treeViewAncestorNode = viewNodePath[i];
+        var dimensionTitle = treeViewAncestorNode.title[currentDimension];
+        heavyViewDescendantNode = this.getOrCreateChildNode_(
+            heavyViewDescendantNode, currentDimension, dimensionTitle);
+
+        var currentDimensionRecursive = i < firstNonRecursiveIndex;
+        var currentOrPreviousDimensionsRecursive =
+            currentDimensionRecursive || previousDimensionsRecursive;
+
+        // The self and total values are taken from the original top-down tree
+        // view child node (rather than the ancestor node).
+        heavyViewDescendantNode.self += treeViewChildNode.self;
+        if (!currentOrPreviousDimensionsRecursive)
+          heavyViewDescendantNode.total += treeViewChildNode.total;
+
+        // Add the descendants of the tree-view child node wrt the next
+        // dimensions as children of the heavy-view child node.
+        this.addDimensionsToGenericHeavyViewNode_(treeViewChildNode,
+            heavyViewDescendantNode, currentDimension + 1,
+            recursionDepthTrackers, currentOrPreviousDimensionsRecursive,
+            this.addDimensionToBottomUpHeavyViewNode_.bind(this));
       }
     }
   };
@@ -790,52 +940,58 @@ tr.exportTo('tr.b', function() {
    *
    * @{constructor}
    */
-  function RecursionDepthTracker(maxDepth) {
-    this.currentPath_ = new Array(maxDepth);
-    this.currentPathStartIndex_ = this.currentPath_.length;
-    this.currentNode_ =
+  function RecursionDepthTracker(maxDepth, dimension) {
+    this.titlePath = new Array(maxDepth);
+    this.viewNodePath = new Array(maxDepth);
+    this.bottomIndex = this.topIndex = maxDepth;
+
+    this.dimension_ = dimension;
+    this.currentTrackerNode_ =
         this.createNode_(0 /* recursionDepth */, undefined /* parent */);
   }
 
   RecursionDepthTracker.prototype = {
-    push: function(title) {
-      if (this.currentPathStartIndex_ === 0)
+    push: function(viewNode) {
+      if (this.bottomIndex === 0)
         throw new Error('Cannot push to a full tracker');
-      this.currentPathStartIndex_--;
-      this.currentPath_[this.currentPathStartIndex_] = title;
+      var title = viewNode.title[this.dimension_];
+      this.bottomIndex--;
+      this.titlePath[this.bottomIndex] = title;
+      this.viewNodePath[this.bottomIndex] = viewNode;
 
-      var childNode = this.currentNode_.children.get(title);
-      if (childNode !== undefined) {
+      var childTrackerNode = this.currentTrackerNode_.children.get(title);
+      if (childTrackerNode !== undefined) {
         // Child node already exists, so we don't need to calculate anything.
-        this.currentNode_ = childNode;
+        this.currentTrackerNode_ = childTrackerNode;
         return;
       }
 
       // Child node doesn't exist yet, so we need to calculate its recursion
       // depth.
-      var maxLengths =
-          zFunction(this.currentPath_, this.currentPathStartIndex_);
+      var maxLengths = zFunction(this.titlePath, this.bottomIndex);
       var recursionDepth = 0;
       for (var i = 0; i < maxLengths.length; i++)
         recursionDepth = Math.max(recursionDepth, maxLengths[i]);
 
-      var childNode = this.createNode_(recursionDepth, this.currentNode_);
-      this.currentNode_.children.set(title, childNode);
-      this.currentNode_ = childNode;
+      childTrackerNode =
+          this.createNode_(recursionDepth, this.currentTrackerNode_);
+      this.currentTrackerNode_.children.set(title, childTrackerNode);
+      this.currentTrackerNode_ = childTrackerNode;
     },
 
     pop: function() {
-      if (this.currentPathStartIndex_ === this.currentPath_.length)
+      if (this.bottomIndex === this.topIndex)
         throw new Error('Cannot pop from an empty tracker');
 
-      this.currentPath_[this.currentPathStartIndex_] = undefined;
-      this.currentPathStartIndex_++;
+      this.titlePath[this.bottomIndex] = undefined;
+      this.viewNodePath[this.bottomIndex] = undefined;
+      this.bottomIndex++;
 
-      this.currentNode_ = this.currentNode_.parent;
+      this.currentTrackerNode_ = this.currentTrackerNode_.parent;
     },
 
     get recursionDepth() {
-      return this.currentNode_.recursionDepth;
+      return this.currentTrackerNode_.recursionDepth;
     },
 
     createNode_: function(recursionDepth, parent) {
@@ -903,8 +1059,12 @@ tr.exportTo('tr.b', function() {
 
   return {
     MultiDimensionalViewBuilder: MultiDimensionalViewBuilder,
-    RecursionDepthTracker: RecursionDepthTracker,  // Exported for testing.
-    zFunction: zFunction  // Exported for testing.
+    MultiDimensionalViewType: MultiDimensionalViewType,
+
+    // Exports below are for testing only.
+    MultiDimensionalViewNode: MultiDimensionalViewNode,
+    RecursionDepthTracker: RecursionDepthTracker,
+    zFunction: zFunction
   };
 });
 </script>

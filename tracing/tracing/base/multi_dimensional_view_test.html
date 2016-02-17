@@ -7,16 +7,25 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
+<link rel="import" href="/tracing/core/test_utils.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
+  var MultiDimensionalViewType = tr.b.MultiDimensionalViewType;
+  var MultiDimensionalViewNode = tr.b.MultiDimensionalViewNode;
   var SELF = MultiDimensionalViewBuilder.ValueKind.SELF;
   var TOTAL = MultiDimensionalViewBuilder.ValueKind.TOTAL;
   var RecursionDepthTracker = tr.b.RecursionDepthTracker;
   var zFunction = tr.b.zFunction;
+
+  function assertListStrictEqual(a, b) {
+    assert.lengthOf(a, b.length);
+    for (var i = 0; i < a.length; i++)
+      assert.strictEqual(a[i], b[i]);
+  }
 
   function checkTree(actualTreeRootNode, expectedStructureRootNode) {
     // Build map from expected structure node IDs to expected structure nodes.
@@ -139,18 +148,22 @@ tr.b.unittest.testSuite(function() {
   }
 
   function builderTest(testName, dimensions, pathEntries,
-      expectedTreeViewStructure, expectedHeavyViewStructure) {
+      expectedTopDownTreeViewStructure, expectedTopDownHeavyViewStructure,
+      expectedBottomUpHeavyViewStructure) {
     test('builder_' + testName, function() {
       // Create a multi-dimensional tree builder and add all paths to it.
       var builder = createBuilderWithEntries(dimensions, pathEntries);
 
-      // Build and check the tree view.
-      var treeViewRoot = builder.buildTreeView();
-      checkTree(treeViewRoot, expectedTreeViewStructure);
-
-      // Build and check the heavy view.
-      var heavyViewRoot = builder.buildHeavyView();
-      checkTree(heavyViewRoot, expectedHeavyViewStructure);
+      // Build and check the views.
+      checkTree(
+          builder.buildView(MultiDimensionalViewType.TOP_DOWN_TREE_VIEW),
+          expectedTopDownTreeViewStructure);
+      checkTree(
+          builder.buildView(MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW),
+          expectedTopDownHeavyViewStructure);
+      checkTree(
+          builder.buildView(MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW),
+          expectedBottomUpHeavyViewStructure);
     });
   }
 
@@ -193,16 +206,213 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
+  /**
+   * Helper function for generating builder tests. Given a number of dimensions
+   * and a list of path entries, this function generates the source code of
+   * the corresponding builder test with expected top-down tree view, top-down
+   * heavy view and bottom-up heavy view structures.
+   *
+   * This avoids the need to write such tests manually, which is very tedious.
+   * However, the correctness of the generated structures needs to be verified
+   * by the developer! Maximum line length must also be enforced manually.
+   */
+  function generateBuilderTest(targetTestName, dimensions, pathEntries) {
+    test('builderTestGenerator_' + targetTestName, function() {
+      // Create the builder.
+      var builder = createBuilderWithEntries(dimensions, pathEntries);
+
+      // Generate the test case source code.
+      var generator = new tr.c.TestUtils.SourceGenerator();
+      generator.indentBlock(2, false /* don't break line */, function() {
+        // Test name and number of dimensions (first line).
+        generator.push('builderTest(\'', targetTestName, '\', ',
+            String(dimensions), ' /* dimensions */,');
+
+        generator.indentBlock(4, true /* break line */, function() {
+          // Path entries.
+          generator.formatMultiLineList(pathEntries, function(pathEntry) {
+            generator.push('{ path: ');
+            generator.formatSingleLineList(
+                pathEntry.path,
+                function(singleDimensionPath) {
+                  generator.formatSingleLineList(
+                      singleDimensionPath, generator.formatString, generator);
+                });
+            generator.push(', value: ', String(pathEntry.value));
+            var kind = pathEntry.kind === SELF ? 'SELF' : 'TOTAL';
+            generator.push(', kind: ', kind, ' }');
+          });
+          generator.push(',');
+          generator.breakLine();
+
+          function formatExpectedTreeStructure(root, label) {
+            var nextNodeId = 0;
+            var nodeInfos = new WeakMap();
+
+            function assignNodeIdsToRepeatedNodes(node) {
+              if (nodeInfos.has(node)) {
+                // We have already visited the node (one or more times), so
+                // there is no need to visit its children.
+                if (nodeInfos.get(node) === undefined) {
+                  // This is the second time we visited the node: Change the
+                  // undefined entry to a defined node info entry.
+                  nodeInfos.set(node, { id: undefined });
+                }
+                return;
+              }
+
+              // This is the first time we visited the node: Add an undefined
+              // entry to the node info map and recursively visit all its
+              // children.
+              nodeInfos.set(node, undefined);
+              node.children.forEach(function(singleDimensionChildren) {
+                for (var child of singleDimensionChildren.values())
+                  assignNodeIdsToRepeatedNodes(child);
+              });
+            }
+            assignNodeIdsToRepeatedNodes(root);
+
+            // Track the multi-dimensional path to the current node to generate
+            // comments.
+            var paths = new Array(dimensions);
+            for (var i = 0; i < paths.length; i++)
+              paths[i] = [];
+            function withChild(childNode, dimension, callback) {
+              paths[dimension].push(childNode.title[dimension]);
+              callback();
+              paths[dimension].pop();
+            }
+            function appendPathComment(opt_label) {
+              if (opt_label) {
+                generator.pushComment(opt_label);
+                return;
+              }
+
+              paths.forEach(function(dimensionPath, dimensionIndex) {
+                if (dimensionIndex > 0)
+                  generator.pushComment(', ');
+                if (dimensionPath.length === 0) {
+                  generator.pushComment('*');
+                  return;
+                }
+                dimensionPath.forEach(function(ancestorTitle, ancestorIndex) {
+                  if (ancestorIndex > 0)
+                    generator.pushComment(' -> ');
+                  generator.pushComment(ancestorTitle);
+                });
+              });
+            }
+
+            function formatExpectedTreeStructureRecursively(node, opt_label) {
+              var nodeId = undefined;
+              var nodeInfo = nodeInfos.get(node);
+              if (nodeInfo !== undefined) {
+                // This node is referenced multiple times in the expected tree
+                // structure.
+                nodeId = nodeInfo.id;
+                if (nodeId === undefined) {
+                  // This is the first time we visited the node: Assign it a
+                  // unique node id and then format it and its descendants
+                  // recursively.
+                  nodeId = '#' + (nextNodeId++);
+                  nodeInfo.id = nodeId;
+                } else {
+                  // We have already visited this node: Just insert the node's
+                  // id (instead of formatting it and its descendants
+                  // recursively again).
+                  generator.push('\'', nodeId, '\'');
+                  appendPathComment();
+                  return;
+                }
+              }
+
+              generator.push('{');
+              appendPathComment(opt_label);
+
+              generator.indentBlock(2, true /* break line */, function() {
+                // Node id (if defined).
+                if (nodeId !== undefined) {
+                  generator.push('id: \'', nodeId, '\',');
+                  generator.breakLine();
+                }
+
+                // Node title.
+                generator.push('title: ');
+                generator.formatSingleLineList(
+                    node.title, generator.formatString, generator);
+                generator.push(',');
+                generator.breakLine();
+
+                // Node values.
+                generator.push('total: ', String(node.total), ',');
+                generator.breakLine();
+                generator.push('self: ', String(node.self), ',');
+                generator.breakLine();
+                generator.push(
+                    'isLowerBound: ', String(node.isLowerBound), ',');
+                generator.breakLine();
+
+                // Node children.
+                var children = node.children;
+                generator.push('children: ');
+                generator.formatMultiLineList(
+                    children,
+                    function(singleDimensionChildren, dimension) {
+                      generator.formatMultiLineList(
+                          tr.b.mapValues(singleDimensionChildren),
+                          function(child, childIndex) {
+                            withChild(child, dimension, function() {
+                              formatExpectedTreeStructureRecursively(child);
+                            });
+                          });
+                    });
+              });
+              generator.breakLine();
+              generator.push('}');
+            }
+
+            formatExpectedTreeStructureRecursively(root, label);
+          }
+
+          // Build and format the three multi-dimensional views.
+          formatExpectedTreeStructure(
+              builder.buildTopDownTreeView(), 'Top-down tree view');
+          generator.push(',');
+          generator.breakLine();
+          formatExpectedTreeStructure(
+              builder.buildTopDownHeavyView(), 'Top-down heavy view');
+          generator.push(',');
+          generator.breakLine();
+          formatExpectedTreeStructure(
+              builder.buildBottomUpHeavyView(), 'Bottom-up heavy view');
+          generator.push(');');
+        });
+      });
+
+      tr.c.TestUtils.addSourceListing(this, generator.build());
+
+      throw new Error('This error is thrown to prevent accidentally ' +
+          'checking in a test generator instead of an actual test.');
+    });
+  }
+
   builderTest('zeroDimensions_noPaths', 0 /* dimensions */,
       [],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [],
         total: 0,
         self: 0,
         isLowerBound: true,
         children: []
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [],
+        total: 0,
+        self: 0,
+        isLowerBound: true,
+        children: []
+      },
+      {  // Bottom-up heavy view.
         title: [],
         total: 0,
         self: 0,
@@ -217,14 +427,21 @@ tr.b.unittest.testSuite(function() {
         { path: [], value: 4, kind: SELF },
         { path: [], value: 5, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [],
         total: 8,
         self: 6,
         isLowerBound: false,
         children: []
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [],
+        total: 8,
+        self: 6,
+        isLowerBound: false,
+        children: []
+      },
+      {  // Bottom-up heavy view.
         title: [],
         total: 8,
         self: 6,
@@ -234,7 +451,7 @@ tr.b.unittest.testSuite(function() {
 
   builderTest('oneDimension_noPaths', 1 /* dimensions */,
       [],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 0,
         self: 0,
@@ -243,7 +460,16 @@ tr.b.unittest.testSuite(function() {
           []
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [undefined],
+        total: 0,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          []
+        ]
+      },
+      {  // Bottom-up heavy view.
         title: [undefined],
         total: 0,
         self: 0,
@@ -257,7 +483,7 @@ tr.b.unittest.testSuite(function() {
       [
         { path: [[]], value: 42, kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 42,
         self: 42,
@@ -266,7 +492,16 @@ tr.b.unittest.testSuite(function() {
           []
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [undefined],
+        total: 42,
+        self: 42,
+        isLowerBound: false,
+        children: [
+          []
+        ]
+      },
+      {  // Top-down heavy view.
         title: [undefined],
         total: 42,
         self: 42,
@@ -285,7 +520,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['A', 'C']], value: 50, kind: SELF },
         { path: [[]], value: 60, kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 210,
         self: 60,
@@ -361,7 +596,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined],
         total: 210,
         self: 60,
@@ -463,6 +698,111 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined],
+        total: 210,
+        self: 60,
+        isLowerBound: false,
+        children: [
+          [
+            {  // A.
+              title: ['A'],
+              total: 120,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                []
+              ]
+            },
+            {  // B.
+              title: ['B'],
+              total: 100,
+              self: 20,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A.
+                    title: ['A'],
+                    total: 70,
+                    self: 20,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // C.
+              title: ['C'],
+              total: 60,
+              self: 60,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // C -> B.
+                    title: ['B'],
+                    total: 10,
+                    self: 10,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // C -> B -> A.
+                          title: ['A'],
+                          total: 10,
+                          self: 10,
+                          isLowerBound: true,
+                          children: [
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // C -> A.
+                    title: ['A'],
+                    total: 50,
+                    self: 50,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // D.
+              title: ['D'],
+              total: 70,
+              self: 70,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // D -> B.
+                    title: ['B'],
+                    total: 70,
+                    self: 70,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // D -> B -> A.
+                          title: ['A'],
+                          total: 40,
+                          self: 40,
+                          isLowerBound: true,
+                          children: [
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('oneDimension_simpleRecursion', 1 /* dimensions */,
@@ -472,7 +812,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['A', 'A']], value: 30, kind: SELF },
         { path: [['A', 'A', 'A', 'A']], value: 40, kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 100,
         self: 0,
@@ -521,7 +861,56 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [undefined],
+        total: 100,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // A.
+              title: ['A'],
+              total: 100,
+              self: 100,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // A -> A.
+                    title: ['A'],
+                    total: 90,
+                    self: 90,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // A -> A -> A.
+                          title: ['A'],
+                          total: 60,
+                          self: 60,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // A -> A -> A -> A.
+                                title: ['A'],
+                                total: 40,
+                                self: 40,
+                                isLowerBound: true,
+                                children: [
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      },
+      {  // Bottom-up heavy view.
         title: [undefined],
         total: 100,
         self: 0,
@@ -579,7 +968,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['C', 'B', 'C']], value: 40, kind: SELF },
         { path: [['C', 'B', 'C', 'B', 'C']], value: 50, kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 150,
         self: 0,
@@ -737,7 +1126,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined],
         total: 150,
         self: 0,
@@ -1095,6 +1484,369 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined],
+        total: 150,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // A.
+              title: ['A'],
+              total: 60,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // A -> C.
+                    title: ['C'],
+                    total: 50,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // A -> C -> B.
+                          title: ['B'],
+                          total: 50,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // A -> C -> B -> D.
+                                title: ['D'],
+                                total: 50,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    {  // A -> C -> B -> D -> A.
+                                      title: ['A'],
+                                      total: 50,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // B.
+              title: ['B'],
+              total: 150,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A.
+                    title: ['A'],
+                    total: 60,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // B -> A -> C.
+                          title: ['C'],
+                          total: 50,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // B -> A -> C -> B.
+                                title: ['B'],
+                                total: 50,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    {  // B -> A -> C -> B -> D.
+                                      title: ['D'],
+                                      total: 50,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [
+                                          {  // B -> A -> C -> B -> D -> A.
+                                            title: ['A'],
+                                            total: 50,
+                                            self: 0,
+                                            isLowerBound: true,
+                                            children: [
+                                              []
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // B -> D.
+                    title: ['D'],
+                    total: 50,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // B -> D -> A.
+                          title: ['A'],
+                          total: 50,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // B -> C.
+                    title: ['C'],
+                    total: 90,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // B -> C -> B.
+                          title: ['B'],
+                          total: 50,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // B -> C -> B -> C.
+                                title: ['C'],
+                                total: 50,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // C.
+              title: ['C'],
+              total: 150,
+              self: 120,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // C -> B.
+                    title: ['B'],
+                    total: 150,
+                    self: 120,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // C -> B -> A.
+                          title: ['A'],
+                          total: 30,
+                          self: 30,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // C -> B -> A -> C.
+                                title: ['C'],
+                                total: 20,
+                                self: 20,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    {  // C -> B -> A -> C -> B.
+                                      title: ['B'],
+                                      total: 20,
+                                      self: 20,
+                                      isLowerBound: true,
+                                      children: [
+                                        [
+                                          {  // C -> B -> A -> C -> B -> D.
+                                            title: ['D'],
+                                            total: 20,
+                                            self: 20,
+                                            isLowerBound: true,
+                                            children: [
+                                              [
+                                                {  // C -> B -> A -> C -> B ->
+                                                   // D -> A.
+                                                  title: ['A'],
+                                                  total: 20,
+                                                  self: 20,
+                                                  isLowerBound: true,
+                                                  children: [
+                                                    []
+                                                  ]
+                                                }
+                                              ]
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // C -> B -> D.
+                          title: ['D'],
+                          total: 50,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // C -> B -> D -> A.
+                                title: ['A'],
+                                total: 50,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // C -> B -> C.
+                          title: ['C'],
+                          total: 90,
+                          self: 90,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // C -> B -> C -> B.
+                                title: ['B'],
+                                total: 50,
+                                self: 50,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    {  // C -> B -> C -> B -> C.
+                                      title: ['C'],
+                                      total: 50,
+                                      self: 50,
+                                      isLowerBound: true,
+                                      children: [
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // D.
+              title: ['D'],
+              total: 50,
+              self: 30,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // D -> A.
+                    title: ['A'],
+                    total: 50,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  },
+                  {  // D -> B.
+                    title: ['B'],
+                    total: 30,
+                    self: 30,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // D -> B -> A.
+                          title: ['A'],
+                          total: 30,
+                          self: 30,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              {  // D -> B -> A -> C.
+                                title: ['C'],
+                                total: 30,
+                                self: 30,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    {  // D -> B -> A -> C -> B.
+                                      title: ['B'],
+                                      total: 30,
+                                      self: 30,
+                                      isLowerBound: true,
+                                      children: [
+                                        [
+                                          {  // D -> B -> A -> C -> B -> D.
+                                            title: ['D'],
+                                            total: 30,
+                                            self: 30,
+                                            isLowerBound: true,
+                                            children: [
+                                              [
+                                                {  // D -> B -> A -> C -> B ->
+                                                   // D -> A.
+                                                  title: ['A'],
+                                                  total: 30,
+                                                  self: 30,
+                                                  isLowerBound: true,
+                                                  children: [
+                                                    []
+                                                  ]
+                                                }
+                                              ]
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('oneDimension_withTotalSizes', 1 /* dimensions */,
@@ -1106,7 +1858,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['B', 'D']], value: 40, kind: SELF },
         { path: [['C']], value: 50, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 115,
         self: 0,
@@ -1163,7 +1915,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined],
         total: 115,
         self: 0,
@@ -1238,6 +1990,82 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined],
+        total: 115,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // B.
+              title: ['B'],
+              total: 65,
+              self: 15,
+              isLowerBound: true,
+              children: [
+                []
+              ]
+            },
+            {  // C.
+              title: ['C'],
+              total: 60,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // C -> B.
+                    title: ['B'],
+                    total: 10,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // D.
+              title: ['D'],
+              total: 45,
+              self: 40,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // D -> C.
+                    title: ['C'],
+                    total: 5,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // D -> C -> B.
+                          title: ['B'],
+                          total: 5,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // D -> B.
+                    title: ['B'],
+                    total: 40,
+                    self: 40,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('oneDimension_protoTitle', 1 /* dimensions */,
@@ -1246,7 +2074,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['A']], value: 18, kind: SELF },
         { path: [['A', '__proto__']], value: 89, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 152,
         self: 0,
@@ -1284,7 +2112,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined],
         total: 152,
         self: 0,
@@ -1321,10 +2149,50 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined],
+        total: 152,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // __proto__.
+              title: ['__proto__'],
+              total: 134,
+              self: 45,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // __proto__ -> A.
+                    title: ['A'],
+                    total: 89,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // A.
+              title: ['A'],
+              total: 107,
+              self: 18,
+              isLowerBound: true,
+              children: [
+                []
+              ]
+            }
+          ]
+        ]
       });
 
   // See tracing/tracing/base/multi_dimensional_view.html
-  // (MultiDimensionalViewBuilder.addDimensionsToHeavyViewNode_ documentation).
+  // (MultiDimensionalViewBuilder.addDimensionToTopDownHeavyViewNode_ and
+  // MultiDimensionalViewBuilder.addDimensionToBottomUpHeavyViewNode_
+  // documentation).
   builderTest('oneDimension_documentationExample', 1 /* dimensions */,
       [
         { path: [['A']], value: 10, kind: SELF },
@@ -1337,7 +2205,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['B']], value: 12, kind: SELF },
         { path: [['B']], value: 18, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined],
         total: 48,
         self: 0,
@@ -1394,7 +2262,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined],
         total: 48,
         self: 0,
@@ -1478,11 +2346,98 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined],
+        total: 48,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // A.
+              title: ['A'],
+              total: 30,
+              self: 13,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // A -> B.
+                    title: ['B'],
+                    total: 8,
+                    self: 3,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // A -> B -> A.
+                          title: ['A'],
+                          total: 8,
+                          self: 3,
+                          isLowerBound: true,
+                          children: [
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // B.
+              title: ['B'],
+              total: 34,
+              self: 13,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A.
+                    title: ['A'],
+                    total: 16,
+                    self: 1,
+                    isLowerBound: true,
+                    children: [
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // C.
+              title: ['C'],
+              total: 7,
+              self: 2,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // C -> B.
+                    title: ['B'],
+                    total: 7,
+                    self: 2,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // C -> B -> A.
+                          title: ['A'],
+                          total: 7,
+                          self: 2,
+                          isLowerBound: true,
+                          children: [
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('twoDimensions_noPaths', 2 /* dimensions */,
       [],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 0,
         self: 0,
@@ -1492,7 +2447,17 @@ tr.b.unittest.testSuite(function() {
           []
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [undefined, undefined],
+        total: 0,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [],
+          []
+        ]
+      },
+      {  // Bottom-up heavy view.
         title: [undefined, undefined],
         total: 0,
         self: 0,
@@ -1517,7 +2482,7 @@ tr.b.unittest.testSuite(function() {
         { path: [[], ['2']], value: 40, kind: SELF },
         { path: [[], ['2']], value: 41, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 115,
         self: 10,
@@ -1569,7 +2534,59 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
+        title: [undefined, undefined],
+        total: 115,
+        self: 10,
+        isLowerBound: false,
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              total: 30,
+              self: 21,
+              isLowerBound: true,
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              total: 32,
+              self: 25,
+              isLowerBound: true,
+              children: [
+                [],
+                []
+              ]
+            }
+          ],
+          [
+            {  // *, 1.
+              title: [undefined, '1'],
+              total: 15,
+              self: 3,
+              isLowerBound: true,
+              children: [
+                [],
+                []
+              ]
+            },
+            {  // *, 2.
+              title: [undefined, '2'],
+              total: 41,
+              self: 40,
+              isLowerBound: true,
+              children: [
+                [],
+                []
+              ]
+            }
+          ]
+        ]
+      },
+      {  // Bottom-up heavy view.
         title: [undefined, undefined],
         total: 115,
         self: 10,
@@ -1636,7 +2653,7 @@ tr.b.unittest.testSuite(function() {
         { path: [[], ['T1']], value: 200, kind: TOTAL },
         { path: [[], []], value: 400, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 400,
         self: 0,
@@ -1746,7 +2763,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined, undefined],
         total: 400,
         self: 0,
@@ -1939,6 +2956,200 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined],
+        total: 400,
+        self: 0,
+        isLowerBound: false,
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              total: 40,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [],
+                [
+                  {  // A, T1.
+                    id: '#0',
+                    title: ['A', 'T1'],
+                    total: 20,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // A, T2.
+                    id: '#1',
+                    title: ['A', 'T2'],
+                    total: 10,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // A, T2 -> T1.
+                          id: '#2',
+                          title: ['A', 'T1'],
+                          total: 10,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              total: 4,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A, *.
+                    title: ['A', undefined],
+                    total: 4,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // B -> A, T1.
+                          id: '#3',
+                          title: ['A', 'T1'],
+                          total: 2,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        },
+                        {  // B -> A, T2.
+                          id: '#4',
+                          title: ['A', 'T2'],
+                          total: 1,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // B -> A, T2 -> T1.
+                                id: '#5',
+                                title: ['A', 'T1'],
+                                total: 1,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // B, T1.
+                    id: '#6',
+                    title: ['B', 'T1'],
+                    total: 2,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#3'  // B -> A, T1.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // B, T2.
+                    id: '#7',
+                    title: ['B', 'T2'],
+                    total: 1,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#4'  // B -> A, T2.
+                      ],
+                      [
+                        {  // B, T2 -> T1.
+                          id: '#8',
+                          title: ['B', 'T1'],
+                          total: 1,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#5'  // B -> A, T2 -> T1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, T1.
+              title: [undefined, 'T1'],
+              total: 200,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#0',  // A, T1.
+                  '#6'  // B, T1.
+                ],
+                []
+              ]
+            },
+            {  // *, T2.
+              title: [undefined, 'T2'],
+              total: 100,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#1',  // A, T2.
+                  '#7'  // B, T2.
+                ],
+                [
+                  {  // *, T2 -> T1.
+                    title: [undefined, 'T1'],
+                    total: 100,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#2',  // A, T2 -> T1.
+                        '#8'  // B, T2 -> T1.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   // See tracing/tracing/base/multi_dimensional_view.html
@@ -1949,7 +3160,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['Saturday'], ['Sports', 'Football']], value: 2, kind: SELF },
         { path: [['Sunday'], ['Sports', 'Basketball']], value: 3, kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 6,
         self: 0,
@@ -2090,7 +3301,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined, undefined],
         total: 6,
         self: 0,
@@ -2276,6 +3487,194 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined],
+        total: 6,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // Saturday, *.
+              title: ['Saturday', undefined],
+              total: 3,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [],
+                [
+                  {  // Saturday, Cooking.
+                    id: '#0',
+                    title: ['Saturday', 'Cooking'],
+                    total: 1,
+                    self: 1,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // Saturday, Sports.
+                    id: '#1',
+                    title: ['Saturday', 'Sports'],
+                    total: 2,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // Saturday, Football.
+                    id: '#2',
+                    title: ['Saturday', 'Football'],
+                    total: 2,
+                    self: 2,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // Saturday, Football -> Sports.
+                          id: '#3',
+                          title: ['Saturday', 'Sports'],
+                          total: 2,
+                          self: 2,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // Sunday, *.
+              title: ['Sunday', undefined],
+              total: 3,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [],
+                [
+                  {  // Sunday, Sports.
+                    id: '#4',
+                    title: ['Sunday', 'Sports'],
+                    total: 3,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // Sunday, Basketball.
+                    id: '#5',
+                    title: ['Sunday', 'Basketball'],
+                    total: 3,
+                    self: 3,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // Sunday, Basketball -> Sports.
+                          id: '#6',
+                          title: ['Sunday', 'Sports'],
+                          total: 3,
+                          self: 3,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, Cooking.
+              title: [undefined, 'Cooking'],
+              total: 1,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#0'  // Saturday, Cooking.
+                ],
+                []
+              ]
+            },
+            {  // *, Sports.
+              title: [undefined, 'Sports'],
+              total: 5,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#1',  // Saturday, Sports.
+                  '#4'  // Sunday, Sports.
+                ],
+                []
+              ]
+            },
+            {  // *, Football.
+              title: [undefined, 'Football'],
+              total: 2,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#2'  // Saturday, Football.
+                ],
+                [
+                  {  // *, Football -> Sports.
+                    title: [undefined, 'Sports'],
+                    total: 2,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#3'  // Saturday, Football -> Sports.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // *, Basketball.
+              title: [undefined, 'Basketball'],
+              total: 3,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#5'  // Sunday, Basketball.
+                ],
+                [
+                  {  // *, Basketball -> Sports.
+                    title: [undefined, 'Sports'],
+                    total: 3,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#6'  // Sunday, Basketball -> Sports.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   // See https://goo.gl/KY7zVE.
@@ -2302,7 +3701,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['RdMain'], ['W']], value: 355, kind: TOTAL },
         { path: [['RdMain'], []], value: 628, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 1538,
         self: 0,
@@ -2541,7 +3940,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined, undefined],
         total: 1538,
         self: 0,
@@ -2884,6 +4283,352 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined],
+        total: 1538,
+        self: 0,
+        isLowerBound: false,
+        children: [
+          [
+            {  // BrMain, *.
+              title: ['BrMain', undefined],
+              total: 876,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [],
+                [
+                  {  // BrMain, T.
+                    id: '#0',
+                    title: ['BrMain', 'T'],
+                    total: 465,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // BrMain, V.
+                    id: '#1',
+                    title: ['BrMain', 'V'],
+                    total: 297,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // BrMain, W.
+                    id: '#2',
+                    title: ['BrMain', 'W'],
+                    total: 96,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // Init, *.
+              title: ['Init', undefined],
+              total: 242,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // Init -> BrMain, *.
+                    title: ['BrMain', undefined],
+                    total: 242,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // Init -> BrMain, T.
+                          id: '#3',
+                          title: ['BrMain', 'T'],
+                          total: 151,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        },
+                        {  // Init -> BrMain, W.
+                          id: '#4',
+                          title: ['BrMain', 'W'],
+                          total: 83,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // Init, T.
+                    id: '#5',
+                    title: ['Init', 'T'],
+                    total: 151,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#3'  // Init -> BrMain, T.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // Init, W.
+                    id: '#6',
+                    title: ['Init', 'W'],
+                    total: 83,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#4'  // Init -> BrMain, W.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // MsgLp, *.
+              title: ['MsgLp', undefined],
+              total: 601,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // MsgLp -> BrMain, *.
+                    title: ['BrMain', undefined],
+                    total: 601,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // MsgLp -> BrMain, T.
+                          id: '#7',
+                          title: ['BrMain', 'T'],
+                          total: 307,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        },
+                        {  // MsgLp -> BrMain, V.
+                          id: '#8',
+                          title: ['BrMain', 'V'],
+                          total: 281,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // MsgLp, T.
+                    id: '#9',
+                    title: ['MsgLp', 'T'],
+                    total: 307,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#7'  // MsgLp -> BrMain, T.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // MsgLp, V.
+                    id: '#10',
+                    title: ['MsgLp', 'V'],
+                    total: 281,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#8'  // MsgLp -> BrMain, V.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // RdMain, *.
+              title: ['RdMain', undefined],
+              total: 628,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [],
+                [
+                  {  // RdMain, T.
+                    id: '#11',
+                    title: ['RdMain', 'T'],
+                    total: 229,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  },
+                  {  // RdMain, W.
+                    id: '#12',
+                    title: ['RdMain', 'W'],
+                    total: 355,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // RTask, *.
+              title: ['RTask', undefined],
+              total: 556,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // RTask -> RdMain, *.
+                    title: ['RdMain', undefined],
+                    total: 556,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // RTask -> RdMain, T.
+                          id: '#13',
+                          title: ['RdMain', 'T'],
+                          total: 211,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        },
+                        {  // RTask -> RdMain, W.
+                          id: '#14',
+                          title: ['RdMain', 'W'],
+                          total: 337,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // RTask, T.
+                    id: '#15',
+                    title: ['RTask', 'T'],
+                    total: 211,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#13'  // RTask -> RdMain, T.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // RTask, W.
+                    id: '#16',
+                    title: ['RTask', 'W'],
+                    total: 337,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#14'  // RTask -> RdMain, W.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, T.
+              title: [undefined, 'T'],
+              total: 698,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#0',  // BrMain, T.
+                  '#5',  // Init, T.
+                  '#9',  // MsgLp, T.
+                  '#11',  // RdMain, T.
+                  '#15'  // RTask, T.
+                ],
+                []
+              ]
+            },
+            {  // *, V.
+              title: [undefined, 'V'],
+              total: 340,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#1',  // BrMain, V.
+                  '#10'  // MsgLp, V.
+                ],
+                []
+              ]
+            },
+            {  // *, W.
+              title: [undefined, 'W'],
+              total: 461,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#2',  // BrMain, W.
+                  '#6',  // Init, W.
+                  '#12',  // RdMain, W.
+                  '#16'  // RTask, W.
+                ],
+                []
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('twoDimensions_oneRecursiveDimension', 2 /* dimensions */,
@@ -2899,7 +4644,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['B', 'A'], ['T1']], value: 30000, kind: TOTAL },
         { path: [['B', 'A'], []], value: 40000, kind: TOTAL }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 41500,
         self: 0,
@@ -3089,7 +4834,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined, undefined],
         total: 41500,
         self: 0,
@@ -3347,6 +5092,271 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined],
+        total: 41500,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              total: 41500,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // A -> B, *.
+                    title: ['B', undefined],
+                    total: 40200,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // A -> B -> A, *.
+                          title: ['A', undefined],
+                          total: 200,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // A -> B -> A, T1.
+                                id: '#0',
+                                title: ['A', 'T1'],
+                                total: 2,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // A -> B, T1.
+                          id: '#1',
+                          title: ['B', 'T1'],
+                          total: 30002,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#0'  // A -> B -> A, T1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // A, T1.
+                    id: '#2',
+                    title: ['A', 'T1'],
+                    total: 30015,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#1'  // A -> B, T1.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              total: 41500,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A, *.
+                    title: ['A', undefined],
+                    total: 1500,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // B -> A, T1.
+                          id: '#3',
+                          title: ['A', 'T1'],
+                          total: 15,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // B -> B, *.
+                    title: ['B', undefined],
+                    total: 300,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // B -> B -> A, *.
+                          title: ['A', undefined],
+                          total: 300,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // B -> B -> A, T1.
+                                id: '#4',
+                                title: ['A', 'T1'],
+                                total: 3,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // B -> B, T1.
+                          id: '#5',
+                          title: ['B', 'T1'],
+                          total: 3,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#4'  // B -> B -> A, T1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // B, T1.
+                    id: '#6',
+                    title: ['B', 'T1'],
+                    total: 30015,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#3',  // B -> A, T1.
+                        '#5'  // B -> B, T1.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // C, *.
+              title: ['C', undefined],
+              total: 700,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // C -> B, *.
+                    title: ['B', undefined],
+                    total: 700,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // C -> B -> A, *.
+                          title: ['A', undefined],
+                          total: 700,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // C -> B -> A, T1.
+                                id: '#7',
+                                title: ['A', 'T1'],
+                                total: 7,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // C -> B, T1.
+                          id: '#8',
+                          title: ['B', 'T1'],
+                          total: 7,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#7'  // C -> B -> A, T1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // C, T1.
+                    id: '#9',
+                    title: ['C', 'T1'],
+                    total: 7,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#8'  // C -> B, T1.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, T1.
+              title: [undefined, 'T1'],
+              total: 30015,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#2',  // A, T1.
+                  '#6',  // B, T1.
+                  '#9'  // C, T1.
+                ],
+                []
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('twoDimensions_twoRecursiveDimensions', 2 /* dimensions */,
@@ -3356,7 +5366,7 @@ tr.b.unittest.testSuite(function() {
         { path: [['A', 'B', 'B'], ['1', '1', '2']], value: 20, kind: TOTAL },
         { path: [['A', 'B'], ['1', '1']], value: 5, kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined],
         total: 65,
         self: 0,
@@ -3710,7 +5720,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined, undefined],
         total: 65,
         self: 0,
@@ -4419,6 +6429,716 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined],
+        total: 65,
+        self: 0,
+        isLowerBound: true,
+        children: [
+          [
+            {  // A, *.
+              title: ['A', undefined],
+              total: 65,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // A -> A, *.
+                    title: ['A', undefined],
+                    total: 40,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // A -> A, 1.
+                          id: '#0',
+                          title: ['A', '1'],
+                          total: 40,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        },
+                        {  // A -> A, 2.
+                          id: '#1',
+                          title: ['A', '2'],
+                          total: 40,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // A -> A, 2 -> 1.
+                                id: '#2',
+                                title: ['A', '1'],
+                                total: 40,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              },
+                              {  // A -> A, 2 -> 2.
+                                id: '#3',
+                                title: ['A', '2'],
+                                total: 10,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    {  // A -> A, 2 -> 2 -> 1.
+                                      id: '#4',
+                                      title: ['A', '1'],
+                                      total: 10,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // A, 1.
+                    id: '#5',
+                    title: ['A', '1'],
+                    total: 65,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#0'  // A -> A, 1.
+                      ],
+                      [
+                        {  // A, 1 -> 1.
+                          id: '#6',
+                          title: ['A', '1'],
+                          total: 25,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // A, 2.
+                    id: '#7',
+                    title: ['A', '2'],
+                    total: 60,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#1'  // A -> A, 2.
+                      ],
+                      [
+                        {  // A, 2 -> 1.
+                          id: '#8',
+                          title: ['A', '1'],
+                          total: 60,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#2'  // A -> A, 2 -> 1.
+                            ],
+                            [
+                              {  // A, 2 -> 1 -> 1.
+                                id: '#9',
+                                title: ['A', '1'],
+                                total: 20,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // A, 2 -> 2.
+                          id: '#10',
+                          title: ['A', '2'],
+                          total: 10,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#3'  // A -> A, 2 -> 2.
+                            ],
+                            [
+                              {  // A, 2 -> 2 -> 1.
+                                id: '#11',
+                                title: ['A', '1'],
+                                total: 10,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#4'  // A -> A, 2 -> 2 -> 1.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // B, *.
+              title: ['B', undefined],
+              total: 35,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A, *.
+                    title: ['A', undefined],
+                    total: 35,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // B -> A -> A, *.
+                          title: ['A', undefined],
+                          total: 10,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // B -> A -> A, 1.
+                                id: '#12',
+                                title: ['A', '1'],
+                                total: 10,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              },
+                              {  // B -> A -> A, 2.
+                                id: '#13',
+                                title: ['A', '2'],
+                                total: 10,
+                                self: 10,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    {  // B -> A -> A, 2 -> 1.
+                                      id: '#14',
+                                      title: ['A', '1'],
+                                      total: 10,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        []
+                                      ]
+                                    },
+                                    {  // B -> A -> A, 2 -> 2.
+                                      id: '#15',
+                                      title: ['A', '2'],
+                                      total: 10,
+                                      self: 10,
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [
+                                          {  // B -> A -> A, 2 -> 2 -> 1.
+                                            id: '#16',
+                                            title: ['A', '1'],
+                                            total: 10,
+                                            self: 10,
+                                            isLowerBound: true,
+                                            children: [
+                                              [],
+                                              []
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // B -> A, 1.
+                          id: '#17',
+                          title: ['A', '1'],
+                          total: 35,
+                          self: 5,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#12'  // B -> A -> A, 1.
+                            ],
+                            [
+                              {  // B -> A, 1 -> 1.
+                                id: '#18',
+                                title: ['A', '1'],
+                                total: 25,
+                                self: 5,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // B -> A, 2.
+                          id: '#19',
+                          title: ['A', '2'],
+                          total: 30,
+                          self: 10,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#13'  // B -> A -> A, 2.
+                            ],
+                            [
+                              {  // B -> A, 2 -> 1.
+                                id: '#20',
+                                title: ['A', '1'],
+                                total: 30,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#14'  // B -> A -> A, 2 -> 1.
+                                  ],
+                                  [
+                                    {  // B -> A, 2 -> 1 -> 1.
+                                      id: '#21',
+                                      title: ['A', '1'],
+                                      total: 20,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              },
+                              {  // B -> A, 2 -> 2.
+                                id: '#22',
+                                title: ['A', '2'],
+                                total: 10,
+                                self: 10,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#15'  // B -> A -> A, 2 -> 2.
+                                  ],
+                                  [
+                                    {  // B -> A, 2 -> 2 -> 1.
+                                      id: '#23',
+                                      title: ['A', '1'],
+                                      total: 10,
+                                      self: 10,
+                                      isLowerBound: true,
+                                      children: [
+                                        [
+                                          '#16'  // B -> A -> A, 2 -> 2 -> 1.
+                                        ],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // B -> B, *.
+                    title: ['B', undefined],
+                    total: 20,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        {  // B -> B -> A, *.
+                          title: ['A', undefined],
+                          total: 20,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // B -> B -> A, 1.
+                                id: '#24',
+                                title: ['A', '1'],
+                                total: 20,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    {  // B -> B -> A, 1 -> 1.
+                                      id: '#25',
+                                      title: ['A', '1'],
+                                      total: 20,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              },
+                              {  // B -> B -> A, 2.
+                                id: '#26',
+                                title: ['A', '2'],
+                                total: 20,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    {  // B -> B -> A, 2 -> 1.
+                                      id: '#27',
+                                      title: ['A', '1'],
+                                      total: 20,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [
+                                          {  // B -> B -> A, 2 -> 1 -> 1.
+                                            id: '#28',
+                                            title: ['A', '1'],
+                                            total: 20,
+                                            self: 0,
+                                            isLowerBound: true,
+                                            children: [
+                                              [],
+                                              []
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // B -> B, 1.
+                          id: '#29',
+                          title: ['B', '1'],
+                          total: 20,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#24'  // B -> B -> A, 1.
+                            ],
+                            [
+                              {  // B -> B, 1 -> 1.
+                                id: '#30',
+                                title: ['B', '1'],
+                                total: 20,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#25'  // B -> B -> A, 1 -> 1.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // B -> B, 2.
+                          id: '#31',
+                          title: ['B', '2'],
+                          total: 20,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#26'  // B -> B -> A, 2.
+                            ],
+                            [
+                              {  // B -> B, 2 -> 1.
+                                id: '#32',
+                                title: ['B', '1'],
+                                total: 20,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#27'  // B -> B -> A, 2 -> 1.
+                                  ],
+                                  [
+                                    {  // B -> B, 2 -> 1 -> 1.
+                                      id: '#33',
+                                      title: ['B', '1'],
+                                      total: 20,
+                                      self: 0,
+                                      isLowerBound: true,
+                                      children: [
+                                        [
+                                          '#28'  // B -> B -> A, 2 -> 1 -> 1.
+                                        ],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // B, 1.
+                    id: '#34',
+                    title: ['B', '1'],
+                    total: 35,
+                    self: 5,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#17',  // B -> A, 1.
+                        '#29'  // B -> B, 1.
+                      ],
+                      [
+                        {  // B, 1 -> 1.
+                          id: '#35',
+                          title: ['B', '1'],
+                          total: 25,
+                          self: 5,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#18',  // B -> A, 1 -> 1.
+                              '#30'  // B -> B, 1 -> 1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // B, 2.
+                    id: '#36',
+                    title: ['B', '2'],
+                    total: 30,
+                    self: 10,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#19',  // B -> A, 2.
+                        '#31'  // B -> B, 2.
+                      ],
+                      [
+                        {  // B, 2 -> 1.
+                          id: '#37',
+                          title: ['B', '1'],
+                          total: 30,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#20',  // B -> A, 2 -> 1.
+                              '#32'  // B -> B, 2 -> 1.
+                            ],
+                            [
+                              {  // B, 2 -> 1 -> 1.
+                                id: '#38',
+                                title: ['B', '1'],
+                                total: 20,
+                                self: 0,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#21',  // B -> A, 2 -> 1 -> 1.
+                                    '#33'  // B -> B, 2 -> 1 -> 1.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // B, 2 -> 2.
+                          id: '#39',
+                          title: ['B', '2'],
+                          total: 10,
+                          self: 10,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#22'  // B -> A, 2 -> 2.
+                            ],
+                            [
+                              {  // B, 2 -> 2 -> 1.
+                                id: '#40',
+                                title: ['B', '1'],
+                                total: 10,
+                                self: 10,
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#23'  // B -> A, 2 -> 2 -> 1.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, 1.
+              title: [undefined, '1'],
+              total: 65,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#5',  // A, 1.
+                  '#34'  // B, 1.
+                ],
+                [
+                  {  // *, 1 -> 1.
+                    title: [undefined, '1'],
+                    total: 25,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#6',  // A, 1 -> 1.
+                        '#35'  // B, 1 -> 1.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // *, 2.
+              title: [undefined, '2'],
+              total: 60,
+              self: 0,
+              isLowerBound: true,
+              children: [
+                [
+                  '#7',  // A, 2.
+                  '#36'  // B, 2.
+                ],
+                [
+                  {  // *, 2 -> 1.
+                    title: [undefined, '1'],
+                    total: 60,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#8',  // A, 2 -> 1.
+                        '#37'  // B, 2 -> 1.
+                      ],
+                      [
+                        {  // *, 2 -> 1 -> 1.
+                          title: [undefined, '1'],
+                          total: 20,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#9',  // A, 2 -> 1 -> 1.
+                              '#38'  // B, 2 -> 1 -> 1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // *, 2 -> 2.
+                    title: [undefined, '2'],
+                    total: 10,
+                    self: 0,
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#10',  // A, 2 -> 2.
+                        '#39'  // B, 2 -> 2.
+                      ],
+                      [
+                        {  // *, 2 -> 2 -> 1.
+                          title: [undefined, '1'],
+                          total: 10,
+                          self: 0,
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#11',  // A, 2 -> 2 -> 1.
+                              '#40'  // B, 2 -> 2 -> 1.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   builderTest('threeDimensions', 3 /* dimensions */,
@@ -4453,7 +7173,7 @@ tr.b.unittest.testSuite(function() {
         { path: [[], [], ['E']], value: b(25), kind: SELF },
         { path: [[], [], []], value: b(26), kind: SELF }
       ],
-      {  // Tree view.
+      {  // Top-down tree view.
         title: [undefined, undefined, undefined],
         total: b([0, 26]),
         self: b(26),
@@ -4853,7 +7573,7 @@ tr.b.unittest.testSuite(function() {
           ]
         ]
       },
-      {  // Heavy view.
+      {  // Top-down heavy view.
         title: [undefined, undefined, undefined],
         total: b([0, 26]),
         self: b(26),
@@ -5788,94 +8508,1056 @@ tr.b.unittest.testSuite(function() {
             }
           ]
         ]
+      },
+      {  // Bottom-up heavy view.
+        title: [undefined, undefined, undefined],
+        total: b([0, 26]),
+        self: b(26),
+        isLowerBound: false,
+        children: [
+          [
+            {  // A, *, *.
+              title: ['A', undefined, undefined],
+              total: b([0, 17]),
+              self: b(17),
+              isLowerBound: true,
+              children: [
+                [],
+                [
+                  {  // A, C, *.
+                    id: '#0',
+                    title: ['A', 'C', undefined],
+                    total: b([0, 5], [9, 14]),
+                    self: b(14),
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [],
+                      [
+                        {  // A, C, E.
+                          id: '#1',
+                          title: ['A', 'C', 'E'],
+                          total: b(0, 1, 3, 4, 9, 10, 12, 13),
+                          self: b(13),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [],
+                            []
+                          ]
+                        },
+                        {  // A, C, F.
+                          id: '#2',
+                          title: ['A', 'C', 'F'],
+                          total: b(0, 3, 9, 12),
+                          self: b(12),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [],
+                            [
+                              {  // A, C, F -> E.
+                                id: '#3',
+                                title: ['A', 'C', 'E'],
+                                total: b(0, 3, 9, 12),
+                                self: b(12),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // A, D, *.
+                    id: '#4',
+                    title: ['A', 'D', undefined],
+                    total: b([0, 2], [9, 11]),
+                    self: b(11),
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // A, D -> C, *.
+                          id: '#5',
+                          title: ['A', 'C', undefined],
+                          total: b([0, 2], [9, 11]),
+                          self: b(11),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [],
+                            [
+                              {  // A, D -> C, E.
+                                id: '#6',
+                                title: ['A', 'C', 'E'],
+                                total: b(0, 1, 9, 10),
+                                self: b(10),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [],
+                                  []
+                                ]
+                              },
+                              {  // A, D -> C, F.
+                                id: '#7',
+                                title: ['A', 'C', 'F'],
+                                total: b(0, 9),
+                                self: b(9),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [],
+                                  [
+                                    {  // A, D -> C, F -> E.
+                                      id: '#8',
+                                      title: ['A', 'C', 'E'],
+                                      total: b(0, 9),
+                                      self: b(9),
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // A, D, E.
+                          id: '#9',
+                          title: ['A', 'D', 'E'],
+                          total: b(0, 1, 9, 10),
+                          self: b(10),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              '#6'  // A, D -> C, E.
+                            ],
+                            []
+                          ]
+                        },
+                        {  // A, D, F.
+                          id: '#10',
+                          title: ['A', 'D', 'F'],
+                          total: b(0, 9),
+                          self: b(9),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              '#7'  // A, D -> C, F.
+                            ],
+                            [
+                              {  // A, D, F -> E.
+                                id: '#11',
+                                title: ['A', 'D', 'E'],
+                                total: b(0, 9),
+                                self: b(9),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    '#8'  // A, D -> C, F -> E.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // A, *, E.
+                    id: '#12',
+                    title: ['A', undefined, 'E'],
+                    total: b(0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16),
+                    self: b(16),
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        '#1',  // A, C, E.
+                        '#9'  // A, D, E.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // A, *, F.
+                    id: '#13',
+                    title: ['A', undefined, 'F'],
+                    total: b(0, 3, 6, 9, 12, 15),
+                    self: b(15),
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        '#2',  // A, C, F.
+                        '#10'  // A, D, F.
+                      ],
+                      [
+                        {  // A, *, F -> E.
+                          id: '#14',
+                          title: ['A', undefined, 'E'],
+                          total: b(0, 3, 6, 9, 12, 15),
+                          self: b(15),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              '#3',  // A, C, F -> E.
+                              '#11'  // A, D, F -> E.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // B, *, *.
+              title: ['B', undefined, undefined],
+              total: b([0, 8]),
+              self: b(8),
+              isLowerBound: true,
+              children: [
+                [
+                  {  // B -> A, *, *.
+                    title: ['A', undefined, undefined],
+                    total: b([0, 8]),
+                    self: b(8),
+                    isLowerBound: true,
+                    children: [
+                      [],
+                      [
+                        {  // B -> A, C, *.
+                          id: '#15',
+                          title: ['A', 'C', undefined],
+                          total: b([0, 5]),
+                          self: b(5),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [],
+                            [
+                              {  // B -> A, C, E.
+                                id: '#16',
+                                title: ['A', 'C', 'E'],
+                                total: b(0, 1, 3, 4),
+                                self: b(4),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [],
+                                  []
+                                ]
+                              },
+                              {  // B -> A, C, F.
+                                id: '#17',
+                                title: ['A', 'C', 'F'],
+                                total: b(0, 3),
+                                self: b(3),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [],
+                                  [
+                                    {  // B -> A, C, F -> E.
+                                      id: '#18',
+                                      title: ['A', 'C', 'E'],
+                                      total: b(0, 3),
+                                      self: b(3),
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        },
+                        {  // B -> A, D, *.
+                          id: '#19',
+                          title: ['A', 'D', undefined],
+                          total: b([0, 2]),
+                          self: b(2),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              {  // B -> A, D -> C, *.
+                                id: '#20',
+                                title: ['A', 'C', undefined],
+                                total: b([0, 2]),
+                                self: b(2),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [],
+                                  [
+                                    {  // B -> A, D -> C, E.
+                                      id: '#21',
+                                      title: ['A', 'C', 'E'],
+                                      total: b(0, 1),
+                                      self: b(1),
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [],
+                                        []
+                                      ]
+                                    },
+                                    {  // B -> A, D -> C, F.
+                                      id: '#22',
+                                      title: ['A', 'C', 'F'],
+                                      total: b(0),
+                                      self: b(0),
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [],
+                                        [
+                                          {  // B -> A, D -> C, F -> E.
+                                            id: '#23',
+                                            title: ['A', 'C', 'E'],
+                                            total: b(0),
+                                            self: b(0),
+                                            isLowerBound: true,
+                                            children: [
+                                              [],
+                                              [],
+                                              []
+                                            ]
+                                          }
+                                        ]
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            [
+                              {  // B -> A, D, E.
+                                id: '#24',
+                                title: ['A', 'D', 'E'],
+                                total: b(0, 1),
+                                self: b(1),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    '#21'  // B -> A, D -> C, E.
+                                  ],
+                                  []
+                                ]
+                              },
+                              {  // B -> A, D, F.
+                                id: '#25',
+                                title: ['A', 'D', 'F'],
+                                total: b(0),
+                                self: b(0),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    '#22'  // B -> A, D -> C, F.
+                                  ],
+                                  [
+                                    {  // B -> A, D, F -> E.
+                                      id: '#26',
+                                      title: ['A', 'D', 'E'],
+                                      total: b(0),
+                                      self: b(0),
+                                      isLowerBound: true,
+                                      children: [
+                                        [],
+                                        [
+                                          '#23'  // B -> A, D -> C, F -> E.
+                                        ],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // B -> A, *, E.
+                          id: '#27',
+                          title: ['A', undefined, 'E'],
+                          total: b(0, 1, 3, 4, 6, 7),
+                          self: b(7),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              '#16',  // B -> A, C, E.
+                              '#24'  // B -> A, D, E.
+                            ],
+                            []
+                          ]
+                        },
+                        {  // B -> A, *, F.
+                          id: '#28',
+                          title: ['A', undefined, 'F'],
+                          total: b(0, 3, 6),
+                          self: b(6),
+                          isLowerBound: true,
+                          children: [
+                            [],
+                            [
+                              '#17',  // B -> A, C, F.
+                              '#25'  // B -> A, D, F.
+                            ],
+                            [
+                              {  // B -> A, *, F -> E.
+                                id: '#29',
+                                title: ['A', undefined, 'E'],
+                                total: b(0, 3, 6),
+                                self: b(6),
+                                isLowerBound: true,
+                                children: [
+                                  [],
+                                  [
+                                    '#18',  // B -> A, C, F -> E.
+                                    '#26'  // B -> A, D, F -> E.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // B, C, *.
+                    id: '#30',
+                    title: ['B', 'C', undefined],
+                    total: b([0, 5]),
+                    self: b(5),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#15'  // B -> A, C, *.
+                      ],
+                      [],
+                      [
+                        {  // B, C, E.
+                          id: '#31',
+                          title: ['B', 'C', 'E'],
+                          total: b(0, 1, 3, 4),
+                          self: b(4),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#16'  // B -> A, C, E.
+                            ],
+                            [],
+                            []
+                          ]
+                        },
+                        {  // B, C, F.
+                          id: '#32',
+                          title: ['B', 'C', 'F'],
+                          total: b(0, 3),
+                          self: b(3),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#17'  // B -> A, C, F.
+                            ],
+                            [],
+                            [
+                              {  // B, C, F -> E.
+                                id: '#33',
+                                title: ['B', 'C', 'E'],
+                                total: b(0, 3),
+                                self: b(3),
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#18'  // B -> A, C, F -> E.
+                                  ],
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  },
+                  {  // B, D, *.
+                    id: '#34',
+                    title: ['B', 'D', undefined],
+                    total: b([0, 2]),
+                    self: b(2),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#19'  // B -> A, D, *.
+                      ],
+                      [
+                        {  // B, D -> C, *.
+                          id: '#35',
+                          title: ['B', 'C', undefined],
+                          total: b([0, 2]),
+                          self: b(2),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#20'  // B -> A, D -> C, *.
+                            ],
+                            [],
+                            [
+                              {  // B, D -> C, E.
+                                id: '#36',
+                                title: ['B', 'C', 'E'],
+                                total: b(0, 1),
+                                self: b(1),
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#21'  // B -> A, D -> C, E.
+                                  ],
+                                  [],
+                                  []
+                                ]
+                              },
+                              {  // B, D -> C, F.
+                                id: '#37',
+                                title: ['B', 'C', 'F'],
+                                total: b(0),
+                                self: b(0),
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#22'  // B -> A, D -> C, F.
+                                  ],
+                                  [],
+                                  [
+                                    {  // B, D -> C, F -> E.
+                                      id: '#38',
+                                      title: ['B', 'C', 'E'],
+                                      total: b(0),
+                                      self: b(0),
+                                      isLowerBound: true,
+                                      children: [
+                                        [
+                                          '#23'  // B -> A, D -> C, F -> E.
+                                        ],
+                                        [],
+                                        []
+                                      ]
+                                    }
+                                  ]
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      [
+                        {  // B, D, E.
+                          id: '#39',
+                          title: ['B', 'D', 'E'],
+                          total: b(0, 1),
+                          self: b(1),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#24'  // B -> A, D, E.
+                            ],
+                            [
+                              '#36'  // B, D -> C, E.
+                            ],
+                            []
+                          ]
+                        },
+                        {  // B, D, F.
+                          id: '#40',
+                          title: ['B', 'D', 'F'],
+                          total: b(0),
+                          self: b(0),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#25'  // B -> A, D, F.
+                            ],
+                            [
+                              '#37'  // B, D -> C, F.
+                            ],
+                            [
+                              {  // B, D, F -> E.
+                                id: '#41',
+                                title: ['B', 'D', 'E'],
+                                total: b(0),
+                                self: b(0),
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#26'  // B -> A, D, F -> E.
+                                  ],
+                                  [
+                                    '#38'  // B, D -> C, F -> E.
+                                  ],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // B, *, E.
+                    id: '#42',
+                    title: ['B', undefined, 'E'],
+                    total: b(0, 1, 3, 4, 6, 7),
+                    self: b(7),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#27'  // B -> A, *, E.
+                      ],
+                      [
+                        '#31',  // B, C, E.
+                        '#39'  // B, D, E.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // B, *, F.
+                    id: '#43',
+                    title: ['B', undefined, 'F'],
+                    total: b(0, 3, 6),
+                    self: b(6),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#28'  // B -> A, *, F.
+                      ],
+                      [
+                        '#32',  // B, C, F.
+                        '#40'  // B, D, F.
+                      ],
+                      [
+                        {  // B, *, F -> E.
+                          id: '#44',
+                          title: ['B', undefined, 'E'],
+                          total: b(0, 3, 6),
+                          self: b(6),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#29'  // B -> A, *, F -> E.
+                            ],
+                            [
+                              '#33',  // B, C, F -> E.
+                              '#41'  // B, D, F -> E.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, C, *.
+              title: [undefined, 'C', undefined],
+              total: b([0, 5], [9, 14], [18, 23]),
+              self: b(23),
+              isLowerBound: true,
+              children: [
+                [
+                  '#0',  // A, C, *.
+                  '#30'  // B, C, *.
+                ],
+                [],
+                [
+                  {  // *, C, E.
+                    id: '#45',
+                    title: [undefined, 'C', 'E'],
+                    total: b(0, 1, 3, 4, 9, 10, 12, 13, 18, 19, 21, 22),
+                    self: b(22),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#1',  // A, C, E.
+                        '#31'  // B, C, E.
+                      ],
+                      [],
+                      []
+                    ]
+                  },
+                  {  // *, C, F.
+                    id: '#46',
+                    title: [undefined, 'C', 'F'],
+                    total: b(0, 3, 9, 12, 18, 21),
+                    self: b(21),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#2',  // A, C, F.
+                        '#32'  // B, C, F.
+                      ],
+                      [],
+                      [
+                        {  // *, C, F -> E.
+                          id: '#47',
+                          title: [undefined, 'C', 'E'],
+                          total: b(0, 3, 9, 12, 18, 21),
+                          self: b(21),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#3',  // A, C, F -> E.
+                              '#33'  // B, C, F -> E.
+                            ],
+                            [],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            },
+            {  // *, D, *.
+              title: [undefined, 'D', undefined],
+              total: b([0, 2], [9, 11], [18, 20]),
+              self: b(20),
+              isLowerBound: true,
+              children: [
+                [
+                  '#4',  // A, D, *.
+                  '#34'  // B, D, *.
+                ],
+                [
+                  {  // *, D -> C, *.
+                    title: [undefined, 'C', undefined],
+                    total: b([0, 2], [9, 11], [18, 20]),
+                    self: b(20),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#5',  // A, D -> C, *.
+                        '#35'  // B, D -> C, *.
+                      ],
+                      [],
+                      [
+                        {  // *, D -> C, E.
+                          id: '#48',
+                          title: [undefined, 'C', 'E'],
+                          total: b(0, 1, 9, 10, 18, 19),
+                          self: b(19),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#6',  // A, D -> C, E.
+                              '#36'  // B, D -> C, E.
+                            ],
+                            [],
+                            []
+                          ]
+                        },
+                        {  // *, D -> C, F.
+                          id: '#49',
+                          title: [undefined, 'C', 'F'],
+                          total: b(0, 9, 18),
+                          self: b(18),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#7',  // A, D -> C, F.
+                              '#37'  // B, D -> C, F.
+                            ],
+                            [],
+                            [
+                              {  // *, D -> C, F -> E.
+                                id: '#50',
+                                title: [undefined, 'C', 'E'],
+                                total: b(0, 9, 18),
+                                self: b(18),
+                                isLowerBound: true,
+                                children: [
+                                  [
+                                    '#8',  // A, D -> C, F -> E.
+                                    '#38'  // B, D -> C, F -> E.
+                                  ],
+                                  [],
+                                  []
+                                ]
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                [
+                  {  // *, D, E.
+                    id: '#51',
+                    title: [undefined, 'D', 'E'],
+                    total: b(0, 1, 9, 10, 18, 19),
+                    self: b(19),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#9',  // A, D, E.
+                        '#39'  // B, D, E.
+                      ],
+                      [
+                        '#48'  // *, D -> C, E.
+                      ],
+                      []
+                    ]
+                  },
+                  {  // *, D, F.
+                    id: '#52',
+                    title: [undefined, 'D', 'F'],
+                    total: b(0, 9, 18),
+                    self: b(18),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#10',  // A, D, F.
+                        '#40'  // B, D, F.
+                      ],
+                      [
+                        '#49'  // *, D -> C, F.
+                      ],
+                      [
+                        {  // *, D, F -> E.
+                          id: '#53',
+                          title: [undefined, 'D', 'E'],
+                          total: b(0, 9, 18),
+                          self: b(18),
+                          isLowerBound: true,
+                          children: [
+                            [
+                              '#11',  // A, D, F -> E.
+                              '#41'  // B, D, F -> E.
+                            ],
+                            [
+                              '#50'  // *, D -> C, F -> E.
+                            ],
+                            []
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {  // *, *, E.
+              title: [undefined, undefined, 'E'],
+              total: b(0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16, 18, 19, 21, 22,
+                  24, 25),
+              self: b(25),
+              isLowerBound: true,
+              children: [
+                [
+                  '#12',  // A, *, E.
+                  '#42'  // B, *, E.
+                ],
+                [
+                  '#45',  // *, C, E.
+                  '#51'  // *, D, E.
+                ],
+                []
+              ]
+            },
+            {  // *, *, F.
+              title: [undefined, undefined, 'F'],
+              total: b(0, 3, 6, 9, 12, 15, 18, 21, 24),
+              self: b(24),
+              isLowerBound: true,
+              children: [
+                [
+                  '#13',  // A, *, F.
+                  '#43'  // B, *, F.
+                ],
+                [
+                  '#46',  // *, C, F.
+                  '#52'  // *, D, F.
+                ],
+                [
+                  {  // *, *, F -> E.
+                    title: [undefined, undefined, 'E'],
+                    total: b(0, 3, 6, 9, 12, 15, 18, 21, 24),
+                    self: b(24),
+                    isLowerBound: true,
+                    children: [
+                      [
+                        '#14',  // A, *, F -> E.
+                        '#44'  // B, *, F -> E.
+                      ],
+                      [
+                        '#47',  // *, C, F -> E.
+                        '#53'  // *, D, F -> E.
+                      ],
+                      []
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
       });
 
   test('recursionDepthTracker', function() {
-    var tracker = new RecursionDepthTracker(5 /* maxDepth */);
+    var MAX_DEPTH = 5;
+    var tracker = new RecursionDepthTracker(MAX_DEPTH, 2 /* dimension */);
 
-    assert.strictEqual(tracker.recursionDepth, 0);  // empty stack.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A.
-    tracker.push('B');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B.
-    tracker.push('C');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C.
-    tracker.push('D');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C -> D.
+    function pushNewNode(title) {
+      var node = new MultiDimensionalViewNode(
+          [undefined, 'ignored dimension', title, 'also ignored'],
+          false /* isLowerBound (not relevant for this test) */);
+      tracker.push(node);
+      return node;
+    }
+
+    function checkTracker(expectedDefinedViewNodePath, expectedRecursionDepth) {
+      var expectedBottomIndex = MAX_DEPTH - expectedDefinedViewNodePath.length;
+      assert.strictEqual(tracker.bottomIndex, expectedBottomIndex);
+      assert.strictEqual(tracker.topIndex, MAX_DEPTH);
+
+      var undefinedPadding = new Array(expectedBottomIndex);
+      var expectedViewNodePath =
+          undefinedPadding.concat(expectedDefinedViewNodePath);
+      var expectedTitlePath =
+          undefinedPadding.concat(expectedDefinedViewNodePath.map(
+              function(node) { return node.title[2]; }));
+      assertListStrictEqual(tracker.viewNodePath, expectedViewNodePath);
+      assertListStrictEqual(tracker.titlePath, expectedTitlePath);
+
+      assert.strictEqual(tracker.recursionDepth, expectedRecursionDepth);
+    }
+
+    checkTracker([] /* empty stack */, 0);
+    var a1 = pushNewNode('A');
+    checkTracker([a1], 0);
+    var b1 = pushNewNode('B');
+    checkTracker([b1, a1], 0);
+    var c1 = pushNewNode('C');
+    checkTracker([c1, b1, a1], 0);
+    var d1 = pushNewNode('D');
+    checkTracker([d1, c1, b1, a1], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> B -> C -> A.
-    tracker.push('B');
-    assert.strictEqual(tracker.recursionDepth, 2);  // A -> B -> C -> A -> B.
+    checkTracker([c1, b1, a1], 0);
+    var a2 = pushNewNode('A');
+    checkTracker([a2, c1, b1, a1], 1);
+    var b2 = pushNewNode('B');
+    checkTracker([b2, a2, c1, b1, a1], 2);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> B -> C -> A.
+    checkTracker([a2, c1, b1, a1], 1);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C.
-    tracker.push('B');
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> B -> C -> B.
+    checkTracker([c1, b1, a1], 0);
+    tracker.push(b2);
+    checkTracker([b2, c1, b1, a1], 1);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C.
+    checkTracker([c1, b1, a1], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B.
+    checkTracker([b1, a1], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> A.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 2);  // A -> A -> A.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 3);  // A -> A -> A -> A.
+    checkTracker([a1], 0);
+    var a3 = pushNewNode('A');
+    checkTracker([a3, a1], 1);
+    tracker.push(a2);
+    checkTracker([a2, a3, a1], 2);
+    var a4 = pushNewNode('A');
+    checkTracker([a4, a2, a3, a1], 3);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 2);  // A -> A -> A.
-    tracker.push('B');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> A -> A -> B.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> A -> A -> B -> A.
+    checkTracker([a2, a3, a1], 2);
+    var b3 = pushNewNode('B');
+    checkTracker([b3, a2, a3, a1], 0);
+    tracker.push(a4);
+    checkTracker([a4, b3, a2, a3, a1], 1);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> A -> A -> B.
+    checkTracker([b3, a2, a3, a1], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 2);  // A -> A -> A.
+    checkTracker([a2, a3, a1], 2);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> A.
+    checkTracker([a3, a1], 1);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A.
+    checkTracker([a1], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // empty stack.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A.
-    tracker.push('B');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> B -> A.
+    checkTracker([], 0);
+    tracker.push(a4);
+    checkTracker([a4], 0);
+    tracker.push(b1);
+    checkTracker([b1, a4], 0);
+    tracker.push(a1);
+    checkTracker([a1, b1, a4], 1);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B.
-    tracker.push('C');
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C.
-    tracker.push('A');
-    assert.strictEqual(tracker.recursionDepth, 1);  // A -> B -> C -> A.
+    checkTracker([b1, a4], 0);
+    var c2 = pushNewNode('C');
+    checkTracker([c2, b1, a4], 0);
+    tracker.push(a3);
+    checkTracker([a3, c2, b1, a4], 1);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B -> C.
+    checkTracker([c2, b1, a4], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A -> B.
+    checkTracker([b1, a4], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // A.
+    checkTracker([a4], 0);
     tracker.pop();
-    assert.strictEqual(tracker.recursionDepth, 0);  // empty stack.
+    checkTracker([], 0);
 
     assert.throws(function() {
       // Try popping from an empty tracker.
       tracker.pop();
     });
 
-    tracker.push('F');
-    tracker.push('U');
-    tracker.push('L');
-    tracker.push('L');
-    tracker.push('!');
+    pushNewNode('F');
+    pushNewNode('U');
+    pushNewNode('L');
+    pushNewNode('L');
+    pushNewNode('!');
     assert.throws(function() {
       // Try pushing to a full tracker.
-      tracker.push(':-(');
+      pushNewNode(':-(');
     });
   });
 

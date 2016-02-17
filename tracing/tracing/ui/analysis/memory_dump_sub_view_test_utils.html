@@ -129,6 +129,7 @@ tr.exportTo('tr.ui.analysis', function() {
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
                   ['V8.Execute', 'UpdateLayoutTree']),
+              undefined /* sum over all object types */,
               536870912 /* 512 MiB */);
           return v8HeapDump;
         })()
@@ -265,10 +266,12 @@ tr.exportTo('tr.ui.analysis', function() {
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
                   ['V8.Execute', 'UpdateLayoutTree']),
+              undefined /* sum over all object types */,
               268435456 /* 256 MiB */);
           v8HeapDump.addEntry(
               tr.c.TestUtils.newStackTrace(model,
                   ['V8.Execute', 'FrameView::layout']),
+              undefined /* sum over all object types */,
               134217728 /* 128 MiB */);
           return v8HeapDump;
         })()
