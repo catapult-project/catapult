@@ -158,7 +158,7 @@ tr.exportTo('tr.ui.analysis', function() {
     created: function() {
       this.heapDumps_ = undefined;
       this.aggregationMode_ = undefined;
-      this.heavyView_ = false;
+      this.viewMode_ = undefined;
     },
 
     ready: function() {
@@ -167,16 +167,20 @@ tr.exportTo('tr.ui.analysis', function() {
           'are lower bounds (except for the root).';
 
       this.$.view_mode_container.appendChild(tr.ui.b.createSelector(
-          this, 'heavyView', 'memoryDumpHeapDetailsPane.heavyView',
-          false /* Tree view default */,
+          this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
+          tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW,
           [
             {
-              label: 'Tree',
-              value: false
+              label: 'Top-down (Tree)',
+              value: tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW
             },
             {
-              label: 'Heavy',
-              value: true
+              label: 'Top-down (Heavy)',
+              value: tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW
+            },
+            {
+              label: 'Bottom-up (Heavy)',
+              value: tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW
             }
           ]));
     },
@@ -212,13 +216,23 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.aggregationMode_;
     },
 
-    set heavyView(heavyView) {
-      this.heavyView_ = !!heavyView;
+    set viewMode(viewMode) {
+      this.viewMode_ = viewMode;
       this.scheduleRebuildPane_();
     },
 
+    get viewMode() {
+      return this.viewMode_;
+    },
+
     get heavyView() {
-      return this.heavyView_;
+      switch (this.viewMode) {
+        case tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW:
+        case tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW:
+          return true;
+        default:
+          return false;
+      }
     },
 
     rebuildPane_: function() {
@@ -274,10 +288,7 @@ tr.exportTo('tr.ui.analysis', function() {
               tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
         }, this);
 
-        if (this.heavyView)
-          return builder.buildHeavyView();
-        else
-          return builder.buildTreeView();
+        return builder.buildView(this.viewMode);
       }, this);
     },
 

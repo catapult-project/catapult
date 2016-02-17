@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel='import' href='/tracing/base/multi_dimensional_view.html'>
 <link rel='import' href='/tracing/base/iteration_helpers.html'>
 <link rel='import'
     href='/tracing/ui/analysis/memory_dump_heap_details_pane.html'>
@@ -18,6 +19,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var MultiDimensionalViewType = tr.b.MultiDimensionalViewType;
+  var TOP_DOWN_TREE_VIEW = tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW;
+  var TOP_DOWN_HEAVY_VIEW = tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW;
+  var BOTTOM_UP_HEAVY_VIEW = tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW;
   var HeapDump = tr.model.HeapDump;
   var RowDimension = tr.ui.analysis.RowDimension;
   var ROOT = RowDimension.ROOT;
@@ -269,9 +274,73 @@ tr.b.unittest.testSuite(function() {
     checkRows(columns, rows, expectedStructure);
   }
 
-  function changeView(viewEl, heavyView) {
-    tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = heavyView;
+  function changeView(viewEl, viewType) {
+    tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = viewType;
     viewEl.rebuild();
+  }
+
+  /**
+   * Helper function for generating the expected structures of heap details
+   * pane tables. Given a table, this function generates its structure.
+   *
+   * This avoids the need to write such structures manually, which is very
+   * tedious. However, the correctness of the generated structures needs to be
+   * verified by the developer! Maximum line length must also be enforced
+   * manually.
+   */
+  function printTable(test, viewEl) {
+    var generator = new tr.c.TestUtils.SourceGenerator();
+
+    function formatRows(rows) {
+      generator.formatMultiLineList(rows, function(row) {
+        generator.push('{');
+        generator.indentBlock(2, true /* break line */, function() {
+          generator.push('dimension: ');
+          for (var dimensionTitle in RowDimension) {
+            if (row.dimension === RowDimension[dimensionTitle]) {
+              generator.push(dimensionTitle);
+              break;
+            }
+          }
+          generator.push(',');
+          generator.breakLine();
+
+          generator.push('title: \'', row.title, '\',');
+          generator.breakLine();
+
+          var attrs = row.cells['Size'].attrs;
+          generator.push('size: ');
+          generator.formatSingleLineList(attrs, function(attr) {
+            generator.push(
+                attr === undefined ? 'undefined' : String(attr.value));
+          });
+          generator.push(',');
+          generator.breakLine();
+
+          generator.push('defined: ');
+          generator.formatSingleLineList(attrs, function(attr) {
+            generator.push(attr === undefined ? 'undefined' : 'true');
+          });
+
+          if (row.subRows && row.subRows.length > 0) {
+            generator.push(',');
+            generator.breakLine();
+            generator.push('children: ');
+            formatRows(row.subRows);
+          }
+        });
+        generator.breakLine();
+        generator.push('}');
+      });
+    }
+
+    generator.indentBlock(8, false /* don't break line */,
+        formatRows.bind(null, viewEl.$.table.tableRows));
+
+    tr.c.TestUtils.addSourceListing(test, generator.build());
+
+    throw new Error('This error is thrown to prevent accidentally ' +
+        'checking in a test which calls this function.');
   }
 
   test('instantiate_empty', function() {
@@ -297,7 +366,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    // Tree view.
+    // Top-down tree view (default).
     checkTable(viewEl, undefined /* no aggregation */,
         false /* hide info bar */, [
           {
@@ -308,9 +377,7 @@ tr.b.unittest.testSuite(function() {
           }
         ]);
 
-    changeView(viewEl, true /* heavy view */);
-
-    // Heavy view.
+    changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
     checkTable(viewEl, undefined /* no aggregation */, true /* show info bar */,
         [
           {
@@ -321,7 +388,18 @@ tr.b.unittest.testSuite(function() {
           }
         ]);
 
-    changeView(viewEl, false /* tree view */);
+    changeView(viewEl, BOTTOM_UP_HEAVY_VIEW);
+    checkTable(viewEl, undefined /* no aggregation */, true /* show info bar */,
+        [
+          {
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [0],
+            defined: [true]
+          }
+        ]);
+
+    changeView(viewEl, TOP_DOWN_TREE_VIEW);
   });
 
   test('instantiate_single', function() {
@@ -333,7 +411,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    // Tree view (default).
+    // Top-down tree view (default).
     checkTable(viewEl, undefined /* no aggregation */,
         false /* hide info bar */, [
           {
@@ -640,7 +718,786 @@ tr.b.unittest.testSuite(function() {
           }
         ]);
 
-    changeView(viewEl, true /* heavy view */);
+    changeView(viewEl, BOTTOM_UP_HEAVY_VIEW);
+    checkTable(viewEl, undefined /* no aggregation */, true /* show info bar */,
+        [
+          {
+            dimension: ROOT,
+            title: 'partition_alloc',
+            size: [4194304],
+            defined: [true],
+            children: [
+              {
+                dimension: STACK_FRAME,
+                title: 'MessageLoop::RunTask',
+                size: [4194304],
+                defined: [true],
+                children: [
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1048576],
+                    defined: [true]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [331776],
+                    defined: [true]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'MissingSumOverAllTypes',
+                    size: [51200],
+                    defined: [true]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'FunctionCall',
+                size: [3811338],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [1406976],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'blink::Node',
+                        size: [331776],
+                        defined: [true]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [1024000],
+                        defined: [true]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'MissingSumOverAllTypes',
+                        size: [51200],
+                        defined: [true]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [204800],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [204800],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [153600],
+                            defined: [true]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'MissingSumOverAllTypes',
+                            size: [51200],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: OBJECT_TYPE,
+                                title: 'MissingSumOverAllTypes',
+                                size: [51200],
+                                defined: [true]
+                              }
+                            ]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'MissingSumOverAllTypes',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [51200],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [153600],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [153600],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'MissingSumOverAllTypes',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [51200],
+                            defined: [true]
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [51200],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MissingParent',
+                    size: [10],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [10],
+                        defined: [true]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [2404352],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [2404352],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [20480],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [20480],
+                            defined: [true]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'blink::Node',
+                    size: [331776],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [331776],
+                        defined: [true]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [1044480],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [1024000],
+                        defined: [true]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [153600],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [20480],
+                            defined: [true]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'MissingSumOverAllTypes',
+                    size: [51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [51200],
+                        defined: [true]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [51200],
+                            defined: [true]
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [51200],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: '<self>',
+                size: [409600],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [409600],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [102400],
+                        defined: [true]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [307200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [307200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: OBJECT_TYPE,
+                                title: 'v8::Context',
+                                size: [15360],
+                                defined: [true]
+                              }
+                            ]
+                          },
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [15360],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [15360],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [15360],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [15360],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [15360],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [15360],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [15360],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [15360],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [15360],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'V8.Execute',
+                size: [3452928],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [3145728],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [1048576],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: OBJECT_TYPE,
+                            title: 'v8::Context',
+                            size: [716800],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [2097152],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [2097152],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [716800],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [716800],
+                            defined: [true]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [2404352],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: OBJECT_TYPE,
+                        title: 'v8::Context',
+                        size: [20480],
+                        defined: [true]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [2097152],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [2097152],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [2097152],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [2097152],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: OBJECT_TYPE,
+                    title: 'v8::Context',
+                    size: [737280],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [716800],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [716800],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [20480],
+                        defined: [true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: STACK_FRAME,
+                title: 'MissingParent',
+                size: [10],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [10],
+                    defined: [true]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'v8::Context',
+                size: [1048576],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [1048576],
+                    defined: [true]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [1044480],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [1024000],
+                        defined: [true]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [153600],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [153600],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'V8.Execute',
+                        size: [20480],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [20480],
+                            defined: [true]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: '<self>',
+                    size: [15360],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [15360],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'V8.Execute',
+                            size: [15360],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [15360],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'V8.Execute',
+                    size: [737280],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [716800],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [716800],
+                            defined: [true]
+                          }
+                        ]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [20480],
+                        defined: [true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'blink::Node',
+                size: [331776],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [331776],
+                    defined: [true]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [331776],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [331776],
+                        defined: [true]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                dimension: OBJECT_TYPE,
+                title: 'MissingSumOverAllTypes',
+                size: [51200],
+                defined: [true],
+                children: [
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'MessageLoop::RunTask',
+                    size: [51200],
+                    defined: [true]
+                  },
+                  {
+                    dimension: STACK_FRAME,
+                    title: 'FunctionCall',
+                    size: [51200],
+                    defined: [true],
+                    children: [
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'MessageLoop::RunTask',
+                        size: [51200],
+                        defined: [true]
+                      },
+                      {
+                        dimension: STACK_FRAME,
+                        title: 'FunctionCall',
+                        size: [51200],
+                        defined: [true],
+                        children: [
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'MessageLoop::RunTask',
+                            size: [51200],
+                            defined: [true]
+                          },
+                          {
+                            dimension: STACK_FRAME,
+                            title: 'FunctionCall',
+                            size: [51200],
+                            defined: [true],
+                            children: [
+                              {
+                                dimension: STACK_FRAME,
+                                title: 'MessageLoop::RunTask',
+                                size: [51200],
+                                defined: [true]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]);
+
+    changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
     checkTable(viewEl, undefined /* no aggregation */, true /* show info bar */,
         [
           {
@@ -1430,7 +2287,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    changeView(viewEl, true /* heavy view */);
+    changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
     checkTable(viewEl, AggregationMode.DIFF, true /* show info bar */, [
       {
         dimension: ROOT,
@@ -2390,7 +3247,7 @@ tr.b.unittest.testSuite(function() {
       }
     ]);
 
-    changeView(viewEl, false /* tree view */);
+    changeView(viewEl, TOP_DOWN_TREE_VIEW);
     checkTable(viewEl, AggregationMode.DIFF, false /* hide info bar */, [
       {
         dimension: ROOT,
@@ -2759,7 +3616,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    changeView(viewEl, true /* heavy view */);
+    changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
     checkTable(viewEl, AggregationMode.MAX, true /* show info bar */, [
       {
         dimension: ROOT,
@@ -2782,7 +3639,7 @@ tr.b.unittest.testSuite(function() {
     viewEl.rebuild();
     this.addHTMLOutput(viewEl);
 
-    // Tree view (default).
+    // Top-down tree view (default).
     checkTable(viewEl, AggregationMode.DIFF, false /* hide info bar */, [
       {
         dimension: ROOT,

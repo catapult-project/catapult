@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -335,6 +336,127 @@ tr.exportTo('tr.c', function() {
   TestUtils.newFakeThread = function() {
     var process = {model: {}};
     return new tr.model.Thread(process);
+  };
+
+  /** @constructor */
+  TestUtils.SourceGenerator = function() {
+    this.sourceList_ = [];
+    this.currentLineCommentList_ = [];
+    this.currentIndent_ = 0;
+    this.currentLineEmpty_ = true;
+  };
+
+  TestUtils.SourceGenerator.prototype = {
+    push: function(/* arguments */) {
+      if (this.currentLineEmpty_) {
+        this.sourceList_.push(' '.repeat(this.currentIndent_));
+        this.currentLineEmpty_ = false;
+      }
+      this.sourceList_.push.apply(
+          this.sourceList_, Array.prototype.slice.call(arguments));
+    },
+
+    pushComment: function(/* arguments */) {
+      this.currentLineCommentList_.push.apply(
+          this.currentLineCommentList_, Array.prototype.slice.call(arguments));
+    },
+
+    build: function() {
+      this.finishLine_();
+      return this.sourceList_.join('');
+    },
+
+    breakLine: function() {
+      this.finishLine_();
+      this.push('\n');
+      this.currentLineEmpty_ = true;
+    },
+
+    finishLine_: function() {
+      if (this.currentLineCommentList_.length === 0)
+        return;
+      this.push('  // ');
+      this.push.apply(this, this.currentLineCommentList_);
+      this.push('.');
+      this.currentLineCommentList_ = [];
+    },
+
+    indentBlock: function(spaces, breakLine, blockCallback, opt_this) {
+      opt_this = opt_this || this;
+      this.currentIndent_ += spaces;
+      if (breakLine)
+        this.breakLine();
+      blockCallback.call(opt_this);
+      this.currentIndent_ -= spaces;
+    },
+
+    formatSingleLineList: function(list, itemCallback, opt_this) {
+      opt_this = opt_this || this;
+      this.push('[');
+      tr.b.asArray(list).forEach(function(item, index) {
+        if (index > 0)
+          this.push(', ');
+        itemCallback.call(opt_this, item, index);
+      }, this);
+      this.push(']');
+    },
+
+    formatMultiLineList: function(list, itemCallback, opt_this) {
+      opt_this = opt_this || this;
+      this.push('[');
+      this.indentBlock(2, false /* don't break line */, function() {
+        tr.b.asArray(list).forEach(function(item, index) {
+          if (index > 0)
+            this.push(',');
+          this.breakLine();
+          itemCallback.call(opt_this, item, index);
+        }, this);
+      }, this);
+      if (list.length > 0)
+        this.breakLine();
+      this.push(']');
+    },
+
+    formatString: function(string) {
+      if (string === undefined)
+        this.push('undefined');
+      else
+        this.push('\'', string, '\'');
+    }
+  };
+
+  TestUtils.addSourceListing = function(test, source) {
+    var testSourceEl = document.createElement('pre');
+    testSourceEl.style.fontFamily = 'monospace';
+    testSourceEl.textContent = source;
+
+    var copyButtonEl = document.createElement('button');
+    copyButtonEl.textContent = 'Copy into to clipboard';
+    copyButtonEl.addEventListener('click', function() {
+      var selection = window.getSelection();
+
+      // Store the original selection.
+      var originalRanges = new Array(selection.rangeCount);
+      for (var i = 0; i < originalRanges.length; i++)
+        originalRanges[i] = selection.getRangeAt(i);
+
+      // Copy the generated test source code into clipboard.
+      selection.removeAllRanges();
+      var range = document.createRange();
+      range.selectNode(testSourceEl);
+      selection.addRange(range);
+      document.execCommand('copy');
+
+      // Restore the original selection.
+      selection.removeAllRanges();
+      for (var i = 0; i < originalRanges.length; i++)
+        selection.addRange(originalRanges[i]);
+    });
+
+    var outputEl = document.createElement('div');
+    outputEl.appendChild(copyButtonEl);
+    outputEl.appendChild(testSourceEl);
+    test.addHTMLOutput(outputEl);
   };
 
   return {
