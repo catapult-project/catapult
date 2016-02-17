@@ -399,7 +399,7 @@ tr.exportTo('tr.importer', function() {
       testLines.push('    ' + filename + '');
       testLines.push('   */');
       testLines.push('  test(\'' + testName + '\', function() {');
-      testLines.push('    var verifier = new IRVerifier();');
+      testLines.push('    var verifier = new UserExpectationVerifier();');
       testLines.push('    verifier.customizeModelCallback = function(model) {');
       testLines.push.apply(testLines,
           createCustomizeModelLinesFromModel(model));
