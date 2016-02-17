@@ -57,7 +57,7 @@ tr.exportTo('tr.model.um', function() {
     },
 
     get stableId() {
-      return 'IR.' + this.parentModel.interactionRecords.indexOf(this);
+      return 'IR.' + this.parentModel.userModel.expectations.indexOf(this);
     },
 
     get typeInfo() {

@@ -14,14 +14,14 @@ tr.exportTo('pie', function() {
   // Reports the delay and length of scroll gestures relative to first paint.
   // See https://goo.gl/l7V5xg.
   function mapGestureTiming(result, model) {
-    var loadIRs = model.interactionRecords.filter(function(ir) {
+    var loadIRs = model.userModel.expectations.filter(function(ir) {
       return ir instanceof tr.model.um.LoadExpectation;
     });
-    var responseIRs = model.interactionRecords.filter(function(ir) {
+    var responseIRs = model.userModel.expectations.filter(function(ir) {
       return ir.stageTitle === 'Response' &&
           ir.initiatorTitle.indexOf('Scroll') >= 0;
     });
-    var animationIRs = model.interactionRecords.filter(function(ir) {
+    var animationIRs = model.userModel.expectations.filter(function(ir) {
       return ir.stageTitle === 'Animation' &&
           ir.initiatorTitle.indexOf('Scroll') >= 0;
     });

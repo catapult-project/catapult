@@ -82,7 +82,7 @@ tr.exportTo('tr.metrics.sh', function() {
   ResponsivenessMetric.forModel = function(model, opt_rangeOfInterest) {
     return tr.b.Statistics.weightedMean(
         tr.metrics.sh.filterExpectationsByRange(
-            model.interactionRecords, opt_rangeOfInterest),
+            model.userModel.expectations, opt_rangeOfInterest),
         tr.metrics.sh.perceptualBlend,
         ResponsivenessMetric.forExpectation);
   };

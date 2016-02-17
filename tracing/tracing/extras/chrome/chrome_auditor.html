@@ -93,7 +93,7 @@ tr.exportTo('tr.e.audits', function() {
       }
 
       rirs.forEach(function(ir) {
-        this.model.addInteractionRecord(ir);
+        this.model.userModel.expectations.push(ir);
       }, this);
     }
   };

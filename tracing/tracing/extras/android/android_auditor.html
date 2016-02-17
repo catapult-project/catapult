@@ -535,7 +535,7 @@ tr.exportTo('tr.e.audits', function() {
             this.model, 'Rendering',
             events[0].min,
             events[events.length - 1].max - events[0].min);
-        this.model.addInteractionRecord(ir);
+        this.model.userModel.expectations.push(ir);
       }.bind(this);
       tr.b.mergeRanges(tr.b.convertEventsToRanges(events), 30, mergerFunction);
     },
@@ -551,7 +551,7 @@ tr.exportTo('tr.e.audits', function() {
             this.model, 'Input',
             events[0].min,
             events[events.length - 1].max - events[0].min);
-        this.model.addInteractionRecord(ir);
+        this.model.userModel.expectations.push(ir);
       }.bind(this);
       var inputRanges = inputSamples.map(function(sample) {
         return tr.b.Range.fromExplicitRange(sample.timestamp, sample.timestamp);

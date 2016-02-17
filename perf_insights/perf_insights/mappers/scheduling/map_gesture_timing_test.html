@@ -20,19 +20,19 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModel(function(m) {
       var loadIr = new tr.model.um.LoadExpectation(
           m, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 10);
-      m.interactionRecords.push(loadIr);
+      m.userModel.expectations.push(loadIr);
 
       var scrollIr = new tr.model.um.ResponseExpectation(
           m, 'Scroll', 50, 10);
-      m.interactionRecords.push(scrollIr);
+      m.userModel.expectations.push(scrollIr);
 
       var flingIr = new tr.model.um.ResponseExpectation(
           m, 'Fling', 60, 10);
-      m.interactionRecords.push(flingIr);
+      m.userModel.expectations.push(flingIr);
 
       var scrollIr2 = new tr.model.um.ResponseExpectation(
           m, 'Scroll', 100, 20);
-      m.interactionRecords.push(scrollIr2);
+      m.userModel.expectations.push(scrollIr2);
     });
 
     var result = new pi.mre.MreResult();

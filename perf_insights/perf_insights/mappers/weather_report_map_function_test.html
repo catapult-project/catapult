@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
       }));
 
       var idleIr = new tr.model.um.IdleExpectation(m, 0, 10);
-      m.interactionRecords.push(idleIr);
+      m.userModel.expectations.push(idleIr);
       idleIr.associatedEvents.push(t2_s2);
     });
 

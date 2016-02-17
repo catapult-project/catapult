@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 tr.exportTo('pie', function() {
   function mapStartupInfo(result, model) {
-    var startupIRs = model.interactionRecords.filter(function(ir) {
+    var startupIRs = model.userModel.expectations.filter(function(ir) {
       return ir instanceof tr.model.um.LoadExpectation &&
              ir.initiatorTitle === tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP;
     });

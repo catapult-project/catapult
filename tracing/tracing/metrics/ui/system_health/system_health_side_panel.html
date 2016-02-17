@@ -175,7 +175,7 @@ found in the LICENSE file.
         return;
 
       var associatedEvents =
-          tr.model.getAssociatedEvents(this.model.interactionRecords);
+          tr.model.getAssociatedEvents(this.model.userModel.expectations);
       var unassociatedEvents = tr.model.getUnassociatedEvents(
           this.model, associatedEvents);
 
@@ -305,7 +305,7 @@ found in the LICENSE file.
       this.$.table.tableColumns = columns;
 
       var rows = [];
-      this.model.interactionRecords.forEach(function(ir) {
+      this.model.userModel.expectations.forEach(function(ir) {
         if (!this.effectiveRangeOfInterest.intersectsExplicitRangeExclusive(
               ir.start, ir.end))
           return;
