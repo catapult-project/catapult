@@ -262,7 +262,7 @@ class QuickLogger(object):
       return Record(message, self._CreateRecordId())
 
     for record in list(self._records):
-      if getattr(record, 'id') == record_id:
+      if getattr(record, 'id', None) == record_id:
         self._records.remove(record)
         return Record(message, record_id)
     # If index provided doesn't exist, we'll create a log with this index.
@@ -282,4 +282,4 @@ class QuickLogger(object):
       return
     new_ids = {r.id for r in records}
     records.extend(r for r in stored_records
-                   if getattr(r, 'id') not in new_ids)
+                   if getattr(r, 'id', None) not in new_ids)
