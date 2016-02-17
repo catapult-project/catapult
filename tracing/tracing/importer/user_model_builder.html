@@ -10,29 +10,15 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/tracing/importer/find_input_expectations.html">
+<link rel="import" href="/tracing/importer/find_load_expectations.html">
 <link rel="import" href="/tracing/model/event_info.html">
 <link rel="import" href="/tracing/model/ir_coverage.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
-<link rel="import" href="/tracing/model/user_model/load_expectation.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.importer', function() {
-  var RENDER_FRAME_IMPL_PREFIX = 'RenderFrameImpl::';
-  var CREATE_CHILD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'createChildFrame';
-  var START_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didStartProvisionalLoad';
-  var FAIL_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFailProvisionalLoad';
-  var FINISH_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFinishLoad';
-
-  // This is an instant event that is a subSlice of a FINISH_LOAD_TITLE
-  // event.
-  var LOAD_FINISHED_TITLE = 'LoadFinished';
-
-  function isRenderFrameImplEvent(event) {
-    return event.title.indexOf(RENDER_FRAME_IMPL_PREFIX) === 0;
-  }
-
   var INSIGNIFICANT_MS = 1;
 
   function UserModelBuilder(model, modelHelper) {
@@ -47,7 +33,8 @@ tr.exportTo('tr.importer', function() {
   UserModelBuilder.prototype = {
     findAllInteractionRecords: function() {
       var rirs = [];
-      rirs.push.apply(rirs, this.findLoadExpectations());
+      rirs.push.apply(rirs, tr.importer.findLoadExpectations(
+          this.modelHelper));
       rirs.push.apply(rirs, tr.importer.findInputExpectations(
           this.modelHelper));
       // findIdleExpectations must be called last!
@@ -108,214 +95,6 @@ tr.exportTo('tr.importer', function() {
             model, range.min, range.max - range.min));
       });
       return irs;
-    },
-
-    getAllFrameEvents: function() {
-      var frameEvents = [];
-      frameEvents.push.apply(frameEvents,
-          this.modelHelper.browserHelper.getFrameEventsInRange(
-              tr.model.helpers.IMPL_FRAMETIME_TYPE, this.model.bounds));
-
-      tr.b.iterItems(this.modelHelper.rendererHelpers, function(pid, renderer) {
-        frameEvents.push.apply(frameEvents, renderer.getFrameEventsInRange(
-            tr.model.helpers.IMPL_FRAMETIME_TYPE, this.model.bounds));
-      }, this);
-      return frameEvents.sort(tr.importer.compareEvents);
-    },
-
-    getStartLoadEvents: function() {
-      function isStartLoadSlice(slice) {
-        return slice.title === START_LOAD_TITLE;
-      }
-      return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isStartLoadSlice).sort(tr.importer.compareEvents);
-    },
-
-    getFailLoadEvents: function() {
-      function isFailLoadSlice(slice) {
-        return slice.title === FAIL_LOAD_TITLE;
-      }
-      return this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isFailLoadSlice).sort(tr.importer.compareEvents);
-    },
-
-    // If a thread contains a typical initialization slice, then the first event
-    // on that thread is a startup event.
-    getStartupEvents: function() {
-      function isStartupSlice(slice) {
-        return slice.title === 'BrowserMainLoop::CreateThreads';
-      }
-      var events = this.modelHelper.browserHelper.getAllAsyncSlicesMatching(
-          isStartupSlice);
-      var deduper = new tr.model.EventSet();
-      events.forEach(function(event) {
-        var sliceGroup = event.parentContainer.sliceGroup;
-        var slice = sliceGroup && sliceGroup.findFirstSlice();
-        if (slice)
-          deduper.push(slice);
-      });
-      return deduper.toArray();
-    },
-
-    // Match every event in |openingEvents| to the first following event from
-    // |closingEvents| and return an array containing a load interaction record
-    // for each pair.
-    findLoadExpectations_: function(
-        subtypeName, openingEvents, closingEvents) {
-      var lirs = [];
-      var model = this.model;
-      openingEvents.forEach(function(openingEvent) {
-        closingEvents.forEach(function(closingEvent) {
-          // Ignore opening event that already have a closing event.
-          if (openingEvent.closingEvent)
-            return;
-
-          // Ignore closing events that already belong to an opening event.
-          if (closingEvent.openingEvent)
-            return;
-
-          // Ignore closing events before |openingEvent|.
-          if (closingEvent.start <= openingEvent.start)
-            return;
-
-          // Ignore events from different threads.
-          if (openingEvent.parentContainer.parent.pid !==
-               closingEvent.parentContainer.parent.pid)
-            return;
-
-          // This is the first closing event for this opening event, record it.
-          openingEvent.closingEvent = closingEvent;
-          closingEvent.openingEvent = openingEvent;
-          var lir = new tr.model.um.LoadExpectation(
-              model, subtypeName, openingEvent.start,
-              closingEvent.end - openingEvent.start);
-          lir.associatedEvents.push(openingEvent);
-          lir.associatedEvents.push(closingEvent);
-
-          // All RenderFrameImpl events contain the routingId.
-          // |openingEvent| may be either didStartProvisionaLoad or
-          // didCommitProvisionalLoad, so use a general prefix test.
-          if (isRenderFrameImplEvent(openingEvent)) {
-            var renderProcessId = openingEvent.parentContainer.parent.pid;
-            lir.renderProcess = this.model.processes[renderProcessId];
-            lir.renderMainThread = lir.renderProcess.findAtMostOneThreadNamed(
-                'CrRendererMain');
-            lir.routingId = openingEvent.args.id;
-            lir.parentRoutingId = this.findLoadParentRoutingId_(lir);
-            this.findLoadFinishedEvent_(lir);
-          }
-          lirs.push(lir);
-        }, this);
-      }, this);
-      return lirs;
-    },
-
-    // Find the routingId of the createChildFrame event that created the Load
-    // IR's RenderFrame.
-    findLoadParentRoutingId_: function(lir) {
-      var createChildEvent = undefined;
-      lir.renderMainThread.iterateAllEvents(function(event) {
-        if (event.title !== CREATE_CHILD_TITLE)
-          return;
-
-        if (event.args.child !== lir.routingId)
-          return;
-
-        createChildEvent = event;
-      });
-
-      if (!createChildEvent)
-        return undefined;
-
-      return createChildEvent.args.id;
-    },
-
-    findLoadFinishedEvent_: function(lir) {
-      // First, find the RenderFrameImpl::didFinishLoad event that indicates a
-      // successful load.
-
-      var finishLoadEvent = undefined;
-      lir.renderMainThread.iterateAllEvents(function(event) {
-        if (event.title !== FINISH_LOAD_TITLE)
-          return;
-
-        if (event.start < lir.start)
-          return;
-
-        // TODO(benjhayden) This part of the heuristic is problematic for now
-        // because |lir.end| is naively the first paint after the load starts.
-        if (event.start > lir.end)
-          return;
-
-        if (event.args.id !== lir.routingId)
-          return;
-
-        finishLoadEvent = event;
-      });
-
-      if (!finishLoadEvent)
-        return undefined;
-
-      lir.associatedEvents.push(finishLoadEvent);
-
-      // Then, see if finishLoadEvent contains a subSlice titled
-      // 'LoadFinished', which indicates that the load was for a main frame.
-
-      var loadFinishedEvent = undefined;
-      finishLoadEvent.subSlices.forEach(function(event) {
-        if (event.title !== LOAD_FINISHED_TITLE)
-          return;
-
-        loadFinishedEvent = event;
-      });
-
-      if (!loadFinishedEvent)
-        return;
-
-      lir.loadFinishedEvent = loadFinishedEvent;
-      lir.associatedEvents.push(loadFinishedEvent);
-    },
-
-    // Match up RenderFrameImpl events with frame render events.
-    findLoadExpectations: function() {
-      var startupEvents = this.getStartupEvents();
-      var commitLoadEvents =
-          this.modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
-              this.model.bounds);
-      var frameEvents = this.getAllFrameEvents();
-      var startLoadEvents = this.getStartLoadEvents();
-      var failLoadEvents = this.getFailLoadEvents();
-      var lirs = [];
-
-      // Attach frame events to every startup events.
-      var startupLIRs = this.findLoadExpectations_(
-          tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP, startupEvents, frameEvents);
-      lirs.push.apply(lirs, startupLIRs);
-
-      // Attach frame events to every commit load events.
-      var successfulLIRs = this.findLoadExpectations_(
-          tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
-          commitLoadEvents, frameEvents);
-      successfulLIRs.forEach(function(lir) {
-        // If a successful Load IR has a loadFinishedEvent, then it is a main
-        // frame.
-        // Drop sub-frame Loads for now.
-        if (lir.loadFinishedEvent)
-          lirs.push(lir);
-      });
-
-      // Attach fail load events to every start load events.
-      var failedLIRs = this.findLoadExpectations_(
-          tr.model.um.LOAD_SUBTYPE_NAMES.FAILED,
-          startLoadEvents, failLoadEvents);
-      failedLIRs.forEach(function(lir) {
-        // If a failed Load IR has a parentRoutingId, then it is a sub-frame.
-        // Drop sub-frame Loads for now.
-        if (lir.parentRoutingId === undefined)
-          lirs.push(lir);
-      });
-
-      return lirs;
     }
   };
 
