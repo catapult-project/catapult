@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
         normalizedEfficiency: 1.,
         normalizedUserComfort: 0.0
       });
-      model.addInteractionRecord(model.ir1);
+      model.userModel.expectations.push(model.ir1);
       model.ir1.associatedEvents.push(model.s1);
       model.ir1.associatedEvents.push(model.s2);
 
@@ -101,11 +101,11 @@ tr.b.unittest.testSuite(function() {
   test('stableId', function() {
     var model = TestUtils.newModel();
 
-    var ir1 = model.addInteractionRecord(
+    var ir1 = model.userModel.expectations.push(
         TestUtils.newInteractionRecord(model, 0, 10));
-    var ir2 = model.addInteractionRecord(
+    var ir2 = model.userModel.expectations.push(
         TestUtils.newInteractionRecord(model, 10, 10));
-    var ir3 = model.addInteractionRecord(
+    var ir3 = model.userModel.expectations.push(
         TestUtils.newInteractionRecord(model, 20, 10));
 
     assert.equal('IR.0', ir1.stableId);

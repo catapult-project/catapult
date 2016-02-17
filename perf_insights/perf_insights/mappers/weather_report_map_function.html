@@ -43,7 +43,7 @@ tr.exportTo('pi.m', function() {
       node.subTypes[subType] = node.subTypes[subType] || {};
       addIRToNode(node.subTypes[subType], ir, path.slice(1));
     }
-    model.interactionRecords.forEach(function(ir) {
+    model.userModel.expectations.forEach(function(ir) {
       if (!(ir instanceof tr.model.um.UserExpectation))
         return;
       allIRs.push(ir);

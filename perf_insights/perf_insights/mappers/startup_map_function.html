@@ -17,7 +17,7 @@ tr.exportTo('pi.m', function() {
   function startupMapFunction(result, model) {
     var startupIR;
     var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
-    model.interactionRecords.forEach(function(ir) {
+    model.userModel.expectations.forEach(function(ir) {
       if (ir instanceof tr.model.um.LoadExpectation &&
           ir.initiatorTitle === tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP) {
         startupIR = ir;

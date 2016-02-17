@@ -28,15 +28,15 @@ tr.b.unittest.testSuite(function() {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
       thread.sliceGroup.pushSlice(tr.c.TestUtils.newSlice(0, 200));
-      model.interactionRecords.push(new tr.model.um.StubExpectation(
+      model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 100, duration: 100}));
-      model.interactionRecords.push(new tr.model.um.StubExpectation(
+      model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 0, duration: 100}));
-      model.interactionRecords.push(new tr.model.um.StubExpectation(
+      model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 150, duration: 50}));
-      model.interactionRecords.push(new tr.model.um.StubExpectation(
+      model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 50, duration: 100}));
-      model.interactionRecords.push(new tr.model.um.StubExpectation(
+      model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 0, duration: 50}));
       // Model.createImportTracesTask() automatically sorts IRs by start time.
     });

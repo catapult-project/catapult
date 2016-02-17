@@ -55,7 +55,7 @@ tr.exportTo('tr.model', function() {
   }
 
   function getIRCoverageFromModel(model) {
-    var associatedEvents = getAssociatedEvents(model.interactionRecords);
+    var associatedEvents = getAssociatedEvents(model.userModel.expectations);
 
     if (!associatedEvents.length)
       return undefined;

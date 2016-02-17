@@ -234,6 +234,7 @@
       'tracing/model/user_model/load_expectation.html',
       'tracing/model/user_model/response_expectation.html',
       'tracing/model/user_model/user_expectation.html',
+      'tracing/model/user_model/user_model.html',
       'tracing/model/x_marker_annotation.html',
       'tracing/ui/analysis/alert_sub_view.html',
       'tracing/ui/analysis/analysis_link.html',

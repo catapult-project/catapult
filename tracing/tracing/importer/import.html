@@ -306,9 +306,9 @@ tr.exportTo('tr.importer', function() {
       }, this);
 
       lastTask = lastTask.timedAfter('TraceImport',
-                                     function sortInteractionRecords() {
-        progressMeter.update('Updating interaction records...');
-        this.model_.sortInteractionRecords();
+                                     function sortExpectations() {
+        progressMeter.update('Sorting user expectations...');
+        this.model_.userModel.sortExpectations();
       }, this);
 
       lastTask = lastTask.timedAfter('TraceImport', function sortAlerts() {

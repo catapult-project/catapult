@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
 
       var loadIr = new tr.model.um.LoadExpectation(
           m, tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP, 0, 10);
-      m.interactionRecords.push(loadIr);
+      m.userModel.expectations.push(loadIr);
       loadIr.associatedEvents.push(t2_s1);
       loadIr.associatedEvents.push(t2_s2);
     });

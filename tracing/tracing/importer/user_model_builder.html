@@ -330,7 +330,7 @@ tr.exportTo('tr.importer', function() {
     }
 
     var modelEvents = new tr.model.EventSet();
-    model.interactionRecords.forEach(function(ir, index) {
+    model.userModel.expectations.forEach(function(ir, index) {
       modelEvents.addEventSet(ir.sourceEvents);
     });
     modelEvents = modelEvents.toArray();
@@ -370,8 +370,8 @@ tr.exportTo('tr.importer', function() {
 
   function createExpectedIRLinesFromModel(model) {
     var expectedLines = [];
-    var irCount = model.interactionRecords.length;
-    model.interactionRecords.forEach(function(ir, index) {
+    var irCount = model.userModel.expectations.length;
+    model.userModel.expectations.forEach(function(ir, index) {
       var irString = '      {';
       irString += 'title: \'' + ir.title + '\', ';
       irString += 'start: ' + parseInt(ir.start) + ', ';

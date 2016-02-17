@@ -99,6 +99,14 @@ tr.exportTo('tr.model', function() {
       return this.pushed_guids_[event.guid];
     },
 
+    indexOf: function(event) {
+      for (var i = 0; i < this.length; i++) {
+        if (this[i].guid === event.guid)
+          return i;
+      }
+      return -1;
+    },
+
     addEventSet: function(eventSet) {
       for (var i = 0; i < eventSet.length; i++)
         this.push(eventSet[i]);
