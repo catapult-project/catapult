@@ -4,6 +4,7 @@
 
 import logging
 import tempfile
+import time
 
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -204,3 +205,29 @@ class GpuTabTest(tab_test_case.TabTestCase):
     image_util.GetPixelColor(
         screenshot, 32 * pixel_ratio, 32 * pixel_ratio).AssertIsRGB(
             255, 255, 255, tolerance=2)
+
+
+class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
+  @classmethod
+  def CustomizeBrowserOptions(cls, options):
+    options.AppendExtraBrowserArgs('--media-router=1')
+    options.AppendExtraBrowserArgs(
+        '--disable-gesture-requirement-for-presentation')
+
+  # There is no media router dialog on android, it is only desktop feature.
+  # Only enable media router dialog test on canary, since
+  # --disable-gesture-requirement-for-presentation flag is only available on
+  # canary.
+  @decorators.Disabled('android')
+  @decorators.Enabled('canary')
+  def testMediaRouterDialog(self):
+    self._tab.Navigate(self.UrlOfUnittestFile('cast.html'))
+    self._tab.WaitForDocumentReadyStateToBeComplete()
+    self._tab.ExecuteJavaScript('startSession();')
+    # Wait for media router dialog
+    start_time = time.time()
+    while (time.time() - start_time < 5 and
+           len(self.tabs) != 2):
+      time.sleep(1)
+    self.assertEquals(len(self.tabs), 2)
+    self.assertEquals(self.tabs[1].url, 'chrome://media-router/')
