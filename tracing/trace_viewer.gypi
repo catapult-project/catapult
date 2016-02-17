@@ -152,6 +152,7 @@
       'tracing/extras/vsync/vsync_auditor.html',
       'tracing/importer/empty_importer.html',
       'tracing/importer/find_input_expectations.html',
+      'tracing/importer/find_load_expectations.html',
       'tracing/importer/import.html',
       'tracing/importer/importer.html',
       'tracing/importer/proto_expectation.html',

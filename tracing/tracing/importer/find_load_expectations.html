@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.importer', function() {
+  var RENDER_FRAME_IMPL_PREFIX = 'RenderFrameImpl::';
+  var CREATE_CHILD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'createChildFrame';
+  var START_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didStartProvisionalLoad';
+  var FAIL_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFailProvisionalLoad';
+  var FINISH_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFinishLoad';
+
+  // This is an instant event that is a subSlice of a FINISH_LOAD_TITLE
+  // event.
+  var LOAD_FINISHED_TITLE = 'LoadFinished';
+
+  function isRenderFrameImplEvent(event) {
+    return event.title.indexOf(RENDER_FRAME_IMPL_PREFIX) === 0;
+  }
+
+  function getAllFrameEvents(modelHelper) {
+    var frameEvents = [];
+    frameEvents.push.apply(frameEvents,
+        modelHelper.browserHelper.getFrameEventsInRange(
+            tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
+
+    tr.b.iterItems(modelHelper.rendererHelpers, function(pid, renderer) {
+      frameEvents.push.apply(frameEvents, renderer.getFrameEventsInRange(
+          tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
+    });
+    return frameEvents.sort(tr.importer.compareEvents);
+  }
+
+  function getStartLoadEvents(modelHelper) {
+    function isStartLoadSlice(slice) {
+      return slice.title === START_LOAD_TITLE;
+    }
+    return modelHelper.browserHelper.getAllAsyncSlicesMatching(
+        isStartLoadSlice).sort(tr.importer.compareEvents);
+  }
+
+  function getFailLoadEvents(modelHelper) {
+    function isFailLoadSlice(slice) {
+      return slice.title === FAIL_LOAD_TITLE;
+    }
+    return modelHelper.browserHelper.getAllAsyncSlicesMatching(
+        isFailLoadSlice).sort(tr.importer.compareEvents);
+  }
+
+  // If a thread contains a typical initialization slice, then the first event
+  // on that thread is a startup event.
+  function getStartupEvents(modelHelper) {
+    function isStartupSlice(slice) {
+      return slice.title === 'BrowserMainLoop::CreateThreads';
+    }
+    var events = modelHelper.browserHelper.getAllAsyncSlicesMatching(
+        isStartupSlice);
+    var deduper = new tr.model.EventSet();
+    events.forEach(function(event) {
+      var sliceGroup = event.parentContainer.sliceGroup;
+      var slice = sliceGroup && sliceGroup.findFirstSlice();
+      if (slice)
+        deduper.push(slice);
+    });
+    return deduper.toArray();
+  }
+
+  // Match every event in |openingEvents| to the first following event from
+  // |closingEvents| and return an array containing a load interaction record
+  // for each pair.
+  function findLoadExpectationsInternal(
+      modelHelper, subtypeName, openingEvents, closingEvents) {
+    var lirs = [];
+    openingEvents.forEach(function(openingEvent) {
+      closingEvents.forEach(function(closingEvent) {
+        // Ignore opening event that already have a closing event.
+        if (openingEvent.closingEvent)
+          return;
+
+        // Ignore closing events that already belong to an opening event.
+        if (closingEvent.openingEvent)
+          return;
+
+        // Ignore closing events before |openingEvent|.
+        if (closingEvent.start <= openingEvent.start)
+          return;
+
+        // Ignore events from different threads.
+        if (openingEvent.parentContainer.parent.pid !==
+              closingEvent.parentContainer.parent.pid)
+          return;
+
+        // This is the first closing event for this opening event, record it.
+        openingEvent.closingEvent = closingEvent;
+        closingEvent.openingEvent = openingEvent;
+        var lir = new tr.model.um.LoadExpectation(
+            modelHelper.model, subtypeName, openingEvent.start,
+            closingEvent.end - openingEvent.start);
+        lir.associatedEvents.push(openingEvent);
+        lir.associatedEvents.push(closingEvent);
+
+        // All RenderFrameImpl events contain the routingId.
+        // |openingEvent| may be either didStartProvisionaLoad or
+        // didCommitProvisionalLoad, so use a general prefix test.
+        if (isRenderFrameImplEvent(openingEvent)) {
+          var renderProcessId = openingEvent.parentContainer.parent.pid;
+          lir.renderProcess = modelHelper.model.processes[renderProcessId];
+          lir.renderMainThread = lir.renderProcess.findAtMostOneThreadNamed(
+              'CrRendererMain');
+          lir.routingId = openingEvent.args.id;
+          lir.parentRoutingId = findLoadParentRoutingId_(lir);
+          findLoadFinishedEvent_(lir);
+        }
+        lirs.push(lir);
+      });
+    });
+    return lirs;
+  }
+
+  // Find the routingId of the createChildFrame event that created the Load
+  // IR's RenderFrame.
+  function findLoadParentRoutingId_(lir) {
+    var createChildEvent = undefined;
+    lir.renderMainThread.iterateAllEvents(function(event) {
+      if (event.title !== CREATE_CHILD_TITLE)
+        return;
+
+      if (event.args.child !== lir.routingId)
+        return;
+
+      createChildEvent = event;
+    });
+
+    if (!createChildEvent)
+      return undefined;
+
+    return createChildEvent.args.id;
+  }
+
+  function findLoadFinishedEvent_(lir) {
+    // First, find the RenderFrameImpl::didFinishLoad event that indicates a
+    // successful load.
+
+    var finishLoadEvent = undefined;
+    lir.renderMainThread.iterateAllEvents(function(event) {
+      if (event.title !== FINISH_LOAD_TITLE)
+        return;
+
+      if (event.start < lir.start)
+        return;
+
+      // TODO(benjhayden) This part of the heuristic is problematic for now
+      // because |lir.end| is naively the first paint after the load starts.
+      if (event.start > lir.end)
+        return;
+
+      if (event.args.id !== lir.routingId)
+        return;
+
+      finishLoadEvent = event;
+    });
+
+    if (!finishLoadEvent)
+      return undefined;
+
+    lir.associatedEvents.push(finishLoadEvent);
+
+    // Then, see if finishLoadEvent contains a subSlice titled
+    // 'LoadFinished', which indicates that the load was for a main frame.
+
+    var loadFinishedEvent = undefined;
+    finishLoadEvent.subSlices.forEach(function(event) {
+      if (event.title !== LOAD_FINISHED_TITLE)
+        return;
+
+      loadFinishedEvent = event;
+    });
+
+    if (!loadFinishedEvent)
+      return;
+
+    lir.loadFinishedEvent = loadFinishedEvent;
+    lir.associatedEvents.push(loadFinishedEvent);
+  }
+
+  // Match up RenderFrameImpl events with frame render events.
+  function findLoadExpectations(modelHelper) {
+    var startupEvents = getStartupEvents(modelHelper);
+    var commitLoadEvents =
+        modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
+            modelHelper.model.bounds);
+    var frameEvents = getAllFrameEvents(modelHelper);
+    var startLoadEvents = getStartLoadEvents(modelHelper);
+    var failLoadEvents = getFailLoadEvents(modelHelper);
+    var lirs = [];
+
+    // Attach frame events to every startup events.
+    var startupLIRs = findLoadExpectationsInternal(
+        modelHelper, tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP,
+        startupEvents, frameEvents);
+    lirs.push.apply(lirs, startupLIRs);
+
+    // Attach frame events to every commit load events.
+    var successfulLIRs = findLoadExpectationsInternal(
+        modelHelper, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
+        commitLoadEvents, frameEvents);
+    successfulLIRs.forEach(function(lir) {
+      // If a successful Load IR has a loadFinishedEvent, then it is a main
+      // frame.
+      // Drop sub-frame Loads for now.
+      if (lir.loadFinishedEvent)
+        lirs.push(lir);
+    });
+
+    // Attach fail load events to every start load events.
+    var failedLIRs = findLoadExpectationsInternal(
+        modelHelper, tr.model.um.LOAD_SUBTYPE_NAMES.FAILED,
+        startLoadEvents, failLoadEvents);
+    failedLIRs.forEach(function(lir) {
+      // If a failed Load IR has a parentRoutingId, then it is a sub-frame.
+      // Drop sub-frame Loads for now.
+      if (lir.parentRoutingId === undefined)
+        lirs.push(lir);
+    });
+
+    return lirs;
+  }
+
+  return {
+    findLoadExpectations: findLoadExpectations
+  };
+});
+</script>
