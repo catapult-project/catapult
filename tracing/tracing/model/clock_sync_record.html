@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All righstart reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.model', function() {
+  /**
+   * A record that indicates how times in one clock domain map to another.
+   *
+   * @constructor
+   * @param {string} name The name of the clock sync record.
+   * @param {string} start The timestamp the clock sync started
+   * @param {object} args Any additional argumenstart.
+   */
+  function ClockSyncRecord(name, start, args) {
+    this.name_ = name;
+    this.start_ = start;
+    this.args_ = args;
+  };
+
+  ClockSyncRecord.prototype = {
+    get name() {
+      return this.name_;
+    },
+
+    get start() {
+      return this.start_;
+    },
+
+    set start(value) {
+      this.start_ = value;
+    },
+
+    get args() {
+      return this.args_;
+    }
+  };
+
+  /**
+   * A clock sync record that is recorded instantaneously.
+   */
+  function InstantClockSyncRecord(name, start, args) {
+    ClockSyncRecord.call(this, name, start, args);
+  };
+
+  InstantClockSyncRecord.prototype = {
+    __proto__: ClockSyncRecord.prototype
+  };
+
+  /**
+   * A clock sync record that requires an external call to record.
+   *
+   * This type of clock sync record needs to be treated differently because the
+   * clock sync could actually have been recorded any time in
+   * [start, start + duration].
+   */
+  function PingPongClockSyncRecord(name, start, duration, args) {
+    ClockSyncRecord.call(this, name, start, args);
+    this.duration_ = duration;
+  };
+
+  PingPongClockSyncRecord.prototype = {
+    __proto__: ClockSyncRecord.prototype,
+
+    get duration() {
+      return this.duration_;
+    },
+
+    set duration(value) {
+      this.duration_ = value;
+    },
+  };
+
+  return {
+    InstantClockSyncRecord: InstantClockSyncRecord,
+    PingPongClockSyncRecord: PingPongClockSyncRecord
+  };
+});
+</script>

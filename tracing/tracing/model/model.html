@@ -62,15 +62,6 @@ tr.exportTo('tr', function() {
   var Alert = tr.model.Alert;
   var Sample = tr.model.Sample;
 
-  // TODO(charliea): Rethink what ClockSyncRecords should look like in the
-  // world with the new clock sync. Should they have a duration? Should
-  // the have an ID instead of a name?
-  function ClockSyncRecord(name, ts, args) {
-    this.name = name;
-    this.ts = ts;
-    this.args = args;
-  }
-
   /**
    * @constructor
    */
@@ -700,7 +691,6 @@ tr.exportTo('tr', function() {
   };
 
   return {
-    ClockSyncRecord: ClockSyncRecord,
     Model: Model
   };
 });

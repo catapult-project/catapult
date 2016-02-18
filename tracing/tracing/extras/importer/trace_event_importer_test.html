@@ -5518,8 +5518,8 @@ tr.b.unittest.testSuite(function() {
         continue;
 
       foundClockSync = true;
-      assert.equal(clockSync.ts, .005);
-      assert.equal(clockSync.args.duration, .010);
+      assert.equal(clockSync.start, .005);
+      assert.equal(clockSync.duration, .010);
     }
 
     assert.isTrue(foundClockSync);
