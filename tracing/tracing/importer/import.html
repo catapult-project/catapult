@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel='import' href='/tracing/base/timing.html'>
 <link rel="import" href="/tracing/importer/empty_importer.html">
 <link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/tracing/importer/user_model_builder.html">
 
 <script>
 'use strict';
@@ -297,18 +298,26 @@ tr.exportTo('tr.importer', function() {
         this.model_.buildEventIndices();
       }, this);
 
+      // Build the UserModel.
+      lastTask = lastTask.timedAfter('TraceImport', function buildUserModel() {
+        progressMeter.update('Building UserModel...');
+        var userModelBuilder = new tr.importer.UserModelBuilder(this.model_);
+        userModelBuilder.buildUserModel();
+      }, this);
+
+      // Sort Expectations.
+      lastTask = lastTask.timedAfter('TraceImport',
+                                     function sortExpectations() {
+        progressMeter.update('Sorting user expectations...');
+        this.model_.userModel.sortExpectations();
+      }, this);
+
       // Run audits.
       lastTask = lastTask.timedAfter('TraceImport', function runAudits() {
         progressMeter.update('Running auditors...');
         auditors.forEach(function(auditor) {
           auditor.runAudit();
         });
-      }, this);
-
-      lastTask = lastTask.timedAfter('TraceImport',
-                                     function sortExpectations() {
-        progressMeter.update('Sorting user expectations...');
-        this.model_.userModel.sortExpectations();
       }, this);
 
       lastTask = lastTask.timedAfter('TraceImport', function sortAlerts() {

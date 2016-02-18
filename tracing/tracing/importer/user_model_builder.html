@@ -21,9 +21,10 @@ found in the LICENSE file.
 tr.exportTo('tr.importer', function() {
   var INSIGNIFICANT_MS = 1;
 
-  function UserModelBuilder(model, modelHelper) {
+  function UserModelBuilder(model) {
     this.model = model;
-    this.modelHelper = modelHelper;
+    this.modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
   };
 
   UserModelBuilder.supportsModelHelper = function(modelHelper) {
@@ -31,16 +32,40 @@ tr.exportTo('tr.importer', function() {
   };
 
   UserModelBuilder.prototype = {
-    findAllInteractionRecords: function() {
-      var rirs = [];
-      rirs.push.apply(rirs, tr.importer.findLoadExpectations(
+    buildUserModel: function() {
+      if (!this.modelHelper || !this.modelHelper.browserHelper)
+        return;
+
+      var expectations = undefined;
+      try {
+        expectations = this.findUserExpectations();
+        // There are not currently any known cases when this could throw.
+      } catch (error) {
+        this.model.importWarning({
+          type: 'UserModelBuilder',
+          message: error,
+          showToUser: true
+        });
+        return;
+      }
+      expectations.forEach(function(expectation) {
+        this.model.userModel.expectations.push(expectation);
+      }, this);
+
+      // TODO(benjhayden) Find Gestures here.
+    },
+
+    findUserExpectations: function() {
+      var expectations = [];
+      expectations.push.apply(expectations, tr.importer.findLoadExpectations(
           this.modelHelper));
-      rirs.push.apply(rirs, tr.importer.findInputExpectations(
+      expectations.push.apply(expectations, tr.importer.findInputExpectations(
           this.modelHelper));
       // findIdleExpectations must be called last!
-      rirs.push.apply(rirs, this.findIdleExpectations(rirs));
-      this.collectUnassociatedEvents_(rirs);
-      return rirs;
+      expectations.push.apply(
+          expectations, this.findIdleExpectations(expectations));
+      this.collectUnassociatedEvents_(expectations);
+      return expectations;
     },
 
     // Find all unassociated top-level ThreadSlices. If they start during an
