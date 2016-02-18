@@ -5,7 +5,6 @@
 """URL endpoint for a cron job to run bisects integration tests."""
 
 import datetime
-import logging
 import time
 
 from google.appengine.api import mail
@@ -67,7 +66,6 @@ def _StartBisectFYIJob(test_name, bisect_config):
     If successful, a dict containing "issue_id" and "issue_url" for the
     bisect job. Otherwise, a dict containing "error", with some description
     of the reason why a job wasn't started.
-
   """
   try:
     bisect_job = _MakeBisectFYITryJob(test_name, bisect_config)
@@ -114,53 +112,35 @@ def _MakeBisectFYITryJob(test_name, bisect_config):
   return bisect_job
 
 
-def VerifyBisectFYIResults(job, bisect_results):
-  """Verifies the bisect results against expected results in test config."""
-  bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_KEY)
-  for test_name, config in bisect_fyi_configs.iteritems():
-    if job.job_name == test_name:
-      errors = _VerifyExpectedResults(
-          bisect_results.get('results'), config.get('expected_results'))
-      if errors:
-        bisect_results['status'] = 'Failure'
-        bisect_results['errors'] = errors
-  return bisect_results
+def VerifyBisectFYIResults(job):
+  """Verifies the bisect results against expected results in test config.
+
+  Args:
+    job: TryJob entity.
+
+  Returns:
+    A message with the missing properties, otherwise returns an empty string.
+  """
+  expected_results = _GetBisectConfig(job).get('expected_results')
+  try:
+    utils.Validate(expected_results, job.results_data)
+  except ValueError as e:
+    return 'Bisect result is not as expected: %s.' % e
+  return ''
 
 
-def VerifyBugUpdate(job, issue_tracker, bisect_results):
+def IsBugUpdated(job, issue_tracker):
   """Verifies whether bug is updated with the bisect results."""
   comment_info = issue_tracker.GetLastBugCommentsAndTimestamp(job.bug_id)
-  err_msg = 'Failed to update bug %s with bisect results.' % job.bug_id
   if not comment_info:
-    bisect_results['status'] = 'Failure'
-    if bisect_results.get('errors'):
-      err_msg = '%s\n%s' % (bisect_results['errors'], err_msg)
-    bisect_results['errors'] = err_msg
-    return bisect_results
+    return False
 
   bug_update_timestamp = datetime.datetime.strptime(
       comment_info['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
   try_job_timestamp = time.mktime(job.last_ran_timestamp.timetuple())
   if bug_update_timestamp <= try_job_timestamp:
-    logging.info('Issue updated timestamp: %s', bug_update_timestamp)
-    logging.info('Try job timestamp: %s', try_job_timestamp)
-    bisect_results['status'] = 'Failure'
-    if bisect_results.get('errors'):
-      err_msg = '%s\n%s' % (bisect_results['errors'], err_msg)
-    bisect_results['errors'] = err_msg
-  return bisect_results
-
-
-def _VerifyExpectedResults(bisect_results, expected_results):
-  if not expected_results:
-    return 'No expected results found in test config.'
-  error_list = []
-  for key, value in expected_results.iteritems():
-    if value not in bisect_results:
-      error_list.append('Expected results %s = "%s" not found in bisect '
-                        'results.\n' % (key, value))
-
-  return ''.join(error_list)
+    return False
+  return True
 
 
 def _TextBody(errors_list):
@@ -184,3 +164,11 @@ def _SendEmailAlert(errors_list):
       to='auto-bisect-team@google.com',
       subject='[Bisect FYI Alert]Failed to run bisect integration tests.',
       body=_TextBody(errors_list))
+
+
+def _GetBisectConfig(job):
+  bisect_fyi_configs = stored_object.Get(_BISECT_FYI_CONFIGS_KEY)
+  for test_name, config in bisect_fyi_configs.iteritems():
+    if job.job_name == test_name:
+      return config
+  return {}

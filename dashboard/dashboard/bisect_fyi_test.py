@@ -30,9 +30,8 @@ TEST_FYI_CONFIGS = {
             'test_type': 'perf'
         },
         'expected_results': {
-            'status': 'Status: Positive',
-            'culprit': 'Commit  : 2a1781d64d',
-            'job_banner': '= BISECT JOB RESULTS =',
+            'status': ['completed'],
+            'culprit_data': {'cl': ['2a1781d64d']},
         }
     },
     'early_abort': {
@@ -51,9 +50,7 @@ TEST_FYI_CONFIGS = {
             'test_type': 'perf'
         },
         'expected_results': {
-            'status': '',
-            'culprit': '',
-            'job_banner': '= BISECTION ABORTED =',
+            'status': ['aborted'],
         }
     },
 }

@@ -62,6 +62,7 @@ _PERF_TRY_EMAIL_SUBJECT = (
 _PERF_TRY_EMAIL_HTML_BODY = """
 Perf Try Job %(status)s
 <br><br>
+%(warnings)s
 A Perf Try Job was submitted on %(bot)s at
 <a href="%(perf_url)s">%(perf_url)s</a>.<br>
 <table cellpadding='4'>
@@ -75,7 +76,7 @@ A Perf Try Job was submitted on %(bot)s at
 
 _PERF_TRY_EMAIL_TEXT_BODY = """
 Perf Try Job %(status)s
-
+%(warnings)s
 Bot: %(bot)s
 Test: %(command)s
 Revision Range:%(start)s - %(end)s
@@ -93,6 +94,8 @@ _BISECT_FYI_EMAIL_SUBJECT = (
 
 _BISECT_FYI_EMAIL_HTML_BODY = """
 <font color="red"><b>Bisect FYI Try Job Failed</b></font>
+<br><br>
+%(message)s
 <br><br>
 A Bisect FYI Try Job for %(test_name)s was submitted on %(bot)s at
 <a href="%(job_url)s">%(job_url)s</a>.<br>
@@ -119,35 +122,36 @@ Bisect Results:
 """
 
 
-def GetPerfTryJobEmail(perf_results):
+def GetPerfTryJobEmailReport(try_job_entity):
   """Gets the contents of the email to send once a perf try job completes."""
-  if perf_results['status'] == 'Completed':
+  results_data = try_job_entity.results_data
+  config = try_job_entity.GetConfigDict()
+  if results_data['status'] == 'completed':
     profiler_html_links = ''
     profiler_text_links = ''
-    for title, link in perf_results['profiler_results']:
-      profiler_html_links += _PERF_PROFILER_HTML_ROW % {'title': title,
-                                                        'link': link}
-      profiler_text_links += _PERF_PROFILER_TEXT_ROW % {'title': title,
-                                                        'link': link}
+    for link_dict in results_data['profiler_links']:
+      profiler_html_links += _PERF_PROFILER_HTML_ROW % link_dict
+      profiler_text_links += _PERF_PROFILER_TEXT_ROW % link_dict
     subject_dict = {
-        'status': 'Success', 'bot': perf_results['bisect_bot'],
-        'start': perf_results['config']['good_revision'],
-        'end': perf_results['config']['bad_revision']
+        'status': 'Success', 'bot': results_data['bisect_bot'],
+        'start': config['good_revision'],
+        'end': config['bad_revision']
     }
     html_dict = {
         'status': 'SUCCESS',
-        'bot': perf_results['bisect_bot'],
-        'perf_url': perf_results['buildbot_log_url'],
-        'command': perf_results['config']['command'],
-        'start': perf_results['config']['good_revision'],
-        'end': perf_results['config']['bad_revision'],
-        'html_results': perf_results['html_results'],
-        'profiler_results': profiler_html_links
+        'bot': results_data['bisect_bot'],
+        'perf_url': results_data['buildbot_log_url'],
+        'command': config['command'],
+        'start': config['good_revision'],
+        'end': config['bad_revision'],
+        'html_results': results_data['cloud_link'],
+        'profiler_results': profiler_html_links,
     }
+    if results_data.get('warnings'):
+      html_dict['warnings'] = ','.join(results_data['warnings'])
     text_dict = html_dict.copy()
     text_dict['profiler_results'] = profiler_text_links
-  elif perf_results['status'] == 'Failure':
-    config = perf_results.get('config')
+  elif results_data['status'] == 'failed':
     if not config:
       config = {
           'good_revision': '?',
@@ -155,18 +159,18 @@ def GetPerfTryJobEmail(perf_results):
           'command': '?',
       }
     subject_dict = {
-        'status': 'Failure', 'bot': perf_results['bisect_bot'],
+        'status': 'Failure', 'bot': results_data['bisect_bot'],
         'start': config['good_revision'],
         'end': config['bad_revision']
     }
     html_dict = {
         'status': 'FAILURE',
-        'bot': perf_results['bisect_bot'],
-        'perf_url': perf_results['buildbot_log_url'],
+        'bot': results_data['bisect_bot'],
+        'perf_url': results_data['buildbot_log_url'],
         'command': config['command'],
         'start': config['good_revision'],
         'end': config['bad_revision'],
-        'html_results': '', 'profiler_results': ''
+        'html_results': '', 'profiler_results': '',
     }
     text_dict = html_dict
   else:
@@ -312,26 +316,24 @@ def GetAlertInfo(alert, test):
   return results
 
 
-def GetBisectFYITryJobEmail(job, test_results):
+def GetBisectFYITryJobEmailReport(job, message):
   """Gets the contents of the email to send once a bisect FYI job completes."""
-  if test_results['status'] != 'Completed':
-    subject_dict = {
-        'bot': test_results['bisect_bot'],
-        'test_name': job.job_name
-    }
-    html_dict = {
-        'bot': test_results['bisect_bot'],
-        'job_url': test_results['buildbot_log_url'],
-        'test_name': job.job_name,
-        'config': job.config if job.config else 'Undefined',
-        'errors': test_results.get('errors'),
-        'results': test_results.get('results'),
-    }
-    text_dict = html_dict
-  else:
-    return None
+  results_data = job.results_data
+  subject_dict = {
+      'bot': results_data['bisect_bot'],
+      'test_name': job.job_name,
+  }
+  report_dict = {
+      'message': message,
+      'bot': results_data['bisect_bot'],
+      'job_url': results_data['buildbot_log_url'],
+      'test_name': job.job_name,
+      'config': job.config if job.config else 'Undefined',
+      'errors': results_data.get('errors'),
+      'results': results_data.get('results'),
+  }
 
-  html = _BISECT_FYI_EMAIL_HTML_BODY % html_dict
-  text = _BISECT_FYI_EMAIL_TEXT_BODY % text_dict
+  html = _BISECT_FYI_EMAIL_HTML_BODY % report_dict
+  text = _BISECT_FYI_EMAIL_TEXT_BODY % report_dict
   subject = _BISECT_FYI_EMAIL_SUBJECT % subject_dict
   return {'subject': subject, 'html': html, 'body': text}
