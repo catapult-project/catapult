@@ -3,10 +3,10 @@
 # found in the LICENSE file.
 
 import os
+import unittest
 
 import mock
 from pyfakefs import fake_filesystem_unittest
-import unittest
 
 from telemetry.core import android_platform
 from telemetry.internal.backends.chrome import android_browser_finder

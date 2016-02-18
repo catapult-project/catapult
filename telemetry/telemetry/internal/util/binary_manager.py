@@ -24,6 +24,7 @@ CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'catapult_base',
 NoPathFoundError = dependency_manager_exceptions.NoPathFoundError
 CloudStorageError = dependency_manager_exceptions.CloudStorageError
 
+
 _binary_manager = None
 
 
