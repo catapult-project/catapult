@@ -91,7 +91,9 @@ def UpdateBisectStats(bot_name, status):
     bot_name: Name of the bisect bot.
     status: Bisect status.  Either 'failed' or 'completed'.
   """
-  assert status in ['failed', 'completed']
+  # TODO(chrisphan): Add stats for staled bisect.
+  if status not in ['failed', 'completed']:
+    return
   series_name = _GetSeriesNameFromBotName(bot_name)
   week_timestamp = _GetLastMondayTimestamp()
 

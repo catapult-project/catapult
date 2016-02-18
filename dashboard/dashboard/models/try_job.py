@@ -36,7 +36,7 @@ class TryJob(internal_only_model.InternalOnlyModel):
   # Bisect run status (e.g., started, failed).
   status = ndb.StringProperty(
       default=None,
-      choices=['started', 'failed'],
+      choices=['started', 'failed', 'staled', 'completed'],
       indexed=True)
 
   # Number of times this job has been tried.
@@ -51,6 +51,9 @@ class TryJob(internal_only_model.InternalOnlyModel):
 
   # job_name attribute is used by try jobs of bisect FYI.
   job_name = ndb.StringProperty(default=None)
+
+  # Results data comming from bisect bots.
+  results_data = ndb.JsonProperty(indexed=False)
 
   def SetStarted(self):
     self.status = 'started'
@@ -67,8 +70,17 @@ class TryJob(internal_only_model.InternalOnlyModel):
       bug_data.SetBisectStatus(self.bug_id, 'failed')
     bisect_stats.UpdateBisectStats(self.bot, 'failed')
 
+  def SetStaled(self):
+    self.status = 'staled'
+    self.put()
+    # TODO(chrisphan): Add 'staled' state to bug_data and bisect_stats.
+    if self.bug_id:
+      bug_data.SetBisectStatus(self.bug_id, 'failed')
+    bisect_stats.UpdateBisectStats(self.bot, 'failed')
+
   def SetCompleted(self):
-    self.key.delete()
+    self.status = 'completed'
+    self.put()
     if self.bug_id:
       bug_data.SetBisectStatus(self.bug_id, 'completed')
     bisect_stats.UpdateBisectStats(self.bot, 'completed')

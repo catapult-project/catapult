@@ -42,6 +42,7 @@ from dashboard import migrate_test_names
 from dashboard import mr
 from dashboard import new_points
 from dashboard import oauth2_decorator
+from dashboard import post_bisect_results
 from dashboard import put_entities_task
 from dashboard import report
 from dashboard import send_stoppage_alert_emails
@@ -91,6 +92,7 @@ _URL_MAPPING = [
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
     ('/mr_deprecate_tests', mr.MRDeprecateTestsHandler),
     ('/new_points', new_points.NewPointsHandler),
+    ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
     ('/report', report.ReportHandler),
     ('/send_stoppage_alert_emails',

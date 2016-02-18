@@ -14,6 +14,7 @@ import time
 
 from apiclient import discovery
 from google.appengine.api import urlfetch
+from google.appengine.api import urlfetch_errors
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from oauth2client.client import GoogleCredentials
@@ -338,3 +339,33 @@ def Validate(expected, actual):
   elif not IsValidType(expected, actual):
     raise ValueError('Invalid type. Expected: %s. Actual: %s.' %
                      (expected, actual_type))
+
+
+def FetchURL(request_url, skip_status_code=False):
+  """Wrapper around URL fetch service to make request.
+
+  Args:
+    request_url: URL of request.
+    skip_status_code: Skips return code check when True, default is False.
+
+  Returns:
+    Response object return by URL fetch, otherwise None when there's an error.
+  """
+  logging.info('URL being fetched: ' + request_url)
+  try:
+    response = urlfetch.fetch(request_url)
+  except urlfetch_errors.DeadlineExceededError:
+    logging.error('Deadline exceeded error checking %s', request_url)
+    return None
+  except urlfetch_errors.DownloadError as err:
+    # DownloadError is raised to indicate a non-specific failure when there
+    # was not a 4xx or 5xx status code.
+    logging.error(err)
+    return None
+  if skip_status_code:
+    return response
+  elif response.status_code != 200:
+    logging.error(
+        'ERROR %s checking %s', response.status_code, request_url)
+    return None
+  return response
