@@ -4,23 +4,11 @@
 
 import unittest
 
-from telemetry import decorators
 import mock
 
-
-class FakePlatform(object):
-  def GetOSName(self):
-    return 'os_name'
-
-  def GetOSVersionName(self):
-    return 'os_version_name'
-
-
-class FakePossibleBrowser(object):
-  def __init__(self):
-    self.browser_type = 'browser_type'
-    self.platform = FakePlatform()
-    self.supports_tab_control = False
+from telemetry.core import platform
+from telemetry import decorators
+from telemetry.internal.browser import possible_browser
 
 
 class FakeTest(object):
@@ -123,56 +111,160 @@ class TestEnableDecorators(unittest.TestCase):
 
 
 class TestShouldSkip(unittest.TestCase):
+
+  def setUp(self):
+    fake_platform = mock.Mock(spec_set=platform.Platform)
+    fake_platform.GetOSName.return_value = 'os_name'
+    fake_platform.GetOSVersionName.return_value = 'os_version_name'
+
+    self.possible_browser = mock.Mock(spec_set=possible_browser.PossibleBrowser)
+    self.possible_browser.browser_type = 'browser_type'
+    self.possible_browser.platform = fake_platform
+    self.possible_browser.supports_tab_control = False
+
   def testEnabledStrings(self):
     test = FakeTest()
-    possible_browser = FakePossibleBrowser()
 
     # When no enabled_strings is given, everything should be enabled.
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetEnabledStrings(['os_name'])
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetEnabledStrings(['another_os_name'])
-    self.assertTrue(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetEnabledStrings(['os_version_name'])
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetEnabledStrings(['os_name', 'another_os_name'])
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetEnabledStrings(['another_os_name', 'os_name'])
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetEnabledStrings(['another_os_name', 'another_os_version_name'])
-    self.assertTrue(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['another_os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['os_version_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['os_name-reference', 'another_os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['another_os_name-reference', 'os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['another_os_name-reference',
+                            'another_os_version_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
 
   def testDisabledStrings(self):
     test = FakeTest()
-    possible_browser = FakePossibleBrowser()
 
     # When no disabled_strings is given, nothing should be disabled.
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetDisabledStrings(['os_name'])
-    self.assertTrue(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetDisabledStrings(['another_os_name'])
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetDisabledStrings(['os_version_name'])
-    self.assertTrue(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetDisabledStrings(['os_name', 'another_os_name'])
-    self.assertTrue(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetDisabledStrings(['another_os_name', 'os_name'])
-    self.assertTrue(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
 
     test.SetDisabledStrings(['another_os_name', 'another_os_version_name'])
-    self.assertFalse(decorators.ShouldSkip(test, possible_browser)[0])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
+    test.SetDisabledStrings(['reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['another_os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['os_version_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['os_name-reference', 'another_os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['another_os_name-reference', 'os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['another_os_name-reference',
+                             'another_os_version_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+  def testReferenceEnabledStrings(self):
+    self.possible_browser.browser_type = 'reference'
+    test = FakeTest()
+
+    # When no enabled_strings is given, everything should be enabled.
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['another_os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['os_version_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['os_name-reference', 'another_os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['another_os_name-reference', 'os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetEnabledStrings(['another_os_name-reference',
+                            'another_os_version_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+  def testReferenceDisabledStrings(self):
+    self.possible_browser.browser_type = 'reference'
+    test = FakeTest()
+
+    # When no disabled_strings is given, nothing should be disabled.
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['another_os_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['os_version_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['os_name-reference', 'another_os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['another_os_name-reference', 'os_name-reference'])
+    self.assertTrue(decorators.ShouldSkip(test, self.possible_browser)[0])
+
+    test.SetDisabledStrings(['another_os_name-reference',
+                             'another_os_version_name-reference'])
+    self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
 class TestDeprecation(unittest.TestCase):
 
