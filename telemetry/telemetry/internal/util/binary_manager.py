@@ -6,6 +6,7 @@ import os
 
 from catapult_base import binary_manager
 from dependency_manager import base_config
+from dependency_manager import exceptions as dependency_manager_exceptions
 from devil import devil_env
 
 from telemetry.core import exceptions
@@ -19,6 +20,9 @@ TELEMETRY_PROJECT_CONFIG = os.path.join(
 CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'catapult_base',
                                     'catapult_base', 'chrome_binaries.json')
 
+
+NoPathFoundError = dependency_manager_exceptions.NoPathFoundError
+CloudStorageError = dependency_manager_exceptions.CloudStorageError
 
 _binary_manager = None
 
@@ -42,21 +46,21 @@ def InitDependencyManager(environment_config):
   devil_env.config.Initialize()
 
 
-def FetchPath(binary_name, arch, platform):
+def FetchPath(binary_name, arch, os_name, os_version=None):
   """ Return a path to the appropriate executable for <binary_name>, downloading
       from cloud storage if needed, or None if it cannot be found.
   """
   if _binary_manager is None:
     raise exceptions.InitializationError(
         'Called FetchPath with uninitialized binary manager.')
-  return _binary_manager.FetchPath(binary_name, arch, platform)
+  return _binary_manager.FetchPath(binary_name, arch, os_name, os_version)
 
 
-def LocalPath(binary_name, arch, platform):
+def LocalPath(binary_name, arch, os_name, os_version=None):
   """ Return a local path to the given binary name, or None if an executable
       cannot be found. Will not download the executable.
       """
   if _binary_manager is None:
     raise exceptions.InitializationError(
         'Called LocalPath with uninitialized binary manager.')
-  return _binary_manager.LocalPath(binary_name, arch, platform)
+  return _binary_manager.LocalPath(binary_name, arch, os_name, os_version)

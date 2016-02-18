@@ -8,6 +8,9 @@ import logging
 import os
 import sys
 
+from catapult_base import dependency_util
+from devil.android import apk_helper
+
 from telemetry.core import exceptions
 from telemetry.core import platform
 from telemetry.core import util
@@ -17,8 +20,7 @@ from telemetry.internal.backends.chrome import android_browser_backend
 from telemetry.internal.browser import browser
 from telemetry.internal.browser import possible_browser
 from telemetry.internal.platform import android_device
-
-from devil.android import apk_helper
+from telemetry.internal.util import binary_manager
 
 
 CHROME_PACKAGE_NAMES = {
@@ -61,7 +63,7 @@ CHROME_PACKAGE_NAMES = {
   'android-jb-system-chrome':
       ['com.android.chrome',
        android_browser_backend_settings.ChromeBackendSettings,
-       None]
+       None],
 }
 
 
@@ -85,6 +87,11 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         raise exceptions.PathMissingError(
             'Unable to find exact apk %s specified by --browser-executable' %
             apk_name)
+      self._local_apk = apk_name
+    elif browser_type == 'reference':
+      if not os.path.exists(apk_name):
+        raise exceptions.PathMissingError(
+            'Unable to find reference apk at expected location %s.' % apk_name)
       self._local_apk = apk_name
     elif apk_name:
       assert finder_options.chrome_root, (
@@ -166,7 +173,7 @@ def CanPossiblyHandlePath(target_path):
 
 def FindAllBrowserTypes(options):
   del options  # unused
-  return CHROME_PACKAGE_NAMES.keys() + ['exact']
+  return CHROME_PACKAGE_NAMES.keys() + ['exact', 'reference']
 
 
 def _FindAllPossibleBrowsers(finder_options, android_platform):
@@ -205,6 +212,26 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
             '%s specified by --browser-executable has an unknown package: %s' %
             (normalized_path, exact_package))
 
+  # Add the reference build if found.
+  os_version = dependency_util.GetChromeApkOsVersion(
+      android_platform.GetOSVersionName())
+  arch = finder_options.target_arch or android_platform.GetArchName()
+  try:
+    reference_build = binary_manager.FetchPath(
+        'chrome_stable', arch, 'android', os_version)
+  except (binary_manager.NoPathFoundError,
+          binary_manager.CloudStorageError):
+    reference_build = None
+
+  if reference_build and os.path.exists(reference_build):
+    possible_browsers.append(PossibleAndroidBrowser(
+        'reference',
+        finder_options,
+        android_platform,
+        android_browser_backend_settings.ChromeBackendSettings,
+        reference_build))
+
+  # Add any known local versions.
   for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
     package, backend_settings, local_apk = package_info
     b = PossibleAndroidBrowser(name,

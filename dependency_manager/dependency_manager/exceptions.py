@@ -4,6 +4,8 @@
 
 from catapult_base import cloud_storage
 
+CloudStorageError = cloud_storage.CloudStorageError
+
 class UnsupportedConfigFormatError(ValueError):
   def __init__(self, config_type, config_file):
     if not config_type:
@@ -36,7 +38,7 @@ class ReadWriteError(Exception):
   pass
 
 
-class CloudStorageUploadConflictError(cloud_storage.CloudStorageError):
+class CloudStorageUploadConflictError(CloudStorageError):
   def __init__(self, bucket, path):
     super(CloudStorageUploadConflictError, self).__init__(
         'File location %s already exists in bucket %s' % (path, bucket))
