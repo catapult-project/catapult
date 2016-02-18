@@ -243,4 +243,10 @@ def _PlatformAttributes(possible_browser):
     attributes.append('has tabs')
   if 'content-shell' in possible_browser.browser_type:
     attributes.append('content-shell')
+  if possible_browser.browser_type == 'reference':
+    ref_attributes = []
+    for attribute in attributes:
+      if attribute != 'reference':
+        ref_attributes.append('%s-reference' % attribute)
+    attributes.extend(ref_attributes)
   return attributes
