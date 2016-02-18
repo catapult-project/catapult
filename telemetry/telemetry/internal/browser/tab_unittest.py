@@ -10,6 +10,7 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.image_processing import video
+from telemetry.page import action_runner
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
@@ -211,19 +212,14 @@ class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
   @classmethod
   def CustomizeBrowserOptions(cls, options):
     options.AppendExtraBrowserArgs('--media-router=1')
-    options.AppendExtraBrowserArgs(
-        '--disable-gesture-requirement-for-presentation')
 
   # There is no media router dialog on android, it is only desktop feature.
-  # Only enable media router dialog test on canary, since
-  # --disable-gesture-requirement-for-presentation flag is only available on
-  # canary.
   @decorators.Disabled('android')
-  @decorators.Enabled('canary')
   def testMediaRouterDialog(self):
     self._tab.Navigate(self.UrlOfUnittestFile('cast.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    self._tab.ExecuteJavaScript('startSession();')
+    runner = action_runner.ActionRunner(self._tab)
+    runner.TapElement(selector='#start_session_button')
     # Wait for media router dialog
     start_time = time.time()
     while (time.time() - start_time < 5 and
