@@ -20,6 +20,7 @@ import os
 import platform
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -30,12 +31,12 @@ OMAHAPROXY_VERSION_MAP_URL = 'https://omahaproxy.appspot.com/all.json'
 V8_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'third_party',
     'v8')
-V8_BINARY_PATH = os.path.join(V8_PATH, '{os}', '{arch}', 'd8')
+V8_BINARY_PATH = os.path.join(V8_PATH, '{os}', '{arch}')
 V8_README_PATH = os.path.join(V8_PATH, 'README.chromium')
 
-V8_CHECKOUT_BINARY_PATH = os.path.join(
-    '{v8_root}', 'v8', 'out', 'Release', 'd8')
-V8_GENERATE_GYP_CMD = os.path.join('build', 'gyp_v8') + ' -Dtarget_arch={arch}'
+V8_CHECKOUT_BINARY_PATH = os.path.join('out', 'Release', 'd8')
+V8_GENERATE_GYP_CMD = (sys.executable + ' ' + os.path.join('build', 'gyp_v8') +
+    ' -Dtarget_arch={arch}')
 V8_COMPILE_CMD = 'ninja -C {0} d8'.format(os.path.join('out', 'Release'))
 V8_STRIP_CMD = 'strip -x {0}'.format(os.path.join('out', 'Release', 'd8'))
 
@@ -50,6 +51,7 @@ PYTHON_SYSTEM_TO_CHROME_OS = {
 # Dict from the acceptable return values for Python's platform.machine() to the
 # corresponding ninja architecture name.
 PYTHON_MACHINE_TO_NINJA_ARCH = {
+  'AMD64': 'x64',
   'x86_64': 'x64'
 }
 
@@ -108,8 +110,11 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
       with ChangeDirectory('v8'):
         subprocess.check_call('git checkout {0}'.format(v8_version), shell=True)
 
+        if 'GYP_DEFINES' not in os.environ:
+          os.environ['GYP_DEFINES'] = ''
         os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
         os.environ['GYP_GENERATORS'] = 'ninja'
+
         ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
         subprocess.check_call(
             V8_GENERATE_GYP_CMD.format(arch=ninja_arch), shell=True)
@@ -117,11 +122,10 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
         if target_os in ['linux', 'mac']:
           subprocess.check_call(V8_STRIP_CMD, shell=True)
 
-    # Move the d8 binary into place.
-    d8_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path)
-    d8_dst = V8_BINARY_PATH.format(os=target_os, arch=target_arch)
-
-    shutil.move(d8_src, d8_dst)
+        # Move the d8 binary into place.
+        binary_executable_ext = '.exe' if target_os == 'win' else ''
+        shutil.move(V8_CHECKOUT_BINARY_PATH + binary_executable_ext,
+                    V8_BINARY_PATH.format(os=target_os, arch=target_arch))
 
 def UpdateReadmeFile(v8_version, target_os):
   """Updates the V8 version number in the V8 README.chromium file."""
@@ -156,7 +160,13 @@ class TempDir:
     return self.path
 
   def __exit__(self, etype, value, traceback):
-    shutil.rmtree(self.path)
+    # On Windows, read-only files like Git index files can't be removed until
+    # they're made writable. If we fail, assume this is what happened and retry.
+    def readonly_handler(func, path, exc_info):
+      os.chmod(path, stat.S_IWUSR)
+      func(path)
+
+    shutil.rmtree(self.path, onerror=readonly_handler)
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv[1:]))
