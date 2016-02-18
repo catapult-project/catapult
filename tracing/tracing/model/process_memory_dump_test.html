@@ -235,14 +235,14 @@ tr.b.unittest.testSuite(function() {
 
   test('vmRegion_protectionFlagsToString', function() {
     checkProtectionFlagsToString(undefined, undefined);
-    checkProtectionFlagsToString(0, '---');
-    checkProtectionFlagsToString(VMRegion.PROTECTION_FLAG_READ, 'r--');
+    checkProtectionFlagsToString(0, '---p');
+    checkProtectionFlagsToString(VMRegion.PROTECTION_FLAG_READ, 'r--p');
     checkProtectionFlagsToString(
         VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_EXECUTE,
-        'r-x');
+        'r-xp');
     checkProtectionFlagsToString(
         VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE,
-        'rw-');
+        'rw-p');
   });
 
   test('checkDiscountTracingOverhead_undefinedFields', function() {

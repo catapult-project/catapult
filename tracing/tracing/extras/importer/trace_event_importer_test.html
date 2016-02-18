@@ -3055,7 +3055,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(vr1.startAddress, 240);
     assert.equal(vr1.sizeInBytes, 336);
     assert.equal(vr1.protectionFlags, 6);
-    assert.equal(vr1.protectionFlagsToString, 'rw-');
+    assert.equal(vr1.protectionFlagsToString, 'rw-p');
     assert.equal(vr1.mappedFile, '[stack:20310]');
     assert.equal(vr1.byteStats.privateCleanResident, 64);
     assert.equal(vr1.byteStats.privateDirtyResident, 32);
@@ -3068,7 +3068,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(vr2.startAddress, 848);
     assert.equal(vr2.sizeInBytes, 592);
     assert.equal(vr2.protectionFlags, 5);
-    assert.equal(vr2.protectionFlagsToString, 'r-x');
+    assert.equal(vr2.protectionFlagsToString, 'r-xp');
     assert.equal(vr2.mappedFile, '/dev/ashmem/dalvik');
     assert.equal(vr2.byteStats.proportionalResident, 205);
     assert.isUndefined(vr2.byteStats.privateCleanResident);
@@ -4886,7 +4886,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(vmRegions[0].mappedFile, '[stack:20310]');
     assert.strictEqual(vmRegions[0].startAddress, 240);
     assert.strictEqual(vmRegions[0].sizeInBytes, 336);
-    assert.strictEqual(vmRegions[0].protectionFlagsToString, 'rw-');
+    assert.strictEqual(vmRegions[0].protectionFlagsToString, 'rw-p');
     assert.strictEqual(vmRegions[0].byteStats.proportionalResident, 158);
     assert.isUndefined(vmRegions[0].byteStats.privateDirtyResident);
 
@@ -4950,7 +4950,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherVmRegions[0].mappedFile, '/dev/ashmem/dalvik');
     assert.strictEqual(otherVmRegions[0].startAddress, 848);
     assert.strictEqual(otherVmRegions[0].sizeInBytes, 592);
-    assert.strictEqual(otherVmRegions[0].protectionFlagsToString, 'r-x');
+    assert.strictEqual(otherVmRegions[0].protectionFlagsToString, 'r-xp');
     assert.strictEqual(otherVmRegions[0].byteStats.privateDirtyResident, 205);
     assert.isUndefined(otherVmRegions[0].byteStats.proportionalResident);
     assert.lengthOf(pmd3.memoryAllocatorDumps, 0);
