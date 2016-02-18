@@ -16,7 +16,7 @@ found in the LICENSE file.
  * @fileoverview Class for managing android-specific model meta data,
  * such as rendering apps, and frames rendered.
  */
-tr.exportTo('tr.e.audits', function() {
+tr.exportTo('tr.model.helpers', function() {
   var Frame = tr.model.Frame;
   var Statistics = tr.b.Statistics;
 
@@ -266,7 +266,7 @@ tr.exportTo('tr.e.audits', function() {
       return new AndroidApp(process, uiThread, renderThread, surfaceFlinger,
         uiDrawType);
     }
-  }
+  };
 
   AndroidApp.prototype = {
   /**
