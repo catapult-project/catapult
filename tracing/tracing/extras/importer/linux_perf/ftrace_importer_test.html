@@ -188,7 +188,7 @@ tr.b.unittest.testSuite(function() {
 
     var battorSyncs = m.getClockSyncRecordsNamed('battor');
     assert.equal(battorSyncs.length, 1);
-    assert.equal(battorSyncs[0].ts, 107464000.0);
+    assert.equal(battorSyncs[0].start, 107464000.0);
     assert.equal(battorSyncs[0].args.perfTS, 107464000.0);
     assert.equal(battorSyncs[0].args.regulator, '8941_smbb_boost');
   });

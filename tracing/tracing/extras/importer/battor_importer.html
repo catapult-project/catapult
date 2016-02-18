@@ -174,8 +174,8 @@ tr.exportTo('tr.e.importer.battor', function() {
       var syncEvents = [];
       var firstSyncEventTs = undefined;
       syncCtr.series[0].iterateAllEvents(function(event) {
-        if (event.timestamp >= syncMarks[0].ts &&
-            event.timestamp <= syncMarks[1].ts) {
+        if (event.timestamp >= syncMarks[0].start &&
+            event.timestamp <= syncMarks[1].start) {
           if (firstSyncEventTs === undefined)
             firstSyncEventTs = event.timestamp;
           var newEvent = {
@@ -278,7 +278,7 @@ tr.exportTo('tr.e.importer.battor', function() {
       // to take tens of milliseconds to receive bytes. Therefore, until we
       // figure out how to receive bytes without this delay, time of sync is
       // set to the time when the the bytes are sent.
-      var syncTs = clockSync.ts;
+      var syncTs = clockSync.start;
       var traceTs = this.explicitSyncMark_['ts'];
 
       // Shift by the difference between the explicit sync timestamps.
