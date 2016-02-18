@@ -43,7 +43,7 @@ class SmoothnessMetricUnitTest(unittest.TestCase):
       setattr(stats, stat, [[10, 20], [30, 40, 50]])
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.page)
-    self.metric._PopulateResultsFromStats(results, stats, False)
+    self.metric._PopulateResultsFromStats(results, stats, False, 'tir_label')
     current_page_run = results.current_page_run
     self.assertTrue(current_page_run.ok)
     expected_values_count = 12

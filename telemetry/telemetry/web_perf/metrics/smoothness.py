@@ -55,10 +55,11 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
       renderer_process, model.browser_process, model.surface_flinger_process,
       [r.GetBounds() for r in interaction_records])
     has_surface_flinger_stats = model.surface_flinger_process is not None
-    self._PopulateResultsFromStats(results, stats, has_surface_flinger_stats)
+    self._PopulateResultsFromStats(results, stats, has_surface_flinger_stats,
+                                   interaction_records[0].label)
 
-  def _PopulateResultsFromStats(self, results, stats,
-                                has_surface_flinger_stats):
+  def _PopulateResultsFromStats(
+      self, results, stats, has_surface_flinger_stats, tir_label):
     page = results.current_page
     values = [
         self._ComputeQueueingDuration(page, stats),
@@ -77,6 +78,7 @@ class SmoothnessMetric(timeline_based_metric.TimelineBasedMetric):
       values += self._ComputeSurfaceFlingerMetric(page, stats)
 
     for v in values:
+      v.tir_label = tir_label
       results.AddValue(v)
 
   def _HasEnoughFrames(self, list_of_frame_timestamp_lists):
