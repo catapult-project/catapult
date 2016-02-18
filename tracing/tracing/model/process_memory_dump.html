@@ -282,6 +282,7 @@ tr.exportTo('tr.model', function() {
   VMRegion.PROTECTION_FLAG_READ = 4;
   VMRegion.PROTECTION_FLAG_WRITE = 2;
   VMRegion.PROTECTION_FLAG_EXECUTE = 1;
+  VMRegion.PROTECTION_FLAG_MAYSHARE = 128;
 
   VMRegion.prototype = {
     get protectionFlagsToString() {
@@ -290,7 +291,9 @@ tr.exportTo('tr.model', function() {
       return (
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_READ ? 'r' : '-') +
           (this.protectionFlags & VMRegion.PROTECTION_FLAG_WRITE ? 'w' : '-') +
-          (this.protectionFlags & VMRegion.PROTECTION_FLAG_EXECUTE ? 'x' : '-')
+          (this.protectionFlags & VMRegion.PROTECTION_FLAG_EXECUTE ?
+              'x' : '-') +
+          (this.protectionFlags & VMRegion.PROTECTION_FLAG_MAYSHARE ? 's' : 'p')
       );
     }
   };

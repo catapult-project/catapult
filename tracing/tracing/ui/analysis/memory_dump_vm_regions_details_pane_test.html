@@ -297,13 +297,13 @@ tr.b.unittest.testSuite(function() {
 
     var mmapChromeRow = soRow.subRows[0];
     checkRow(columns, mmapChromeRow, '/lib/chrome.so', ['0000000000010000'],
-        [536870912], ['r-x'], [8192], undefined, undefined, undefined,
+        [536870912], ['r-xp'], [8192], undefined, undefined, undefined,
         [vmRegions[0][0]]);
 
     var mmapLibX11Row = soRow.subRows[1];
     checkRow(columns, mmapLibX11Row,
         '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0', ['00007f996fd80000'],
-        [2097152], ['---'], [0], undefined, undefined, undefined,
+        [2097152], ['---p'], [0], undefined, undefined, undefined,
         [vmRegions[0][1]]);
   });
 
@@ -368,13 +368,13 @@ tr.b.unittest.testSuite(function() {
 
     var mmapChromeRow = soRow.subRows[0];
     checkRow(columns, mmapChromeRow, '/lib/chrome.so', ['0000000000010000'],
-        [536870912, 536870912], ['r-x', 'r-x'], [8192, 9216], undefined,
+        [536870912, 536870912], ['r-xp', 'r-xp'], [8192, 9216], undefined,
         undefined, undefined, [vmRegions[0][0], vmRegions[1][0]]);
 
     var mmapLibX11Row = soRow.subRows[1];
     checkRow(columns, mmapLibX11Row,
         '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0', ['00007f996fd80000'],
-        [2097152, undefined], ['---', undefined], [0, undefined], undefined,
+        [2097152, undefined], ['---p', undefined], [0, undefined], undefined,
         undefined, undefined, [vmRegions[0][1], undefined]);
 
     var otherRow = totalRow.subRows[3];
