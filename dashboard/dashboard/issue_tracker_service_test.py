@@ -92,6 +92,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'summary': 'Bug title',
             'description': 'body',
             'labels': [],
+            'components': [],
             'status': 'Assigned',
             'owner': {'name': 'someone@chromium.org'},
         })

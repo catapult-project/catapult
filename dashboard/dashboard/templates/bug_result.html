@@ -222,6 +222,13 @@ This template contains HTML for the following things:
       </label><br>
       {% endfor %}
       <br>
+      <b>Components:</b><br>
+      {% for component in components %}
+      <label>
+        <input type="checkbox" checked name="component" value="{{component}}">
+        {{component}}
+      </label><br>
+      {% endfor %}
       <b>Owner:</b><br>
       <input type="text" name="owner" value="{{owner}}"><br><br>
       <input type="submit">
