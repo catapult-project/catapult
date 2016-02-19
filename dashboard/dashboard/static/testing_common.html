@@ -36,6 +36,9 @@ var testing_common = (function() {
         if (requestStr in self.responseMap_) {
           this.responseText = self.responseMap_[requestStr];
           this.onload();
+        } else if ('*' in self.responseMap_) {
+          this.responseText = self.responseMap_['*'];
+          this.onload();
         } else {
           console.warn('XMLHttpRequest sent without a handler: ' + requestStr);
         }
@@ -44,7 +47,9 @@ var testing_common = (function() {
   };
 
   XMLHttpRequestMock.prototype.add = function(param, response) {
-    param = sortQueryPart(param);
+    if (param != '*') {
+      param = sortQueryPart(param);
+    }
     this.responseMap_[param] = response;
   };
 

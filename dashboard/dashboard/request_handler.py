@@ -31,7 +31,7 @@ class RequestHandler(webapp2.RequestHandler):
 
     Args:
       template_file: string. File name under templates directory.
-      template_values: dict. Mapping of template variables to corresponding
+      template_values: dict. Mapping of template variables to corresponding.
           values.
       status: int. HTTP status code.
     """
@@ -40,11 +40,12 @@ class RequestHandler(webapp2.RequestHandler):
     self.GetTemplateValues(template_values)
     self.response.out.write(template.render(template_values))
 
-  def GetTemplateValues(self, template_values):
+  def GetTemplateValues(self, template_values, request_path=None):
     """Gets the values that go in the template for every page.
 
     Args:
-      template_values: dict of name/value pairs
+      template_values: dict of name/value pairs.
+      request_path: path for login urls, None if using the current path.
     """
     user_info = ''
     xsrf_token = ''
@@ -58,7 +59,7 @@ class RequestHandler(webapp2.RequestHandler):
       xsrf_token = xsrf.GenerateToken(user)
       is_admin = users.is_current_user_admin()
     try:
-      login_url = users.create_login_url(self.request.path_qs)
+      login_url = users.create_login_url(request_path or self.request.path_qs)
     except users.RedirectTooLongError:
       # On the bug filing pages, the full login URL can be too long. Drop
       # the correct redirect URL, since the user should already be logged in at

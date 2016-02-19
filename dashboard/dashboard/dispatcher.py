@@ -40,6 +40,7 @@ from dashboard import load_from_prod
 from dashboard import main
 from dashboard import migrate_test_names
 from dashboard import mr
+from dashboard import navbar
 from dashboard import new_points
 from dashboard import oauth2_decorator
 from dashboard import post_bisect_results
@@ -91,6 +92,7 @@ _URL_MAPPING = [
     ('/', main.MainHandler),
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
     ('/mr_deprecate_tests', mr.MRDeprecateTestsHandler),
+    ('/navbar', navbar.NavbarHandler),
     ('/new_points', new_points.NewPointsHandler),
     ('/post_bisect_results', post_bisect_results.PostBisectResultsHandler),
     ('/put_entities_task', put_entities_task.PutEntitiesTaskHandler),
