@@ -5,9 +5,7 @@
   <link rel="import" href="/dashboard/elements/nav-bar.html">
 </head>
 <body>
-  <nav-bar isAdmin="{{is_admin}}"
-           displayUsername="{{display_username}}"
-           loginUrl="{{login_url}}"></nav-bar>
+  <nav-bar></nav-bar>
 {% if error %}
   <pre>
   Status of the bisect job {{job_id}}: ERROR, {{error}}

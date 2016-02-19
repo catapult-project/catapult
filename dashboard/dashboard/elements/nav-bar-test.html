@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<link rel="import" href="/dashboard/static/testing_common.html">
+<link rel="import" href="/dashboard/elements/nav-bar.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    tearDown: function() {
+      testing_common.clearXhrMock();
+    }
+  };
+
+  test('instantiation', function() {
+    var mockResponse = {
+      'login_url': 'FAKE_LOGIN_URL',
+      'is_admin': true,
+      'display_username': 'foo@bar.com'
+    };
+    console.log('Adding XHR mock');
+    testing_common.addXhrMock('*', JSON.stringify(mockResponse));
+      var bar = document.createElement('nav-bar');
+      this.addHTMLOutput(bar);
+  }, testOptions);
+
+});
+</script>
