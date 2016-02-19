@@ -142,11 +142,11 @@
 
   function loadFile(absPath, opt_href) {
     var href = opt_href || absPath;
-    var relPath = pathUtils.relPath(absPath);
     try {
       if (!isNode) {
-        load(relPath);
+        load(absPath);
       } else {
+        var relPath = pathUtils.relPath(absPath);
         var contents = readFileContents(relPath);
         eval(contents);
       }
