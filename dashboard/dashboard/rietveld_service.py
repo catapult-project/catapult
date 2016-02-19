@@ -14,8 +14,9 @@ from oauth2client import client
 
 from google.appengine.ext import ndb
 
-_EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
-PROJECTHOSTING_SCOPE = 'https://www.googleapis.com/auth/projecthosting'
+# TODO(qyearsley): Move scope constant(s) to another module, because
+# they are used for other things besides Rietveld.
+EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
 
 _DESCRIPTION = """This patch was automatically uploaded by the Chrome Perf
 Dashboard (https://chromeperf.appspot.com). It is being used to run a perf
@@ -41,6 +42,9 @@ class RietveldConfig(ndb.Model):
   The data is stored only in the App Engine datastore (and the cloud console)
   and not the code because it contains sensitive information like private keys.
   """
+  # TODO(qyearsley): Store service account email and key in datastore in
+  # another Model other than RietveldConfig, since it is used for other things
+  # besides Rietveld.
   client_email = ndb.TextProperty()
   service_account_key = ndb.TextProperty()
 
@@ -97,7 +101,7 @@ class RietveldService(object):
   def _Http(self):
     if not self._http:
       self._http = httplib2.Http()
-      creds = Credentials(self.Config(), _EMAIL_SCOPE)
+      creds = Credentials(self.Config(), EMAIL_SCOPE)
       creds.authorize(self._http)
     return self._http
 
