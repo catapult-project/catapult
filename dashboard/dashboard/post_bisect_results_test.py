@@ -26,7 +26,7 @@ _SAMPLE_BISECT_RESULTS_JSON = {
     'good_revision': '306475',
     'bad_revision': '306478',
     'warnings': None,
-    'abort_reason': None,
+    'aborted_reason': None,
     'culprit_data': {
         'subject': 'subject',
         'author': 'author',

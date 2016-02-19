@@ -38,21 +38,17 @@ Date    : %(cl_date)s
 
 """
 
-# When the bisect was aborted without a bisect failure the following template
-# is used.
-_ABORT_REASON_TEMPLATE = """
+_ABORTED_REASON_TEMPLATE = """
 === Bisection aborted ===
-The bisect was aborted because %(abort_reason)s
+The bisect was aborted because %s
 Please contact the the team (see below) if you believe this is in error.
-
 """
 
 _WARNINGS_TEMPLATE = """
 === Warnings ===
 The following warnings were raised by the bisect job:
 
- * %(warnings)s
-
+ * %s
 """
 
 _REVISION_TABLE_TEMPLATE = """
@@ -81,7 +77,7 @@ def GetReport(try_job_entity):
     return ''
   result = ''
   if results_data.get('aborted_reason'):
-    result += _ABORT_REASON_TEMPLATE % results_data['aborted_reason']
+    result += _ABORTED_REASON_TEMPLATE % results_data['aborted_reason']
 
   if results_data.get('warnings'):
     warnings = '\n'.join(results_data['warnings'])
