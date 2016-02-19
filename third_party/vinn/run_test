@@ -7,6 +7,7 @@ import os
 import sys
 import platform
 import unittest
+import platform
 
 
 def _IterateTestCase(test):
@@ -29,6 +30,7 @@ def main(args):
     if not options.test_name:
       return True
     return options.test_name in test.id()
+
   suite = unittest.TestSuite()
   vinn_dir = os.path.join(os.path.dirname(__file__), 'vinn')
   discover_tests = unittest.TestLoader().discover(
@@ -41,4 +43,11 @@ def main(args):
 
 
 if __name__ == '__main__':
+  # TODO(nednguyen): enable this run_tests on Windows once the catapult recipe
+  # is set up to run this on Windows.
+  # https://github.com/catapult-project/catapult/issues/2031
+  if platform.system() == 'Windows':
+    print 'Tests are skipped on Windows'
+    sys.exit(0)
+
   sys.exit(main(sys.argv[1:]))
