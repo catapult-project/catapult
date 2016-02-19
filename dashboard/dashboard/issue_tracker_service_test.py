@@ -10,6 +10,7 @@ from dashboard import issue_tracker_service
 from dashboard import testing_common
 
 
+@mock.patch('issue_tracker_service.discovery.build', mock.MagicMock())
 class IssueTrackerServiceTest(testing_common.TestCase):
 
   def testAddBugComment_Basic(self):

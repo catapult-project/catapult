@@ -152,7 +152,7 @@ class TriageBugs(object):
 
     credentials = rietveld_service.Credentials(
         rietveld_service.GetDefaultRietveldConfig(),
-        rietveld_service.PROJECTHOSTING_SCOPE)
+        rietveld_service.EMAIL_SCOPE)
     issue_tracker = issue_tracker_service.IssueTrackerService(
         additional_credentials=credentials)
     issue_tracker.AddBugComment(bug_id, comment)
