@@ -40,6 +40,7 @@ BUCKET_ALIASES = collections.OrderedDict((
 
 BUCKET_ALIAS_NAMES = BUCKET_ALIASES.keys()
 
+KEY_FILE_EXTENSION = '.sha1'
 
 _GSUTIL_PATH = os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil',
                             'gsutil')
@@ -264,6 +265,17 @@ def _GetLocked(bucket, remote_path, local_path):
         os.remove(partial_download_path.name)
 
 
+def GetKeyPathForFile(local_path):
+  """ Get path to a key file for some file.
+  Args:
+    local_path: path of the local file.
+
+  Returns:
+    path to the key file of the local file.
+  """
+  return local_path + KEY_FILE_EXTENSION
+
+
 def Insert(bucket, remote_path, local_path, publicly_readable=False):
   """ Upload file in |local_path| to cloud storage.
   Args:
@@ -320,7 +332,7 @@ def GetIfChanged(file_path, bucket):
     NotFoundError if the file is not in the given bucket in cloud_storage.
   """
   with _PseudoFileLock(file_path):
-    hash_path = file_path + '.sha1'
+    hash_path = GetKeyPathForFile(file_path)
     if not os.path.exists(hash_path):
       logging.warning('Hash file not found: %s', hash_path)
       return False
@@ -347,7 +359,7 @@ def GetFilesInDirectoryIfChanged(directory, bucket):
     for filename in filenames:
       path_name, extension = os.path.splitext(
           os.path.join(dirpath, filename))
-      if extension != '.sha1':
+      if extension != KEY_FILE_EXTENSION:
         continue
       GetIfChanged(path_name, bucket)
 

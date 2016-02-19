@@ -149,7 +149,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     cloud_storage.ReadHash = _FakeReadHash
     cloud_storage.CalculateHash = _FakeCalulateHashMatchesRead
     file_path = 'test-file-path.wpr'
-    hash_path = file_path + '.sha1'
+    hash_path = file_path + cloud_storage.KEY_FILE_EXTENSION
     try:
       cloud_storage._GetLocked = self._FakeGet
       # hash_path doesn't exist.
@@ -176,11 +176,11 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
                    'https://github.com/catapult-project/catapult/issues/1861')
   def testGetFilesInDirectoryIfChanged(self):
     self.CreateFiles([
-        'real_dir_path/dir1/1file1.sha1',
+        cloud_storage.GetKeyPathForFile('real_dir_path/dir1/1file1'),
         'real_dir_path/dir1/1file2.txt',
-        'real_dir_path/dir1/1file3.sha1',
+        cloud_storage.GetKeyPathForFile('real_dir_path/dir1/1file3'),
         'real_dir_path/dir2/2file.txt',
-        'real_dir_path/dir3/3file1.sha1'])
+        cloud_storage.GetKeyPathForFile('real_dir_path/dir3/3file1')])
 
     def IncrementFilesUpdated(*_):
       IncrementFilesUpdated.files_updated += 1
@@ -220,7 +220,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     dir_path = 'real_dir_path'
     self.fs.CreateDirectory(dir_path)
     file_path = os.path.join(dir_path, 'file1')
-    file_path_sha = file_path + '.sha1'
+    file_path_sha = cloud_storage.GetKeyPathForFile(file_path)
     self.CreateFiles([file_path, file_path_sha])
     with open(file_path_sha, 'w') as f:
       f.write('hash1234')

@@ -106,6 +106,8 @@ class CloudStorageModuleStub(object):
     'internal': INTERNAL_BUCKET,
   }
 
+  KEY_FILE_EXTENSION = '.sha1'
+
   # These are used to test for CloudStorage errors.
   INTERNAL_PERMISSION = 2
   PARTNER_PERMISSION = 1
@@ -193,6 +195,9 @@ class CloudStorageModuleStub(object):
     CloudStorageModuleStub.CheckPermissionLevelForBucket(self, bucket)
     return remote_path in self.remote_paths[bucket]
 
+  def GetKeyPathForFile(self, local_path):
+    return local_path + CloudStorageModuleStub.KEY_FILE_EXTENSION
+
   def Insert(self, bucket, remote_path, local_path):
     CloudStorageModuleStub.CheckPermissionLevelForBucket(self, bucket)
     if not local_path in self.GetLocalDataFiles():
@@ -214,7 +219,8 @@ class CloudStorageModuleStub(object):
       return False
     self.downloaded_files.append(remote_path)
     self.local_file_hashes[local_path] = remote_hash
-    self.local_hash_files[local_path + '.sha1'] = remote_hash
+    self.local_hash_files[
+        CloudStorageModuleStub.GetKeyPathForFile(local_path)] = remote_hash
     return remote_hash
 
   def Get(self, bucket, remote_path, local_path):
@@ -243,7 +249,7 @@ class CloudStorageModuleStub(object):
       for filename in filenames:
         path, extension = os.path.splitext(
             os.path.join(dirpath, filename))
-        if extension != '.sha1':
+        if extension != CloudStorageModuleStub.KEY_FILE_EXTENSION:
           continue
         self.GetIfChanged(path, bucket)
 
