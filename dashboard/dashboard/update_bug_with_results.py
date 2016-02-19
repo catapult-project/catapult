@@ -71,7 +71,7 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
     datastore_hooks.SetPrivilegedRequest()
 
     jobs_to_check = try_job.TryJob.query(
-        try_job.TryJob.status == 'started').fetch()
+        try_job.TryJob.status.IN(['started', 'pending'])).fetch()
     all_successful = True
 
     for job in jobs_to_check:
