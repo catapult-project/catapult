@@ -109,13 +109,15 @@ class IssueTrackerService(object):
       return False
     return True
 
-  def NewBug(self, title, description, labels=None, owner=None):
+  def NewBug(self, title, description, labels=None, components=None,
+             owner=None):
     """Creates a new bug.
 
     Args:
       title: The short title text of the bug.
       description: The body text for the bug.
       labels: Starting labels for the bug.
+      components: Starting components for the bug.
       owner: Starting owner account name.
 
     Returns:
@@ -126,6 +128,7 @@ class IssueTrackerService(object):
         'summary': title,
         'description': description,
         'labels': labels or [],
+        'components': components or [],
         'status': 'Assigned',
     }
     if owner:

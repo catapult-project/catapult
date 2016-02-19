@@ -61,6 +61,7 @@ class FileBugHandler(request_handler.RequestHandler):
     summary = self.request.get('summary')
     description = self.request.get('description')
     labels = self.request.get_all('label')
+    components = self.request.get_all('component')
     keys = self.request.get('keys')
     if not keys:
       self.RenderHtml('bug_result.html', {
@@ -69,7 +70,7 @@ class FileBugHandler(request_handler.RequestHandler):
       return
 
     if self.request.get('finish'):
-      self._CreateBug(summary, description, labels, keys)
+      self._CreateBug(summary, description, labels, components, keys)
     else:
       self._ShowBugDialog(summary, description, keys)
 
@@ -87,23 +88,25 @@ class FileBugHandler(request_handler.RequestHandler):
     if user_email.endswith('@google.com'):
       user_email = user_email.replace('@google.com', '@chromium.org')
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
-    labels = _FetchLabels(alert_keys)
+    labels, components = _FetchLabelsAndComponents(alert_keys)
     self.RenderHtml('bug_result.html', {
         'bug_create_form': True,
         'keys': urlsafe_keys,
         'summary': summary,
         'description': description,
         'labels': labels,
+        'components': components,
         'owner': user_email,
     })
 
-  def _CreateBug(self, summary, description, labels, urlsafe_keys):
+  def _CreateBug(self, summary, description, labels, components, urlsafe_keys):
     """Creates a bug, associates it with the alerts, sends a HTML response.
 
     Args:
       summary: The new bug summary string.
       description: The new bug description string.
       labels: List of label strings for the new bug.
+      components: List of component strings for the new bug.
       urlsafe_keys: Comma-separated alert keys in urlsafe format.
     """
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
@@ -126,7 +129,8 @@ class FileBugHandler(request_handler.RequestHandler):
 
     http = oauth2_decorator.DECORATOR.http()
     service = issue_tracker_service.IssueTrackerService(http=http)
-    bug_id = service.NewBug(summary, description, labels=labels, owner=owner)
+    bug_id = service.NewBug(
+        summary, description, labels=labels, components=components, owner=owner)
     if not bug_id:
       self.RenderHtml('bug_result.html', {'error': 'Error creating bug!'})
       return
@@ -183,9 +187,10 @@ def _UrlsafeKeys(alerts):
   return ','.join(a.key.urlsafe() for a in alerts)
 
 
-def _FetchLabels(alert_keys):
-  """Fetches a list of bug labels for the given list of Alert keys."""
+def _FetchLabelsAndComponents(alert_keys):
+  """Fetches a list of bug labels and components for the given Alert keys."""
   labels = set(_DEFAULT_LABELS)
+  components = set()
   alerts = ndb.get_multi(alert_keys)
   if any(a.internal_only for a in alerts):
     # This is a Chrome-specific behavior, and should ideally be made
@@ -193,8 +198,13 @@ def _FetchLabels(alert_keys):
     # labels to add for internal bugs).
     labels.add('Restrict-View-Google')
   for test in {a.test for a in alerts}:
-    labels.update(bug_label_patterns.GetBugLabelsForTest(test))
-  return labels
+    labels_components = bug_label_patterns.GetBugLabelsForTest(test)
+    for item in labels_components:
+      if item.startswith('Cr-'):
+        components.add(item.replace('Cr-', '').replace('-', '>'))
+      else:
+        labels.add(item)
+  return labels, components
 
 
 def _MilestoneLabel(alerts):

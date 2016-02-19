@@ -19,6 +19,7 @@ from dashboard import file_bug
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
+from dashboard.models import bug_label_patterns
 from dashboard.models import sheriff
 
 
@@ -93,6 +94,18 @@ class FileBugTest(testing_common.TestCase):
         '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
     self.assertIn('Restrict-View-Google', response.body)
 
+  def testGet_SetsBugLabelsComponents(self):
+    self.SetCurrentUser('foo@google.com')
+    alert_keys = self._AddSampleAlerts()
+    bug_label_patterns.AddBugLabelPattern('label1-foo', '*/*/*/first_paint')
+    bug_label_patterns.AddBugLabelPattern('Cr-Performance-Blink',
+                                          '*/*/*/mean_frame_time')
+    response = self.testapp.get(
+        '/file_bug?summary=s&description=d&keys=%s,%s' % (
+            alert_keys[0].urlsafe(), alert_keys[1].urlsafe()))
+    self.assertIn('label1-foo', response.body)
+    self.assertIn('Performance&gt;Blink', response.body)
+
   @mock.patch(
       'google.appengine.api.app_identity.get_default_version_hostname',
       mock.MagicMock(return_value='chromeperf.appspot.com'))
@@ -111,6 +124,7 @@ class FileBugTest(testing_common.TestCase):
             ('finish', 'true'),
             ('label', 'one'),
             ('label', 'two'),
+            ('component', 'Foo>Bar'),
         ])
     return response
 
@@ -206,6 +220,17 @@ class FileBugTest(testing_common.TestCase):
     labels = json.loads(
         mock_oauth2_decorator.MockOAuth2Decorator.past_bodies[-1])['labels']
     self.assertEqual(0, len([x for x in labels if x.startswith(u'M-')]))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(return_value=testing_common.FakeResponseObject(
+          200, '[]')))
+  def testGet_WithFinish_SucceedsWithComponents(self):
+    # Here, we test that components are posted separately from labels.
+    self._PostSampleBug()
+    components = json.loads(
+        mock_oauth2_decorator.MockOAuth2Decorator.past_bodies[-1])['components']
+    self.assertIn(u'Foo>Bar', components)
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
