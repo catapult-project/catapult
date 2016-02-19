@@ -18,7 +18,7 @@ from dashboard import utils
 from dashboard.models import try_job
 
 _EXPECTED_RESULT_PROPERTIES = {
-    'status': ['completed', 'failed', 'pending', 'aborted'],
+    'status': ['pending', 'started', 'completed', 'failed', 'aborted'],
 }
 
 
