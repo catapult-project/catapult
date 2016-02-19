@@ -25,7 +25,7 @@ _SAMPLE_BISECT_RESULTS_JSON = {
     'good_revision': '306475',
     'bad_revision': '306477',
     'warnings': None,
-    'abort_reason': None,
+    'aborted_reason': None,
     'culprit_data': {
         'subject': 'subject',
         'author': 'author',
@@ -172,6 +172,77 @@ Job details: https://test-rietveld.appspot.com/200039
 ===== BISECT JOB RESULTS =====
 Status: failed
 
+
+
+Bisect job ran on: linux
+Bug ID: 12345
+
+Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
+Test Metric: page_load_time
+Relative Change: 10
+Score: 0
+
+Buildbot stdio: http://build.chromium.org/513
+Job details: https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with label Cr-Tests-AutoBisect.  Thank you!"""
+
+    self.assertEqual(log_failed_bisect, bisect_report.GetReport(job))
+
+  def testGetReport_BisectWithWarnings(self):
+    results_data = self._BisectResults(6789, 12345, 'failed',
+                                       culprit_data=None, score=0,
+                                       revision_data=None,
+                                       warnings=['A warning.'])
+    job = self._AddTryJob(results_data)
+
+    log_failed_bisect = r"""
+===== BISECT JOB RESULTS =====
+Status: failed
+
+
+=== Warnings ===
+The following warnings were raised by the bisect job:
+
+ * A warning.
+
+
+Bisect job ran on: linux
+Bug ID: 12345
+
+Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
+Test Metric: page_load_time
+Relative Change: 10
+Score: 0
+
+Buildbot stdio: http://build.chromium.org/513
+Job details: https://test-rietveld.appspot.com/200039
+
+
+| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
+|  X  | for more information addressing perf regression bugs. For feedback,
+| / \ | file a bug with label Cr-Tests-AutoBisect.  Thank you!"""
+
+    self.assertEqual(log_failed_bisect, bisect_report.GetReport(job))
+
+  def testGetReport_BisectWithAbortedReason(self):
+    results_data = self._BisectResults(6789, 12345, 'aborted',
+                                       culprit_data=None, score=0,
+                                       revision_data=None,
+                                       aborted_reason='invalid revisions.')
+    job = self._AddTryJob(results_data)
+
+    log_failed_bisect = r"""
+===== BISECT JOB RESULTS =====
+Status: aborted
+
+
+=== Bisection aborted ===
+The bisect was aborted because invalid revisions.
+Please contact the the team (see below) if you believe this is in error.
 
 
 Bisect job ran on: linux
