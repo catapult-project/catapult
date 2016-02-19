@@ -35,8 +35,15 @@ class TryJob(internal_only_model.InternalOnlyModel):
 
   # Bisect run status (e.g., started, failed).
   status = ndb.StringProperty(
-      default=None,
-      choices=['started', 'failed', 'staled', 'completed'],
+      default='pending',
+      choices=[
+          'pending',  # Created, but job start has not been confirmed.
+          'started',  # Job is confirmed started.
+          'failed',   # Job terminated, red build.
+          'staled',   # No updates from bots.
+          'completed',  # Job terminated, green build.
+          'aborted',  # Job terminated with abort (purple, early abort).
+      ],
       indexed=True)
 
   # Number of times this job has been tried.
