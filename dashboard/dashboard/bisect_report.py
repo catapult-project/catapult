@@ -84,7 +84,8 @@ def GetReport(try_job_entity):
     result += _ABORT_REASON_TEMPLATE % results_data['aborted_reason']
 
   if results_data.get('warnings'):
-    result += _WARNINGS_TEMPLATE % results_data['warnings']
+    warnings = '\n'.join(results_data['warnings'])
+    result += _WARNINGS_TEMPLATE % warnings
 
   if results_data.get('culprit_data'):
     result += _RESULTS_REVISION_INFO % results_data['culprit_data']
