@@ -354,6 +354,7 @@ class AndroidPlatformBackend(
     Args:
       application: The full package name string of the application to kill.
     """
+    assert isinstance(application, basestring)
     self._device.KillAll(application, blocking=True, quiet=True)
 
   def LaunchApplication(
