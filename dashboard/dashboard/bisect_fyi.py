@@ -136,7 +136,7 @@ def IsBugUpdated(job, issue_tracker):
     return False
 
   bug_update_timestamp = datetime.datetime.strptime(
-      comment_info['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+      comment_info['timestamp'], '%Y-%m-%dT%H:%M:%S')
   try_job_timestamp = time.mktime(job.last_ran_timestamp.timetuple())
   if bug_update_timestamp <= try_job_timestamp:
     return False
