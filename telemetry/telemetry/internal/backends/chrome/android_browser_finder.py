@@ -224,11 +224,14 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
     reference_build = None
 
   if reference_build and os.path.exists(reference_build):
+    # TODO(aiolos): how do we stably map the android chrome_stable apk to the
+    # correct package name?
+    package, backend_settings, _ = CHROME_PACKAGE_NAMES['android-chrome']
     possible_browsers.append(PossibleAndroidBrowser(
         'reference',
         finder_options,
         android_platform,
-        android_browser_backend_settings.ChromeBackendSettings,
+        backend_settings(package),
         reference_build))
 
   # Add any known local versions.
