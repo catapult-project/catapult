@@ -5,13 +5,10 @@
 """Provides a layer of abstraction for the issue tracker API."""
 
 import logging
-import os
 
 from apiclient import discovery
 from apiclient import errors
 import httplib2
-
-from dashboard import rietveld_service
 
 _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
                   '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
@@ -36,26 +33,12 @@ class IssueTrackerService(object):
           oauth2client.client.SignedJwtAssertionCredentials. This includes
           the email and secret key of a service account.
     """
-    # After the switch to monorail, posting using user credentials is
-    # temporarily disabled -- however, the tests still test the flow of using
-    # user credentials rather than service account credentials.
-    # TODO(qyearsley): Fix the use of user credentials when filing bugs, OR
-    # decide to switch to using service account all the time and fix the tests.
-    if 'Development' in os.environ['SERVER_SOFTWARE']:
-      # In test environment or dev app server.
-      self._http = http or httplib2.Http()
-      if additional_credentials:
-        additional_credentials.authorize(self._http)
-      self._service = discovery.build('projecthosting', 'v2')
-      return
-
-    credentials = rietveld_service.Credentials(
-        rietveld_service.GetDefaultRietveldConfig(),
-        rietveld_service.EMAIL_SCOPE)
-    self._http = httplib2.Http()
-    credentials.authorize(self._http)
+    self._http = http or httplib2.Http()
+    if additional_credentials:
+      additional_credentials.authorize(self._http)
     self._service = discovery.build(
-        'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=self._http)
+        'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI,
+        http=self._http)
 
   def AddBugComment(self, bug_id, comment, status=None, cc_list=None,
                     merge_issue=None, labels=None, owner=None):
