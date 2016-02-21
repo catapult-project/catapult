@@ -7,16 +7,9 @@
 from apiclient import http
 from dashboard import oauth2_decorator
 
-HTTP_MOCK = http.HttpMock(headers={'status': '200'})
-
 
 class MockOAuth2Decorator(object):
   """Mocks OAuth2Decorator for testing."""
-
-  # This list will be used to keep a copy of the mocked http requests' bodies.
-  # Note that this is a class variable because it may not be easy to get the
-  # particular instance of the decorator used.
-  past_bodies = []
 
   def __init__(self, client_id, client_secret, scope, message, callback_path):
     self.client_id = client_id
@@ -30,10 +23,7 @@ class MockOAuth2Decorator(object):
   # pylint: disable=invalid-name
 
   def http(self):
-    # The body attribute is set after this is returned, so all we can do here
-    # is to save the previous one before it's overridden.
-    MockOAuth2Decorator.past_bodies.append(HTTP_MOCK.body)
-    return HTTP_MOCK
+    return http.HttpMock(headers={'status': '200'})
 
   def oauth_required(self, method):
     def check_oauth(request_handler, *args, **kwargs):
