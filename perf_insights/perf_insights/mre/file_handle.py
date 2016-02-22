@@ -85,15 +85,16 @@ class InMemoryFileHandle(FileHandle):
     super(InMemoryFileHandle, self).__init__(canonical_url)
 
     self.data = data
-    self._tempfile = None
+    self._temp_file_path = None
 
   def _WillProcess(self):
-    self._tempfile = tempfile.NamedTemporaryFile()
-    self._tempfile.write(self.data)
-    self._tempfile.flush()
-    self._tempfile.seek(0)
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file.write(self.data)
+    temp_file.close()
+    self._temp_file_path = temp_file.name
 
-    return URLFileHandle(self.canonical_url, 'file://' + self._tempfile.name)
+    return URLFileHandle(self.canonical_url, 'file://' + self._temp_file_path)
 
   def _DidProcess(self):
-    self._tempfile.close()
+    os.remove(self._temp_file_path)
+    self._temp_file_path = None

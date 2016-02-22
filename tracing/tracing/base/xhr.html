@@ -103,7 +103,9 @@ tr.exportTo('tr.b', function() {
 
     // Node or vinn prep.
     var filename;
-    if (url.startsWith('file:///'))
+    if (url.startsWith('file:///'))  // posix
+      filename = url.substring(7);
+    else if (url.startsWith('file://') && url[8] === ':')  // win
       filename = url.substring(7);
     else
       filename = global.HTMLImportsLoader.hrefToAbsolutePath(url);
