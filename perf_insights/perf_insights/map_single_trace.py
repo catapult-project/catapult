@@ -17,25 +17,26 @@ from perf_insights.mre import mre_result
 class TemporaryMapScript(object):
 
   def __init__(self, js):
-    self.file = tempfile.NamedTemporaryFile()
-    self.file.write("""
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_file.write("""
 <!DOCTYPE html>
 <script>
 %s
 </script>
 """ % js)
-    self.file.flush()
-    self.file.seek(0)
+    temp_file.close()
+    self._filename = temp_file.name
 
   def __enter__(self):
     return self
 
   def __exit__(self, *args, **kwargs):
-    self.file.close()
+    os.remove(self._filename)
+    self._filename = None
 
   @property
   def filename(self):
-    return self.file.name
+    return self._filename
 
 
 class FunctionLoadingFailure(failure.Failure):

@@ -24,13 +24,6 @@ def _AddToPathIfNeeded(path):
 
 
 if __name__ == '__main__':
-  # TODO(nednguyen): enable this run_tests on Windows once the catapult recipe
-  # is set up to run this on Windows.
-  # https://github.com/catapult-project/catapult/issues/2031
-  if platform.system() == 'Windows':
-    print 'Tests are skipped on Windows'
-    sys.exit(0)
-
   _AddToPathIfNeeded(_CATAPULT_PATH)
 
   from hooks import install
