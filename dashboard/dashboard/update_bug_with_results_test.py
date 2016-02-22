@@ -47,7 +47,7 @@ _SAMPLE_BISECT_RESULTS_JSON = {
         'commit_info': 'commit_info',
         'revisions_links': ['http://src.chromium.org/viewvc/chrome?view='
                             'revision&revision=20798'],
-        'cl': '123'
+        'cl': '2a1781d64d'  # Should match config in bisect_fyi_test.py.
     },
     'revision_data': [
         {
@@ -311,7 +311,8 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
                     results_data=_SAMPLE_BISECT_RESULTS_JSON)
 
     self.testapp.get('/update_bug_with_results')
-    self.assertEqual('12345', layered_cache.GetExternal('commit_hash_123'))
+    self.assertEqual('12345',
+                     layered_cache.GetExternal('commit_hash_2a1781d64d'))
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
