@@ -131,11 +131,6 @@ def VerifyBisectFYIResults(job):
 
 def IsBugUpdated(job, issue_tracker):
   """Verifies whether bug is updated with the bisect results."""
-  # Suppressing this error for now.  This a Monorail migration issue in failing
-  # to get last bug comments and timestamp.
-  # Issue: https://github.com/catapult-project/catapult/issues/2037
-  # pylint: disable=W0101
-  return True  # TODO (chrisphan): Remove this once below is fixed.
   comment_info = issue_tracker.GetLastBugCommentsAndTimestamp(job.bug_id)
   if not comment_info:
     return False

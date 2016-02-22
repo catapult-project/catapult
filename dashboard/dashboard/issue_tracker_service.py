@@ -157,9 +157,15 @@ class IssueTrackerService(object):
 
   def _MakeGetCommentsRequest(self, bug_id):
     """Make a request to the issue tracker to get comments in the bug."""
+    # TODO (prasadv): By default the max number of comments retrieved in
+    # one request is 100. Since bisect-fyi jobs may have more then 100
+    # comments for now we set this maxResults count as 10000.
+    # Remove this max count once we find a way to clear old comments
+    # on FYI issues.
     request = self._service.issues().comments().list(
         projectId='chromium',
-        issueId=bug_id)
+        issueId=bug_id,
+        maxResults=10000)
     return self._ExecuteRequest(request)
 
   def _ExecuteRequest(self, request):
