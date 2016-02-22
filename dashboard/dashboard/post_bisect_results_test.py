@@ -38,17 +38,17 @@ _SAMPLE_BISECT_RESULTS_JSON = {
     },
     'revision_data': [
         {
+            'revision_string': 'chromium@1234',
+            'commit_hash': '1234123412341234123412341234123412341234',
             'depot_name': 'chromium',
-            'deps_revision': 1234,
-            'commit_pos': 1234,
             'mean_value': 70,
             'std_dev': 0,
             'values': [70, 70, 70],
             'result': 'good'
         }, {
+            'revision_string': 'chromium@1235',
             'depot_name': 'chromium',
-            'deps_revision': 1235,
-            'commit_pos': 1235,
+            'commit_hash': '1235123512351235123512351235123512351235',
             'mean_value': 80,
             'std_dev': 0,
             'values': [80, 80, 80],

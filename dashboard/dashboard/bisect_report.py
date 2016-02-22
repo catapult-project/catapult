@@ -95,14 +95,20 @@ def GetReport(try_job_entity):
   return report
 
 
+def _MakeLegacyRevisionString(r):
+  result = 'chromium@' + str(r.get('commit_pos', 'unknown'))
+  if r.get('depot_name', 'chromium') != 'chromium':
+    result += ',%s@%s' % (r['depot_name'], r.get('deps_revision', 'unknown'))
+  return result
+
+
 def _RevisionTable(results_data):
   is_return_code = results_data.get('test_type') == 'return_code'
   has_culprit = 'culprit_data' in results_data
 
   def RevisionRow(r):
     result = [
-        r['depot_name'],
-        r['deps_revision'] or 'r' + str(r['commit_pos']),
+        r.get('revision_string', _MakeLegacyRevisionString(r)),
         _FormatNumber(r['mean_value']),
         _FormatNumber(r['std_dev']),
         len(r['values']),
@@ -113,7 +119,6 @@ def _RevisionTable(results_data):
   revision_rows = [RevisionRow(r) for r in results_data['revision_data']]
 
   headers_row = [[
-      'Depot',
       'Revision',
       'Mean Value' if not is_return_code else 'Exit Code',
       'Std. Dev.',
@@ -136,5 +141,6 @@ def _FormatNumber(x):
 def _PrettyTable(data):
   results = []
   for row in data:
-    results.append(('%-12s' * len(row) % tuple(row)).rstrip())
+    results.append(
+        (('%-24s' + '%-12s' * (len(row) - 1)) % tuple(row)).rstrip())
   return '\n'.join(results)

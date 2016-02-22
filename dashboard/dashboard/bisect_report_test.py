@@ -39,26 +39,26 @@ _SAMPLE_BISECT_RESULTS_JSON = {
     'revision_data': [
         {
             'depot_name': 'chromium',
-            'deps_revision': 306475,
-            'commit_pos': 306475,
+            'commit_hash': '3064750000000000000000000000000000000000',
+            'revision_string': 'chromium@306475',
             'mean_value': 70,
             'std_dev': 0,
             'values': [70, 70, 70],
             'result': 'good'
         },
         {
+            'revision_string': 'chromium@306476',
+            'commit_hash': '3064761111111111111111111111111111111111',
             'depot_name': 'chromium',
-            'deps_revision': 306476,
-            'commit_pos': 306476,
             'mean_value': 80,
             'std_dev': 0,
             'values': [80, 80, 80],
             'result': 'bad'
         },
         {
+            'revision_string': 'chromium@306477',
             'depot_name': 'chromium',
-            'deps_revision': 306477,
-            'commit_pos': 306477,
+            'commit_hash': '3064772222222222222222222222222222222222',
             'mean_value': 80,
             'std_dev': 0,
             'values': [80, 80, 80],
@@ -105,10 +105,10 @@ Date    : 1/2/2015
 
 
 ===== TESTED REVISIONS =====
-Depot       Revision    Mean Value  Std. Dev.   Num Values  Good?
-chromium    306475      70          0           3           good
-chromium    306476      80          0           3           bad
-chromium    306477      80          0           3           bad
+Revision                Mean Value  Std. Dev.   Num Values  Good?
+chromium@306475         70          0           3           good
+chromium@306476         80          0           3           bad
+chromium@306477         80          0           3           bad
 
 Bisect job ran on: linux
 Bug ID: 12345
@@ -139,10 +139,10 @@ Status: completed
 
 
 ===== TESTED REVISIONS =====
-Depot       Revision    Mean Value  Std. Dev.   Num Values  Good?
-chromium    306475      70          0           3           good
-chromium    306476      80          0           3           bad
-chromium    306477      80          0           3           bad
+Revision                Mean Value  Std. Dev.   Num Values  Good?
+chromium@306475         70          0           3           good
+chromium@306476         80          0           3           bad
+chromium@306477         80          0           3           bad
 
 Bisect job ran on: linux
 Bug ID: 12345
