@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
 import os
 import re
 import sys
@@ -15,9 +16,10 @@ import mock
 
 import vinn
 
+def _EscapeJsString(s):
+  return json.dumps(s)
 
-@unittest.skipIf(sys.platform.startswith('win'),
-                 'd8 not yet supported on Windows.')
+
 class VinnUnittest(unittest.TestCase):
 
   @classmethod
@@ -311,8 +313,6 @@ class VinnUnittest(unittest.TestCase):
     self.assertTrue(b_duration > c_duration)
 
 
-@unittest.skipIf(sys.platform.startswith('win'),
-                 'd8 not yet supported on Windows.')
 class PathUtilUnittest(unittest.TestCase):
   def testPathUtil(self):
     path_util_js_test = os.path.abspath(os.path.join(
@@ -321,10 +321,11 @@ class PathUtilUnittest(unittest.TestCase):
     os.path.join(os.path.dirname(__file__), 'path_utils.js'))
 
     test_loading_js = """
-    load('%s');
-    load('%s');
+    load(%s);
+    load(%s);
     runTests();
-    """ % (path_utils_js_dir, path_util_js_test)
+    """ % (_EscapeJsString(path_utils_js_dir),
+           _EscapeJsString(path_util_js_test))
 
     res = vinn.RunJsString(test_loading_js)
     self.assertEquals(res.returncode, 0)
@@ -355,8 +356,6 @@ def _GenerateLineByLineDiff(actual, expected):
   return '\n'.join(results)
 
 
-@unittest.skipIf(sys.platform.startswith('win'),
-                 'd8 not yet supported on Windows.')
 class HTMLGeneratorTest(unittest.TestCase):
 
   def AssertStringEquals(self, actual, expected):
@@ -372,7 +371,8 @@ class HTMLGeneratorTest(unittest.TestCase):
       with open(temp_file_name, 'w') as f:
         f.write(html_text)
       return vinn.ExecuteJsString(
-          'write(generateJsFromHTML(read("%s")));' % temp_file_name)
+          'write(generateJsFromHTML(read(%s)));' %
+          _EscapeJsString(temp_file_name))
     finally:
       shutil.rmtree(tmp_dir)
 

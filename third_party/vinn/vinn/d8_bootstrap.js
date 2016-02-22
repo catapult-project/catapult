@@ -104,7 +104,7 @@
     }
   }
 
-  var path_to_base64_compat = '<%base64_compat_path%>';
+  var path_to_base64_compat = <%base64_compat_path%>;
   load(path_to_base64_compat);
 
   // We deliberately call eval() on content of parse5.js instead of using load()
@@ -113,22 +113,22 @@
   //
   // This is because d8's load('xyz.js') does not hoist non global varibles in
   // the caller's environment to xyz.js, no matter where load() is called.
-  global.path_to_js_parser = '<%js_parser_path%>';
+  global.path_to_js_parser = <%js_parser_path%>;
   eval(read(global.path_to_js_parser));
 
   // Bring in html_to_js_generator.
-  global.path_to_js_parser = '<%js_parser_path%>';
-  load('<%html_to_js_generator_js_path%>');
+  global.path_to_js_parser = <%js_parser_path%>;
+  load(<%html_to_js_generator_js_path%>);
 
   // Bring in html imports loader.
-  load('<%html_imports_loader_js_path%>');
-  global.HTMLImportsLoader.addArrayToSourcePath(JSON.parse('<%source_paths%>'));
+  load(<%html_imports_loader_js_path%>);
+  global.HTMLImportsLoader.addArrayToSourcePath(<%source_paths%>);
 
   // Bring in path utils.
-  load('<%path_utils_js_path%>');
+  load(<%path_utils_js_path%>);
   var pathUtils = new PathUtils(
       {
-        currentWorkingDirectory: '<%current_working_directory%>',
+        currentWorkingDirectory: <%current_working_directory%>,
         exists: function(fileName) {
           try {
             // Try a dummy read to check whether file_path exists.
