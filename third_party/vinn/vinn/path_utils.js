@@ -42,7 +42,7 @@
     },
 
     isAbs: function(a) {
-      return a[0] === '/';
+      return a[0] === '/' || a[1] === ':';
     },
 
     join: function(a, b) {
@@ -63,6 +63,7 @@
       return a;
     },
 
+    /* TODO(nednguyen): fix this implementation on windows */
     absPath: function(a) {
       if (this.isAbs(a))
         return a;

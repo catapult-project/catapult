@@ -10,6 +10,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import re
 import json
 import tempfile
 
@@ -51,7 +52,16 @@ def _ValidateSourcePaths(source_paths):
     assert os.path.isabs(x)
 
 
+def _EscapeJsString(s):
+  assert isinstance(s, str)
+  return json.dumps(s)
+
+def _RenderTemplateStringForJsSource(source, template, replacement_string):
+  return source.replace(template, _EscapeJsString(replacement_string))
+
+
 def _GetBootStrapJsContent(source_paths):
+  assert isinstance(source_paths, list)
   global _BOOTSTRAP_JS_CONTENT
   if not _BOOTSTRAP_JS_CONTENT:
     with open(_BOOTSTRAP_JS_DIR, 'r') as f:
@@ -59,19 +69,24 @@ def _GetBootStrapJsContent(source_paths):
 
   bsc = _BOOTSTRAP_JS_CONTENT
 
+
   # Ensure that source paths are unique.
   source_paths = list(set(source_paths))
-  source_path_string = json.dumps(source_paths)
-  bsc = bsc.replace('<%source_paths%>', source_path_string)
-  bsc = bsc.replace('<%current_working_directory%>', os.getcwd())
-  bsc = bsc.replace('<%path_utils_js_path%>', _PATH_UTILS_JS_DIR)
-  bsc = bsc.replace('<%html_imports_loader_js_path%>',
-                    _HTML_IMPORTS_LOADER_JS_DIR)
-  bsc = bsc.replace('<%html_to_js_generator_js_path%>',
-                    _HTML_TO_JS_GENERATOR_JS_DIR)
-  bsc = bsc.replace('<%js_parser_path%>', _JS_PARSER_DIR)
-  bsc = bsc.replace('<%base64_compat_path%>',
-                    _BASE64_COMPAT_DIR)
+  source_paths_string = '[%s]' % (
+      ','.join(_EscapeJsString(s) for s in source_paths))
+  bsc = bsc.replace('<%source_paths%>', source_paths_string)
+  bsc = _RenderTemplateStringForJsSource(
+      bsc, '<%current_working_directory%>', os.getcwd())
+  bsc = _RenderTemplateStringForJsSource(
+      bsc, '<%path_utils_js_path%>', _PATH_UTILS_JS_DIR)
+  bsc = _RenderTemplateStringForJsSource(
+    bsc, '<%html_imports_loader_js_path%>', _HTML_IMPORTS_LOADER_JS_DIR)
+  bsc = _RenderTemplateStringForJsSource(
+      bsc, '<%html_to_js_generator_js_path%>', _HTML_TO_JS_GENERATOR_JS_DIR)
+  bsc = _RenderTemplateStringForJsSource(
+      bsc, '<%js_parser_path%>', _JS_PARSER_DIR)
+  bsc = _RenderTemplateStringForJsSource(
+      bsc, '<%base64_compat_path%>', _BASE64_COMPAT_DIR)
   bsc += '\n//@ sourceURL=%s\n' % _BOOTSTRAP_JS_DIR
   return bsc
 
@@ -90,9 +105,12 @@ def _GetD8BinaryPathForPlatform():
     return os.path.join(_V8_DIR, 'linux', 'x86_64', 'd8')
   elif platform.system() == 'Darwin' and platform.machine() == 'x86_64':
     return os.path.join(_V8_DIR, 'mac', 'x86_64', 'd8')
+  elif platform.system() == 'Windows' and platform.machine() == 'AMD64':
+    return os.path.join(_V8_DIR, 'win', 'AMD64', 'd8.exe')
   else:
     raise NotImplementedError(
-        'd8 binary for this platform and architecture is not yet supported')
+        'd8 binary for this platform (%s) and architecture (%s) is not yet'
+        ' supported' % (platform.system(), platform.machine()))
 
 
 class RunResult(object):
@@ -139,7 +157,7 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
   if source_paths is None:
     source_paths = [os.path.dirname(file_path)]
 
-  abs_file_path = os.path.abspath(file_path)
+  abs_file_path_str = _EscapeJsString(os.path.abspath(file_path))
 
   try:
     temp_dir = tempfile.mkdtemp()
@@ -147,9 +165,10 @@ def RunFile(file_path, source_paths=None, js_args=None, v8_args=None,
     with open(temp_boostrap_file, 'w') as f:
       f.write(_GetBootStrapJsContent(source_paths))
       if extension == '.html':
-        f.write('\nHTMLImportsLoader.loadHTMLFile("%s", "%s");' % (abs_file_path, abs_file_path))
+        f.write('\nHTMLImportsLoader.loadHTMLFile(%s, %s);' %
+                (abs_file_path_str, abs_file_path_str))
       else:
-        f.write('\nHTMLImportsLoader.loadFile("%s");' % abs_file_path)
+        f.write('\nHTMLImportsLoader.loadFile(%s);' % abs_file_path_str)
     return _RunFileWithD8(temp_boostrap_file, js_args, v8_args, stdout, stdin)
   finally:
     shutil.rmtree(temp_dir)
@@ -206,9 +225,16 @@ def _RunFileWithD8(js_file_path, js_args, v8_args, stdout, stdin):
     full_js_args += js_args
 
   args += ['--js_arguments'] + full_js_args
+
   # Set stderr=None since d8 doesn't write into stderr anyway.
   sp = subprocess.Popen(args, stdout=stdout, stderr=None, stdin=stdin)
   out, _ = sp.communicate()
+
+  # On Windows, d8's print() method add the carriage return characters \r to
+  # newline, which make the output different from d8 on posix. We remove the
+  # extra \r's  to make the output consistent with posix platforms.
+  if platform.system() == 'Windows' and out:
+    out = re.sub('\r+\n', '\n', out)
 
   # d8 uses returncode 1 to indicate an uncaught exception, but
   # _RunFileWithD8 needs to distingiush between that and quit(1).
