@@ -23,8 +23,8 @@ tr.exportTo('tr.v', function() {
   }
 
   Value.fromDict = function(d) {
-    if (d.type === 'scalar')
-      return ScalarValue.fromDict(d);
+    if (d.type === 'numeric')
+      return NumericValue.fromDict(d);
 
     if (d.type === 'dict')
       return DictValue.fromDict(d);
@@ -42,6 +42,7 @@ tr.exportTo('tr.v', function() {
     asDict: function() {
       return this.asJSON();
     },
+
     asJSON: function() {
       var d = {
         'canonical_url': this.canonicalUrl,
@@ -62,26 +63,30 @@ tr.exportTo('tr.v', function() {
     }
   };
 
-  function ScalarValue(canonicalUrl, name, value, opt_options) {
+  function NumericValue(canonicalUrl, name, numeric, opt_options) {
+    if (!(numeric instanceof tr.v.Numeric))
+      throw new Error('Expected numeric to be instance of tr.v.Numeric');
+
     var options = opt_options || {};
     Value.call(this, canonicalUrl, name, options);
-    this.value = value;
+    this.numeric = numeric;
   }
 
-  ScalarValue.fromDict = function(d) {
+  NumericValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
-    if (d.value === undefined)
-      throw new Error('Expected value to be provided');
-    return new ScalarValue(d.canonical_url, d.name, d.value, d);
+    if (d.numeric === undefined)
+      throw new Error('Expected numeric to be provided');
+    var numeric = tr.v.Numeric.fromDict(d.numeric);
+    return new NumericValue(d.canonical_url, d.name, numeric, d);
   };
 
-  ScalarValue.prototype = {
+  NumericValue.prototype = {
     __proto__: Value.prototype,
 
     _asDictInto: function(d) {
-      d.type = 'scalar';
-      d.value = this.value;
+      d.type = 'numeric';
+      d.numeric = this.numeric.asDict();
     }
   };
 
@@ -181,7 +186,7 @@ tr.exportTo('tr.v', function() {
 
   return {
     Value: Value,
-    ScalarValue: ScalarValue,
+    NumericValue: NumericValue,
     DictValue: DictValue,
     FailureValue: FailureValue,
     SkipValue: SkipValue

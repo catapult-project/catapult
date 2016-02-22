@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/units/unit.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v', function() {
+  function Numeric(unit) {
+    if (!(unit instanceof tr.b.u.Unit))
+      throw new Error('Expected provided unit to be instance of Unit');
+
+    this.unit = unit;
+  }
+
+  Numeric.prototype = {
+    asDict: function() {
+      var d = {
+        unit: this.unit.asJSON()
+      };
+
+      this.asDictInto_(d);
+      return d;
+    }
+  };
+
+  Numeric.fromDict = function(d) {
+    if (d.type === 'scalar')
+      return ScalarNumeric.fromDict(d);
+
+    throw new Error('Not implemented');
+  };
+
+  function ScalarNumeric(unit, value) {
+    if (!(typeof(value) == 'number'))
+      throw new Error('Expected value to be number');
+
+    Numeric.call(this, unit);
+    this.value = value;
+  }
+
+  ScalarNumeric.prototype = {
+    __proto__: Numeric.prototype,
+
+    asDictInto_: function(d) {
+      d.type = 'scalar';
+      d.value = this.value;
+    },
+
+    toString: function() {
+      return this.unit.format(this.value);
+    }
+  };
+
+  ScalarNumeric.fromDict = function(d) {
+    return new ScalarNumeric(tr.b.u.Unit.fromJSON(d.unit), d.value);
+  };
+
+  return {
+    Numeric: Numeric,
+    ScalarNumeric: ScalarNumeric
+  };
+});
+</script>
