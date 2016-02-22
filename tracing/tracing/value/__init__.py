@@ -56,6 +56,8 @@ class Value(object):
       raise NotImplementedError()
 
 
+# TODO(eakuefner): Change to NumericValue after porting Unit
+# (https://github.com/catapult-project/catapult/issues/2049)
 class ScalarValue(Value):
 
   def __init__(self, canonical_url, name, value, description=None,
