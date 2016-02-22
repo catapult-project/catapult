@@ -129,6 +129,7 @@ class FileBugHandler(request_handler.RequestHandler):
 
     http = oauth2_decorator.DECORATOR.http()
     service = issue_tracker_service.IssueTrackerService(http=http)
+
     bug_id = service.NewBug(
         summary, description, labels=labels, components=components, owner=owner)
     if not bug_id:
@@ -140,7 +141,8 @@ class FileBugHandler(request_handler.RequestHandler):
       alert_entity.bug_id = bug_id
     ndb.put_multi(alerts)
 
-    self._AddAdditionalDetailsToBug(bug_id, alerts)
+    comment_body = _AdditionalDetails(bug_id, alerts)
+    service.AddBugComment(bug_id, comment_body)
 
     template_params = {'bug_id': bug_id}
     if all(k.kind() == 'Anomaly' for k in alert_keys):
@@ -151,32 +153,21 @@ class FileBugHandler(request_handler.RequestHandler):
         template_params.update(bisect_result)
     self.RenderHtml('bug_result.html', template_params)
 
-  def _AddAdditionalDetailsToBug(self, bug_id, alerts):
-    """Adds additional data to the bug as a comment.
 
-    Adds the link to /group_report and bug_id as well as the names of the bots
-    that triggered the alerts, and a milestone label.
-
-    Args:
-      bug_id: Bug ID number.
-      alerts: The Alert entities being associated with this bug.
-    """
-    base_url = '%s/group_report' % _GetServerURL()
-    bug_page_url = '%s?bug_id=%s' % (base_url, bug_id)
-    alerts_url = '%s?keys=%s' % (base_url, _UrlsafeKeys(alerts))
-    comment = 'All graphs for this bug:\n  %s\n\n' % bug_page_url
-    comment += 'Original alerts at time of bug-filing:\n  %s\n' % alerts_url
-
-    bot_names = alert.GetBotNamesFromAlerts(alerts)
-    if bot_names:
-      comment += '\n\nBot(s) for this bug\'s original alert(s):\n\n'
-      comment += '\n'.join(sorted(bot_names))
-    else:
-      comment += '\nCould not extract bot names from the list of alerts.'
-
-    http = oauth2_decorator.DECORATOR.http()
-    service = issue_tracker_service.IssueTrackerService(http=http)
-    service.AddBugComment(bug_id, comment)
+def _AdditionalDetails(bug_id, alerts):
+  """Returns a message with additional information to add to a bug."""
+  base_url = '%s/group_report' % _GetServerURL()
+  bug_page_url = '%s?bug_id=%s' % (base_url, bug_id)
+  alerts_url = '%s?keys=%s' % (base_url, _UrlsafeKeys(alerts))
+  comment = 'All graphs for this bug:\n  %s\n\n' % bug_page_url
+  comment += 'Original alerts at time of bug-filing:\n  %s\n' % alerts_url
+  bot_names = alert.GetBotNamesFromAlerts(alerts)
+  if bot_names:
+    comment += '\n\nBot(s) for this bug\'s original alert(s):\n\n'
+    comment += '\n'.join(sorted(bot_names))
+  else:
+    comment += '\nCould not extract bot names from the list of alerts.'
+  return comment
 
 
 def _GetServerURL():
