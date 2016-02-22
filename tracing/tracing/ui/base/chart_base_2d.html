@@ -36,6 +36,8 @@ tr.exportTo('tr.ui.b', function() {
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
       this.isYLogScale_ = false;
+      this.yLogScaleMin_ = undefined;
+      this.dataRange_ = new tr.b.Range();
 
       this.data_ = [];
       this.seriesKeys_ = [];
@@ -69,6 +71,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.data_ = data;
       this.updateSeriesKeys_();
+      this.updateDataRange_();
       this.updateContents_();
     },
 
@@ -81,7 +84,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getYScaleMin_: function() {
-      return this.isYLogScale_ ? 0.1 : 0;
+      return this.isYLogScale_ ? this.yLogScaleMin_ : 0;
     },
 
     getYScaleDomain_: function(minValue, maxValue) {
@@ -191,6 +194,25 @@ tr.exportTo('tr.ui.b', function() {
       return margin;
     },
 
+    updateDataRange_: function() {
+      var dataBySeriesKey = this.getDataBySeriesKey_();
+      this.dataRange_.reset();
+      tr.b.iterItems(dataBySeriesKey, function(series, values) {
+        for (var i = 0; i < values.length; i++) {
+          this.dataRange_.addValue(values[i][series]);
+        }
+      }, this);
+
+      // Choose the closest power of 10, rounded down, as the smallest tick
+      // to display.
+      this.yLogScaleMin_ = undefined;
+      if (this.dataRange_.min !== undefined) {
+        var onePowerLess = Math.floor(
+            Math.log(this.dataRange_.min) / Math.log(10)) - 1;
+        this.yLogScaleMin_ = Math.pow(10, onePowerLess);
+      }
+    },
+
     updateYAxis_: function(yAxis) {
       yAxis.selectAll('*').remove();
       yAxis[0][0].style.opacity = 0;
@@ -200,23 +222,16 @@ tr.exportTo('tr.ui.b', function() {
         .orient('left');
 
       if (this.isYLogScale_) {
-        var dataBySeriesKey = this.getDataBySeriesKey_();
-        var largestBin = 0;
-        tr.b.iterItems(dataBySeriesKey, function(series, values) {
-          for (var i = 0; i < values.length; i++) {
-            largestBin = Math.max(largestBin, values[i][series]);
-          }
-        });
-        if (largestBin == 0)
+        if (this.yLogScaleMin_ === undefined)
           return;
-        var ticksNeeded = Math.ceil(
-            Math.log(largestBin) / Math.log(10)) + 1;
+        var largestPower = Math.ceil(
+            Math.log(this.dataRange_.max) / Math.log(10)) + 1;
+        var smallestPower = Math.floor(
+            Math.log(this.dataRange_.min) / Math.log(10));
         var tickValues = [];
-        for (var i = 0; i < ticksNeeded; i++) {
+        for (var i = smallestPower; i < largestPower; i++) {
           tickValues.push(Math.pow(10, i));
         }
-
-        tickValues[tickValues.length - 1] = largestBin;
 
         axisModifier = axisModifier
           .tickValues(tickValues)
@@ -290,10 +305,13 @@ tr.exportTo('tr.ui.b', function() {
           if (multiSeriesDatum[seriesKey] === undefined)
             return;
 
+          if (!this.isDatumFieldSeries_(seriesKey))
+            return;
+
           var singleSeriesDatum = {x: x};
           singleSeriesDatum[seriesKey] = multiSeriesDatum[seriesKey];
           dataBySeriesKey[seriesKey].push(singleSeriesDatum);
-        });
+        }, this);
       }, this);
 
       return dataBySeriesKey;

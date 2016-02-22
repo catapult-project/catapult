@@ -33,10 +33,12 @@ tr.b.unittest.testSuite(function() {
     chart.height = 200;
     chart.chartTitle = 'Chart title';
     var data = [
-      {x: 10, value: 10},
-      {x: 20, value: 100},
-      {x: 30, value: 1000},
-      {x: 40, value: 10000}
+      {x: 10, value: 100},
+      {x: 20, value: 10},
+      {x: 30, value: 1},
+      {x: 40, value: 0.1},
+      {x: 50, value: 0.01},
+      {x: 60, value: 0.001}
     ];
     chart.data = data;
     this.addHTMLOutput(chart);
