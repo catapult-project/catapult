@@ -24,14 +24,17 @@ class GetLogsTest(testing_common.TestCase):
     logger = quick_logger.QuickLogger('test_namespace', 'test_name')
     logger.Log('First message.')
     logger.Log('Second message.')
+    # Set back the time on these records.
+    logger._records[0].timestamp -= 1
+    logger._records[1].timestamp -= 2
     logger.Save()
     response = self.testapp.post('/get_logs', {
         'namespace': 'test_namespace',
         'name': 'test_name',
         'size': 100
     })
-    responsed_logs = json.loads(response.body)
-    self.assertEqual(2, len(responsed_logs))
+    response_logs = json.loads(response.body)
+    self.assertEqual(2, len(response_logs))
 
     logger.Log('Third message.')
     logger.Save()
@@ -40,9 +43,9 @@ class GetLogsTest(testing_common.TestCase):
         'namespace': 'test_namespace',
         'name': 'test_name',
         'size': 100,
-        'after_timestamp': repr(responsed_logs[0]['timestamp'])
+        'after_timestamp': repr(response_logs[0]['timestamp'])
     })
 
-    responsed_logs = json.loads(response.body)
-    self.assertEqual(1, len(responsed_logs))
-    self.assertEqual('Third message.', responsed_logs[0]['message'])
+    response_logs = json.loads(response.body)
+    self.assertEqual(1, len(response_logs))
+    self.assertEqual('Third message.', response_logs[0]['message'])
