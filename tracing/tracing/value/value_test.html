@@ -17,32 +17,32 @@ tr.b.unittest.testSuite(function() {
   test('numericValueBasic', function() {
     var canonicalUrl = 'my_test.json';
     var n = new tr.v.ScalarNumeric(tr.b.u.Unit.byName.sizeInBytes, 314);
-    var v = new tr.v.NumericValue(canonicalUrl, 'MyFailure', n);
+    var v = new tr.v.NumericValue(canonicalUrl, 'MyNumeric', n);
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.NumericValue);
     assert.equal(v.name, v2.name);
     assert.equal(v.numeric.value, v2.numeric.value);
+    assert.equal(v.canonicalUrl, v2.canonicalUrl);
   });
 
   test('dictValueBasic', function() {
     var canonicalUrl = 'my_test.json';
-    var v = new tr.v.DictValue(canonicalUrl, 'MyFailure',
-                               {my_key: 'my_value'});
+    var v = new tr.v.DictValue(canonicalUrl, 'MyDict', {my_key: 'my_value'});
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.DictValue);
-    assert.equal(v.name, v2.name);
+    assert.equal(v.groupingKeys.value_name, v2.groupingKeys.value_name);
     assert.deepEqual(v.value, v2.value);
   });
 
   test('failureValueBasic', function() {
     var canonicalUrl = 'my_test.json';
-    var v = new tr.v.FailureValue(canonicalUrl, 'MyFailure',
-                                  {description: 'Description',
-                                   stack: tr.b.stackTraceAsString()});
+    var v = new tr.v.FailureValue(
+      canonicalUrl, 'MyFailure',
+      {description: 'Description', stack: tr.b.stackTraceAsString()});
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
@@ -50,20 +50,37 @@ tr.b.unittest.testSuite(function() {
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);
     assert.equal(v.stack, v2.stack);
+    assert.equal(v.diagnostics.canonical_url, v2.diagnostics.canonical_url);
   });
 
   test('skipValueBasic', function() {
     var canonicalUrl = 'my_test.json';
     var v = new tr.v.SkipValue(canonicalUrl, 'MySkip',
-                                  {description: 'WhySkipped'});
+                               {description: 'WhySkipped'});
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.SkipValue);
-    assert.equal(v.name, v2.name);
+    assert.equal(v.groupingKeys.value_name, v2.groupingKeys.value_name);
     assert.equal(v.description, v2.description);
   });
 
+  test('addGroupingKey', function() {
+    var canonicalUrl = 'my_test.json';
+    var n = new tr.v.ScalarNumeric(tr.b.u.Unit.byName.sizeInBytes, 314);
+    var v = new tr.v.NumericValue(canonicalUrl, 'MyScalar', n);
+
+    v.addGroupingKey('foo', 'bar');
+    assert.equal(v.groupingKeys.foo, 'bar');
+  });
+
+  test('addDuplicateGroupingKeyThrows', function() {
+    var canonicalUrl = 'my_test.json';
+    var n = new tr.v.ScalarNumeric(tr.b.u.Unit.byName.sizeInBytes, 314);
+    var v = new tr.v.NumericValue(canonicalUrl, 'MyScalar', n);
+
+    assert.throws(function() { v.addGroupingKey('name', 'bar'); });
+  });
 });
 
 </script>

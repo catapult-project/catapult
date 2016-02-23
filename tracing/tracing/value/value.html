@@ -10,16 +10,23 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v', function() {
-  function Value(canonicalUrl, name, opt_options) {
+  function Value(canonicalUrl, name, opt_options, opt_groupingKeys,
+                 opt_diagnostics) {
+    if (typeof(name) !== 'string')
+      throw new Error('Expected value_name grouping key to be provided');
+    if (canonicalUrl === undefined)
+      throw new Error('Expected canonicalUrl to be provided or null');
+
+    this.groupingKeys = opt_groupingKeys || {};
+    this.groupingKeys.name = name;
+
+    this.diagnostics = opt_diagnostics || {};
+    this.diagnostics.canonical_url = canonicalUrl;
+
     var options = opt_options || {};
-    this.guid = tr.b.GUID.allocate();
-    this.canonicalUrl = canonicalUrl;
-    this.name = name;
-    this.units = options.units;
     this.description = options.description;
     this.important = options.important !== undefined ?
         options.important : false;
-    this.irStableID = options.irStableID;
   }
 
   Value.fromDict = function(d) {
@@ -39,19 +46,32 @@ tr.exportTo('tr.v', function() {
   };
 
   Value.prototype = {
+    get name() {
+      return this.groupingKeys.name;
+    },
+
+    get canonicalUrl() {
+      return this.diagnostics.canonical_url;
+    },
+
+    addGroupingKey: function(keyName, key) {
+      if (this.groupingKeys.hasOwnProperty(keyName))
+          throw new Error('Tried to redefine grouping key ' + keyName);
+      this.groupingKeys[keyName] = key;
+    },
+
     asDict: function() {
       return this.asJSON();
     },
 
     asJSON: function() {
       var d = {
-        'canonical_url': this.canonicalUrl,
-        'name': this.name,
-        'units': this.units,
-        'description': this.description,
-        'important': this.important,
-        'ir_stable_id': this.irStableID
+        grouping_keys: this.groupingKeys,
+        description: this.description,
+        important: this.important,
+        diagnostics: this.diagnostics
       };
+
       this._asDictInto(d);
       if (d.type === undefined)
         throw new Error('_asDictInto must set type field');
@@ -63,12 +83,13 @@ tr.exportTo('tr.v', function() {
     }
   };
 
-  function NumericValue(canonicalUrl, name, numeric, opt_options) {
+  function NumericValue(canonicalUrl, name, numeric, opt_options,
+                        opt_groupingKeys, opt_diagnostics) {
     if (!(numeric instanceof tr.v.Numeric))
       throw new Error('Expected numeric to be instance of tr.v.Numeric');
 
-    var options = opt_options || {};
-    Value.call(this, canonicalUrl, name, options);
+    Value.call(this, canonicalUrl, name, opt_options, opt_groupingKeys,
+               opt_diagnostics);
     this.numeric = numeric;
   }
 
@@ -78,7 +99,8 @@ tr.exportTo('tr.v', function() {
     if (d.numeric === undefined)
       throw new Error('Expected numeric to be provided');
     var numeric = tr.v.Numeric.fromDict(d.numeric);
-    return new NumericValue(d.canonical_url, d.name, numeric, d);
+    return new NumericValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+                            numeric, d, d.grouping_keys, d.diagnostics);
   };
 
   NumericValue.prototype = {
@@ -90,9 +112,10 @@ tr.exportTo('tr.v', function() {
     }
   };
 
-  function DictValue(canonicalUrl, name, value, opt_options) {
-    var options = opt_options || {};
-    Value.call(this, canonicalUrl, name, options);
+  function DictValue(canonicalUrl, name, value, opt_options, opt_groupingKeys,
+                     opt_diagnostics) {
+    Value.call(this, canonicalUrl, name, opt_options, opt_groupingKeys,
+               opt_diagnostics);
     this.value = value;
   }
 
@@ -101,7 +124,8 @@ tr.exportTo('tr.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.value === undefined)
       throw new Error('Expected value to be provided');
-    return new DictValue(d.canonical_url, d.name, d.value, d);
+    return new DictValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+                         d.value, d, d.groupingKeys, d.diagnostics);
   };
 
   DictValue.prototype = {
@@ -114,7 +138,8 @@ tr.exportTo('tr.v', function() {
   };
 
 
-  function FailureValue(canonicalUrl, name, opt_options) {
+  function FailureValue(canonicalUrl, name, opt_options, opt_groupingKeys,
+                        opt_diagnostics) {
     var options = opt_options || {};
 
     var stack;
@@ -131,14 +156,18 @@ tr.exportTo('tr.v', function() {
     if (typeof stack !== 'string')
       throw new Error('stack must be provided as a string');
 
-    Value.call(this, canonicalUrl, name, options);
+    if (canonicalUrl === undefined) {
+      throw new Error('FailureValue must provide canonicalUrl');
+    }
+
+    Value.call(this, canonicalUrl, name, options, opt_groupingKeys,
+               opt_diagnostics);
     this.stack = stack;
   }
 
   FailureValue.fromError = function(canonicalUrl, e) {
     var ex = tr.b.normalizeException(e);
-    return new FailureValue(canonicalUrl,
-                            ex.typeName,
+    return new FailureValue(canonicalUrl, ex.typeName,
                             {description: ex.message,
                              stack: ex.stack});
 
@@ -147,9 +176,10 @@ tr.exportTo('tr.v', function() {
   FailureValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
-    if (d.name === undefined)
+    if (d.stack_str === undefined)
       throw new Error('Expected stack_str to be provided');
-    return new FailureValue(d.canonicalUrl, d.name, d);
+    return new FailureValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+                            d, d.grouping_keys, d.diagnostics);
   };
 
   FailureValue.prototype = {
@@ -162,17 +192,17 @@ tr.exportTo('tr.v', function() {
   };
 
 
-  function SkipValue(canonicalUrl, name, opt_options) {
-    var options = opt_options || {};
-    Value.call(this, canonicalUrl, name, options);
+  function SkipValue(canonicalUrl, name, opt_options, opt_groupingKeys,
+                     opt_diagnostics) {
+    Value.call(this, canonicalUrl, name, opt_options, opt_groupingKeys,
+               opt_diagnostics);
   }
 
   SkipValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
-    if (d.name === undefined)
-      throw new Error('Expected name to be provided');
-    return new SkipValue(d.canonicalUrl, d.name, d);
+    return new SkipValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+                         d, d.grouping_keys, d.diagnostics);
   };
 
   SkipValue.prototype = {
