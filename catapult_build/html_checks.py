@@ -4,6 +4,8 @@
 
 """Checks to use in PRESUBMIT.py for HTML style violations."""
 
+import collections
+import difflib
 import re
 
 import bs4
@@ -25,22 +27,40 @@ def RunChecks(input_api, output_api, excluded_paths=None):
       file_filter=ShouldCheck, include_deletes=False)
   results = []
   for f in affected_files:
-    results.extend(CheckDoctype(f, output_api))
+    CheckAffectedFile(f, results, output_api)
   return results
 
 
-def CheckDoctype(affected_file, output_api):
-  contents = '\n'.join(affected_file.NewContents())
-  if _HasHtml5Declaration(contents):
-    return []
-  error_text = ('In %s:\n' % affected_file.LocalPath() +
-                'could not find "<!DOCTYPE html>."')
-  return [output_api.PresubmitError(error_text)]
+def CheckAffectedFile(affected_file, results, output_api):
+  path = affected_file.LocalPath()
+  soup = parse_html.BeautifulSoup('\n'.join(affected_file.NewContents()))
+  for check in [CheckDoctype, CheckImportOrder]:
+    check(path, soup, results, output_api)
 
 
-def _HasHtml5Declaration(contents):
-  soup = parse_html.BeautifulSoup(contents)
+def CheckDoctype(path, soup, results, output_api):
+  if _HasHtml5Declaration(soup):
+    return
+  error_text = 'Could not find "<!DOCTYPE html>" in %s.' % path
+  results.append(output_api.PresubmitError(error_text))
+
+
+def _HasHtml5Declaration(soup):
   for item in soup.contents:
     if isinstance(item, bs4.Doctype) and item.lower() == 'html':
       return True
   return False
+
+
+def CheckImportOrder(path, soup, results, output_api):
+  grouped_hrefs = collections.defaultdict(list)  # Link rel -> [link hrefs].
+  for link in soup.find_all('link'):
+    grouped_hrefs[','.join(link.get('rel'))].append(link.get('href'))
+
+  for rel, actual_hrefs in grouped_hrefs.iteritems():
+    expected_hrefs = list(sorted(set(actual_hrefs)))
+    if actual_hrefs != expected_hrefs:
+      error_text = (
+          'Invalid "%s" link sort order in %s:\n' % (rel, path) +
+          '  ' + '\n  '.join(difflib.ndiff(actual_hrefs, expected_hrefs)))
+      results.append(output_api.PresubmitError(error_text))
