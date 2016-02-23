@@ -64,6 +64,7 @@ def _FindMatchingUnstrippedLibraryOnHost(device, lib):
     return None
 
   out_path = None
+  stripped_host_lib = None
   for out_path in util.GetBuildDirectories():
     stripped_host_lib = FindMatchingStrippedLibrary(out_path)
     if stripped_host_lib:
@@ -291,6 +292,7 @@ def GetToolchainBinaryPath(library_file, binary_name):
   if not toolchain_version:
     return None
   toolchain_version = toolchain_version.group(1)
+  toolchain_version = toolchain_version.replace('.x', '')
 
   toolchain_path = os.path.abspath(os.path.join(
       util.GetChromiumSrcDir(), 'third_party', 'android_tools', 'ndk',
