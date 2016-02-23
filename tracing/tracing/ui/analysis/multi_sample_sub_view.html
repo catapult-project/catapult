@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-multi-sample-sub-view"
     extends="tr-ui-a-sub-view">
@@ -145,7 +145,7 @@ found in the LICENSE file.
             var span = document.createElement('tr-ui-u-scalar-span');
             span.value = (percent * 100).toFixed(2);
             span.percentage = percent;
-            span.unit = tr.b.u.Unit.byName.unitlessNumber;
+            span.unit = tr.v.Unit.byName.unitlessNumber;
             return span;
 
           }.bind(this),

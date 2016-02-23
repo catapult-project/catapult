@@ -7,10 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/perf_insights/mappers/thread_grouping.html">
-<link rel="import" href="/tracing/base/units/histogram.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/slice.html">
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -98,8 +98,8 @@ tr.exportTo('pi.m', function() {
   function addToHistogram(dict, processName, threadName, value, url) {
     dict[processName] = dict[processName] || {};
     dict[processName][threadName] = dict[processName][threadName] ||
-        tr.b.u.Histogram.createLinear(
-            tr.b.u.Unit.byName.timeDurationInMs,
+        tr.v.Histogram.createLinear(
+            tr.v.Unit.byName.timeDurationInMs,
             tr.b.Range.fromExplicitRange(0, HISTOGRAM_MAX),
             NUM_BINS);
     dict[processName][threadName].add(value, url);

@@ -5,11 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time_display_mode.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -24,7 +23,7 @@ tr.exportTo('tr.ui.units', function() {
     var config = opt_config || {};
     var ownerDocument = config.ownerDocument || document;
     var span = ownerDocument.createElement('tr-ui-u-time-duration-span');
-    span.setValueAndUnit(duration, tr.b.u.Unit.byName.timeDurationInMs);
+    span.setValueAndUnit(duration, tr.v.Unit.byName.timeDurationInMs);
     if (config.total)
       span.percentage = duration / config.total;
     span.duration = duration;
@@ -52,13 +51,13 @@ tr.exportTo('tr.ui.units', function() {
 
     set duration(duration) {
       if (duration instanceof tr.v.ScalarNumeric) {
-        if (duration.unit !== tr.b.u.Unit.byName.timeDurationInMs) {
+        if (duration.unit !== tr.v.Unit.byName.timeDurationInMs) {
           throw new Error(
               'Invalid time duration scalar unit: ' + duration.unit);
         }
         duration = duration.value;
       }
-      this.setValueAndUnit(duration, tr.b.u.Unit.byName.timeDurationInMs);
+      this.setValueAndUnit(duration, tr.v.Unit.byName.timeDurationInMs);
     }
   });
   </script>

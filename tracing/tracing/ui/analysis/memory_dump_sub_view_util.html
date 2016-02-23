@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -706,12 +706,12 @@ tr.exportTo('tr.ui.analysis', function() {
       var sizeEl = document.createElement('tr-ui-u-scalar-span');
       sizeEl.value = value;
 
-      // TODO(petrcermak): Figure out if/how we can use tr.b.u.Units.fromJSON.
+      // TODO(petrcermak): Figure out if/how we can use tr.v.Units.fromJSON.
       var unitBaseName = this.units === 'bytes' ?
           'sizeInBytes' : 'unitlessNumber';
       var unitSuffix = isDelta ? 'Delta' : '';
       var unitName = unitBaseName + unitSuffix + '_smallerIsBetter';
-      sizeEl.unit = tr.b.u.Unit.byName[unitName];
+      sizeEl.unit = tr.v.Unit.byName[unitName];
 
       return sizeEl;
     },

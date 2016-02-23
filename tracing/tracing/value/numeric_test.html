@@ -4,8 +4,9 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/units/unit.html">
+
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -17,12 +18,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nonNumberScalarThrows', function() {
-    var unit = tr.b.u.Unit.byName.sizeInBytes;
+    var unit = tr.v.Unit.byName.sizeInBytes;
     assert.throws(function() { new tr.v.ScalarNumeric(unit, 'foo'); });
   });
 
   test('scalarBasic', function() {
-    var unit = tr.b.u.Unit.byName.sizeInBytes;
+    var unit = tr.v.Unit.byName.sizeInBytes;
 
     var d = {
       type: 'scalar',

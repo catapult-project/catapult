@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/units/time_stamp_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-power-sample-summary-table">
   <template>
@@ -24,21 +24,21 @@ found in the LICENSE file.
           title: 'Min power',
           width: '100px',
           value: function(row) {
-            return tr.b.u.Unit.byName.powerInWatts.format(row.min / 1000.0);
+            return tr.v.Unit.byName.powerInWatts.format(row.min / 1000.0);
           }
         },
         {
           title: 'Max power',
           width: '100px',
           value: function(row) {
-            return tr.b.u.Unit.byName.powerInWatts.format(row.max / 1000.0);
+            return tr.v.Unit.byName.powerInWatts.format(row.max / 1000.0);
           }
         },
         {
           title: 'Time-weighted average',
           width: '100px',
           value: function(row) {
-            return tr.b.u.Unit.byName.powerInWatts.format(
+            return tr.v.Unit.byName.powerInWatts.format(
                 row.timeWeightedAverage / 1000.0);
           }
         },
@@ -46,7 +46,7 @@ found in the LICENSE file.
           title: 'Energy consumed',
           width: '100px',
           value: function(row) {
-            return tr.b.u.Unit.byName.energyInJoules.format(row.energyConsumed);
+            return tr.v.Unit.byName.energyInJoules.format(row.energyConsumed);
           }
         },
         {

@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/utils.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -16,7 +16,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('numericValueBasic', function() {
     var canonicalUrl = 'my_test.json';
-    var n = new tr.v.ScalarNumeric(tr.b.u.Unit.byName.sizeInBytes, 314);
+    var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
     var v = new tr.v.NumericValue(canonicalUrl, 'MyNumeric', n);
     var d = v.asDict();
 
@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
 
   test('addGroupingKey', function() {
     var canonicalUrl = 'my_test.json';
-    var n = new tr.v.ScalarNumeric(tr.b.u.Unit.byName.sizeInBytes, 314);
+    var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
     var v = new tr.v.NumericValue(canonicalUrl, 'MyScalar', n);
 
     v.addGroupingKey('foo', 'bar');
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
 
   test('addDuplicateGroupingKeyThrows', function() {
     var canonicalUrl = 'my_test.json';
-    var n = new tr.v.ScalarNumeric(tr.b.u.Unit.byName.sizeInBytes, 314);
+    var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
     var v = new tr.v.NumericValue(canonicalUrl, 'MyScalar', n);
 
     assert.throws(function() { v.addGroupingKey('name', 'bar'); });

@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_heap_details_pane.html">
@@ -15,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-memory-dump-allocator-details-pane"
     extends="tr-ui-a-stacked-pane">
@@ -209,7 +209,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     appendSizeIfDefined: function(size) {
       if (size !== undefined)
-        this.append(' (', tr.b.u.Unit.byName.sizeInBytes.format(size), ')');
+        this.append(' (', tr.v.Unit.byName.sizeInBytes.format(size), ')');
     },
 
     appendSomeTimestampsQuantifier: function() {
