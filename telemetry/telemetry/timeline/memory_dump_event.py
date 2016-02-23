@@ -73,7 +73,7 @@ ROOT_CATEGORY = MmapCategory('/', None, [
                r'^((\[heap\])|(\[anon:)|(\/dev\/ashmem\/libc malloc)|$)'),
   MmapCategory('Stack', r'^\[stack'),
   MmapCategory('Files',
-               r'\.((((so)|(jar)|(apk)|(ttf)|(odex)|(oat)|(arg))$)|(dex))', [
+               r'\.((((so)|(jar)|(apk)|(ttf)|(odex)|(oat)|(art))$)|(dex))', [
     MmapCategory('so', r'\.so$'),
     MmapCategory('jar', r'\.jar$'),
     MmapCategory('apk', r'\.apk$'),
