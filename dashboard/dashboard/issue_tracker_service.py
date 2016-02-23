@@ -80,6 +80,11 @@ class IssueTrackerService(object):
 
     return self._MakeCommentRequest(bug_id, body)
 
+  def List(self, **kwargs):
+    """Make a request to the issue tracker to list bugs."""
+    request = self._service.issues().list(projectId='chromium', **kwargs)
+    return self._ExecuteRequest(request)
+
   def _MakeCommentRequest(self, bug_id, body):
     """Make a request to the issue tracker to update a bug."""
     request = self._service.issues().comments().insert(

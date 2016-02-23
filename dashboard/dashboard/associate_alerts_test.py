@@ -2,14 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
 import unittest
 
 import mock
 import webapp2
 import webtest
 
+# pylint: disable=unused-import
+from dashboard import mock_oauth2_decorator
+# pylint: enable=unused-import
+
 from dashboard import associate_alerts
+from dashboard import issue_tracker_service
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
@@ -91,30 +95,27 @@ class AssociateAlertsTest(testing_common.TestCase):
     self.assertIn('<div class="error">', response.body)
     self.assertIn('Invalid bug ID', response.body)
 
-  # In this test method, the request handler is expected to use urlfetch.fetch
-  # to request recent bug information. Below is some sample data in the format
-  # returned by this request.
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(
-          200, json.dumps({
-              'items': [
-                  {
-                      'id': 12345,
-                      'summary': '5% regression in bot/suite/x at 10000:20000',
-                      'state': 'open',
-                      'status': 'New',
-                      'author': {'name': 'exam...@google.com'},
-                  },
-                  {
-                      'id': 13579,
-                      'summary': '1% regression in bot/suite/y at 10000:20000',
-                      'state': 'closed',
-                      'status': 'WontFix',
-                      'author': {'name': 'exam...@google.com'},
-                  },
-              ]})
-      )))
+  # Mocks fetching bugs from issue tracker.
+  @mock.patch('issue_tracker_service.discovery.build', mock.MagicMock())
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService, 'List',
+      mock.MagicMock(return_value={
+          'items': [
+              {
+                  'id': 12345,
+                  'summary': '5% regression in bot/suite/x at 10000:20000',
+                  'state': 'open',
+                  'status': 'New',
+                  'author': {'name': 'exam...@google.com'},
+              },
+              {
+                  'id': 13579,
+                  'summary': '1% regression in bot/suite/y at 10000:20000',
+                  'state': 'closed',
+                  'status': 'WontFix',
+                  'author': {'name': 'exam...@google.com'},
+              },
+          ]}))
   def testGet_NoBugId_ShowsDialog(self):
     # When a GET request is made with some anomaly keys but no bug ID,
     # A HTML form is shown for the user to input a bug number.
