@@ -13,12 +13,12 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
 
   test('nonUnitThrows', function() {
-    assert.throws(function() {tr.v.Numeric('foo')});
+    assert.throws(function() { new tr.v.Numeric('foo', -273.15); });
   });
 
   test('nonNumberScalarThrows', function() {
     var unit = tr.b.u.Unit.byName.sizeInBytes;
-    assert.throws(function() {tr.v.Scalar(unit, 'foo')});
+    assert.throws(function() { new tr.v.ScalarNumeric(unit, 'foo'); });
   });
 
   test('scalarBasic', function() {
