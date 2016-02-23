@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/scalar.html">
 <link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
+<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -100,7 +100,7 @@ tr.exportTo('tr.ui.units', function() {
     },
 
     set value(value) {
-      if (value instanceof tr.b.u.Scalar) {
+      if (value instanceof tr.v.ScalarNumeric) {
         this.value_ = value.value;
         this.unit_ = value.unit;
       } else {

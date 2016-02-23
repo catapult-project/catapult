@@ -59,7 +59,6 @@
       'tracing/base/timing.html',
       'tracing/base/units/generic_table.html',
       'tracing/base/units/histogram.html',
-      'tracing/base/units/scalar.html',
       'tracing/base/units/time_display_mode.html',
       'tracing/base/units/unit.html',
       'tracing/base/utils.html',
@@ -436,6 +435,7 @@
       'tracing/ui/units/time_duration_span.html',
       'tracing/ui/units/time_stamp_span.html',
       'tracing/ui/view_specific_brushing_state.html',
+      'tracing/value/numeric.html'
     ],
     'tracing_img_files': [
       'tracing/ui/extras/chrome/cc/images/input-event.png',
