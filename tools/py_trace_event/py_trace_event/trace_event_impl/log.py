@@ -73,27 +73,26 @@ def _trace_enable(log_file=None):
         "Log file must be None, a string, or file-like object with a fileno()")
 
   _log_file = log_file
-  lock.AcquireFileLock(_log_file, lock.LOCK_EX)
-  _log_file.seek(0, os.SEEK_END)
+  with lock.FileLock(_log_file, lock.LOCK_EX):
+    _log_file.seek(0, os.SEEK_END)
 
-  lastpos = _log_file.tell()
-  creator = lastpos == 0
-  if creator:
-    _note("trace_event: Opened new tracelog, lastpos=%i", lastpos)
-    _log_file.write('[')
+    lastpos = _log_file.tell()
+    creator = lastpos == 0
+    if creator:
+      _note("trace_event: Opened new tracelog, lastpos=%i", lastpos)
+      _log_file.write('[')
 
-    tid = threading.current_thread().ident
-    if not tid:
-      tid = os.getpid()
-    x = {"ph": "M", "category": "process_argv",
-         "pid": os.getpid(), "tid": threading.current_thread().ident,
-         "ts": time.time(),
-         "name": "process_argv", "args": {"argv": sys.argv}}
-    _log_file.write("%s\n" % json.dumps(x))
-  else:
-    _note("trace_event: Opened existing tracelog")
-  _log_file.flush()
-  lock.ReleaseFileLock(_log_file)
+      tid = threading.current_thread().ident
+      if not tid:
+        tid = os.getpid()
+      x = {"ph": "M", "category": "process_argv",
+           "pid": os.getpid(), "tid": threading.current_thread().ident,
+           "ts": time.time(),
+           "name": "process_argv", "args": {"argv": sys.argv}}
+      _log_file.write("%s\n" % json.dumps(x))
+    else:
+      _note("trace_event: Opened existing tracelog")
+    _log_file.flush()
 
 @_locked
 def trace_flush():
@@ -112,21 +111,20 @@ def trace_disable():
 
 def _flush(close=False):
   global _log_file
-  lock.AcquireFileLock(_log_file, lock.LOCK_EX)
-  _log_file.seek(0, os.SEEK_END)
-  if len(_cur_events):
-    _log_file.write(",\n")
-    _log_file.write(",\n".join([json.dumps(e) for e in _cur_events]))
-    del _cur_events[:]
+  with lock.FileLock(_log_file, lock.LOCK_EX):
+    _log_file.seek(0, os.SEEK_END)
+    if len(_cur_events):
+      _log_file.write(",\n")
+      _log_file.write(",\n".join([json.dumps(e) for e in _cur_events]))
+      del _cur_events[:]
 
-  if close:
-    # We might not be the only process writing to this logfile. So,
-    # we will simply close the file rather than writign the trailing ] that
-    # it technically requires. The trace viewer understands that this may happen
-    # and will insert a trailing ] during loading.
-    pass
-  _log_file.flush()
-  lock.ReleaseFileLock(_log_file)
+    if close:
+      # We might not be the only process writing to this logfile. So,
+      # we will simply close the file rather than writign the trailing ] that
+      # it technically requires. The trace viewer understands that this may
+      # happen and will insert a trailing ] during loading.
+      pass
+    _log_file.flush()
 
   if close:
     _note("trace_event: Closed")

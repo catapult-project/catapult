@@ -2,10 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import ast
+import contextlib
+import gc
 import os
 import sys
+import tempfile
+import time
 import traceback
+import uuid
 
+from py_trace_event import trace_event
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
@@ -35,10 +42,15 @@ class TracingControllerBackend(object):
         agent_classes for agent_classes in _IterAllTracingAgentClasses() if
         agent_classes.IsSupported(platform_backend)]
     self._active_agents_instances = []
+    self._trace_log = None
 
   def StartTracing(self, config, timeout):
     if self.is_tracing_running:
       return False
+
+    tf = tempfile.NamedTemporaryFile(delete=False)
+    self._trace_log = tf.name
+    tf.close()
 
     assert isinstance(config, tracing_config.TracingConfig)
     assert len(self._active_agents_instances) == 0
@@ -55,52 +67,87 @@ class TracingControllerBackend(object):
       self._supported_agents_classes.append(
           chrome_tracing_agent.ChromeTracingAgent)
 
+    self.StartAgentTracing(config, timeout)
     for agent_class in self._supported_agents_classes:
       agent = agent_class(self._platform_backend)
       if agent.StartAgentTracing(config, timeout):
         self._active_agents_instances.append(agent)
+    return True
+
+  def _GenerateClockSyncId(self):
+    return str(uuid.uuid4())
+
+  @contextlib.contextmanager
+  def _DisableGarbageCollection(self):
+    try:
+      gc.disable()
+      yield
+    finally:
+      gc.enable()
 
   def StopTracing(self):
     assert self.is_tracing_running, 'Can only stop tracing when tracing is on.'
     trace_data_builder = trace_data_module.TraceDataBuilder()
+    self._IssueClockSyncMarker()
 
-    raised_execption_messages = []
-    for agent in self._active_agents_instances:
+    raised_exception_messages = []
+    for agent in self._active_agents_instances + [self]:
       try:
         agent.StopAgentTracing(trace_data_builder)
       except Exception:
-        raised_execption_messages.append(
+        raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     self._active_agents_instances = []
     self._current_config = None
 
-    if raised_execption_messages:
+    if raised_exception_messages:
       raise TracingControllerStoppedError(
           'Exceptions raised when trying to stop tracing:\n' +
-          '\n'.join(raised_execption_messages))
+          '\n'.join(raised_exception_messages))
 
     return trace_data_builder.AsData()
 
   def StartAgentTracing(self, config, timeout):
-    # TODO(rnephew): Used when implementing clock sync.
-    pass
+    del config # not used
+    del timeout # not used
+    assert not trace_event.trace_is_enabled(), 'Tracing Already running.'
+    trace_event.trace_enable(self._trace_log)
+    assert trace_event.trace_is_enabled(), 'Tracing didn\'t enable properly.'
+    return True
 
   def StopAgentTracing(self, trace_data_builder):
-    # TODO(rnephew) Used when implementing clock sync.
-    pass
+    assert trace_event.trace_is_enabled(), 'Tracing not running.'
+    trace_event.trace_disable()
+    assert not trace_event.trace_is_enabled(), 'Tracing didnt disable properly.'
+    with open(self._trace_log, 'r') as fp:
+      data = ast.literal_eval(fp.read() + ']')
+    trace_data_builder.AddEventsTo(trace_data_module.TELEMETRY_PART,
+                                   data)
+    os.remove(self._trace_log)
+    self._trace_log = None
 
   def SupportsExplicitClockSync(self):
-    return False
+    return True
 
-  def RecordClockSyncMarker(self, sync_id):
+  def _RecordIssuerClockSyncMarker(self, sync_id, issue_ts):
     """ Record clock sync event.
 
     Args:
       sync_id: Unqiue id for sync event.
+      issue_ts: timestamp. If set, it is the issuer of the clock sync event.
     """
-    # TODO(rnephew): Implement clock sync for trace controller.
-    del sync_id # unused
+    trace_event.clock_sync(sync_id, issue_ts=issue_ts)
+
+  def _IssueClockSyncMarker(self):
+    with self._DisableGarbageCollection():
+      for agent in self._active_agents_instances:
+        if agent.SupportsExplicitClockSync():
+          sync_id = self._GenerateClockSyncId()
+          # TODO(rnephew): Move to monotomic() when available.
+          ts = time.time()
+          agent.RecordClockSyncMarker(sync_id)
+          self._RecordIssuerClockSyncMarker(sync_id, ts)
 
   def IsChromeTracingSupported(self):
     return chrome_tracing_agent.ChromeTracingAgent.IsSupported(
