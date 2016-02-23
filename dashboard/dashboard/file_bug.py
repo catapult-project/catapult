@@ -54,8 +54,15 @@ class FileBugHandler(request_handler.RequestHandler):
       HTML, using the template 'bug_result.html'.
     """
     if not utils.IsValidSheriffUser():
-      user = users.get_current_user()
-      self.ReportError('User "%s" not authorized.' % user, status=403)
+      # TODO(qyearsley): Simplify this message (after a couple months).
+      self.RenderHtml('bug_result.html', {
+          'error': ('You must be logged in with a chromium.org account '
+                    'in order to file bugs here! This is the case ever '
+                    'since we switched to the Monorail issue tracker. '
+                    'Note, viewing internal data should work for Googlers '
+                    'that are logged in with the Chromium accounts. See '
+                    'https://github.com/catapult-project/catapult/issues/2042')
+      })
       return
 
     summary = self.request.get('summary')
@@ -82,11 +89,6 @@ class FileBugHandler(request_handler.RequestHandler):
       description: The default bug description string.
       urlsafe_keys: Comma-separated Alert keys in urlsafe format.
     """
-    # Fill in the owner field with the logged in user's email. For convenience,
-    # if it's a @google.com account, swap @google.com with @chromium.org.
-    user_email = users.get_current_user().email()
-    if user_email.endswith('@google.com'):
-      user_email = user_email.replace('@google.com', '@chromium.org')
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
     labels, components = _FetchLabelsAndComponents(alert_keys)
     self.RenderHtml('bug_result.html', {
@@ -96,7 +98,7 @@ class FileBugHandler(request_handler.RequestHandler):
         'description': description,
         'labels': labels,
         'components': components,
-        'owner': user_email,
+        'owner': users.get_current_user(),
     })
 
   def _CreateBug(self, summary, description, labels, components, urlsafe_keys):
