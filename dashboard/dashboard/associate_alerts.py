@@ -4,30 +4,17 @@
 
 """Provides an endpoint and web interface for associating alerts with bug."""
 
-import json
-import logging
 import re
-import urllib
 
-from google.appengine.api import urlfetch
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
+from dashboard import issue_tracker_service
+from dashboard import oauth2_decorator
 from dashboard import request_handler
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import stoppage_alert
-
-# The API for fetching info from the issue tracker appears to be similar to
-# that described at <https://code.google.com/p/support/wiki/IssueTrackerAPI>.
-_RECENT_BUGS_QUERY = (
-    'https://www.googleapis.com/projecthosting/v2/projects/chromium/issues'
-    '?' + urllib.urlencode({
-        'q': 'label:Type-Bug-Regression label:Performance opened-after:today-5',
-        'fields': 'items(id,state,status,summary,author)',
-        'sort': '-id',
-        'can': 'all',
-        'key': 'AIzaSyDrEBALf59D7TkOuz-bBuOnN2OqzD70NCQ'}))
 
 
 class AssociateAlertsHandler(request_handler.RequestHandler):
@@ -37,6 +24,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     """POST is the same as GET for this endpoint."""
     self.get()
 
+  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Response handler for the page used to group an alert with a bug.
 
@@ -74,15 +62,6 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     Args:
       urlsafe_keys: Comma-separated Alert keys in urlsafe format.
     """
-    # Fetch metadata about recent bugs.
-    response = urlfetch.fetch(_RECENT_BUGS_QUERY)
-    if response.status_code == 200:
-      bugs = json.loads(response.content)
-      bugs = bugs.get('items', []) if bugs else []
-    else:
-      logging.error('Couldn\'t fetch recent bugs from www.googleapis.com.')
-      bugs = []
-
     # Get information about Alert entities and related Test entities,
     # so that they can be compared with recent bugs.
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
@@ -93,6 +72,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     # On the alerts page, alerts are only highlighted if the revision range
     # overlaps with the revision ranges for all of the selected alerts; the
     # same thing is done here.
+    bugs = self._FetchBugs()
     for bug in bugs:
       this_range = _RevisionRangeFromSummary(bug['summary'])
       bug['relevant'] = all(_RangesOverlap(this_range, r) for r in ranges)
@@ -102,6 +82,14 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
         'keys': urlsafe_keys,
         'bugs': bugs
     })
+
+  def _FetchBugs(self):
+    http = oauth2_decorator.DECORATOR.http()
+    issue_tracker = issue_tracker_service.IssueTrackerService(http=http)
+    response = issue_tracker.List(
+        q='opened-after:today-5', label='Type-Bug-Regression,Performance',
+        sort='-id')
+    return response.get('items', []) if response else []
 
   def _AssociateAlertsWithBug(self, bug_id, urlsafe_keys, is_confirmed):
     """Sets the bug ID for a set of alerts.
