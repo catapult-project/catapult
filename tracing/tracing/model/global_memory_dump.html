@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/event_registry.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -80,7 +80,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Global memory dump at ' +
-          tr.b.u.Unit.byName.timeStampInMs.format(this.start);
+          tr.v.Unit.byName.timeStampInMs.format(this.start);
     },
 
     get containerName() {
@@ -233,9 +233,9 @@ tr.exportTo('tr.model', function() {
             type: 'memory_dump_parse_error',
             message: 'Size provided by memory allocator dump \'' +
                 dump.fullName + '\'' +
-                tr.b.u.Unit.byName.sizeInBytes.format(size) +
+                tr.v.Unit.byName.sizeInBytes.format(size) +
                 ') is less than ' + dependencyName + ' (' +
-                tr.b.u.Unit.byName.sizeInBytes.format(dependencySize) + ').'
+                tr.v.Unit.byName.sizeInBytes.format(dependencySize) + ').'
           });
           infos.push({
             type: dependencyInfoType,

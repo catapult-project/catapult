@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/extension_registry.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/timed_event.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -94,7 +94,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Async slice ' + this.title + ' at ' +
-          tr.b.u.Unit.byName.timeStampInMs.format(this.start);
+          tr.v.Unit.byName.timeStampInMs.format(this.start);
     },
 
     get stableId() {

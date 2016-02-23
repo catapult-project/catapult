@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/task.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/alert.html">
@@ -32,6 +31,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/model/user_model/user_model.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
+<link rel="import" href="/tracing/value/time_display_mode.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -205,7 +206,7 @@ tr.exportTo('tr', function() {
     convertTimestampToModelTime: function(sourceClockDomainName, ts) {
       if (sourceClockDomainName !== 'traceEventClock')
         throw new Error('Only traceEventClock is supported.');
-      return tr.b.u.Unit.timestampFromUs(ts) +
+      return tr.v.Unit.timestampFromUs(ts) +
         this.timestampShiftToZeroAmount_;
     },
 
@@ -381,7 +382,7 @@ tr.exportTo('tr', function() {
      */
     get intrinsicTimeUnit() {
       if (this.intrinsicTimeUnit_ === undefined)
-        return tr.b.u.TimeDisplayModes.ms;
+        return tr.v.TimeDisplayModes.ms;
       return this.intrinsicTimeUnit_;
     },
 
@@ -575,7 +576,7 @@ tr.exportTo('tr', function() {
     },
 
     isTimeHighResolutionHeuristic_: function() {
-      if (this.intrinsicTimeUnit !== tr.b.u.TimeDisplayModes.ms)
+      if (this.intrinsicTimeUnit !== tr.v.TimeDisplayModes.ms)
         return false;
       // If the timer is only precise to the millisecond, then almost all event
       // will be precisely X ms apart. We check that by looking at the

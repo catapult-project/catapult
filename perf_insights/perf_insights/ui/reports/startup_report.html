@@ -4,16 +4,17 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/perf_insights/mappers/slice_cost.html">
+<link rel="import" href="/perf_insights/ui/caching_column.html">
+<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/grouping_table.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/tracing/ui/units/histogram_span.html">
-<link rel="import" href="/perf_insights/ui/caching_column.html">
-<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
-<link rel="import" href="/perf_insights/mappers/slice_cost.html">
+<link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="pi-ui-r-startup-report"
     extends="pi-ui-r-pi-report"
@@ -244,7 +245,7 @@ found in the LICENSE file.
           return undefined;
         mean /= totalStartupDuration;
         var span = tr.ui.units.createScalarSpan(mean);
-        span.unit = tr.b.u.Unit.byName.normalizedPercentage;
+        span.unit = tr.v.Unit.byName.normalizedPercentage;
         span.percentage = mean;
         return span;
       }

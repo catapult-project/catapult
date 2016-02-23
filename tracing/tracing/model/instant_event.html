@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/model/timed_event.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -45,7 +45,7 @@ tr.exportTo('tr.model', function() {
     __proto__: InstantEvent.prototype,
     get userFriendlyName() {
       return 'Global instant event ' + this.title + ' @ ' +
-          tr.b.u.Unit.byName.timeStampInMs.format(start);
+          tr.v.Unit.byName.timeStampInMs.format(start);
     }
   };
 
@@ -59,7 +59,7 @@ tr.exportTo('tr.model', function() {
 
     get userFriendlyName() {
       return 'Process-level instant event ' + this.title + ' @ ' +
-          tr.b.u.Unit.byName.timeStampInMs.format(start);
+          tr.v.Unit.byName.timeStampInMs.format(start);
     }
   };
 

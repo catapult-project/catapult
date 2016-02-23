@@ -8,13 +8,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/model/alert.html">
 <link rel="import" href="/tracing/model/frame.html">
 <link rel="import" href="/tracing/model/helpers/android_model_helper.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -32,7 +32,7 @@ tr.exportTo('tr.e.audits', function() {
   var Alert = tr.model.Alert;
   var EventInfo = tr.model.EventInfo;
   var ScalarNumeric = tr.v.ScalarNumeric;
-  var timeDurationInMs = tr.b.u.Unit.byName.timeDurationInMs;
+  var timeDurationInMs = tr.v.Unit.byName.timeDurationInMs;
 
   // TODO: extract from VSYNC, since not all devices have vsync near 60fps
   var EXPECTED_FRAME_TIME_MS = 16.67;

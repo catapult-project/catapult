@@ -4,14 +4,15 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/units/unit.html">
+
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v', function() {
   function Numeric(unit) {
-    if (!(unit instanceof tr.b.u.Unit))
+    if (!(unit instanceof tr.v.Unit))
       throw new Error('Expected provided unit to be instance of Unit');
 
     this.unit = unit;
@@ -57,7 +58,7 @@ tr.exportTo('tr.v', function() {
   };
 
   ScalarNumeric.fromDict = function(d) {
-    return new ScalarNumeric(tr.b.u.Unit.fromJSON(d.unit), d.value);
+    return new ScalarNumeric(tr.v.Unit.fromJSON(d.unit), d.value);
   };
 
   return {

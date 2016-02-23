@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time_display_mode.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/annotation.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/value/time_display_mode.html">
 
 <script>
 'use strict';
@@ -263,7 +263,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('model_intrinsicTimeUnit', function() {
-    var unit = tr.b.u.TimeDisplayModes;
+    var unit = tr.v.TimeDisplayModes;
     var m = new tr.Model();
 
     // by default it should be milliseconds

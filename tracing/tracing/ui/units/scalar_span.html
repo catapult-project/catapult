@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -23,7 +23,7 @@ tr.exportTo('tr.ui.units', function() {
     return span;
   }
 
-  tr.b.u.Unit.addEventListener('display-mode-changed', function(e) {
+  tr.v.Unit.addEventListener('display-mode-changed', function(e) {
     var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
         'tr-ui-u-scalar-span');
     var isSubclass = {};
@@ -163,8 +163,8 @@ tr.exportTo('tr.ui.units', function() {
 
       this.$.content.textContent = this.unit_.format(this.value);
 
-      var BIGGER_IS_BETTER = tr.b.u.ImprovementDirection.BIGGER_IS_BETTER;
-      var SMALLER_IS_BETTER = tr.b.u.ImprovementDirection.SMALLER_IS_BETTER;
+      var BIGGER_IS_BETTER = tr.v.ImprovementDirection.BIGGER_IS_BETTER;
+      var SMALLER_IS_BETTER = tr.v.ImprovementDirection.SMALLER_IS_BETTER;
       var color = '';
       if (this.unit_.isDelta) {
         var improvementDirection = this.unit_.improvementDirection;

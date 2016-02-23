@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/units/time_display_mode.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/time_display_mode.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiateWithObject', function() {
     var timeSpan = document.createElement('tr-ui-u-time-duration-span');
     timeSpan.duration =
-        new tr.v.ScalarNumeric(tr.b.u.Unit.byName.timeDurationInMs, 73);
+        new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 73);
     this.addHTMLOutput(timeSpan);
     assert.equal(timeSpan.duration, 73);
   });
@@ -78,17 +78,17 @@ tr.b.unittest.testSuite(function() {
 
   test('respectCurrentDisplayUnit', function() {
     try {
-      tr.b.u.Unit.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ns;
+      tr.v.Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ns;
 
       var timeSpan = document.createElement('tr-ui-u-time-duration-span');
       timeSpan.duration = 73;
       this.addHTMLOutput(timeSpan);
 
       assert.isTrue(timeSpan.$.content.textContent.indexOf('ns') > 0);
-      tr.b.u.Unit.currentTimeDisplayMode = tr.b.u.TimeDisplayModes.ms;
+      tr.v.Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ms;
       assert.isTrue(timeSpan.$.content.textContent.indexOf('ms') > 0);
     } finally {
-      tr.b.u.Unit.reset();
+      tr.v.Unit.reset();
     }
   });
 

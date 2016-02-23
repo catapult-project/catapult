@@ -61,7 +61,7 @@ found in the LICENSE file.
       var total_from_categories = 0;
       this.mapResults_.forEach(function(result) {
         var histogramDict = result.pairs.stats.events_seconds;
-        var histogram = tr.b.u.Histogram.fromDict(histogramDict);
+        var histogram = tr.v.Histogram.fromDict(histogramDict);
         if (histograms !== undefined)
           histograms.addHistogram(histogram);
         else

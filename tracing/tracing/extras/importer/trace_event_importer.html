@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/base/units/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
@@ -30,6 +29,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -52,8 +52,8 @@ tr.exportTo('tr.e.importer', function() {
     }
   }
 
-  var timestampFromUs = tr.b.u.Unit.timestampFromUs;
-  var maybeTimestampFromUs = tr.b.u.Unit.maybeTimestampFromUs;
+  var timestampFromUs = tr.v.Unit.timestampFromUs;
+  var maybeTimestampFromUs = tr.v.Unit.maybeTimestampFromUs;
 
   var PRODUCER = 'producer';
   var CONSUMER = 'consumer';
@@ -157,7 +157,7 @@ tr.exportTo('tr.e.importer', function() {
       // Some implementations specify displayTimeUnit
       if (container.displayTimeUnit) {
         var unitName = container.displayTimeUnit;
-        var unit = tr.b.u.TimeDisplayModes[unitName];
+        var unit = tr.v.TimeDisplayModes[unitName];
         if (unit === undefined) {
           throw new Error('Unit ' + unitName + ' is not supported.');
         }

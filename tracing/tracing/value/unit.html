@@ -7,13 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/event_target.html">
-<link rel="import" href="/tracing/base/units/time_display_mode.html">
+<link rel="import" href="/tracing/value/time_display_mode.html">
 
 <script>
 'use strict';
 
-tr.exportTo('tr.b.u', function() {
-  var TimeDisplayModes = tr.b.u.TimeDisplayModes;
+tr.exportTo('tr.v', function() {
+  var TimeDisplayModes = tr.v.TimeDisplayModes;
 
   var BINARY_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
 

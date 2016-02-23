@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/compound_event_selection_state.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/timed_event.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -53,7 +54,7 @@ tr.exportTo('tr.model.um', function() {
 
     get userFriendlyName() {
       return this.title + ' User Expectation at ' +
-          tr.b.u.Unit.byName.timeStampInMs.format(this.start);
+          tr.v.Unit.byName.timeStampInMs.format(this.start);
     },
 
     get stableId() {
