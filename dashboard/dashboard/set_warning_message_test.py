@@ -20,10 +20,11 @@ class SetWarningMessageTest(testing_common.TestCase):
         [('/set_warning_message',
           set_warning_message.SetWarningMessageHandler)])
     self.testapp = webtest.TestApp(app)
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
 
   def testGet_VariablesSet(self):
-    self.SetCurrentUser('bar@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     layered_cache.Set('warning_message', 'The Message')
     layered_cache.Set('warning_bug', '12345')
     response = self.testapp.get('/set_warning_message')
@@ -36,7 +37,7 @@ class SetWarningMessageTest(testing_common.TestCase):
     self.assertIn('Only logged-in internal users', response)
 
   def testPost_NotLoggedIn(self):
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     response = self.testapp.post(
         '/set_warning_message',
         {'warning_bug': '54321', 'warning_message': 'Stern warning'})
@@ -45,7 +46,7 @@ class SetWarningMessageTest(testing_common.TestCase):
     self.assertIn('Only logged-in internal users', response)
 
   def testPost_CacheSet(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.testapp.post(
         '/set_warning_message',
         {'warning_bug': '54321', 'warning_message': 'Stern warning'})
@@ -53,7 +54,7 @@ class SetWarningMessageTest(testing_common.TestCase):
     self.assertEqual('54321', layered_cache.Get('warning_bug'))
 
   def testPost_CacheSetOnlyMessage(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.testapp.post(
         '/set_warning_message',
         {'warning_bug': '', 'warning_message': 'Random warning'})
@@ -61,7 +62,7 @@ class SetWarningMessageTest(testing_common.TestCase):
     self.assertIsNone(layered_cache.Get('warning_bug'))
 
   def testPost_CacheCleared(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.testapp.post('/set_warning_message', {'warning_message': ''})
     self.assertEqual(None, layered_cache.Get('warning_message'))
     self.assertIsNone(layered_cache.Get('warning_bug'))

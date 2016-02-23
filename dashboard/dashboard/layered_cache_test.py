@@ -24,10 +24,11 @@ class LayeredCacheTest(testing_common.TestCase):
         layered_cache.DeleteExpiredEntitiesHandler)])
     self.testapp = webtest.TestApp(app)
     self.UnsetCurrentUser()
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
 
   def testSetAndGet(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     layered_cache.Set('str', 'Hello, World!')
     layered_cache.Set('dict', {'hello': [1, 2, 3]})
     self.assertEqual(
@@ -37,9 +38,9 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertIsNone(
         ndb.Key('CachedPickledString', 'externally_visible__str').get())
     self.assertEqual('Hello, World!', layered_cache.Get('str'))
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     self.assertIsNone(layered_cache.Get('str'))
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.assertEqual(
         {'hello': [1, 2, 3]},
         cPickle.loads(
@@ -47,7 +48,7 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertIsNone(
         ndb.Key('CachedPickledString', 'externally_visible__dict').get())
     self.assertEqual({'hello': [1, 2, 3]}, layered_cache.Get('dict'))
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     self.assertIsNone(layered_cache.Get('dict'))
 
   def testGetAndSet_External(self):
@@ -73,18 +74,18 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertEqual({'hello': [1, 2, 3]}, layered_cache.GetExternal('dict'))
 
   def testDelete(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     layered_cache.Set('hello', 'secret')
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     layered_cache.Set('hello', 'not secret')
     layered_cache.Delete('hello')
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.assertIsNone(layered_cache.Get('hello'))
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     self.assertIsNone(layered_cache.Get('hello'))
 
   def testExpireTime(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     layered_cache.Set('str1', 'Hello, World!', days_to_keep=10)
     key_internal = ndb.Key('CachedPickledString', 'internal_only__str1')
     key_external = ndb.Key('CachedPickledString', 'externally_visible__str1')
@@ -98,11 +99,11 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertEqual(actual_date.date(), expected_date.date())
 
     # When current user is external, the external version is returned by Get.
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     self.assertIsNone(layered_cache.Get('str1'))
 
   def testDeleteAllExpiredEntities(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     layered_cache.Set('expired_str1', 'apple', days_to_keep=-10)
     layered_cache.Set('expired_str2', 'bat', days_to_keep=-1)
     layered_cache.Set('expired_str3', 'cat', days_to_keep=10)
@@ -121,7 +122,7 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertEqual('egg', layered_cache.Get('expired_str5'))
 
   def testGet_DeleteExpiredEntities(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     layered_cache.Set('expired_str1', 'apple', days_to_keep=-10)
     layered_cache.Set('expired_str2', 'bat', days_to_keep=-1)
     layered_cache.Set('expired_str3', 'cat', days_to_keep=10)

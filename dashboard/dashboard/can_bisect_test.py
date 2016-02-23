@@ -19,8 +19,8 @@ class CanBisectTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/can_bisect', can_bisect.CanBisectHandler)])
     self.testapp = webtest.TestApp(app)
-    testing_common.SetInternalDomain('internal.org')
-    self.SetCurrentUser('foo@internal.org')
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    self.SetCurrentUser('internal@chromium.org')
     namespaced_stored_object.Set(
         can_bisect.BISECT_BOT_MAP_KEY,
         {'SupportedMaster': ['perf_bot', 'bisect_bot']})

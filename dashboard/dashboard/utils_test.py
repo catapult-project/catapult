@@ -19,7 +19,8 @@ class UtilsTest(testing_common.TestCase):
 
   def setUp(self):
     super(UtilsTest, self).setUp()
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
 
   def _AssertMatches(self, test_path, pattern):
     """Asserts that a test path matches a pattern with MatchesPattern."""
@@ -104,19 +105,19 @@ class UtilsTest(testing_common.TestCase):
     ]
     return keys
 
-  def testGetMulti_NotLoggedIn_ReturnsSomeEntities(self):
+  def testGetMulti_ExternalUser_ReturnsSomeEntities(self):
     keys = self._PutEntitiesHalfInternal()
-    self.SetCurrentUser('x@hotmail.com')
+    self.SetCurrentUser('foo@chromium.org')
     self.assertEqual(len(keys) / 2, len(utils.GetMulti(keys)))
 
-  def testGetMulti_LoggedIn_ReturnsAllEntities(self):
+  def testGetMulti_InternalUser_ReturnsAllEntities(self):
     keys = self._PutEntitiesHalfInternal()
-    self.SetCurrentUser('x@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.assertEqual(len(keys), len(utils.GetMulti(keys)))
 
-  def testGetMulti_AllExternal_ReturnsAllEntities(self):
+  def testGetMulti_AllExternalEntities_ReturnsAllEntities(self):
     keys = self._PutEntitiesAllExternal()
-    self.SetCurrentUser('x@hotmail.com')
+    self.SetCurrentUser('internal@chromium.org')
     self.assertEqual(len(keys), len(utils.GetMulti(keys)))
 
   def testTestSuiteName_Basic(self):
@@ -194,6 +195,29 @@ class UtilsTest(testing_common.TestCase):
 
   def testValidate_TypeConversion_Passes(self):
     utils.Validate([1], '1')
+
+  @mock.patch('utils.discovery.build')
+  def testIsGroupMember_PositiveCase(self, mock_discovery_build):
+    mock_request = mock.MagicMock()
+    mock_request.execute = mock.MagicMock(return_value={'is_member': True})
+    mock_service = mock.MagicMock()
+    mock_service.membership = mock.MagicMock(
+        return_value=mock_request)
+    mock_discovery_build.return_value = mock_service
+    self.assertTrue(utils.IsGroupMember('foo@bar.com', 'group'))
+    mock_service.membership.assert_called_once_with(
+        identity='foo@bar.com', group='group')
+
+  @mock.patch('logging.error')
+  @mock.patch('utils.discovery.build')
+  def testIsGroupMember_RequestFails_LogsErrorAndReturnsFalse(
+      self, mock_discovery_build, mock_logging_error):
+    mock_service = mock.MagicMock()
+    mock_service.membership = mock.MagicMock(
+        return_value={'error': 'Some error'})
+    mock_discovery_build.return_value = mock_service
+    self.assertFalse(utils.IsGroupMember('foo@bar.com', 'group'))
+    self.assertEqual(1, mock_logging_error.call_count)
 
 
 def _MakeMockFetch(base64_encoded=True, status=200):

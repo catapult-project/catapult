@@ -23,8 +23,9 @@ class EditSiteConfigTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/edit_site_config', edit_site_config.EditSiteConfigHandler)])
     self.testapp = webtest.TestApp(app)
-    testing_common.SetInternalDomain('internal.org')
-    self.SetCurrentUser('foo@internal.org', is_admin=True)
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
+    self.SetCurrentUser('internal@chromium.org', is_admin=True)
 
   def testGet_NoKey_ShowsPageWithNoTextArea(self):
     response = self.testapp.get('/edit_site_config')
@@ -51,7 +52,7 @@ class EditSiteConfigTest(testing_common.TestCase):
     }, status=403)
 
   def testPost_ExternalUser_ShowsErrorMessage(self):
-    self.SetCurrentUser('foo@external.org')
+    self.SetCurrentUser('foo@chromium.org')
     response = self.testapp.post('/edit_site_config', {
         'key': 'foo',
         'value': '[1, 2, 3]',
@@ -103,7 +104,7 @@ class EditSiteConfigTest(testing_common.TestCase):
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
     self.assertEqual('chrome-perf-dashboard-alerts@google.com', messages[0].to)
     self.assertEqual(
-        'Config "foo" changed by foo@internal.org', messages[0].subject)
+        'Config "foo" changed by internal@chromium.org', messages[0].subject)
     self.assertIn(
         'Non-namespaced value diff:\n'
         '  null\n'

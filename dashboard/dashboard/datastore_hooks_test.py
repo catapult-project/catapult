@@ -4,8 +4,6 @@
 
 import unittest
 
-import mock
-
 from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
@@ -25,14 +23,11 @@ class DatastoreHooksTest(testing_common.TestCase):
 
   def setUp(self):
     super(DatastoreHooksTest, self).setUp()
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
     self._AddDataToDatastore()
     datastore_hooks.InstallHooks()
-    get_request_patcher = mock.patch(
-        'webapp2.get_request',
-        mock.MagicMock(return_value=FakeRequest()))
-    self.mock_get_request = get_request_patcher.start()
-    self.addCleanup(get_request_patcher.stop)
+    self.PatchDatastoreHooksRequest()
 
   def tearDown(self):
     super(DatastoreHooksTest, self).tearDown()
@@ -44,7 +39,7 @@ class DatastoreHooksTest(testing_common.TestCase):
     # there is a get() for the parent_test in the pre_put_hook. This should work
     # correctly in production because Rows and Tests should only be added by
     # /add_point, which is privileged.
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     testing_common.AddTests(
         ['ChromiumPerf'],
         ['Win7External', 'FooInternal'], {
@@ -87,7 +82,7 @@ class DatastoreHooksTest(testing_common.TestCase):
           parent=external_test_container_key, id=i, value=float(i * 2)).put()
     self.UnsetCurrentUser()
     sheriff.Sheriff(
-        id='external', email='external@chromium.org', internal_only=False).put()
+        id='external', email='foo@chromium.org', internal_only=False).put()
     sheriff.Sheriff(
         id='internal', email='internal@google.com', internal_only=True).put()
 
@@ -152,24 +147,24 @@ class DatastoreHooksTest(testing_common.TestCase):
     if include_internal:
       self.assertEqual(2, len(sheriffs))
       self.assertEqual('external', sheriffs[0].key.string_id())
-      self.assertEqual('external@chromium.org', sheriffs[0].email)
+      self.assertEqual('foo@chromium.org', sheriffs[0].email)
       self.assertEqual('internal', sheriffs[1].key.string_id())
       self.assertEqual('internal@google.com', sheriffs[1].email)
     else:
       self.assertEqual(1, len(sheriffs))
       self.assertEqual('external', sheriffs[0].key.string_id())
-      self.assertEqual('external@chromium.org', sheriffs[0].email)
+      self.assertEqual('foo@chromium.org', sheriffs[0].email)
 
   def testQuery_NoUser_InternalOnlyNotFetched(self):
     self.UnsetCurrentUser()
     self._CheckQueryResults(include_internal=False)
 
   def testQuery_ExternalUser_InternalOnlyNotFetched(self):
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     self._CheckQueryResults(include_internal=False)
 
   def testQuery_InternalUser_InternalOnlyFetched(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self._CheckQueryResults(True)
 
   def testQuery_PrivilegedRequest_InternalOnlyFetched(self):
@@ -212,7 +207,7 @@ class DatastoreHooksTest(testing_common.TestCase):
       self.assertRaises(AssertionError, graph_data.Bot.get_by_id,
                         'FooInternal', parent=m.key)
     sheriff_entity = ndb.Key('Sheriff', 'external').get()
-    self.assertEqual(sheriff_entity.email, 'external@chromium.org')
+    self.assertEqual(sheriff_entity.email, 'foo@chromium.org')
     if include_internal:
       internal_sheriff_entity = ndb.Key('Sheriff', 'internal').get()
       self.assertEqual('internal@google.com', internal_sheriff_entity.email)
@@ -227,15 +222,15 @@ class DatastoreHooksTest(testing_common.TestCase):
     self._CheckGet(include_internal=False)
 
   def testGet_ExternalUser(self):
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     self._CheckGet(include_internal=False)
 
   def testGet_InternalUser(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     self._CheckGet(include_internal=True)
 
   def testGet_AdminUser(self):
-    self.SetCurrentUser('test@example.com', is_admin=True)
+    self.SetCurrentUser('foo@chromium.org', is_admin=True)
     self._CheckGet(include_internal=True)
 
   def testGet_PrivilegedRequest(self):
