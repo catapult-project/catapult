@@ -77,7 +77,11 @@ def EnableListingStrayProcessesUponExitHook():
           name = p.name
         process_info = '%s (%s)' % (name, p.pid)
         try:
-          process_info += ' - %s' % p.cmdline()
+          if inspect.ismethod(p.cmdline):
+            cmdline = p.cmdline()
+          else:
+            cmdline = p.cmdline
+          process_info += ' - %s' % cmdline
         except Exception as e:
           logging.warning(str(e))
         leak_processes_info.append(process_info)
