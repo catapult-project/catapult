@@ -62,6 +62,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             '--start-maximized',
             # Disable system startup sound.
             '--ash-disable-system-sounds',
+            # Ignore DMServer errors for policy fetches.
+            '--allow-failed-policy-fetch-for-test',
             # Skip user image selection screen, and post login screens.
             '--oobe-skip-postlogin',
             # Debug logging.
