@@ -53,7 +53,8 @@ class StatsTest(testing_common.TestCase):
         ('/stats_around_revision', stats.StatsAroundRevisionHandler),
         ('/stats_for_alerts', stats.StatsForAlertsHandler)])
     self.testapp = webtest.TestApp(app)
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
 
   def _AddMockData(self):
     """Adds data which will be used in the around-revision stats tests below."""
@@ -85,9 +86,9 @@ class StatsTest(testing_common.TestCase):
   def _AddMockAlertSummaryData(self):
     """Adds data to be used in the alert-summary stats tests below."""
     correct_sheriff = sheriff.Sheriff(
-        id='Chromium Perf Sheriff', email='a@google.com', patterns=[]).put()
+        id='Chromium Perf Sheriff', patterns=[]).put()
     wrong_sheriff = sheriff.Sheriff(
-        id='Some other sheriff', email='b@google.com', patterns=[]).put()
+        id='Some other sheriff', patterns=[]).put()
 
     linux_sunspider = 'ChromiumPerf/linux-release/sunspider/Total'
     linux_octane = 'ChromiumPerf/linux-release/octane/Total'
@@ -176,7 +177,7 @@ class StatsTest(testing_common.TestCase):
 
   def testPost_NonInternalUser_ShowsErrorMessage(self):
     """Tests that the stats page is only shown when logged in."""
-    self.SetCurrentUser('foo@yahoo.com')
+    self.SetCurrentUser('foo@chromium.org')
     response = self.testapp.get('/stats')
     self.assertIn('Only logged-in internal users', response.body)
 
@@ -191,7 +192,7 @@ class StatsTest(testing_common.TestCase):
     self._AddMockAlertSummaryData()
 
     # The user must be an internal user.
-    self.SetCurrentUser('sullivan@google.com')
+    self.SetCurrentUser('internal@chromium.org')
 
     # Make the initial request to generate statistics.
     response = self.testapp.post(
@@ -263,7 +264,7 @@ class StatsTest(testing_common.TestCase):
   def testPost_AroundRevision(self):
     """Tests generation of around_revision statistics."""
     self._AddMockData()
-    self.SetCurrentUser('sullivan@google.com')
+    self.SetCurrentUser('internal@chromium.org')
 
     response = self.testapp.post('/stats', [
         ('type', 'around_revision'),
@@ -363,7 +364,7 @@ class StatsTest(testing_common.TestCase):
   def testPost_AroundRevisionWithOneBot(self):
     """Tests generation of around_revision stats for only one bot."""
     self._AddMockData()
-    self.SetCurrentUser('sullivan@google.com')
+    self.SetCurrentUser('internal@chromium.org')
 
     # Post a request to get around_revision stats.
     self.testapp.post('/stats', {

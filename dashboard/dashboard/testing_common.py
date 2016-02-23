@@ -12,10 +12,12 @@ import re
 import unittest
 import urllib
 
+from google.appengine.api import users
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
+from dashboard import rietveld_service
 from dashboard import stored_object
 from dashboard import utils
 from dashboard.models import graph_data
@@ -53,9 +55,19 @@ class TestCase(unittest.TestCase):
     self.testbed.init_user_stub()
     self.testbed.init_urlfetch_stub()
     self.mock_get_request = None
+    self._PatchIsInternalUser()
 
   def tearDown(self):
     self.testbed.deactivate()
+
+  def _AddFakeRietveldConfig(self):
+    """Sets up fake service account credentials for tests."""
+    rietveld_service.RietveldConfig(
+        id='default_rietveld_config',
+        client_email='foo@bar.com',
+        service_account_key='Fake Account Key',
+        server_url='https://test-rietveld.appspot.com',
+        internal_server_url='https://test-rietveld.appspot.com').put()
 
   def ExecuteTaskQueueTasks(self, handler_name, task_queue_name):
     """Executes all of the tasks on the queue until there are none left."""
@@ -130,6 +142,22 @@ class TestCase(unittest.TestCase):
     self.mock_get_request = get_request_patcher.start()
     self.addCleanup(get_request_patcher.stop)
 
+  def _PatchIsInternalUser(self):
+    """Sets up a fake version of utils.IsInternalUser to use in tests.
+
+    This version doesn't try to make any requests to check whether the
+    user is internal; it just checks for cached values and returns False
+    if nothing is found.
+    """
+    def IsInternalUser():
+      username = users.get_current_user()
+      return bool(utils.GetCachedIsInternalUser(username))
+
+    is_internal_user_patcher = mock.patch.object(
+        utils, 'IsInternalUser', IsInternalUser)
+    is_internal_user_patcher.start()
+    self.addCleanup(is_internal_user_patcher.stop)
+
 
 def AddTests(masters, bots, tests_dict):
   """Adds data to the mock datastore.
@@ -197,9 +225,9 @@ def _AddRowsFromIterable(container_key, row_ids):
   return rows
 
 
-def SetInternalDomain(domain):
+def SetIsInternalUser(user, is_internal_user):
   """Sets the domain that users who can access internal data belong to."""
-  stored_object.Set(utils.INTERNAL_DOMAIN_KEY, domain)
+  utils.SetCachedIsInternalUser(user, is_internal_user)
 
 
 def SetSheriffDomains(domains):

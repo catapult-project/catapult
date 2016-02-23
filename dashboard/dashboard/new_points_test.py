@@ -23,8 +23,9 @@ class NewPointsTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/new_points', new_points.NewPointsHandler)])
     self.testapp = webtest.TestApp(app)
-    self.SetCurrentUser('foo@bar.com', is_admin=True)
-    testing_common.SetInternalDomain('google.com')
+    self.SetCurrentUser('foo@chromium.org', is_admin=True)
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
 
   def _AddSampleData(self):
     """Adds some normal test data from two different tests."""
@@ -94,7 +95,7 @@ class NewPointsTest(testing_common.TestCase):
     self._AddInternalSampleData()
     # The user doesn't need to be authorized as admin to view internal data,
     # they only need to have an internal email address.
-    self.SetCurrentUser('x@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     datastore_hooks.InstallHooks()
     response = self.testapp.get('/new_points')
     # 50 rows for xtest, 1 for the header.

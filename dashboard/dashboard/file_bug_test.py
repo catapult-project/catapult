@@ -53,8 +53,9 @@ class FileBugTest(testing_common.TestCase):
     super(FileBugTest, self).setUp()
     app = webapp2.WSGIApplication([('/file_bug', file_bug.FileBugHandler)])
     self.testapp = webtest.TestApp(app)
-    testing_common.SetSheriffDomains(['chromium.org', 'google.com'])
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetSheriffDomains(['chromium.org'])
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    testing_common.SetIsInternalUser('foo@chromium.org', False)
     self.SetCurrentUser('foo@chromium.org')
 
     # Add a fake issue tracker service that we can get call values from.
@@ -111,7 +112,7 @@ class FileBugTest(testing_common.TestCase):
     # If any of the alerts are marked as internal-only, which should happen
     # when the corresponding test is internal-only, then the create bug dialog
     # should suggest adding a Restrict-View-Google label.
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     alert_keys = self._AddSampleAlerts()
     anomaly_entity = alert_keys[0].get()
     anomaly_entity.internal_only = True
@@ -121,7 +122,7 @@ class FileBugTest(testing_common.TestCase):
     self.assertIn('Restrict-View-Google', response.body)
 
   def testGet_SetsBugLabelsComponents(self):
-    self.SetCurrentUser('foo@google.com')
+    self.SetCurrentUser('internal@chromium.org')
     alert_keys = self._AddSampleAlerts()
     bug_label_patterns.AddBugLabelPattern('label1-foo', '*/*/*/first_paint')
     bug_label_patterns.AddBugLabelPattern('Cr-Performance-Blink',

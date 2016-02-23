@@ -31,7 +31,8 @@ class InternalOnlyModelTest(testing_common.TestCase):
 
   def setUp(self):
     super(InternalOnlyModelTest, self).setUp()
-    testing_common.SetInternalDomain('google.com')
+    testing_common.SetIsInternalUser('x@google.com', True)
+    testing_common.SetIsInternalUser('x@foo.com', False)
 
   def testInternalOnlyModel_InternalUser_EntityFetched(self):
     key = InternalOnlyModelExample(internal_only=True).put()

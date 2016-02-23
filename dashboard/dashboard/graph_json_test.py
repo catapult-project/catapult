@@ -25,7 +25,6 @@ class GraphJsonTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/graph_json', graph_json.GraphJsonHandler)])
     self.testapp = webtest.TestApp(app)
-    testing_common.SetInternalDomain('google.com')
     self.PatchDatastoreHooksRequest()
 
   # TODO(qyearsley): graph_json_test is very slow (it takes 60+ seconds
