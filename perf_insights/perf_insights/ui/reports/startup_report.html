@@ -12,8 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/histogram_span.html">
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="pi-ui-r-startup-report"
@@ -244,7 +243,7 @@ found in the LICENSE file.
         if (mean == undefined || totalStartupDuration == 0)
           return undefined;
         mean /= totalStartupDuration;
-        var span = tr.ui.units.createScalarSpan(mean);
+        var span = tr.v.ui.createScalarSpan(mean);
         span.unit = tr.v.Unit.byName.normalizedPercentage;
         span.percentage = mean;
         return span;

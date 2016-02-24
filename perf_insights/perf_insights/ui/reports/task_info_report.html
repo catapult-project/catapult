@@ -14,9 +14,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/grouping_table.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/histogram_span.html">
-<link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
+<link rel="import" href="/tracing/value/ui/time_duration_span.html">
 
 <polymer-element name="pi-ui-r-task-info-report"
     extends="pi-ui-r-pi-report"
@@ -51,7 +51,7 @@ found in the LICENSE file.
     </style>
     <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
     <h2>Histogram</h2>
-    <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
+    <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
     <h2>Links</h2>
     <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
   </template>
@@ -179,7 +179,7 @@ found in the LICENSE file.
         var average = 0;
         if (numValues !== 0)
           average = runningSum / numValues;
-        return tr.ui.units.createTimeDurationSpan(average);
+        return tr.v.ui.createTimeDurationSpan(average);
       }
 
       var column = new pi.ui.CachingColumn(title, averageFromHistograms);

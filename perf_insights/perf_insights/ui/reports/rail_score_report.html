@@ -13,11 +13,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/generic_table_view.html">
-<link rel="import" href="/tracing/ui/units/histogram_span.html">
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="pi-ui-r-rail-score-report"
@@ -44,7 +43,7 @@ found in the LICENSE file.
     <tr-ui-b-table id="table"></tr-ui-b-table>
 
     <h2>Score Histogram</h2>
-    <tr-ui-u-histogram-span id="histogram"></tr-ui-u-histogram-span>
+    <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
 
     <h2>Matching Traces</h2>
     <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
@@ -129,7 +128,7 @@ found in the LICENSE file.
           title: 'Avg. RAIL score',
           textAlign: 'right',
           value: function(row) {
-            return tr.ui.units.createScalarSpan(
+            return tr.v.ui.createScalarSpan(
                 new tr.v.ScalarNumeric(tr.v.Unit.byName.normalizedPercentage,
                     row.histogram.average));
           },

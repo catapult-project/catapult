@@ -6,19 +6,19 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
-tr.exportTo('tr.ui.units', function() {
+tr.exportTo('tr.v.ui', function() {
   function createTimeStampSpan(timestamp, opt_config) {
     if (timestamp === undefined)
       return '';
     var config = opt_config || {};
     var ownerDocument = config.ownerDocument || document;
-    var span = ownerDocument.createElement('tr-ui-u-time-stamp-span');
+    var span = ownerDocument.createElement('tr-v-ui-time-stamp-span');
     span.timestamp = timestamp;
     return span;
   }
@@ -29,8 +29,8 @@ tr.exportTo('tr.ui.units', function() {
 });
 </script>
 
-<polymer-element name="tr-ui-u-time-stamp-span"
-                 extends="tr-ui-u-scalar-span">
+<polymer-element name="tr-v-ui-time-stamp-span"
+                 extends="tr-v-ui-scalar-span">
   <script>
   'use strict';
 

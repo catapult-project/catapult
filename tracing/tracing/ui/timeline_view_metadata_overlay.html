@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
-<link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/mouse_mode_icon.html">
-<link rel="import" href="/tracing/ui/units/generic_table_view.html">
+<link rel="import" href="/tracing/ui/base/overlay.html">
+<link rel="import" href="/tracing/value/ui/generic_table_view.html">
 
 <polymer-element name="tr-ui-timeline-view-metadata-overlay">
   <template>
@@ -18,7 +18,7 @@ found in the LICENSE file.
       overflow: auto;
     }
     </style>
-    <tr-ui-u-generic-table-view id="gtv"></tr-ui-u-generic-table-view>
+    <tr-v-ui-generic-table-view id="gtv"></tr-v-ui-generic-table-view>
   </template>
 
   <script>

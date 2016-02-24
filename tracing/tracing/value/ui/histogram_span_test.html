@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/units/histogram_span.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -30,13 +30,13 @@ tr.b.unittest.testSuite(function() {
     h.add(999, 'd');
     h.add(1000, 'd');
 
-    var span = document.createElement('tr-ui-u-histogram-span');
+    var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
     this.addHTMLOutput(span);
   });
 
   test('undefined', function() {
-    var span = document.createElement('tr-ui-u-histogram-span');
+    var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = undefined;
     this.addHTMLOutput(span);
   });
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
 
-    var span = document.createElement('tr-ui-u-histogram-span');
+    var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
     this.addHTMLOutput(span);
   });
@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     h.add(undefined, 'b');
     h.add(NaN, 'c');
 
-    var span = document.createElement('tr-ui-u-histogram-span');
+    var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
     this.addHTMLOutput(span);
   });

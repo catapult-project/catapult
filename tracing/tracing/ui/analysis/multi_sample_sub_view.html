@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-multi-sample-sub-view"
@@ -142,7 +142,7 @@ found in the LICENSE file.
           value: function(row) {
             var percent = row[field] / samplingDataTotal;
 
-            var span = document.createElement('tr-ui-u-scalar-span');
+            var span = document.createElement('tr-v-ui-scalar-span');
             span.value = (percent * 100).toFixed(2);
             span.percentage = percent;
             span.unit = tr.v.Unit.byName.unitlessNumber;

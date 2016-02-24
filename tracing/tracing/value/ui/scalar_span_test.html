@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkScalarSpan(
       test, value, unit, expectedTextContent, opt_expectedColor) {
-    var span = tr.ui.units.createScalarSpan(
+    var span = tr.v.ui.createScalarSpan(
         new tr.v.ScalarNumeric(unit, value));
     assert.strictEqual(span.$.content.textContent, expectedTextContent);
     assert.strictEqual(span.$.content.style.color, opt_expectedColor || '');

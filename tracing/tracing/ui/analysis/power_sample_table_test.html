@@ -80,7 +80,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(columns[0].title, 'Time');
     assert.equal(columns[0].width, '100px');
     var timestampSpan = columns[0].value(series.samples[0]);
-    assert.equal(timestampSpan.tagName, 'TR-UI-U-TIME-STAMP-SPAN');
+    assert.equal(timestampSpan.tagName, 'TR-V-UI-TIME-STAMP-SPAN');
     assert.equal(timestampSpan.timestamp, 0);
 
     assert.equal(columns[1].title, 'Power (mW)');

@@ -26,7 +26,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/timeline_track_view.html">
 <link rel="import" href="/tracing/ui/timeline_view_help_overlay.html">
 <link rel="import" href="/tracing/ui/timeline_view_metadata_overlay.html">
-<link rel="import" href="/tracing/ui/units/preferred_display_unit.html">
+<link rel="import" href="/tracing/value/ui/preferred_display_unit.html">
 
 <polymer-element name='tr-ui-timeline-view'>
   <template>
@@ -128,8 +128,8 @@ found in the LICENSE file.
     <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
     <tr-ui-a-analysis-view id="analysis"></tr-ui-a-analysis-view>
 
-    <tr-ui-u-preferred-display-unit id="display_unit">
-    </tr-ui-u-preferred-display-unit>
+    <tr-v-ui-preferred-display-unit id="display_unit">
+    </tr-v-ui-preferred-display-unit>
   </template>
 
   <script>

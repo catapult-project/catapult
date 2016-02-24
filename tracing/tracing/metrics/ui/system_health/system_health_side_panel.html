@@ -14,7 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
-<link rel="import" href="/tracing/ui/units/time_duration_span.html">
+<link rel="import" href="/tracing/value/ui/time_duration_span.html">
 
 <polymer-element name='tr-metrics-ui-sh-system-health-side-panel'
     extends='tr-ui-side-panel'>
@@ -74,7 +74,7 @@ found in the LICENSE file.
     if (cpuRatio === undefined)
       return;
 
-    var cpuMsSpan = document.createElement('tr-ui-u-time-duration-span');
+    var cpuMsSpan = document.createElement('tr-v-ui-time-duration-span');
     // There will be some text after the cpuMsSpan, that should be on the same
     // line if it fits. This "span" has display: block for its sparkline... so I
     // guess I'll set it inline here?

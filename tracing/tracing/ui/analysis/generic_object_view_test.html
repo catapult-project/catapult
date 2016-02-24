@@ -175,14 +175,14 @@ tr.b.unittest.testSuite(function() {
     view.object =
         new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 3);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-ui-u-scalar-span'));
+      view.$.content, 'tr-v-ui-scalar-span'));
   });
 
   test('timeStampValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeStampInMs, 3);
     assert.isDefined(tr.b.findDeepElementMatching(
-      view.$.content, 'tr-ui-u-scalar-span'));
+      view.$.content, 'tr-v-ui-scalar-span'));
   });
 
   test('scalarValue', function() {
@@ -190,7 +190,7 @@ tr.b.unittest.testSuite(function() {
     view.object =
         new tr.v.ScalarNumeric(tr.v.Unit.byName.normalizedPercentage, .3);
     var m = tr.b.findDeepElementMatching(
-        view.$.content, 'tr-ui-u-scalar-span');
+        view.$.content, 'tr-v-ui-scalar-span');
     assert.isDefined(m);
     assert.equal(m.value, .3);
     assert.equal(m.unit, tr.v.Unit.byName.normalizedPercentage);

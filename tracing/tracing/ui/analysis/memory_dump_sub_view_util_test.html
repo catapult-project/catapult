@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     test.addHTMLOutput(value);
-    assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
+    assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.equal(value.value, expectedValue);
     assert.equal(value.unit, expectedUnits);
   }
@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
 
   function sizeSpanMatcher(expectedValue, opt_expectedIsDelta) {
     return function(element) {
-      assert.strictEqual(element.tagName, 'TR-UI-U-SCALAR-SPAN');
+      assert.strictEqual(element.tagName, 'TR-V-UI-SCALAR-SPAN');
       assert.strictEqual(element.value, expectedValue);
       assert.strictEqual(element.unit, opt_expectedIsDelta ?
           tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter :
@@ -855,7 +855,7 @@ tr.b.unittest.testSuite(function() {
     var c = new ScalarMemoryColumn('non_bytes_column', 'ms', fieldGetter('x'),
         undefined /* aggregation mode */);
     var value = c.formatSingleAttributeValue(new ScalarAttribute('ms', 123));
-    assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
+    assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.equal(value.value, 123);
     assert.equal(value.unit, tr.v.Unit.byName.unitlessNumber_smallerIsBetter);
     this.addHTMLOutput(value);
@@ -863,7 +863,7 @@ tr.b.unittest.testSuite(function() {
     var c = new ScalarMemoryColumn('bytes_column', 'bytes', fieldGetter('x'),
         undefined /* aggregation mode */);
     var value = c.formatSingleAttributeValue(new ScalarAttribute('bytes', 456));
-    assert.equal(value.tagName, 'TR-UI-U-SCALAR-SPAN');
+    assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.equal(value.value, 456);
     assert.equal(value.unit, tr.v.Unit.byName.sizeInBytes_smallerIsBetter);
     this.addHTMLOutput(value);

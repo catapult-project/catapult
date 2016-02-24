@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/time_duration_span.html">
-<link rel="import" href="/tracing/ui/units/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/time_duration_span.html">
+<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
 
 <polymer-element name='tr-ui-a-selection-summary-table'>
   <template>
@@ -73,12 +73,12 @@ found in the LICENSE file.
 
       rows.push({
         title: 'Selection start',
-        value: hasRange ? tr.ui.units.createTimeStampSpan(
+        value: hasRange ? tr.v.ui.createTimeStampSpan(
             selection.bounds.min, timeSpanConfig) : '<empty>'
       });
       rows.push({
         title: 'Selection extent',
-        value: hasRange ? tr.ui.units.createTimeDurationSpan(
+        value: hasRange ? tr.v.ui.createTimeDurationSpan(
             selection.bounds.range, timeSpanConfig) : '<empty>'
       });
 
