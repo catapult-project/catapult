@@ -7,6 +7,7 @@ trace_viewer project:
 https://code.google.com/p/trace-viewer/
 """
 
+import logging
 from operator import attrgetter
 
 from telemetry.timeline import async_slice as async_slice_module
@@ -271,9 +272,9 @@ class TimelineModel(event_container.TimelineEventContainer):
     for part in trace_data.active_parts:
       importer_class = FindImporterClassForPart(part)
       if not importer_class:
-        raise Exception('No importer found for %s' % repr(part))
-      importers.append(importer_class(self, trace_data))
-
-      importers.sort(key=lambda k: k.import_order)
+        logging.warning('No importer found for %s' % repr(part))
+      else:
+        importers.append(importer_class(self, trace_data))
+        importers.sort(key=lambda k: k.import_order)
 
     return importers

@@ -12,6 +12,7 @@ from telemetry.timeline import tracing_config
 
 class TracingControllerTest(tab_test_case.TabTestCase):
 
+  @decorators.Isolated
   def testModifiedConsoleTime(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -42,6 +43,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller.StopTracing()
     self.assertFalse(tracing_controller.is_tracing_running)
 
+  @decorators.Isolated
   def testExceptionRaisedInStopTracing(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -59,6 +61,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     # Tracing is stopped even if there is exception.
     self.assertFalse(tracing_controller.is_tracing_running)
 
+  @decorators.Isolated
   def testGotTrace(self):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -70,6 +73,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     model = model_module.TimelineModel(trace_data)
     assert len(model.processes) > 0
 
+  @decorators.Isolated
   def testStartAndStopTraceMultipleTimes(self):
     tracing_controller = self._browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -119,6 +123,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
         self._browser = None
 
   @decorators.Enabled('android')
+  @decorators.Isolated
   def testStartupTracingOnAndroid(self):
     self._StartupTracing(self._browser.platform)
 

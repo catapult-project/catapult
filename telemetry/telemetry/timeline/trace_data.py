@@ -38,11 +38,13 @@ CHROME_TRACE_PART = TraceDataPart('traceEvents')
 INSPECTOR_TRACE_PART = TraceDataPart('inspectorTimelineEvents')
 SURFACE_FLINGER_PART = TraceDataPart('surfaceFlinger')
 TAB_ID_PART = TraceDataPart('tabIds')
+TELEMETRY_PART = TraceDataPart('telemetry')
 
 ALL_TRACE_PARTS = {CHROME_TRACE_PART,
                    INSPECTOR_TRACE_PART,
                    SURFACE_FLINGER_PART,
-                   TAB_ID_PART}
+                   TAB_ID_PART,
+                   TELEMETRY_PART}
 
 
 def _HasEventsFor(part, raw):
