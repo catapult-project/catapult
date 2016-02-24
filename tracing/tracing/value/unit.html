@@ -74,7 +74,7 @@ tr.exportTo('tr.v', function() {
     get: function() {
       return Unit.currentTimeDisplayMode_;
     },
-    // Use tr-ui-u-preferred-display-unit element instead of directly setting.
+    // Use tr-v-ui-preferred-display-unit element instead of directly setting.
     set: function(value) {
       if (Unit.currentTimeDisplayMode_ === value)
         return;
@@ -87,7 +87,7 @@ tr.exportTo('tr.v', function() {
   Unit.didPreferredTimeDisplayUnitChange = function() {
     var largest = undefined;
     var els = tr.b.findDeepElementsMatching(document.body,
-        'tr-ui-u-preferred-display-unit');
+        'tr-v-ui-preferred-display-unit');
     els.forEach(function(el) {
       largest = max(largest, el.preferredTimeDisplayMode);
     });

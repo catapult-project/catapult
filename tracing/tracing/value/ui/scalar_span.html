@@ -12,20 +12,20 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-tr.exportTo('tr.ui.units', function() {
+tr.exportTo('tr.v.ui', function() {
   function createScalarSpan(value, opt_config) {
     if (value === undefined)
       return '';
     var config = opt_config || {};
     var ownerDocument = config.ownerDocument || document;
-    var span = ownerDocument.createElement('tr-ui-u-scalar-span');
+    var span = ownerDocument.createElement('tr-v-ui-scalar-span');
     span.value = value;
     return span;
   }
 
   tr.v.Unit.addEventListener('display-mode-changed', function(e) {
     var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
-        'tr-ui-u-scalar-span');
+        'tr-v-ui-scalar-span');
     var isSubclass = {};
     subclassNames.forEach(function(n) {
       isSubclass[n.toUpperCase()] = true;
@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.units', function() {
 });
 </script>
 
-<polymer-element name="tr-ui-u-scalar-span">
+<polymer-element name="tr-v-ui-scalar-span">
   <template>
     <style>
     :host {

@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/multi_event_summary.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/time_duration_span.html">
+<link rel="import" href="/tracing/value/ui/time_duration_span.html">
 
 </script>
 <polymer-element name='tr-ui-a-multi-event-summary-table'>
@@ -78,7 +78,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Wall Duration',
           value: function(row) {
-            return tr.ui.units.createTimeDurationSpan(row.duration, {
+            return tr.v.ui.createTimeDurationSpan(row.duration, {
               total: row.totalsRow ? undefined : maxValues.duration,
               ownerDocument: ownerDocument,
               rightAlign: true
@@ -95,7 +95,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration',
           value: function(row) {
-            return tr.ui.units.createTimeDurationSpan(row.cpuDuration, {
+            return tr.v.ui.createTimeDurationSpan(row.cpuDuration, {
               total: row.totalsRow ? undefined : maxValues.cpuDuration,
               ownerDocument: ownerDocument,
               rightAlign: true
@@ -112,7 +112,7 @@ found in the LICENSE file.
         columns.push({
           title: 'Self time',
           value: function(row) {
-            return tr.ui.units.createTimeDurationSpan(row.selfTime, {
+            return tr.v.ui.createTimeDurationSpan(row.selfTime, {
               total: row.totalsRow ? undefined : maxValues.selfTime,
               ownerDocument: ownerDocument,
               rightAlign: true
@@ -129,7 +129,7 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Self Time',
           value: function(row) {
-            return tr.ui.units.createTimeDurationSpan(row.cpuSelfTime, {
+            return tr.v.ui.createTimeDurationSpan(row.cpuSelfTime, {
               total: row.totalsRow ? undefined : maxValues.cpuSelfTime,
               ownerDocument: ownerDocument,
               rightAlign: true

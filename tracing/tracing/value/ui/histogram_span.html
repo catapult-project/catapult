@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/ui/base/bar_chart.html">
-<link rel="import" href="/tracing/ui/units/scalar_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
 
-<polymer-element name="tr-ui-u-histogram-span">
+<polymer-element name="tr-v-ui-histogram-span">
   <template>
     <style>
       :host {
@@ -35,7 +35,7 @@ found in the LICENSE file.
       <span id="nsamples"></span>&nbsp;samples,&nbsp;
       <span id="hadnans"><span id="nnans"></span> non-numeric samples,&nbsp;
       </span>
-      average=<tr-ui-u-scalar-span id="average"></tr-ui-u-scalar-span>
+      average=<tr-v-ui-scalar-span id="average"></tr-v-ui-scalar-span>
     </div>
     <div id="container"></div>
   </template>

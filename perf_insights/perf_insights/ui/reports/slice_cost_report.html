@@ -13,9 +13,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/histogram_span.html">
-<link rel="import" href="/tracing/ui/units/time_duration_span.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
+<link rel="import" href="/tracing/value/ui/time_duration_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="pi-ui-r-slice-cost-report"
@@ -86,7 +86,7 @@ found in the LICENSE file.
         <div id="costs-histogram-container">
           Histogram of
           <select id="costs-histogram-cost-type"></select> values:
-          <tr-ui-u-histogram-span id="costs-histogram"></tr-ui-u-histogram-span>
+          <tr-v-ui-histogram-span id="costs-histogram"></tr-v-ui-histogram-span>
 
           Links
           <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
@@ -201,13 +201,13 @@ found in the LICENSE file.
         var stateName = tr.model.source_info.JSSourceState[state];
         rows.push({
           label: stateName,
-          value: tr.ui.units.createTimeDurationSpan(
+          value: tr.v.ui.createTimeDurationSpan(
               aggregated.jsTimeByState[stateName])
         });
       }
       footerRows.push({
         label: 'JS Time',
-        value: tr.ui.units.createTimeDurationSpan(aggregated.jsTime)
+        value: tr.v.ui.createTimeDurationSpan(aggregated.jsTime)
       });
 
       // Push to table.
@@ -296,7 +296,7 @@ found in the LICENSE file.
           title: 'Self time (total)',
           textAlign: 'right',
           value: function(row) {
-            return tr.ui.units.createTimeDurationSpan(row.rowStats.selfTime);
+            return tr.v.ui.createTimeDurationSpan(row.rowStats.selfTime);
           },
           cmp: function(a, b) {
             return tr.b.comparePossiblyUndefinedValues(a, b,
@@ -309,7 +309,7 @@ found in the LICENSE file.
           title: 'CPU Self time (total)',
           textAlign: 'right',
           value: function(row) {
-            return tr.ui.units.createTimeDurationSpan(row.rowStats.cpuSelfTime);
+            return tr.v.ui.createTimeDurationSpan(row.rowStats.cpuSelfTime);
           },
           cmp: function(a, b) {
             return tr.b.comparePossiblyUndefinedValues(a, b,

@@ -127,7 +127,7 @@ tr.exportTo('tr.ui.analysis', function() {
           'Selected ' + containerDumpCount + ' memory dump' +
           (isMultiSelection ? 's' : '') +
           ' in ' + this.containerMemoryDumps_[0].containerName + ' at '));
-      // TODO(petrcermak): Use <tr-ui-u-scalar-span> once it can be displayed
+      // TODO(petrcermak): Use <tr-v-ui-scalar-span> once it can be displayed
       // inline. See https://github.com/catapult-project/catapult/issues/1371.
       this.$.label.appendChild(document.createTextNode(
           tr.v.Unit.byName.timeStampInMs.format(

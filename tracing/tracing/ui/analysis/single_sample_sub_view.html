@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/analysis/stack_frame.html">
-<link rel="import" href="/tracing/ui/units/time_stamp_span.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
 
 <polymer-element name="tr-ui-a-single-sample-sub-view"
     extends="tr-ui-a-sub-view">
@@ -68,7 +68,7 @@ found in the LICENSE file.
 
       rows.push({
           title: 'Sample time',
-          value: tr.ui.units.createTimeStampSpan(
+          value: tr.v.ui.createTimeStampSpan(
               sample.start, {ownerDocument: this.ownerDocument})
       });
 

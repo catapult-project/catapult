@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/model/event_set.html">
-<link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/ui/units/time_stamp_span.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
 
 <polymer-element name="tr-ui-a-multi-object-sub-view"
     extends="tr-ui-a-sub-view">
@@ -51,10 +51,10 @@ found in the LICENSE file.
           title: 'First',
           value: function(event) {
             if (event instanceof tr.model.ObjectSnapshot)
-              return tr.ui.units.createTimeStampSpan(event.ts, timeSpanConfig);
+              return tr.v.ui.createTimeStampSpan(event.ts, timeSpanConfig);
 
             var spanEl = document.createElement('span');
-            spanEl.appendChild(tr.ui.units.createTimeStampSpan(
+            spanEl.appendChild(tr.v.ui.createTimeStampSpan(
                 event.creationTs, timeSpanConfig));
             spanEl.appendChild(tr.ui.b.createSpan({
                 textContent: '-',
@@ -62,7 +62,7 @@ found in the LICENSE file.
                 marginRight: '4px'
             }));
             if (event.deletionTs != Number.MAX_VALUE) {
-              spanEl.appendChild(tr.ui.units.createTimeStampSpan(
+              spanEl.appendChild(tr.v.ui.createTimeStampSpan(
                   event.deletionTs, timeSpanConfig));
             }
             return spanEl;
