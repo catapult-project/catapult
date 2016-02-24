@@ -98,6 +98,9 @@ if trace_event_impl:
     trace_event_impl.add_trace_event(
         "c", time_stamp, "python", "clock_sync", args_to_log)
 
+  def is_tracing_controllable():
+    return trace_event_impl.is_tracing_controllable()
+
 else:
   import contextlib
 
@@ -136,6 +139,8 @@ else:
     del sync_id # unused.
     pass
 
+  def is_tracing_controllable():
+    return False
 
 trace_enable.__doc__ = """Enables tracing.
 
