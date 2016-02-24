@@ -67,6 +67,7 @@ def CheckChange(input_api, output_api):
     sys.path += [input_api.PresubmitLocalPath()]
     from catapult_build import js_checks
     from catapult_build import html_checks
+    from catapult_build import repo_checks
     results += input_api.canned_checks.PanProjectChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
     results += CheckChangeLogBug(input_api, output_api)
@@ -74,6 +75,7 @@ def CheckChange(input_api, output_api):
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
     results += html_checks.RunChecks(
         input_api, output_api, excluded_paths=_EXCLUDED_PATHS)
+    results += repo_checks.RunChecks(input_api, output_api)
   finally:
     sys.path.remove(input_api.PresubmitLocalPath())
   return results
