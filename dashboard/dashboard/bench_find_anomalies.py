@@ -482,7 +482,8 @@ def _UpdateInvalidAndConfirmedAnomalyRevs(test_bench):
   # Start rev for getting Anomalies should be at min_segment_size.
   test = test_bench.test.get()
   config_dict = anomaly_config.GetAnomalyConfigDict(test)
-  min_segment_size = config_dict.get('min_segment_size')
+  min_segment_size = config_dict.get(
+      'min_segment_size', find_change_points.MIN_SEGMENT_SIZE)
   start_index = min(min_segment_size, len(test_bench.data_series)) - 1
   start_rev = test_bench.data_series[start_index][0]
 

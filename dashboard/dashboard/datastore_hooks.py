@@ -78,12 +78,12 @@ def _IsServicingPrivilegedRequest():
   try:
     request = webapp2.get_request()
   except AssertionError:
-    # This only happens in unit tests, when the code gets called outside of
-    # a request.
+    # This happens in unit tests, when code gets called outside of a request.
     return False
-  if (not request or
-      hasattr(request, 'path') and request.path.startswith('/mapreduce')):
-    # Running a mapreduce.
+  path = getattr(request, 'path', '')
+  if path.startswith('/mapreduce'):
+    return True
+  if path.startswith('/_ah/queue/deferred'):
     return True
   if request.registry.get('privileged', False):
     return True

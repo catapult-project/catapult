@@ -25,7 +25,7 @@ _MAX_WINDOW_SIZE = 50
 
 # Minimum number of points in a segment. This can help filter out erroneous
 # results by ignoring results that were found from looking at too few points.
-_MIN_SEGMENT_SIZE = 6
+MIN_SEGMENT_SIZE = 6
 
 # Minimum absolute difference between medians before and after.
 _MIN_ABSOLUTE_CHANGE = 0
@@ -70,7 +70,7 @@ class ChangePoint(collections.namedtuple(
 def FindChangePoints(
     series,
     max_window_size=_MAX_WINDOW_SIZE,
-    min_segment_size=_MIN_SEGMENT_SIZE,
+    min_segment_size=MIN_SEGMENT_SIZE,
     min_absolute_change=_MIN_ABSOLUTE_CHANGE,
     min_relative_change=_MIN_RELATIVE_CHANGE,
     min_steppiness=_MIN_STEPPINESS,
