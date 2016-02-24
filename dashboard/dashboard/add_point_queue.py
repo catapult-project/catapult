@@ -11,15 +11,17 @@ from google.appengine.api import datastore_errors
 from google.appengine.ext import ndb
 
 from dashboard import add_point
-from dashboard import bot_whitelist
 from dashboard import datastore_hooks
 from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import request_handler
+from dashboard import stored_object
 from dashboard import units_to_direction
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
+
+BOT_WHITELIST_KEY = 'bot_whitelist'
 
 
 class AddPointQueueHandler(request_handler.RequestHandler):
@@ -46,14 +48,14 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     data = json.loads(self.request.get('data'))
     _PrewarmGets(data)
 
-    whitelist = ndb.Key('BotWhitelist', bot_whitelist.WHITELIST_KEY).get()
+    bot_whitelist = stored_object.Get(BOT_WHITELIST_KEY)
 
     all_put_futures = []
     added_rows = []
     monitored_test_keys = []
     for row_dict in data:
       try:
-        new_row, parent_test, put_futures = _AddRow(row_dict, whitelist)
+        new_row, parent_test, put_futures = _AddRow(row_dict, bot_whitelist)
         added_rows.append(new_row)
         is_monitored = parent_test.sheriff and parent_test.has_rows
         if is_monitored:
@@ -110,7 +112,7 @@ def _PrewarmGets(data):
   ndb.get_multi_async(list(master_keys) + list(bot_keys) + list(test_keys))
 
 
-def _AddRow(row_dict, whitelist):
+def _AddRow(row_dict, bot_whitelist):
   """Add a Row entity to the datastore.
 
   There are three main things that are needed in order to make a new entity;
@@ -120,8 +122,7 @@ def _AddRow(row_dict, whitelist):
 
   Args:
     row_dict: A dictionary obtained from the JSON that was received.
-    whitelist: A BotWhitelist entity, which determines what new tests
-        are marked as internal-only.
+    bot_whitelist: A list of whitelisted bots names.
 
   Returns:
     A triple: The new row, the parent test, and a list of entity put futures.
@@ -130,7 +131,7 @@ def _AddRow(row_dict, whitelist):
     add_point.BadRequestError: The input dict was invalid.
     RuntimeError: The required parent entities couldn't be created.
   """
-  parent_test = _GetParentTest(row_dict, whitelist)
+  parent_test = _GetParentTest(row_dict, bot_whitelist)
   test_container_key = utils.GetTestContainerKey(parent_test.key)
 
   columns = add_point.GetAndValidateRowProperties(row_dict)
@@ -158,13 +159,12 @@ def _AddRow(row_dict, whitelist):
   return new_row, parent_test, entity_put_futures
 
 
-def _GetParentTest(row_dict, whitelist):
+def _GetParentTest(row_dict, bot_whitelist):
   """Gets the parent test for a Row based on an input dictionary.
 
   Args:
     row_dict: A dictionary from the data parameter.
-    whitelist: A BotWhitelist entity, which determines what new tests
-        are marked as internal-only.
+    bot_whitelist: A list of whitelisted bot names.
 
   Returns:
     A Test entity.
@@ -178,7 +178,7 @@ def _GetParentTest(row_dict, whitelist):
   units = row_dict.get('units')
   higher_is_better = row_dict.get('higher_is_better')
   improvement_direction = _ImprovementDirection(higher_is_better)
-  internal_only = _BotInternalOnly(bot_name, whitelist)
+  internal_only = _BotInternalOnly(bot_name, bot_whitelist)
   benchmark_description = row_dict.get('benchmark_description')
 
   parent_test = _GetOrCreateAncestors(
@@ -197,15 +197,14 @@ def _ImprovementDirection(higher_is_better):
   return anomaly.UP if higher_is_better else anomaly.DOWN
 
 
-def _BotInternalOnly(bot_name, whitelist=None):
+def _BotInternalOnly(bot_name, bot_whitelist):
   """Check whether the bot with a given name is internal-only."""
-  if not whitelist:
+  if not bot_whitelist:
     logging.warning(
         'No bot whitelist available. All data will be internal-only. If this '
-        'is not intended, go to /bot_whitelist to add a list of externally '
-        'visible bots.')
+        'is not intended, please add a bot whitelist using /edit_site_config.')
     return True
-  return bot_name not in whitelist.bots
+  return bot_name not in bot_whitelist
 
 
 def _GetOrCreateAncestors(

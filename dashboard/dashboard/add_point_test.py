@@ -16,8 +16,8 @@ from google.appengine.ext import ndb
 
 from dashboard import add_point
 from dashboard import add_point_queue
-from dashboard import bot_whitelist
 from dashboard import layered_cache
+from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import units_to_direction
 from dashboard import utils
@@ -419,8 +419,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertFalse(hasattr(row, 'r_two'))
 
   def testPost_UnWhitelistedBots_MarkedInternalOnly(self):
-    bot_whitelist.BotWhitelist(
-        id=bot_whitelist.WHITELIST_KEY, bots=['linux-release', 'win7']).put()
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['linux-release', 'win7'])
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(
         id='suddenly_secret', parent=parent, internal_only=False).put()
