@@ -158,16 +158,16 @@ def _PostResult(job, issue_tracker):
   # From the results, get the list of people to CC (if applicable), the bug
   # to merge into (if applicable) and the commit hash cache key, which
   # will be used below.
+  bug = _GetBugEntity(job.bug_id)
+  if not bug:
+    return
   results_data = job.results_data
   authors_to_cc = []
-  merge_issue = None
-  bug = ndb.Key('Bug', job.bug_id).get()
-
   commit_cache_key = _GetCommitHashCacheKey(results_data)
-  if bug:
-    merge_issue = layered_cache.GetExternal(commit_cache_key)
-    if not merge_issue:
-      authors_to_cc = _GetAuthorsToCC(results_data)
+
+  merge_issue = layered_cache.GetExternal(commit_cache_key)
+  if not merge_issue:
+    authors_to_cc = _GetAuthorsToCC(results_data)
 
   comment = bisect_report.GetReport(job)
 
@@ -204,6 +204,12 @@ def _PostResult(job, issue_tracker):
                               days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
+
+
+def _GetBugEntity(bug_id):
+  if bug_id is None or bug_id < 0:
+    return None
+  return ndb.Key('Bug', bug_id).get()
 
 
 def _IsStale(job):
