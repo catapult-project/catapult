@@ -135,7 +135,7 @@ class AutoTriageTest(testing_common.TestCase):
     self.assertFalse(anomaly_key.get().recovered)
 
   @mock.patch.object(
-      auto_triage.rietveld_service, 'Credentials', mock.MagicMock())
+      utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(
       auto_triage.issue_tracker_service.IssueTrackerService, 'AddBugComment')
   def testPost_AllAnomaliesRecovered_AddsComment(self, add_bug_comment_mock):

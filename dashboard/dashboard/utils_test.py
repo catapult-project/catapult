@@ -208,6 +208,7 @@ class UtilsTest(testing_common.TestCase):
     mock_service.membership.assert_called_once_with(
         identity='foo@bar.com', group='group')
 
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch('logging.error')
   @mock.patch('utils.discovery.build')
   def testIsGroupMember_RequestFails_LogsErrorAndReturnsFalse(

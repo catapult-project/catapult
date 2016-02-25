@@ -8,9 +8,8 @@ import json
 
 from apiclient import discovery
 import httplib2
-import oauth2client
 
-from google.appengine.ext import ndb
+from dashboard import utils
 
 _DISCOVERY_URL = (
     'https://cr-buildbucket.appspot.com'
@@ -18,9 +17,6 @@ _DISCOVERY_URL = (
 
 # Default Buildbucket bucket name.
 _BUCKET_NAME = 'master.tryserver.chromium.perf'
-
-# Scope required by the Build Bucket Service.
-_OAUTH2_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
 
 
 def _DiscoverService():
@@ -30,6 +26,7 @@ def _DiscoverService():
 
 class _AuthenticatedHttp(object):
   """Provides access via its constructor to a singleton authenticated http."""
+
   _singleton = None
   _singleton_credentials = None
 
@@ -49,19 +46,14 @@ class _AuthenticatedHttp(object):
     # account is authorized for buildbucket.
     cls._singleton = httplib2.Http()
     if override_credentials:
-      rietveld_credentials = override_credentials
+      credentials = override_credentials
     else:
-      rietveld_credentials = ndb.Key('RietveldConfig',
-                                     'default_rietveld_config').get()
+      credentials = utils.ServiceAccountCredentials()
 
     # If we cannot pull the credentials from ndb we simply use the unauthorized
     # client. This useful when running a local dev server.
-    if rietveld_credentials:
-      creds = oauth2client.client.SignedJwtAssertionCredentials(
-          rietveld_credentials.client_email,
-          rietveld_credentials.service_account_key,
-          _OAUTH2_SCOPE)
-      creds.authorize(cls._singleton)
+    if credentials:
+      credentials.authorize(cls._singleton)
 
 
 def PutJob(job, bucket=_BUCKET_NAME, credentials=None):

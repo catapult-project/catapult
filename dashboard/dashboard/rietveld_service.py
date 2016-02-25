@@ -10,13 +10,10 @@ import mimetypes
 import urllib
 
 import httplib2
-from oauth2client import client
 
 from google.appengine.ext import ndb
 
-# TODO(qyearsley): Move scope constant(s) to another module, because
-# they are used for other things besides Rietveld.
-EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
+from dashboard import utils
 
 _DESCRIPTION = """This patch was automatically uploaded by the Chrome Perf
 Dashboard (https://chromeperf.appspot.com). It is being used to run a perf
@@ -42,9 +39,8 @@ class RietveldConfig(ndb.Model):
   The data is stored only in the App Engine datastore (and the cloud console)
   and not the code because it contains sensitive information like private keys.
   """
-  # TODO(qyearsley): Store service account email and key in datastore in
-  # another Model other than RietveldConfig, since it is used for other things
-  # besides Rietveld.
+  # TODO(qyearsley): Remove RietveldConfig and store the server URL in
+  # datastore.
   client_email = ndb.TextProperty()
   service_account_key = ndb.TextProperty()
 
@@ -54,12 +50,6 @@ class RietveldConfig(ndb.Model):
   # The protocol and domain of the Internal Rietveld host which is used
   # to create issues for internal only tests.
   internal_server_url = ndb.TextProperty()
-
-
-def Credentials(config, scope):
-  """Returns a credentials object used to authenticate a Http object."""
-  return client.SignedJwtAssertionCredentials(
-      config.client_email, config.service_account_key, scope)
 
 
 def GetDefaultRietveldConfig():
@@ -101,8 +91,8 @@ class RietveldService(object):
   def _Http(self):
     if not self._http:
       self._http = httplib2.Http()
-      creds = Credentials(self.Config(), EMAIL_SCOPE)
-      creds.authorize(self._http)
+      credentials = utils.ServiceAccountCredentials()
+      credentials.authorize(self._http)
     return self._http
 
   def _XsrfToken(self):

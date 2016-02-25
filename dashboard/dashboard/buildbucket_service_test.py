@@ -5,19 +5,16 @@
 import json
 import unittest
 
+from oauth2client import client
 import mock
 
 from dashboard import buildbucket_service
 from dashboard import testing_common
 
 
+
+
 class BuildbucketServiceTest(testing_common.TestCase):
-
-  class FakeCredentials(object):
-
-    def __init__(self):
-      self.client_email = 'dummy@tempuri.org'
-      self.service_account_key = 'Some random string'
 
   class FakeJob(object):
 
@@ -55,6 +52,11 @@ class BuildbucketServiceTest(testing_common.TestCase):
   def setUp(self):
     super(BuildbucketServiceTest, self).setUp()
     self.fake_service = BuildbucketServiceTest.FakeService()
+
+  @staticmethod
+  def FakeCredentials():
+    return client.SignedJwtAssertionCredentials(
+        'service_account@foo.org', 'private key', 'bogus scope')
 
   @mock.patch('oauth2client.client.SignedJwtAssertionCredentials',
               mock.MagicMock())

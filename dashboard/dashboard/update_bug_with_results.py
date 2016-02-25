@@ -21,7 +21,6 @@ from dashboard import issue_tracker_service
 from dashboard import layered_cache
 from dashboard import quick_logger
 from dashboard import request_handler
-from dashboard import rietveld_service
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
@@ -61,9 +60,7 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
     jobs and send comments to an issue on the issue tracker if a bisect job has
     completed.
     """
-    credentials = rietveld_service.Credentials(
-        rietveld_service.GetDefaultRietveldConfig(),
-        rietveld_service.EMAIL_SCOPE)
+    credentials = utils.ServiceAccountCredentials()
     issue_tracker = issue_tracker_service.IssueTrackerService(
         additional_credentials=credentials)
 

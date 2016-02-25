@@ -6,11 +6,11 @@
 
 from oauth2client.appengine import OAuth2Decorator
 
-from dashboard import rietveld_service
+from dashboard import utils
 
 DECORATOR = OAuth2Decorator(
     client_id='425761728072.apps.googleusercontent.com',
     client_secret='9g-XlmEFW8ROI01YY6nrQVKq',
-    scope=rietveld_service.EMAIL_SCOPE,
+    scope=utils.EMAIL_SCOPE,
     message='Oauth error occurred!',
     callback_path='/oauth2callback')
