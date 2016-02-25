@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base64.html">
-<link rel="import" href="/tracing/extras/importer/gzip_importer.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/gzip_importer.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 
 <script>
@@ -60,6 +60,45 @@ tr.b.unittest.testSuite(function() {
 
     var slice = findSliceNamed(threads[0].sliceGroup, 'a');
     assert.equal(slice.category, 'foo');
+  });
+
+  test('transformToString', function() {
+    function checkTransform(data, expectedString) {
+      assert.strictEqual(tr.e.importer.GzipImporter.transformToString(data),
+          expectedString);
+    }
+
+    function createArrayBuffer(values) {
+      var buffer = new ArrayBuffer(values.length);
+      var view = new Uint8Array(buffer);
+      view.set(values);
+      return buffer;
+    }
+
+    // If the browser supports TextDecoder, this will test our custom
+    // implementation. Otherwise, the jszip fallback will be tested.
+    checkTransform('abc012', 'abc012');
+    checkTransform([100, 101, 102, 51, 52, 53], 'def345');
+    checkTransform(createArrayBuffer([103, 104, 105, 54, 55, 56]), 'ghi678');
+    checkTransform(new Uint8Array([106, 107, 108, 57, 58, 59]), 'jkl9:;');
+
+    if (typeof TextDecoder === 'undefined') {
+      // The browser doesn't support TextDecoder, so we have already checked
+      // the jszip fallback.
+      return;
+    }
+
+    // The browser supports TextDecoder, so we now check the jszip fallback.
+    var oldTextDecoder = TextDecoder;
+    TextDecoder = undefined;
+    try {
+      checkTransform('abc012', 'abc012');
+      checkTransform([100, 101, 102, 51, 52, 53], 'def345');
+      checkTransform(createArrayBuffer([103, 104, 105, 54, 55, 56]), 'ghi678');
+      checkTransform(new Uint8Array([106, 107, 108, 57, 58, 59]), 'jkl9:;');
+    } finally {
+      TextDecoder = oldTextDecoder;
+    }
   });
 });
 </script>

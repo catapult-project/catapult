@@ -113,8 +113,39 @@ tr.exportTo('tr.e.importer', function() {
     // Inflate the data using jszip.
     var inflated_data =
         JSZip.compressions['DEFLATE'].uncompress(data.subarray(position));
-    return JSZip.utils.transformTo('string', inflated_data);
-  },
+    return GzipImporter.transformToString(inflated_data);
+  };
+
+  /**
+   * Transforms an array-like object to a string.
+   *
+   * Note that the following two expressions yield identical results:
+   *
+   *   GzipImporter.transformToString_(data)
+   *   JSZip.utils.transformTo('string', data)
+   *
+   * We use a custom static method because it is faster and, more importantly,
+   * avoids OOMing on large traces. See
+   * https://github.com/catapult-project/catapult/issues/2051.
+   */
+  GzipImporter.transformToString = function(data) {
+    if (typeof TextDecoder === 'undefined') {
+      // Fall back to jszip if TextDecoder is not available.
+      return JSZip.utils.transformTo('string', data);
+    }
+
+    var type = JSZip.utils.getTypeOf(data);
+    if (type === 'string')
+      return data;  // We already have a string.
+
+    if (type === 'array') {
+      // TextDecoder requires an ArrayBuffer or an ArrayBufferView.
+      data = new Uint8Array(data);
+    }
+
+    var decoder = new TextDecoder('utf-8');
+    return decoder.decode(data);
+  };
 
   GzipImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
