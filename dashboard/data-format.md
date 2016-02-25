@@ -10,20 +10,19 @@ being uploaded.
 
 Example:
 
-```json
+```javascript
 {
   "master": "master.chromium.perf",
   "bot": "linux-release",
   "point_id": 123456,
   "versions": {
     "version type": "version string"
-    ...
   },
   "supplemental": {
     "field name": "supplemental data string",
     "default_rev": "r_chrome_version"
-  }
-  "chart_data": {... as output by Telemetry; see below ...}
+  },
+  "chart_data": {/*... as output by Telemetry; see below ...*/}
 }
 
 Fields:
@@ -60,7 +59,7 @@ the test.
         "type": "list_of_scalar_values",
         "values": [4, 5, 4, 4],
       },
-      "overall": {
+      "summary": {
         "type": "list_of_scalar_values",
         "values": [13, 14, 12, 13],
         "file": "gs://..."
@@ -81,7 +80,7 @@ Fields:
  which tells the dashboard how to interpret the rest of the fields.
  * `improvement_direction` (string): Either `"bigger_is_better"`, or
  `"smaller_is_better"`.
- * `summary`: A trace name which denotes the trace in a chart which does
+ * `summary`: A special trace name which denotes the trace in a chart which does
  not correspond to a specific page.
 
 ## Legacy Format
