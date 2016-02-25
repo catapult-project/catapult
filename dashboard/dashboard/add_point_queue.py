@@ -305,8 +305,11 @@ def _GetOrCreateTest(name, parent_key, properties):
 
   if existing.stoppage_alert:
     alert = existing.stoppage_alert.get()
-    alert.recovered = True
-    alert.put()
+    if alert:
+      alert.recovered = True
+      alert.put()
+    else:
+      logging.warning('Stoppage alert %s not found.', existing.stoppage_alert)
     existing.stoppage_alert = None
     properties_changed = True
 
