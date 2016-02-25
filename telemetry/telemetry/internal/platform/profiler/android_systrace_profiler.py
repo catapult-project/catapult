@@ -38,8 +38,8 @@ class AndroidSystraceProfiler(profiler.Profiler):
     config = tracing_config.TracingConfig()
     config.enable_chrome_trace = True
     self._browser_backend.StartTracing(config, timeout=10)
-    command = ['python', os.path.join(util.GetChromiumSrcDir(), 'tools',
-                                      'profile_chrome.py'),
+    command = ['python', os.path.join(util.GetCatapultDir(), 'systrace', 'bin',
+                                      'adb_profile_chrome'),
                '--categories', '', '--continuous', '--output',
                self._systrace_output_path, '--json', '--systrace',
                ','.join(_SYSTRACE_CATEGORIES)]
