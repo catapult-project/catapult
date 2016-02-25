@@ -90,6 +90,7 @@ class IssueTrackerService(object):
     request = self._service.issues().comments().insert(
         projectId='chromium',
         issueId=bug_id,
+        sendEmail=True,
         body=body)
     response = self._ExecuteRequest(request)
     if not response:
@@ -132,7 +133,10 @@ class IssueTrackerService(object):
     Returns:
       A bug ID if successful, or None otherwise.
     """
-    request = self._service.issues().insert(projectId='chromium', body=body)
+    request = self._service.issues().insert(
+        projectId='chromium',
+        sendEmail=True,
+        body=body)
     response = self._ExecuteRequest(request)
     if response and 'id' in response:
       return response['id']
