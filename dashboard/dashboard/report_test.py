@@ -174,5 +174,35 @@ class ReportTest(testing_common.TestCase):
     self.assertIn('end_rev=5678', location)
 
 
+  def testGet_OldUriWithNestedSubtestAndMissingSubTestParam(self):
+    self._AddTestSuites()
+    testing_common.AddRows(
+        ('ChromiumGPU/linux-release/scrolling_benchmark/average_commit_time/'
+         'answers.yahoo.com'),
+        {200})
+
+    expected_state = {
+        'charts': [
+            [[('ChromiumGPU/linux-release/scrolling_benchmark/'
+               'average_commit_time/answers.yahoo.com'),
+              ['answers.yahoo.com']]],
+        ]
+    }
+
+    response = self.testapp.get(
+        '/report'
+        '?masters=ChromiumGPU&bots=linux-release'
+        '&tests=scrolling_benchmark')
+
+    # We expect to get a URL redirect with an sid.
+    location = response.headers.get('location')
+    self.assertIn('sid=', location)
+
+    state_id = location.split('sid=')[1]
+    state = ndb.Key(page_state.PageState, state_id).get()
+    self.assertEqual(json.dumps(expected_state, separators=(',', ':')),
+                     state.value)
+
+
 if __name__ == '__main__':
   unittest.main()

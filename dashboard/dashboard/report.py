@@ -102,11 +102,11 @@ def _CreatePageState(masters, bots, tests, checked):
       for test in tests:
         test_parts = test.split('/')
         if len(test_parts) == 1:
-          first_test = _GetFirstTest(test, master + '/' + bot)
-          if first_test:
-            test += '/' + first_test
+          first_test_parts = _GetFirstTest(test, master + '/' + bot)
+          if first_test_parts:
+            test += '/' + '/'.join(first_test_parts)
             if not selected_series:
-              selected_series.append(first_test)
+              selected_series.append(first_test_parts[-1])
         test_paths.append(master + '/' + bot + '/' + test)
 
   chart_states = []
@@ -126,7 +126,8 @@ def _GetFirstTest(test_suite, bot_path):
     bot_path: Master and bot name separated by a slash.
 
   Returns:
-    The first test that has rows, otherwise returns None.
+    A list of test path parts of the first test that has rows, otherwise
+    returns None.
   """
   sub_test_tree = list_tests.GetSubTests(test_suite, [bot_path])
   test_parts = []
@@ -134,6 +135,6 @@ def _GetFirstTest(test_suite, bot_path):
     first_test = sorted(sub_test_tree.keys())[0]
     test_parts.append(first_test)
     if sub_test_tree[first_test]['has_rows']:
-      return '/'.join(test_parts)
+      return test_parts
     sub_test_tree = sub_test_tree[first_test]['sub_tests']
   return None
