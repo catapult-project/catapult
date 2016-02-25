@@ -29,7 +29,6 @@ _RELATIVE_BASE_DIRS = (
   ('tools', 'bisect-manual-test.py'),
   ('tools', 'chrome_proxy'),
   ('tools', 'perf'),
-  ('tools', 'profile_chrome', 'perf_controller.py'),
   ('tools', 'run-bisect-manual-test.py'),
   ('third_party', 'skia', 'tools', 'skp', 'page_sets'),
   ('third_party', 'trace-viewer'),
