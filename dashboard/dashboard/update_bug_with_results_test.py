@@ -156,10 +156,6 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         update_bug_with_results.UpdateBugWithResultsHandler)])
     self.testapp = webtest.TestApp(app)
     self._AddRietveldConfig()
-    # Calling the real Credentials function doesn't work in the test
-    # environment; using no credentials in the tests works because the requests
-    # to the issue tracker are mocked out as well.
-    rietveld_service.Credentials = mock.MagicMock(return_value=None)
 
   def _AddRietveldConfig(self):
     """Adds a RietveldConfig entity to the datastore.
@@ -232,6 +228,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual(12345, pending_jobs[0].bug_id)
     self.assertEqual('completed', pending_jobs[0].status)
 
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))

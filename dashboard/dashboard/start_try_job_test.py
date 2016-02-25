@@ -831,14 +831,6 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformBisectStep_DeleteJobOnFailedBisect(self):
     self.SetCurrentUser('foo@chromium.org')
-    # Fake Rietveld auth info
-    cfg = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@chromium.org',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com/')
-    cfg.put()
-
     query_parameters = {
         'bisect_bot': 'linux_perf_bisect',
         'suite': 'dromaeo.jslibstylejquery',
@@ -866,14 +858,6 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(side_effect=_MockMakeRequest))
   def testPerformPerfTryStep_DeleteJobOnFailedBisect(self):
     self.SetCurrentUser('foo@chromium.org')
-    # Fake Rietveld auth info
-    cfg = rietveld_service.RietveldConfig(
-        id='default_rietveld_config',
-        client_email='sullivan@chromium.org',
-        service_account_key='Fake Account Key',
-        server_url='https://test-rietveld.appspot.com/')
-    cfg.put()
-
     query_parameters = {
         'bisect_bot': 'linux_perf_bisect',
         'suite': 'dromaeo.jslibstylejquery',

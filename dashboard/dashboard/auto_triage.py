@@ -20,7 +20,6 @@ from dashboard import issue_tracker_service
 from dashboard import math_utils
 from dashboard import quick_logger
 from dashboard import request_handler
-from dashboard import rietveld_service
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
@@ -150,11 +149,8 @@ class TriageBugs(object):
     bug.put()
     comment = cls._RecoveredBugComment(bug_id)
 
-    credentials = rietveld_service.Credentials(
-        rietveld_service.GetDefaultRietveldConfig(),
-        rietveld_service.EMAIL_SCOPE)
     issue_tracker = issue_tracker_service.IssueTrackerService(
-        additional_credentials=credentials)
+        additional_credentials=utils.ServiceAccountCredentials())
     issue_tracker.AddBugComment(bug_id, comment)
 
   @classmethod

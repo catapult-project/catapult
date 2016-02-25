@@ -21,11 +21,12 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 from oauth2client import client
 
-from dashboard import rietveld_service
 from dashboard import stored_object
 
 SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
 IP_WHITELIST_KEY = 'ip_whitelist'
+SERVICE_ACCOUNT_KEY = 'service_account'
+EMAIL_SCOPE = 'https://www.googleapis.com/auth/userinfo.email'
 _PROJECT_ID_KEY = 'project_id'
 _DEFAULT_CUSTOM_METRIC_VAL = 1
 
@@ -274,15 +275,15 @@ def IsGroupMember(identity, group):
 
 
 def ServiceAccountCredentials():
-  """Returns the service account credentials if available."""
-  # TODO(qyearsley): Refactor to keep credentials somewhere else besides
-  # rietveld_service.RietveldConfig.
-  config = rietveld_service.GetDefaultRietveldConfig()
-  if not config:
+  """Returns the Credentials of the service account if available."""
+  account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
+  if not account_details:
+    logging.error('Service account credentials not found.')
     return None
   return client.SignedJwtAssertionCredentials(
-      config.client_email, config.service_account_key,
-      rietveld_service.EMAIL_SCOPE)
+      service_account_name=account_details['client_email'],
+      private_key=account_details['private_key'],
+      scope=EMAIL_SCOPE)
 
 
 def IsValidSheriffUser():
