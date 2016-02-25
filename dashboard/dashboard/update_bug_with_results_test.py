@@ -432,6 +432,22 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
+  @mock.patch('update_bug_with_results.quick_logger.QuickLogger.Log')
+  def testUpdateQuickLog_WithJobResults_AddsQuickLog(self, mock_log):
+    job = self._AddTryJob(111, 'started', 'win_perf',
+                          results_data=_SAMPLE_BISECT_RESULTS_JSON)
+    update_bug_with_results.UpdateQuickLog(job)
+    self.assertEqual(1, mock_log.call_count)
+
+  @mock.patch('logging.error')
+  @mock.patch('update_bug_with_results.quick_logger.QuickLogger.Log')
+  def testUpdateQuickLog_NoResultsData_ReportsError(
+      self, mock_log, mock_logging_error):
+    job = self._AddTryJob(111, 'started', 'win_perf')
+    update_bug_with_results.UpdateQuickLog(job)
+    self.assertEqual(0, mock_log.call_count)
+    mock_logging_error.assert_called_once_with(
+        'Bisect report returns empty for job id %s, bug_id %s.', 1, 111)
 
 if __name__ == '__main__':
   unittest.main()
