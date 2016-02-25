@@ -1,6 +1,9 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+from py_trace_event import trace_time
+
+
 r"""Instrumentation-based profiling for Python.
 
 trace_event allows you to hand-instrument your code with areas of interest.
@@ -76,11 +79,11 @@ if trace_event_impl:
 
   def trace_begin(name, **kwargs):
     args_to_log = {key: repr(value) for key, value in kwargs.iteritems()}
-    trace_event_impl.add_trace_event("B", time.time(), "python", name,
+    trace_event_impl.add_trace_event("B", trace_time.Now(), "python", name,
                                      args_to_log)
 
   def trace_end(name):
-    trace_event_impl.add_trace_event("E", time.time(), "python", name)
+    trace_event_impl.add_trace_event("E", trace_time.Now(), "python", name)
 
   def trace(name, **kwargs):
     return trace_event_impl.trace(name, **kwargs)
@@ -89,12 +92,12 @@ if trace_event_impl:
     return trace_event_impl.traced(fn)
 
   def clock_sync(sync_id, issue_ts=None):
-    time_stamp = time.time()
+    time_stamp = trace_time.Now()
     args_to_log = {'sync_id': sync_id}
     if issue_ts: # Issuer if issue_ts is set, else reciever.
       assert issue_ts <= time_stamp
       # Convert to right units for ts.
-      args_to_log['issue_ts'] = issue_ts * 1000000
+      args_to_log['issue_ts'] = issue_ts
     trace_event_impl.add_trace_event(
         "c", time_stamp, "python", "clock_sync", args_to_log)
 

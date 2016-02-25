@@ -4,7 +4,6 @@
 
 import gc
 import logging
-import time
 import unittest
 
 from telemetry import decorators
@@ -231,7 +230,7 @@ class TracingControllerBackendTest(unittest.TestCase):
   @decorators.Isolated
   def testRecordIssuerClockSyncMarker(self):
     sync_id = 'test_id'
-    ts = time.time()
+    ts = 1
     self.controller._supported_agents_classes = [
         FakeTracingAgentNoStartAndNoClockSync,
         FakeTracingAgentStartAndNoClockSync
@@ -245,7 +244,6 @@ class TracingControllerBackendTest(unittest.TestCase):
     for entry in log:
       if entry.get('name') == 'clock_sync':
         self.assertEqual(entry['args']['sync_id'], sync_id)
-        self.assertEqual(entry['args']['issue_ts'], ts * 1000000)
 
   @decorators.Isolated
   def testIssueClockSyncMarker(self):

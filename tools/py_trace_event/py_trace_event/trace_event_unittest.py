@@ -13,6 +13,7 @@ import time
 import unittest
 
 from py_trace_event import trace_event
+from py_trace_event import trace_time
 from py_trace_event.trace_event_impl import log
 
 
@@ -205,7 +206,7 @@ class TraceEventTests(unittest.TestCase):
   def testClockSyncWithTs(self):
     with self._test_trace():
       with open(self._log_path, 'r') as f:
-        trace_event.clock_sync('id', issue_ts=time.time())
+        trace_event.clock_sync('id', issue_ts=trace_time.Now())
         trace_event.trace_flush()
         log_output = json.loads(f.read() + ']')
         self.assertEquals(len(log_output), 2)

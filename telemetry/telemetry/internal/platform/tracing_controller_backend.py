@@ -10,11 +10,11 @@ import logging
 import os
 import sys
 import tempfile
-import time
 import traceback
 import uuid
 
 from py_trace_event import trace_event
+from py_trace_event import trace_time
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
@@ -159,7 +159,7 @@ class TracingControllerBackend(object):
       for agent in self._active_agents_instances:
         if agent.SupportsExplicitClockSync():
           sync_id = self._GenerateClockSyncId()
-          ts = time.time()
+          ts = trace_time.Now()
           agent.RecordClockSyncMarker(sync_id)
           self._RecordIssuerClockSyncMarker(sync_id, ts)
 
