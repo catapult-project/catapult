@@ -94,7 +94,7 @@ def _CheckJob(job, issue_tracker):
   """
   if _IsStale(job):
     job.SetStaled()
-    UpdateQuickLog(job)
+    # TODO(chrisphan): Add a staled TryJob log.
     # TODO(chrisphan): Do we want to send a FYI Bisect email here?
     return
 
@@ -322,7 +322,8 @@ def _SendFYIBisectEmail(job, message):
 def UpdateQuickLog(job):
   report = bisect_report.GetReport(job)
   if not report:
-    logging.error('Bisect report returns empty for job id: %s', job.id)
+    logging.error('Bisect report returns empty for job id %s, bug_id %s.',
+                  job.key.id(), job.bug_id)
     return
   formatter = quick_logger.Formatter()
   logger = quick_logger.QuickLogger('bisect_result', job.bug_id, formatter)
