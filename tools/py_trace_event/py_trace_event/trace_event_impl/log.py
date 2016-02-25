@@ -155,8 +155,6 @@ def add_trace_event(ph, ts, category, name, args=None):
       tid = os.getpid()
     _tls.tid = tid
 
-  if ts:
-    ts = 1000000 * ts
   _cur_events.append({"ph": ph,
                       "category": category,
                       "pid": _tls.pid,
