@@ -62,6 +62,8 @@ class TryJob(internal_only_model.InternalOnlyModel):
   # Results data comming from bisect bots.
   results_data = ndb.JsonProperty(indexed=False)
 
+  log_record_id = ndb.StringProperty(indexed=False)
+
   def SetStarted(self):
     self.status = 'started'
     self.run_count += 1

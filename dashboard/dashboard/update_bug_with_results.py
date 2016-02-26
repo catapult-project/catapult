@@ -320,6 +320,8 @@ def _SendFYIBisectEmail(job, message):
 
 
 def UpdateQuickLog(job):
+  if not job.bug_id or job.bug_id < 0:
+    return
   report = bisect_report.GetReport(job)
   if not report:
     logging.error('Bisect report returns empty for job id %s, bug_id %s.',
@@ -327,5 +329,10 @@ def UpdateQuickLog(job):
     return
   formatter = quick_logger.Formatter()
   logger = quick_logger.QuickLogger('bisect_result', job.bug_id, formatter)
-  logger.Log(report)
-  logger.Save()
+  if job.log_record_id:
+    logger.Log(report, record_id=job.log_record_id)
+    logger.Save()
+  else:
+    job.log_record_id = logger.Log(report)
+    logger.Save()
+    job.put()

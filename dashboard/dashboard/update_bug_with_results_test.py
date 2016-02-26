@@ -432,12 +432,15 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
-  @mock.patch('update_bug_with_results.quick_logger.QuickLogger.Log')
-  def testUpdateQuickLog_WithJobResults_AddsQuickLog(self, mock_log):
+  @mock.patch.object(
+      update_bug_with_results.quick_logger.QuickLogger,
+      'Log', mock.MagicMock(return_value='record_key_123'))
+  @mock.patch('logging.error')
+  def testUpdateQuickLog_WithJobResults_NoError(self, mock_logging_error):
     job = self._AddTryJob(111, 'started', 'win_perf',
                           results_data=_SAMPLE_BISECT_RESULTS_JSON)
     update_bug_with_results.UpdateQuickLog(job)
-    self.assertEqual(1, mock_log.call_count)
+    self.assertEqual(0, mock_logging_error.call_count)
 
   @mock.patch('logging.error')
   @mock.patch('update_bug_with_results.quick_logger.QuickLogger.Log')
