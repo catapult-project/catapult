@@ -217,6 +217,20 @@ class ValueTest(TestBase):
 
     self.assertEquals(v.page.id, page0.id)
 
+  def testFromDictWithPageId0(self):
+    page_dict = {0: 'foo'}
+
+    d = {
+      'type': 'value_for_from_dict_test',
+      'name': 'x',
+      'units': 'unit',
+      'page_id': 0
+    }
+
+    v = value.Value.FromDict(d, page_dict)
+
+    self.assertEquals(v.page, 'foo')
+
   def testFromDictWithoutPage(self):
     d = {
       'type': 'value_for_from_dict_test',
