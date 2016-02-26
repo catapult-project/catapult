@@ -12,31 +12,40 @@ It provides rich analysis and visualization capabilities for many types of trace
 files. Its particularly good at viewing linux kernel traces (aka [ftrace](https://www.kernel.org/doc/Documentation/trace/ftrace.txt)) and Chrome's
 [trace_event format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview). Trace viewer can be [embedded](https://github.com/catapult-project/catapult/wiki/Embedding-Trace-Viewer) as a component in your own code, or used from a plain checkout to turn trace files into standalone, emailable HTML files from the commandline:
 
-    ./tracing/trace2html my_trace.json --output=my_trace.html && open my_trace.html
+```
+$CATAPULT/tracing/bin/trace2html my_trace.json --output=my_trace.html && open my_trace.html
+```
 
 Its easy to [extend trace viewer](https://github.com/catapult-project/catapult/wiki/Extending-and-Customizing-Trace-Viewer) to support your favorite trace format, or add domain specific visualizations to the UI to simplify drilling down into complex data.
 
 Contributing, quick version
-===========================================================================
-We welcome contributions! To hack on this code, from toplevel:
-  ./bin/run_dev_server
+===
+We welcome contributions! To hack on this code.
 
-In any browser, navigate to
-  http://localhost:8003/
+There are two type of tests.
 
-To run all python unittests:
-  ./tracing/run_py_tests
+### In the browser
 
-To run all tracing unittests in d8 environment:
- ./tracing/run_vinn_tests
+Run http server `$CATAPULT/bin/run_dev_server`. In any browser, navigate to `http://localhost:8003/`
 
-To run all the unittests, you can also do:
+**Unit tests**| **Descripton**
+--- | ---
+All tests | http://localhost:8003/tests.html
+All tests with short format | http://localhost:8003/tracing/tests.html?shortFormat
+An individual test suite(such as ui/foo_test.js) | http://localhost:8003/tests.html?testSuiteName=ui.foo
+Tests named foo| http://localhost:8003/tests.html?testFilterString=foo
 
- ./tracing/run_tests
+### On command
+
+**Unit tests**| **Description**
+--- | ---
+All python tests | `$CATAPULT/tracing/bin/run_py_tests`
+All tracing tests in d8 environment | `$CATAPULT/tracing/bin/run_vinn_tests`
+All tests | `$CATAPULT/tracing/bin/run_tests`
 
 Make sure tests pass before sending us changelist. **We use rietveld for codereview**. For more details, esp on rietveld, [read our contributing guide](https://github.com/catapult-project/catapult/blob/master/CONTRIBUTING.md) or check out the [trace viewer wiki](https://github.com/catapult-project/catapult/wiki/Trace-Viewer-Getting-Started).
 
 Contact Us
-===========================================================================
+===
 Join our Google Group:
 * [tracing@chromium.org](https://groups.google.com/a/chromium.org/forum/#!forum/tracing)
