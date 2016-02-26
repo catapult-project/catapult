@@ -79,7 +79,7 @@ class ValueTest(TestBase):
                 '[10, 9, 9, 7], important=True, description=desc, '
                 'tir_label=my_ir, std=42, '
                 'same_page_merge_policy=CONCATENATE, '
-                'improvement_direction=down)')
+                'improvement_direction=down, grouping_keys={})')
 
     self.assertEquals(expected, str(v))
 

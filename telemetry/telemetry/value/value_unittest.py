@@ -74,66 +74,71 @@ class ValueTest(TestBase):
     page1 = self.pages[0]
 
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
-                    tir_label='foo')
+                    tir_label='foo', grouping_keys=None)
     b = value.Value(page1, 'x', 'unit', important=False, description=None,
-                    tir_label='foo')
+                    tir_label='foo', grouping_keys=None)
     self.assertTrue(b.IsMergableWith(a))
 
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
-                    tir_label='foo')
+                    tir_label='foo', grouping_keys=None)
     b = value.Value(page0, 'x', 'unit', important=False, description=None,
-                     tir_label='bar')
+                     tir_label='bar', grouping_keys=None)
     self.assertTrue(b.IsMergableWith(a))
 
   def testIncompat(self):
     page0 = self.pages[0]
 
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
-                    tir_label=None)
+                    tir_label=None, grouping_keys=None)
     b = value.Value(page0, 'x', 'incompatUnit', important=False,
-                    tir_label=None, description=None)
+                    tir_label=None, description=None, grouping_keys=None)
     self.assertFalse(b.IsMergableWith(a))
 
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
-                    tir_label=None)
+                    tir_label=None, grouping_keys=None)
     b = value.Value(page0, 'x', 'unit', important=True, description=None,
-                    tir_label=None)
+                    tir_label=None, grouping_keys=None)
     self.assertFalse(b.IsMergableWith(a))
 
     a = value.Value(page0, 'x', 'unit', important=False, description=None,
-                    tir_label=None)
+                    tir_label=None, grouping_keys=None)
     b = ValueForTest(page0, 'x', 'unit', important=True, description=None,
-                     tir_label=None)
+                     tir_label=None, grouping_keys=None)
     self.assertFalse(b.IsMergableWith(a))
 
   def testNameMustBeString(self):
     with self.assertRaises(ValueError):
       value.Value(None, 42, 'unit', important=False, description=None,
-                  tir_label=None)
+                  tir_label=None, grouping_keys=None)
 
   def testUnitsMustBeString(self):
     with self.assertRaises(ValueError):
       value.Value(None, 'x', 42, important=False, description=None,
-                  tir_label=None)
+                  tir_label=None, grouping_keys=None)
 
   def testImportantMustBeBool(self):
     with self.assertRaises(ValueError):
       value.Value(None, 'x', 'unit', important='foo', description=None,
-                  tir_label=None)
+                  tir_label=None, grouping_keys=None)
 
   def testDescriptionMustBeStringOrNone(self):
     with self.assertRaises(ValueError):
       value.Value(None, 'x', 'unit', important=False, description=42,
-                  tir_label=None)
+                  tir_label=None, grouping_keys=None)
 
   def testInteractionRecordMustBeStringOrNone(self):
     with self.assertRaises(ValueError):
       value.Value(None, 'x', 'unit', important=False, description=None,
-                  tir_label=42)
+                  tir_label=42, grouping_keys=None)
+
+  def testGroupingKeysMustBeDictOrNone(self):
+    with self.assertRaises(ValueError):
+      value.Value(None, 'x', 'unit', important=False, description=None,
+                  tir_label=42, grouping_keys='foo')
 
   def testAsDictBaseKeys(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=True, description=None,
-                           tir_label='bar')
+                           tir_label='bar', grouping_keys={'foo': 'baz'})
     d = v.AsDict()
 
     self.assertEquals(d, {
@@ -141,21 +146,22 @@ class ValueTest(TestBase):
           'type': 'baz',
           'units': 'unit',
           'important': True,
-          'tir_label': 'bar'
+          'tir_label': 'bar',
+          'grouping_keys': {'foo': 'baz'}
         })
 
   def testAsDictWithPage(self):
     page0 = self.pages[0]
 
     v = ValueForAsDictTest(page0, 'x', 'unit', important=False,
-                           description=None, tir_label=None)
+                           description=None, tir_label=None, grouping_keys=None)
     d = v.AsDict()
 
     self.assertIn('page_id', d)
 
   def testAsDictWithoutPage(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=False, description=None,
-                           tir_label=None)
+                           tir_label=None, grouping_keys=None)
     d = v.AsDict()
 
     self.assertNotIn('page_id', d)
@@ -163,25 +169,25 @@ class ValueTest(TestBase):
   def testAsDictWithDescription(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=False,
                            description='Some description.',
-                           tir_label=None)
+                           tir_label=None, grouping_keys=None)
     d = v.AsDict()
     self.assertEqual('Some description.', d['description'])
 
   def testAsDictWithoutDescription(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=False, description=None,
-                           tir_label=None)
+                           tir_label=None, grouping_keys=None)
     self.assertNotIn('description', v.AsDict())
 
   def testAsDictWithInteractionRecord(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=False,
                            description='Some description.',
-                           tir_label='foo')
+                           tir_label='foo', grouping_keys=None)
     d = v.AsDict()
     self.assertEqual('foo', d['tir_label'])
 
   def testAsDictWithoutInteractionRecord(self):
     v = ValueForAsDictTest(None, 'x', 'unit', important=False, description=None,
-                           tir_label=None)
+                           tir_label=None, grouping_keys=None)
     self.assertNotIn('tir_label', v.AsDict())
 
   def testFromDictBaseKeys(self):
@@ -264,6 +270,29 @@ class ValueTest(TestBase):
 
     v = value.Value.FromDict(d, {})
     self.assertEquals(v.tir_label, None)
+
+  def testFromDictWithGroupingKeys(self):
+    d = {
+          'type': 'value_for_from_dict_test',
+          'name': 'x',
+          'units': 'unit',
+          'description': 'foo',
+          'tir_label': 'bar',
+          'grouping_keys': {'foo': 'bar'}
+        }
+
+    v = value.Value.FromDict(d, {})
+    self.assertEquals(v.grouping_keys, {'foo': 'bar'})
+
+  def testFromDictWithoutGroupingKeys(self):
+    d = {
+          'type': 'value_for_from_dict_test',
+          'name': 'x',
+          'units': 'unit'
+        }
+
+    v = value.Value.FromDict(d, {})
+    self.assertEquals(v.grouping_keys, {})
 
   def testListOfValuesFromListOfDicts(self):
     d0 = {

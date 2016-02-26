@@ -5,10 +5,13 @@ import collections
 import logging
 from collections import defaultdict
 
+from tracing.metrics import metric_runner
+
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_config
 from telemetry.value import trace
+from telemetry.value import translate_common_values
 from telemetry.web_perf.metrics import timeline_based_metric
 from telemetry.web_perf.metrics import blob_timeline
 from telemetry.web_perf.metrics import jitter_timeline
@@ -189,6 +192,7 @@ class Options(object):
                       " or valid overhead level string."
                       " Given overhead level: %s" % overhead_level)
 
+    self._timeline_based_metrics = None
     self._legacy_timeline_based_metrics = _GetAllLegacyTimelineBasedMetrics()
 
 
@@ -206,14 +210,24 @@ class Options(object):
     return self._config
 
   def SetTimelineBasedMetrics(self, metrics):
-    # TODO(eakuefner@): implement this
-    raise NotImplementedError()
+    """Sets the new-style (TBMv2) metrics to run.
+
+    Metrics are assumed to live in //tracing/tracing/metrics, so all paths
+    should be relative to that. For example, to specify sample_metric.html,
+    you would pass ['sample_metric.html'].
+
+    Args:
+      metrics: A list of string metric paths under //tracing/tracing/metrics.
+    """
+    assert isinstance(metrics, list)
+    self._legacy_timeline_based_metrics = None
+    self._timeline_based_metrics = metrics
 
   def GetTimelineBasedMetrics(self):
-    # TODO(eakuefner@): implement this
-    raise NotImplementedError()
+    return self._timeline_based_metrics
 
   def SetLegacyTimelineBasedMetrics(self, metrics):
+    assert self._timeline_based_metrics == None
     assert isinstance(metrics, collections.Iterable)
     for m in metrics:
       assert isinstance(m, timeline_based_metric.TimelineBasedMetric)
@@ -265,7 +279,39 @@ class TimelineBasedMeasurement(story_test.StoryTest):
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
     trace_result = platform.tracing_controller.StopTracing()
-    results.AddValue(trace.TraceValue(results.current_page, trace_result))
+    trace_value = trace.TraceValue(results.current_page, trace_result)
+    results.AddValue(trace_value)
+
+    if self._tbm_options.GetTimelineBasedMetrics():
+      self._ComputeTimelineBasedMetrics(results, trace_value)
+    else:
+      assert self._tbm_options.GetLegacyTimelineBasedMetrics()
+      self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
+
+
+  def DidRunStory(self, platform):
+    """Clean up after running the story."""
+    if platform.tracing_controller.is_tracing_running:
+      platform.tracing_controller.StopTracing()
+
+  def _ComputeTimelineBasedMetrics(self, results, trace_value):
+    metrics = self._tbm_options.GetTimelineBasedMetrics()
+
+    # TODO(eakuefner)
+    mre_result = metric_runner.RunMetrics(trace_value.filename, metrics)
+    page = results.current_page
+
+    failure_dicts = mre_result.failures
+    for d in failure_dicts:
+      results.AddValue(
+          translate_common_values.TranslateMreFailure(d, page))
+
+    value_dicts = mre_result.pairs.get('values', [])
+    for d in value_dicts:
+      results.AddValue(
+          translate_common_values.TranslateScalarValue(d, page))
+
+  def _ComputeLegacyTimelineBasedMetrics(self, results, trace_result):
     model = model_module.TimelineModel(trace_result)
     threads_to_records_map = _GetRendererThreadsToInteractionRecordsMap(model)
     if (len(threads_to_records_map.values()) == 0 and
@@ -287,8 +333,3 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
     for metric in all_metrics:
       metric.AddWholeTraceResults(model, results)
-
-  def DidRunStory(self, platform):
-    """Clean up after running the story."""
-    if platform.tracing_controller.is_tracing_running:
-      platform.tracing_controller.StopTracing()

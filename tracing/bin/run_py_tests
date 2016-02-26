@@ -4,6 +4,7 @@
 # found in the LICENSE file.
 
 import os
+import platform
 import sys
 
 _CATAPULT_PATH = os.path.abspath(os.path.join(
@@ -32,5 +33,8 @@ if __name__ == '__main__':
     install.InstallHooks()
 
   from catapult_build import run_with_typ
+  # https://github.com/catapult-project/catapult/issues/2050
+  if platform.system() != 'Windows':
+    _RunTestsOrDie(os.path.join(_TRACING_PATH, 'tracing'))
   _RunTestsOrDie(os.path.join(_TRACING_PATH, 'tracing_build'))
   sys.exit(0)

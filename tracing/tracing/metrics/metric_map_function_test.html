@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/metric_map_function.html">
+<link rel="import" href="/tracing/metrics/sample_metric.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.TestUtils;
+  var ThreadSlice = tr.model.ThreadSlice;
+
+  test('metricMapTest', function() {
+    var m = test_utils.newModel(function(m) {
+      var p1 = m.getOrCreateProcess(1);
+      var t2 = p1.getOrCreateThread(2);
+      var t2_s1 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        type: ThreadSlice,
+        name: 'some_slice',
+        start: 0, end: 10
+      }));
+      var t2_s2 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        type: ThreadSlice,
+        name: 'some_slice',
+        start: 20, end: 30
+      }));
+    });
+
+    m.canonicalUrlThatCreatedThisTrace = '/foo.json';
+
+    var result = new pi.mre.MreResult();
+    tr.metrics.metricMapFunction(result, m);
+    assert.property(result.pairs, 'values');
+  });
+});
+</script>

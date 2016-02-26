@@ -73,10 +73,11 @@ class ListOfScalarValues(summarizable.SummarizableValue):
                important=True, description=None,
                tir_label=None, none_value_reason=None,
                std=None, same_page_merge_policy=value_module.CONCATENATE,
-               improvement_direction=None):
+               improvement_direction=None, grouping_keys=None):
     super(ListOfScalarValues, self).__init__(page, name, units, important,
                                              description, tir_label,
-                                             improvement_direction)
+                                             improvement_direction,
+                                             grouping_keys)
     if values is not None:
       assert isinstance(values, list)
       assert len(values) > 0
@@ -113,7 +114,8 @@ class ListOfScalarValues(summarizable.SummarizableValue):
       merge_policy = 'PICK_FIRST'
     return ('ListOfScalarValues(%s, %s, %s, %s, '
             'important=%s, description=%s, tir_label=%s, std=%s, '
-            'same_page_merge_policy=%s, improvement_direction=%s)') % (
+            'same_page_merge_policy=%s, improvement_direction=%s, '
+            'grouping_keys=%s)') % (
                 page_name,
                 self.name,
                 self.units,
@@ -123,7 +125,8 @@ class ListOfScalarValues(summarizable.SummarizableValue):
                 self.tir_label,
                 self.std,
                 merge_policy,
-                self.improvement_direction)
+                self.improvement_direction,
+                self.grouping_keys)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -167,8 +170,6 @@ class ListOfScalarValues(summarizable.SummarizableValue):
       kwargs['improvement_direction'] = value_dict['improvement_direction']
     if 'none_value_reason' in value_dict:
       kwargs['none_value_reason'] = value_dict['none_value_reason']
-    if 'tir_label' in value_dict:
-      kwargs['tir_label'] = value_dict['tir_label']
 
     return ListOfScalarValues(**kwargs)
 
@@ -184,19 +185,22 @@ class ListOfScalarValues(summarizable.SummarizableValue):
           important=v0.important,
           same_page_merge_policy=v0.same_page_merge_policy,
           none_value_reason=v0.none_value_reason,
-          improvement_direction=v0.improvement_direction)
+          improvement_direction=v0.improvement_direction,
+          grouping_keys=v0.grouping_keys)
 
     assert v0.same_page_merge_policy == value_module.CONCATENATE
-    return cls._MergeLikeValues(values, v0.page, v0.name, v0.tir_label)
+    return cls._MergeLikeValues(values, v0.page, v0.name, v0.tir_label,
+                                v0.grouping_keys)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, None, v0.name, v0.tir_label)
+    return cls._MergeLikeValues(values, None, v0.name, v0.tir_label,
+                                v0.grouping_keys)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name, tir_label):
+  def _MergeLikeValues(cls, values, page, name, tir_label, grouping_keys):
     v0 = values[0]
     merged_values = []
     list_of_samples = []
@@ -220,4 +224,5 @@ class ListOfScalarValues(summarizable.SummarizableValue):
         same_page_merge_policy=v0.same_page_merge_policy,
         std=pooled_std,
         none_value_reason=none_value_reason,
-        improvement_direction=v0.improvement_direction)
+        improvement_direction=v0.improvement_direction,
+        grouping_keys=grouping_keys)
