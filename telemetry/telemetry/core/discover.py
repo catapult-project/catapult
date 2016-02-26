@@ -6,6 +6,7 @@ import fnmatch
 import inspect
 import os
 import re
+import sys
 
 from telemetry import decorators
 from telemetry.internal.util import camel_case
@@ -45,8 +46,15 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
       module_name = re.sub(r'[/\\]', '.', os.path.splitext(module_rel_path)[0])
 
       # Import the module.
-      module = __import__(module_name, fromlist=[True])
-      modules.append(module)
+      try:
+        # Make sure that top_level_dir is the first path in the sys.path in case
+        # there are naming conflict in module parts.
+        original_sys_path = sys.path[:]
+        sys.path.insert(0, top_level_dir)
+        module = __import__(module_name, fromlist=[True])
+        modules.append(module)
+      finally:
+        sys.path = original_sys_path
   return modules
 
 
