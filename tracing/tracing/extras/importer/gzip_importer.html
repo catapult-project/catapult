@@ -113,7 +113,14 @@ tr.exportTo('tr.e.importer', function() {
     // Inflate the data using jszip.
     var inflated_data =
         JSZip.compressions['DEFLATE'].uncompress(data.subarray(position));
-    return GzipImporter.transformToString(inflated_data);
+    var string = GzipImporter.transformToString(inflated_data);
+
+    if (inflated_data.length > 0 && string.length === 0) {
+      throw new RangeError('Inflated gzip data too long to fit into a string' +
+          ' (' + inflated_data.length + ').');
+    }
+
+    return string;
   };
 
   /**
