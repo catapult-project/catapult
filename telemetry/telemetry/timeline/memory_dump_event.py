@@ -317,6 +317,10 @@ class GlobalMemoryDump(object):
   def duration(self):
     return self.end - self.start
 
+  @property
+  def pids(self):
+    return set(d.process.pid for d in self._process_dumps)
+
   def IterProcessMemoryDumps(self):
     return iter(self._process_dumps)
 

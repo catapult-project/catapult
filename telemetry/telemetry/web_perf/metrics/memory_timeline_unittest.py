@@ -13,9 +13,10 @@ from telemetry.web_perf.metrics import memory_timeline
 from telemetry.web_perf import timeline_interaction_record
 
 
-def MockProcessDumpEvent(dump_id, name, start, memory_usage):
+def MockProcessDumpEvent(dump_id, name, start, memory_usage, pid=1234):
   process_dump = mock.Mock()
   process_dump.dump_id = dump_id
+  process_dump.process.pid = pid
   process_dump.process_name = name
   process_dump.start = start
   process_dump.end = start
@@ -49,27 +50,30 @@ def TestInteraction(start, end):
 
 
 class MemoryTimelineMetricUnitTest(unittest.TestCase):
-  def getResultsDict(self, model, interactions):
+  def getResultsDict(self, model, interactions, renderer_pid=1234):
     def strip_prefix(key):
       if key.startswith('memory_'):
         return key[len('memory_'):]
-      elif key.endswith('_count'):
+      elif key.startswith('process_count_'):
         return key
       else:
         self.fail('Unexpected key: %r' % key)
 
+    mock_thread = mock.Mock()
+    mock_thread.parent.pid = renderer_pid
     results = page_test_results.PageTestResults()
     test_page = page.Page('http://google.com')
     results.WillRunPage(test_page)
     metric = memory_timeline.MemoryTimelineMetric()
-    metric.AddResults(model, None, interactions, results)
+    metric.AddResults(model, mock_thread, interactions, results)
     result_dict = {strip_prefix(v.name): v.values
                    for v in results.current_page_run.values}
     results.DidRunPage(test_page)
     return result_dict
 
-  def getOverallPssTotal(self, model, interactions):
-    results = self.getResultsDict(model, interactions)
+  def getOverallPssTotal(self, model, interactions, renderer_pid=1234):
+    results = self.getResultsDict(
+        model, interactions, renderer_pid=renderer_pid)
     self.assertTrue('mmaps_overall_pss_total' in results)
     return results['mmaps_overall_pss_total']
 
@@ -107,6 +111,19 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
                     TestInteraction(12, 15)]
     self.assertEqual([123, 555], self.getOverallPssTotal(model, interactions))
 
+  def testDumpsFromOtherBrowserAreFilteredOut(self):
+    model = MockTimelineModel([
+        MockProcessDumpEvent('dump1', 'browser', 5, 1, pid=1111),
+        MockProcessDumpEvent('dump1', 'renderer', 4, 2, pid=2222),
+        MockProcessDumpEvent('dump2', 'browser', 14, 4, pid=1111),
+        MockProcessDumpEvent('dump2', 'renderer', 13, 8, pid=2222),
+        MockProcessDumpEvent('dump3', 'browser', 4, 16, pid=3333)])
+    interactions = [TestInteraction(3, 10),
+                    TestInteraction(12, 15)]
+    self.assertEqual(
+        [3, 12],
+        self.getOverallPssTotal(model, interactions, renderer_pid=2222))
+
   def testDumpsWithNoMemoryMaps(self):
     model = MockTimelineModel([
         MockProcessDumpEvent('dump1', 'browser', 2, {'blink': 123}),
@@ -117,8 +134,8 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
         {
           'blink_total': [123, 456],
           'blink_browser': [123, 456],
-          'process_count': [1, 1],
-          'browser_count': [1, 1]
+          'process_count_total': [1, 1],
+          'process_count_browser': [1, 1]
         })
 
   def testDumpsWithSomeMemoryMaps(self):
@@ -142,9 +159,9 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     total = len(metrics) - 1
 
     expected = {
-      'browser_count': [1],
-      'gpu_process_count': [1],
-      'process_count': [2],
+      'process_count_browser': [1],
+      'process_count_gpu_process': [1],
+      'process_count_total': [2],
     }
     expected.update(('%s_browser' % metric, [value])
                     for metric, value in stats1.iteritems())
@@ -166,9 +183,9 @@ class MemoryTimelineMetricUnitTest(unittest.TestCase):
     stats3 = {metric: total for metric in metrics}
 
     expected = {
-      'renderer_count': [2],
-      'browser_count': [1],
-      'process_count': [3],
+      'process_count_renderer': [2],
+      'process_count_browser': [1],
+      'process_count_total': [3],
     }
     for metric in metrics:
       expected.update([
