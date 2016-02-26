@@ -23,7 +23,14 @@ class FlagChanger(object):
       cmdline_file: Path to the command line file on the device.
     """
     self._device = device
-    self._cmdline_file = cmdline_file
+
+    # Unrooted devices have limited access to the file system.
+    # Place files in /data/local/tmp/ rather than /data/local/
+    if not device.HasRoot() and not '/data/local/tmp/' in cmdline_file:
+      self._cmdline_file = cmdline_file.replace('/data/local/',
+                                                '/data/local/tmp/')
+    else:
+      self._cmdline_file = cmdline_file
 
     stored_flags = ''
     if self._device.PathExists(self._cmdline_file):
