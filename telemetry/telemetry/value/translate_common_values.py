@@ -7,7 +7,7 @@ from telemetry.value import scalar
 
 
 def TranslateMreFailure(mre_failure, page):
-  return failure.FailureValue.FromMessage(mre_failure.stack, page)
+  return failure.FailureValue.FromMessage(page, mre_failure.stack)
 
 
 def TranslateScalarValue(scalar_value, page):
