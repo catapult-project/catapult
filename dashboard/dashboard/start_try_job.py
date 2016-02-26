@@ -674,7 +674,7 @@ def _PerformLegacyBisect(bisect_job):
       bisect_job.SetStarted()
       bug_comment = ('Bisect started; track progress at '
                      '<a href="%s">%s</a>' % (issue_url, issue_url))
-      LogBisectResult(bug_id, bug_comment)
+      LogBisectResult(bisect_job, bug_comment)
     return {'issue_id': issue_id, 'issue_url': issue_url}
 
   return {'error': 'Error starting try job. Try to fix at %s' % issue_url}
@@ -754,14 +754,19 @@ def _PerformPerfTryJob(perf_job):
   return {'error': 'Error starting try job. Try to fix at %s' % url}
 
 
-def LogBisectResult(bug_id, comment):
+def LogBisectResult(job, comment):
   """Adds an entry to the bisect result log for a particular bug."""
-  if not bug_id or bug_id < 0:
+  if not job.bug_id or job.bug_id < 0:
     return
   formatter = quick_logger.Formatter()
-  logger = quick_logger.QuickLogger('bisect_result', bug_id, formatter)
-  logger.Log(comment)
-  logger.Save()
+  logger = quick_logger.QuickLogger('bisect_result', job.bug_id, formatter)
+  if job.log_record_id:
+    logger.Log(comment, record_id=job.log_record_id)
+    logger.Save()
+  else:
+    job.log_record_id = logger.Log(comment)
+    logger.Save()
+    job.put()
 
 
 def _MakeBuildbucketBisectJob(bisect_job):
@@ -826,7 +831,7 @@ def _PerformBuildbucketBisect(bisect_job):
     issue_url = 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
     bug_comment = ('Bisect started; track progress at '
                    '<a href="%s">%s</a>' % (issue_url, issue_url))
-    LogBisectResult(bisect_job.bug_id, bug_comment)
+    LogBisectResult(bisect_job, bug_comment)
     return {
         'issue_id': job_id,
         'issue_url': issue_url,
