@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
-<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
+<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 
 <script>
@@ -238,11 +238,31 @@ tr.b.unittest.testSuite(function() {
     checkProtectionFlagsToString(0, '---p');
     checkProtectionFlagsToString(VMRegion.PROTECTION_FLAG_READ, 'r--p');
     checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_MAYSHARE,
+        'r--s');
+    checkProtectionFlagsToString(
         VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_EXECUTE,
         'r-xp');
     checkProtectionFlagsToString(
         VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE,
         'rw-p');
+    checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        'rwxp');
+    checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE |
+            VMRegion.PROTECTION_FLAG_MAYSHARE,
+        'rw-s');
+    checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_EXECUTE |
+            VMRegion.PROTECTION_FLAG_MAYSHARE,
+        'r-xs');
+    checkProtectionFlagsToString(
+        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE |
+            VMRegion.PROTECTION_FLAG_EXECUTE |
+            VMRegion.PROTECTION_FLAG_MAYSHARE,
+        'rwxs');
   });
 
   test('checkDiscountTracingOverhead_undefinedFields', function() {

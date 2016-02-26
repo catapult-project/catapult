@@ -3038,6 +3038,20 @@ tr.b.unittest.testSuite(function() {
                     pd: 'cd',
                     sw: '0'
                   }
+                },
+                {
+                  sa: '7ff10ff4b000',
+                  sz: '40000',
+                  pf: 134,
+                  mf: '/run/shm/.org.chromium.Chromium.sqqN11 (deleted)',
+                  bs: {
+                    pss: '40000',
+                    pc: '0',
+                    pd: '40000',
+                    sc: '0',
+                    sd: '0',
+                    sw: '0'
+                  }
                 }
               ]
             }
@@ -3049,7 +3063,7 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.mostRecentVmRegions.length, 2);
+    assert.equal(d.mostRecentVmRegions.length, 3);
 
     var vr1 = d.mostRecentVmRegions[0];
     assert.equal(vr1.startAddress, 240);
@@ -3076,6 +3090,20 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(vr2.byteStats.sharedCleanResident);
     assert.isUndefined(vr2.byteStats.sharedDirtyResident);
     assert.equal(vr2.byteStats.swapped, 0);
+
+    var vr3 = d.mostRecentVmRegions[2];
+    assert.equal(vr3.startAddress, 140673331539968);
+    assert.equal(vr3.sizeInBytes, 262144);
+    assert.equal(vr3.protectionFlags, 134);
+    assert.equal(vr3.protectionFlagsToString, 'rw-s');
+    assert.equal(vr3.mappedFile,
+        '/run/shm/.org.chromium.Chromium.sqqN11 (deleted)');
+    assert.equal(vr3.byteStats.privateCleanResident, 0);
+    assert.equal(vr3.byteStats.privateDirtyResident, 262144);
+    assert.equal(vr3.byteStats.sharedCleanResident, 0);
+    assert.equal(vr3.byteStats.sharedDirtyResident, 0);
+    assert.equal(vr3.byteStats.proportionalResident, 262144);
+    assert.equal(vr3.byteStats.swapped, 0);
 
     assert.equal(d.totals.residentBytes, 0);
     assert.isUndefined(d.totals.peakResidentBytes);
