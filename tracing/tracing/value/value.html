@@ -94,8 +94,6 @@ tr.exportTo('tr.v', function() {
   }
 
   NumericValue.fromDict = function(d) {
-    if (d.units !== undefined)
-      throw new Error('Expected units to be undefined');
     if (d.numeric === undefined)
       throw new Error('Expected numeric to be provided');
     var numeric = tr.v.Numeric.fromDict(d.numeric);

@@ -31,7 +31,7 @@ class TraceValue(value_module.Value):
     """
     super(TraceValue, self).__init__(
         page, name='trace', units='', important=important,
-        description=description, tir_label=None)
+        description=description, tir_label=None, grouping_keys=None)
     self._temp_file = self._GetTempFileHandle(trace_data)
     self._cloud_url = None
     self._serialized_file_handle = None
@@ -78,6 +78,10 @@ class TraceValue(value_module.Value):
   @property
   def cleaned_up(self):
     return self._temp_file is None
+
+  @property
+  def filename(self):
+    return self._temp_file.GetAbsPath()
 
   def GetBuildbotDataType(self, output_context):
     return None

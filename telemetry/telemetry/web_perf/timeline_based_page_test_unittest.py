@@ -133,3 +133,21 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     v = results.FindAllPageSpecificValuesFromIRNamed(
         'Gesture_Scroll', 'frame_time_discrepancy')
     self.assertEquals(len(v), 1)
+
+  def testTBM2ForSmoke(self):
+    ps = self.CreateEmptyPageSet()
+    ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
+
+    options = tbm_module.Options()
+    options.SetTimelineBasedMetrics(['sample_metric.html'])
+
+    tbm = tbm_module.TimelineBasedMeasurement(options)
+    results = self.RunMeasurement(tbm, ps, self._options)
+
+    self.assertEquals(0, len(results.failures))
+    v_foo = results.FindAllPageSpecificValuesNamed('foo')
+    v_bar = results.FindAllPageSpecificValuesNamed('bar')
+    self.assertEquals(len(v_foo), 1)
+    self.assertEquals(len(v_bar), 1)
+    self.assertEquals(v_foo[0].value, 1)
+    self.assertEquals(v_bar[0].value, 2)

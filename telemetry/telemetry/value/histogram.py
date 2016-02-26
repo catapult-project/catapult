@@ -31,10 +31,11 @@ class HistogramValueBucket(object):
 class HistogramValue(summarizable.SummarizableValue):
   def __init__(self, page, name, units,
                raw_value=None, raw_value_json=None, important=True,
-               description=None, tir_label=None, improvement_direction=None):
+               description=None, tir_label=None, improvement_direction=None,
+               grouping_keys=None):
     super(HistogramValue, self).__init__(page, name, units, important,
                                          description, tir_label,
-                                         improvement_direction)
+                                         improvement_direction, grouping_keys)
     if raw_value_json:
       assert raw_value == None, \
              'Don\'t specify both raw_value and raw_value_json'
@@ -56,14 +57,15 @@ class HistogramValue(summarizable.SummarizableValue):
       page_name = 'None'
     return ('HistogramValue(%s, %s, %s, raw_json_string=%s, '
             'important=%s, description=%s, tir_label=%s, '
-            'improvement_direction=%s)') % (
+            'improvement_direction=%s, grouping_keys=%s)') % (
                 page_name,
                 self.name, self.units,
                 self.ToJSONString(),
                 self.important,
                 self.description,
                 self.tir_label,
-                self.improvement_direction)
+                self.improvement_direction,
+                self.grouping_keys)
 
   def GetBuildbotDataType(self, output_context):
     if self._IsImportantGivenOutputIntent(output_context):
@@ -111,8 +113,6 @@ class HistogramValue(summarizable.SummarizableValue):
 
     if 'improvement_direction' in value_dict:
       kwargs['improvement_direction'] = value_dict['improvement_direction']
-    if 'tir_label' in value_dict:
-      kwargs['tir_label'] = value_dict['tir_label']
 
     return HistogramValue(**kwargs)
 
@@ -125,7 +125,8 @@ class HistogramValue(summarizable.SummarizableValue):
         raw_value_json=histogram_util.AddHistograms(
             [v.ToJSONString() for v in values]),
         important=v0.important, tir_label=v0.tir_label,
-        improvement_direction=v0.improvement_direction)
+        improvement_direction=v0.improvement_direction,
+        grouping_keys=v0.grouping_keys)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):

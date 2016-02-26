@@ -34,9 +34,11 @@ class MergeValueTest(TestBase):
     value = scalar.ScalarValue(
         page0, 'x', 'units', 1,
         improvement_direction=improvement_direction.UP,
-        tir_label='foo')
+        tir_label='foo', grouping_keys={'soup': 'nuts', 'a': 'b'})
 
-    self.assertEquals(('x', 'foo'), merge_values.DefaultKeyFunc(value))
+    self.assertEquals((('value_name', 'x'), ('ue_stable_id', 'foo'),
+                      ('a', 'b'), ('soup', 'nuts')),
+                      merge_values.DefaultKeyFunc(value))
 
   def testSamePageMergeBasic(self):
     page0 = self.pages[0]
@@ -135,6 +137,29 @@ class MergeValueTest(TestBase):
     self.assertEquals(2, len(merged_values))
     self.assertEquals('foo', merged_values[0].tir_label)
     self.assertEquals('bar', merged_values[1].tir_label)
+
+  def testSamePageMergeWithSameGroupingKey(self):
+    page0 = self.pages[0]
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1,
+                                     grouping_keys={'foo': 'bar'}),
+                  scalar.ScalarValue(page0, 'x', 'units', 4,
+                                     grouping_keys={'foo': 'bar'})]
+
+    merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
+    self.assertEquals(1, len(merged_values))
+    self.assertEquals({'foo': 'bar'}, merged_values[0].grouping_keys)
+
+  def testSamePageMergeWithDifferentGroupingKey(self):
+    page0 = self.pages[0]
+    all_values = [scalar.ScalarValue(page0, 'x', 'units', 1,
+                                     grouping_keys={'foo': 'bar'}),
+                  scalar.ScalarValue(page0, 'x', 'units', 4,
+                                     grouping_keys={'foo': 'qux'})]
+
+    merged_values = merge_values.MergeLikeValuesFromSamePage(all_values)
+    self.assertEquals(2, len(merged_values))
+    self.assertEquals({'foo': 'bar'}, merged_values[0].grouping_keys)
+    self.assertEquals({'foo': 'qux'}, merged_values[1].grouping_keys)
 
   def testDifferentPageMergeBasic(self):
     page0 = self.pages[0]

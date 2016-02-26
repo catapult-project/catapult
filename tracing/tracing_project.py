@@ -78,6 +78,8 @@ class TracingProject(object):
   chai_path = os.path.join(tracing_third_party_path, 'chai')
   mocha_path = os.path.join(tracing_third_party_path, 'mocha')
 
+  mre_path = os.path.join(catapult_path, 'perf_insights')
+
   value_ui_path = os.path.join(tracing_src_path, 'value', 'ui')
   metrics_ui_path = os.path.join(tracing_src_path, 'metrics', 'ui')
 
@@ -93,6 +95,7 @@ class TracingProject(object):
     self.source_paths = []
     self.source_paths.append(self.tracing_root_path)
     self.source_paths.append(self.tracing_third_party_path)
+    self.source_paths.append(self.mre_path)
     self.source_paths.append(self.jszip_path)
     self.source_paths.append(self.glmatrix_path)
     self.source_paths.append(self.d3_path)

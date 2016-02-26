@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/function_handle.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics', function() {
+  function metricMapFunction(result, model) {
+    var valueList = new tr.metrics.ValueList();
+    var metrics = tr.metrics.MetricRegistry.metrics;
+    for (var metric in metrics) {
+      metrics[metric](valueList, model);
+    }
+
+    result.addPair('values', valueList.valueDicts);
+  }
+
+  pi.FunctionRegistry.register(metricMapFunction);
+
+  return {
+    metricMapFunction: metricMapFunction
+  };
+});
+</script>

@@ -14,7 +14,8 @@ class SkipValue(value_module.Value):
       page: The skipped page object.
       reason: The string reason the page was skipped.
     """
-    super(SkipValue, self).__init__(page, 'skip', '', True, description, None)
+    super(SkipValue, self).__init__(page, 'skip', '', True, description, None,
+                                    None)
     self._reason = reason
 
   def __repr__(self):
@@ -60,6 +61,8 @@ class SkipValue(value_module.Value):
     kwargs['reason'] = value_dict['reason']
     if 'tir_label' in kwargs:
       del kwargs['tir_label']
+    if 'grouping_keys' in kwargs:
+      del kwargs['grouping_keys']
 
     return SkipValue(**kwargs)
 

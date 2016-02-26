@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics', function() {
+
+  function sampleMetric(valueList, model) {
+    var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+    var n1 = new tr.v.ScalarNumeric(unit, 1);
+    var n2 = new tr.v.ScalarNumeric(unit, 2);
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace, 'foo', n1));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace, 'bar', n2));
+  }
+
+  tr.metrics.MetricRegistry.register(sampleMetric);
+
+  return {
+    sampleMetric: sampleMetric
+  };
+});
+</script>

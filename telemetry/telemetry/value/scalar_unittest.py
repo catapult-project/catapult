@@ -36,7 +36,7 @@ class ValueTest(TestBase):
 
     expected = ('ScalarValue(http://www.bar.com/, x, unit, 3, important=True, '
                 'description=desc, tir_label=my_ir, '
-                'improvement_direction=down')
+                'improvement_direction=down, grouping_keys={}')
 
     self.assertEquals(expected, str(v))
 

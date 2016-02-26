@@ -43,7 +43,7 @@ class Value(object):
   """An abstract value produced by a telemetry page test.
   """
   def __init__(self, page, name, units, important, description,
-               tir_label):
+               tir_label, grouping_keys):
     """A generic Value object.
 
     Args:
@@ -59,6 +59,7 @@ class Value(object):
           value represents.
       tir_label: The string label of the TimelineInteractionRecord with
           which this value is associated.
+      grouping_keys: A dict that maps grouping key names to grouping keys.
     """
     # TODO(eakuefner): Check story here after migration (crbug.com/442036)
     if not isinstance(name, basestring):
@@ -73,6 +74,11 @@ class Value(object):
             isinstance(tir_label, basestring)):
       raise ValueError('tir_label field of Value must absent or '
                        'string.')
+    if not ((grouping_keys is None) or isinstance(grouping_keys, dict)):
+      raise ValueError('grouping_keys field of Value must be absent or dict')
+
+    if grouping_keys is None:
+      grouping_keys = {}
 
     self.page = page
     self.name = name
@@ -80,6 +86,7 @@ class Value(object):
     self.important = important
     self.description = description
     self.tir_label = tir_label
+    self.grouping_keys = grouping_keys
 
   def __eq__(self, other):
     return hash(self) == hash(other)
@@ -211,6 +218,9 @@ class Value(object):
     if self.page:
       d['page_id'] = self.page.id
 
+    if self.grouping_keys:
+      d['grouping_keys'] = self.grouping_keys
+
     return d
 
   def AsDictWithoutBaseClassEntries(self):
@@ -299,6 +309,12 @@ class Value(object):
       d['tir_label'] = tir_label
     else:
       d['tir_label'] = None
+
+    grouping_keys = value_dict.get('grouping_keys', None)
+    if grouping_keys:
+      d['grouping_keys'] = grouping_keys
+    else:
+      d['grouping_keys'] = None
 
     return d
 
