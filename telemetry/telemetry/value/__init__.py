@@ -297,7 +297,7 @@ class Value(object):
       d['description'] = None
 
     page_id = value_dict.get('page_id', None)
-    if page_id:
+    if page_id is not None:
       d['page'] = page_dict[int(page_id)]
     else:
       d['page'] = None

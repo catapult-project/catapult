@@ -29,7 +29,7 @@ def TranslateScalarValue(scalar_value, page):
     assert unit_parts[1] == 'smallerIsBetter'
     scalar_value['improvement_direction'] = improvement_direction.DOWN
 
-  scalar_value['page'] = page
+  scalar_value['page_id'] = page.id
   scalar_value['name'] = name
   del scalar_value['grouping_keys']['name']
-  return scalar.ScalarValue.FromDict(scalar_value, {})
+  return scalar.ScalarValue.FromDict(scalar_value, {page.id: page})

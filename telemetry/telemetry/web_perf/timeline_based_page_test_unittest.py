@@ -150,4 +150,6 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(len(v_bar), 1)
     self.assertEquals(v_foo[0].value, 1)
+    self.assertIsNotNone(v_foo[0].page)
     self.assertEquals(v_bar[0].value, 2)
+    self.assertIsNotNone(v_bar[0].page)
