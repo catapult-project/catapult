@@ -17,12 +17,20 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
   """MemoryTimelineMetric reports summary stats from memory dump events."""
 
   def AddResults(self, model, renderer_thread, interactions, results):
-    del renderer_thread  # unused
+    # Note: This method will be called by TimelineBasedMeasurement once for
+    # each thread x interaction_label combination; where |interactions| is
+    # a list of all interactions sharing the same label that occurred in the
+    # given |renderer_thread|.
+
     def ContainedIn(dump, interaction):
       return interaction.start < dump.start and dump.end < interaction.end
 
     def OccursDuringInteractions(dump):
-      return any(ContainedIn(dump, interaction) for interaction in interactions)
+      return (
+          # Dump must contain the rendrerer process that requested it,
+          renderer_thread.parent.pid in dump.pids and
+          # ... and fall within the span of an interaction record.
+          any(ContainedIn(dump, interaction) for interaction in interactions))
 
     def ReportResultsForProcess(memory_dumps, process_name):
       if not memory_dumps:
@@ -46,14 +54,9 @@ class MemoryTimelineMetric(timeline_based_metric.TimelineBasedMetric):
             values=values,
             none_value_reason=none_reason,
             improvement_direction=improvement_direction.DOWN))
-      if process_name == 'total':
-        counter_label = 'process_count'
-      else:
-        # Yields: browser_count, renderer_count, gpu_process_count, etc.
-        counter_label = '%s_count' % process_name
       results.AddValue(list_of_scalar_values.ListOfScalarValues(
             page=results.current_page,
-            name=counter_label,
+            name='process_count_%s' % process_name,
             units='count',
             tir_label=interactions[0].label,
             values=num_processes,
