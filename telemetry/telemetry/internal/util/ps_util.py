@@ -57,7 +57,7 @@ def EnableListingStrayProcessesUponExitHook():
     try:
       import psutil
     except ImportError:
-      logging.error(
+      logging.warning(
           'psutil is not installed on the system. Not listing possible '
           'leaked processes. To install psutil, see: '
           'https://pypi.python.org/pypi/psutil')
