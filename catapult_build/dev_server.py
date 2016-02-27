@@ -231,7 +231,6 @@ class DevServerApp(webapp2.WSGIApplication):
 
   def GetAbsFilenameForHref(self, href):
     for source_path in self._all_source_paths:
-      print source_path
       full_source_path = os.path.abspath(source_path)
       expanded_href_path = os.path.abspath(os.path.join(full_source_path,
                                                         href.lstrip('/')))
