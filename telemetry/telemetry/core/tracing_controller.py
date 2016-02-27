@@ -57,5 +57,7 @@ class TracingController(tracing_agent.TracingAgent):
   def SupportsExplicitClockSync(self):
     return self._tracing_controller_backend.SupportsExplicitClockSync()
 
-  def RecordClockSyncMarker(self, sync_id):
-    return self._tracing_controller_backend.RecordClockSyncMarker(sync_id)
+  def RecordClockSyncMarker(self, sync_id,
+                            record_controller_clocksync_marker_callback):
+    return self._tracing_controller_backend.RecordClockSyncMarker(
+        sync_id, record_controller_clocksync_marker_callback)

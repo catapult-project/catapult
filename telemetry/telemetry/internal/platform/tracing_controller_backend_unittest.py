@@ -40,10 +40,11 @@ class FakeTracingAgentBase(tracing_agent.TracingAgent):
   def SupportsExplicitClockSync(self):
     return self._clock_sync
 
-  def RecordClockSyncMarker(self, sync_id):
+  def RecordClockSyncMarker(self, sync_id, callback):
     if not self._clock_sync:
       raise NotImplementedError
     self._sync_seen = True
+    callback(sync_id, 1)
 
 
 class FakeTracingAgentStartAndClockSync(FakeTracingAgentBase):
@@ -244,9 +245,10 @@ class TracingControllerBackendTest(unittest.TestCase):
     for entry in log:
       if entry.get('name') == 'clock_sync':
         self.assertEqual(entry['args']['sync_id'], sync_id)
+        self.assertEqual(entry['args']['issue_ts'], 1)
 
   @decorators.Isolated
-  def testIssueClockSyncMarker(self):
+  def testIssueClockSyncMarker_normalUse(self):
     self.controller._supported_agents_classes = [
         FakeTracingAgentStartAndClockSync,
         FakeTracingAgentStartAndClockSync,
@@ -265,6 +267,32 @@ class TracingControllerBackendTest(unittest.TestCase):
     data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 4)
+
+  @decorators.Isolated
+  def testIssueClockSyncMarker_tracingNotControllable(self):
+    self.controller._supported_agents_classes = [
+        FakeTracingAgentStartAndClockSync,
+        FakeTracingAgentStartAndClockSync,
+        FakeTracingAgentNoStartAndClockSync,
+        FakeTracingAgentNoStartAndClockSync,
+        FakeTracingAgentNoStartAndNoClockSync,
+        FakeTracingAgentNoStartAndNoClockSync,
+        FakeTracingAgentStartAndNoClockSync,
+        FakeTracingAgentStartAndNoClockSync
+    ]
+    original_controllable = self.controller._IsTracingControllable
+    self.controller._IsTracingControllable = lambda: False
+    try:
+      self.assertFalse(self.controller.is_tracing_running)
+      self.assertTrue(self.controller.StartTracing(self.config, 30))
+      self.assertTrue(self.controller.is_tracing_running)
+      self.assertEquals(len(self.controller._active_agents_instances), 4)
+      self.controller._IssueClockSyncMarker()
+      data = self.controller.StopTracing()
+      self.assertFalse(self.controller.is_tracing_running)
+      self.assertEquals(self._getSyncCount(data), 0)
+    finally:
+      self.controller._IsTracingControllable = original_controllable
 
   @decorators.Isolated
   def testDisableGarbageCollection(self):

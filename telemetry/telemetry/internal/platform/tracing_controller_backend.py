@@ -14,7 +14,6 @@ import traceback
 import uuid
 
 from py_trace_event import trace_event
-from py_trace_event import trace_time
 from telemetry.core import discover
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
@@ -108,7 +107,7 @@ class TracingControllerBackend(object):
     return trace_data_builder.AsData()
 
   def StartAgentTracing(self, config, timeout):
-    self._is_tracing_controllable = trace_event.is_tracing_controllable()
+    self._is_tracing_controllable = self._IsTracingControllable()
     if not self._is_tracing_controllable:
       return False
 
@@ -152,16 +151,16 @@ class TracingControllerBackend(object):
       sync_id: Unqiue id for sync event.
       issue_ts: timestamp before issuing clocksync to agent.
     """
-    trace_event.clock_sync(sync_id, issue_ts=issue_ts)
+    if self._is_tracing_controllable:
+      trace_event.clock_sync(sync_id, issue_ts=issue_ts)
 
   def _IssueClockSyncMarker(self):
     with self._DisableGarbageCollection():
       for agent in self._active_agents_instances:
         if agent.SupportsExplicitClockSync():
           sync_id = self._GenerateClockSyncId()
-          ts = trace_time.Now()
-          agent.RecordClockSyncMarker(sync_id)
-          self._RecordIssuerClockSyncMarker(sync_id, ts)
+          agent.RecordClockSyncMarker(sync_id,
+                                      self._RecordIssuerClockSyncMarker)
 
   def IsChromeTracingSupported(self):
     return chrome_tracing_agent.ChromeTracingAgent.IsSupported(
@@ -192,3 +191,6 @@ class TracingControllerBackend(object):
     if agent:
       return agent.trace_config_file
     return None
+
+  def _IsTracingControllable(self):
+    return trace_event.is_tracing_controllable()
