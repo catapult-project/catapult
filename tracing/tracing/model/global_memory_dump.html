@@ -36,11 +36,11 @@ tr.exportTo('tr.model', function() {
       tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
 
   // Size attribute info types.
-  var SizeAttributeInfoType = tr.model.SizeAttributeInfoType;
+  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
   var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
   var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   // TODO(petrcermak): Move this to tracing/base/iteration_helpers.html.
   function inPlaceFilter(array, predicate, opt_this) {
@@ -220,7 +220,6 @@ tr.exportTo('tr.model', function() {
       var sizeAttribute = dump.getValidSizeAttributeOrUndefined(
           SIZE_ATTRIBUTE_NAME, this.model);
       var size = 0;
-      var infos = [];
       var checkDependencySizeIsConsistent = function() { /* no-op */ };
       if (sizeAttribute !== undefined) {
         size = sizeAttribute.value;
@@ -237,7 +236,7 @@ tr.exportTo('tr.model', function() {
                 ') is less than ' + dependencyName + ' (' +
                 tr.v.Unit.byName.sizeInBytes.format(dependencySize) + ').'
           });
-          infos.push({
+          dump.infos.push({
             type: dependencyInfoType,
             providedSize: size,
             dependencySize: dependencySize
@@ -323,9 +322,8 @@ tr.exportTo('tr.model', function() {
       // together and/or its largest owner.
       size = Math.max(size, aggregatedChildrenSize, largestOwnerSize);
 
-      var sizeAttribute = new tr.model.ScalarAttribute('bytes', size);
-      sizeAttribute.infos = infos;
-      dump.attributes[SIZE_ATTRIBUTE_NAME] = sizeAttribute;
+      dump.attributes[SIZE_ATTRIBUTE_NAME] =
+          new tr.model.ScalarAttribute('bytes', size);
 
       // Add a virtual child to make up for extra size of the dump with
       // respect to its children (if applicable).
@@ -728,7 +726,7 @@ tr.exportTo('tr.model', function() {
             // allocator dumps.
             return;
           }
-          processAllocatorDump.attributes[attrName] = attr.cloneWithInfos();
+          processAllocatorDump.attributes[attrName] = attr;
         });
       });
       // Recursively propagate attributes from all child memory allocator dumps.

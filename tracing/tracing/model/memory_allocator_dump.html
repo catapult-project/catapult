@@ -45,6 +45,12 @@ tr.exportTo('tr.model', function() {
     // codebase.
     this.weak = false;
 
+    // A list of information about the memory allocator dump (e.g. about how
+    // its attributes were calculated). Each item should be an object with
+    // a mandatory 'type' property and type-specific extra arguments (see
+    // MemoryAllocatorDumpInfoType).
+    this.infos = [];
+
     // For debugging purposes.
     this.guid = opt_guid;
   };
@@ -147,7 +153,7 @@ tr.exportTo('tr.model', function() {
    *
    * @enum
    */
-  var SizeAttributeInfoType = {
+  var MemoryAllocatorDumpInfoType = {
     // The provided size of a MemoryAllocatorDump was less than the aggregated
     // size of its children.
     //
@@ -168,7 +174,7 @@ tr.exportTo('tr.model', function() {
   return {
     MemoryAllocatorDump: MemoryAllocatorDump,
     MemoryAllocatorDumpLink: MemoryAllocatorDumpLink,
-    SizeAttributeInfoType: SizeAttributeInfoType
+    MemoryAllocatorDumpInfoType: MemoryAllocatorDumpInfoType
   };
 });
 </script>

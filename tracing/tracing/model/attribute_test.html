@@ -206,26 +206,6 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(mergedAttr, ScalarAttribute);
   });
 
-  test('scalar_clone', function() {
-    var originalAttr = new ScalarAttribute('bytes', 1024);
-    originalAttr.infos.push({format: 'arbitrary'});
-
-    var clonedAttrWithoutInfos = originalAttr.cloneWithoutInfos();
-    assert.equal(clonedAttrWithoutInfos.value, 1024);
-    assert.equal(clonedAttrWithoutInfos.units, 'bytes');
-    assert.instanceOf(clonedAttrWithoutInfos, ScalarAttribute);
-    assert.lengthOf(clonedAttrWithoutInfos.infos, 0);
-    assert.notStrictEqual(clonedAttrWithoutInfos.infos, originalAttr.infos);
-
-    var clonedAttrWithInfos = originalAttr.cloneWithInfos();
-    assert.strictEqual(clonedAttrWithInfos.value, 1024);
-    assert.strictEqual(clonedAttrWithInfos.units, 'bytes');
-    assert.instanceOf(clonedAttrWithInfos, ScalarAttribute);
-    assert.lengthOf(clonedAttrWithInfos.infos, 1);
-    assert.deepEqual(clonedAttrWithInfos.infos, originalAttr.infos);
-    assert.notStrictEqual(clonedAttrWithInfos.infos, originalAttr.infos);
-  });
-
   test('string_construct', function() {
     var attr = new StringAttribute('C', 'absolute zero');
     assert.equal(attr.value, 'absolute zero');
@@ -242,27 +222,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(attr.value, 'almost zero');
     assert.equal(attr.units, 'm/s');
     assert.instanceOf(attr, StringAttribute);
-  });
-
-  test('string_clone', function() {
-    var originalAttr = new StringAttribute('m/s', 'speed of sound');
-    originalAttr.infos.push({type: 'first info', key: 'first value'});
-    originalAttr.infos.push({type: 'last info', key: 'last value'});
-
-    var clonedAttrWithoutInfos = originalAttr.cloneWithoutInfos();
-    assert.equal(clonedAttrWithoutInfos.value, 'speed of sound');
-    assert.equal(clonedAttrWithoutInfos.units, 'm/s');
-    assert.instanceOf(clonedAttrWithoutInfos, StringAttribute);
-    assert.lengthOf(clonedAttrWithoutInfos.infos, 0);
-    assert.notStrictEqual(clonedAttrWithoutInfos.infos, originalAttr.infos);
-
-    var clonedAttrWithInfos = originalAttr.cloneWithInfos();
-    assert.strictEqual(clonedAttrWithInfos.value, 'speed of sound');
-    assert.strictEqual(clonedAttrWithInfos.units, 'm/s');
-    assert.instanceOf(clonedAttrWithInfos, StringAttribute);
-    assert.lengthOf(clonedAttrWithInfos.infos, 2);
-    assert.deepEqual(clonedAttrWithInfos.infos, originalAttr.infos);
-    assert.notStrictEqual(clonedAttrWithInfos.infos, originalAttr.infos);
   });
 
   test('unknown_construct', function() {
@@ -282,26 +241,6 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(attr);
     assert.isUndefined(attr.units);
     assert.instanceOf(attr, UnknownAttribute);
-  });
-
-  test('unknown_clone', function() {
-    var originalAttr = new UnknownAttribute('kcal', '10% RDA');
-    originalAttr.infos.push({type: 'some info', key: 'some value'});
-
-    var clonedAttrWithoutInfos = originalAttr.cloneWithoutInfos();
-    assert.equal(clonedAttrWithoutInfos.value, '10% RDA');
-    assert.equal(clonedAttrWithoutInfos.units, 'kcal');
-    assert.instanceOf(clonedAttrWithoutInfos, UnknownAttribute);
-    assert.lengthOf(clonedAttrWithoutInfos.infos, 0);
-    assert.notStrictEqual(clonedAttrWithoutInfos.infos, originalAttr.infos);
-
-    var clonedAttrWithInfos = originalAttr.cloneWithInfos();
-    assert.strictEqual(clonedAttrWithInfos.value, '10% RDA');
-    assert.strictEqual(clonedAttrWithInfos.units, 'kcal');
-    assert.instanceOf(clonedAttrWithInfos, UnknownAttribute);
-    assert.lengthOf(clonedAttrWithInfos.infos, 1);
-    assert.deepEqual(clonedAttrWithInfos.infos, originalAttr.infos);
-    assert.notStrictEqual(clonedAttrWithInfos.infos, originalAttr.infos);
   });
 });
 </script>
