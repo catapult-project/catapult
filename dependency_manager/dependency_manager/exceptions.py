@@ -4,7 +4,9 @@
 
 from catapult_base import cloud_storage
 
+
 CloudStorageError = cloud_storage.CloudStorageError
+
 
 class UnsupportedConfigFormatError(ValueError):
   def __init__(self, config_type, config_file):
