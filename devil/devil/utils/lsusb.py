@@ -9,7 +9,7 @@ from devil.utils import cmd_helper
 
 _COULDNT_OPEN_ERROR_RE = re.compile(r'Couldn\'t open device.*')
 _INDENTATION_RE = re.compile(r'^( *)')
-_LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}):')
+_LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}): (.*)')
 _LSUSB_ENTRY_RE = re.compile(r'^ *([^ ]+) +([^ ]+) *([^ ].*)?$')
 _LSUSB_GROUP_RE = re.compile(r'^ *([^ ]+.*):$')
 
@@ -39,6 +39,7 @@ def _lsusbv_on_device(bus_id, dev_id):
       if m.group(2) != dev_id:
         logging.warning(
             'Expected dev_id value: %r, seen %r', dev_id, m.group(2))
+      device['desc'] = m.group(3)
       continue
 
     indent_match = _INDENTATION_RE.match(line)
@@ -93,6 +94,9 @@ def lsusb():
         # Will be blacklisted if it is in expected device file, but times out.
         logging.info('lsusb -v %s:%s timed out.', bus_num, dev_num)
   return devices
+
+def raw_lsusb():
+  return cmd_helper.GetCmdOutput(['lsusb'])
 
 def get_lsusb_serial(device):
   try:
