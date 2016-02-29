@@ -10,7 +10,7 @@ from perf_insights import cloud_config
 from perf_insights.endpoints.cloud_mapper.cloud_helper import \
     default_retry_params
 from perf_insights.trace_info import TraceInfo
-import third_party.cloudstorage as gcs
+import cloudstorage as gcs
 
 BATCH_SIZE = 100
 MAX_DAYS = 30

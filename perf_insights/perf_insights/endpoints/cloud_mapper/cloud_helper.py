@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 
-import third_party.cloudstorage as gcs
+import cloudstorage as gcs
 
 default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                        max_delay=5.0,
