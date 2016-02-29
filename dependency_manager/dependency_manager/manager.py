@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 
 from dependency_manager import base_config
@@ -116,6 +117,44 @@ class DependencyManager(object):
     if not local_path or not os.path.exists(local_path):
       raise exceptions.NoPathFoundError(dependency, platform)
     return local_path
+
+  def PrefetchPaths(self, platform, dependencies=None, cloud_storage_retries=3):
+    if not dependencies:
+      dependencies = self._lookup_dict.keys()
+
+    skipped_deps = []
+    found_deps = []
+    missing_deps = []
+    for dependency in dependencies:
+      dependency_info = self._GetDependencyInfo(dependency, platform)
+      if not dependency_info:
+        # The dependency is only configured for other platforms.
+        skipped_deps.append(dependency)
+        logging.warning(
+            'Dependency %s not configured for platform %s. Skipping prefetch.',
+            dependency, platform)
+        continue
+      local_path = dependency_info.GetLocalPath()
+      if local_path:
+        found_deps.append(dependency)
+        continue
+      fetched_path = None
+      for _ in range(0, cloud_storage_retries + 1):
+        try:
+          fetched_path = dependency_info.GetRemotePath()
+        except exceptions.CloudStorageError:
+          continue
+        break
+      if fetched_path:
+        found_deps.append(dependency)
+      else:
+        missing_deps.append(dependency)
+        logging.error(
+            'Dependency %s could not be found or fetched from cloud storage for'
+            ' platform %s.', dependency, platform)
+      if missing_deps:
+        raise exceptions.NoPathFoundError(', '.join(missing_deps), platform)
+      return (found_deps, skipped_deps)
 
   def _UpdateDependencies(self, config):
     """Add the dependency information stored in |config| to this instance.
