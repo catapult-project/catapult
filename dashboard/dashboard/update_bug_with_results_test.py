@@ -452,5 +452,22 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_logging_error.assert_called_once_with(
         'Bisect report returns empty for job id %s, bug_id %s.', 1, 111)
 
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  def testGet_PostResult_WithoutBugEntity(
+      self, mock_update_bug):
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf',
+                         results_data=_SAMPLE_BISECT_RESULTS_JSON)
+    job.put()
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        12345, mock.ANY, cc_list=mock.ANY, merge_issue=mock.ANY,
+        labels=mock.ANY, owner=mock.ANY)
+
+
 if __name__ == '__main__':
   unittest.main()
