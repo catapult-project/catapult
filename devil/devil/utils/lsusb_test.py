@@ -128,6 +128,7 @@ DEVICE_LIST = 'Bus 003 Device 007: ID 18d1:4ee2 Google Inc. Nexus 4 (debug)'
 EXPECTED_RESULT = {
     'device': '007',
     'bus': '003',
+    'desc': 'ID 18d1:4ee2 Google Inc. Nexus 4 (debug)',
     'Device': {
         '_value': 'Status:',
         '_desc': '0x0000',
