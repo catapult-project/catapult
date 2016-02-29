@@ -4,7 +4,7 @@
 
 import unittest
 
-import util
+from . import util
 
 DEVICE_SERIAL = 'AG8404EC0444AGC'
 LIST_TMP_ARGS = ['ls', '/data/local/tmp']

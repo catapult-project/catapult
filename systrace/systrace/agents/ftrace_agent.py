@@ -6,7 +6,7 @@ import os
 import sys
 import time
 
-import systrace_agent
+from systrace import systrace_agent
 
 
 class FtraceAgentIo(object):
