@@ -11,9 +11,9 @@ import re
 import subprocess
 import sys
 
-catapult_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '../..'))
-sys.path.append(os.path.join(catapult_path, 'tracing'))
+_CATAPULT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+sys.path.append(os.path.join(_CATAPULT_PATH, 'tracing'))
 from tracing_build import vulcanize_trace_viewer
 
 SYSTRACE_TRACE_VIEWER_HTML_FILE_ = 'systrace_trace_viewer.html'

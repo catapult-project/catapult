@@ -8,8 +8,8 @@ import contextlib
 import os
 import unittest
 
-import agents.atrace_agent as atrace_agent
-import systrace
+from systrace import systrace
+from systrace.agents import atrace_agent
 
 DEVICE_SERIAL = 'AG8404EC0444AGC'
 ATRACE_ARGS = ['atrace', '-z', '-t', '10', '-b', '4096']

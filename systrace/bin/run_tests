@@ -10,13 +10,15 @@ import os
 import sys
 import unittest
 
-_CATAPULT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+_SYSTRACE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir))
 
 def main():
-  systrace_package_path = os.path.join(_CATAPULT, 'systrace', 'systrace')
+  systrace_package_path = os.path.join(_SYSTRACE_DIR, 'systrace')
   suite = unittest.TestLoader().discover(
-      systrace_package_path, pattern = '*_unittest.py')
+      systrace_package_path,
+      pattern = '*_unittest.py',
+      top_level_dir=_SYSTRACE_DIR)
   result = unittest.TextTestRunner(verbosity=2).run(suite)
   if result.wasSuccessful():
     sys.exit(0)

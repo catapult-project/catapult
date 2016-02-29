@@ -6,8 +6,8 @@
 
 import unittest
 
-import agents.ftrace_agent as ftrace_agent
-import systrace
+from systrace import systrace
+from systrace.agents import ftrace_agent
 
 SYSTRACE_HOST_CMD_DEFAULT = ['./systrace.py', '--target=linux']
 FT_DIR = "/sys/kernel/debug/tracing/"

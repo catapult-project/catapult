@@ -10,8 +10,8 @@ import threading
 import time
 import zlib
 
-import systrace_agent
-import util
+from systrace import systrace_agent
+from systrace import util
 
 # Text that ADB sends, but does not need to be displayed to the user.
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
