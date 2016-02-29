@@ -28,11 +28,11 @@ tr.b.unittest.testSuite(function() {
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
-  var SizeAttributeInfoType = tr.model.SizeAttributeInfoType;
+  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
   var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
   var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   var SIZE_DELTA = 0.0001;
 
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function assertDefinedAttribute(dump, attributeName, expectedType,
-      expectedUnits, expectedValue, expectedInfos, opt_delta) {
+      expectedUnits, expectedValue, opt_delta) {
     var attribute = dump.attributes[attributeName];
     var errorMessagePrefix = 'expected attribute \'' + attributeName +
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
@@ -73,42 +73,38 @@ tr.b.unittest.testSuite(function() {
     } else {
       assert.equal(attribute.value, expectedValue, valueErrorMessage);
     }
-
-    if (expectedInfos === undefined)
-      expectedInfos = [];
-    var actualInfos = dump.attributes[attributeName].infos;
-    assert.lengthOf(actualInfos, expectedInfos.length,
-        'expected the \'' + attributeName + '\' attribute of ' +
-        'memory allocator dump \'' + dump.fullName + '\' in ' +
-        dump.containerMemoryDump.userFriendlyName + ' to have ' +
-        expectedInfos.length + ' infos but got ' + actualInfos.length);
-    for (var k = 0; k < actualInfos.length; k++) {
-      assert.deepEqual(actualInfos[k], expectedInfos[k],
-          'info ' + k + ' of the \'' + attributeName + '\' ' +
-          'attribute of memory allocator dump \'' + dump.fullName + '\' in ' +
-          dump.containerMemoryDump.userFriendlyName +
-          ' doesn\'t match the expected info');
-    }
   }
 
-  function assertSizeAttribute(dump, sizeName, expectedValue, expectedInfos) {
+  function assertSizeAttribute(dump, sizeName, expectedValue) {
     if (expectedValue === undefined) {
       assertUndefinedAttribute(dump, sizeName);
-      // No size attribute infos should be expected (test sanity check).
-      assert(expectedInfos === undefined || expectedInfos.length === 0);
     } else {
       assertDefinedAttribute(dump, sizeName, ScalarAttribute, 'bytes',
-          expectedValue, expectedInfos, SIZE_DELTA);
+          expectedValue, SIZE_DELTA);
     }
   }
 
   function assertDumpSizes(dump, expectedSize, expectedEffectiveSize,
-      opt_expectedSizeInfos, opt_expectedOwnedBySiblingSizes) {
+      opt_expectedInfos, opt_expectedOwnedBySiblingSizes) {
     // Check the 'size' attribute and its infos.
-    assertSizeAttribute(dump, 'size', expectedSize, opt_expectedSizeInfos);
+    assertSizeAttribute(dump, 'size', expectedSize);
 
     // Check the 'effective_size' attribute.
     assertSizeAttribute(dump, 'effective_size', expectedEffectiveSize);
+
+    // Check the 'infos' list.
+    var expectedInfos = opt_expectedInfos || [];
+    var actualInfos = dump.infos;
+    assert.lengthOf(actualInfos, expectedInfos.length,
+        'expected memory allocator dump \'' + dump.fullName + '\' in ' +
+        dump.containerMemoryDump.userFriendlyName + ' to have ' +
+        expectedInfos.length + ' infos but got ' + actualInfos.length);
+    for (var k = 0; k < actualInfos.length; k++) {
+      assert.deepEqual(actualInfos[k], expectedInfos[k],
+          'info ' + k + ' of memory allocator dump \'' + dump.fullName +
+          '\' in ' + dump.containerMemoryDump.userFriendlyName +
+          ' doesn\'t match the expected info');
+    }
 
     // Checked the 'ownedBySiblingSizes' map.
     var expectedOwnedBySiblingSizes = opt_expectedOwnedBySiblingSizes || {};
@@ -423,17 +419,11 @@ tr.b.unittest.testSuite(function() {
    *       dump for the recipe.
    *   expected_size: Expected value of the 'size' attribute of the MAD (no
    *       'size' attribute expected if undefined).
-   *   expected_size_infos: List of expected 'size' attribute infos (zero infos
-   *       expected if undefined). The items in the list are object with two
-   *       fields: 'type' (expected value of the info type), and 'message'
-   *       (regular expression over the info message).
    *   expected_effective_size: Expected value of the 'effective_size'
    *       attribute of the MAD (no 'effective_size' attribute expected if
    *       undefined).
-   *   expected_effective_size_infos: List of expected 'effective_size'
-   *       attribute infos (zero infos expected if undefined). The items in the
-   *       list are object with two fields: 'type' (expected value of the info
-   *       type), and 'message' (regular expression over the info message).
+   *   expected_infos: List of expected MAD infos (zero infos expected if
+   *       undefined).
    *   weak: Whether the MAD is expected to be weak (non-weak if undefined).
    *   owns: Expected GUID of the dump owned by the MAD.
    *   importance: Expected importance of the owhership from this MAD.
@@ -501,7 +491,7 @@ tr.b.unittest.testSuite(function() {
         assertDumpSizes(dump,
             treeRecipe['expected_size'],
             treeRecipe['expected_effective_size'],
-            treeRecipe['expected_size_infos'],
+            treeRecipe['expected_infos'],
             treeRecipe['expected_owned_by_sibling_sizes']);
 
         // Check that the 'owns' link is correct.
@@ -720,7 +710,7 @@ tr.b.unittest.testSuite(function() {
     }, /expected.*'effective_size'.*value.*\b100\b.*got.*\b99\b/);
   });
 
-  test('testSanityCheck_checkDumpTrees_invalidSizeInfoCount', function() {
+  test('testSanityCheck_checkDumpTrees_invalidInfoCount', function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     gmd.memoryAllocatorDumps = [
@@ -735,7 +725,7 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'v8',
             'expected_size': 50,
-            'expected_size_infos': [
+            'expected_infos': [
               {
                 type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
                 providedSize: 50,
@@ -745,14 +735,14 @@ tr.b.unittest.testSuite(function() {
           }
         ]
       ]);
-    }, /expected.*\'size'.*'v8'.*\b1 infos\b.*\bgot\b.*\b0\b/);
+    }, /expected.*'v8'.*\b1 infos\b.*\bgot\b.*\b0\b/);
   });
 
-  test('testSanityCheck_checkDumpTrees_invalidSizeInfo', function() {
+  test('testSanityCheck_checkDumpTrees_invalidInfo', function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var v8Dump = newAllocatorDump(gmd, 'v8', { size: 50 });
-    v8Dump.attributes['size'].infos.push({
+    v8Dump.infos.push({
       type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
       providedSize: 40,
       dependencySize: 50
@@ -765,7 +755,7 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'v8',
             'expected_size': 50,
-            'expected_size_infos': [
+            'expected_infos': [
               {
                 // Should be PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN below.
                 type: PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER,
@@ -776,7 +766,7 @@ tr.b.unittest.testSuite(function() {
           }
         ]
       ]);
-    }, /\binfo 0\b.*'size'.*'v8'.*\bexpected\b/);
+    }, /\binfo 0\b.*'v8'.*\bexpected\b/);
   });
 
   test('testSanityCheck_checkDumpTrees_invalidOwnedBySiblingSizes', function() {
@@ -3272,7 +3262,7 @@ tr.b.unittest.testSuite(function() {
             'guid': 2,
             'size': 17,  // Invalid: child has larger size.
             'expected_size': 20,
-            'expected_size_infos': [
+            'expected_infos': [
               {
                 type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
                 providedSize: 17,
@@ -3291,7 +3281,7 @@ tr.b.unittest.testSuite(function() {
                 'guid': 1,
                 'size': 10,  // Invalid: owner has larger size.
                 'expected_size': 20,
-                'expected_size_infos': [
+                'expected_infos': [
                   {
                     type: PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER,
                     providedSize: 10,
@@ -3333,7 +3323,7 @@ tr.b.unittest.testSuite(function() {
             'name': 'parent1',
             'size': 5,
             'expected_size': 10,
-            'expected_size_infos': [
+            'expected_infos': [
               {
                 type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
                 providedSize: 5,
@@ -3430,7 +3420,7 @@ tr.b.unittest.testSuite(function() {
 
     var ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owned_child');
-    assertDumpSizes(ownedChildDump, 20, 13, [] /* expectedSizeInfos */,
+    assertDumpSizes(ownedChildDump, 20, 13, [] /* expectedInfos */,
         { owner_child: 7 } /* expectedOwnedBySiblingSizes */);
   });
 

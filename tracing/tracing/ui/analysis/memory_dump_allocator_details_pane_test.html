@@ -6,16 +6,16 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
-<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
+<link rel="import"
+    href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
+<link rel="import"
+    href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 
 <script>
 'use strict';
@@ -41,11 +41,11 @@ tr.b.unittest.testSuite(function() {
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   var SUBALLOCATION_CONTEXT = tr.ui.analysis.SUBALLOCATION_CONTEXT;
-  var SizeAttributeInfoType = tr.model.SizeAttributeInfoType;
+  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
   var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
   var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   function addRootDumps(containerMemoryDump, rootNames, addedCallback) {
     // Test sanity check.
@@ -840,137 +840,36 @@ tr.b.unittest.testSuite(function() {
     var c = new SizeColumn('Size', 'bytes', tr.b.identity,
         AggregationMode.DIFF);
 
-    // Without attribute infos.
+    // Single selection.
     checkColumnInfosAndColor(c,
         createSizeAttributes([128]),
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
+
+    // Multi-selection.
     checkColumnInfosAndColor(c,
         createSizeAttributes([128, 256, undefined, 64]),
         undefined /* no context */,
         [] /* no infos */,
-        undefined /* no color */);
-
-    // With attribute infos (should not be ignored despite lack of context).
-    var attr1 = new ScalarAttribute('bytes', 1536);
-    attr1.infos.push({
-      type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
-      providedSize: 1024,
-      dependencySize: 1536
-    });
-    var attr2 = new ScalarAttribute('bytes', 1536);
-    attr2.infos.push({
-      type: PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER,
-      providedSize: 1024,
-      dependencySize: 1280
-    },
-    {
-      type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
-      providedSize: 1024,
-      dependencySize: 1536
-    });
-    checkColumnInfosAndColor(c,
-        [attr1],
-        undefined /* no context */,
-        [
-          {
-            icon: '\u26A0',
-            message: 'provided size (1.0 KiB) was less than the aggregated ' +
-                'size of the children (1.5 KiB)',
-            color: 'red'
-          }
-        ],
-        undefined /* no color */);
-    checkColumnInfosAndColor(c,
-        [attr1, attr2],
-        undefined /* no context */,
-        [
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the aggregated size of the ' +
-                'children',
-            color: 'red'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the size of the largest ' +
-                'owner at some selected timestamps',
-            color: 'red'
-          }
-        ],
-        undefined /* no color */);
-    checkColumnInfosAndColor(c,
-        [undefined, attr1, new ScalarAttribute('bytes', 1920), attr2],
-        undefined /* no context */,
-        [
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the aggregated size of the ' +
-                'children at some selected timestamps',
-            color: 'red'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the size of the largest ' +
-                'owner at some selected timestamps',
-            color: 'red'
-          }
-        ],
         undefined /* no color */);
   });
 
   test('sizeColumn_suballocationContext', function() {
     var c = new SizeColumn('Size', 'bytes', tr.b.identity, AggregationMode.MAX);
 
-    // Without attribute infos.
+    // Single selection.
     checkColumnInfosAndColor(c,
         createSizeAttributes([128]),
         [SUBALLOCATION_CONTEXT],
         [] /* no infos */,
         undefined /* no color */);
+
+    // Multi-selection.
     checkColumnInfosAndColor(c,
         createSizeAttributes([undefined, 256, undefined, 64]),
         [undefined, SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT],
         [] /* no infos */,
-        undefined /* no color */);
-
-    // With attribute infos (should not be ignored despite suballocation
-    // context).
-    var attr1 = new ScalarAttribute('bytes', 1536);
-    attr1.infos.push({
-      type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
-      providedSize: 1024,
-      dependencySize: 1536
-    });
-    var attr2 = new ScalarAttribute('bytes', 1536);
-    attr2.infos.push({
-      type: PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER,
-      providedSize: 1024,
-      dependencySize: 1280
-    },
-    {
-      type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
-      providedSize: 1024,
-      dependencySize: 1536
-    });
-    checkColumnInfosAndColor(c,
-        [attr1, undefined, attr2],
-        [SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT],
-        [
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the aggregated size of the ' +
-                'children at some selected timestamps',
-            color: 'red'
-          },
-          {
-            icon: '\u26A0',
-            message: 'provided size was less than the size of the largest ' +
-                'owner at some selected timestamps',
-            color: 'red'
-          }
-        ],
         undefined /* no color */);
   });
 

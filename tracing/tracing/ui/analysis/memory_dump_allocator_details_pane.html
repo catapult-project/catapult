@@ -72,11 +72,11 @@ tr.exportTo('tr.ui.analysis', function() {
   var SUBALLOCATION_CONTEXT = true;
 
   // Size attribute names.
-  var SizeAttributeInfoType = tr.model.SizeAttributeInfoType;
+  var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
   var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
   var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
-      SizeAttributeInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
+      MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
 
   // Unicode symbols used for memory cell info icons and messages.
   var LEFTWARDS_OPEN_HEADED_ARROW = String.fromCharCode(0x21FD);
@@ -361,14 +361,13 @@ tr.exportTo('tr.ui.analysis', function() {
     __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
 
     addInfos: function(attrs, memoryAllocatorDumps, infos) {
+      if (memoryAllocatorDumps === undefined)
+        return;
       this.addOverlapInfo_(attrs, memoryAllocatorDumps, infos);
-      this.addProvidedSizeWarningInfos_(attrs, infos);
+      this.addProvidedSizeWarningInfos_(attrs, memoryAllocatorDumps, infos);
     },
 
     addOverlapInfo_: function(attrs, memoryAllocatorDumps, infos) {
-      if (memoryAllocatorDumps === undefined)
-        return;
-
       // Sibling allocator dump name -> {count, size}. The latter field (size)
       // is omitted in multi-selection mode.
       var siblingNameToEntry = new Map();
@@ -412,8 +411,8 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    addProvidedSizeWarningInfos_: function(attrs, infos) {
-      // Info type (see SizeAttributeInfoType) -> {count, providedSize,
+    addProvidedSizeWarningInfos_: function(attrs, memoryAllocatorDumps, infos) {
+      // Info type (see MemoryAllocatorDumpInfoType) -> {count, providedSize,
       // dependencySize}. The latter two fields (providedSize and
       // dependencySize) are omitted in multi-selection mode.
       var infoTypeToEntry = new Map();
@@ -421,11 +420,14 @@ tr.exportTo('tr.ui.analysis', function() {
         var attr = attrs[i];
         if (attr === undefined)
           continue;
-        attr.infos.forEach(function(attrInfo) {
-          getAndUpdateEntry(infoTypeToEntry, attrInfo.type, function(newEntry) {
+        var dump = memoryAllocatorDumps[i];
+        if (dump === SUBALLOCATION_CONTEXT)
+          return;  // Suballocation internal rows have no provided size.
+        dump.infos.forEach(function(dumpInfo) {
+          getAndUpdateEntry(infoTypeToEntry, dumpInfo.type, function(newEntry) {
             if (attrs.length === 1 /* single-selection mode */) {
-              newEntry.providedSize = attrInfo.providedSize;
-              newEntry.dependencySize = attrInfo.dependencySize;
+              newEntry.providedSize = dumpInfo.providedSize;
+              newEntry.dependencySize = dumpInfo.dependencySize;
             }
           });
         });

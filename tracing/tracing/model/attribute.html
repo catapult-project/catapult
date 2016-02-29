@@ -18,12 +18,10 @@ tr.exportTo('tr.model', function() {
   /**
    * @constructor
    */
+  // TODO(petrcermak): Replace this class with tr.v.ScalarNumeric
+  // (https://github.com/catapult-project/catapult/issues/1928).
   function Attribute(units) {
     this.units = units;
-
-    // A list of information about the attribute (e.g. about how it was
-    // calculated). The interpretation of the items is domain-specific.
-    this.infos = [];
   }
 
   Attribute.fromDictIfPossible = function(dict, opt_model) {
@@ -165,16 +163,6 @@ tr.exportTo('tr.model', function() {
     }
   };
 
-  Attribute.prototype.cloneWithoutInfos = function() {
-    return new Attribute(this.units);
-  };
-
-  Attribute.prototype.cloneWithInfos = function() {
-    var attr = this.cloneWithoutInfos();
-    attr.infos = this.infos.slice();
-    return attr;
-  };
-
   var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
   tr.b.decorateExtensionRegistry(Attribute, options);
 
@@ -211,10 +199,6 @@ tr.exportTo('tr.model', function() {
 
   ScalarAttribute.prototype.__proto__ = Attribute.prototype;
 
-  ScalarAttribute.prototype.cloneWithoutInfos = function() {
-    return new ScalarAttribute(this.units, this.value);
-  };
-
   Attribute.register(ScalarAttribute, {type: 'scalar'});
 
   /**
@@ -231,10 +215,6 @@ tr.exportTo('tr.model', function() {
 
   StringAttribute.prototype.__proto__ = Attribute.prototype;
 
-  StringAttribute.prototype.cloneWithoutInfos = function() {
-    return new StringAttribute(this.units, this.value);
-  };
-
   Attribute.register(StringAttribute, {type: 'string'});
 
   /**
@@ -250,10 +230,6 @@ tr.exportTo('tr.model', function() {
   };
 
   UnknownAttribute.prototype.__proto__ = Attribute.prototype;
-
-  UnknownAttribute.prototype.cloneWithoutInfos = function() {
-    return new UnknownAttribute(this.units, this.value);
-  };
 
   return {
     Attribute: Attribute,
