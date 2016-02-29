@@ -155,9 +155,9 @@ def _PostResult(job, issue_tracker):
   # From the results, get the list of people to CC (if applicable), the bug
   # to merge into (if applicable) and the commit hash cache key, which
   # will be used below.
-  bug = _GetBugEntity(job.bug_id)
-  if not bug:
+  if job.bug_id < 0:
     return
+
   results_data = job.results_data
   authors_to_cc = []
   commit_cache_key = _GetCommitHashCacheKey(results_data)
@@ -190,8 +190,10 @@ def _PostResult(job, issue_tracker):
     _MapAnomaliesToMergeIntoBug(merge_issue, job.bug_id)
     # Mark the duplicate bug's Bug entity status as closed so that
     # it doesn't get auto triaged.
-    bug.status = bug_data.BUG_STATUS_CLOSED
-    bug.put()
+    bug = ndb.Key('Bug', job.bug_id).get()
+    if bug:
+      bug.status = bug_data.BUG_STATUS_CLOSED
+      bug.put()
 
   # Cache the commit info and bug ID to datastore when there is no duplicate
   # issue that this issue is getting merged into. This has to be done only
@@ -201,12 +203,6 @@ def _PostResult(job, issue_tracker):
                               days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
-
-
-def _GetBugEntity(bug_id):
-  if bug_id is None or bug_id < 0:
-    return None
-  return ndb.Key('Bug', bug_id).get()
 
 
 def _IsStale(job):
