@@ -134,7 +134,7 @@
             // Try a dummy read to check whether file_path exists.
             // TODO(nednguyen): find a more efficient way to check whether
             // some file path exists in d8.
-            read(fileName);
+            readbuffer(fileName);
             return true;
           } catch (err) {
             return false;
