@@ -47,6 +47,7 @@ handlers:
 - url: /dashboard/static/
   static_dir: dashboard/static/
   secure: always
+  application_readable: true
 
 - url: /dashboard/elements/(.*\.html)$
   static_files: dashboard/elements/\1

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/bisect-status.html">
@@ -7,7 +8,8 @@
 <link rel="import" href="/dashboard/static/uri.html">
 
 <polymer-element name="alerts-table"
-                 attributes="sortBy sortDirection xsrfToken">
+                 attributes="sortBy sortDirection
+                             xsrfToken alertList extraColumns">
   <template>
     <style>
       #alerts {
@@ -388,21 +390,29 @@
        */
       ready: function() {
         this.checkedAlerts = [];
-        if (this.alertList) {
-          this.initialize();
+      },
+
+      isRecursiveChange: function() {
+        if (this.isRecursingIntoChange) {
+          return true;
         }
+        this.isRecursingIntoChange = true;
+        setTimeout(function() {
+          this.isRecursingIntoChange = false;
+        }.bind(this), 10);
+        return false;
       },
 
       /**
        * Initializes the table.
        * This should be called after this.alertList has been set.
        */
-      initialize: function() {
-        this.alertList.forEach(function(alert) {
-          // The XSRF token is set for each row of the table here so that the
-          // alert-remove-box in each row can also have the XSRF token.
-          alert.xsrfToken = this.xsrfToken;
-        }, this);
+      alertListChanged: function() {
+        // Some calls to alertListChanged can change the alert list.
+        // If that happens, don't do anything.
+        if (this.isRecursiveChange()) {
+          return;
+        }
         this.initRowsBasedOnQueryParameters();
         this.showAlertsGrouped();
         this.updateBugColumn();

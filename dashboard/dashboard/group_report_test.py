@@ -68,7 +68,12 @@ class GroupReportTest(testing_common.TestCase):
     return sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='sullivan@google.com').put()
 
-  def testGet_WithAnomalyKeys_ShowsSelectedAndOverlapping(self):
+  def testGet(self):
+    response = self.testapp.get('/group_report')
+    self.assertEqual('text/html', response.content_type)
+    self.assertIn('Chrome Performance Dashboard', response.body)
+
+  def testPost_WithAnomalyKeys_ShowsSelectedAndOverlapping(self):
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     selected_ranges = [(400, 900), (200, 700)]
@@ -81,26 +86,26 @@ class GroupReportTest(testing_common.TestCase):
     self._AddAnomalyEntities(
         non_overlapping_ranges, test_keys[0], sheriff_key)
 
-    response = self.testapp.get(
+    response = self.testapp.post(
         '/group_report?keys=%s' % ','.join(selected_keys))
-    alert_list = self.GetEmbeddedVariable(response, 'ALERT_LIST')
+    alert_list = self.GetJsonValue(response, 'alert_list')
 
     # Expect selected alerts + overlapping alerts,
     # but not the non-overlapping alert.
     self.assertEqual(5, len(alert_list))
 
-  def testGet_WithKeyOfNonExistentAlert_ShowsError(self):
+  def testPost_WithKeyOfNonExistentAlert_ShowsError(self):
     key = ndb.Key('Anomaly', 123)
-    response = self.testapp.get('/group_report?keys=%s' % key.urlsafe())
-    self.assertIn('error', response.body)
-    self.assertIn('No Anomaly found for key', response.body)
+    response = self.testapp.post('/group_report?keys=%s' % key.urlsafe())
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('No Anomaly found for key %s.' % key.urlsafe(), error)
 
-  def testGet_WithInvalidKeyParameter_ShowsError(self):
-    response = self.testapp.get('/group_report?keys=foobar')
-    self.assertIn('error', response.body)
-    self.assertIn('Invalid Anomaly key', response.body)
+  def testPost_WithInvalidKeyParameter_ShowsError(self):
+    response = self.testapp.post('/group_report?keys=foobar')
+    error = self.GetJsonValue(response, 'error')
+    self.assertIn('Invalid Anomaly key', error)
 
-  def testGet_WithRevParameter(self):
+  def testPost_WithRevParameter(self):
     # If the rev parameter is given, then all alerts whose revision range
     # includes the given revision should be included.
     sheriff_key = self._AddSheriff()
@@ -108,16 +113,16 @@ class GroupReportTest(testing_common.TestCase):
     self._AddAnomalyEntities(
         [(190, 210), (200, 300), (100, 200), (400, 500)],
         test_keys[0], sheriff_key)
-    response = self.testapp.get('/group_report?rev=200')
-    alert_list = self.GetEmbeddedVariable(response, 'ALERT_LIST')
+    response = self.testapp.post('/group_report?rev=200')
+    alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
 
-  def testGet_WithInvalidRevParameter_ShowsError(self):
-    response = self.testapp.get('/group_report?rev=foo')
-    self.assertIn('error', response.body)
-    self.assertIn('Invalid rev', response.body)
+  def testPost_WithInvalidRevParameter_ShowsError(self):
+    response = self.testapp.post('/group_report?rev=foo')
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('Invalid rev "foo".', error)
 
-  def testGet_WithBugIdParameter(self):
+  def testPost_WithBugIdParameter(self):
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     bug_data.Bug(id=123).put()
@@ -126,22 +131,22 @@ class GroupReportTest(testing_common.TestCase):
         test_keys[0], sheriff_key, bug_id=123)
     self._AddAnomalyEntities(
         [(150, 250)], test_keys[0], sheriff_key)
-    response = self.testapp.get('/group_report?bug_id=123')
-    alert_list = self.GetEmbeddedVariable(response, 'ALERT_LIST')
+    response = self.testapp.post('/group_report?bug_id=123')
+    alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(3, len(alert_list))
 
-  def testGet_WithBugIdParameter_ListsStoppageAlerts(self):
+  def testPost_WithBugIdParameter_ListsStoppageAlerts(self):
     test_keys = self._AddTests()
     bug_data.Bug(id=123).put()
     row = testing_common.AddRows(utils.TestPath(test_keys[0]), {100})[0]
     alert = stoppage_alert.CreateStoppageAlert(test_keys[0].get(), row)
     alert.bug_id = 123
     alert.put()
-    response = self.testapp.get('/group_report?bug_id=123')
-    alert_list = self.GetEmbeddedVariable(response, 'ALERT_LIST')
+    response = self.testapp.post('/group_report?bug_id=123')
+    alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(1, len(alert_list))
 
-  def testGet_WithBugIdForBugThatHasOwner_ShowsOwnerInfo(self):
+  def testPost_WithBugIdForBugThatHasOwner_ShowsOwnerInfo(self):
     sheriff_key = self._AddSheriff()
     test_keys = self._AddTests()
     bug_data.Bug(id=123).put()
@@ -150,14 +155,16 @@ class GroupReportTest(testing_common.TestCase):
     test_suite_path = '%s/%s' % (test_path_parts[0], test_path_parts[2])
     test_owner.AddOwnerFromDict({test_suite_path: ['foo@bar.com']})
     self._AddAnomalyEntities([(150, 250)], test_key, sheriff_key, bug_id=123)
-    response = self.testapp.get('/group_report?bug_id=123')
-    owner_info = self.GetEmbeddedVariable(response, 'OWNER_INFO')
+    response = self.testapp.post('/group_report?bug_id=123')
+    owner_info = self.GetJsonValue(response, 'owner_info')
     self.assertEqual('foo@bar.com', owner_info[0]['email'])
 
-  def testGet_WithInvalidBugIdParameter_ShowsError(self):
-    response = self.testapp.get('/group_report?bug_id=foo')
-    self.assertNotIn('ALERT_LIST', response.body)
-    self.assertIn('Invalid bug ID', response.body)
+  def testPost_WithInvalidBugIdParameter_ShowsError(self):
+    response = self.testapp.post('/group_report?bug_id=foo')
+    alert_list = self.GetJsonValue(response, 'alert_list')
+    self.assertIsNone(alert_list)
+    error = self.GetJsonValue(response, 'error')
+    self.assertEqual('Invalid bug ID "foo".', error)
 
 
 if __name__ == '__main__':

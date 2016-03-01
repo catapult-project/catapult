@@ -19,16 +19,26 @@ class ReportHandler(chart_handler.ChartHandler):
   """URL endpoint for /report page."""
 
   def get(self):
-    """Renders the UI for selecting graphs."""
-
+    """Renders the static UI for selecting graphs."""
     query_string = self._GetQueryStringForOldUri()
     if query_string:
       self.redirect('/report?' + query_string)
       return
+    self.RenderStaticHtml('report.html')
 
-    self.RenderHtml('report.html', {
-        'test_suites': json.dumps(update_test_suites.FetchCachedTestSuites()),
-    })
+  def post(self):
+    """Gets dynamic data for selecting graphs"""
+    values = {}
+    self.GetDynamicVariables(values)
+    self.response.out.write(json.dumps({
+        'is_internal_user': values['is_internal_user'],
+        'login_url': values['login_url'],
+        'revision_info': values['revision_info'],
+        'warning_bug': values['warning_bug'],
+        'warning_message': values['warning_message'],
+        'xsrf_token': values['xsrf_token'],
+        'test_suites': update_test_suites.FetchCachedTestSuites(),
+    }))
 
   def _GetQueryStringForOldUri(self):
     """Gets a new query string if old URI parameters are present.

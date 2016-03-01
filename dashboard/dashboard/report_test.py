@@ -59,7 +59,7 @@ class ReportTest(testing_common.TestCase):
     # data must be updated.
     self.testapp.post('/update_test_suites')
 
-  def testGet_EmbedsTestSuites(self):
+  def testPost_ContainsTestSuites(self):
     self._AddTestSuites()
 
     # We expect to have this JavaScript in the rendered HTML.
@@ -91,9 +91,14 @@ class ReportTest(testing_common.TestCase):
             'des': 'This should show up',
         },
     }
-    response = self.testapp.get('/report')
-    actual_suites = self.GetEmbeddedVariable(response, 'TEST_SUITES')
+    response = self.testapp.post('/report')
+    actual_suites = self.GetJsonValue(response, 'test_suites')
     self.assertEqual(expected_suites, actual_suites)
+
+  def testGet(self):
+    response = self.testapp.get('/report')
+    self.assertEqual('text/html', response.content_type)
+    self.assertIn('Chrome Performance Dashboard', response.body)
 
   def testGet_OldUri(self):
     expected_state = {
@@ -172,7 +177,6 @@ class ReportTest(testing_common.TestCase):
     self.assertIn('sid=', location)
     self.assertIn('start_rev=1234', location)
     self.assertIn('end_rev=5678', location)
-
 
   def testGet_OldUriWithNestedSubtestAndMissingSubTestParam(self):
     self._AddTestSuites()

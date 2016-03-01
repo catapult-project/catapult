@@ -21,11 +21,20 @@ class ChartHandler(request_handler.RequestHandler):
 
   def RenderHtml(self, template_file, template_values, status=200):
     """Fills in template values for pages that show charts."""
-    revision_info = namespaced_stored_object.Get(_REVISION_INFO_KEY) or {}
-    template_values.update({
-        'revision_info': json.dumps(revision_info),
-        'warning_message': layered_cache.Get('warning_message'),
-        'warning_bug': layered_cache.Get('warning_bug'),
-    })
+    template_values.update(self._GetChartValues())
+    template_values['revision_info'] = json.dumps(
+        template_values['revision_info'])
     return super(ChartHandler, self).RenderHtml(
         template_file, template_values, status)
+
+  def GetDynamicVariables(self, template_values, request_path=None):
+    template_values.update(self._GetChartValues())
+    super(ChartHandler, self).GetDynamicVariables(
+        template_values, request_path)
+
+  def _GetChartValues(self):
+    return {
+        'revision_info': namespaced_stored_object.Get(_REVISION_INFO_KEY) or {},
+        'warning_message': layered_cache.Get('warning_message'),
+        'warning_bug': layered_cache.Get('warning_bug'),
+    }

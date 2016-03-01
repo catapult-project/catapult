@@ -37,11 +37,17 @@ class RequestHandler(webapp2.RequestHandler):
     """
     self.response.set_status(status)
     template = JINJA2_ENVIRONMENT.get_template(template_file)
-    self.GetTemplateValues(template_values)
+    self.GetDynamicVariables(template_values)
     self.response.out.write(template.render(template_values))
 
-  def GetTemplateValues(self, template_values, request_path=None):
-    """Gets the values that go in the template for every page.
+  def RenderStaticHtml(self, filename):
+    filename = os.path.join(os.path.dirname(__file__), 'static', filename)
+    contents = open(filename, 'r')
+    self.response.out.write(contents.read())
+    contents.close()
+
+  def GetDynamicVariables(self, template_values, request_path=None):
+    """Gets the values that vary for every page.
 
     Args:
       template_values: dict of name/value pairs.

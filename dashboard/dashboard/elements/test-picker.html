@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <link rel="import" href="/components/core-icon-button/core-icon-button.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-progress/paper-progress.html">
@@ -6,7 +7,7 @@
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 
-<polymer-element name="test-picker" attributes="hasChart xsrfToken">
+<polymer-element name="test-picker" attributes="hasChart xsrfToken testSuites">
   <template>
     <style>
       #container * {
@@ -104,7 +105,6 @@
       UNMONITORED_TAG: 'unmonitored',
 
       ready: function() {
-        this.TEST_SUITES = window['TEST_SUITES'];
         this.pageStateLoading = true;
         this.hasChart = false;
         this.enableAddSeries = false;
@@ -123,6 +123,11 @@
         ];
       },
 
+      testSuitesChanged: function() {
+        this.selectionModels[0].datalist = this.getSuiteItems();
+        this.getSelectionMenu(0).setDataList(this.selectionModels[0].datalist);
+      },
+
       /**
        * Gets a list of menu items for test suites.
        */
@@ -132,17 +137,17 @@
         var isUnmonitored = function(suite) {
           // A suite is considered unmonitored if there are no monitored
           // subtests.
-          var suiteInfo = self.TEST_SUITES[suite];
+          var suiteInfo = self.testSuites[suite];
           return !suiteInfo['mon'] || suiteInfo['mon'].length == 0;
         };
 
-        for (var suite in this.TEST_SUITES) {
+        for (var suite in this.testSuites) {
           var suiteItem = {
             name: suite
           };
 
           var tags = [];
-          if (this.TEST_SUITES[suite]['dep']) {
+          if (this.testSuites[suite]['dep']) {
             suiteItem.deprecated = true;
             tags.push(this.DEPRECATED_TAG);
           }
@@ -163,10 +168,10 @@
        */
       getBotItems: function() {
         var suite = this.getSelectionMenu(0).value;
-        if (!this.TEST_SUITES[suite]) {
+        if (!this.testSuites[suite]) {
           return [];
         }
-        var dict = this.TEST_SUITES[suite]['mas'];
+        var dict = this.testSuites[suite]['mas'];
         var botMenuItems = [];
         var masters = Object.keys(dict).sort();
         for (var i = 0; i < masters.length; i++) {
@@ -212,12 +217,12 @@
         // Display the test suite description if there is one.
         var descriptionElement = this.$['suite-description'];
         var suite = this.getSelectionMenu(0).value;
-        if (!suite) {
+        if (!suite || !this.testSuites[suite]) {
           descriptionElement.innerHTML = '';
           return;
         }
 
-        var description = this.TEST_SUITES[suite]['des'];
+        var description = this.testSuites[suite]['des'];
         if (description) {
           var descriptionHTML = '<b>' + suite + '</b>: ';
           descriptionHTML += this.convertMarkdownLinks(description);
@@ -411,7 +416,7 @@
         }
 
         var suite = this.getSelectionMenu(0).getSelectedItems()[0];
-        var selection = new testselection.TestSelection();
+        var selection = new testselection.TestSelection(this.testSuites);
         var testPathAndSelected = this.addTestPathFromSubtestDict(
             this.subtestDict, suite.name, 2);
         var bots = this.getCheckedBots();

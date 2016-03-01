@@ -2,13 +2,6 @@
 <html>
 <head>
   <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
-  <script>
-    'use strict';
-    var TEST_SUITES = {{test_suites | safe}};
-    var REVISION_INFO = {{revision_info | safe}};
-    var XSRF_TOKEN = '{{xsrf_token}}';
-    var IS_INTERNAL_USER = ('{{is_internal_user}}' == 'True');
-  </script>
 
   <script src="/jquery/jquery-2.1.4.min.js"></script>
   <script src="/flot/jquery.flot.min.js"></script>
@@ -18,13 +11,10 @@
 
   <link rel="import" href="/components/polymer/polymer.html">
 
-  <link rel="import" href="/dashboard/elements/chart-container.html">
-  <link rel="import" href="/dashboard/elements/custom-tooltip.html">
-  <link rel="import" href="/dashboard/elements/login-warning.html">
-  <link rel="import" href="/dashboard/elements/overlay-message.html">
-  <link rel="import" href="/dashboard/elements/report-container.html">
   <link rel="import" href="/dashboard/elements/load-analytics.html">
   <link rel="import" href="/dashboard/elements/nav-bar.html">
+  <link rel="import" href="/dashboard/elements/overlay-message.html">
+  <link rel="import" href="/dashboard/elements/report-page.html">
 
   <title>Chrome Performance Dashboard</title>
 
@@ -49,27 +39,7 @@
 <body>
   <nav-bar></nav-bar>
   <h1>Chrome Performance Dashboard</h1>
-
-  <overlay-message id="message-bar"></overlay-message>
-
-  {% if warning_message %}
-    <overlay-message id="warning-message" opened="true" autoCloseDisabled duration="-1">
-    {{warning_message}}
-    {% if warning_bug %}
-      <a href="https://github.com/catapult-project/catapult/issues/{{warning_bug}}">See bug #{{warning_bug}}.</a>
-    {% endif %}
-    </overlay-message>
-  {% endif %}
-
-  <login-warning id="login-warning" loginLink="{{login_url}}"
-                 {% if is_internal_user %}hidden="true"{% endif %}>
-  </login-warning>
-
-  <custom-tooltip id="tooltip"></custom-tooltip>
-
-  <report-container xsrfToken="{{xsrf_token | safe}}"></report-container>
-  <section id="charts-container"></section>
-
+  <report-page></report-page>
   <load-analytics></load-analytics>
 </body>
 </html>
