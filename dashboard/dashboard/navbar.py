@@ -14,7 +14,7 @@ class NavbarHandler(request_handler.RequestHandler):
 
   def post(self):
     template_values = {}
-    self.GetTemplateValues(template_values, self.request.get('path'))
+    self.GetDynamicVariables(template_values, self.request.get('path'))
     self.response.out.write(json.dumps({
         'login_url': template_values['login_url'],
         'is_admin': template_values['is_admin'],

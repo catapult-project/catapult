@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<link rel="import" href="/components/paper-button/paper-button.html">
+<link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+<link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/dashboard/elements/alerts-table.html">
+<link rel="import" href="/dashboard/elements/overlay-message.html">
+<link rel="import" href="/dashboard/elements/quick-log.html">
+<link rel="import" href="/dashboard/elements/select-menu.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
+<link rel="import" href="/dashboard/static/uri.html">
+
+<polymer-element name="alerts-page">
+  <template>
+    <style>
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    .center {
+      margin: auto;
+      padding: 10px;
+    }
+
+    /* The action bar contains the graph button and triage button. */
+    #action-bar {
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    /* The content container contains everything below the sheriff select menu.
+     */
+    #content {
+      display: inline-flex;
+      display: -webkit-inline-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      align-items: flex-start;
+      -webkit-align-items: flex-start;
+    }
+
+    /* This class indicates a button toggled on (e.g. show improvements). */
+    .alert-togglebutton {
+      float: right;
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+
+    #auto-triage-log {
+      padding: 15px 0 15px 0;
+    }
+
+    #message-bar {
+      top: 26px;
+    }
+
+    #anomaly-table, #stoppage-alert-table {
+      width: 100%;
+    }
+
+    #loading {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    </style>
+    <overlay-message id="message-bar"></overlay-message>
+    <template if="{{!loaded}}">
+      <div id="loading"><img src="//www.google.com/images/loading.gif"></div>
+    </template>
+    <template if="{{loaded}}">
+      <div id="content">
+        <div id="action-bar">
+          <select-menu id="sheriff-select"
+                       menuItems="{{sheriffList}}"
+                       on-core-activate="{{onSheriffChange}}"></select-menu>
+          <paper-button raised noink id="improvements-toggle"
+                        class="alert-togglebutton"
+                        on-click="{{onToggleImprovements}}">Show improvements</paper-button>
+          <paper-button raised noink id="triaged-toggle"
+                        class="alert-togglebutton"
+                        on-click="{{onToggleTriaged}}">Show triaged</paper-button>
+        </div>
+        <template if="{{error}}">
+          <div class="error">{{error}}</div>
+        </template>
+        <template if="{{anomalies.length > 0}}">
+          <h2>Performance alerts</h2>
+          <p id='num-alerts'>
+            <template if="{{anomalies.length == 1}}">1 alert.</template>
+            <template if="{{anomalies.length != 1}}">{{anomalies.length}} alerts.</template>
+          </p>
+          <alerts-table id="anomaly-table"
+                        xsrfToken="{{xsrfToken}}"
+                        alertList="{{anomalies}}"
+                        extraColumns="{{extraAnomaliesColumns}}"
+                        on-sortby="{{onPushHistoryState}}"
+                        on-sortdirection="{{onPushHistoryState}}">
+          </alerts-table>
+        </template>
+        <template if="{{stoppageAlerts.length > 0}}">
+          <h2>Data stoppage alerts</h2>
+          <alerts-table id="stoppage-alert-table"
+                        xsrfToken="{{xsrfToken}}"
+                        alertList="{{stoppageAlerts}}"
+                        extraColumns="{{extraStoppageAlertsColumns}}">
+          </alerts-table>
+        </template>
+        <template if="{{anomalies.length == 0 && stoppageAlerts.length == 0 && !error}}">
+          <h2 class="center">All alerts triaged!</h2>
+          <img class="center" src="http://thecatapi.com/api/images/get?api_key=MjUzMDQ&amp;category=space&amp;size=small">
+        </template>
+        <quick-log id="auto-triage-log" xsrfToken="{{xsrfToken}}"
+                   style="width:100%; display:block;"></quick-log>
+      </div>
+    </template>
+  </template>
+  <script>
+    'use strict';
+    Polymer('alerts-page', {
+      loaded: false,
+
+      get anomaliesTable() {
+        return this.$['anomaly-table'];
+      },
+
+      get stoppageAlertsTable() {
+        return this.$['stoppage-alert-table'];
+      },
+
+      extraAnomaliesColumns: [{
+        'key': 'percent_changed',
+        'label': 'Delta %'
+      }],
+
+      extraStoppageAlertsColumns: [{
+        'key': 'last_row_date',
+        'label': 'Date'
+      }],
+
+      onSheriffChange: function(e) {
+        var sheriff = e.detail.item.getAttribute('label');
+        if (!sheriff) {
+          return;
+        }
+        var params = uri.getAllParameters();
+        params['sheriff'] = sheriff;
+        // TODO(sullivan): changing the param should automatically update
+        // everything without needing to reload.
+        window.location.href = uri.getCurrentPathWithParams(params);
+      },
+
+      onToggleTriaged: function(e) {
+        var params = uri.getAllParameters();
+        if (params['triaged']) {
+          delete params['triaged'];
+        } else {
+          params['triaged'] = 'true';
+        }
+        // TODO(sullivan): changing the param should automatically update
+        // everything without needing to reload.
+        window.location.href = uri.getCurrentPathWithParams(params);
+      },
+
+      onToggleImprovements: function(e) {
+        var params = uri.getAllParameters();
+        if (params['improvements']) {
+          delete params['improvements'];
+        } else {
+          params['improvements'] = 'true';
+        }
+        // TODO(sullivan): changing the param should automatically update
+        // everything without needing to reload.
+        window.location.href = uri.getCurrentPathWithParams(params);
+      },
+
+      onPopState: function(e) {
+        // Pop State event will have a non-null state if this came from an
+        // actual pop instead of the load event.
+        if (e['state']) {
+          this.updateFromURIParameters();
+        }
+      },
+
+      onPushHistoryState: function(event, detail, sender) {
+        if (!sender) {
+          return;
+        }
+        var params = uri.getAllParameters();
+        params['sortby'] = sender['sortBy'];
+        params['sortdirection'] = sender['sortDirection'];
+        var newUri = uri.getCurrentPathWithParams(params);
+        history.pushState(params, '', newUri);
+      },
+
+      updateFromURIParameters: function() {
+        this.anomaliesTable.sortBy = uri.getParameter('sortby', 'end_revision');
+        this.anomaliesTable.sortDirection = uri.getParameter(
+            'sortdirection', 'down');
+        var sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
+        this.$['sheriff-select'].select(sheriff);
+        // The show improvements and show triaged toggles are initially "off";
+        // set them to on if the corresponding query parameter is set.
+        // The buttons are displayed differently if they have the "active"
+        // attribute.
+        if (uri.getParameter('improvements')) {
+          this.$['improvements-toggle'].setAttribute('active', '');
+        }
+        if (uri.getParameter('triaged')) {
+          this.$['triaged-toggle'].setAttribute('active', '');
+        }
+      },
+
+      ready: function() {
+        this.sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
+        this.sortBy = uri.getParameter('sortby', 'end_revision');
+        this.sortDirection = uri.getParameter('sortdirection', 'down');
+        this.showImprovements = uri.getParameter('improvements', false);
+        this.showTriaged = uri.getParameter('triaged', false);
+        var params = {
+          'sheriff': this.sheriff
+        };
+        if (this.showImprovements) {
+          params['improvements'] = true;
+        }
+        if (this.showTriaged) {
+          params['triaged'] = true;
+        }
+        simple_xhr.send('/alerts', params,
+          function(response) {
+            this.anomalies = response['anomaly_list'];
+            this.stoppageAlerts = response['stoppage_alert_list'];
+            this.sheriffList = response['sheriff_list'];
+            this.xsrfToken = response['xsrf_token'];
+            this.loaded = true;
+          }.bind(this),
+          function(msg) {
+            this.error = msg;
+          }.bind(this));
+      }
+    });
+  </script>
+</polymer-element>

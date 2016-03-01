@@ -1,263 +1,45 @@
 <!DOCTYPE html>
-<!--
-Copyright 2015 The Chromium Authors. All rights reserved.
-Use of this source code is governed by a BSD-style license that can be
-found in the LICENSE file.
--->
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <title>Chrome Performance Dashboard</title>
 
-<link rel="import" href="/dashboard/static/testselection.html">
+  <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/dashboard/elements/group-report-page.html">
+  <link rel="import" href="/dashboard/elements/load-analytics.html">
+  <link rel="import" href="/dashboard/elements/nav-bar.html">
+  <link rel="import" href="/dashboard/elements/overlay-message.html">
 
-<script>
-'use strict';
-
-/**
- * Main JavaScript file for group reporting page.
- */
-var group_report = (function() {
-
-  // Dictionary of alert key to 'chart-element' element.
-  var graphElements_ = {};
-
-  // 'alerts-table' element.
-  var table_ = null;
-
-  /**
-   * Unchecks the checkbox in the alerts-table when a graph is closed.
-   * This is the handler for the 'closeGraph' event, fired by chart-container.
-   * @param {Event} event The event object.
-   */
-  var onGraphClose_ = function(event) {
-    // Un-check the alert in the table.
-    var key = event.target['alertKey'];
-    var alertList = table_['alertList'];
-    for (var i = 0; i < alertList.length; i++) {
-      if (alertList[i].key == key) {
-        alertList[i].selected = false;
-        break;
-      }
-    }
-
-    // Make the table update its list of checked alerts.
-    // This is necessary so that the triage dialog will get a correct list of
-    // alerts that should be affected by a triage action.
-    table_['onCheckboxChange']();
-
-    // Remove the graph from the set of currently-displayed graph elements.
-    delete graphElements_[key];
-  };
-
-  /**
-   * Selects the series to graph for an alert. The series is specified as a
-   * two-item Array; with a test path and a list of selected series under that
-   * that test path. This will be used in the JSON request parameter when
-   * requesting data to graph.
-   * @param {Object} alert The alert object.
-   * @return {Array} A two-item Array: test path and Array of selected series.
-   */
-  var getTestPathAndSelectedSeries = function(alert) {
-    var testPath = getTestPath(alert);
-    var subtestsEntry = getSubtestsEntry(testPath);
-    var traceName = testPath.split('/').pop();
-
-    // If the "subtests" property of |subtestsEntry| is an empty object, that
-    // implies that this test has no subtests. In this case, show a chart for
-    // the parent test, with this particular child selected.
-    if (subtestsEntry && subtestsEntry['sub_tests'] &&
-        Object.keys(subtestsEntry['sub_tests']).length == 0) {
-      testPath = testPath.split('/').slice(0, -1).join('/');
-      subtestsEntry = getSubtestsEntry(testPath);
-    }
-
-    // Get a list of selected traces. This should include the series that the
-    // alert was on, as well as any related reference build result series.
-    var selectedTraces = [traceName];
-    if (subtestsEntry && subtestsEntry['sub_tests']) {
-      if ('ref' in subtestsEntry['sub_tests']) {
-        selectedTraces.push('ref');
-      }
-      if (traceName + '_ref' in subtestsEntry['sub_tests']) {
-        selectedTraces.push(traceName + '_ref');
-      }
-    }
-
-    // Otherwise, the test is either not found in the SUBTESTS dict, or it is
-    // a test with children (e.g. a summary metric). In either of these cases,
-    // we want to return the test path and trace found on the alert.
-    return [testPath, selectedTraces];
-  };
-
-  var getTestPath = function(alert) {
-    return [
-      alert['master'],
-      alert['bot'],
-      alert['testsuite'],
-      alert['test']
-    ].join('/');
-  };
-
-  /**
-   * Gets the object in the global SUBTESTS that corresponds to the test
-   * that an alert is on, or null if nothing was found.
-   */
-  var getSubtestsEntry = function(testPath) {
-    var testPathParts = testPath.split('/');
-    var botName = testPathParts[0] + '/' + testPathParts[1];
-    var subtestParts = testPathParts.splice(3);
-    var subtestDict = window['SUBTESTS'][botName][testPathParts[2]];
-    if (!subtestDict) {
-      return null;
-    }
-    for (var level = 0; level < subtestParts.length - 1; level++) {
-      var name = subtestParts[level];
-      if (!(name in subtestDict)) {
-        return null;
-      }
-      subtestDict = subtestDict[name]['sub_tests'];
-    }
-    return subtestDict[subtestParts[subtestParts.length - 1]];
-  };
-
-  /**
-   * Toggles whether improvement alerts are displayed.
-   * Regardless of whether this is toggled on or off, any improvement
-   * alerts specified in the keys parameter are always displayed.
-   * @param {Event} event The event for the button click.
-   */
-  var onToggleImprovements_ = function(event) {
-    var improvementsToggle = document.getElementById('improvements-toggle');
-    if (improvementsToggle.hasAttribute('active')) {
-      table_['alertList'].forEach(function(alert) {
-        if (alert['improvement']) {
-          alert['hideRow'] = false;
-        }
-      });
-    } else {
-      table_['alertList'].forEach(function(alert) {
-        if (alert['improvement'] && !alert['selected']) {
-          alert['hideRow'] = true;
-          alert['selected'] = false;
-        }
-      });
-      // Make the table update its list of checked alerts.
-      table_['onCheckboxChange']();
-    }
-  };
-
-  /**
-   * Updates alerts table when user nudges an anomaly on the graph.
-   * @param {Event} event The event of nudge.
-   */
-  var alertChangedRevisions_ = function(event) {
-    var alertList = table_['alertList'];
-    var nudgedAlert = event.detail['alerts'][0];
-    for (var i = 0; i < alertList.length; i++) {
-      if (alertList[i]['key'] == nudgedAlert['key']) {
-        alertList[i]['start_revision'] = event.detail['startRev'];
-        alertList[i]['end_revision'] = event.detail['endRev'];
-        // Make the table update its list of checked alerts.
-        table_['onCheckboxChange']();
-        return;
-      }
-    }
-  };
-
-  /**
-   * Add graphs for tests in 'alerts' to the given element.
-   * @param {Element} containerElement The element that contains all the chart
-   *     UI elements.
-   * @param {Array.<Object>} alerts List of alert objects.
-   * @param {boolean} insertBefore True for adding graphs in prepending order.
-   */
-  var addGraph_ = function(containerElement, alerts, insertBefore) {
-    if (!alerts) {
-      return;
-    }
-
-    for (var i = 0; i < alerts.length; i++) {
-      var alert = alerts[i];
-      var chart = document.createElement('chart-container');
-      graphElements_[alert['key']] = chart;
-      chart['revisionInfo'] = window['REVISION_INFO'];
-      chart['xsrfToken'] = window['XSRF_TOKEN'];
-      if (insertBefore != 'undefined') {
-        containerElement.insertBefore(chart, containerElement.firstChild);
-      } else {
-        containerElement.appendChild(chart);
-      }
-
-      // Set graph params.
-      var graphParams = {
-        'rev': alert['end_revision']
-      };
-      chart['graphParams'] = graphParams;
-      chart['alertKey'] = alert['key'];
-      chart['addSeriesGroup']([getTestPathAndSelectedSeries(alert)]);
-      chart.addEventListener('chartclosed', onGraphClose_, false);
-      chart.addEventListener('alertChangedRevisions',
-                             alertChangedRevisions_, true);
-    }
-  };
-
-  /**
-   * On alert checkbox change, remove or add graphs.
-   * @param {Event} e The event object.
-   */
-  var onAlertSelectionChange_ = function(e) {
-    // Make a set of all alerts that are checked in the table.
-    var alerts = {};
-    table_['checkedAlerts'].forEach(function(a) {
-      alerts[a.key] = a;
-    });
-    // Add graphs that are checked in the table but not added yet.
-    for (var key in alerts) {
-      if (!(key in graphElements_)) {
-        addGraph_(document.getElementById('charts-container'),
-                  [alerts[key]], true);
-      }
-    }
-    // Remove graphs that are no longer checked in the table.
-    for (var key in graphElements_) {
-      if (!(key in alerts) && key in graphElements_) {
-        var chartContainer = document.getElementById('charts-container');
-        if (graphElements_[key].parentNode == chartContainer) {
-          chartContainer.removeChild(graphElements_[key]);
-          delete graphElements_[key];
+  <script>
+    'use strict';
+    // Workaround for document.contains returning false for elements in the
+    // shadow DOM. jQuery mouse events need it to return true for scrolling
+    // to be properly accounted for. For background, see
+    // https://github.com/Polymer/polymer/issues/162 and
+    // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22141
+    jQuery.contains = function(doc, elem) {
+      var shadowElems = document.getElementsByTagName('chart-container');
+      for (var i = 0; i < shadowElems.length; i++) {
+        if (shadowElems[i].shadowRoot.contains(elem)) {
+          return true;
         }
       }
+      return doc.contains(elem);
+    };
+  </script>
+
+  <style>
+    body {
+      align-items: center;
+      -webkit-align-items: center;
     }
-  };
-
-  /**
-   * Sets up event listeners.
-   */
-  var initialize = function() {
-    table_ = document.getElementById('alerts-table');
-    table_['alertList'] = window['ALERT_LIST'];
-    table_['extraColumns'] = [
-      {'key': 'percent_changed', 'label': 'Delta %'}
-    ];
-    table_['initialize']();
-    table_.addEventListener('changeselection', onAlertSelectionChange_, false);
-
-    var improvementsToggle = document.getElementById('improvements-toggle');
-    improvementsToggle.addEventListener('click', onToggleImprovements_);
-
-    var bugId = uri.getParameter('bug_id');
-    if (bugId) {
-      var bugInfo = document.getElementById('bug-info');
-      bugInfo['initialize'](bugId, table_, window['OWNER_INFO']);
-    }
-
-    // Load graphs for checked alerts.
-    addGraph_(document.getElementById('charts-container'),
-              table_['checkedAlerts'], false);
-  };
-
-  return {
-    initialize: initialize,
-    getTestPathAndSelectedSeries: getTestPathAndSelectedSeries
-  };
-})();
-
-document.addEventListener('polymer-ready', group_report.initialize);
-</script>
+  </style>
+</head>
+<body>
+  <nav-bar></nav-bar>
+  <h1>Chrome Performance Dashboard</h1>
+  <overlay-message id="message-bar"></overlay-message>
+  <group-report-page></group-report-page>
+  <load-analytics></load-analytics>
+</body>
+</html>

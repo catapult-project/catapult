@@ -14,14 +14,15 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/elements/chart-slider.html">
 <link rel="import" href="/dashboard/elements/chart-title.html">
 <link rel="import" href="/dashboard/elements/chart-tooltip.html">
-<link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/graph.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
 <polymer-element name="chart-container"
                  attributes="graphParams revisionInfo xsrfToken alertKey
-                             showCompact collapseLegend"
+                             showCompact collapseLegend testSuites
+                             isInternalUser"
                  on-drop="{{onDrop}}"
                  on-dragover="{{allowDrop}}">
 
@@ -143,7 +144,8 @@ triaging functionality in the chart.
     <div id="container" compact?="{{showCompact}}">
       <div id="top-bar" horizontal layout>
         <div flex horizontal center-justified layout>
-          <chart-title id="title" seriesGroupList={{seriesGroupList}}></chart-title>
+          <chart-title id="title" seriesGroupList="{{seriesGroupList}}"
+                       testSuites="{{testSuites}}"></chart-title>
         </div>
         <div horizontal layout center>
           <paper-button id="close-chart" on-click="{{closeChartClicked}}">
@@ -684,7 +686,7 @@ triaging functionality in the chart.
         },
 
         checkForInternalUser: function() {
-          if (!window['IS_INTERNAL_USER']) {
+          if (!this.isInternalUser) {
              this.addWarnings(
                'Note that some data is only available when logged in.');
           }
@@ -834,7 +836,8 @@ triaging functionality in the chart.
               color: this.json.data[i].color,
               index: i,
               important: testselection.isImportant(
-                  series[i].path.split('/').slice(2).join('/'))
+                  series[i].path.split('/').slice(2).join('/'),
+                  this.testSuites)
             };
 
             testList.push(test);
@@ -2381,7 +2384,7 @@ triaging functionality in the chart.
 
         /**
          * Gets the current state of the chart.
-         * This is called by 'report-container.html' to create page state.
+         * This is called by 'report-page.html' to create page state.
          *
          * @return {Array} List of pair of test path and selected series.
          */

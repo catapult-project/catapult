@@ -92,10 +92,15 @@ class AlertsTest(testing_common.TestCase):
 
     return key_map
 
-  def testGet_NoParametersSet_UntriagedAlertsListed(self):
-    key_map = self._AddAlertsToDataStore()
+  def testGet(self):
     response = self.testapp.get('/alerts')
-    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    self.assertEqual('text/html', response.content_type)
+    self.assertIn('Chrome Performance Alerts', response.body)
+
+  def testPost_NoParametersSet_UntriagedAlertsListed(self):
+    key_map = self._AddAlertsToDataStore()
+    response = self.testapp.post('/alerts')
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(12, len(anomaly_list))
     # The test below depends on the order of the items, but the order is not
     # guaranteed; it depends on the timestamps, which depend on put order.
@@ -117,10 +122,10 @@ class AlertsTest(testing_common.TestCase):
       expected_end_rev -= 10
     self.assertEqual(expected_end_rev, 9990)
 
-  def testGet_TriagedParameterSet_TriagedListed(self):
+  def testPost_TriagedParameterSet_TriagedListed(self):
     self._AddAlertsToDataStore()
-    response = self.testapp.get('/alerts', {'triaged': 'true'})
-    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    response = self.testapp.post('/alerts', {'triaged': 'true'})
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     # The alerts listed should contain those added above, including alerts
     # that have a bug ID that is not None.
     self.assertEqual(14, len(anomaly_list))
@@ -138,13 +143,13 @@ class AlertsTest(testing_common.TestCase):
       expected_end_rev -= 10
     self.assertEqual(expected_end_rev, 9990)
 
-  def testGet_ImprovementsParameterSet_ListsImprovements(self):
+  def testPost_ImprovementsParameterSet_ListsImprovements(self):
     self._AddAlertsToDataStore()
-    response = self.testapp.get('/alerts', {'improvements': 'true'})
-    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
+    response = self.testapp.post('/alerts', {'improvements': 'true'})
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
     self.assertEqual(18, len(anomaly_list))
 
-  def testGet_SheriffParameterSet_OtherSheriffAlertsListed(self):
+  def testPost_SheriffParameterSet_OtherSheriffAlertsListed(self):
     self._AddAlertsToDataStore()
     # Add another sheriff to the mock datastore, and set the sheriff of some
     # anomalies to be this new sheriff.
@@ -158,30 +163,28 @@ class AlertsTest(testing_common.TestCase):
       anomaly_entity.sheriff = sheriff2_key
       anomaly_entity.put()
 
-    response = self.testapp.get('/alerts', {'sheriff': 'Sheriff2'})
-    anomaly_list = self.GetEmbeddedVariable(response, 'ANOMALY_LIST')
-    sheriff_list = self.GetEmbeddedVariable(response, 'SHERIFF_LIST')
+    response = self.testapp.post('/alerts', {'sheriff': 'Sheriff2'})
+    anomaly_list = self.GetJsonValue(response, 'anomaly_list')
+    sheriff_list = self.GetJsonValue(response, 'sheriff_list')
     for alert in anomaly_list:
       self.assertEqual('mean_frame_time', alert['test'])
     self.assertEqual(2, len(sheriff_list))
     self.assertEqual('Chromium Perf Sheriff', sheriff_list[0])
     self.assertEqual('Sheriff2', sheriff_list[1])
 
-  def testGet_StoppageAlerts_EmbedsStoppageAlertListAndOneTable(self):
+  def testPost_StoppageAlerts_EmbedsStoppageAlertListAndOneTable(self):
     sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
     testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
     test_key = utils.TestKey('M/b/foo/bar')
     rows = testing_common.AddRows('M/b/foo/bar', {9800, 9802})
     for row in rows:
       stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
-    response = self.testapp.get('/alerts?sheriff=Sheriff')
-    stoppage_alert_list = self.GetEmbeddedVariable(
-        response, 'STOPPAGE_ALERT_LIST')
+    response = self.testapp.post('/alerts?sheriff=Sheriff')
+    stoppage_alert_list = self.GetJsonValue(response, 'stoppage_alert_list')
     self.assertEqual(2, len(stoppage_alert_list))
-    self.assertEqual(1, len(response.html('alerts-table')))
 
   @mock.patch('logging.error')
-  def testGet_StoppageAlertWithBogusRow_LogsErrorAndShowsTable(
+  def testPost_StoppageAlertWithBogusRow_LogsErrorAndShowsTable(
       self, mock_logging_error):
     sheriff.Sheriff(id='Sheriff', patterns=['M/b/*/*']).put()
     testing_common.AddTests(['M'], ['b'], {'foo': {'bar': {}}})
@@ -189,32 +192,22 @@ class AlertsTest(testing_common.TestCase):
     row_parent = utils.GetTestContainerKey(test_key)
     row = graph_data.Row(parent=row_parent, id=1234)
     stoppage_alert.CreateStoppageAlert(test_key.get(), row).put()
-    response = self.testapp.get('/alerts?sheriff=Sheriff')
-    stoppage_alert_list = self.GetEmbeddedVariable(
-        response, 'STOPPAGE_ALERT_LIST')
+    response = self.testapp.post('/alerts?sheriff=Sheriff')
+    stoppage_alert_list = self.GetJsonValue(response, 'stoppage_alert_list')
     self.assertEqual(1, len(stoppage_alert_list))
-    self.assertEqual(1, len(response.html('alerts-table')))
     self.assertEqual(1, mock_logging_error.call_count)
 
-  def testGet_WithNoAlerts_HasImageAndNoAlertsTable(self):
-    sheriff.Sheriff(id='Chromium Perf Sheriff').put()
-    response = self.testapp.get('/alerts')
-    self.assertEqual(1, len(response.html('img')))
-    self.assertEqual(0, len(response.html('alerts-table')))
+  def testPost_WithBogusSheriff_HasErrorMessage(self):
+    response = self.testapp.post('/alerts?sheriff=Foo')
+    error = self.GetJsonValue(response, 'error')
+    self.assertIsNotNone(error)
 
-  def testGet_WithBogusSheriff_HasErrorMessage(self):
-    response = self.testapp.get('/alerts?sheriff=Foo')
-    self.assertIn('class="error"', response.body)
-    self.assertEqual(0, len(response.html('img')))
-    self.assertEqual(0, len(response.html('alerts-table')))
-
-  def testGet_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
+  def testPost_ExternalUserRequestsInternalOnlySheriff_ErrorMessage(self):
     sheriff.Sheriff(id='Foo', internal_only=True).put()
     self.assertFalse(utils.IsInternalUser())
-    response = self.testapp.get('/alerts?sheriff=Foo')
-    self.assertIn('class="error"', response.body)
-    self.assertEqual(0, len(response.html('img')))
-    self.assertEqual(0, len(response.html('alerts-table')))
+    response = self.testapp.post('/alerts?sheriff=Foo')
+    error = self.GetJsonValue(response, 'error')
+    self.assertIsNotNone(error)
 
 
 if __name__ == '__main__':

@@ -130,6 +130,9 @@ class TestCase(unittest.TestCase):
           return None
     return None
 
+  def GetJsonValue(self, response, key):
+    return json.loads(response.body).get(key)
+
   def PatchDatastoreHooksRequest(self, remote_addr=None):
     """This patches the request object to allow IP address to be set.
 

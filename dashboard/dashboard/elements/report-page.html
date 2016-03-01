@@ -1,26 +1,69 @@
+<!DOCTYPE html>
+<link rel="import" href="/dashboard/elements/chart-container.html">
+<link rel="import" href="/dashboard/elements/custom-tooltip.html">
+<link rel="import" href="/dashboard/elements/login-warning.html">
+<link rel="import" href="/dashboard/elements/overlay-message.html">
 <link rel="import" href="/dashboard/elements/test-picker.html">
+<link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="report-container" attributes="hasChart xsrfToken">
+<polymer-element name="report-page" attributes="hasChart">
   <template>
     <style>
       #nav-container {
         display: flex;
         margin: 5px;
       }
+      overlay-message {
+        top: 0px;
+      }
     </style>
 
+    <overlay-message id="message-bar"></overlay-message>
+    <template if="{{warningMessage}}">
+      <overlay-message id="warning-message"
+                       opened="true"
+                       autoCloseDisabled
+                       duration="-1">
+      {{warningMessage}}
+      <template if="{{warningBug}}">
+        <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
+          bug #{{warningBug}}.</a>
+      </template>
+      </overlay-message>
+    </template>
+
+    <login-warning id="login-warning" loginLink="{{loginUrl}}"
+                   hidden?="{{isInternalUser}}">
+    </login-warning>
+
+    <custom-tooltip id="tooltip"></custom-tooltip>
     <div id="nav-container">
-      <test-picker id="test-picker" xsrfToken="{{xsrfToken}}"></test-picker>
+      <test-picker id="test-picker" xsrfToken="{{xsrfToken}}"
+                   testSuites="{{testSuites}}"></test-picker>
     </div>
+    <section id="charts-container"></section>
 
   </template>
 
   <script>
     'use strict';
-    Polymer('report-container', {
+    Polymer('report-page', {
 
       ready: function() {
+        simple_xhr.send('/report', uri.getAllParameters(),
+          function(response) {
+            this.IsInternalUser = response['is_internal_user'];
+            this.loginUrl = response['login_url'];
+            this.revisoinInfo = response['revision_info'];
+            this.warningBug = response['warning_bug'];
+            this.warningMessage = response['warning_message'];
+            this.xsrfToken = response['xsrf_token'];
+            this.testSuites = response['test_suites'];
+          }.bind(this),
+          function(error) {
+
+          }.bind(this));
         this.charts = [];
         this.graphParams = {};
 
@@ -28,7 +71,8 @@
         this.uriController = new uri.Controller(this.getPageState.bind(this));
         this.uriController.load();
 
-        window.addEventListener('pagestaterequest', this.onPageStateRequest);
+        window.addEventListener('pagestaterequest',
+                                this.onPageStateRequest.bind(this));
 
         this.testPicker = this.$['test-picker'];
         this.testPicker.addEventListener(
@@ -65,8 +109,12 @@
        * @param {boolean} isPrepend True for prepend, false for append.
        */
       addChart: function(testPathAndSelected, isPrepend) {
-        var container = document.getElementById('charts-container');
+        // TODO(sullivan): This should be done with a polymer template, not
+        // JavaScript-built DOM!!
+        var container = this.$['charts-container'];
         var chart = document.createElement('chart-container');
+        chart.isInternalUser = this.isInternalUser;
+        chart.testSuites = this.testSuites;
         if (isPrepend) {
           this.charts.unshift(chart);
           container.insertBefore(chart, container.firstChild);
@@ -83,7 +131,7 @@
         chart.addEventListener(
             'revisionrange', this.onRevisionRangeChanged.bind(this));
 
-        chart.revisionInfo = window['REVISION_INFO'];
+        chart.revisionInfo = this.revisionInfo;
         chart.xsrfToken = this.xsrfToken;
         chart.graphParams = this.graphParams;
         chart.addSeriesGroup(testPathAndSelected, true);
@@ -176,7 +224,7 @@
        */
       onPageStateRequest: function(event) {
         var status = event.detail.status;
-        var messageBar = document.getElementById('message-bar');
+        var messageBar = this.$['message-bar'];
         var messageConfig = {
           'autoCloseDisabled': true,
           'duration': 0,

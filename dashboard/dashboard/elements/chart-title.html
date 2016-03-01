@@ -128,10 +128,10 @@
         var suiteDescriptions = {};
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var suite = this.seriesGroupList[i].path.split('/')[2];
-          if (window['TEST_SUITES'] &&
-              window['TEST_SUITES'][suite] &&
-              window['TEST_SUITES'][suite]['des']) {
-            suiteDescriptions[suite] = window['TEST_SUITES'][suite]['des'];
+          if (this.testSuites &&
+              this.testSuites[suite] &&
+              this.testSuites[suite]['des']) {
+            suiteDescriptions[suite] = this.testSuites[suite]['des'];
           }
         }
         var suiteNames = Object.keys(suiteDescriptions);

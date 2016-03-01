@@ -30,7 +30,11 @@ class GroupReportHandler(chart_handler.ChartHandler):
   """Request handler for requests for group report page."""
 
   def get(self):
-    """Renders the UI for /group_report with some set of alerts.
+    """Renders the UI for the group report page."""
+    self.RenderStaticHtml('group_report.html')
+
+  def post(self):
+    """Returns dynamic data for /group_report with some set of alerts.
 
     The set of alerts is determined by the keys, bug ID or revision given.
 
@@ -40,7 +44,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
       rev: A revision number (optional).
 
     Outputs:
-      HTML for the /group_report page.
+      JSON for the /group_report page XHR request.
     """
     keys = self.request.get('keys')
     bug_id = self.request.get('bug_id')
@@ -58,7 +62,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
         # where the user can input a bug ID or revision.
         raise request_handler.InvalidInputError('No anomalies specified.')
     except request_handler.InvalidInputError as error:
-      self.RenderHtml('bug_result.html', {'error': str(error)})
+      self.response.out.write(json.dumps({'error': str(error)}))
 
   def _ShowAlertsWithBugId(self, bug_id):
     """Show alerts for |bug_id|.
@@ -153,7 +157,7 @@ class GroupReportHandler(chart_handler.ChartHandler):
     self._ShowAlerts(anomalies)
 
   def _ShowAlerts(self, alert_list, bug_id=None):
-    """Renders the template group_report.html with a list of alerts.
+    """Responds to an XHR from /group_report page with a JSON list of alerts.
 
     Args:
       alert_list: A list of Anomaly and/or StoppageAlert entities.
@@ -168,13 +172,16 @@ class GroupReportHandler(chart_handler.ChartHandler):
     if bug_id and ndb.Key('Bug', bug_id).get():
       owner_info = _GetOwnerInfo(alert_dicts)
 
-    self.RenderHtml('group_report.html', {
-        'alert_list': json.dumps(alert_dicts[:_DISPLAY_LIMIT]),
-        'subtests': json.dumps(_GetSubTestsForAlerts(alert_dicts)),
+    values = {
+        'alert_list': alert_dicts[:_DISPLAY_LIMIT],
+        'subtests': _GetSubTestsForAlerts(alert_dicts),
         'bug_id': bug_id,
-        'owner_info': json.dumps(owner_info),
-        'test_suites': json.dumps(update_test_suites.FetchCachedTestSuites()),
-    })
+        'owner_info': owner_info,
+        'test_suites': update_test_suites.FetchCachedTestSuites(),
+    }
+    self.GetDynamicVariables(values)
+
+    self.response.out.write(json.dumps(values))
 
 
 def _IsInt(x):
