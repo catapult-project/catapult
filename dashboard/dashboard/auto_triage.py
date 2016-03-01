@@ -192,6 +192,11 @@ def _IsAnomalyRecovered(anomaly_entity):
     True if the Anomaly should be marked as recovered, False otherwise.
   """
   test = anomaly_entity.test.get()
+  if not test:
+    logging.error('Test %s for Anomaly %s not found',
+                  utils.TestPath(anomaly_entity.test),
+                  anomaly_entity)
+    return False
   config = anomaly_config.GetAnomalyConfigDict(test)
   max_num_rows = config.get(
       'max_window_size', find_anomalies.DEFAULT_NUM_POINTS)
