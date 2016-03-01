@@ -2,6 +2,12 @@
      Use of this source code is governed by a BSD-style license that can be
      found in the LICENSE file.
 -->
+# Code of Conduct
+
+We follow the [Chromium code of conduct](
+https://chromium.googlesource.com/chromium/src/+/master/CODE_OF_CONDUCT.md) in
+our our repos and organizations, mailing lists, and other communications.
+
 # Workflow
 
 Install [depot_tools]
