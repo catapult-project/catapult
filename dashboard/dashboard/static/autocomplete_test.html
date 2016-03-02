@@ -5,9 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/core/test_utils.html">
-
 <link rel="import" href="/dashboard/static/autocomplete.html">
+<link rel="import" href="/tracing/core/test_utils.html">
 
 <script>
 'use strict';
@@ -15,11 +14,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
 
   test('basic search', function() {
-    var dataList = [{name: 'apple'}, {name: 'bannana'}, {name: 'blueberry'},
+    var dataList = [{name: 'apple'}, {name: 'banana'}, {name: 'blueberry'},
                     {name: 'blackberry'}, {name: 'Grape'}];
 
     var a = new autocomplete.Trie(dataList);
-    assert.deepEqual([{name: 'bannana'},
+    assert.deepEqual([{name: 'banana'},
                       {name: 'blueberry'},
                       {name: 'blackberry'}],
                      a.search('b'));

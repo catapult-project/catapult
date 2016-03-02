@@ -584,7 +584,7 @@ triaging functionality in the chart.
                 selectedTestPathDict[testPath] = [];
               } else {
                 // Create test data here for selected traces so they can
-                // be initialy shown in chart legend.
+                // be initially shown in chart legend.
                 for (var j = 0; j < selectedTraces.length; j++) {
                   var testData = {
                     name: selectedTraces[j],
@@ -671,7 +671,7 @@ triaging functionality in the chart.
          * Update loading counter for all series groups in a testPaths.
          *
          * @param {Array} testPaths List of test paths.
-         * @param {boolean} increment True to add one, False to subract one.
+         * @param {boolean} increment True to add one, False to subtract one.
          */
         updateSeriesGroupLoadingCounter: function(testPaths, increment) {
           var testPathToGroup = {};
@@ -705,7 +705,7 @@ triaging functionality in the chart.
         },
 
         /**
-         * Adds warnings for selected series that are staed or have no data.
+         * Adds warnings for selected series that are stale or have no data.
          */
         updateWarningsForSelectedSeries: function() {
           this.warnings = this.warnings.filter(function(value) {
@@ -854,7 +854,7 @@ triaging functionality in the chart.
         },
 
         /**
-         * Updates this.seriesGrouplist for a list of series object.
+         * Updates this.seriesGroupList for a list of series object.
          *
          * @param {Array} testList List of test object.
          */
@@ -2122,7 +2122,7 @@ triaging functionality in the chart.
           }
 
           // If the substring R1_trim is found in the URL template, we assume
-          // that it's the URL template for Crome OS versions.
+          // that it's the URL template for Chrome OS versions.
           var url = '';
           if (urlTemplate.indexOf('{{R1_trim}}') != -1) {
             url = this.fillInChromeOSChangeLogURL(urlTemplate, start, end);
