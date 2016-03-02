@@ -18,7 +18,7 @@ from common import buildbot
 class Builds(webapp2.RequestHandler):
 
   def get(self):
-    urlfetch.set_default_fetch_deadline(120)
+    urlfetch.set_default_fetch_deadline(300)
 
     bq = bigquery.BigQuery()
 

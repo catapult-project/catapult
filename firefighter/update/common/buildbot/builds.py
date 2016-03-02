@@ -5,6 +5,8 @@
 import logging
 import urllib
 
+from google.appengine.api import urlfetch
+
 from common.buildbot import build
 from common.buildbot import network
 
@@ -65,8 +67,9 @@ class Builds(object):
     url = network.BuildUrl(self._master_name, url)
     try:
       builds = network.FetchData(url).values()
-    except ValueError:
-      # The JSON decode failed. Try downloading the builds individually instead.
+    except (ValueError, urlfetch.ResponseTooLargeError):
+      # The JSON decode failed, or the data was too large.
+      # Try downloading the builds individually instead.
       builds = []
       for build_number in build_numbers:
         url = 'json/builders/%s/builds/%d' % (
@@ -74,7 +77,7 @@ class Builds(object):
         url = network.BuildUrl(self._master_name, url)
         try:
           builds.append(network.FetchData(url))
-        except ValueError:
+        except (ValueError, urlfetch.ResponseTooLargeError):
           logging.warning('Unable to fetch %s build %d',
                           self._master_name, build_number)
           continue

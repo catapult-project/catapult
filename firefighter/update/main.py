@@ -13,4 +13,4 @@ _URL_MAPPING = [
     ('/_ah/start', blank.Blank),
     ('/builds', builds.Builds),
 ]
-webapp2.WSGIApplication(_URL_MAPPING)
+app = webapp2.WSGIApplication(_URL_MAPPING)  # pylint: disable=invalid-name
