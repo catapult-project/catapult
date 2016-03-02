@@ -15,11 +15,9 @@ This can then be converted to a graphical representation with the dot tool:
 $ dot -Grankdir=LR -Tpng ~/analysis_view.dot -o ~/analysis_view.png
 """
 
+import os
 import sys
 import argparse
-
-import tracing_project
-tracing_project.UpdateSysPathIfNeeded()
 
 
 def Main():
@@ -42,4 +40,9 @@ def Main():
 
 
 if __name__ == '__main__':
+  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                 os.path.pardir))
+  sys.path.append(tracing_path)
+  import tracing_project
+  tracing_project.UpdateSysPathIfNeeded()
   sys.exit(Main())
