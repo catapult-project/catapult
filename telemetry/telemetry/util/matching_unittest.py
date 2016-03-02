@@ -1,10 +1,10 @@
-# Copyright 2015 The Chromium Authors. All rights reserved.
+# Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import unittest
 
-from telemetry.internal.util import command_line
+from telemetry.util import matching
 
 
 class BenchmarkFoo(object):
@@ -33,15 +33,15 @@ class CommandLineUnittest(unittest.TestCase):
     all_benchmarks = [BenchmarkFoo, BenchmarkBar, UnusualBenchmark]
     self.assertEquals(
         [BenchmarkFoo, BenchmarkBar],
-        command_line.GetMostLikelyMatchedObject(
+        matching.GetMostLikelyMatchedObject(
             all_benchmarks, 'BenchmarkFooz', name_func=lambda x: x.Name()))
 
     self.assertEquals(
         [BenchmarkBar, BenchmarkFoo],
-        command_line.GetMostLikelyMatchedObject(
+        matching.GetMostLikelyMatchedObject(
             all_benchmarks, 'BarBenchmark', name_func=lambda x: x.Name()))
 
     self.assertEquals(
         [UnusualBenchmark],
-        command_line.GetMostLikelyMatchedObject(
+        matching.GetMostLikelyMatchedObject(
             all_benchmarks, 'unusual', name_func=lambda x: x.Name()))

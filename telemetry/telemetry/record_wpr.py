@@ -14,8 +14,8 @@ from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import binary_manager
-from telemetry.internal.util import command_line
 from telemetry.page import page_test
+from telemetry.util import matching
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.web_perf import timeline_based_page_test
@@ -203,7 +203,7 @@ class WprRecorder(object):
 
   def _HintMostLikelyBenchmarksStories(self, target):
     def _Impl(all_items, category_name):
-      candidates = command_line.GetMostLikelyMatchedObject(
+      candidates = matching.GetMostLikelyMatchedObject(
           all_items.iteritems(), target, name_func=lambda kv: kv[1].Name())
       if candidates:
         sys.stderr.write('\nDo you mean any of those %s below?\n' %

@@ -32,6 +32,7 @@ from telemetry.internal.browser import browser_options
 from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
+from telemetry.util import matching
 from telemetry import project_config
 
 
@@ -204,7 +205,7 @@ class Run(command_line.OptparseCommand):
     if not matching_benchmarks:
       print >> sys.stderr, 'No benchmark named "%s".' % input_benchmark_name
       print >> sys.stderr
-      most_likely_matched_benchmarks = command_line.GetMostLikelyMatchedObject(
+      most_likely_matched_benchmarks = matching.GetMostLikelyMatchedObject(
           all_benchmarks, input_benchmark_name, lambda x: x.Name())
       if most_likely_matched_benchmarks:
         print >> sys.stderr, 'Do you mean any of those benchmarks below?'
