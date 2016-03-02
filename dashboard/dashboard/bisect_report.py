@@ -55,7 +55,7 @@ _REVISION_TABLE_TEMPLATE = """
 ===== TESTED REVISIONS =====
 %(table)s"""
 
-_RESULTS_THANKYOU = """
+_RESULTS_THANK_YOU = """
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
 | / \\ | file a bug with label Cr-Tests-AutoBisect.  Thank you!"""
@@ -91,7 +91,7 @@ def GetReport(try_job_entity):
 
   results_data['result'] = result
   report = _BISECT_REPORT_TEMPLATE % results_data
-  report += _RESULTS_THANKYOU
+  report += _RESULTS_THANK_YOU
   return report
 
 

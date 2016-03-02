@@ -148,13 +148,13 @@
           this.charts.splice(index, 1);
         }
 
-        this.firenNumChartChangedEvent();
+        this.fireNumChartChangedEvent();
       },
 
       /**
        * Triggers page state change handler with 'numchartchanged' event.
        */
-      firenNumChartChangedEvent: function() {
+      fireNumChartChangedEvent: function() {
         // Send page state change event.
         var event = document.createEvent('Event');
         event.initEvent('numchartchanged', true, true);
@@ -195,7 +195,7 @@
         if (selection && selection.isValid()) {
           this.addChart(selection.getTestPathAndSelectedSeries(), true);
         }
-        this.firenNumChartChangedEvent();
+        this.fireNumChartChangedEvent();
       },
 
       /**

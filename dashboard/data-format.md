@@ -166,7 +166,7 @@ Optional fields:
  this point.
    * Properties starting with `r\_` are revision/version numbers.
    * Properties starting with `d\_` are extra data numbers.
-   * Propertise starting with `a\_` are extra metadata strings.
+   * Properties starting with `a\_` are extra metadata strings.
      * `a_default_rev`: The name of a another supplemental property key
      starting with "a_".
      * `a_stdio_uri`: Link to stdio logs for the test run.

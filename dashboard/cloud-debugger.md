@@ -14,5 +14,5 @@ Cloud Source Repository for the Chrome Performance Dashboard:
     git push --all cloud-repo
 
 Note: If the Cloud Source Repository is changed to automatically mirror
-from the official catapult reposoitory, then this should be unnecessary.
+from the official catapult repository, then this should be unnecessary.
 

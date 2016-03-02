@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2016 The Chromium Authors. All rights reserved.
+      Use of this source code is governed by a BSD-style license that can be
+        found in the LICENSE file.
+-->
 <link rel="import" href="/dashboard/elements/bisect-button.html">
 
 <polymer-element name="bug-info">
@@ -122,7 +128,7 @@
         this.$.bisect.bisectInfo = {
           badRev: minRevRange['end'],
           goodRev: minRevRange['start'] - 1,
-          testPath: this.getTestpathFromStartRev(alerts, minRevRange['start'])
+          testPath: this.getTestPathFromStartRev(alerts, minRevRange['start'])
         };
       },
 
@@ -133,7 +139,7 @@
        *
        * @return {?string} The test path.
        */
-      getTestpathFromStartRev: function(alerts, startRevision) {
+      getTestPathFromStartRev: function(alerts, startRevision) {
         for (var i = 0; i < alerts.length; i++) {
           if (alerts[i]['start_revision'] == startRevision) {
             return alerts[i]['master'] + '/' +
