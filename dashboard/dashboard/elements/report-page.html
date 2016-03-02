@@ -7,7 +7,7 @@
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="report-page" attributes="hasChart">
+<polymer-element name="report-page" attributes="hasChart charts">
   <template>
     <style>
       #nav-container {
@@ -53,13 +53,16 @@
       ready: function() {
         simple_xhr.send('/report', uri.getAllParameters(),
           function(response) {
-            this.IsInternalUser = response['is_internal_user'];
+            this.isInternalUser = response['is_internal_user'];
             this.loginUrl = response['login_url'];
             this.revisionInfo = response['revision_info'];
             this.warningBug = response['warning_bug'];
             this.warningMessage = response['warning_message'];
             this.xsrfToken = response['xsrf_token'];
             this.testSuites = response['test_suites'];
+            for (var i = 0; i < this.charts.length; i++) {
+              this.setChartData(this.charts[i]);
+            }
           }.bind(this),
           function(error) {
 
@@ -103,6 +106,19 @@
       },
 
       /**
+       * Updates chart data with member variables.
+       * TODO(sullivan): this should be done with polymer templates, not
+       * JS code.
+       */
+      setChartData: function(chart) {
+        chart.isInternalUser = this.isInternalUser;
+        chart.testSuites = this.testSuites;
+        chart.revisionInfo = this.revisionInfo;
+        chart.xsrfToken = this.xsrfToken;
+        chart.graphParams = this.graphParams;
+      },
+
+      /**
        * Adds a chart.
        * @param {Array.<Array>} testPathAndSelected A list of two-element
        *     Arrays, each containing a test path and selected series to plot.
@@ -113,8 +129,6 @@
         // JavaScript-built DOM!!
         var container = this.$['charts-container'];
         var chart = document.createElement('chart-container');
-        chart.isInternalUser = this.isInternalUser;
-        chart.testSuites = this.testSuites;
         if (isPrepend) {
           this.charts.unshift(chart);
           container.insertBefore(chart, container.firstChild);
@@ -130,10 +144,7 @@
             this.uriController.onPageStateChanged.bind(this.uriController));
         chart.addEventListener(
             'revisionrange', this.onRevisionRangeChanged.bind(this));
-
-        chart.revisionInfo = this.revisionInfo;
-        chart.xsrfToken = this.xsrfToken;
-        chart.graphParams = this.graphParams;
+        this.setChartData(chart);
         chart.addSeriesGroup(testPathAndSelected, true);
         this.testPicker.hasChart = true;
       },

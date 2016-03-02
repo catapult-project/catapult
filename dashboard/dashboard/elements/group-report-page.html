@@ -131,6 +131,17 @@
         return this.$['alerts-table'];
       },
 
+      getCharts() {
+        // Note: This cannot be a property getter for attribute charts because
+        // polymer caches the getter result.
+        var charts = [];
+        var children = this.$['charts-container'].children;
+        for (var i = 0; i < children.length; i++) {
+          charts.push(children[i]);
+        }
+        return charts;
+      },
+
       extraColumns: [{
         'key': 'percent_changed',
         'label': 'Delta %'
@@ -250,6 +261,13 @@
         return [testPath, selectedTraces];
       },
 
+      setChartData: function(chart) {
+        chart.revisionInfo = this.revisionInfo;
+        chart.xsrfToken = this.xsrfToken;
+        chart.isInternalUser = this.isInternalUser;
+        chart.testSuites = this.testSuites;
+      },
+
       addGraph: function(alerts, insertBefore) {
         if (!alerts) {
           return;
@@ -260,10 +278,6 @@
           var alert = alerts[i];
           var chart = document.createElement('chart-container');
           this.graphElements_[alert['key']] = chart;
-          chart.revisionInfo = this.revisionInfo;
-          chart.xsrfToken = this.xsrfToken;
-          chart.isInternalUser = this.isInternalUser;
-          chart.testSuites = this.testSuites;
           if (insertBefore) {
             containerElement.insertBefore(chart, containerElement.firstChild);
           } else {
@@ -280,6 +294,7 @@
           chart.addEventListener('chartclosed', this.onGraphClose, false);
           chart.addEventListener('alertChangedRevisions',
                                  this.alertChangedRevisions, true);
+          this.setChartData(chart);
         }
       },
 
@@ -340,6 +355,10 @@
             }
             this.loaded = true;
             this.addGraph(this.alertsTable.checkedAlerts, false);
+            var charts = this.getCharts();
+            for (var i = 0; i < charts.length; i++) {
+              this.setChartData(charts[i]);
+            }
           }.bind(this),
           function(msg) {
             this.error = msg;
