@@ -64,6 +64,9 @@ class TryJob(internal_only_model.InternalOnlyModel):
 
   log_record_id = ndb.StringProperty(indexed=False)
 
+  # Sets of emails of users who has confirmed this TryJob result is bad.
+  bad_result_emails = ndb.PickleProperty()
+
   def SetStarted(self):
     self.status = 'started'
     self.run_count += 1

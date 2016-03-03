@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <link rel="import" href="/dashboard/elements/nav-bar.html">
+  <link rel="import" href="/dashboard/elements/primary-button.html">
+  <style>
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <nav-bar></nav-bar>
+
+  <form action="/bad_bisect" method="POST">
+    {{xsrf_input|safe}}
+    <input type="hidden" name="try_job_id" value="{{try_job_id}}">
+    <p>
+      <button class="mini" type="submit" is="primary-button">
+      Confirm</button>
+      that bisect job <a href="#">{{try_job_id}}</a> is incorrect.
+    </p>
+  </form>
+
+</body>
+</html>
