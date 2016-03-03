@@ -121,7 +121,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     self.response.out.write(json.dumps(protobuf_strings))
 
   def _GetTestAncestors(self, test_keys):
-    """Get the Test, Bot, and Master entities that are ancestors of test."""
+    """Gets the Test, Bot, and Master entities that are ancestors of test."""
     entities = []
     added_parents = set()
     for test_key in test_keys:

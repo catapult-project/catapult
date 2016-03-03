@@ -264,7 +264,7 @@ def _GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
 
 
 def _GetRowsForTestAroundRev(test_key, rev, num_points, privileged=False):
-  """Gets up to num_points Row entities for a Test centered on a revision."""
+  """Gets up to |num_points| Row entities for a Test centered on a revision."""
   num_rows_before = int(num_points / 2) + 1
   num_rows_after = int(num_points / 2)
 
@@ -318,7 +318,7 @@ def _GetSeriesAnnotations(tests):
 
 
 def _ClampRevisionMap(revision_map, rev, num_points):
-  """Clamp the results down to the requested number of points before/after rev.
+  """Clamps the results down to the requested number of points before/after rev.
 
   Not all of the Tests have Rows for the exact same revisions. If one test has
   gaps in the requested range, the query for points before/after rev will

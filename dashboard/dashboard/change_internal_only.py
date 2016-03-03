@@ -47,7 +47,7 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
     })
 
   def post(self):
-    """Updates the selected bots internal_only_property.
+    """Updates the selected bots internal_only property.
 
     POST requests will be made by the task queue; tasks are added to the task
     queue either by a kick-off POST from the front-end form, or by this handler
@@ -106,7 +106,7 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
           queue_name=_QUEUE_NAME)
 
   def _UpdateBot(self, bot_name, internal_only, cursor=None):
-    """Start updating internal_only for the given bot and associated data."""
+    """Starts updating internal_only for the given bot and associated data."""
     master, bot = bot_name.split('/')
     bot_key = ndb.Key('Master', master, 'Bot', bot)
 

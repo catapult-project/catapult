@@ -322,7 +322,7 @@ def _GetRevisionForBisect(revision, test_key):
 
 
 def _PrintStartedAndFailedBisectJobs():
-  """Print started and failed bisect jobs in datastore."""
+  """Prints started and failed bisect jobs in datastore."""
   failed_jobs = try_job.TryJob.query(
       try_job.TryJob.status == 'failed').fetch()
   started_jobs = try_job.TryJob.query(

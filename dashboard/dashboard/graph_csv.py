@@ -15,7 +15,7 @@ from dashboard.models import graph_data
 
 
 class GraphCsvHandler(request_handler.RequestHandler):
-  """Get data from data store and outputs it in CSV format."""
+  """Request handler for getting data from one series as CSV."""
 
   def get(self):
     """Gets CSV from data store and outputs it.
@@ -66,7 +66,7 @@ class GraphCsvHandler(request_handler.RequestHandler):
     self.get()
 
   def _GenerateRows(self, points, attributes):
-    """Generate all the rows based on the attributes given.
+    """Generates CSV rows based on the attributes given.
 
     Args:
       points: A list of Row entities.

@@ -120,7 +120,7 @@ class TriageBugs(object):
 
   @classmethod
   def UpdateRecoveredBugs(cls, bug_id):
-    """Checks whether anomalies with bug_id have recovered."""
+    """Checks whether Anomalies with a given bug ID have recovered."""
     anomalies = anomaly.Anomaly.query(
         anomaly.Anomaly.bug_id == bug_id).fetch()
     # If no anomalies found, mark this Bug entity as closed.

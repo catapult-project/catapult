@@ -258,7 +258,7 @@ class AddPointTest(testing_common.TestCase):
   @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
   def testPost_TestNameEndsWithUnderscoreRef_ProcessTestIsNotCalled(
       self, mock_process_test):
-    """Tests that tests ending with _ref aren't analyze for anomalies."""
+    """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
     sheriff.Sheriff(
         id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
     point = copy.deepcopy(_SAMPLE_POINT)

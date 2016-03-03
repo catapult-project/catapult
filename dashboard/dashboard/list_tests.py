@@ -192,7 +192,7 @@ def _MergeSubTestsDictEntry(a, b):
 
 
 def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
-  """Given a pattern, get the Test entities or keys which match.
+  """Gets the Test entities or keys which match |pattern|.
 
   For this function, it's assumed that a test path should only have up to seven
   parts. In theory, tests can be arbitrarily nested, but in practice, tests
