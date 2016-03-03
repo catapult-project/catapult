@@ -12,6 +12,7 @@ from dashboard import alerts
 from dashboard import associate_alerts
 from dashboard import auto_bisect
 from dashboard import auto_triage
+from dashboard import bad_bisect
 from dashboard import bisect_stats
 from dashboard import bisect_fyi
 from dashboard import buildbucket_job_status
@@ -62,6 +63,7 @@ _URL_MAPPING = [
     ('/associate_alerts', associate_alerts.AssociateAlertsHandler),
     ('/auto_bisect', auto_bisect.AutoBisectHandler),
     ('/auto_triage', auto_triage.AutoTriageHandler),
+    ('/bad_bisect', bad_bisect.BadBisectHandler),
     ('/bisect_fyi', bisect_fyi.BisectFYIHandler),
     ('/bisect_stats', bisect_stats.BisectStatsHandler),
     (r'/buildbucket_job_status/(\d+)',
