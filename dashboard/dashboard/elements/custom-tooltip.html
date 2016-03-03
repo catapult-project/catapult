@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 <!--
 The 'custom-tooltip' displays overlaid pop-up above a target.
 
@@ -10,8 +16,10 @@ Example usage:
   var tooltip = document.getElementById("tooltip");
   tooltip.set('A tooltip message', bound.left, bound.top);
 -->
-<link rel="import" href="/components/paper-shadow/paper-shadow.html">
+
 <link rel="import" href="/components/core-overlay/core-overlay.html">
+<link rel="import" href="/components/paper-shadow/paper-shadow.html">
+
 <polymer-element
     name="custom-tooltip"
     attributes="autoCloseDisabled transition duration maxWidth">

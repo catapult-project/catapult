@@ -1,9 +1,16 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 <!--
 The revision-range element is an in-line element that shows a revision range.
 TODO(qyearsley) Expand this element to take information about revision types
 (including changelog viewer links, revision type names, etc.) in order
 to allow it to show links).
 -->
+
 <polymer-element name="revision-range" attributes="start end">
   <template>
     <span>{{displayRevisionRange}}</span>
