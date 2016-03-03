@@ -14,7 +14,10 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.tracks', function() {
   /**
+   * A track used to provide whitespace between the tracks above and below it.
+   *
    * @constructor
+   * @extends {tr.ui.tracks.Track}
    */
   var SpacingTrack = tr.ui.b.define('spacing-track', tr.ui.tracks.Track);
 
