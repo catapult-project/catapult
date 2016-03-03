@@ -2,9 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import json
+import mock
 import unittest
 
-import mock
+from apiclient import errors
 
 from dashboard import issue_tracker_service
 from dashboard import testing_common
@@ -96,6 +98,16 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'status': 'Assigned',
             'owner': {'name': 'someone@chromium.org'},
         })
+
+  def testMakeCommentRequest_UserDoesNotExist_RetryMakeCommentRequest(self):
+    service = issue_tracker_service.IssueTrackerService()
+    error_content = {
+        'error': {'message': 'The user does not exist', 'code': 404}
+    }
+    service._ExecuteRequest = mock.Mock(side_effect=errors.HttpError(
+        mock.Mock(return_value={'status': 404}), json.dumps(error_content)))
+    service.AddBugComment(12345, 'The comment', owner='test@chromium.org')
+    self.assertEqual(2, service._ExecuteRequest.call_count)
 
 
 if __name__ == '__main__':

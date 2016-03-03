@@ -4,6 +4,7 @@
 
 """Provides a layer of abstraction for the issue tracker API."""
 
+import json
 import logging
 
 from apiclient import discovery
@@ -85,18 +86,23 @@ class IssueTrackerService(object):
     request = self._service.issues().list(projectId='chromium', **kwargs)
     return self._ExecuteRequest(request)
 
-  def _MakeCommentRequest(self, bug_id, body):
+  def _MakeCommentRequest(self, bug_id, body, retry=True):
     """Makes a request to the issue tracker to update a bug."""
     request = self._service.issues().comments().insert(
         projectId='chromium',
         issueId=bug_id,
         sendEmail=True,
         body=body)
-    response = self._ExecuteRequest(request)
-    if not response:
-      logging.error('Error updating bug %s with body %s', bug_id, body)
-      return False
-    return True
+    try:
+      if self._ExecuteRequest(request, ignore_error=False):
+        return True
+    except errors.HttpError as e:
+      reason = _GetErrorReason(e)
+      if retry and reason == 'The user does not exist':
+        del body['updates']['owner']
+        return self._MakeCommentRequest(bug_id, body, retry=False)
+    logging.error('Error updating bug %s with body %s', bug_id, body)
+    return False
 
   def NewBug(self, title, description, labels=None, components=None,
              owner=None):
@@ -177,7 +183,7 @@ class IssueTrackerService(object):
         maxResults=10000)
     return self._ExecuteRequest(request)
 
-  def _ExecuteRequest(self, request):
+  def _ExecuteRequest(self, request, ignore_error=True):
     """Makes a request to the issue tracker.
 
     Args:
@@ -191,4 +197,14 @@ class IssueTrackerService(object):
       return response
     except errors.HttpError as e:
       logging.error(e)
-      return None
+      if ignore_error:
+        return None
+      raise e
+
+
+def _GetErrorReason(request_error):
+  if request_error.resp.get('content-type', '').startswith('application/json'):
+    error_json = json.loads(request_error.content).get('error')
+    if error_json:
+      return error_json.get('message')
+  return None
