@@ -86,10 +86,10 @@ found in the LICENSE file.
     <!-- TODO(sullivan): The below should be in a template if={{loaded}}.
          This doesn't work correctly due to polymer 0.5 bug, let's try again
          in polymer 1.0 -->
-    <template if?="{{warningMessage}}">
+    <template if="{{warningMessage}}">
       <overlay-message id="warning-message" opened="true" autoCloseDisabled duration="-1">
       {{warningMessage}}
-      <template if?="{{warningBug}}">
+      <template if="{{warningBug}}">
         <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See bug #{{warningBug}}.</a>
       </template>
       </overlay-message>
@@ -107,7 +107,7 @@ found in the LICENSE file.
         </paper-button>
       </div>
       <bug-info id="bug-info" xsrfToken="{{xsrfToken}}"></bug-info>
-      <template if?="bugId">
+      <template if="{{bugId}}">
       <quick-log id="bisect-result-log"
                  xsrfToken="{{xsrfToken}}"
                  logNamespace="bisect_result"
