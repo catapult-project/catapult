@@ -11,7 +11,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui', function() {
-  var kDefaultPanAnimatoinDurationMs = 100.0;
+  var kDefaultPanAnimationDurationMs = 100.0;
 
   /**
    * Pans a TimelineDisplayTransform by a given amount.
@@ -20,14 +20,14 @@ tr.exportTo('tr.ui', function() {
    * @param {Number} deltaX The total amount of change to the transform's panX.
    * @param {Number} deltaY The total amount of change to the transform's panY.
    * @param {Number=} opt_durationMs How long the pan animation should run.
-   * Defaults to kDefaultPanAnimatoinDurationMs.
+   * Defaults to kDefaultPanAnimationDurationMs.
    */
   function TimelineDisplayTransformPanAnimation(
       deltaX, deltaY, opt_durationMs) {
     this.deltaX = deltaX;
     this.deltaY = deltaY;
     if (opt_durationMs === undefined)
-      this.durationMs = kDefaultPanAnimatoinDurationMs;
+      this.durationMs = kDefaultPanAnimationDurationMs;
     else
       this.durationMs = opt_durationMs;
 
@@ -116,7 +116,7 @@ tr.exportTo('tr.ui', function() {
     this.goalFocalPointY = goalFocalPointY;
     this.zoomInRatioX = zoomInRatioX;
     if (opt_durationMs === undefined)
-      this.durationMs = kDefaultPanAnimatoinDurationMs;
+      this.durationMs = kDefaultPanAnimationDurationMs;
     else
       this.durationMs = opt_durationMs;
 
