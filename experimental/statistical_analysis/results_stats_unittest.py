@@ -116,18 +116,17 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
                                                  test=test)
       self.assertEqual(output, expected_output)
 
-  def testAreBenchmarkResultsDifferent(self):
-    """Unit test for statistical test outcome dict.
-
-    Also makes sure an exception is raised for non matching input dicts.
-    """
+  def testAssertThatKeysMatch(self):
+    """Unit test for exception raised when input dicts' metrics don't match."""
     differing_input_dicts = [{'messageloop_start_time': [55, 72, 60],
                               'display_time': [44, 89]},
                              {'messageloop_start_time': [55, 72, 60]}]
     with self.assertRaises(results_stats.DictMismatchError):
-      results_stats.AreBenchmarkResultsDifferent(differing_input_dicts[0],
-                                                 differing_input_dicts[1])
+      results_stats.AssertThatKeysMatch(differing_input_dicts[0],
+                                        differing_input_dicts[1])
 
+  def testAreBenchmarkResultsDifferent(self):
+    """Unit test for statistical test outcome dict."""
     test_input_dicts = [{'open_tabs_time':
                          self.CreateRandomNormalDistribution(0),
                          'display_time':
@@ -149,6 +148,46 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
       output = results_stats.AreBenchmarkResultsDifferent(test_input_dicts[0],
                                                           test_input_dicts[1],
                                                           test=test)
+      self.assertEqual(output, expected_output)
+
+  def testArePagesetBenchmarkResultsDifferent(self):
+    """Unit test for statistical test outcome dict."""
+    distributions = (self.CreateRandomNormalDistribution(0),
+                     self.CreateRandomNormalDistribution(1))
+    test_input_dicts = ({'open_tabs_time': {'Ex_page_1': distributions[0],
+                                            'Ex_page_2': distributions[0]},
+                         'display_time': {'Ex_page_1': distributions[1],
+                                          'Ex_page_2': distributions[1]}},
+                        {'open_tabs_time': {'Ex_page_1': distributions[0],
+                                            'Ex_page_2': distributions[1]},
+                         'display_time': {'Ex_page_1': distributions[1],
+                                          'Ex_page_2': distributions[0]}})
+    test_options = results_stats.ALL_TEST_OPTIONS
+
+    expected_outputs = ({'open_tabs_time':  # Mann.
+                         {'Ex_page_1': (False, 2 * 0.49704973080841425),
+                          'Ex_page_2': (True, 2 * 0.00068516628052438266)},
+                         'display_time':
+                         {'Ex_page_1': (False, 2 * 0.49704973080841425),
+                          'Ex_page_2': (True, 2 * 0.00068516628052438266)}},
+                        {'open_tabs_time':  # Kolmogorov.
+                         {'Ex_page_1': (False, 1.0),
+                          'Ex_page_2': (True, 0.0017459498829507842)},
+                         'display_time':
+                         {'Ex_page_1': (False, 1.0),
+                          'Ex_page_2': (True, 0.0017459498829507842)}},
+                        {'open_tabs_time':  # Welch.
+                         {'Ex_page_1': (False, 1.0),
+                          'Ex_page_2': (True, 0.00084765230478226514)},
+                         'display_time':
+                         {'Ex_page_1': (False, 1.0),
+                          'Ex_page_2': (True, 0.00084765230478226514)}})
+
+    for test, expected_output in zip(test_options, expected_outputs):
+      output = (results_stats.
+                ArePagesetBenchmarkResultsDifferent(test_input_dicts[0],
+                                                    test_input_dicts[1],
+                                                    test=test))
       self.assertEqual(output, expected_output)
 
 
