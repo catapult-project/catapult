@@ -26,7 +26,7 @@ class CrOSTestCase(unittest.TestCase):
 
   def _CreateBrowser(self, autotest_ext=False, auto_login=True,
                      gaia_login=False, username=None, password=None,
-                     gaia_id=None):
+                     gaia_id=None, dont_override_profile=False):
     """Finds and creates a browser for tests. if autotest_ext is True,
     also loads the autotest extension"""
     options = options_for_unittests.GetCopy()
@@ -46,6 +46,7 @@ class CrOSTestCase(unittest.TestCase):
     browser_options.create_browser_with_oobe = True
     browser_options.auto_login = auto_login
     browser_options.gaia_login = gaia_login
+    browser_options.dont_override_profile = dont_override_profile
     if username is not None:
       browser_options.username = username
     if password is not None:
