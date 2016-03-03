@@ -175,6 +175,12 @@ def AreSamplesDifferent(sample_1, sample_2, test=MANN,
   return is_different, p_value
 
 
+def AssertThatKeysMatch(result_dict_1, result_dict_2):
+  """Raises an exception if benchmark dicts do not contain the same metrics."""
+  if result_dict_1.viewkeys() != result_dict_2.viewkeys():
+    raise DictMismatchError()
+
+
 def AreBenchmarkResultsDifferent(result_dict_1, result_dict_2, test=MANN,
                                  significance_level=0.05):
   """Runs the given test on the results of each metric in the benchmarks.
@@ -192,8 +198,7 @@ def AreBenchmarkResultsDifferent(result_dict_1, result_dict_2, test=MANN,
   Returns:
     test_outcome_dict: Format {metric: (bool is_different, p-value)}.
   """
-  if result_dict_1.viewkeys() != result_dict_2.viewkeys():
-    raise DictMismatchError()
+  AssertThatKeysMatch(result_dict_1, result_dict_2)
 
   test_outcome_dict = {}
   for metric in result_dict_1:
@@ -201,5 +206,41 @@ def AreBenchmarkResultsDifferent(result_dict_1, result_dict_2, test=MANN,
                                                 result_dict_2[metric],
                                                 test, significance_level)
     test_outcome_dict[metric] = (is_different, p_value)
+
+  return test_outcome_dict
+
+
+def ArePagesetBenchmarkResultsDifferent(result_dict_1, result_dict_2, test=MANN,
+                                        significance_level=0.05):
+  """Runs the given test on the results of each metric/page combination.
+
+  Checks if the dicts have been created from the same benchmark, i.e. if metric
+  names and pagesets match (e.g. metric first_non_empty_paint_time and page
+  Google.com). Then runs the specified statistical test on each metric/page
+  combination's sample to find if they vary significantly.
+
+  Args:
+    result_dict_1: Benchmark result dict
+    result_dict_2: Benchmark result dict
+    test: Statistical test that is used.
+    significance_level: The significance level the p-value is compared against.
+
+  Returns:
+    test_outcome_dict: Format {metric: {page: (bool is_different, p-value)}}
+  """
+  AssertThatKeysMatch(result_dict_1, result_dict_2)
+
+  # Pagesets should also match.
+  for metric in result_dict_1.iterkeys():
+    AssertThatKeysMatch(result_dict_1[metric], result_dict_2[metric])
+
+  test_outcome_dict = {}
+  for metric in result_dict_1.iterkeys():
+    test_outcome_dict[metric] = {}
+    for page in result_dict_1[metric]:
+      is_different, p_value = AreSamplesDifferent(result_dict_1[metric][page],
+                                                  result_dict_2[metric][page],
+                                                  test, significance_level)
+      test_outcome_dict[metric][page] = (is_different, p_value)
 
   return test_outcome_dict
