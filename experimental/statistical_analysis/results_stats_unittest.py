@@ -84,7 +84,7 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
 
       self.assertEqual(output, expected_output)
 
-  def testIsSignificantlyDifferent(self):
+  def testAreSamplesDifferent(self):
     """Unit test for values returned after running the statistical tests.
 
     Creates two pseudo-random normally distributed samples to run the
@@ -98,6 +98,13 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
     with self.assertRaises(results_stats.NonNormalSampleError):
       results_stats.AreSamplesDifferent(test_samples[0], test_samples[1],
                                         test=results_stats.WELCH)
+
+    test_samples_equal = (20 * [1], 20 * [1])
+    expected_output_equal = (False, 1.0)
+    output_equal = results_stats.AreSamplesDifferent(test_samples_equal[0],
+                                                     test_samples_equal[1],
+                                                     test=results_stats.MANN)
+    self.assertEqual(output_equal, expected_output_equal)
 
     if not np:
       self.skipTest("Numpy is not installed.")

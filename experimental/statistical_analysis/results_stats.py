@@ -157,7 +157,14 @@ def AreSamplesDifferent(sample_1, sample_2, test=MANN,
   if test == MANN:
     if len(sample_1) < 20 or len(sample_2) < 20:
       raise SampleSizeError()
-    _, p_value = stats.mannwhitneyu(sample_1, sample_2, use_continuity=True)
+    try:
+      _, p_value = stats.mannwhitneyu(sample_1, sample_2, use_continuity=True)
+    except ValueError:
+      # If sum of ranks of values in |sample_1| and |sample_2| is equal,
+      # scipy.stats.mannwhitneyu raises ValueError. Treat this as a 1.0 p-value
+      # (indistinguishable).
+      return (False, 1.0)
+
     if IsScipyMannTestOneSided():
       p_value = p_value * 2 if p_value < 0.5 else 1
 
