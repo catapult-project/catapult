@@ -76,7 +76,7 @@ def _NamespaceKey(key, namespace=None):
 
 
 def Prewarm(keys):
-  """Prewarm the NDB in-context cache by doing async_get for the keys.
+  """Prewarms the NDB in-context cache by doing async_get for the keys.
 
   For requests like /add_point which can get/set dozens of keys, contention
   occasionally causes the gets to take several seconds. But they will be

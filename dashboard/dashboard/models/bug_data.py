@@ -48,7 +48,7 @@ class Bug(ndb.Model):
 
 
 def SetBisectStatus(bug_id, status):
-  """Sets bisect status for bug with bug_id."""
+  """Sets the bisect status for a Bug entity."""
   if bug_id is None or bug_id < 0:
     return
   bug = ndb.Key('Bug', int(bug_id)).get()

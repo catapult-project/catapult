@@ -34,7 +34,7 @@ class FileBugHandler(request_handler.RequestHandler):
   """Uses oauth2 to file a new bug with a set of alerts."""
 
   def post(self):
-    """Make all the functions available via POST as well as GET."""
+    """A POST request for this endpoint is the same as a GET request."""
     self.get()
 
   @oauth2_decorator.DECORATOR.oauth_required

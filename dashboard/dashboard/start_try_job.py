@@ -325,7 +325,7 @@ def _BuilderType(master_name, use_archive):
 
 
 def GuessTargetArch(bisect_bot):
-  """Return target architecture for the bisect job."""
+  """Returns target architecture for the bisect job."""
   if 'x64' in bisect_bot or 'win64' in bisect_bot:
     return 'x64'
   elif bisect_bot in ['android_nexus9_perf_bisect']:
@@ -369,7 +369,7 @@ def _GetPerfTryConfig(
 
 
 def _GetAvailableBisectBots(master_name):
-  """Get all available bisect bots corresponding to a master name."""
+  """Gets all available bisect bots corresponding to a master name."""
   bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
   for master, platform_bot_pairs in bisect_bot_map.iteritems():
     if master_name.startswith(master):
@@ -378,7 +378,7 @@ def _GetAvailableBisectBots(master_name):
 
 
 def _CanDownloadBuilds(master_name):
-  """Check whether bisecting using archives is supported."""
+  """Checks whether bisecting using archives is supported."""
   return master_name.startswith('ChromiumPerf')
 
 

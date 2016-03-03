@@ -118,7 +118,7 @@ def UpdateBisectStats(bot_name, status):
 
 
 def _GetLastMondayTimestamp():
-  """Get timestamp of 00:00 last Monday in milliseconds as an integer."""
+  """Gets timestamp of 00:00 last Monday in milliseconds as an integer."""
   today = datetime.date.today()
   monday = today - datetime.timedelta(days=today.weekday())
   return utils.TimestampMilliseconds(monday)

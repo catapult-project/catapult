@@ -113,7 +113,7 @@ def _PrewarmGets(data):
 
 
 def _AddRow(row_dict, bot_whitelist):
-  """Add a Row entity to the datastore.
+  """Adds a Row entity to the datastore.
 
   There are three main things that are needed in order to make a new entity;
   the ID, the parent key, and all of the properties. Making these three
@@ -198,7 +198,11 @@ def _ImprovementDirection(higher_is_better):
 
 
 def _BotInternalOnly(bot_name, bot_whitelist):
-  """Check whether the bot with a given name is internal-only."""
+  """Checks whether a given bot name is internal-only.
+
+  If a bot name is internal only, then new data for that bot should be marked
+  as internal-only.
+  """
   if not bot_whitelist:
     logging.warning(
         'No bot whitelist available. All data will be internal-only. If this '
@@ -336,6 +340,6 @@ def _GetOrCreateTest(name, parent_key, properties):
 
 
 def _IsRefBuild(test_key):
-  """Returns True if test_key is a reference build."""
+  """Checks whether a Test is for a reference build test run."""
   key_path = test_key.flat()
   return key_path[-1] == 'ref' or key_path[-1].endswith('_ref')

@@ -81,12 +81,12 @@ class IssueTrackerService(object):
     return self._MakeCommentRequest(bug_id, body)
 
   def List(self, **kwargs):
-    """Make a request to the issue tracker to list bugs."""
+    """Makes a request to the issue tracker to list bugs."""
     request = self._service.issues().list(projectId='chromium', **kwargs)
     return self._ExecuteRequest(request)
 
   def _MakeCommentRequest(self, bug_id, body):
-    """Make a request to the issue tracker to update a bug."""
+    """Makes a request to the issue tracker to update a bug."""
     request = self._service.issues().comments().insert(
         projectId='chromium',
         issueId=bug_id,
@@ -165,7 +165,7 @@ class IssueTrackerService(object):
     return None
 
   def _MakeGetCommentsRequest(self, bug_id):
-    """Make a request to the issue tracker to get comments in the bug."""
+    """Makes a request to the issue tracker to get comments in the bug."""
     # TODO (prasadv): By default the max number of comments retrieved in
     # one request is 100. Since bisect-fyi jobs may have more then 100
     # comments for now we set this maxResults count as 10000.
@@ -178,7 +178,7 @@ class IssueTrackerService(object):
     return self._ExecuteRequest(request)
 
   def _ExecuteRequest(self, request):
-    """Make a request to the issue tracker.
+    """Makes a request to the issue tracker.
 
     Args:
       request: The request object, which has a execute method.

@@ -173,7 +173,7 @@ class Formatter(object):
       self._template = '{asctime} {message}'
 
   def Format(self, record):
-    """Format the record."""
+    """Formats a record."""
     self._kwargs['message'] = record.message
     if '{asctime}' in self._template:
       # Support backward compatibility.
@@ -221,13 +221,13 @@ class QuickLogger(object):
 
 
   def Log(self, message, record_id=None):
-    """Add a message with 'message % args'.
+    """Adds or updates a log record.
 
-    Must call Save() to save to datastore.
+    After this is called, Save() must be called to save to datastore.
 
     Args:
       message: String message.
-      record_id: ID of the record to update.
+      record_id: ID of the record to update; if None, add a new record.
 
     Returns:
       The ID of updated or created Record.

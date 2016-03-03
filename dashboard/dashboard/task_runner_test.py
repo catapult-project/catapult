@@ -14,7 +14,7 @@ class TaskRunnerTest(testing_common.TestCase):
     super(TaskRunnerTest, self).setUp()
 
   def _GetMockCallArg(self, function_mock, call_index):
-    """Gets the first argument value for call at "call_index".
+    """Gets the first argument value for the call at |call_index|.
 
     Args:
       function_mock: A Mock object.
