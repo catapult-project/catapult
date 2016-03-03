@@ -20,8 +20,8 @@ def Main(argv):
                       help='A trace file, or a dir containing trace files')
 
   args = parser.parse_args(argv[1:])
-  metrics = [metric + '' if metric.endswith('.html') else '.html' for metric in
-             args.metric]
+  metrics = [metric + ('' if metric.endswith('.html') else '.html') for metric
+             in args.metric]
 
   if os.path.isdir(args.trace_file_or_dir):
     trace_dir = args.trace_file_or_dir
