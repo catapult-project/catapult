@@ -38,6 +38,23 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
 
 
 class CrOSLoginTest(cros_test_case.CrOSTestCase):
+  def _GetCredentials(self):
+    """Read username and password from credentials.txt. The file is a single
+    line of the format username:password"""
+    username = None
+    password = None
+    credentials_file = os.path.join(os.path.dirname(__file__),
+                                    'credentials.txt')
+    if os.path.exists(credentials_file):
+      with open(credentials_file) as f:
+        username, password = f.read().strip().split(':')
+        # Remove dots.
+        username = username.replace('.', '')
+        # Canonicalize.
+        if username.find('@') == -1:
+          username += '@gmail.com'
+    return (username, password)
+
   @decorators.Enabled('chromeos')
   def testLoginStatus(self):
     """Tests autotestPrivate.loginStatus"""
@@ -67,14 +84,16 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
 
   @decorators.Disabled('all')
   def testGaiaLogin(self):
-    """Tests gaia login. Credentials are expected to be found in a
-    credentials.txt file, with a single line of format username:password."""
+    """Tests gaia login. Use credentials in credentials.txt if it exists,
+    otherwise use powerloadtest."""
     if self._is_guest:
       return
-    username = 'powerloadtest@gmail.com'
-    password = urllib2.urlopen(
-        'https://sites.google.com/a/chromium.org/dev/chromium-os/testing/'
-        'power-testing/pltp/pltp').read().rstrip()
+    username, password = self._GetCredentials()
+    if not username or not password:
+      username = 'powerloadtest@gmail.com'
+      password = urllib2.urlopen(
+          'https://sites.google.com/a/chromium.org/dev/chromium-os/testing/'
+          'power-testing/pltp/pltp').read().rstrip()
     with self._CreateBrowser(gaia_login=True,
                              username=username,
                              password=password):
@@ -83,30 +102,23 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
   @decorators.Enabled('chromeos')
   def testEnterpriseEnroll(self):
     """Tests enterprise enrollment. Credentials are expected to be found in a
-    credentials.txt file, with a single line of format username:password.
-    The account must be from an enterprise domain and have device enrollment
-    permission."""
+    credentials.txt file. The account must be from an enterprise domain and
+    have device enrollment permission. The device must be unowned."""
     if self._is_guest:
       return
 
-    # Read username and password from credentials.txt. The file is of the
-    # format username:password
-    credentials_file = os.path.join(os.path.dirname(__file__),
-                                    'credentials.txt')
-    if not os.path.exists(credentials_file):
+    username, password = self._GetCredentials()
+    if not username or not password:
       return
-    with open(credentials_file) as f:
-      username, password = f.read().strip().split(':')
+    # Enroll the device.
+    with self._CreateBrowser(auto_login=False) as browser:
+      browser.oobe.NavigateGaiaLogin(username, password,
+                                     enterprise_enroll=True,
+                                     for_user_triggered_enrollment=True)
 
-      # Enroll the device.
-      with self._CreateBrowser(auto_login=False) as browser:
-        browser.oobe.NavigateGaiaLogin(username, password,
-                                       enterprise_enroll=True,
-                                       for_user_triggered_enrollment=True)
-
-      # Check for the existence of the device policy file.
-      self.assertTrue(util.WaitFor(lambda: self._cri.FileExistsOnDevice(
-          '/home/.shadow/install_attributes.pb'), 15))
+    # Check for the existence of the device policy file.
+    self.assertTrue(util.WaitFor(lambda: self._cri.FileExistsOnDevice(
+        '/home/.shadow/install_attributes.pb'), 15))
 
 
 class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
