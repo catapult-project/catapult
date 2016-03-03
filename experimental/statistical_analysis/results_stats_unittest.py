@@ -50,6 +50,15 @@ class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
 
     self.assertEqual(output, expected_output)
 
+  def testCombinePValues(self):
+    """Unit test for Fisher's Method that combines multiple p-values."""
+    test_p_values = [0.05, 0.04, 0.10, 0.07, 0.01]
+
+    expected_output = 0.00047334256271885721
+    output = results_stats.CombinePValues(test_p_values)
+
+    self.assertEqual(output, expected_output)
+
   def CreateRandomNormalDistribution(self, mean=0, size=30):
     """Creates two pseudo random samples for testing in multiple methods."""
     if not np:

@@ -5,6 +5,11 @@
 """Statistical hypothesis testing for comparing benchmark results."""
 
 try:
+  import numpy as np
+except ImportError:
+  np = None
+
+try:
   from scipy import stats
   import scipy.version
 except ImportError:
@@ -73,6 +78,31 @@ def CreateBenchmarkResultDict(benchmark_result_json):
     benchmark_result_dict[elem_name] = elem_content['summary']['values']
 
   return benchmark_result_dict
+
+
+def CombinePValues(p_values):
+  """Combines p-values from a number of tests using Fisher's Method.
+
+  The tests the p-values result from must test the same null hypothesis and be
+  independent.
+
+  Args:
+    p_values: List of p-values.
+
+  Returns:
+    combined_p_value: Combined p-value according to Fisher's method.
+  """
+  # TODO (wierichs): Update to use scipy.stats.combine_pvalues(p_values) when
+  # Scipy v0.15.0 becomes available as standard version.
+  if not np:
+    raise ImportError('This function requires Numpy.')
+
+  if not stats:
+    raise ImportError('This function requires Scipy.')
+
+  test_statistic = -2 * np.sum(np.log(p_values))
+  p_value = stats.chi2.sf(test_statistic, 2 * len(p_values))
+  return p_value
 
 
 def IsNormallyDistributed(sample, significance_level=0.05):
