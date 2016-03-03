@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/tracing/ui/tracks/spacing_track.css">
 
-<link rel="import" href="/tracing/ui/base/heading.html">
 <link rel="import" href="/tracing/ui/tracks/track.html">
 
 <script>
@@ -25,9 +24,6 @@ tr.exportTo('tr.ui.tracks', function() {
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       this.classList.add('spacing-track');
-
-      this.heading_ = document.createElement('tr-ui-heading');
-      this.appendChild(this.heading_);
     },
 
     draw: function(type, viewLWorld, viewRWorld) {
