@@ -53,18 +53,14 @@ def IsScipyMannTestOneSided():
   return scipy_version[0] < 1 and scipy_version[1] < 17
 
 
-def CreateBenchmarkResultDict(benchmark_result_json):
-  """Creates a dict of format {measure_name: list of benchmark results}.
+def GetChartsFromBenchmarkResultJson(benchmark_result_json):
+  """Returns the 'charts' element from a given Chart JSON.
 
-  Takes a raw result Chart-JSON produced when using '--output-format=chartjson'
-  when running 'run_benchmark'.
+  Excludes entries that are not list_of_scalar_values and empty entries. Also
+  raises errors for an invalid JSON format or empty 'charts' element.
 
-  Args:
-    benchmark_result_json: Benchmark result Chart-JSON produced by Telemetry.
-
-  Returns:
-    Dictionary of benchmark results.
-    Example dict entry: 'first_main_frame_load_time': [650, 700, ...].
+  Raises:
+    ValueError: Provided chart JSON is either not valid or 'charts' is empty.
   """
   try:
     charts = benchmark_result_json['charts']
@@ -72,10 +68,88 @@ def CreateBenchmarkResultDict(benchmark_result_json):
     raise ValueError('Invalid benchmark result format. Make sure input is a '
                      'Chart-JSON.\nProvided JSON:\n',
                      repr(benchmark_result_json))
+  if not charts:
+    raise ValueError("Invalid benchmark result format. Dict entry 'charts' is "
+                     "empty.")
+
+  def IsValidPageContent(page_content):
+    return (page_content['type'] == 'list_of_scalar_values' and
+            'values' in page_content)
+
+  def CreatePageDict(metric_content):
+    return {page_name: page_content
+            for page_name, page_content in metric_content.iteritems()
+            if IsValidPageContent(page_content)}
+
+  charts_valid_entries_only = {}
+  for metric_name, metric_content in charts.iteritems():
+    inner_page_dict = CreatePageDict(metric_content)
+    if not inner_page_dict:
+      continue
+    charts_valid_entries_only[metric_name] = inner_page_dict
+
+  return charts_valid_entries_only
+
+
+def DoesChartJSONContainPageset(benchmark_result_json):
+  """Checks if given Chart JSON contains results for a pageset.
+
+  A metric in a benchmark NOT containing a pageset contains only two elements
+  ("Only_page_in_this_benchmark" and "Summary", as opposed to "Ex_page_1",
+  "Ex_page_2", ..., and "Summary").
+  """
+  charts = GetChartsFromBenchmarkResultJson(benchmark_result_json)
+
+  arbitrary_metric_in_charts = charts.itervalues().next()
+  return len(arbitrary_metric_in_charts) > 2
+
+
+def CreateBenchmarkResultDict(benchmark_result_json):
+  """Creates a dict of format {metric_name: list of benchmark results}.
+
+  Takes a raw result Chart-JSON produced when using '--output-format=chartjson'
+  for 'run_benchmark'.
+
+  Args:
+    benchmark_result_json: Benchmark result Chart-JSON produced by Telemetry.
+
+  Returns:
+    Dictionary of benchmark results.
+    Example dict entry: 'tab_load_time': [650, 700, ...].
+  """
+  charts = GetChartsFromBenchmarkResultJson(benchmark_result_json)
 
   benchmark_result_dict = {}
-  for elem_name, elem_content in charts.iteritems():
-    benchmark_result_dict[elem_name] = elem_content['summary']['values']
+  for metric_name, metric_content in charts.iteritems():
+    benchmark_result_dict[metric_name] = metric_content['summary']['values']
+
+  return benchmark_result_dict
+
+
+def CreatePagesetBenchmarkResultDict(benchmark_result_json):
+  """Creates a dict of format {metric_name: {page_name: list of page results}}.
+
+  Takes a raw result Chart-JSON produced by 'run_benchmark' when using
+  '--output-format=chartjson' and when specifying a benchmark that has a
+  pageset (e.g. top25mobile). Run 'DoesChartJSONContainPageset' to check if
+  your Chart-JSON contains a pageset.
+
+  Args:
+    benchmark_result_json: Benchmark result Chart-JSON produced by Telemetry.
+
+  Returns:
+    Dictionary of benchmark results.
+    Example dict entry: 'tab_load_time': 'Gmail.com': [650, 700, ...].
+  """
+  charts = GetChartsFromBenchmarkResultJson(benchmark_result_json)
+
+  benchmark_result_dict = {}
+  for metric_name, metric_content in charts.iteritems():
+    benchmark_result_dict[metric_name] = {}
+    for page_name, page_content in metric_content.iteritems():
+      if page_name == 'summary':
+        continue
+      benchmark_result_dict[metric_name][page_name] = page_content['values']
 
   return benchmark_result_dict
 
