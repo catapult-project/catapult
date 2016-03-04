@@ -35,6 +35,14 @@ def LoadJsonFromPath(json_path):
     return json.load(data_file)
 
 
+def PrintOutcomeLine(name, max_name_length, outcome, print_p_value):
+  """Prints a single output line, e.g. 'metric_1  True  0.03'."""
+  print('{:{}}{}'.format(name, max_name_length + 2, outcome[0]), end='')
+  if print_p_value:
+    print('\t{:.10f}'.format(outcome[1]), end='')
+  print()
+
+
 def PrintTestOutcome(test_outcome_dict, test_name, significance_level,
                      print_p_value):
   """Prints the given test outcomes to the command line.
@@ -47,14 +55,45 @@ def PrintTestOutcome(test_outcome_dict, test_name, significance_level,
         '(Test: {}, Significance Level: {})\n'.format(test_name,
                                                       significance_level))
 
-  max_metric_name_length = max([len(metric_name) for metric_name in
-                                test_outcome_dict])
+  max_metric_name_len = max([len(metric_name) for metric_name in
+                             test_outcome_dict])
 
-  for metric, outcome in test_outcome_dict.iteritems():
-    print('{:{}}{}'.format(metric, max_metric_name_length + 2, outcome[0]),
-          end='')
-    if print_p_value:
-      print('\t{:05.3f}'.format(outcome[1]), end='')
+  for metric_name, outcome in test_outcome_dict.iteritems():
+    PrintOutcomeLine(metric_name, max_metric_name_len, outcome, print_p_value)
+
+
+def PrintPagesetTestOutcome(test_outcome_dict, test_name, significance_level,
+                            print_p_value, print_details):
+  """Prints the given test outcomes to the command line.
+
+  Prints a summary combining the p-values of the pageset for each metric. Then
+  prints results for each metric/page combination if |print_details| is True.
+  """
+  print('Statistical analysis results (True=Performance difference likely)\n'
+        '(Test: {}, Significance Level: {})\n'.format(test_name,
+                                                      significance_level))
+
+  # Print summarized version at the top.
+  max_metric_name_len = max([len(metric_name) for metric_name in
+                             test_outcome_dict])
+  print('Summary (combined p-values for all pages in pageset):\n')
+  for metric_name, pageset in test_outcome_dict.iteritems():
+    combined_p_value = results_stats.CombinePValues([p[1] for p in
+                                                     pageset.itervalues()])
+    outcome = (combined_p_value < significance_level, combined_p_value)
+    PrintOutcomeLine(metric_name, max_metric_name_len, outcome, print_p_value)
+  print()
+
+  if not print_details:
+    return
+
+  # Print outcome for every metric/page combination.
+  for metric_name, pageset in test_outcome_dict.iteritems():
+    max_page_name_len = max([len(page_name) for page_name in pageset])
+    print('{}:'.format(metric_name))
+    for page_name, page_outcome in pageset.iteritems():
+      PrintOutcomeLine(page_name, max_page_name_len, page_outcome,
+                       print_p_value)
     print()
 
 
@@ -95,19 +134,43 @@ def main(args=None):
                       help="""If the -p flag is set, the output will include
                       the p-value for each metric.""")
 
+  parser.add_argument('-d', action='store_true', dest='print_details',
+                      help="""If the -d flag is set, the output will be more
+                      detailed for benchmarks containing pagesets, giving
+                      results for every metric/page combination after a summary
+                      at the top.""")
+
   args = parser.parse_args(args)
 
-  result_dict_1, result_dict_2 = (
-      [(results_stats.CreateBenchmarkResultDict(LoadJsonFromPath(json_path)))
-       for json_path in args.json_paths])
+  result_jsons = [LoadJsonFromPath(json_path) for json_path in args.json_paths]
 
-  test_outcome_dict = (
-      results_stats.AreBenchmarkResultsDifferent(result_dict_1, result_dict_2,
-                                                 args.statistical_test,
-                                                 args.significance_level))
+  if (results_stats.DoesChartJSONContainPageset(result_jsons[0]) and
+      results_stats.DoesChartJSONContainPageset(result_jsons[1])):
+    # Benchmark containing a pageset.
+    result_dict_1, result_dict_2 = (
+        [results_stats.CreatePagesetBenchmarkResultDict(result_json)
+         for result_json in result_jsons])
+    test_outcome_dict = results_stats.ArePagesetBenchmarkResultsDifferent(
+        result_dict_1, result_dict_2, args.statistical_test,
+        args.significance_level)
 
-  PrintTestOutcome(test_outcome_dict, args.statistical_test,
-                   args.significance_level, args.print_p_value)
+    PrintPagesetTestOutcome(test_outcome_dict, args.statistical_test,
+                            args.significance_level, args.print_p_value,
+                            args.print_details)
+
+  else:
+    # Benchmark not containing a pageset.
+    # (If only one JSON contains a pageset, results_stats raises an error.)
+    result_dict_1, result_dict_2 = (
+        [results_stats.CreateBenchmarkResultDict(result_json)
+         for result_json in result_jsons])
+    test_outcome_dict = (
+        results_stats.AreBenchmarkResultsDifferent(result_dict_1, result_dict_2,
+                                                   args.statistical_test,
+                                                   args.significance_level))
+
+    PrintTestOutcome(test_outcome_dict, args.statistical_test,
+                     args.significance_level, args.print_p_value)
 
 
 if __name__ == '__main__':
