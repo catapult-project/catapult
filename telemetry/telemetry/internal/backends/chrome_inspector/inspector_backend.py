@@ -139,16 +139,6 @@ class InspectorBackend(object):
     assert self.screenshot_supported, 'Browser does not support screenshotting'
     return self._page.CaptureScreenshot(timeout)
 
-  # Console public methods.
-
-  @property
-  def message_output_stream(self):
-    return self._console.message_output_stream
-
-  @message_output_stream.setter
-  def message_output_stream(self, stream):
-    self._console.message_output_stream = stream
-
   # Memory public methods.
 
   @_HandleInspectorWebSocketExceptions

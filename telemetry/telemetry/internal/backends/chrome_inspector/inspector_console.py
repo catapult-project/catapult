@@ -28,7 +28,6 @@ class InspectorConsole(object):
         self._message_output_stream.write(
           '%s\n' % self._last_message)
 
-  # False positive in PyLint 0.25.1: http://www.logilab.org/89092
   @property
   def message_output_stream(self):  # pylint: disable=method-hidden
     return self._message_output_stream

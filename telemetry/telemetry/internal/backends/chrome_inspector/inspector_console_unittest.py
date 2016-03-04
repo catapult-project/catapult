@@ -12,7 +12,7 @@ from telemetry.testing import tab_test_case
 class TabConsoleTest(tab_test_case.TabTestCase):
   def testConsoleOutputStream(self):
     stream = StringIO.StringIO()
-    self._tab.message_output_stream = stream
+    self._tab._inspector_backend._console.message_output_stream = stream
 
     self.Navigate('page_that_logs_to_console.html')
 

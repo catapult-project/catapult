@@ -244,18 +244,6 @@ class WebContents(object):
     """
     self._inspector_backend.Navigate(url, script_to_evaluate_on_commit, timeout)
 
-  @property
-  def message_output_stream(self):
-    return self._inspector_backend.message_output_stream
-
-  @message_output_stream.setter
-  def message_output_stream(self, stream):
-    self._inspector_backend.message_output_stream = stream
-
-  @property
-  def timeline_model(self):
-    return self._inspector_backend.timeline_model
-
   def IsAlive(self):
     """Whether the WebContents is still operating normally.
 
