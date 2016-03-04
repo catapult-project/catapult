@@ -20,6 +20,6 @@ monitoring websites, and eventually Android apps.
 
 Contributing
 ============
-Please see [our contributor's guide](CONTRIBUTING.md)
+Please see [our contributor's guide](/CONTRIBUTING.md)
 
 **[Current build status](https://build.chromium.org/p/client.catapult/waterfall)**
