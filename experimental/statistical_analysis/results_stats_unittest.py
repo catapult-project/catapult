@@ -23,30 +23,93 @@ from statistical_analysis import results_stats
 class StatisticalBenchmarkResultsAnalysisTest(unittest.TestCase):
   """Unit testing of several functions in results_stats."""
 
-  def testCreateBenchmarkResultDict(self):
-    """Unit test for benchmark results dict created from a benchmark json.
+  def testGetChartsFromBenchmarkResultJson(self):
+    """Unit test for errors raised when getting the charts element.
 
-    Creates a json of the format created by tools/perf/run_benchmark (currently
-    for startup benchmarks only) and then compares the output dict against an
-    expected predefined output dict.
+    Also makes sure that the 'trace' element is deleted if it exists.
     """
     input_json_wrong_format = {'charts_wrong': {}}
+    input_json_empty = {'charts': {}}
     with self.assertRaises(ValueError):
-      (results_stats.CreateBenchmarkResultDict(input_json_wrong_format))
+      (results_stats.GetChartsFromBenchmarkResultJson(input_json_wrong_format))
+    with self.assertRaises(ValueError):
+      (results_stats.GetChartsFromBenchmarkResultJson(input_json_empty))
 
-    measurement_names = ['messageloop_start_time',
-                         'open_tabs_time',
-                         'window_display_time']
-    measurement_values = [[55, 72, 60], [54, 42, 65], [44, 89]]
+    input_json_with_trace = {'charts':
+                             {'trace': {},
+                              'Ex_metric_1':
+                              {'Ex_page_1': {'type': 'list_of_scalar_values',
+                                             'values': [1, 2]},
+                               'Ex_page_2': {'type': 'histogram',
+                                             'values': [1, 2]}},
+                              'Ex_metric_2':
+                              {'Ex_page_1': {'type': 'list_of_scalar_values'},
+                               'Ex_page_2': {'type': 'list_of_scalar_values',
+                                             'values': [1, 2]}}}}
+
+    output = (results_stats.
+              GetChartsFromBenchmarkResultJson(input_json_with_trace))
+    expected_output = {'Ex_metric_1':
+                       {'Ex_page_1': {'type': 'list_of_scalar_values',
+                                      'values': [1, 2]}},
+                       'Ex_metric_2':
+                       {'Ex_page_2': {'type': 'list_of_scalar_values',
+                                      'values': [1, 2]}}}
+    self.assertEqual(output, expected_output)
+
+  def testCreateBenchmarkResultDict(self):
+    """Unit test for benchmark result dict created from a benchmark json.
+
+    Creates a json of the format created by tools/perf/run_benchmark and then
+    compares the output dict against an expected predefined output dict.
+    """
+    metric_names = ['messageloop_start_time',
+                    'open_tabs_time',
+                    'window_display_time']
+    metric_values = [[55, 72, 60], [54, 42, 65], [44, 89]]
 
     input_json = {'charts': {}}
-    for name, vals in zip(measurement_names, measurement_values):
-      input_json['charts'][name] = {'summary': {'values': vals}}
+    for metric, metric_vals in zip(metric_names, metric_values):
+      input_json['charts'][metric] = {'summary':
+                                      {'values': metric_vals,
+                                       'type': 'list_of_scalar_values'}}
 
     output = results_stats.CreateBenchmarkResultDict(input_json)
     expected_output = {'messageloop_start_time': [55, 72, 60],
                        'open_tabs_time': [54, 42, 65],
                        'window_display_time': [44, 89]}
+
+    self.assertEqual(output, expected_output)
+
+  def testCreatePagesetBenchmarkResultDict(self):
+    """Unit test for pageset benchmark result dict created from benchmark json.
+
+    Creates a json of the format created by tools/perf/run_benchmark when it
+    includes a pageset and then compares the output dict against an expected
+    predefined output dict.
+    """
+    metric_names = ['messageloop_start_time',
+                    'open_tabs_time',
+                    'window_display_time']
+    metric_values = [[55, 72, 60], [54, 42, 65], [44, 89]]
+    page_names = ['Ex_page_1', 'Ex_page_2']
+
+    input_json = {'charts': {}}
+    for metric, metric_vals in zip(metric_names, metric_values):
+      input_json['charts'][metric] = {'summary':
+                                      {'values': [0, 1, 2, 3],
+                                       'type': 'list_of_scalar_values'}}
+      for page in page_names:
+        input_json['charts'][metric][page] = {'values': metric_vals,
+                                              'type': 'list_of_scalar_values'}
+
+    output = results_stats.CreatePagesetBenchmarkResultDict(input_json)
+    expected_output = {'messageloop_start_time': {'Ex_page_1': [55, 72, 60],
+                                                  'Ex_page_2': [55, 72, 60]},
+                       'open_tabs_time': {'Ex_page_1': [54, 42, 65],
+                                          'Ex_page_2': [54, 42, 65]},
+                       'window_display_time': {'Ex_page_1': [44, 89],
+                                               'Ex_page_2': [44, 89]}}
 
     self.assertEqual(output, expected_output)
 
