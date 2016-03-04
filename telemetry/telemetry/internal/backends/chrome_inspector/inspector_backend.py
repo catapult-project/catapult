@@ -59,14 +59,13 @@ class InspectorBackend(object):
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
       self._websocket.Connect(self.debugger_url)
+      self._console = inspector_console.InspectorConsole(self._websocket)
+      self._memory = inspector_memory.InspectorMemory(self._websocket)
+      self._page = inspector_page.InspectorPage(
+          self._websocket, timeout=timeout)
+      self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
     except (websocket.WebSocketException, exceptions.TimeoutException) as e:
       self._ConvertExceptionFromInspectorWebsocket(e)
-
-    self._console = inspector_console.InspectorConsole(self._websocket)
-    self._memory = inspector_memory.InspectorMemory(self._websocket)
-    self._page = inspector_page.InspectorPage(
-        self._websocket, timeout=timeout)
-    self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
 
   def Disconnect(self):
     """Disconnects the inspector websocket.
@@ -306,6 +305,8 @@ class InspectorBackend(object):
     """
     if isinstance(error, websocket.WebSocketTimeoutException):
       new_error = exceptions.TimeoutException()
+      new_error.AddDebuggingMessage(exceptions.AppCrashException(
+          self.app, 'The app is probably crashed:\n'))
     else:
       new_error = exceptions.DevtoolsTargetCrashException(self.app)
 
