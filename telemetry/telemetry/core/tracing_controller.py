@@ -38,6 +38,15 @@ class TracingController(tracing_agent.TracingAgent):
     """Stops tracing and returns a TraceValue."""
     return self._tracing_controller_backend.StopTracing()
 
+  def FlushTracing(self):
+    """Flush tracing buffer and continue tracing.
+
+    Warning: This method is a temporary hack to enable multi-tab benchmarks
+    (see https://goo.gl/8Gjstr). Please contact Telemetry owners before using
+    it.
+    """
+    self._tracing_controller_backend.FlushTracing()
+
   @property
   def is_tracing_running(self):
     return self._tracing_controller_backend.is_tracing_running

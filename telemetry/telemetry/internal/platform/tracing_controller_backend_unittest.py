@@ -157,6 +157,33 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertNotEqual(sync_event_one, sync_event_two)
 
   @decorators.Isolated
+  def testFlush(self):
+    self.assertFalse(self.controller.is_tracing_running)
+    self.assertIsNone(self.controller._current_state)
+
+    # Start tracing.
+    self.assertTrue(self.controller.StartTracing(self.config, 30))
+    self.assertTrue(self.controller.is_tracing_running)
+    self.assertIs(self.controller._current_state.config, self.config)
+    self.assertEqual(self.controller._current_state.timeout, 30)
+    self.assertIsNotNone(self.controller._current_state.builder)
+
+    # Flush tracing several times.
+    for _ in xrange(5):
+      self.controller.FlushTracing()
+      self.assertTrue(self.controller.is_tracing_running)
+      self.assertIs(self.controller._current_state.config, self.config)
+      self.assertEqual(self.controller._current_state.timeout, 30)
+      self.assertIsNotNone(self.controller._current_state.builder)
+
+    # Stop tracing.
+    data = self.controller.StopTracing()
+    self.assertFalse(self.controller.is_tracing_running)
+    self.assertIsNone(self.controller._current_state)
+
+    self.assertEqual(self._getSyncCount(data), 6)
+
+  @decorators.Isolated
   def testNoWorkingAgents(self):
     self.controller._supported_agents_classes = [
         FakeTracingAgentNoStartAndNoClockSync

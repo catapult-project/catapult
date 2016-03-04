@@ -53,6 +53,15 @@ class TracingAgent(object):
     """
     raise NotImplementedError
 
+  def SupportsFlushingAgentTracing(self):
+    """ Override to indicate support of flushing tracing. """
+    return False
+
+  def FlushAgentTracing(self, config, timeout, trace_data_builder):
+    """ Override to add tracing agent's custom logic to flush tracing. """
+    del config, timeout, trace_data_builder  # unused
+    raise NotImplementedError
+
   def SupportsExplicitClockSync(self):
     """ Override to indicate support of explicit clock syncing. """
     return False

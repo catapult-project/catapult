@@ -34,11 +34,30 @@ class TracingControllerStoppedError(Exception):
   pass
 
 
+class _TracingState(object):
+
+  def __init__(self, config, timeout):
+    self._builder = trace_data_module.TraceDataBuilder()
+    self._config = config
+    self._timeout = timeout
+
+  @property
+  def builder(self):
+    return self._builder
+
+  @property
+  def config(self):
+    return self._config
+
+  @property
+  def timeout(self):
+    return self._timeout
+
+
 class TracingControllerBackend(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
-    self._current_chrome_tracing_agent = None
-    self._current_config = None
+    self._current_state = None
     self._supported_agents_classes = [
         agent_classes for agent_classes in _IterAllTracingAgentClasses() if
         agent_classes.IsSupported(platform_backend)]
@@ -53,7 +72,7 @@ class TracingControllerBackend(object):
     assert isinstance(config, tracing_config.TracingConfig)
     assert len(self._active_agents_instances) == 0
 
-    self._current_config = config
+    self._current_state = _TracingState(config, timeout)
     # Hack: chrome tracing agent may only depend on the number of alive chrome
     # devtools processes, rather platform (when startup tracing is not
     # supported), hence we add it to the list of supported agents here if it was
@@ -85,26 +104,47 @@ class TracingControllerBackend(object):
 
   def StopTracing(self):
     assert self.is_tracing_running, 'Can only stop tracing when tracing is on.'
-    trace_data_builder = trace_data_module.TraceDataBuilder()
     self._IssueClockSyncMarker()
+    builder = self._current_state.builder
 
     raised_exception_messages = []
     for agent in self._active_agents_instances + [self]:
       try:
-        agent.StopAgentTracing(trace_data_builder)
+        agent.StopAgentTracing(builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     self._active_agents_instances = []
-    self._current_config = None
+    self._current_state = None
 
     if raised_exception_messages:
       raise TracingControllerStoppedError(
           'Exceptions raised when trying to stop tracing:\n' +
           '\n'.join(raised_exception_messages))
 
-    return trace_data_builder.AsData()
+    return builder.AsData()
+
+  def FlushTracing(self):
+    assert self.is_tracing_running, 'Can only flush tracing when tracing is on.'
+    self._IssueClockSyncMarker()
+
+    raised_exception_messages = []
+    # Flushing the controller's pytrace is not supported.
+    for agent in self._active_agents_instances:
+      try:
+        if agent.SupportsFlushingAgentTracing():
+          agent.FlushAgentTracing(self._current_state.config,
+                                  self._current_state.timeout,
+                                  self._current_state.builder)
+      except Exception: # pylint: disable=broad-except
+        raised_exception_messages.append(
+            ''.join(traceback.format_exception(*sys.exc_info())))
+
+    if raised_exception_messages:
+      raise TracingControllerStoppedError(
+          'Exceptions raised when trying to stop tracing:\n' +
+          '\n'.join(raised_exception_messages))
 
   def StartAgentTracing(self, config, timeout):
     self._is_tracing_controllable = self._IsTracingControllable()
@@ -168,12 +208,12 @@ class TracingControllerBackend(object):
 
   @property
   def is_tracing_running(self):
-    return self._current_config != None
+    return self._current_state is not None
 
   def _GetActiveChromeTracingAgent(self):
     if not self.is_tracing_running:
       return None
-    if not self._current_config.enable_chrome_trace:
+    if not self._current_state.config.enable_chrome_trace:
       return None
     for agent in self._active_agents_instances:
       if isinstance(agent, chrome_tracing_agent.ChromeTracingAgent):

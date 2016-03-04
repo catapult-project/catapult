@@ -180,3 +180,29 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     else:
       raise NotImplementedError
     self._trace_config_file = None
+
+  def SupportsFlushingAgentTracing(self):
+    return True
+
+  def FlushAgentTracing(self, config, timeout, trace_data_builder):
+    if not self._trace_config:
+      raise ChromeTracingStoppedError(
+          'Tracing is not running on platform backend %s.'
+          % self._platform_backend)
+
+    for backend in self._IterInspectorBackends():
+      backend.EvaluateJavaScript("console.time('flush-tracing');")
+
+    self.StopAgentTracing(trace_data_builder)
+    self.StartAgentTracing(config, timeout)
+
+    for backend in self._IterInspectorBackends():
+      backend.EvaluateJavaScript("console.timeEnd('flush-tracing');")
+
+  def _IterInspectorBackends(self):
+    for client in chrome_tracing_devtools_manager.GetDevToolsClients(
+        self._platform_backend):
+      context_map = client.GetUpdatedInspectableContexts()
+      for context in context_map.contexts:
+        if context['type'] in ['iframe', 'page', 'webview']:
+          yield context_map.GetInspectorBackend(context['id'])
