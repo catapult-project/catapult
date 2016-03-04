@@ -124,6 +124,7 @@ class HistogramValue(summarizable.SummarizableValue):
         v0.page, v0.name, v0.units,
         raw_value_json=histogram_util.AddHistograms(
             [v.ToJSONString() for v in values]),
+        description=v0.description,
         important=v0.important, tir_label=v0.tir_label,
         improvement_direction=v0.improvement_direction,
         grouping_keys=v0.grouping_keys)

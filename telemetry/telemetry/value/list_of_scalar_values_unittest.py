@@ -88,10 +88,12 @@ class ValueTest(TestBase):
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [10, 9, 9, 7], same_page_merge_policy=value.CONCATENATE,
+        description='list-based metric',
         improvement_direction=improvement_direction.DOWN)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
         [300, 302, 303, 304], same_page_merge_policy=value.CONCATENATE,
+        description='list-based metric',
         improvement_direction=improvement_direction.DOWN)
     self.assertTrue(v1.IsMergableWith(v0))
 
@@ -105,6 +107,7 @@ class ValueTest(TestBase):
     self.assertEquals([10, 9, 9, 7, 300, 302, 303, 304], vM.values)
     # SQRT((19/12 * 3 + 35/12 * 3)/6) = 1.5
     self.assertAlmostEqual(1.5, vM.std)
+    self.assertEquals('list-based metric', vM.description)
     self.assertEquals(improvement_direction.DOWN, vM.improvement_direction)
 
   def testListSamePageMergingWithPickFirstPolicy(self):

@@ -59,8 +59,10 @@ class ValueTest(TestBase):
   def testScalarSamePageMerging(self):
     page0 = self.pages[0]
     v0 = scalar.ScalarValue(page0, 'x', 'unit', 1,
+                            description='important metric',
                             improvement_direction=improvement_direction.UP)
     v1 = scalar.ScalarValue(page0, 'x', 'unit', 2,
+                            description='important metric',
                             improvement_direction=improvement_direction.UP)
     self.assertTrue(v1.IsMergableWith(v0))
 
@@ -68,6 +70,7 @@ class ValueTest(TestBase):
     self.assertEquals(page0, vM.page)
     self.assertEquals('x', vM.name)
     self.assertEquals('unit', vM.units)
+    self.assertEquals('important metric', vM.description)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
     self.assertEquals(improvement_direction.UP, vM.improvement_direction)
@@ -75,15 +78,18 @@ class ValueTest(TestBase):
   def testScalarDifferentPageMerging(self):
     page0 = self.pages[0]
     page1 = self.pages[1]
-    v0 = scalar.ScalarValue(
-        page0, 'x', 'unit', 1, improvement_direction=improvement_direction.UP)
-    v1 = scalar.ScalarValue(
-        page1, 'x', 'unit', 2, improvement_direction=improvement_direction.UP)
+    v0 = scalar.ScalarValue(page0, 'x', 'unit', 1,
+                            description='important metric',
+                            improvement_direction=improvement_direction.UP)
+    v1 = scalar.ScalarValue(page1, 'x', 'unit', 2,
+                            description='important metric',
+                            improvement_direction=improvement_direction.UP)
 
     vM = scalar.ScalarValue.MergeLikeValuesFromDifferentPages([v0, v1])
     self.assertEquals(None, vM.page)
     self.assertEquals('x', vM.name)
     self.assertEquals('unit', vM.units)
+    self.assertEquals('important metric', vM.description)
     self.assertEquals(True, vM.important)
     self.assertEquals([1, 2], vM.values)
     self.assertEquals(improvement_direction.UP, vM.improvement_direction)

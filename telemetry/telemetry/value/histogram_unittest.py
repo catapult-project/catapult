@@ -112,3 +112,26 @@ class ValueTest(TestBase):
 
     self.assertTrue(isinstance(v, histogram_module.HistogramValue))
     self.assertIsNone(v.improvement_direction)
+
+  def testMergeLikeValuesFromSamePage(self):
+    d1 = {
+      'type': 'histogram',
+      'name': 'x',
+      'units': 'counts',
+      'description': 'histogram-based metric',
+      'buckets': [{'low': 1, 'high': 3, 'count': 1}],
+    }
+
+    d2 = {
+      'type': 'histogram',
+      'name': 'x',
+      'units': 'counts',
+      'description': 'histogram-based metric',
+      'buckets': [{'low': 2, 'high': 4, 'count': 1}],
+    }
+
+    v0, v1 = value.Value.FromDict(d1, {}), value.Value.FromDict(d2, {})
+
+    vM = histogram_module.HistogramValue.MergeLikeValuesFromSamePage([v0, v1])
+    self.assertTrue(isinstance(vM, histogram_module.HistogramValue))
+    self.assertEquals('histogram-based metric', vM.description)

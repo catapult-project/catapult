@@ -111,6 +111,7 @@ class ScalarValue(summarizable.SummarizableValue):
       none_value_reason = none_values.MERGE_FAILURE_REASON
     return list_of_scalar_values.ListOfScalarValues(
         page, name, v0.units, merged_value, important=v0.important,
+        description=v0.description,
         tir_label=tir_label,
         none_value_reason=none_value_reason,
         improvement_direction=v0.improvement_direction,

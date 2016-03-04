@@ -220,6 +220,7 @@ class ListOfScalarValues(summarizable.SummarizableValue):
         page, name, v0.units,
         merged_values,
         important=v0.important,
+        description=v0.description,
         tir_label=tir_label,
         same_page_merge_policy=v0.same_page_merge_policy,
         std=pooled_std,
