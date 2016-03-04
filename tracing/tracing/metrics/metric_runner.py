@@ -14,21 +14,21 @@ _METRIC_MAP_FUNCTION_NAME = 'metricMapFunction'
 def _GetMetricsDir():
   return os.path.dirname(os.path.abspath(__file__))
 
-def _GetMetricRunnerHandle(metrics):
-  assert isinstance(metrics, list)
+def _GetMetricRunnerHandle(metric):
+  assert isinstance(metric, basestring)
   metrics_dir = _GetMetricsDir()
-  metric_paths = [os.path.join(metrics_dir, metric) for metric in metrics]
+  metric_path = os.path.join(metrics_dir, metric)
   metric_mapper_path = os.path.join(metrics_dir, _METRIC_MAP_FUNCTION_FILENAME)
-  metric_paths.append(metric_mapper_path)
+  filenames_to_load = [metric_path, metric_mapper_path]
 
-  modules_to_load = [function_handle.ModuleToLoad(filename=path) for path in
-                     metric_paths]
+  modules_to_load = [function_handle.ModuleToLoad(filename=filename) for
+                     filename in filenames_to_load]
 
   return function_handle.FunctionHandle(modules_to_load,
                                         _METRIC_MAP_FUNCTION_NAME)
 
-def RunMetrics(filename, metrics):
+def RunMetric(filename, metric):
   th = file_handle.URLFileHandle(filename, 'file://' + filename)
-  result = map_single_trace.MapSingleTrace(th, _GetMetricRunnerHandle(metrics))
+  result = map_single_trace.MapSingleTrace(th, _GetMetricRunnerHandle(metric))
 
   return result

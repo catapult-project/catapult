@@ -14,14 +14,13 @@ from tracing.metrics import metric_runner
 def Main(argv):
   parser = argparse.ArgumentParser(
       description='Runs metrics on local traces')
-  parser.add_argument('metric', nargs='+',
-                      help='A list of metrics from tracing/metrics/')
+  parser.add_argument('metric',
+                      help='A metric from tracing/metrics/')
   parser.add_argument('trace_file_or_dir',
                       help='A trace file, or a dir containing trace files')
 
   args = parser.parse_args(argv[1:])
-  metrics = [metric + ('' if metric.endswith('.html') else '.html') for metric
-             in args.metric]
+  metric = args.metric + ('' if args.metric.endswith('.html') else '.html')
 
   if os.path.isdir(args.trace_file_or_dir):
     trace_dir = args.trace_file_or_dir
@@ -31,7 +30,7 @@ def Main(argv):
 
   results = {}
   for trace in traces:
-    results[trace] = metric_runner.RunMetrics(trace, metrics).AsDict()
+    results[trace] = metric_runner.RunMetric(trace, metric).AsDict()
 
   print json.dumps(results, indent=2, sort_keys=True, separators=(',', ': '))
 

@@ -139,7 +139,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
 
     options = tbm_module.Options()
-    options.SetTimelineBasedMetrics(['sample_metric.html'])
+    options.SetTimelineBasedMetric('sample_metric.html')
 
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)

@@ -161,7 +161,7 @@ class Options(object):
 
   By default, all the timeline based metrics in telemetry/web_perf/metrics are
   used (see _GetAllLegacyTimelineBasedMetrics above).
-  To customize your metric needs, use SetTimelineBasedMetrics().
+  To customize your metric needs, use SetTimelineBasedMetric().
   """
 
   def __init__(self, overhead_level=NO_OVERHEAD_LEVEL):
@@ -192,7 +192,7 @@ class Options(object):
                       " or valid overhead level string."
                       " Given overhead level: %s" % overhead_level)
 
-    self._timeline_based_metrics = None
+    self._timeline_based_metric = None
     self._legacy_timeline_based_metrics = _GetAllLegacyTimelineBasedMetrics()
 
 
@@ -209,25 +209,25 @@ class Options(object):
   def config(self):
     return self._config
 
-  def SetTimelineBasedMetrics(self, metrics):
-    """Sets the new-style (TBMv2) metrics to run.
+  def SetTimelineBasedMetric(self, metric):
+    """Sets the new-style (TBMv2) metric to run.
 
-    Metrics are assumed to live in //tracing/tracing/metrics, so all paths
+    Metrics are assumed to live in //tracing/tracing/metrics, so the path
     should be relative to that. For example, to specify sample_metric.html,
-    you would pass ['sample_metric.html'].
+    you would pass 'sample_metric.html'.
 
     Args:
-      metrics: A list of string metric paths under //tracing/tracing/metrics.
+      metric: A string metric path under //tracing/tracing/metrics.
     """
-    assert isinstance(metrics, list)
+    assert isinstance(metric, basestring)
     self._legacy_timeline_based_metrics = None
-    self._timeline_based_metrics = metrics
+    self._timeline_based_metric = metric
 
-  def GetTimelineBasedMetrics(self):
-    return self._timeline_based_metrics
+  def GetTimelineBasedMetric(self):
+    return self._timeline_based_metric
 
   def SetLegacyTimelineBasedMetrics(self, metrics):
-    assert self._timeline_based_metrics == None
+    assert self._timeline_based_metric == None
     assert isinstance(metrics, collections.Iterable)
     for m in metrics:
       assert isinstance(m, timeline_based_metric.TimelineBasedMetric)
@@ -282,8 +282,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     trace_value = trace.TraceValue(results.current_page, trace_result)
     results.AddValue(trace_value)
 
-    if self._tbm_options.GetTimelineBasedMetrics():
-      self._ComputeTimelineBasedMetrics(results, trace_value)
+    if self._tbm_options.GetTimelineBasedMetric():
+      self._ComputeTimelineBasedMetric(results, trace_value)
     else:
       assert self._tbm_options.GetLegacyTimelineBasedMetrics()
       self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
@@ -294,11 +294,10 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     if platform.tracing_controller.is_tracing_running:
       platform.tracing_controller.StopTracing()
 
-  def _ComputeTimelineBasedMetrics(self, results, trace_value):
-    metrics = self._tbm_options.GetTimelineBasedMetrics()
+  def _ComputeTimelineBasedMetric(self, results, trace_value):
+    metric = self._tbm_options.GetTimelineBasedMetric()
 
-    # TODO(eakuefner)
-    mre_result = metric_runner.RunMetrics(trace_value.filename, metrics)
+    mre_result = metric_runner.RunMetric(trace_value.filename, metric)
     page = results.current_page
 
     failure_dicts = mre_result.failures
