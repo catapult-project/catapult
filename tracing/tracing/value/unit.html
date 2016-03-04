@@ -35,11 +35,14 @@ tr.exportTo('tr.v', function() {
   };
 
   /** @constructor */
-  function Unit(jsonName, isDelta, improvementDirection, formatValue) {
+  function Unit(unitName, jsonName, isDelta, improvementDirection,
+      formatValue) {
+    this.unitName = unitName;
     this.jsonName = jsonName;
     this.isDelta = isDelta;
     this.improvementDirection = improvementDirection;
     this.formatValue_ = formatValue;
+    this.correspondingDeltaUnit = undefined;
   }
 
   Unit.prototype = {
@@ -133,10 +136,14 @@ tr.exportTo('tr.v', function() {
    * for deltas).
    */
   Unit.define = function(params) {
-    [false, true].forEach(function(isDelta) {
-      tr.b.iterItems(ImprovementDirection, function(_, improvementDirection) {
-        Unit.defineUnitVariant_(params, isDelta, improvementDirection);
-      });
+    tr.b.iterItems(ImprovementDirection, function(_, improvementDirection) {
+      var regularUnit =
+          Unit.defineUnitVariant_(params, false, improvementDirection);
+      var deltaUnit =
+          Unit.defineUnitVariant_(params, true, improvementDirection);
+
+      regularUnit.correspondingDeltaUnit = deltaUnit;
+      deltaUnit.correspondingDeltaUnit = deltaUnit;
     });
   };
 
@@ -164,9 +171,11 @@ tr.exportTo('tr.v', function() {
       throw new Error('JSON unit \'' + jsonName + '\' alread exists');
 
     var unit = new Unit(
-        jsonName, isDelta, improvementDirection, params.formatValue);
+        unitName, jsonName, isDelta, improvementDirection, params.formatValue);
     Unit.byName[unitName] = unit;
     Unit.byJSONName[jsonName] = unit;
+
+    return unit;
   };
 
   tr.b.EventTarget.decorate(Unit);

@@ -71,11 +71,16 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('timeStampInMs', function() {
-    checkTimeUnit(tr.v.Unit.byName.timeStampInMs);
+    assert.strictEqual(Unit.byName.timeStampInMs.unitName, 'timeStampInMs');
+    assert.strictEqual(Unit.byName.timeStampInMs.asJSON(), 'tsMs');
+    checkTimeUnit(Unit.byName.timeStampInMs);
   });
 
   test('timeDurationInMs', function() {
-    checkTimeUnit(tr.v.Unit.byName.timeDurationInMs);
+    assert.strictEqual(Unit.byName.timeDurationInMs.unitName,
+        'timeDurationInMs');
+    assert.strictEqual(Unit.byName.timeDurationInMs.asJSON(), 'ms');
+    checkTimeUnit(Unit.byName.timeDurationInMs);
   });
 
   test('sizeInBytes', function() {
@@ -86,40 +91,69 @@ tr.b.unittest.testSuite(function() {
     var EXPECTED_DELTA_FORMATTED_VALUES = ['\u00B10.0 B', '+1.0 B', '+1.5 KiB',
         '+424.5 MiB', '+1025.0 TiB', '-2.5 MiB'];
 
-    function checkSizeUnit(unit, expectedAsJSON, expectedIsDelta,
-        expectedImprovementDirection, expectedFormattedValues) {
-      assert.strictEqual(unit.asJSON(), expectedAsJSON);
-      assert.strictEqual(unit.isDelta, expectedIsDelta);
+    function checkSizeUnit(unit, expectation) {
+      assert.strictEqual(unit.unitName, expectation.unitName);
+      assert.strictEqual(unit.asJSON(), expectation.asJSON);
+      assert.strictEqual(unit.isDelta, expectation.isDelta);
+      assert.strictEqual(unit.correspondingDeltaUnit,
+          expectation.correspondingDeltaUnit);
       assert.strictEqual(unit.improvementDirection,
-          expectedImprovementDirection);
+          expectation.improvementDirection);
       assert.deepEqual(SOURCE_VALUES.map(unit.format.bind(unit)),
-          expectedFormattedValues);
+          expectation.formattedValues);
     }
 
     // Regular (non-delta).
-    checkSizeUnit(Unit.byName.sizeInBytes, 'sizeInBytes',
-        false /* expectedIsDelta */, ImprovementDirection.DONT_CARE,
-        EXPECTED_REGULAR_FORMATTED_VALUES);
-    checkSizeUnit(Unit.byName.sizeInBytes_smallerIsBetter,
-        'sizeInBytes_smallerIsBetter', false /* expectedIsDelta */,
-        ImprovementDirection.SMALLER_IS_BETTER,
-        EXPECTED_REGULAR_FORMATTED_VALUES);
-    checkSizeUnit(Unit.byName.sizeInBytes_biggerIsBetter,
-        'sizeInBytes_biggerIsBetter', false /* expectedIsDelta */,
-        ImprovementDirection.BIGGER_IS_BETTER,
-        EXPECTED_REGULAR_FORMATTED_VALUES);
+    checkSizeUnit(Unit.byName.sizeInBytes, {
+      unitName: 'sizeInBytes',
+      asJSON: 'sizeInBytes',
+      isDelta: false,
+      correspondingDeltaUnit: Unit.byName.sizeInBytesDelta,
+      improvementDirection: ImprovementDirection.DONT_CARE,
+      formattedValues: EXPECTED_REGULAR_FORMATTED_VALUES
+    });
+    checkSizeUnit(Unit.byName.sizeInBytes_smallerIsBetter, {
+      unitName: 'sizeInBytes_smallerIsBetter',
+      asJSON: 'sizeInBytes_smallerIsBetter',
+      isDelta: false,
+      correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      improvementDirection: ImprovementDirection.SMALLER_IS_BETTER,
+      formattedValues: EXPECTED_REGULAR_FORMATTED_VALUES
+    });
+    checkSizeUnit(Unit.byName.sizeInBytes_biggerIsBetter, {
+      unitName: 'sizeInBytes_biggerIsBetter',
+      asJSON: 'sizeInBytes_biggerIsBetter',
+      isDelta: false,
+      correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      improvementDirection: ImprovementDirection.BIGGER_IS_BETTER,
+      formattedValues: EXPECTED_REGULAR_FORMATTED_VALUES
+    });
 
     // Delta.
-    checkSizeUnit(Unit.byName.sizeInBytesDelta, 'sizeInBytesDelta',
-        true /* expectedIsDelta */, ImprovementDirection.DONT_CARE,
-        EXPECTED_DELTA_FORMATTED_VALUES);
-    checkSizeUnit(Unit.byName.sizeInBytesDelta_smallerIsBetter,
-        'sizeInBytesDelta_smallerIsBetter', true /* expectedIsDelta */,
-        ImprovementDirection.SMALLER_IS_BETTER,
-        EXPECTED_DELTA_FORMATTED_VALUES);
-    checkSizeUnit(Unit.byName.sizeInBytesDelta_biggerIsBetter,
-        'sizeInBytesDelta_biggerIsBetter', true /* expectedIsDelta */,
-        ImprovementDirection.BIGGER_IS_BETTER, EXPECTED_DELTA_FORMATTED_VALUES);
+    checkSizeUnit(Unit.byName.sizeInBytesDelta, {
+      unitName: 'sizeInBytesDelta',
+      asJSON: 'sizeInBytesDelta',
+      isDelta: true,
+      correspondingDeltaUnit: Unit.byName.sizeInBytesDelta,
+      improvementDirection: ImprovementDirection.DONT_CARE,
+      formattedValues: EXPECTED_DELTA_FORMATTED_VALUES
+    });
+    checkSizeUnit(Unit.byName.sizeInBytesDelta_smallerIsBetter, {
+      unitName: 'sizeInBytesDelta_smallerIsBetter',
+      asJSON: 'sizeInBytesDelta_smallerIsBetter',
+      isDelta: true,
+      correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      improvementDirection: ImprovementDirection.SMALLER_IS_BETTER,
+      formattedValues: EXPECTED_DELTA_FORMATTED_VALUES
+    });
+    checkSizeUnit(Unit.byName.sizeInBytesDelta_biggerIsBetter, {
+      unitName: 'sizeInBytesDelta_biggerIsBetter',
+      asJSON: 'sizeInBytesDelta_biggerIsBetter',
+      isDelta: true,
+      correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      improvementDirection: ImprovementDirection.BIGGER_IS_BETTER,
+      formattedValues: EXPECTED_DELTA_FORMATTED_VALUES
+    });
   });
 
   test('energyInJoules', function() {
