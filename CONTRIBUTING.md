@@ -47,7 +47,7 @@ git checkout master
 git branch -D foo
 ```
 
-# Legal
+# Becoming a committer
 
 If you're new to the chromium-family of projects, you will also need to sign the
 chrome contributors license agreement. You can sign the
@@ -61,6 +61,9 @@ us as described on that page.
 
 If you've never submitted code before, you must add your (or your
 organization's) name and contact info to the Chromium AUTHORS file.
+
+Next, ask an admin to add you (see
+[adding committers](/docs/adding-committers.md))
 
 # Contributing from a Chromium checkout
 
@@ -111,16 +114,3 @@ Chromium's DEPS file needs to be rolled to the catapult revision containing your
 change in order for it to appear in Chrome's about:tracing or other
 third_party/catapult files. Follow the [directions for rolling DEPS]
 (/docs/rolling-deps.md) to do this.
-
-# Adding contributors
-
-Admins (nduca, sullivan) can add contributors to the project. There are two
-steps:
-
-1.  Add the person's github account to the [catapult]
-(https://github.com/orgs/catapult-project/teams/catapult) team.
-2.  Add the person's email to the [commit queue list]
-(https://chrome-infra-auth.appspot.com/auth/groups#project-catapult-committers).
-
-Because there is no API to retrieve a person's GitHub ID from their email
-address or vice versa, we cannot automate this into one step.
