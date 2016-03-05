@@ -118,7 +118,13 @@ class TracingBackend(object):
     if custom_categories:
       req['params']['categories'] = custom_categories
     logging.info('Start Tracing Request: %s', repr(req))
-    self._inspector_websocket.SyncRequest(req, timeout)
+    response = self._inspector_websocket.SyncRequest(req, timeout)
+
+    if 'error' in response:
+      raise TracingUnexpectedResponseException(
+          'Inspector returned unexpected response for '
+          'Tracing.start:\n' + json.dumps(response, indent=2))
+
     self._is_tracing_running = True
     return True
 

@@ -165,6 +165,19 @@ class TracingBackendUnitTest(unittest.TestCase):
 
     self.assertIsNone(backend.DumpMemory())
 
+  def testStartTracingFailure(self):
+    self._inspector_socket.AddResponseHandler(
+        'Tracing.start',
+        lambda req: {'error': {'message': 'Tracing is already started'}})
+    self._inspector_socket.AddResponseHandler(
+        'Tracing.hasCompleted', lambda req: {})
+    backend = tracing_backend.TracingBackend(self._inspector_socket)
+    self.assertRaisesRegexp(
+        tracing_backend.TracingUnexpectedResponseException,
+        'Tracing is already started',
+        backend.StartTracing, tracing_config.TracingConfig())
+
+
 class DevToolsStreamPerformanceTest(unittest.TestCase):
   def setUp(self):
     self._mock_timer = simple_mock.MockTimer(tracing_backend)
