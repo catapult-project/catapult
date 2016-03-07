@@ -12,13 +12,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Provides the TimedEvent class.
- */
 tr.exportTo('tr.model', function() {
   /**
-   * A TimedEvent is the base type for any piece of data in the trace model with
-   * a specific start and duration.
+   * TimedEvent is a base type for any entity in the trace model with a specific
+   * start and duration.
    *
    * @constructor
    */
@@ -42,13 +39,14 @@ tr.exportTo('tr.model', function() {
       range.addValue(this.end);
     },
 
-    // bounds returns whether that TimedEvent happens within this timed event
-    bounds: function(that, precisionUnit) {
-      if (precisionUnit === undefined) {
-        precisionUnit = tr.v.TimeDisplayModes.ms;
-      }
-      var startsBefore = precisionUnit.roundedLess(that.start, this.start);
-      var endsAfter = precisionUnit.roundedLess(this.end, that.end);
+    // Returns true if 'that' TimedEvent is fully contained within 'this' timed
+    // event.
+    bounds: function(that, opt_precisionUnit) {
+      if (opt_precisionUnit === undefined)
+        opt_precisionUnit = tr.v.TimeDisplayModes.ms;
+
+      var startsBefore = opt_precisionUnit.roundedLess(that.start, this.start);
+      var endsAfter = opt_precisionUnit.roundedLess(this.end, that.end);
       return !startsBefore && !endsAfter;
     }
   };
