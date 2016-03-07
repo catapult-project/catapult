@@ -11,15 +11,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Provides the InstantEvent class.
- */
 tr.exportTo('tr.model', function() {
   var InstantEventType = {
     GLOBAL: 1,
     PROCESS: 2
   };
 
+  /**
+   * An InstantEvent is a zero-duration event.
+   *
+   * @constructor
+   */
   function InstantEvent(category, title, colorId, start, args) {
     tr.model.TimedEvent.call(this, start);
 
@@ -35,6 +37,15 @@ tr.exportTo('tr.model', function() {
     __proto__: tr.model.TimedEvent.prototype
   };
 
+  /**
+   * A GlobalInstantEvent is a zero-duration event that's not tied to any
+   * particular process.
+   *
+   * An example is a trace event that's issued when a new USB device is plugged
+   * into the machine.
+   *
+   * @constructor
+   */
   function GlobalInstantEvent(category, title, colorId, start, args) {
     InstantEvent.apply(this, arguments);
     this.type = InstantEventType.GLOBAL;
@@ -48,6 +59,14 @@ tr.exportTo('tr.model', function() {
     }
   };
 
+  /**
+   * A ProcessInstantEvent is a zero-duration event that's tied to a
+   * particular process.
+   *
+   * An example is a trace event that's issued when a kill signal is received.
+   *
+   * @constructor
+   */
   function ProcessInstantEvent(category, title, colorId, start, args) {
     InstantEvent.apply(this, arguments);
     this.type = InstantEventType.PROCESS;
