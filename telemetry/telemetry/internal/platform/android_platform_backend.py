@@ -85,6 +85,7 @@ class AndroidPlatformBackend(
       except device_errors.CommandFailedError:
         logging.warning('Unable to root %s', str(self._device))
     self._battery = battery_utils.BatteryUtils(self._device)
+    self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
