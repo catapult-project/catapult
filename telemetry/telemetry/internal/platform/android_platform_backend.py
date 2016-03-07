@@ -85,7 +85,6 @@ class AndroidPlatformBackend(
       except device_errors.CommandFailedError:
         logging.warning('Unable to root %s', str(self._device))
     self._battery = battery_utils.BatteryUtils(self._device)
-    self._enable_performance_mode = device.enable_performance_mode
     self._surface_stats_collector = None
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
@@ -685,15 +684,11 @@ class AndroidPlatformBackend(
   def GetStandardOutput(self):
     return None
 
-  def GetStackTrace(self, target_arch):
+  def GetStackTrace(self):
     """Returns stack trace.
 
     The stack trace consists of raw logcat dump, logcat dump with symbols,
     and stack info from tomstone files.
-
-    Args:
-      target_arch: String specifying device architecture (eg. arm, arm64, mips,
-        x86, x86_64)
     """
     def Decorate(title, content):
       return "%s\n%s\n%s\n" % (title, content, '*' * 80)
@@ -705,8 +700,7 @@ class AndroidPlatformBackend(
     # Try to symbolize logcat.
     if os.path.exists(stack):
       cmd = [stack]
-      if target_arch:
-        cmd.append('--arch=%s' % target_arch)
+      cmd.append('--arch=%s' % self.GetArchName())
       p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
       ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
 

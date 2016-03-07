@@ -20,8 +20,7 @@ from devil.android.sdk import intent
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   def __init__(self, android_platform_backend, browser_options,
-               backend_settings, output_profile_path, extensions_to_load,
-               target_arch):
+               backend_settings, output_profile_path, extensions_to_load):
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidBrowserBackend, self).__init__(
@@ -42,7 +41,6 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._backend_settings = backend_settings
-    self._target_arch = target_arch
     self._saved_sslflag = ''
 
     # Kill old browser.
@@ -211,4 +209,4 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self.platform_backend.GetStandardOutput()
 
   def GetStackTrace(self):
-    return self.platform_backend.GetStackTrace(self._target_arch)
+    return self.platform_backend.GetStackTrace()

@@ -121,8 +121,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
         self._platform_backend,
         finder_options.browser_options, self._backend_settings,
         output_profile_path=finder_options.output_profile_path,
-        extensions_to_load=finder_options.extensions_to_load,
-        target_arch=finder_options.target_arch)
+        extensions_to_load=finder_options.extensions_to_load)
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, self._credentials_path)
@@ -215,7 +214,7 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   # Add the reference build if found.
   os_version = dependency_util.GetChromeApkOsVersion(
       android_platform.GetOSVersionName())
-  arch = finder_options.target_arch or android_platform.GetArchName()
+  arch = android_platform.GetArchName()
   try:
     reference_build = binary_manager.FetchPath(
         'chrome_stable', arch, 'android', os_version)
