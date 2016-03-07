@@ -21,12 +21,11 @@ tr.exportTo('tr.model', function() {
   };
 
   function InstantEvent(category, title, colorId, start, args) {
-    tr.model.TimedEvent.call(this);
+    tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';
     this.title = title;
     this.colorId = colorId;
-    this.start = start;
     this.args = args;
 
     this.type = undefined;
