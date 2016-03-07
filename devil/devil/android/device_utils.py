@@ -78,6 +78,7 @@ _PERMISSIONS_BLACKLIST = [
     'android.permission.READ_SYNC_SETTINGS',
     'android.permission.READ_SYNC_STATS',
     'android.permission.RECEIVE_BOOT_COMPLETED',
+    'android.permission.RUN_INSTRUMENTATION',
     'android.permission.USE_CREDENTIALS',
     'android.permission.VIBRATE',
     'android.permission.WAKE_LOCK',
