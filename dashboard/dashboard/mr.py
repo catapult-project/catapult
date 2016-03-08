@@ -58,7 +58,7 @@ class MRDeprecateTestsHandler(request_handler.RequestHandler):
   """Handler to run a deprecate tests mapper job."""
 
   def get(self):
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
+    # TODO(qyearsley): Add test coverage. See catapult:#1346.
     name = 'Update test deprecation status.'
     handler = ('dashboard.mr.DeprecateTestsMapper')
     reader = 'mapreduce.input_readers.DatastoreInputReader'
@@ -88,7 +88,7 @@ def DeprecateTestsMapper(entity):
   """
   # Make sure that we have a non-deprecated Test with Rows.
   if entity.key.kind() != 'Test' or not entity.has_rows or entity.deprecated:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
+    # TODO(qyearsley): Add test coverage. See catapult:#1346.
     logging.error(
         'Got bad entity in mapreduce! Kind: %s, has_rows: %s, deprecated: %s',
         entity.key.kind(), entity.has_rows, entity.deprecated)
@@ -100,7 +100,7 @@ def DeprecateTestsMapper(entity):
   query = query.order(-graph_data.Row.timestamp)
   last_row = query.get()
   if not last_row:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/
+    # TODO(qyearsley): Add test coverage. See catapult:#1346.
     logging.error('No rows for %s (but has_rows=True)', entity.key)
     return
 

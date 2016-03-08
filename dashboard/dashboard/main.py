@@ -120,7 +120,7 @@ def _AnomalyInfoDicts(anomalies, tests):
   """
   anomaly_list = []
   for anomaly_entity in anomalies:
-    # TODO(qyearsley): Add test coverage. See http://crbug.com/447432
+    # TODO(qyearsley): Add test coverage. See catapult:#1346.
     test = tests.get(anomaly_entity.test)
     if not test:
       logging.warning('No Test entity for key: %s.', anomaly_entity.test)
