@@ -72,8 +72,7 @@ class WebContents(object):
         'document.readyState == "interactive" || '
         'document.readyState == "complete"', timeout)
 
-  def WaitForJavaScriptExpression(self, expr, timeout,
-                                  dump_page_state_on_timeout=True):
+  def WaitForJavaScriptExpression(self, expr, timeout):
     """Waits for the given JavaScript expression to be True.
 
     This method is robust against any given Evaluation timing out.
@@ -81,8 +80,6 @@ class WebContents(object):
     Args:
       expr: The expression to evaluate.
       timeout: The number of seconds to wait for the expression to be True.
-      dump_page_state_on_timeout: Whether to provide additional information on
-          the page state if a TimeoutException is thrown.
 
     Raises:
       exceptions.TimeoutException: On a timeout.
@@ -100,33 +97,10 @@ class WebContents(object):
     try:
       util.WaitFor(IsJavaScriptExpressionTrue, timeout)
     except exceptions.TimeoutException as e:
-      if not dump_page_state_on_timeout:
-        raise
-
-      # Try to make timeouts a little more actionable by dumping |this|.
-      raise exceptions.TimeoutException(e.message + self.EvaluateJavaScript("""
-        (function() {
-          var error = '\\n\\nJavaScript |this|:\\n';
-          for (name in this) {
-            try {
-              error += '\\t' + name + ': ' + this[name] + '\\n';
-            } catch (e) {
-              error += '\\t' + name + ': ???\\n';
-            }
-          }
-          if (window && window.document) {
-            error += '\\n\\nJavaScript window.document:\\n';
-            for (name in window.document) {
-              try {
-                error += '\\t' + name + ': ' + window.document[name] + '\\n';
-              } catch (e) {
-                error += '\\t' + name + ': ???\\n';
-              }
-            }
-          }
-          return error;
-        })();
-      """))
+      # Try to make timeouts a little more actionable by dumping console output.
+      raise exceptions.TimeoutException(
+          e.message + '\nConsole output:\n' +
+          self._inspector_backend.GetCurrentConsoleOutputBuffer())
 
   def HasReachedQuiescence(self):
     """Determine whether the page has reached quiescence after loading.

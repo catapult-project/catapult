@@ -67,6 +67,25 @@ class TabTest(tab_test_case.TabTestCase):
                       lambda: self._tab.Navigate('chrome://crash',
                                                  timeout=30))
 
+  def testTimeoutExceptionIncludeConsoleMessage(self):
+    self._tab.EvaluateJavaScript("""
+        window.__set_timeout_called = false;
+        function buggyReference() {
+          window.__set_timeout_called = true;
+          if (window.__one.not_defined === undefined)
+             window.__one = 1;
+        }
+        setTimeout(buggyReference, 200);""")
+    self._tab.WaitForJavaScriptExpression(
+        'window.__set_timeout_called === true', 5)
+    with self.assertRaises(exceptions.TimeoutException) as context:
+      self._tab.WaitForJavaScriptExpression(
+          'window.__one === 1', 1)
+      self.assertIn(
+        ("(error) :5: Uncaught TypeError: Cannot read property 'not_defined' "
+        'of undefined\n'),
+        context.exception.message)
+
   @decorators.Enabled('has tabs')
   def testActivateTab(self):
     util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)

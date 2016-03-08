@@ -170,6 +170,12 @@ class InspectorBackend(object):
   def GetCookieByName(self, name, timeout):
     return self._page.GetCookieByName(name, timeout)
 
+  # Console public methods.
+
+  @_HandleInspectorWebSocketExceptions
+  def GetCurrentConsoleOutputBuffer(self, timeout=10):
+    return self._console.GetCurrentConsoleOutputBuffer(timeout)
+
   # Runtime public methods.
 
   @_HandleInspectorWebSocketExceptions
