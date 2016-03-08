@@ -87,7 +87,17 @@ class IssueTrackerService(object):
     return self._ExecuteRequest(request)
 
   def _MakeCommentRequest(self, bug_id, body, retry=True):
-    """Makes a request to the issue tracker to update a bug."""
+    """Makes a request to the issue tracker to update a bug.
+
+    Args:
+      bug_id: Bug ID of the issue.
+      body: Dict of comment parameters.
+      retry: True to retry on failure, False otherwise.
+
+    Returns:
+      True if successful posted a comment or issue was deleted.  False if
+      making a comment failed unexpectedly.
+    """
     request = self._service.issues().comments().insert(
         projectId='chromium',
         issueId=bug_id,
@@ -98,9 +108,14 @@ class IssueTrackerService(object):
         return True
     except errors.HttpError as e:
       reason = _GetErrorReason(e)
+      # Retry without owner if we cannot set owner to this issue.
       if retry and reason == 'The user does not exist':
         del body['updates']['owner']
         return self._MakeCommentRequest(bug_id, body, retry=False)
+      # This error reason is received when issue is deleted.
+      elif 'User is not allowed to view this issue' in reason:
+        logging.warning('Unable to update bug %s with body %s', bug_id, body)
+        return True
     logging.error('Error updating bug %s with body %s', bug_id, body)
     return False
 
