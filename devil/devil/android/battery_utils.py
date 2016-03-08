@@ -116,6 +116,8 @@ _PWS_AGGREGATION_INDEX = _PWI_AGGREGATION_INDEX
 _PWI_POWER_CONSUMPTION_INDEX = 5
 _PWS_POWER_CONSUMPTION_INDEX = _PWI_POWER_CONSUMPTION_INDEX
 
+_MAX_CHARGE_ERROR = 20
+
 
 class BatteryUtils(object):
 
@@ -131,7 +133,6 @@ class BatteryUtils(object):
         default_retries: An integer containing the default number or times an
                          operation should be retried on failure if no explicit
                          value is provided.
-
       Raises:
         TypeError: If it is not passed a DeviceUtils instance.
     """
@@ -441,9 +442,14 @@ class BatteryUtils(object):
     Args:
       level: level of charge to wait for.
       wait_period: time in seconds to wait between checking.
+    Raises:
+      device_errors.DeviceChargingError: If error while charging is detected.
     """
     self.SetCharging(True)
-
+    charge_status = {
+        'charge_failure_count': 0,
+        'last_charge_value': 0
+    }
     def device_charged():
       battery_level = self.GetBatteryInfo().get('level')
       if battery_level is None:
@@ -452,6 +458,19 @@ class BatteryUtils(object):
       else:
         logging.info('current battery level: %s', battery_level)
         battery_level = int(battery_level)
+
+      # Use > so that it will not reset if charge is going down.
+      if battery_level > charge_status['last_charge_value']:
+        charge_status['last_charge_value'] = battery_level
+        charge_status['charge_failure_count'] = 0
+      else:
+        charge_status['charge_failure_count'] += 1
+
+      if (not battery_level >= level
+          and charge_status['charge_failure_count'] >= _MAX_CHARGE_ERROR):
+        raise device_errors.DeviceChargingError(
+            'Device not charging properly. Current level:%s Previous level:%s'
+             % (battery_level, charge_status['last_charge_value']))
       return battery_level >= level
 
     timeout_retry.WaitFor(device_charged, wait_period=wait_period)

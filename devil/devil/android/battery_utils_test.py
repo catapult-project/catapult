@@ -246,12 +246,43 @@ class BatteryUtilsGetPowerData(BatteryUtilsTest):
 class BatteryUtilsChargeDevice(BatteryUtilsTest):
 
   @mock.patch('time.sleep', mock.Mock())
-  def testChargeDeviceToLevel(self):
+  def testChargeDeviceToLevel_pass(self):
     with self.assertCalls(
         (self.call.battery.SetCharging(True)),
         (self.call.battery.GetBatteryInfo(), {'level': '50'}),
         (self.call.battery.GetBatteryInfo(), {'level': '100'})):
       self.battery.ChargeDeviceToLevel(95)
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testChargeDeviceToLevel_failureSame(self):
+    with self.assertCalls(
+        (self.call.battery.SetCharging(True)),
+        (self.call.battery.GetBatteryInfo(), {'level': '50'}),
+        (self.call.battery.GetBatteryInfo(), {'level': '50'}),
+
+        (self.call.battery.GetBatteryInfo(), {'level': '50'})):
+      with self.assertRaises(device_errors.DeviceChargingError):
+        old_max = battery_utils._MAX_CHARGE_ERROR
+        try:
+          battery_utils._MAX_CHARGE_ERROR = 2
+          self.battery.ChargeDeviceToLevel(95)
+        finally:
+          battery_utils._MAX_CHARGE_ERROR = old_max
+
+  @mock.patch('time.sleep', mock.Mock())
+  def testChargeDeviceToLevel_failureDischarge(self):
+    with self.assertCalls(
+        (self.call.battery.SetCharging(True)),
+        (self.call.battery.GetBatteryInfo(), {'level': '50'}),
+        (self.call.battery.GetBatteryInfo(), {'level': '49'}),
+        (self.call.battery.GetBatteryInfo(), {'level': '48'})):
+      with self.assertRaises(device_errors.DeviceChargingError):
+        old_max = battery_utils._MAX_CHARGE_ERROR
+        try:
+          battery_utils._MAX_CHARGE_ERROR = 2
+          self.battery.ChargeDeviceToLevel(95)
+        finally:
+          battery_utils._MAX_CHARGE_ERROR = old_max
 
 
 class BatteryUtilsDischargeDevice(BatteryUtilsTest):

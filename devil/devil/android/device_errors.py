@@ -115,3 +115,10 @@ class NoAdbError(base_error.BaseError):
   def __init__(self, msg=None):
     super(NoAdbError, self).__init__(
         msg or 'Unable to find adb.', is_infra_error=True)
+
+
+class DeviceChargingError(CommandFailedError):
+  """Exception for device charging errors."""
+
+  def __init__(self, message, device_serial=None):
+    super(DeviceChargingError, self).__init__(message, device_serial)
