@@ -24,6 +24,7 @@ Example:
   },
   "chart_data": {/*... as output by Telemetry; see below ...*/}
 }
+```
 
 Fields:
 
