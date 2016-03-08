@@ -31,13 +31,6 @@ class ListTestSuitesTest(testing_common.TestCase):
         {'foo': 'bar'},
         update_test_suites.FetchCachedTestSuites())
 
-  def testFetchCachedTestSuites_Empty_ReturnsNone(self):
-    # If the cache is not set, then FetchCachedTestSuites
-    # just returns None; compiling the list of test suites would
-    # take too long.
-    self._AddSampleData()
-    self.assertIsNone(update_test_suites.FetchCachedTestSuites())
-
   def _AddSampleData(self):
     testing_common.AddTests(
         ['Chromium'],
@@ -66,12 +59,40 @@ class ListTestSuitesTest(testing_common.TestCase):
             },
         })
 
-  def testPost(self):
+  def testPost_ForcesCacheUpdate(self):
+    key = update_test_suites._NamespaceKey(
+        update_test_suites._LIST_SUITES_CACHE_KEY)
+    stored_object.Set(key, {'foo': 'bar'})
+    self.assertEqual(
+        {'foo': 'bar'},
+        update_test_suites.FetchCachedTestSuites())
     self._AddSampleData()
-    # The cache starts out empty.
-    self.assertIsNone(update_test_suites.FetchCachedTestSuites())
+    # Because there is something cached, the cache is
+    # not automatically updated when new data is added.
+    self.assertEqual(
+        {'foo': 'bar'},
+        update_test_suites.FetchCachedTestSuites())
+
+    # Making a request to /udate_test_suites forces an update.
     self.testapp.post('/update_test_suites')
-    # After the request is made, it will no longer be empty.
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+        },
+        update_test_suites.FetchCachedTestSuites())
+
+  def testFetchCachedTestSuites_Empty_UpdatesWhenFetching(self):
+    # If the cache is not set at all, then FetchCachedTestSuites
+    # just updates the cache before returning the list.
+    self._AddSampleData()
     self.assertEqual(
         {
             'dromaeo': {

@@ -19,7 +19,15 @@ _LIST_SUITES_CACHE_KEY = 'list_tests_get_test_suites'
 
 def FetchCachedTestSuites():
   """Fetches cached test suite data."""
-  return stored_object.Get(_NamespaceKey(_LIST_SUITES_CACHE_KEY))
+  cache_key = _NamespaceKey(_LIST_SUITES_CACHE_KEY)
+  cached = stored_object.Get(cache_key)
+  if cached is None:
+    # If the cache test suite list is not set, update it before fetching.
+    # This is for convenience when testing sending of data to a local instance.
+    namespace = datastore_hooks.GetNamespace()
+    UpdateTestSuites(namespace)
+    cached = stored_object.Get(cache_key)
+  return cached
 
 
 class UpdateTestSuitesHandler(request_handler.RequestHandler):
