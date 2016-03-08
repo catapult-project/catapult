@@ -18,20 +18,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import"
-    href="/tracing/metrics/system_health/system_health_metric.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
 tr.exportTo('pi.m', function() {
 
   function railMapFunction(results, runInfo, model) {
-    var health = tr.metrics.sh.SystemHealthMetric.forModel(model);
-    if (health === undefined) {
-      return;
-    }
-    results.addValue(new tr.v.DictValue(runInfo, 'railScore',
-                                        {overallScore: health}));
+    results.addValue(new tr.v.DictValue(
+        runInfo, 'userExpectationsCount',
+        model.userModel.expectations.length));
   }
   pi.FunctionRegistry.register(railMapFunction);
 

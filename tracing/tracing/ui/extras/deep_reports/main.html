@@ -7,10 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import"
-    href="/tracing/metrics/system_health/system_health_metric.html">
-<link rel="import" href="/tracing/ui/extras/deep_reports/scalar_value.html">
 <link rel="import" href="/tracing/base/xhr.html">
+<link rel="import" href="/tracing/ui/extras/deep_reports/scalar_value.html">
 
 <script>
 'use strict';
@@ -55,16 +53,9 @@ tr.exportTo('tr.ui.e.deep_reports', function() {
   }
 
   function processModel(results, page, model) {
-    var score = tr.metrics.sh.SystemHealthMetric.forModel(model);
-    if (score === undefined)
-      return;
-
     results.addValue(
         new tr.ui.e.deep_reports.ScalarValue(
             page, 'numRailIRs', 'ms', model.userModel.expectations.length));
-    results.addValue(
-      new tr.ui.e.deep_reports.ScalarValue(
-        page, 'railScore', 'rails', score));
   }
 
   return {
