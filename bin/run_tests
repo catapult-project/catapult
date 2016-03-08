@@ -16,7 +16,6 @@ _TESTS = [
     {'path': os.path.join(
         _CATAPULT_PATH, 'third_party', 'py_vulcanize', 'run_py_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'perf_insights', 'bin', 'run_tests')},
-    {'path': os.path.join(_CATAPULT_PATH, 'lighthouse', 'bin', 'run_tests')},
     {'path': os.path.join(
         _CATAPULT_PATH, 'catapult_build', 'bin', 'run_py_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'catapult_base', 'bin', 'run_tests')},

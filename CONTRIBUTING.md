@@ -93,7 +93,6 @@ See the [style guide](/docs/style-guide.md).
 # Individual project documentation
 
 Look to individual project documentation for more info on getting started:
-   * [lighthouse](/lighthouse/README.md)
    * [perf dashboard](/dashboard/README.md)
    * [systrace](/systrace/README.md)
    * [telemetry](/telemetry/README.md)
