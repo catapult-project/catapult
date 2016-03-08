@@ -193,9 +193,10 @@ def _IsAnomalyRecovered(anomaly_entity):
   """
   test = anomaly_entity.test.get()
   if not test:
-    logging.error('Test %s for Anomaly %s not found',
+    logging.error('Test %s not found for Anomaly %s, deleting test.',
                   utils.TestPath(anomaly_entity.test),
                   anomaly_entity)
+    anomaly_entity.key.delete()
     return False
   config = anomaly_config.GetAnomalyConfigDict(test)
   max_num_rows = config.get(
