@@ -647,13 +647,11 @@ tr.exportTo('tr.ui.b', function() {
           i += colSpan;
         }
 
-        var needsClickListener = false;
-        if (this.columnsWithExpandButtons_.length)
-          needsClickListener = true;
-        else if (tableSection == this.$.body)
-          needsClickListener = true;
+        var isSelectable = tableSection === this.$.body;
+        var isExpandable = rowInfo.userRow[this.subRowsPropertyName_] &&
+            rowInfo.userRow[this.subRowsPropertyName_].length;
 
-        if (needsClickListener) {
+        if (isSelectable || isExpandable) {
           trElement.addEventListener('click', function(e) {
             e.stopPropagation();
             if (e.target.tagName == 'EXPAND-BUTTON') {
@@ -671,42 +669,37 @@ tr.exportTo('tr.ui.b', function() {
               return getTD(cur.parentElement);
             }
 
-            if (this.selectionMode_ !== SelectionMode.NONE) {
-              var isAlreadySelected = false;
-              var tdThatWasClicked = getTD(e.target);
+            // If the row/cell can be selected and it's not selected yet,
+            // select it.
+            if (isSelectable && this.selectionMode_ !== SelectionMode.NONE) {
+              var shouldSelect = false;
+              var columnIndex = getTD(e.target).columnIndex;
               switch (this.selectionMode_) {
                 case SelectionMode.ROW:
-                  isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
+                  shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
                   break;
 
                 case SelectionMode.CELL:
-                  isAlreadySelected = this.selectedTableRowInfo_ === rowInfo;
-                  isAlreadySelected &= (this.selectedColumnIndex_ ===
-                                        tdThatWasClicked.columnIndex);
+                  if (this.doesColumnIndexSupportSelection(columnIndex)) {
+                    shouldSelect = this.selectedTableRowInfo_ !== rowInfo ||
+                        this.selectedColumnIndex_ !== columnIndex;
+                  }
                   break;
 
                 default:
                   throw new Error('Invalid selection mode ' +
                       this.selectionMode_);
               }
-              if (isAlreadySelected) {
-                if (rowInfo.userRow[this.subRowsPropertyName_] &&
-                    rowInfo.userRow[this.subRowsPropertyName_].length) {
-                  this.setExpandedForUserRow_(
-                      tableSection, rowInfoMap,
-                      rowInfo.userRow, !rowInfo.isExpanded);
-                }
-              } else {
-                this.didTableRowInfoGetClicked_(
-                    rowInfo, tdThatWasClicked.columnIndex);
+              if (shouldSelect) {
+                this.didTableRowInfoGetClicked_(rowInfo, columnIndex);
+                return;
               }
-            } else {
-              if (rowInfo.userRow[this.subRowsPropertyName_] &&
-                  rowInfo.userRow[this.subRowsPropertyName_].length) {
-                this.setExpandedForUserRow_(
-                    tableSection, rowInfoMap,
-                    rowInfo.userRow, !rowInfo.isExpanded);
-              }
+            }
+
+            // Otherwise, if the row is expandable, expand/collapse it.
+            if (isExpandable) {
+              this.setExpandedForUserRow_(tableSection, rowInfoMap,
+                  rowInfo.userRow, !rowInfo.isExpanded);
             }
           }.bind(this));
         }
@@ -999,13 +992,13 @@ tr.exportTo('tr.ui.b', function() {
           case SelectionMode.CELL:
             if (!this.doesColumnIndexSupportSelection(columnIndex))
               return;
+            if (this.selectedColumnIndex !== columnIndex)
+              this.selectedColumnIndex = columnIndex;
             // Fall through.
 
           case SelectionMode.ROW:
             if (this.selectedTableRowInfo_ !== rowInfo)
               this.selectedTableRow = rowInfo.userRow;
-            if (this.selectedColumnIndex !== columnIndex)
-              this.selectedColumnIndex = columnIndex;
         }
       },
 

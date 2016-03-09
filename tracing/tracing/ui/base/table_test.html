@@ -1264,5 +1264,28 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(callbackCalled);
   });
+
+  test('selectionEdgeCases', function() {
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = [
+      {
+        title: 'Column',
+        value: function(row) { return row.data; },
+        supportsCellSelection: false
+      }
+    ];
+    table.tableRows = [{ data: 'body row' }];
+    table.footerRows = [{ data: 'footer row' }];
+    table.selectionMode = SelectionMode.ROW;
+    this.addHTMLOutput(table);
+
+    // Clicking on the body row should *not* throw an exception (despite the
+    // column not supporting cell selection).
+    table.$.body.children[0].children[0].click();
+
+    // Clicking on the footer row should *not* throw an exception (despite
+    // footer rows not being selectable in general).
+    table.$.foot.children[0].children[0].click();
+  });
 });
 </script>
