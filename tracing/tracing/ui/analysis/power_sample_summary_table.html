@@ -108,9 +108,14 @@ found in the LICENSE file.
       if (energyConsumed === 'N/A')
         return 'N/A';
 
-      // Energy consumed is returned in Joules, so we can convert it to power by
-      // dividing by time and milliWatts by multiplying by 1000.
-      return this.getEnergyConsumed() / this.samples.bounds.duration * 1000;
+      // Multiply by 1000 to convert Joules to milliJoules.
+      var energyInMillijoules = this.getEnergyConsumed() * 1000;
+
+      // Divide by 1000 to convert milliseconds to seconds.
+      var durationInSeconds = this.samples.bounds.duration / 1000;
+
+      // Convert energy to power in milliwatts by dividing by time in seconds.
+      return energyInMillijoules / durationInSeconds;
     },
 
     getEnergyConsumed: function() {

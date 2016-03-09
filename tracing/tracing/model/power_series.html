@@ -73,8 +73,13 @@ tr.exportTo('tr.model', function() {
 
         var timeIntersection = measurementRange.findIntersection(sampleRange);
 
+        // Divide by 1000 to convert milliwatts to watts.
+        var powerInWatts = sample.power / 1000.0;
+
         // Divide by 1000 to convert milliseconds to seconds.
-        energyConsumed += timeIntersection.duration / 1000 * sample.power;
+        var durationInSeconds = timeIntersection.duration / 1000;
+
+        energyConsumed += durationInSeconds * powerInWatts;
       }
 
       return energyConsumed;
