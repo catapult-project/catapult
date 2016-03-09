@@ -12,7 +12,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/object_instance_view.html">
 <link rel="import" href="/tracing/ui/analysis/object_snapshot_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
-<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-single-object-snapshot-sub-view"
     extends="tr-ui-a-sub-view">
@@ -101,8 +102,10 @@ found in the LICENSE file.
 
       titleEl.appendChild(document.createTextNode(' @ '));
 
-      titleEl.appendChild(tr.v.ui.createTimeStampSpan(
-          snapshot.ts, {ownerDocument: this.ownerDocument}));
+      titleEl.appendChild(tr.v.ui.createScalarSpan(snapshot.ts, {
+        unit: tr.v.Unit.byName.timeStampInMs,
+        ownerDocument: this.ownerDocument
+      }));
 
       var tableEl = document.createElement('table');
       this.appendChild(tableEl);

@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/ui/analysis/selection_summary_table.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -63,8 +64,12 @@ tr.b.unittest.testSuite(function() {
 
     var tableEl = tr.b.findDeepElementMatching(
         summaryTable, 'tr-ui-b-table');
-    assert.equal(tableEl.tableRows[0].value.timestamp, 0);
-    assert.equal(tableEl.tableRows[1].value.duration, 3);
+    assert.equal(tableEl.tableRows[0].value.value, 0);
+    assert.strictEqual(tableEl.tableRows[0].value.unit,
+        tr.v.Unit.byName.timeStampInMs);
+    assert.equal(tableEl.tableRows[1].value.value, 3);
+    assert.strictEqual(tableEl.tableRows[1].value.unit,
+        tr.v.Unit.byName.timeDurationInMs);
   });
 });
 </script>

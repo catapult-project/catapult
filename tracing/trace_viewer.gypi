@@ -431,8 +431,6 @@
       'tracing/value/ui/generic_table_view.html',
       'tracing/value/ui/preferred_display_unit.html',
       'tracing/value/ui/scalar_span.html',
-      'tracing/value/ui/time_duration_span.html',
-      'tracing/value/ui/time_stamp_span.html',
       'tracing/value/unit.html'
     ],
     'tracing_img_files': [

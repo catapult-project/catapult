@@ -12,8 +12,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/stack_frame.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
-<link rel="import" href="/tracing/value/ui/time_duration_span.html">
-<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-single-event-sub-view"
     extends="tr-ui-a-sub-view">
@@ -88,35 +88,45 @@ found in the LICENSE file.
       if (event.name)
         rows.push({ name: 'Name', value: event.name });
 
-      var startEl = document.createElement('tr-v-ui-time-stamp-span');
-      startEl.timestamp = event.start;
-      rows.push({ name: 'Start', value: startEl });
+      rows.push({
+        name: 'Start',
+        value: tr.v.ui.createScalarSpan(event.start, {
+          unit: tr.v.Unit.byName.timeStampInMs
+        })
+      });
 
       if (event.duration) {
-        var wallDurationEl = document.createElement(
-            'tr-v-ui-time-duration-span');
-        wallDurationEl.duration = event.duration;
-        rows.push({ name: 'Wall Duration', value: wallDurationEl });
+        rows.push({
+          name: 'Wall Duration',
+          value: tr.v.ui.createScalarSpan(event.duration, {
+            unit: tr.v.Unit.byName.timeDurationInMs
+          })
+        });
       }
 
       if (event.cpuDuration) {
-        var cpuDurationEl = document.createElement(
-            'tr-v-ui-time-duration-span');
-        cpuDurationEl.duration = event.cpuDuration;
-        rows.push({ name: 'CPU Duration', value: cpuDurationEl });
+        rows.push({
+          name: 'CPU Duration',
+          value: tr.v.ui.createScalarSpan(event.cpuDuration, {
+            unit: tr.v.Unit.byName.timeDurationInMs
+          })
+        });
       }
 
       if (event.subSlices !== undefined && event.subSlices.length !== 0) {
         if (event.selfTime) {
-          var selfTimeEl = document.createElement('tr-v-ui-time-duration-span');
-          selfTimeEl.duration = event.selfTime;
-          rows.push({ name: 'Self Time', value: selfTimeEl });
+          rows.push({
+            name: 'Self Time',
+            value: tr.v.ui.createScalarSpan(event.selfTime, {
+              unit: tr.v.Unit.byName.timeDurationInMs
+            })
+          });
         }
 
         if (event.cpuSelfTime) {
-          var cpuSelfTimeEl = document.createElement(
-              'tr-v-ui-time-duration-span');
-          cpuSelfTimeEl.duration = event.cpuSelfTime;
+          var cpuSelfTimeEl = tr.v.ui.createScalarSpan(event.cpuSelfTime, {
+            unit: tr.v.Unit.byName.timeDurationInMs
+          });
           if (event.cpuSelfTime > event.selfTime) {
             cpuSelfTimeEl.warning =
                 ' Note that CPU Self Time is larger than Self Time. ' +
@@ -124,16 +134,17 @@ found in the LICENSE file.
                 'due to several subslices, rounding issues, and imprecise ' +
                 'time at which we get cpu- and real-time.';
           }
-          rows.push({name: 'CPU Self Time',
-                     value: cpuSelfTimeEl});
+          rows.push({ name: 'CPU Self Time', value: cpuSelfTimeEl });
         }
       }
 
       if (event.durationInUserTime) {
-        var durationInUserTimeEl = document.createElement(
-            'tr-v-ui-time-duration-span');
-        durationInUserTimeEl.duration = event.durationInUserTime;
-        rows.push({ name: 'Duration (U)', value: durationInUserTimeEl });
+        rows.push({
+          name: 'Duration (U)',
+          value: tr.v.ui.createScalarSpan(event.durationInUserTime, {
+            unit: tr.v.Unit.byName.timeDurationInMs
+          })
+        });
       }
 
       function createStackFrameEl(sf) {

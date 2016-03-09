@@ -10,8 +10,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/ui/analysis/multi_event_summary.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/ui/time_duration_span.html">
-<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name='tr-ui-a-multi-event-details-table'>
   <template>
@@ -146,7 +146,7 @@ found in the LICENSE file.
       else
         colWidthPercentage = '33.3333%';
 
-      var timeSpanConfig = {ownerDocument: this.ownerDocument};
+      var ownerDocument = this.ownerDocument;
       var columns = [];
 
       columns.push({
@@ -160,8 +160,10 @@ found in the LICENSE file.
           linkEl.setSelectionAndContent(function() {
               return new tr.model.EventSet(row.event);
           });
-          linkEl.appendChild(tr.v.ui.createTimeStampSpan(
-              row.start, timeSpanConfig));
+          linkEl.appendChild(tr.v.ui.createScalarSpan(row.start, {
+            unit: tr.v.Unit.byName.timeStampInMs,
+            ownerDocument: ownerDocument
+          }));
           return linkEl;
         },
         width: '350px',
@@ -174,8 +176,10 @@ found in the LICENSE file.
         columns.push({
           title: 'Wall Duration (ms)',
           value: function(row) {
-            return tr.v.ui.createTimeDurationSpan(
-                row.duration, timeSpanConfig);
+            return tr.v.ui.createScalarSpan(row.duration, {
+              unit: tr.v.Unit.byName.timeDurationInMs,
+              ownerDocument: ownerDocument
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -188,8 +192,10 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Duration (ms)',
           value: function(row) {
-            return tr.v.ui.createTimeDurationSpan(
-                row.cpuDuration, timeSpanConfig);
+            return tr.v.ui.createScalarSpan(row.cpuDuration, {
+              unit: tr.v.Unit.byName.timeDurationInMs,
+              ownerDocument: ownerDocument
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -202,8 +208,10 @@ found in the LICENSE file.
         columns.push({
           title: 'Self time (ms)',
           value: function(row) {
-            return tr.v.ui.createTimeDurationSpan(
-                row.selfTime, timeSpanConfig);
+            return tr.v.ui.createScalarSpan(row.selfTime, {
+              unit: tr.v.Unit.byName.timeDurationInMs,
+              ownerDocument: ownerDocument
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {
@@ -216,8 +224,10 @@ found in the LICENSE file.
         columns.push({
           title: 'CPU Self Time (ms)',
           value: function(row) {
-            return tr.v.ui.createTimeDurationSpan(
-                row.cpuSelfTime, timeSpanConfig);
+            return tr.v.ui.createScalarSpan(row.cpuSelfTime, {
+              unit: tr.v.Unit.byName.timeDurationInMs,
+              ownerDocument: ownerDocument
+            });
           },
           width: '<upated further down>',
           cmp: function(rowA, rowB) {

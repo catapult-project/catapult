@@ -13,8 +13,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
-<link rel="import" href="/tracing/value/ui/time_duration_span.html">
-<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-single-thread-time-slice-sub-view"
     extends="tr-ui-a-sub-view">
@@ -63,15 +63,15 @@ found in the LICENSE file.
       <tr>
         <td>Start:</td>
         <td>
-          <tr-v-ui-time-stamp-span id="start">
-          </tr-v-ui-time-stamp-span>
+          <tr-v-ui-scalar-span id="start">
+          </tr-v-ui-scalar-span>
         </td>
       </tr>
       <tr>
         <td>Duration:</td>
         <td>
-          <tr-v-ui-time-duration-span id="duration">
-          </tr-v-ui-time-duration-span>
+          <tr-v-ui-scalar-span id="duration">
+          </tr-v-ui-scalar-span>
         </td>
       </tr>
 
@@ -122,8 +122,11 @@ found in the LICENSE file.
       shadowRoot.querySelector('#thread-name').textContent =
           thread.userFriendlyName;
 
-      shadowRoot.querySelector('#start').timestamp = timeSlice.start;
-      shadowRoot.querySelector('#duration').duration = timeSlice.duration;
+      shadowRoot.querySelector('#start').setValueAndUnit(
+          timeSlice.start, tr.v.Unit.byName.timeStampInMs);
+      shadowRoot.querySelector('#duration').setValueAndUnit(
+          timeSlice.duration, tr.v.Unit.byName.timeDurationInMs);
+
       var onCpuEl = shadowRoot.querySelector('#on-cpu');
       onCpuEl.textContent = '';
       var runningInsteadEl = shadowRoot.querySelector('#running-instead');

@@ -191,8 +191,12 @@ tr.b.unittest.testSuite(function() {
         subView, 'tr-ui-b-table');
     assert.equal(table.tableRows.length, 3);
     assert.equal(table.tableRows[0].value, 'b');
-    assert.equal(table.tableRows[1].value.timestamp, 0);
-    assert.equal(table.tableRows[2].value.duration, 0.002);
+    assert.equal(table.tableRows[1].value.value, 0);
+    assert.strictEqual(table.tableRows[1].value.unit,
+        tr.v.Unit.byName.timeStampInMs);
+    assert.equal(table.tableRows[2].value.value, 0.002);
+    assert.strictEqual(table.tableRows[2].value.unit,
+        tr.v.Unit.byName.timeDurationInMs);
   });
 
   test('analyzeSelectionWithSingleSliceCategory', function() {
@@ -207,8 +211,12 @@ tr.b.unittest.testSuite(function() {
     assert.equal(table.tableRows.length, 4);
     assert.equal(table.tableRows[0].value, 'b');
     assert.equal(table.tableRows[1].value, 'foo');
-    assert.equal(table.tableRows[2].value.timestamp, 0);
-    assert.equal(table.tableRows[3].value.duration, 0.002);
+    assert.equal(table.tableRows[2].value.value, 0);
+    assert.strictEqual(table.tableRows[2].value.unit,
+        tr.v.Unit.byName.timeStampInMs);
+    assert.equal(table.tableRows[3].value.value, 0.002);
+    assert.strictEqual(table.tableRows[3].value.unit,
+        tr.v.Unit.byName.timeDurationInMs);
   });
 
   test('instantiate_withSingleSliceContainingIDRef', function() {

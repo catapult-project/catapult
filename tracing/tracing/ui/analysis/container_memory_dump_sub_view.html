@@ -12,7 +12,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/memory_dump_header_pane.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane_view.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-container-memory-dump-sub-view"
     extends="tr-ui-a-sub-view">
@@ -125,8 +126,10 @@ tr.exportTo('tr.ui.analysis', function() {
           singleDumpValue_: function(row) {
             var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet([row]));
-            linkEl.appendChild(tr.v.ui.createTimeStampSpan(
-                row.start, {ownerDocument: ownerDocument}));
+            linkEl.appendChild(tr.v.ui.createScalarSpan(row.start, {
+              unit: tr.v.Unit.byName.timeStampInMs,
+              ownerDocument: ownerDocument
+            }));
             return linkEl;
           },
 

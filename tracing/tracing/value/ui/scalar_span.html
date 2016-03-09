@@ -16,16 +16,40 @@ tr.exportTo('tr.v.ui', function() {
   function createScalarSpan(value, opt_config) {
     if (value === undefined)
       return '';
+
     var config = opt_config || {};
     var ownerDocument = config.ownerDocument || document;
+
     var span = ownerDocument.createElement('tr-v-ui-scalar-span');
-    span.value = value;
+
+    var numericValue;
+    if (value instanceof tr.v.ScalarNumeric) {
+      span.value = value;
+      numericValue = value.value;
+    } else {
+      var unit = config.unit;
+      if (unit === undefined) {
+        throw new Error(
+            'Unit must be provided in config when value is a number');
+      }
+      span.setValueAndUnit(value, unit);
+      numericValue = value;
+    }
+
+    if (config.total)
+      span.percentage = numericValue / config.total;
+
+    if (config.rightAlign)
+      span.rightAlign = true;
+
     return span;
   }
 
   tr.v.Unit.addEventListener('display-mode-changed', function(e) {
+    var scalarSpanTagName = 'tr-v-ui-scalar-span';
     var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
-        'tr-v-ui-scalar-span');
+        scalarSpanTagName);
+    subclassNames.push(scalarSpanTagName);
     var isSubclass = {};
     subclassNames.forEach(function(n) {
       isSubclass[n.toUpperCase()] = true;

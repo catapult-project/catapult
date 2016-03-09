@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/ui/time_duration_span.html">
-<link rel="import" href="/tracing/value/ui/time_stamp_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name='tr-ui-a-selection-summary-table'>
   <template>
@@ -69,17 +69,21 @@ found in the LICENSE file.
       else
         hasRange = false;
 
-      var timeSpanConfig = {ownerDocument: this.ownerDocument};
-
       rows.push({
         title: 'Selection start',
-        value: hasRange ? tr.v.ui.createTimeStampSpan(
-            selection.bounds.min, timeSpanConfig) : '<empty>'
+        value: hasRange ? tr.v.ui.createScalarSpan(
+            selection.bounds.min, {
+              unit: tr.v.Unit.byName.timeStampInMs,
+              ownerDocument: this.ownerDocument
+            }) : '<empty>'
       });
       rows.push({
         title: 'Selection extent',
-        value: hasRange ? tr.v.ui.createTimeDurationSpan(
-            selection.bounds.range, timeSpanConfig) : '<empty>'
+        value: hasRange ? tr.v.ui.createScalarSpan(
+            selection.bounds.range, {
+              unit: tr.v.Unit.byName.timeDurationInMs,
+              ownerDocument: this.ownerDocument
+            }) : '<empty>'
       });
 
       this.$.table.tableRows = rows;
