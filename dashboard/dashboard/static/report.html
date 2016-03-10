@@ -23,6 +23,12 @@ found in the LICENSE file.
 
   <title>Chrome Performance Dashboard</title>
 
+  <style>
+    #message-bar {
+      top: 26px;
+    }
+  </style>
+
   <script>
     'use strict';
     // Workaround for document.contains returning false for elements in the
@@ -44,6 +50,7 @@ found in the LICENSE file.
 <body>
   <nav-bar></nav-bar>
   <h1>Chrome Performance Dashboard</h1>
+  <overlay-message id="message-bar"></overlay-message>
   <report-page></report-page>
   <load-analytics></load-analytics>
 </body>

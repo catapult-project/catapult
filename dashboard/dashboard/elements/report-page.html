@@ -23,8 +23,6 @@ found in the LICENSE file.
         top: 0px;
       }
     </style>
-
-    <overlay-message id="message-bar"></overlay-message>
     <template if="{{warningMessage}}">
       <overlay-message id="warning-message"
                        opened="true"
@@ -240,7 +238,7 @@ found in the LICENSE file.
        */
       onPageStateRequest: function(event) {
         var status = event.detail.status;
-        var messageBar = this.$['message-bar'];
+        var messageBar = document.getElementById('message-bar');
         var messageConfig = {
           'autoCloseDisabled': true,
           'duration': 0,
