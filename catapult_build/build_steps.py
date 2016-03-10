@@ -108,6 +108,7 @@ _CATAPULT_TESTS = [
             '--browser=reference',
             '--start-xvfb'
         ],
+        'uses_sandbox_env': True,
     },
     {
         'name': 'Tracing Dev Server Tests Canary',
