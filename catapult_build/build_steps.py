@@ -39,6 +39,7 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=canary'
         ],
+        'outputs_presentation_json': True,
     },
     {
         'name': 'Dashboard Dev Server Tests Stable',
@@ -48,6 +49,7 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=stable',
         ],
+        'outputs_presentation_json': True,
     },
     {
         'name': 'Dashboard Python Tests',
@@ -72,6 +74,7 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=canary'
         ],
+        'outputs_presentation_json': True,
     },
     {
         'name': 'Perf Insights Dev Server Tests Stable',
@@ -82,6 +85,7 @@ _CATAPULT_TESTS = [
             '--channel=stable',
         ],
         'uses_sandbox_env': True,
+        'outputs_presentation_json': True,
     },
     {
         'name': 'Perf Insights Python Tests',
@@ -121,6 +125,7 @@ _CATAPULT_TESTS = [
         # Test failing on Windows:
         # https://github.com/catapult-project/catapult/issues/1816
         'disabled': ['win'],
+        'outputs_presentation_json': True,
     },
     {
         'name': 'Tracing Dev Server Tests Stable',
@@ -130,6 +135,7 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=stable',
         ],
+        'outputs_presentation_json': True,
     },
     {
         'name': 'Tracing D8 Tests',

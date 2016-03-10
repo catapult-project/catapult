@@ -140,7 +140,7 @@ def DownloadChromium(channel):
     local_file.write(urllib2.urlopen(download_url).read())
   zf = zipfile.ZipFile(zip_path)
   zf.extractall(path=tmpdir)
-  return tmpdir, version
+  return tmpdir, version, download_url
 
 
 def GetLocalChromePath(path_from_command_line):
@@ -188,6 +188,8 @@ def Main(argv):
                         help='Set of tests to run (tracing or perf_insights)')
     parser.add_argument('--channel', type=str, default='stable',
                         help='Chrome channel to run (stable or canary)')
+    parser.add_argument('--presentation-json', type=str,
+                        help='Recipe presentation-json output file path')
     parser.set_defaults(install_hooks=True)
     parser.set_defaults(use_local_chrome=True)
     args = parser.parse_args(argv[1:])
@@ -237,7 +239,7 @@ def Main(argv):
       assert channel in ['stable', 'beta', 'dev', 'canary']
 
 
-      tmpdir, version = DownloadChromium(channel)
+      tmpdir, version, download_url = DownloadChromium(channel)
       if xvfb.ShouldStartXvfb():
         xvfb_process = xvfb.StartXvfb()
       chrome_path = os.path.join(
@@ -290,6 +292,14 @@ def Main(argv):
       logging.error(server_out)
     else:
       print server_out
+    if args.presentation_json:
+      with open(args.presentation_json, 'w') as recipe_out:
+        # Add a link to the buildbot status for the step saying which version
+        # of Chrome the test ran on. The actual linking feature is not used,
+        # but there isn't a way to just add text.
+        link_name = 'Chrome Version %s' % version
+        presentation_info = {'links': {link_name: download_url}}
+        json.dump(presentation_info, recipe_out)
   finally:
     # Wait for Chrome to be killed before deleting temp Chrome dir. Only have
     # this timing issue on Windows.
