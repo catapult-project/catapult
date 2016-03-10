@@ -242,8 +242,8 @@ tr.exportTo('tr.v', function() {
     baseUnitName: 'powerInWatts',
     baseJsonName: 'W',
     formatValue: function(value) {
-      return (value * 1000.0).toLocaleString(
-          undefined, { minimumFractionDigits: 3 }) + ' mW';
+      return value.toLocaleString(
+          undefined, { minimumFractionDigits: 3 }) + ' W';
     }
   });
 

@@ -115,15 +115,15 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(columns[0].title, 'Min power');
     assert.equal(columns[0].width, '100px');
-    assert.equal(columns[0].value(row), '1.000 mW');
+    assert.equal(columns[0].value(row), '0.001 W');
 
     assert.equal(columns[1].title, 'Max power');
     assert.equal(columns[1].width, '100px');
-    assert.equal(columns[1].value(row), '3.000 mW');
+    assert.equal(columns[1].value(row), '0.003 W');
 
     assert.equal(columns[2].title, 'Time-weighted average');
     assert.equal(columns[2].width, '100px');
-    assert.equal(columns[2].value(row), '1.500 mW');
+    assert.equal(columns[2].value(row), '0.002 W');
 
     assert.equal(columns[3].title, 'Energy consumed');
     assert.equal(columns[3].width, '100px');

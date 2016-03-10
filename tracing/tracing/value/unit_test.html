@@ -165,12 +165,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerInWatts', function() {
-    assert.equal(Unit.byName.powerInWatts.format(1000), '1,000,000.000 mW');
-    assert.equal(Unit.byName.powerInWatts.format(1), '1,000.000 mW');
-    assert.equal(Unit.byName.powerInWatts.format(.001), '1.000 mW');
-    assert.equal(Unit.byName.powerInWatts.format(.001005), '1.005 mW');
-    assert.equal(Unit.byName.powerInWatts.format(.0010005), '1.001 mW');
-    assert.equal(Unit.byName.powerInWatts.format(.0010004), '1.000 mW');
+    assert.equal(Unit.byName.powerInWatts.format(1000), '1,000.000 W');
+    assert.equal(Unit.byName.powerInWatts.format(1), '1.000 W');
+    assert.equal(Unit.byName.powerInWatts.format(.001), '0.001 W');
+    assert.equal(Unit.byName.powerInWatts.format(.001005), '0.001 W');
   });
 });
 </script>
