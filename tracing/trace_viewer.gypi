@@ -141,6 +141,7 @@
       'tracing/extras/tquery/filter_has_duration.html',
       'tracing/extras/tquery/filter_has_title.html',
       'tracing/extras/tquery/filter_is_top_level.html',
+      'tracing/extras/tquery/filter_not.html',
       'tracing/extras/tquery/tquery.html',
       'tracing/extras/vsync/vsync_auditor.html',
       'tracing/importer/empty_importer.html',

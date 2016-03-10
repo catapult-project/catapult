@@ -70,9 +70,9 @@ tr.b.unittest.testSuite(function() {
   test('tqueryFilterHasTitle', function() {
     var hasTitle = getScriptObject('hasTitle');
     var model = createTestModelWithSlices([
-        {guid: 1, title: 'a'},
-        {guid: 2, title: 'b'},
-        {guid: 3, title: 'c'}
+      {guid: 1, title: 'a'},
+      {guid: 2, title: 'b'},
+      {guid: 3, title: 'c'}
     ]);
     var tquery = new tr.e.tquery.TQuery(model);
 
@@ -92,9 +92,9 @@ tr.b.unittest.testSuite(function() {
   test('tqueryFilterHasAncestor', function() {
     var hasAncestor = getScriptObject('hasAncestor');
     var model = createTestModelWithSlices([
-        {guid: 1, title: 'a'},
-        {guid: 2, title: 'b', subSlices: [{guid: 4}]},
-        {guid: 3, title: 'c'}
+      {guid: 1, title: 'a'},
+      {guid: 2, title: 'b', subSlices: [{guid: 4}]},
+      {guid: 3, title: 'c'}
     ]);
     var tquery = new tr.e.tquery.TQuery(model);
 
@@ -113,9 +113,9 @@ tr.b.unittest.testSuite(function() {
   test('tqueryFilterAllOf', function() {
     var allOf = getScriptObject('allOf');
     var model = createTestModelWithSlices([
-        {guid: 1, title: 'a1'},
-        {guid: 2, title: 'b1'},
-        {guid: 3, title: 'c1'}
+      {guid: 1, title: 'a1'},
+      {guid: 2, title: 'b1'},
+      {guid: 3, title: 'c1'}
     ]);
     var tquery = new tr.e.tquery.TQuery(model);
 
@@ -134,9 +134,9 @@ tr.b.unittest.testSuite(function() {
   test('tqueryFilterAnyOf', function() {
     var anyOf = getScriptObject('anyOf');
     var model = createTestModelWithSlices([
-        {guid: 1, title: 'a'},
-        {guid: 2, title: 'b'},
-        {guid: 3, title: 'c'}
+      {guid: 1, title: 'a'},
+      {guid: 2, title: 'b'},
+      {guid: 3, title: 'c'}
     ]);
     var tquery = new tr.e.tquery.TQuery(model);
 
@@ -156,9 +156,9 @@ tr.b.unittest.testSuite(function() {
   test('tqueryFilterIsTopLevel', function() {
     var isTopLevel = getScriptObject('isTopLevel');
     var model = createTestModelWithSlices([
-        {guid: 1, title: 'a'},
-        {guid: 2, title: 'b', subSlices: [{guid: 4}]},
-        {guid: 3, title: 'c'}
+      {guid: 1, title: 'a'},
+      {guid: 2, title: 'b', subSlices: [{guid: 4}]},
+      {guid: 3, title: 'c'}
     ]);
     var tquery = new tr.e.tquery.TQuery(model);
 
@@ -176,10 +176,10 @@ tr.b.unittest.testSuite(function() {
   test('tqueryFilterHasDuration', function() {
     var hasDuration = getScriptObject('hasDuration');
     var model = createTestModelWithSlices([
-        {guid: 1, title: 'a', duration: 1},
-        {guid: 2, title: 'b', duration: 2},
-        {guid: 3, title: 'c', duration: 3},
-        {guid: 4, title: 'no duration'}
+      {guid: 1, title: 'a', duration: 1},
+      {guid: 2, title: 'b', duration: 2},
+      {guid: 3, title: 'c', duration: 3},
+      {guid: 4, title: 'no duration'}
     ]);
     var tquery = new tr.e.tquery.TQuery(model);
 
@@ -197,6 +197,41 @@ tr.b.unittest.testSuite(function() {
     var result = tquery.filter(hasDuration(function(d) {
       return d > 2;
     })).selection;
+    assert.equal(result.length, 1);
+    assert.equal(result[0].guid, 3);
+  });
+
+  test('tqueryFilterNot', function() {
+    var not = getScriptObject('not');
+    var model = createTestModelWithSlices([
+      {guid: 1, title: 'a'},
+      {guid: 2, title: 'b'},
+      {guid: 3, title: 'c'}
+    ]);
+    var tquery = new tr.e.tquery.TQuery(model);
+
+    var result = tquery.filter(not(/a/)).selection;
+    assert.equal(result.length, 2);
+    assert.equal(result[0].guid, 2);
+    assert.equal(result[1].guid, 3);
+
+    // Test a not() without any subexpressions.
+    assert.throws(function() { not(); });
+
+    // Test a not() with too many subexpressions.
+    assert.throws(function() { not(/a/, /b/); });
+  });
+
+  test('tqueryFilterNoneOf', function() {
+    var noneOf = getScriptObject('noneOf');
+    var model = createTestModelWithSlices([
+      {guid: 1, title: 'a'},
+      {guid: 2, title: 'b'},
+      {guid: 3, title: 'c'}
+    ]);
+    var tquery = new tr.e.tquery.TQuery(model);
+
+    var result = tquery.filter(noneOf(/a/, /b/)).selection;
     assert.equal(result.length, 1);
     assert.equal(result[0].guid, 3);
   });
