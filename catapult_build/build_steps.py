@@ -170,7 +170,7 @@ def main(args=None):
         'name': test['name'],
         'env': {}
     }
-    step['cmd'] = [os.path.join(args.api_path_checkout, test['path'])]
+    step['cmd'] = ['python', os.path.join(args.api_path_checkout, test['path'])]
     if test.get('additional_args'):
       step['cmd'] += test['additional_args']
     if test.get('uses_app_engine_sdk'):
