@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 from telemetry.util import statistics
 from telemetry.value import scalar
-from telemetry.value import list_of_scalar_values
 from telemetry.web_perf.metrics import timeline_based_metric
 
 
@@ -98,14 +97,6 @@ class V8TimeStats(object):
           "%s_count" % self.name, 'count', self.Count(),
           description=self.description,
           tir_label=label))
-    if self.Count() > 0:
-      results.AddValue(
-        list_of_scalar_values.ListOfScalarValues(
-            results.current_page,
-            "%s_distribution" % self.name, 'ms',
-            self.durations,
-            description=self.description,
-            tir_label=label))
     results.AddValue(
       scalar.ScalarValue(
           results.current_page,

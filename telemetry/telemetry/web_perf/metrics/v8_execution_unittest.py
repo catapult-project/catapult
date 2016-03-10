@@ -79,13 +79,10 @@ class V8ExecutionTests(unittest.TestCase):
       self.parent_slice.AddSubSlice(record)
     return SliceContext(self, record)
 
-  def AssertResultValues(self, name, value, count, average, distribution=None):
+  def AssertResultValues(self, name, value, count, average):
     self.results.AssertHasPageSpecificScalarValue('%s' % name, 'ms', value)
     self.results.AssertHasPageSpecificScalarValue('%s_count' % name, 'count',
                                                   count)
-    if distribution is not None:
-      self.results.AssertHasPageSpecificListOfScalarValues(
-          '%s_distribution' % name, 'ms', distribution)
     self.results.AssertHasPageSpecificScalarValue('%s_average' % name, 'ms',
                                                   average)
 
@@ -100,15 +97,15 @@ class V8ExecutionTests(unittest.TestCase):
       self.AddEvent(RENDERER_PROCESS, '', 'other', 10, 12)
     self.AddResults()
     self.AssertResultValues('v8_execution_time_total', value=30, count=2,
-                            average=15, distribution=[10, 20])
+                            average=15)
     self.AssertResultValues('v8_execution_time_self', value=18, count=2,
-                            average=9, distribution=[10, 8])
+                            average=9)
 
   def testOptimizeParseLazy(self):
     self.AddEvent(RENDERER_PROCESS, '', 'V8.ParseLazyMicroSeconds', 0, 10)
     self.AddResults()
     self.AssertResultValues('v8_parse_lazy_total', value=10, count=1,
-                            average=10, distribution=[10])
+                            average=10)
     self.AssertResultValues('v8_optimize_code_total', value=0, count=0,
                             average=0)
     self.AssertResultValues('v8_optimize_parse_lazy_total', value=0, count=0,
@@ -117,28 +114,25 @@ class V8ExecutionTests(unittest.TestCase):
     with self.AddEvent(RENDERER_PROCESS, '', 'V8.OptimizeCode', 10, 20):
       self.AddEvent(RENDERER_PROCESS, '', 'V8.ParseLazyMicroSeconds', 20, 8)
     self.AddResults()
-    self.AssertResultValues('v8_parse_lazy_total', value=18, count=2, average=9,
-                            distribution=[10, 8])
+    self.AssertResultValues('v8_parse_lazy_total', value=18, count=2, average=9)
     self.AssertResultValues('v8_optimize_code_total', value=20, count=1,
-                            average=20, distribution=[20])
+                            average=20)
     self.AssertResultValues('v8_optimize_parse_lazy_total', value=8, count=1,
-                            average=8, distribution=[8])
+                            average=8)
 
   def testRecompile(self):
     self.AddEvent(RENDERER_PROCESS, '', 'V8.RecompileSynchronous', 0, 10)
     self.AddResults()
     self.AssertResultValues('v8_recompile_synchronous_total', value=10, count=1,
-                            average=10, distribution=[10])
+                            average=10)
     self.AssertResultValues('v8_recompile_concurrent_total', value=0, count=0,
                             average=0)
-    self.AssertResultValues('v8_recompile_total', value=10, count=1, average=10,
-                            distribution=[10])
+    self.AssertResultValues('v8_recompile_total', value=10, count=1, average=10)
 
     self.AddEvent(RENDERER_PROCESS, '', 'V8.RecompileConcurrent', 10, 8)
     self.AddResults()
     self.AssertResultValues('v8_recompile_synchronous_total', value=10, count=1,
-                            average=10, distribution=[10])
+                            average=10)
     self.AssertResultValues('v8_recompile_concurrent_total', value=8, count=1,
-                            average=8, distribution=[8])
-    self.AssertResultValues('v8_recompile_total', value=18, count=2, average=9,
-                            distribution=[10, 8])
+                            average=8)
+    self.AssertResultValues('v8_recompile_total', value=18, count=2, average=9)
