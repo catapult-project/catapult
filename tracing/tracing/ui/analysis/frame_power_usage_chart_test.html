@@ -62,10 +62,10 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
 
     var expectedChartData = [
-      { x: 0, f1: 1000 },
-      { x: 1, f1: 2000 },
-      { x: 2, f1: 3000 },
-      { x: 3, f1: 2000 }
+      { x: 0, f1: 1 },
+      { x: 1, f1: 2 },
+      { x: 2, f1: 3 },
+      { x: 3, f1: 2 }
     ];
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
@@ -89,14 +89,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
 
     var expectedChartData = [
-      { x: 0, f1: 1000 },
-      { x: 1, f1: 2000 },
-      { x: 2, f1: 3000 },
-      { x: 3, f1: 2000 },
-      { x: 0, f2: 2000 },
-      { x: 1, f2: 3000 },
-      { x: 2, f2: 4000 },
-      { x: 3, f2: 3000 }
+      { x: 0, f1: 1 },
+      { x: 1, f1: 2 },
+      { x: 2, f1: 3 },
+      { x: 3, f1: 2 },
+      { x: 0, f2: 2 },
+      { x: 1, f2: 3 },
+      { x: 2, f2: 4 },
+      { x: 3, f2: 3 }
     ];
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
@@ -122,14 +122,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
 
     var expectedChartData = [
-      { x: 0, f1: 1000 },
-      { x: 1, f1: 2000 },
-      { x: 2, f1: 3000 },
-      { x: 3, f1: 2000 },
-      { x: 0.5, f2: 2000 },
-      { x: 1.5, f2: 3000 },
-      { x: 2.5, f2: 4000 },
-      { x: 3.5, f2: 3000 }
+      { x: 0, f1: 1 },
+      { x: 1, f1: 2 },
+      { x: 2, f1: 3 },
+      { x: 3, f1: 2 },
+      { x: 0.5, f2: 2 },
+      { x: 1.5, f2: 3 },
+      { x: 2.5, f2: 4 },
+      { x: 3.5, f2: 3 }
     ];
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
@@ -153,10 +153,10 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
 
     var expectedChartData = [
-      { x: 0, f1: 2000 },
-      { x: 1, f1: 3000 },
-      { x: 2, f1: 4000 },
-      { x: 3, f1: 3000 }
+      { x: 0, f1: 2 },
+      { x: 1, f1: 3 },
+      { x: 2, f1: 4 },
+      { x: 3, f1: 3 }
     ];
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
@@ -174,10 +174,10 @@ tr.b.unittest.testSuite(function() {
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
 
     var expectedChartData = [
-      { x: 0, f1: 2000 },
-      { x: 1, f1: 3000 },
-      { x: 2, f1: 4000 },
-      { x: 3, f1: 3000 }
+      { x: 0, f1: 2 },
+      { x: 1, f1: 3 },
+      { x: 2, f1: 4 },
+      { x: 3, f1: 3 }
     ];
     assert.isUndefined(chart.chart);
   });
@@ -201,14 +201,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
 
     var expectedChartData = [
-      { x: 0, f1: 1000 },
-      { x: 1, f1: 2000 },
-      { x: 2, f1: 3000 },
-      { x: 3, f1: 2000 },
-      { x: 0, f2: 2000 },
-      { x: 1, f2: 3000 },
-      { x: 2, f2: 4000 },
-      { x: 3, f2: 3000 }
+      { x: 0, f1: 1 },
+      { x: 1, f1: 2 },
+      { x: 2, f1: 3 },
+      { x: 3, f1: 2 },
+      { x: 0, f2: 2 },
+      { x: 1, f2: 3 },
+      { x: 2, f2: 4 },
+      { x: 3, f2: 3 }
     ];
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });
@@ -252,14 +252,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
 
     var expectedChartData = [
-      { x: 0, f1: 1000 },
-      { x: 1, f1: 2000 },
-      { x: 2, f1: 3000 },
-      { x: 3, f1: 2000 },
-      { x: 0, f2: 2000 },
-      { x: 1, f2: 3000 },
-      { x: 2, f2: 4000 },
-      { x: 3, f2: 3000 }
+      { x: 0, f1: 1 },
+      { x: 1, f1: 2 },
+      { x: 2, f1: 3 },
+      { x: 3, f1: 2 },
+      { x: 0, f2: 2 },
+      { x: 1, f2: 3 },
+      { x: 2, f2: 4 },
+      { x: 3, f2: 3 }
     ];
     assert.sameDeepMembers(chart.chart.data, expectedChartData);
   });

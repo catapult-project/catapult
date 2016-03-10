@@ -38,9 +38,13 @@ Polymer('tr-ui-a-power-sample-table', {
         }
       },
       {
-        title: 'Power (mW)',
+        title: 'Power',
         width: '100%',
-        value: function(row) { return row.power; }
+        value: function(row) {
+          return tr.v.ui.createScalarSpan(row.power / 1000, {
+            unit: tr.v.Unit.byName.powerInWatts
+          });
+        }
       }
     ];
     this.samples = new EventSet();

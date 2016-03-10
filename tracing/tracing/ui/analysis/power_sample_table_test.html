@@ -85,9 +85,12 @@ tr.b.unittest.testSuite(function() {
     assert.equal(timestampSpan.value, 0);
     assert.equal(timestampSpan.unit, tr.v.Unit.byName.timeStampInMs);
 
-    assert.equal(columns[1].title, 'Power (mW)');
+    assert.equal(columns[1].title, 'Power');
     assert.equal(columns[1].width, '100%');
-    assert.equal(columns[1].value(series.samples[0]), 1000);
+    var powerSpan = columns[1].value(series.samples[0]);
+    assert.equal(powerSpan.tagName, 'TR-V-UI-SCALAR-SPAN');
+    assert.equal(powerSpan.value, 1);
+    assert.equal(powerSpan.unit, tr.v.Unit.byName.powerInWatts);
   });
 });
 </script>

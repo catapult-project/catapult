@@ -28,7 +28,7 @@ curve over the course of a frame or set of frames.
 
 var EventSet = tr.model.EventSet;
 
-var CHART_TITLE = 'Power (in mW) by ms since vertical sync';
+var CHART_TITLE = 'Power (W) by ms since vertical sync';
 // TODO(charliea): Find out how to make this specifiable via CSS.
 var CHART_WIDTH_FRACTION_OF_BODY = 0.5;
 
@@ -123,7 +123,8 @@ Polymer('tr-ui-a-frame-power-usage-chart', {
         return;
 
       var point = { x: sample.start - lastVSyncTimestamp };
-      point['f' + frameNumber] = sample.power;
+      // Divide by 1000 to convert to Watts
+      point['f' + frameNumber] = sample.power / 1000;
       points.push(point);
     });
 
