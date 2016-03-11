@@ -7,6 +7,10 @@ found in the LICENSE file.
 
 <link rel="stylesheet" href="/tracing/ui/tracks/process_track_base.css">
 
+<link rel="import" href="/tracing/core/filter.html">
+<link rel="import" href="/tracing/model/model_settings.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/ui.html">
 <link rel="import" href="/tracing/ui/tracks/container_track.html">
 <link rel="import" href="/tracing/ui/tracks/counter_track.html">
 <link rel="import" href="/tracing/ui/tracks/frame_track.html">
@@ -14,10 +18,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/tracks/process_summary_track.html">
 <link rel="import" href="/tracing/ui/tracks/spacing_track.html">
 <link rel="import" href="/tracing/ui/tracks/thread_track.html">
-<link rel="import" href="/tracing/core/filter.html">
-<link rel="import" href="/tracing/model/model_settings.html">
-<link rel="import" href="/tracing/ui/base/ui.html">
-<link rel="import" href="/tracing/ui/base/dom_helpers.html">
 
 <script>
 'use strict';
@@ -168,7 +168,6 @@ tr.exportTo('tr.ui.tracks', function() {
       var track = new tr.ui.tracks.FrameTrack(this.viewport);
       track.frames = frames;
       this.appendChild(track);
-      this.backgroundProvider = track;
     },
 
     appendObjectInstanceTracks_: function() {
