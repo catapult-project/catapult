@@ -6,124 +6,129 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/user_model/animation_expectation.html">
-<link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import"
     href="/tracing/metrics/system_health/responsiveness_metric.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/model/user_model/animation_expectation.html">
+<link rel="import" href="/tracing/model/user_model/response_expectation.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  function responsivenessForDuration(duration) {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      model.canonicalUrlThatCreatedThisTrace = 'test';
+      var ue = new tr.model.um.ResponseExpectation(
+          model, 'test', 0, duration);
+      model.userModel.expectations.push(ue);
+    });
+    var valueList = new tr.metrics.ValueList();
+    tr.metrics.sh.ResponsivenessMetric(valueList, model);
+    return valueList.valueDicts[0].numeric.value;
+  }
+
+  function metricsForAnimation(customizeAnimationCallback) {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      model.canonicalUrlThatCreatedThisTrace = 'test';
+      var ue = new tr.model.um.AnimationExpectation(
+          model, 'test', 0, 100);
+      customizeAnimationCallback(ue);
+      model.userModel.expectations.push(ue);
+    });
+    var valueList = new tr.metrics.ValueList();
+    tr.metrics.sh.ResponsivenessMetric(valueList, model);
+    valueList = valueList.valueDicts;
+    var metrics = {};
+    for (var i = 0; i < valueList.length; ++i) {
+      if (valueList[i].grouping_keys.name === 'responsiveness') {
+        metrics.responsiveness = valueList[i].numeric.value;
+      } else if (valueList[i].grouping_keys.name === 'smoothness') {
+        metrics.smoothness = valueList[i].numeric.value;
+      } else if (valueList[i].grouping_keys.name === 'throughput') {
+        metrics.throughput = valueList[i].numeric.value;
+      }
+    }
+    return metrics;
+  }
+
   test('response', function() {
-    var responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 150);
-    assert.equal(1, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR));
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 150.0001);
-    assert.closeTo(1, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR), 1e-5);
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 299.9999);
-    assert.closeTo(0.81938, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR), 1e-5);
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 300.0001);
-    assert.closeTo(0.81938, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR), 1e-5);
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 999.9999);
-    assert.closeTo(0.1793, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR), 1e-5);
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 1000.0001);
-    assert.closeTo(0.1793, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR), 1e-5);
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 4999.999);
-    assert.closeTo(0, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR), 1e-5);
-    responseIR = new tr.model.um.ResponseExpectation(
-        undefined, '', 0, 5000);
-    assert.equal(0, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        responseIR));
+    assert.equal(1, responsivenessForDuration(150));
+    assert.closeTo(1, responsivenessForDuration(150.0001), 1e-5);
+    assert.closeTo(0.81938, responsivenessForDuration(299.9999), 1e-5);
+    assert.closeTo(0.81938, responsivenessForDuration(300.0001), 1e-5);
+    assert.closeTo(0.1793, responsivenessForDuration(999.9999), 1e-5);
+    assert.closeTo(0.1793, responsivenessForDuration(1000.0001), 1e-5);
+    assert.closeTo(0, responsivenessForDuration(4999.999), 1e-5);
+    assert.equal(0, responsivenessForDuration(5000));
   });
 
   test('animation_OneHundredFPS', function() {
-    var animationIR = new tr.model.um.AnimationExpectation(
-        undefined, 'subtype', 0, 100);
-    for (var i = 1; i < 10; ++i) {
-      animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
-        title: tr.model.helpers.IMPL_RENDERING_STATS,
-        start: i * 10,
-        end: (i * 10) + 1
-      }));
-    }
+    var metrics = metricsForAnimation(function(animation) {
+      for (var i = 1; i < 10; ++i) {
+        animation.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
+          title: tr.model.helpers.IMPL_RENDERING_STATS,
+          start: i * 10,
+          end: (i * 10) + 1
+        }));
+      }
+    });
 
-    assert.closeTo(1, tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(
-        animationIR), 1e-4);
-    assert.closeTo(1, tr.metrics.sh.AnimationThroughputMetric.forExpectation(
-        animationIR), 1e-4);
-    assert.closeTo(1, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        animationIR), 1e-3);
+    assert.closeTo(1, metrics.smoothness, 1e-4);
+    assert.closeTo(1, metrics.throughput, 1e-4);
+    assert.closeTo(1, metrics.responsiveness, 1e-3);
   });
 
   test('animation_OneFPS', function() {
     // Minimum comfort is when at least max(2, frameCount/10) frames are longer
     // than 50ms, and avgFPS <= 10.
     // One frame-per-second causes FPS comfort = 0.
-    var animationIR = new tr.model.um.AnimationExpectation(
-        undefined, 'subtype', 0, 2000);
-    animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
-      title: tr.model.helpers.IMPL_RENDERING_STATS,
-      start: 0,
-      end: 1
-    }));
-    animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
-      title: tr.model.helpers.IMPL_RENDERING_STATS,
-      start: 999,
-      end: 1000
-    }));
-    animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
-      title: tr.model.helpers.IMPL_RENDERING_STATS,
-      start: 1999,
-      end: 2000
-    }));
-
-    assert.closeTo(1, tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(
-        animationIR), 1e-4);
-    assert.closeTo(0, tr.metrics.sh.AnimationThroughputMetric.forExpectation(
-        animationIR), 1e-4);
-    assert.closeTo(0.2689, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        animationIR), 1e-3);
+    var metrics = metricsForAnimation(function(animation) {
+      animation.duration = 2000;
+      animation.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
+        title: tr.model.helpers.IMPL_RENDERING_STATS,
+        start: 0,
+        end: 1
+      }));
+      animation.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
+        title: tr.model.helpers.IMPL_RENDERING_STATS,
+        start: 999,
+        end: 1000
+      }));
+      animation.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
+        title: tr.model.helpers.IMPL_RENDERING_STATS,
+        start: 1999,
+        end: 2000
+      }));
+    });
+    assert.closeTo(1, metrics.smoothness, 1e-4);
+    assert.closeTo(0, metrics.throughput, 1e-4);
+    assert.closeTo(0.2689, metrics.responsiveness, 1e-3);
   });
 
   test('animation_jank', function() {
-    var animationIR = new tr.model.um.AnimationExpectation(
-        undefined, 'subtype', 0, 101000);
-    var timestamp = 0;
-    for (var i = 0; i < 100; ++i) {
-      timestamp += 16;
-      animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
+    var metrics = metricsForAnimation(function(animation) {
+      animation.duration = 101000;
+      var timestamp = 0;
+      for (var i = 0; i < 100; ++i) {
+        timestamp += 16;
+        animation.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
+          title: tr.model.helpers.IMPL_RENDERING_STATS,
+          start: timestamp,
+          end: timestamp + 1
+        }));
+      }
+      timestamp += 1000;
+      animation.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
         title: tr.model.helpers.IMPL_RENDERING_STATS,
         start: timestamp,
         end: timestamp + 1
       }));
-    }
-    timestamp += 1000;
-    animationIR.associatedEvents.push(tr.c.TestUtils.newAsyncSliceEx({
-      title: tr.model.helpers.IMPL_RENDERING_STATS,
-      start: timestamp,
-      end: timestamp + 1
-    }));
+    });
 
-    assert.closeTo(0, tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(
-        animationIR), 1e-4);
-    assert.closeTo(0, tr.metrics.sh.AnimationThroughputMetric.forExpectation(
-        animationIR), 1e-4);
-    assert.closeTo(0, tr.metrics.sh.ResponsivenessMetric.forExpectation(
-        animationIR), 1e-4);
+    assert.closeTo(0, metrics.smoothness, 1e-4);
+    assert.closeTo(0, metrics.throughput, 1e-4);
+    assert.closeTo(0, metrics.responsiveness, 1e-3);
   });
 });
 </script>

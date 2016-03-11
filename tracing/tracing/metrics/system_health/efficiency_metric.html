@@ -6,46 +6,60 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/user_model/animation_expectation.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  function EfficiencyMetric() {
+  var UNIT = tr.v.Unit.byName.normalizedPercentage_biggerIsBetter;
+
+  var DESCRIPTION = 'Normalized CPU budget consumption';
+
+  function EfficiencyMetric(valueList, model) {
+    model.userModel.expectations.forEach(function(ue) {
+      var options = {};
+      options.description = DESCRIPTION;
+
+      var groupingKeys = {};
+      groupingKeys.userExpectation = ue.stableId;
+      groupingKeys.userExpectationStageTitle = ue.stageTitle;
+      groupingKeys.userExpectationInitiatorTitle = ue.initiatorTitle;
+
+      var score = undefined;
+
+      if ((ue.totalCpuMs === undefined) ||
+          (ue.totalCpuMs == 0))
+        return;
+
+      var cpuFractionBudget = tr.b.Range.fromExplicitRange(0.5, 1.5);
+
+      if (ue instanceof tr.model.um.IdleExpectation) {
+        cpuFractionBudget = tr.b.Range.fromExplicitRange(0.1, 1);
+      } else if (ue instanceof tr.model.um.AnimationExpectation) {
+        cpuFractionBudget = tr.b.Range.fromExplicitRange(1, 2);
+      }
+
+      var cpuMsBudget = tr.b.Range.fromExplicitRange(
+          ue.duration * cpuFractionBudget.min,
+          ue.duration * cpuFractionBudget.max);
+      var normalizedCpu = tr.b.normalize(
+          ue.totalCpuMs, cpuMsBudget.min, cpuMsBudget.max);
+      score = 1 - tr.b.clamp(normalizedCpu, 0, 1);
+
+      valueList.addValue(new tr.v.NumericValue(
+          model.canonicalUrlThatCreatedThisTrace, 'efficiency',
+          new tr.v.ScalarNumeric(UNIT, score),
+          options, groupingKeys));
+    });
   }
 
-  EfficiencyMetric.forModel = function(model, opt_rangeOfInterest) {
-    return tr.b.Statistics.weightedMean(
-        tr.metrics.sh.filterExpectationsByRange(
-            model.userModel.expectations, opt_rangeOfInterest),
-        tr.metrics.sh.perceptualBlend,
-        EfficiencyMetric.forExpectation);
-  };
-
-  EfficiencyMetric.forExpectation = function(ir) {
-    if ((ir.totalCpuMs === undefined) ||
-        (ir.totalCpuMs == 0))
-      return undefined;
-
-    var cpuFractionBudget = tr.b.Range.fromExplicitRange(0.5, 1.5);
-
-    if (ir instanceof tr.model.um.IdleExpectation) {
-      cpuFractionBudget = tr.b.Range.fromExplicitRange(0.1, 1);
-    } else if (ir instanceof tr.model.um.AnimationExpectation) {
-      cpuFractionBudget = tr.b.Range.fromExplicitRange(1, 2);
-    }
-
-    var cpuMsBudget = tr.b.Range.fromExplicitRange(
-        ir.duration * cpuFractionBudget.min,
-        ir.duration * cpuFractionBudget.max);
-    var normalizedCpu = tr.b.normalize(
-        ir.totalCpuMs, cpuMsBudget.min, cpuMsBudget.max);
-    var normalizedCpuEfficiency = 1 - tr.b.clamp(normalizedCpu, 0, 1);
-    return normalizedCpuEfficiency;
-  };
+  tr.metrics.MetricRegistry.register(EfficiencyMetric);
 
   return {
     EfficiencyMetric: EfficiencyMetric

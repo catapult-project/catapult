@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 
 <script>
 'use strict';
@@ -108,9 +108,9 @@ tr.b.unittest.testSuite(function() {
     var ir3 = model.userModel.expectations.push(
         TestUtils.newInteractionRecord(model, 20, 10));
 
-    assert.equal('IR.0', ir1.stableId);
-    assert.equal('IR.1', ir2.stableId);
-    assert.equal('IR.2', ir3.stableId);
+    assert.equal('UserExpectation.0', ir1.stableId);
+    assert.equal('UserExpectation.1', ir2.stableId);
+    assert.equal('UserExpectation.2', ir3.stableId);
   });
 
 });

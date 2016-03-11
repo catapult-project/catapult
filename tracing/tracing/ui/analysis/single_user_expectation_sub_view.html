@@ -15,10 +15,6 @@ found in the LICENSE file.
   <script>
   'use strict';
 
-  var ResponsivenessMetric = tr.metrics.sh.ResponsivenessMetric;
-  var SystemHealthMetric = tr.metrics.sh.SystemHealthMetric;
-  var EfficiencyMetric = tr.metrics.sh.EfficiencyMetric;
-
   Polymer({
     created: function() {
       this.currentSelection_ = undefined;
@@ -47,27 +43,12 @@ found in the LICENSE file.
     },
 
     onCustomizeRows_: function(event) {
-      var ir = this.selection[0];
+      var ue = this.selection[0];
 
-      var metrics = [
-        {name: 'Responsiveness', metric: ResponsivenessMetric},
-        {name: 'Efficiency', metric: EfficiencyMetric}];
-
-      metrics.forEach(function(spec) {
-        var score = spec.metric.forExpectation(ir);
-        if (score === undefined)
-          return;
-
-        event.rows.push({
-          name: spec.name,
-          value: tr.ui.b.toThreeDigitLocaleString(score)
-        });
-      });
-
-      if (ir.rawCpuMs) {
+      if (ue.rawCpuMs) {
         event.rows.push({
           name: 'Total CPU',
-          value: tr.v.ui.createScalarSpan(ir.totalCpuMs, {
+          value: tr.v.ui.createScalarSpan(ue.totalCpuMs, {
             unit: tr.v.Unit.byName.timeDurationInMs
           })
         });

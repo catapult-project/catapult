@@ -153,6 +153,7 @@
       'tracing/importer/simple_line_reader.html',
       'tracing/importer/user_model_builder.html',
       'tracing/metrics/all_metrics.html',
+      'tracing/metrics/metric_registry.html',
       'tracing/metrics/system_health/animation_smoothness_metric.html',
       'tracing/metrics/system_health/animation_throughput_metric.html',
       'tracing/metrics/system_health/efficiency_metric.html',
@@ -432,7 +433,8 @@
       'tracing/value/ui/generic_table_view.html',
       'tracing/value/ui/preferred_display_unit.html',
       'tracing/value/ui/scalar_span.html',
-      'tracing/value/unit.html'
+      'tracing/value/unit.html',
+      'tracing/value/value.html'
     ],
     'tracing_img_files': [
       'tracing/ui/extras/chrome/cc/images/input-event.png',

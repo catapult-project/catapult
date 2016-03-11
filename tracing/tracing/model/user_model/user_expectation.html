@@ -26,7 +26,8 @@ tr.exportTo('tr.model.um', function() {
     this.parentModel = parentModel;
     this.typeInfo_ = undefined;
 
-    // sourceEvents are the ones that caused the IR Finder to create this IR.
+    // sourceEvents are the ones that caused the UserModelBuilder to create this
+    // UserExpectation.
     this.sourceEvents = new tr.model.EventSet();
   }
 
@@ -58,7 +59,8 @@ tr.exportTo('tr.model.um', function() {
     },
 
     get stableId() {
-      return 'IR.' + this.parentModel.userModel.expectations.indexOf(this);
+      return ('UserExpectation.' +
+          this.parentModel.userModel.expectations.indexOf(this));
     },
 
     get typeInfo() {
@@ -95,7 +97,7 @@ tr.exportTo('tr.model.um', function() {
     },
 
     /**
-     * Returns the sum of the number of CPU ms spent by this IR.
+     * Returns the sum of the number of CPU ms spent by this UserExpectation.
      */
     get totalCpuMs() {
       var cpuMs = 0;

@@ -6,38 +6,49 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/user_model/idle_expectation.html">
 <link rel="import"
     href="/tracing/metrics/system_health/efficiency_metric.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/model/user_model/idle_expectation.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function createIdleIR() {
-    var slice = tr.c.TestUtils.newSliceEx({
-      title: 'foo',
-      start: 0,
-      end: 100,
-      type: tr.model.ThreadSlice
-    });
-    slice.isTopLevel = true;
+  function createModel() {
+    return tr.c.TestUtils.newModel(function(model) {
+      model.p1 = model.getOrCreateProcess(1);
+      model.t2 = model.p1.getOrCreateThread(2);
 
-    var idleIR = new tr.model.um.IdleExpectation(undefined, 0, 100);
-    idleIR.associatedEvents.push(slice);
-    return idleIR;
+      var slice = tr.c.TestUtils.newSliceEx({
+        title: 'foo',
+        start: 0,
+        end: 100,
+        type: tr.model.ThreadSlice
+      });
+      slice.isTopLevel = true;
+
+      var idle = new tr.model.um.IdleExpectation(model, 0, 100);
+      idle.associatedEvents.push(slice);
+      model.userModel.expectations.push(idle);
+      model.canonicalUrlThatCreatedThisTrace = 'test';
+    });
   }
 
   test('optimalEfficiency', function() {
-    var idleIR = createIdleIR();
-    idleIR.associatedEvents[0].cpuSelfTime = 10;
-    assert.equal(1, tr.metrics.sh.EfficiencyMetric.forExpectation(idleIR));
+    var model = createModel();
+    model.userModel.expectations[0].associatedEvents[0].cpuSelfTime = 10;
+    var valueList = new tr.metrics.ValueList();
+    tr.metrics.sh.EfficiencyMetric(valueList, model);
+    assert.equal(1, valueList.valueDicts[0].numeric.value);
   });
 
   test('pessimalEfficiency', function() {
-    var idleIR = createIdleIR();
-    idleIR.associatedEvents[0].cpuSelfTime = 100;
-    assert.equal(0, tr.metrics.sh.EfficiencyMetric.forExpectation(idleIR));
+    var model = createModel();
+    model.userModel.expectations[0].associatedEvents[0].cpuSelfTime = 100;
+    var valueList = new tr.metrics.ValueList();
+    tr.metrics.sh.EfficiencyMetric(valueList, model);
+    assert.equal(0, valueList.valueDicts[0].numeric.value);
   });
 });
 </script>

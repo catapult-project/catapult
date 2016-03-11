@@ -21,30 +21,40 @@ tr.exportTo('tr.metrics.sh', function() {
   // frames-per-second.
   var MIN_FPS = 10;
 
-  function AnimationThroughputMetric() {
+  var UNIT = tr.v.Unit.byName.normalizedPercentage_biggerIsBetter;
+
+  var DESCRIPTION = 'Mean Opinion Score for Animation throughput';
+
+  function AnimationThroughputMetric(valueList, model) {
+    model.userModel.expectations.forEach(function(ue) {
+      if (!(ue instanceof tr.model.um.AnimationExpectation))
+        return;
+
+      if (ue.frameEvents === undefined ||
+          ue.frameEvents.length === 0)
+        throw new Error('Animation missing frameEvents ' + ue.stableId);
+
+      var options = {};
+      options.description = DESCRIPTION;
+
+      var groupingKeys = {};
+      groupingKeys.userExpectation = ue.stableId;
+      groupingKeys.userExpectationStageTitle = ue.stageTitle;
+      groupingKeys.userExpectationInitiatorTitle = ue.initiatorTitle;
+
+      var durationSeconds = ue.duration / 1000;
+      var avgSpf = durationSeconds / ue.frameEvents.length;
+      var throughput = 1 - tr.b.normalize(avgSpf, 1 / MAX_FPS, 1 / MIN_FPS);
+      var score = tr.b.clamp(throughput, 0, 1);
+
+      valueList.addValue(new tr.v.NumericValue(
+          model.canonicalUrlThatCreatedThisTrace, 'throughput',
+          new tr.v.ScalarNumeric(UNIT, score),
+          options, groupingKeys));
+    });
   }
 
-  AnimationThroughputMetric.forModel = function(model, opt_rangeOfInterest) {
-    return tr.b.Statistics.weightedMean(
-        tr.metrics.sh.filterExpectationsByRange(
-            model.userModel.expectations, opt_rangeOfInterest),
-        tr.metrics.sh.perceptualBlend,
-        AnimationThroughputMetric.forExpectation);
-  };
-
-  AnimationThroughputMetric.forExpectation = function(ir) {
-    if (!(ir instanceof tr.model.um.AnimationExpectation))
-      return undefined;
-
-    if (ir.frameEvents === undefined ||
-        ir.frameEvents.length === 0)
-      return undefined;
-
-    var durationSeconds = ir.duration / 1000;
-    var avgSpf = durationSeconds / ir.frameEvents.length;
-    var throughput = 1 - tr.b.normalize(avgSpf, 1 / MAX_FPS, 1 / MIN_FPS);
-    return tr.b.clamp(throughput, 0, 1);
-  };
+  tr.metrics.MetricRegistry.register(AnimationThroughputMetric);
 
   return {
     AnimationThroughputMetric: AnimationThroughputMetric

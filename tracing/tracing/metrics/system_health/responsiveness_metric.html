@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import"
     href="/tracing/metrics/system_health/animation_smoothness_metric.html">
 <link rel="import"
@@ -15,6 +16,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -76,37 +79,75 @@ tr.exportTo('tr.metrics.sh', function() {
     overflowBin: {min: 60000, max: Number.MAX_VALUE, count: 0}
   });
 
-  function ResponsivenessMetric() {
+  var UNIT = tr.v.Unit.byName.normalizedPercentage_biggerIsBetter;
+
+  var DESCRIPTION = (
+      'For Load and Response, Mean Opinion Score of completion time; ' +
+      'For Animation, perceptual blend of Mean Opinion Scores of ' +
+      'throughput and smoothness');
+
+  function ResponsivenessMetric(valueList, model) {
+    tr.metrics.sh.AnimationThroughputMetric(valueList, model);
+    tr.metrics.sh.AnimationSmoothnessMetric(valueList, model);
+
+    model.userModel.expectations.forEach(function(ue) {
+      var score = undefined;
+
+      if (ue instanceof tr.model.um.IdleExpectation) {
+        // Responsiveness is not defined for Idle.
+        return;
+      } else if (ue instanceof tr.model.um.LoadExpectation) {
+        score = LOAD_HISTOGRAM.getInterpolatedCountAt(ue.duration) /
+          LOAD_HISTOGRAM.maxCount;
+      } else if (ue instanceof tr.model.um.ResponseExpectation) {
+        score = RESPONSE_HISTOGRAM.getInterpolatedCountAt(ue.duration) /
+          RESPONSE_HISTOGRAM.maxCount;
+      } else if (ue instanceof tr.model.um.AnimationExpectation) {
+        var throughput = undefined;
+        var smoothness = undefined;
+        valueList.valueDicts.forEach(function(value) {
+          if ((value.type !== 'numeric') ||
+              (value.numeric.type !== 'scalar') ||
+              (value.grouping_keys.userExpectation !== ue.stableId))
+            return;
+
+          if (value.grouping_keys.name === 'throughput')
+            throughput = value.numeric.value;
+          if (value.grouping_keys.name === 'smoothness')
+            smoothness = value.numeric.value;
+        });
+
+        if (throughput === undefined)
+          throw new Error('Missing throughput for ' + ue.stableId);
+        if (smoothness === undefined)
+          throw new Error('Missing smoothness for ' + ue.stableId);
+
+        score = tr.b.Statistics.weightedMean(
+            [throughput, smoothness],
+            tr.metrics.sh.perceptualBlend);
+      } else {
+        throw new Error('Unrecognized stage for ' + ue.stableId);
+      }
+
+      if (score === undefined)
+        throw new Error('Failed to compute responsiveness for ' + ue.stableId);
+
+      var options = {};
+      options.description = DESCRIPTION;
+
+      var groupingKeys = {};
+      groupingKeys.userExpectation = ue.stableId;
+      groupingKeys.userExpectationStageTitle = ue.stageTitle;
+      groupingKeys.userExpectationInitiatorTitle = ue.initiatorTitle;
+
+      valueList.addValue(new tr.v.NumericValue(
+          model.canonicalUrlThatCreatedThisTrace, 'responsiveness',
+          new tr.v.ScalarNumeric(UNIT, score),
+          options, groupingKeys));
+    });
   }
 
-  ResponsivenessMetric.forModel = function(model, opt_rangeOfInterest) {
-    return tr.b.Statistics.weightedMean(
-        tr.metrics.sh.filterExpectationsByRange(
-            model.userModel.expectations, opt_rangeOfInterest),
-        tr.metrics.sh.perceptualBlend,
-        ResponsivenessMetric.forExpectation);
-  };
-
-  ResponsivenessMetric.forExpectation = function(ir) {
-    if (ir instanceof tr.model.um.ResponseExpectation) {
-      return RESPONSE_HISTOGRAM.getInterpolatedCountAt(ir.duration) /
-        RESPONSE_HISTOGRAM.maxCount;
-    }
-
-    if (ir instanceof tr.model.um.AnimationExpectation) {
-      return tr.b.Statistics.weightedMean(
-          [tr.metrics.sh.AnimationThroughputMetric.forExpectation(ir),
-           tr.metrics.sh.AnimationSmoothnessMetric.forExpectation(ir)],
-          tr.metrics.sh.perceptualBlend);
-    }
-
-    if (ir instanceof tr.model.um.LoadExpectation) {
-      return LOAD_HISTOGRAM.getInterpolatedCountAt(ir.duration) /
-        LOAD_HISTOGRAM.maxCount;
-    }
-
-    return undefined;
-  };
+  tr.metrics.MetricRegistry.register(ResponsivenessMetric);
 
   return {
     ResponsivenessMetric: ResponsivenessMetric
