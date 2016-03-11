@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import tempfile
+import types
 
 import perf_insights_project
 import vinn
@@ -72,7 +73,12 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
 }
 
 
-def MapSingleTrace(trace_handle, job):
+def MapSingleTrace(trace_handle,
+                   job,
+                   extra_import_options=None):
+  assert (type(extra_import_options) is types.NoneType or
+          type(extra_import_options) is types.DictType), (
+         'extra_import_options should be a dict or None.')
   project = perf_insights_project.PerfInsightsProject()
 
   all_source_paths = list(project.source_paths)
@@ -85,6 +91,8 @@ def MapSingleTrace(trace_handle, job):
       json.dumps(prepared_trace_handle.AsDict()),
       json.dumps(job.AsDict()),
     ]
+    if extra_import_options:
+      js_args.append(json.dumps(extra_import_options))
 
     res = vinn.RunFile(
       _MAP_SINGLE_TRACE_CMDLINE_PATH, source_paths=all_source_paths,

@@ -296,8 +296,12 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
   def _ComputeTimelineBasedMetric(self, results, trace_value):
     metric = self._tbm_options.GetTimelineBasedMetric()
+    extra_import_options = {
+      'trackDetailedModelStats': True
+    }
 
-    mre_result = metric_runner.RunMetric(trace_value.filename, metric)
+    mre_result = metric_runner.RunMetric(
+        trace_value.filename, metric, extra_import_options)
     page = results.current_page
 
     failure_dicts = mre_result.failures

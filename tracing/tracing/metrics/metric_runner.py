@@ -29,8 +29,9 @@ def _GetMetricRunnerHandle(metric):
 
   return job_module.Job(map_function_handle, None)
 
-def RunMetric(filename, metric):
+def RunMetric(filename, metric, extra_import_options=None):
   th = file_handle.URLFileHandle(filename, 'file://' + filename)
-  result = map_single_trace.MapSingleTrace(th, _GetMetricRunnerHandle(metric))
+  result = map_single_trace.MapSingleTrace(
+      th, _GetMetricRunnerHandle(metric), extra_import_options)
 
   return result
