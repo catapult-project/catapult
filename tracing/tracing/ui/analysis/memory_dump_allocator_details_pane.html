@@ -98,7 +98,8 @@ tr.exportTo('tr.ui.analysis', function() {
       return tr.ui.b.createSpan({
         textContent: row.title,
         italic: true,
-        tooltip: row.fullName
+        tooltip: row.fullNames === undefined ?
+            undefined : row.fullNames.join(', ')
       });
     }
   };
@@ -634,7 +635,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
       var row = {
         title: title,
-        fullName: fullName,
+        fullNames: [fullName],
         contexts: dumps,
         cells: cells,
         suballocatedBy: suballocatedBy
@@ -702,9 +703,45 @@ tr.exportTo('tr.ui.analysis', function() {
         var currentNode = nextNode;
       }
 
-      if (currentNode.row !== undefined)
-        throw new Error('Multiple suballocations with the same owner name');
-      currentNode.row = suballocationRow;
+      var existingRow = currentNode.row;
+      if (existingRow !== undefined) {
+        // On rare occasions it can happen that one dump (e.g. sqlite) owns
+        // different suballocations at different timestamps (e.g.
+        // malloc/allocated_objects/_7d35 and malloc/allocated_objects/_511e).
+        // When this happens, we merge the two suballocations into a single row
+        // (malloc/allocated_objects/suballocations/sqlite).
+        for (var i = 0; i < suballocationRow.contexts.length; i++) {
+          var newContext = suballocationRow.contexts[i];
+          if (newContext === undefined)
+            continue;
+
+          if (existingRow.contexts[i] !== undefined)
+            throw new Error('Multiple suballocations with the same owner name');
+
+          existingRow.contexts[i] = newContext;
+          tr.b.iterItems(suballocationRow.cells, function(cellName, cell) {
+            if (cell === undefined)
+              return;
+            var attrs = cell.attrs;
+            if (attrs === undefined)
+              return;
+            var attr = attrs[i];
+            if (attr === undefined)
+              return;
+            var existingCell = existingRow.cells[cellName];
+            if (existingCell === undefined) {
+              existingCell = new tr.ui.analysis.MemoryCell(
+                  new Array(attrs.length));
+              existingRow.cells[cellName] = existingCell;
+            }
+            existingCell.attrs[i] = attr;
+          });
+        }
+        existingRow.fullNames.push.apply(
+            existingRow.fullNames, suballocationRow.fullNames);
+      } else {
+        currentNode.row = suballocationRow;
+      }
 
       return rootNode;
     },

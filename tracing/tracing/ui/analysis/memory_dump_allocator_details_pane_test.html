@@ -109,7 +109,12 @@ tr.b.unittest.testSuite(function() {
         newSuballocationDump(
             skiaDump, v8Dump, '__15FADE', 16777216 /* 16 MiB */);
 
-        return [v8Dump, oilpanDump, skiaDump];
+        var ccDump = newAllocatorDump(pmd1, 'cc',
+            { size: 4194304 /* 4 MiB */ });
+        newSuballocationDump(
+            ccDump, v8Dump, '__12FEED', 5242880 /* 5 MiB */);
+
+        return [v8Dump, oilpanDump, skiaDump, ccDump];
       })();
 
       // Second timestamp.
@@ -129,7 +134,12 @@ tr.b.unittest.testSuite(function() {
         newSuballocationDump(
             undefined, v8Dump, '__99BEAD', 268435456 /* 256 MiB */);
 
-        return [v8Dump];
+        var ccDump = newAllocatorDump(pmd2, 'cc',
+            { size: 7340032 /* 7 MiB */ });
+        newSuballocationDump(
+            ccDump, v8Dump, '__13DEED', 11534336 /* 11 MiB */);
+
+        return [v8Dump, ccDump];
       })();
     });
 
@@ -243,7 +253,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var rootRow = rows[0];
-    checkRow(columns, rootRow, 'v8', [941571072], [1075788800], [2097152],
+    checkRow(columns, rootRow, 'v8', [942619648], [1081031680], [2097152],
         [204], 3, getAllocatorDumps(processMemoryDumps, 'v8'));
 
     var heapsSubRow = rootRow.subRows[0];
@@ -259,7 +269,7 @@ tr.b.unittest.testSuite(function() {
     checkRow(columns, suballocationsSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'suballocations');
       assert.equal(formattedTitle.title, '');
-    }, [134217728], [268435456], undefined, undefined, 2,
+    }, [135266304], [273678336], undefined, undefined, 3,
         [SUBALLOCATION_CONTEXT]);
 
     var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
@@ -325,8 +335,8 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var rootRow = rows[0];
-    checkRow(columns, rootRow, 'v8', [941571072, 1073741824],
-        [1075788800, 1073741824], [2097152, 2097152], [204, 204], 4,
+    checkRow(columns, rootRow, 'v8', [942619648, 1066401792],
+        [1081031680, 1073741824], [2097152, 2097152], [204, 204], 4,
         getAllocatorDumps(processMemoryDumps, 'v8'));
 
     var heapsSubRow = rootRow.subRows[0];
@@ -342,15 +352,15 @@ tr.b.unittest.testSuite(function() {
 
     var unspecifiedSubRow = rootRow.subRows[2];
     checkRow(columns, unspecifiedSubRow, '<unspecified>',
-        [undefined, 803259392], [undefined, 803259392], undefined, undefined,
+        [undefined, 791725056], [undefined, 791725056], undefined, undefined,
         undefined, getAllocatorDumps(processMemoryDumps, 'v8/<unspecified>'));
 
     var suballocationsSubRow = rootRow.subRows[3];
     checkRow(columns, suballocationsSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'suballocations');
       assert.equal(formattedTitle.title, '');
-    }, [134217728, 268435456], [268435456, 268435456], undefined, undefined,
-        2, [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT]);
+    }, [135266304, 272629760], [273678336, 279969792], undefined, undefined,
+        3, [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT]);
 
     var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
     checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
@@ -390,6 +400,15 @@ tr.b.unittest.testSuite(function() {
       assert.equal(formattedTitle.title, 'v8/__15FADE');
     }, [8388608, undefined], [16777216, undefined], undefined, undefined,
         undefined, getAllocatorDumps(processMemoryDumps, 'v8/__15FADE'));
+
+    var ccSuballocationSubRow = suballocationsSubRow.subRows[2];
+    checkRow(columns, ccSuballocationSubRow, function(formattedTitle) {
+      assert.equal(formattedTitle.textContent, 'cc');
+      assert.equal(formattedTitle.title, 'v8/__12FEED, v8/__13DEED');
+    }, [1048576, 4194304], [5242880, 11534336], undefined, undefined, undefined,
+        [processMemoryDumps[0].getMemoryAllocatorDumpByFullName('v8/__12FEED'),
+         processMemoryDumps[1].getMemoryAllocatorDumpByFullName(
+            'v8/__13DEED')]);
   });
 
   test('instantiate_multipleMax', function() {
@@ -439,13 +458,13 @@ tr.b.unittest.testSuite(function() {
 
     // Check only a few rows of the table.
     var rootRow = rows[0];
-    checkRow(columns, rootRow, 'v8', [941571072, undefined, 1073741824],
-        [1075788800, undefined, 1073741824], [2097152, undefined, 2097152],
+    checkRow(columns, rootRow, 'v8', [942619648, undefined, 1066401792],
+        [1081031680, undefined, 1073741824], [2097152, undefined, 2097152],
         [204, undefined, 204], 4, getAllocatorDumps(processMemoryDumps, 'v8'));
 
     var unspecifiedSubRow = rootRow.subRows[2];
     checkRow(columns, unspecifiedSubRow, '<unspecified>',
-        [undefined, undefined, 803259392], [undefined, undefined, 803259392],
+        [undefined, undefined, 791725056], [undefined, undefined, 791725056],
         undefined, undefined, undefined,
         getAllocatorDumps(processMemoryDumps, 'v8/<unspecified>'));
 
@@ -453,8 +472,8 @@ tr.b.unittest.testSuite(function() {
     checkRow(columns, suballocationsSubRow, function(formattedTitle) {
       assert.equal(formattedTitle.textContent, 'suballocations');
       assert.equal(formattedTitle.title, '');
-    }, [134217728, undefined, 268435456], [268435456, undefined, 268435456],
-        undefined, undefined, 2,
+    }, [135266304, undefined, 272629760], [273678336, undefined, 279969792],
+        undefined, undefined, 3,
         [SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT]);
   });
 
