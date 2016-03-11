@@ -12,14 +12,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Renders an array of slices into the provided div,
- * using a child canvas element. Uses a FastRectRenderer to draw only
- * the visible slices.
- */
 tr.exportTo('tr.ui.tracks', function() {
   /**
-   * The base class for all tracks.
+   * The base class for all tracks, which render data into a provided div.
    * @constructor
    */
   var Track = tr.ui.b.define('track',
@@ -80,6 +75,11 @@ tr.exportTo('tr.ui.tracks', function() {
     updateContents_: function() {
     },
 
+    /**
+     * Wrapper function around draw() that performs transformations on the
+     * context necessary for the track's contents to be drawn in the right place
+     * given the current pan and zoom.
+     */
     drawTrack: function(type) {
       var ctx = this.context();
 
