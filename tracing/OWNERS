@@ -5,6 +5,10 @@
 nduca@chromium.org
 petrcermak@chromium.org
 dsinclair@chromium.org
+fmeawad@chromium.org
+charliea@chromium.org
+eakeufner@chromium.org
+
 
 # Tracing, in general, doesn't require an owners stamp to commit. If you
 # don't think the complexity requires the review of the above you can use
