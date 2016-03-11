@@ -64,26 +64,18 @@ _FIND_ANOMALIES_BENCH_CACHE_KEY = 'find-anomalies-bench'
 
 _EXPERIMENTAL_FUNCTIONS = {
     'find_change_points_default': find_change_points_exp.RunFindChangePoints,
-    'find_change_points_absolute_change_threshold':
-        find_change_points_exp.FindChangePointsWithAbsoluteChangeThreshold,
-    'segment_size_4': lambda test, series:
+    'steppiness_0_3': lambda test, series:
                       find_change_points_exp.RunFindChangePoints(
-                          test, series, min_segment_size=4),
-    'segment_size_8': lambda test, series:
+                          test, series, min_steppiness=0.3),
+    'steppiness_0_4': lambda test, series:
                       find_change_points_exp.RunFindChangePoints(
-                          test, series, min_segment_size=8),
-    'steppiness_0_1': lambda test, series:
-                      find_change_points_exp.RunFindChangePoints(
-                          test, series, min_steppiness=0.1),
+                          test, series, min_steppiness=0.4),
     'steppiness_0_5': lambda test, series:
                       find_change_points_exp.RunFindChangePoints(
                           test, series, min_steppiness=0.5),
-    'std_dev_2': lambda test, series:
-                 find_change_points_exp.RunFindChangePoints(
-                     test, series, multiple_of_std_dev=2.0),
-    'std_dev_3': lambda test, series:
-                 find_change_points_exp.RunFindChangePoints(
-                     test, series, multiple_of_std_dev=3.0),
+    'steppiness_0_6': lambda test, series:
+                      find_change_points_exp.RunFindChangePoints(
+                          test, series, min_steppiness=0.6),
 }
 
 
