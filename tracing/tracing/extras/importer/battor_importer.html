@@ -84,7 +84,7 @@ tr.exportTo('tr.e.importer.battor', function() {
       this.importPowerSamples(series);
 
       // Find the sync markers that are identified as being for the BattOr.
-      var battorSyncMarks = this.model_.getClockSyncRecordsNamed('battor');
+      var battorSyncMarks = this.model_.getClockSyncRecordsWithSyncId('battor');
 
       // Try each of the clock sync techinques in order of their accuracy.
       var shiftTs = undefined;
@@ -260,8 +260,8 @@ tr.exportTo('tr.e.importer.battor', function() {
         return undefined;
 
       // Try to get the matching clock sync record for this explicit sync.
-      var syncMarks = this.model.getClockSyncRecordsNamed(
-                          this.explicitSyncMark_['id']);
+      var syncMarks = this.model.getClockSyncRecordsWithSyncId(
+          this.explicitSyncMark_['id']);
       if (syncMarks.length !== 1) {
         this.model_.importWarning({
           type: 'missing_sync_marker',

@@ -242,9 +242,9 @@ tr.exportTo('tr', function() {
       return stackFrame;
     },
 
-    getClockSyncRecordsNamed: function(name) {
+    getClockSyncRecordsWithSyncId: function(syncId) {
       return this.clockSyncRecords.filter(function(x) {
-        return x.name === name;
+        return x.syncId === syncId;
       });
     },
 

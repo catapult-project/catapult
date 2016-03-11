@@ -5542,7 +5542,7 @@ tr.b.unittest.testSuite(function() {
     var foundClockSync = false;
     for (var i = 0; i < m.clockSyncRecords.length; i++) {
       var clockSync = m.clockSyncRecords[i];
-      if (clockSync.name !== 'abc')
+      if (clockSync.syncId !== 'abc')
         continue;
 
       foundClockSync = true;
@@ -5575,7 +5575,7 @@ tr.b.unittest.testSuite(function() {
     var foundClockSync = false;
     for (var i = 0; i < m.clockSyncRecords.length; i++) {
       var clockSync = m.clockSyncRecords[i];
-      if (clockSync.name !== 'abc')
+      if (clockSync.syncId !== 'abc')
         continue;
 
       foundClockSync = true;

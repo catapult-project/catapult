@@ -15,19 +15,20 @@ tr.exportTo('tr.model', function() {
    * A record that indicates how times in one clock domain map to another.
    *
    * @constructor
-   * @param {string} name The name of the clock sync record.
-   * @param {string} start The timestamp the clock sync started
-   * @param {object} args Any additional argumenstart.
+   * @param {string} syncId The ID of the clock sync used to find the
+   *        corresponding marker in another trace.
+   * @param {string} start The timestamp the clock sync started.
+   * @param {object} args Any additional argument.
    */
-  function ClockSyncRecord(name, start, args) {
-    this.name_ = name;
+  function ClockSyncRecord(syncId, start, args) {
+    this.syncId_ = syncId;
     this.start_ = start;
     this.args_ = args;
   };
 
   ClockSyncRecord.prototype = {
-    get name() {
-      return this.name_;
+    get syncId() {
+      return this.syncId_;
     },
 
     get start() {
@@ -46,8 +47,8 @@ tr.exportTo('tr.model', function() {
   /**
    * A clock sync record that is recorded instantaneously.
    */
-  function InstantClockSyncRecord(name, start, args) {
-    ClockSyncRecord.call(this, name, start, args);
+  function InstantClockSyncRecord(syncId, start, args) {
+    ClockSyncRecord.call(this, syncId, start, args);
   };
 
   InstantClockSyncRecord.prototype = {
@@ -61,8 +62,8 @@ tr.exportTo('tr.model', function() {
    * clock sync could actually have been recorded any time in
    * [start, start + duration].
    */
-  function PingPongClockSyncRecord(name, start, duration, args) {
-    ClockSyncRecord.call(this, name, start, args);
+  function PingPongClockSyncRecord(syncId, start, duration, args) {
+    ClockSyncRecord.call(this, syncId, start, args);
     this.duration_ = duration;
   };
 
