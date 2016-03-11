@@ -88,10 +88,6 @@ tr.exportTo('tr.model', function() {
         this.memoryDumps.forEach(callback, opt_this);
     },
 
-    pushInstantEvent: function(instantEvent) {
-      this.instantEvents.push(instantEvent);
-    },
-
     addLabelIfNeeded: function(labelName) {
       for (var i = 0; i < this.labels.length; i++) {
         if (this.labels[i] === labelName)

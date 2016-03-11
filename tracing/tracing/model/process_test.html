@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     var thread = process.getOrCreateThread(1);
 
     var instantEvent = new tr.model.InstantEvent('cat', 'event1', 1, 100);
-    process.pushInstantEvent(instantEvent);
+    process.instantEvents.push(instantEvent);
 
     var slice = new tr.model.ThreadSlice('', 'a', 0, 1, {}, 4);
     var frame =

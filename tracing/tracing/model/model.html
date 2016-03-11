@@ -235,10 +235,6 @@ tr.exportTo('tr', function() {
       return this.processes[pid];
     },
 
-    pushInstantEvent: function(instantEvent) {
-      this.instantEvents.push(instantEvent);
-    },
-
     addStackFrame: function(stackFrame) {
       if (this.stackFrames[stackFrame.id])
         throw new Error('Stack frame already exists');

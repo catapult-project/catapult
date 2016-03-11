@@ -556,12 +556,12 @@ tr.exportTo('tr.e.importer', function() {
 
       switch (instantEvent.type) {
         case tr.model.InstantEventType.GLOBAL:
-          this.model_.pushInstantEvent(instantEvent);
+          this.model_.instantEvents.push(instantEvent);
           break;
 
         case tr.model.InstantEventType.PROCESS:
           var process = this.model_.getOrCreateProcess(event.pid);
-          process.pushInstantEvent(instantEvent);
+          process.instantEvents.push(instantEvent);
           break;
 
         default:
