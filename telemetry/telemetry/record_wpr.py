@@ -236,9 +236,10 @@ class WprRecorder(object):
         upload_to_cloud_storage)
 
 
-# TODO(nednguyen): use benchmark.Environment instead of base_dir for discovering
-# benchmark & story classes.
-def Main(base_dir):
+def Main(base_dir=None, environment=None):
+
+  if base_dir is None:
+    base_dir = environment.top_level_dir
 
   parser = argparse.ArgumentParser(
       usage='Record a benchmark or a story (page set).')
@@ -272,9 +273,9 @@ def Main(base_dir):
     parser.print_help()
     return 0
 
-  # TODO(aiolos): We should add getting the client config from the
-  # benchmark.Environment once it's added. Not currently needed though.
-  binary_manager.InitDependencyManager(None)
+  binary_manager.InitDependencyManager(
+    environment.client_config if environment else None)
+
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference
   # between recording a benchmark vs recording a story better based on
