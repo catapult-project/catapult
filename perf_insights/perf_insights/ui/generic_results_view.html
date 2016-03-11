@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/generic_table_view.html">
+
+<polymer-element name="pi-ui-generic-results-view">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+      #table {
+        flex: 1 1 auto;
+      }
+    </style>
+    <pre id="table">
+    </pre>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.mapResults_ = undefined;
+    },
+
+    ready: function() {
+    },
+
+    get mapResults() {
+      return this.mapResults_;
+    },
+
+    set mapResults(mapResults) {
+      this.mapResults_ = mapResults;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+
+      var results = this.mapResults_;
+      if (!results)
+        results = [];
+
+      var table = this.$.table;
+      results.forEach(function(result) {
+        table.innerHTML += JSON.stringify(result.asDict(), undefined, 2);
+      });
+    }
+  });
+  </script>
+</polymer-element>

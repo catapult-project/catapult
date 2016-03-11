@@ -26,7 +26,7 @@ tr.exportTo('pi.mre', function() {
 
     addPair: function(key, value) {
       if (key in this.pairs)
-        throw new Error('Key ' + key + 'already exists in result.');
+        throw new Error('Key ' + key + ' already exists in result.');
       this.pairs[key] = value;
     },
 

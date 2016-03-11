@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/mre/failure.html">
+
+<script>
+'use strict';
+
+tr.exportTo('pi.mre', function() {
+
+  function reduceMapResults(jobResults, key, mapResults, reduceFunction) {
+    try {
+      var result = reduceFunction(key, mapResults);
+      jobResults.addPair(key, result);
+    } catch (ex) {
+      ex.name = 'ReduceFunctionError';
+      throw ex;
+    }
+  }
+
+  return {
+    reduceMapResults: reduceMapResults
+  };
+});
+</script>

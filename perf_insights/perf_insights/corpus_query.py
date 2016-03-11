@@ -53,7 +53,7 @@ def _StringToValue(s):
   try:
     constant = eval(s, {}, {})
     return _Constant(constant)
-  except:  # pylint: disable=bare-except
+  except Exception:  # pylint: disable=bare-except
     pass
 
   # Barewords are assumed to be fields.
@@ -217,7 +217,7 @@ class CorpusQuery(object):
     return q
 
   def Eval(self, metadata, num_trace_handles_so_far=0):
-    if self.max_trace_handles:
+    if not self.max_trace_handles is None:
       if num_trace_handles_so_far >= self.max_trace_handles:
         return False
 

@@ -18,8 +18,7 @@ class ThreadedWorkQueue(object):
     self._stop = False
     self._stop_result = None
 
-    self._main_thread_tasks = Queue.Queue()
-    self._any_thread_tasks = Queue.Queue()
+    self.Reset()
 
   @property
   def is_running(self):
@@ -56,6 +55,11 @@ class ThreadedWorkQueue(object):
     self._stop_result = stop_result
     self._stop = True
     return True
+
+  def Reset(self):
+    assert not self.is_running
+    self._main_thread_tasks = Queue.Queue()
+    self._any_thread_tasks = Queue.Queue()
 
   def PostMainThreadTask(self, cb, *args, **kwargs):
     def RunTask():

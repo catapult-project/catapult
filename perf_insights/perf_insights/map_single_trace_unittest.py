@@ -4,15 +4,17 @@
 import json
 import unittest
 
-from perf_insights import map_single_trace
 from perf_insights import function_handle
+from perf_insights import map_single_trace
 from perf_insights.mre import file_handle
+from perf_insights.mre import job as job_module
 
 
 def _Handle(filename):
   module = function_handle.ModuleToLoad(filename=filename)
-  return function_handle.FunctionHandle(modules_to_load=[module],
-                                        function_name='MyMapFunction')
+  map_handle = function_handle.FunctionHandle(
+      modules_to_load=[module], function_name='MyMapFunction')
+  return job_module.Job(map_handle, None)
 
 
 class MapSingleTraceTests(unittest.TestCase):

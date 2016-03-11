@@ -131,6 +131,16 @@ tr.exportTo('tr.e.chrome', function() {
       'v8.compile'
     ],
 
+    script_parse: [
+      'V8Test.ParseScript',
+      'V8Test.ParseFunction',
+    ],
+
+    script_compile: [
+      'V8Test.Compile',
+      'V8Test.CompileFullCode',
+    ],
+
     resource_loading: [
       'ResourceFetcher::requestResource',
       'ResourceDispatcher::OnReceivedData',

@@ -80,7 +80,6 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
       if not query.Eval(metadata, len(trace_handles)):
         continue
 
-      # Make URL relative to server root.
       url = self.url_resolver(filename)
       if url is None:
         url = _DefaultUrlResover(filename)

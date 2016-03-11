@@ -4,6 +4,10 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/perf_insights/mappers/reduce.html">
+<link rel="import" href="/perf_insights/mappers/slice_cost.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
 
 <polymer-element name="pi-ui-r-pi-report">
   <script>
@@ -11,14 +15,20 @@ found in the LICENSE file.
 
   Polymer({
     created: function() {
+      // TODO(eakuefner): Testing on master shows that this check fails to
+      // bail out.
       var thisPolymer = Polymer.getPolymerElementNamed(this.tagName);
-      if (!thisPolymer.getAttribute('map-function-href')) {
-        throw new Error(
-            'Subclasses of pi-ui-report must have map-function-href attrs');
-      }
-      if (!thisPolymer.getAttribute('map-function-name')) {
-        throw new Error(
-            'Subclasses of pi-ui-report must have map-function-name attrs');
+      var requiredAttrs = ['map-function-href',
+                           'map-function-name',
+                           'reduce-function-href',
+                           'reduce-function-name'];
+
+      for (var attrIdx in requiredAttrs) {
+        var attr = requiredAttrs[attrIdx];
+        if (!thisPolymer.getAttribute(attr)) {
+          throw new Error(
+            'Subclasses of pi-ui-report must have ' + attr + ' attrs');
+        }
       }
     },
 

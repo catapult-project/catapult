@@ -12,13 +12,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="pi-ui-r-startup-report"
     extends="pi-ui-r-pi-report"
     map-function-href="/perf_insights/mappers/startup_map_function.html"
-    map-function-name="startupMapFunction">
+    map-function-name="startupMapFunction"
   <template>
     <style>
       :host {
@@ -243,7 +244,7 @@ found in the LICENSE file.
         if (mean == undefined || totalStartupDuration == 0)
           return undefined;
         mean /= totalStartupDuration;
-        var span = tr.v.ui.createScalarSpan(mean);
+        var span = tr.ui.units.createScalarSpan(mean);
         span.unit = tr.v.Unit.byName.normalizedPercentage;
         span.percentage = mean;
         return span;

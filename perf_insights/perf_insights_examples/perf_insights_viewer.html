@@ -30,34 +30,24 @@ found in the LICENSE file.
 </style>
 
 <link rel="import" href="/components/polymer/polymer.html">
+<link rel="import" href="/perf_insights/ui/corpus_drivers.html">
 <link rel="import" href="/perf_insights/ui/perf_insights_full_config.html">
 <link rel="import" href="/perf_insights/ui/pi_app_main.html">
-<link rel="import" href="/tracing/base/xhr.html">
-<link rel="import" href="/perf_insights/function_handle.html">
 
 </head>
 <body>
+
+  <pi-driver-cloudmapper id="pi-driver-cloudmapper">
+  </pi-driver-cloudmapper>
+
+  <pi-driver-devserver id="pi-driver-devserver">
+  </pi-driver-devserver>
+
+  <pi-driver-localcloudmapper id="pi-driver-localcloudmapper">
+  </pi-driver-localcloudmapper>
+
   <pi-ui-pi-app-main>
   </pi-ui-pi-app-main>
 
-  <script>
-  'use strict';
-
-  var g_appMain;
-
-  function domContentLoaded() {
-    function devServerDriver(mapFunctionHandle, corpusQuery) {
-      return tr.b.postAsync(
-          '/perf_insights_examples/run_map_function?corpus_query=' +
-          encodeURIComponent(corpusQuery),
-          JSON.stringify(mapFunctionHandle.asDict()));
-    }
-
-    g_appMain = document.body.querySelector('pi-ui-pi-app-main');
-    g_appMain.mapTracesDrivers = [devServerDriver];
-  }
-
-  document.addEventListener('DOMContentLoaded', domContentLoaded);
-  </script>
 </body>
 </html>

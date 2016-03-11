@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/mappers/slice_cost.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/perf_insights/ui/generic_results_view.html">
+<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
+<link rel="import" href="/tracing/ui/base/overlay.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/time_duration_span.html">
+
+<polymer-element name="pi-ui-v8-report"
+    extends="pi-ui-r-pi-report"
+    map-function-href="/perf_insights/mappers/v8_map_function.html"
+    map-function-name="v8ReportMapFunction"
+    reduce-function-href="/perf_insights/reducers/v8_reduce_function.html"
+    reduce-function-name="v8ReportReduceFunction">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+      }
+
+      top-controls {
+        display: flex;
+        flex: 0 0 auto;
+        flex-flow: wrap;
+        background-color: rgb(236, 236, 236);
+        border-bottom: 1px solid #8e8e8e;
+        padding: 4px;
+      }
+
+      traces-processed {
+        display: flex;
+        flex: 0 0 auto;
+        flex-flow: wrap;
+        background-color: rgb(236, 236, 236);
+        border-bottom: 1px solid #8e8e8e;
+        padding: 4px;
+      }
+
+      content-pane {
+        min-height: 0;
+        display: flex;
+        flex-direction: row;
+      }
+
+      table-container {
+        flex: 1 1 60%;
+        display: flex;
+      }
+      #table {
+        flex: 1 1 60%;
+      }
+
+      right-pane {
+        border-left: 1px solid black;
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 40%;
+        overflow: auto;
+      }
+      right-pane > * {
+        margin-bottom: 20px;
+      }
+
+      #links {
+        min-height: 0;
+      }
+    </style>
+    <top-controls>
+      <span>Group by:</span>
+      <tr-ui-b-grouping-table-groupby-picker id="picker">
+      </tr-ui-b-grouping-table-groupby-picker>
+    </top-controls>
+    <traces-processed id="traces_processed">
+    </traces-processed>
+    <content-pane>
+      <table-container>
+        <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
+      </table-container>
+      <right-pane>
+        <div id="script-costs">
+          Script costs
+          <tr-ui-b-table id="script-costs-table"></tr-ui-b-table>
+        </div>
+
+        <div id="costs-histogram-container">
+          Histogram of
+          <select id="costs-histogram-cost-type"></select> values:
+          <tr-v-ui-histogram-span id="costs-histogram"></tr-v-ui-histogram-span>
+
+          Links
+          <pi-ui-trace-link-list id="links"></pi-ui-trace-link-list>
+
+          <br>
+          Scripts
+          <pi-ui-trace-link-list id="scripts"></pi-ui-trace-link-list>
+        </div>
+      </div>
+    </content>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    created: function() {
+      this.mapResults_ = undefined;
+    },
+
+    ready: function() {
+      this.$.table.addEventListener(
+          'selection-changed', this.onSelectionChanged_.bind(this));
+
+      var topControls = this.shadowRoot.querySelector('top-controls');
+      var picker = this.$.picker;
+      picker.settingsKey = 'v8-report-grouping-picker';
+      picker.possibleGroups = [
+        {
+          key: 'framework', label: 'Framework',
+          dataFn: function(datum) { return datum.sliceCostInfo.framework; }
+        },
+        {
+          key: 'scriptUrl', label: 'Script URL',
+          dataFn: function(datum) { return datum.sliceCostInfo.scriptURLClean; }
+        },
+        {
+          key: 'threadGroup', label: 'Thread name',
+          dataFn: function(datum) { return datum.sliceCostInfo.threadGroup; }
+        },
+        {
+          key: 'railTypeName', label: 'RAIL Stage',
+          dataFn: function(datum) { return datum.sliceCostInfo.railTypeName; }
+        },
+        {
+          key: 'userFriendlyCategory', label: 'User Friendly Category',
+          dataFn: function(datum) {
+              return datum.sliceCostInfo.userFriendlyCategory || 'other';
+          }
+        },
+        {
+          key: 'title', label: 'Title',
+          dataFn: function(datum) { return datum.sliceCostInfo.title; }
+        },
+        {
+          key: 'domain', label: 'Domain',
+          dataFn: function(datum) { return datum.sliceCostInfo.domain; }
+        },
+        {
+          key: 'domainCategory', label: 'Domain Category',
+          dataFn: function(datum) {
+            return datum.sliceCostInfo.domainCategory;
+          }
+        }
+      ];
+      picker.defaultGroupKeys = [
+          'framework', 'userFriendlyCategory', 'scriptUrl'
+      ];
+      picker.addEventListener('current-groups-changed',
+                              this.updateContents_.bind(this));
+
+      this.updateRightPane_();
+      this.initCostsHistogram_();
+    },
+
+    get mapResults() {
+      return this.mapResults_;
+    },
+
+    set mapResults(mapResults) {
+      this.mapResults_ = mapResults;
+      this.updateContents_();
+    },
+
+    onSelectionChanged_: function(event) {
+      this.updateRightPane_();
+    },
+
+    updateRightPane_: function() {
+      this.updateScriptCosts_();
+      this.updateCostsHistogram_();
+      var panes = this.shadowRoot.querySelector('right-pane').children;
+      var isFirst = true;
+      for (var i = 0; i < panes.length; i++) {
+        if (getComputedStyle(panes[i]).display === 'none')
+          continue;
+        if (isFirst) {
+          panes[i].style.borderTop = '';
+          isFirst = false;
+          continue;
+        }
+        panes[i].style.borderTop = '1px solid black';
+      }
+    },
+
+    updateScriptCosts_: function() {
+      var rows = [];
+      var footerRows = [];
+
+      // Aggregate values.
+      var aggregated = new pi.m.SliceCostInfo();
+      if (this.$.table.selectedTableRow) {
+        this.$.table.selectedTableRow.data.forEach(function(datum) {
+          aggregated.push(undefined, datum.sliceCostInfo);
+        });
+      }
+      if (aggregated.jsTime === 0) {
+        this.shadowRoot.querySelector('#script-costs').style.display = 'none';
+        return;
+      }
+      this.shadowRoot.querySelector('#script-costs').style.display = '';
+
+      // Display aggregated data.
+      for (var state in tr.model.source_info.JSSourceState) {
+        var stateName = tr.model.source_info.JSSourceState[state];
+        rows.push({
+          label: stateName,
+          value: tr.v.ui.createTimeDurationSpan(
+              aggregated.jsTimeByState[stateName])
+        });
+      }
+      footerRows.push({
+        label: 'JS Time',
+        value: tr.v.ui.createTimeDurationSpan(aggregated.jsTime)
+      });
+
+      // Push to table.
+      var scriptCostsTable = this.shadowRoot.querySelector(
+          '#script-costs-table');
+      scriptCostsTable.tableColumns = [
+        {
+          title: 'Label',
+          value: function(row) { return row.label; },
+          width: '150px'
+        },
+        {
+          title: 'Value',
+          value: function(row) { return row.value; },
+          width: '100%'
+        }
+      ];
+      scriptCostsTable.showHeader = false;
+      scriptCostsTable.tableRows = rows;
+      scriptCostsTable.footerRows = footerRows;
+
+      scriptCostsTable.rebuild();
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+
+      var results = this.mapResults_;
+      if (!results)
+        results = new pi.mre.MapResults();
+
+      var allSliceCosts = [];
+      var allTraceUrls = {};
+      results.forEach(function(result) {
+        tr.b.iterItems(result.pairs, function(name, sliceCosts) {
+          if (name != 'wr')
+            return;
+
+          tr.b.iterItems(sliceCosts, function(item_key, item) {
+            allSliceCosts.push({
+              sliceCostInfo: item
+            });
+            var keys = Object.keys(item.traceURLs);
+            keys.forEach(function(traceURL) {
+              allTraceUrls[traceURL] = true;
+            });
+          });
+        });
+      });
+
+      allTraceUrls = Object.keys(allTraceUrls);
+      this.$.traces_processed.innerText = 'Traces Processed: ' +
+                                          allTraceUrls.length;
+
+      table.rowStatsConstructor = this.createRowStatsConstructor_();
+
+      var columns = this.createColumns_();
+      table.tableColumns = columns;
+      table.sortColumnIndex = 2;
+      table.sortDescending = true;
+      table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      table.groupBy = this.$.picker.currentGroups.map(function(group) {
+        return group.dataFn;
+      });
+      table.dataToGroup = allSliceCosts;
+      table.rebuild();
+      this.updateRightPane_();
+    },
+
+    createRowStatsConstructor_: function() {
+      return function SliceCostRowStats(row) {
+        var stats = new pi.m.SliceCostInfo();
+        row.data.forEach(function(datum) {
+          stats.push(undefined, datum.sliceCostInfo);
+        });
+        return stats;
+      }
+    },
+
+    createColumns_: function() {
+      var columns = [
+        {
+          title: 'Title',
+          value: function(row) {
+            return row.title;
+          },
+          cmp: function(a, b) {
+            return a.title.localeCompare(b.title);
+          },
+          width: '500px'
+        },
+        {
+          title: 'Self time (total)',
+          textAlign: 'right',
+          value: function(row) {
+            var value = new tr.v.ScalarNumeric(
+                tr.v.Unit.byName.timeDurationInMs,
+                row.rowStats.selfTime);
+            var spanEl = tr.v.ui.createScalarSpan(value);
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return tr.b.comparePossiblyUndefinedValues(a, b,
+                function(a, b) {
+                  return a.rowStats.selfTime - b.rowStats.selfTime;
+                });
+          }
+        },
+        {
+          title: 'CPU Self time (total)',
+          textAlign: 'right',
+          value: function(row) {
+            var value = new tr.v.ScalarNumeric(
+                tr.v.Unit.byName.timeDurationInMs,
+                row.rowStats.cpuSelfTime);
+            var spanEl = tr.v.ui.createScalarSpan(value);
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return tr.b.comparePossiblyUndefinedValues(a, b,
+                function(a, b) {
+                  return a.rowStats.cpuSelfTime - b.rowStats.cpuSelfTime;
+                });
+          }
+        }
+      ];
+      return columns;
+    },
+
+    initCostsHistogram_: function() {
+      var histogram = this.shadowRoot.querySelector('#costs-histogram');
+      histogram.addEventListener('brushed-bins-changed',
+          this.onBrushedBinsChanged_.bind(this));
+
+      var options = [
+        {
+          label: 'Self time',
+          value: 'selfTime',
+          func: function(datum) {
+            return datum.sliceCostInfo.selfTimeHistogram;
+          }
+        },
+        {
+          label: 'CPU self time',
+          value: 'cpuSelfTime',
+          func: function(datum) {
+            return datum.sliceCostInfo.cpuSelfTimeHistogram;
+          }
+        },
+        {
+          label: 'JS time',
+          value: 'jsTime',
+          func: function(datum) { return datum.sliceCostInfo.jsTime; }
+        }
+      ];
+      for (var state in tr.model.source_info.JSSourceState) {
+        options.push({
+          label: 'JS time: ' + state,
+          value: 'jsTime.' + state,
+          func: function(datum) {
+            return datum.sliceCostInfo.jsTimeByState[state];
+          }
+        });
+      }
+      var oldSelector = this.shadowRoot.querySelector(
+          '#costs-histogram-cost-type');
+      var newSelector = tr.ui.b.createSelector(
+          this, 'currentSliceReportCostType',
+          'pi.app_main.currentSliceReportCostType',
+          options[0].value,
+          options);
+      newSelector.id = 'costs-histogram-cost-type';
+      oldSelector.parentElement.replaceChild(newSelector, oldSelector);
+    },
+
+    set currentSliceReportCostType(currentSliceReportCostType) {
+      this.updateCostsHistogram_();
+    },
+
+    updateCostsHistogram_: function() {
+      var container = this.shadowRoot.querySelector(
+          '#costs-histogram-container');
+
+      if (this.$.table.selectedTableRow === undefined) {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.style.display = '';
+
+      var selector = this.shadowRoot.querySelector(
+          '#costs-histogram-cost-type');
+      var func = selector.selectedItem.func;
+
+      var histogram = tr.v.Histogram.createLinear(
+          tr.v.Unit.byName.timeDurationInMs,
+          tr.b.Range.fromExplicitRange(0, 100),
+          100);
+      this.$.table.selectedTableRow.data.forEach(function(datum) {
+        var value = func(datum);
+        histogram.addHistogram(tr.v.Histogram.fromDict(value));
+      });
+
+      var histogramSpan = this.shadowRoot.querySelector('#costs-histogram');
+      histogramSpan.isYLogScale = true;
+      histogramSpan.histogram = histogram;
+      this.onBrushedBinsChanged_();
+    },
+
+    onBrushedBinsChanged_: function() {
+      var histogramSpan = this.shadowRoot.querySelector('#costs-histogram');
+      var brushedBins = histogramSpan.brushedBins;
+      var urlSet = {};
+      var mapper_name = document.body.querySelector(
+          'pi-ui-pi-app-main').currentMapTracesDriver.toLowerCase();
+      brushedBins.forEach(function(bin) {
+        bin.sourceInfos.forEach(function(sourceInfo) {
+          var modified_url = sourceInfo.traceURL;
+          if (mapper_name.indexOf('cloud') != -1) {
+            // Because the cloud mapper currently downloads all the traces, the
+            // urls are incorrect.
+            var actual_url = sourceInfo.traceURL.split('/');
+            actual_url = actual_url[actual_url.length - 1];
+            actual_url = 'gs://performance-insights/' + actual_url;
+            modified_url = actual_url;
+          }
+
+          if (!(modified_url in urlSet)) {
+            urlSet[modified_url] = {};
+          }
+          urlSet[modified_url][sourceInfo.sourceURL] = 1;
+        });
+      });
+      var keys = Object.keys(urlSet);
+      keys.sort();
+      this.$.links.setTraceUrls(keys);
+
+      var namesAndUrls = [];
+      for (var traceUrl in urlSet) {
+        var uniqueScripts = Object.keys(urlSet[traceUrl]);
+        uniqueScripts.sort();
+        for (var i in uniqueScripts) {
+          var scriptName = uniqueScripts[i];
+          if (scriptName.length > 64) {
+            scriptName = scriptName.substring(0, 64) + '...';
+          }
+          namesAndUrls.push({
+            url: traceUrl,
+            name: scriptName
+          });
+        }
+      }
+      this.$.scripts.setTraceUrlsAndNames(namesAndUrls);
+    }
+  });
+  </script>
+</polymer-element>

@@ -4,13 +4,15 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/perf_insights/function_handle.html">
+<link rel="import" href="/perf_insights/mre/job.html">
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/perf_insights/ui/generic_results_view.html">
+<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 <link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/info_bar_group.html">
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
-<link rel="import" href="/perf_insights/function_handle.html">
-<link rel="import" href="/perf_insights/mre/mre_result.html">
-<link rel="import" href="/perf_insights/ui/reports/pi_report.html">
 
 <polymer-element name="pi-ui-pi-app-main">
   <template>
@@ -86,46 +88,59 @@ tr.exportTo('pi.ui', function() {
       var topLeftControls = this.$.top_left_controls;
       var topRightControls = this.$.top_right_controls;
 
-      var mapTracesDriverSelector = document.createElement('select');
-      mapTracesDriverSelector.classList.add('map-traces-driver-selector');
-      // This selector is actually populated in the mapTracesDrivers setter.
-      topLeftControls.appendChild(mapTracesDriverSelector);
+      var piDriverPolymerElementNames = tr.ui.b.getPolymerElementsThatSubclass(
+          'pi-driver-base');
+      var piDriverElementOptions = piDriverPolymerElementNames.map(
+          function(peTagName) {
+            var pe = tr.ui.b.getPolymerElementNamed(peTagName);
+            return {
+              label: pe.getAttribute('display-name'),
+              value: peTagName
+            };
+          });
 
-      var cannedCorpusQueries = [
+      var driverSelector = tr.ui.b.createSelector(
+          this, 'currentMapTracesDriver',
+          'pi.app_main.currentMapTracesDriver',
+          piDriverElementOptions[0].value,
+          piDriverElementOptions);
+
+      topLeftControls.appendChild(driverSelector);
+
+      var corpusSelections = [
         {
-          'label': 'All traces',
-          'value': 'True'
+          'label': 'Deep Reports',
+          'value': 'https://performance-insights.appspot.com'
         },
         {
-          'label': 'At most one trace',
-          'value': 'MAX_TRACE_HANDLES=1'
-        },
-        {
-          'label': 'At most two traces',
-          'value': 'MAX_TRACE_HANDLES=2'
-        },
-        {
-          'label': 'At most 5 traces',
-          'value': 'MAX_TRACE_HANDLES=5'
-        },
-        {
-          'label': 'At most 10 traces',
-          'value': 'MAX_TRACE_HANDLES=10'
-        },
-        {
-          'label': 'At most 50 traces',
-          'value': 'MAX_TRACE_HANDLES=50'
-        },
-        {
-          'label': 'At most 100 traces',
-          'value': 'MAX_TRACE_HANDLES=100'
+          'label': 'Bulk Reports',
+          'value': 'https://performance-insights.appspot.com'
         }
       ];
-      var corpusQuerySelector = tr.ui.b.createSelector(
+      var corpusSelector = tr.ui.b.createSelector(
+          this, 'corpus',
+          'pi.app_main.corpus',
+          corpusSelections[0].value,
+          corpusSelections);
+      topLeftControls.appendChild(corpusSelector);
+
+      var corpusQuerySelector = tr.ui.b.createTextInput(
           this, 'corpusQuery',
           'pi.app_main.corpusQuery',
-          cannedCorpusQueries[0].value,
-          cannedCorpusQueries);
+          'MAX_TRACE_HANDLES=10');
+
+      var self = this;
+      function onQuerySelectorKeypress(e) {
+        var key = e.which || e.keyCode;
+        if (key === 13) { // 13 is enter
+            self.scheduleUpdateContents_();
+            self.fire('ui-state-changed');
+        }
+      }
+
+      corpusQuerySelector.addEventListener('keypress', onQuerySelectorKeypress);
+
+      corpusQuerySelector.style.width = '350px';
       topLeftControls.appendChild(corpusQuerySelector);
 
       var piReportPolymerElementNames = tr.ui.b.getPolymerElementsThatSubclass(
@@ -143,33 +158,28 @@ tr.exportTo('pi.ui', function() {
           piReportElementOptions[0].value,
           piReportElementOptions);
       topLeftControls.appendChild(reportSelector);
+
+      var self = this;
+      function onProcessButton() {
+        self.scheduleUpdateContents_();
+        self.fire('ui-state-changed');
+      }
+
+      var processButton = tr.ui.b.createButton(
+          this, 'processButton',
+          'Process!', onProcessButton);
+      topLeftControls.appendChild(processButton);
+
+      var showRawResultsCheckbox = tr.ui.b.createCheckBox(
+          this, 'showRawResults',
+          'pi.app_main.showRawResults', false,
+          'Show raw results');
+      topRightControls.appendChild(showRawResultsCheckbox);
     },
 
     get mapTracesDrivers() {
       return this.mapTracesDrivers_;
     },
-
-    set mapTracesDrivers(mapTracesDrivers) {
-      this.mapTracesDrivers_ = mapTracesDrivers;
-
-      var topLeftControls = this.$.top_left_controls;
-      var oldSelector = topLeftControls.querySelector(
-          '.map-traces-driver-selector');
-      var options = mapTracesDrivers.map(function(mapTracesDriver) {
-        return {
-          label: mapTracesDriver.name,
-          value: mapTracesDriver
-        };
-      });
-      var newSelector = tr.ui.b.createSelector(
-          this, 'currentMapTracesDriver',
-          'pi.app_main.currentMapTracesDriver',
-          options[0].value,
-          options);
-      newSelector.classList.add('map-traces-driver-selector');
-      topLeftControls.replaceChild(newSelector, oldSelector);
-    },
-
 
     get mappingState() {
       return {
@@ -186,8 +196,6 @@ tr.exportTo('pi.ui', function() {
 
     set currentMapTracesDriver(currentMapTracesDriver) {
       this.currentMapTracesDriver_ = currentMapTracesDriver;
-      this.scheduleUpdateContents_();
-      this.fire('ui-state-changed');
     },
 
     get corpusQuery() {
@@ -196,8 +204,6 @@ tr.exportTo('pi.ui', function() {
 
     set corpusQuery(corpusQuery) {
       this.corpusQuery_ = corpusQuery;
-      this.scheduleUpdateContents_();
-      this.fire('ui-state-changed');
     },
 
     get piReportElementName() {
@@ -206,8 +212,6 @@ tr.exportTo('pi.ui', function() {
 
     set piReportElementName(piReportElementName) {
       this.piReportElementName_ = piReportElementName;
-      this.scheduleUpdateContents_();
-      this.fire('ui-state-changed');
     },
 
     get mapClientSide() {
@@ -216,8 +220,6 @@ tr.exportTo('pi.ui', function() {
 
     set mapClientSide(mapClientSide) {
       this.mapClientSide_ = mapClientSide;
-      this.scheduleUpdateContents_();
-      this.fire('ui-state-changed');
     },
 
     get showRawResults() {
@@ -226,8 +228,6 @@ tr.exportTo('pi.ui', function() {
 
     set showRawResults(showRawResults) {
       this.showRawResults_ = showRawResults;
-      this.scheduleUpdateContents_();
-      this.fire('ui-state-changed');
     },
 
     scheduleUpdateContents_: function() {
@@ -283,18 +283,30 @@ tr.exportTo('pi.ui', function() {
             mappingState.corpusQuery === undefined) {
           return undefined;
         }
-
         var mapFunctionName = pe.getAttribute('map-function-name');
         var mapFunctionHref = pe.getAttribute('map-function-href');
-        var moduleToLoad = new pi.ModuleToLoad(mapFunctionHref);
-        var mapFunctionHandle = new pi.FunctionHandle([moduleToLoad],
-                                                      mapFunctionName);
+        var mapModuleToLoad = new pi.ModuleToLoad(mapFunctionHref);
+        var mapFunctionHandle = new pi.FunctionHandle(
+            [mapModuleToLoad], mapFunctionName);
+
+        var reduceFunctionName = pe.getAttribute('reduce-function-name');
+        var reduceFunctionHref = pe.getAttribute('reduce-function-href');
+        var reduceFunctionHandle;
+        if (reduceFunctionName && reduceFunctionHref) {
+          var reduceModuleToLoad = new pi.ModuleToLoad(reduceFunctionHref);
+          reduceFunctionHandle = new pi.FunctionHandle(
+              [reduceModuleToLoad], reduceFunctionName);
+        }
+
+        var job = new pi.mre.Job(mapFunctionHandle, reduceFunctionHandle);
 
         if (mappingState.mapClientSide) {
           throw new Error('Currently unsupported');
         }
-        return mappingState.currentMapTracesDriver(mapFunctionHandle,
-                                                   mappingState.corpusQuery);
+
+        var peCurrentDriver = document.querySelector(
+            mappingState.currentMapTracesDriver);
+        return peCurrentDriver.runMapFunction(job, mappingState.corpusQuery);
       });
       p = p.then(function responseToResults(responseText) {
         if (responseText === undefined)
@@ -315,7 +327,13 @@ tr.exportTo('pi.ui', function() {
         if (mapResults === undefined)
           return;
 
-        var reportEl = document.createElement(mappingState.piReportElementName);
+        var reportEl;
+        if (mappingState.showRawResults) {
+          reportEl = document.createElement('pi-ui-generic-results-view');
+        } else {
+          reportEl = document.createElement(mappingState.piReportElementName);
+        }
+
         reportEl.mapResults = mapResults;
         reportContainer.appendChild(reportEl);
       });

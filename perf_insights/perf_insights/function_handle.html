@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2015 The Chromium Authors. All rights reserved.
+Copyright 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -63,7 +63,7 @@ tr.exportTo('pi', function() {
     if (!(modulesToLoad instanceof Array))
       throw new Error('modulesToLoad in FunctionHandle must be an array');
     if (typeof(functionName) !== 'string')
-      throw new Error('functionName inFunctionHandle must be a string');
+      throw new Error('functionName in FunctionHandle must be a string');
     this.modulesToLoad = modulesToLoad;
     this.functionName = functionName;
   };
@@ -93,10 +93,6 @@ tr.exportTo('pi', function() {
     },
 
     load: function() {
-      if (this.modulesToLoad.length === 1 || this.functionName === undefined) {
-        return FunctionHandle.loadFromFilename_(this.modulesToLoad[0].filename);
-      }
-
       if (this.hasHrefs()) {
         var err = new Error(
             'FunctionHandle named ' + this.functionName +

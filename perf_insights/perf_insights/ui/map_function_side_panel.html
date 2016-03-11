@@ -130,14 +130,16 @@ found in the LICENSE file.
       var canonicalUrl = document.location.toString();
 
       try {
-        this.currentMapFunctionTypeInfo(result, this.model_);
+        this.currentMapFunctionTypeInfo.constructor(result, this.model_);
       } catch (ex) {
         ex = tr.b.normalizeException(ex);
         gov.object = ex.stack;
         return;
       }
 
-      gov.object = result;
+      gov.object = results.allValues.map(function(v) {
+        return v.asDict();
+      });
     },
 
     get textLabel() {

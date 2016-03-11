@@ -49,7 +49,6 @@ class PerfInsightsCorpusDriver(corpus_driver.CorpusDriver):
     file_urls = json.loads(response.read())
 
     for file_url in file_urls:
-
       th = file_handle.GCSFileHandle(file_url, self.directory)
       trace_handles.append(th)
 

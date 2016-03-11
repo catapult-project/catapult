@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/function_handle.html">
+<link rel="import" href="/tracing/base/xhr.html">
+
+<polymer-element name="pi-driver-base">
+  <script>
+  'use strict';
+
+  Polymer();
+  </script>
+</polymer-element>
+
+<polymer-element name="pi-driver-devserver"
+                 display-name="DevServer (local)"
+                 extends="pi-driver-base">
+  <script>
+  'use strict';
+
+  Polymer({
+    runMapFunction: function(mapFunctionHandle, corpusQuery) {
+      return tr.b.postAsync(
+          '/perf_insights_examples/run_map_function?corpus_query=' +
+          encodeURIComponent(corpusQuery),
+          JSON.stringify(mapFunctionHandle.asDict()));
+    }
+  });
+  </script>
+</polymer-element>
+
+<polymer-element name="pi-driver-cloudmapper"
+                 display-name="Cloud Mapper"
+                 extends="pi-driver-base">
+  <script>
+  'use strict';
+
+  Polymer({
+    runMapFunction: function(mapFunctionHandle, corpusQuery) {
+      return tr.b.postAsync(
+          '/perf_insights_examples/run_cloud_mapper?corpus_query=' +
+          encodeURIComponent(corpusQuery),
+          JSON.stringify(mapFunctionHandle.asDict()));
+    }
+  });
+  </script>
+</polymer-element>
+
+<polymer-element name="pi-driver-localcloudmapper"
+                 display-name="Cloud Mapper (local devserver)"
+                 extends="pi-driver-base">
+  <script>
+  'use strict';
+
+  Polymer({
+    runMapFunction: function(mapFunctionHandle, corpusQuery) {
+      return tr.b.postAsync(
+          '/perf_insights_examples/run_cloud_mapper?local=true&corpus_query=' +
+          encodeURIComponent(corpusQuery),
+          JSON.stringify(mapFunctionHandle.asDict()));
+    }
+  });
+  </script>
+</polymer-element>
+

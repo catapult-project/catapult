@@ -207,8 +207,12 @@ tr.exportTo('tr.ui.b', function() {
       // to display.
       this.yLogScaleMin_ = undefined;
       if (this.dataRange_.min !== undefined) {
+        var minValue = this.dataRange_.min;
+        if (minValue == 0)
+          minValue = 1;
+
         var onePowerLess = Math.floor(
-            Math.log(this.dataRange_.min) / Math.log(10)) - 1;
+            Math.log(minValue) / Math.log(10)) - 1;
         this.yLogScaleMin_ = Math.pow(10, onePowerLess);
       }
     },
@@ -224,10 +228,14 @@ tr.exportTo('tr.ui.b', function() {
       if (this.isYLogScale_) {
         if (this.yLogScaleMin_ === undefined)
           return;
+        var minValue = this.dataRange_.min;
+        if (minValue == 0)
+          minValue = 1;
+
         var largestPower = Math.ceil(
             Math.log(this.dataRange_.max) / Math.log(10)) + 1;
         var smallestPower = Math.floor(
-            Math.log(this.dataRange_.min) / Math.log(10));
+            Math.log(minValue) / Math.log(10));
         var tickValues = [];
         for (var i = smallestPower; i < largestPower; i++) {
           tickValues.push(Math.pow(10, i));

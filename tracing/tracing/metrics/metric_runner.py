@@ -6,6 +6,7 @@ import os
 from perf_insights import map_single_trace
 from perf_insights import function_handle
 from perf_insights.mre import file_handle
+from perf_insights.mre import job as job_module
 
 _METRIC_MAP_FUNCTION_FILENAME = 'metric_map_function.html'
 
@@ -23,9 +24,10 @@ def _GetMetricRunnerHandle(metric):
 
   modules_to_load = [function_handle.ModuleToLoad(filename=filename) for
                      filename in filenames_to_load]
+  map_function_handle = function_handle.FunctionHandle(
+      modules_to_load, _METRIC_MAP_FUNCTION_NAME)
 
-  return function_handle.FunctionHandle(modules_to_load,
-                                        _METRIC_MAP_FUNCTION_NAME)
+  return job_module.Job(map_function_handle, None)
 
 def RunMetric(filename, metric):
   th = file_handle.URLFileHandle(filename, 'file://' + filename)

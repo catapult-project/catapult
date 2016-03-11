@@ -31,6 +31,7 @@ tr.exportTo('pi.m', function() {
     for (var state in JSSourceState) {
       this.jsTimeByState[JSSourceState[state]] = 0;
     }
+    this.data = {};
   }
 
   SliceCostInfo.asReduceTarget = function(key, firstValue) {
@@ -41,8 +42,9 @@ tr.exportTo('pi.m', function() {
     sliceCostInfo.domainCategory = firstValue.domainCategory;
     sliceCostInfo.domain = firstValue.domain;
     sliceCostInfo.userFriendlyCategory = firstValue.userFriendlyCategory;
+    sliceCostInfo.data = firstValue.data;
     return sliceCostInfo;
-  }
+  };
 
   SliceCostInfo.fromDict = function(d) {
     var sliceCostInfo = new SliceCostInfo();
@@ -63,8 +65,9 @@ tr.exportTo('pi.m', function() {
             d.jsTimeByState[JSSourceState[state]] || 0;
       }
     }
+    sliceCostInfo.data = d.data;
     return sliceCostInfo;
-  }
+  };
 
   SliceCostInfo.prototype = {
     push: function(sliceCostKey, threadSlice) {
@@ -89,7 +92,7 @@ tr.exportTo('pi.m', function() {
 
 
   function getSliceCostReport(model, threadGrouping, railTypeNameByGUID,
-      filterFunction) {
+      filterFunction, dataCB) {
     var reduce = new pi.m.StreamingReducer(SliceCostInfo.asReduceTarget);
 
     function generateDomainCosts(slice) {
@@ -113,6 +116,8 @@ tr.exportTo('pi.m', function() {
             tr.e.ads.DomainCategory.fromDomain(sliceCostInfo.domain);
         sliceCostInfo.selfTime = sample.weight;
         sliceCostInfo.cpuSelfTime = sample.weight;
+        if (dataCB !== undefined)
+          sliceCostInfo.data = dataCB(slice);
         // Let's use the state of the leaf frame. TODO(chiniforooshan):
         // understand what it means if frames of a sample stack are in different
         // states (BUG #1542).
@@ -154,6 +159,8 @@ tr.exportTo('pi.m', function() {
       // For all other events, just generate one sliceCostInfo.
       sliceCostInfo.selfTime = threadSlice.selfTime;
       sliceCostInfo.cpuSelfTime = threadSlice.cpuSelfTime;
+      if (dataCB !== undefined)
+        sliceCostInfo.data = dataCB(event);
 
       var key = sliceCostInfo.threadGroup + '/' +
                 sliceCostInfo.railTypeName + '/' +

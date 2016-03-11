@@ -13,9 +13,11 @@ import vinn
 from perf_insights.mre import failure
 from perf_insights.mre import mre_result
 
+_MAP_SINGLE_TRACE_CMDLINE_PATH = os.path.join(
+    perf_insights_project.PerfInsightsProject.perf_insights_src_path,
+    'map_single_trace_cmdline.html')
 
 class TemporaryMapScript(object):
-
   def __init__(self, js):
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.write("""
@@ -57,7 +59,6 @@ class TraceImportFailure(failure.Failure):
 class NoResultsAddedFailure(failure.Failure):
   pass
 
-
 class InternalMapError(Exception):
   pass
 
@@ -71,26 +72,22 @@ _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR = {
 }
 
 
-def MapSingleTrace(trace_handle, map_function_handle):
+def MapSingleTrace(trace_handle, job):
   project = perf_insights_project.PerfInsightsProject()
 
   all_source_paths = list(project.source_paths)
-
-  pi_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         '..'))
-  all_source_paths.append(pi_path)
+  all_source_paths.append(project.perf_insights_root_path)
 
   result = mre_result.MreResult()
 
   with trace_handle.PrepareFileForProcessing() as prepared_trace_handle:
     js_args = [
       json.dumps(prepared_trace_handle.AsDict()),
-      json.dumps(map_function_handle.AsDict())
+      json.dumps(job.AsDict()),
     ]
 
     res = vinn.RunFile(
-      os.path.join(pi_path, 'perf_insights', 'map_single_trace_cmdline.html'),
-      source_paths=all_source_paths,
+      _MAP_SINGLE_TRACE_CMDLINE_PATH, source_paths=all_source_paths,
       js_args=js_args)
 
   if res.returncode != 0:
@@ -99,17 +96,18 @@ def MapSingleTrace(trace_handle, map_function_handle):
     except Exception:
       pass
     result.AddFailure(failure.Failure(
-        map_function_handle.AsUserFriendlyString(), trace_handle.canonical_url,
+        job.map_function_handle.AsUserFriendlyString(),
+        trace_handle.canonical_url,
         'Error', 'vinn runtime error while mapping trace.',
         'vinn runtime error while mapping trace.', 'Unknown stack'))
-    return
+    return result
 
   for line in res.stdout.split('\n'):
     m = re.match('^MRE_RESULT: (.+)', line, re.DOTALL)
     if m:
       found_dict = json.loads(m.group(1))
       failures = [failure.Failure.FromDict(
-                    f, _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR)
+                    f, job, _FAILURE_NAME_TO_FAILURE_CONSTRUCTOR)
                   for f in found_dict['failures']]
 
       for f in failures:

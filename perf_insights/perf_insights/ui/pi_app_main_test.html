@@ -5,9 +5,34 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/perf_insights/ui/corpus_drivers.html">
 <link rel="import" href="/perf_insights/ui/perf_insights_full_config.html">
 <link rel="import" href="/perf_insights/ui/pi_app_main.html">
-<link rel="import" href="/tracing/core/test_utils.html">
+
+
+<polymer-element name="pi-driver-testmapper"
+                 display-name="Test Mapper"
+                 extends="pi-driver-base">
+  <script>
+  'use strict';
+
+  Polymer({
+    runMapFunction: function(mapFunctionHandle, corpusQuery) {
+      var p = Promise.resolve();
+      p = p.then(function() {
+        var dataString = tr.b.getSync(
+        '/perf_insights/ui/reports/wr_result_view_test_data.json');
+        return dataString;
+      });
+      return p;
+
+    }
+  });
+  </script>
+</polymer-element>
+
+<pi-driver-testmapper id="pi-driver-testmapper">
+</pi-driver-testmapper>
 
 <script>
 'use strict';
@@ -17,17 +42,6 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var app = document.createElement('pi-ui-pi-app-main');
 
-    function myFakeMapTracesDriver(mapFunctionName, query) {
-      var p = Promise.resolve();
-      p = p.then(function() {
-        var dataString = tr.b.getSync(
-        '/perf_insights/ui/reports/wr_result_view_test_data.json');
-        return dataString;
-      });
-      return p;
-    };
-
-    app.mapTracesDrivers = [myFakeMapTracesDriver];
     this.addHTMLOutput(app);
   });
 });

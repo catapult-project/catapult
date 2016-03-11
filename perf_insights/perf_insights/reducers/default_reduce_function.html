@@ -10,18 +10,17 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('pie', function() {
-  function mapProcessCount(result, model) {
-    result.addPair(
-        'load_info', {
-          numProcesses: model.getAllProcesses().length
-        });
+tr.exportTo('pi.r', function() {
+
+  // TODO(eakuefner): Split weather report into discrete mappers.
+  function defaultReduceFunction(key, mapResults) {
+    return mapResults[key];
   }
 
-  pi.FunctionRegistry.register(mapProcessCount);
+  pi.FunctionRegistry.register(defaultReduceFunction);
 
   return {
-    mapProcessCountForTest: mapProcessCount
+    defaultReduceFunction: defaultReduceFunction
   };
 });
-</script>
+

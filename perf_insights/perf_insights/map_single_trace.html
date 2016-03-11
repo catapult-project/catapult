@@ -20,7 +20,7 @@ tr.exportTo('pi', function() {
 
   var Failure = pi.mre.Failure;
 
-  function runAndConvertErrorsToFailures(result, job, functionHandle,
+  function runAndConvertErrorsToFailures(result, job,
                                          traceHandle, cb, opt_this) {
     try {
       cb.call(opt_this);
@@ -28,8 +28,8 @@ tr.exportTo('pi', function() {
       var err = tr.b.normalizeException(err);
       // TODO(eakuefner): Set job once reduction is implemented.
       result.addFailure(new Failure(
-          job, functionHandle.asUserFriendlyString(), traceHandle.canonicalUrl,
-          err.typeName, err.message, err.stack));
+          job, job.mapFunctionHandle.asUserFriendlyString(),
+          traceHandle.canonicalUrl, err.typeName, err.message, err.stack));
     }
   }
 

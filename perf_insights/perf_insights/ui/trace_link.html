@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
 <polymer-element name="pi-ui-trace-link" is="a">
@@ -46,8 +47,20 @@ found in the LICENSE file.
       },
 
       updateLink_: function() {
-        this.$.link.href = BASE_TRACE_VIEWER_URL + this.traceUrl_;
         this.$.link.textContent = this.traceName_;
+        var self = this;
+        this.$.link.onclick = function() {
+          tr.b.postTextAsync('/perf_insights_examples/download?url=' +
+              encodeURIComponent(self.traceUrl_)).then(
+                function(json) {
+                  var results = JSON.parse(json);
+                  if (results.success) {
+                    window.open(BASE_TRACE_VIEWER_URL + results.file, '_blank');
+                  }
+                }).catch(function(e) {
+                 throw e;
+                });
+        };
       }
   });
 })();

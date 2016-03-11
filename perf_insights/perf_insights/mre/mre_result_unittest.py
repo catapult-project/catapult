@@ -4,7 +4,10 @@
 
 import unittest
 
+from perf_insights import function_handle
+from perf_insights import map_single_trace
 from perf_insights.mre import failure as failure_module
+from perf_insights.mre import job as job_module
 from perf_insights.mre import mre_result
 
 
@@ -13,15 +16,29 @@ class MreResultTests(unittest.TestCase):
   def testAsDict(self):
     result = mre_result.MreResult()
 
-    failure = failure_module.Failure('1', '2', '3', 'err', 'desc', 'stack')
-    result.AddFailure(failure)
+    with map_single_trace.TemporaryMapScript("""
+      pi.FunctionRegistry.register(
+          function MyMapFunction(result, model) {
+            var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
+            result.addPair('result', {
+                numProcesses: model.getAllProcesses().length
+              });
+          });
+      """) as map_script:
 
-    result.AddPair('foo', 'bar')
+      module = function_handle.ModuleToLoad(filename=map_script.filename)
+      map_handle = function_handle.FunctionHandle(
+          modules_to_load=[module], function_name='MyMapFunction')
+      job = job_module.Job(map_handle, None)
+      failure = failure_module.Failure(job, '2', '3', 'err', 'desc', 'stack')
+      result.AddFailure(failure)
 
-    result_dict = result.AsDict()
+      result.AddPair('foo', 'bar')
 
-    self.assertEquals(result_dict['failures'], [failure.AsDict()])
-    self.assertEquals(result_dict['pairs'], {'foo': 'bar'})
+      result_dict = result.AsDict()
+
+      self.assertEquals(result_dict['failures'], [failure.AsDict()])
+      self.assertEquals(result_dict['pairs'], {'foo': 'bar'})
 
   def testAddingNonFailure(self):
     result = mre_result.MreResult()

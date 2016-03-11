@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/perf_insights/ui/generic_results_view.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var test_utils = tr.c.TestUtils;
+  test('basic', function() {
+    var results = new pi.mre.MreResult();
+
+    // Run 1. One failure.
+    results.addPair('SomeFailureType',
+                    {description: 'Description',
+                    stack: tr.b.stackTraceAsString()});
+    results.addPair('col0',
+                    {description: 'WhySkipped'});
+
+
+    // Run 2. Successful but had skip.
+    results.addPair('col1',
+                    {description: 'WhySkipped'});
+    results.addPair('col2',
+                    {my_key: 'my_value'});
+
+    // Run 3. Two failures.
+    results.addPair('SomeOtherFailureType',
+                    {description: 'Description',
+                    stack: tr.b.stackTraceAsString()});
+    results.addPair('RunThreeHadABadDay',
+                    {description: 'Description',
+                    stack: tr.b.stackTraceAsString()});
+
+    var grv = document.createElement('pi-ui-generic-results-view');
+    grv.mapResults = [results];
+    this.addHTMLOutput(grv);
+  });
+});
+</script>
+

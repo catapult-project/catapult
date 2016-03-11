@@ -8,6 +8,7 @@ from perf_insights import corpus_driver_cmdline
 from perf_insights import corpus_query
 from perf_insights import map_runner
 from perf_insights import function_handle
+from perf_insights.mre import job as job_module
 from perf_insights.results import json_output_formatter
 
 
@@ -33,7 +34,8 @@ def Main(argv):
       description='Bulk trace processing')
   corpus_driver_cmdline.AddArguments(parser)
   parser.add_argument('--query')
-  parser.add_argument('map_function_handle')
+  parser.add_argument('--map_function_handle')
+  parser.add_argument('--reduce_function_handle')
   parser.add_argument('-j', '--jobs', type=int,
                       default=map_runner.AUTO_JOB_COUNT)
   parser.add_argument('-o', '--output-file')
@@ -58,8 +60,15 @@ def Main(argv):
   output_formatter = json_output_formatter.JSONOutputFormatter(ofile)
 
   try:
-    map_function_handle = function_handle.FunctionHandle.FromUserFriendlyString(
-        args.map_function_handle)
+    map_handle = None
+    reduce_handle = None
+    if args.map_function_handle:
+      map_handle = function_handle.FunctionHandle.FromUserFriendlyString(
+          args.map_function_handle)
+    if args.reduce_function_handle:
+      reduce_handle = function_handle.FunctionHandle.FromUserFriendlyString(
+          args.reduce_function_handle)
+    job = job_module.Job(map_handle, reduce_handle)
   except function_handle.UserFriendlyStringInvalidError:
     error_lines = [
         'The map_traces command-line API has changed! You must now specify the',
@@ -71,12 +80,12 @@ def Main(argv):
 
   try:
     trace_handles = corpus_driver.GetTraceHandlesMatchingQuery(query)
-    runner = map_runner.MapRunner(trace_handles, map_function_handle,
+    runner = map_runner.MapRunner(trace_handles, job,
                                   stop_on_error=args.stop_on_error,
                                   jobs=args.jobs,
                                   output_formatters=[output_formatter])
     results = runner.Run()
-    if not results.had_failures:
+    if not results.failures:
       return 0
     else:
       return 255
