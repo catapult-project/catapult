@@ -98,9 +98,17 @@ class WebContents(object):
       util.WaitFor(IsJavaScriptExpressionTrue, timeout)
     except exceptions.TimeoutException as e:
       # Try to make timeouts a little more actionable by dumping console output.
+      debug_message = None
+      try:
+        debug_message = (
+            'Console output:\n%s' %
+            self._inspector_backend.GetCurrentConsoleOutputBuffer())
+      except Exception as e:
+        debug_message = (
+            'Exception thrown when trying to capture console output: %s' %
+            repr(e))
       raise exceptions.TimeoutException(
-          e.message + '\nConsole output:\n' +
-          self._inspector_backend.GetCurrentConsoleOutputBuffer())
+          e.message + '\n' + debug_message)
 
   def HasReachedQuiescence(self):
     """Determine whether the page has reached quiescence after loading.
