@@ -236,10 +236,7 @@ class WprRecorder(object):
         upload_to_cloud_storage)
 
 
-def Main(base_dir=None, environment=None):
-
-  if base_dir is None:
-    base_dir = environment.top_level_dir
+def Main(environment):
 
   parser = argparse.ArgumentParser(
       usage='Record a benchmark or a story (page set).')
@@ -260,9 +257,9 @@ def Main(base_dir=None, environment=None):
 
   if args.list_benchmarks or args.list_stories:
     if args.list_benchmarks:
-      _PrintAllBenchmarks(base_dir, sys.stderr)
+      _PrintAllBenchmarks(environment.top_level_dir, sys.stderr)
     if args.list_stories:
-      _PrintAllStories(base_dir, sys.stderr)
+      _PrintAllStories(environment.top_level_dir, sys.stderr)
     return 0
 
   target = args.benchmark or args.story
@@ -273,14 +270,13 @@ def Main(base_dir=None, environment=None):
     parser.print_help()
     return 0
 
-  binary_manager.InitDependencyManager(
-    environment.client_config if environment else None)
+  binary_manager.InitDependencyManager(environment.client_config)
 
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference
   # between recording a benchmark vs recording a story better based on
   # the distinction between args.benchmark & args.story
-  wpr_recorder = WprRecorder(base_dir, target, extra_args)
+  wpr_recorder = WprRecorder(environment.top_level_dir, target, extra_args)
   results = wpr_recorder.CreateResults()
   wpr_recorder.Record(results)
   wpr_recorder.HandleResults(results, args.upload)
