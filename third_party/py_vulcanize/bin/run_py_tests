@@ -24,16 +24,6 @@ if __name__ == '__main__':
   else:
     install.InstallHooks()
 
-  # This flag is added only temporarily so that the tests can
-  # be re-enabled on the waterfall and fixed using try jobs.
-  # See https://github.com/catapult-project/catapult/issues/1584
-  if '--really-run' in sys.argv:
-    sys.argv.remove('--really-run')
-  else:
-    print 'Skipping test!'
-    sys.exit(0)
-
   from catapult_build import run_with_typ
   sys.exit(run_with_typ.Run(
       os.path.join(_CATAPULT, 'third_party', 'py_vulcanize')))
-
