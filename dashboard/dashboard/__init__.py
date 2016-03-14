@@ -49,7 +49,7 @@ def PathsForDeployment():
   paths = []
 
   catapult_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+      os.path.dirname(__file__), '..', '..'))
   dashboard_dir = os.path.join(catapult_path, 'dashboard')
   for name in DASHBOARD_FILES:
     paths.append(os.path.join(dashboard_dir, name))

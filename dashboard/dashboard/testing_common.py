@@ -22,7 +22,7 @@ from dashboard import stored_object
 from dashboard import utils
 from dashboard.models import graph_data
 
-_QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir)
+_QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), '..')
 
 
 class FakeRequestObject(object):

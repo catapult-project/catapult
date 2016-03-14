@@ -15,7 +15,7 @@ def _AddToPathIfNeeded(path):
 
 def Main():
   catapult_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+      os.path.dirname(__file__), '..', '..'))
   parser = argparse.ArgumentParser()
   parser.add_argument('--appid', default='chromeperf')
   args = parser.parse_args()

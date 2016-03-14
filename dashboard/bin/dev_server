@@ -14,7 +14,7 @@ def _AddToPathIfNeeded(path):
 
 def Main():
   catapult_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+      os.path.dirname(__file__), '..', '..')
 
   _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
   import dashboard

@@ -9,7 +9,7 @@ import os
 import sys
 
 _CATAPULT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+    os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 def _ExtraPaths():
