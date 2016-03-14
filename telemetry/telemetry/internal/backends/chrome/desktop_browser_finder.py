@@ -268,12 +268,12 @@ def FindAllAvailableBrowsers(finder_options, device):
 
     for browser_name, app_path in app_paths:
       for chromium_app_name in chromium_app_names:
-        app_path = os.path.join(app_path, chromium_app_name)
-        app_path = path_module.FindInstalledWindowsApplication(app_path)
-        if app_path:
+        full_path = path_module.FindInstalledWindowsApplication(
+            os.path.join(app_path, chromium_app_name))
+        if full_path:
           browsers.append(PossibleDesktopBrowser(
-              browser_name, finder_options, app_path,
-              None, False, os.path.dirname(app_path)))
+              browser_name, finder_options, full_path,
+              None, False, os.path.dirname(full_path)))
 
   has_ozone_platform = False
   for arg in finder_options.browser_options.extra_browser_args:
