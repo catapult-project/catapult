@@ -311,6 +311,8 @@ tr.exportTo('tr.c', function() {
     var io = new tr.importer.ImportOptions();
     io.showImportWarnings = false;
     io.customizeModelCallback = opts.customizeModelCallback;
+    io.trackDetailedModelStats = opts.trackDetailedModelStats === undefined ?
+        false : opts.trackDetailedModelStats;
     io.shiftWorldToZero = opts.shiftWorldToZero === undefined ?
         true : opts.shiftWorldToZero;
     io.pruneEmptyContainers = opts.pruneEmptyContainers === undefined ?

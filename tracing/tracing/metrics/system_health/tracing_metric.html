@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+
+  function tracingMetric(valueList, model) {
+    if (!model.stats.hasEventSizesinBytes) {
+      throw new Error('Model stats does not have event size information. ' +
+                      'Please enable ImportOptions.trackDetailedModelStats.');
+    }
+
+    var eventStats = model.stats.allTraceEventStatsInTimeIntervals;
+    eventStats.sort(function(a, b) {
+      return a.timeInterval - b.timeInterval;
+    });
+
+    var maxEventCountPerSec = 0;
+    var maxEventBytesPerSec = 0;
+    var totalTraceBytes = 0;
+
+    var WINDOW_SIZE = Math.floor(1000 / model.stats.TIME_INTERVAL_SIZE_IN_MS);
+    var runningEventNumPerSec = 0;
+    var runningEventBytesPerSec = 0;
+    var start = 0;
+    var end = 0;
+    while (end < eventStats.length) {
+      var startEventStats = eventStats[start];
+      var endEventStats = eventStats[end];
+      var timeWindow =
+          endEventStats.timeInterval - startEventStats.timeInterval;
+      if (timeWindow >= WINDOW_SIZE) {
+        runningEventNumPerSec -= startEventStats.numEvents;
+        runningEventBytesPerSec -= startEventStats.totalEventSizeinBytes;
+        start++;
+        continue;
+      }
+
+      runningEventNumPerSec += endEventStats.numEvents;
+      if (maxEventCountPerSec < runningEventNumPerSec)
+        maxEventCountPerSec = runningEventNumPerSec;
+
+      runningEventBytesPerSec += endEventStats.totalEventSizeinBytes;
+      if (maxEventBytesPerSec < runningEventBytesPerSec)
+        maxEventBytesPerSec = runningEventBytesPerSec;
+
+      totalTraceBytes += endEventStats.totalEventSizeinBytes;
+
+      end++;
+    }
+
+    var stats = model.stats.allTraceEventStats;
+    var categoryStatsMap = new Map();
+    var categoryStats = [];
+    for (var i = 0; i < stats.length; i++) {
+      var categoryStat = categoryStatsMap.get(stats[i].category);
+      if (categoryStat === undefined) {
+        categoryStat = {
+          category: stats[i].category,
+          totalEventSizeinBytes: 0
+        };
+        categoryStatsMap.set(stats[i].category, categoryStat);
+        categoryStats.push(categoryStat);
+      }
+      categoryStat.totalEventSizeinBytes += stats[i].totalEventSizeinBytes;
+    }
+    var maxCategoryStats = categoryStats.reduce(function(a, b) {
+      return a.totalEventSizeinBytes < b.totalEventSizeinBytes ? b : a;
+    });
+    var maxEventBytesPerCategory = maxCategoryStats.totalEventSizeinBytes;
+    var maxCategoryName = maxCategoryStats.category;
+
+    var maxEventCountPerSecValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, maxEventCountPerSec);
+    var maxEventBytesPerSecValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, maxEventBytesPerSec);
+    var totalTraceBytesValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, totalTraceBytes);
+    var maxEventBytesPerCategoryValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, maxEventBytesPerCategory);
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace,
+        'Total trace size in bytes',
+        totalTraceBytesValue));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace,
+        'Max number of events per second',
+        maxEventCountPerSecValue));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace,
+        'Max event size in bytes per second',
+        maxEventBytesPerSecValue));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace,
+        'Max event size in bytes per category (' + maxCategoryName + ')',
+        maxEventBytesPerCategoryValue));
+  }
+
+  tr.metrics.MetricRegistry.register(tracingMetric);
+
+  return {
+    tracingMetric: tracingMetric
+  };
+
+});
+</script>

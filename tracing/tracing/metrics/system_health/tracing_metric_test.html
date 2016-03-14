@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/metrics/system_health/tracing_metric.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  function makeModel(events, opt_track) {
+    return tr.c.TestUtils.newModelWithEvents([events], {
+      trackDetailedModelStats: opt_track
+    });
+  }
+
+  function getEventStringSize(events, indices) {
+    return indices.reduce(function(sum, index) {
+      return sum + JSON.stringify(events[index]).length;
+    }, 0);
+  }
+
+  test('hasEventSizesInBytes', function() {
+    var valueList = new tr.metrics.ValueList();
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
+    ];
+
+    var model = makeModel(JSON.stringify(events), false);
+    assert.isFalse(model.importOptions.trackDetailedModelStats);
+    assert.throws(function() {
+      tr.metrics.sh.tracingMetric(valueList, model);
+    }, 'Please enable ImportOptions.trackDetailedModelStats.');
+
+    model = makeModel(JSON.stringify(events), true);
+    model.canonicalUrlThatCreatedThisTrace = '';
+    assert.isTrue(model.importOptions.trackDetailedModelStats);
+    tr.metrics.sh.tracingMetric(valueList, model);
+  });
+
+  test('totalTraceSize', function() {
+    var valueList = new tr.metrics.ValueList();
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
+    ];
+    var model = makeModel(JSON.stringify(events), true);
+    model.canonicalUrlThatCreatedThisTrace = '';
+    tr.metrics.sh.tracingMetric(valueList, model);
+
+    var eventStringSize = getEventStringSize(events, [0, 1]);
+    var values = valueList.getValuesWithName('Total trace size in bytes');
+    assert.strictEqual(values.length, 1);
+    assert.strictEqual(values[0].numeric.value, eventStringSize);
+  });
+
+  test('maxValuePerSec', function() {
+    var ONE_SEC_IN_US = 1000000;
+    var events = [
+      {name: 'a', pid: 52, ts: 1, cat: 'foo', ph: 'B'},
+      {name: 'a', pid: 52, ts: ONE_SEC_IN_US + 1, cat: 'foo', ph: 'B'},
+      {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 1, cat: 'foo', ph: 'B'},
+      {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 3, cat: 'foo', ph: 'B'},
+      {name: 'a', pid: 52, ts: ONE_SEC_IN_US + 2, cat: 'foo', ph: 'B'},
+      {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 2, cat: 'foo', ph: 'B'}
+    ];
+    var model = makeModel(JSON.stringify(events), true);
+    model.canonicalUrlThatCreatedThisTrace = '';
+    var valueList = new tr.metrics.ValueList();
+    tr.metrics.sh.tracingMetric(valueList, model);
+
+    var maxEventCountPerSec = 3;
+    var values = valueList.getValuesWithName('Max number of events per second');
+    assert.strictEqual(values.length, 1);
+    assert.strictEqual(values[0].numeric.value, maxEventCountPerSec);
+
+    var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
+    var values = valueList.getValuesWithName(
+        'Max event size in bytes per second');
+    assert.strictEqual(values.length, 1);
+    assert.strictEqual(values[0].numeric.value, maxEventBytesPerSec);
+  });
+
+  test('maxEventBytesPerCategory', function() {
+    var valueList = new tr.metrics.ValueList();
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'a', args: {}, pid: 52, ts: 535, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'bb', args: {}, pid: 52, ts: 546, cat: 'bar', tid: 53, ph: 'E'},
+      {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'},
+      {name: 'bb', args: {}, pid: 52, ts: 578, cat: 'bar', tid: 53, ph: 'E'}
+    ];
+    var model = makeModel(JSON.stringify(events), true);
+    model.canonicalUrlThatCreatedThisTrace = '';
+    tr.metrics.sh.tracingMetric(valueList, model);
+
+    var fooCategoryEventSize = getEventStringSize(events, [0, 1, 3]);
+    var values = valueList.getValuesWithName(
+        'Max event size in bytes per category');
+    assert.strictEqual(values.length, 1);
+    assert.strictEqual(values[0].numeric.value, fooCategoryEventSize);
+  });
+
+});
+</script>

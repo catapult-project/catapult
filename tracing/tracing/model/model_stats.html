@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -18,11 +19,17 @@ tr.exportTo('tr.model', function() {
   function ModelStats() {
     this.traceEventCountsByKey_ = new Map();
     this.allTraceEventStats_ = [];
+
+    this.traceEventStatsInTimeIntervals_ = new Map();
+    this.allTraceEventStatsInTimeIntervals_ = [];
+
     this.hasEventSizesinBytes_ = false;
   }
 
   ModelStats.prototype = {
-    willProcessBasicTraceEvent: function(phase, category, title,
+    TIME_INTERVAL_SIZE_IN_MS: 100,
+
+    willProcessBasicTraceEvent: function(phase, category, title, ts,
                                          opt_eventSizeinBytes) {
       var key = phase + '/' + category + '/' + title;
       var eventStats = this.traceEventCountsByKey_.get(key);
@@ -38,14 +45,36 @@ tr.exportTo('tr.model', function() {
         this.allTraceEventStats_.push(eventStats);
       }
       eventStats.numEvents++;
+
+      var timeIntervalKey = Math.floor(
+          tr.v.Unit.timestampFromUs(ts) / this.TIME_INTERVAL_SIZE_IN_MS);
+      var eventStatsByTimeInverval =
+          this.traceEventStatsInTimeIntervals_.get(timeIntervalKey);
+      if (eventStatsByTimeInverval === undefined) {
+        eventStatsByTimeInverval = {
+          timeInterval: timeIntervalKey,
+          numEvents: 0,
+          totalEventSizeinBytes: 0
+        };
+        this.traceEventStatsInTimeIntervals_.set(timeIntervalKey,
+                                                eventStatsByTimeInverval);
+        this.allTraceEventStatsInTimeIntervals_.push(eventStatsByTimeInverval);
+      }
+      eventStatsByTimeInverval.numEvents++;
+
       if (opt_eventSizeinBytes !== undefined) {
         this.hasEventSizesinBytes_ = true;
         eventStats.totalEventSizeinBytes += opt_eventSizeinBytes;
+        eventStatsByTimeInverval.totalEventSizeinBytes += opt_eventSizeinBytes;
       }
     },
 
     get allTraceEventStats() {
       return this.allTraceEventStats_;
+    },
+
+    get allTraceEventStatsInTimeIntervals() {
+      return this.allTraceEventStatsInTimeIntervals_;
     },
 
     get hasEventSizesinBytes() {

@@ -22,6 +22,12 @@ tr.exportTo('tr.metrics', function() {
       return this.values_.map(function(v) { return v.asDict(); });
     },
 
+    getValuesWithName: function(name) {
+      return this.values_.filter(function(value) {
+        return value.name.indexOf(name) > -1;
+      });
+    },
+
     addValue: function(v) {
       if (!(v instanceof tr.v.NumericValue)) {
         var err = new Error('Tried to add value ' + v +

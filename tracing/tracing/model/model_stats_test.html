@@ -27,5 +27,36 @@ tr.b.unittest.testSuite(function() {
         1);
   });
 
+  test('getTraceEventStatsInTimeIntervals', function() {
+    var modelStats = new ModelStats();
+    var timeIntervalSizeInUs = modelStats.TIME_INTERVAL_SIZE_IN_MS * 1000;
+    modelStats.willProcessBasicTraceEvent('X', 'cat1', 'title1', 1, 1);
+    modelStats.willProcessBasicTraceEvent(
+        'X', 'cat1', 'title1', timeIntervalSizeInUs + 1, 2);
+    modelStats.willProcessBasicTraceEvent(
+        'X', 'cat1', 'title1', 2 * timeIntervalSizeInUs + 1, 3);
+    modelStats.willProcessBasicTraceEvent(
+        'X', 'cat2', 'title3', 2 * timeIntervalSizeInUs + 2, 4);
+
+    assert.strictEqual(modelStats.allTraceEventStatsInTimeIntervals.length, 3);
+    assert.strictEqual(
+        modelStats.traceEventStatsInTimeIntervals_.get(0).numEvents, 1);
+    assert.strictEqual(
+        modelStats.traceEventStatsInTimeIntervals_.get(1).numEvents, 1);
+    assert.strictEqual(
+        modelStats.traceEventStatsInTimeIntervals_.get(2).numEvents, 2);
+
+    assert.isTrue(modelStats.hasEventSizesinBytes);
+    assert.strictEqual(
+        modelStats.traceEventStatsInTimeIntervals_.get(0).totalEventSizeinBytes,
+        1);
+    assert.strictEqual(
+        modelStats.traceEventStatsInTimeIntervals_.get(1).totalEventSizeinBytes,
+        2);
+    assert.strictEqual(
+        modelStats.traceEventStatsInTimeIntervals_.get(2).totalEventSizeinBytes,
+        7);
+  });
+
 });
 </script>
