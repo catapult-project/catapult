@@ -5,8 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -17,30 +18,39 @@ found in the LICENSE file.
 tr.exportTo('tr.model', function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var ScalarAttribute = tr.model.ScalarAttribute;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+
+  function castToScalarNumeric(value) {
+    if (typeof value === 'number')
+      return new ScalarNumeric(sizeInBytes_smallerIsBetter, value);
+    assert.instanceOf(value, ScalarNumeric);
+    return value;
+  }
 
   function MemoryDumpTestUtils() {
     throw new Error('Static class');
   }
 
+  MemoryDumpTestUtils.SIZE_DELTA = 0.0001;
+
   MemoryDumpTestUtils.newAllocatorDump = function(
-      containerDump, fullName, opt_attrs, opt_guid) {
+      containerDump, fullName, opt_numerics, opt_guid) {
     var dump = new MemoryAllocatorDump(containerDump, fullName, opt_guid);
-    if (opt_attrs !== undefined) {
-      tr.b.iterItems(opt_attrs, function(attrName, attr) {
-        if (typeof attr === 'number')
-          attr = new ScalarAttribute('bytes', attr);
-        dump.addAttribute(attrName, attr);
+    if (opt_numerics !== undefined) {
+      tr.b.iterItems(opt_numerics, function(numericName, value) {
+        dump.addNumeric(numericName, castToScalarNumeric(value));
       });
     }
     return dump;
   };
 
   MemoryDumpTestUtils.newChildDump =
-      function(parentDump, name, opt_attrs, opt_guid) {
+      function(parentDump, name, opt_numerics, opt_guid) {
     var childDump = MemoryDumpTestUtils.newAllocatorDump(
         parentDump.containerMemoryDump, parentDump.fullName + '/' + name,
-        opt_attrs, opt_guid);
+        opt_numerics, opt_guid);
     childDump.parent = parentDump;
     parentDump.children.push(childDump);
     return childDump;
@@ -54,6 +64,23 @@ tr.exportTo('tr.model', function() {
     ownerDump.owns = ownershipLink;
     ownedDump.ownedBy.push(ownershipLink);
     return ownershipLink;
+  };
+
+  MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics =
+      function(dump, expectedNumerics, expectedDiagnostics) {
+    var actualNumerics = dump.numerics;
+    assert.sameMembers(
+        Object.keys(actualNumerics), Object.keys(expectedNumerics));
+    for (var numericName in actualNumerics) {
+      var actualNumeric = actualNumerics[numericName];
+      var expectedNumeric = castToScalarNumeric(expectedNumerics[numericName]);
+      assert.instanceOf(actualNumeric, tr.v.ScalarNumeric);
+      assert.strictEqual(actualNumeric.unit, expectedNumeric.unit);
+      assert.closeTo(actualNumeric.value, expectedNumeric.value,
+          MemoryDumpTestUtils.SIZE_DELTA);
+    }
+
+    assert.deepEqual(dump.diagnostics, expectedDiagnostics);
   };
 
   return {

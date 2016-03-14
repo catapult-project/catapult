@@ -9,8 +9,11 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
 <link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
+<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/time_display_mode.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -20,6 +23,11 @@ tr.b.unittest.testSuite(function() {
   var ColorScheme = tr.b.ColorScheme;
   var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
   var ScopedId = tr.model.ScopedId;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var unitlessNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+  var checkDumpNumericsAndDiagnostics =
+      tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
 
   function makeModel(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -3197,9 +3205,12 @@ tr.b.unittest.testSuite(function() {
     assert.include(d.memoryAllocatorDumps, oilpanRoot);
     assert.include(d.memoryAllocatorDumps, v8Root);
 
-    assert.equal(oilpanRoot.attributes['objects_count'].value, 47);
-    assert.equal(oilpanRoot.attributes['size'].value, 32768);
-    assert.equal(oilpanRoot.attributes['inner_size'].value, 4096);
+    checkDumpNumericsAndDiagnostics(oilpanRoot, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 47),
+      'size': 32768,
+      'effective_size': 32768,
+      'inner_size': 4096
+    }, {});
     assert.equal(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
@@ -3207,9 +3218,12 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(oilpanBucket1);
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
-    assert.equal(oilpanBucket1.attributes['objects_count'].value, 31);
-    assert.equal(oilpanBucket1.attributes['size'].value, 8192);
-    assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
+    checkDumpNumericsAndDiagnostics(oilpanBucket1, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'size': 8192,
+      'effective_size': 8192,
+      'inner_size': 8192
+    }, {});
     assert.equal(oilpanBucket1.children.length, 0);
 
     assert.isDefined(oilpanBucket1.parent);
@@ -3291,9 +3305,12 @@ tr.b.unittest.testSuite(function() {
     assert.include(d.memoryAllocatorDumps, oilpanRoot);
     assert.include(d.memoryAllocatorDumps, v8Root);
 
-    assert.equal(oilpanRoot.attributes['objects_count'].value, 94);
-    assert.equal(oilpanRoot.attributes['size'].value, 24576);
-    assert.equal(oilpanRoot.attributes['inner_size'].value, 20480);
+    checkDumpNumericsAndDiagnostics(oilpanRoot, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 94),
+      'size': 24576,
+      'effective_size': 24576,
+      'inner_size': 20480
+    }, {});
     assert.equal(oilpanRoot.children.length, 2);
 
     var oilpanBucket1 = d.getMemoryAllocatorDumpByFullName(
@@ -3301,9 +3318,12 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(oilpanBucket1);
     assert.equal(oilpanBucket1.fullName, 'oilpan/heap2/bucket1');
     assert.equal(oilpanBucket1.name, 'bucket1');
-    assert.equal(oilpanBucket1.attributes['objects_count'].value, 31);
-    assert.equal(oilpanBucket1.attributes['size'].value, 8192);
-    assert.equal(oilpanBucket1.attributes['inner_size'].value, 8192);
+    checkDumpNumericsAndDiagnostics(oilpanBucket1, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'size': 8192,
+      'effective_size': 8192,
+      'inner_size': 8192
+    }, {});
     assert.equal(oilpanBucket1.children.length, 0);
 
     assert.isDefined(oilpanBucket1.parent);
@@ -3387,10 +3407,12 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(sharedBitmapManager);
     assert.include(gmd.memoryAllocatorDumps, sharedBitmapManager);
 
-    assert.equal(sharedBitmapManager.attributes['objects_count'].value, 31);
-    assert.equal(sharedBitmapManager.attributes['size'].value, 8192);
-    assert.equal(sharedBitmapManager.attributes['inner_size'].value, 8192);
-    assert.isUndefined(sharedBitmapManager.attributes['weather']);
+    checkDumpNumericsAndDiagnostics(sharedBitmapManager, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'size': 8192,
+      'effective_size': 8192,
+      'inner_size': 8192
+    }, {});
     assert.lengthOf(sharedBitmapManager.children, 1);
 
     var bitmap2 = gmd.getMemoryAllocatorDumpByFullName(
@@ -3399,10 +3421,12 @@ tr.b.unittest.testSuite(function() {
     assert.include(sharedBitmapManager.children, bitmap2);
     assert.strictEqual(bitmap2.parent, sharedBitmapManager);
 
-    assert.equal(bitmap2.attributes['objects_count'].value, 31);
-    assert.equal(bitmap2.attributes['size'].value, 8192);
-    assert.equal(bitmap2.attributes['inner_size'].value, 8192);
-    assert.equal(bitmap2.attributes['weather'].value, 'sunny');
+    checkDumpNumericsAndDiagnostics(bitmap2, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 31),
+      'size': 8192,
+      'effective_size': 8192,
+      'inner_size': 8192
+    }, { 'weather': 'sunny' });
     assert.lengthOf(bitmap2.children, 0);
 
     assert.isUndefined(gmd.getMemoryAllocatorDumpByFullName('tile_manager'));
@@ -3415,10 +3439,12 @@ tr.b.unittest.testSuite(function() {
     assert.include(pmd.memoryAllocatorDumps, tileManagerRoot);
     assert.isUndefined(tileManagerRoot.parent);
 
-    assert.equal(tileManagerRoot.attributes['objects_count'].value, 63);
-    assert.equal(tileManagerRoot.attributes['size'].value, 16384);
-    assert.equal(tileManagerRoot.attributes['inner_size'].value, 12288);
-    assert.isUndefined(tileManagerRoot.attributes['weather']);
+    checkDumpNumericsAndDiagnostics(tileManagerRoot, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 63),
+      'size': 16384,
+      'effective_size': 16384,
+      'inner_size': 12288
+    }, {});
     assert.lengthOf(tileManagerRoot.children, 1);
 
     var tile1 = pmd.getMemoryAllocatorDumpByFullName(
@@ -3427,10 +3453,12 @@ tr.b.unittest.testSuite(function() {
     assert.include(tileManagerRoot.children, tile1);
     assert.strictEqual(tile1.parent, tileManagerRoot);
 
-    assert.equal(tile1.attributes['objects_count'].value, 63);
-    assert.equal(tile1.attributes['size'].value, 16384);
-    assert.equal(tile1.attributes['inner_size'].value, 12288);
-    assert.equal(tile1.attributes['weather'].value, 'rainy');
+    checkDumpNumericsAndDiagnostics(tile1, {
+      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 63),
+      'size': 16384,
+      'effective_size': 16384,
+      'inner_size': 12288
+    }, { 'weather': 'rainy' });
     assert.lengthOf(tile1.children, 0);
 
     assert.isUndefined(
@@ -3589,12 +3617,9 @@ tr.b.unittest.testSuite(function() {
         'shared');
     assert.isDefined(globalDumpShared);
     assert.include(globalDump.memoryAllocatorDumps, globalDumpShared);
-    assert.equal(globalDumpShared.attributes['color'].value, 'blue');
-    assert.equal(globalDumpShared.attributes['area'].value, 9);
-    assert.isUndefined(globalDumpShared.attributes['mood']);
-    assert.isUndefined(globalDumpShared.attributes['size']);
-    assert.isUndefined(globalDumpShared.attributes['state']);
-    assert.isUndefined(globalDumpShared.attributes['temperature']);
+    checkDumpNumericsAndDiagnostics(globalDumpShared, {
+      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9)
+    }, { 'color': 'blue' });
     assert.lengthOf(globalDumpShared.children, 0);
     assert.isUndefined(globalDumpShared.parent);
 
@@ -3610,9 +3635,9 @@ tr.b.unittest.testSuite(function() {
         'local');
     assert.isDefined(browserDumpLocal);
     assert.include(browserDump.memoryAllocatorDumps, browserDumpLocal);
-    assert.equal(browserDumpLocal.attributes['mood'].value, 'very good');
-    assert.equal(browserDumpLocal.attributes['area'].value, 9);
-    assert.equal(browserDumpLocal.attributes['color'].value, 'blue');
+    checkDumpNumericsAndDiagnostics(browserDumpLocal, {
+      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9)
+    }, { 'color': 'blue', 'mood': 'very good' });
     assert.lengthOf(browserDumpLocal.children, 0);
     assert.isUndefined(browserDumpLocal.parent);
 
@@ -3634,9 +3659,10 @@ tr.b.unittest.testSuite(function() {
         'local');
     assert.isDefined(rendererDumpLocal);
     assert.include(rendererDump.memoryAllocatorDumps, rendererDumpLocal);
-    assert.equal(rendererDumpLocal.attributes['length'].value, 3);
-    assert.equal(rendererDumpLocal.attributes['area'].value, 9);
-    assert.equal(rendererDumpLocal.attributes['color'].value, 'blue');
+    checkDumpNumericsAndDiagnostics(rendererDumpLocal, {
+      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9),
+      'length': 3
+    }, { 'color': 'blue' });
     assert.lengthOf(rendererDumpLocal.children, 0);
     assert.isUndefined(rendererDumpLocal.parent);
 
@@ -3657,8 +3683,9 @@ tr.b.unittest.testSuite(function() {
     var gpuDumpLocal1 = gpuDump.getMemoryAllocatorDumpByFullName('local1');
     assert.isDefined(gpuDumpLocal1);
     assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal1);
-    assert.equal(gpuDumpLocal1.attributes['state'].value, 'ON');
-    assert.isUndefined(gpuDumpLocal1.attributes['temperature']);
+    checkDumpNumericsAndDiagnostics(gpuDumpLocal1, {
+      'area': new ScalarNumeric(unitlessNumber_smallerIsBetter, 9)
+    }, { 'state': 'ON', 'color': 'blue' });
     assert.lengthOf(gpuDumpLocal1.children, 0);
     assert.isUndefined(gpuDumpLocal1.parent);
 
@@ -3682,8 +3709,9 @@ tr.b.unittest.testSuite(function() {
     var gpuDumpLocal2 = gpuDump.getMemoryAllocatorDumpByFullName('local2');
     assert.isDefined(gpuDumpLocal2);
     assert.include(gpuDump.memoryAllocatorDumps, gpuDumpLocal2);
-    assert.equal(gpuDumpLocal2.attributes['temperature'].value, 100);
-    assert.isUndefined(gpuDumpLocal2.attributes['state']);
+    checkDumpNumericsAndDiagnostics(gpuDumpLocal2, {
+      'temperature': new ScalarNumeric(unitlessNumber_smallerIsBetter, 100)
+    }, {});
     assert.lengthOf(gpuDumpLocal2.children, 0);
     assert.isUndefined(gpuDumpLocal2.parent);
 
@@ -3725,7 +3753,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(d.memoryAllocatorDumps.length, 1);
     var noCrashRoot = d.getMemoryAllocatorDumpByFullName('no_crash');
     assert.lengthOf(noCrashRoot.children, 0);
-    assert.deepEqual(noCrashRoot.attributes, {});
+    checkDumpNumericsAndDiagnostics(noCrashRoot, {}, {});
     assert.isUndefined(noCrashRoot.parent);
     assert.isUndefined(noCrashRoot.guid);
   });
@@ -4854,13 +4882,6 @@ tr.b.unittest.testSuite(function() {
       assert.closeTo(dump.duration, expectedDuration / 1000, 1e-5);
     }
 
-    function checkAttribute(attribute, expectedType, expectedUnits,
-        expectedValue) {
-      assert.instanceOf(attribute, expectedType);
-      assert.strictEqual(attribute.units, expectedUnits);
-      assert.strictEqual(attribute.value, expectedValue);
-    }
-
     function checkLinkCounts(allocatorDump, expectedHasOwns,
         expectedOwnedByCount, expectedRetainsCount, expectedRetainedByCount) {
       assert.strictEqual(allocatorDump.owns !== undefined, expectedHasOwns);
@@ -4926,11 +4947,8 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(local1Dump.fullName, 'local1');
     assert.isUndefined(local1Dump.parent);
     assert.lengthOf(local1Dump.children, 0);
-    assert.sameMembers(Object.keys(local1Dump.attributes), ['A', 'B']);
-    checkAttribute(local1Dump.attributes['A'], tr.model.StringAttribute, '',
-        'blue');
-    checkAttribute(local1Dump.attributes['B'], tr.model.StringAttribute, '',
-        'red');
+    checkDumpNumericsAndDiagnostics(local1Dump, {},
+        { 'A': 'blue', 'B': 'red' });
     checkLinkCounts(local1Dump, true /* owns */, 0 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 
@@ -4939,9 +4957,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(local2Dump.fullName, 'local2');
     assert.isUndefined(local2Dump.parent);
     assert.lengthOf(local2Dump.children, 0);
-    assert.sameMembers(Object.keys(local2Dump.attributes), ['B']);
-    checkAttribute(local2Dump.attributes['B'], tr.model.StringAttribute, '',
-        'yellow');
+    checkDumpNumericsAndDiagnostics(local2Dump, {}, { 'B': 'yellow' });
     checkLinkCounts(local2Dump, false /* owns */, 0 /* owned by */,
         1 /* retains */, 0 /* retained by */);
 
@@ -4965,9 +4981,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherLocal1Dump, pmd2.memoryAllocatorDumps[0]);
     assert.strictEqual(otherLocal1Dump.fullName, 'local1');
     assert.isUndefined(otherLocal1Dump.parent);
-    assert.sameMembers(Object.keys(otherLocal1Dump.attributes), ['A']);
-    checkAttribute(otherLocal1Dump.attributes['A'], tr.model.ScalarAttribute,
-        'bytes', 2989);
+    checkDumpNumericsAndDiagnostics(otherLocal1Dump, { 'A': 2989 }, {});
     assert.isUndefined(pmd2.heapDumps);
     checkLinkCounts(otherLocal1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
@@ -4990,20 +5004,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(shared1Dump, gmd1.memoryAllocatorDumps[0]);
     assert.strictEqual(shared1Dump.fullName, 'shared1');
     assert.isUndefined(shared1Dump.parent);
-    assert.sameMembers(Object.keys(shared1Dump.attributes), ['A', 'B']);
-    checkAttribute(shared1Dump.attributes['A'], tr.model.StringAttribute, '',
-        'purple');
-    checkAttribute(shared1Dump.attributes['B'], tr.model.StringAttribute, '',
-        'green');
+    checkDumpNumericsAndDiagnostics(shared1Dump, {},
+        { 'A': 'purple', 'B': 'green' });
     checkLinkCounts(shared1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
     var shared2Dump = gmd1.getMemoryAllocatorDumpByFullName('shared2');
     assert.strictEqual(shared2Dump, gmd1.memoryAllocatorDumps[1]);
     assert.strictEqual(shared2Dump.fullName, 'shared2');
     assert.isUndefined(shared2Dump.parent);
-    assert.sameMembers(Object.keys(shared2Dump.attributes), ['A']);
-    checkAttribute(shared2Dump.attributes['A'], tr.model.StringAttribute, '',
-        'cyan');
+    checkDumpNumericsAndDiagnostics(shared2Dump, {}, { 'A': 'cyan' });
     checkLinkCounts(shared2Dump, false /* owns */, 0 /* owned by */,
         0 /* retains */, 1 /* retained by */);
 
@@ -5012,9 +5021,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(otherShared1Dump, gmd2.memoryAllocatorDumps[0]);
     assert.strictEqual(otherShared1Dump.fullName, 'shared1');
     assert.isUndefined(otherShared1Dump.parent);
-    assert.sameMembers(Object.keys(otherShared1Dump.attributes), ['A']);
-    checkAttribute(otherShared1Dump.attributes['A'], tr.model.StringAttribute,
-        '', 'brown');
+    checkDumpNumericsAndDiagnostics(otherShared1Dump, {}, { 'A': 'brown' });
     checkLinkCounts(otherShared1Dump, true /* owns */, 0 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 

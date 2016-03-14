@@ -186,7 +186,7 @@ tr.b.unittest.testSuite(function() {
           // Peak total resident of Process 4.
           overviewTableEl.selectedTableRow = overviewTableEl.tableRows[3];
           overviewTableEl.selectedColumnIndex = 2;
-          checkVmRegionsPane(4 /* PID */);
+          checkVmRegionsPane(undefined);
           checkAllocatorPane(undefined);
 
           // V8 of Process 3.

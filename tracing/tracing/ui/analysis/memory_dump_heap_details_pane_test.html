@@ -5,15 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel='import' href='/tracing/base/multi_dimensional_view.html'>
 <link rel='import' href='/tracing/base/iteration_helpers.html'>
+<link rel='import' href='/tracing/base/multi_dimensional_view.html'>
+<link rel='import' href='/tracing/core/test_utils.html'>
+<link rel='import' href='/tracing/model/heap_dump.html'>
 <link rel='import'
     href='/tracing/ui/analysis/memory_dump_heap_details_pane.html'>
 <link rel='import'
     href='/tracing/ui/analysis/memory_dump_sub_view_test_utils.html'>
 <link rel='import' href='/tracing/ui/analysis/memory_dump_sub_view_util.html'>
-<link rel='import' href='/tracing/core/test_utils.html'>
-<link rel='import' href='/tracing/model/heap_dump.html'>
 
 <script>
 'use strict';
@@ -29,12 +29,12 @@ tr.b.unittest.testSuite(function() {
   var STACK_FRAME = RowDimension.STACK_FRAME;
   var OBJECT_TYPE = RowDimension.OBJECT_TYPE;
   var TitleColumn = tr.ui.analysis.TitleColumn;
-  var ScalarMemoryColumn = tr.ui.analysis.ScalarMemoryColumn;
+  var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
   var checkColumns = tr.ui.analysis.checkColumns;
-  var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
 
   function createHeapDumps() {
@@ -206,7 +206,7 @@ tr.b.unittest.testSuite(function() {
 
   var EXPECTED_COLUMNS = [
     { title: 'Stack frame', type: TitleColumn, noAggregation: true },
-    { title: 'Size', type: ScalarMemoryColumn }
+    { title: 'Size', type: NumericMemoryColumn }
   ];
 
   function checkRow(columns, row, expectedDimension, expectedTitle,
@@ -230,7 +230,7 @@ tr.b.unittest.testSuite(function() {
         throw new Error('Invalid expected dimension: ' + expectedDimension);
     }
 
-    checkSizeAttributes(row, columns[1], expectedSizes);
+    checkSizeNumericFields(row, columns[1], expectedSizes);
 
     var actualDefinedValues = new Array(row.contexts.length);
     for (var i = 0; i < row.contexts.length; i++)
@@ -308,18 +308,18 @@ tr.b.unittest.testSuite(function() {
           generator.push('title: \'', row.title, '\',');
           generator.breakLine();
 
-          var attrs = row.cells['Size'].attrs;
+          var fields = row.cells['Size'].fields;
           generator.push('size: ');
-          generator.formatSingleLineList(attrs, function(attr) {
+          generator.formatSingleLineList(fields, function(field) {
             generator.push(
-                attr === undefined ? 'undefined' : String(attr.value));
+                field === undefined ? 'undefined' : String(field.value));
           });
           generator.push(',');
           generator.breakLine();
 
           generator.push('defined: ');
-          generator.formatSingleLineList(attrs, function(attr) {
-            generator.push(attr === undefined ? 'undefined' : 'true');
+          generator.formatSingleLineList(fields, function(field) {
+            generator.push(field === undefined ? 'undefined' : 'true');
           });
 
           if (row.subRows && row.subRows.length > 0) {

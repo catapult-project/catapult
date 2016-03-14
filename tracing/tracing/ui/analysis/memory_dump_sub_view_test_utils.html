@@ -8,11 +8,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
+
 
 <script>
 'use strict';
@@ -26,7 +28,11 @@ tr.exportTo('tr.ui.analysis', function() {
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var VMRegion = tr.model.VMRegion;
-  var ScalarAttribute = tr.model.ScalarAttribute;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+  var unitlessNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
   var HeapDump = tr.model.HeapDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
@@ -111,12 +117,12 @@ tr.exportTo('tr.ui.analysis', function() {
         var oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
-          objects_count: new ScalarAttribute('objects', 2015)
+          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 2015)
         });
         var v8Dump = newAllocatorDump(pmd1C, 'v8', {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarAttribute('objects', 204)
+          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
         });
 
         addOwnershipLink(v8Dump, oilpanDump);
@@ -248,12 +254,12 @@ tr.exportTo('tr.ui.analysis', function() {
         var oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
-          objects_count: new ScalarAttribute('objects', 2015)
+          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 2015)
         });
         var v8Dump = newAllocatorDump(pmd3C, 'v8', {
           size: 2147483648 /* 2 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarAttribute('objects', 204)
+          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
         });
 
         addOwnershipLink(v8Dump, oilpanDump);
@@ -302,37 +308,47 @@ tr.exportTo('tr.ui.analysis', function() {
     return createMultipleTestProcessMemoryDumps()[1];
   }
 
-  function checkAttributes(
-      row, column, expectedAttrValues, expectedClass, expectedUnits) {
-    var attrs;
+  function checkNumericFields(row, column, expectedValues, expectedUnit) {
+    var fields;
     if (column === undefined)
-      attrs = row;
+      fields = row;
     else
-      attrs = column.attrs(row);
+      fields = column.fields(row);
 
-    if (expectedAttrValues === undefined) {
-      assert.isUndefined(attrs);
+    if (expectedValues === undefined) {
+      assert.isUndefined(fields);
       return;
     }
 
-    assert.lengthOf(attrs, expectedAttrValues.length);
-    for (var i = 0; i < attrs.length; i++) {
-      var attr = attrs[i];
-      var expectedAttrValue = expectedAttrValues[i];
-      if (expectedAttrValue === undefined) {
-        assert.isUndefined(attr);
+    assert.lengthOf(fields, expectedValues.length);
+    for (var i = 0; i < fields.length; i++) {
+      var field = fields[i];
+      var expectedValue = expectedValues[i];
+      if (expectedValue === undefined) {
+        assert.isUndefined(field);
       } else {
-        assert.isDefined(expectedClass);  // Test sanity check.
-        assert.isDefined(expectedUnits);  // Test sanity check.
-        assert.instanceOf(attr, expectedClass);
-        assert.equal(attr.value, expectedAttrValue);
-        assert.equal(attr.units, expectedUnits);
+        assert.isDefined(expectedUnit);  // Test sanity check.
+        assert.instanceOf(field, ScalarNumeric);
+        assert.equal(field.value, expectedValue);
+        assert.equal(field.unit, expectedUnit);
       }
     }
   }
 
-  function checkSizeAttributes(row, column, expectedAttrValues) {
-    checkAttributes(row, column, expectedAttrValues, ScalarAttribute, 'bytes');
+  function checkSizeNumericFields(row, column, expectedValues) {
+    checkNumericFields(row, column, expectedValues,
+        sizeInBytes_smallerIsBetter);
+  }
+
+  function checkStringFields(row, column, expectedStrings) {
+    var fields = column.fields(row);
+
+    if (expectedStrings === undefined) {
+      assert.isUndefined(fields);
+      return;
+    }
+
+    assert.deepEqual(tr.b.asArray(fields), expectedStrings);
   }
 
   /**
@@ -362,22 +378,22 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   function checkColumnInfosAndColor(
-      column, attrs, contexts, expectedInfos, expectedColorReservedName) {
+      column, fields, contexts, expectedInfos, expectedColorReservedName) {
     // Test sanity checks.
-    assert.isDefined(attrs);
+    assert.isDefined(fields);
     if (contexts !== undefined)
-      assert.lengthOf(contexts, attrs.length);
+      assert.lengthOf(contexts, fields.length);
 
     // Check infos.
     var infos = [];
-    column.addInfos(attrs, contexts, infos);
+    column.addInfos(fields, contexts, infos);
     assert.lengthOf(infos, expectedInfos.length);
     for (var i = 0; i < expectedInfos.length; i++)
       assert.deepEqual(infos[i], expectedInfos[i]);
 
     // Check color.
     var actualColor = typeof column.color === 'function' ?
-        column.color(attrs, contexts) :
+        column.color(fields, contexts) :
         column.color;
     checkColor(actualColor, expectedColorReservedName);
   }
@@ -548,8 +564,9 @@ tr.exportTo('tr.ui.analysis', function() {
     createMultipleTestGlobalMemoryDumps: createMultipleTestGlobalMemoryDumps,
     createSingleTestProcessMemoryDump: createSingleTestProcessMemoryDump,
     createMultipleTestProcessMemoryDumps: createMultipleTestProcessMemoryDumps,
-    checkAttributes: checkAttributes,
-    checkSizeAttributes: checkSizeAttributes,
+    checkNumericFields: checkNumericFields,
+    checkSizeNumericFields: checkSizeNumericFields,
+    checkStringFields: checkStringFields,
     checkColumns: checkColumns,
     checkColumnInfosAndColor: checkColumnInfosAndColor,
     checkColor: checkColor,

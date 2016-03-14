@@ -13,7 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/importer/importer.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/clock_sync_record.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
 <link rel="import" href="/tracing/model/constants.html">
@@ -29,6 +28,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
+<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -2568,20 +2568,54 @@ tr.exportTo('tr.e.importer', function() {
         }
 
         for (var attrName in attributes) {
-          if (attrName in allocatorDump.attributes) {
-            // Skip existing attributes of the memory allocator dump.
-            this.model_.importWarning({
-            type: 'memory_dump_parse_error',
-            message: 'Multiple values provided for attribute ' + attrName +
-                ' of memory allocator dump ' + fullName + ' (GUID=' + guid +
-                ') for PID=' + pid + ' and dump ID=' + dumpId + '.'
-            });
-            continue;
-          }
-
           var attrArgs = attributes[attrName];
-          var attrValue = tr.model.Attribute.fromDictIfPossible(attrArgs);
-          allocatorDump.addAttribute(attrName, attrValue);
+          var attrType = attrArgs.type;
+          var attrValue = attrArgs.value;
+
+          switch (attrType) {
+            case 'scalar':
+              if (attrName in allocatorDump.numerics) {
+                this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Multiple values provided for scalar attribute ' +
+                    attrName + ' of memory allocator dump ' + fullName +
+                    ' (GUID=' + guid + ') for PID=' + pid + ' and dump ID=' +
+                    dumpId + '.'
+                });
+                break;
+              }
+              var unit = attrArgs.units === 'bytes' ?
+                  tr.v.Unit.byName.sizeInBytes_smallerIsBetter :
+                  tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+              var value = parseInt(attrValue, 16);
+              allocatorDump.addNumeric(attrName,
+                  new tr.v.ScalarNumeric(unit, value));
+              break;
+
+            case 'string':
+              if (attrName in allocatorDump.diagnostics) {
+                this.model_.importWarning({
+                type: 'memory_dump_parse_error',
+                message: 'Multiple values provided for string attribute ' +
+                    attrName + ' of memory allocator dump ' + fullName +
+                    ' (GUID=' + guid + ') for PID=' + pid + ' and dump ID=' +
+                    dumpId + '.'
+                });
+                break;
+              }
+              allocatorDump.addDiagnostic(attrName, attrValue);
+              break;
+
+            default:
+              this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'Unknown type provided for attribute ' + attrName +
+                  ' of memory allocator dump ' + fullName + ' (GUID=' + guid +
+                  ') for PID=' + pid + ' and dump ID=' + dumpId + ': ' +
+                  attrType
+              });
+              break;
+          }
         }
       }
     },

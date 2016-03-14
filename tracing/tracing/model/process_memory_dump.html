@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -26,16 +25,15 @@ tr.exportTo('tr.model', function() {
   // winheap/malloc allocator dump tree.
   var TRACING_OVERHEAD_PATH = ['allocated_objects', 'tracing_overhead'];
 
-  var SIZE_ATTRIBUTE_NAME = tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME;
-  var RESIDENT_SIZE_ATTRIBUTE_NAME =
-      tr.model.MemoryAllocatorDump.RESIDENT_SIZE_ATTRIBUTE_NAME;
+  var SIZE_NUMERIC_NAME = tr.model.MemoryAllocatorDump.SIZE_NUMERIC_NAME;
+  var RESIDENT_SIZE_NUMERIC_NAME =
+      tr.model.MemoryAllocatorDump.RESIDENT_SIZE_NUMERIC_NAME;
 
-  function getSizeAttrValue(dump, sizeAttrName, opt_model) {
-    var sizeAttr = dump.getValidSizeAttributeOrUndefined(
-        sizeAttrName, opt_model);
-    if (sizeAttr === undefined)
+  function getSizeNumericValue(dump, sizeNumericName) {
+    var sizeNumeric = dump.numerics[sizeNumericName];
+    if (sizeNumeric === undefined)
       return 0;
-    return sizeAttr.value;
+    return sizeNumeric.value;
   }
 
   /**
@@ -195,9 +193,10 @@ tr.exportTo('tr.model', function() {
       if (tracingDump === undefined)
         return;
 
-      var discountedSize = getSizeAttrValue(tracingDump, SIZE_ATTRIBUTE_NAME);
+      var discountedSize =
+          getSizeNumericValue(tracingDump, SIZE_NUMERIC_NAME);
       var discountedResidentSize =
-          getSizeAttrValue(tracingDump, RESIDENT_SIZE_ATTRIBUTE_NAME);
+          getSizeNumericValue(tracingDump, RESIDENT_SIZE_NUMERIC_NAME);
 
       if (discountedSize <= 0 && discountedResidentSize <= 0)
         return;

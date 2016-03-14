@@ -6,10 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-memory-dump-vm-regions-details-pane"
     extends="tr-ui-a-stacked-pane">
@@ -63,17 +64,69 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var COLUMN_IMPORTANCE_RULES =
-      tr.ui.analysis.MemoryColumn.columnNamesToImportanceRules([
-          'Start address',
-          'Virtual size',
-          'Protection flags',
-          'PSS',
-          'Private dirty',
-          'Private clean',
-          'Shared dirty',
-          'Shared clean',
-          'Swapped']);
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+
+  var CONSTANT_COLUMN_RULES = [
+    {
+      condition: 'Start address',
+      importance: 0,
+      columnConstructor: tr.ui.analysis.StringMemoryColumn
+    }
+  ];
+
+  var VARIABLE_COLUMN_RULES = [
+    {
+      condition: 'Virtual size',
+      importance: 7,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Protection flags',
+      importance: 6,
+      columnConstructor: tr.ui.analysis.StringMemoryColumn
+    },
+    {
+      condition: 'PSS',
+      importance: 5,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Private dirty',
+      importance: 4,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Private clean',
+      importance: 3,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Shared dirty',
+      importance: 2,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Shared clean',
+      importance: 1,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Swapped',
+      importance: 0,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    }
+  ];
+
+  var BYTE_STAT_COLUMN_MAP = {
+    'proportionalResident': 'PSS',
+    'privateDirtyResident': 'Private dirty',
+    'privateCleanResident': 'Private clean',
+    'sharedDirtyResident': 'Shared dirty',
+    'sharedCleanResident': 'Shared clean',
+    'swapped': 'Swapped'
+  };
 
   /**
    * Rules for classifying memory maps.
@@ -346,6 +399,11 @@ tr.exportTo('tr.ui.analysis', function() {
       var rows = this.classifyRows_(unclassifiedRows);
       var columns = this.createColumns_(rows);
 
+      // Aggregate fields of the VM regions.
+      rows.forEach(function(rootRow) {
+        tr.ui.analysis.aggregateTableRowCellsRecursively(rootRow, columns);
+      });
+
       this.$.table.tableRows = rows;
       this.$.table.tableColumns = columns;
 
@@ -415,42 +473,41 @@ tr.exportTo('tr.ui.analysis', function() {
         // Cells for VM region properties which DON'T change over time.
         var constantCells = tr.ui.analysis.createCells([definedRegion],
             function(region) {
-              var attrs = {};
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Start address', tr.model.StringAttribute, '',
-                  hexString(region.startAddress, is64BitAddress));
-              return attrs;
+              var fields = {};
+              var startAddress = region.startAddress;
+              if (startAddress !== undefined) {
+                fields['Start address'] =
+                    hexString(startAddress, is64BitAddress);
+              }
+              return fields;
             });
 
         // Cells for VM region properties which DO change over time.
         var variableCells = tr.ui.analysis.createCells(timeToRegion,
             function(region) {
-              var attrs = {};
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Virtual size', tr.model.ScalarAttribute, 'bytes',
-                  region.sizeInBytes);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Protection flags', tr.model.StringAttribute, '',
-                  region.protectionFlagsToString);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'PSS', tr.model.ScalarAttribute, 'bytes',
-                  region.byteStats.proportionalResident);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Private dirty', tr.model.ScalarAttribute, 'bytes',
-                  region.byteStats.privateDirtyResident);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Private clean', tr.model.ScalarAttribute, 'bytes',
-                  region.byteStats.privateCleanResident);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Shared dirty', tr.model.ScalarAttribute, 'bytes',
-                  region.byteStats.sharedDirtyResident);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Shared clean', tr.model.ScalarAttribute, 'bytes',
-                  region.byteStats.sharedCleanResident);
-              tr.ui.analysis.addAttributeIfDefined(
-                  attrs, 'Swapped', tr.model.ScalarAttribute, 'bytes',
-                  region.byteStats.swapped);
-              return attrs;
+              var fields = {};
+
+              // VMRegion fields.
+              var sizeInBytes = region.sizeInBytes;
+              if (sizeInBytes !== undefined) {
+                fields['Virtual size'] = new ScalarNumeric(
+                    sizeInBytes_smallerIsBetter, sizeInBytes);
+              }
+              var protectionFlags = region.protectionFlagsToString;
+              if (protectionFlags !== undefined)
+                fields['Protection flags'] = protectionFlags;
+
+              // VMRegionByteStats fields.
+              tr.b.iterItems(BYTE_STAT_COLUMN_MAP,
+                  function(byteStatName, columnName) {
+                    var byteStat = region.byteStats[byteStatName];
+                    if (byteStat === undefined)
+                      return;
+                    fields[columnName] = new ScalarNumeric(
+                        sizeInBytes_smallerIsBetter, byteStat);
+                  });
+
+              return fields;
             });
 
         return {
@@ -472,12 +529,6 @@ tr.exportTo('tr.ui.analysis', function() {
       // Prune rule rows with no VM regions.
       pruneEmptyRuleRows(rootRow);
 
-      // Aggregate attributes of the VM regions.
-      tr.ui.analysis.aggregateTableRowCellsRecursively(
-          rootRow, 'constantCells');
-      tr.ui.analysis.aggregateTableRowCellsRecursively(
-          rootRow, 'variableCells');
-
       return [rootRow];
     },
 
@@ -486,15 +537,13 @@ tr.exportTo('tr.ui.analysis', function() {
       titleColumn.width = '200px';
 
       var constantColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'constantCells');
+          rows, 'constantCells', undefined, CONSTANT_COLUMN_RULES);
       var variableColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'variableCells', this.aggregationMode_);
-      var attributeColumns = constantColumns.concat(variableColumns);
-      tr.ui.analysis.MemoryColumn.sortByImportance(attributeColumns,
-          COLUMN_IMPORTANCE_RULES);
-      tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
+          rows, 'variableCells', this.aggregationMode_, VARIABLE_COLUMN_RULES);
+      var fieldColumns = constantColumns.concat(variableColumns);
+      tr.ui.analysis.MemoryColumn.spaceEqually(fieldColumns);
 
-      var columns = [titleColumn].concat(attributeColumns);
+      var columns = [titleColumn].concat(fieldColumns);
       return columns;
     }
   });

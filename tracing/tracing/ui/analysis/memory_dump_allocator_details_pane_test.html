@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
@@ -16,26 +15,34 @@ found in the LICENSE file.
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
-  var ScalarAttribute = tr.model.ScalarAttribute;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var unitlessNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var HeapDump = tr.model.HeapDump;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
-  var checkAttributes = tr.ui.analysis.checkAttributes;
-  var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var checkNumericFields = tr.ui.analysis.checkNumericFields;
+  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
+  var checkStringFields = tr.ui.analysis.checkStringFields;
   var checkColumnInfosAndColor = tr.ui.analysis.checkColumnInfosAndColor;
   var checkColumns = tr.ui.analysis.checkColumns;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
   var AllocatorDumpNameColumn = tr.ui.analysis.AllocatorDumpNameColumn;
   var EffectiveSizeColumn = tr.ui.analysis.EffectiveSizeColumn;
   var SizeColumn = tr.ui.analysis.SizeColumn;
-  var ScalarMemoryColumn = tr.ui.analysis.ScalarMemoryColumn;
+  var StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
+  var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
@@ -62,6 +69,7 @@ tr.b.unittest.testSuite(function() {
     var suballocationDump = newChildDump(parentDump, name, { size: size });
     if (ownerDump !== undefined)
       addOwnershipLink(ownerDump, suballocationDump);
+    return suballocationDump;
   }
 
   function createProcessMemoryDumps() {
@@ -75,7 +83,7 @@ tr.b.unittest.testSuite(function() {
         var v8Dump = newAllocatorDump(pmd1, 'v8', {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarAttribute('objects', 204)
+          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
         });
 
         var v8HeapsDump = newChildDump(v8Dump, 'heaps',
@@ -84,6 +92,7 @@ tr.b.unittest.testSuite(function() {
             { size: 804782080 /* 767.5 MiB */ });
 
         var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+        v8ObjectsDump.addDiagnostic('url', 'http://example.com');
         newChildDump(v8ObjectsDump, 'foo', { size: 1022976 /* 999 KiB */ });
         newChildDump(v8ObjectsDump, 'bar', { size: 1024000 /* 1000 KiB */ });
 
@@ -106,13 +115,14 @@ tr.b.unittest.testSuite(function() {
 
         var skiaDump = newAllocatorDump(pmd1, 'skia',
             { size: 8388608 /* 8 MiB */ });
-        newSuballocationDump(
+        var suballocationDump = newSuballocationDump(
             skiaDump, v8Dump, '__15FADE', 16777216 /* 16 MiB */);
 
         var ccDump = newAllocatorDump(pmd1, 'cc',
             { size: 4194304 /* 4 MiB */ });
         newSuballocationDump(
-            ccDump, v8Dump, '__12FEED', 5242880 /* 5 MiB */);
+            ccDump, v8Dump, '__12FEED', 5242880 /* 5 MiB */).addDiagnostic(
+                'url', 'localhost:1234');
 
         return [v8Dump, oilpanDump, skiaDump, ccDump];
       })();
@@ -124,10 +134,11 @@ tr.b.unittest.testSuite(function() {
         var v8Dump = newAllocatorDump(pmd2, 'v8', {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
-          objects_count: new ScalarAttribute('objects', 204)
+          objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
         });
 
         var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+        v8ObjectsDump.addDiagnostic('url', 'http://sample.net');
         newChildDump(v8ObjectsDump, 'foo', { size: 1020928 /* 997 KiB */ });
         newChildDump(v8ObjectsDump, 'bar', { size: 1026048 /* 1002 KiB */ });
 
@@ -137,7 +148,8 @@ tr.b.unittest.testSuite(function() {
         var ccDump = newAllocatorDump(pmd2, 'cc',
             { size: 7340032 /* 7 MiB */ });
         newSuballocationDump(
-            ccDump, v8Dump, '__13DEED', 11534336 /* 11 MiB */);
+            ccDump, v8Dump, '__13DEED', 11534336 /* 11 MiB */).addDiagnostic(
+                'url', 'localhost:5678');
 
         return [v8Dump, ccDump];
       })();
@@ -146,11 +158,11 @@ tr.b.unittest.testSuite(function() {
     return model.processes[1].memoryDumps;
   }
 
-  function createSizeAttributes(values) {
+  function createSizeFields(values) {
     return values.map(function(value) {
       if (value === undefined)
         return undefined;
-      return new ScalarAttribute('bytes', value);
+      return new ScalarNumeric(sizeInBytes_smallerIsBetter, value);
     });
   }
 
@@ -158,34 +170,37 @@ tr.b.unittest.testSuite(function() {
     { title: 'Component', type: AllocatorDumpNameColumn, noAggregation: true },
     { title: 'effective_size', type: EffectiveSizeColumn },
     { title: 'size', type: SizeColumn },
-    { title: 'inner_size', type: ScalarMemoryColumn },
-    { title: 'objects_count', type: ScalarMemoryColumn }
+    { title: 'inner_size', type: NumericMemoryColumn },
+    { title: 'objects_count', type: NumericMemoryColumn },
+    { title: 'url', type: StringMemoryColumn }
   ];
 
-  function checkRow(columns, row, expectedTitle, expectedSizes,
-      expectedEffectiveSizes, expectedInnerSizes, expectedObjectCounts,
-      expectedSubRowCount, expectedContexts) {
+  function checkRow(columns, row, expectations) {
     var formattedTitle = columns[0].formatTitle(row);
+    var expectedTitle = expectations.title;
     if (typeof expectedTitle === 'function')
       expectedTitle(formattedTitle);
     else
       assert.equal(formattedTitle, expectedTitle);
 
-    checkSizeAttributes(row, columns[1], expectedSizes);
-    checkSizeAttributes(row, columns[2], expectedEffectiveSizes);
-    checkSizeAttributes(row, columns[3], expectedInnerSizes);
-    checkAttributes(
-        row, columns[4], expectedObjectCounts, ScalarAttribute, 'objects');
+    checkSizeNumericFields(row, columns[1], expectations.size);
+    checkSizeNumericFields(row, columns[2], expectations.effective_size);
+    checkSizeNumericFields(row, columns[3], expectations.inner_size);
+    checkNumericFields(row, columns[4], expectations.objects_count,
+        unitlessNumber_smallerIsBetter);
+    checkStringFields(row, columns[5], expectations.url);
 
+    var expectedSubRowCount = expectations.sub_row_count;
     if (expectedSubRowCount === undefined)
       assert.isUndefined(row.subRows);
     else
       assert.lengthOf(row.subRows, expectedSubRowCount);
 
-    if (expectedContexts)
-      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
-    else
+    var expectedContexts = expectations.contexts;
+    if (expectedContexts === undefined)
       assert.isUndefined(row.contexts);
+    else
+      assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
   }
 
   function buildProcessMemoryDumps(count, preFinalizeDumpsCallback) {
@@ -211,14 +226,14 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkAllocatorPaneColumnInfosAndColor(
-      column, dumps, attrName, expectedInfos) {
-    var attrs = dumps.map(function(dump) {
+      column, dumps, numericName, expectedInfos) {
+    var numerics = dumps.map(function(dump) {
       if (dump === undefined)
         return undefined;
-      return dump.attributes[attrName];
+      return dump.numerics[numericName];
     });
     checkColumnInfosAndColor(
-        column, attrs, dumps, expectedInfos, undefined /* no color */);
+        column, numerics, dumps, expectedInfos, undefined /* no color */);
   }
 
   test('instantiate_empty', function() {
@@ -253,63 +268,115 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var rootRow = rows[0];
-    checkRow(columns, rootRow, 'v8', [942619648], [1081031680], [2097152],
-        [204], 3, getAllocatorDumps(processMemoryDumps, 'v8'));
+    checkRow(columns, rootRow, {
+      title: 'v8',
+      size: [942619648],
+      effective_size: [1081031680],
+      inner_size: [2097152],
+      objects_count: [204],
+      sub_row_count: 3,
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8'),
+    });
 
     var heapsSubRow = rootRow.subRows[0];
-    checkRow(columns, heapsSubRow, 'heaps', [805306368], [805306368], undefined,
-        undefined, 2, getAllocatorDumps(processMemoryDumps, 'v8/heaps'));
+    checkRow(columns, heapsSubRow, {
+      title: 'heaps',
+      size: [805306368],
+      effective_size: [805306368],
+      sub_row_count: 2,
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/heaps'),
+    });
 
     var heapsUnspecifiedSubRow = heapsSubRow.subRows[0];
-    checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>', [524288],
-        [524288], undefined, undefined, undefined,
-        getAllocatorDumps(processMemoryDumps, 'v8/heaps/<unspecified>'));
+    checkRow(columns, heapsUnspecifiedSubRow, {
+      title: '<unspecified>',
+      size: [524288],
+      effective_size: [524288],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/heaps/<unspecified>'),
+    });
 
     var suballocationsSubRow = rootRow.subRows[2];
-    checkRow(columns, suballocationsSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'suballocations');
-      assert.equal(formattedTitle.title, '');
-    }, [135266304], [273678336], undefined, undefined, 3,
-        [SUBALLOCATION_CONTEXT]);
+    checkRow(columns, suballocationsSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'suballocations');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [135266304],
+      effective_size: [273678336],
+      sub_row_count: 3,
+      contexts: [SUBALLOCATION_CONTEXT],
+    });
 
     var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
-    checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'oilpan');
-      assert.equal(formattedTitle.title, '');
-    }, [125829120], [251658240], undefined, undefined, 2,
-        [SUBALLOCATION_CONTEXT]);
+    checkRow(columns, oilpanSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'oilpan');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [125829120],
+      effective_size: [251658240],
+      sub_row_count: 2,
+      contexts: [SUBALLOCATION_CONTEXT],
+    });
 
     var oilpanUnspecifiedSuballocationSubRow =
         oilpanSuballocationSubRow.subRows[0];
-    checkRow(columns, oilpanUnspecifiedSuballocationSubRow,
-        function(formattedTitle) {
-          assert.equal(formattedTitle.textContent, '<unspecified>');
-          assert.equal(formattedTitle.title, 'v8/__99BEAD');
-        }, [75497472], [150994944], undefined, undefined, undefined,
-        getAllocatorDumps(processMemoryDumps, 'v8/__99BEAD'));
+    checkRow(columns, oilpanUnspecifiedSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, '<unspecified>');
+        assert.equal(formattedTitle.title, 'v8/__99BEAD');
+      },
+      size: [75497472],
+      effective_size: [150994944],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__99BEAD'),
+    });
 
     var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
-    checkRow(columns, oilpanAnimalsSuballocationSubRow,
-        function(formattedTitle) {
-          assert.equal(formattedTitle.textContent, 'animals');
-          assert.equal(formattedTitle.title, '');
-        }, [50331648], [100663296], undefined, undefined, 2,
-        [SUBALLOCATION_CONTEXT]);
+    checkRow(columns, oilpanAnimalsSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'animals');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [50331648],
+      effective_size: [100663296],
+      sub_row_count: 2,
+      contexts: [SUBALLOCATION_CONTEXT],
+    });
 
     var oilpanCowSuballocationSubRow =
         oilpanAnimalsSuballocationSubRow.subRows[0];
-    checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'cow');
-      assert.equal(formattedTitle.title, 'v8/__42BEEF');
-    }, [33554432], [67108864], undefined, undefined, undefined,
-        getAllocatorDumps(processMemoryDumps, 'v8/__42BEEF'));
+    checkRow(columns, oilpanCowSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'cow');
+        assert.equal(formattedTitle.title, 'v8/__42BEEF');
+      },
+      size: [33554432],
+      effective_size: [67108864],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__42BEEF'),
+    });
 
     var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
-    checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'skia');
-      assert.equal(formattedTitle.title, 'v8/__15FADE');
-    }, [8388608], [16777216], undefined, undefined, undefined,
-        getAllocatorDumps(processMemoryDumps, 'v8/__15FADE'));
+    checkRow(columns, skiaSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'skia');
+        assert.equal(formattedTitle.title, 'v8/__15FADE');
+      },
+      size: [8388608],
+      effective_size: [16777216],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__15FADE'),
+    });
+
+    var ccSuballocationSubRow = suballocationsSubRow.subRows[2];
+    checkRow(columns, ccSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'cc');
+        assert.equal(formattedTitle.title, 'v8/__12FEED');
+      },
+      size: [1048576],
+      effective_size: [5242880],
+      url: ['localhost:1234'],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__12FEED')
+    });
   });
 
   test('instantiate_multipleDiff', function() {
@@ -335,80 +402,126 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var rootRow = rows[0];
-    checkRow(columns, rootRow, 'v8', [942619648, 1066401792],
-        [1081031680, 1073741824], [2097152, 2097152], [204, 204], 4,
-        getAllocatorDumps(processMemoryDumps, 'v8'));
+    checkRow(columns, rootRow, {
+      title: 'v8',
+      size: [942619648, 1066401792],
+      effective_size: [1081031680, 1073741824],
+      inner_size: [2097152, 2097152],
+      objects_count: [204, 204],
+      sub_row_count: 4,
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8'),
+    });
 
     var heapsSubRow = rootRow.subRows[0];
-    checkRow(columns, heapsSubRow, 'heaps', [805306368, undefined],
-        [805306368, undefined], undefined, undefined, 2,
-        getAllocatorDumps(processMemoryDumps, 'v8/heaps'));
+    checkRow(columns, heapsSubRow, {
+      title: 'heaps',
+      size: [805306368, undefined],
+      effective_size: [805306368, undefined],
+      sub_row_count: 2,
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/heaps'),
+    });
 
     var heapsUnspecifiedSubRow = heapsSubRow.subRows[0];
-    checkRow(columns, heapsUnspecifiedSubRow, '<unspecified>',
-        [524288, undefined], [524288, undefined], undefined, undefined,
-        undefined,
-        getAllocatorDumps(processMemoryDumps, 'v8/heaps/<unspecified>'));
+    checkRow(columns, heapsUnspecifiedSubRow, {
+      title: '<unspecified>',
+      size: [524288, undefined],
+      effective_size: [524288, undefined],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/heaps/<unspecified>'),
+    });
 
     var unspecifiedSubRow = rootRow.subRows[2];
-    checkRow(columns, unspecifiedSubRow, '<unspecified>',
-        [undefined, 791725056], [undefined, 791725056], undefined, undefined,
-        undefined, getAllocatorDumps(processMemoryDumps, 'v8/<unspecified>'));
+    checkRow(columns, unspecifiedSubRow, {
+      title: '<unspecified>',
+      size: [undefined, 791725056],
+      effective_size: [undefined, 791725056],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/<unspecified>'),
+    });
 
     var suballocationsSubRow = rootRow.subRows[3];
-    checkRow(columns, suballocationsSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'suballocations');
-      assert.equal(formattedTitle.title, '');
-    }, [135266304, 272629760], [273678336, 279969792], undefined, undefined,
-        3, [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT]);
+    checkRow(columns, suballocationsSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'suballocations');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [135266304, 272629760],
+      effective_size: [273678336, 279969792],
+      sub_row_count: 3,
+      contexts: [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT],
+    });
 
     var oilpanSuballocationSubRow = suballocationsSubRow.subRows[0];
-    checkRow(columns, oilpanSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'oilpan');
-      assert.equal(formattedTitle.title, '');
-    }, [125829120, 268435456], [251658240, 268435456], undefined, undefined, 2,
-        [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT]);
+    checkRow(columns, oilpanSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'oilpan');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [125829120, 268435456],
+      effective_size: [251658240, 268435456],
+      sub_row_count: 2,
+      contexts: [SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT],
+    });
 
     var oilpanUnspecifiedSuballocationSubRow =
         oilpanSuballocationSubRow.subRows[0];
-    checkRow(columns, oilpanUnspecifiedSuballocationSubRow,
-        function(formattedTitle) {
-          assert.equal(formattedTitle.textContent, '<unspecified>');
-          assert.equal(formattedTitle.title, 'v8/__99BEAD');
-        }, [75497472, 268435456], [150994944, 268435456], undefined, undefined,
-            undefined, getAllocatorDumps(processMemoryDumps, 'v8/__99BEAD'));
+    checkRow(columns, oilpanUnspecifiedSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, '<unspecified>');
+        assert.equal(formattedTitle.title, 'v8/__99BEAD');
+      },
+      size: [75497472, 268435456],
+      effective_size: [150994944, 268435456],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__99BEAD'),
+    });
 
     var oilpanAnimalsSuballocationSubRow = oilpanSuballocationSubRow.subRows[1];
-    checkRow(columns, oilpanAnimalsSuballocationSubRow,
-        function(formattedTitle) {
-          assert.equal(formattedTitle.textContent, 'animals');
-          assert.equal(formattedTitle.title, '');
-        }, [50331648, undefined], [100663296, undefined], undefined, undefined,
-            2, [SUBALLOCATION_CONTEXT, undefined]);
+    checkRow(columns, oilpanAnimalsSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'animals');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [50331648, undefined],
+      effective_size: [100663296, undefined],
+      sub_row_count: 2,
+      contexts: [SUBALLOCATION_CONTEXT, undefined],
+    });
 
     var oilpanCowSuballocationSubRow =
         oilpanAnimalsSuballocationSubRow.subRows[0];
-    checkRow(columns, oilpanCowSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'cow');
-      assert.equal(formattedTitle.title, 'v8/__42BEEF');
-    }, [33554432, undefined], [67108864, undefined], undefined, undefined,
-        undefined, getAllocatorDumps(processMemoryDumps, 'v8/__42BEEF'));
+    checkRow(columns, oilpanCowSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'cow');
+        assert.equal(formattedTitle.title, 'v8/__42BEEF');
+      },
+      size: [33554432, undefined],
+      effective_size: [67108864, undefined],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__42BEEF'),
+    });
 
     var skiaSuballocationSubRow = suballocationsSubRow.subRows[1];
-    checkRow(columns, skiaSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'skia');
-      assert.equal(formattedTitle.title, 'v8/__15FADE');
-    }, [8388608, undefined], [16777216, undefined], undefined, undefined,
-        undefined, getAllocatorDumps(processMemoryDumps, 'v8/__15FADE'));
+    checkRow(columns, skiaSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'skia');
+        assert.equal(formattedTitle.title, 'v8/__15FADE');
+      },
+      size: [8388608, undefined],
+      effective_size: [16777216, undefined],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/__15FADE'),
+    });
 
     var ccSuballocationSubRow = suballocationsSubRow.subRows[2];
-    checkRow(columns, ccSuballocationSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'cc');
-      assert.equal(formattedTitle.title, 'v8/__12FEED, v8/__13DEED');
-    }, [1048576, 4194304], [5242880, 11534336], undefined, undefined, undefined,
-        [processMemoryDumps[0].getMemoryAllocatorDumpByFullName('v8/__12FEED'),
-         processMemoryDumps[1].getMemoryAllocatorDumpByFullName(
-            'v8/__13DEED')]);
+    checkRow(columns, ccSuballocationSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'cc');
+        assert.equal(formattedTitle.title, 'v8/__12FEED, v8/__13DEED');
+      },
+      size: [1048576, 4194304],
+      effective_size: [5242880, 11534336],
+      url: ['localhost:1234', 'localhost:5678'],
+      contexts: [
+        processMemoryDumps[0].getMemoryAllocatorDumpByFullName('v8/__12FEED'),
+        processMemoryDumps[1].getMemoryAllocatorDumpByFullName('v8/__13DEED')
+      ]
+    });
   });
 
   test('instantiate_multipleMax', function() {
@@ -458,23 +571,35 @@ tr.b.unittest.testSuite(function() {
 
     // Check only a few rows of the table.
     var rootRow = rows[0];
-    checkRow(columns, rootRow, 'v8', [942619648, undefined, 1066401792],
-        [1081031680, undefined, 1073741824], [2097152, undefined, 2097152],
-        [204, undefined, 204], 4, getAllocatorDumps(processMemoryDumps, 'v8'));
+    checkRow(columns, rootRow, {
+      title: 'v8',
+      size: [942619648, undefined, 1066401792],
+      effective_size: [1081031680, undefined, 1073741824],
+      inner_size: [2097152, undefined, 2097152],
+      objects_count: [204, undefined, 204],
+      sub_row_count: 4,
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8'),
+    });
 
     var unspecifiedSubRow = rootRow.subRows[2];
-    checkRow(columns, unspecifiedSubRow, '<unspecified>',
-        [undefined, undefined, 791725056], [undefined, undefined, 791725056],
-        undefined, undefined, undefined,
-        getAllocatorDumps(processMemoryDumps, 'v8/<unspecified>'));
+    checkRow(columns, unspecifiedSubRow, {
+      title: '<unspecified>',
+      size: [undefined, undefined, 791725056],
+      effective_size: [undefined, undefined, 791725056],
+      contexts: getAllocatorDumps(processMemoryDumps, 'v8/<unspecified>'),
+    });
 
     var suballocationsSubRow = rootRow.subRows[3];
-    checkRow(columns, suballocationsSubRow, function(formattedTitle) {
-      assert.equal(formattedTitle.textContent, 'suballocations');
-      assert.equal(formattedTitle.title, '');
-    }, [135266304, undefined, 272629760], [273678336, undefined, 279969792],
-        undefined, undefined, 3,
-        [SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT]);
+    checkRow(columns, suballocationsSubRow, {
+      title: function(formattedTitle) {
+        assert.equal(formattedTitle.textContent, 'suballocations');
+        assert.equal(formattedTitle.title, '');
+      },
+      size: [135266304, undefined, 272629760],
+      effective_size: [273678336, undefined, 279969792],
+      sub_row_count: 3,
+      contexts: [SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT],
+    });
   });
 
   test('heapDumpsPassThrough', function() {
@@ -533,14 +658,14 @@ tr.b.unittest.testSuite(function() {
 
     // Single selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([128]),
+        createSizeFields([128]),
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
 
     // Multi-selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([128, 256, undefined, 64]),
+        createSizeFields([128, 256, undefined, 64]),
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
@@ -552,14 +677,14 @@ tr.b.unittest.testSuite(function() {
 
     // Single selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([128]),
+        createSizeFields([128]),
         [SUBALLOCATION_CONTEXT],
         [] /* no infos */,
         undefined /* no color */);
 
     // Multi-selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([undefined, 256, undefined, 64]),
+        createSizeFields([undefined, 256, undefined, 64]),
         [undefined, SUBALLOCATION_CONTEXT, SUBALLOCATION_CONTEXT,
             SUBALLOCATION_CONTEXT],
         [] /* no infos */,
@@ -861,14 +986,14 @@ tr.b.unittest.testSuite(function() {
 
     // Single selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([128]),
+        createSizeFields([128]),
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
 
     // Multi-selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([128, 256, undefined, 64]),
+        createSizeFields([128, 256, undefined, 64]),
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
@@ -879,14 +1004,14 @@ tr.b.unittest.testSuite(function() {
 
     // Single selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([128]),
+        createSizeFields([128]),
         [SUBALLOCATION_CONTEXT],
         [] /* no infos */,
         undefined /* no color */);
 
     // Multi-selection.
     checkColumnInfosAndColor(c,
-        createSizeAttributes([undefined, 256, undefined, 64]),
+        createSizeFields([undefined, 256, undefined, 64]),
         [undefined, SUBALLOCATION_CONTEXT, undefined, SUBALLOCATION_CONTEXT],
         [] /* no infos */,
         undefined /* no color */);

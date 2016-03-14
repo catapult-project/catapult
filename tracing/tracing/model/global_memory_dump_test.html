@@ -8,12 +8,13 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/importer/import.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -24,17 +25,20 @@ tr.b.unittest.testSuite(function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var MemoryAllocatorDumpLink = tr.model.MemoryAllocatorDumpLink;
-  var ScalarAttribute = tr.model.ScalarAttribute;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  var checkDumpNumericsAndDiagnostics =
+      tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
+  var SIZE_DELTA = tr.model.MemoryDumpTestUtils.SIZE_DELTA;
   var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
   var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
   var PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_LARGEST_OWNER;
-
-  var SIZE_DELTA = 0.0001;
 
   function buildArgPusher(array) {
     return function(arg) { array.push(arg); };
@@ -45,52 +49,52 @@ tr.b.unittest.testSuite(function() {
     assert.sameMembers(actualArray, expectedArray);
   }
 
-  function assertUndefinedAttribute(dump, attributeName) {
-    var attribute = dump.attributes[attributeName];
-    assert.isUndefined(attribute, 'expected attribute \'' + attributeName +
+  function assertUndefinedNumeric(dump, numericName) {
+    var numeric = dump.numerics[numericName];
+    assert.isUndefined(numeric, 'expected numeric \'' + numericName +
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
         dump.containerMemoryDump.userFriendlyName + ' to be undefined');
   }
 
-  function assertDefinedAttribute(dump, attributeName, expectedType,
-      expectedUnits, expectedValue, opt_delta) {
-    var attribute = dump.attributes[attributeName];
-    var errorMessagePrefix = 'expected attribute \'' + attributeName +
+  function assertDefinedNumeric(dump, numericName, expectedUnit, expectedValue,
+      opt_delta) {
+    var numeric = dump.numerics[numericName];
+    var errorMessagePrefix = 'expected numeric \'' + numericName +
         '\' of memory allocator dump \'' + dump.fullName + '\' in ' +
         dump.containerMemoryDump.userFriendlyName + ' to ';
 
-    assert.instanceOf(attribute, expectedType,
-        errorMessagePrefix + 'be an instance of ' + expectedType);
-    assert.equal(attribute.units, expectedUnits,
-        errorMessagePrefix + 'have units \'' + expectedUnits + '\' but got \'' +
-        attribute.units + '\'');
+    assert.instanceOf(numeric, ScalarNumeric,
+        errorMessagePrefix + 'be an instance of ScalarNumeric');
+    assert.equal(numeric.unit, expectedUnit,
+        errorMessagePrefix + 'have unit \'' + expectedUnit.unitName +
+        '\' but got \'' + numeric.unit.unitName + '\' instead');
 
     var valueErrorMessage = errorMessagePrefix + 'have value \'' +
-        expectedValue + '\' but got \'' + attribute.value + '\'';
+        expectedValue + '\' but got \'' + numeric.value + '\'';
     if (opt_delta !== undefined) {
       assert.closeTo(
-          attribute.value, expectedValue, opt_delta, valueErrorMessage);
+          numeric.value, expectedValue, opt_delta, valueErrorMessage);
     } else {
-      assert.equal(attribute.value, expectedValue, valueErrorMessage);
+      assert.equal(numeric.value, expectedValue, valueErrorMessage);
     }
   }
 
-  function assertSizeAttribute(dump, sizeName, expectedValue) {
+  function assertSizeNumeric(dump, sizeName, expectedValue) {
     if (expectedValue === undefined) {
-      assertUndefinedAttribute(dump, sizeName);
+      assertUndefinedNumeric(dump, sizeName);
     } else {
-      assertDefinedAttribute(dump, sizeName, ScalarAttribute, 'bytes',
+      assertDefinedNumeric(dump, sizeName, sizeInBytes_smallerIsBetter,
           expectedValue, SIZE_DELTA);
     }
   }
 
   function assertDumpSizes(dump, expectedSize, expectedEffectiveSize,
       opt_expectedInfos, opt_expectedOwnedBySiblingSizes) {
-    // Check the 'size' attribute and its infos.
-    assertSizeAttribute(dump, 'size', expectedSize);
+    // Check the 'size' numeric.
+    assertSizeNumeric(dump, 'size', expectedSize);
 
-    // Check the 'effective_size' attribute.
-    assertSizeAttribute(dump, 'effective_size', expectedEffectiveSize);
+    // Check the 'effective_size' numeric.
+    assertSizeNumeric(dump, 'effective_size', expectedEffectiveSize);
 
     // Check the 'infos' list.
     var expectedInfos = opt_expectedInfos || [];
@@ -171,8 +175,10 @@ tr.b.unittest.testSuite(function() {
    *   owns: GUID of another MAD owned by the resulting MAD (no owned MAD if
    *       undefined).
    *   importance: Importance of the above ownership (can be undefined).
-   *   size: Value of the 'size' attribute of the resulting MAD (no 'size'
-   *       attribute if undefined).
+   *   size: Value of the 'size' numeric of the resulting MAD (no 'size'
+   *       numeric if undefined).
+   *   numerics: Extra numerics of the resulting MAD (dictionary).
+   *   diagnostics: Extra diagnostics of the resulting MAD (dictionary).
    *   weak: Whether the resulting MAD should be weak (undefined implies
    *       non-weak).
    *   children: List of tree recipes for child MADs (no children if undefined).
@@ -199,7 +205,8 @@ tr.b.unittest.testSuite(function() {
         var guid = treeRecipe['guid'];
         var owns = treeRecipe['owns'];
         var size = treeRecipe['size'];
-        var attrs = treeRecipe['attrs'];
+        var numerics = treeRecipe['numerics'];
+        var diagnostics = treeRecipe['diagnostics'];
         var importance = treeRecipe['importance'];
         var weak = treeRecipe['weak'];
 
@@ -209,8 +216,10 @@ tr.b.unittest.testSuite(function() {
         var fullName = namePrefix + name;
         var dump = new MemoryAllocatorDump(containerDump, fullName, guid);
 
-        if (size !== undefined)
-          dump.addAttribute('size', new ScalarAttribute('bytes', size));
+        if (size !== undefined) {
+          dump.addNumeric(
+              'size', new ScalarNumeric(sizeInBytes_smallerIsBetter, size));
+        }
         if (guid !== undefined) {
           assert.notProperty(guid, ownableDumps);
           ownableDumps[guid] = dump;
@@ -235,8 +244,10 @@ tr.b.unittest.testSuite(function() {
           });
         }
 
-        if (attrs !== undefined)
-          tr.b.iterItems(attrs, dump.addAttribute, dump);
+        if (numerics !== undefined)
+          tr.b.iterItems(numerics, dump.addNumeric, dump);
+        if (diagnostics !== undefined)
+          tr.b.iterItems(diagnostics, dump.addDiagnostic, dump);
 
         if (weak)
           dump.weak = true;
@@ -343,8 +354,8 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(dump.parent, expectedParent);
       assert.lengthOf(dump.children, expectedChildrenCount);
 
-      assertSizeAttribute(dump, 'size', expectedSize);
-      assertSizeAttribute(dump, 'subsystem_size', undefined);
+      assertSizeNumeric(dump, 'size', expectedSize);
+      assertSizeNumeric(dump, 'subsystem_size', undefined);
 
       if (expectedIsOwner)
         assert.isDefined(dump.owns);
@@ -417,10 +428,10 @@ tr.b.unittest.testSuite(function() {
    *   name: Expected name of the MAD.
    *   expected_removed: If provided and true, it is expected that there is no
    *       dump for the recipe.
-   *   expected_size: Expected value of the 'size' attribute of the MAD (no
-   *       'size' attribute expected if undefined).
+   *   expected_size: Expected value of the 'size' numeric of the MAD (no
+   *       'size' numeric expected if undefined).
    *   expected_effective_size: Expected value of the 'effective_size'
-   *       attribute of the MAD (no 'effective_size' attribute expected if
+   *       numeric of the MAD (no 'effective_size' numeric expected if
    *       undefined).
    *   expected_infos: List of expected MAD infos (zero infos expected if
    *       undefined).
@@ -715,7 +726,7 @@ tr.b.unittest.testSuite(function() {
     var gmd = containerDumps[0];
     gmd.memoryAllocatorDumps = [
       newAllocatorDump(gmd, 'v8', {
-        size: 50  // This attribute should have an info.
+        size: 50
       })
     ];
 
@@ -3384,8 +3395,8 @@ tr.b.unittest.testSuite(function() {
     ]
   ]);
 
-  // Check that size calculation is NOT preceded by attribute
-  // aggregation, which would recursively sum up size attributes.
+  // Check that size calculation is NOT preceded by numeric aggregation, which
+  // would recursively sum up size numerics.
   test('finalizeGraph_aggregation', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
@@ -3424,8 +3435,8 @@ tr.b.unittest.testSuite(function() {
         { owner_child: 7 } /* expectedOwnedBySiblingSizes */);
   });
 
-  // Check that attribute propagation and aggregation are performed in the
-  // correct order.
+  // Check that numeric and diagnostics propagation and aggregation are
+  // performed in the correct order.
   test('finalizeGraph_propagation', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       buildDumpTrees([
@@ -3434,17 +3445,23 @@ tr.b.unittest.testSuite(function() {
             'name': 'owned_root',
             'guid': 1,
             'size': 10,
+            'diagnostics': {
+              'url': 'https://hello.world.com:42'
+            },
             'children': [
               {
                 'name': 'owned_child1',
-                'attrs': {
-                  'summed': new ScalarAttribute('bytes', 12)
+                'numerics': {
+                  'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 12)
+                },
+                'diagnostics': {
+                  'url2': 'http://not.aggregated.to/owned/parent/dump'
                 }
               },
               {
                 'name': 'owned_child2',
-                'attrs': {
-                  'summed': new ScalarAttribute('bytes', 15)
+                'numerics': {
+                  'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 15)
                 }
               }
             ]
@@ -3454,7 +3471,10 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'direct_owner',
             'owns': 1,
-            'guid': 2
+            'guid': 2,
+            'diagnostics': {
+              'url': 'file://not_overriden.html'
+            }
           },
           {
             'name': 'parent_owner',
@@ -3466,8 +3486,8 @@ tr.b.unittest.testSuite(function() {
               {
                 'name': 'sibling',
                 'size': 5,
-                'attrs': {
-                  'summed': new ScalarAttribute('bytes', 13)
+                'numerics': {
+                  'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 13)
                 }
               }
             ]
@@ -3475,8 +3495,8 @@ tr.b.unittest.testSuite(function() {
           {
             'name': 'precedent_owner',
             'owns': 1,
-            'attrs': {
-              'summed': new ScalarAttribute('bytes', 0)
+            'numerics': {
+              'summed': new ScalarNumeric(sizeInBytes_smallerIsBetter, 0)
             }
           },
           {
@@ -3488,28 +3508,45 @@ tr.b.unittest.testSuite(function() {
     });
     var pmd = model.getProcess(0).memoryDumps[0];
 
-    var directOwnerDump = pmd.getMemoryAllocatorDumpByFullName('direct_owner');
-    assertDumpSizes(directOwnerDump, 10, 3.3333);
-    assertSizeAttribute(directOwnerDump, 'summed', 27);
-
-    var childOwnerDump =
-        pmd.getMemoryAllocatorDumpByFullName('parent_owner/child_owner');
-    assertDumpSizes(childOwnerDump, 10, 3.3333);
-    assertSizeAttribute(childOwnerDump, 'summed', 27);
-
-    var parentOwnerDump = pmd.getMemoryAllocatorDumpByFullName('parent_owner');
-    assertDumpSizes(parentOwnerDump, 15, 8.3333);
-    assertSizeAttribute(parentOwnerDump, 'summed', 40);
-
-    var precedentOwnerDump =
-        pmd.getMemoryAllocatorDumpByFullName('precedent_owner');
-    assertDumpSizes(precedentOwnerDump, 10, 3.3333);
-    assertSizeAttribute(precedentOwnerDump, 'summed', 0);
-
-    var indirectOwnerDump =
-        pmd.getMemoryAllocatorDumpByFullName('indirect_owner');
-    assertDumpSizes(indirectOwnerDump, undefined, undefined);
-    assertUndefinedAttribute(indirectOwnerDump, 'summed');
+    checkDumpNumericsAndDiagnostics(
+        pmd.getMemoryAllocatorDumpByFullName('direct_owner'),
+        {
+          'size': 10,
+          'effective_size': 3.3333,
+          'summed': 27
+        },
+        {
+          'url': 'file://not_overriden.html'
+        });
+    checkDumpNumericsAndDiagnostics(
+        pmd.getMemoryAllocatorDumpByFullName('parent_owner/child_owner'),
+        {
+          'size': 10,
+          'effective_size': 3.3333,
+          'summed': 27
+        },
+        {
+          'url': 'https://hello.world.com:42'
+        });
+    checkDumpNumericsAndDiagnostics(
+        pmd.getMemoryAllocatorDumpByFullName('parent_owner'),
+        {
+          'size': 15,
+          'effective_size': 8.3333,
+          'summed': 40
+        }, {});
+    checkDumpNumericsAndDiagnostics(
+        pmd.getMemoryAllocatorDumpByFullName('precedent_owner'),
+        {
+          'size': 10,
+          'effective_size': 3.3333,
+          'summed': 0
+        },
+        {
+          'url': 'https://hello.world.com:42'
+        });
+    checkDumpNumericsAndDiagnostics(
+        pmd.getMemoryAllocatorDumpByFullName('indirect_owner'), {}, {});
   });
 
   // Check that weak dumps are removed before size size calculation.

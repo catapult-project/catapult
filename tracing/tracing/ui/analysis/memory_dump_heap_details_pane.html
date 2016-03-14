@@ -13,6 +13,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel='import' href='/tracing/ui/base/info_bar.html'>
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-memory-dump-heap-details-pane"
     extends="tr-ui-a-stacked-pane">
@@ -87,6 +89,10 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+
   /** @{enum} */
   var RowDimension = {
     ROOT: -1,
@@ -153,6 +159,13 @@ tr.exportTo('tr.ui.analysis', function() {
       return titleEl;
     }
   };
+
+  var COLUMN_RULES = [
+    {
+      importance: 0,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    }
+  ];
 
   Polymer('tr-ui-a-memory-dump-heap-details-pane', {
     created: function() {
@@ -306,10 +319,10 @@ tr.exportTo('tr.ui.analysis', function() {
     createHeapRowRecursively_: function(nodes, dimension, title) {
       // Transform a chronological list of stack frame tree nodes into a
       // dictionary of cells (where each cell contains a chronological list
-      // of the values of its attribute).
+      // of the values of its numeric).
       var cells = tr.ui.analysis.createCells(nodes, function(node) {
         return {
-          'Size': new tr.model.ScalarAttribute('bytes', node.total)
+          'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, node.total)
         };
       });
 
@@ -376,11 +389,11 @@ tr.exportTo('tr.ui.analysis', function() {
       var titleColumn = new HeapDumpNodeTitleColumn('Stack frame');
       titleColumn.width = '500px';
 
-      var attributeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'cells', this.aggregationMode_);
-      tr.ui.analysis.MemoryColumn.spaceEqually(attributeColumns);
+      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(
+          rows, 'cells', this.aggregationMode_, COLUMN_RULES);
+      tr.ui.analysis.MemoryColumn.spaceEqually(numericColumns);
 
-      var columns = [titleColumn].concat(attributeColumns);
+      var columns = [titleColumn].concat(numericColumns);
       return columns;
     }
   });

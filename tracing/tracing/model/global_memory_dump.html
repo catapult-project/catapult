@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/event_registry.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -30,12 +30,12 @@ tr.exportTo('tr.model', function() {
     this.processMemoryDumps = {};
   }
 
-  // Size attribute names.
-  var SIZE_ATTRIBUTE_NAME = tr.model.MemoryAllocatorDump.SIZE_ATTRIBUTE_NAME;
-  var EFFECTIVE_SIZE_ATTRIBUTE_NAME =
-      tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_ATTRIBUTE_NAME;
+  // Size numeric names.
+  var SIZE_NUMERIC_NAME = tr.model.MemoryAllocatorDump.SIZE_NUMERIC_NAME;
+  var EFFECTIVE_SIZE_NUMERIC_NAME =
+      tr.model.MemoryAllocatorDump.EFFECTIVE_SIZE_NUMERIC_NAME;
 
-  // Size attribute info types.
+  // Size numeric info types.
   var MemoryAllocatorDumpInfoType = tr.model.MemoryAllocatorDumpInfoType;
   var PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN =
       MemoryAllocatorDumpInfoType.PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN;
@@ -59,14 +59,14 @@ tr.exportTo('tr.model', function() {
   }
 
   function getSize(dump) {
-    var attr = dump.attributes[SIZE_ATTRIBUTE_NAME];
-    if (attr === undefined)
+    var numeric = dump.numerics[SIZE_NUMERIC_NAME];
+    if (numeric === undefined)
       return 0;
-    return attr.value;
+    return numeric.value;
   }
 
   function hasSize(dump) {
-    return dump.attributes[SIZE_ATTRIBUTE_NAME] !== undefined;
+    return dump.numerics[SIZE_NUMERIC_NAME] !== undefined;
   }
 
   function optional(value, defaultValue) {
@@ -98,18 +98,18 @@ tr.exportTo('tr.model', function() {
       // them later (step 3).
       this.setUpTracingOverheadOwnership();
 
-      // 3. Aggregate all other attributes of all MADs (*excluding* sizes and
-      // effective sizes) and propagate attributes from global MADs to their
+      // 3. Aggregate all other numerics of all MADs (*excluding* sizes and
+      // effective sizes) and propagate numerics from global MADs to their
       // owners (*including* sizes and effective sizes). This step must be
       // carried out before the sizes of all MADs are calculated (step 3).
       // Otherwise, the propagated sizes of all MADs would not be aggregated.
-      this.aggregateAttributes();
+      this.aggregateNumerics();
 
       // 4. Calculate the sizes of all memory allocator dumps (MADs). This step
       // requires that the memory allocator dump graph has been finalized (step
-      // 1) and attributes were propagated from global MADs (step 2).
-      // Subsequent modifications of the graph will most likely break the
-      // calculation invariants.
+      // 1) and numerics were propagated from global MADs (step 2). Subsequent
+      // modifications of the graph will most likely break the calculation
+      // invariants.
       this.calculateSizes();
 
       // 5. Calculate the effective sizes of all MADs. This step requires that
@@ -170,12 +170,12 @@ tr.exportTo('tr.model', function() {
      * Calculate the size of all memory allocator dumps in the dump graph.
      *
      * The size refers to the allocated size of a (sub)component. It is a
-     * natural extension of the optional size attribute provided by
+     * natural extension of the optional size numeric provided by
      * MemoryAllocatorDump(s):
      *
-     *   - If a MAD provides a size attribute, then its size is assumed to be
+     *   - If a MAD provides a size numeric, then its size is assumed to be
      *     equal to it.
-     *   - If a MAD does not provide a size attribute, then its size is assumed
+     *   - If a MAD does not provide a size numeric, then its size is assumed
      *     to be the maximum of (1) the size of the largest owner of the MAD
      *     and (2) the aggregated size of the MAD's children.
      *
@@ -195,35 +195,42 @@ tr.exportTo('tr.model', function() {
      * been calculated.
      */
     calculateMemoryAllocatorDumpSize_: function(dump) {
-      // This flag becomes true if the size attribute of the current dump
-      // should be defined, i.e. if (1) the current dump's size attribute is
-      // defined, (2) the size of at least one of its children is defined or
-      // (3) the size of at least one of its owners is defined.
+      // This flag becomes true if the size numeric of the current dump should
+      // be defined, i.e. if (1) the current dump's size numeric is defined,
+      // (2) the size of at least one of its children is defined or (3) the
+      // size of at least one of its owners is defined.
       var shouldDefineSize = false;
 
-      // This helper function returns the numeric value of the size attribute
-      // of the given dependent memory allocator dump. If the attribute is
-      // defined, the shouldDefineSize flag above is also set to true (because
-      // condition (2) or (3) is satisfied). Otherwise, zero is returned (and
-      // the flag is left unchanged).
+      // This helper function returns the value of the size numeric of the
+      // given dependent memory allocator dump. If the numeric is defined, the
+      // shouldDefineSize flag above is also set to true (because condition
+      // (2) or (3) is satisfied). Otherwise, zero is returned (and the flag is
+      // left unchanged).
       function getDependencySize(dependencyDump) {
-        var attr = dependencyDump.attributes[SIZE_ATTRIBUTE_NAME];
-        if (attr === undefined)
+        var numeric = dependencyDump.numerics[SIZE_NUMERIC_NAME];
+        if (numeric === undefined)
           return 0;
         shouldDefineSize = true;
-        return attr.value;
+        return numeric.value;
       }
 
       // 1. Get the size provided by the dump. If present, define a function
       // for checking dependent size consistency (a dump must always be bigger
       // than all its children aggregated together and/or its largest owner).
-      var sizeAttribute = dump.getValidSizeAttributeOrUndefined(
-          SIZE_ATTRIBUTE_NAME, this.model);
+      var sizeNumeric = dump.numerics[SIZE_NUMERIC_NAME];
       var size = 0;
       var checkDependencySizeIsConsistent = function() { /* no-op */ };
-      if (sizeAttribute !== undefined) {
-        size = sizeAttribute.value;
+      if (sizeNumeric !== undefined) {
+        size = sizeNumeric.value;
         shouldDefineSize = true;
+        if (sizeNumeric.unit !== tr.v.Unit.byName.sizeInBytes_smallerIsBetter) {
+          this.model.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'Invalid unit of \'size\' numeric of memory allocator ' +
+                'dump ' + dump.quantifiedName + ': ' +
+                sizeNumeric.unit.unitName + '.'
+          });
+        }
         checkDependencySizeIsConsistent = function(
             dependencySize, dependencyInfoType, dependencyName) {
           if (size >= dependencySize)
@@ -310,11 +317,11 @@ tr.exportTo('tr.model', function() {
           'the size of its largest owner');
 
       // If neither the dump nor any of its dependencies (children and owners)
-      // provide a size, do NOT add a zero size attribute.
+      // provide a size, do NOT add a zero size numeric.
       if (!shouldDefineSize) {
         // The rest of the pipeline relies on size being either a valid
-        // ScalarAttribute, or undefined.
-        delete dump.attributes[SIZE_ATTRIBUTE_NAME];
+        // ScalarNumeric, or undefined.
+        delete dump.numerics[SIZE_NUMERIC_NAME];
         return;
       }
 
@@ -322,8 +329,8 @@ tr.exportTo('tr.model', function() {
       // together and/or its largest owner.
       size = Math.max(size, aggregatedChildrenSize, largestOwnerSize);
 
-      dump.attributes[SIZE_ATTRIBUTE_NAME] =
-          new tr.model.ScalarAttribute('bytes', size);
+      dump.numerics[SIZE_NUMERIC_NAME] = new tr.v.ScalarNumeric(
+          tr.v.Unit.byName.sizeInBytes_smallerIsBetter, size);
 
       // Add a virtual child to make up for extra size of the dump with
       // respect to its children (if applicable).
@@ -333,9 +340,9 @@ tr.exportTo('tr.model', function() {
             dump.containerMemoryDump, dump.fullName + '/<unspecified>');
         virtualChild.parent = dump;
         dump.children.unshift(virtualChild);
-        virtualChild.attributes[SIZE_ATTRIBUTE_NAME] =
-            new tr.model.ScalarAttribute(
-                'bytes', size - aggregatedChildrenSize);
+        virtualChild.numerics[SIZE_NUMERIC_NAME] = new tr.v.ScalarNumeric(
+            tr.v.Unit.byName.sizeInBytes_smallerIsBetter,
+            size - aggregatedChildrenSize);
       }
     },
 
@@ -674,8 +681,8 @@ tr.exportTo('tr.model', function() {
       // have defined effective size if and only if it has defined size.
       if (!hasSize(dump)) {
         // The rest of the pipeline relies on effective size being either a
-        // valid ScalarAttribute, or undefined.
-        delete dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME];
+        // valid ScalarNumeric, or undefined.
+        delete dump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME];
         return;
       }
 
@@ -691,47 +698,51 @@ tr.exportTo('tr.model', function() {
           if (!hasSize(childDump))
             return;
           effectiveSize +=
-              childDump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME].value;
+              childDump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME].value;
         });
       }
-      dump.attributes[EFFECTIVE_SIZE_ATTRIBUTE_NAME] =
-          new tr.model.ScalarAttribute('bytes', effectiveSize);
+      dump.numerics[EFFECTIVE_SIZE_NUMERIC_NAME] = new tr.v.ScalarNumeric(
+          tr.v.Unit.byName.sizeInBytes_smallerIsBetter, effectiveSize);
     },
 
-    aggregateAttributes: function() {
-      // 1. Aggregate attributes in this global memory dump.
+    aggregateNumerics: function() {
+      // 1. Aggregate numerics in this global memory dump.
       this.iterateRootAllocatorDumps(function(dump) {
-        dump.aggregateAttributes(this.model);
+        dump.aggregateNumericsRecursively(this.model);
       });
 
-      // 2. Propagate attributes from global memory allocator dumps to their
-      // owners.
-      this.iterateRootAllocatorDumps(this.propagateAttributesRecursively);
+      // 2. Propagate numerics and diagnostics from global memory allocator
+      // dumps to their owners.
+      this.iterateRootAllocatorDumps(
+          this.propagateNumericsAndDiagnosticsRecursively);
 
-      // 3. Aggregate attributes in the associated process memory dumps.
+      // 3. Aggregate numerics in the associated process memory dumps.
       tr.b.iterItems(this.processMemoryDumps, function(pid, processMemoryDump) {
         processMemoryDump.iterateRootAllocatorDumps(function(dump) {
-          dump.aggregateAttributes(this.model);
+          dump.aggregateNumericsRecursively(this.model);
         }, this);
       }, this);
     },
 
-    propagateAttributesRecursively: function(globalAllocatorDump) {
-      tr.b.iterItems(globalAllocatorDump.attributes, function(attrName, attr) {
-        globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
-          var processAllocatorDump = ownershipLink.source;
-          if (processAllocatorDump.attributes[attrName] !== undefined) {
-            // Attributes provided by process memory allocator dumps themselves
-            // have precedence over attributes propagated from global memory
-            // allocator dumps.
-            return;
-          }
-          processAllocatorDump.attributes[attrName] = attr;
+    propagateNumericsAndDiagnosticsRecursively: function(globalAllocatorDump) {
+      ['numerics', 'diagnostics'].forEach(function(field) {
+        tr.b.iterItems(globalAllocatorDump[field], function(name, value) {
+          globalAllocatorDump.ownedBy.forEach(function(ownershipLink) {
+            var processAllocatorDump = ownershipLink.source;
+            if (processAllocatorDump[field][name] !== undefined) {
+              // Numerics and diagnostics provided by process memory allocator
+              // dumps themselves have precedence over numerics and diagnostics
+              // propagated from global memory allocator dumps.
+              return;
+            }
+            processAllocatorDump[field][name] = value;
+          });
         });
       });
-      // Recursively propagate attributes from all child memory allocator dumps.
+
+      // Recursively propagate numerics from all child memory allocator dumps.
       globalAllocatorDump.children.forEach(
-          this.propagateAttributesRecursively, this);
+          this.propagateNumericsAndDiagnosticsRecursively, this);
     },
 
     setUpTracingOverheadOwnership: function() {

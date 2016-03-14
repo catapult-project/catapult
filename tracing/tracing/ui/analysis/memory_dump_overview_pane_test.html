@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_overview_pane.html">
 <link rel="import"
@@ -19,10 +18,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ScalarAttribute = tr.model.ScalarAttribute;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var HeapDump = tr.model.HeapDump;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var checkSizeAttributes = tr.ui.analysis.checkSizeAttributes;
+  var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var checkColor = tr.ui.analysis.checkColor;
   var checkColumns = tr.ui.analysis.checkColumns;
   var checkColumnInfosAndColor = tr.ui.analysis.checkColumnInfosAndColor;
@@ -83,7 +84,7 @@ tr.b.unittest.testSuite(function() {
     // Check all sizes. The first assert below is a test sanity check.
     assert.lengthOf(expectedSizes, columns.length - 1 /* all except title */);
     for (var i = 0; i < expectedSizes.length; i++)
-      checkSizeAttributes(row, columns[i + 1], expectedSizes[i]);
+      checkSizeNumericFields(row, columns[i + 1], expectedSizes[i]);
 
     // There should be no row nesting on the overview pane.
     assert.isUndefined(row.subRows);
@@ -144,14 +145,14 @@ tr.b.unittest.testSuite(function() {
     checkRows(columns, table.footerRows, expectedFooterRows);
   }
 
-  var ATTR = 1 << 0;
+  var FIELD = 1 << 0;
   var DUMP = 1 << 1;
 
-  function checkOverviewColumnInfosAndColor(column, attrAndDumpMask,
+  function checkOverviewColumnInfosAndColor(column, fieldAndDumpMask,
       dumpCreatedCallback, expectedInfos, expectedColorReservedName) {
-    var attrs = attrAndDumpMask.map(function(mask, index) {
-      return mask & ATTR ?
-          new ScalarAttribute('bytes', 1024 + 32 * index) :
+    var fields = fieldAndDumpMask.map(function(mask, index) {
+      return mask & FIELD ?
+          new ScalarNumeric(sizeInBytes_smallerIsBetter, 1024 + 32 * index) :
           undefined;
     });
 
@@ -161,7 +162,7 @@ tr.b.unittest.testSuite(function() {
     } else {
       tr.c.TestUtils.newModel(function(model) {
         var process = model.getOrCreateProcess(1);
-        attrAndDumpMask.forEach(function(mask, i) {
+        fieldAndDumpMask.forEach(function(mask, i) {
           var timestamp = 10 + i;
           var gmd = addGlobalMemoryDump(model, timestamp);
           if (mask & DUMP) {
@@ -176,7 +177,7 @@ tr.b.unittest.testSuite(function() {
     }
 
     checkColumnInfosAndColor(
-        column, attrs, contexts, expectedInfos, expectedColorReservedName);
+        column, fields, contexts, expectedInfos, expectedColorReservedName);
   }
 
   test('instantiate_empty', function() {
@@ -357,10 +358,12 @@ tr.b.unittest.testSuite(function() {
     containerEl.brushingStateController =
         new tr.c.BrushingStateController(undefined);
 
-    function simulateView(pids, aggregationMode, expectedSelectedCellAttrs,
-        expectedSelectedRowTitle, expectedSelectedColumnIndex, callback) {
+    function simulateView(pids, aggregationMode,
+        expectedSelectedCellFieldValues, expectedSelectedRowTitle,
+        expectedSelectedColumnIndex, callback) {
       var viewEl =
           tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
+      var table = viewEl.$.table;
       containerEl.textContent = '';
       containerEl.appendChild(viewEl);
 
@@ -374,15 +377,14 @@ tr.b.unittest.testSuite(function() {
       viewEl.aggregationMode = aggregationMode;
       viewEl.rebuild();
 
-      if (expectedSelectedCellAttrs === undefined) {
-        assert.isUndefined(viewEl.selectedMemoryCell);
+      if (expectedSelectedCellFieldValues === undefined) {
         assert.isUndefined(viewEl.childPaneBuilder);
       } else {
-        checkSizeAttributes(viewEl.selectedMemoryCell.attrs,
-            undefined /* row = attrs */, expectedSelectedCellAttrs);
+        checkSizeNumericFields(table.selectedTableRow,
+            table.tableColumns[table.selectedColumnIndex],
+            expectedSelectedCellFieldValues);
       }
 
-      var table = viewEl.$.table;
       assert.strictEqual(
           table.selectedColumnIndex, expectedSelectedColumnIndex);
       if (expectedSelectedRowTitle === undefined)
@@ -492,7 +494,8 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Private',
         'used_memory_column' /* blue (column title) */);
-    checkColor(c.color, 'used_memory_column' /* blue (column cells) */);
+    checkColor(c.color(undefined /* contexts */),
+        'used_memory_column' /* blue (column cells) */);
   });
 
   test('peakMemoryColumn', function() {
@@ -500,13 +503,14 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.MAX);
     checkSpanWithColor(c.title, 'Peak',
         'used_memory_column' /* blue (column title) */);
-    checkColor(c.color, 'used_memory_column' /* blue (column cells) */);
+    checkColor(c.color(undefined) /* contexts */,
+        'used_memory_column' /* blue (column cells) */);
 
     var RESETTABLE_PEAK = 1 << 2;
     var NON_RESETTABLE_PEAK = 1 << 3;
-    function checkPeakColumnInfosAndColor(attrAndDumpMask, expectedInfos) {
+    function checkPeakColumnInfosAndColor(fieldAndDumpMask, expectedInfos) {
       checkOverviewColumnInfosAndColor(c,
-          attrAndDumpMask,
+          fieldAndDumpMask,
           function(pmd, mask) {
             if (mask & RESETTABLE_PEAK) {
               assert.strictEqual(
@@ -522,12 +526,12 @@ tr.b.unittest.testSuite(function() {
 
     // No context.
     checkOverviewColumnInfosAndColor(c,
-        [ATTR],
+        [FIELD],
         undefined /* no context */,
         [] /* no infos */,
         'used_memory_column' /* blue color */);
     checkOverviewColumnInfosAndColor(c,
-        [ATTR, ATTR, 0, ATTR],
+        [FIELD, FIELD, 0, FIELD],
         undefined /* no context */,
         [] /* no infos */,
         'used_memory_column' /* blue color */);
@@ -538,13 +542,13 @@ tr.b.unittest.testSuite(function() {
       message: 'Peak RSS since previous memory dump.'
     };
     checkPeakColumnInfosAndColor([
-      ATTR | DUMP | RESETTABLE_PEAK
+      FIELD | DUMP | RESETTABLE_PEAK
     ], [EXPECTED_RESETTABLE_INFO]);
     checkPeakColumnInfosAndColor([
-      ATTR | DUMP | RESETTABLE_PEAK,
-      DUMP /* ignored because there's no attribute */,
+      FIELD | DUMP | RESETTABLE_PEAK,
+      DUMP /* ignored because there's no field */,
       0,
-      ATTR | DUMP | RESETTABLE_PEAK
+      FIELD | DUMP | RESETTABLE_PEAK
     ], [EXPECTED_RESETTABLE_INFO]);
 
     // All non-resettable.
@@ -554,13 +558,13 @@ tr.b.unittest.testSuite(function() {
           'a Linux kernel version \u2265 4.0.'
     };
     checkPeakColumnInfosAndColor([
-      ATTR | DUMP | NON_RESETTABLE_PEAK
+      FIELD | DUMP | NON_RESETTABLE_PEAK
     ], [EXPECTED_NON_RESETTABLE_INFO]);
     checkPeakColumnInfosAndColor([
       0,
-      DUMP | RESETTABLE_PEAK /* ignored because there's no attribute */,
-      ATTR | DUMP | NON_RESETTABLE_PEAK,
-      ATTR | DUMP | NON_RESETTABLE_PEAK
+      DUMP | RESETTABLE_PEAK /* ignored because there's no field */,
+      FIELD | DUMP | NON_RESETTABLE_PEAK,
+      FIELD | DUMP | NON_RESETTABLE_PEAK
     ], [EXPECTED_NON_RESETTABLE_INFO]);
 
     // Combination (warning).
@@ -571,9 +575,9 @@ tr.b.unittest.testSuite(function() {
       color: 'red'
     };
     checkPeakColumnInfosAndColor([
-      ATTR | DUMP | NON_RESETTABLE_PEAK,
+      FIELD | DUMP | NON_RESETTABLE_PEAK,
       0,
-      ATTR | DUMP | RESETTABLE_PEAK,
+      FIELD | DUMP | RESETTABLE_PEAK,
       0
     ], [EXPECTED_COMBINATION_INFO]);
   });
@@ -586,9 +590,9 @@ tr.b.unittest.testSuite(function() {
 
     var HAS_OWN_VM_REGIONS = 1 << 2;
     function checkByteStatColumnInfosAndColor(
-        attrAndDumpMask, expectedInfos, expectedIsOlderColor) {
+        fieldAndDumpMask, expectedInfos, expectedIsOlderColor) {
       checkOverviewColumnInfosAndColor(c,
-          attrAndDumpMask,
+          fieldAndDumpMask,
           function(pmd, mask) {
             if (mask & HAS_OWN_VM_REGIONS)
               pmd.vmRegions = [];
@@ -612,46 +616,46 @@ tr.b.unittest.testSuite(function() {
 
     // No context.
     checkOverviewColumnInfosAndColor(c,
-        [ATTR],
+        [FIELD],
         undefined /* no context */,
         [] /* no infos */,
         'used_memory_column' /* blue color */);
     checkOverviewColumnInfosAndColor(c,
-        [ATTR, ATTR, 0, ATTR],
+        [FIELD, FIELD, 0, FIELD],
         undefined /* no context */,
         [] /* no infos */,
         'used_memory_column' /* blue color */);
 
     // All process memory dumps have own VM regions.
     checkByteStatColumnInfosAndColor([
-      ATTR | DUMP | HAS_OWN_VM_REGIONS
+      FIELD | DUMP | HAS_OWN_VM_REGIONS
     ], [] /* no infos */, false /* blue color */);
     checkByteStatColumnInfosAndColor([
-      ATTR | DUMP | HAS_OWN_VM_REGIONS,
-      ATTR | DUMP | HAS_OWN_VM_REGIONS,
+      FIELD | DUMP | HAS_OWN_VM_REGIONS,
+      FIELD | DUMP | HAS_OWN_VM_REGIONS,
       0,
-      ATTR | DUMP | HAS_OWN_VM_REGIONS
+      FIELD | DUMP | HAS_OWN_VM_REGIONS
     ], [] /* no infos */, false /* blue color */);
 
     // No process memory dumps have own VM regions.
     checkByteStatColumnInfosAndColor([
-      ATTR | DUMP
+      FIELD | DUMP
     ], [EXPECTED_ALL_OLDER_VALUES], true /* light blue */);
     checkByteStatColumnInfosAndColor([
-      ATTR | DUMP,
-      ATTR | DUMP
+      FIELD | DUMP,
+      FIELD | DUMP
     ], [EXPECTED_ALL_OLDER_VALUES], true /* light blue */);
 
     // Some process memory dumps don't have own VM regions.
     checkByteStatColumnInfosAndColor([
-      ATTR | DUMP,
+      FIELD | DUMP,
       0,
-      ATTR | DUMP
+      FIELD | DUMP
     ], [EXPECTED_SOME_OLDER_VALUES], true /* light blue */);
     checkByteStatColumnInfosAndColor([
-      ATTR | DUMP | HAS_OWN_VM_REGIONS,
-      ATTR | DUMP,
-      ATTR | DUMP | HAS_OWN_VM_REGIONS
+      FIELD | DUMP | HAS_OWN_VM_REGIONS,
+      FIELD | DUMP,
+      FIELD | DUMP | HAS_OWN_VM_REGIONS
     ], [EXPECTED_SOME_OLDER_VALUES], false /* blue */);
   });
 
@@ -659,13 +663,15 @@ tr.b.unittest.testSuite(function() {
     var c = new AllocatorColumn('Allocator', 'bytes', tr.b.identity,
         AggregationMode.MAX);
     checkColorLegend(c.title, 'Allocator');
-    checkColor(c.color, undefined /* no color (column cells) */);
+    checkColor(c.color(undefined /* contexts */),
+        undefined /* no color (column cells) */);
 
     var HAS_HEAP_DUMPS = 1 << 2;
     var HAS_ALLOCATOR_HEAP_DUMP = 1 << 3;
-    function checkAllocatorColumnInfosAndColor(attrAndDumpMask, expectedInfos) {
+    function checkAllocatorColumnInfosAndColor(fieldAndDumpMask,
+        expectedInfos) {
       checkOverviewColumnInfosAndColor(c,
-          attrAndDumpMask,
+          fieldAndDumpMask,
           function(pmd, mask) {
             if (mask & HAS_HEAP_DUMPS)
               pmd.heapDumps = {};
@@ -687,46 +693,46 @@ tr.b.unittest.testSuite(function() {
 
     // No context.
     checkOverviewColumnInfosAndColor(c,
-        [ATTR],
+        [FIELD],
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
     checkOverviewColumnInfosAndColor(c,
-        [ATTR, ATTR, 0, ATTR],
+        [FIELD, FIELD, 0, FIELD],
         undefined /* no context */,
         [] /* no infos */,
         undefined /* no color */);
 
     // No process memory dumps have heap dumps.
     checkAllocatorColumnInfosAndColor([
-      ATTR | DUMP
+      FIELD | DUMP
     ], [] /* no infos */);
     checkAllocatorColumnInfosAndColor([
-      ATTR | DUMP,
-      ATTR | DUMP | HAS_HEAP_DUMPS,
+      FIELD | DUMP,
+      FIELD | DUMP | HAS_HEAP_DUMPS,
       0,
-      ATTR | DUMP
+      FIELD | DUMP
     ], [] /* infos */);
 
     // All process memory dumps have heap dumps.
     checkAllocatorColumnInfosAndColor([
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
     ], [EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP]);
     checkAllocatorColumnInfosAndColor([
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
     ], [EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP]);
 
     // Some process memory dumps have heap dumps.
     checkAllocatorColumnInfosAndColor([
       0,
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
     ], [EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP]);
     checkAllocatorColumnInfosAndColor([
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
-      ATTR | DUMP | HAS_HEAP_DUMPS,
-      ATTR | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
+      FIELD | DUMP | HAS_HEAP_DUMPS,
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
     ], [EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP]);
   });
 
@@ -735,7 +741,7 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.DIFF);
     checkSpanWithColor(c.title, 'Tracing',
         'tracing_memory_column' /* expected column title gray color */);
-    checkColor(c.color,
+    checkColor(c.color(undefined /* contexts */),
         'tracing_memory_column' /* expected column cells gray color */);
   });
 });

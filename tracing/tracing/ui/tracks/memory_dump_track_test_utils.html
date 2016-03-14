@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
+<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/selection_state.html">
-<link rel="import" href="/tracing/model/model.html">
 
 <script>
 'use strict';
@@ -22,7 +22,6 @@ tr.exportTo('tr.ui.tracks', function() {
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var VMRegion = tr.model.VMRegion;
   var VMRegionByteStats = tr.model.VMRegionByteStats;
-  var ScalarAttribute = tr.model.ScalarAttribute;
   var SelectionState = tr.model.SelectionState;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;

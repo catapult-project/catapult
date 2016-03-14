@@ -6,10 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -126,88 +125,118 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   /**
-   * A table column for displaying memory dump data.
+   * Abstract table column for displaying memory dump data.
    *
    * @constructor
    */
-  function MemoryColumn(name, units, cellGetter, aggregationMode) {
+  function MemoryColumn(name, cellPath, aggregationMode) {
     this.name = name;
-    this.units = units;
-    this.cell = cellGetter;
+    this.cellPath = cellPath;
 
     // See MemoryColumn.AggregationMode enum in this file.
     this.aggregationMode = aggregationMode;
-
-    // Color of the values returned by this column can be set by assigning a
-    // 'color' field/getter. The value can be either (1) undefined (no specific
-    // color is set), (2) a color string (e.g. 'blue'), or (3) a function
-    // mapping lists of attributes to color strings (the return value can be
-    // undefined again).
   }
 
-  MemoryColumn.fromRows = function(rows, cellKey, aggregationMode,
-      opt_customColumnConstructorRules) {
-    var columnTraits = {};
-
-    function gatherTraits(row) {
-      if (row === undefined)
-        return;
-      var attrCells = row[cellKey];
-      if (attrCells === undefined)
-        return;
-      tr.b.iterItems(attrCells, function(attrName, attrCell) {
-        if (attrCell === undefined)
+  /**
+   * Construct columns from cells in a hierarchy of rows and a list of rules.
+   *
+   * The list of rules contains objects with three fields:
+   *
+   *   condition: Optional string or regular expression matched against the
+   *       name of a cell. If omitted, the rule will match any cell.
+   *   importance: Mandatory number which determines the final order of the
+   *       columns. The column with the highest importance will be first in the
+   *       returned array.
+   *   columnConstructor: Mandatory memory column constructor.
+   *
+   * Example:
+   *
+   *   var importanceRules = [
+   *     {
+   *       condition: 'page_size',
+   *       columnConstructor: NumericMemoryColumn,
+   *       importance: 8
+   *     },
+   *     {
+   *       condition: /size/,
+   *       columnConstructor: CustomNumericMemoryColumn,
+   *       importance: 10
+   *     },
+   *     {
+   *       // No condition: matches all columns.
+   *       columnConstructor: NumericMemoryColumn,
+   *       importance: 9
+   *     }
+   *   ];
+   *
+   * Given a name of a cell, the corresponding column constructor and
+   * importance are determined by the first rule whose condition matches the
+   * column's name. For example, given a cell with name 'inner_size', the
+   * corresponding column will be constructed using CustomNumericMemoryColumn
+   * and its importance (for sorting purposes) will be 10 (second rule).
+   *
+   * After columns are constructed for all cell names, they are sorted in
+   * descending order of importance and the resulting list is returned. In the
+   * example above, the constructed columns will be sorted into three groups as
+   * follows:
+   *
+   *      [most important, left in the resulting table]
+   *   1. columns whose name contains 'size' excluding 'page_size' because it
+   *      would have already matched the first rule (Note that string matches
+   *      must be exact so a column named 'page_size2' would not match the
+   *      first rule and would therefore belong to this group).
+   *   2. columns whose name does not contain 'size'.
+   *   3. columns whose name is 'page_size'.
+   *      [least important, right in the resulting table]
+   *
+   * where columns will be sorted alphabetically within each group.
+   */
+  MemoryColumn.fromRows = function(rows, cellKey, aggregationMode, rules) {
+    // Recursively find the names of all cells of the rows (and their sub-rows).
+    var cellNames = new Set();
+    function gatherCellNames(rows) {
+      rows.forEach(function(row) {
+        if (row === undefined)
           return;
-        var attrValues = attrCell.attrs;
-        if (attrValues === undefined)
-          return;
-        var existingTraits = columnTraits[attrName];
-        attrValues.forEach(function(attrValue) {
-          if (attrValue === undefined)
-            return;
-          if (existingTraits === undefined) {
-            columnTraits[attrName] = existingTraits = {
-              constructor: attrValue.constructor,
-              units: attrValue.units
-            };
-            return;
-          }
-          if (existingTraits.constructor !== attrValue.constructor ||
-              existingTraits.units !== attrValue.units) {
-            existingTraits.constructor = tr.model.UnknownAttribute;
-            existingTraits.units = undefined;
-          }
-        });
+        var fieldCells = row[cellKey];
+        if (fieldCells !== undefined) {
+          tr.b.iterItems(fieldCells, function(fieldName, fieldCell) {
+            if (fieldCell === undefined || fieldCell.fields === undefined)
+              return;
+            cellNames.add(fieldName);
+          });
+        }
+        var subRows = row.subRows;
+        if (subRows !== undefined)
+          gatherCellNames(subRows);
       });
-      if (row.subRows !== undefined)
-        row.subRows.forEach(gatherTraits);
-    };
-    rows.forEach(gatherTraits);
+    }
+    gatherCellNames(rows);
 
-    var columns = [];
-    tr.b.iterItems(columnTraits, function(columnName, columnTraits) {
-      var cellGetter = fieldGetter(cellKey, columnName);
-      var constructor = undefined;
-      if (opt_customColumnConstructorRules !== undefined) {
-        var matchingRule = MemoryColumn.findMatchingRule(
-            columnName, opt_customColumnConstructorRules);
-        if (matchingRule !== undefined)
-          constructor = matchingRule.columnConstructor;
-      }
-      if (constructor === undefined)
-        constructor = MemoryColumn.constructorFromAttributeTraits(columnTraits);
-      columns.push(new constructor(
-          columnName, columnTraits.units, cellGetter, aggregationMode));
+    // Based on the provided list of rules, construct the columns and calculate
+    // their importance.
+    var positions = [];
+    cellNames.forEach(function(cellName) {
+      var cellPath = [cellKey, cellName];
+      var matchingRule = MemoryColumn.findMatchingRule(cellName, rules);
+      var constructor = matchingRule.columnConstructor;
+      var column = new constructor(cellName, cellPath, aggregationMode);
+      positions.push({
+        importance: matchingRule.importance,
+        column: column
+      });
     });
 
-    return columns;
-  };
+    positions.sort(function(a, b) {
+      // Sort columns with the same importance alphabetically.
+      if (a.importance === b.importance)
+        return COLLATOR.compare(a.column.name, b.column.name);
 
-  MemoryColumn.constructorFromAttributeTraits = function(traits) {
-    if (traits.constructor === tr.model.ScalarAttribute)
-      return ScalarMemoryColumn;
-    else
-      return MemoryColumn;
+      // Sort columns in descending order of importance.
+      return b.importance - a.importance;
+    });
+
+    return positions.map(function(position) { return position.column });
   };
 
   MemoryColumn.spaceEqually = function(columns) {
@@ -239,102 +268,6 @@ tr.exportTo('tr.ui.analysis', function() {
     return condition.test(name);
   };
 
-  /**
-   * Sort a list of memory columns according to a list of importance rules.
-   * This function modifies the original array and doesn't return anything.
-   *
-   * The list of importance rules contains objects with mandatory 'importance'
-   * numeric fields and optional 'condition' string or regex fields. Example:
-   *
-   *   var importanceRules = [
-   *     {
-   *       condition: 'page_size',
-   *       importance: 8
-   *     },
-   *     {
-   *       condition: /size/,
-   *       importance: 10
-   *     },
-   *     {
-   *       // No condition: matches all columns.
-   *       importance: 9
-   *     }
-   *   ];
-   *
-   * The importance of a column is determined by the first rule whose condition
-   * matches the column's name, so the rules above will sort a generic list of
-   * columns into three groups as follows:
-   *
-   *      [most important, left in the resulting table]
-   *   1. columns whose name contains 'size' excluding 'page_size' because it
-   *      would have already matched the first rule (Note that string matches
-   *      must be exact so a column named 'page_size2' would not match the
-   *      first rule and would therefore belong to this group).
-   *   2. columns whose name does not contain 'size'.
-   *   3. columns whose name is 'page_size'.
-   *      [least important, right in the resulting table]
-   *
-   * where columns are sorted alphabetically within each group.
-   */
-  MemoryColumn.sortByImportance = function(columns, importanceRules) {
-    var positions = columns.map(function(column, srcIndex) {
-      return {
-        importance: column.getImportance(importanceRules),
-        column: column
-      };
-    });
-
-    positions.sort(function(a, b) {
-      // Sort columns with the same importance alphabetically.
-      if (a.importance === b.importance)
-        return COLLATOR.compare(a.column.name, b.column.name);
-
-      // Sort columns in descending order of importance.
-      return b.importance - a.importance;
-    });
-
-    positions.forEach(function(position, dstIndex) {
-      columns[dstIndex] = position.column;
-    });
-  };
-
-  /**
-   * Convert a list of columns names to a list of importance rules. The list of
-   * column names is assumed to be sorted in descending order of importance
-   * (i.e. from left to right). For example:
-   *
-   *    MemoryColumn.columnNamesToImportanceRules([
-   *      'Column A',
-   *      'Column B',
-   *      'Column C'
-   *    ]);
-   *
-   * will return the following list of importance rules:
-   *
-   *   [
-   *     {
-   *       condition: 'Column A',
-   *       importance: 3
-   *     },
-   *     {
-   *       condition: 'Column B',
-   *       importance: 2
-   *     },
-   *     {
-   *       condition: 'Column C',
-   *       importance: 1
-   *     }
-   *   ]
-   */
-  MemoryColumn.columnNamesToImportanceRules = function(columnNames) {
-    return columnNames.map(function(columnName, columnIndex) {
-      return {
-        condition: columnName,
-        importance: columnNames.length - columnIndex
-      };
-    });
-  };
-
   /** @enum */
   MemoryColumn.AggregationMode = {
     DIFF: 0,
@@ -348,68 +281,55 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.name;
     },
 
-    attrs: function(row) {
+    cell: function(row) {
+      var cell = row;
+      var cellPath = this.cellPath;
+      for (var i = 0; i < cellPath.length; i++) {
+        if (cell === undefined)
+          return undefined;
+        cell = cell[cellPath[i]];
+      }
+      return cell;
+    },
+
+    aggregateCells: function(row, subRows) {
+      // No generic aggregation.
+    },
+
+    fields: function(row) {
       var cell = this.cell(row);
       if (cell === undefined)
         return undefined;
-      return cell.attrs;
+      return cell.fields;
     },
 
+    /**
+     * Format a cell associated with this column from the given row. This
+     * method is not intended to be overriden.
+     */
     value: function(row) {
-      var attrs = this.attrs(row);
-      if (this.hasAllRelevantAttrsUndefined(attrs))
+      var fields = this.fields(row);
+      if (this.hasAllRelevantFieldsUndefined(fields))
         return '';
-      return this.formatAttributes(attrs, row.contexts);
-    },
 
-    /**
-     * Returns true iff all attributes of a row which are relevant for the
-     * current aggregation mode (e.g. first and last attribute for diff mode)
-     * are undefined.
-     */
-    hasAllRelevantAttrsUndefined: function(attrs) {
-      if (attrs === undefined)
-        return true;
-
-      switch (this.aggregationMode) {
-        case MemoryColumn.AggregationMode.DIFF:
-          // Only the first and last attribute are relevant.
-          return attrs[0] === undefined &&
-              attrs[attrs.length - 1] === undefined;
-
-        case MemoryColumn.AggregationMode.MAX:
-        default:
-          // All attributes are relevant.
-          return attrs.every(function(attr) { return attr === undefined; });
-      }
-    },
-
-    /**
-     * Format a defined attribute (both values and infos). This method is not
-     * intended to be overriden. At least one attribute relevant for the
-     * current aggregation mode is guaranteed to be defined.
-     */
-    formatAttributes: function(attrs, contexts) {
-      var formattedValue = this.formatAttributeValues(attrs);
-
-      // Determine the color of the resulting element.
-      var color;
-      if (typeof this.color === 'function')
-        color = this.color(attrs, contexts);
-      else
-        color = this.color;
-
-      // If no color is specified and there are no infos, there is no need
-      // to wrap the value in a span element.
+      // Determine the color and infos of the resulting element.
+      var contexts = row.contexts;
+      var color = this.color(fields, contexts);
       var infos = [];
-      this.addInfos(attrs, contexts, infos);
-      if ((color === undefined || formattedValue === '') && infos.length === 0)
-        return formattedValue;
+      this.addInfos(fields, contexts, infos);
 
-      var attrEl = document.createElement('span');
-      attrEl.style.display = 'flex';
-      attrEl.style.alignItems = 'center';
-      attrEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedValue));
+      // Format the actual fields.
+      var formattedFields = this.formatFields(fields);
+
+      // If no color is specified and there are no infos, there is no need to
+      // wrap the value in a span element.#
+      if ((color === undefined || formattedFields === '') && infos.length === 0)
+        return formattedFields;
+
+      var fieldEl = document.createElement('span');
+      fieldEl.style.display = 'flex';
+      fieldEl.style.alignItems = 'center';
+      fieldEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedFields));
 
       // Add info icons with tooltips.
       infos.forEach(function(info) {
@@ -421,55 +341,84 @@ tr.exportTo('tr.ui.analysis', function() {
         if (info.color !== undefined)
           infoEl.style.color = info.color;
         infoEl.title = info.message;
-        attrEl.appendChild(infoEl);
+        fieldEl.appendChild(infoEl);
       }, this);
 
       // Set the color of the element.
       if (color !== undefined)
-        attrEl.style.color = color;
+        fieldEl.style.color = color;
 
-      return attrEl;
+      return fieldEl;
     },
 
     /**
-     * Format the values of a single or multiple attributes. At least one
-     * attribute relevant for the current aggregation mode is guaranteed to be
-     * defined.
+     * Returns true iff all fields of a row which are relevant for the current
+     * aggregation mode (e.g. first and last field for diff mode) are undefined.
      */
-    formatAttributeValues: function(attrs) {
-      if (attrs.length === 1)
-        return this.formatSingleAttributeValue(attrs[0]);
-      else
-        return this.formatMultipleAttributeValues(attrs);
-    },
+    hasAllRelevantFieldsUndefined: function(fields) {
+      if (fields === undefined)
+        return true;
 
-    /**
-     * Format the value of a single defined attribute.
-     *
-     * This method is intended to be overriden by attribute type/unit specific
-     * columns (e.g. show '1.0 KiB' instead of '1024' for ScalarAttribute(s)
-     * representing bytes).
-     */
-    formatSingleAttributeValue: function(attr) {
-      return String(attr.value);
-    },
-
-    /**
-     * Format the values of multiple attributes. At least one attribute
-     * relevant for the current aggregation mode is guaranteed to be defined.
-     *
-     * The aggregation mode specializations of this method (e.g.
-     * formatMultipleAttributeValuesDiff) are intended to be overriden by
-     * attribute type/unit specific columns.
-     */
-    formatMultipleAttributeValues: function(attrs) {
       switch (this.aggregationMode) {
         case MemoryColumn.AggregationMode.DIFF:
-          return this.formatMultipleAttributeValuesDiff(
-              attrs[0], attrs[attrs.length - 1]);
+          // Only the first and last field are relevant.
+          return fields[0] === undefined &&
+              fields[fields.length - 1] === undefined;
 
         case MemoryColumn.AggregationMode.MAX:
-          return this.formatMultipleAttributeValuesMax(attrs);
+        default:
+          // All fields are relevant.
+          return fields.every(function(field) { return field === undefined; });
+      }
+    },
+
+    /**
+     * Get the color of the given fields formatted by this column. At least one
+     * field relevant for the current aggregation mode is guaranteed to be
+     * defined.
+     */
+    color: function(fields, contexts) {
+      return undefined;
+    },
+
+    /**
+     * Format an arbitrary number of fields. At least one field relevant for
+     * the current aggregation mode is guaranteed to be defined.
+     */
+    formatFields: function(fields) {
+      if (fields.length === 1)
+        return this.formatSingleField(fields[0]);
+      else
+        return this.formatMultipleFields(fields);
+    },
+
+    /**
+     * Format a single defined field.
+     *
+     * This method is intended to be overriden by field type specific columns
+     * (e.g. show '1.0 KiB' instead of '1024' for ScalarNumeric(s) representing
+     * bytes).
+     */
+    formatSingleField: function(field) {
+      throw new Error('Not implemented');
+    },
+
+    /**
+     * Format multiple fields. At least one field relevant for the current
+     * aggregation mode is guaranteed to be defined.
+     *
+     * The aggregation mode specializations of this method (e.g.
+     * formatMultipleFieldsDiff) are intended to be overriden by field type
+     * specific columns.
+     */
+    formatMultipleFields: function(fields) {
+      switch (this.aggregationMode) {
+        case MemoryColumn.AggregationMode.DIFF:
+          return this.formatMultipleFieldsDiff(
+              fields[0], fields[fields.length - 1]);
+
+        case MemoryColumn.AggregationMode.MAX:
+          return this.formatMultipleFieldsMax(fields);
 
         default:
           return tr.ui.b.createSpan({
@@ -479,54 +428,26 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    formatMultipleAttributeValuesDiff: function(firstAttr, lastAttr) {
-      if (firstAttr === undefined) {
-        // Attribute was added ("+NEW_VALUE" in red).
-        var spanEl = tr.ui.b.createSpan({color: 'red'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('+'));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
-            this.formatSingleAttributeValue(lastAttr)));
-        return spanEl;
-      } else if (lastAttr === undefined) {
-        // Attribute was removed ("-OLD_VALUE" in green).
-        var spanEl = tr.ui.b.createSpan({color: 'green'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('-'));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
-            this.formatSingleAttributeValue(firstAttr)));
-        return spanEl;
-      } else if (firstAttr.value === lastAttr.value &&
-                 firstAttr.units === lastAttr.units) {
-        // Attribute didn't change ("VALUE" with unchanged color).
-        return this.formatSingleAttributeValue(firstAttr);
-      } else {
-        // Attribute changed ("OLD_VALUE -> NEW_VALUE" in orange).
-        var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
-            this.formatSingleAttributeValue(firstAttr)));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
-            ' ' + RIGHTWARDS_ARROW + ' '));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
-            this.formatSingleAttributeValue(lastAttr)));
-        return spanEl;
-      }
+    formatMultipleFieldsDiff: function(firstField, lastField) {
+      throw new Error('Not implemented');
     },
 
-    formatMultipleAttributeValuesMax: function(attrs) {
-      return this.getMaxAttributeValue(attrs);
+    formatMultipleFieldsMax: function(fields) {
+      return this.formatSingleField(this.getMaxField(fields));
     },
 
     cmp: function(rowA, rowB) {
-      var attrsA = this.attrs(rowA);
-      var attrsB = this.attrs(rowB);
+      var fieldsA = this.fields(rowA);
+      var fieldsB = this.fields(rowB);
 
       // Sanity check.
-      if (attrsA !== undefined && attrsB !== undefined &&
-          attrsA.length !== attrsB.length)
-        throw new Error('Different number of attributes');
+      if (fieldsA !== undefined && fieldsB !== undefined &&
+          fieldsA.length !== fieldsB.length)
+        throw new Error('Different number of fields');
 
-      // Handle empty attributes.
-      var undefinedA = this.hasAllRelevantAttrsUndefined(attrsA);
-      var undefinedB = this.hasAllRelevantAttrsUndefined(attrsB);
+      // Handle empty fields.
+      var undefinedA = this.hasAllRelevantFieldsUndefined(fieldsA);
+      var undefinedB = this.hasAllRelevantFieldsUndefined(fieldsB);
       if (undefinedA && undefinedB)
         return 0;
       if (undefinedA)
@@ -534,123 +455,77 @@ tr.exportTo('tr.ui.analysis', function() {
       if (undefinedB)
         return 1;
 
-      return this.compareAttributes(attrsA, attrsB);
+      return this.compareFields(fieldsA, fieldsB);
     },
 
     /**
-     * Compare the values of a pair of single or multiple attributes. At least
-     * one attribute relevant for the current aggregation mode is guaranteed to
-     * be defined in each of the two lists of attributes.
+     * Compare a pair of single or multiple fields. At least one field relevant
+     * for the current aggregation mode is guaranteed to be defined in each of
+     * the two lists.
      */
-    compareAttributes: function(attrsA, attrsB) {
-      if (attrsA.length === 1)
-        return this.compareSingleAttributes(attrsA[0], attrsB[0]);
+    compareFields: function(fieldsA, fieldsB) {
+      if (fieldsA.length === 1)
+        return this.compareSingleFields(fieldsA[0], fieldsB[0]);
       else
-        return this.compareMultipleAttributes(attrsA, attrsB);
+        return this.compareMultipleFields(fieldsA, fieldsB);
     },
 
     /**
-     * Compare the values of a pair of single defined attributes.
+     * Compare a pair of single defined fields.
      *
-     * This method and/or compareSingleAttributeValues are intended to be
-     * overriden by attribute type/unit specific columns.
+     * This method is intended to be overriden by field type specific columns.
      */
-    compareSingleAttributes: function(attrA, attrB) {
-      return this.compareSingleAttributeValues(attrA.value, attrB.value);
+    compareSingleFields: function(fieldA, fieldB) {
+      throw new Error('Not implemented');
     },
 
     /**
-     * Compare the values of a pair of multiple attributes. At least one
-     * attribute relevant for the current aggregation mode is guaranteed to be
-     * defined in each of the two lists of attributes.
+     * Compare a pair of multiple fields. At least one field relevant for the
+     * current aggregation mode is guaranteed to be defined in each of the two
+     * lists.
      *
      * The aggregation mode specializations of this method (e.g.
-     * compareMultipleAttributesDiff) are intended to be overriden by attribute
-     * type/unit specific columns.
+     * compareMultipleFieldsDiff) are intended to be overriden by field type
+     * specific columns.
      */
-    compareMultipleAttributes: function(attrsA, attrsB) {
+    compareMultipleFields: function(fieldsA, fieldsB) {
       switch (this.aggregationMode) {
         case MemoryColumn.AggregationMode.DIFF:
-          return this.compareMultipleAttributesDiff(
-              attrsA[0], attrsA[attrsA.length - 1],
-              attrsB[0], attrsB[attrsB.length - 1]);
+          return this.compareMultipleFieldsDiff(
+              fieldsA[0], fieldsA[fieldsA.length - 1],
+              fieldsB[0], fieldsB[fieldsB.length - 1]);
 
         case MemoryColumn.AggregationMode.MAX:
-          return this.compareMultipleAttributesMax(attrsA, attrsB);
+          return this.compareMultipleFieldsMax(fieldsA, fieldsB);
 
         default:
           return 0;
       }
     },
 
-    compareMultipleAttributesDiff: function(firstAttrA, lastAttrA, firstAttrB,
-        lastAttrB) {
-      // If one of the attributes was added (and the other one wasn't), mark
-      // the corresponding diff as greater.
-      if (firstAttrA === undefined && firstAttrB !== undefined)
-        return 1;
-      if (firstAttrA !== undefined && firstAttrB === undefined)
-        return -1;
-
-      // If both attributes were added, compare the last values (greater last
-      // value implies greater diff).
-      if (firstAttrA === undefined && firstAttrB === undefined)
-        return this.compareSingleAttributes(lastAttrA, lastAttrB);
-
-      // If one of the attributes was removed (and the other one wasn't), mark
-      // the corresponding diff as lower.
-      if (lastAttrA === undefined && lastAttrB !== undefined)
-        return -1;
-      if (lastAttrA !== undefined && lastAttrB === undefined)
-        return 1;
-
-      // If both attributes were removed, compare the first values (greater
-      // first value implies smaller (!) diff).
-      if (lastAttrA === undefined && lastAttrB === undefined)
-        return this.compareSingleAttributes(firstAttrB, firstAttrA);
-
-      var areAttrsAEqual = firstAttrA.value === lastAttrA.value &&
-          firstAttrA.units === lastAttrA.units;
-      var areAttrsBEqual = firstAttrB.value === lastAttrB.value &&
-          firstAttrB.units === lastAttrB.units;
-
-      // Consider diffs of attributes that did not change to be smaller than
-      // diffs of attributes that did change.
-      if (areAttrsAEqual && areAttrsBEqual)
-        return 0;
-      if (areAttrsAEqual)
-        return -1;
-      if (areAttrsBEqual)
-        return 1;
-
-      // Both attributes changed. We are unable to determine the ordering of
-      // the diffs.
-      return 0;
+    compareMultipleFieldsDiff: function(firstFieldA, lastFieldA, firstFieldB,
+        lastFieldB) {
+      throw new Error('Not implemented');
     },
 
-    compareMultipleAttributesMax: function(attrsA, attrsB) {
-      return this.compareSingleAttributeValues(
-          this.getMaxAttributeValue(attrsA), this.getMaxAttributeValue(attrsB));
+    compareMultipleFieldsMax: function(fieldsA, fieldsB) {
+      return this.compareSingleFields(
+          this.getMaxField(fieldsA), this.getMaxField(fieldsB));
     },
 
-    getMaxAttributeValue: function(attrs) {
-      return attrs.reduce(function(accumulator, attr) {
-        if (attr === undefined)
+    getMaxField: function(fields) {
+      return fields.reduce(function(accumulator, field) {
+        if (field === undefined)
           return accumulator;
-        var attrValue = attr.value;
         if (accumulator === undefined ||
-            this.compareSingleAttributeValues(attrValue, accumulator) > 0) {
-          return attrValue;
+            this.compareSingleFields(field, accumulator) > 0) {
+          return field;
         }
         return accumulator;
       }.bind(this), undefined);
     },
 
-    compareSingleAttributeValues: function(attrValueA, attrValueB) {
-      return COLLATOR.compare(String(attrValueA), String(attrValueB));
-    },
-
-    addInfos: function(attrs, contexts, infos) {
+    addInfos: function(fields, contexts, infos) {
       // No generic infos.
     },
 
@@ -675,87 +550,221 @@ tr.exportTo('tr.ui.analysis', function() {
   /**
    * @constructor
    */
-  function ScalarMemoryColumn(name, title, units, cellGetter, aggregationMode) {
-    MemoryColumn.call(this, name, title, units, cellGetter, aggregationMode);
+  function StringMemoryColumn(name, cellPath, aggregationMode) {
+    MemoryColumn.call(this, name, cellPath, aggregationMode);
   }
 
-  // Avoid tiny positive/negative diffs (displayed in the UI as '+0.0 B' and
-  // '-0.0 B') due to imprecise floating-point arithmetic by treating all diffs
-  // within the (-DIFF_EPSILON, DIFF_EPSILON) range as zeros.
-  ScalarMemoryColumn.DIFF_EPSILON = 0.0001;
-
-  ScalarMemoryColumn.prototype = {
+  StringMemoryColumn.prototype = {
     __proto__: MemoryColumn.prototype,
 
-    formatSingleAttributeValue: function(attr) {
-      return this.formatUnits(attr.value, false);
+    formatSingleField: function(string) {
+      return string;
     },
 
-    formatMultipleAttributeValuesDiff: function(firstAttr, lastAttr) {
-      return this.formatUnits(this.getDiffAttrValue(firstAttr, lastAttr), true);
+    formatMultipleFieldsDiff: function(firstString, lastString) {
+      if (firstString === undefined) {
+        // String was added ("+NEW_VALUE" in red).
+        var spanEl = tr.ui.b.createSpan({color: 'red'});
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('+'));
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+            this.formatSingleField(lastString)));
+        return spanEl;
+      } else if (lastString === undefined) {
+        // String was removed ("-OLD_VALUE" in green).
+        var spanEl = tr.ui.b.createSpan({color: 'green'});
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('-'));
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+            this.formatSingleField(firstString)));
+        return spanEl;
+      } else if (firstString === lastString) {
+        // String didn't change ("VALUE" with unchanged color).
+        return this.formatSingleField(firstString);
+      } else {
+        // String changed ("OLD_VALUE -> NEW_VALUE" in orange).
+        var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+            this.formatSingleField(firstString)));
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+            ' ' + RIGHTWARDS_ARROW + ' '));
+        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+            this.formatSingleField(lastString)));
+        return spanEl;
+      }
     },
 
-    formatMultipleAttributeValuesMax: function(attrs) {
-      return this.formatUnits(this.getMaxAttributeValue(attrs), false);
+    compareSingleFields: function(stringA, stringB) {
+      return COLLATOR.compare(stringA, stringB);
     },
 
-    formatUnits: function(value, isDelta) {
-      if (value === undefined)
-        return '';
+    compareMultipleFieldsDiff: function(firstStringA, lastStringA, firstStringB,
+        lastStringB) {
+      // If one of the strings was added (and the other one wasn't), mark the
+      // corresponding diff as greater.
+      if (firstStringA === undefined && firstStringB !== undefined)
+        return 1;
+      if (firstStringA !== undefined && firstStringB === undefined)
+        return -1;
 
-      var sizeEl = document.createElement('tr-v-ui-scalar-span');
-      sizeEl.value = value;
+      // If both strings were added, compare the last values (greater last
+      // value implies greater diff).
+      if (firstStringA === undefined && firstStringB === undefined)
+        return this.compareSingleFields(lastStringA, lastStringB);
 
-      // TODO(petrcermak): Figure out if/how we can use tr.v.Units.fromJSON.
-      var unitBaseName = this.units === 'bytes' ?
-          'sizeInBytes' : 'unitlessNumber';
-      var unitSuffix = isDelta ? 'Delta' : '';
-      var unitName = unitBaseName + unitSuffix + '_smallerIsBetter';
-      sizeEl.unit = tr.v.Unit.byName[unitName];
+      // If one of the strings was removed (and the other one wasn't), mark the
+      // corresponding diff as lower.
+      if (lastStringA === undefined && lastStringB !== undefined)
+        return -1;
+      if (lastStringA !== undefined && lastStringB === undefined)
+        return 1;
 
-      return sizeEl;
-    },
+      // If both strings were removed, compare the first values (greater first
+      // value implies smaller (!) diff).
+      if (lastStringA === undefined && lastStringB === undefined)
+        return this.compareSingleFields(firstStringB, firstStringA);
 
-    compareSingleAttributeValues: function(attrValueA, attrValueB) {
-      return attrValueA - attrValueB;
-    },
+      var areStringsAEqual = firstStringA === lastStringA;
+      var areStringsBEqual = firstStringB === lastStringB;
 
-    compareMultipleAttributesDiff: function(firstAttrA, lastAttrA, firstAttrB,
-        lastAttrB) {
-      return this.getDiffAttrValue(firstAttrA, lastAttrA) -
-          this.getDiffAttrValue(firstAttrB, lastAttrB);
-    },
+      // Consider diffs of strings that did not change to be smaller than diffs
+      // of strings that did change.
+      if (areStringsAEqual && areStringsBEqual)
+        return 0;
+      if (areStringsAEqual)
+        return -1;
+      if (areStringsBEqual)
+        return 1;
 
-    getDiffAttrValue: function(firstAttr, lastAttr) {
-      var firstValue = firstAttr === undefined ? 0 : firstAttr.value;
-      var lastValue = lastAttr === undefined ? 0 : lastAttr.value;
-      var diff = lastValue - firstValue;
-      return Math.abs(diff) < ScalarMemoryColumn.DIFF_EPSILON ? 0 : diff;
+      // Both strings changed. We are unable to determine the ordering of the
+      // diffs.
+      return 0;
     }
   };
 
   /**
    * @constructor
    */
-  function MemoryCell(attrs) {
-    this.attrs = attrs;
+  function NumericMemoryColumn(name, cellPath, aggregationMode) {
+    MemoryColumn.call(this, name, cellPath, aggregationMode);
   }
 
-  MemoryCell.extractAttributes = function(cell) {
-    if (cell === undefined)
-      return undefined;
-    return cell.attrs;
+  // Avoid tiny positive/negative diffs (displayed in the UI as '+0.0 B' and
+  // '-0.0 B') due to imprecise floating-point arithmetic by treating all diffs
+  // within the (-DIFF_EPSILON, DIFF_EPSILON) range as zeros.
+  NumericMemoryColumn.DIFF_EPSILON = 0.0001;
+
+  NumericMemoryColumn.prototype = {
+    __proto__: MemoryColumn.prototype,
+
+    aggregateCells: function(row, subRows) {
+      var subRowCells = subRows.map(this.cell, this);
+
+      // Determine if there is at least one defined numeric in the sub-row
+      // cells and the timestamp count.
+      var hasDefinedSubRowNumeric = false;
+      var timestampCount = undefined;
+      subRowCells.forEach(function(subRowCell) {
+        if (subRowCell === undefined)
+          return;
+
+        var subRowNumerics = subRowCell.fields;
+        if (subRowNumerics === undefined)
+          return;
+
+        if (timestampCount === undefined)
+          timestampCount = subRowNumerics.length;
+        else if (timestampCount !== subRowNumerics.length)
+          throw new Error('Sub-rows have different numbers of timestamps');
+
+        if (hasDefinedSubRowNumeric)
+          return;  // Avoid unnecessary traversals of the numerics.
+        hasDefinedSubRowNumeric = subRowNumerics.some(function(numeric) {
+          return numeric !== undefined;
+        });
+      });
+      if (!hasDefinedSubRowNumeric)
+        return;  // No numeric to aggregate.
+
+      // Get or create the row cell.
+      var cellPath = this.cellPath;
+      var rowCell = row;
+      for (var i = 0; i < cellPath.length; i++) {
+        var nextStepName = cellPath[i];
+        var nextStep = rowCell[nextStepName];
+        if (nextStep === undefined) {
+          if (i < cellPath.length - 1)
+            nextStep = {};
+          else
+            nextStep = new MemoryCell(undefined);
+          rowCell[nextStepName] = nextStep;
+        }
+        rowCell = nextStep;
+      }
+      if (rowCell.fields === undefined) {
+        rowCell.fields = new Array(timestampCount);
+      } else if (rowCell.fields.length !== timestampCount) {
+        throw new Error(
+            'Row has a different number of timestamps than sub-rows');
+      }
+
+      for (var i = 0; i < timestampCount; i++) {
+        if (rowCell.fields[i] !== undefined)
+          continue;
+        rowCell.fields[i] = tr.model.MemoryAllocatorDump.aggregateNumerics(
+            subRowCells.map(function(subRowCell) {
+              if (subRowCell === undefined || subRowCell.fields === undefined)
+                return undefined;
+              return subRowCell.fields[i];
+            }));
+      }
+    },
+
+    formatSingleField: function(numeric) {
+      if (numeric === undefined)
+        return '';
+      return tr.v.ui.createScalarSpan(numeric);
+    },
+
+    formatMultipleFieldsDiff: function(firstNumeric, lastNumeric) {
+      return this.formatSingleField(
+          this.getDiffField_(firstNumeric, lastNumeric));
+    },
+
+    compareSingleFields: function(numericA, numericB) {
+      return numericA.value - numericB.value;
+    },
+
+    compareMultipleFieldsDiff: function(firstNumericA, lastNumericA,
+        firstNumericB, lastNumericB) {
+      return this.getDiffFieldValue_(firstNumericA, lastNumericA) -
+          this.getDiffFieldValue_(firstNumericB, lastNumericB);
+    },
+
+    getDiffField_: function(firstNumeric, lastNumeric) {
+      var definedNumeric = firstNumeric || lastNumeric;
+      return new tr.v.ScalarNumeric(definedNumeric.unit.correspondingDeltaUnit,
+          this.getDiffFieldValue_(firstNumeric, lastNumeric));
+    },
+
+    getDiffFieldValue_: function(firstNumeric, lastNumeric) {
+      var firstValue = firstNumeric === undefined ? 0 : firstNumeric.value;
+      var lastValue = lastNumeric === undefined ? 0 : lastNumeric.value;
+      var diff = lastValue - firstValue;
+      return Math.abs(diff) < NumericMemoryColumn.DIFF_EPSILON ? 0 : diff;
+    }
   };
 
-  function fieldGetter(/* fields */) {
-    var fields = tr.b.asArray(arguments);
-    return function(row) {
-      var value = row;
-      for (var i = 0; i < fields.length; i++)
-        value = value[fields[i]];
-      return value;
-    };
+  /**
+   * @constructor
+   */
+  function MemoryCell(fields) {
+    this.fields = fields;
   }
+
+  MemoryCell.extractFields = function(cell) {
+    if (cell === undefined)
+      return undefined;
+    return cell.fields;
+  };
 
   /** Limit for the number of sub-rows for recursive table row expansion. */
   var RECURSIVE_EXPANSION_MAX_VISIBLE_ROW_COUNT = 10;
@@ -800,109 +809,33 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   }
 
-  // TODO(petrcermak): This code is almost the same as
-  // MemoryAllocatorDump.aggregateAttributes. Consider sharing code between
-  // the two functions.
-  function aggregateTableRowCellsRecursively(row, cellKey) {
+  function aggregateTableRowCellsRecursively(row, columns, opt_predicate) {
     var subRows = row.subRows;
-    if (subRows === undefined)
+    if (subRows === undefined || subRows.length === 0)
       return;
 
     subRows.forEach(function(subRow) {
-      aggregateTableRowCellsRecursively(subRow, cellKey);
+      aggregateTableRowCellsRecursively(subRow, columns, opt_predicate);
     });
 
-    aggregateTableRowCells(row, subRows, cellKey);
+    if (opt_predicate === undefined || opt_predicate(row.contexts))
+      aggregateTableRowCells(row, subRows, columns);
   }
 
-  function aggregateTableRowCells(row, subRows, cellKey) {
-    var rowCells = row[cellKey];
-    if (rowCells === undefined)
-      row[cellKey] = rowCells = {};
-
-    var subRowCellNames = {};
-    subRows.forEach(function(subRow) {
-      var subRowCells = subRow[cellKey];
-      if (subRowCells === undefined)
+  function aggregateTableRowCells(row, subRows, columns) {
+    columns.forEach(function(column) {
+      if (!(column instanceof MemoryColumn))
         return;
-      tr.b.iterItems(subRowCells, function(columnName) {
-        subRowCellNames[columnName] = true;
-      });
-    });
-
-    tr.b.iterItems(subRowCellNames, function(cellName) {
-      var existingRowCell = rowCells[cellName];
-      var existingRowAttributes = MemoryCell.extractAttributes(existingRowCell);
-
-      // Determine how many timestamps we need to aggregate the attribute for.
-      var timestampCount = undefined;
-      if (existingRowAttributes !== undefined)
-        timestampCount = existingRowAttributes.length;
-      subRows.forEach(function(subRow) {
-        var subRowCells = subRow[cellKey];
-        if (subRowCells === undefined)
-          return;
-        var subRowCellAttributes = MemoryCell.extractAttributes(
-            subRowCells[cellName]);
-        if (subRowCellAttributes === undefined)
-          return;
-        if (timestampCount === undefined)
-          timestampCount = subRowCellAttributes.length;
-        else if (timestampCount !== subRowCellAttributes.length)
-          throw new Error('Rows have different number of timestamps');
-      });
-      if (timestampCount === undefined)
-        throw new Error('Handling non-existent cell name \'' + cellName + '\'');
-
-      // Aggregate the attributes for each timestamp.
-      var aggregatedAttributes = new Array(timestampCount);
-      for (var i = 0; i < timestampCount; i++) {
-        var existingRowAttribute = undefined;
-        if (existingRowAttributes !== undefined)
-          existingRowAttribute = existingRowAttributes[i];
-        var subRowAttributes = subRows.map(function(subRow) {
-          var subRowCells = subRow[cellKey];
-          if (subRowCells === undefined)
-            return undefined;
-          var subRowCellAttributes = MemoryCell.extractAttributes(
-              subRowCells[cellName]);
-          if (subRowCellAttributes === undefined)
-            return;
-          return subRowCellAttributes[i];
-        });
-        aggregatedAttributes[i] = tr.model.Attribute.aggregate(
-            subRowAttributes, existingRowAttribute);
-      }
-
-      if (existingRowCell !== undefined) {
-        // The cell might contain some extra fields (e.g. custom
-        // buildDetailsPane method) which we don't want to throw away.
-        existingRowCell.attrs = aggregatedAttributes;
-      } else {
-        rowCells[cellName] = new MemoryCell(aggregatedAttributes);
-      }
+      column.aggregateCells(row, subRows);
     });
   }
 
-  function createCells(timeToValues, valueAttrsGetter, opt_cellAddedCallback) {
-    var attrNameToAttrs = tr.b.invertArrayOfDicts(
-        timeToValues, valueAttrsGetter);
-    return tr.b.mapItems(attrNameToAttrs, function(attrName, attrs) {
-      var cell = new tr.ui.analysis.MemoryCell(attrs);
-      if (opt_cellAddedCallback !== undefined)
-        opt_cellAddedCallback(attrName, cell);
-      return cell;
+  function createCells(timeToValues, valueFieldsGetter) {
+    var fieldNameToFields = tr.b.invertArrayOfDicts(
+        timeToValues, valueFieldsGetter);
+    return tr.b.mapItems(fieldNameToFields, function(fieldName, fields) {
+      return new tr.ui.analysis.MemoryCell(fields);
     });
-  }
-
-  function addAttributeIfDefined(dstDict, attrName, attrClass, units, value,
-      opt_addedCallback) {
-    if (value === undefined)
-      return;
-    var attr = new attrClass(units, value);
-    dstDict[attrName] = attr;
-    if (opt_addedCallback !== undefined)
-      opt_addedCallback(attr);
   }
 
   function createWarningInfo(message) {
@@ -916,14 +849,13 @@ tr.exportTo('tr.ui.analysis', function() {
   return {
     TitleColumn: TitleColumn,
     MemoryColumn: MemoryColumn,
-    ScalarMemoryColumn: ScalarMemoryColumn,
+    StringMemoryColumn: StringMemoryColumn,
+    NumericMemoryColumn: NumericMemoryColumn,
     MemoryCell: MemoryCell,
-    fieldGetter: fieldGetter,
     expandTableRowsRecursively: expandTableRowsRecursively,
     aggregateTableRowCellsRecursively: aggregateTableRowCellsRecursively,
     aggregateTableRowCells: aggregateTableRowCells,
     createCells: createCells,
-    addAttributeIfDefined: addAttributeIfDefined,
     createWarningInfo: createWarningInfo
   };
 });

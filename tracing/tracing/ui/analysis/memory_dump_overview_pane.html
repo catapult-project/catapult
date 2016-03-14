@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/model/attribute.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
@@ -19,6 +18,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/view_specific_brushing_state.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <polymer-element name="tr-ui-a-memory-dump-overview-pane"
     extends="tr-ui-a-stacked-pane">
@@ -76,11 +77,14 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.analysis', function() {
 
   var ColorScheme = tr.b.ColorScheme;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
 
   var PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX = '_bytes';
 
-  var DISPLAYED_SIZE_ATTRIBUTE_NAME =
-      tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_ATTRIBUTE_NAME;
+  var DISPLAYED_SIZE_NUMERIC_NAME =
+      tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
   var SOME_TIMESTAMPS_INFO_QUANTIFIER =
       tr.ui.analysis.MemoryColumn.SOME_TIMESTAMPS_INFO_QUANTIFIER;
 
@@ -90,6 +94,21 @@ tr.exportTo('tr.ui.analysis', function() {
   var GREATER_THAN_OR_EQUAL_TO = String.fromCharCode(0x2265);
   var UNMARRIED_PARTNERSHIP_SYMBOL = String.fromCharCode(0x26AF);
   var TRIGRAM_FOR_HEAVEN = String.fromCharCode(0x2630);
+
+  // TODO(petrcermak): Move this to iteration_helpers.html.
+  function lazyMap(list, fn, opt_this) {
+    opt_this = opt_this || this;
+    var result = undefined;
+    list.forEach(function(item, index) {
+      var value = fn.call(opt_this, item, index);
+      if (value === undefined)
+        return;
+      if (result === undefined)
+        result = new Array(list.length);
+      result[index] = value;
+    });
+    return result;
+  }
 
   /** @constructor */
   function ProcessNameColumn() {
@@ -109,11 +128,9 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   /** @constructor */
-  function UsedMemoryColumn(name, units, cellGetter, aggregationMode) {
-    if (units !== 'bytes')
-      throw new Error('Invalid UsedMemoryColumn units: ' + units);
-    tr.ui.analysis.ScalarMemoryColumn.call(
-        this, name, units, cellGetter, aggregationMode);
+  function UsedMemoryColumn(name, cellPath, aggregationMode) {
+    tr.ui.analysis.NumericMemoryColumn.call(
+        this, name, cellPath, aggregationMode);
   }
 
   UsedMemoryColumn.COLOR =
@@ -122,7 +139,7 @@ tr.exportTo('tr.ui.analysis', function() {
       ColorScheme.getColorForReservedNameAsString('older_used_memory_column');
 
   UsedMemoryColumn.prototype = {
-    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
 
     get title() {
       return tr.ui.b.createSpan({
@@ -131,25 +148,48 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    color: UsedMemoryColumn.COLOR
+    color: function(numerics, processMemoryDumps) {
+      return UsedMemoryColumn.COLOR;
+    },
+
+    getChildPaneBuilder: function(processMemoryDumps) {
+      if (processMemoryDumps === undefined)
+        return undefined;
+
+      var vmRegions = lazyMap(processMemoryDumps, function(pmd) {
+        if (pmd === undefined)
+          return undefined;
+        return pmd.mostRecentVmRegions;
+      });
+      if (vmRegions === undefined)
+        return undefined;
+
+      return function() {
+        var pane = document.createElement(
+            'tr-ui-a-memory-dump-vm-regions-details-pane');
+        pane.vmRegions = vmRegions;
+        pane.aggregationMode = this.aggregationMode;
+        return pane;
+      }.bind(this);
+    }
   };
 
   /** @constructor */
-  function PeakMemoryColumn(name, units, cellGetter, aggregationMode) {
-    UsedMemoryColumn.call(this, name, units, cellGetter, aggregationMode);
+  function PeakMemoryColumn(name, cellPath, aggregationMode) {
+    UsedMemoryColumn.call(this, name, cellPath, aggregationMode);
   }
 
   PeakMemoryColumn.prototype = {
     __proto__: UsedMemoryColumn.prototype,
 
-    addInfos: function(attrs, processMemoryDumps, infos) {
+    addInfos: function(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined)
         return;  // Total row.
 
       var resettableValueCount = 0;
       var nonResettableValueCount = 0;
-      for (var i = 0; i < attrs.length; i++) {
-        if (attrs[i] === undefined)
+      for (var i = 0; i < numerics.length; i++) {
+        if (numerics[i] === undefined)
           continue;
         if (processMemoryDumps[i].arePeakResidentBytesResettable)
           resettableValueCount++;
@@ -177,14 +217,14 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   /** @constructor */
-  function ByteStatColumn(name, units, cellGetter, aggregationMode) {
-    UsedMemoryColumn.call(this, name, units, cellGetter, aggregationMode);
+  function ByteStatColumn(name, cellPath, aggregationMode) {
+    UsedMemoryColumn.call(this, name, cellPath, aggregationMode);
   }
 
   ByteStatColumn.prototype = {
     __proto__: UsedMemoryColumn.prototype,
 
-    color: function(attrs, processMemoryDumps) {
+    color: function(numerics, processMemoryDumps) {
       if (processMemoryDumps === undefined)
         return UsedMemoryColumn.COLOR;  // Total row.
 
@@ -203,12 +243,12 @@ tr.exportTo('tr.ui.analysis', function() {
         return UsedMemoryColumn.COLOR;
     },
 
-    addInfos: function(attrs, processMemoryDumps, infos) {
+    addInfos: function(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined)
         return;  // Total row.
 
       var olderValueCount = 0;
-      for (var i = 0; i < attrs.length; i++) {
+      for (var i = 0; i < numerics.length; i++) {
         var processMemoryDump = processMemoryDumps[i];
         if (processMemoryDump !== undefined &&
             !processMemoryDump.hasOwnVmRegions) {
@@ -219,7 +259,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (olderValueCount === 0)
         return;  // There are no older values.
 
-      var infoQuantifier = olderValueCount < attrs.length ?
+      var infoQuantifier = olderValueCount < numerics.length ?
           ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER /* some values are older */ :
           '' /* all values are older */;
 
@@ -267,16 +307,27 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
+  // Map from ProcessMemoryDump totals fields to column names.
+  UsedMemoryColumn.TOTALS_MAP = {
+    'residentBytes': 'Total resident',
+    'peakResidentBytes': 'Peak total resident'
+  };
+
+  // Map from VMRegionByteStats field names to column names.
+  UsedMemoryColumn.BYTE_STAT_MAP = {
+    'proportionalResident': 'PSS',
+    'privateDirtyResident': 'Private dirty',
+    'swapped': 'Swapped'
+  };
+
   /** @constructor */
-  function AllocatorColumn(name, units, cellGetter, aggregationMode) {
-    if (units !== 'bytes')
-      throw new Error('Invalid AllocatorColumn units: ' + units);
-    tr.ui.analysis.ScalarMemoryColumn.call(
-        this, name, units, cellGetter, aggregationMode);
+  function AllocatorColumn(name, cellPath, aggregationMode) {
+    tr.ui.analysis.NumericMemoryColumn.call(
+        this, name, cellPath, aggregationMode);
   }
 
   AllocatorColumn.prototype = {
-    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
 
     get title() {
       var titleEl = document.createElement('tr-ui-b-color-legend');
@@ -284,7 +335,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return titleEl;
     },
 
-    addInfos: function(attrs, processMemoryDumps, infos) {
+    addInfos: function(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined)
         return;
 
@@ -303,7 +354,7 @@ tr.exportTo('tr.ui.analysis', function() {
       if (heapDumpCount === 0)
         return;  // There are no heap dumps.
 
-      var infoQuantifier = heapDumpCount < attrs.length ?
+      var infoQuantifier = heapDumpCount < numerics.length ?
           ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
 
       // Emit a heap dump info if at least one of the process memory dumps has
@@ -312,19 +363,47 @@ tr.exportTo('tr.ui.analysis', function() {
         message: 'Heap dump provided' + infoQuantifier + '.',
         icon: TRIGRAM_FOR_HEAVEN
       });
+    },
+
+    getChildPaneBuilder: function(processMemoryDumps) {
+      if (processMemoryDumps === undefined)
+        return undefined;
+
+      var memoryAllocatorDumps = lazyMap(processMemoryDumps, function(pmd) {
+        if (pmd === undefined)
+          return undefined;
+        return pmd.getMemoryAllocatorDumpByFullName(this.name);
+      }, this);
+      if (memoryAllocatorDumps === undefined)
+        return undefined;
+
+      var heapDumps = lazyMap(processMemoryDumps, function(pmd) {
+        if (pmd === undefined || pmd.heapDumps === undefined)
+          return undefined;
+        return pmd.heapDumps[this.name];
+      }, this);
+
+      return function() {
+        var pane = document.createElement(
+            'tr-ui-a-memory-dump-allocator-details-pane');
+        pane.memoryAllocatorDumps = memoryAllocatorDumps;
+        pane.heapDumps = heapDumps;
+        pane.aggregationMode = this.aggregationMode;
+        return pane;
+      }.bind(this);
     }
   };
 
   /** @constructor */
-  function TracingColumn(name, units, cellGetter, aggregationMode) {
-    AllocatorColumn.call(this, name, units, cellGetter, aggregationMode);
+  function TracingColumn(name, cellPath, aggregationMode) {
+    AllocatorColumn.call(this, name, cellPath, aggregationMode);
   }
 
   TracingColumn.COLOR =
       ColorScheme.getColorForReservedNameAsString('tracing_memory_column');
 
   TracingColumn.prototype = {
-    __proto__: tr.ui.analysis.ScalarMemoryColumn.prototype,
+    __proto__: AllocatorColumn.prototype,
 
     get title() {
       return tr.ui.b.createSpan({
@@ -333,7 +412,9 @@ tr.exportTo('tr.ui.analysis', function() {
       });
     },
 
-    color: TracingColumn.COLOR
+    color: function(numerics, processMemoryDumps) {
+      return TracingColumn.COLOR;
+    }
   };
 
   // Rules for constructing and sorting allocator columns.
@@ -422,10 +503,25 @@ tr.exportTo('tr.ui.analysis', function() {
 
     changeChildPane_: function() {
       this.storeSelection_();
-      var builder = undefined;
-      if (this.selectedMemoryCell !== undefined)
-        builder = this.selectedMemoryCell.buildDetailsPane;
-      this.childPaneBuilder = builder;
+      this.childPaneBuilder = this.determineChildPaneBuilderFromSelection_();
+    },
+
+    determineChildPaneBuilderFromSelection_: function() {
+      if (this.processMemoryDumps_ === undefined ||
+          this.processMemoryDumps_.length === 0) {
+        return undefined;
+      }
+
+      var selectedTableRow = this.$.table.selectedTableRow;
+      if (!selectedTableRow)
+        return undefined;
+
+      var selectedColumnIndex = this.$.table.selectedColumnIndex;
+      if (selectedColumnIndex === undefined)
+        return undefined;
+      var selectedColumn = this.$.table.tableColumns[selectedColumnIndex];
+
+      return selectedColumn.getChildPaneBuilder(selectedTableRow.contexts);
     },
 
     rebuildPane_: function() {
@@ -445,8 +541,8 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.table.style.display = 'block';
 
       var rows = this.createRows_();
-      var footerRows = this.createFooterRows_(rows);
       var columns = this.createColumns_(rows);
+      var footerRows = this.createFooterRows_(rows, columns);
 
       this.$.table.tableRows = rows;
       this.$.table.footerRows = footerRows;
@@ -465,9 +561,6 @@ tr.exportTo('tr.ui.analysis', function() {
           timeToPidToProcessMemoryDump);
 
       // Process (list index) -> Component (dict key) -> Cell.
-      var rows = [];
-
-      var aggregationMode = this.aggregationMode_;
       return tr.b.dictionaryValues(tr.b.mapItems(
           pidToTimeToProcessMemoryDump, function(pid, timeToDump) {
         // Get the process associated with the dumps. We can use any defined
@@ -475,31 +568,21 @@ tr.exportTo('tr.ui.analysis', function() {
         var process = tr.b.findFirstInArray(timeToDump).process;
 
         // Used memory (total resident, PSS, ...).
-        var timeToVmRegions = timeToDump.map(function(dump) {
-          if (dump === undefined)
-            return undefined;
-          return dump.mostRecentVmRegions;
-        });
-        function buildVmRegionsPane() {
-          var pane = document.createElement(
-              'tr-ui-a-memory-dump-vm-regions-details-pane');
-          pane.vmRegions = timeToVmRegions;
-          pane.aggregationMode = aggregationMode;
-          return pane;
-        }
         var usedMemoryCells = tr.ui.analysis.createCells(timeToDump,
             function(dump) {
               var sizes = {};
 
-              // Totals.
               var totals = dump.totals;
               if (totals !== undefined) {
-                tr.ui.analysis.addAttributeIfDefined(
-                    sizes, 'Total resident', tr.model.ScalarAttribute, 'bytes',
-                    totals.residentBytes);
-                tr.ui.analysis.addAttributeIfDefined(
-                    sizes, 'Peak total resident', tr.model.ScalarAttribute,
-                    'bytes', totals.peakResidentBytes);
+                // Common totals.
+                tr.b.iterItems(UsedMemoryColumn.TOTALS_MAP,
+                    function(totalName, cellName) {
+                      var total = totals[totalName];
+                      if (total === undefined)
+                        return;
+                      sizes[cellName] = new ScalarNumeric(
+                          sizeInBytes_smallerIsBetter, total);
+                    });
 
                 // Platform-specific totals (e.g. private resident on Mac).
                 var platformSpecific = totals.platformSpecific;
@@ -513,77 +596,40 @@ tr.exportTo('tr.ui.analysis', function() {
                     }
                     name = name.replace('_', ' ').trim();
                     name = name.charAt(0).toUpperCase() + name.slice(1);
-                    sizes[name] = new tr.model.ScalarAttribute('bytes', size);
+                    sizes[name] = new ScalarNumeric(
+                        sizeInBytes_smallerIsBetter, size);
                   });
                 }
               }
 
               // VM regions byte stats.
-              var vmRegionAttributeAddedCallback = undefined;
-              if (!dump.hasOwnVmRegions) {
-                vmRegionAttributeAddedCallback = function(attr) {
-                  attr.isOlderValue = true;
-                };
-              }
-              tr.ui.analysis.addAttributeIfDefined(
-                    sizes, 'PSS', tr.model.ScalarAttribute, 'bytes',
-                    dump.getMostRecentTotalVmRegionStat(
-                        'proportionalResident'),
-                    vmRegionAttributeAddedCallback);
-              tr.ui.analysis.addAttributeIfDefined(
-                    sizes, 'Private dirty', tr.model.ScalarAttribute, 'bytes',
-                    dump.getMostRecentTotalVmRegionStat(
-                        'privateDirtyResident'),
-                    vmRegionAttributeAddedCallback);
-              tr.ui.analysis.addAttributeIfDefined(
-                    sizes, 'Swapped', tr.model.ScalarAttribute, 'bytes',
-                    dump.getMostRecentTotalVmRegionStat('swapped'),
-                    vmRegionAttributeAddedCallback);
+              tr.b.iterItems(UsedMemoryColumn.BYTE_STAT_MAP,
+                  function(byteStatName, cellName) {
+                    var byteStat =
+                        dump.getMostRecentTotalVmRegionStat(byteStatName);
+                    if (byteStat === undefined)
+                      return;
+                    sizes[cellName] = new ScalarNumeric(
+                        sizeInBytes_smallerIsBetter, byteStat);
+                  });
 
               return sizes;
-            },
-            function(attrName, cell) {
-              cell.buildDetailsPane = buildVmRegionsPane;
             });
 
         // Allocator memory (v8, oilpan, ...).
         var allocatorCells = tr.ui.analysis.createCells(timeToDump,
             function(dump) {
-              if (dump.memoryAllocatorDumps === undefined)
+              var memoryAllocatorDumps = dump.memoryAllocatorDumps;
+              if (memoryAllocatorDumps === undefined)
                 return undefined;
               var sizes = {};
-              dump.memoryAllocatorDumps.forEach(function(allocatorDump) {
-                var rootAttribute = allocatorDump.attributes[
-                    DISPLAYED_SIZE_ATTRIBUTE_NAME];
-                if (rootAttribute !== undefined)
-                  sizes[allocatorDump.fullName] = rootAttribute;
+              memoryAllocatorDumps.forEach(function(allocatorDump) {
+                var rootDisplayedSizeNumeric = allocatorDump.numerics[
+                    DISPLAYED_SIZE_NUMERIC_NAME];
+                if (rootDisplayedSizeNumeric !== undefined)
+                  sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
               });
               return sizes;
-            },
-            function(allocatorName, cell) {
-              var memoryAllocatorDumps = timeToDump.map(function(dump) {
-                if (dump === undefined)
-                  return undefined;
-                return dump.getMemoryAllocatorDumpByFullName(allocatorName);
-              });
-              // Lazily construct the list of heap dumps if a heap dump is
-              // encountered.
-              var heapDumps = undefined;
-              timeToDump.forEach(function(dump, index) {
-                if (dump === undefined || dump.heapDumps === undefined)
-                  return;
-                if (heapDumps === undefined)
-                  heapDumps = new Array(timeToDump.length);
-                heapDumps[index] = dump.heapDumps[allocatorName];
-              });
-              cell.buildDetailsPane = function() {
-                var pane = document.createElement(
-                    'tr-ui-a-memory-dump-allocator-details-pane');
-                pane.memoryAllocatorDumps = memoryAllocatorDumps;
-                pane.heapDumps = heapDumps;
-                pane.aggregationMode = aggregationMode;
-                return pane;
-              };
             });
 
         return {
@@ -595,14 +641,13 @@ tr.exportTo('tr.ui.analysis', function() {
       }));
     },
 
-    createFooterRows_: function(rows) {
+    createFooterRows_: function(rows, columns) {
       // Add a 'Total' row if there are at least two process memory dumps.
       if (rows.length <= 1)
         return [];
 
       var totalRow = {title: 'Total'};
-      tr.ui.analysis.aggregateTableRowCells(totalRow, rows, 'usedMemoryCells');
-      tr.ui.analysis.aggregateTableRowCells(totalRow, rows, 'allocatorCells');
+      tr.ui.analysis.aggregateTableRowCells(totalRow, rows, columns);
 
       return [totalRow];
     },
@@ -614,14 +659,10 @@ tr.exportTo('tr.ui.analysis', function() {
       var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
           rows, 'usedMemoryCells', this.aggregationMode_,
           UsedMemoryColumn.RULES);
-      tr.ui.analysis.MemoryColumn.sortByImportance(
-          usedMemorySizeColumns, UsedMemoryColumn.RULES);
 
       var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
           rows, 'allocatorCells', this.aggregationMode_,
           AllocatorColumn.RULES);
-      tr.ui.analysis.MemoryColumn.sortByImportance(
-          allocatorSizeColumns, AllocatorColumn.RULES);
 
       var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(sizeColumns);
