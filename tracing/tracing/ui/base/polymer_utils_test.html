@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/polymer_utils.html">
+
+<!--
+The Polymer elements defined in this file form the following class hierarchy:
+
+    A (common superclass)
+   / \
+  B   C
+     / \
+    D   E
+   / \
+  F   G
+-->
+
+<polymer-element name="polymer-utils-test-element-a" noscript>
+</polymer-element>
+
+<polymer-element name="polymer-utils-test-element-b"
+    extends="polymer-utils-test-element-a" noscript>
+</polymer-element>
+
+<polymer-element name="polymer-utils-test-element-c"
+    extends="polymer-utils-test-element-a" noscript>
+</polymer-element>
+
+<polymer-element name="polymer-utils-test-element-d"
+    extends="polymer-utils-test-element-c" noscript>
+</polymer-element>
+
+<polymer-element name="polymer-utils-test-element-e"
+    extends="polymer-utils-test-element-c" noscript>
+</polymer-element>
+
+<polymer-element name="polymer-utils-test-element-f"
+    extends="polymer-utils-test-element-d" noscript>
+</polymer-element>
+
+<polymer-element name="polymer-utils-test-element-g"
+    extends="polymer-utils-test-element-d" noscript>
+</polymer-element>
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('getPolymerElementsThatSubclass', function() {
+    function checkSubclasses(classNameSuffix, subclassNameSuffixes) {
+      var className = 'polymer-utils-test-element-' + classNameSuffix;
+      var subclassNames = subclassNameSuffixes.map(
+          function(subclassNameSuffix) {
+            return 'polymer-utils-test-element-' + subclassNameSuffix;
+          });
+      assert.sameMembers(
+          tr.ui.b.getPolymerElementsThatSubclass(className), subclassNames);
+    }
+
+    checkSubclasses('a', ['b', 'c', 'd', 'e', 'f', 'g']);
+    checkSubclasses('b', []);
+    checkSubclasses('c', ['d', 'e', 'f', 'g']);
+    checkSubclasses('d', ['f', 'g']);
+    checkSubclasses('e', []);
+    checkSubclasses('f', []);
+    checkSubclasses('g', []);
+  });
+});
+</script>

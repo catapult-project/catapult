@@ -28,37 +28,32 @@ tr.exportTo('tr.ui.b', function() {
     }
 
     var baseElement;
-    var elementsThatExtend = {};
+    var elementNamesThatExtend = {};
     Polymer.elements.forEach(function(element) {
       if (element.name === tagName)
         baseElement = element;
 
       if (element.extends) {
-        if (elementsThatExtend[element.extends] === undefined)
-          elementsThatExtend[element.extends] = [];
-        elementsThatExtend[element.extends].push(element.name);
+        if (elementNamesThatExtend[element.extends] === undefined)
+          elementNamesThatExtend[element.extends] = [];
+        elementNamesThatExtend[element.extends].push(element.name);
       }
     });
 
     if (!baseElement)
       throw new Error(tagName + ' is not a polymer element');
 
-    var allFoundSubElements = [];
-    var elementsNeedingChecking = [baseElement];
-    while (elementsNeedingChecking.length) {
-      var element = elementsNeedingChecking[0];
-      elementsNeedingChecking.splice(0, 1);
-
-      if (element !== baseElement)
-        allFoundSubElements.push(element);
-
-      var immediateSubElements = elementsThatExtend[element.name];
-      if (immediateSubElements === undefined)
-        continue;
-      elementsNeedingChecking.push.apply(elementsNeedingChecking,
-                                         immediateSubElements);
+    var allFoundSubElementNames = [baseElement.name];
+    for (var i = 0; i < allFoundSubElementNames.length; i++) {
+      var elementName = allFoundSubElementNames[i];
+      allFoundSubElementNames.push.apply(
+          allFoundSubElementNames, elementNamesThatExtend[elementName]);
     }
-    return allFoundSubElements;
+
+    // Remove the base element tag name from the list.
+    allFoundSubElementNames.shift();
+
+    return allFoundSubElementNames;
   }
 
   return {
