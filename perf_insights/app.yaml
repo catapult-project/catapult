@@ -27,17 +27,14 @@ handlers:
 - url: /cloud_mapper/create
   script: perf_insights.endpoints.cloud_mapper.create.app
   secure: always
-  login: admin
 
 - url: /cloud_mapper/status
   script: perf_insights.endpoints.cloud_mapper.status.app
   secure: always
-  login: admin
 
 - url: /cloud_mapper/cancel
   script: perf_insights.endpoints.cloud_mapper.cancel.app
   secure: always
-  login: admin
 
 - url: /cloud_mapper/task
   script: perf_insights.endpoints.cloud_mapper.task.app

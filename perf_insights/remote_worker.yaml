@@ -4,12 +4,14 @@
 
 api_version: 1
 module: cloud-worker
-threadsafe: false
+threadsafe: true
 runtime: custom
 vm: true
 
+# If you change instances, change value in queue.yaml until we come up with
+# a better way to sync these.
 manual_scaling:
-  instances: 1
+  instances: 8
 
 resources:
   cpu: 32

@@ -6,7 +6,9 @@ queue:
 - name: default
   rate: 1/s
 
+# 8 tasks/instance * 4 instances
 - name: mapper-queue
   rate: 500/s
+  max_concurrent_requests: 64
   retry_parameters:
     task_retry_limit: 0

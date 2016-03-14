@@ -2,8 +2,26 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
 
 import cloudstorage as gcs
+
+
+class EnvVarModifier(object):
+  def __init__(self, **kwargs):
+    self._vars = {}
+    self._kwargs = kwargs
+
+  def __enter__(self):
+    for k, v in self._kwargs.iteritems():
+      self._vars[k] = os.environ.get(k)
+      os.environ[k] = v
+    return self
+
+  def __exit__(self, *_):
+    for k, v in self._vars.iteritems():
+      os.environ[k] = v
+
 
 default_retry_params = gcs.RetryParams(initial_delay=0.2,
                                        max_delay=5.0,
@@ -17,24 +35,26 @@ def _remove_gcs_prefix(full_url):
 
 
 def WriteGCS(fullurl, data):
-  gcs_file = gcs.open(_remove_gcs_prefix(fullurl),
-                      'w',
-                      content_type='text/plain',
-                      options={},
-                      retry_params=default_retry_params)
-  gcs_file.write(data)
-  gcs_file.close()
+  with EnvVarModifier(SERVER_SOFTWARE='') as _:
+    gcs_file = gcs.open(_remove_gcs_prefix(fullurl),
+                        'w',
+                        content_type='text/plain',
+                        options={},
+                        retry_params=default_retry_params)
+    gcs_file.write(data)
+    gcs_file.close()
 
 
 def ReadGCS(fullurl):
-  gcs_file = gcs.open(_remove_gcs_prefix(fullurl),
-                      'r',
-                      retry_params=default_retry_params)
+  with EnvVarModifier(SERVER_SOFTWARE='') as _:
+    gcs_file = gcs.open(_remove_gcs_prefix(fullurl),
+                        'r',
+                        retry_params=default_retry_params)
 
-  contents = gcs_file.read()
-  gcs_file.close()
+    contents = gcs_file.read()
+    gcs_file.close()
 
-  return contents
+    return contents
 
 
 def ReadGCSToFile(fullurl, output_file):
@@ -42,7 +62,8 @@ def ReadGCSToFile(fullurl, output_file):
 
 
 def StatGCS(fullurl):
-  try:
-    return gcs.stat(_remove_gcs_prefix(fullurl))
-  except gcs.NotFoundError:
-    return None
+  with EnvVarModifier(SERVER_SOFTWARE='') as _:
+    try:
+      return gcs.stat(_remove_gcs_prefix(fullurl))
+    except gcs.NotFoundError:
+      return None

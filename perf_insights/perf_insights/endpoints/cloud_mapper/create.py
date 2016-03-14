@@ -10,6 +10,11 @@ import webapp2
 from google.appengine.api import taskqueue
 from perf_insights.endpoints.cloud_mapper import job_info
 
+MAX_JOB_TIMEOUT_IN_SECONDS = 600
+DEFAULT_JOB_TIMEOUT_IN_SECONDS = 120
+
+MAX_FUNCTION_TIMEOUT_IN_SECONDS = 120
+DEFAULT_FUNCTION_TIMEOUT_IN_SECONDS = 30
 
 class CreatePage(webapp2.RequestHandler):
 
@@ -19,11 +24,26 @@ class CreatePage(webapp2.RequestHandler):
     mapper = self.request.get('mapper')
     reducer = self.request.get('reducer')
     mapper_function = self.request.get('mapper_function')
+    reducer_function = self.request.get('reducer_function')
     query = self.request.get('query')
     corpus = self.request.get('corpus')
     revision = self.request.get('revision')
     if not revision:
       revision = 'HEAD'
+    timeout = self.request.get('timeout')
+    if not timeout:
+      timeout = DEFAULT_JOB_TIMEOUT_IN_SECONDS
+    else:
+      timeout = int(timeout)
+    function_timeout = self.request.get('function_timeout')
+    if not function_timeout:
+      function_timeout = DEFAULT_FUNCTION_TIMEOUT_IN_SECONDS
+    else:
+      function_timeout = int(function_timeout)
+    timeout = max(0, min(
+        timeout, MAX_JOB_TIMEOUT_IN_SECONDS))
+    function_timeout = max(0, min(
+        function_timeout, MAX_FUNCTION_TIMEOUT_IN_SECONDS))
 
     job_uuid = str(uuid.uuid4())
     logging.info('Creating new job %s' % job_uuid)
@@ -33,10 +53,13 @@ class CreatePage(webapp2.RequestHandler):
     job.mapper = mapper
     job.reducer = reducer
     job.mapper_function = mapper_function
+    job.reducer_function = reducer_function
     job.query = query
     job.corpus = corpus
     job.revision = revision
     job.running_tasks = []
+    job.timeout = timeout
+    job.function_timeout = function_timeout
     job.put()
 
     response = {
