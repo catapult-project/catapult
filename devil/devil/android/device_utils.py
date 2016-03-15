@@ -1434,8 +1434,8 @@ class DeviceUtils(object):
         shutil.rmtree(d)
 
   _LS_RE = re.compile(
-      r'(?P<perms>\S+) +(?P<owner>\S+) +(?P<group>\S+) +(?:(?P<size>\d+) +)?'
-      + r'(?P<date>\S+) +(?P<time>\S+) +(?P<name>.+)$')
+      r'(?P<perms>\S+) (?:(?P<inodes>\d+) +)?(?P<owner>\S+) +(?P<group>\S+) +'
+      r'(?:(?P<size>\d+) +)?(?P<date>\S+) +(?P<time>\S+) +(?P<name>.+)$')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def ReadFile(self, device_path, as_root=False, force_pull=False,
@@ -1468,9 +1468,10 @@ class DeviceUtils(object):
       # as_root=True, then switch this implementation to use that.
       ls_out = self.RunShellCommand(['ls', '-l', device_path], as_root=as_root,
                                     check_return=True)
+      file_name = posixpath.basename(device_path)
       for line in ls_out:
         m = self._LS_RE.match(line)
-        if m and m.group('name') == posixpath.basename(device_path):
+        if m and file_name == posixpath.basename(m.group('name')):
           return int(m.group('size'))
       logging.warning('Could not determine size of %s.', device_path)
       return None

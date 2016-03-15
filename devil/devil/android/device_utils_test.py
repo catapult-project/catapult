@@ -1610,6 +1610,20 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
       self.assertEqual('this is a test file\n',
                        self.device.ReadFile('/read/this/test/file'))
 
+  def testReadFile_exists2(self):
+    # Same as testReadFile_exists, but uses Android N ls output.
+    with self.assertCalls(
+        (self.call.device.RunShellCommand(
+            ['ls', '-l', '/read/this/test/file'],
+            as_root=False, check_return=True),
+         ['-rw-rw-rw- 1 root root 256 2016-03-15 03:27 /read/this/test/file']),
+        (self.call.device.RunShellCommand(
+            ['cat', '/read/this/test/file'],
+            as_root=False, check_return=True),
+         ['this is a test file'])):
+      self.assertEqual('this is a test file\n',
+                       self.device.ReadFile('/read/this/test/file'))
+
   def testReadFile_doesNotExist(self):
     with self.assertCall(
         self.call.device.RunShellCommand(
