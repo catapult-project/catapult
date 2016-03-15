@@ -18,6 +18,9 @@ started](documentation/GettingStarted.md) guide or take a
 look at the [architecture
 diagram](documentation/WebPageReplayDiagram.png).
 
+Also see [Note about web-page-replay
+code](https://docs.google.com/document/d/1cehHn3Lig7UYw_7pqQJjkbPTV3kS11EYwjKO-6jT0c8)
+
 ## I want to help
 If you find issues with the project, you can file issues on this repo.
 If you want to do more and contribute code to help the project evolve,

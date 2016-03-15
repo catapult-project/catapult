@@ -15,8 +15,11 @@
 
 import unittest
 
+import dnsproxy
+import httparchive
 import httpclient
 import platformsettings
+import test_utils
 
 
 class RealHttpFetchTest(unittest.TestCase):
@@ -179,6 +182,29 @@ class RealHttpFetchGetConnectionTest(unittest.TestCase):
     connection = self.fetch._get_connection('example.com', None, is_ssl=True)
     self.assertEqual('example.com', connection._tunnel_host)  # host name
     self.assertEqual(None, connection._tunnel_port)  # host port
+
+
+class ActualNetworkFetchTest(test_utils.RealNetworkFetchTest):
+
+  def testFetchNonSSLRequest(self):
+    real_dns_lookup = dnsproxy.RealDnsLookup(
+        name_servers=[platformsettings.get_original_primary_nameserver()])
+    fetch = httpclient.RealHttpFetch(real_dns_lookup)
+    request = httparchive.ArchivedHttpRequest(
+        command='GET', host='google.com', full_path='/search?q=dogs',
+        request_body=None, headers={}, is_ssl=False)
+    response = fetch(request)
+    self.assertIsNotNone(response)
+
+  def testFetchSSLRequest(self):
+    real_dns_lookup = dnsproxy.RealDnsLookup(
+        name_servers=[platformsettings.get_original_primary_nameserver()])
+    fetch = httpclient.RealHttpFetch(real_dns_lookup)
+    request = httparchive.ArchivedHttpRequest(
+        command='GET', host='google.com', full_path='/search?q=dogs',
+        request_body=None, headers={}, is_ssl=True)
+    response = fetch(request)
+    self.assertIsNotNone(response)
 
 
 if __name__ == '__main__':

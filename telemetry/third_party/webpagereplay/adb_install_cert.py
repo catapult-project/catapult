@@ -23,11 +23,17 @@ import sys
 KEYCODE_ENTER = '66'
 KEYCODE_TAB = '61'
 
+
 class CertInstallError(Exception):
   pass
 
+
 class CertRemovalError(Exception):
   pass
+
+
+
+_ANDROID_M_BUILD_VERSION = 23
 
 
 class AndroidCertInstaller(object):
@@ -56,14 +62,23 @@ class AndroidCertInstaller(object):
     cmd.extend(args)
     return self._run_cmd(cmd)
 
-  def _adb_su_shell(self, *args):
-    """Runs command as root."""
-    cmd = ['shell', 'su', '-c']
+  def _adb_shell(self, *args):
+    cmd = ['shell']
     cmd.extend(args)
     return self._adb(*cmd)
 
+  def _adb_su_shell(self, *args):
+    """Runs command as root."""
+    build_version_sdk = int(self._get_property('ro.build.version.sdk'))
+    if build_version_sdk >= _ANDROID_M_BUILD_VERSION:
+      cmd = ['su', '0']
+    else:
+      cmd = ['su', '-c']
+    cmd.extend(args)
+    return self._adb_shell(*cmd)
+
   def _get_property(self, prop):
-    return self._adb('shell', 'getprop', prop).strip()
+    return self._adb_shell('getprop', prop).strip()
 
   def check_device(self):
     install_warning = False
@@ -78,11 +93,11 @@ class AndroidCertInstaller(object):
 
   def _input_key(self, key):
     """Inputs a keyevent."""
-    self._adb('shell', 'input', 'keyevent', key)
+    self._adb_shell('input', 'keyevent', key)
 
   def _input_text(self, text):
     """Inputs text."""
-    self._adb('shell', 'input', 'text', text)
+    self._adb_shell('input', 'text', text)
 
   @staticmethod
   def _remove(file_name):
@@ -103,7 +118,7 @@ class AndroidCertInstaller(object):
 
   def _remove_cert_from_cacerts(self):
     self._adb_su_shell('mount', '-o', 'remount,rw', '/system')
-    self._adb_su_shell('rm', self.android_cacerts_path)
+    self._adb_su_shell('rm', '-f', self.android_cacerts_path)
 
   def _is_cert_installed(self):
     return (self._adb_su_shell('ls', self.android_cacerts_path).strip() ==
@@ -171,7 +186,7 @@ class AndroidCertInstaller(object):
     self._adb('push', self.cert_path, '/sdcard/')
 
     # Start credential install intent.
-    self._adb('shell', 'am', 'start', '-W', '-a', 'android.credentials.INSTALL')
+    self._adb_shell('am', 'start', '-W', '-a', 'android.credentials.INSTALL')
 
     # Move to and click search button.
     self._input_key(KEYCODE_TAB)
@@ -184,7 +199,7 @@ class AndroidCertInstaller(object):
     self._input_key(KEYCODE_ENTER)
 
     # These coordinates work for hammerhead devices.
-    self._adb('shell', 'input', 'tap', '300', '300')
+    self._adb_shell('input', 'tap', '300', '300')
 
     # Name the certificate and click enter.
     self._input_text(self.cert_name)
@@ -194,7 +209,7 @@ class AndroidCertInstaller(object):
     self._input_key(KEYCODE_ENTER)
 
     # Remove the file.
-    self._adb('shell', 'rm', '/sdcard/' + self.file_name)
+    self._adb_shell('rm', '/sdcard/' + self.file_name)
 
 
 def parse_args():
