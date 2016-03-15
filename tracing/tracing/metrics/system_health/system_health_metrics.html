@@ -18,7 +18,8 @@ tr.exportTo('tr.metrics.sh', function() {
     tr.metrics.sh.EfficiencyMetric(valueList, model);
   }
 
-  tr.metrics.MetricRegistry.register(SystemHealthMetrics);
+  // https://github.com/catapult-project/catapult/issues/2098
+  // tr.metrics.MetricRegistry.register(SystemHealthMetrics);
 
   return {
     SystemHealthMetrics: SystemHealthMetrics
