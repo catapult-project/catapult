@@ -102,11 +102,13 @@ class IssueTrackerServiceTest(testing_common.TestCase):
   def testMakeCommentRequest_UserDoesNotExist_RetryMakeCommentRequest(self):
     service = issue_tracker_service.IssueTrackerService()
     error_content = {
-        'error': {'message': 'The user does not exist', 'code': 404}
+        'error': {'message': 'The user does not exist: test@chromium.org',
+                  'code': 404}
     }
     service._ExecuteRequest = mock.Mock(side_effect=errors.HttpError(
         mock.Mock(return_value={'status': 404}), json.dumps(error_content)))
-    service.AddBugComment(12345, 'The comment', owner='test@chromium.org')
+    service.AddBugComment(12345, 'The comment', cc_list='test@chromium.org',
+                          owner=['test@chromium.org'])
     self.assertEqual(2, service._ExecuteRequest.call_count)
 
   def testMakeCommentRequest_IssueDeleted_ReturnsTrue(self):
