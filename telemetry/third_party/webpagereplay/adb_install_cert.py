@@ -23,17 +23,11 @@ import sys
 KEYCODE_ENTER = '66'
 KEYCODE_TAB = '61'
 
-
 class CertInstallError(Exception):
   pass
 
-
 class CertRemovalError(Exception):
   pass
-
-
-
-_ANDROID_M_BUILD_VERSION = 23
 
 
 class AndroidCertInstaller(object):
@@ -64,11 +58,7 @@ class AndroidCertInstaller(object):
 
   def _adb_su_shell(self, *args):
     """Runs command as root."""
-    build_version_sdk = int(self._get_property('ro.build.version.sdk'))
-    if build_version_sdk >= _ANDROID_M_BUILD_VERSION:
-      cmd = ['shell', 'su', '0']
-    else:
-      cmd = ['shell', 'su', '-c']
+    cmd = ['shell', 'su', '-c']
     cmd.extend(args)
     return self._adb(*cmd)
 
