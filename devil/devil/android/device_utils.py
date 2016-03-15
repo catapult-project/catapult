@@ -2114,17 +2114,14 @@ class DeviceUtils(object):
     # the permission model.
     if not permissions or self.build_version_sdk < version_codes.MARSHMALLOW:
       return
-    # TODO(rnephew): After permission blacklist is complete, switch to using
-    # &&s instead of ;s.
-    cmd = ''
     logging.info('Setting permissions for %s.', package)
     permissions = [p for p in permissions if p not in _PERMISSIONS_BLACKLIST]
     if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
         and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
       permissions.append('android.permission.READ_EXTERNAL_STORAGE')
-    cmd = ';'.join('pm grant %s %s' % (package, p) for p in permissions)
+    cmd = '&&'.join('pm grant %s %s' % (package, p) for p in permissions)
     if cmd:
-      output = self.RunShellCommand(cmd)
+      output = self.RunShellCommand(cmd, check_return=True)
       if output:
         logging.warning('Possible problem when granting permissions. Blacklist '
                         'may need to be updated.')

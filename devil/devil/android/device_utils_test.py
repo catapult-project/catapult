@@ -2192,25 +2192,28 @@ class DeviceUtilsGrantPermissionsTest(DeviceUtilsTest):
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
-          (self.call.device.RunShellCommand(permissions_cmd), [])):
+          (self.call.device.RunShellCommand(
+              permissions_cmd, check_return=True), [])):
         self.device.GrantPermissions('package', ['p1'])
 
   def testGrantPermissions_multiple(self):
-    permissions_cmd = 'pm grant package p1;pm grant package p2'
+    permissions_cmd = 'pm grant package p1&&pm grant package p2'
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
-          (self.call.device.RunShellCommand(permissions_cmd), [])):
+          (self.call.device.RunShellCommand(
+              permissions_cmd, check_return=True), [])):
         self.device.GrantPermissions('package', ['p1', 'p2'])
 
   def testGrantPermissions_WriteExtrnalStorage(self):
     permissions_cmd = (
-        'pm grant package android.permission.WRITE_EXTERNAL_STORAGE;'
+        'pm grant package android.permission.WRITE_EXTERNAL_STORAGE&&'
         'pm grant package android.permission.READ_EXTERNAL_STORAGE')
     with self.patch_call(self.call.device.build_version_sdk,
                          return_value=version_codes.MARSHMALLOW):
       with self.assertCalls(
-          (self.call.device.RunShellCommand(permissions_cmd), [])):
+          (self.call.device.RunShellCommand(
+              permissions_cmd, check_return=True), [])):
         self.device.GrantPermissions(
             'package', ['android.permission.WRITE_EXTERNAL_STORAGE'])
 
