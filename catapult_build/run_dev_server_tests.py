@@ -111,6 +111,7 @@ def DownloadChromium(channel):
 
   # Get the base position for that version from omahaproxy
   base_pos_lookup_url = BASE_POS_LOOKUP_URL % version
+  print 'Getting base_pos from %s' % base_pos_lookup_url
   response = urllib2.urlopen(base_pos_lookup_url)
   base_pos = json.load(response)['chromium_base_position']
 
