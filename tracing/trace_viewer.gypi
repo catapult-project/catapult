@@ -164,6 +164,7 @@
       'tracing/model/annotation.html',
       'tracing/model/async_slice.html',
       'tracing/model/async_slice_group.html',
+      'tracing/model/clock_sync_manager.html',
       'tracing/model/clock_sync_record.html',
       'tracing/model/comment_box_annotation.html',
       'tracing/model/compound_event_selection_state.html',

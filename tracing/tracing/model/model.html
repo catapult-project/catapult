@@ -14,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/alert.html">
+<link rel="import" href="/tracing/model/clock_sync_manager.html">
 <link rel="import" href="/tracing/model/constants.html">
 <link rel="import" href="/tracing/model/device.html">
 <link rel="import" href="/tracing/model/flow_event.html">
@@ -81,6 +82,9 @@ tr.exportTo('tr', function() {
     this.categories = [];
     this.instantEvents = [];
     this.flowEvents = [];
+    this.clockSyncManager = new tr.model.ClockSyncManager();
+    // TODO(charliea): Remove clockSyncRecords once we move over to using the
+    // clockSyncManager.
     this.clockSyncRecords = [];
     this.intrinsicTimeUnit_ = undefined;
 
