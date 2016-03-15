@@ -105,6 +105,7 @@ tr.exportTo('tr.e.importer', function() {
 
     this.v8ProcessCodeMaps_ = {};
     this.v8ProcessRootStackFrame_ = {};
+    this.v8SamplingData_ = [];
 
     // Dump ID -> PID -> [process memory dump events].
     this.allMemoryDumpEvents_ = {};
@@ -443,7 +444,29 @@ tr.exportTo('tr.e.importer', function() {
       return slice;
     },
 
+    processJitCodeEvent: function(event) {
+      if (this.v8ProcessCodeMaps_[event.pid] === undefined)
+        this.v8ProcessCodeMaps_[event.pid] = new tr.e.importer.TraceCodeMap();
+      var map = this.v8ProcessCodeMaps_[event.pid];
+
+      var data = event.args.data;
+      // TODO(dsinclair): There are _a lot_ of JitCode events so I'm skipping
+      // the display for now. Can revisit later if we want to show them.
+      // Handle JitCodeMoved and JitCodeAdded event.
+      if (event.name === 'JitCodeMoved')
+        map.moveEntry(data.code_start, data.new_code_start, data.code_len);
+      else  // event.name === 'JitCodeAdded'
+        map.addEntry(data.code_start, data.code_len, data.name, data.script_id);
+    },
+
     processMetadataEvent: function(event) {
+      // V8 JIT events are currently logged as phase 'M' so we need to
+      // separate them out and handle specially.
+      if (event.name === 'JitCodeAdded' || event.name === 'JitCodeMoved') {
+        this.v8SamplingData_.push(event);
+        return;
+      }
+
       // The metadata events aren't useful without args.
       if (event.argsStripped)
         return;
@@ -505,26 +528,11 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processJitCodeEvent: function(event) {
-      if (this.v8ProcessCodeMaps_[event.pid] === undefined)
-        this.v8ProcessCodeMaps_[event.pid] = new tr.e.importer.TraceCodeMap();
-      var map = this.v8ProcessCodeMaps_[event.pid];
-
-      var data = event.args.data;
-      if (event.name === 'JitCodeMoved')
-        map.moveEntry(data.code_start, data.new_code_start, data.code_len);
-      else
-        map.addEntry(data.code_start, data.code_len, data.name, data.script_id);
-    },
-
     processInstantEvent: function(event) {
-      // V8 JIT events are logged as phase 'I' so we need to separate them out
-      // and handle specially.
-      //
-      // TODO(dsinclair): There are _a lot_ of JitCode events so I'm skipping
-      // the display for now. Can revisit later if we want to show them.
+      // V8 JIT events were logged as phase 'I' in the old format,
+      // so we need to separate them out and handle specially.
       if (event.name === 'JitCodeAdded' || event.name === 'JitCodeMoved') {
-        this.processJitCodeEvent(event);
+        this.v8SamplingData_.push(event);
         return;
       }
 
@@ -654,7 +662,7 @@ tr.exportTo('tr.e.importer', function() {
 
     processTraceSampleEvent: function(event) {
       if (event.name === 'V8Sample') {
-        this.processV8Sample(event);
+        this.v8SamplingData_.push(event);
         return;
       }
 
@@ -754,6 +762,29 @@ tr.exportTo('tr.e.importer', function() {
         sync_id, timestampFromUs(issue_start_ts),
         timestampFromUs(issue_end_ts - issue_start_ts)
       ));
+    },
+
+    // Because the order of Jit code events and V8 samples are not guaranteed,
+    // We store them in an array, sort by timestamp, and then process them.
+    processV8Events: function() {
+      this.v8SamplingData_.sort(function(a, b) {
+        if (a.ts !== b.ts)
+          return a.ts - b.ts;
+        if (a.ph === 'M' || a.ph === 'I')
+          return -1;
+        else if (b.ph === 'M' || b.ph === 'I')
+          return 1;
+        return 0;
+      });
+      var length = this.v8SamplingData_.length;
+      for (var i = 0; i < length; ++i) {
+        var event = this.v8SamplingData_[i];
+        if (event.ph === 'M' || event.ph === 'I') {
+          this.processJitCodeEvent(event);
+        } else if (event.ph === 'P') {
+          this.processV8Sample(event);
+        }
+      }
     },
 
     /**
@@ -864,6 +895,7 @@ tr.exportTo('tr.e.importer', function() {
           });
         }
       }
+      this.processV8Events();
 
       // Remove all the root stack frame children as they should
       // already be added.
