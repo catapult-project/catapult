@@ -1180,7 +1180,7 @@ class FlattenTraceTest(testing_common.TestCase):
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'summary', trace)
 
-  def testFlattenTraceAddsImprovementDirectionIfPresent(self):
+  def testFlattenTrace_AddsImprovementDirectionIfPresent(self):
     """Tests that improvement_direction will be respected if present."""
     trace = {
         'type': 'scalar',
@@ -1194,7 +1194,7 @@ class FlattenTraceTest(testing_common.TestCase):
     self.assertIn('higher_is_better', row)
     self.assertEqual(row['higher_is_better'], True)
 
-  def testFlattenTraceDoesNotAddImprovementDirectionIfAbsent(self):
+  def testFlattenTrace_DoesNotAddImprovementDirectionIfAbsent(self):
     """Tests that no higher_is_better is added if no improvement_direction."""
     trace = {
         'type': 'scalar',
@@ -1206,7 +1206,7 @@ class FlattenTraceTest(testing_common.TestCase):
     row = add_point._FlattenTrace('foo', 'bar', 'summary', trace)
     self.assertNotIn('higher_is_better', row)
 
-  def testFlattenTraceRejectsBadImprovementDirection(self):
+  def testFlattenTrace_RejectsBadImprovementDirection(self):
     """Tests that passing a bad improvement_direction will cause an error."""
     trace = {
         'type': 'scalar',
@@ -1231,20 +1231,31 @@ class FlattenTraceTest(testing_common.TestCase):
     self.assertEqual(row['value'], 42)
     self.assertEqual(row['error'], 0)
 
-  def testFlattenTraceScalarNoneValue(self):
+  def testFlattenTrace_ScalarNoneValue(self):
     """Tests that scalar NoneValue is flattened to NaN."""
     trace = {
         'type': 'scalar',
         'name': 'overall',
         'units': 'ms',
         'value': None,
-        'none_value_reason': 'Reason for test'
+        'none_value_reason': 'Reason for null value'
     }
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertTrue(math.isnan(row['value']))
     self.assertEqual(row['error'], 0)
 
-  def testFlattenTraceListValue(self):
+  def testFlattenTrace_InvalidScalarValue_RaisesError(self):
+    """Tests that scalar NoneValue is flattened to NaN."""
+    trace = {
+        'type': 'scalar',
+        'name': 'overall',
+        'units': 'ms',
+        'value': [42, 43, 44],
+    }
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+
+  def testFlattenTrace_ListValue(self):
     """Tests that lists are properly flattened to avg/stddev."""
     trace = {
         'type': 'list_of_scalar_values',
@@ -1256,7 +1267,7 @@ class FlattenTraceTest(testing_common.TestCase):
     self.assertAlmostEqual(row['value'], 13)
     self.assertAlmostEqual(row['error'], 6.78232998)
 
-  def testFlattenTraceListValueWithStd(self):
+  def testFlattenTrace_ListValueWithStd(self):
     """Tests that lists with reported std use std as error."""
     trace = {
         'type': 'list_of_scalar_values',
@@ -1275,12 +1286,42 @@ class FlattenTraceTest(testing_common.TestCase):
         'type': 'list_of_scalar_values',
         'name': 'overall',
         'units': 'ms',
-        'value': None,
-        'none_value_reason': 'Reason for test'
+        'value': [None],
+        'none_value_reason': 'Reason for null value'
     }
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertTrue(math.isnan(row['value']))
     self.assertTrue(math.isnan(row['error']))
+
+  def testFlattenTrace_ListNoneValueNoReason_RaisesError(self):
+    trace = {
+        'type': 'list_of_scalar_values',
+        'name': 'overall',
+        'units': 'ms',
+        'value': [None],
+    }
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+
+  def testFlattenTrace_ListValueNotAList_RaisesError(self):
+    trace = {
+        'type': 'list_of_scalar_values',
+        'name': 'overall',
+        'units': 'ms',
+        'values': 42,
+    }
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+
+  def testFlattenTrace_ListContainsString_RaisesError(self):
+    trace = {
+        'type': 'list_of_scalar_values',
+        'name': 'overall',
+        'units': 'ms',
+        'values': ['-343', 123],
+    }
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_HistogramValue(self):
     """Tests that histograms are yield geommean/stddev as value/error."""
@@ -1318,6 +1359,17 @@ class FlattenTraceTest(testing_common.TestCase):
     row = add_point._FlattenTrace(
         'foo', 'bar', 'baz', trace, is_ref=True)
     self.assertEqual(row['test'], 'foo/bar/baz_ref')
+
+  def testFlattenTrace_InvalidTraceType(self):
+    """Tests whether a ref trace that is not a chart has the _ref suffix."""
+    trace = {
+        'type': 'foo',
+        'name': 'bar.baz',
+        'units': 'ms',
+        'value': 42
+    }
+    with self.assertRaises(add_point.BadRequestError):
+      add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_SanitizesTraceName(self):
     """Tests whether a trace name with special characters is sanitized."""

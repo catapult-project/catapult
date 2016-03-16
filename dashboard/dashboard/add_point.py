@@ -351,21 +351,30 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
   trace_type = trace.get('type')
   if trace_type == 'scalar':
     value = trace.get('value')
-    if value is None:
-      if trace.get('none_value_reason'):
-        value = float('nan')
-      else:
-        # TODO(qyearsley): Add test coverage. See catapult:#1346.
-        raise BadRequestError('Expected scalar value, got: ' + value)
+    if trace.get('none_value_reason') and value is None:
+      value = float('nan')
+    else:
+      try:
+        value = float(value)
+      except:
+        raise BadRequestError('Expected scalar value, got: %r' % value)
     error = 0
   elif trace_type == 'list_of_scalar_values':
     values = trace.get('values')
-    if not values or None in values:
+    if not isinstance(values, list) and values is not None:
+      # Something else (such as a single scalar, or string) was given.
+      raise BadRequestError('Expected list of scalar values, got: %r' %
+                            values)
+    if values is None or None in values:
+      # This is not an error if there is a "none_value_reason".
       if trace.get('none_value_reason'):
         value = float('nan')
         error = float('nan')
       else:
-        raise BadRequestError('Expected list of scalar values, got: ' + values)
+        raise BadRequestError('Expected list of scalar values, got: %r' %
+                              values)
+    elif not all(isinstance(v, float) or isinstance(v, int) for v in values):
+      raise BadRequestError('Non-number found in values list: %r' % values)
     else:
       value = math_utils.Mean(values)
       std = trace.get('std')
@@ -375,10 +384,8 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
         error = math_utils.StandardDeviation(values)
   elif trace_type == 'histogram':
     value, error = _GeomMeanAndStdDevFromHistogram(trace)
-  elif trace_type is not None:
-    raise BadRequestError('Invalid value type in chart object: ' + trace_type)
   else:
-    raise BadRequestError('No trace type provided.')
+    raise BadRequestError('Invalid value type in chart object: %r' % trace_type)
 
   # If there is a link to an about:tracing trace in cloud storage for this
   # test trace_name, cache it.
