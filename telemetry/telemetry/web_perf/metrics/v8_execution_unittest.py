@@ -102,7 +102,7 @@ class V8ExecutionTests(unittest.TestCase):
                             average=9)
 
   def testOptimizeParseLazy(self):
-    self.AddEvent(RENDERER_PROCESS, '', 'V8.ParseLazyMicroSeconds', 0, 10)
+    self.AddEvent(RENDERER_PROCESS, '', 'V8.ParseLazy', 0, 10)
     self.AddResults()
     self.AssertResultValues('v8_parse_lazy_total', value=10, count=1,
                             average=10)
@@ -112,7 +112,7 @@ class V8ExecutionTests(unittest.TestCase):
                             average=0)
 
     with self.AddEvent(RENDERER_PROCESS, '', 'V8.OptimizeCode', 10, 20):
-      self.AddEvent(RENDERER_PROCESS, '', 'V8.ParseLazyMicroSeconds', 20, 8)
+      self.AddEvent(RENDERER_PROCESS, '', 'V8.ParseLazy', 20, 8)
     self.AddResults()
     self.AssertResultValues('v8_parse_lazy_total', value=18, count=2, average=9)
     self.AssertResultValues('v8_optimize_code_total', value=20, count=1,

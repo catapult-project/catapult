@@ -16,7 +16,7 @@ class V8ExecutionMetric(timeline_based_metric.TimelineBasedMetric):
     self._stats = [
       V8TotalTimeStats('v8_execution_time_total', ['V8.Execute']),
       V8SelfTimeStats('v8_execution_time_self', ['V8.Execute']),
-      V8SelfTimeStats('v8_parse_lazy_total', ['V8.ParseLazyMicroSeconds']),
+      V8SelfTimeStats('v8_parse_lazy_total', ['V8.ParseLazy']),
       V8SelfTimeStats('v8_compile_fullcode_total',
                       ['V8.CompileFullCode']),
       V8TotalTimeStats('v8_recompile_total',
@@ -122,7 +122,7 @@ class V8OptimizeParseLazyStats(V8TimeStats):
   def __init__(self, name):
     super(V8OptimizeParseLazyStats, self).__init__(
       name,
-      ['V8.ParseLazyMicroSeconds'],
+      ['V8.ParseLazy'],
       'Time spent in lazy-parsing due to optimizing code')
 
   def CollectEvent(self, event):
