@@ -11,19 +11,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.importer', function() {
-  var RENDER_FRAME_IMPL_PREFIX = 'RenderFrameImpl::';
-  var CREATE_CHILD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'createChildFrame';
-  var START_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didStartProvisionalLoad';
-  var FAIL_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFailProvisionalLoad';
-  var FINISH_LOAD_TITLE = RENDER_FRAME_IMPL_PREFIX + 'didFinishLoad';
+  // This global instant event marks the start of a navigation.
+  var NAVIGATION_START = 'NavigationTiming navigationStart';
 
-  // This is an instant event that is a subSlice of a FINISH_LOAD_TITLE
-  // event.
-  var LOAD_FINISHED_TITLE = 'LoadFinished';
-
-  function isRenderFrameImplEvent(event) {
-    return event.title.indexOf(RENDER_FRAME_IMPL_PREFIX) === 0;
-  }
+  // This render-process instant event marks the first contentful paint in a
+  // main frame.
+  var FIRST_CONTENTFUL_PAINT_TITLE = 'firstContentfulPaint';
 
   function getAllFrameEvents(modelHelper) {
     var frameEvents = [];
@@ -36,22 +29,6 @@ tr.exportTo('tr.importer', function() {
           tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds));
     });
     return frameEvents.sort(tr.importer.compareEvents);
-  }
-
-  function getStartLoadEvents(modelHelper) {
-    function isStartLoadSlice(slice) {
-      return slice.title === START_LOAD_TITLE;
-    }
-    return modelHelper.browserHelper.getAllAsyncSlicesMatching(
-        isStartLoadSlice).sort(tr.importer.compareEvents);
-  }
-
-  function getFailLoadEvents(modelHelper) {
-    function isFailLoadSlice(slice) {
-      return slice.title === FAIL_LOAD_TITLE;
-    }
-    return modelHelper.browserHelper.getAllAsyncSlicesMatching(
-        isFailLoadSlice).sort(tr.importer.compareEvents);
   }
 
   // If a thread contains a typical initialization slice, then the first event
@@ -77,7 +54,7 @@ tr.exportTo('tr.importer', function() {
   // for each pair.
   function findLoadExpectationsInternal(
       modelHelper, subtypeName, openingEvents, closingEvents) {
-    var lirs = [];
+    var loads = [];
     openingEvents.forEach(function(openingEvent) {
       closingEvents.forEach(function(closingEvent) {
         // Ignore opening event that already have a closing event.
@@ -105,132 +82,66 @@ tr.exportTo('tr.importer', function() {
             closingEvent.end - openingEvent.start);
         lir.associatedEvents.push(openingEvent);
         lir.associatedEvents.push(closingEvent);
-
-        // All RenderFrameImpl events contain the routingId.
-        // |openingEvent| may be either didStartProvisionaLoad or
-        // didCommitProvisionalLoad, so use a general prefix test.
-        if (isRenderFrameImplEvent(openingEvent)) {
-          var renderProcessId = openingEvent.parentContainer.parent.pid;
-          lir.renderProcess = modelHelper.model.processes[renderProcessId];
-          lir.renderMainThread = lir.renderProcess.findAtMostOneThreadNamed(
-              'CrRendererMain');
-          lir.routingId = openingEvent.args.id;
-          lir.parentRoutingId = findLoadParentRoutingId_(lir);
-          findLoadFinishedEvent_(lir);
-        }
-        lirs.push(lir);
+        loads.push(lir);
       });
     });
-    return lirs;
+    return loads;
   }
 
-  // Find the routingId of the createChildFrame event that created the Load
-  // IR's RenderFrame.
-  function findLoadParentRoutingId_(lir) {
-    var createChildEvent = undefined;
-    lir.renderMainThread.iterateAllEvents(function(event) {
-      if (event.title !== CREATE_CHILD_TITLE)
-        return;
+  function findRenderLoadExpectations(modelHelper) {
+    var events = [];
+    modelHelper.model.iterateAllEvents(function(event) {
+      if ((event.title === NAVIGATION_START) ||
+          (event.title === FIRST_CONTENTFUL_PAINT_TITLE))
+        events.push(event);
+    });
+    events.sort(tr.importer.compareEvents);
 
-      if (event.args.child !== lir.routingId)
-        return;
-
-      createChildEvent = event;
+    var loads = [];
+    var startEvent = undefined;
+    events.forEach(function(event) {
+      if (event.title === NAVIGATION_START) {
+        startEvent = event;
+      } else if (event.title === FIRST_CONTENTFUL_PAINT_TITLE) {
+        if (startEvent) {
+          loads.push(new tr.model.um.LoadExpectation(
+              modelHelper.model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
+              startEvent.start, event.start - startEvent.start));
+          startEvent = undefined;
+        }
+      }
     });
 
-    if (!createChildEvent)
-      return undefined;
+    // If the trace ended between navigation start and first contentful paint,
+    // then make a LoadExpectation that ends at the end of the trace.
+    if (startEvent) {
+      loads.push(new tr.model.um.LoadExpectation(
+            modelHelper.model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
+            startEvent.start, modelHelper.model.bounds.end - startEvent.start));
+    }
 
-    return createChildEvent.args.id;
-  }
-
-  function findLoadFinishedEvent_(lir) {
-    // First, find the RenderFrameImpl::didFinishLoad event that indicates a
-    // successful load.
-
-    var finishLoadEvent = undefined;
-    lir.renderMainThread.iterateAllEvents(function(event) {
-      if (event.title !== FINISH_LOAD_TITLE)
-        return;
-
-      if (event.start < lir.start)
-        return;
-
-      // TODO(benjhayden) This part of the heuristic is problematic for now
-      // because |lir.end| is naively the first paint after the load starts.
-      if (event.start > lir.end)
-        return;
-
-      if (event.args.id !== lir.routingId)
-        return;
-
-      finishLoadEvent = event;
-    });
-
-    if (!finishLoadEvent)
-      return undefined;
-
-    lir.associatedEvents.push(finishLoadEvent);
-
-    // Then, see if finishLoadEvent contains a subSlice titled
-    // 'LoadFinished', which indicates that the load was for a main frame.
-
-    var loadFinishedEvent = undefined;
-    finishLoadEvent.subSlices.forEach(function(event) {
-      if (event.title !== LOAD_FINISHED_TITLE)
-        return;
-
-      loadFinishedEvent = event;
-    });
-
-    if (!loadFinishedEvent)
-      return;
-
-    lir.loadFinishedEvent = loadFinishedEvent;
-    lir.associatedEvents.push(loadFinishedEvent);
+    return loads;
   }
 
   // Match up RenderFrameImpl events with frame render events.
   function findLoadExpectations(modelHelper) {
-    var startupEvents = getStartupEvents(modelHelper);
+    var loads = [];
+
     var commitLoadEvents =
         modelHelper.browserHelper.getCommitProvisionalLoadEventsInRange(
             modelHelper.model.bounds);
-    var frameEvents = getAllFrameEvents(modelHelper);
-    var startLoadEvents = getStartLoadEvents(modelHelper);
-    var failLoadEvents = getFailLoadEvents(modelHelper);
-    var lirs = [];
 
     // Attach frame events to every startup events.
-    var startupLIRs = findLoadExpectationsInternal(
+    var startupEvents = getStartupEvents(modelHelper);
+    var frameEvents = getAllFrameEvents(modelHelper);
+    var startupLoads = findLoadExpectationsInternal(
         modelHelper, tr.model.um.LOAD_SUBTYPE_NAMES.STARTUP,
         startupEvents, frameEvents);
-    lirs.push.apply(lirs, startupLIRs);
+    loads.push.apply(loads, startupLoads);
 
-    // Attach frame events to every commit load events.
-    var successfulLIRs = findLoadExpectationsInternal(
-        modelHelper, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
-        commitLoadEvents, frameEvents);
-    successfulLIRs.forEach(function(lir) {
-      // If a successful Load IR has a loadFinishedEvent, then it is a main
-      // frame.
-      // Drop sub-frame Loads for now.
-      if (lir.loadFinishedEvent)
-        lirs.push(lir);
-    });
+    loads.push.apply(loads, findRenderLoadExpectations(modelHelper));
 
-    // Attach fail load events to every start load events.
-    var failedLIRs = findLoadExpectationsInternal(
-        modelHelper, tr.model.um.LOAD_SUBTYPE_NAMES.FAILED,
-        startLoadEvents, failLoadEvents);
-    failedLIRs.forEach(function(lir) {
-      // If a failed Load IR has a parentRoutingId, then it is a sub-frame.
-      // Drop sub-frame Loads for now.
-      if (lir.parentRoutingId === undefined)
-        lirs.push(lir);
-    });
-
-    return lirs;
+    return loads;
   }
 
   return {

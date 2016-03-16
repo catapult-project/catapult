@@ -44,6 +44,20 @@ tr.exportTo('tr.e.chrome', function() {
     return slice;
   };
 
+  ChromeTestUtils.addNavigationStartEvent = function(model, dict) {
+    dict.title = 'NavigationTiming navigationStart';
+    var event = tr.c.TestUtils.newInstantEvent(dict);
+    model.instantEvents.push(event);
+    return event;
+  };
+
+  ChromeTestUtils.addFirstContentfulPaintEvent = function(model, dict) {
+    dict.title = 'firstContentfulPaint';
+    var event = tr.c.TestUtils.newInstantEvent(dict);
+    model.instantEvents.push(event);
+    return event;
+  };
+
   ChromeTestUtils.addInputEvent = function(model, typeName, dict) {
     dict.title = 'InputLatency::' + typeName;
     dict.isTopLevel = (dict.isTopLevel === undefined);

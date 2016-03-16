@@ -88,25 +88,25 @@ tr.exportTo('tr.c', function() {
     return s;
   };
 
+  function getColorId(colorId) {
+    if (colorId) {
+      if (colorId === 'random') {
+        colorId = Math.floor(
+            Math.random() *
+            ColorScheme.proprties.numGeneralPurposeColorIds);
+      }
+    } else {
+      colorId = 0;
+    }
+    return colorId;
+  }
+
   TestUtils.newAsyncSliceEx = function(options) {
     var sd = TestUtils.getStartAndDurationFromDict(options);
 
     var cat = options.cat ? options.cat : 'cat';
     var title = options.title ? options.title : 'a';
-
-    var colorId;
-    if (options.colorId) {
-      if (options.colorId === 'random') {
-        colorId = Math.floor(
-            Math.random() *
-            ColorScheme.proprties.numGeneralPurposeColorIds);
-      } else {
-        colorId = options.colorId;
-      }
-    } else {
-      colorId = 0;
-    }
-
+    var colorId = getColorId(options.colorId);
 
     var isTopLevel;
     if (options.isTopLevel !== undefined)
@@ -459,6 +459,21 @@ tr.exportTo('tr.c', function() {
     outputEl.appendChild(copyButtonEl);
     outputEl.appendChild(testSourceEl);
     test.addHTMLOutput(outputEl);
+  };
+
+  TestUtils.newInstantEvent = function(options) {
+    var title = options.title;
+    var start = options.start;
+    if ((title === undefined) ||
+        (title === '') ||
+        (start === undefined))
+      throw new Error('too little information');
+
+    var category = options.category || 'category';
+    var colorId = getColorId(options.colorId);
+    var args = options.args || {};
+    return new tr.model.InstantEvent(
+        category, title, colorId, start, args);
   };
 
   return {
