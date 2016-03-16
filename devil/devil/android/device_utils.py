@@ -67,6 +67,7 @@ _RESTART_ADBD_SCRIPT = """
 _PERMISSIONS_BLACKLIST = [
     'android.permission.ACCESS_MOCK_LOCATION',
     'android.permission.ACCESS_NETWORK_STATE',
+    'android.permission.ACCESS_WIFI_STATE',
     'android.permission.AUTHENTICATE_ACCOUNTS',
     'android.permission.BLUETOOTH',
     'android.permission.BLUETOOTH_ADMIN',
