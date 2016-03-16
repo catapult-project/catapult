@@ -725,10 +725,15 @@ tr.exportTo('tr.importer', function() {
 
     var animationRanges = [];
     animationEvents.forEach(function(event) {
+      var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
+          modelHelper, event.parentContainer.parent);
       animationRanges.push({
         min: event.start,
         max: event.end,
-        event: event
+        event: event,
+        frames: rendererHelper.getFrameEventsInRange(
+            tr.model.helpers.IMPL_FRAMETIME_TYPE,
+            tr.b.Range.fromExplicitRange(event.start, event.end))
       });
     });
 
@@ -737,6 +742,7 @@ tr.exportTo('tr.importer', function() {
           ProtoExpectation.ANIMATION_TYPE, CSS_IR_NAME);
       ranges.forEach(function(range) {
         protoExpectation.pushEvent(range.event);
+        protoExpectation.associatedEvents.addEventSet(range.frames);
       });
       return protoExpectation;
     }
