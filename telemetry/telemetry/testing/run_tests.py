@@ -227,14 +227,9 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
     # Typ doesn't keep the DependencyManager initialization in the child
     # processes.
     binary_manager.InitDependencyManager(context.client_config)
+  args = context
   # We need to reset the handlers in case some other parts of telemetry already
   # set it to make this work.
-  logging.getLogger().handlers = []
-  logging.basicConfig(
-      level=logging.INFO,
-      format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-             '%(message)s')
-  args = context
   if not args.disable_logging_config:
     logging.getLogger().handlers = []
     logging.basicConfig(
