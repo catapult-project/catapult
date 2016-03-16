@@ -348,44 +348,7 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
     tir_label, chart_name = chart_name.split('@@')
     chart_name = chart_name + '/' + tir_label
 
-  trace_type = trace.get('type')
-  if trace_type == 'scalar':
-    value = trace.get('value')
-    if trace.get('none_value_reason') and value is None:
-      value = float('nan')
-    else:
-      try:
-        value = float(value)
-      except:
-        raise BadRequestError('Expected scalar value, got: %r' % value)
-    error = 0
-  elif trace_type == 'list_of_scalar_values':
-    values = trace.get('values')
-    if not isinstance(values, list) and values is not None:
-      # Something else (such as a single scalar, or string) was given.
-      raise BadRequestError('Expected list of scalar values, got: %r' %
-                            values)
-    if values is None or None in values:
-      # This is not an error if there is a "none_value_reason".
-      if trace.get('none_value_reason'):
-        value = float('nan')
-        error = float('nan')
-      else:
-        raise BadRequestError('Expected list of scalar values, got: %r' %
-                              values)
-    elif not all(isinstance(v, float) or isinstance(v, int) for v in values):
-      raise BadRequestError('Non-number found in values list: %r' % values)
-    else:
-      value = math_utils.Mean(values)
-      std = trace.get('std')
-      if std is not None:
-        error = std
-      else:
-        error = math_utils.StandardDeviation(values)
-  elif trace_type == 'histogram':
-    value, error = _GeomMeanAndStdDevFromHistogram(trace)
-  else:
-    raise BadRequestError('Invalid value type in chart object: %r' % trace_type)
+  value, error = _ExtractValueAndError(trace)
 
   # If there is a link to an about:tracing trace in cloud storage for this
   # test trace_name, cache it.
@@ -396,7 +359,6 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
     tracing_uri = tracing_links[trace_name]['cloud_url'].replace('\\/', '/')
 
   trace_name = _EscapeName(trace_name)
-
   if trace_name == 'summary':
     subtest_name = chart_name
   else:
@@ -425,6 +387,58 @@ def _FlattenTrace(test_suite_name, chart_name, trace_name, trace,
         improvement_direction_str)
 
   return row_dict
+
+
+def _ExtractValueAndError(trace):
+  """Returns the value and measure of error from a chartjson trace dict.
+
+  Args:
+    trace: A dict that has one "result" from a performance test, e.g. one
+        "value" in a Telemetry test, with the keys "trace_type", "value", etc.
+
+  Returns:
+    A pair (value, error) where |value| is a float and |error| is some measure
+    of variance used to show error bars; |error| could be None.
+
+  Raises:
+    BadRequestError: Data format was invalid.
+  """
+  trace_type = trace.get('type')
+
+  if trace_type == 'scalar':
+    value = trace.get('value')
+    if value is None and trace.get('none_value_reason'):
+      return float('nan'), 0
+    try:
+      return float(value), 0
+    except:
+      raise BadRequestError('Expected scalar value, got: %r' % value)
+
+  if trace_type == 'list_of_scalar_values':
+    values = trace.get('values')
+    if not isinstance(values, list) and values is not None:
+      # Something else (such as a single scalar, or string) was given.
+      raise BadRequestError('Expected list of scalar values, got: %r' % values)
+    if not values or None in values:
+      # None was included or values is None; this is not an error if there
+      # is a reason.
+      if trace.get('none_value_reason'):
+        return float('nan'), float('nan')
+      raise BadRequestError('Expected list of scalar values, got: %r' % values)
+    if not all(isinstance(v, float) or isinstance(v, int) for v in values):
+      raise BadRequestError('Non-number found in values list: %r' % values)
+    value = math_utils.Mean(values)
+    std = trace.get('std')
+    if std is not None:
+      error = std
+    else:
+      error = math_utils.StandardDeviation(values)
+    return value, error
+
+  if trace_type == 'histogram':
+    return _GeomMeanAndStdDevFromHistogram(trace)
+
+  raise BadRequestError('Invalid value type in chart object: %r' % trace_type)
 
 
 def _EscapeName(name):
