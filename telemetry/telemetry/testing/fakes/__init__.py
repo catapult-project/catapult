@@ -25,6 +25,7 @@ from telemetry.testing.internal import fake_gpu_info
 class FakePlatform(object):
   def __init__(self):
     self._network_controller = None
+    self._tracing_controller = None
 
   @property
   def is_host_platform(self):
@@ -38,7 +39,9 @@ class FakePlatform(object):
 
   @property
   def tracing_controller(self):
-    return None
+    if self._tracing_controller is None:
+      self._tracing_controller = _FakeTracingController()
+    return  self._tracing_controller
 
   def CanMonitorThermalThrottling(self):
     return False
@@ -252,6 +255,23 @@ class _FakeBrowser(object):
 class _FakeCredentials(object):
   def WarnIfMissingCredentials(self, _):
     pass
+
+
+class _FakeTracingController(object):
+  def __init__(self):
+    self._is_tracing = False
+
+  def StartTracing(self, tracing_config, timeout=10):
+    self._is_tracing = True
+    del tracing_config
+    del timeout
+
+  def StopTracing(self):
+    self._is_tracing = False
+
+  @property
+  def is_tracing_running(self):
+    return self._is_tracing
 
 
 class _FakeNetworkController(object):

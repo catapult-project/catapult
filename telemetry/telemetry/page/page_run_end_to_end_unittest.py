@@ -146,6 +146,8 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
+    story_set.AddStory(page_module.Page(
+        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
 
     class Test(page_test.PageTest):
 
@@ -155,9 +157,10 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         self.run_count = 0
 
       def RestartBrowserBeforeEachPage(self):
+        # This will only be called twice with 3 pages.
         old_run_count = self.run_count
         self.run_count += 1
-        if old_run_count == 0:
+        if old_run_count == 1:
           raise exceptions.BrowserGoneException(None)
         return self._needs_browser_restart_after_each_page
 
@@ -172,7 +175,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results)
     self.assertEquals(2, test.run_count)
-    self.assertEquals(1, len(GetSuccessfulPageRuns(results)))
+    self.assertEquals(2, len(GetSuccessfulPageRuns(results)))
     self.assertEquals(1, len(results.failures))
     self.assertFormattedExceptionIsEmpty()
 
@@ -384,6 +387,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
       def _StopBrowser(self):
         super(TestSharedState, self)._StopBrowser()
         num_times_browser_closed[0] += 1
+
     story_set = story.StorySet()
     page = page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
@@ -409,9 +413,10 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results)
     self.assertEquals('about:blank', options.browser_options.startup_url)
-    # _StopBrowser should be called 3 times: after browser restarts, after page
-    # 2 has run and in the TearDownState after all the pages have run.
-    self.assertEquals(num_times_browser_closed[0], 3)
+    # _StopBrowser should be called 2 times:
+    # 1. browser restarts after page 1 run
+    # 2. in the TearDownState after all the pages have run.
+    self.assertEquals(num_times_browser_closed[0], 2)
 
   # Ensure that story_runner calls cleanUp when a page run fails.
   def testCleanUpPage(self):
