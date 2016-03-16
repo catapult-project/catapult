@@ -1135,265 +1135,192 @@ class FlattenTraceTest(testing_common.TestCase):
     rows = add_point._DashboardJsonToRawRows(chart)
     self.assertEqual('my_test_suite/my_test/ref', rows[0]['test'])
 
+  @staticmethod
+  def _SampleTrace():
+    return {
+        'name': 'bar.baz',
+        'units': 'meters',
+        'type': 'scalar',
+        'value': 42,
+    }
+
   def testFlattenTrace_PreservesUnits(self):
     """Tests that _FlattenTrace preserves the units property."""
-    trace = {
-        'type': 'scalar',
-        'name': 'overall',
-        'units': 'ms',
-        'value': 42
-    }
+    trace = self._SampleTrace()
+    trace.update({'units': 'ms'})
     row = add_point._FlattenTrace('foo', 'bar', 'bar', trace)
     self.assertEqual(row['units'], 'ms')
 
   def testFlattenTrace_CoreTraceName(self):
     """Tests that chartname.summary will be flattened to chartname."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar',
-        'units': 'ms',
-        'value': 42
-    }
+    trace = self._SampleTrace()
+    trace.update({'name': 'summary'})
     row = add_point._FlattenTrace('foo', 'bar', 'summary', trace)
     self.assertEqual(row['test'], 'foo/bar')
 
   def testFlattenTrace_NonSummaryTraceName_SetCorrectly(self):
     """Tests that chart.trace will be flattened to chart/trace."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar.baz',
-        'units': 'ms',
-        'value': 42
-    }
+    trace = self._SampleTrace()
+    trace.update({'name': 'bar.baz'})
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertEqual(row['test'], 'foo/bar/baz')
 
   def testFlattenTrace_ImprovementDirectionCannotBeNone(self):
     """Tests that an improvement_direction must not be None if passed."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar',
-        'units': 'ms',
-        'value': 42,
-        'improvement_direction': None
-    }
+    trace = self._SampleTrace()
+    trace.update({'improvement_direction': None})
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'summary', trace)
 
   def testFlattenTrace_AddsImprovementDirectionIfPresent(self):
     """Tests that improvement_direction will be respected if present."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar',
-        'units': 'ms',
-        'value': 42,
-        'improvement_direction': 'up'
-    }
-
+    trace = self._SampleTrace()
+    trace.update({'improvement_direction': 'up'})
     row = add_point._FlattenTrace('foo', 'bar', 'summary', trace)
-    self.assertIn('higher_is_better', row)
-    self.assertEqual(row['higher_is_better'], True)
+    self.assertTrue(row['higher_is_better'])
 
   def testFlattenTrace_DoesNotAddImprovementDirectionIfAbsent(self):
     """Tests that no higher_is_better is added if no improvement_direction."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar',
-        'units': 'ms',
-        'value': 42
-    }
-
-    row = add_point._FlattenTrace('foo', 'bar', 'summary', trace)
+    row = add_point._FlattenTrace('foo', 'bar', 'summary', self._SampleTrace())
     self.assertNotIn('higher_is_better', row)
 
   def testFlattenTrace_RejectsBadImprovementDirection(self):
     """Tests that passing a bad improvement_direction will cause an error."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar',
-        'units': 'ms',
-        'value': 42,
-        'improvement_direction': 'foo'
-    }
-
+    trace = self._SampleTrace()
+    trace.update({'improvement_direction': 'foo'})
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'summary', trace)
 
   def testFlattenTrace_ScalarValue(self):
     """Tests that scalars are flattened to 0-error values."""
-    trace = {
-        'type': 'scalar',
-        'name': 'overall',
-        'units': 'ms',
-        'value': 42
-    }
-    row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+    row = add_point._FlattenTrace('foo', 'bar', 'baz', self._SampleTrace())
     self.assertEqual(row['value'], 42)
     self.assertEqual(row['error'], 0)
 
   def testFlattenTrace_ScalarNoneValue(self):
     """Tests that scalar NoneValue is flattened to NaN."""
-    trace = {
-        'type': 'scalar',
-        'name': 'overall',
-        'units': 'ms',
-        'value': None,
-        'none_value_reason': 'Reason for null value'
-    }
+    trace = self._SampleTrace()
+    trace.update({'value': None, 'none_value_reason': 'reason'})
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertTrue(math.isnan(row['value']))
     self.assertEqual(row['error'], 0)
 
   def testFlattenTrace_InvalidScalarValue_RaisesError(self):
     """Tests that scalar NoneValue is flattened to NaN."""
-    trace = {
-        'type': 'scalar',
-        'name': 'overall',
-        'units': 'ms',
-        'value': [42, 43, 44],
-    }
+    trace = self._SampleTrace()
+    trace.update({'value': [42, 43, 44]})
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_ListValue(self):
     """Tests that lists are properly flattened to avg/stddev."""
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'list_of_scalar_values',
-        'name': 'bar.baz',
-        'units': 'ms',
         'values': [5, 10, 25, 10, 15],
-    }
+    })
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertAlmostEqual(row['value'], 13)
     self.assertAlmostEqual(row['error'], 6.78232998)
 
   def testFlattenTrace_ListValueWithStd(self):
     """Tests that lists with reported std use std as error."""
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'list_of_scalar_values',
-        'name': 'bar.baz',
-        'units': 'ms',
         'values': [5, 10, 25, 10, 15],
         'std': 100,
-    }
+    })
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertNotAlmostEqual(row['error'], 6.78232998)
     self.assertEqual(row['error'], 100)
 
   def testFlattenTrace_ListNoneValue(self):
     """Tests that LoS NoneValue is flattened to NaN."""
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'list_of_scalar_values',
-        'name': 'overall',
-        'units': 'ms',
         'value': [None],
         'none_value_reason': 'Reason for null value'
-    }
+    })
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertTrue(math.isnan(row['value']))
     self.assertTrue(math.isnan(row['error']))
 
   def testFlattenTrace_ListNoneValueNoReason_RaisesError(self):
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'list_of_scalar_values',
-        'name': 'overall',
-        'units': 'ms',
         'value': [None],
-    }
+    })
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_ListValueNotAList_RaisesError(self):
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'list_of_scalar_values',
-        'name': 'overall',
-        'units': 'ms',
         'values': 42,
-    }
+    })
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_ListContainsString_RaisesError(self):
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'list_of_scalar_values',
-        'name': 'overall',
-        'units': 'ms',
         'values': ['-343', 123],
-    }
+    })
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_HistogramValue(self):
     """Tests that histograms are yield geommean/stddev as value/error."""
-    trace = {
+    trace = self._SampleTrace()
+    trace.update({
         'type': 'histogram',
-        'name': 'bar.baz',
-        'units': 'ms',
         'buckets': [{'low': 1, 'high': 5, 'count': 3},
                     {'low': 4, 'high': 6, 'count': 4}]
-    }
+    })
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertAlmostEqual(row['value'], 4.01690877)
     self.assertAlmostEqual(row['error'], 0.99772482)
 
   def testFlattenTrace_RespectsIsRefForSameTraceName(self):
     """Tests whether a ref trace that is a chart has the /ref suffix."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar',
-        'units': 'ms',
-        'value': 42
-    }
     row = add_point._FlattenTrace(
-        'foo', 'bar', 'summary', trace, is_ref=True)
+        'foo', 'bar', 'summary', self._SampleTrace(), is_ref=True)
     self.assertEqual(row['test'], 'foo/bar/ref')
 
   def testFlattenTrace_RespectsIsRefForDifferentTraceName(self):
     """Tests whether a ref trace that is not a chart has the _ref suffix."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar.baz',
-        'units': 'ms',
-        'value': 42
-    }
     row = add_point._FlattenTrace(
-        'foo', 'bar', 'baz', trace, is_ref=True)
+        'foo', 'bar', 'baz', self._SampleTrace(), is_ref=True)
     self.assertEqual(row['test'], 'foo/bar/baz_ref')
 
   def testFlattenTrace_InvalidTraceType(self):
     """Tests whether a ref trace that is not a chart has the _ref suffix."""
-    trace = {
-        'type': 'foo',
-        'name': 'bar.baz',
-        'units': 'ms',
-        'value': 42
-    }
+    trace = self._SampleTrace()
+    trace.update({'type': 'foo'})
     with self.assertRaises(add_point.BadRequestError):
       add_point._FlattenTrace('foo', 'bar', 'baz', trace)
 
   def testFlattenTrace_SanitizesTraceName(self):
     """Tests whether a trace name with special characters is sanitized."""
-    trace = {
-        'type': 'scalar',
-        'name': 'bar.baz',
-        'page': 'http://example.com',
-        'units': 'ms',
-        'value': 42
-    }
+    trace = self._SampleTrace()
+    trace.update({'page': 'http://example.com'})
     row = add_point._FlattenTrace(
         'foo', 'bar', 'http://example.com', trace)
     self.assertEqual(row['test'], 'foo/bar/http___example.com')
 
   def testFlattenTrace_FlattensInteractionRecordLabelToFivePartName(self):
     """Tests whether a TIR label will appear between chart and trace name."""
-    trace = {
-        'type': 'scalar',
+    trace = self._SampleTrace()
+    trace.update({
         'name': 'bar',
         'page': 'https://abc.xyz/',
-        'units': 'ms',
-        'value': 42,
         'tir_label': 'baz'
-    }
+    })
     row = add_point._FlattenTrace('foo', 'baz@@bar', 'https://abc.xyz/', trace)
     self.assertEqual(row['test'], 'foo/bar/baz/https___abc.xyz_')
 
