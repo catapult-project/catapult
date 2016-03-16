@@ -5,6 +5,8 @@
 import os
 import sys
 
+_CATAPULT_PATH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # Directories in catapult/third_party required by dashboard.
 THIRD_PARTY_LIBRARIES = [
@@ -42,33 +44,48 @@ DASHBOARD_FILES = [
 def PathsForDeployment():
   """Returns a list of paths to things required for deployment.
 
+  This includes both Python libraries that are required, and also
+  other files, such as config files.
+
   This list is used when building a temporary deployment directory;
   each of the items in this list will have a corresponding file or
   directory with the same basename in the deployment directory.
   """
   paths = []
-
-  catapult_path = os.path.abspath(os.path.join(
-      os.path.dirname(__file__), '..', '..'))
-  dashboard_dir = os.path.join(catapult_path, 'dashboard')
+  paths.extend(_CatapultThirdPartyLibraryPaths())
+  for p in _AllSdkThirdPartyLibraryPaths():
+    if os.path.basename(p) in THIRD_PARTY_LIBRARIES_IN_SDK:
+      paths.append(p)
   for name in DASHBOARD_FILES:
-    paths.append(os.path.join(dashboard_dir, name))
+    paths.append(os.path.join(_CATAPULT_PATH, 'dashboard', name))
+  return paths
 
+
+def ExtraPythonLibraryPaths():
+  """Returns a list of Python library paths required for dashboard tests."""
+  paths = []
+  paths.append(os.path.join(_CATAPULT_PATH, 'dashboard'))
+  paths.extend(_AllSdkThirdPartyLibraryPaths())
+  paths.extend(_CatapultThirdPartyLibraryPaths())
+  return paths
+
+
+def _AllSdkThirdPartyLibraryPaths():
+  """Returns a list of all third party library paths from the SDK."""
   try:
     import dev_appserver
   except ImportError:
-    # The App Engine SDK is assumed to be in PYTHONPATH when setting
-    # up the deployment directory, but isn't available in production.
-    # (But this function shouldn't be called in production anyway.)
-    sys.stderr.write('Error importing dev_appserver; please install app engine'
-                     ' SDK. See https://cloud.google.com/appengine/downloads\n')
+    # TODO(qyearsley): Put the App Engine SDK in the path with the
+    # binary dependency manager.
+    # https://github.com/catapult-project/catapult/issues/2135
+    print 'This script requires the App Engine SDK to be in PYTHONPATH.'
     sys.exit(1)
-  for path in dev_appserver.EXTRA_PATHS:
-    if os.path.basename(path) in THIRD_PARTY_LIBRARIES_IN_SDK:
-      paths.append(path)
+  return dev_appserver.EXTRA_PATHS
 
-  third_party_dir = os.path.join(catapult_path, 'third_party')
-  for library_dir in THIRD_PARTY_LIBRARIES:
-    paths.append(os.path.join(third_party_dir, library_dir))
 
+def _CatapultThirdPartyLibraryPaths():
+  """Returns a list of required third-party libraries in catapult."""
+  paths = []
+  for library in THIRD_PARTY_LIBRARIES:
+    paths.append(os.path.join(_CATAPULT_PATH, 'third_party', library))
   return paths

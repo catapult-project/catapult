@@ -8,27 +8,9 @@
 import os
 import sys
 
-_CATAPULT = os.path.abspath(
+_CATAPULT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
-
-
-def _ExtraPaths():
-  """Returns a list of paths to add to sys.path when running dashboard tests."""
-  try:
-    import dev_appserver
-  except ImportError:
-    # TODO(qyearsley): Put the App Engine SDK in the path with the
-    # binary dependency manager.
-    print 'This script requires the App Engine SDK to be in PYTHONPATH.'
-    sys.exit(1)
-  extra_paths = dev_appserver.EXTRA_PATHS
-  dashboard_path = os.path.join(_CATAPULT, 'dashboard')
-  extra_paths.append(dashboard_path)
-  _AddToPathIfNeeded(dashboard_path)
-  import dashboard
-  for library in dashboard.THIRD_PARTY_LIBRARIES:
-    extra_paths.append(os.path.join(_CATAPULT, 'third_party', library))
-  return extra_paths
+_DASHBOARD_PATH = os.path.join(_CATAPULT_PATH, 'dashboard')
 
 
 def _AddToPathIfNeeded(path):
@@ -37,7 +19,8 @@ def _AddToPathIfNeeded(path):
 
 
 if __name__ == '__main__':
-  _AddToPathIfNeeded(_CATAPULT)
+  _AddToPathIfNeeded(_CATAPULT_PATH)
+  _AddToPathIfNeeded(_DASHBOARD_PATH)
 
   from hooks import install
   if '--no-install-hooks' in sys.argv:
@@ -46,6 +29,8 @@ if __name__ == '__main__':
     install.InstallHooks()
 
   from catapult_build import run_with_typ
-  sys.exit(run_with_typ.Run(
-      os.path.join(_CATAPULT, 'dashboard', 'dashboard'),
-      path=_ExtraPaths()))
+  import dashboard
+  return_code = run_with_typ.Run(
+      os.path.join(_DASHBOARD_PATH, 'dashboard'),
+      path=dashboard.ExtraPythonLibraryPaths())
+  sys.exit(return_code)

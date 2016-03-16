@@ -23,6 +23,7 @@ def DevAppserver(paths, args):
   except ImportError:
     # TODO(qyearsley): Put the App Engine SDK in the path with the
     # binary dependency manager.
+    # See https://github.com/catapult-project/catapult/issues/2135
     print 'This script requires the App Engine SDK to be in PYTHONPATH.'
     sys.exit(1)
   with temp_deployment_dir.TempDeploymentDir(paths) as temp_dir:
