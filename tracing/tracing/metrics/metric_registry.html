@@ -4,6 +4,8 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/extension_registry.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 
 <script>
@@ -11,25 +13,12 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics', function() {
 
-  var MetricRegistry = {
-    metricsByName_: {},
-    get metrics() { return tr.b.dictionaryValues(this.metricsByName_); }
-  };
+  function MetricRegistry() {}
 
-  /**
-   * @param {Function} metric A metric, which takes a ValueList and Model and
-   *    adds values to the ValueList.
-   */
-  MetricRegistry.register = function(metric) {
-    if (typeof(metric) !== 'function')
-      throw new Error('Tried to register a non-function as metric.');
-    if (metric.name === '')
-      throw new Error('Registered metrics must not be anonymous');
-    if (this.metricsByName_[metric.name] !== undefined)
-      throw new Error('Metric named ' + metric.name +
-                      ' is already registered.');
-    this.metricsByName_[metric.name] = metric;
-  };
+  var options = new tr.b.ExtensionRegistryOptions(tr.b.BASIC_REGISTRY_MODE);
+  options.defaultMetadata = {};
+  options.mandatoryBaseClass = Function;
+  tr.b.decorateExtensionRegistry(MetricRegistry, options);
 
   return {
     MetricRegistry: MetricRegistry

@@ -107,6 +107,10 @@ tr.exportTo('tr.metrics.sh', function() {
         maxEventBytesPerCategoryValue));
   }
 
+  tracingMetric.prototype = {
+    __proto__: Function.prototype
+  };
+
   tr.metrics.MetricRegistry.register(tracingMetric);
 
   return {

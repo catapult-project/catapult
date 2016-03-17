@@ -4,8 +4,8 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/extension_registry_base.html">
 <link rel="import" href="/tracing/base/event.html">
+<link rel="import" href="/tracing/base/extension_registry_base.html">
 <script>
 'use strict';
 
@@ -99,6 +99,17 @@ tr.exportTo('tr.b', function() {
           return typeInfo;
       }
       return extensionRegistryOptions.defaultTypeInfo;
+    };
+
+    registry.findTypeInfoWithName = function(name) {
+      if (typeof(name) !== 'string')
+        throw new Error('Name is not a string.');
+      var typeInfo = registry.findTypeInfoMatching(function(ti) {
+        return ti.constructor.name === name;
+      });
+      if (typeInfo)
+        return typeInfo;
+      return undefined;
     };
   }
 

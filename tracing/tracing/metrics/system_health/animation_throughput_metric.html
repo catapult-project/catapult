@@ -54,6 +54,10 @@ tr.exportTo('tr.metrics.sh', function() {
     });
   }
 
+  AnimationThroughputMetric.prototype = {
+    __proto__: Function.prototype
+  };
+
   tr.metrics.MetricRegistry.register(AnimationThroughputMetric);
 
   return {

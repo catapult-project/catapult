@@ -14,7 +14,8 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics', function() {
   function metricMapFunction(result, model, metric_to_run) {
     var valueList = new tr.metrics.ValueList();
-    var metrics = tr.metrics.MetricRegistry.metrics;
+    var metrics = tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().map(
+      function(ti) { return ti.constructor; });
     for (var metric in metrics) {
       metrics[metric](valueList, model);
     }
