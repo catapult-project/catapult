@@ -160,16 +160,33 @@ tr.exportTo('tr.importer', function() {
         });
       }, this);
 
+      // We import clock sync markers before all other events. This is necessary
+      // because we need the clock sync markers in order to know by how much we
+      // need to shift the timestamps of other events.
+      lastTask = lastTask.timedAfter('TraceImport',
+                                     function importClockSyncMarkers(task) {
+        importers.forEach(function(importer, index) {
+          task.subTask(Timing.wrapNamedFunction(
+              'TraceImport', importer.importerName,
+              function runImportClockSyncMarkersOnOneImporter() {
+                progressMeter.update(
+                    'Importing clock sync markers ' + (index + 1) + ' of ' +
+                      importers.length);
+                importer.importClockSyncMarkers();
+              }), this);
+        }, this);
+      }, this);
+
       // Run the import.
       lastTask = lastTask.timedAfter('TraceImport', function runImport(task) {
         importers.forEach(function(importer, index) {
           task.subTask(Timing.wrapNamedFunction(
-            'TraceImport', importer.importerName,
-            function runImportEventsOnOneImporter() {
-              progressMeter.update(
-                'Importing ' + (index + 1) + ' of ' + importers.length);
-              importer.importEvents();
-            }), this);
+              'TraceImport', importer.importerName,
+              function runImportEventsOnOneImporter() {
+                progressMeter.update(
+                    'Importing ' + (index + 1) + ' of ' + importers.length);
+                importer.importEvents();
+              }), this);
         }, this);
       }, this);
 
