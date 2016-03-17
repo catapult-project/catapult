@@ -90,6 +90,23 @@ tr.exportTo('tr.metrics.sh', function() {
     tr.metrics.sh.AnimationThroughputMetric(valueList, model);
     tr.metrics.sh.AnimationSmoothnessMetric(valueList, model);
 
+    var throughputForAnimation = {};
+    var smoothnessForAnimation = {};
+    valueList.valueDicts.forEach(function(value) {
+      if ((value.type !== 'numeric') ||
+          (value.numeric.type !== 'scalar'))
+        return;
+
+      var ue = value.grouping_keys.userExpectation;
+
+      if (value.grouping_keys.name === 'throughput')
+        throughputForAnimation[ue] = value.numeric.value;
+      if (value.grouping_keys.name === 'smoothness')
+        smoothnessForAnimation[ue] = value.numeric.value;
+    });
+
+    var scores = [];
+
     model.userModel.expectations.forEach(function(ue) {
       var score = undefined;
 
@@ -103,34 +120,25 @@ tr.exportTo('tr.metrics.sh', function() {
         score = RESPONSE_HISTOGRAM.getInterpolatedCountAt(ue.duration) /
           RESPONSE_HISTOGRAM.maxCount;
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
-        var throughput = undefined;
-        var smoothness = undefined;
-        valueList.valueDicts.forEach(function(value) {
-          if ((value.type !== 'numeric') ||
-              (value.numeric.type !== 'scalar') ||
-              (value.grouping_keys.userExpectation !== ue.stableId))
-            return;
-
-          if (value.grouping_keys.name === 'throughput')
-            throughput = value.numeric.value;
-          if (value.grouping_keys.name === 'smoothness')
-            smoothness = value.numeric.value;
-        });
+        var throughput = throughputForAnimation[ue.stableId];
+        var smoothness = smoothnessForAnimation[ue.stableId];
 
         if (throughput === undefined)
           throw new Error('Missing throughput for ' + ue.stableId);
+
         if (smoothness === undefined)
           throw new Error('Missing smoothness for ' + ue.stableId);
 
         score = tr.b.Statistics.weightedMean(
-            [throughput, smoothness],
-            tr.metrics.sh.perceptualBlend);
+            [throughput, smoothness], tr.metrics.sh.perceptualBlend);
       } else {
         throw new Error('Unrecognized stage for ' + ue.stableId);
       }
 
       if (score === undefined)
         throw new Error('Failed to compute responsiveness for ' + ue.stableId);
+
+      scores.push(score);
 
       var options = {};
       options.description = DESCRIPTION;
@@ -145,6 +153,22 @@ tr.exportTo('tr.metrics.sh', function() {
           new tr.v.ScalarNumeric(UNIT, score),
           options, groupingKeys));
     });
+
+    // Manually reduce scores.
+    // https://github.com/catapult-project/catapult/issues/2036
+
+    var options = {};
+    options.description = DESCRIPTION;
+    var groupingKeys = {};
+    var overallScore = tr.b.Statistics.weightedMean(
+        scores, tr.metrics.sh.perceptualBlend);
+    if (overallScore === undefined)
+      return;
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrlThatCreatedThisTrace, 'responsiveness',
+        new tr.v.ScalarNumeric(UNIT, overallScore),
+        options, groupingKeys));
   }
 
   ResponsivenessMetric.prototype = {
