@@ -63,11 +63,12 @@ tr.b.unittest.testSuite(function() {
 
   test('asDictTest', function() {
     var module = new pi.ModuleToLoad('/foo');
-    var handle = new pi.FunctionHandle([module], 'Bar');
+    var handle = new pi.FunctionHandle([module], 'Bar', {'a': 'b'});
 
     assert.deepEqual(handle.asDict(), {
       modules_to_load: [{href: '/foo'}],
-      function_name: 'Bar'
+      function_name: 'Bar',
+      options: {'a': 'b'}
     });
   });
 
@@ -109,12 +110,12 @@ tr.b.unittest.testSuite(function() {
 
   test('toStringTest', function() {
     var module = new pi.ModuleToLoad('/foo');
-    var handle = new pi.FunctionHandle([module], 'Bar');
+    var handle = new pi.FunctionHandle([module], 'Bar', {'a': 'b'});
 
     assert.equal(
         handle.toString(),
         'FunctionHandle(modulesToLoad=[ModuleToLoad(href="/foo")], ' +
-        'functionName="Bar")');
+        'functionName="Bar", options="{"a":"b"}")');
   });
 });
 

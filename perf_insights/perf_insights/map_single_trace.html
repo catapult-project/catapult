@@ -33,7 +33,7 @@ tr.exportTo('pi', function() {
     }
   }
 
-  function mapSingleTrace(result, model, mapFunction) {
+  function mapSingleTrace(result, model, options, mapFunction) {
     // Do not map the trace if its timer is low resolution.
     if (!model.isTimeHighResolution) {
       var err = new Error('Trace doesn\'t have high resolution time, ' +
@@ -46,7 +46,7 @@ tr.exportTo('pi', function() {
     var numPairsBeforeMapping = tr.b.dictionaryLength(result.pairs);
     var numFailuresBeforeMapping = result.failures.length;
     try {
-      mapFunction(result, model);
+      mapFunction(result, model, options);
     } catch (ex) {
       ex.name = 'MapFunctionError';
       throw ex;

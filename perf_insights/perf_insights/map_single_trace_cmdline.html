@@ -66,11 +66,9 @@ tr.exportTo('pi', function() {
           var mapFunction = options.job.mapFunctionHandle.load();
           var traceData = options.traceHandle.load();
           var model = createModelFromTraceData(
-              traceData, options.traceHandle.canonicalUrl);
-
-          var model = createModelFromTraceData(
               traceData, canonicalUrl, options.extraImportOptions);
-          pi.mapSingleTrace(result, model, mapFunction);
+          var opt_options = options.job.mapFunctionHandle.options;
+          pi.mapSingleTrace(result, model, opt_options, mapFunction);
         });
 
     console.log('MRE_RESULT: ' + JSON.stringify(result.asDict()));

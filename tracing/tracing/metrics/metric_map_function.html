@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/function_handle.html">
+<link rel="import" href="/tracing/metrics/all_metrics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/value_list.html">
 
@@ -12,13 +13,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
-  function metricMapFunction(result, model, metric_to_run) {
+  function metricMapFunction(result, model, options) {
+    if (options === undefined)
+      throw new Error('Expected an options dict.');
+    var metricName = options.metric;
+    if (metricName === undefined)
+      throw new Error('A metric name should be specified.');
     var valueList = new tr.metrics.ValueList();
-    var metrics = tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().map(
-      function(ti) { return ti.constructor; });
-    for (var metric in metrics) {
-      metrics[metric](valueList, model);
-    }
+    var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
+    if (metric === undefined)
+      throw new Error('"' + metricName + '" is not a registered metric.');
+    metric.constructor(valueList, model);
 
     result.addPair('values', valueList.valueDicts);
   }

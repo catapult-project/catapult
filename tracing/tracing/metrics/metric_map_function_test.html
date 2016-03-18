@@ -45,8 +45,18 @@ tr.b.unittest.testSuite(function() {
 
     m.canonicalUrlThatCreatedThisTrace = '/foo.json';
 
+    assert.throw(function() {
+      var result = new pi.mre.MreResult();
+      tr.metrics.metricMapFunction(result, m, {});
+    }, Error, 'A metric name should be specified.');
+
+    assert.throw(function() {
+      var result = new pi.mre.MreResult();
+      tr.metrics.metricMapFunction(result, m, {'metric': 'wrongMetric'});
+    }, Error, '"wrongMetric" is not a registered metric.');
+
     var result = new pi.mre.MreResult();
-    tr.metrics.metricMapFunction(result, m);
+    tr.metrics.metricMapFunction(result, m, {'metric': 'sampleMetric'});
     assert.property(result.pairs, 'values');
   });
 });

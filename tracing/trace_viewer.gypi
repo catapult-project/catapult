@@ -154,6 +154,7 @@
       'tracing/importer/user_model_builder.html',
       'tracing/metrics/all_metrics.html',
       'tracing/metrics/metric_registry.html',
+      'tracing/metrics/sample_metric.html',
       'tracing/metrics/system_health/animation_smoothness_metric.html',
       'tracing/metrics/system_health/animation_throughput_metric.html',
       'tracing/metrics/system_health/efficiency_metric.html',

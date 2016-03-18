@@ -18,14 +18,11 @@ def _GetMetricsDir():
 def _GetMetricRunnerHandle(metric):
   assert isinstance(metric, basestring)
   metrics_dir = _GetMetricsDir()
-  metric_path = os.path.join(metrics_dir, metric)
   metric_mapper_path = os.path.join(metrics_dir, _METRIC_MAP_FUNCTION_FILENAME)
-  filenames_to_load = [metric_path, metric_mapper_path]
 
-  modules_to_load = [function_handle.ModuleToLoad(filename=filename) for
-                     filename in filenames_to_load]
+  modules_to_load = [function_handle.ModuleToLoad(filename=metric_mapper_path)]
   map_function_handle = function_handle.FunctionHandle(
-      modules_to_load, _METRIC_MAP_FUNCTION_NAME)
+      modules_to_load, _METRIC_MAP_FUNCTION_NAME, {'metric': metric})
 
   return job_module.Job(map_function_handle, None)
 

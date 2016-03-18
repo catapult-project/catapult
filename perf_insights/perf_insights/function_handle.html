@@ -59,28 +59,35 @@ tr.exportTo('pi', function() {
     return new ModuleToLoad(moduleDict.href, moduleDict.filename);
   };
 
-  function FunctionHandle(modulesToLoad, functionName) {
+  function FunctionHandle(modulesToLoad, functionName, opt_options) {
     if (!(modulesToLoad instanceof Array))
       throw new Error('modulesToLoad in FunctionHandle must be an array');
     if (typeof(functionName) !== 'string')
       throw new Error('functionName in FunctionHandle must be a string');
     this.modulesToLoad = modulesToLoad;
     this.functionName = functionName;
+    this.options_ = opt_options;
   };
 
   FunctionHandle.prototype = {
+    get options() {
+      return this.options_;
+    },
+
     asDict: function() {
       return {
         'modules_to_load': this.modulesToLoad.map(
             function(m) {return m.asDict();}),
-        'function_name': this.functionName
+        'function_name': this.functionName,
+        'options': this.options_
       };
     },
 
     asUserFriendlyString: function() {
       var parts = this.modulesToLoad.map(function(mtl) {return mtl.filename});
       parts.push(this.functionName);
-      return parts.join(':');
+      parts.push(JSON.stringify(this.options_));
+      return parts.join(',');
     },
 
     hasHrefs: function() {
@@ -127,7 +134,8 @@ tr.exportTo('pi', function() {
           return module.toString();
       });
       return 'FunctionHandle(modulesToLoad=[' + modulesToLoadStr + '], ' +
-          'functionName="' + this.functionName + '")';
+          'functionName="' + this.functionName + '", options="' +
+          JSON.stringify(this.options_) + '")';
     }
   };
 
@@ -152,11 +160,13 @@ tr.exportTo('pi', function() {
   };
 
   FunctionHandle.fromDict = function(handleDict) {
+    var options = handleDict.options;
     if (handleDict.modules_to_load !== undefined) {
       var modulesToLoad = handleDict.modules_to_load.map(function(module) {
-         return ModuleToLoad.fromDict(module);});
+        return ModuleToLoad.fromDict(module);
+      });
     }
-    return new FunctionHandle(modulesToLoad, handleDict.function_name);
+    return new FunctionHandle(modulesToLoad, handleDict.function_name, options);
   };
 
   return {
