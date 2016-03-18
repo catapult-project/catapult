@@ -734,34 +734,30 @@ tr.exportTo('tr.e.importer', function() {
       if (event.ph !== 'c')
         throw new Error('Invalid clock sync event phase "' + event.ph + '".');
 
-      var sync_id = event.args.sync_id;
-      var issue_start_ts = event.args.issue_ts;
-      var issue_end_ts = event.ts;
+      var syncId = event.args.sync_id;
+      var issueStartTs = event.args.issue_ts;
+      var issueEndTs = event.ts;
 
-      if (sync_id === undefined) {
+      if (syncId === undefined) {
         this.model_.importWarning({
           type: 'clock_sync_parse_error',
-          message: 'Clock sync at time ' + issue_end_ts + ' without an ID.'
+          message: 'Clock sync at time ' + issueEndTs + ' without an ID.'
         });
         return;
       }
 
-      if (issue_start_ts === undefined) {
+      if (issueStartTs === undefined) {
         this.model_.importWarning({
           type: 'clock_sync_parse_error',
-          message: 'Clock sync at time ' + issue_end_ts + ' with ID ' +
-              sync_id + ' without a start timestamp.'
+          message: 'Clock sync at time ' + issueEndTs + ' with ID ' + syncId +
+              ' without a start timestamp.'
         });
         return;
       }
 
-      var clock_sync_args = {
-        duration: timestampFromUs(issue_end_ts - issue_start_ts)
-      };
       this.model_.clockSyncRecords.push(new tr.model.PingPongClockSyncRecord(
-        sync_id, timestampFromUs(issue_start_ts),
-        timestampFromUs(issue_end_ts - issue_start_ts)
-      ));
+          syncId, timestampFromUs(issueStartTs),
+          timestampFromUs(issueEndTs - issueStartTs)));
     },
 
     // Because the order of Jit code events and V8 samples are not guaranteed,
