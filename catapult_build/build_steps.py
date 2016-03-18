@@ -39,7 +39,8 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=canary'
         ],
-        'disabled': ['linux', 'mac'],
+        # https://github.com/catapult-project/catapult/issues/2138
+        'disabled': ['linux', 'mac', 'win'],
         'outputs_presentation_json': True,
     },
     {
@@ -75,7 +76,8 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=canary'
         ],
-        'disabled': ['linux', 'mac'],
+        # https://github.com/catapult-project/catapult/issues/2138
+        'disabled': ['linux', 'mac', 'win'],
         'outputs_presentation_json': True,
     },
     {
@@ -126,6 +128,8 @@ _CATAPULT_TESTS = [
         ],
         # Test failing on Windows:
         # https://github.com/catapult-project/catapult/issues/1816
+        # Tests failing on all platform:
+        # https://github.com/catapult-project/catapult/issues/2138
         'disabled': ['win', 'linux', 'mac'],
         'outputs_presentation_json': True,
     },
