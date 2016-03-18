@@ -76,7 +76,7 @@ found in the LICENSE file.
             this.canBisect = false;
             return;
           }
-          this.canBisect = true;
+          this.canBisect = false;
           var that = this;
           simple_xhr.send(
               '/can_bisect',
@@ -90,6 +90,7 @@ found in the LICENSE file.
               },
               function errorCallback(message) {
                 console.warn('Request to /can_bisect failed.', message);
+                that.canBisect = true;
               });
         },
 
