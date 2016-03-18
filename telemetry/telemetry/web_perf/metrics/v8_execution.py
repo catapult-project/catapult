@@ -19,6 +19,8 @@ class V8ExecutionMetric(timeline_based_metric.TimelineBasedMetric):
       V8SelfTimeStats('v8_parse_lazy_total', ['V8.ParseLazy']),
       V8SelfTimeStats('v8_compile_fullcode_total',
                       ['V8.CompileFullCode']),
+      V8SelfTimeStats('v8_compile_ignition_total',
+                      ['V8.CompileIgnition']),
       V8TotalTimeStats('v8_recompile_total',
                        ['V8.RecompileSynchronous',
                          'V8.RecompileConcurrent']),
