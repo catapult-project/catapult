@@ -393,7 +393,7 @@ def GuessBisectBot(master_name, bot_name):
     # Treat ChromiumPerfFyi (etc.) the same as ChromiumPerf.
     if master_name.startswith(master):
       for platform, bisect_bot in platform_bot_pairs:
-        if platform in bot_name:
+        if platform.lower() in bot_name:
           return bisect_bot
   # Nothing was found; log a warning and return a fall-back name.
   logging.warning('No bisect bot for %s/%s.', master_name, bot_name)
