@@ -106,13 +106,14 @@ def DownloadChromium(channel):
   platform_data = PLATFORM_MAPPING[sys.platform]
   omaha_platform = platform_data['omaha']
   version_lookup_url = VERSION_LOOKUP_URL % (omaha_platform, channel)
-  response = urllib2.urlopen(version_lookup_url)
+  print 'Getting version from %s' % version_lookup_url
+  response = urllib2.urlopen(version_lookup_url, timeout=120)
   version = response.readlines()[1].split(',')[2]
 
   # Get the base position for that version from omahaproxy
   base_pos_lookup_url = BASE_POS_LOOKUP_URL % version
   print 'Getting base_pos from %s' % base_pos_lookup_url
-  response = urllib2.urlopen(base_pos_lookup_url)
+  response = urllib2.urlopen(base_pos_lookup_url, timeout=120)
   base_pos = json.load(response)['chromium_base_position']
 
   # Find the build from that base position in cloud storage. If it's not found,
@@ -121,7 +122,8 @@ def DownloadChromium(channel):
       platform_data['prefix'], base_pos)
   download_url = None
   while not download_url:
-    response = urllib2.urlopen(cloud_storage_lookup_url)
+    print 'Getting download url from %s' % cloud_storage_lookup_url
+    response = urllib2.urlopen(cloud_storage_lookup_url, timeout=120)
     prefixes = json.load(response).get('prefixes')
     if prefixes:
       download_url = CLOUD_STORAGE_DOWNLOAD_URL % (
@@ -138,7 +140,7 @@ def DownloadChromium(channel):
   tmpdir = tempfile.mkdtemp()
   zip_path = os.path.join(tmpdir, 'chrome.zip')
   with open(zip_path, 'wb') as local_file:
-    local_file.write(urllib2.urlopen(download_url).read())
+    local_file.write(urllib2.urlopen(download_url, timeout=600).read())
   zf = zipfile.ZipFile(zip_path)
   zf.extractall(path=tmpdir)
   return tmpdir, version, download_url
