@@ -599,6 +599,13 @@ found in the LICENSE file.
        * triaged alerts listed in the table.
        */
       updateBugColumn: function() {
+        // We need the xsrf token to be set in the individual bug-info-span
+        // element, and this can be done by setting it in the alert objects,
+        // and binding xsrfToken in the template above.
+        var alertsTable = this;
+        this.alertList.forEach(function(alertRow) {
+          alertRow.xsrfToken = alertsTable.xsrfToken;
+        });
         // Make a list of all bug IDs that indicate an alert is triaged.
         // This includes the pseudo-bug-ids indicating invalid or ignored.
         // Note: The 'hideRow' parameter is set in static/alerts.js, and it

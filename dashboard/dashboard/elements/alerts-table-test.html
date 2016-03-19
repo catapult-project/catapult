@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/alerts-page.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {};
+
+  test('instantiate', function() {
+    var table = document.createElement('alerts-table');
+    table.alertList = [
+      {
+        'key': '12345',
+        'group': null,
+        'start_revision': 55555,
+        'end_revision': 55558,
+        'date': '2016-02-27',
+        'master': 'Chromium',
+        'bot': 'win',
+        'testsuite': 'sunspider',
+        'test': 'Total',
+        'bug_id': null,
+        'dashboard_link': 'http://do/not/click/me',
+        'median_after_anomaly': 40,
+        'median_before_anomaly': 20,
+        'percent_changed': '50%',
+        'improvement': true,
+        'bisect_status': null,
+        'recovered': false,
+      },
+      {
+        'key': '54321',
+        'group': null,
+        'start_revision': 55555,
+        'end_revision': 55558,
+        'date': '2016-02-27',
+        'master': 'Chromium',
+        'bot': 'win',
+        'testsuite': 'sunspider',
+        'test': 'Total',
+        'bug_id': null,
+        'dashboard_link': 'http://do/not/click/me',
+        'median_after_anomaly': 10,
+        'median_before_anomaly': 20,
+        'percent_changed': '100%',
+        'improvement': false,
+        'bisect_status': null,
+        'recovered': false,
+      }
+    ];
+    this.addHTMLOutput(table);
+  }, testOptions);
+
+  test('test xsrf token set in alert list', function() {
+    var table = document.createElement('alerts-table');
+    table.xsrfToken = 'abcdef012345';
+    table.alertList = [
+      {
+        'key': '54321',
+        'group': null,
+        'start_revision': 55555,
+        'end_revision': 55558,
+        'date': '2016-02-27',
+        'master': 'Chromium',
+        'bot': 'win',
+        'testsuite': 'sunspider',
+        'test': 'Total',
+        'bug_id': null,
+        'dashboard_link': 'http://do/not/click/me',
+        'median_after_anomaly': 10,
+        'median_before_anomaly': 20,
+        'percent_changed': '100%',
+        'improvement': false,
+        'bisect_status': null,
+        'recovered': false,
+      }
+    ];
+    return new Promise(function(resolve) {
+      function check() {
+        assert.equal(table.alertList[0].xsrfToken, 'abcdef012345');
+        resolve();
+      }
+      setTimeout(check, 10);
+    });
+  }, testOptions);
+});
+</script>
