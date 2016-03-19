@@ -80,7 +80,6 @@ was just clicked.
           <div>
             <span hidden?={{alertInvalidOrIgnored}}>Bug ID:
               <b><a target="_blank" href="http://crbug.com/{{bugId}}">{{bugId}}</a></b>
-              <span class="{{bugState}} "hidden?="{{!bugStatus}}">({{bugStatus}})</span>
             </span>
 
             <span hidden?="{{bugId != -1}}">Invalid alert</span>
@@ -130,9 +129,6 @@ was just clicked.
       bugId: null,
       stdioUri: null,
       hideStdioUri: true,
-      bugStatusLink: ('https://www.googleapis.com' +
-                      '/projecthosting/v2/projects/chromium/issues/BUGID' +
-                      '?key=AIzaSyDrEBALf59D7TkOuz-bBuOnN2OqzD70NCQ'),
       revisions: [],
 
       testPathChanged: function() {
@@ -163,28 +159,6 @@ was just clicked.
           this.$.triage.show();
         } else {
           this.$.triage.close();
-        }
-      },
-
-      /**
-       * Updates the interface when the bug ID changes.
-       */
-      bugIdChanged: function() {
-        this.bugStatus = this.bugState = null;
-        // If there is a bug ID, request its state and status. Note that these
-        // are two different things -- state is closed/open, whereas status
-        // includes things like available, started, duplicate, etc.
-        if (this.bugId && this.bugId > 0) {
-          var url = this.bugStatusLink.replace('BUGID', this.bugId);
-          var req = new XMLHttpRequest();
-          var self = this;
-          req.onload = function() {
-            var json = JSON.parse(req.responseText);
-            self.bugStatus = json.status;
-            self.bugState = json.state;
-          };
-          req.open('get', url, true);
-          req.send();
         }
       },
 
