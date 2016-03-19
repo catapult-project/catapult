@@ -2,15 +2,11 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""URL endpoint for the main page which lists recent anomalies and bugs."""
+"""URL endpoint for the main page which lists recent anomalies."""
 
 import datetime
-import json
 import logging
-import urllib
 
-from google.appengine.api import urlfetch
-from google.appengine.api import urlfetch_errors
 from google.appengine.ext import ndb
 
 from dashboard import email_template
@@ -30,25 +26,20 @@ class MainHandler(request_handler.RequestHandler):
   def get(self):
     """Renders the UI for the main overview page.
 
-    The purpose of this page is to show recent regressions and improvements,
-    as well as recently-filed bugs.
-
     Request parameters:
-      days: Number of days to show anomalies and bugs for (optional).
+      days: Number of days to show anomalies for (optional).
       sheriff: Sheriff to show anomalies for (optional)
       num_changes: The number of improvements/regressions to list.
 
     Outputs:
-      A HTML page that shows recent regressions, improvements and bugs.
+      A HTML page that shows recent regressions, improvements.
     """
     days = int(self.request.get('days', _DEFAULT_DAYS_TO_SHOW))
     num_changes = int(self.request.get('num_changes', _DEFAULT_CHANGES_TO_SHOW))
     sheriff_name = self.request.get('sheriff', _DEFAULT_SHERIFF_NAME)
     sheriff = ndb.Key('Sheriff', sheriff_name)
 
-    top_bugs_rpc = _TopBugsUrlFetch(days)
     anomalies = _GetRecentAnomalies(days, sheriff)
-    top_bugs = _GetTopBugsResult(top_bugs_rpc)
 
     top_improvements = _TopImprovements(anomalies, num_changes)
     top_regressions = _TopRegressions(anomalies, num_changes)
@@ -60,7 +51,6 @@ class MainHandler(request_handler.RequestHandler):
         'sheriff_name': sheriff_name,
         'improvements': _AnomalyInfoDicts(top_improvements, tests),
         'regressions': _AnomalyInfoDicts(top_regressions, tests),
-        'bugs': top_bugs,
     }
     self.RenderHtml('main.html', template_dict)
 
@@ -170,64 +160,3 @@ def _TopRegressions(recent_anomalies, num_to_show):
   """
   regressions = [a for a in recent_anomalies if not a.is_improvement]
   return regressions[:num_to_show]
-
-
-def _TopBugsUrlFetch(days):
-  """Makes asynchronous fetch for top bugs.
-
-  Args:
-    days: Number of days, as an integer.
-
-  Returns:
-    An RPC object of asynchronous request.
-  """
-  query_url = _GetQueryUrl(days)
-  rpc = urlfetch.create_rpc(deadline=5)
-  urlfetch.make_fetch_call(rpc, query_url)
-  return rpc
-
-
-def _GetTopBugsResult(rpc):
-  """Gets a dictionary with recent bug information.
-
-  Args:
-    rpc: RPC object of asynchronous request.
-
-  Returns:
-    A list of dictionaries with information about bugs, or [] if no list
-    could be fetched.
-  """
-  try:
-    response = rpc.get_result()
-    if response.status_code == 200:
-      bugs = json.loads(response.content)
-      if bugs and bugs.get('items'):
-        return bugs['items']
-  except urlfetch_errors.DeadlineExceededError:
-    pass
-  except urlfetch.DownloadError:
-    pass
-  return []
-
-
-def _GetQueryUrl(days):
-  """Returns the URL to query for bugs.
-
-  Args:
-    days: Number of days as an integer.
-
-  Returns:
-    A URL which can be used to request information about recent bugs.
-  """
-  base_url = ('https://www.googleapis.com'
-              '/projecthosting/v2/projects/chromium/issues?')
-  query_string = urllib.urlencode({
-      'q': ('label:Type-Bug-Regression label:Performance '
-            'opened-after:today-%d' % days),
-      'fields': 'items(id,state,status,summary,author)',
-      'maxResults': '1000',
-      'sort': '-id',
-      'can': 'all',
-      'key': 'AIzaSyDrEBALf59D7TkOuz-bBuOnN2OqzD70NCQ',
-  })
-  return base_url + query_string

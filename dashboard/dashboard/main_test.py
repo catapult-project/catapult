@@ -4,12 +4,8 @@
 
 import unittest
 
-import mock
 import webapp2
 import webtest
-
-from google.appengine.api import urlfetch
-from google.appengine.api import urlfetch_errors
 
 from dashboard import main
 from dashboard import testing_common
@@ -24,11 +20,7 @@ class MainTest(testing_common.TestCase):
     app = webapp2.WSGIApplication([('/', main.MainHandler)])
     self.testapp = webtest.TestApp(app)
 
-  @mock.patch(
-      'google.appengine.api.urlfetch.fetch',
-      mock.MagicMock(return_value=testing_common.FakeResponseObject(500, '')))
-  def testGet_BugRequestFails_PageIsStillShown(self):
-    # Even if the recent bugs list can't be fetched, the page should load.
+  def testGet_PageIsShown(self):
     response = self.testapp.get('/')
     self.assertIn('<html>', response.body)
 
@@ -39,17 +31,6 @@ class MainTest(testing_common.TestCase):
     self.assertEqual('over-20', main._GetColorClass(30))
     self.assertEqual('over-10', main._GetColorClass(12.0))
     self.assertEqual('under-10', main._GetColorClass(0.1))
-
-  def testGetTopBugsResult_DeadlineExceededError_ReturnsEmptyList(self):
-    mock_rpc = mock.MagicMock()
-    mock_rpc.get_result = mock.MagicMock(
-        side_effect=urlfetch_errors.DeadlineExceededError)
-    self.assertEqual([], main._GetTopBugsResult(mock_rpc))
-
-  def testGetTopBugsResult_DownloadError_ReturnsEmptyList(self):
-    mock_rpc = mock.MagicMock()
-    mock_rpc.get_result = mock.MagicMock(side_effect=urlfetch.DownloadError)
-    self.assertEqual([], main._GetTopBugsResult(mock_rpc))
 
   def testAnomalyInfoDicts(self):
     testing_common.AddTests(['M'], ['b'], {'t': {'foo': {}}})

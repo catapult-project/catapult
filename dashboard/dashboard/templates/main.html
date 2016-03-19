@@ -142,36 +142,6 @@ found in the LICENSE file.
     <h2>Top {{num_changes}} regressions in the last {{num_days}} days
     for {{sheriff_name}}</h2>
     {{anomaly_table(regressions)}}
-
-    {% if bugs %}
-      <h2>Bugs in the last {{num_days}} days</h2>
-      <table>
-        <thead>
-          <tr class="header">
-            <th>Bug</th>
-            <th>State</th>
-            <th>Status</th>
-            <th>Author</th>
-            <th>Summary</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for bug in bugs %}
-          {% if bug.status != 'WontFix' and bug.status != 'Duplicate' %}
-            <tr class="row-{{bug.state}}">
-              <td><a href="http://crbug.com/{{bug.id}}"
-                     target="_blank"
-                     title="View bug">{{bug.id}}</a></td>
-              <td>{{bug.state}}</td>
-              <td>{{bug.status}}</td>
-              <td>{{bug.author.name}}</td>
-              <td>{{bug.summary}}</td>
-            </tr>
-          {% endif %}
-        {% endfor %}
-        </tbody>
-      </table>
-    {% endif %}
   </div>
   <load-analytics></load-analytics>
   </body>
