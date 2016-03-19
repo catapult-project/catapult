@@ -222,17 +222,19 @@ class Browser(app.App):
 
   def Close(self):
     """Closes this browser."""
-    if self._browser_backend.IsBrowserRunning():
-      self._platform_backend.WillCloseBrowser(self, self._browser_backend)
+    try:
+      if self._browser_backend.IsBrowserRunning():
+        self._platform_backend.WillCloseBrowser(self, self._browser_backend)
 
-    self._browser_backend.profiling_controller_backend.WillCloseBrowser()
-    if self._browser_backend.supports_uploading_logs:
-      try:
-        self._browser_backend.UploadLogsToCloudStorage()
-      except cloud_storage.CloudStorageError as e:
-        logging.error('Cannot upload browser log: %s' % str(e))
-    self._browser_backend.Close()
-    self.credentials = None
+      self._browser_backend.profiling_controller_backend.WillCloseBrowser()
+      if self._browser_backend.supports_uploading_logs:
+        try:
+          self._browser_backend.UploadLogsToCloudStorage()
+        except cloud_storage.CloudStorageError as e:
+          logging.error('Cannot upload browser log: %s' % str(e))
+    finally:
+      self._browser_backend.Close()
+      self.credentials = None
 
 
   def GetStandardOutput(self):
