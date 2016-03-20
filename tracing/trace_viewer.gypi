@@ -159,6 +159,7 @@
       'tracing/metrics/system_health/animation_throughput_metric.html',
       'tracing/metrics/system_health/efficiency_metric.html',
       'tracing/metrics/system_health/responsiveness_metric.html',
+      'tracing/metrics/system_health/tracing_metric.html',
       'tracing/metrics/system_health/utils.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',
