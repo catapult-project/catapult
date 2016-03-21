@@ -94,10 +94,7 @@ tr.exportTo('tr', function() {
     this.alerts = [];
     this.userModel = new tr.model.um.UserModel(this);
 
-    this.flowIntervalTree = new tr.b.IntervalTree(
-        function(f) { return f.start; },
-        function(f) { return f.end; });
-
+    this.flowIntervalTree = new tr.b.IntervalTree((f) => f.start, (f) => f.end);
     this.globalMemoryDumps = [];
 
     this.userFriendlyCategoryDrivers_ = [];
