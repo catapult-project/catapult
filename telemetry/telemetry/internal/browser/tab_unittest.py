@@ -232,8 +232,9 @@ class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
   def CustomizeBrowserOptions(cls, options):
     options.AppendExtraBrowserArgs('--media-router=1')
 
-  # There is no media router dialog on android, it is only desktop feature.
-  @decorators.Disabled('android')
+  # There is no media router dialog on android/chromeos, it is a desktop-only
+  # feature.
+  @decorators.Disabled('android', 'chromeos')
   def testMediaRouterDialog(self):
     self._tab.Navigate(self.UrlOfUnittestFile('cast.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
