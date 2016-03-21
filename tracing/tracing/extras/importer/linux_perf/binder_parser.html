@@ -205,7 +205,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (kthread.binderLockAquiredTS === undefined)
         return false;
 
-      args = this.generateArgsForSlice(tgid, pid, eventBase.threadName,
+      var args = this.generateArgsForSlice(tgid, pid, eventBase.threadName,
           kthread);
       kthread.thread.sliceGroup.pushCompleteSlice(
           'binder',
