@@ -162,19 +162,41 @@ should not make assertions.
 
 ## ES6 features
 
-**Use of all ES6 features is currently prohibited.**
+**Use of all ES6 features is currently prohibited.** However, we're currently working to allow them.
 
-Use of an ES6 feature will be allowed when that feature is supported in
-Javascript’s strict mode by both Chrome stable and our current version of D8
-(see [here](/third_party/vinn/third_party/v8/README.chromium) for current
-version information) and we have ensured that use of the feature won’t break our
-downstream dependents. We’re currently running tests to ensure that our
-dependents are ES6 compatible.
+| Feature                                                                                                                                     | Status                                                                          |
+|---------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [Arrows](https://github.com/lukehoban/es6features#arrows)                                                                                   | [Testing in progress](https://github.com/catapult-project/catapult/issues/2165) |
+| [Classes](https://github.com/lukehoban/es6features#classes)                                                                                 | To be discussed                                                                 |
+| [Enhanced object literals](https://github.com/lukehoban/es6features#enhanced-object-literals)                                               | To be discussed                                                                 |
+| [Template strings](https://github.com/lukehoban/es6features#template-strings)                                                               | To be discussed                                                                 |
+| [Destructuring](https://github.com/lukehoban/es6features#destructuring)                                                                     | To be discussed                                                                 |
+| [Default, rest, and spread](https://github.com/lukehoban/es6features#default--rest--spread)                                                 | To be discussed                                                                 |
+| [`let` and `const`](https://github.com/lukehoban/es6features#let--const)                                                                    | To be discussed                                                                 |
+| [Iterators and `for...of`](https://github.com/lukehoban/es6features#iterators--forof)                                                       | To be discussed                                                                 |
+| [Generators](https://github.com/lukehoban/es6features#generators)                                                                           | To be discussed                                                                 |
+| [Unicode](https://github.com/lukehoban/es6features#unicode)                                                                                 | To be discussed                                                                 |
+| [Modules](https://github.com/lukehoban/es6features#modules)                                                                                 | To be discussed                                                                 |
+| [Module loaders](https://github.com/lukehoban/es6features#module-loaders)                                                                   | To be discussed                                                                 |
+| [`Map`, `Set`, `Weakmap`, and `Weakset`](https://github.com/lukehoban/es6features#map--set--weakmap--weakset)                               | To be discussed                                                                 |
+| [Proxies](https://github.com/lukehoban/es6features#proxies)                                                                                 | To be discussed                                                                 |
+| [Symbols](https://github.com/lukehoban/es6features#symbols)                                                                                 | To be discussed                                                                 |
+| [Subclassable Built-ins](https://github.com/lukehoban/es6features#subclassable-built-ins)                                                   | To be discussed                                                                 |
+| [Promises](https://github.com/lukehoban/es6features#promises)                                                                               | To be discussed                                                                 |
+| [`Math`, `Number`, `String`, `Array`, and `Object` APIs](https://github.com/lukehoban/es6features#math--number--string--array--object-apis) | To be discussed                                                                 |
+| [Binary and octal literals](https://github.com/lukehoban/es6features#binary-and-octal-literals)                                             | To be discussed                                                                 |
+| [Reflect API](https://github.com/lukehoban/es6features#reflect-api)                                                                         | To be discussed                                                                 |
+| [Tail calls](https://github.com/lukehoban/es6features#tail-calls)                                                                           | To be discussed                                                                 |
 
-[This matrix](https://kangax.github.io/compat-table/es6/) gives a good view of
-which features are supported in which versions of Chrome.
+### Possible feature statuses
+  - **Approved**: this feature is approved for general use.
+  - **Testing in progress**: there's agreement that we should use this feature, but we still need to make sure that it's safe. "Testing in progress" statuses should link to a Catapult bug thread tracking the testing.
+  - **Discussion in progress**: there's not yet agreement that we should use this feature. "Discussion in progress" statuses should link to a Catapult bug thread about whether the feature should be used.
+  - **To be discussed**: this feature hasn't been discussed yet.
 
-If you see that Catapult’s version of D8 is behind Chrome stable, use
+Use of an ES6 features shouldn't be considered until that feature is supported in both Chrome stable and [our current version of D8](/third_party/vinn/third_party/v8/README.chromium).
+
+If you see that Catapult’s version of D8 is behind Chrome stable's, use
 [this script](/third_party/vinn/bin/update_v8) to update it.
 
 ## Workarounds have bugs for removal: Avoid defensive programming
