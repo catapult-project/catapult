@@ -131,6 +131,28 @@ was just clicked.
       hideStdioUri: true,
       revisions: [],
 
+      ready: function() {
+        // This allows tooltip to show beyond the current window size.
+        // Our tooltip size is determined by 'sizingTarget' which is default to
+        // the  window size.  Here we set it to '#scroller' which is the
+        // content's container.
+        // 'core-overlay' API:
+        //   https://github.com/Polymer/core-overlay/blob/master/core-overlay.html
+        //
+        // Note: Though this deep shadow DOM selector was deprecated, it was
+        // a solution in Polymer 0.5 to customize elements.  This can be done
+        // using custom CSS properties when migrating to Polymer 1.0.
+        this.$.tooltip.sizingTarget = document.querySelector(
+            'html /deep/ paper-action-dialog::shadow #scroller');
+
+        // We're going to call 'open' tooltip and hide it's container on
+        // 'ready' to avoid 'core-overlay' initial element focus which causes
+        // the page to jump.
+        // TODO(chrisphan): Figure out a better way to do this.
+        this.$.container.hidden = true;
+        this.$.tooltip.open();
+      },
+
       testPathChanged: function() {
         if (this.testPath) {
           var parts = this.testPath.split('/');
