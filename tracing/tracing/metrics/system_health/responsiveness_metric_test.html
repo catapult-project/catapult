@@ -16,11 +16,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function responsivenessForDuration(duration) {
+  function responsivenessForDuration(duration, opt_isAnimationBegin) {
     var model = tr.c.TestUtils.newModel(function(model) {
       model.canonicalUrlThatCreatedThisTrace = 'test';
       var ue = new tr.model.um.ResponseExpectation(
-          model, 'test', 0, duration);
+          model, 'test', 0, duration, opt_isAnimationBegin);
       model.userModel.expectations.push(ue);
     });
     var valueList = new tr.metrics.ValueList();
@@ -61,6 +61,17 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(0.1793, responsivenessForDuration(1000.0001), 1e-5);
     assert.closeTo(0, responsivenessForDuration(4999.999), 1e-5);
     assert.equal(0, responsivenessForDuration(5000));
+  });
+
+  test('animationBegin', function() {
+    assert.equal(1, responsivenessForDuration(66, true));
+    assert.closeTo(1, responsivenessForDuration(66.0001, true), 1e-5);
+    assert.closeTo(0.90721, responsivenessForDuration(99.9999, true), 1e-5);
+    assert.closeTo(0.90721, responsivenessForDuration(100.0001, true), 1e-5);
+    assert.closeTo(0.04996, responsivenessForDuration(599.9999, true), 1e-5);
+    assert.closeTo(0.04996, responsivenessForDuration(600.0001, true), 1e-5);
+    assert.closeTo(0, responsivenessForDuration(2199.999, true), 1e-5);
+    assert.equal(0, responsivenessForDuration(2200, true));
   });
 
   test('animation_OneHundredFPS', function() {

@@ -107,6 +107,10 @@ tr.exportTo('tr.importer', function() {
           assert.equal(this.expectedIRs_[i].end, actualUEs[i].end, at + 'end');
           assert.equal(this.expectedIRs_[i].eventCount,
                       actualUEs[i].associatedEvents.length, at + 'eventCount');
+          if (actualUEs[i] instanceof tr.model.um.ResponseExpectation)
+            assert.equal(this.expectedIRs_[i].isAnimationBegin || false,
+                         actualUEs[i].isAnimationBegin,
+                         at + 'isAnimationBegin');
         }
       } catch (caught) {
         failure = caught;

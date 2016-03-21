@@ -444,6 +444,7 @@ tr.exportTo('tr.importer', function() {
           currentPE = new ProtoExpectation(
               ProtoExpectation.RESPONSE_TYPE, PINCH_IR_NAME);
           currentPE.pushEvent(event);
+          currentPE.isAnimationBegin = true;
           protoExpectations.push(currentPE);
           sawFirstUpdate = false;
           break;
@@ -598,6 +599,7 @@ tr.exportTo('tr.importer', function() {
             currentPE = new ProtoExpectation(
                 ProtoExpectation.RESPONSE_TYPE, TOUCH_IR_NAME);
             currentPE.pushEvent(event);
+            currentPE.isAnimationBegin = true;
             protoExpectations.push(currentPE);
             sawFirstMove = false;
           }
@@ -673,6 +675,7 @@ tr.exportTo('tr.importer', function() {
           currentPE = new ProtoExpectation(
               ProtoExpectation.RESPONSE_TYPE, SCROLL_IR_NAME);
           currentPE.pushEvent(event);
+          currentPE.isAnimationBegin = true;
           protoExpectations.push(currentPE);
           sawFirstUpdate = false;
           break;

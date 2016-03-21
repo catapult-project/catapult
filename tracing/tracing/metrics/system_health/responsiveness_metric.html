@@ -58,6 +58,27 @@ tr.exportTo('tr.metrics.sh', function() {
     overflowBin: {min: 5000, max: Number.MAX_VALUE, count: 0}
   });
 
+  var FAST_RESPONSE_HISTOGRAM = tr.v.Histogram.fromDict({
+    unit: 'unitless',
+    min: 66,
+    max: 2200,
+    centralBinWidth: 214,
+    underflowBin: {min: -Number.MAX_VALUE, max: 66, count: 1000},
+    centralBins: [
+      {min: 66, max: 280, count: 708},
+      {min: 280, max: 493, count: 223},
+      {min: 493, max: 706, count: 50},
+      {min: 706, max: 920, count: 33},
+      {min: 920, max: 1133, count: 23},
+      {min: 1133, max: 1346, count: 17},
+      {min: 1346, max: 1560, count: 12},
+      {min: 1560, max: 1773, count: 8},
+      {min: 1773, max: 1987, count: 4},
+      {min: 1987, max: 2200, count: 1}
+    ],
+    overflowBin: {min: 2200, max: Number.MAX_VALUE, count: 0}
+  });
+
   var LOAD_HISTOGRAM = tr.v.Histogram.fromDict({
     unit: 'unitless',
     min: 1000,
@@ -85,6 +106,10 @@ tr.exportTo('tr.metrics.sh', function() {
       'For Load and Response, Mean Opinion Score of completion time; ' +
       'For Animation, perceptual blend of Mean Opinion Scores of ' +
       'throughput and smoothness');
+
+  function getDurationScore(histogram, duration) {
+    return histogram.getInterpolatedCountAt(duration) / histogram.maxCount;
+  }
 
   function ResponsivenessMetric(valueList, model) {
     tr.metrics.sh.AnimationThroughputMetric(valueList, model);
@@ -114,11 +139,13 @@ tr.exportTo('tr.metrics.sh', function() {
         // Responsiveness is not defined for Idle.
         return;
       } else if (ue instanceof tr.model.um.LoadExpectation) {
-        score = LOAD_HISTOGRAM.getInterpolatedCountAt(ue.duration) /
-          LOAD_HISTOGRAM.maxCount;
+        score = getDurationScore(LOAD_HISTOGRAM, ue.duration);
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
-        score = RESPONSE_HISTOGRAM.getInterpolatedCountAt(ue.duration) /
-          RESPONSE_HISTOGRAM.maxCount;
+        var histogram = RESPONSE_HISTOGRAM;
+        if (ue.isAnimationBegin)
+          histogram = FAST_RESPONSE_HISTOGRAM;
+
+        score = getDurationScore(histogram, ue.duration);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
         var throughput = throughputForAnimation[ue.stableId];
         var smoothness = smoothnessForAnimation[ue.stableId];
