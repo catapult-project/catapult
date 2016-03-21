@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
-<link rel="import" href="/tracing/metrics/system_health/tracing_metric.html">
+<link rel="import" href="/tracing/metrics/tracing_metric.html">
 <link rel="import" href="/tracing/metrics/value_list.html">
 
 <script>
@@ -37,13 +37,13 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), false);
     assert.isFalse(model.importOptions.trackDetailedModelStats);
     assert.throws(function() {
-      tr.metrics.sh.tracingMetric(valueList, model);
+      tr.metrics.tracingMetric(valueList, model);
     }, 'Please enable ImportOptions.trackDetailedModelStats.');
 
     model = makeModel(JSON.stringify(events), true);
     model.canonicalUrlThatCreatedThisTrace = '';
     assert.isTrue(model.importOptions.trackDetailedModelStats);
-    tr.metrics.sh.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(valueList, model);
   });
 
   test('totalTraceSize', function() {
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
     ];
     var model = makeModel(JSON.stringify(events), true);
     model.canonicalUrlThatCreatedThisTrace = '';
-    tr.metrics.sh.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(valueList, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
     var values = valueList.getValuesWithName('Total trace size in bytes');
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), true);
     model.canonicalUrlThatCreatedThisTrace = '';
     var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(valueList, model);
 
     var maxEventCountPerSec = 3;
     var values = valueList.getValuesWithName('Max number of events per second');
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
     ];
     var model = makeModel(JSON.stringify(events), true);
     model.canonicalUrlThatCreatedThisTrace = '';
-    tr.metrics.sh.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(valueList, model);
 
     var fooCategoryEventSize = getEventStringSize(events, [0, 1, 3]);
     var values = valueList.getValuesWithName(
