@@ -122,7 +122,7 @@ tr.exportTo('tr.metrics.sh', function() {
           (value.numeric.type !== 'scalar'))
         return;
 
-      var ue = value.grouping_keys.userExpectation;
+      var ue = value.grouping_keys.userExpectationStableId;
 
       if (value.grouping_keys.name === 'throughput')
         throughputForAnimation[ue] = value.numeric.value;
@@ -171,7 +171,7 @@ tr.exportTo('tr.metrics.sh', function() {
       options.description = DESCRIPTION;
 
       var groupingKeys = {};
-      groupingKeys.userExpectation = ue.stableId;
+      groupingKeys.userExpectationStableId = ue.stableId;
       groupingKeys.userExpectationStageTitle = ue.stageTitle;
       groupingKeys.userExpectationInitiatorTitle = ue.initiatorTitle;
 
