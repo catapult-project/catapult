@@ -242,6 +242,7 @@ tr.exportTo('tr.ui.b', function() {
         this.columnsWithExpandButtons_ = [];
         this.headerCells_ = [];
         this.subRowsPropertyName_ = 'subRows';
+        this.defaultExpansionStateCallback_ = undefined;
       },
 
       get showHeader() {
@@ -255,6 +256,19 @@ tr.exportTo('tr.ui.b', function() {
 
       set subRowsPropertyName(name) {
         this.subRowsPropertyName_ = name;
+      },
+
+      /**
+       * This callback will be called whenever a body row is built
+       * for a userRow that has subRows and does not have an explicit
+       * isExpanded field.
+       * The callback should return true if the row should be expanded,
+       * or false if the row should be collapsed.
+       * @param {function(userRow, parentUserRow): boolean} cb The callback.
+       */
+      set defaultExpansionStateCallback(cb) {
+        this.defaultExpansionStateCallback_ = cb;
+        this.scheduleRebuildBody_();
       },
 
       /**
@@ -432,7 +446,7 @@ tr.exportTo('tr.ui.b', function() {
         }.bind(this));
         // Sort expanded sub rows recursively.
         for (var i = 0; i < rows.length; i++) {
-          if (rows[i].isExpanded)
+          if (this.getExpandedForUserRow_(rows[i]))
             this.sortRows_(rows[i][this.subRowsPropertyName_]);
         }
       },
@@ -578,16 +592,23 @@ tr.exportTo('tr.ui.b', function() {
       },
 
       getOrCreateRowInfoFor_: function(rowInfoMap, userRow, parentRowInfo) {
-        if (rowInfoMap.has(userRow))
-          return rowInfoMap.get(userRow);
+        var rowInfo = undefined;
 
-        var rowInfo = {
-          userRow: userRow,
-          htmlNode: undefined,
-          isExpanded: userRow.isExpanded || false,
-          parentRowInfo: parentRowInfo
-        };
-        rowInfoMap.set(userRow, rowInfo);
+        if (rowInfoMap.has(userRow)) {
+          rowInfo = rowInfoMap.get(userRow);
+        } else {
+          rowInfo = {
+            userRow: userRow,
+            htmlNode: undefined,
+            parentRowInfo: parentRowInfo
+          };
+          rowInfoMap.set(userRow, rowInfo);
+        }
+
+        // Recompute isExpanded in case defaultExpansionStateCallback_ has
+        // changed.
+        rowInfo.isExpanded = this.getExpandedForUserRow_(userRow);
+
         return rowInfo;
       },
 
@@ -811,6 +832,27 @@ tr.exportTo('tr.ui.b', function() {
         if (rowInfo === undefined)
           throw new Error('Row has not been seen, must expand its parents');
         return rowInfo.isExpanded;
+      },
+
+      getExpandedForUserRow_: function(userRow) {
+        if (userRow[this.subRowsPropertyName_] === undefined)
+          return false;
+        if (userRow[this.subRowsPropertyName_].length === 0)
+          return false;
+        if (userRow.isExpanded)
+          return true;
+        if (userRow.isExpanded === false)
+          return false;
+        if (this.defaultExpansionStateCallback_ === undefined)
+          return false;
+
+        var parentUserRow = undefined;
+        var rowInfo = this.tableRowsInfo_.get(userRow);
+        if (rowInfo && rowInfo.parentRowInfo)
+          parentUserRow = rowInfo.parentRowInfo.userRow;
+
+        return this.defaultExpansionStateCallback_(
+            userRow, parentUserRow);
       },
 
       setExpandedForTableRow: function(userRow, expanded) {

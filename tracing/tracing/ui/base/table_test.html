@@ -1287,5 +1287,93 @@ tr.b.unittest.testSuite(function() {
     // footer rows not being selectable in general).
     table.$.foot.children[0].children[0].click();
   });
+
+  test('defaultExpansionStateCallback', function() {
+    var columns = [
+      {
+        title: 'Name',
+        value: function(row) { return row.name; }
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.value; }
+      }
+    ];
+
+    var rows = [
+      {
+        name: 'A',
+        value: 10,
+        subRows: [
+          {
+            name: 'B',
+            value: 8,
+            subRows: [
+              {
+                name: 'C',
+                value: 4
+              },
+              {
+                name: 'D',
+                value: 4
+              }
+            ]
+          },
+          {
+            name: 'E',
+            value: 2,
+            subRows: [
+              {
+                name: 'F',
+                value: 1
+              },
+              {
+                name: 'G',
+                value: 1
+              }
+            ]
+          }
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    var cRow = tr.b.findDeepElementMatchingPredicate(
+        table, function(element) {
+      return element.textContent === 'C';
+    });
+    assert.equal(cRow, undefined);
+
+    var callbackCalled = false;
+    table.defaultExpansionStateCallback = function(row, parentRow) {
+      callbackCalled = true;
+
+      if (parentRow === undefined)
+        return true;
+
+      if (row.value >= (parentRow.value * 0.8))
+        return true;
+
+      return false;
+    };
+
+    // Setting the callback should set the body dirty.
+    assert.isTrue(table.bodyDirty_);
+    assert.isFalse(callbackCalled);
+
+    table.rebuild();
+
+    assert.isTrue(callbackCalled);
+    cRow = tr.b.findDeepElementMatchingPredicate(table, function(element) {
+      return element.textContent === 'C';
+    });
+    assert.isDefined(cRow);
+  });
 });
 </script>
