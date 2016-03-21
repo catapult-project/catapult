@@ -86,7 +86,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(values[0].numeric.value, maxEventBytesPerSec);
   });
 
-  test('maxEventBytesPerCategory', function() {
+  test('diagnostics', function() {
     var valueList = new tr.metrics.ValueList();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
@@ -98,11 +98,14 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), true);
     tr.metrics.tracingMetric(valueList, model);
 
-    var fooCategoryEventSize = getEventStringSize(events, [0, 1, 3]);
-    var values = valueList.getValuesWithName(
-        'Max event size in bytes per category');
-    assert.strictEqual(values.length, 1);
-    assert.strictEqual(values[0].numeric.value, fooCategoryEventSize);
+    for (var i = 0; i < valueList.length; i++) {
+      assert.strictEqual(
+          values[i].diagnostics.category_with_max_event_size.name,
+          'foo');
+      assert.strictEqual(
+          values[i].diagnostics.category_with_max_event_size.size_in_bytes,
+          getEventStringSize(events, [0, 1, 3]));
+    }
   });
 
 });

@@ -86,25 +86,29 @@ tr.exportTo('tr.metrics', function() {
         tr.v.Unit.byName.sizeInBytes_smallerIsBetter, maxEventBytesPerSec);
     var totalTraceBytesValue = new tr.v.ScalarNumeric(
         tr.v.Unit.byName.sizeInBytes_smallerIsBetter, totalTraceBytes);
-    var maxEventBytesPerCategoryValue = new tr.v.ScalarNumeric(
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, maxEventBytesPerCategory);
+
+    var diagnostics = {
+      category_with_max_event_size: {
+        name: maxCategoryName,
+        size_in_bytes: maxEventBytesPerCategory
+      }
+    };
 
     valueList.addValue(new tr.v.NumericValue(
         model.canonicalUrlThatCreatedThisTrace,
         'Total trace size in bytes',
-        totalTraceBytesValue));
+        totalTraceBytesValue,
+        undefined, undefined, diagnostics));
     valueList.addValue(new tr.v.NumericValue(
         model.canonicalUrlThatCreatedThisTrace,
         'Max number of events per second',
-        maxEventCountPerSecValue));
+        maxEventCountPerSecValue,
+        undefined, undefined, diagnostics));
     valueList.addValue(new tr.v.NumericValue(
         model.canonicalUrlThatCreatedThisTrace,
         'Max event size in bytes per second',
-        maxEventBytesPerSecValue));
-    valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace,
-        'Max event size in bytes per category (' + maxCategoryName + ')',
-        maxEventBytesPerCategoryValue));
+        maxEventBytesPerSecValue,
+        undefined, undefined, diagnostics));
   }
 
   tracingMetric.prototype = {
