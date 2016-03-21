@@ -31,7 +31,6 @@ tr.b.unittest.testSuite(function() {
       var idle = new tr.model.um.IdleExpectation(model, 0, 100);
       idle.associatedEvents.push(slice);
       model.userModel.expectations.push(idle);
-      model.canonicalUrlThatCreatedThisTrace = 'test';
     });
   }
 

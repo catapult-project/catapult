@@ -18,7 +18,6 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   function responsivenessForDuration(duration, opt_isAnimationBegin) {
     var model = tr.c.TestUtils.newModel(function(model) {
-      model.canonicalUrlThatCreatedThisTrace = 'test';
       var ue = new tr.model.um.ResponseExpectation(
           model, 'test', 0, duration, opt_isAnimationBegin);
       model.userModel.expectations.push(ue);
@@ -30,7 +29,6 @@ tr.b.unittest.testSuite(function() {
 
   function metricsForAnimation(customizeAnimationCallback) {
     var model = tr.c.TestUtils.newModel(function(model) {
-      model.canonicalUrlThatCreatedThisTrace = 'test';
       var ue = new tr.model.um.AnimationExpectation(
           model, 'test', 0, 100);
       customizeAnimationCallback(ue);

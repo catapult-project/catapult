@@ -41,7 +41,6 @@ tr.b.unittest.testSuite(function() {
     }, 'Please enable ImportOptions.trackDetailedModelStats.');
 
     model = makeModel(JSON.stringify(events), true);
-    model.canonicalUrlThatCreatedThisTrace = '';
     assert.isTrue(model.importOptions.trackDetailedModelStats);
     tr.metrics.tracingMetric(valueList, model);
   });
@@ -53,7 +52,6 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    model.canonicalUrlThatCreatedThisTrace = '';
     tr.metrics.tracingMetric(valueList, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
@@ -73,7 +71,6 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 2, cat: 'foo', ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    model.canonicalUrlThatCreatedThisTrace = '';
     var valueList = new tr.metrics.ValueList();
     tr.metrics.tracingMetric(valueList, model);
 
@@ -99,7 +96,6 @@ tr.b.unittest.testSuite(function() {
       {name: 'bb', args: {}, pid: 52, ts: 578, cat: 'bar', tid: 53, ph: 'E'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    model.canonicalUrlThatCreatedThisTrace = '';
     tr.metrics.tracingMetric(valueList, model);
 
     var fooCategoryEventSize = getEventStringSize(events, [0, 1, 3]);

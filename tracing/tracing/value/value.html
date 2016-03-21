@@ -14,13 +14,13 @@ tr.exportTo('tr.v', function() {
                  opt_diagnostics) {
     if (typeof(name) !== 'string')
       throw new Error('Expected value_name grouping key to be provided');
-    if (canonicalUrl === undefined)
-      throw new Error('Expected canonicalUrl to be provided or null');
 
     this.groupingKeys = opt_groupingKeys || {};
     this.groupingKeys.name = name;
 
     this.diagnostics = opt_diagnostics || {};
+
+    // May be undefined
     this.diagnostics.canonical_url = canonicalUrl;
 
     var options = opt_options || {};
