@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/metrics/value_list.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
@@ -44,6 +45,43 @@ found in the LICENSE file.
 
     onCustomizeRows_: function(event) {
       var ue = this.selection[0];
+
+      var valueList = new tr.metrics.ValueList();
+
+      function runMetric(metricInfo) {
+        try {
+          metricInfo.constructor(valueList, ue.parentModel);
+        } catch (failure) {
+          console.error(metricInfo, failure);
+        }
+      }
+
+      tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(runMetric);
+
+      // Metrics may have been computed more than once, so avoid displaying them
+      // more than once by collecting them in a dictionary.
+      // https://github.com/catapult-project/catapult/issues/2154
+      var metricValues = {};
+
+      valueList.valueDicts.forEach(function(value) {
+        if (value.grouping_keys.userExpectationStableId !== ue.stableId)
+          return;
+
+        if ((value.type !== 'numeric') ||
+            (value.numeric.type !== 'scalar'))
+          return;
+
+        metricValues[value.grouping_keys.name] = value.numeric;
+      });
+
+      for (var name in metricValues) {
+        event.rows.push({
+          name: name,
+          value: tr.v.ui.createScalarSpan(metricValues[name].value, {
+            unit: tr.v.Unit.fromJSON(metricValues[name].unit)
+          })
+        });
+      }
 
       if (ue.rawCpuMs) {
         event.rows.push({

@@ -163,6 +163,7 @@
       'tracing/metrics/system_health/responsiveness_metric.html',
       'tracing/metrics/system_health/utils.html',
       'tracing/metrics/tracing_metric.html',
+      'tracing/metrics/value_list.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',
       'tracing/model/annotation.html',

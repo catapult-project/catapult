@@ -5,11 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/value/numeric.html">
+
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
-
   function ValueList(values) {
     if (values !== undefined)
       this.values_ = values;
