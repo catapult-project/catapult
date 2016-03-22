@@ -531,7 +531,7 @@ class AndroidPlatformBackend(
   def supports_test_ca(self):
     # TODO(nednguyen): figure out how to install certificate on Android M
     # crbug.com/593152
-    return self._device.build_version_sdk <= version_codes.LOLLIPOP
+    return self._device.build_version_sdk <= version_codes.LOLLIPOP_MR1
 
   def InstallTestCa(self, ca_cert_path):
     """Install a randomly generated root CA on the android device.
