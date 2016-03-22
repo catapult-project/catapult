@@ -10,6 +10,9 @@ found in the LICENSE file.
 
 tr.exportTo('tr.b', function() {
   var ESTIMATED_IDLE_PERIOD_LENGTH_MILLISECONDS = 10;
+  // The maximum amount of time that we allow for a task to get scheduled
+  // in idle time before forcing the task to run.
+  var REQUEST_IDLE_CALLBACK_TIMEOUT_MILLISECONDS = 100;
 
   // Setting this to true will cause stack traces to get dumped into the
   // tasks. When an exception happens the original stack will be printed.
@@ -62,7 +65,7 @@ tr.exportTo('tr.b', function() {
     idleWorkScheduled = true;
     window.requestIdleCallback(function(deadline, didTimeout) {
       processIdleWork(false /* forceAllTasksToRun */, deadline);
-    });
+    }, { timeout: REQUEST_IDLE_CALLBACK_TIMEOUT_MILLISECONDS });
   }
 
   function onAnimationFrameError(e, opt_stack) {
