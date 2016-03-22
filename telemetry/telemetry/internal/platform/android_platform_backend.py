@@ -10,7 +10,6 @@ import tempfile
 
 from telemetry.core import android_platform
 from telemetry.core import exceptions
-from telemetry.core import platform
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal import forwarders
@@ -114,9 +113,11 @@ class AndroidPlatformBackend(
     self._system_ui = None
 
     self._use_rndis_forwarder = (
-        finder_options.android_rndis or
-        finder_options.browser_options.netsim or
-        platform.GetHostPlatform().GetOSName() != 'linux')
+        finder_options.android_rndis or finder_options.browser_options.netsim)
+    assert not self._use_rndis_forwarder, (
+      'RNDIS forwarding is unsupported, but if this breaks something please '
+      'revert http://crrev.com/1824733004'
+      )
 
     _FixPossibleAdbInstability()
 
