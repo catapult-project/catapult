@@ -186,8 +186,12 @@ class DetailedHTTPSConnection(httplib.HTTPSConnection):
   response_class = DetailedHTTPSResponse
 
   def __init__(self, host, port):
-    httplib.HTTPSConnection.__init__(
-        self, host=host, port=port, context=ssl._create_unverified_context())
+    # https://www.python.org/dev/peps/pep-0476/#opting-out
+    if hasattr(ssl, '_create_unverified_context'):
+      httplib.HTTPSConnection.__init__(
+          self, host=host, port=port, context=ssl._create_unverified_context())
+    else:
+      httplib.HTTPSConnection.__init__(self, host=host, port=port)
 
 
 class RealHttpFetch(object):
