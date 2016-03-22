@@ -7,10 +7,14 @@ import unittest
 import webapp2
 import webtest
 
+from google.appengine.ext import ndb
+
+from dashboard import datastore_hooks
 from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import update_test_suites
 from dashboard import utils
+from dashboard.models import graph_data
 
 
 class ListTestSuitesTest(testing_common.TestCase):
@@ -21,6 +25,9 @@ class ListTestSuitesTest(testing_common.TestCase):
         [('/update_test_suites',
           update_test_suites.UpdateTestSuitesHandler)])
     self.testapp = webtest.TestApp(app)
+    datastore_hooks.InstallHooks()
+    testing_common.SetIsInternalUser('internal@chromium.org', True)
+    self.UnsetCurrentUser()
 
   def testFetchCachedTestSuites_NotEmpty(self):
     # If the cache is set, then whatever's there is returned.
@@ -79,6 +86,34 @@ class ListTestSuitesTest(testing_common.TestCase):
         {
             'dromaeo': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'scrolling': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'really': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+        },
+        update_test_suites.FetchCachedTestSuites())
+
+  def testPost_InternalOnly(self):
+    self.SetCurrentUser('internal@chromium.org')
+    self._AddSampleData()
+    master_key = ndb.Key('Master', 'Chromium')
+    bot_key = graph_data.Bot(id='internal_mac', parent=master_key,
+                             internal_only=True).put()
+    graph_data.Test(id='internal_test', parent=bot_key,
+                    internal_only=True).put()
+
+    self.testapp.post('/update_test_suites?internal_only=true')
+
+    self.assertEqual(
+        {
+            'dromaeo': {
+                'mas': {'Chromium': {'mac': False, 'win7': False}},
+            },
+            'internal_test': {
+                'mas': {'Chromium': {'internal_mac': False}},
             },
             'scrolling': {
                 'mas': {'Chromium': {'mac': False, 'win7': False}},
@@ -168,7 +203,6 @@ class ListTestSuitesTest(testing_common.TestCase):
   def testCreateSuiteMastersDict(self):
     self._AddSampleData()
     suites = update_test_suites._FetchSuites()
-    print update_test_suites._CreateSuiteMastersDict(suites)
     self.assertEqual(
         {
             'dromaeo': {'Chromium': {'mac': False, 'win7': False}},

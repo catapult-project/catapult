@@ -39,14 +39,15 @@ class UpdateTestSuitesHandler(request_handler.RequestHandler):
 
   def post(self):
     """Refreshes the cached test suites list."""
-    logging.info('Going to update test suites data.')
-
-    # Update externally-visible test suites data.
-    UpdateTestSuites(datastore_hooks.EXTERNAL)
-
-    # Update internal-only test suites data.
-    datastore_hooks.SetPrivilegedRequest()
-    UpdateTestSuites(datastore_hooks.INTERNAL)
+    if self.request.get('internal_only') == 'true':
+      logging.info('Going to update internal-only test suites data.')
+      # Update internal-only test suites data.
+      datastore_hooks.SetPrivilegedRequest()
+      UpdateTestSuites(datastore_hooks.INTERNAL)
+    else:
+      logging.info('Going to update externally-visible test suites data.')
+      # Update externally-visible test suites data.
+      UpdateTestSuites(datastore_hooks.EXTERNAL)
 
 
 def UpdateTestSuites(permissions_namespace):

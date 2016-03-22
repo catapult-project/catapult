@@ -32,7 +32,11 @@ cron:
   url: /delete_expired_entities
   schedule: every 24 hours
 
-- description: Update the test suite data used on the /report page.
+- description: Update the internal-only test suite data used on the /report page.
+  url: /update_test_suites?internal_only=true
+  schedule: every 20 minutes
+
+- description: Update the externally-visible test suite data used on the /report page.
   url: /update_test_suites
   schedule: every 20 minutes
 
