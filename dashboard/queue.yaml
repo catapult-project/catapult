@@ -9,7 +9,8 @@ queue:
      task_retry_limit: 1
 
  - name: add-point-queue
-   rate: 5/s
+   rate: 20/s
+   max_concurrent_requests: 20
    retry_parameters:
      task_retry_limit: 8
      min_backoff_seconds: 2

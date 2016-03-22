@@ -23,7 +23,7 @@ _TASK_QUEUE_NAME = 'add-point-queue'
 
 # Number of rows to process per task queue task. This limits the task size
 # and execution time (Limits: 100KB object size and 10 minutes execution time).
-_TASK_QUEUE_SIZE = 64
+_TASK_QUEUE_SIZE = 32
 
 # Max length for a Row property name.
 _MAX_COLUMN_NAME_LENGTH = 25
