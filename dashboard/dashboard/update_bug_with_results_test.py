@@ -53,7 +53,7 @@ _SAMPLE_BISECT_RESULTS_JSON = {
         {
             'depot_name': 'chromium',
             'deps_revision': 1234,
-            'commit_pos': 1234,
+            'commit_hash': '1234abcdf',
             'mean_value': 70,
             'std_dev': 0,
             'values': [70, 70, 70],
@@ -61,7 +61,7 @@ _SAMPLE_BISECT_RESULTS_JSON = {
         }, {
             'depot_name': 'chromium',
             'deps_revision': 1235,
-            'commit_pos': 1235,
+            'commit_hash': '1235abdcf',
             'mean_value': 80,
             'std_dev': 0,
             'values': [80, 80, 80],

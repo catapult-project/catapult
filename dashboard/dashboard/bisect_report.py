@@ -104,7 +104,9 @@ def _MakeLegacyRevisionString(r):
 
 def _RevisionTable(results_data):
   is_return_code = results_data.get('test_type') == 'return_code'
-  has_culprit = 'culprit_data' in results_data
+  culprit_commit_hash = None
+  if 'culprit_data' in results_data and results_data['culprit_data']:
+    culprit_commit_hash = results_data['culprit_data']['cl']
 
   def RevisionRow(r):
     result = [
@@ -113,7 +115,7 @@ def _RevisionTable(results_data):
         _FormatNumber(r['std_dev']),
         len(r['values']),
         r['result'],
-        '<-' if has_culprit == r else '',
+        '<-' if r['commit_hash'] == culprit_commit_hash  else '',
     ]
     return map(str, result)
   revision_rows = [RevisionRow(r) for r in results_data['revision_data']]
