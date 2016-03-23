@@ -32,60 +32,6 @@ tr.exportTo('tr.importer', function() {
       this.expectedIRs_ = irs;
     },
 
-    importView_: function(cb) {
-      // Dynamically import the ir-verifier-view.
-      // It is a layering violation to statically import UI from non-UI.
-      // 'Polymer' is undefined in d8, so this will fail if tr.isHeadless.
-      var viewPath = '/ui/extras/rail/ir_verifier_view.html';
-      var viewLink = document.querySelector('link[rel="import"][href="' +
-          viewPath + '"]');
-      if (viewLink) {
-        if (viewLink.isLoaded) {
-          cb();
-        } else {
-          viewLink.addEventListener('load', cb);
-        }
-        return;
-      }
-      viewLink = document.createElement('link');
-      viewLink.rel = 'import';
-      viewLink.href = viewPath;
-      viewLink.isLoaded = false;
-      viewLink.addEventListener('load', function() {
-        viewLink.isLoaded = true;
-        cb();
-      });
-      document.head.appendChild(viewLink);
-    },
-
-    maybeAddHTMLOutput_: function(model, browserHelper, actualIRs, failure) {
-      if (tr.isHeadless)
-        return;
-
-      // The view might not be available until after the test finishes.
-      // The view cannot be added to the DOM after the test finishes.
-      // Add a placeholder to the DOM now, so that whenever the view is loaded,
-      // it can be added to the placeholder.
-      var placeholder = document.createElement('div');
-      placeholder.style.minWidth = '1px';
-      placeholder.style.minHeight = '1px';
-      tr.b.unittest.addHTMLOutputForCurrentTest(placeholder);
-
-      this.importView_(function() {
-        var view = document.createElement('tr-ui-e-rail-ir-verifier-view');
-        view.bounds = model.bounds;
-        if (failure)
-          view.expectedIRs = this.expectedIRs_;
-        view.actualIRs = actualIRs;
-        view.model = browserHelper.getAllAsyncSlicesMatching(
-            function(slice) {
-              return true;
-        }).sort(compareEvents);
-        placeholder.appendChild(view);
-        view.update();
-      });
-    },
-
     verify: function() {
       var model = tr.e.chrome.ChromeTestUtils.newChromeModel(
           this.customizeModelCallback_);
@@ -120,11 +66,6 @@ tr.exportTo('tr.importer', function() {
           location.search.split('&').indexOf('debug') >= 0);
       if (!failure && !debug)
         return;
-
-      // TODO(benjhayden): Why is the
-      // getComputedStyle(HTMLTestCaseResult).display sometimes none?
-      // this.maybeAddHTMLOutput_(
-      //    model, modelHelper.browserHelper, actualUEs, failure);
 
       if (failure)
         throw failure;
