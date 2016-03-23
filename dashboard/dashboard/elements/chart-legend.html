@@ -293,7 +293,9 @@ found in the LICENSE file.
 
         var description = document.createElement('tooltip-test-description');
         description.test = test;
-        document.getElementById('tooltip').set(
+        // This assumes that the tooltip element is present at the top-level.
+        // See https://github.com/catapult-project/catapult/issues/2172.
+        document.getElementById('legend-details-tooltip').set(
             description, event.pageX, event.pageY);
       },
 
