@@ -155,6 +155,18 @@ Style sheets should be inline rather than in external .css files.
 </polymer-element>
 ```
 
+## `undefined` and `null`
+Prefer use of `undefined` over `null`.
+
+```
+function Line() {
+  // Good
+  this.yIntercept_ = undefined;
+  // Bad
+  this.slope = null;
+}
+```
+
 ## Tests
 UI element tests that make sure that an element is instantiable should have
 names that start with “`instantiate`”. These tests should, as a general rule,
