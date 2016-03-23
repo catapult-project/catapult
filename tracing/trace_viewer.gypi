@@ -349,6 +349,7 @@
       'tracing/ui/extras/about_tracing/xhr_based_tracing_controller_client.html',
       'tracing/ui/extras/chrome/cc/cc.html',
       'tracing/ui/extras/chrome/cc/display_item_debugger.html',
+      'tracing/ui/extras/chrome/cc/display_item_list_item.html',
       'tracing/ui/extras/chrome/cc/display_item_list_view.html',
       'tracing/ui/extras/chrome/cc/layer_picker.html',
       'tracing/ui/extras/chrome/cc/layer_tree_host_impl_view.html',
