@@ -72,11 +72,10 @@ found in the LICENSE file.
          * Updates the canBisect state based on the bisectInfo state.
          */
         update: function() {
+          this.canBisect = false;
           if (!this.bisectInfo) {
-            this.canBisect = false;
             return;
           }
-          this.canBisect = false;
           var that = this;
           simple_xhr.send(
               '/can_bisect',

@@ -70,11 +70,10 @@ See https://github.com/catapult-project/catapult/issues/1905
          * Updates the canTrace state based on the traceInfo state.
          */
         update: function() {
+          this.canTrace = false;
           if (!this.traceInfo) {
-            this.canTrace = false;
             return;
           }
-          this.canTrace = true;
           var that = this;
           simple_xhr.send(
               '/can_bisect',
@@ -88,6 +87,7 @@ See https://github.com/catapult-project/catapult/issues/1905
               },
               function errorCallback(message) {
                 console.warn('Request to /can_bisect failed.', message);
+                that.canTrace = true;
               });
         },
 
