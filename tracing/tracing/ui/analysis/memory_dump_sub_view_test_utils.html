@@ -12,9 +12,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/heap_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
-
 
 <script>
 'use strict';
@@ -28,6 +28,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var VMRegion = tr.model.VMRegion;
+  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
@@ -36,7 +37,6 @@ tr.exportTo('tr.ui.analysis', function() {
   var HeapDump = tr.model.HeapDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
-
 
   function createMultipleTestGlobalMemoryDumps() {
     var model = tr.c.TestUtils.newModel(function(model) {
@@ -53,7 +53,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Totals and VM regions.
       var pmd1A = addProcessMemoryDump(gmd1, pA, 41);
       pmd1A.totals = { residentBytes: 31457280 /* 30 MiB */ };
-      pmd1A.vmRegions = [
+      pmd1A.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           startAddress: 1024,
           sizeInBytes: 20971520, /* 20 MiB */
@@ -65,7 +65,7 @@ tr.exportTo('tr.ui.analysis', function() {
             proportionalResident: 10485760 /* 10 MiB */
           }
         })
-      ];
+      ]);
 
       // Everything.
       var pmd1B = addProcessMemoryDump(gmd1, pB, 42);
@@ -77,7 +77,7 @@ tr.exportTo('tr.ui.analysis', function() {
           private_bytes: 10485760 /* 10 MiB */
         }
       };
-      pmd1B.vmRegions = [
+      pmd1B.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           startAddress: 256,
           sizeInBytes: 6000,
@@ -101,7 +101,7 @@ tr.exportTo('tr.ui.analysis', function() {
             swapped: 0 /* 32 B */
           }
         })
-      ];
+      ]);
       pmd1B.memoryAllocatorDumps = [
         newAllocatorDump(pmd1B, 'malloc', { size: 3145728 /* 3 MiB */ }),
         newAllocatorDump(pmd1B, 'v8', { size: 5242880 /* 5 MiB */ }),
@@ -149,7 +149,7 @@ tr.exportTo('tr.ui.analysis', function() {
       // Everything.
       var pmd2A = addProcessMemoryDump(gmd2, pA, 67);
       pmd2A.totals = { residentBytes: 32505856 /* 31 MiB */ };
-      pmd2A.vmRegions = [
+      pmd2A.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           startAddress: 1024,
           sizeInBytes: 20971520, /* 20 MiB */
@@ -172,7 +172,7 @@ tr.exportTo('tr.ui.analysis', function() {
             proportionalResident: 524288 /* 512 KiB */
           }
         })
-      ];
+      ]);
       pmd2A.memoryAllocatorDumps = [
         newAllocatorDump(pmd2A, 'malloc', { size: 9437184 /* 9 MiB */ }),
         newAllocatorDump(pmd2A, 'tracing', {
@@ -224,7 +224,7 @@ tr.exportTo('tr.ui.analysis', function() {
           private_bytes: 7340032 /* 7 MiB */
         }
       };
-      pmd3B.vmRegions = [
+      pmd3B.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           startAddress: 256,
           sizeInBytes: 6000,
@@ -237,7 +237,7 @@ tr.exportTo('tr.ui.analysis', function() {
             swapped: 64 /* 32 B */
           }
         })
-      ];
+      ]);
       pmd3B.memoryAllocatorDumps = [
         newAllocatorDump(pmd3B, 'malloc', {size: 2883584 /* 2.75 MiB */ }),
         newAllocatorDump(pmd3B, 'v8', { size: 5767168 /* 5.5 MiB */ }),

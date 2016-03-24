@@ -198,8 +198,9 @@ tr.b.unittest.testSuite(function() {
         [  // Table rows.
           {
             title: colorLegendMatcher('Process 1'),
-            sizes: [[29884416], undefined, [9437184], [5767168], [0], undefined,
-                undefined, [7340032], undefined, undefined, [2097152]],
+            sizes: [[29884416], undefined, [9437184], [5767168], undefined,
+                undefined, undefined, [7340032], undefined, undefined,
+                [2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
@@ -237,7 +238,7 @@ tr.b.unittest.testSuite(function() {
             title: colorLegendMatcher('Process 1'),
             sizes: [[31457280, 29884416, undefined], undefined,
                 [10485760, 9437184, undefined], [8388608, 5767168, undefined],
-                [0, 0, undefined], undefined, undefined,
+                undefined, undefined, undefined,
                 [undefined, 7340032, undefined], undefined, undefined,
                 [undefined, 2097152, undefined]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)

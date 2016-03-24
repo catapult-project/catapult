@@ -27,6 +27,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/rect_annotation.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -61,6 +62,17 @@ tr.exportTo('tr.e.importer', function() {
 
   var MEMORY_DUMP_LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
+
+  // Map from raw memory dump byte stat names to model byte stat names. See
+  // //base/trace_event/process_memory_maps.cc in Chromium.
+  var BYTE_STAT_NAME_MAP = {
+    'pc': 'privateCleanResident',
+    'pd': 'privateDirtyResident',
+    'sc': 'sharedCleanResident',
+    'sd': 'sharedDirtyResident',
+    'pss': 'proportionalResident',
+    'sw': 'swapped'
+  };
 
   // See tr.model.MemoryAllocatorDump 'weak' field and
   // base::trace_event::MemoryAllocatorDump::Flags::WEAK in the Chromium
@@ -2250,25 +2262,38 @@ tr.exportTo('tr.e.importer', function() {
         return;
       }
 
-      function parseByteStat(rawValue) {
-        if (rawValue === undefined)
-          return undefined;
-        return parseInt(rawValue, 16);
-      }
-
+      // See //base/trace_event/process_memory_maps.cc in Chromium.
       var vmRegions = new Array(rawVmRegions.length);
-
       for (var i = 0; i < rawVmRegions.length; i++) {
         var rawVmRegion = rawVmRegions[i];
 
-        // See //base/trace_event/process_memory_maps.cc in Chromium.
-        var byteStats = new tr.model.VMRegionByteStats(
-            parseByteStat(rawVmRegion.bs.pc),
-            parseByteStat(rawVmRegion.bs.pd),
-            parseByteStat(rawVmRegion.bs.sc),
-            parseByteStat(rawVmRegion.bs.sd),
-            parseByteStat(rawVmRegion.bs.pss),
-            parseByteStat(rawVmRegion.bs.sw));
+        var byteStats = {};
+        var rawByteStats = rawVmRegion.bs;
+        for (var rawByteStatName in rawByteStats) {
+          var rawByteStatValue = rawByteStats[rawByteStatName];
+          if (rawByteStatValue === undefined) {
+            this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'Byte stat \'' + rawByteStatName + '\' of VM region ' +
+                  i + ' (' + rawVmRegion.mf + ') in process memory dump for ' +
+                  'PID=' + pid + ' and dump ID=' + dumpId +
+                  ' does not have a value.'
+            });
+            continue;
+          }
+          var byteStatName = BYTE_STAT_NAME_MAP[rawByteStatName];
+          if (byteStatName === undefined) {
+            this.model_.importWarning({
+              type: 'memory_dump_parse_error',
+              message: 'Unknown byte stat name \'' + rawByteStatName + '\' (' +
+                  rawByteStatValue + ') of VM region ' + i + ' (' +
+                  rawVmRegion.mf + ') in process memory dump for PID=' + pid +
+                  ' and dump ID=' + dumpId + '.'
+            });
+            continue;
+          }
+          byteStats[byteStatName] = parseInt(rawByteStatValue, 16);
+        }
 
         vmRegions[i] = new tr.model.VMRegion(
             parseInt(rawVmRegion.sa, 16),  // startAddress
@@ -2278,7 +2303,8 @@ tr.exportTo('tr.e.importer', function() {
             byteStats);
       }
 
-      processMemoryDump.vmRegions = vmRegions;
+      processMemoryDump.vmRegions =
+          tr.model.VMRegionClassificationNode.fromRegions(vmRegions);
     },
 
     parseMemoryDumpHeapDumps_: function(processMemoryDump, dumps, pid, dumpId) {

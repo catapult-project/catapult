@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -23,11 +24,13 @@ tr.b.unittest.testSuite(function() {
   var ColorScheme = tr.b.ColorScheme;
   var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
   var ScopedId = tr.model.ScopedId;
+  var VMRegion = tr.model.VMRegion;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
+  var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
 
   function makeModel(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -3072,6 +3075,7 @@ tr.b.unittest.testSuite(function() {
                   bs: {
                     pss: 'cd',
                     pd: 'cd',
+                    sc: undefined,
                     sw: '0'
                   }
                 },
@@ -3099,47 +3103,50 @@ tr.b.unittest.testSuite(function() {
     var p = m.getProcess(42);
     var d = p.memoryDumps[0];
 
-    assert.equal(d.mostRecentVmRegions.length, 3);
-
-    var vr1 = d.mostRecentVmRegions[0];
-    assert.equal(vr1.startAddress, 240);
-    assert.equal(vr1.sizeInBytes, 336);
-    assert.equal(vr1.protectionFlags, 6);
-    assert.equal(vr1.protectionFlagsToString, 'rw-p');
-    assert.equal(vr1.mappedFile, '[stack:20310]');
-    assert.equal(vr1.byteStats.privateCleanResident, 64);
-    assert.equal(vr1.byteStats.privateDirtyResident, 32);
-    assert.equal(vr1.byteStats.sharedCleanResident, 256);
-    assert.equal(vr1.byteStats.sharedDirtyResident, 0);
-    assert.equal(vr1.byteStats.proportionalResident, 158);
-    assert.equal(vr1.byteStats.swapped, 80);
-
-    var vr2 = d.mostRecentVmRegions[1];
-    assert.equal(vr2.startAddress, 848);
-    assert.equal(vr2.sizeInBytes, 592);
-    assert.equal(vr2.protectionFlags, 5);
-    assert.equal(vr2.protectionFlagsToString, 'r-xp');
-    assert.equal(vr2.mappedFile, '/dev/ashmem/dalvik');
-    assert.equal(vr2.byteStats.proportionalResident, 205);
-    assert.isUndefined(vr2.byteStats.privateCleanResident);
-    assert.equal(vr2.byteStats.privateDirtyResident, 205);
-    assert.isUndefined(vr2.byteStats.sharedCleanResident);
-    assert.isUndefined(vr2.byteStats.sharedDirtyResident);
-    assert.equal(vr2.byteStats.swapped, 0);
-
-    var vr3 = d.mostRecentVmRegions[2];
-    assert.equal(vr3.startAddress, 140673331539968);
-    assert.equal(vr3.sizeInBytes, 262144);
-    assert.equal(vr3.protectionFlags, 134);
-    assert.equal(vr3.protectionFlagsToString, 'rw-s');
-    assert.equal(vr3.mappedFile,
-        '/run/shm/.org.chromium.Chromium.sqqN11 (deleted)');
-    assert.equal(vr3.byteStats.privateCleanResident, 0);
-    assert.equal(vr3.byteStats.privateDirtyResident, 262144);
-    assert.equal(vr3.byteStats.sharedCleanResident, 0);
-    assert.equal(vr3.byteStats.sharedDirtyResident, 0);
-    assert.equal(vr3.byteStats.proportionalResident, 262144);
-    assert.equal(vr3.byteStats.swapped, 0);
+    checkVMRegions(d.vmRegions, [
+      {
+        startAddress: 240,
+        sizeInBytes: 336,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        mappedFile: '[stack:20310]',
+        byteStats: {
+          privateCleanResident: 64,
+          privateDirtyResident: 32,
+          sharedCleanResident: 256,
+          sharedDirtyResident: 0,
+          proportionalResident: 158,
+          swapped: 80
+        }
+      },
+      {
+        startAddress: 848,
+        sizeInBytes: 592,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        mappedFile: '/dev/ashmem/dalvik',
+        byteStats: {
+          proportionalResident: 205,
+          privateDirtyResident: 205,
+          swapped: 0
+        }
+      },
+      {
+        startAddress: 140673331539968,
+        sizeInBytes: 262144,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE | VMRegion.PROTECTION_FLAG_MAYSHARE,
+        mappedFile: '/run/shm/.org.chromium.Chromium.sqqN11 (deleted)',
+        byteStats: {
+          privateCleanResident: 0,
+          privateDirtyResident: 262144,
+          sharedCleanResident: 0,
+          sharedDirtyResident: 0,
+          proportionalResident: 262144,
+          swapped: 0
+        }
+      }
+    ]);
 
     assert.equal(d.totals.residentBytes, 0);
     assert.isUndefined(d.totals.peakResidentBytes);
@@ -4959,13 +4966,18 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(totals.platformSpecific, {private_bytes: 128});
 
     var vmRegions = pmd1.vmRegions;
-    assert.lengthOf(vmRegions, 1);
-    assert.strictEqual(vmRegions[0].mappedFile, '[stack:20310]');
-    assert.strictEqual(vmRegions[0].startAddress, 240);
-    assert.strictEqual(vmRegions[0].sizeInBytes, 336);
-    assert.strictEqual(vmRegions[0].protectionFlagsToString, 'rw-p');
-    assert.strictEqual(vmRegions[0].byteStats.proportionalResident, 158);
-    assert.isUndefined(vmRegions[0].byteStats.privateDirtyResident);
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: '[stack:20310]',
+        startAddress: 240,
+        sizeInBytes: 336,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_WRITE,
+        byteStats: {
+          proportionalResident: 158
+        }
+      }
+    ]);
 
     var memoryAllocatorDumps = pmd1.memoryAllocatorDumps;
     assert.lengthOf(memoryAllocatorDumps, 2);
@@ -5016,13 +5028,18 @@ tr.b.unittest.testSuite(function() {
 
     assert.isUndefined(pmd3.levelOfDetail);
     var otherVmRegions = pmd3.vmRegions;
-    assert.lengthOf(otherVmRegions, 1);
-    assert.strictEqual(otherVmRegions[0].mappedFile, '/dev/ashmem/dalvik');
-    assert.strictEqual(otherVmRegions[0].startAddress, 848);
-    assert.strictEqual(otherVmRegions[0].sizeInBytes, 592);
-    assert.strictEqual(otherVmRegions[0].protectionFlagsToString, 'r-xp');
-    assert.strictEqual(otherVmRegions[0].byteStats.privateDirtyResident, 205);
-    assert.isUndefined(otherVmRegions[0].byteStats.proportionalResident);
+    checkVMRegions(otherVmRegions, [
+      {
+        mappedFile: '/dev/ashmem/dalvik',
+        startAddress: 848,
+        sizeInBytes: 592,
+        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
+            VMRegion.PROTECTION_FLAG_EXECUTE,
+        byteStats: {
+          privateDirtyResident: 205
+        }
+      }
+    ]);
     assert.lengthOf(pmd3.memoryAllocatorDumps, 0);
     assert.isUndefined(pmd3.heapDumps);
 

@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/selection_state.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 
 <script>
 'use strict';
@@ -21,25 +22,26 @@ tr.exportTo('tr.ui.tracks', function() {
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var VMRegion = tr.model.VMRegion;
-  var VMRegionByteStats = tr.model.VMRegionByteStats;
+  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
   var SelectionState = tr.model.SelectionState;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   function createVMRegions(pssValues) {
-    return pssValues.map(function(pssValue, i) {
-      return VMRegion.fromDict({
-        startAddress: 1000 * i,
-        sizeInBytes: 1000,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ,
-        mappedFile: '[stack' + i + ']',
-        byteStats: {
-          privateDirtyResident: pssValue / 3,
-          swapped: pssValue * 3,
-          proportionalResident: pssValue
-        }
-      });
-    });
+    return VMRegionClassificationNode.fromRegions(
+        pssValues.map(function(pssValue, i) {
+          return VMRegion.fromDict({
+            startAddress: 1000 * i,
+            sizeInBytes: 1000,
+            protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+            mappedFile: '[stack' + i + ']',
+            byteStats: {
+              privateDirtyResident: pssValue / 3,
+              swapped: pssValue * 3,
+              proportionalResident: pssValue
+            }
+          });
+        }));
   }
 
   function createAllocatorDumps(memoryDump, dumpData) {

@@ -188,20 +188,14 @@ tr.exportTo('tr.ui.tracks', function() {
       var pssBase = 0;
       tr.b.iterItems(pidToPoints, function(pid, points) {
         var processMemoryDump = globalDump.processMemoryDumps[pid];
-        var pss;
-        if (processMemoryDump === undefined) {
-          // If no dump was found, assume that the process is dead.
-          pss = 0;
-        } else {
-          pss = processMemoryDump.getMostRecentTotalVmRegionStat(
-              'proportionalResident');
-          if (pss === undefined) {
-            // If the dump does not provide the necessary information (namely
-            // most recent VM regions), assume zero.
-            pss = 0;
-          }
+        var cumulativePss = pssBase;
+        // If no dump was found (probably dead) or it does not provide the
+        // necessary information (namely most recent VM regions), assume zero.
+        if (processMemoryDump !== undefined) {
+          var vmRegions = processMemoryDump.mostRecentVmRegions;
+          if (vmRegions !== undefined)
+            cumulativePss += vmRegions.byteStats.proportionalResident || 0;
         }
-        var cumulativePss = pssBase + pss;
         points.push(new tr.ui.tracks.ChartPoint(
             globalDump, globalDump.start, cumulativePss, pssBase));
         pssBase = cumulativePss;

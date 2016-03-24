@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -20,6 +21,7 @@ tr.b.unittest.testSuite(function() {
   var GlobalMemoryDump = tr.model.GlobalMemoryDump;
   var ProcessMemoryDump = tr.model.ProcessMemoryDump;
   var VMRegion = tr.model.VMRegion;
+  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
@@ -28,6 +30,19 @@ tr.b.unittest.testSuite(function() {
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
+  var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
+
+  function createClassificationNode(opt_sizeInBytes, opt_byteStats) {
+    var node = new VMRegionClassificationNode();
+    if (opt_sizeInBytes !== undefined || opt_byteStats !== undefined) {
+      node.addRegion(VMRegion.fromDict({
+        mappedFile: 'mock.so',
+        sizeInBytes: opt_sizeInBytes,
+        byteStats: opt_byteStats
+      }));
+    }
+    return node;
+  }
 
   function createProcessMemoryDump(timestamp, model) {
     var gmd = new GlobalMemoryDump(model, timestamp);
@@ -58,106 +73,11 @@ tr.b.unittest.testSuite(function() {
     return pmds;
   }
 
-  function checkProtectionFlagsToString(protectionFlags, expectedString) {
-    var vmRegion = VMRegion.fromDict({
-      startAddress: 256,
-      sizeInBytes: 336,
-      protectionFlags: protectionFlags,
-      mappedFile: '[stack:20310]',
-      byteStats: {
-        privateDirtyResident: 96,
-        swapped: 144,
-        proportionalResident: 158
-      }
-    });
-    assert.strictEqual(vmRegion.protectionFlagsToString, expectedString);
-  }
-
   test('processMemoryDumps', function() {
     var pmd = createFinalizedProcessMemoryDump(42);
     var pmds = pmd.processMemoryDumps;
     assert.lengthOf(Object.keys(pmds), 1);
     assert.strictEqual(pmds[123], pmd);
-  });
-
-  test('totalResidentSizeInBytes_undefinedVmRegions', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {});
-    assert.isUndefined(pmd.mostRecentTotalProportionalResidentSizeInBytes);
-    assert.isUndefined(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'));
-    assert.isUndefined(
-        pmd.getMostRecentTotalVmRegionStat('privateCleanResident'));
-  });
-
-  test('totalResidentSizeInBytes_zeroVmRegions', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [];
-    });
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 0);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 0);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateCleanResident'), 0);
-  });
-
-  test('totalResidentSizeInBytes_oneVmRegion', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          startAddress: 256,
-          sizeInBytes: 336,
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-              VMRegion.PROTECTION_FLAG_WRITE,
-          mappedFile: '[stack:20310]',
-          byteStats: {
-            privateDirtyResident: 96,
-            swapped: 144,
-            proportionalResident: 158
-          }
-        })
-      ];
-    });
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 158);
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 96);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateCleanResident'), 0);
-  });
-
-  test('totalResidentSizeInBytes_twoVmRegions', function() {
-    var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          startAddress: 256,
-          sizeInBytes: 336,
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-              VMRegion.PROTECTION_FLAG_WRITE,
-          mappedFile: '[stack:20310]',
-          byteStats: {
-            privateDirtyResident: 96,
-            swapped: 144,
-            proportionalResident: 158
-          }
-        }),
-        VMRegion.fromDict({
-          startAddress: 848,
-          sizeInBytes: 592,
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-              VMRegion.PROTECTION_FLAG_EXECUTE,
-          mappedFile: '/dev/ashmem/dalvik',
-          byteStats: {
-            privateDirtyResident: 205,
-            privateCleanResident: 0,
-            proportionalResident: 205
-          }
-        })
-      ];
-    });
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 363);
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 301);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('swapped'), 144);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('privateCleanResident'), 0);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('sharedCleanResident'), 0);
   });
 
   test('hookUpMostRecentVmRegionsLinks_emptyArray', function() {
@@ -174,7 +94,7 @@ tr.b.unittest.testSuite(function() {
 
     // A dump with VM regions and malloc and Oilpan allocator dumps.
     var dump2 = createProcessMemoryDump(2, m);
-    dump2.vmRegions = [];
+    dump2.vmRegions = createClassificationNode();
     dump2.memoryAllocatorDumps = [
       newAllocatorDump(dump2, 'oilpan', {
         size: 1024,
@@ -205,20 +125,7 @@ tr.b.unittest.testSuite(function() {
 
     // A dump with VM regions.
     var dump4 = createProcessMemoryDump(4, m);
-    dump4.vmRegions = [
-      VMRegion.fromDict({
-        startAddress: 256,
-        sizeInBytes: 336,
-        protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-            VMRegion.PROTECTION_FLAG_WRITE,
-        mappedFile: '[stack:20310]',
-        byteStats: {
-          privateResident: 96,
-          sharedResident: 144,
-          proportionalResident: 158
-        }
-      })
-    ];
+    dump4.vmRegions = createClassificationNode();
 
     var dumps = [dump1, dump2, dump3, dump4];
     ProcessMemoryDump.hookUpMostRecentVmRegionsLinks(dumps);
@@ -229,45 +136,13 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(dump1.mostRecentVmRegions);
 
     assert.equal(dumps[1], dump2);
-    assert.equal(dump2.mostRecentVmRegions, dump2.vmRegions_);
+    assert.equal(dump2.mostRecentVmRegions, dump2.vmRegions);
 
     assert.equal(dumps[2], dump3);
-    assert.equal(dump3.mostRecentVmRegions, dump2.vmRegions_);
+    assert.equal(dump3.mostRecentVmRegions, dump2.vmRegions);
 
     assert.equal(dumps[3], dump4);
-    assert.equal(dump4.mostRecentVmRegions, dump4.vmRegions_);
-  });
-
-  test('vmRegion_protectionFlagsToString', function() {
-    checkProtectionFlagsToString(undefined, undefined);
-    checkProtectionFlagsToString(0, '---p');
-    checkProtectionFlagsToString(VMRegion.PROTECTION_FLAG_READ, 'r--p');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_MAYSHARE,
-        'r--s');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_EXECUTE,
-        'r-xp');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE,
-        'rw-p');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE |
-            VMRegion.PROTECTION_FLAG_EXECUTE,
-        'rwxp');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE |
-            VMRegion.PROTECTION_FLAG_MAYSHARE,
-        'rw-s');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_EXECUTE |
-            VMRegion.PROTECTION_FLAG_MAYSHARE,
-        'r-xs');
-    checkProtectionFlagsToString(
-        VMRegion.PROTECTION_FLAG_READ | VMRegion.PROTECTION_FLAG_WRITE |
-            VMRegion.PROTECTION_FLAG_EXECUTE |
-            VMRegion.PROTECTION_FLAG_MAYSHARE,
-        'rwxs');
+    assert.equal(dump4.mostRecentVmRegions, dump4.vmRegions);
   });
 
   test('checkDiscountTracingOverhead_undefinedFields', function() {
@@ -279,8 +154,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.isUndefined(pmd.totals);
-    assert.isUndefined(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'));
+    assert.isUndefined(pmd.vmRegions);
 
     var v8Dump = pmd.getMemoryAllocatorDumpByFullName('v8');
     checkDumpNumericsAndDiagnostics(v8Dump, {
@@ -298,21 +172,11 @@ tr.b.unittest.testSuite(function() {
   test('checkDiscountTracingOverhead_definedFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.totals = { residentBytes: 10240 };
-
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          startAddress: 256,
-          sizeInBytes: 6000,
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-              VMRegion.PROTECTION_FLAG_WRITE,
-          mappedFile: '[stack:20310]',
-          byteStats: {
-            privateDirtyResident: 4096,
-            swapped: 1536,
-            proportionalResident: 5120
-          }
-        })
-      ];
+      pmd.vmRegions = createClassificationNode(6000, {
+        privateDirtyResident: 4096,
+        proportionalResident: 5120,
+        swapped: 1536
+      });
 
       var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
       newChildDump(mallocDump, 'allocated_objects', { size: 2560 });
@@ -326,18 +190,33 @@ tr.b.unittest.testSuite(function() {
     assert.equal(pmd.totals.residentBytes, 9240);
     assert.isUndefined(pmd.totals.peakResidentBytes);
 
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 2);
-    var discountRegion = vmRegions[1];
-    assert.strictEqual(
-        discountRegion.mappedFile, '[discounted tracing overhead]');
-    assert.strictEqual(discountRegion.sizeInBytes, -1024);
+    var vmRegions = pmd.vmRegions;
+    assert.strictEqual(vmRegions.sizeInBytes, 4976);
+    assert.deepEqual(vmRegions.byteStats, {
+      privateDirtyResident: 3096,
+      proportionalResident: 4120,
+      swapped: 1536
+    });
 
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3096);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('swapped'), 1536);
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 4120);
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        sizeInBytes: 6000,
+        byteStats: {
+          privateDirtyResident: 4096,
+          proportionalResident: 5120,
+          swapped: 1536
+        }
+      },
+      {
+        mappedFile: '[discounted tracing overhead]',
+        sizeInBytes: -1024,
+        byteStats: {
+          privateDirtyResident: -1000,
+          proportionalResident: -1000
+        }
+      }
+    ]);
 
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     checkDumpNumericsAndDiagnostics(mallocDump, {
@@ -384,12 +263,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.isUndefined(pmd.totals);
-
-    assert.isUndefined(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'));
-    assert.isUndefined(pmd.getMostRecentTotalVmRegionStat('swapped'));
-    assert.isUndefined(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'));
+    assert.isUndefined(pmd.vmRegions);
 
     var winheapDump = pmd.getMemoryAllocatorDumpByFullName('winheap');
     checkDumpNumericsAndDiagnostics(winheapDump, {
@@ -428,18 +302,9 @@ tr.b.unittest.testSuite(function() {
   test('checkDiscountTracingOverhead_withMostRecentVmRegionsLinks', function() {
     var pmds = createFinalizedProcessMemoryDumps([42, 90], function(pmds) {
       pmds[0].totals = { residentBytes: 1000, peakResidentBytes: 2000 };
-      pmds[0].vmRegions = [
-        VMRegion.fromDict({
-          startAddress: 256,
-          sizeInBytes: 6000,
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-              VMRegion.PROTECTION_FLAG_WRITE,
-          mappedFile: '[stack:20310]',
-          byteStats: {
-            privateDirtyResident: 4096
-          }
-        })
-      ];
+      pmds[0].vmRegions = createClassificationNode(6000, {
+        privateDirtyResident: 4096
+      });
       pmds[0].memoryAllocatorDumps = [
         newAllocatorDump(pmds[0], 'tracing', { size: 300, resident_size: 100 })
       ];
@@ -452,11 +317,29 @@ tr.b.unittest.testSuite(function() {
 
     // First PMD: Both total resident and private dirty resident size should be
     // reduced by 100. Virtual size should be reduced by 300.
-    assert.equal(pmds[0].totals.residentBytes, 900);
-    assert.equal(pmds[0].totals.peakResidentBytes, 1900);
-    assert.equal(pmds[0].mostRecentVmRegions[1].sizeInBytes, -300);
-    assert.equal(
-        pmds[0].getMostRecentTotalVmRegionStat('privateDirtyResident'), 3996);
+    assert.strictEqual(pmds[0].totals.residentBytes, 900);
+    assert.strictEqual(pmds[0].totals.peakResidentBytes, 1900);
+    assert.strictEqual(pmds[0].vmRegions.sizeInBytes, 5700);
+    assert.deepEqual(pmds[0].vmRegions.byteStats, {
+      privateDirtyResident: 3996
+    });
+    checkVMRegions(pmds[0].vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        sizeInBytes: 6000,
+        byteStats: {
+          privateDirtyResident: 4096,
+        }
+      },
+      {
+        mappedFile: '[discounted tracing overhead]',
+        sizeInBytes: -300,
+        byteStats: {
+          privateDirtyResident: -100
+        }
+      }
+    ]);
+    assert.strictEqual(pmds[0].mostRecentVmRegions, pmds[0].vmRegions);
 
     // Second PMD: Total resident size should be reduced by 200, whereas private
     // dirty resident size should be reduced by 100 (because it comes from
@@ -464,158 +347,143 @@ tr.b.unittest.testSuite(function() {
     // reduced by 300.
     assert.isUndefined(pmds[1].totals.residentBytes);
     assert.equal(pmds[1].totals.peakResidentBytes, 2800);
-    assert.equal(pmds[1].mostRecentVmRegions[1].sizeInBytes, -300);
-    assert.equal(
-        pmds[1].getMostRecentTotalVmRegionStat('privateDirtyResident'), 3996);
+    assert.isUndefined(pmds[1].vmRegions);
+    assert.strictEqual(pmds[1].mostRecentVmRegions, pmds[0].vmRegions);
   });
 
   test('checkDiscountTracingOverhead_allDiscountedVmRegionFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          mappedFile: '[stack]',
-          sizeInBytes: 10000,
-          byteStats: {
-            privateDirtyResident: 4096,
-            proportionalResident: 8192,
-            swapped: 1536
-          }
-        })
-      ];
+      pmd.vmRegions = createClassificationNode(10000, {
+        privateDirtyResident: 4096,
+        proportionalResident: 8192,
+        swapped: 1536
+      });
       pmd.memoryAllocatorDumps = [
         newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
       ];
     });
 
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 2);
-
-    var regularRegion = vmRegions[0];
-    assert.equal(regularRegion.mappedFile, '[stack]');
-    assert.equal(regularRegion.sizeInBytes, 10000);
-    assert.equal(regularRegion.byteStats.privateDirtyResident, 4096);
-    assert.equal(regularRegion.byteStats.swapped, 1536);
-    assert.equal(regularRegion.byteStats.proportionalResident, 8192);
-
-    var discountedRegion = vmRegions[1];
-    assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
-    assert.equal(discountedRegion.sizeInBytes, -1000);
-    assert.equal(discountedRegion.byteStats.privateDirtyResident, -1024);
-    assert.isUndefined(discountedRegion.byteStats.swapped);
-    assert.equal(discountedRegion.byteStats.proportionalResident, -1024);
+    var vmRegions = pmd.vmRegions;
+    assert.strictEqual(vmRegions.sizeInBytes, 9000);
+    assert.deepEqual(vmRegions.byteStats, {
+      privateDirtyResident: 3072,
+      proportionalResident: 7168,
+      swapped: 1536
+    });
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        sizeInBytes: 10000,
+        byteStats: {
+          privateDirtyResident: 4096,
+          proportionalResident: 8192,
+          swapped: 1536
+        }
+      },
+      {
+        mappedFile: '[discounted tracing overhead]',
+        sizeInBytes: -1000,
+        byteStats: {
+          privateDirtyResident: -1024,
+          proportionalResident: -1024
+        }
+      }
+    ]);
   });
 
   test('checkDiscountTracingOverhead_twoDiscountedVmRegionField', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          mappedFile: '[stack]',
-          sizeInBytes: 10000,
-          byteStats: {
-            privateDirtyResident: 4096,
-            swapped: 1536
-          }
-        })
-      ];
+      pmd.vmRegions = createClassificationNode(10000, {
+        privateDirtyResident: 4096,
+        swapped: 1536
+      });
       pmd.memoryAllocatorDumps = [
         newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
       ];
     });
 
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 2);
-
-    var regularRegion = vmRegions[0];
-    assert.equal(regularRegion.mappedFile, '[stack]');
-    assert.equal(regularRegion.sizeInBytes, 10000);
-    assert.equal(regularRegion.byteStats.privateDirtyResident, 4096);
-    assert.equal(regularRegion.byteStats.swapped, 1536);
-    assert.isUndefined(regularRegion.byteStats.proportionalResident);
-
-    var discountedRegion = vmRegions[1];
-    assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
-    assert.equal(discountedRegion.sizeInBytes, -1000);
-    assert.equal(discountedRegion.byteStats.privateDirtyResident, -1024);
-    assert.isUndefined(discountedRegion.byteStats.swapped);
-    assert.isUndefined(discountedRegion.byteStats.proportionalResident);
+    var vmRegions = pmd.vmRegions;
+    assert.strictEqual(vmRegions.sizeInBytes, 9000);
+    assert.deepEqual(vmRegions.byteStats, {
+      privateDirtyResident: 3072,
+      swapped: 1536
+    });
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        sizeInBytes: 10000,
+        byteStats: {
+          privateDirtyResident: 4096,
+          swapped: 1536
+        }
+      },
+      {
+        mappedFile: '[discounted tracing overhead]',
+        sizeInBytes: -1000,
+        byteStats: {
+          privateDirtyResident: -1024
+        }
+      }
+    ]);
   });
 
   test('checkDiscountTracingOverhead_oneDiscountedVmRegionField', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          mappedFile: '[stack]',
-          sizeInBytes: 10000,
-          byteStats: {}
-        })
-      ];
+      pmd.vmRegions = createClassificationNode(10000);
       pmd.memoryAllocatorDumps = [
         newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
       ];
     });
 
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 2);
-
-    var regularRegion = vmRegions[0];
-    assert.equal(regularRegion.mappedFile, '[stack]');
-    assert.equal(regularRegion.sizeInBytes, 10000);
-    assert.isUndefined(regularRegion.byteStats.privateDirtyResident);
-    assert.isUndefined(regularRegion.byteStats.swapped);
-    assert.isUndefined(regularRegion.byteStats.proportionalResident);
-
-    var discountedRegion = vmRegions[1];
-    assert.equal(discountedRegion.mappedFile, '[discounted tracing overhead]');
-    assert.equal(discountedRegion.sizeInBytes, -1000);
-    assert.isUndefined(discountedRegion.byteStats.privateDirtyResident);
-    assert.isUndefined(discountedRegion.byteStats.swapped);
-    assert.isUndefined(discountedRegion.byteStats.proportionalResident);
+    var vmRegions = pmd.vmRegions;
+    assert.strictEqual(vmRegions.sizeInBytes, 9000);
+    assert.deepEqual(vmRegions.byteStats, {});
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        sizeInBytes: 10000
+      },
+      {
+        mappedFile: '[discounted tracing overhead]',
+        sizeInBytes: -1000
+      }
+    ]);
   });
 
   test('checkDiscountTracingOverhead_noDiscountedVmRegionFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          mappedFile: '[stack]',
-          byteStats: {
-            swapped: 1536
-          }
-        })
-      ];
+      pmd.vmRegions = createClassificationNode(undefined, {
+        swapped: 1536
+      });
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'tracing', { resident_size: 1024 })
+        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
       ];
     });
 
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 1);
-
-    var regularRegion = vmRegions[0];
-    assert.equal(regularRegion.mappedFile, '[stack]');
-    assert.isUndefined(regularRegion.sizeInBytes);
-    assert.isUndefined(regularRegion.byteStats.privateDirtyResident);
-    assert.equal(regularRegion.byteStats.swapped, 1536);
-    assert.isUndefined(regularRegion.byteStats.proportionalResident);
+    var vmRegions = pmd.vmRegions;
+    assert.isUndefined(vmRegions.sizeInBytes);
+    assert.deepEqual(vmRegions.byteStats, {
+      swapped: 1536
+    });
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        byteStats: {
+          swapped: 1536
+        }
+      }
+    ]);
   });
 
   test('checkDiscountTracingOverhead_existingLink', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.totals = { residentBytes: 10240 };
 
-      pmd.vmRegions = [
-        VMRegion.fromDict({
-          startAddress: 256,
-          sizeInBytes: 6000,
-          protectionFlags: VMRegion.PROTECTION_FLAG_READ |
-              VMRegion.PROTECTION_FLAG_WRITE,
-          mappedFile: '[stack:20310]',
-          byteStats: {
-            privateDirtyResident: 4096,
-            swapped: 1536,
-            proportionalResident: 5120
-          }
-        })
-      ];
+      pmd.vmRegions = createClassificationNode(6000, {
+        privateDirtyResident: 4096,
+        swapped: 1536,
+        proportionalResident: 5120
+      });
 
       var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
       var tracingDump = newAllocatorDump(pmd, 'tracing',
@@ -629,21 +497,35 @@ tr.b.unittest.testSuite(function() {
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump, ownedDump];
     });
 
-    assert.equal(pmd.totals.residentBytes, 9240);
+    assert.strictEqual(pmd.totals.residentBytes, 9240);
     assert.isUndefined(pmd.totals.peakResidentBytes);
 
-    var vmRegions = pmd.mostRecentVmRegions;
-    assert.lengthOf(vmRegions, 2);
-    var discountRegion = vmRegions[1];
-    assert.strictEqual(
-        discountRegion.mappedFile, '[discounted tracing overhead]');
-    assert.strictEqual(discountRegion.sizeInBytes, -1024);
-
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('privateDirtyResident'), 3096);
-    assert.equal(pmd.getMostRecentTotalVmRegionStat('swapped'), 1536);
-    assert.equal(
-        pmd.getMostRecentTotalVmRegionStat('proportionalResident'), 4120);
+    var vmRegions = pmd.vmRegions;
+    assert.strictEqual(vmRegions.sizeInBytes, 4976);
+    assert.deepEqual(vmRegions.byteStats, {
+      privateDirtyResident: 3096,
+      proportionalResident: 4120,
+      swapped: 1536
+    });
+    checkVMRegions(vmRegions, [
+      {
+        mappedFile: 'mock.so',
+        sizeInBytes: 6000,
+        byteStats: {
+          privateDirtyResident: 4096,
+          proportionalResident: 5120,
+          swapped: 1536
+        }
+      },
+      {
+        mappedFile: '[discounted tracing overhead]',
+        sizeInBytes: -1024,
+        byteStats: {
+          privateDirtyResident: -1000,
+          proportionalResident: -1000
+        }
+      }
+    ]);
 
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     checkDumpNumericsAndDiagnostics(mallocDump, {

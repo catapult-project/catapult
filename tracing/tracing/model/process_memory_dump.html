@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -55,7 +56,7 @@ tr.exportTo('tr.model', function() {
     //     (number)
     this.totals = undefined;
 
-    this.vmRegions_ = undefined;
+    this.vmRegions = undefined;
 
     // Map from allocator names to heap dumps.
     this.heapDumps = undefined;
@@ -82,30 +83,8 @@ tr.exportTo('tr.model', function() {
       return dumps;
     },
 
-    get vmRegions() {
-      return this.vmRegions_;
-    },
-
-    set vmRegions(vmRegions) {
-      this.vmRegions_ = vmRegions;
-    },
-
     get hasOwnVmRegions() {
-      return this.vmRegions_ !== undefined;
-    },
-
-    getMostRecentTotalVmRegionStat: function(statName) {
-      if (this.mostRecentVmRegions === undefined)
-        return undefined;
-
-      var total = 0;
-      this.mostRecentVmRegions.forEach(function(vmRegion) {
-        var statValue = vmRegion.byteStats[statName];
-        if (statValue === undefined)
-          return;
-        total += statValue;
-      });
-      return total;
+      return this.vmRegions !== undefined;
     },
 
     setUpTracingOverheadOwnership: function(opt_model) {
@@ -213,40 +192,25 @@ tr.exportTo('tr.model', function() {
       // tracing resident_size from byte stats (private dirty and PSS) and
       // tracing size from virtual size by injecting a fake VM region with
       // negative values.
-      if (this.vmRegions_ !== undefined) {
-        var hasSizeInBytes = false;
-        var hasPrivateDirtyResident = false;
-        var hasProportionalResident = false;
-
-        for (var i = 0; i < this.vmRegions_.length; i++) {
-          var vmRegion = this.vmRegions_[i];
-          if (vmRegion.sizeInBytes !== undefined)
-            hasSizeInBytes = true;
-
-          var byteStats = vmRegion.byteStats;
-          if (byteStats.privateDirtyResident !== undefined)
-            hasPrivateDirtyResident = true;
-          if (byteStats.proportionalResident !== undefined)
-            hasProportionalResident = true;
-
-          if (hasSizeInBytes && hasPrivateDirtyResident &&
-              hasProportionalResident) {
-            break;
-          }
-        }
+      if (this.vmRegions !== undefined) {
+        var hasSizeInBytes = this.vmRegions.sizeInBytes !== undefined;
+        var hasPrivateDirtyResident =
+            this.vmRegions.byteStats.privateDirtyResident !== undefined;
+        var hasProportionalResident =
+            this.vmRegions.byteStats.proportionalResident !== undefined;
 
         if ((hasSizeInBytes && discountedSize > 0) ||
             ((hasPrivateDirtyResident || hasProportionalResident) &&
                 discountedResidentSize > 0)) {
-          this.vmRegions_.push(VMRegion.fromDict({
+          var byteStats = {};
+          if (hasPrivateDirtyResident)
+            byteStats.privateDirtyResident = -discountedResidentSize;
+          if (hasProportionalResident)
+            byteStats.proportionalResident = -discountedResidentSize;
+          this.vmRegions.addRegion(tr.model.VMRegion.fromDict({
             mappedFile: '[discounted tracing overhead]',
             sizeInBytes: hasSizeInBytes ? -discountedSize : undefined,
-            byteStats: {
-              privateDirtyResident: hasPrivateDirtyResident ?
-                  -discountedResidentSize : undefined,
-              proportionalResident: hasProportionalResident ?
-                  -discountedResidentSize : undefined
-            }
+            byteStats: byteStats
           }));
         }
       }
@@ -258,76 +222,12 @@ tr.exportTo('tr.model', function() {
 
     processDumps.forEach(function(processDump) {
       // Update the most recent VM regions from the current dump.
-      if (processDump.vmRegions_ !== undefined)
-        mostRecentVmRegions = processDump.vmRegions_;
+      if (processDump.vmRegions !== undefined)
+        mostRecentVmRegions = processDump.vmRegions;
 
       // Set the most recent VM regions of the current dump.
       processDump.mostRecentVmRegions = mostRecentVmRegions;
     });
-  };
-
-  /**
-   * @constructor
-   */
-  function VMRegion(startAddress, sizeInBytes, protectionFlags,
-      mappedFile, byteStats) {
-    this.startAddress = startAddress;
-    this.sizeInBytes = sizeInBytes;
-    this.protectionFlags = protectionFlags;
-    this.mappedFile = mappedFile;
-    this.byteStats = byteStats;
-  };
-
-  VMRegion.PROTECTION_FLAG_READ = 4;
-  VMRegion.PROTECTION_FLAG_WRITE = 2;
-  VMRegion.PROTECTION_FLAG_EXECUTE = 1;
-  VMRegion.PROTECTION_FLAG_MAYSHARE = 128;
-
-  VMRegion.prototype = {
-    get protectionFlagsToString() {
-      if (this.protectionFlags === undefined)
-        return undefined;
-      return (
-          (this.protectionFlags & VMRegion.PROTECTION_FLAG_READ ? 'r' : '-') +
-          (this.protectionFlags & VMRegion.PROTECTION_FLAG_WRITE ? 'w' : '-') +
-          (this.protectionFlags & VMRegion.PROTECTION_FLAG_EXECUTE ?
-              'x' : '-') +
-          (this.protectionFlags & VMRegion.PROTECTION_FLAG_MAYSHARE ? 's' : 'p')
-      );
-    }
-  };
-
-  VMRegion.fromDict = function(dict) {
-    return new VMRegion(
-        dict.startAddress,
-        dict.sizeInBytes,
-        dict.protectionFlags,
-        dict.mappedFile,
-        VMRegionByteStats.fromDict(dict.byteStats));
-  };
-
-  /**
-   * @constructor
-   */
-  function VMRegionByteStats(privateCleanResident, privateDirtyResident,
-                             sharedCleanResident, sharedDirtyResident,
-                             proportionalResident, swapped) {
-    this.privateCleanResident = privateCleanResident;
-    this.privateDirtyResident = privateDirtyResident;
-    this.sharedCleanResident = sharedCleanResident;
-    this.sharedDirtyResident = sharedDirtyResident;
-    this.proportionalResident = proportionalResident;
-    this.swapped = swapped;
-  }
-
-  VMRegionByteStats.fromDict = function(dict) {
-    return new VMRegionByteStats(
-        dict.privateCleanResident,
-        dict.privateDirtyResident,
-        dict.sharedCleanResident,
-        dict.sharedDirtyResident,
-        dict.proportionalResident,
-        dict.swapped);
   };
 
   tr.model.EventRegistry.register(
@@ -340,9 +240,7 @@ tr.exportTo('tr.model', function() {
       });
 
   return {
-    ProcessMemoryDump: ProcessMemoryDump,
-    VMRegion: VMRegion,
-    VMRegionByteStats: VMRegionByteStats
+    ProcessMemoryDump: ProcessMemoryDump
   };
 });
 </script>

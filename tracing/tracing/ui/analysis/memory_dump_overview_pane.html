@@ -603,15 +603,17 @@ tr.exportTo('tr.ui.analysis', function() {
               }
 
               // VM regions byte stats.
-              tr.b.iterItems(UsedMemoryColumn.BYTE_STAT_MAP,
-                  function(byteStatName, cellName) {
-                    var byteStat =
-                        dump.getMostRecentTotalVmRegionStat(byteStatName);
-                    if (byteStat === undefined)
-                      return;
-                    sizes[cellName] = new ScalarNumeric(
-                        sizeInBytes_smallerIsBetter, byteStat);
-                  });
+              var vmRegions = dump.mostRecentVmRegions;
+              if (vmRegions !== undefined) {
+                tr.b.iterItems(UsedMemoryColumn.BYTE_STAT_MAP,
+                    function(byteStatName, cellName) {
+                      var byteStat = vmRegions.byteStats[byteStatName];
+                      if (byteStat === undefined)
+                        return;
+                      sizes[cellName] = new ScalarNumeric(
+                          sizeInBytes_smallerIsBetter, byteStat);
+                    });
+              }
 
               return sizes;
             });

@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
+<link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
@@ -20,6 +21,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var VMRegion = tr.model.VMRegion;
+  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
   var TitleColumn = tr.ui.analysis.TitleColumn;
   var StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
   var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
@@ -38,7 +40,7 @@ tr.b.unittest.testSuite(function() {
       // First timestamp.
       var gmd1 = addGlobalMemoryDump(model, 42);
       var pmd1 = addProcessMemoryDump(gmd1, process, 42);
-      pmd1.vmRegions = [
+      pmd1.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           mappedFile: '/lib/chrome.so',
           startAddress: 65536,
@@ -102,7 +104,7 @@ tr.b.unittest.testSuite(function() {
             swapped: 0
           }
         })
-      ];
+      ]);
 
       // This is here so that we could test that tracing is discounted from the
       // 'Native heap' category.
@@ -113,7 +115,7 @@ tr.b.unittest.testSuite(function() {
       // Second timestamp.
       var gmd2 = addGlobalMemoryDump(model, 42);
       var pmd2 = addProcessMemoryDump(gmd2, process, 42);
-      pmd2.vmRegions = [
+      pmd2.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           mappedFile: '/lib/chrome.so',
           startAddress: 65536,
@@ -179,6 +181,15 @@ tr.b.unittest.testSuite(function() {
           }
         }),
         VMRegion.fromDict({
+          mappedFile: '/usr/share/fonts/DejaVuSansMono.ttf',
+          startAddress: 140121259503616,
+          sizeInBytes: 335872,
+          protectionFlags: VMRegion.PROTECTION_FLAG_READ,
+          byteStats: {
+            proportionalResident: 22528
+          }
+        }),
+        VMRegion.fromDict({
           mappedFile: 'another-map',
           startAddress: 52583094233905872,
           sizeInBytes: 1,
@@ -188,7 +199,7 @@ tr.b.unittest.testSuite(function() {
             swapped: 1
           }
         })
-      ];
+      ]);
     });
 
     return model.processes[1].memoryDumps.map(function(pmd) {
@@ -223,10 +234,40 @@ tr.b.unittest.testSuite(function() {
     else
       assert.lengthOf(row.subRows, expectedSubRowCount);
 
-    if (expectedContexts)
+    if (typeof expectedContexts === 'function')
+      expectedContexts(row.contexts);
+    else if (expectedContexts !== undefined)
       assert.deepEqual(tr.b.asArray(row.contexts), expectedContexts);
     else
       assert.isUndefined(row.contexts);
+  }
+
+  function genericMatcher(callback, defined) {
+    return function(actualValues) {
+      assert.lengthOf(actualValues, defined.length);
+      for (var i = 0; i < defined.length; i++) {
+        var actualValue = actualValues[i];
+        if (defined[i])
+          callback(actualValue);
+        else
+          assert.isUndefined(actualValue);
+      }
+    }
+  }
+
+  function vmRegionsMatcher(expectedMappedFile, expectedStartAddress, defined) {
+    return genericMatcher(function(actualRegion) {
+      assert.instanceOf(actualRegion, VMRegion);
+      assert.strictEqual(actualRegion.mappedFile, expectedMappedFile);
+      assert.strictEqual(actualRegion.startAddress, expectedStartAddress);
+    }, defined);
+  }
+
+  function classificationNodesMatcher(expectedTitle, defined) {
+    return genericMatcher(function(actualNode) {
+      assert.instanceOf(actualNode, VMRegionClassificationNode);
+      assert.strictEqual(actualNode.title, expectedTitle);
+    }, defined);
   }
 
   test('instantiate_empty', function() {
@@ -261,47 +302,53 @@ tr.b.unittest.testSuite(function() {
     // Check the rows of the table.
     var totalRow = rows[0];
     checkRow(columns, totalRow, 'Total', undefined, [4833935160], undefined,
-        [8460], [64], [0], 3, undefined);
+        [8460], [64], [0], 3, vmRegions);
 
     var androidRow = totalRow.subRows[0];
     checkRow(columns, androidRow, 'Android', undefined, [100], undefined,
-        [100], [0], [0], 1, undefined);
+        [100], [0], [0], 1, classificationNodesMatcher('Android', [true]));
 
     var javaRuntimeRow = androidRow.subRows[0];
     checkRow(columns, javaRuntimeRow, 'Java runtime', undefined, [100],
-        undefined, [100], [0], [0], 1, undefined);
+        undefined, [100], [0], [0], 1,
+        classificationNodesMatcher('Java runtime', [true]));
 
     var spacesRow = javaRuntimeRow.subRows[0];
     checkRow(columns, spacesRow, 'Spaces', undefined, [100], undefined, [100],
-        [0], [0], 1, undefined);
+        [0], [0], 1, classificationNodesMatcher('Spaces', [true]));
 
     var nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', undefined, [4294966996],
-        undefined, [168], [64], [0], 4, undefined);
+        undefined, [168], [64], [0], 4,
+        classificationNodesMatcher('Native heap', [true]));
 
     var discountedTracingOverheadRow = nativeHeapRow.subRows[3];
     checkRow(columns, discountedTracingOverheadRow,
         '[discounted tracing overhead]', undefined, [-500], undefined, [-32],
-        [-32], undefined, undefined, [vmRegions[0][6]]);
+        [-32], undefined, undefined,
+        vmRegionsMatcher('[discounted tracing overhead]', undefined, [true]));
 
     var filesRow = totalRow.subRows[2];
     checkRow(columns, filesRow, 'Files', undefined, [538968064], undefined,
-        [8192], undefined, undefined, 1, undefined);
+        [8192], undefined, undefined, 1,
+        classificationNodesMatcher('Files', [true]));
 
     var soRow = filesRow.subRows[0];
     checkRow(columns, soRow, 'so', undefined, [538968064], undefined,
-        [8192], undefined, undefined, 2, undefined);
+        [8192], undefined, undefined, 2,
+        classificationNodesMatcher('so', [true]));
 
     var mmapChromeRow = soRow.subRows[0];
     checkRow(columns, mmapChromeRow, '/lib/chrome.so', ['0000000000010000'],
         [536870912], ['r-xp'], [8192], undefined, undefined, undefined,
-        [vmRegions[0][0]]);
+        vmRegionsMatcher('/lib/chrome.so', 65536, [true]));
 
     var mmapLibX11Row = soRow.subRows[1];
     checkRow(columns, mmapLibX11Row,
         '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0', ['00007f996fd80000'],
         [2097152], ['---p'], [0], undefined, undefined, undefined,
-        [vmRegions[0][1]]);
+        vmRegionsMatcher('/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+            140296983150592, [true]));
   });
 
   test('instantiate_multipleDiff', function() {
@@ -326,59 +373,70 @@ tr.b.unittest.testSuite(function() {
 
     // Check the rows of the table.
     var totalRow = rows[0];
-    checkRow(columns, totalRow, 'Total', undefined, [4833935160, 5368709421],
-        undefined, [8460, 19557], [64, 197], [0, 33], 4, undefined);
+    checkRow(columns, totalRow, 'Total', undefined, [4833935160, 5369045293],
+        undefined, [8460, 42085], [64, 197], [0, 33], 4, vmRegions);
 
     var androidRow = totalRow.subRows[0];
     checkRow(columns, androidRow, 'Android', undefined, [100, 100], undefined,
-        [100, 0], [0, 100], [0, 0], 1, undefined);
+        [100, 0], [0, 100], [0, 0], 1,
+        classificationNodesMatcher('Android', [true, true]));
 
     var javaRuntimeRow = androidRow.subRows[0];
     checkRow(columns, javaRuntimeRow, 'Java runtime', undefined, [100, 100],
-        undefined, [100, 0], [0, 100], [0, 0], 1, undefined);
+        undefined, [100, 0], [0, 100], [0, 0], 1,
+        classificationNodesMatcher('Java runtime', [true, true]));
 
     var spacesRow = javaRuntimeRow.subRows[0];
     checkRow(columns, spacesRow, 'Spaces', undefined, [100, 100], undefined,
-        [100, 0], [0, 100], [0, 0], 1, undefined);
+        [100, 0], [0, 100], [0, 0], 1,
+        classificationNodesMatcher('Spaces', [true, true]));
 
     var nativeHeapRow = totalRow.subRows[1];
     checkRow(columns, nativeHeapRow, 'Native heap', undefined,
         [4294966996, 4294967496], undefined, [168, 100], [64, 96], [0, 32], 4,
-        undefined);
+        classificationNodesMatcher('Native heap', [true, true]));
 
     var discountedTracingOverheadRow = nativeHeapRow.subRows[3];
     checkRow(columns, discountedTracingOverheadRow,
         '[discounted tracing overhead]', undefined, [-500, undefined],
         undefined, [-32, undefined], [-32, undefined], undefined, undefined,
-        [vmRegions[0][6], undefined]);
+        vmRegionsMatcher('[discounted tracing overhead]', undefined,
+            [true, false]));
 
     var filesRow = totalRow.subRows[2];
-    checkRow(columns, filesRow, 'Files', undefined, [538968064, 1073741824],
-        undefined, [8192, 19456], undefined, undefined, 1, undefined);
+    checkRow(columns, filesRow, 'Files', undefined, [538968064, 1074077696],
+        undefined, [8192, 41984], undefined, undefined, 2,
+        classificationNodesMatcher('Files', [true, true]));
 
     var soRow = filesRow.subRows[0];
     checkRow(columns, soRow, 'so', undefined, [538968064, 1073741824],
-        undefined, [8192, 19456], undefined, undefined, 3, undefined);
+        undefined, [8192, 19456], undefined, undefined, 3,
+        classificationNodesMatcher('so', [true, true]));
 
     var mmapChromeRow = soRow.subRows[0];
     checkRow(columns, mmapChromeRow, '/lib/chrome.so', ['0000000000010000'],
         [536870912, 536870912], ['r-xp', 'r-xp'], [8192, 9216], undefined,
-        undefined, undefined, [vmRegions[0][0], vmRegions[1][0]]);
+        undefined, undefined,
+        vmRegionsMatcher('/lib/chrome.so', 65536, [true, true]));
 
     var mmapLibX11Row = soRow.subRows[1];
     checkRow(columns, mmapLibX11Row,
         '/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0', ['00007f996fd80000'],
         [2097152, undefined], ['---p', undefined], [0, undefined], undefined,
-        undefined, undefined, [vmRegions[0][1], undefined]);
+        undefined, undefined,
+        vmRegionsMatcher('/usr/lib/x86_64-linux-gnu/libX11.so.6.3.0',
+            140296983150592, [true, false]));
 
     var otherRow = totalRow.subRows[3];
     checkRow(columns, otherRow, 'Other', undefined, [undefined, 1], undefined,
-        [undefined, 1], [undefined, 1], [undefined, 1], 1, undefined);
+        [undefined, 1], [undefined, 1], [undefined, 1], 1,
+        classificationNodesMatcher('Other', [false, true]));
 
     var anotherMapRow = otherRow.subRows[0];
     checkRow(columns, anotherMapRow, 'another-map', ['00bad00bad00bad0'],
         [undefined, 1], undefined, [undefined, 1], [undefined, 1],
-        [undefined, 1], undefined, [undefined, vmRegions[1][6]]);
+        [undefined, 1], undefined,
+        vmRegionsMatcher('another-map', 52583094233905872, [false, true]));
   });
 
   test('instantiate_multipleMax', function() {
