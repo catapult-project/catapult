@@ -26,6 +26,11 @@ found in the LICENSE file.
 <polymer-element name="group-report-page">
   <template>
     <style>
+      .error {
+        color: #dd4b39;
+        font-weight: bold;
+      }
+
       /* The action bar contains the graph button and triage button. */
       #action-bar {
         margin-top: 20px;
@@ -73,16 +78,19 @@ found in the LICENSE file.
         display: block;
       }
 
-      #loading {
+      #loading-spinner {
         width: 100%;
         display: flex;
         justify-content: center;
       }
     </style>
-    <template if="{{!loaded}}">
-      <div id="loading"><img src="//www.google.com/images/loading.gif"></div>
+    <template if="{{loading}}">
+      <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
-    <!-- TODO(sullivan): The below should be in a template if={{loaded}}.
+    <template if="{{error}}">
+      <div class="error">{{error}}</div>
+    </template>
+    <!-- TODO(sullivan): The below should be in a template if={{!loading}}.
          This doesn't work correctly due to polymer 0.5 bug, let's try again
          in polymer 1.0 -->
     <template if="{{warningMessage}}">
@@ -97,7 +105,7 @@ found in the LICENSE file.
                    hidden?="{{isInternalUser}}">
     </login-warning>
     <div id="top">
-      <div id="action-bar" hidden?="{{!loaded}}">
+      <div id="action-bar" hidden?="{{loading || error}}">
         <paper-button toggle raised
                       id="improvements-toggle"
                       class="alert-togglebutton"
@@ -116,7 +124,7 @@ found in the LICENSE file.
                  expandOnReady="true"></quick-log>
       </template>
       <alerts-table id="alerts-table"
-                    hidden?="{{!loaded}}"
+                    hidden?="{{loading || error}}"
                     xsrfToken="{{xsrfToken}}"
                     alertList="{{alertList}}"
                     extraColumns="{{extraColumns}}"
@@ -131,7 +139,7 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer('group-report-page', {
-      loaded: false,
+      loading: true,
 
       get alertsTable() {
         return this.$['alerts-table'];
@@ -359,15 +367,16 @@ found in the LICENSE file.
               this.$['bug-info'].initialize(
                   this.bugId, this.alertsTable, this.ownerInfo);
             }
-            this.loaded = true;
             this.addGraph(this.alertsTable.checkedAlerts, false);
             var charts = this.getCharts();
             for (var i = 0; i < charts.length; i++) {
               this.setChartData(charts[i]);
             }
+            this.loading = false;
           }.bind(this),
           function(msg) {
             this.error = msg;
+            this.loading = false;
           }.bind(this));
       }
     });
