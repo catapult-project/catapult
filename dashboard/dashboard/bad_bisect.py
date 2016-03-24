@@ -7,6 +7,7 @@
 from google.appengine.api import users
 
 from dashboard import oauth2_decorator
+from dashboard import quick_logger
 from dashboard import request_handler
 from dashboard import utils
 from dashboard import xsrf
@@ -45,15 +46,24 @@ class BadBisectHandler(request_handler.RequestHandler):
       return
 
     user = users.get_current_user()
+    email = user.email()
     if not job.bad_result_emails:
       job.bad_result_emails = set()
-    if user.email() not in job.bad_result_emails:
-      job.bad_result_emails.add(user.email())
+    if email not in job.bad_result_emails:
+      job.bad_result_emails.add(email)
       job.put()
-      # TODO(chrisphan): Log results to quick_logger here.
+      _LogFeedback(try_job_id, email)
 
     self.RenderHtml('result.html', {
         'headline': 'Confirmed bad bisect.  Thank you for reporting.'})
 
   def _RenderError(self, error):
     self.RenderHtml('result.html', {'errors': [error]})
+
+
+def _LogFeedback(try_job_id, email):
+  formatter = quick_logger.Formatter()
+  logger = quick_logger.QuickLogger('bad_bisect', 'report', formatter)
+  message = '%s marked try job %d.' % (email, try_job_id)
+  logger.Log(message)
+  logger.Save()

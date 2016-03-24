@@ -58,7 +58,12 @@ _REVISION_TABLE_TEMPLATE = """
 _RESULTS_THANK_YOU = """
 | O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq
 |  X  | for more information addressing perf regression bugs. For feedback,
-| / \\ | file a bug with label Cr-Tests-AutoBisect.  Thank you!"""
+| / \\ | file a bug with component Tests>AutoBisect.  Thank you!"""
+
+_REPORT_BAD_BISECT_TEMPLATE = """
+Not what you expected? We'll investigate and get back to you!
+  https://chromeperf.appspot.com/bad_bisect?try_job_id=%s
+"""
 
 
 def GetReport(try_job_entity):
@@ -91,6 +96,8 @@ def GetReport(try_job_entity):
 
   results_data['result'] = result
   report = _BISECT_REPORT_TEMPLATE % results_data
+  if try_job_entity.bug_id > 0:
+    report += _REPORT_BAD_BISECT_TEMPLATE % try_job_entity.bug_id
   report += _RESULTS_THANK_YOU
   return report
 

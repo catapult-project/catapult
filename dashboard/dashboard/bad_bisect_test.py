@@ -12,6 +12,7 @@ from dashboard import mock_oauth2_decorator
 from google.appengine.api import users
 
 from dashboard import bad_bisect
+from dashboard import quick_logger
 from dashboard import testing_common
 from dashboard import xsrf
 from dashboard.models import try_job
@@ -53,3 +54,11 @@ class BadBisectHandlerTest(testing_common.TestCase):
     jobs = try_job.TryJob.query().fetch()
     self.assertEqual(1, len(jobs))
     self.assertEqual({'test@chromium.org'}, jobs[0].bad_result_emails)
+
+  def testPost_LogAdded(self):
+    self.testapp.post('/bad_bisect?', {
+        'try_job_id': '1234',
+        'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
+    })
+    logs = quick_logger.Get('bad_bisect', 'report')
+    self.assertEqual(1, len(logs))
