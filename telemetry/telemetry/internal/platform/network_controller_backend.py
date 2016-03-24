@@ -35,7 +35,6 @@ class NetworkControllerBackend(object):
   def __init__(self, platform_backend):
     self._platform_backend = platform_backend
     self._wpr_mode = None
-    self._netsim = None
     self._extra_wpr_args = None
     self._wpr_port_pairs = None
     self._archive_path = None
@@ -67,7 +66,7 @@ class NetworkControllerBackend(object):
   def is_test_ca_installed(self):
     return self._wpr_ca_cert_path is not None
 
-  def Open(self, wpr_mode, netsim, extra_wpr_args):
+  def Open(self, wpr_mode, extra_wpr_args):
     """Configure and prepare target platform for network control.
 
     This may, e.g., install test certificates and perform any needed setup
@@ -79,15 +78,12 @@ class NetworkControllerBackend(object):
       wpr_mode: a mode for web page replay; available modes are
           wpr_modes.WPR_OFF, wpr_modes.APPEND, wpr_modes.WPR_REPLAY, or
           wpr_modes.WPR_RECORD.
-      netsim: a net_config string (e.g. 'dialup', '3g', 'dsl', 'cable', 'fios'),
-          may be None.
       extra_wpr_args: an list of extra arguments for web page replay.
     """
     assert not self.is_open, 'Network controller is already open'
     self._wpr_mode = wpr_mode
-    self._netsim = netsim
     self._extra_wpr_args = extra_wpr_args
-    self._wpr_port_pairs = self._platform_backend.GetWprPortPairs(bool(netsim))
+    self._wpr_port_pairs = self._platform_backend.GetWprPortPairs()
     self._InstallTestCa()
 
   def Close(self):
@@ -101,7 +97,6 @@ class NetworkControllerBackend(object):
     self._archive_path = None
     self._wpr_port_pairs = None
     self._extra_wpr_args = None
-    self._netsim = None
     self._wpr_mode = None
 
   def _InstallTestCa(self):
@@ -227,8 +222,6 @@ class NetworkControllerBackend(object):
 
   def _ReplayCommandLineArgs(self):
     wpr_args = list(self._extra_wpr_args)
-    if self._netsim:
-      wpr_args.append('--net=%s' % self._netsim)
     if self._wpr_mode == wpr_modes.WPR_APPEND:
       wpr_args.append('--append')
     elif self._wpr_mode == wpr_modes.WPR_RECORD:

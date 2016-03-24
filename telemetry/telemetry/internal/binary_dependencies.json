@@ -127,16 +127,6 @@
         }
       }
     },
-    "horndis": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "mac_x86_64": {
-          "cloud_storage_hash": "12a74cec071017ba11655b5740b8a58e2f52a219",
-          "download_path": "bin/mac/x86_64/HoRNDIS-rel5.pkg"
-        }
-      }
-    },
     "host_forwarder": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",

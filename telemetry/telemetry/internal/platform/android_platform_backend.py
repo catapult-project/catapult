@@ -12,7 +12,6 @@ from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
-from telemetry.internal import forwarders
 from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.image_processing import video
 from telemetry.internal.platform import android_device
@@ -72,7 +71,7 @@ def _FindLocallyBuiltPath(binary_name):
 
 class AndroidPlatformBackend(
     linux_based_platform_backend.LinuxBasedPlatformBackend):
-  def __init__(self, device, finder_options):
+  def __init__(self, device):
     assert device, (
         'AndroidPlatformBackend can only be initialized from remote device')
     super(AndroidPlatformBackend, self).__init__(device)
@@ -112,13 +111,6 @@ class AndroidPlatformBackend(
     self._device_cert_util = None
     self._system_ui = None
 
-    self._use_rndis_forwarder = (
-        finder_options.android_rndis or finder_options.browser_options.netsim)
-    assert not self._use_rndis_forwarder, (
-      'RNDIS forwarding is unsupported, but if this breaks something please '
-      'revert http://crrev.com/1824733004'
-      )
-
     _FixPossibleAdbInstability()
 
   @property
@@ -132,32 +124,16 @@ class AndroidPlatformBackend(
   @classmethod
   def CreatePlatformForDevice(cls, device, finder_options):
     assert cls.SupportsDevice(device)
-    platform_backend = AndroidPlatformBackend(device, finder_options)
+    platform_backend = AndroidPlatformBackend(device)
     return android_platform.AndroidPlatform(platform_backend)
 
   @property
   def forwarder_factory(self):
     if not self._forwarder_factory:
       self._forwarder_factory = android_forwarder.AndroidForwarderFactory(
-          self._device, self._use_rndis_forwarder)
+          self._device)
 
     return self._forwarder_factory
-
-  @property
-  def use_rndis_forwarder(self):
-    return self._use_rndis_forwarder
-
-  def GetWprPortPairs(self, has_netsim):
-    """Return suitable port pairs to be used for web page replay."""
-    if has_netsim:
-      assert self.use_rndis_forwarder, 'Netsim requires RNDIS forwarding.'
-      return forwarders.PortPairs(
-          http=forwarders.PortPair(0, 80),
-          https=forwarders.PortPair(0, 443),
-          dns=forwarders.PortPair(0, 53))
-    else:
-      # Fall back to default port pairs.
-      return super(AndroidPlatformBackend, self).GetWprPortPairs(has_netsim)
 
   @property
   def device(self):

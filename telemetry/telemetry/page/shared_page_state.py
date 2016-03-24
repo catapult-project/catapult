@@ -97,8 +97,8 @@ class SharedPageState(story.SharedState):
     else:
       wpr_mode = wpr_modes.WPR_REPLAY
 
-    self.platform.network_controller.Open(
-        wpr_mode, browser_options.netsim, browser_options.extra_wpr_args)
+    self.platform.network_controller.Open(wpr_mode,
+                                          browser_options.extra_wpr_args)
 
 
   @property

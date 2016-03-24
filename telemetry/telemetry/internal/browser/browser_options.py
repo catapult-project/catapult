@@ -10,8 +10,6 @@ import shlex
 import socket
 import sys
 
-import net_configs
-
 from catapult_base import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import platform
@@ -52,7 +50,6 @@ class BrowserFinderOptions(optparse.Values):
     self.output_file = None
 
     self.android_blacklist_file = None
-    self.android_rndis = False
     self.no_performance_mode = False
 
   def __repr__(self):
@@ -135,11 +132,6 @@ class BrowserFinderOptions(optparse.Values):
         'test is executed at maximum CPU speed in order to minimize noise '
         '(specially important for dashboards / continuous builds). '
         'This option prevents Telemetry from tweaking such platform settings.')
-    group.add_option('--android-rndis', dest='android_rndis', default=False,
-        action='store_true', help='Use RNDIS forwarding on Android.')
-    group.add_option('--no-android-rndis', dest='android_rndis',
-        action='store_false', help='Do not use RNDIS forwarding on Android.'
-        ' [default]')
     group.add_option('--android-blacklist-file',
                      help='Device blacklist JSON file.')
     parser.add_option_group(group)
@@ -230,7 +222,6 @@ class BrowserOptions(object):
     self._extra_browser_args = set()
     self.extra_wpr_args = []
     self.wpr_mode = wpr_modes.WPR_OFF
-    self.netsim = None
     self.full_performance_mode = True
 
     # The amount of time Telemetry should wait for the browser to start.
@@ -305,11 +296,6 @@ class BrowserOptions(object):
         dest='extra_wpr_args_as_string',
         help=('Additional arguments to pass to Web Page Replay. '
               'See third_party/webpagereplay/replay.py for usage.'))
-    group.add_option('--netsim', default=None, type='choice',
-        choices=net_configs.NET_CONFIG_NAMES,
-        help=('Run benchmark under simulated network conditions. '
-              'Will prompt for sudo. Supported values: ' +
-              ', '.join(net_configs.NET_CONFIG_NAMES)))
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
@@ -332,7 +318,6 @@ class BrowserOptions(object):
         'extra_browser_args_as_string',
         'extra_wpr_args_as_string',
         'enable_logging',
-        'netsim',
         'profile_dir',
         'profile_type',
         'show_stdout',

@@ -102,18 +102,12 @@ class PlatformBackend(object):
 
     self._running_browser_backends.discard(browser_backend)
 
-  def GetWprPortPairs(self, has_netsim):
+  def GetWprPortPairs(self):
     """Return suitable port pairs to be used for web page replay."""
-    if has_netsim:
-      return forwarders.PortPairs(
-          http=forwarders.PortPair(80, 80),
-          https=forwarders.PortPair(443, 443),
-          dns=forwarders.PortPair(53, 53))
-    else:
-      return forwarders.PortPairs(
-          http=forwarders.PortPair(0, 0),
-          https=forwarders.PortPair(0, 0),
-          dns=None)
+    return forwarders.PortPairs(
+        http=forwarders.PortPair(0, 0),
+        https=forwarders.PortPair(0, 0),
+        dns=None)
 
   def IsDisplayTracingSupported(self):
     return False

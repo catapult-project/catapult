@@ -7,7 +7,6 @@ import unittest
 from telemetry import decorators
 from telemetry.internal.platform import android_device
 from telemetry.internal.platform import android_platform_backend
-from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
 
@@ -16,7 +15,6 @@ from devil.android import device_utils
 
 class AndroidPlatformBackendTest(unittest.TestCase):
   def setUp(self):
-    self._options = options_for_unittests.GetCopy()
     self._stubs = system_stub.Override(
         android_platform_backend,
         ['perf_control', 'thermal_throttle'])
@@ -48,7 +46,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
       backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'), self._options)
+          android_device.AndroidDevice('12345'))
       self.assertTrue(backend.IsSvelte())
 
   @decorators.Disabled('chromeos')
@@ -56,7 +54,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
       backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'), self._options)
+          android_device.AndroidDevice('12345'))
       self.assertFalse(backend.IsSvelte())
 
   @decorators.Disabled('chromeos')
@@ -70,7 +68,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=proc_stat_content):
       backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('12345'), self._options)
+          android_device.AndroidDevice('12345'))
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
 
@@ -80,7 +78,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
       backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'), self._options)
+          android_device.AndroidDevice('1234'))
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals(cpu_stats, {})
 
@@ -109,7 +107,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
 
   def testInstallTestCaSuccess(self):
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'), self._options)
+        android_device.AndroidDevice('success'))
     with mock.patch('adb_install_cert.AndroidCertInstaller'):
       backend.InstallTestCa('testca.pem')
       self.assertIsNotNone(backend._device_cert_util)
@@ -120,13 +118,13 @@ class AndroidPlatformBackendTest(unittest.TestCase):
   def testIsScreenLockedTrue(self):
     test_input = ['a=b', 'mHasBeenInactive=true']
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'), self._options)
+        android_device.AndroidDevice('success'))
     self.assertTrue(backend._IsScreenLocked(test_input))
 
   def testIsScreenLockedFalse(self):
     test_input = ['a=b', 'mHasBeenInactive=false']
     backend = android_platform_backend.AndroidPlatformBackend(
-        android_device.AndroidDevice('success'), self._options)
+        android_device.AndroidDevice('success'))
     self.assertFalse(backend._IsScreenLocked(test_input))
 
 
@@ -161,7 +159,6 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
       return [self.Process(self)]
 
   def setUp(self):
-    self._options = options_for_unittests.GetCopy()
     self._stubs = system_stub.Override(
         android_platform_backend,
         ['perf_control'])
@@ -195,7 +192,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
       backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'), self._options)
+          android_device.AndroidDevice('1234'))
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals({}, cpu_stats)
       self.assertEquals([[0]], psutil.set_cpu_affinity_args)
@@ -209,7 +206,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
                     return_value=''):
       backend = android_platform_backend.AndroidPlatformBackend(
-          android_device.AndroidDevice('1234'), self._options)
+          android_device.AndroidDevice('1234'))
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals({}, cpu_stats)
       self.assertEquals([[0]], psutil.set_cpu_affinity_args)

@@ -55,10 +55,10 @@ class CrosPlatformBackend(
       return port
     return self._cri.GetRemotePort()
 
-  def GetWprPortPairs(self, has_netsim):
+  def GetWprPortPairs(self):
     """Return suitable port pairs to be used for web page replay."""
     default_local_ports = super(CrosPlatformBackend, self).GetWprPortPairs(
-        has_netsim).local_ports
+        ).local_ports
     return forwarders.PortPairs.Zip(
         default_local_ports,
         forwarders.PortSet(

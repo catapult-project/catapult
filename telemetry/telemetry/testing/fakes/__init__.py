@@ -277,20 +277,17 @@ class _FakeTracingController(object):
 class _FakeNetworkController(object):
   def __init__(self):
     self.wpr_mode = None
-    self.netsim = None
     self.extra_wpr_args = None
     self.is_replay_active = False
     self.is_open = False
 
-  def Open(self, wpr_mode, netsim, extra_wpr_args):
+  def Open(self, wpr_mode, extra_wpr_args):
     self.wpr_mode = wpr_mode
-    self.netsim = netsim
     self.extra_wpr_args = extra_wpr_args
     self.is_open = True
 
   def Close(self):
     self.wpr_mode = None
-    self.netsim = None
     self.extra_wpr_args = None
     self.is_replay_active = False
     self.is_open = False

@@ -46,10 +46,6 @@ class ForwarderFactory(object):
   def host_ip(self):
     return '127.0.0.1'
 
-  @property
-  def does_forwarder_override_dns(self):
-    return False
-
 
 class Forwarder(object):
 
