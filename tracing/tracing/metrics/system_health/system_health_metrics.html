@@ -22,8 +22,7 @@ tr.exportTo('tr.metrics.sh', function() {
     __proto__: Function.prototype
   };
 
-  // https://github.com/catapult-project/catapult/issues/2098
-  // tr.metrics.MetricRegistry.register(SystemHealthMetrics);
+  tr.metrics.MetricRegistry.register(SystemHealthMetrics);
 
   return {
     SystemHealthMetrics: SystemHealthMetrics
