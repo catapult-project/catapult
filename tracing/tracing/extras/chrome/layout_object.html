@@ -10,25 +10,66 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Provides the LayoutObject class.
- */
 tr.exportTo('tr.e.chrome', function() {
   var KNOWN_PROPERTIES = {
+    absX: 1,
+    absY: 1,
+    address: 1,
+    anonymous: 1,
+    childNeeds: 1,
     children: 1,
+    classNames: 1,
+    col: 1,
+    colSpan: 1,
+    float: 1,
+    height: 1,
+    htmlId: 1,
     name: 1,
-    address: 1
+    posChildNeeds: 1,
+    positioned: 1,
+    positionedMovement: 1,
+    relX: 1,
+    relY: 1,
+    relativePositioned: 1,
+    row: 1,
+    rowSpan: 1,
+    selfNeeds: 1,
+    stickyPositioned: 1,
+    tag: 1,
+    width: 1
   };
 
-  /**
-   * @constructor
-   */
   function LayoutObject(snapshot, args) {
     this.snapshot_ = snapshot;
     this.id_ = args.address;
     this.name_ = args.name;
     this.childLayoutObjects_ = [];
     this.otherProperties_ = {};
+    this.tag_ = args.tag;
+    this.relativeRect_ = tr.b.Rect.fromXYWH(
+        args.relX, args.relY, args.width, args.height);
+    this.absoluteRect_ = tr.b.Rect.fromXYWH(
+        args.absX, args.absY, args.width, args.height);
+    this.isFloat_ = args.float;
+    this.isStickyPositioned_ = args.stickyPositioned;
+    this.isPositioned_ = args.positioned;
+    this.isRelativePositioned_ = args.relativePositioned;
+    this.isAnonymous_ = args.anonymous;
+    this.htmlId_ = args.htmlId;
+    this.classNames_ = args.classNames;
+    this.needsLayoutReasons_ = [];
+    if (args.selfNeeds)
+      this.needsLayoutReasons_.push('self');
+    if (args.childNeeds)
+      this.needsLayoutReasons_.push('child');
+    if (args.posChildNeeds)
+      this.needsLayoutReasons_.push('positionedChild');
+    if (args.positionedMovement)
+      this.needsLayoutReasons_.push('positionedMovement');
+    this.tableRow_ = args.row;
+    this.tableCol_ = args.col;
+    this.tableRowSpan_ = args.rowSpan;
+    this.tableColSpan_ = args.colSpan;
 
     if (args.children) {
       args.children.forEach(function(child) {
@@ -53,6 +94,66 @@ tr.exportTo('tr.e.chrome', function() {
 
     get name() {
       return this.name_;
+    },
+
+    get tag() {
+      return this.tag_;
+    },
+
+    get relativeRect() {
+      return this.relativeRect_;
+    },
+
+    get absoluteRect() {
+      return this.absoluteRect_;
+    },
+
+    get isPositioned() {
+      return this.isPositioned_;
+    },
+
+    get isFloat() {
+      return this.isFloat_;
+    },
+
+    get isStickyPositioned() {
+      return this.isStickyPositioned_;
+    },
+
+    get isRelativePositioned() {
+      return this.isRelativePositioned_;
+    },
+
+    get isAnonymous() {
+      return this.isAnonymous_;
+    },
+
+    get tableRow() {
+      return this.tableRow_;
+    },
+
+    get tableCol() {
+      return this.tableCol_;
+    },
+
+    get tableRowSpan() {
+      return this.tableRowSpan_;
+    },
+
+    get tableColSpan() {
+      return this.tableColSpan_;
+    },
+
+    get htmlId() {
+      return this.htmlId_;
+    },
+
+    get classNames() {
+      return this.classNames_;
+    },
+
+    get needsLayoutReasons() {
+      return this.needsLayoutReasons_;
     },
 
     get hasChildLayoutObjects() {
