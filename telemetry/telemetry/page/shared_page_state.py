@@ -221,6 +221,13 @@ class SharedPageState(story.SharedState):
         logging.warning('System info not supported')
 
   def WillRunStory(self, page):
+    if not self.platform.tracing_controller.is_tracing_running:
+      # For TimelineBasedMeasurement benchmarks, tracing has already started.
+      # For PageTest benchmarks, tracing has not yet started. We need to make
+      # sure no tracing state is left before starting the browser for PageTest
+      # benchmarks.
+      self.platform.tracing_controller.ClearStateIfNeeded()
+
     if self._ShouldDownloadPregeneratedProfileArchive():
       self._DownloadPregeneratedProfileArchive()
 

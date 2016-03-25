@@ -70,3 +70,7 @@ class TracingController(tracing_agent.TracingAgent):
                             record_controller_clocksync_marker_callback):
     return self._tracing_controller_backend.RecordClockSyncMarker(
         sync_id, record_controller_clocksync_marker_callback)
+
+  def ClearStateIfNeeded(self):
+    """Clear tracing state if needed."""
+    self._tracing_controller_backend.ClearStateIfNeeded()

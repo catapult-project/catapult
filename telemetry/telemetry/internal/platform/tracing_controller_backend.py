@@ -234,3 +234,6 @@ class TracingControllerBackend(object):
 
   def _IsTracingControllable(self):
     return trace_event.is_tracing_controllable()
+
+  def ClearStateIfNeeded(self):
+    chrome_tracing_agent.ClearStarupTracingStateIfNeeded(self._platform_backend)

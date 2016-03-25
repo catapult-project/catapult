@@ -273,6 +273,9 @@ class _FakeTracingController(object):
   def is_tracing_running(self):
     return self._is_tracing
 
+  def ClearStateIfNeeded(self):
+    pass
+
 
 class _FakeNetworkController(object):
   def __init__(self):

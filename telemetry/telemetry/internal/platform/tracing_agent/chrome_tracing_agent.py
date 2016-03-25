@@ -24,6 +24,15 @@ _CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/'
 _CHROME_TRACE_CONFIG_FILE_NAME = 'chrome-trace-config.json'
 
 
+def ClearStarupTracingStateIfNeeded(platform_backend):
+  # Trace config file has fixed path on Android and temporary path on desktop.
+  if platform_backend.GetOSName() == 'android':
+    trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_ANDROID,
+                                     _CHROME_TRACE_CONFIG_FILE_NAME)
+    platform_backend.device.RunShellCommand(
+        ['rm', '-f', trace_config_file], check_return=True, as_root=True)
+
+
 class ChromeTracingStartedError(Exception):
   pass
 
