@@ -5,7 +5,7 @@
 
 import unittest
 
-from catapult_base.perfbot_stats import chrome_perf_stats
+from perfbot_stats import chrome_perf_stats
 
 
 class TestChromePerfStats(unittest.TestCase):
