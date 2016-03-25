@@ -126,6 +126,20 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('stillLoading', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
+      chrome_test_utils.addNavigationStartEvent(model, {start: 10});
+      chrome_test_utils.addFrameEvent(model, {start: 19, end: 20});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 10, eventCount: 0},
+      {title: 'Successful Load', start: 10, end: 20, eventCount: 0}
+    ];
+    verifier.verify();
+  });
+
   test('overlappingIdleAndLoadCollectUnassociatedEvents', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {

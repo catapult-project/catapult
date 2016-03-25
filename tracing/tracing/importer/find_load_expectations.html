@@ -117,7 +117,7 @@ tr.exportTo('tr.importer', function() {
     if (startEvent) {
       loads.push(new tr.model.um.LoadExpectation(
             modelHelper.model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL,
-            startEvent.start, modelHelper.model.bounds.end - startEvent.start));
+            startEvent.start, modelHelper.model.bounds.max - startEvent.start));
     }
 
     return loads;
