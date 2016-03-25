@@ -35,7 +35,7 @@ request to set a new default version for chromeperf.appspot.com you can
 contact chrome-perf-dashboard-team@google.com.
 
 After deploying, there is a checklist to verify that no major functionality
-has regressed: [deploy checklist](/dashboard/deploy-checklist.md).
+has regressed: [deploy checklist](/dashboard/docs/deploy-checklist.md).
 
 WARNING: Some changes to production may not be easily reversible; for
 example `appcfg.py ... vacuum_indexes` will remove datastore indexes that
