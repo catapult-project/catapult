@@ -103,7 +103,7 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(catapult_dir, 'dependency_manager'),
       input_api.os_path.join(catapult_dir, 'devil'),
       input_api.os_path.join(catapult_dir, 'tracing'),
-      input_api.os_path.join(catapult_dir, 'tools', 'py_trace_event'),
+      input_api.os_path.join(catapult_dir, 'common', 'py_trace_event'),
 
       input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyfakefs'),
