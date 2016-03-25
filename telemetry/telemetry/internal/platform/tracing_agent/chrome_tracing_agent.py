@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
 import logging
 import os
 import shutil
@@ -154,6 +155,9 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
       self._platform_backend.device.WriteFile(self._trace_config_file,
           self._CreateTraceConfigFileString(config), as_root=True)
+      # The config file has fixed path on Android. We need to ensure it is
+      # always cleaned up.
+      atexit.register(self._RemoveTraceConfigFile)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
       self._trace_config_file = os.path.join(tempfile.mkdtemp(),
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
