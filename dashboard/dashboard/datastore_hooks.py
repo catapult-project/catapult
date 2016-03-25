@@ -85,6 +85,8 @@ def _IsServicingPrivilegedRequest():
     return True
   if path.startswith('/_ah/queue/deferred'):
     return True
+  if path.startswith('/_ah/pipeline/'):
+    return True
   if request.registry.get('privileged', False):
     return True
   if request.registry.get('single_privileged', False):
