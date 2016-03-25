@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/extras/importer/jszip.html">
-<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/importer/importer.html">
+<link rel="import" href="/tracing/model/model.html">
 
 <script>
 /**
@@ -123,7 +123,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
     /**
      * Imports the data in this.data_ into this.model_.
      */
-    importEvents: function(isSecondaryImport) {
+    importEvents: function() {
       var divider = this.data_.indexOf(kMethodLutEndMarker) +
           kMethodLutEndMarker.length;
       this.metadata_ = this.data_.slice(0, divider);

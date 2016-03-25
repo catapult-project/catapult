@@ -282,7 +282,7 @@ tr.exportTo('tr.e.importer.android', function() {
       }
     },
 
-    importEvents: function(isSecondaryImport) {
+    importEvents: function() {
       // Check if we have a mapping from real-time to CLOCK_MONOTONIC
       if (isNaN(this.model_.realtime_to_monotonic_offset_ms)) {
         this.model_.importWarning({

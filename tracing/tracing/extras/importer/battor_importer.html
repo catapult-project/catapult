@@ -68,7 +68,7 @@ tr.exportTo('tr.e.importer.battor', function() {
     /**
      * Imports the data in this.events_ into model_.
      */
-    importEvents: function(isSecondaryImport) {
+    importEvents: function() {
       // Fail if the model already has a Power counter.
       if (this.model_.device.powerSeries) {
         this.model_.importWarning({
