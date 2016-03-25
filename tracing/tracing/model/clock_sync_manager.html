@@ -54,8 +54,8 @@ tr.exportTo('tr.model', function() {
      */
     addClockSyncMarker: function(domainId, syncId, startTs, opt_endTs) {
       if (tr.b.dictionaryValues(ClockDomainId).indexOf(domainId) < 0) {
-        throw new Error('The specified clock domain ID is not in the list of ' +
-            'known clock domain IDs.');
+        throw new Error('"' + domainId + '" is not in the list of known ' +
+            'clock domain IDs.');
       }
 
       if (this.modelDomainId_ !== undefined) {

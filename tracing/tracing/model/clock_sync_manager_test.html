@@ -39,8 +39,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(function() {
       mgr.addClockSyncMarker('unknown', 'sync1', 100, 200);
-    }, 'The specified clock domain ID is not in the list of known clock ' +
-        'domain IDs.');
+    }, '"unknown" is not in the list of known clock domain IDs.');
   }, testOptions);
 
 
