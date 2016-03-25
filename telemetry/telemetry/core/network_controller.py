@@ -15,6 +15,10 @@ class NetworkController(object):
   def Open(self, wpr_mode, extra_wpr_args):
     self._network_controller_backend.Open(wpr_mode, extra_wpr_args)
 
+  @property
+  def is_open(self):
+    return self._network_controller_backend.is_open
+
   def Close(self):
     self._network_controller_backend.Close()
 
