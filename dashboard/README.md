@@ -10,6 +10,7 @@ and monitoring performance test results.
  - [Data format for new graph data](/dashboard/data-format.md)
  - [Checklist for deployment](/dashboard/deploy-checklist.md)
  - [Project glossary](/dashboard/glossary.md)
+ - [Pages and endpoints](/dashboard/pages-and-endpoints.md)
 
 ## Contact
 
