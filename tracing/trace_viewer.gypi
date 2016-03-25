@@ -436,7 +436,6 @@
       'tracing/ui/tracks/track.html',
       'tracing/ui/view_specific_brushing_state.html',
       'tracing/value/generic_table.html',
-      'tracing/value/histogram.html',
       'tracing/value/numeric.html',
       'tracing/value/time_display_mode.html',
       'tracing/value/ui/array_of_numbers_span.html',

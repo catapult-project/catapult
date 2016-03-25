@@ -15,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/user_model/animation_expectation.html">
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
-<link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/value.html">
 
@@ -37,7 +36,7 @@ tr.exportTo('tr.metrics.sh', function() {
   // score the responsiveness at a certain value. We have set this with
   // just a best-effort guess, though. In #1696, we plan to derive this
   // experimentally.
-  var RESPONSE_HISTOGRAM = tr.v.Histogram.fromDict({
+  var RESPONSE_HISTOGRAM = tr.v.Numeric.fromDict({
     unit: 'unitless',
     min: 150,
     max: 5000,
@@ -58,7 +57,7 @@ tr.exportTo('tr.metrics.sh', function() {
     overflowBin: {min: 5000, max: Number.MAX_VALUE, count: 0}
   });
 
-  var FAST_RESPONSE_HISTOGRAM = tr.v.Histogram.fromDict({
+  var FAST_RESPONSE_HISTOGRAM = tr.v.Numeric.fromDict({
     unit: 'unitless',
     min: 66,
     max: 2200,
@@ -79,7 +78,7 @@ tr.exportTo('tr.metrics.sh', function() {
     overflowBin: {min: 2200, max: Number.MAX_VALUE, count: 0}
   });
 
-  var LOAD_HISTOGRAM = tr.v.Histogram.fromDict({
+  var LOAD_HISTOGRAM = tr.v.Numeric.fromDict({
     unit: 'unitless',
     min: 1000,
     max: 60000,

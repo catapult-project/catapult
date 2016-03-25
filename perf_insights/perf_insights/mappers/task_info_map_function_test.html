@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/perf_insights/mre/mre_result.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/numeric.html">
 
 <script>
 'use strict';
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(tr.b.dictionaryLength(result.pairs), 3);
     var time_spent_in_queue = result.pairs.time_spent_in_queue;
     assert.equal(tr.b.dictionaryLength(time_spent_in_queue.Browser), 1);
-    var histogram = tr.v.Histogram.fromDict(
+    var histogram = tr.v.Numeric.fromDict(
         time_spent_in_queue['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(7.2).count, 1);
     assert.equal(histogram.getBinForValue(18.1).count, 1);
@@ -63,14 +63,14 @@ tr.b.unittest.testSuite(function() {
         result.pairs.time_spent_in_top_level_task);
     assert.equal(tr.b.dictionaryLength(
         time_spent_in_top_level_task['Browser']), 1);
-    histogram = tr.v.Histogram.fromDict(
+    histogram = tr.v.Numeric.fromDict(
         time_spent_in_top_level_task['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(10.4).count, 1);
     var cpu_time_spent_in_top_level_task = (
         result.pairs.cpu_time_spent_in_top_level_task);
     assert.equal(tr.b.dictionaryLength(
         cpu_time_spent_in_top_level_task['Browser']), 1);
-    histogram = tr.v.Histogram.fromDict(
+    histogram = tr.v.Numeric.fromDict(
         cpu_time_spent_in_top_level_task['Browser']['CrBrowserMain']);
     assert.equal(histogram.getBinForValue(3.0).count, 1);
   });

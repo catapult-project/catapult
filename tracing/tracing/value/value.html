@@ -85,8 +85,8 @@ tr.exportTo('tr.v', function() {
 
   function NumericValue(canonicalUrl, name, numeric, opt_options,
                         opt_groupingKeys, opt_diagnostics) {
-    if (!(numeric instanceof tr.v.Numeric))
-      throw new Error('Expected numeric to be instance of tr.v.Numeric');
+    if (!(numeric instanceof tr.v.NumericBase))
+      throw new Error('Expected numeric to be instance of tr.v.NumericBase');
 
     Value.call(this, canonicalUrl, name, opt_options, opt_groupingKeys,
                opt_diagnostics);
@@ -96,7 +96,7 @@ tr.exportTo('tr.v', function() {
   NumericValue.fromDict = function(d) {
     if (d.numeric === undefined)
       throw new Error('Expected numeric to be provided');
-    var numeric = tr.v.Numeric.fromDict(d.numeric);
+    var numeric = tr.v.NumericBase.fromDict(d.numeric);
     return new NumericValue(d.diagnostics.canonical_url, d.grouping_keys.name,
                             numeric, d, d.grouping_keys, d.diagnostics);
   };

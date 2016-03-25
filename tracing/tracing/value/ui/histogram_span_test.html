@@ -14,7 +14,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var h = new tr.v.Histogram.createLinear(
+    var h = new tr.v.Numeric.createLinear(
         tr.v.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyHistogram', function() {
-    var h = new tr.v.Histogram.createLinear(
+    var h = new tr.v.Numeric.createLinear(
         tr.v.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nans', function() {
-    var h = new tr.v.Histogram.createLinear(
+    var h = new tr.v.Numeric.createLinear(
         tr.v.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000),
         10);
