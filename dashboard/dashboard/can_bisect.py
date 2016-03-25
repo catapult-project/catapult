@@ -15,6 +15,7 @@ _UNBISECTABLE_SUITES = [
     'arc-perf-test',
     'browser_tests',
     'content_browsertests',
+    'resource_sizes',
     'sizes',
     'v8',
 ]
