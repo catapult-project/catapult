@@ -22,15 +22,14 @@ tr.b.unittest.testSuite(function() {
   var SelectionState = tr.model.SelectionState;
   var Viewport = tr.ui.TimelineViewport;
 
-  var newSliceNamed = tr.c.TestUtils.newSliceNamed;
-
   var createFrames = function() {
     var frames = undefined;
     var model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
       for (var i = 1; i < 5; i++) {
-        var slice = newSliceNamed('work for frame', i * 20, 10);
+        var slice = tr.c.TestUtils.newSliceEx(
+            {title: 'work for frame', start: i * 20, duration: 10});
         thread.sliceGroup.pushSlice(slice);
         var events = [slice];
         var threadTimeRanges =

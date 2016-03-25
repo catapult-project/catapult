@@ -27,7 +27,8 @@ tr.b.unittest.testSuite(function() {
     track.model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
       var thread = process.getOrCreateThread(1);
-      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSlice(0, 200));
+      thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+          {start: 0, duration: 200}));
       model.userModel.expectations.push(new tr.model.um.StubExpectation(
           {parentModel: model, start: 100, duration: 100}));
       model.userModel.expectations.push(new tr.model.um.StubExpectation(

@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
   function createTestModel(sliceCount) {
     var slices = [];
     for (var i = 0; i < sliceCount; i++)
-      slices.push(tr.c.TestUtils.newSlice(1, 2));
+      slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 2}));
     return createTestModelWithSlices(slices);
   }
 

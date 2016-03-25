@@ -15,7 +15,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceNamed = tr.c.TestUtils.newSliceNamed;
   var Task = tr.b.Task;
 
   function setupTimeline() {
@@ -145,7 +144,8 @@ tr.b.unittest.testSuite(function() {
 
     // Mutate the model and update the view.
     var t123 = model.getOrCreateProcess(123).getOrCreateThread(123);
-    t123.sliceGroup.pushSlice(newSliceNamed('somethingUnusual', 0, 5));
+    t123.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        {title: 'somethingUnusual', start: 0, duration: 5}));
     view.model = model;
 
     // Verify that the new bits of the model show up in the view.

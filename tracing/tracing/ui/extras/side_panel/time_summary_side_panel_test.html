@@ -5,16 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/extras/side_panel/time_summary_side_panel.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/extras/side_panel/time_summary_side_panel.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var newSliceNamed = tr.c.TestUtils.newSliceNamed;
-
   function createModel(opt_options) {
     var options = opt_options || {};
     var m = tr.c.TestUtils.newModelWithEvents([], {
@@ -148,7 +146,9 @@ tr.b.unittest.testSuite(function() {
         groupData.forEach(function(groupData) {
           var group = ts.generateResultsForGroup(m, groupData.label);
 
-          var slice = newSliceNamed(groupData.label, start, groupData.value);
+          var slice = tr.c.TestUtils.newSliceEx(
+              {title: groupData.label,
+               start: start, duration: groupData.value});
           start += groupData.value;
           group.allSlices.push(slice);
           group.topLevelSlices.push(slice);

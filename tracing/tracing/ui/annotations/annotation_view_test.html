@@ -5,14 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/location.html">
-<link rel="import" href="/tracing/ui/timeline_track_view.html">
-<link rel="import" href="/tracing/ui/timeline_viewport.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
-<link rel="import" href="/tracing/model/rect_annotation.html">
+<link rel="import" href="/tracing/model/location.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/rect_annotation.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
+<link rel="import" href="/tracing/ui/timeline_track_view.html">
+<link rel="import" href="/tracing/ui/timeline_viewport.html">
 
 <script>
 'use strict';
@@ -23,7 +23,8 @@ tr.b.unittest.testSuite(function() {
     var model = new tr.Model();
     var process = model.getOrCreateProcess(1);
     var thread = process.getOrCreateThread(2);
-    thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceNamed('a', 80, 50));
+    thread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx(
+        {title: 'a', start: 80, duration: 50}));
 
     var timeline = document.createElement('tr-ui-timeline-track-view');
     var vp = new tr.ui.TimelineViewport(timeline);

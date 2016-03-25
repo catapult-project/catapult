@@ -204,15 +204,6 @@ tr.exportTo('tr.c', function() {
     return event;
   };
 
-  TestUtils.newSlice = function(start, duration) {
-    return TestUtils.newSliceNamed('a', start, duration);
-  };
-
-  TestUtils.newSliceNamed = function(name, start, duration) {
-    var s = new tr.model.Slice('', name, 0, start, {}, duration);
-    return s;
-  };
-
   TestUtils.newThreadSlice = function(thread, state, start, duration, opt_cpu) {
     var s = new tr.model.ThreadTimeSlice(
         thread, state, 'cat', start, {}, duration);
@@ -233,12 +224,6 @@ tr.exportTo('tr.c', function() {
                                         sampleName, start,
                                         sf,
                                         1);
-    return s;
-  };
-
-  TestUtils.newSliceCategory = function(category, name, start, duration) {
-    var s = new tr.model.Slice(
-        category, name, 0, start, {}, duration);
     return s;
   };
 

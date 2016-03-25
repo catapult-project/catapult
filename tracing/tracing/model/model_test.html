@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
   var createModelWithOneOfEverything = function() {
     var m = new tr.Model();
     var cpu = m.kernel.getOrCreateCpu(1);
-    cpu.slices.push(tr.c.TestUtils.newSlice(1, 3));
+    cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
 
     var p = m.getOrCreateProcess(1);
     var t = p.getOrCreateThread(1);
@@ -141,7 +141,7 @@ tr.b.unittest.testSuite(function() {
   test('modelBounds_OneCpu', function() {
     var m = new tr.Model();
     var cpu = m.kernel.getOrCreateCpu(1);
-    cpu.slices.push(tr.c.TestUtils.newSlice(1, 3));
+    cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
     m.updateBounds();
     assert.equal(m.bounds.min, 1);
     assert.equal(m.bounds.max, 4);
@@ -150,7 +150,7 @@ tr.b.unittest.testSuite(function() {
   test('modelBounds_OneCpuOneThread', function() {
     var m = new tr.Model();
     var cpu = m.kernel.getOrCreateCpu(1);
-    cpu.slices.push(tr.c.TestUtils.newSlice(1, 3));
+    cpu.slices.push(tr.c.TestUtils.newSliceEx({start: 1, duration: 3}));
 
     var t = m.getOrCreateProcess(1).getOrCreateThread(1);
     t.sliceGroup.pushSlice(new ThreadSlice('', 'a', 0, 1, {}, 4));
@@ -198,7 +198,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('TitleOrCategoryFilter', function() {
-    var s0 = tr.c.TestUtils.newSlice(1, 3);
+    var s0 = tr.c.TestUtils.newSliceEx({start: 1, duration: 3});
     assert.isTrue(new TitleOrCategoryFilter('a').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('x').matchSlice(s0));
 

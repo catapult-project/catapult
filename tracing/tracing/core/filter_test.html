@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unittest.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/base/unittest.html">
 
 <script>
 'use strict';
@@ -25,14 +25,16 @@ tr.b.unittest.testSuite(function() {
       new TitleOrCategoryFilter('');
     });
 
-    var s0 = tr.c.TestUtils.newSliceCategory('cat', 'a', 1, 3);
+    var s0 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'a', start: 1, duration: 3});
     assert.isTrue(new TitleOrCategoryFilter('a').matchSlice(s0));
     assert.isTrue(new TitleOrCategoryFilter('cat').matchSlice(s0));
     assert.isTrue(new TitleOrCategoryFilter('at').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('b').matchSlice(s0));
     assert.isFalse(new TitleOrCategoryFilter('X').matchSlice(s0));
 
-    var s1 = tr.c.TestUtils.newSliceCategory('cat', 'abc', 1, 3);
+    var s1 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'abc', start: 1, duration: 3});
     assert.isTrue(new TitleOrCategoryFilter('abc').matchSlice(s1));
     assert.isTrue(new TitleOrCategoryFilter('Abc').matchSlice(s1));
     assert.isTrue(new TitleOrCategoryFilter('cat').matchSlice(s1));
@@ -49,12 +51,12 @@ tr.b.unittest.testSuite(function() {
       new ExactTitleFilter('');
     });
 
-    var s0 = tr.c.TestUtils.newSliceNamed('a', 1, 3);
+    var s0 = tr.c.TestUtils.newSliceEx({title: 'a', start: 1, duration: 3});
     assert.isTrue(new ExactTitleFilter('a').matchSlice(s0));
     assert.isFalse(new ExactTitleFilter('b').matchSlice(s0));
     assert.isFalse(new ExactTitleFilter('A').matchSlice(s0));
 
-    var s1 = tr.c.TestUtils.newSliceNamed('abc', 1, 3);
+    var s1 = tr.c.TestUtils.newSliceEx({title: 'abc', start: 1, duration: 3});
     assert.isTrue(new ExactTitleFilter('abc').matchSlice(s1));
     assert.isFalse(new ExactTitleFilter('Abc').matchSlice(s1));
     assert.isFalse(new ExactTitleFilter('bc').matchSlice(s1));
@@ -69,7 +71,8 @@ tr.b.unittest.testSuite(function() {
       new FullTextFilter('');
     });
 
-    var s0 = tr.c.TestUtils.newSliceCategory('cat', 'a', 1, 3);
+    var s0 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'a', start: 1, duration: 3});
     s0.args['key'] = 'value';
     s0.args['anotherKey'] = 'anotherValue';
     assert.isTrue(new FullTextFilter('cat').matchSlice(s0));
@@ -79,20 +82,24 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(new FullTextFilter('anotherValue').matchSlice(s0));
     assert.isFalse(new FullTextFilter('not there').matchSlice(s0));
 
-    var s1 = tr.c.TestUtils.newSliceCategory('cat', 'a', 1, 3);
+    var s1 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'a', start: 1, duration: 3});
     s1.args['key'] = 123;
     assert.isTrue(new FullTextFilter('123').matchSlice(s1));
 
-    var s2 = tr.c.TestUtils.newSliceCategory('cat', 'a', 1, 3);
+    var s2 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'a', start: 1, duration: 3});
     s2.args['key'] = ['innerValue1', 'innerValue2'];
     assert.isTrue(new FullTextFilter('innerValue1').matchSlice(s2));
     assert.isTrue(new FullTextFilter('innerValue2').matchSlice(s2));
 
-    var s3 = tr.c.TestUtils.newSliceCategory('cat', 'a', 1, 3);
+    var s3 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'a', start: 1, duration: 3});
     s3.args['key'] = ['one', 'two', 'three'];
     assert.isTrue(new FullTextFilter('two').matchSlice(s3));
 
-    var s4 = tr.c.TestUtils.newSliceCategory('cat', 'a', 1, 3);
+    var s4 = tr.c.TestUtils.newSliceEx(
+        {cat: 'cat', title: 'a', start: 1, duration: 3});
     s4.args['key'] = undefined;
     assert.isFalse(new FullTextFilter('not there').matchSlice(s4));
   });

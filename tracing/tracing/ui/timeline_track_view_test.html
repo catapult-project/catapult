@@ -139,7 +139,7 @@ tr.b.unittest.testSuite(function() {
     var model = new tr.Model();
     var p1 = model.getOrCreateProcess(1);
     var t1 = p1.getOrCreateThread(2);
-    t1.sliceGroup.pushSlice(tr.c.TestUtils.newSlice(0, 1));
+    t1.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({start: 0, duration: 1}));
 
     var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
