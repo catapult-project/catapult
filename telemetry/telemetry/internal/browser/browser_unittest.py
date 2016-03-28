@@ -113,7 +113,6 @@ class BrowserTest(browser_test_case.BrowserTestCase):
   def testGetSystemTotalMemory(self):
     self.assertTrue(self._browser.memory_stats['SystemTotalPhysicalMemory'] > 0)
 
-  @decorators.Disabled('mac', 'linux', 'chromeos')  # crbug.com/499208.
   @decorators.Disabled('win')  # crbug.com/570955.
   def testIsTracingRunning(self):
     tracing_controller = self._browser.platform.tracing_controller
