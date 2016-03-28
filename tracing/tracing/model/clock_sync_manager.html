@@ -120,19 +120,18 @@ tr.exportTo('tr.model', function() {
     buildModelTimeTransformerMap_() {
       var completeConnectorsByDomainId =
           this.getCompleteConnectorsByDomainId_();
-      var uniqueClockDomainIds =
-          tr.b.dictionaryKeys(completeConnectorsByDomainId);
+      var uniqueDomainIds = tr.b.dictionaryKeys(completeConnectorsByDomainId);
 
       // If there are |n| unique clock domains, then the model clock domain
       // is the first one alphabetically that's connected to the |n-1| other
       // clock domains.
-      uniqueClockDomainIds.sort();
+      uniqueDomainIds.sort();
       var isFullyConnected = function(domainId) {
         return completeConnectorsByDomainId[domainId].length ===
-            uniqueClockDomainIds.length - 1;
+            uniqueDomainIds.length - 1;
       };
       this.modelDomainId_ =
-          tr.b.findFirstInArray(uniqueClockDomainIds, isFullyConnected);
+          tr.b.findFirstInArray(uniqueDomainIds, isFullyConnected);
 
       if (this.modelDomainId_ === undefined) {
         throw new Error('Unable to select a master clock domain because no ' +
