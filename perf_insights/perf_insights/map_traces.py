@@ -85,7 +85,7 @@ def Main(argv):
                                   jobs=args.jobs,
                                   output_formatters=[output_formatter])
     results = runner.Run()
-    if not results.failures:
+    if not any(result.failures for result in results):
       return 0
     else:
       return 255
