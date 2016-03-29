@@ -403,14 +403,16 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       chrome_test_utils.addEvent(model.rendererMain, {
         title: 'Animation', start: 0, end: 100, isTopLevel: true});
+      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
       chrome_test_utils.addEvent(model.rendererMain, {
         title: 'Animation', start: 131, end: 200, isTopLevel: true});
+      chrome_test_utils.addFrameEvent(model, {start: 150, end: 160});
       chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 150, end: 180});
       chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
     };
     verifier.expectedIRs = [
-      {title: 'CSS Animation', start: 0, end: 200, eventCount: 2},
+      {title: 'CSS Animation', start: 0, end: 200, eventCount: 4},
       {title: 'Fling Animation', start: 150, end: 300, eventCount: 1}
     ];
     verifier.verify();
@@ -424,6 +426,7 @@ tr.b.unittest.testSuite(function() {
       // async slice.
       chrome_test_utils.addEvent(model.rendererMain, {
         title: 'Animation', start: 181, end: 250, isTopLevel: true});
+      chrome_test_utils.addFrameEvent(model, {start: 200, end: 240});
 
       // Animation ranges should be merged if there is less than 32ms dead time
       // between them.
@@ -448,6 +451,12 @@ tr.b.unittest.testSuite(function() {
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 350, args: {state: 'idle'}}));
       model.rendererMain.asyncSliceGroup.push(animationA);
+      chrome_test_utils.addFrameEvent(model, {start: 80, end: 90});
+      chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
+
+      // An animation without a frame event isn't really an animation.
+      chrome_test_utils.addEvent(model.rendererMain, {
+        title: 'Animation', start: 350, end: 382, isTopLevel: true});
 
       // This animation was running from model.bounds.min-50 and
       // 70-model.bounds.max.
@@ -458,11 +467,13 @@ tr.b.unittest.testSuite(function() {
       animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 382, args: {state: 'running'}}));
       model.rendererMain.asyncSliceGroup.push(animationB);
+      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      chrome_test_utils.addFrameEvent(model, {start: 390, end: 400});
     };
     verifier.expectedIRs = [
-      {title: 'CSS Animation', start: 0, end: 350, eventCount: 11},
+      {title: 'CSS Animation', start: 0, end: 350, eventCount: 15},
       {title: 'Idle', start: 350, end: 382, eventCount: 0},
-      {title: 'CSS Animation', start: 382, end: 500, eventCount: 3},
+      {title: 'CSS Animation', start: 382, end: 500, eventCount: 4},
     ];
     verifier.verify();
   });

@@ -750,6 +750,14 @@ tr.exportTo('tr.importer', function() {
       range.frames = rendererHelper.getFrameEventsInRange(
             tr.model.helpers.IMPL_FRAMETIME_TYPE, range);
 
+      // If a tree falls in a forest...
+      // If there were not actually any frames while the animation was
+      // running, then it wasn't really an animation, now, was it?
+      // Philosophy aside, the system_health Animation metrics fail hard if
+      // there are no frames in an AnimationExpectation.
+      if (range.frames.length === 0)
+        return;
+
       animationRanges.push(range);
     }
 
