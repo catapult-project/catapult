@@ -404,7 +404,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     /**
      * Imports the data in this.events_ into model_.
      */
-    importEvents: function(isSecondaryImport) {
+    importEvents: function() {
       this.parsers_ = this.createParsers_();
       this.registerDefaultHandlers_();
       this.parseLines();
