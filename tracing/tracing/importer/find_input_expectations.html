@@ -82,7 +82,7 @@ tr.exportTo('tr.importer', function() {
   // reason to change it, then please do so. It might also be good to split this
   // into multiple values.
   var INPUT_MERGE_THRESHOLD_MS = 200;
-  var ANIMATION_MERGE_THRESHOLD_MS = 1;
+  var ANIMATION_MERGE_THRESHOLD_MS = 32;  // 2x 60FPS frames
 
   // If two MouseWheel events begin this close together, then they're an
   // Animation, not two responses.
@@ -718,33 +718,92 @@ tr.exportTo('tr.importer', function() {
     return protoExpectations;
   }
 
-  // CSS Animations are merged into Animations when they intersect.
+  // CSS Animations are merged into AnimationExpectations when they intersect.
   function handleCSSAnimations(modelHelper, sortedInputEvents) {
+    // First find all the top-level CSS Animation async events.
     var animationEvents = modelHelper.browserHelper.
         getAllAsyncSlicesMatching(function(event) {
           return ((event.title === CSS_ANIMATION_TITLE) &&
+                  event.isTopLevel &&
                   (event.duration > 0));
     });
 
+    // Time ranges where animations are actually running will be collected here.
+    // Each element will contain {min, max, animation, frames}.
     var animationRanges = [];
-    animationEvents.forEach(function(event) {
+
+    // This helper function will be called when a time range is found
+    // during which the animation is actually running.
+    // This helper function collects the frames that happened during the time
+    // range, and pushes it all to |animationRanges|.
+    function pushAnimationRange(start, end, animation) {
+      var range = tr.b.Range.fromExplicitRange(start, end);
+      range.animation = animation;
+
+      // Collect the frames that happened while the animation was running.
+      // A more general way to find these frames would be to collect all of
+      // the trace events caused by this animation, but that will require
+      // adding flow events to chrome:
+      // https://github.com/catapult-project/catapult/issues/1433
       var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
-          modelHelper, event.parentContainer.parent);
-      animationRanges.push({
-        min: event.start,
-        max: event.end,
-        event: event,
-        frames: rendererHelper.getFrameEventsInRange(
-            tr.model.helpers.IMPL_FRAMETIME_TYPE,
-            tr.b.Range.fromExplicitRange(event.start, event.end))
-      });
+          modelHelper, animation.parentContainer.parent);
+      range.frames = rendererHelper.getFrameEventsInRange(
+            tr.model.helpers.IMPL_FRAMETIME_TYPE, range);
+
+      animationRanges.push(range);
+    }
+
+    animationEvents.forEach(function(animation) {
+      if (animation.subSlices.length === 0) {
+        pushAnimationRange(animation.start, animation.end, animation);
+      } else {
+        // Now run a state machine over the animation's subSlices, which
+        // indicate the animations running/paused/finished states, in order to
+        // find ranges where the animation was actually running.
+        var start = undefined;
+        animation.subSlices.forEach(function(sub) {
+          if ((sub.args.state === 'running') &&
+              (start === undefined)) {
+            // It's possible for the state to alternate between running and
+            // pending, but the animation is still running in that case,
+            // so only set start if the state is changing from one of the halted
+            // states.
+            start = sub.start;
+          } else if ((sub.args.state === 'paused') ||
+                     (sub.args.state === 'idle') ||
+                     (sub.args.state === 'finished')) {
+            if (start === undefined) {
+              // An animation was already running when the trace started.
+              // (Actually, it's possible that the animation was in the 'idle'
+              // state when tracing started, but that should be rare, and will
+              // be fixed when async events are buffered.)
+              // http://crbug.com/565627
+              start = modelHelper.model.bounds.min;
+            }
+
+            pushAnimationRange(start, sub.start, animation);
+            start = undefined;
+          }
+        });
+
+        // An animation was still running when the trace ended.
+        if (start !== undefined)
+          pushAnimationRange(start, modelHelper.model.bounds.max, animation);
+      }
     });
+
+    // Now we have a set of time ranges when css animations were actually
+    // running, along with their frames.
+    // Now all that's left for this function is to merge over-lapping ranges
+    // into ProtoExpectations.
 
     function merge(ranges) {
       var protoExpectation = new ProtoExpectation(
           ProtoExpectation.ANIMATION_TYPE, CSS_IR_NAME);
       ranges.forEach(function(range) {
-        protoExpectation.pushEvent(range.event);
+        protoExpectation.start = Math.min(protoExpectation.start, range.min);
+        protoExpectation.end = Math.max(protoExpectation.end, range.max);
+        protoExpectation.associatedEvents.push(range.animation);
         protoExpectation.associatedEvents.addEventSet(range.frames);
       });
       return protoExpectation;
@@ -954,6 +1013,11 @@ tr.exportTo('tr.importer', function() {
     var handledEvents = [];
     protoExpectations.forEach(function(protoExpectation) {
       protoExpectation.associatedEvents.forEach(function(event) {
+        // Ignore CSS Animations that might have multiple active ranges.
+        if ((event.title === CSS_ANIMATION_TITLE) &&
+            (event.subSlices.length > 0))
+          return;
+
         if (handledEvents.indexOf(event) >= 0) {
           console.error('double-handled event', event.typeName,
               parseInt(event.start), parseInt(event.end), protoExpectation);

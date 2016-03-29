@@ -402,9 +402,9 @@ tr.b.unittest.testSuite(function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
       chrome_test_utils.addEvent(model.rendererMain, {
-        title: 'Animation', start: 0, end: 100});
+        title: 'Animation', start: 0, end: 100, isTopLevel: true});
       chrome_test_utils.addEvent(model.rendererMain, {
-        title: 'Animation', start: 99, end: 200});
+        title: 'Animation', start: 131, end: 200, isTopLevel: true});
       chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 150, end: 180});
       chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
@@ -412,6 +412,57 @@ tr.b.unittest.testSuite(function() {
     verifier.expectedIRs = [
       {title: 'CSS Animation', start: 0, end: 200, eventCount: 2},
       {title: 'Fling Animation', start: 150, end: 300, eventCount: 1}
+    ];
+    verifier.verify();
+  });
+
+  test('cssAnimationStates', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      // If a top-level Animation async slice does not have state-change instant
+      // subSlices, then assume that the animation was running throughout the
+      // async slice.
+      chrome_test_utils.addEvent(model.rendererMain, {
+        title: 'Animation', start: 181, end: 250, isTopLevel: true});
+
+      // Animation ranges should be merged if there is less than 32ms dead time
+      // between them.
+
+      // If a top-level Animation async slice has state-change instant events,
+      // then run a state machine to find the time ranges when the animation was
+      // actually running.
+
+      // This animation was running from 10-40 and 50-60.
+      var animationA = tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'Animation', start: 50, end: 500, isTopLevel: true});
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 71, args: {state: 'running'}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 104, args: {state: 'pending'}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 137, args: {state: 'running'}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 150, args: {state: 'paused'}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 281, args: {state: 'running'}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 350, args: {state: 'idle'}}));
+      model.rendererMain.asyncSliceGroup.push(animationA);
+
+      // This animation was running from model.bounds.min-50 and
+      // 70-model.bounds.max.
+      var animationB = tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'Animation', start: 0, end: 500, isTopLevel: true});
+      animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 40, args: {state: 'finished'}}));
+      animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 382, args: {state: 'running'}}));
+      model.rendererMain.asyncSliceGroup.push(animationB);
+    };
+    verifier.expectedIRs = [
+      {title: 'CSS Animation', start: 0, end: 350, eventCount: 11},
+      {title: 'Idle', start: 350, end: 382, eventCount: 0},
+      {title: 'CSS Animation', start: 382, end: 500, eventCount: 3},
     ];
     verifier.verify();
   });
