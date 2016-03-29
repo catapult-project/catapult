@@ -162,7 +162,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
    * kernels can optionally trace the TGID.
    *
    * @return {function} the function for parsing data when the format is
-   * recognized; otherwise null.
+   * recognized; otherwise undefined.
    */
   function autoDetectLineParser(line) {
     if (line[0] == '{')
@@ -173,7 +173,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return lineParserWithIRQInfo;
     if (lineREWithLegacyFmt.test(line))
       return lineParserWithLegacyFmt;
-    return null;
+    return undefined;
   };
   TestExports.autoDetectLineParser = autoDetectLineParser;
 
@@ -870,14 +870,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var lines = extractResult.ok ?
         extractResult.lines : this.events_.split('\n');
 
-      var lineParser = null;
+      var lineParser = undefined;
       for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
         var line = lines[lineNumber].trim();
         if (line.length == 0 || /^#/.test(line))
           continue;
-        if (lineParser == null) {
+
+        if (!lineParser) {
           lineParser = autoDetectLineParser(line);
-          if (lineParser == null) {
+          if (!lineParser) {
             this.model_.importWarning({
               type: 'parse_error',
               message: 'Cannot parse line: ' + line
@@ -885,6 +886,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             continue;
           }
         }
+
         var eventBase = lineParser(line);
         if (!eventBase) {
           this.model_.importWarning({
