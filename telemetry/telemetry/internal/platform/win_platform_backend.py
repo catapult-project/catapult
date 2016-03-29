@@ -250,7 +250,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_name)
     try:
       value, _ = winreg.QueryValueEx(key, 'CurrentMajorVersionNumber')
-    except WindowsErrror:  # pylint: disable=undefined-variable
+    except OSError:
       value = None
     finally:
       key.Close()
