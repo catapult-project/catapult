@@ -152,9 +152,9 @@ class DependencyManager(object):
         logging.error(
             'Dependency %s could not be found or fetched from cloud storage for'
             ' platform %s.', dependency, platform)
-      if missing_deps:
-        raise exceptions.NoPathFoundError(', '.join(missing_deps), platform)
-      return (found_deps, skipped_deps)
+    if missing_deps:
+      raise exceptions.NoPathFoundError(', '.join(missing_deps), platform)
+    return (found_deps, skipped_deps)
 
   def _UpdateDependencies(self, config):
     """Add the dependency information stored in |config| to this instance.

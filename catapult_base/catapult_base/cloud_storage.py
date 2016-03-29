@@ -134,7 +134,13 @@ def _RunCommand(args):
     args = [_GSUTIL_PATH] + args
     _EnsureExecutable(_GSUTIL_PATH)
 
-  if (os.getenv(DISABLE_CLOUD_STORAGE_IO) == '1' and
+  disable_cloud_storage_env_val = os.getenv(DISABLE_CLOUD_STORAGE_IO)
+  if disable_cloud_storage_env_val and disable_cloud_storage_env_val != '1':
+    logging.error(
+        'Unsupported value of environment variable '
+        'DISABLE_CLOUD_STORAGE_IO. Expected None or \'1\' but got %s.',
+        disable_cloud_storage_env_val)
+  if (disable_cloud_storage_env_val == '1' and
       args[0] not in ('help', 'hash', 'version')):
     raise CloudStorageIODisabled(
         "Environment variable DISABLE_CLOUD_STORAGE_IO is set to 1. "

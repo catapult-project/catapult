@@ -19,10 +19,8 @@ class BinaryManagerTest(unittest.TestCase):
   def tearDown(self):
     binary_manager._binary_manager = self.actual_binary_manager
 
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
+  @mock.patch('catapult_base.binary_manager.BinaryManager')
+  @mock.patch('dependency_manager.BaseConfig')
   def testInitializationNoEnvironmentConfig(
       self, base_config_mock, binary_manager_mock):
     base_config_mock.side_effect = ['base_config_object1',
@@ -38,10 +36,8 @@ class BinaryManagerTest(unittest.TestCase):
     binary_manager_mock.assert_called_once_with(['base_config_object1',
                                               'base_config_object2'])
 
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
+  @mock.patch('catapult_base.binary_manager.BinaryManager')
+  @mock.patch('dependency_manager.BaseConfig')
   def testInitializationWithEnvironmentConfig(
       self, base_config_mock, binary_manager_mock):
     base_config_mock.side_effect = ['base_config_object1',  # TELEMETRY_PROJECT
@@ -62,10 +58,8 @@ class BinaryManagerTest(unittest.TestCase):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.InitDependencyManager, None)
 
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
+  @mock.patch('catapult_base.binary_manager.BinaryManager')
+  @mock.patch('dependency_manager.BaseConfig')
   def testFetchPathInitialized(self, base_config_mock, binary_manager_mock):
     base_config_mock.return_value = 'base_config_object'
     expected = [mock.call.binary_manager.BinaryManager(
@@ -86,10 +80,8 @@ class BinaryManagerTest(unittest.TestCase):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.FetchPath, 'dep', 'plat', 'arch')
 
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.binary_manager.BinaryManager') # pylint: disable=line-too-long
-  @mock.patch(
-      'telemetry.internal.util.binary_manager.base_config.BaseConfig')
+  @mock.patch('catapult_base.binary_manager.BinaryManager')
+  @mock.patch('dependency_manager.BaseConfig')
   def testLocalPathInitialized(self, base_config_mock, binary_manager_mock):
     base_config_mock.return_value = 'base_config_object'
     expected = [mock.call.binary_manager.BinaryManager(
@@ -109,4 +101,3 @@ class BinaryManagerTest(unittest.TestCase):
   def testLocalPathUninitialized(self):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.LocalPath, 'dep', 'plat', 'arch')
-

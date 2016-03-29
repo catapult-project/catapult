@@ -29,6 +29,7 @@ from .archive_info import ArchiveInfo
 from .base_config import BaseConfig
 from .cloud_storage_info import CloudStorageInfo
 from .dependency_info import DependencyInfo
+from .exceptions import CloudStorageError
 from .exceptions import CloudStorageUploadConflictError
 from .exceptions import EmptyConfigError
 from .exceptions import FileNotFoundError
