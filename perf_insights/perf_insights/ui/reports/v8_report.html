@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/time_duration_span.html">
 
 <polymer-element name="pi-ui-v8-report"
@@ -221,13 +222,18 @@ found in the LICENSE file.
         var stateName = tr.model.source_info.JSSourceState[state];
         rows.push({
           label: stateName,
-          value: tr.v.ui.createTimeDurationSpan(
-              aggregated.jsTimeByState[stateName])
+          value: tr.v.ui.createScalarSpan(aggregated.jsTimeByState[stateName], {
+            unit: tr.v.Unit.byName.timeStampInMs,
+            ownerDocument: this.ownerDocument
+          })
         });
       }
       footerRows.push({
         label: 'JS Time',
-        value: tr.v.ui.createTimeDurationSpan(aggregated.jsTime)
+          value: tr.v.ui.createScalarSpan(aggregated.jsTime, {
+            unit: tr.v.Unit.byName.timeStampInMs,
+            ownerDocument: this.ownerDocument
+          })
       });
 
       // Push to table.
@@ -422,13 +428,13 @@ found in the LICENSE file.
           '#costs-histogram-cost-type');
       var func = selector.selectedItem.func;
 
-      var histogram = tr.v.Histogram.createLinear(
+      var histogram = tr.v.Numeric.createLinear(
           tr.v.Unit.byName.timeDurationInMs,
           tr.b.Range.fromExplicitRange(0, 100),
           100);
       this.$.table.selectedTableRow.data.forEach(function(datum) {
         var value = func(datum);
-        histogram.addHistogram(tr.v.Histogram.fromDict(value));
+        histogram.addNumeric(tr.v.Numeric.fromDict(value));
       });
 
       var histogramSpan = this.shadowRoot.querySelector('#costs-histogram');
