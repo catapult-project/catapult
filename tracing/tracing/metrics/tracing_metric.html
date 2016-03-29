@@ -95,17 +95,17 @@ tr.exportTo('tr.metrics', function() {
     };
 
     valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace,
+        model.canonicalUrl,
         'Total trace size in bytes',
         totalTraceBytesValue,
         undefined, undefined, diagnostics));
     valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace,
+        model.canonicalUrl,
         'Max number of events per second',
         maxEventCountPerSecValue,
         undefined, undefined, diagnostics));
     valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace,
+        model.canonicalUrl,
         'Max event size in bytes per second',
         maxEventBytesPerSecValue,
         undefined, undefined, diagnostics));

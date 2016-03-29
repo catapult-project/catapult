@@ -54,7 +54,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var score = tr.b.clamp(smoothness, 0, 1);
 
       valueList.addValue(new tr.v.NumericValue(
-          model.canonicalUrlThatCreatedThisTrace, 'smoothness',
+          model.canonicalUrl, 'smoothness',
           new tr.v.ScalarNumeric(UNIT, score),
           options, groupingKeys));
     });

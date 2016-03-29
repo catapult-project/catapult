@@ -57,7 +57,7 @@ tr.exportTo('tr.metrics.sh', function() {
       scores.push(score);
 
       valueList.addValue(new tr.v.NumericValue(
-          model.canonicalUrlThatCreatedThisTrace, 'efficiency',
+          model.canonicalUrl, 'efficiency',
           new tr.v.ScalarNumeric(UNIT, score),
           options, groupingKeys));
     });
@@ -74,7 +74,7 @@ tr.exportTo('tr.metrics.sh', function() {
       return;
 
     valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace, 'efficiency',
+        model.canonicalUrl, 'efficiency',
         new tr.v.ScalarNumeric(UNIT, overallScore),
         options, groupingKeys));
   }

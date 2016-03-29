@@ -32,7 +32,7 @@ class MapSingleTraceTests(unittest.TestCase):
     with map_single_trace.TemporaryMapScript("""
       pi.FunctionRegistry.register(
           function MyMapFunction(result, model) {
-            var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
+            var canonicalUrl = model.canonicalUrl;
             result.addPair('result', {
                 numProcesses: model.getAllProcesses().length
               });

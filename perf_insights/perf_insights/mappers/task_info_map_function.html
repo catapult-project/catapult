@@ -21,7 +21,7 @@ tr.exportTo('pi.m', function() {
   var NUM_BINS = 50;
 
   function taskInfoMapFunction(result, model) {
-    var canonicalUrl = model.canonicalUrlThatCreatedThisTrace;
+    var canonicalUrl = model.canonicalUrl;
     var threadGrouping = new pi.m.ThreadGrouping();
     threadGrouping.autoInitUsingHelpers(model);
     addTimeInQueue(result, canonicalUrl, model, threadGrouping);
