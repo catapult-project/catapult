@@ -61,9 +61,9 @@ found in the LICENSE file.
  *   .dependsOn('importer.linux_perf.parser')
  *   .exportsTo('tracing', function()
  *
- * and be listed in the dependsOn of LinuxPerfImporter.  Beware that after
- * adding a new subclass you must run build/generate_about_tracing_contents.py
- * to regenerate tr.ui.e.about_tracing.*.
+ * and be listed in the dependsOn of FTraceImporter.  Beware that after adding a
+ * new subclass you must run build/generate_about_tracing_contents.py to
+ * regenerate tr.ui.e.about_tracing.*.
  */
 tr.exportTo('tr.e.importer.linux_perf', function() {
   /**
