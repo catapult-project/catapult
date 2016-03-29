@@ -125,6 +125,11 @@ tr.exportTo('tr.e.importer', function() {
     // PID -> Object type ID -> Object type name.
     this.objectTypeNameMap_ = {};
 
+    // For traces with no clock domain metadata (old traces or
+    // non-Chrome/non-Telemetry traces), just use an importer-specific clock
+    // domain.
+    this.clockDomainId_ = tr.model.ClockDomainId.TRACE_EVENT_IMPORTER;
+
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();
       // If the event data begins with a [, then we know it should end with a ].
@@ -191,9 +196,13 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         this.model_.metadata.push({name: fieldName,
           value: container[fieldName]});
-        if (fieldName === 'metadata' && container[fieldName]['highres-ticks']) {
-          this.model_.isTimeHighResolution =
-              container[fieldName]['highres-ticks'];
+
+        if (fieldName === 'metadata') {
+          var metadata = container[fieldName];
+          if (metadata['highres-ticks'])
+            this.model_.isTimeHighResolution = metadata['highres-ticks'];
+          if (metadata['clock-domain'])
+            this.clockDomainId_ = metadata['clock-domain'];
         }
       }
     }
@@ -767,6 +776,12 @@ tr.exportTo('tr.e.importer', function() {
         return;
       }
 
+      this.model_.clockSyncManager.addClockSyncMarker(
+          this.clockDomainId_, syncId, timestampFromUs(issueStartTs),
+          timestampFromUs(issueEndTs - issueStartTs));
+
+      // TODO(charliea): Remove this once the new clock sync system is fully
+      // implemented.
       this.model_.clockSyncRecords.push(new tr.model.PingPongClockSyncRecord(
           syncId, timestampFromUs(issueStartTs),
           timestampFromUs(issueEndTs - issueStartTs)));
@@ -795,13 +810,43 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
+    importClockSyncMarkers: function() {
+      // TODO(charliea): Remove this once we're fully moved over to using the
+      // ClockSyncManager.
+      //
+      // Note that we don't insert a "new style" ftrace_importer marker here.
+      // The reason for this is that ftrace uses this marker as a means to
+      // implement the following logic:
+      //
+      //   If there are multiple clock domains, throw an error if they don't
+      //   have clock sync markers connecting them.
+      //
+      // The new ClockSyncManager takes care of this already, so we don't
+      // need such a marker.
+      this.model_.clockSyncRecords.push(
+          new tr.model.InstantClockSyncRecord('ftrace_importer', 0, {}));
+
+      for (var i = 0; i < this.events_.length; i++) {
+        var event = this.events_[i];
+
+        if (event.ph !== 'c')
+          continue;
+
+        var eventSizeInBytes =
+            this.model_.importOptions.trackDetailedModelStats ?
+                JSON.stringify(event).length : undefined;
+
+        this.model_.stats.willProcessBasicTraceEvent(
+            'clock_sync', event.cat, event.name, event.ts, eventSizeInBytes);
+        this.processClockSyncEvent(event);
+      }
+    },
+
     /**
      * Walks through the events_ list and outputs the structures discovered to
      * model_.
      */
     importEvents: function() {
-      var csr = new tr.model.InstantClockSyncRecord('ftrace_importer', 0, {});
-      this.model_.clockSyncRecords.push(csr);
       if (this.stackFrameEvents_)
         this.importStackFrames_(this.stackFrameEvents_, 'g');
 
@@ -889,9 +934,8 @@ tr.exportTo('tr.e.importer', function() {
           this.processMemoryDumpEvent(event);
 
         } else if (event.ph === 'c') {
-          modelStats.willProcessBasicTraceEvent(
-              'clock_sync', event.cat, event.name, event.ts, eventSizeInBytes);
-          this.processClockSyncEvent(event);
+          // No-op. Clock sync events have already been processed in
+          // importClockSyncMarkers().
         } else {
           modelStats.willProcessBasicTraceEvent(
               'unknown', event.cat, event.name, event.ts, eventSizeInBytes);

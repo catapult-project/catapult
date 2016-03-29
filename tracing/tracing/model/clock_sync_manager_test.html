@@ -134,33 +134,30 @@ tr.b.unittest.testSuite(function() {
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(150), 150);
   }, testOptions);
 
-  test('getModelTimeTransformer_battorSyncUsesChromeStartTs_battorMaster',
+  test('getModelTimeTransformer_battorSyncUsesTraceEventImporterStartTs',
       function() {
     var mgr = new ClockSyncManager();
-    mgr.addClockSyncMarker(ClockDomainId.CHROME, 'sync1', 100, 200);
+    mgr.addClockSyncMarker(
+        ClockDomainId.TRACE_EVENT_IMPORTER, 'sync1', 100, 200);
     mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
-
-    assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.CHROME)(100),
-        350);
-  }, testOptions);
-
-  test('getModelTimeTransformer_battorSyncUsesChromeStartTs_chromeMaster',
-      function() {
-    var mgr = new ClockSyncManager();
-    mgr.addClockSyncMarker(ClockDomainId.CHROME, 'sync1', 100, 200);
-    mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
-
-    // We have to add another clock domain attached to chrome to guarantee
-    // that the manager chooses chrome as the master clock domain and not
-    // battor, which it would usually select because battor comes first
-    // alphabetically and they'd both be connected to one other domain.
-    mgr.addClockSyncMarker(ClockDomainId.CHROME, 'sync2', 0, 50);
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 0);
 
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.BATTOR)(350),
         100);
+  }, testOptions);
+
+  test('getModelTimeTransformer_prefersTraceEventImporterClockDomain',
+      function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.TRACE_EVENT_IMPORTER, 'sync1', 350);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100),
+        350);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.TRACE_EVENT_IMPORTER)(350),
+        350);
   }, testOptions);
 
   test('getModelTimeTransformer_throwsWithNoAgentMarker', function() {

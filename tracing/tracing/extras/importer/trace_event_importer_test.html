@@ -21,6 +21,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
+  var ClockDomainId = tr.model.ClockDomainId;
   var ColorScheme = tr.b.ColorScheme;
   var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
   var ScopedId = tr.model.ScopedId;
@@ -5583,7 +5584,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(C.subSlices.length, 0);
   });
 
-  test('clockSync', function() {
+  test('clockSync_withoutMetadata', function() {
     var events = [{
       name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
       pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
@@ -5591,18 +5592,42 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    var foundClockSync = false;
-    for (var i = 0; i < m.clockSyncRecords.length; i++) {
-      var clockSync = m.clockSyncRecords[i];
-      if (clockSync.syncId !== 'abc')
-        continue;
+    var records = m.getClockSyncRecordsWithSyncId('abc');
+    assert.lengthOf(records, 1);
+    assert.equal(records[0].start, .005);
+    assert.equal(records[0].duration, .010);
 
-      foundClockSync = true;
-      assert.equal(clockSync.start, .005);
-      assert.equal(clockSync.duration, .010);
-    }
+    // Make sure that the default trace event importer clock domain was chosen
+    // as the model.
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.TRACE_EVENT_IMPORTER)(.005),
+        .005);
+    assert.isFalse(m.hasImportWarnings);
+  });
 
-    assert.isTrue(foundClockSync);
+  test('clockSync_withMetadata', function() {
+    var events = {
+      traceEvents: [{
+        name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
+        pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+      }],
+      metadata: {
+        'clock-domain': ClockDomainId.BATTOR
+      }
+    };
+
+    var m = makeModel(events);
+
+    var records = m.getClockSyncRecordsWithSyncId('abc');
+    assert.lengthOf(records, 1);
+    assert.equal(records[0].start, .005);
+    assert.equal(records[0].duration, .010);
+
+    // Make sure that our clock domain was chosen as the model.
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(ClockDomainId.BATTOR)(.005),
+        .005);
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -5613,6 +5638,7 @@ tr.b.unittest.testSuite(function() {
     }];
 
     var m = makeModel(events);
+
     assert.isTrue(m.hasImportWarnings);
   });
 
@@ -5624,16 +5650,8 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    var foundClockSync = false;
-    for (var i = 0; i < m.clockSyncRecords.length; i++) {
-      var clockSync = m.clockSyncRecords[i];
-      if (clockSync.syncId !== 'abc')
-        continue;
-
-      foundClockSync = true;
-    }
-
-    assert.isFalse(foundClockSync);
+    var records = m.getClockSyncRecordsWithSyncId('abc');
+    assert.lengthOf(records, 0);
     assert.isTrue(m.hasImportWarnings);
   });
 

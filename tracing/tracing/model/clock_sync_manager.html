@@ -13,7 +13,13 @@ found in the LICENSE file.
 tr.exportTo('tr.model', function() {
   var ClockDomainId = {
     BATTOR: 'battor',
-    CHROME: 'chrome'
+
+    // NOTE: Exists for backwards compatibility with the old clock sync
+    // mechanism, which had no concept of named time domains.
+    TRACE_EVENT_IMPORTER: 'trace_event_importer'
+
+    // TODO(charliea): Add clock domains for the various Chrome TimeTicks
+    // sources.
   };
 
   /**
@@ -130,8 +136,17 @@ tr.exportTo('tr.model', function() {
         return completeConnectorsByDomainId[domainId].length ===
             uniqueDomainIds.length - 1;
       };
-      this.modelDomainId_ =
-          tr.b.findFirstInArray(uniqueDomainIds, isFullyConnected);
+
+      var eligibleModelDomainIds = uniqueDomainIds.filter(isFullyConnected);
+      // TODO(charliea): Remove the bias towards picking TRACE_EVENT_IMPORTER
+      // once we're fully moved over to using the ClockSyncManager. In the
+      // interim, there are other importers that assume ClockSyncManager will be
+      // the master, so we have to leave this bias in place.
+      var traceEventImporterDomainExists =
+          eligibleModelDomainIds.indexOf(ClockDomainId.TRACE_EVENT_IMPORTER) >=
+              0;
+      this.modelDomainId_ = traceEventImporterDomainExists ?
+          ClockDomainId.TRACE_EVENT_IMPORTER : eligibleModelDomainIds[0];
 
       if (this.modelDomainId_ === undefined) {
         throw new Error('Unable to select a master clock domain because no ' +
@@ -258,9 +273,9 @@ tr.exportTo('tr.model', function() {
       // time. In the medium term, we should fix the Chrome serial code in order
       // to remove this special logic and get an even more accurate estimate.
       if (fromDomainId == ClockDomainId.BATTOR &&
-          toDomainId == ClockDomainId.CHROME) {
+          toDomainId == ClockDomainId.TRACE_EVENT_IMPORTER) {
         toTs = toMarker.startTs;
-      } else if (fromDomainId == ClockDomainId.CHROME &&
+      } else if (fromDomainId == ClockDomainId.TRACE_EVENT_IMPORTER &&
           toDomainId == ClockDomainId.BATTOR) {
         fromTs = fromMarker.startTs;
       }
