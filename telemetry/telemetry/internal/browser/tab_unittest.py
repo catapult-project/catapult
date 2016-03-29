@@ -119,7 +119,6 @@ class TabTest(tab_test_case.TabTestCase):
   # Test failing on android: http://crbug.com/437057
   # and mac: http://crbug.com/468675
   @decorators.Disabled('android', 'chromeos', 'mac')
-  @decorators.Disabled('win')  # crbug.com/570955
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     config = tracing_config.TracingConfig()
@@ -141,7 +140,6 @@ class TabTest(tab_test_case.TabTestCase):
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('mac', 'linux')  # crbug.com/499207.
-  @decorators.Disabled('win')  # crbug.com/570955.
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call
