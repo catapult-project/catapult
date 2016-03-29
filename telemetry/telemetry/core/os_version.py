@@ -28,6 +28,7 @@ XP = OSVersion('xp', 5.1)
 VISTA = OSVersion('vista', 6.0)
 WIN7 = OSVersion('win7', 6.1)
 WIN8 = OSVersion('win8', 6.2)
+WIN81 = OSVersion('win8.1', 6.3)
 WIN10 = OSVersion('win10', 10)
 
 LEOPARD = OSVersion('leopard', 105)
