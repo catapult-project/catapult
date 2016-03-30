@@ -118,6 +118,7 @@ found in the LICENSE file.
       e.stopPropagation();
       if (!this._isEnterKey(e))
         return;
+      e.preventDefault();
       var promptEl = this.$.prompt;
       var command = promptEl.innerText;
       if (command.length === 0)
@@ -141,6 +142,7 @@ found in the LICENSE file.
       } else {
         this.addLine_(result);
       }
+      promptEl.scrollIntoView();
     },
 
     addLine_: function(line) {
