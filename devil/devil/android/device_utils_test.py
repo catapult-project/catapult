@@ -10,6 +10,7 @@ Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 # pylint: disable=protected-access
 # pylint: disable=unused-argument
 
+import json
 import logging
 import unittest
 
@@ -25,6 +26,17 @@ from devil.utils import mock_calls
 
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock  # pylint: disable=import-error
+
+
+class AnyStringWith(object):
+  def __init__(self, value):
+    self._value = value
+
+  def __eq__(self, other):
+    return self._value in other
+
+  def __repr__(self):
+    return '<AnyStringWith: %s>' % self._value
 
 
 class _MockApkHelper(object):
@@ -172,6 +184,12 @@ class DeviceUtilsTest(mock_calls.TestCase):
     return mock.Mock(side_effect=device_errors.CommandTimeoutError(
         msg, str(self.device)))
 
+  def EnsureCacheInitialized(self, props=None, sdcard='/sdcard'):
+    props = props or []
+    ret = [sdcard, 'TOKEN'] + props
+    return (self.call.device.RunShellCommand(
+        AnyStringWith('getprop'), check_return=True, large_output=True), ret)
+
 
 class DeviceUtilsEqTest(DeviceUtilsTest):
 
@@ -305,13 +323,14 @@ class DeviceUtilsIsUserBuildTest(DeviceUtilsTest):
 class DeviceUtilsGetExternalStoragePathTest(DeviceUtilsTest):
 
   def testGetExternalStoragePath_succeeds(self):
-    with self.assertCall(
-        self.call.adb.Shell('echo $EXTERNAL_STORAGE'), '/fake/storage/path\n'):
+    with self.assertCalls(
+        self.EnsureCacheInitialized(sdcard='/fake/storage/path')):
       self.assertEquals('/fake/storage/path',
                         self.device.GetExternalStoragePath())
 
   def testGetExternalStoragePath_fails(self):
-    with self.assertCall(self.call.adb.Shell('echo $EXTERNAL_STORAGE'), '\n'):
+    with self.assertCalls(
+        self.EnsureCacheInitialized(sdcard='')):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.GetExternalStoragePath()
 
@@ -1889,30 +1908,12 @@ class DeviceUtilsGetPropTest(DeviceUtilsTest):
       self.assertEqual('', self.device.GetProp('property.does.not.exist'))
 
   def testGetProp_cachedRoProp(self):
-    with self.assertCall(
-        self.call.device.RunShellCommand(
-            ['getprop'], check_return=True, large_output=True,
-            timeout=self.device._default_timeout,
-            retries=self.device._default_retries),
-        ['[ro.build.type]: [userdebug]']):
-      self.assertEqual('userdebug',
-                       self.device.GetProp('ro.build.type', cache=True))
-      self.assertEqual('userdebug',
-                       self.device.GetProp('ro.build.type', cache=True))
-
-  def testGetProp_retryAndCache(self):
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['getprop'], check_return=True, large_output=True,
-            timeout=self.device._default_timeout,
-            retries=3),
-         ['[ro.build.type]: [userdebug]'])):
+        self.EnsureCacheInitialized(props=['[ro.build.type]: [userdebug]'])):
       self.assertEqual('userdebug',
-                       self.device.GetProp('ro.build.type',
-                                           cache=True, retries=3))
+                       self.device.GetProp('ro.build.type', cache=True))
       self.assertEqual('userdebug',
-                       self.device.GetProp('ro.build.type',
-                                           cache=True, retries=3))
+                       self.device.GetProp('ro.build.type', cache=True))
 
 
 class DeviceUtilsSetPropTest(DeviceUtilsTest):
@@ -2306,6 +2307,31 @@ class DeviecUtilsSetScreen(DeviceUtilsTest):
         (self.call.device.IsScreenOn(), True),
         (self.call.device.IsScreenOn(), False)):
       self.device.SetScreen(False)
+
+class DeviecUtilsLoadCacheData(DeviceUtilsTest):
+
+  def testTokenMissing(self):
+    with self.assertCalls(
+        self.EnsureCacheInitialized()):
+      self.assertFalse(self.device.LoadCacheData('{}'))
+
+  def testTokenStale(self):
+    with self.assertCalls(
+        self.EnsureCacheInitialized()):
+      self.assertFalse(self.device.LoadCacheData('{"token":"foo"}'))
+
+  def testTokenMatches(self):
+    with self.assertCalls(
+        self.EnsureCacheInitialized()):
+      self.assertTrue(self.device.LoadCacheData('{"token":"TOKEN"}'))
+
+  def testDumpThenLoad(self):
+    with self.assertCalls(
+        self.EnsureCacheInitialized()):
+      data = json.loads(self.device.DumpCacheData())
+      data['token'] = 'TOKEN'
+      self.assertTrue(self.device.LoadCacheData(json.dumps(data)))
+
 
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)

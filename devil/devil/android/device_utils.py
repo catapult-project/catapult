@@ -19,6 +19,8 @@ import re
 import shutil
 import tempfile
 import time
+import threading
+import uuid
 import zipfile
 
 from devil import base_error
@@ -219,6 +221,7 @@ class DeviceUtils(object):
     self._enable_device_files_cache = enable_device_files_cache
     self._cache = {}
     self._client_caches = {}
+    self._cache_lock = threading.RLock()
     assert hasattr(self, decorators.DEFAULT_TIMEOUT_ATTR)
     assert hasattr(self, decorators.DEFAULT_RETRIES_ATTR)
 
@@ -379,17 +382,11 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    if 'external_storage' in self._cache:
-      return self._cache['external_storage']
-
-    value = self.RunShellCommand('echo $EXTERNAL_STORAGE',
-                                 single_line=True,
-                                 check_return=True)
-    if not value:
+    self._EnsureCacheInitialized()
+    if not self._cache['external_storage']:
       raise device_errors.CommandFailedError('$EXTERNAL_STORAGE is not set',
                                              str(self))
-    self._cache['external_storage'] = value
-    return value
+    return self._cache['external_storage']
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetApplicationPaths(self, package, timeout=None, retries=None):
@@ -1749,8 +1746,36 @@ class DeviceUtils(object):
     """Returns the product board name of the device (e.g. 'shamu')."""
     return self.GetProp('ro.product.board', cache=True)
 
-  def GetProp(self, property_name, cache=False, timeout=DEFAULT,
-              retries=DEFAULT):
+  def _EnsureCacheInitialized(self):
+    """Populates cache token, runs getprop and fetches $EXTERNAL_STORAGE."""
+    if self._cache['token']:
+      return
+    with self._cache_lock:
+      if self._cache['token']:
+        return
+      # Change the token every time to ensure that it will match only the
+      # previously dumped cache.
+      self._cache['token'] = str(uuid.uuid1())
+      cmd = (
+          'c=/data/local/tmp/cache_token;'
+          'echo $EXTERNAL_STORAGE;'
+          'cat $c 2>/dev/null||echo;'
+          'echo "%s">$c &&' % self._cache['token'] +
+          'getprop'
+      )
+      output = self.RunShellCommand(cmd, check_return=True, large_output=True)
+      # Error-checking for this existing is done in GetExternalStoragePath().
+      self._cache['external_storage'] = output[0]
+      self._cache['prev_token'] = output[1]
+      output = output[2:]
+
+      prop_cache = self._cache['getprop']
+      prop_cache.clear()
+      for key, value in _GETPROP_RE.findall(''.join(output)):
+        prop_cache[key] = value
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetProp(self, property_name, cache=False, timeout=None, retries=None):
     """Gets a property from the device.
 
     Args:
@@ -1769,29 +1794,19 @@ class DeviceUtils(object):
     assert isinstance(property_name, basestring), (
         "property_name is not a string: %r" % property_name)
 
-    prop_cache = self._cache['getprop']
     if cache:
-      if property_name not in prop_cache:
-        # It takes ~120ms to query a single property, and ~130ms to query all
-        # properties. So, when caching we always query all properties.
-        output = self.RunShellCommand(
-            ['getprop'], check_return=True, large_output=True,
-            timeout=self._default_timeout if timeout is DEFAULT else timeout,
-            retries=self._default_retries if retries is DEFAULT else retries)
-        prop_cache.clear()
-        for key, value in _GETPROP_RE.findall(''.join(output)):
-          prop_cache[key] = value
-        if property_name not in prop_cache:
-          prop_cache[property_name] = ''
+      # It takes ~120ms to query a single property, and ~130ms to query all
+      # properties. So, when caching we always query all properties.
+      self._EnsureCacheInitialized()
     else:
       # timeout and retries are handled down at run shell, because we don't
       # want to apply them in the other branch when reading from the cache
       value = self.RunShellCommand(
           ['getprop', property_name], single_line=True, check_return=True,
-          timeout=self._default_timeout if timeout is DEFAULT else timeout,
-          retries=self._default_retries if retries is DEFAULT else retries)
-      prop_cache[property_name] = value
-    return prop_cache[property_name]
+          timeout=timeout, retries=retries)
+      self._cache['getprop'][property_name] = value
+    # Non-existent properties are treated as empty strings by getprop.
+    return self._cache['getprop'].get(property_name, '')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetProp(self, property_name, value, check=False, timeout=None,
@@ -2031,11 +2046,36 @@ class DeviceUtils(object):
         'getprop': {},
         # Map of device_path -> [ignore_other_files, map of path->checksum]
         'device_path_checksums': {},
+        # Location of sdcard ($EXTERNAL_STORAGE).
+        'external_storage': None,
+        # Token used to detect when LoadCacheData is stale.
+        'token': None,
+        'prev_token': None,
     }
 
-  def LoadCacheData(self, data):
-    """Initializes the cache from data created using DumpCacheData."""
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def LoadCacheData(self, data, timeout=None, retries=None):
+    """Initializes the cache from data created using DumpCacheData.
+
+    The cache is used only if its token matches the one found on the device.
+    This prevents a stale cache from being used (which can happen when sharing
+    devices).
+
+    Args:
+      data: A previously serialized cache (string).
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      Whether the cache was loaded.
+    """
     obj = json.loads(data)
+    self._EnsureCacheInitialized()
+    given_token = obj.get('token')
+    if not given_token or self._cache['prev_token'] != given_token:
+      logging.warning('Stale cache detected. Not using it.')
+      return False
+
     self._cache['package_apk_paths'] = obj.get('package_apk_paths', {})
     # When using a cache across script invokations, verify that apps have
     # not been uninstalled.
@@ -2048,10 +2088,22 @@ class DeviceUtils(object):
     self._cache['package_apk_checksums'] = package_apk_checksums
     device_path_checksums = obj.get('device_path_checksums', {})
     self._cache['device_path_checksums'] = device_path_checksums
+    return True
 
-  def DumpCacheData(self):
-    """Dumps the current cache state to a string."""
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def DumpCacheData(self, timeout=None, retries=None):
+    """Dumps the current cache state to a string.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A serialized cache as a string.
+    """
+    self._EnsureCacheInitialized()
     obj = {}
+    obj['token'] = self._cache['token']
     obj['package_apk_paths'] = self._cache['package_apk_paths']
     obj['package_apk_checksums'] = self._cache['package_apk_checksums']
     # JSON can't handle sets.
