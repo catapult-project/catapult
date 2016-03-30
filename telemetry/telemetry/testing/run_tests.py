@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import logging
 import sys
 
@@ -19,7 +18,6 @@ from telemetry.internal.util import ps_util
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
-from catapult_base import cloud_storage
 from catapult_base import xvfb
 
 import typ
@@ -236,7 +234,10 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
   ps_util.EnableListingStrayProcessesUponExitHook()
   # Make sure that we don't invokes cloud storage I/Os when we run the tests in
   # parallel.
-  os.environ[cloud_storage.DISABLE_CLOUD_STORAGE_IO] = '1'
+  # TODO(nednguyen): Enabled this once telemetry tests in Chromium is updated
+  # to prefetch files.
+  # (https://github.com/catapult-project/catapult/issues/2192)
+  # os.environ[cloud_storage.DISABLE_CLOUD_STORAGE_IO] = '1'
   if binary_manager.NeedsInit():
     # Typ doesn't keep the DependencyManager initialization in the child
     # processes.
