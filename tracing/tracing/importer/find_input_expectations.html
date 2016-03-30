@@ -728,6 +728,26 @@ tr.exportTo('tr.importer', function() {
                   (event.duration > 0));
     });
 
+    // Memoize the frame events per process.
+    // There may be many Animation events for each process. We can save a
+    // significant amount of processing time by avoiding re-computing them for
+    // each animation.
+    var framesForProcess = {};
+
+    function getFramesForAnimationProcess(animation) {
+      var frames = framesForProcess[animation.parentContainer.parent.guid];
+      if (frames === undefined) {
+        var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
+            modelHelper, animation.parentContainer.parent);
+        // Collect all the frame events in the same renderer process as the css
+        // animation, and memoize them.
+        frames = rendererHelper.getFrameEventsInRange(
+            tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds);
+        framesForProcess[animation.parentContainer.parent.guid] = frames;
+      }
+      return frames;
+    }
+
     // Time ranges where animations are actually running will be collected here.
     // Each element will contain {min, max, animation, frames}.
     var animationRanges = [];
@@ -745,10 +765,9 @@ tr.exportTo('tr.importer', function() {
       // the trace events caused by this animation, but that will require
       // adding flow events to chrome:
       // https://github.com/catapult-project/catapult/issues/1433
-      var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
-          modelHelper, animation.parentContainer.parent);
-      range.frames = rendererHelper.getFrameEventsInRange(
-            tr.model.helpers.IMPL_FRAMETIME_TYPE, range);
+      range.frames = range.filterArray(
+          getFramesForAnimationProcess(animation),
+          function(frameEvent) { return frameEvent.start; });
 
       // If a tree falls in a forest...
       // If there were not actually any frames while the animation was
