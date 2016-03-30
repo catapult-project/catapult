@@ -372,5 +372,75 @@ tr.b.unittest.testSuite(function() {
     r.min = 2;
     assert.deepEqual([2, 3, 4], r.filterArray([1, 2, 3, 4]));
   });
+
+  test('left_boundary_corner_case1', function() {
+    var r = Range.fromExplicitRange(1, 2);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([{start: 1}, {start: 2}], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('left_boundary_corner_case2', function() {
+    var r = Range.fromExplicitRange(0, 2);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([{start: 1}, {start: 2}], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('left_boundary_corner_case3', function() {
+    var r = Range.fromExplicitRange(1, 1);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([{start: 1}], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('left_boundary_corner_case4', function() {
+    var r = Range.fromExplicitRange(0, 0);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('right_boundary_corner_case1', function() {
+    var r = Range.fromExplicitRange(4, 5);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([{start: 4}], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('right_boundary_corner_case2', function() {
+    var r = Range.fromExplicitRange(4, 4);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([{start: 4}], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
+
+  test('right_boundary_corner_case3', function() {
+    var r = Range.fromExplicitRange(5, 5);
+    var array = [{start: 1},
+                 {start: 2},
+                 {start: 3},
+                 {start: 4}];
+    assert.deepEqual([], r.filterArray(
+        array, function(value) {return value.start;}));
+  });
 });
 </script>
