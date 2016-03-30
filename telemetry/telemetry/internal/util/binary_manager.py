@@ -12,6 +12,7 @@ from devil import devil_env
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import platform as platform_module
+from telemetry.internal.util import exception_formatter
 
 
 TELEMETRY_PROJECT_CONFIG = os.path.join(
@@ -83,8 +84,6 @@ def FetchBinaryDepdencies(platform, client_config,
       the given platform.
   """
   configs = [dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG)]
-  if client_config:
-    configs.insert(0, dependency_manager.BaseConfig(client_config))
   dep_manager = dependency_manager.DependencyManager(configs)
   target_platform = '%s_%s' % (platform.GetOSName(), platform.GetArchName())
   dep_manager.PrefetchPaths(target_platform)
@@ -97,6 +96,22 @@ def FetchBinaryDepdencies(platform, client_config,
 
   if fetch_reference_chrome_binary:
     _FetchReferenceBrowserBinary(platform)
+
+  # For now, handle client config separately because the BUILD.gn & .isolate of
+  # telemetry tests in chromium src failed to include the files specified in its
+  # client config.
+  # (https://github.com/catapult-project/catapult/issues/2192)
+  # For now this is ok because the client configs usually don't include cloud
+  # storage infos.
+  # TODO(nednguyen): remove the logic of swallowing exception once the issue is
+  # fixed on Chromium side.
+  if client_config:
+    manager = dependency_manager.DependencyManager(
+        [dependency_manager.BaseConfig(client_config)])
+    try:
+      manager.PrefetchPaths(target_platform)
+    except Exception:
+      exception_formatter.PrintFormattedException()
 
 
 def _FetchReferenceBrowserBinary(platform):
