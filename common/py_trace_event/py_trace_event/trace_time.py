@@ -210,6 +210,6 @@ def InitializeNowFunction(plat):
     raise RuntimeError('%s is not a supported platform.' % plat)
 
 def Now():
-  return monotonic()
+  return monotonic() * 1e6 # convert from seconds to microseconds
 
 monotonic = InitializeNowFunction(sys.platform)

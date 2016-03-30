@@ -92,11 +92,17 @@ if trace_event_impl:
     return trace_event_impl.traced(fn)
 
   def clock_sync(sync_id, issue_ts=None):
+    '''
+    Add a clock sync event to the trace log.
+
+    Args:
+      sync_id: ID of clock sync event.
+      issue_ts: Time at which clock sync was issued, in microseconds.
+    '''
     time_stamp = trace_time.Now()
     args_to_log = {'sync_id': sync_id}
     if issue_ts: # Issuer if issue_ts is set, else reciever.
       assert issue_ts <= time_stamp
-      # Convert to right units for ts.
       args_to_log['issue_ts'] = issue_ts
     trace_event_impl.add_trace_event(
         "c", time_stamp, "python", "clock_sync", args_to_log)
