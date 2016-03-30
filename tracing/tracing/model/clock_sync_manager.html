@@ -140,8 +140,8 @@ tr.exportTo('tr.model', function() {
       var eligibleModelDomainIds = uniqueDomainIds.filter(isFullyConnected);
       // TODO(charliea): Remove the bias towards picking TRACE_EVENT_IMPORTER
       // once we're fully moved over to using the ClockSyncManager. In the
-      // interim, there are other importers that assume ClockSyncManager will be
-      // the master, so we have to leave this bias in place.
+      // interim, there are other importers that assume TRACE_EVENT_IMPORTER
+      // will be the master, so we have to leave this bias in place.
       var traceEventImporterDomainExists =
           eligibleModelDomainIds.indexOf(ClockDomainId.TRACE_EVENT_IMPORTER) >=
               0;
