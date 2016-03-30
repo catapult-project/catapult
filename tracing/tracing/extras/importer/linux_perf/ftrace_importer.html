@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/android_parser.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/binder_parser.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/bus_parser.html">
@@ -332,16 +333,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       this.registerDefaultHandlers_();
       this.parseLines_();
       this.importClockSyncRecords_();
-      var timeShift = this.computeTimeTransform_();
-      if (timeShift === undefined) {
+      var modelTimeTransformer = this.getModelTimeTransformer_();
+      if (modelTimeTransformer === undefined) {
         this.model_.importWarning({
           type: 'clock_sync',
           message: 'Cannot import kernel trace without a clock sync.'
         });
         return;
       }
-      this.shiftNewlyAddedClockSyncRecords_(timeShift);
-      this.importCpuData_(timeShift);
+      this.shiftNewlyAddedClockSyncRecords_(modelTimeTransformer);
+      this.importCpuData_(modelTimeTransformer);
       this.buildMapFromLinuxPidsToThreads_();
       this.buildPerThreadCpuSlicesFromCpuState_();
     },
@@ -673,30 +674,40 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     /**
-     * Computes a time transform from perf time to parent time based on the
-     * imported clock sync records.
-     * @return {number} offset from perf time to parent time or undefined if
-     * the necessary sync records were not found.
+     * Returns a function that acccepts a timestamp in the ftrace global clock
+     * domain and returns that same timestamp in the model's clock domain. If
+     * there are insufficient sync markers to create such a function, undefined
+     * is returned.
      */
-    computeTimeTransform_: function() {
-      var isSecondaryImport = this.model.getClockSyncRecordsWithSyncId(
+    getModelTimeTransformer_: function() {
+      // When the trace event importer is run, it creates a clock sync record
+      // with a syncId of 'ftrace_importer' as a signal to this importer that
+      // a Chrome trace is present.
+      var isAttachedToChromeTrace = this.model.getClockSyncRecordsWithSyncId(
           'ftrace_importer').length !== 0;
 
-      var mSyncs = this.model_.getClockSyncRecordsWithSyncId('monotonic');
-      // If this is a secondary import, and no clock syncing records were
-      // found, then abort the import. Otherwise, just skip clock alignment.
-      if (mSyncs.length == 0)
-        return isSecondaryImport ? undefined : 0;
+      var monotonicSyncs =
+          this.model_.getClockSyncRecordsWithSyncId('monotonic');
 
-      // Shift all the slice times based on the sync record.
+      // If there's no sync to the monotonic clock available, it's okay as long
+      // as there's not a Chrome trace present, because that means that the
+      // ftrace global clock is the model clock domain. If there is a Chrome
+      // trace present, abort the import (by returning undefined).
+      if (monotonicSyncs.length == 0)
+        return isAttachedToChromeTrace ? undefined : tr.b.identity;
+
       // TODO(skyostil): Compute a scaling factor if we have multiple clock sync
       // records.
-      var sync = mSyncs[0].args;
-      // NB: parentTS of zero denotes no times-shift; this is
-      // used when user and kernel event clocks are identical.
-      if (sync.parentTS == 0 || sync.parentTS == sync.perfTS)
-        return 0;
-      return sync.parentTS - sync.perfTS;
+      var sync = monotonicSyncs[0].args;
+
+      // A parentTS of zero is used as a sentinel value to indicate that
+      // CLOCK_MONOTONIC and the ftrace global clock are identical.
+      if (sync.parentTS === 0)
+        return tr.b.identity;
+
+      return function(ts) {
+        return ts + sync.parentTS - sync.perfTS;
+      };
     },
 
     /**
@@ -828,16 +839,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       this.model_.clockSyncRecords.push(csr);
     },
 
-    shiftNewlyAddedClockSyncRecords_: function(timeShift) {
+    shiftNewlyAddedClockSyncRecords_: function(modelTimeTransformer) {
       this.newlyAddedClockSyncRecords_.forEach(function(csr) {
-        csr.start += timeShift;
+        csr.start = modelTimeTransformer(csr.start);
       });
     },
 
     /**
      * Walks the this.events_ structure and creates Cpu objects.
      */
-    importCpuData_: function(timeShift) {
+    importCpuData_: function(modelTimeTransformer) {
       this.forEachLine_(function(text, eventBase, cpuNumber, pid, ts) {
         var eventName = eventBase.eventName;
         var handler = this.eventHandlers_[eventName];
@@ -848,7 +859,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           });
           return;
         }
-        ts += timeShift;
+        ts = modelTimeTransformer(ts);
         if (!handler(eventName, cpuNumber, pid, ts, eventBase)) {
           this.model_.importWarning({
             type: 'parse_error',
