@@ -21,13 +21,21 @@ tr.exportTo('tr.model', function() {
   function ContainerMemoryDump(start) {
     tr.model.TimedEvent.call(this, start);
 
-    // 'light' or 'detailed' memory dump. See
-    // base::trace_event::MemoryDumpLevelOfDetail in the Chromium
-    // repository.
     this.levelOfDetail = undefined;
 
     this.memoryAllocatorDumps_ = undefined;
     this.memoryAllocatorDumpsByFullName_ = undefined;
+  };
+
+  /**
+   * Memory dump level of detail. See base::trace_event::MemoryDumpLevelOfDetail
+   * in the Chromium repository.
+   *
+   * @enum
+   */
+  ContainerMemoryDump.LevelOfDetail = {
+    LIGHT: 0,
+    DETAILED: 1
   };
 
   ContainerMemoryDump.prototype = {

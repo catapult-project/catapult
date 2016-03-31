@@ -16,6 +16,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/clock_sync_record.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
 <link rel="import" href="/tracing/model/constants.html">
+<link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/counter_series.html">
 <link rel="import" href="/tracing/model/flow_event.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
@@ -60,7 +61,10 @@ tr.exportTo('tr.e.importer', function() {
   var CONSUMER = 'consumer';
   var STEP = 'step';
 
-  var MEMORY_DUMP_LEVELS_OF_DETAIL = [undefined, 'light', 'detailed'];
+  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+  var MEMORY_DUMP_LEVEL_OF_DETAIL_ORDER = [undefined, LIGHT, DETAILED];
+
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
 
   // Map from raw memory dump byte stat names to model byte stat names. See
@@ -2116,7 +2120,7 @@ tr.exportTo('tr.e.importer', function() {
       this.model_.globalMemoryDumps.push(globalMemoryDump);
 
       var globalMemoryAllocatorDumpsByFullName = {};
-      var levelOfDetailIndices = {};
+      var levelsOfDetail = {};
       var allMemoryAllocatorDumpsByGuid = {};
 
       // 2. Create a ProcessMemoryDump for each PID in the provided process
@@ -2125,15 +2129,14 @@ tr.exportTo('tr.e.importer', function() {
       // this step.
       for (var pid in dumpIdEvents) {
         this.createProcessMemoryDump_(globalMemoryDump,
-            globalMemoryAllocatorDumpsByFullName, levelOfDetailIndices,
+            globalMemoryAllocatorDumpsByFullName, levelsOfDetail,
             allMemoryAllocatorDumpsByGuid, dumpIdEvents[pid], pid, dumpId);
       }
 
       // 3. Set the level of detail and memory allocator dumps of the
       // GlobalMemoryDump, which come from the process memory dump trace
       // events parsed in the prebvious step.
-      globalMemoryDump.levelOfDetail =
-          MEMORY_DUMP_LEVELS_OF_DETAIL[levelOfDetailIndices.global];
+      globalMemoryDump.levelOfDetail = levelsOfDetail.global;
 
       // Find the root allocator dumps and establish the parent links of
       // the global memory dump.
@@ -2150,7 +2153,7 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     createProcessMemoryDump_: function(globalMemoryDump,
-        globalMemoryAllocatorDumpsByFullName, levelOfDetailIndices,
+        globalMemoryAllocatorDumpsByFullName, levelsOfDetail,
         allMemoryAllocatorDumpsByGuid, processEvents, pid, dumpId) {
       // Calculate the range of the process memory dump.
       var processRange = new tr.b.Range();
@@ -2194,7 +2197,7 @@ tr.exportTo('tr.e.importer', function() {
         // All process memory dump trace events for the newly created
         // ProcessMemoryDump must be processed before level of detail and
         // allocator dumps can be added to it.
-        this.parseMemoryDumpLevelOfDetail_(levelOfDetailIndices, dumps, pid,
+        this.parseMemoryDumpLevelOfDetail_(levelsOfDetail, dumps, pid,
             dumpId);
         this.parseMemoryDumpAllocatorDumps_(processMemoryDump, globalMemoryDump,
             processMemoryAllocatorDumpsByFullName,
@@ -2202,9 +2205,22 @@ tr.exportTo('tr.e.importer', function() {
             allMemoryAllocatorDumpsByGuid, dumps, pid, dumpId);
       }
 
-      processMemoryDump.levelOfDetail =
-          MEMORY_DUMP_LEVELS_OF_DETAIL[levelOfDetailIndices.process];
-      delete levelOfDetailIndices.process;  // Reused for all process dumps.
+      if (levelsOfDetail.process === undefined) {
+        // Infer level of detail from the presence of VM regions in legacy
+        // traces (where raw process memory dump events don't contain the
+        // level_of_detail field).
+        levelsOfDetail.process = processMemoryDump.vmRegions ? DETAILED : LIGHT;
+      }
+      if (!this.updateMemoryDumpLevelOfDetail_(
+          levelsOfDetail, 'global', levelsOfDetail.process)) {
+        this.model_.importWarning({
+          type: 'memory_dump_parse_error',
+          message: 'diffent levels of detail provided for global memory' +
+              ' dump (dump ID=' + dumpId + ').'
+        });
+      }
+      processMemoryDump.levelOfDetail = levelsOfDetail.process;
+      delete levelsOfDetail.process;  // Reused for all process dumps.
 
       // Find the root allocator dumps and establish the parent links of
       // the process memory dump.
@@ -2514,49 +2530,56 @@ tr.exportTo('tr.e.importer', function() {
         processMemoryDump.heapDumps = heapDumps;
     },
 
-    parseMemoryDumpLevelOfDetail_: function(levelOfDetailIndices, dumps, pid,
+    parseMemoryDumpLevelOfDetail_: function(levelsOfDetail, dumps, pid,
         dumpId) {
       var rawLevelOfDetail = dumps.level_of_detail;
-
-      // Determine the index of the level of detail of the dump.
-      var index = MEMORY_DUMP_LEVELS_OF_DETAIL.indexOf(rawLevelOfDetail);
-      if (index < 0) {
-        this.model_.importWarning({
-          type: 'memory_dump_parse_error',
-          message: 'unknown level of detail \'' + rawLevelOfDetail +
-              '\' of process memory dump for PID=' + pid +
-              ' and dump ID=' + dumpId + '.'
-        });
-        return;
+      var level;
+      switch (rawLevelOfDetail) {
+        case 'light':
+          level = LIGHT;
+          break;
+        case 'detailed':
+          level = DETAILED;
+          break;
+        case undefined:
+          level = undefined;
+          break;
+        default:
+          this.model_.importWarning({
+            type: 'memory_dump_parse_error',
+            message: 'unknown raw level of detail \'' + rawLevelOfDetail +
+                '\' of process memory dump for PID=' + pid +
+                ' and dump ID=' + dumpId + '.'
+          });
+          return;
       }
 
-      // If the process memory dump events have different levels of detail
-      // (for the particular process and/or globally), show a warning and use
-      // the highest level.
-
-      if (levelOfDetailIndices.process === undefined) {
-        levelOfDetailIndices.process = index;
-      } else if (index !== levelOfDetailIndices.process) {
+      if (!this.updateMemoryDumpLevelOfDetail_(
+          levelsOfDetail, 'process', level)) {
         this.model_.importWarning({
           type: 'memory_dump_parse_error',
           message: 'diffent levels of detail provided for process memory' +
               ' dump for PID=' + pid + ' (dump ID=' + dumpId + ').'
         });
-        levelOfDetailIndices.process =
-            Math.max(levelOfDetailIndices.process, index);
+      }
+    },
+
+    updateMemoryDumpLevelOfDetail_: function(levelsOfDetail, scope, level) {
+      // If all process memory dump events have the same level of detail (for
+      // the particular 'process' or 'global' scope), return true.
+      if (!(scope in levelsOfDetail) || level === levelsOfDetail[scope]) {
+        levelsOfDetail[scope] = level;
+        return true;
       }
 
-      if (levelOfDetailIndices.global === undefined) {
-        levelOfDetailIndices.global = index;
-      } else if (index !== levelOfDetailIndices.global) {
-        this.model_.importWarning({
-          type: 'memory_dump_parse_error',
-          message: 'diffent levels of detail provided for global memory' +
-              ' dump (dump ID=' + dumpId + ').'
-        });
-        levelOfDetailIndices.global =
-            Math.max(levelOfDetailIndices.global, index);
+      // If the process memory dump events have different levels of detail (for
+      // the particular 'process' or 'global' scope), use the highest level and
+      // return false.
+      if (MEMORY_DUMP_LEVEL_OF_DETAIL_ORDER.indexOf(level) >
+          MEMORY_DUMP_LEVEL_OF_DETAIL_ORDER.indexOf(levelsOfDetail[scope])) {
+        levelsOfDetail[scope] = level;
       }
+      return false;
     },
 
     parseMemoryDumpAllocatorDumps_: function(processMemoryDump,

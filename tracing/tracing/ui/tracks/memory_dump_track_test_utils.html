@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -26,6 +27,8 @@ tr.exportTo('tr.ui.tracks', function() {
   var SelectionState = tr.model.SelectionState;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
   function createVMRegions(pssValues) {
     return VMRegionClassificationNode.fromRegions(
@@ -101,7 +104,7 @@ tr.exportTo('tr.ui.tracks', function() {
           maybeDumpData({oilpan: {size: 1024}}));
 
       var gmd2 = new GlobalMemoryDump(model, 5);
-      gmd2.levelOfDetail = 'detailed';
+      gmd2.levelOfDetail = DETAILED;
       model.globalMemoryDumps.push(gmd2);
       addProcessMemoryDump(gmd2, pa, 0);
       addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
@@ -111,7 +114,7 @@ tr.exportTo('tr.ui.tracks', function() {
               v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
       var gmd3 = new GlobalMemoryDump(model, 15);
-      gmd3.levelOfDetail = 'detailed';
+      gmd3.levelOfDetail = DETAILED;
       model.globalMemoryDumps.push(gmd3);
       addProcessMemoryDump(gmd3, pa, 15.5, maybePssValues([]),
           maybeDumpData({v8: {size: 768}}));
@@ -119,7 +122,7 @@ tr.exportTo('tr.ui.tracks', function() {
           maybeDumpData({oilpan: {size: 512}}));
 
       var gmd4 = new GlobalMemoryDump(model, 18);
-      gmd4.levelOfDetail = 'light';
+      gmd4.levelOfDetail = LIGHT;
       model.globalMemoryDumps.push(gmd4);
     });
   }
