@@ -41,19 +41,20 @@ class TimerTest(unittest.TestCase):
             or sys.platform.startswith(trace_time._PLATFORMS['cygwin'])):
       return True
     trace_time.InitializeNowFunction(sys.platform)
-    self.assertEqual(trace_time.DETECTED_PLATFORM, 'windows')
+    self.assertTrue(trace_time.GetClock() == trace_time._WIN_HIRES
+                    or trace_time.GetClock() == trace_time._WIN_LORES)
 
   def testInitializeNowFunction_linux(self):
     if not sys.platform.startswith(trace_time._PLATFORMS['linux']):
       return True
     trace_time.InitializeNowFunction(sys.platform)
-    self.assertEqual(trace_time.DETECTED_PLATFORM, 'linux')
+    self.assertEqual(trace_time.GetClock(), trace_time._LINUX_CLOCK)
 
   def testInitializeNowFunction_mac(self):
     if not sys.platform.startswith(trace_time._PLATFORMS['mac']):
       return True
     trace_time.InitializeNowFunction(sys.platform)
-    self.assertEqual(trace_time.DETECTED_PLATFORM, 'mac')
+    self.assertEqual(trace_time.GetClock(), trace_time._MAC_CLOCK)
 
   # Windows Tests
   def testIsQPCUsable_buggyAthlonProcReturnsFalse(self):
