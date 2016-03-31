@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import os
 import sys
 
 from telemetry.core import util
@@ -18,6 +19,7 @@ from telemetry.internal.util import ps_util
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
+from catapult_base import cloud_storage
 from catapult_base import xvfb
 
 import typ
@@ -44,6 +46,9 @@ class RunTestsCommand(command_line.OptparseCommand):
   def AddCommandLineArgs(cls, parser, _):
     parser.add_option('--start-xvfb', action='store_true',
                       default=False, help='Start Xvfb display if needed.')
+    parser.add_option('--disable-cloud-storage-io', action='store_true',
+                      default=False, help=('Disable cloud storage IO when '
+                                           'tests are run in parallel.'))
     parser.add_option('--repeat-count', type='int', default=1,
                       help='Repeats each a provided number of times.')
     parser.add_option('--no-browser', action='store_true', default=False,
@@ -234,15 +239,16 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
   ps_util.EnableListingStrayProcessesUponExitHook()
   # Make sure that we don't invokes cloud storage I/Os when we run the tests in
   # parallel.
-  # TODO(nednguyen): Enabled this once telemetry tests in Chromium is updated
+  # TODO(nednguyen): always do this once telemetry tests in Chromium is updated
   # to prefetch files.
   # (https://github.com/catapult-project/catapult/issues/2192)
-  # os.environ[cloud_storage.DISABLE_CLOUD_STORAGE_IO] = '1'
+  args = context
+  if args.disable_cloud_storage_io:
+    os.environ[cloud_storage.DISABLE_CLOUD_STORAGE_IO] = '1'
   if binary_manager.NeedsInit():
     # Typ doesn't keep the DependencyManager initialization in the child
     # processes.
     binary_manager.InitDependencyManager(context.client_config)
-  args = context
   # We need to reset the handlers in case some other parts of telemetry already
   # set it to make this work.
   if not args.disable_logging_config:
