@@ -11,6 +11,7 @@ from telemetry.internal.backends import android_command_line_backend
 from telemetry.internal.backends import app_backend
 
 from devil.android import app_ui
+from devil.android.sdk import intent
 
 
 class AndroidAppBackend(app_backend.AppBackend):
@@ -74,6 +75,14 @@ class AndroidAppBackend(app_backend.AppBackend):
     else:
       self._LaunchAndWaitForApplication()
     self._is_running = True
+
+  def Foreground(self):
+    self.device.StartActivity(
+        intent.Intent(package=self._start_intent.package,
+                      activity=self._start_intent.activity,
+                      action=None,
+                      flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
+        blocking=True)
 
   def Close(self):
     self._is_running = False

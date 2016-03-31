@@ -43,8 +43,8 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._backend_settings = backend_settings
     self._saved_sslflag = ''
 
-    # Kill old browser.
-    self._KillBrowser()
+    # Stop old browser, if any.
+    self._StopBrowser()
 
     if self.device.HasRoot() or self.device.NeedsSU():
       if self.browser_options.profile_dir:
@@ -67,11 +67,10 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def device(self):
     return self.platform_backend.device
 
-  def _KillBrowser(self):
-    if self.device.IsUserBuild():
-      self.platform_backend.StopApplication(self._backend_settings.package)
-    else:
-      self.platform_backend.KillApplication(self._backend_settings.package)
+  def _StopBrowser(self):
+    # Note: it's important to stop and _not_ kill the browser app, since
+    # stopping also clears the app state in Android's activity manager.
+    self.platform_backend.StopApplication(self._backend_settings.package)
 
   def Start(self):
     self.device.RunShellCommand('logcat -c')
@@ -154,6 +153,14 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         self.Close()
         raise
 
+  def Foreground(self):
+    self.device.StartActivity(
+        intent.Intent(package=self._backend_settings.package,
+                      activity=self._backend_settings.activity,
+                      action=None,
+                      flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
+        blocking=True)
+
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
     args.append('--enable-remote-debugging')
@@ -194,7 +201,7 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Close(self):
     super(AndroidBrowserBackend, self).Close()
 
-    self._KillBrowser()
+    self._StopBrowser()
 
     self.platform_backend.StopForwardingHost(self._port)
 

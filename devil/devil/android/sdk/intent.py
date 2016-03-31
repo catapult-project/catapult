@@ -8,6 +8,21 @@ This is generally intended to be used with functions that calls Android's
 Am command.
 """
 
+# Some common flag constants that can be used to construct intents.
+# Full list: http://developer.android.com/reference/android/content/Intent.html
+FLAG_ACTIVITY_CLEAR_TASK = 0x00008000
+FLAG_ACTIVITY_CLEAR_TOP = 0x04000000
+FLAG_ACTIVITY_NEW_TASK = 0x10000000
+FLAG_ACTIVITY_REORDER_TO_FRONT = 0x00020000
+FLAG_ACTIVITY_RESET_TASK_IF_NEEDED = 0x00200000
+
+
+def _bitwise_or(flags):
+  result = 0
+  for flag in flags:
+    result |= flag
+  return result
+
 
 class Intent(object):
 
@@ -25,7 +40,7 @@ class Intent(object):
       data: A string containing a data URI.
       extras: A dict containing extra parameters to be passed along with the
               intent.
-      flags: A string containing flags to pass.
+      flags: A sequence of flag constants to be passed with the intent.
       package: A string that, with activity, can be used to specify the
                component.
     """
@@ -38,7 +53,7 @@ class Intent(object):
     self._component = component
     self._data = data
     self._extras = extras
-    self._flags = flags
+    self._flags = '0x%0.8x' % _bitwise_or(flags) if flags else None
     self._package = package
 
     if self._component and '/' in component:

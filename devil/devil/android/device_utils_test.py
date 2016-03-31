@@ -1217,12 +1217,15 @@ class DeviceUtilsStartActivityTest(DeviceUtilsTest):
     test_intent = intent.Intent(action='android.intent.action.VIEW',
                                 package='test.package',
                                 activity='.Main',
-                                flags='0x10000000')
+                                flags=[
+                                  intent.FLAG_ACTIVITY_NEW_TASK,
+                                  intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                                ])
     with self.assertCall(
         self.call.adb.Shell('am start '
                             '-a android.intent.action.VIEW '
                             '-n test.package/.Main '
-                            '-f 0x10000000'),
+                            '-f 0x10200000'),
         'Starting: Intent { act=android.intent.action.VIEW }'):
       self.device.StartActivity(test_intent)
 

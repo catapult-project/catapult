@@ -35,6 +35,12 @@ class AppBackend(object):
   def Start(self):
     raise NotImplementedError
 
+  def Foreground(self):
+    # TODO(catapult:#2194): Remove the unnecessary pass below when the method
+    # has been implemented on all concrete subclasses.
+    pass  # pylint: disable=unnecessary-pass
+    raise NotImplementedError
+
   def Close(self):
     raise NotImplementedError
 

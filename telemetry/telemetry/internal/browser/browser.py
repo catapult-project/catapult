@@ -236,6 +236,9 @@ class Browser(app.App):
       self._browser_backend.Close()
       self.credentials = None
 
+  def Foreground(self):
+    """Ensure the browser application is moved to the foreground."""
+    return self._browser_backend.Foreground()
 
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()
