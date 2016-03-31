@@ -20,7 +20,6 @@ from telemetry.web_perf.metrics import gpu_timeline
 from telemetry.web_perf.metrics import indexeddb_timeline
 from telemetry.web_perf.metrics import layout
 from telemetry.web_perf.metrics import memory_timeline
-from telemetry.web_perf.metrics import responsiveness_metric
 from telemetry.web_perf.metrics import smoothness
 from telemetry.web_perf.metrics import text_selection
 from telemetry.web_perf import smooth_gesture_util
@@ -47,7 +46,6 @@ def _GetAllLegacyTimelineBasedMetrics():
   # all TimelineBasedMetrics class in web_perf/metrics/ folder.
   # This cannot be done until crbug.com/460208 is fixed.
   return (smoothness.SmoothnessMetric(),
-          responsiveness_metric.ResponsivenessMetric(),
           layout.LayoutMetric(),
           gpu_timeline.GPUTimelineMetric(),
           blob_timeline.BlobTimelineMetric(),
