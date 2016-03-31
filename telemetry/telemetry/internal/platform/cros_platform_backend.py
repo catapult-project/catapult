@@ -4,6 +4,7 @@
 
 import logging
 
+from telemetry import decorators
 from telemetry.core import cros_interface
 from telemetry.core import platform
 from telemetry.core import util
@@ -118,6 +119,10 @@ class CrosPlatformBackend(
         cstates[state] = int(times[i])
       sample_stats[cpu] = cstates
     return sample_stats
+
+  @decorators.Cache
+  def GetArchName(self):
+    return self._cri.GetArchName()
 
   def GetOSName(self):
     return 'chromeos'

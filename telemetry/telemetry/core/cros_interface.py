@@ -497,6 +497,9 @@ class CrOSInterface(object):
         return
     logging.warning('screenshot directory full.')
 
+  def GetArchName(self):
+    return self.RunCmdOnDevice(['uname', '-m'])[0]
+
   def RestartUI(self, clear_enterprise_policy):
     logging.info('(Re)starting the ui (logs the user out)')
     if clear_enterprise_policy:
