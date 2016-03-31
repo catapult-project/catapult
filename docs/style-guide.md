@@ -211,17 +211,20 @@ Use of an ES6 features shouldn't be considered until that feature is supported i
 If you see that Catapult’s version of D8 is behind Chrome stable's, use
 [this script](/third_party/vinn/bin/update_v8) to update it.
 
-## Workarounds have bugs for removal: Avoid defensive programming
+## Avoid defensive programming (and document it when you can't)
 
-We should never silently eat an unexpected condition. When such a condition
-occur we should ensure to output the clearest possible warning or a catastrophic
-error if progress cannot continue. If fixing the problem is hard and a simple
-patch would allow someone to keep working on a feature, then it is OK to submit
-this patch at the express condition that:
+Don't silently handle unexpected conditions. When such conditions occur, you
+should:
 
-  1. An issue is created to track the problem.
-  2. The defensive patch is wrapped in a `// TODO` linking to that issue.
-  3. The todo and defensive patch are removed after the problem is fixed.
+  1. Emit a clear warning and continue if the error is non-catastrophic
+  2. Fail loudly if the error is catastrophic
+
+If fixing the problem is hard but a simple workaround is possible, then using
+the workaround is OK so long as:
+
+  1. An issue is created to track the problem
+  2. The defensive code is wrapped in a `// TODO` linking to the issue
+  3. The TODO and defensive code are removed after the problem is fixed
 
 ## Issues
 
