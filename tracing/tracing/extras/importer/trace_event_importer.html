@@ -129,10 +129,9 @@ tr.exportTo('tr.e.importer', function() {
     // PID -> Object type ID -> Object type name.
     this.objectTypeNameMap_ = {};
 
-    // For traces with no clock domain metadata (old traces or
-    // non-Chrome/non-Telemetry traces), just use an importer-specific clock
-    // domain.
-    this.clockDomainId_ = tr.model.ClockDomainId.TRACE_EVENT_IMPORTER;
+    // For old Chrome traces with no clock domain metadata, just use a
+    // placeholder clock domain.
+    this.clockDomainId_ = tr.model.ClockDomainId.UNKNOWN_CHROME_LEGACY;
 
     if (typeof(eventData) === 'string' || eventData instanceof String) {
       eventData = eventData.trim();

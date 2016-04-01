@@ -14,9 +14,9 @@ tr.exportTo('tr.model', function() {
   var ClockDomainId = {
     BATTOR: 'battor',
 
-    // NOTE: Exists for backwards compatibility with the old clock sync
-    // mechanism, which had no concept of named time domains.
-    TRACE_EVENT_IMPORTER: 'trace_event_importer'
+    // NOTE: Exists for backwards compatibility with old Chrome traces which
+    // didn't explicitly specify the clock being used.
+    UNKNOWN_CHROME_LEGACY: 'unknown_chrome_legacy'
 
     // TODO(charliea): Add clock domains for the various Chrome TimeTicks
     // sources.
@@ -138,15 +138,15 @@ tr.exportTo('tr.model', function() {
       };
 
       var eligibleModelDomainIds = uniqueDomainIds.filter(isFullyConnected);
-      // TODO(charliea): Remove the bias towards picking TRACE_EVENT_IMPORTER
+      // TODO(charliea): Remove the bias towards picking UNKNOWN_CHROME_LEGACY
       // once we're fully moved over to using the ClockSyncManager. In the
-      // interim, there are other importers that assume TRACE_EVENT_IMPORTER
+      // interim, there are other importers that assume UNKNOWN_CHROME_LEGACY
       // will be the master, so we have to leave this bias in place.
-      var traceEventImporterDomainExists =
-          eligibleModelDomainIds.indexOf(ClockDomainId.TRACE_EVENT_IMPORTER) >=
+      var chromeLegacyDomainExists =
+          eligibleModelDomainIds.indexOf(ClockDomainId.UNKNOWN_CHROME_LEGACY) >=
               0;
-      this.modelDomainId_ = traceEventImporterDomainExists ?
-          ClockDomainId.TRACE_EVENT_IMPORTER : eligibleModelDomainIds[0];
+      this.modelDomainId_ = chromeLegacyDomainExists ?
+          ClockDomainId.UNKNOWN_CHROME_LEGACY : eligibleModelDomainIds[0];
 
       if (this.modelDomainId_ === undefined) {
         throw new Error('Unable to select a master clock domain because no ' +
@@ -273,9 +273,9 @@ tr.exportTo('tr.model', function() {
       // time. In the medium term, we should fix the Chrome serial code in order
       // to remove this special logic and get an even more accurate estimate.
       if (fromDomainId == ClockDomainId.BATTOR &&
-          toDomainId == ClockDomainId.TRACE_EVENT_IMPORTER) {
+          toDomainId == ClockDomainId.UNKNOWN_CHROME_LEGACY) {
         toTs = toMarker.startTs;
-      } else if (fromDomainId == ClockDomainId.TRACE_EVENT_IMPORTER &&
+      } else if (fromDomainId == ClockDomainId.UNKNOWN_CHROME_LEGACY &&
           toDomainId == ClockDomainId.BATTOR) {
         fromTs = fromMarker.startTs;
       }

@@ -134,11 +134,11 @@ tr.b.unittest.testSuite(function() {
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(150), 150);
   }, testOptions);
 
-  test('getModelTimeTransformer_battorSyncUsesTraceEventImporterStartTs',
+  test('getModelTimeTransformer_battorSyncUsesChromeLegacyStartTs',
       function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(
-        ClockDomainId.TRACE_EVENT_IMPORTER, 'sync1', 100, 200);
+      ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 100, 200);
     mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
 
     assert.strictEqual(
@@ -146,17 +146,17 @@ tr.b.unittest.testSuite(function() {
         100);
   }, testOptions);
 
-  test('getModelTimeTransformer_prefersTraceEventImporterClockDomain',
+  test('getModelTimeTransformer_prefersChromeLegacyClockDomain',
       function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
-    mgr.addClockSyncMarker(ClockDomainId.TRACE_EVENT_IMPORTER, 'sync1', 350);
+    mgr.addClockSyncMarker(ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
 
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100),
         350);
     assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.TRACE_EVENT_IMPORTER)(350),
+        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
         350);
   }, testOptions);
 

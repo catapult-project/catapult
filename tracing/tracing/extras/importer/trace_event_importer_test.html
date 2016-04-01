@@ -5653,7 +5653,7 @@ tr.b.unittest.testSuite(function() {
     // as the model.
     assert.equal(
         m.clockSyncManager.getModelTimeTransformer(
-            ClockDomainId.TRACE_EVENT_IMPORTER)(.005),
+            ClockDomainId.UNKNOWN_CHROME_LEGACY)(.005),
         .005);
     assert.isFalse(m.hasImportWarnings);
   });
