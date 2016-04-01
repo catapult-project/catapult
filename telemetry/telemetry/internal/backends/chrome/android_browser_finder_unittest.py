@@ -125,6 +125,18 @@ class AndroidBrowserFinderTest(fake_filesystem_unittest.TestCase):
         self.finder_options, self.fake_platform)
     self.assertNotIn('exact', [b.browser_type for b in possible_browsers])
 
+  def testCanLaunchExactWithUnrecognizedApkNameButKnownPackageName(self):
+    if not self.finder_options.chrome_root:
+      self.skipTest('--chrome-root is not specified, skip the test')
+    self.fs.CreateFile(
+        '/foo/MyFooBrowser.apk')
+    self._get_package_name_mock.return_value = 'org.chromium.chrome'
+    self.finder_options.browser_executable = '/foo/MyFooBrowser.apk'
+
+    possible_browsers = android_browser_finder._FindAllPossibleBrowsers(
+        self.finder_options, self.fake_platform)
+    self.assertIn('exact', [b.browser_type for b in possible_browsers])
+
   def testNoErrorWithMissingReferenceBuild(self):
     if not self.finder_options.chrome_root:
       self.skipTest('--chrome-root is not specified, skip the test')

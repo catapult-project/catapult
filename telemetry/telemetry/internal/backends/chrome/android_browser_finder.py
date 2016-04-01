@@ -185,14 +185,15 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
   if (finder_options.browser_executable and
       CanPossiblyHandlePath(finder_options.browser_executable)):
     apk_name = os.path.basename(finder_options.browser_executable)
-    package_info = next((info for info in CHROME_PACKAGE_NAMES.itervalues()
-                         if info[2] == apk_name), None)
+    normalized_path = os.path.expanduser(finder_options.browser_executable)
+    exact_package = apk_helper.GetPackageName(normalized_path)
+    package_info = next(
+        (info for info in CHROME_PACKAGE_NAMES.itervalues()
+         if info[0] == exact_package or info[2] == apk_name), None)
 
-    # It is okay if the APK name doesn't match any of known chrome browser APKs,
-    # since it may be of a different browser.
+    # It is okay if the APK name or package doesn't match any of known chrome
+    # browser APKs, since it may be of a different browser.
     if package_info:
-      normalized_path = os.path.expanduser(finder_options.browser_executable)
-      exact_package = apk_helper.GetPackageName(normalized_path)
       if not exact_package:
         raise exceptions.PackageDetectionError(
             'Unable to find package for %s specified by --browser-executable' %
