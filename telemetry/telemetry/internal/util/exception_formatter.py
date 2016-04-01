@@ -11,7 +11,6 @@ import sys
 import traceback
 
 from telemetry.core import exceptions
-from telemetry.core import util
 
 
 def PrintFormattedException(exception_class=None, exception=None, tb=None,
@@ -58,12 +57,9 @@ def _PrintFormattedTrace(processed_tb, frame, exception_string=None):
   print >> sys.stderr
 
   # Format the traceback.
-  base_dir = os.path.abspath(util.GetChromiumSrcDir())
   print >> sys.stderr, 'Traceback (most recent call last):'
   for filename, line, function, text in processed_tb:
     filename = os.path.abspath(filename)
-    if filename.startswith(base_dir):
-      filename = filename[len(base_dir)+1:]
     print >> sys.stderr, '  %s at %s:%d' % (function, filename, line)
     print >> sys.stderr, '    %s' % text
 
