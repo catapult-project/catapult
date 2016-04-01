@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  test('addClockSyncMarker_throwsWithUnknownClockDomain', function() {
+  test('addClockSyncMarker_throwsWithUnknownDomain', function() {
     var mgr = new ClockSyncManager();
 
     assert.throws(function() {
@@ -146,8 +146,7 @@ tr.b.unittest.testSuite(function() {
         100);
   }, testOptions);
 
-  test('getModelTimeTransformer_prefersChromeLegacyClockDomain',
-      function() {
+  test('getModelTimeTransformer_prefersChromeLegacyDomain', function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
