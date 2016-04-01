@@ -134,16 +134,26 @@ tr.b.unittest.testSuite(function() {
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(150), 150);
   }, testOptions);
 
-  test('getModelTimeTransformer_battorSyncUsesChromeLegacyStartTs',
+  test('getModelTimeTransformer_battorSyncUsesNormalTimestampWhenFast',
       function() {
     var mgr = new ClockSyncManager();
-    mgr.addClockSyncMarker(
-      ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 100, 200);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 102);
     mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
 
     assert.strictEqual(
-        mgr.getModelTimeTransformer(ClockDomainId.BATTOR)(350),
-        100);
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(101),
+        350);
+  }, testOptions);
+
+  test('getModelTimeTransformer_battorSyncUsesChromeLegacyStartTsWhenTooSlow',
+      function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 200);
+    mgr.addClockSyncMarker(ClockDomainId.BATTOR, 'sync1', 350);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100),
+        350);
   }, testOptions);
 
   test('getModelTimeTransformer_prefersChromeLegacyDomain', function() {

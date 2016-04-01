@@ -22,6 +22,12 @@ tr.exportTo('tr.model', function() {
     // sources.
   };
 
+  // The number of milliseconds above which the BattOr sync is no longer
+  // considered "fast", and it's more accurate to use the sync start timestamp
+  // instead of the normal sync timestamp due to a bug in the Chrome serial code
+  // making serial reads too slow.
+  var BATTOR_FAST_SYNC_THRESHOLD_MS = 3;
+
   /**
    * A ClockSyncManager holds clock sync markers and uses them to shift
    * timestamps from agents' clock domains onto the model's clock domain.
@@ -226,7 +232,8 @@ tr.exportTo('tr.model', function() {
   }
 
   ClockSyncMarker.prototype = {
-    get ts() { return (this.startTs + this.endTs) / 2; }
+    get duration() { return this.endTs - this.startTs; },
+    get ts() { return this.startTs + this.duration / 2; }
   };
 
   /**
@@ -273,10 +280,10 @@ tr.exportTo('tr.model', function() {
       // time. In the medium term, we should fix the Chrome serial code in order
       // to remove this special logic and get an even more accurate estimate.
       if (fromDomainId == ClockDomainId.BATTOR &&
-          toDomainId == ClockDomainId.UNKNOWN_CHROME_LEGACY) {
+          toMarker.duration > BATTOR_FAST_SYNC_THRESHOLD_MS) {
         toTs = toMarker.startTs;
-      } else if (fromDomainId == ClockDomainId.UNKNOWN_CHROME_LEGACY &&
-          toDomainId == ClockDomainId.BATTOR) {
+      } else if (toDomainId == ClockDomainId.BATTOR &&
+          fromMarker.duration > BATTOR_FAST_SYNC_THRESHOLD_MS) {
         fromTs = fromMarker.startTs;
       }
 
