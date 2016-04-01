@@ -165,6 +165,7 @@
       'tracing/metrics/system_health/system_health_metrics.html',
       'tracing/metrics/system_health/utils.html',
       'tracing/metrics/tracing_metric.html',
+      'tracing/metrics/v8/execution_metric.html',
       'tracing/metrics/value_list.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',
@@ -443,7 +444,7 @@
       'tracing/value/ui/preferred_display_unit.html',
       'tracing/value/ui/scalar_span.html',
       'tracing/value/unit.html',
-      'tracing/value/value.html'
+      'tracing/value/value.html',
     ],
     'tracing_img_files': [
       'tracing/ui/extras/chrome/cc/images/input-event.png',

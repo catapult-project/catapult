@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/v8/execution_metric.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.v8', function() {
+  function V8Metrics(valueList, model) {
+    tr.metrics.v8.V8ExecutionMetric(valueList, model);
+  }
+
+  V8Metrics.prototype = {
+    __proto__: Function.prototype
+  };
+
+  tr.metrics.MetricRegistry.register(V8Metrics);
+
+  return {
+    V8Metrics: V8Metrics
+  };
+});
+</script>

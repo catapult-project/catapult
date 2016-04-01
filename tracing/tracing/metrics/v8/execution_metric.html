@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.v8', function() {
+  var timeDurationInMs_smallerIsBetter =
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
+
+  function createNumeric() {
+    return tr.v.Numeric.createLinear(
+        timeDurationInMs_smallerIsBetter,
+        tr.b.Range.fromExplicitRange(4, 200), 100);
+  }
+
+  function computeExecuteMetrics(valueList, model) {
+    var cpuTotalExecution = createNumeric();
+    var wallTotalExecution = createNumeric();
+    var cpuSelfExecution = createNumeric();
+    var wallSelfExecution = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.Execute')
+        return;
+
+      cpuTotalExecution.add(e.cpuDuration);
+      wallTotalExecution.add(e.duration);
+      cpuSelfExecution.add(e.cpuSelfTime);
+      wallSelfExecution.add(e.selfTime);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_execution_cpu_total', cpuTotalExecution,
+        { description: 'cpu total time spent in synchronous recompilation' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_execution_wall_total', wallTotalExecution,
+        { description: 'wall total time spent in synchronous recompilation' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_execution_cpu_self', cpuSelfExecution,
+        { description: 'cpu self time spent in synchronous recompilation' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_execution_wall_self', wallSelfExecution,
+        { description: 'wall self time spent in synchronous recompilation' }));
+  }
+
+  function computeParseLazyMetrics(valueList, model) {
+    var cpuSelfParseLazy = createNumeric();
+    var wallSelfParseLazy = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.ParseLazy' && e.title !== 'V8.ParseLazyMicroSeconds')
+        return;
+
+      cpuSelfParseLazy.add(e.cpuSelfTime);
+      wallSelfParseLazy.add(e.selfTime);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_parse_lazy_cpu_self', cpuSelfParseLazy,
+        { description: 'cpu self time spent performing lazy parsing' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_parse_lazy_wall_self', wallSelfParseLazy,
+        { description: 'wall self time spent performing lazy parsing' }));
+  }
+
+  function computeCompileFullCodeMetrics(valueList, model) {
+    var cpuSelfCompileFullCode = createNumeric();
+    var wallSelfCompileFullCode = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.CompileFullCode')
+        return;
+
+      cpuSelfCompileFullCode.add(e.cpuSelfTime);
+      wallSelfCompileFullCode.add(e.selfTime);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_compile_full_code_cpu_self',
+        cpuSelfCompileFullCode,
+        { description: 'cpu self time spent performing compiling full code' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_compile_full_code_wall_self',
+        wallSelfCompileFullCode, {
+          description: 'wall self time spent performing compiling full code'
+        }));
+  }
+
+  function computeCompileIgnitionMetrics(valueList, model) {
+    var cpuSelfCompileIgnition = createNumeric();
+    var wallSelfCompileIgnition = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.CompileIgnition')
+        return;
+
+      cpuSelfCompileIgnition.add(e.cpuSelfTime);
+      wallSelfCompileIgnition.add(e.selfTime);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_compile_ignition_cpu_self',
+        cpuSelfCompileIgnition,
+        { description: 'cpu self time spent in compile ignition' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_compile_ignition_wall_self',
+        wallSelfCompileIgnition, {
+          description: 'wall self time spent in compile ignition'
+        }));
+  }
+
+  function computeRecompileMetrics(valueList, model) {
+    var cpuTotalRecompileSynchronous = createNumeric();
+    var wallTotalRecompileSynchronous = createNumeric();
+    var cpuTotalRecompileConcurrent = createNumeric();
+    var wallTotalRecompileConcurrent = createNumeric();
+    // TODO(eakuefner): Stop computing overall values once dash v2 is ready.
+    // https://github.com/catapult-project/catapult/issues/2180
+    var cpuTotalRecompileOverall = createNumeric();
+    var wallTotalRecompileOverall = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.RecompileSynchronous')
+        return;
+
+      cpuTotalRecompileSynchronous.add(e.cpuDuration);
+      wallTotalRecompileSynchronous.add(e.duration);
+      cpuTotalRecompileOverall.add(e.cpuDuration);
+      wallTotalRecompileOverall.add(e.duration);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_recompile_synchronous_cpu_total',
+        cpuTotalRecompileSynchronous,
+        { description: 'cpu total time spent in synchronous recompilation' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_recompile_synchronous_wall_total',
+        wallTotalRecompileSynchronous,
+        { description: 'wall total time spent in synchronous recompilation' }));
+
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.RecompileConcurrent')
+        return;
+
+      cpuTotalRecompileConcurrent.add(e.cpuDuration);
+      wallTotalRecompileConcurrent.add(e.duration);
+      cpuTotalRecompileOverall.add(e.cpuDuration);
+      wallTotalRecompileOverall.add(e.duration);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_recompile_concurrent_cpu_total',
+        cpuTotalRecompileConcurrent,
+        { description: 'cpu total time spent in concurrent recompilation' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_recompile_concurrent_wall_total',
+        wallTotalRecompileConcurrent,
+        { description: 'wall total time spent in concurrent recompilation' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_recompile_overall_cpu_total',
+        cpuTotalRecompileOverall, {
+          description:
+              'cpu total time spent in synchronous or concurrent recompilation'
+        }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_recompile_overall_wall_total',
+        wallTotalRecompileOverall, {
+          description:
+              'wall total time spent in synchronous or concurrent recompilation'
+        }));
+  }
+
+  function computeOptimizeCodeMetrics(valueList, model) {
+    var cpuTotalOptimizeCode = createNumeric();
+    var wallTotalOptimizeCode = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.OptimizeCode')
+        return;
+
+      cpuTotalOptimizeCode.add(e.cpuDuration);
+      wallTotalOptimizeCode.add(e.duration);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_optimize_code_cpu_total',
+        cpuTotalOptimizeCode,
+        { description: 'cpu total time spent in code optimization' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_optimize_code_wall_total',
+        wallTotalOptimizeCode,
+        { description: 'wall total time spent in code optimization' }));
+  }
+
+  function computeDeoptimizeCodeMetrics(valueList, model) {
+    var cpuTotalDeoptimizeCode = createNumeric();
+    var wallTotalDeoptimizeCode = createNumeric();
+
+    // TODO(eakuefner): Switch to findEvents to avoid double-counting.
+    // https://github.com/catapult-project/catapult/issues/2190
+    model.iterateAllEvents(function(e) {
+      if (e.title !== 'V8.DeoptimizeCode')
+        return;
+
+      cpuTotalDeoptimizeCode.add(e.cpuDuration);
+      wallTotalDeoptimizeCode.add(e.duration);
+    });
+
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_deoptimize_code_cpu_total',
+        cpuTotalDeoptimizeCode,
+        { description: 'cpu total time spent in code deoptimization' }));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'v8_deoptimize_code_wall_total',
+        wallTotalDeoptimizeCode,
+        { description: 'wall total time spent in code deoptimization' }));
+  }
+
+  function executionMetric(valueList, model) {
+    computeExecuteMetrics(valueList, model);
+    computeParseLazyMetrics(valueList, model);
+    computeCompileIgnitionMetrics(valueList, model);
+    computeCompileFullCodeMetrics(valueList, model);
+    computeRecompileMetrics(valueList, model);
+    computeOptimizeCodeMetrics(valueList, model);
+    computeDeoptimizeCodeMetrics(valueList, model);
+  }
+
+  executionMetric.prototype = {
+    __proto__: Function.prototype
+  };
+
+  tr.metrics.MetricRegistry.register(executionMetric);
+
+  return {
+    executionMetric: executionMetric
+  };
+});
+</script>

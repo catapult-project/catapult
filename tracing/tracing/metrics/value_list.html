@@ -6,16 +6,16 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
   function ValueList(values) {
+    this.values_ = [];
     if (values !== undefined)
-      this.values_ = values;
-    else
-      this.values_ = [];
+      values.forEach(this.addValue, this);
   }
 
   ValueList.prototype = {
@@ -38,7 +38,37 @@ tr.exportTo('tr.metrics', function() {
       }
 
       this.values_.push(v);
+
+      if (v.numeric instanceof tr.v.Numeric) {
+        this.values_.push.apply(
+            this.values_, ValueList.computeSummaryValuesForNumericValue(v));
+      }
     }
+  };
+
+  ValueList.computeSummaryValuesForNumericValue = function(value) {
+    if (!(value instanceof tr.v.NumericValue &&
+          value.numeric instanceof tr.v.Numeric))
+      throw new Error('Tried to compute summary values for non-numeric');
+
+    var canonicalUrl = value.canonicalUrl;
+    var name = value.name;
+    var n = value.numeric;
+    var description = value.description;
+
+    var sumNumeric = new tr.v.ScalarNumeric(n.unit, n.runningSum);
+    var countNumeric = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, n.numValues);
+    var avgNumeric = new tr.v.ScalarNumeric(n.unit, n.average);
+
+    return [
+      new tr.v.NumericValue(canonicalUrl, name + '_sum', sumNumeric,
+      { description: description }),
+      new tr.v.NumericValue(canonicalUrl, name + '_count', countNumeric,
+      { description: description }),
+      new tr.v.NumericValue(canonicalUrl, name + '_avg', avgNumeric,
+      { description: description })
+    ];
   };
 
   return {
