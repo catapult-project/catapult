@@ -13,6 +13,7 @@ import errno
 import logging
 import os
 import re
+import subprocess
 
 from devil import devil_env
 from devil.android import decorators
@@ -72,6 +73,24 @@ DeviceStat = collections.namedtuple('DeviceStat',
                                     ['st_mode', 'st_size', 'st_time'])
 
 
+def _IsExtraneousLine(line, send_cmd):
+  """Determine if a line read from stdout in persistent shell is extraneous.
+
+  The results output to stdout by the persistent shell process
+  (in PersistentShell below) often include "extraneous" lines that are
+  not part of the output of the shell command. These "extraneous" lines
+  do not always appear and are of two forms: shell prompt lines and lines
+  that just duplicate what the input command was. This function
+  detects these extraneous lines. Since all these lines have the
+  original command in them, that is what it detects ror.
+
+  Args:
+      line: Output line to check.
+      send_cmd: Command that was sent to adb persistent shell.
+  """
+  return send_cmd.rstrip() in line
+
+
 class AdbWrapper(object):
   """A wrapper around a local Android Debug Bridge executable."""
 
@@ -86,6 +105,98 @@ class AdbWrapper(object):
     if not device_serial:
       raise ValueError('A device serial must be specified')
     self._device_serial = str(device_serial)
+
+  class PersistentShell(object):
+    '''Class to use persistent shell for ADB.
+
+    This class allows a persistent ADB shell to be created, where multiple
+    commands can be passed into it. This avoids the overhead of starting
+    up a new ADB shell for each command.
+
+    Example of use:
+    with pshell as PersistentShell('123456789'):
+        pshell.RunCommand('which ls')
+        pshell.RunCommandAndClose('echo TEST')
+    '''
+    def __init__(self, serial):
+      """Initialization function:
+
+      Args:
+        serial: Serial number of device.
+      """
+      self._cmd = [AdbWrapper.GetAdbPath(), '-s', serial, 'shell']
+      self._process = None
+
+    def __enter__(self):
+      self.Start()
+      self.WaitForReady()
+      return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+      self.Stop()
+
+    def Start(self):
+      """Start the shell."""
+      if self._process is not None:
+        raise RuntimeError('Persistent shell already running.')
+      self._process = subprocess.Popen(self._cmd,
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       shell=False)
+
+    def WaitForReady(self):
+      """Wait for the shell to be ready after starting.
+
+      Sends an echo command, then waits until it gets a response.
+      """
+      self._process.stdin.write('echo\n')
+      output_line = self._process.stdout.readline()
+      while output_line.rstrip() != '':
+        output_line = self._process.stdout.readline()
+
+    def RunCommand(self, command, close=False):
+      """Runs an ADB command and returns the output.
+
+      Note that there can be approximately 40 ms of additional latency
+      between sending the command and receiving the results if close=False
+      due to the use of Nagle's algorithm in the TCP socket between the
+      adb server and client. To avoid this extra latency, set close=True.
+
+      Args:
+        command: Command to send.
+      Returns:
+        The command output, given as a list of lines, and the exit code
+      """
+
+      if close:
+        def run_cmd(cmd):
+          send_cmd = '( %s ); echo $?; exit;\n' % cmd.rstrip()
+          (output, _) = self._process.communicate(send_cmd)
+          self._process = None
+          for x in output.splitlines():
+            yield x
+
+      else:
+        def run_cmd(cmd):
+          send_cmd = '( %s ); echo DONE:$?;\n' % cmd.rstrip()
+          self._process.stdin.write(send_cmd)
+          while True:
+            output_line = self._process.stdout.readline().rstrip()
+            if output_line[:5] == 'DONE:':
+              yield output_line[5:]
+              break
+            yield output_line
+
+      result = [line for line in run_cmd(command)
+                if not _IsExtraneousLine(line, command)]
+
+      return (result[:-1], int(result[-1]))
+
+    def Stop(self):
+      """Stops the ADB process if it is still running."""
+      if self._process is not None:
+        self._process.stdin.write('exit\n')
+        self._process = None
 
   @classmethod
   def GetAdbPath(cls):

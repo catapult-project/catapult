@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -43,6 +45,21 @@ class TestAdbWrapper(unittest.TestCase):
     self.assertEqual(output.strip(), 'test')
     with self.assertRaises(device_errors.AdbCommandFailedError):
       self._adb.Shell('echo test', expect_status=1)
+
+  def testPersistentShell(self):
+    # We need to access the device serial number here in order
+    # to create the persistent shell.
+    serial = self._adb.device_serial # pylint: disable=protected-access
+    with self._adb.PersistentShell(serial) as pshell:
+      (res1, code1) = pshell.RunCommand('echo TEST')
+      (res2, code2) = pshell.RunCommand('echo TEST2')
+      self.assertEqual(len(res1), 1)
+      self.assertEqual(len(res2), 2)
+      self.assertEqual(res1[0], 'TEST')
+      self.assertEqual(res2[0], '')
+      self.assertEqual(res2[1], 'TEST2')
+      self.assertEqual(code1, 0)
+      self.assertEqual(code2, 0)
 
   def testPushLsPull(self):
     path = self._MakeTempFile('foo')
