@@ -8,6 +8,7 @@ import sys
 import argparse
 
 from devil.utils import cmd_helper
+from devil.utils import usb_hubs
 from devil.utils import lsusb
 
 # Note: In the documentation below, "virtual port" refers to the port number
@@ -42,16 +43,6 @@ def _GetCommList():
 
 def GetTTYList():
   return [x for x in _GetCommList().splitlines() if 'ttyUSB' in x]
-
-
-def GetBattorList(device_tree_map):
-  return [x for x in GetTTYList() if IsBattor(x, device_tree_map)]
-
-
-def IsBattor(tty_string, device_tree_map):
-  (bus, device) = GetBusDeviceFromTTY(tty_string)
-  node = device_tree_map[bus].FindDeviceNumber(device)
-  return 'Future Technology Devices International' in node.desc
 
 
 # Class to identify nodes in the USB topology. USB topology is organized as
@@ -251,7 +242,7 @@ _S_LINE_REGEX = re.compile(r'S:  SerialNumber=(?P<serial>.*)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}): (.*)')
 
 
-def GetBusNumberToDeviceTreeMap(fast=False):
+def GetBusNumberToDeviceTreeMap(fast=True):
   """Gets devices currently attached.
 
   Args:
@@ -311,83 +302,12 @@ def GetBusNumberToDeviceTreeMap(fast=False):
   return tree
 
 
-class HubType(object):
-  def __init__(self, id_func, port_mapping):
-    """Defines a type of hub.
-
-    Args:
-      id_func: [USBNode -> bool] is a function that can be run on a node
-        to determine if the node represents this type of hub.
-      port_mapping: [dict(int:(int|dict))] maps virtual to physical port
-        numbers. For instance, {3:1, 1:2, 2:3} means that virtual port 3
-        corresponds to physical port 1, virtual port 1 corresponds to physical
-        port 2, and virtual port 2 corresponds to physical port 3. In the
-        case of hubs with "internal" topology, this is represented by nested
-        maps. For instance, {1:{1:1,2:2},2:{1:3,2:4}} means, e.g. that the
-        device plugged into physical port 3 will show up as being connected
-        to port 1, on a device which is connected to port 2 on the hub.
-    """
-    self._id_func = id_func
-    # v2p = "virtual to physical" ports
-    self._v2p_port = port_mapping
-
-  def IsType(self, node):
-    """Determines if the given Node is a hub of this type.
-
-    Args:
-      node: [USBNode] Node to check.
-    """
-    return self._id_func(node)
-
-  def GetPhysicalPortToNodeTuples(self, node):
-    """Gets devices connected to the physical ports on a hub of this type.
-
-    Args:
-      node: [USBNode] Node representing a hub of this type.
-
-    Yields:
-      A series of (int, USBNode) tuples giving a physical port
-      and the USBNode connected to it.
-
-    Raises:
-      ValueError: If the given node isn't a hub of this type.
-    """
-    if self.IsType(node):
-      for res in self._GppHelper(node, self._v2p_port):
-        yield res
-    else:
-      raise ValueError('Node must be a hub of this type')
-
-  def _GppHelper(self, node, mapping):
-    """Helper function for GetPhysicalPortToNodeMap.
-
-    Gets devices connected to physical ports, based on device tree
-    rooted at the given node and the mapping between virtual and physical
-    ports.
-
-    Args:
-      node: [USBNode] Root of tree to search for devices.
-      mapping: [dict] Mapping between virtual and physical ports.
-
-    Yields:
-      A series of (int, USBNode) tuples giving a physical port
-      and the Node connected to it.
-    """
-    for (virtual, physical) in mapping.iteritems():
-      if node.HasPort(virtual):
-        if isinstance(physical, dict):
-          for res in self._GppHelper(node.PortToDevice(virtual), physical):
-            yield res
-        else:
-          yield (physical, node.PortToDevice(virtual))
-
-
 def GetHubsOnBus(bus, hub_types):
   """Scans for all hubs on a bus of given hub types.
 
   Args:
     bus: [USBNode] Bus object.
-    hub_types: [iterable(HubType)] Possible types of hubs.
+    hub_types: [iterable(usb_hubs.HubType)] Possible types of hubs.
 
   Yields:
     Sequence of tuples representing (hub, type of hub)
@@ -402,7 +322,7 @@ def GetPhysicalPortToNodeMap(hub, hub_type):
   """Gets physical-port:node mapping for a given hub.
   Args:
     hub: [USBNode] Hub to get map for.
-    hub_type: [HubType] Which type of hub it is.
+    hub_type: [usb_hubs.HubType] Which type of hub it is.
 
   Returns:
     Dict of {physical port: node}
@@ -415,7 +335,7 @@ def GetPhysicalPortToBusDeviceMap(hub, hub_type):
   """Gets physical-port:(bus#, device#) mapping for a given hub.
   Args:
     hub: [USBNode] Hub to get map for.
-    hub_type: [HubType] Which type of hub it is.
+    hub_type: [usb_hubs.HubType] Which type of hub it is.
 
   Returns:
     Dict of {physical port: (bus number, device number)}
@@ -429,7 +349,7 @@ def GetPhysicalPortToSerialMap(hub, hub_type):
   """Gets physical-port:serial# mapping for a given hub.
   Args:
     hub: [USBNode] Hub to get map for.
-    hub_type: [HubType] Which type of hub it is.
+    hub_type: [usb_hubs.HubType] Which type of hub it is.
 
   Returns:
     Dict of {physical port: serial number)}
@@ -444,7 +364,7 @@ def GetPhysicalPortToTTYMap(device, hub_type):
   """Gets physical-port:tty-string mapping for a given hub.
   Args:
     hub: [USBNode] Hub to get map for.
-    hub_type: [HubType] Which type of hub it is.
+    hub_type: [usb_hubs.HubType] Which type of hub it is.
 
   Returns:
     Dict of {physical port: tty-string)}
@@ -460,7 +380,7 @@ def CollectHubMaps(hub_types, map_func, device_tree_map=None, fast=False):
   """Runs a function on all hubs in the system and collects their output.
 
   Args:
-    hub_types: [HubType] List of possible hub types.
+    hub_types: [usb_hubs.HubType] List of possible hub types.
     map_func: [string] Function to run on each hub.
     device_tree: Previously constructed device tree map, if any.
     fast: Whether to construct device tree fast, if not already provided
@@ -552,53 +472,35 @@ def GetBusDeviceToTTYMap():
 # 4 connects to another 'virtual' hub that itself has the
 # virtual-to-physical port mapping {1:4, 2:3, 3:2, 4:1}.
 
-PLUGABLE_7PORT_LAYOUT = {1:7,
-                         2:6,
-                         3:5,
-                         4:{1:4, 2:3, 3:2, 4:1}}
 
 def TestUSBTopologyScript():
   """Test display and hub identification."""
   # Identification criteria for Plugable 7-Port Hub
-  def _is_plugable_7port_hub(node):
-    """Check if a node is a Plugable 7-Port Hub
-    (Model USB2-HUB7BC)
-    The topology of this device is a 4-port hub,
-    with another 4-port hub connected on port 4.
-    """
-    if not isinstance(node, USBDeviceNode):
-      return False
-    if '4-Port HUB' not in node.desc:
-      return False
-    if not node.HasPort(4):
-      return False
-    return '4-Port HUB' in node.PortToDevice(4).desc
-
-  plugable_7port = HubType(_is_plugable_7port_hub,
-                           PLUGABLE_7PORT_LAYOUT)
   print '==== USB TOPOLOGY SCRIPT TEST ===='
 
   # Display devices
   print '==== DEVICE DISPLAY ===='
-  device_trees = GetBusNumberToDeviceTreeMap(fast=True)
+  device_trees = GetBusNumberToDeviceTreeMap()
   for device_tree in device_trees.values():
     device_tree.Display()
   print
 
   # Display TTY information about devices plugged into hubs.
   print '==== TTY INFORMATION ===='
-  for port_map in GetAllPhysicalPortToTTYMaps([plugable_7port],
+  for port_map in GetAllPhysicalPortToTTYMaps([usb_hubs.PLUGABLE_7PORT],
                                               device_tree_map=device_trees):
     print port_map
   print
 
   # Display serial number information about devices plugged into hubs.
   print '==== SERIAL NUMBER INFORMATION ===='
-  for port_map in GetAllPhysicalPortToSerialMaps([plugable_7port],
+  for port_map in GetAllPhysicalPortToSerialMaps([usb_hubs.PLUGABLE_7PORT],
                                                  device_tree_map=device_trees):
     print port_map
-  print ''
+
+
   return 0
+
 
 def parse_options(argv):
   """Parses and checks the command-line options.

@@ -29,10 +29,15 @@ Bus 002:
 """
 
 import logging
+import os
 import unittest
 
 from devil import devil_env
+from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
+from devil.utils import lsusb
+from devil.utils import usb_hubs
+
 with devil_env.SysPath(devil_env.PYMOCK_PATH):
   import mock # pylint: disable=import-error
 
@@ -46,15 +51,15 @@ DEVLIST = [(1, 11, 'foo'),
            (1, 13, 'baz'),
            (2, 11, 'quux'),
            (2, 20, 'My Test HUB'),
-           (2, 21, 'Future Technology Devices International battor_p7_h1_t0'),
-           (2, 22, 'Future Technology Devices International battor_p5_h1_t1'),
+           (2, 21, 'ID 0403:6001 battor_p7_h1_t0'),
+           (2, 22, 'ID 0403:6001 battor_p5_h1_t1'),
            (2, 23, 'My Test Internal HUB'),
-           (2, 24, 'Future Technology Devices International battor_p3_h1_t2'),
-           (2, 25, 'Future Technology Devices International battor_p1_h1_t3'),
+           (2, 24, 'ID 0403:6001 battor_p3_h1_t2'),
+           (2, 25, 'ID 0403:6001 battor_p1_h1_t3'),
            (2, 26, 'Not a Battery Monitor'),
            (2, 100, 'My Test HUB'),
            (2, 101, 'My Test Internal HUB'),
-           (2, 102, 'Future Technology Devices International battor_p1_h1_t4')]
+           (2, 102, 'ID 0403:6001 battor_p1_h1_t4')]
 
 LSUSB_OUTPUT = [
   {'bus': b, 'device': d, 'desc': t, 'id': (1000*b)+d}
@@ -90,6 +95,23 @@ T:  Bus=02 Lev=00 Prnt=23 Port=02 Cnt=00 Dev#= 26 Spd=000 MxCh=00
 T:  Bus=02 Lev=00 Prnt=00 Port=02 Cnt=00 Dev#=100 Spd=000 MxCh=00
 T:  Bus=02 Lev=00 Prnt=100 Port=03 Cnt=00 Dev#=101 Spd=000 MxCh=00
 T:  Bus=02 Lev=00 Prnt=101 Port=03 Cnt=00 Dev#=102 Spd=000 MxCh=00
+'''
+
+RAW_LSUSB_OUTPUT = '''
+Bus 001 Device 011: FAST foo
+Bus 001 Device 012: FAST bar
+Bus 001 Device 013: baz
+Bus 002 Device 011: quux
+Bus 002 Device 020: My Test HUB
+Bus 002 Device 021: ID 0403:6001 battor_p7_h1_t0
+Bus 002 Device 022: ID 0403:6001 battor_p5_h1_t1
+Bus 002 Device 023: My Test Internal HUB
+Bus 002 Device 024: ID 0403:6001 battor_p3_h1_t2
+Bus 002 Device 025: ID 0403:6001 battor_p1_h1_t3
+Bus 002 Device 026: Not a Battery Monitor
+Bus 002 Device 100: My Test HUB
+Bus 002 Device 101: My Test Internal HUB
+Bus 002 Device 102: ID 0403:6001 battor_p1_h1_t4
 '''
 
 LIST_TTY_OUTPUT = '''
@@ -172,11 +194,11 @@ def isTestHub(node):
     return False
   return 'Test Internal HUB' in node.PortToDevice(4).desc
 
-TEST_HUB = find_usb_devices.HubType(isTestHub,
-                                    {1:7,
-                                     2:6,
-                                     3:5,
-                                     4:{1:4, 2:3, 3:2, 4:1}})
+TEST_HUB = usb_hubs.HubType(isTestHub,
+                            {1:7,
+                             2:6,
+                             3:5,
+                             4:{1:4, 2:3, 3:2, 4:1}})
 
 class USBScriptTest(unittest.TestCase):
   def setUp(self):
@@ -188,15 +210,17 @@ class USBScriptTest(unittest.TestCase):
         return_value=USB_DEVICES_OUTPUT)
     find_usb_devices._GetCommList = mock.Mock(
         return_value=LIST_TTY_OUTPUT)
+    lsusb.raw_lsusb = mock.Mock(
+        return_value=RAW_LSUSB_OUTPUT)
 
   def testIsBattor(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap()
-    self.assertTrue(find_usb_devices.IsBattor('ttyUSB3', bd))
-    self.assertFalse(find_usb_devices.IsBattor('ttyUSB5', bd))
+    self.assertTrue(battor_device_mapping.IsBattor('ttyUSB3', bd))
+    self.assertFalse(battor_device_mapping.IsBattor('ttyUSB5', bd))
 
   def testGetBattors(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap()
-    self.assertEquals(find_usb_devices.GetBattorList(bd),
+    self.assertEquals(battor_device_mapping.GetBattorList(bd),
                           ['ttyUSB0', 'ttyUSB1', 'ttyUSB2',
                            'ttyUSB3', 'ttyUSB4'])
 
@@ -229,18 +253,28 @@ class USBScriptTest(unittest.TestCase):
                                   1:'Battor3'})
     self.assertEquals(result[1], {})
 
-  def testDeviceDescriptions(self):
+  def testFastDeviceDescriptions(self):
     bd = find_usb_devices.GetBusNumberToDeviceTreeMap()
+    dev_foo = bd[1].FindDeviceNumber(11)
+    dev_bar = bd[1].FindDeviceNumber(12)
+    dev_battor_p7_h1_t0 = bd[2].FindDeviceNumber(21)
+    self.assertEquals(dev_foo.desc, 'FAST foo')
+    self.assertEquals(dev_bar.desc, 'FAST bar')
+    self.assertEquals(dev_battor_p7_h1_t0.desc,
+        'ID 0403:6001 battor_p7_h1_t0')
+
+  def testDeviceDescriptions(self):
+    bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_battor_p7_h1_t0 = bd[2].FindDeviceNumber(21)
     self.assertEquals(dev_foo.desc, 'foo')
     self.assertEquals(dev_bar.desc, 'bar')
     self.assertEquals(dev_battor_p7_h1_t0.desc,
-        'Future Technology Devices International battor_p7_h1_t0')
+        'ID 0403:6001 battor_p7_h1_t0')
 
   def testDeviceInformation(self):
-    bd = find_usb_devices.GetBusNumberToDeviceTreeMap()
+    bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_battor_p7_h1_t0 = bd[2].FindDeviceNumber(21)
@@ -249,13 +283,78 @@ class USBScriptTest(unittest.TestCase):
     self.assertEquals(dev_battor_p7_h1_t0.info['id'], 2021)
 
   def testSerialNumber(self):
-    bd = find_usb_devices.GetBusNumberToDeviceTreeMap()
+    bd = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=False)
     dev_foo = bd[1].FindDeviceNumber(11)
     dev_bar = bd[1].FindDeviceNumber(12)
     dev_battor_p7_h1_t0 = bd[2].FindDeviceNumber(21)
     self.assertEquals(dev_foo.serial, 'FooSerial')
     self.assertEquals(dev_bar.serial, 'BarSerial')
     self.assertEquals(dev_battor_p7_h1_t0.serial, 'Battor0')
+
+  def testBattorDictMapping(self):
+    map_dict = {'Phone1':'Battor1', 'Phone2':'Battor2', 'Phone3':'Battor3'}
+    a1 = battor_device_mapping.GetBattorPathFromPhoneSerial(
+             'Phone1', serial_map=map_dict)
+    a2 = battor_device_mapping.GetBattorPathFromPhoneSerial(
+             'Phone2', serial_map=map_dict)
+    a3 = battor_device_mapping.GetBattorPathFromPhoneSerial(
+             'Phone3', serial_map=map_dict)
+    self.assertEquals(a1, '/dev/ttyUSB1')
+    self.assertEquals(a2, '/dev/ttyUSB2')
+    self.assertEquals(a3, '/dev/ttyUSB3')
+
+  def testReadSerialMapFile(self):
+    curr_dir = os.path.dirname(os.path.realpath(__file__))
+    map_dict = battor_device_mapping.ReadSerialMapFile(
+        os.path.join(curr_dir, 'test', 'data', 'test_serial_map.json'))
+    self.assertEquals(len(map_dict.keys()), 3)
+    self.assertEquals(map_dict['Phone1'], 'Battor1')
+    self.assertEquals(map_dict['Phone2'], 'Battor2')
+    self.assertEquals(map_dict['Phone3'], 'Battor3')
+
+original_PPTSM = find_usb_devices.GetAllPhysicalPortToSerialMaps
+original_PPTTM = find_usb_devices.GetAllPhysicalPortToTTYMaps
+original_GBL = battor_device_mapping.GetBattorList
+original_GBNDM = find_usb_devices.GetBusNumberToDeviceTreeMap
+original_IB = battor_device_mapping.IsBattor
+original_GBSM = battor_device_mapping.GetBattorSerialNumbers
+
+def setup_battor_test(serial, tty, battor, bser=None):
+  serial_mapper = mock.Mock(return_value=serial)
+  tty_mapper = mock.Mock(return_value=tty)
+  battor_lister = mock.Mock(return_value=battor)
+  devtree = mock.Mock(return_value=None)
+  is_battor = mock.Mock(side_effect=lambda x, y: x in battor)
+  battor_serials = mock.Mock(return_value=bser)
+  find_usb_devices.GetAllPhysicalPortToSerialMaps = serial_mapper
+  find_usb_devices.GetAllPhysicalPortToTTYMaps = tty_mapper
+  battor_device_mapping.GetBattorList = battor_lister
+  find_usb_devices.GetBusNumberToDeviceTreeMap = devtree
+  battor_device_mapping.IsBattor = is_battor
+  battor_device_mapping.GetBattorSerialNumbers = battor_serials
+
+class BattorMappingTest(unittest.TestCase):
+  def tearDown(self):
+    find_usb_devices.GetAllPhysicalPortToSerialMaps = original_PPTSM
+    find_usb_devices.GetAllPhysicalPortToTTYMaps = original_PPTTM
+    battor_device_mapping.GetBattorList = original_GBL
+    find_usb_devices.GetBusNumberToDeviceTreeMap = original_GBNDM
+    battor_device_mapping.IsBattor = original_IB
+    battor_device_mapping.GetBattorSerialNumbers = original_GBSM
+
+  def test_generate_serial_map(self):
+    setup_battor_test([{1:'Phn1', 2:'Phn2', 3:'Phn3'},
+                       {1:'Bat1', 2:'Bat2', 3:'Bat3'}],
+                      [{},
+                       {1:'ttyUSB0', 2:'ttyUSB1', 3:'ttyUSB2'}],
+                      ['ttyUSB0', 'ttyUSB1', 'ttyUSB2'],
+                      ['Bat1', 'Bat2', 'Bat3'])
+    result = battor_device_mapping.GenerateSerialMap()
+    self.assertEqual(len(result), 3)
+    self.assertEqual(result['Phn1'], 'Bat1')
+    self.assertEqual(result['Phn2'], 'Bat2')
+    self.assertEqual(result['Phn3'], 'Bat3')
+
 
 if __name__ == "__main__":
   logging.getLogger().setLevel(logging.DEBUG)
