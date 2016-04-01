@@ -17,6 +17,15 @@ import sys
 
 class Override(object):
   def __init__(self, base_module, module_list):
+    self.cloud_storage = None
+    self.open = None
+    self.os = None
+    self.perf_control = None
+    self.raw_input = None
+    self.subprocess = None
+    self.sys = None
+    self.thermal_throttle = None
+    self.logging = None
     stubs = {'cloud_storage': CloudStorageModuleStub,
              'open': OpenFunctionStub,
              'os': OsModuleStub,

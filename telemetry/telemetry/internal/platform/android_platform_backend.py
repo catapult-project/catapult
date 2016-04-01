@@ -572,7 +572,8 @@ class AndroidPlatformBackend(
     uid = re.search(r'\d+', id_line).group()
     files = self._device.RunShellCommand(
         'ls "%s"' % profile_dir, as_root=True)
-    files.remove('lib')
+    assert isinstance(files, list)
+    files.remove('lib')  # pylint: disable=no-member
     paths = ['%s%s' % (profile_dir, f) for f in files]
     for path in paths:
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)

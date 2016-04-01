@@ -75,8 +75,10 @@ class ValueTest(TestBase):
     try:
       v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
       fh = v.Serialize(tempdir)
+      # pylint: disable=no-member
       trace.cloud_storage.SetCalculatedHashesForTesting(
           {fh.GetAbsPath(): 123})
+      # pylint: enable=no-member
       bucket = trace.cloud_storage.PUBLIC_BUCKET
       cloud_url = v.UploadToCloud(bucket)
       d = v.AsDict()
@@ -89,8 +91,10 @@ class ValueTest(TestBase):
     test_temp_file = tempfile.NamedTemporaryFile(delete=False)
     try:
       v = trace.TraceValue(None, trace_data.TraceData({'test': 1}))
+      # pylint: disable=no-member
       trace.cloud_storage.SetCalculatedHashesForTesting(
           TestDefaultDict(123))
+      # pylint: enable=no-member
       bucket = trace.cloud_storage.PUBLIC_BUCKET
       cloud_url = v.UploadToCloud(bucket)
       d = v.AsDict()

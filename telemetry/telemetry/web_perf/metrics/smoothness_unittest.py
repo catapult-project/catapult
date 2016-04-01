@@ -20,6 +20,7 @@ class _MockRenderingStats(object):
            'gesture_scroll_update_latency']
 
   def __init__(self, **kwargs):
+    self.input_event_latency = None  # to avoid pylint no-member error
     self.errors = {}
     for stat in self.stats:
       value = kwargs[stat] if stat in kwargs else None

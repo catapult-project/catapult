@@ -7,6 +7,7 @@ from telemetry.testing import simple_mock
 
 _ = simple_mock.DONT_CARE
 
+# pylint: disable=no-member
 class SimpleMockUnitTest(unittest.TestCase):
   def testBasic(self):
     mock = simple_mock.MockObject()

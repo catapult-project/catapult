@@ -100,6 +100,7 @@ class TestNetworkControllerBackend(
     return self._platform_backend
 
 
+# pylint: disable=no-member
 class NetworkControllerBackendTest(unittest.TestCase):
   def Patch(self, *args, **kwargs):
     """Patch an object for the duration of a test, and return its mock."""
