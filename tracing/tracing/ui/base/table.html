@@ -1259,14 +1259,14 @@ tr.exportTo('tr.ui.b', function() {
           switch (this.selectionMode_) {
             case SelectionMode.ROW:
               if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
-              return;
+                return;
               if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
                 return;
 
               if (!rowInfo.isExpanded)
                 this.setExpandedForTableRow(rowInfo.userRow, true);
               this.selectedTableRow =
-                rowInfo.userRow[this.subRowsPropertyName_][0];
+                htmlNode.nextElementSibling.rowInfo.userRow;
               this.focusSelected_();
               return;
 

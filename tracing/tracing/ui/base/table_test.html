@@ -815,10 +815,13 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_DOWN');
     assert.equal(table.selectedTableRow, rows[0].subRows[1]);
 
-    // ARrow left on collapsed item should select parent.
+    // Arrow left on collapsed item should select parent.
     table.performKeyCommand_('ARROW_LEFT');
     assert.equal(table.selectedTableRow, rows[0]);
     assert.isTrue(table.getExpandedForTableRow(rows[0]));
+    // Arrow left on parent should collapse its children.
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
 
     // Arrow right on expanded row should select first child.
     table.selectedTableRow = rows[0];
@@ -832,6 +835,22 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_RIGHT');
     assert.equal(table.selectedTableRow, rows[1]);
     assert.isFalse(table.getExpandedForTableRow(rows[1]));
+  });
+
+  test('RightArrowKeyWhenTableSorted', function() {
+    var table = createSimpleOneColumnNestedTable();
+    table.selectionMode = SelectionMode.ROW;
+    this.addHTMLOutput(table);
+    table.sortDescending = true;
+    table.sortColumnIndex = 0;
+    table.rebuild();
+    var rows = table.tableRows;
+
+    // Arrow right should select the first child showing up on the viewer,
+    // rather than first child in sub rows since sorted.
+    table.selectedTableRow = rows[0];
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.equal(table.selectedTableRow, rows[0].subRows[2]);
   });
 
   test('reduceNumberOfColumnsAfterRebuild', function() {
