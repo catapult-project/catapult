@@ -31,6 +31,10 @@ class ProjectConfig(object):
     return self._top_level_dir
 
   @property
+  def start_dirs(self):
+    return self._benchmark_dirs
+
+  @property
   def benchmark_dirs(self):
     return self._benchmark_dirs
 
