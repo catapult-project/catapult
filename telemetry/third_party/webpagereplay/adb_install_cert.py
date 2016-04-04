@@ -32,6 +32,9 @@ class CertRemovalError(Exception):
   pass
 
 
+class AdbShellError(subprocess.CalledProcessError):
+  pass
+
 
 _ANDROID_M_BUILD_VERSION = 23
 
@@ -86,8 +89,7 @@ class AndroidCertInstaller(object):
     returncode = int(adb_stdout[prefix_pos + len(RETURN_CODE_PREFIX):])
     stdout = adb_stdout[:prefix_pos]
     if returncode != 0:
-      raise subprocess.CalledProcessError(
-          cmd=args, returncode=returncode, output=stdout)
+      raise AdbShellError(cmd=args, returncode=returncode, output=stdout)
     return stdout
 
   def _adb_su_shell(self, *args):
@@ -144,8 +146,11 @@ class AndroidCertInstaller(object):
     self._adb_su_shell('rm', '-f', self.android_cacerts_path)
 
   def _is_cert_installed(self):
-    return (self._adb_su_shell('ls', self.android_cacerts_path).strip() ==
-            self.android_cacerts_path)
+    try:
+      return (self._adb_su_shell('ls', self.android_cacerts_path).strip() ==
+              self.android_cacerts_path)
+    except AdbShellError:
+      return False
 
   def _generate_reformatted_cert_path(self):
     # Determine OpenSSL version, string is of the form
