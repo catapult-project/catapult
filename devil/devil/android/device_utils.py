@@ -1755,12 +1755,12 @@ class DeviceUtils(object):
         return
       # Change the token every time to ensure that it will match only the
       # previously dumped cache.
-      self._cache['token'] = str(uuid.uuid1())
+      token = str(uuid.uuid1())
       cmd = (
           'c=/data/local/tmp/cache_token;'
           'echo $EXTERNAL_STORAGE;'
           'cat $c 2>/dev/null||echo;'
-          'echo "%s">$c &&' % self._cache['token'] +
+          'echo "%s">$c &&' % token +
           'getprop'
       )
       output = self.RunShellCommand(cmd, check_return=True, large_output=True)
@@ -1773,6 +1773,7 @@ class DeviceUtils(object):
       prop_cache.clear()
       for key, value in _GETPROP_RE.findall(''.join(output)):
         prop_cache[key] = value
+      self._cache['token'] = token
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetProp(self, property_name, cache=False, timeout=None, retries=None):

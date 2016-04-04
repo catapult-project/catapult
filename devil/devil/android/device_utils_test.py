@@ -1888,6 +1888,34 @@ class DeviceUtilsSetJavaAssertsTest(DeviceUtilsTest):
       self.assertFalse(self.device.SetJavaAsserts(True))
 
 
+class DeviceUtilsEnsureCacheInitializedTest(DeviceUtilsTest):
+
+  def testEnsureCacheInitialized_noCache_success(self):
+    self.assertIsNone(self.device._cache['token'])
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            AnyStringWith('getprop'), check_return=True, large_output=True),
+        ['/sdcard', 'TOKEN']):
+      self.device._EnsureCacheInitialized()
+    self.assertIsNotNone(self.device._cache['token'])
+
+  def testEnsureCacheInitialized_noCache_failure(self):
+    self.assertIsNone(self.device._cache['token'])
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            AnyStringWith('getprop'), check_return=True, large_output=True),
+        self.TimeoutError()):
+      with self.assertRaises(device_errors.CommandTimeoutError):
+        self.device._EnsureCacheInitialized()
+    self.assertIsNone(self.device._cache['token'])
+
+  def testEnsureCacheInitialized_cache(self):
+    self.device._cache['token'] = 'TOKEN'
+    with self.assertCalls():
+      self.device._EnsureCacheInitialized()
+    self.assertIsNotNone(self.device._cache['token'])
+
+
 class DeviceUtilsGetPropTest(DeviceUtilsTest):
 
   def testGetProp_exists(self):
