@@ -4,6 +4,7 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/value.html">
@@ -14,13 +15,19 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics', function() {
 
   function sampleMetric(valueList, model) {
-    var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
-    var n1 = new tr.v.ScalarNumeric(unit, 1);
-    var n2 = new tr.v.ScalarNumeric(unit, 2);
+    var sizeInBytes_smallerIsBetter =
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+    var n1 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 1);
+    var n2 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 2);
+    var n3 = new tr.v.Numeric.createLinear(
+      sizeInBytes_smallerIsBetter, tr.b.Range.fromExplicitRange(1, 100), 100);
+    n3.add(1);
     valueList.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'foo', n1));
     valueList.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'bar', n2));
+    valueList.addValue(new tr.v.NumericValue(
+        model.canonicalUrl, 'baz', n3));
   }
 
   sampleMetric.prototype = {

@@ -275,6 +275,7 @@ tr.exportTo('tr.v', function() {
     asDict: function() {
       var d = {
         unit: this.unit.asJSON(),
+        type: 'numeric',
 
         min: this.range.min,
         max: this.range.max,

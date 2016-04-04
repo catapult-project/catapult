@@ -309,8 +309,9 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
     value_dicts = mre_result.pairs.get('values', [])
     for d in value_dicts:
-      results.AddValue(
-          translate_common_values.TranslateScalarValue(d, page))
+      if translate_common_values.IsScalarNumericValue(d):
+        results.AddValue(
+            translate_common_values.TranslateScalarValue(d, page))
 
   def _ComputeLegacyTimelineBasedMetrics(self, results, trace_result):
     model = model_module.TimelineModel(trace_result)

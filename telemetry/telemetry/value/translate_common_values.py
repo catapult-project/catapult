@@ -11,8 +11,7 @@ def TranslateMreFailure(mre_failure, page):
 
 
 def TranslateScalarValue(scalar_value, page):
-  assert (scalar_value['type'] == 'numeric' and
-          scalar_value['numeric']['type'] == 'scalar')
+  assert IsScalarNumericValue(scalar_value)
   scalar_value['value'] = scalar_value['numeric']['value']
 
   name = scalar_value['grouping_keys']['name']
@@ -33,3 +32,8 @@ def TranslateScalarValue(scalar_value, page):
   scalar_value['name'] = name
   del scalar_value['grouping_keys']['name']
   return scalar.ScalarValue.FromDict(scalar_value, {page.id: page})
+
+
+def IsScalarNumericValue(value_dict):
+  return (value_dict.get('type') == 'numeric' and
+          value_dict['numeric'].get('type') == 'scalar')
