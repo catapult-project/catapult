@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(ue);
     });
     var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.ResponsivenessMetric(valueList, model);
+    tr.metrics.sh.responsivenessMetric(valueList, model);
     return valueList.valueDicts[0].numeric.value;
   }
 
@@ -35,8 +35,10 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(ue);
     });
     var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.ResponsivenessMetric(valueList, model);
+    tr.metrics.sh.responsivenessMetric(valueList, model);
     valueList = valueList.valueDicts;
+    assert.equal(1, valueList.length);
+    valueList = valueList[0].diagnostics.values;
     var metrics = {};
     for (var i = 0; i < valueList.length; ++i) {
       if (valueList[i].grouping_keys.name === 'responsiveness') {
