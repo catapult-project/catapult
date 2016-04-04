@@ -4,12 +4,13 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import unittest
 
-from systrace import systrace
-from systrace.agents import ftrace_agent
+from systrace import run_systrace
+from systrace.tracing_agents import ftrace_agent
 
-SYSTRACE_HOST_CMD_DEFAULT = ['./systrace.py', '--target=linux']
+SYSTRACE_HOST_CMD_DEFAULT = ['./run_systrace.py', '--target=linux']
 FT_DIR = "/sys/kernel/debug/tracing/"
 FT_EVENT_DIR = FT_DIR + "events/"
 FT_TRACE_ON = FT_DIR + "tracing_on"
@@ -46,14 +47,14 @@ class FtraceAgentTest(unittest.TestCase):
       FT_EVENT_DIR + "sched/sched_wakeup/enable": "0"
     }
     io_interface = make_test_io_interface(permitted_files)
-    options, categories = systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
+    options, categories = run_systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
     agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
     self.assertEqual(['sched'], agent._avail_categories())
 
     # check for no available categories
     permitted_files = {}
     io_interface = make_test_io_interface(permitted_files)
-    options, categories = systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
+    options, categories = run_systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
     agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
     self.assertEqual([], agent._avail_categories())
 
@@ -63,7 +64,7 @@ class FtraceAgentTest(unittest.TestCase):
       FT_EVENT_DIR + "block/block_rq_issue/enable": "0"
     }
     io_interface = make_test_io_interface(permitted_files)
-    options, categories = systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
+    options, categories = run_systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
     agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
     self.assertEqual(['disk'], agent._avail_categories())
 
@@ -75,7 +76,7 @@ class FtraceAgentTest(unittest.TestCase):
     }
     io_interface = make_test_io_interface(permitted_files)
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ["workq"]
-    options, categories = systrace.parse_options(systrace_cmd)
+    options, categories = run_systrace.parse_options(systrace_cmd)
     agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
     self.assertEqual(['workq'], agent._avail_categories())
 
@@ -109,7 +110,7 @@ class FtraceAgentTest(unittest.TestCase):
     }
     io_interface = make_test_io_interface(permitted_files)
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ["irq"]
-    options, categories = systrace.parse_options(systrace_cmd)
+    options, categories = run_systrace.parse_options(systrace_cmd)
     agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
     self.assertEqual(['irq'], agent._avail_categories())
 
@@ -125,12 +126,17 @@ class FtraceAgentTest(unittest.TestCase):
 
   def test_trace_time(self):
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ['-t', '10']
-    options, categories = systrace.parse_options(systrace_cmd)
+    options, categories = run_systrace.parse_options(systrace_cmd)
     agent = ftrace_agent.FtraceAgent(options, categories)
     self.assertEqual(agent._get_trace_time(), 10)
 
   def test_buffer_size(self):
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ['-b', '16000']
-    options, categories = systrace.parse_options(systrace_cmd)
+    options, categories = run_systrace.parse_options(systrace_cmd)
     agent = ftrace_agent.FtraceAgent(options, categories)
     self.assertEqual(agent._get_trace_buffer_size(), 16000)
+
+
+if __name__ == "__main__":
+  logging.getLogger().setLevel(logging.DEBUG)
+  unittest.main(verbosity=2)

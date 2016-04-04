@@ -27,7 +27,7 @@ import os
 
 
 # The default agent directory.
-DEFAULT_AGENT_DIR = 'agents'
+DEFAULT_AGENT_DIR = 'tracing_agents'
 
 
 def parse_options(argv):

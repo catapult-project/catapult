@@ -10,7 +10,7 @@ import sys
 _SYSTRACE_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir))
 sys.path.insert(0, _SYSTRACE_DIR)
-from systrace import systrace
+from systrace import run_systrace
 
 if __name__ == '__main__':
-  sys.exit(systrace.main())
+  sys.exit(run_systrace.main())
