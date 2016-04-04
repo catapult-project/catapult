@@ -186,9 +186,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         'Debugging Tools For Windows (x64)',
         os.path.join('Windows Kits', '8.0', 'Debuggers', 'x86'),
         os.path.join('Windows Kits', '8.0', 'Debuggers', 'x64'),
-        os.path.join('win_toolchain', 'vs2013_files', '*', 'win_sdk',
+        os.path.join('win_toolchain', 'vs_files', '*', 'win_sdk',
                      'Debuggers', 'x86'),
-        os.path.join('win_toolchain', 'vs2013_files', '*', 'win_sdk',
+        os.path.join('win_toolchain', 'vs_files', '*', 'win_sdk',
                      'Debuggers', 'x64'),
     )
     for possible_path in possible_paths:
