@@ -19,3 +19,8 @@ class PathTest(unittest.TestCase):
   def testFindInstalledWindowsApplication(self):
     self.assertTrue(path.FindInstalledWindowsApplication(os.path.join(
         'Internet Explorer', 'iexplore.exe')))
+
+  @decorators.Enabled('win')
+  def testFindInstalledWindowsApplicationWithWildcards(self):
+    self.assertTrue(path.FindInstalledWindowsApplication(os.path.join(
+        '*', 'iexplore.exe')))
