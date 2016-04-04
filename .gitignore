@@ -13,3 +13,6 @@ perf_insights/perf_insights/download_traces.py
 
 # devil's binary dependency download folder.
 /devil/bin/deps/
+
+# telemetry's binary dependency download folder.
+/telemetry/telemetry/internal/bin/
