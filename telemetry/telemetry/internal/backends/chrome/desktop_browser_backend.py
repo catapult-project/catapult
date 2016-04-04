@@ -133,7 +133,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_directory = browser_directory
     self._port = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
-    self._crash_service = None
     if self.browser_options.enable_logging:
       self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')
     else:
@@ -180,44 +179,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def _GetDevToolsActivePortPath(self):
     return os.path.join(self.profile_directory, 'DevToolsActivePort')
 
-  def _GetCrashServicePipeName(self):
-    # Ensure a unique pipe name by using the name of the temp dir.
-    pipe = r'\\.\pipe\%s_service' % os.path.basename(self._tmp_minidump_dir)
-    return pipe
-
-  def _StartCrashService(self):
-    os_name = self.browser.platform.GetOSName()
-    if os_name != 'win':
-      return None
-    arch_name = self.browser.platform.GetArchName()
-    command = binary_manager.FetchPath('crash_service', arch_name, os_name)
-    if not command:
-      logging.warning('crash_service.exe not found for %s %s',
-                      arch_name, os_name)
-      return None
-    if not os.path.exists(command):
-      logging.warning('crash_service.exe not found for %s %s',
-                      arch_name, os_name)
-      return None
-
-    try:
-      crash_service = subprocess.Popen([
-          command,
-          '--no-window',
-          '--dumps-dir=%s' % self._tmp_minidump_dir,
-          '--pipe-name=%s' % self._GetCrashServicePipeName()])
-    except Exception:
-      logging.error(
-          'Failed to run %s --no-window --dump-dir=%s --pip-name=%s' % (
-            command, self._tmp_minidump_dir, self._GetCrashServicePipeName()))
-      logging.error('Running on platform: %s and arch: %s.', os_name, arch_name)
-      wmic_stdout, _ = subprocess.Popen(
-        ['wmic', 'process', 'get', 'CommandLine,Name,ProcessId,ParentProcessId',
-        '/format:csv'], stdout=subprocess.PIPE).communicate()
-      logging.error('Current running processes:\n%s' % wmic_stdout)
-      raise
-    return crash_service
-
   def _GetCdbPath(self):
     possible_paths = (
         'Debugging Tools For Windows',
@@ -225,10 +186,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         'Debugging Tools For Windows (x64)',
         os.path.join('Windows Kits', '8.0', 'Debuggers', 'x86'),
         os.path.join('Windows Kits', '8.0', 'Debuggers', 'x64'),
-        os.path.join('win_toolchain', 'vs2013_files', 'win8sdk', 'Debuggers',
-                     'x86'),
-        os.path.join('win_toolchain', 'vs2013_files', 'win8sdk', 'Debuggers',
-                     'x64'),
+        os.path.join('win_toolchain', 'vs2013_files', '*', 'win_sdk',
+                     'Debuggers', 'x86'),
+        os.path.join('win_toolchain', 'vs2013_files', '*', 'win_sdk',
+                     'Debuggers', 'x64'),
     )
     for possible_path in possible_paths:
       app_path = os.path.join(possible_path, 'cdb.exe')
@@ -297,12 +258,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env = os.environ.copy()
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
-    env['CHROME_BREAKPAD_PIPE_NAME'] = self._GetCrashServicePipeName()
     if self.browser_options.enable_logging:
       sys.stderr.write(
         'Chrome log file will be saved in %s\n' % self.log_file_path)
       env['CHROME_LOG_FILE'] = self.log_file_path
-    self._crash_service = self._StartCrashService()
     logging.info('Starting Chrome %s', args)
     if not self.browser_options.show_stdout:
       self._tmp_output_file = tempfile.NamedTemporaryFile('w', 0)
@@ -581,10 +540,6 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       logging.warning('Proceed to kill the browser.')
       self._proc.kill()
     self._proc = None
-
-    if self._crash_service:
-      self._crash_service.kill()
-      self._crash_service = None
 
     if self._output_profile_path:
       # If we need the output then double check that it exists.
