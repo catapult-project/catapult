@@ -236,12 +236,14 @@ def _FindAllPossibleBrowsers(finder_options, android_platform):
 
   # Add any known local versions.
   for name, package_info in CHROME_PACKAGE_NAMES.iteritems():
-    package, backend_settings, local_apk = package_info
+    package, backend_settings, apk_name = package_info
+    if apk_name and not finder_options.chrome_root:
+      continue
     b = PossibleAndroidBrowser(name,
                                finder_options,
                                android_platform,
                                backend_settings(package),
-                               local_apk)
+                               apk_name)
     if b.platform.CanLaunchApplication(package) or b.HaveLocalAPK():
       possible_browsers.append(b)
   return possible_browsers
