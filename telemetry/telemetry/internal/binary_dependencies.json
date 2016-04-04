@@ -51,16 +51,6 @@
         }
       }
     },
-    "crash_service": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "win_AMD64": {
-          "cloud_storage_hash": "4a0961e972895f4af3b7cfab959c5bfd4de7174b",
-          "download_path": "bin/win/AMD64/crash_service.exe"
-        }
-      }
-    },
     "determine_if_keychain_entry_is_decryptable": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
