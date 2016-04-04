@@ -251,6 +251,8 @@ tr.exportTo('tr.c', function() {
         sd.duration,
         cpuSD.start, cpuSD.duration);
 
+    if (options.isTopLevel)
+      slice.isTopLevel = true;
 
     return slice;
   };

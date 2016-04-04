@@ -106,7 +106,7 @@ tr.exportTo('tr.metrics.sh', function() {
       'For Animation, perceptual blend of Mean Opinion Scores of ' +
       'throughput and smoothness');
 
-  function getDurationScore(histogram, duration) {
+  function computeDurationResponsiveness(histogram, duration) {
     return histogram.getInterpolatedCountAt(duration) / histogram.maxCount;
   }
 
@@ -138,13 +138,13 @@ tr.exportTo('tr.metrics.sh', function() {
         // Responsiveness is not defined for Idle.
         return;
       } else if (ue instanceof tr.model.um.LoadExpectation) {
-        score = getDurationScore(LOAD_HISTOGRAM, ue.duration);
+        score = computeDurationResponsiveness(LOAD_HISTOGRAM, ue.duration);
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
         var histogram = RESPONSE_HISTOGRAM;
         if (ue.isAnimationBegin)
           histogram = FAST_RESPONSE_HISTOGRAM;
 
-        score = getDurationScore(histogram, ue.duration);
+        score = computeDurationResponsiveness(histogram, ue.duration);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
         var throughput = throughputForAnimation[ue.stableId];
         var smoothness = smoothnessForAnimation[ue.stableId];
@@ -204,7 +204,9 @@ tr.exportTo('tr.metrics.sh', function() {
   tr.metrics.MetricRegistry.register(ResponsivenessMetric);
 
   return {
-    ResponsivenessMetric: ResponsivenessMetric
+    ResponsivenessMetric: ResponsivenessMetric,
+    computeDurationResponsiveness: computeDurationResponsiveness,
+    FAST_RESPONSE_HISTOGRAM: FAST_RESPONSE_HISTOGRAM
   };
 });
 </script>
