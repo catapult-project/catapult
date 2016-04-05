@@ -47,7 +47,9 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function ClockSyncManager() {
-    this.connectorBySyncId_ = {};
+    // A map where each key is a sync ID and each value is an array of markers
+    // that share that sync ID.
+    this.markersBySyncId_ = {};
     this.modelDomainId_ = undefined;
     this.modelTimeTransformerByDomainId_ = undefined;
   }
@@ -75,29 +77,27 @@ tr.exportTo('tr.model', function() {
             'a model time transformer.');
       }
 
-      var marker = new ClockSyncMarker(domainId, startTs, opt_endTs);
+      if (this.markersBySyncId_[syncId] === undefined)
+        this.markersBySyncId_[syncId] = [];
 
-      var connector = this.connectorBySyncId_[syncId];
-      if (connector === undefined) {
-        this.connectorBySyncId_[syncId] = new ClockSyncConnector(marker);
-        return;
-      }
+      var markers = this.markersBySyncId_[syncId];
 
-      if (connector.marker2 !== undefined) {
-        throw new Error('Clock sync with ID "' + syncId + '" is already ' +
-            'complete - cannot add a third clock sync marker to it.');
-      }
-
-      if (connector.marker1.domainId === domainId)
+      if (markers.length === 1 && markers[0].domainId === domainId) {
         throw new Error('A clock domain cannot sync with itself.');
+      }
 
-      if (this.getConnectorBetween_(connector.marker1.domainId, domainId) !==
-          undefined) {
+      if (markers.length === 1 &&
+          this.connectorExistsBetween_(markers[0].domainId, domainId)) {
         throw new Error('Cannot add multiple connectors between the same ' +
             'clock domains.');
       }
 
-      connector.marker2 = marker;
+      if (markers.length === 2) {
+        throw new Error('Clock sync with ID "' + syncId + '" is already ' +
+            'complete - cannot add a third clock sync marker to it.');
+      }
+
+      markers.push(new ClockSyncMarker(domainId, startTs, opt_endTs));
     },
 
     /**
@@ -130,16 +130,15 @@ tr.exportTo('tr.model', function() {
      * domain. If no clock domains are viable candidates, an error is thrown.
      */
     buildModelTimeTransformerMap_() {
-      var completeConnectorsByDomainId =
-          this.getCompleteConnectorsByDomainId_();
-      var uniqueDomainIds = tr.b.dictionaryKeys(completeConnectorsByDomainId);
+      var connectorsByDomainId_ = this.getConnectorsByDomainId_();
+      var uniqueDomainIds = tr.b.dictionaryKeys(connectorsByDomainId_);
 
       // If there are |n| unique clock domains, then the model clock domain
       // is the first one alphabetically that's connected to the |n-1| other
       // clock domains.
       uniqueDomainIds.sort();
       var isFullyConnected = function(domainId) {
-        return completeConnectorsByDomainId[domainId].length ===
+        return connectorsByDomainId_[domainId].length ===
             uniqueDomainIds.length - 1;
       };
 
@@ -162,7 +161,7 @@ tr.exportTo('tr.model', function() {
       this.modelTimeTransformerByDomainId_ = {};
       this.modelTimeTransformerByDomainId_[this.modelDomainId_] = tr.b.identity;
 
-      var modelConnectors = completeConnectorsByDomainId[this.modelDomainId_];
+      var modelConnectors = connectorsByDomainId_[this.modelDomainId_];
       for (var i = 0; i < modelConnectors.length; i++) {
         var conn = modelConnectors[i];
         if (conn.marker1.domainId === this.modelDomainId_) {
@@ -176,44 +175,57 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
-     * Returns a map from clock domain ID to the complete connectors linked
-     * to that clock domain.
+     * Returns a map from clock domain ID to the connectors linked to that clock
+     * domain. Domains with registered markers but no connectors will have a
+     * zero-length array of connectors.
      */
-    getCompleteConnectorsByDomainId_: function() {
-      var completeConnectorsByDomainId = {};
-      for (var syncId in this.connectorBySyncId_) {
-        var conn = this.connectorBySyncId_[syncId];
+    getConnectorsByDomainId_: function() {
+      var connectorsByDomainId = {};
+
+      for (var syncId in this.markersBySyncId_) {
+        var markers = this.markersBySyncId_[syncId];
+
+        // Make sure that domains with registered markers but no connectors have
+        // a zero-length list of connectors.
+        if (markers.length === 1) {
+          var markerDomainId = markers[0].domainId;
+          if (connectorsByDomainId[markerDomainId] === undefined)
+            connectorsByDomainId[markerDomainId] = [];
+
+          continue;
+        }
+
+        var conn = new ClockSyncConnector(markers[0], markers[1]);
 
         var domain1 = conn.marker1.domainId;
-        if (completeConnectorsByDomainId[domain1] === undefined)
-          completeConnectorsByDomainId[domain1] = [];
-
-        if (conn.marker2 === undefined)
-          continue;
+        if (connectorsByDomainId[domain1] === undefined)
+          connectorsByDomainId[domain1] = [];
 
         var domain2 = conn.marker2.domainId;
-        if (completeConnectorsByDomainId[domain2] === undefined)
-          completeConnectorsByDomainId[domain2] = [];
+        if (connectorsByDomainId[domain2] === undefined)
+          connectorsByDomainId[domain2] = [];
 
-        completeConnectorsByDomainId[domain1].push(conn);
-        completeConnectorsByDomainId[domain2].push(conn);
+        connectorsByDomainId[markers[0].domainId].push(conn);
+        connectorsByDomainId[markers[1].domainId].push(conn);
       }
 
-      return completeConnectorsByDomainId;
+      return connectorsByDomainId;
     },
 
-    /**
-     * Returns the connector between the specified domains (or undefined if no
-     * such connector exists).
-     */
-    getConnectorBetween_(domain1Id, domain2Id) {
-      for (var syncId in this.connectorBySyncId_) {
-        var connector = this.connectorBySyncId_[syncId];
+    /** Returns true if a connector exists between the specified domains. */
+    connectorExistsBetween_(domain1Id, domain2Id) {
+      for (var syncId in this.markersBySyncId_) {
+        var markers = this.markersBySyncId_[syncId];
+
+        if (markers.length !== 2)
+          continue;
+
+        var connector = new ClockSyncConnector(markers[0], markers[1]);
         if (connector.isBetween(domain1Id, domain2Id))
-          return connector;
+          return true;
       }
 
-      return undefined;
+      return false;
     }
   };
 
@@ -244,9 +256,12 @@ tr.exportTo('tr.model', function() {
    *
    * @constructor
    */
-  function ClockSyncConnector(opt_marker1, opt_marker2) {
-    this.marker1 = opt_marker1;
-    this.marker2 = opt_marker2;
+  function ClockSyncConnector(marker1, marker2) {
+    if (marker1 === undefined || marker2 === undefined)
+      throw new Error('ClockSyncConnectors must consist of defined markers.');
+
+    this.marker1 = marker1;
+    this.marker2 = marker2;
   }
 
   ClockSyncConnector.prototype = {
@@ -295,9 +310,6 @@ tr.exportTo('tr.model', function() {
      * Returns true if this connector is between the specified clock domains.
      */
     isBetween: function(domain1Id, domain2Id) {
-      if (this.marker1 === undefined || this.marker2 === undefined)
-        return false;
-
       if (this.marker1.domainId === domain1Id &&
           this.marker2.domainId === domain2Id) {
         return true;
