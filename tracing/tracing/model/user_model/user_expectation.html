@@ -53,6 +53,16 @@ tr.exportTo('tr.model.um', function() {
       return cess;
     },
 
+    // Returns samples which are overlapping with V8.Execute
+    get associatedSamples() {
+      var samples = new tr.model.EventSet();
+      this.associatedEvents.forEach(function(event) {
+        if (event instanceof tr.model.ThreadSlice)
+          samples.addEventSet(event.overlappingSamples);
+      });
+      return samples;
+    },
+
     get userFriendlyName() {
       return this.title + ' User Expectation at ' +
           tr.v.Unit.byName.timeStampInMs.format(this.start);

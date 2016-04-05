@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/sample.html">
+<link rel="import" href="/tracing/model/thread_slice.html">
+<link rel="import"
+  href="/tracing/ui/analysis/user_expectation_related_samples_table.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function createModel() {
+    var m = tr.c.TestUtils.newModel(function(m) {
+      m.p1 = m.getOrCreateProcess(1);
+      m.t2 = m.p1.getOrCreateThread(2);
+      var s1 = new tr.model.Sample(null, m.t2, 'a_1', 1);
+      var s2 = new tr.model.Sample(null, m.t2, 'a_2', 2);
+      var s3 = new tr.model.Sample(null, m.t2, 'a_3', 3);
+      var s4 = new tr.model.Sample(null, m.t2, 'a_4', 4);
+      var s5 = new tr.model.Sample(null, m.t2, 'a_5', 5);
+      var s6 = new tr.model.Sample(null, m.t2, 'a_6', 6);
+      m.samples.push(s1, s2, s3, s4, s5, s6);
+      m.ve = new tr.c.TestUtils.newSliceEx(
+        {title: 'V8.Execute', start: 0, end: 4, type: tr.model.ThreadSlice});
+      m.t2.sliceGroup.pushSlice(m.ve);
+      m.up = new tr.c.TestUtils.newInteractionRecord(m, 0, 4);
+      m.up.associatedEvents.push(m.ve);
+      m.userModel.expectations.push(m.up);
+    });
+    return m;
+  }
+
+  test('overlappingSamples', function() {
+    var m = createModel();
+
+    var viewEl = document.createElement(
+        'tr-ui-a-user-expectation-related-samples-table');
+    viewEl.selection = new tr.model.EventSet([m.up]);
+
+    var overlappingSamples;
+    viewEl.$.table.tableRows.forEach(function(row) {
+      if (row.type === 'Overlapping samples') {
+        assert.isUndefined(overlappingSamples);
+        overlappingSamples = row.selection;
+      }
+    });
+
+    var samplesTitles = overlappingSamples.map(function(e) {
+      return e.title;
+    });
+    assert.sameMembers(samplesTitles,
+                       ['a_1', 'a_2', 'a_3', 'a_4']);
+  });
+
+});
+</script>

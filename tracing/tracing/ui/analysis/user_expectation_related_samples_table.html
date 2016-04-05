@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+
+<polymer-element name="tr-ui-a-user-expectation-related-samples-table">
+  <template>
+    <style>
+    #table {
+      flex: 1 1 auto;
+      align-self: stretch;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.samples_ = [];
+      this.$.table.tableColumns = [
+        {
+          title: 'Event(s)',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.type;
+            if (row.tooltip)
+              typeEl.title = row.tooltip;
+            return typeEl;
+          },
+          width: '150px'
+        },
+        {
+          title: 'Link',
+          width: '100%',
+          value: function(row) {
+            var linkEl = document.createElement('tr-ui-a-analysis-link');
+            if (row.name)
+              linkEl.setSelectionAndContent(row.selection, row.name);
+            else
+              linkEl.selection = row.selection;
+            return linkEl;
+          }
+        }
+      ];
+    },
+
+    hasRelatedSamples: function() {
+      return (this.samples_ && this.samples_.length > 0);
+    },
+
+    set selection(eventSet) {
+      this.samples_ = [];
+      var samples = new tr.model.EventSet;
+      eventSet.forEach(function(ue) {
+        samples.addEventSet(ue.associatedSamples);
+      }.bind(this));
+
+      if (samples.length > 0) {
+        this.samples_.push({
+          type: 'Overlapping samples',
+          tooltip: 'All samples overlapping the selected user expectation(s).',
+          selection: samples
+        });
+      }
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var table = this.$.table;
+      if (this.samples_ && this.samples_.length > 0)
+        table.tableRows = this.samples_.slice();
+      else
+        table.tableRows = [];
+      table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

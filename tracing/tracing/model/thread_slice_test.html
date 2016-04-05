@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/thread_slice.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ThreadSlice = tr.model.ThreadSlice;
+  var newSliceEx = tr.c.TestUtils.newSliceEx;
+  var newFakeThread = tr.c.TestUtils.newFakeThread;
+
+  test('getOverlappingSamples', function() {
+    var model = tr.c.TestUtils.newModel(function(m) {
+      m.p1 = m.getOrCreateProcess(1);
+      m.t2 = m.p1.getOrCreateThread(2);
+      m.samples.push(
+        new tr.model.Sample(null, m.t1, 'a_1', 1),
+        new tr.model.Sample(null, m.t1, 'a_2', 2),
+        new tr.model.Sample(null, m.t1, 'a_3', 3),
+        new tr.model.Sample(null, m.t1, 'b', 5)
+      );
+    });
+    var threadSlice = newSliceEx({title: 'a', start: 0, end: 4,
+                                  type: tr.model.ThreadSlice});
+    threadSlice.parentContainer = model;
+    var samples = threadSlice.overlappingSamples;
+    assert.equal(samples.length, 3);
+    assert.equal(samples[0].title, 'a_1');
+    assert.equal(samples[1].title, 'a_2');
+    assert.equal(samples[2].title, 'a_3');
+  });
+});
+</script>

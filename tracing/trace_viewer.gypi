@@ -294,6 +294,7 @@
       'tracing/ui/analysis/stack_frame.html',
       'tracing/ui/analysis/stacked_pane.html',
       'tracing/ui/analysis/stacked_pane_view.html',
+      'tracing/ui/analysis/user_expectation_related_samples_table.html',
       'tracing/ui/annotations/annotation_view.html',
       'tracing/ui/annotations/comment_box_annotation_view.html',
       'tracing/ui/annotations/rect_annotation_view.html',
