@@ -271,10 +271,21 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
+  /** Returns the value passed in. */
   function identity(d) {
     return d;
   }
 
+  /**
+   * Returns the index of the first element in |ary| for which |opt_func|
+   * returns a truthy value.
+   *
+   * @param {!Array} ary The array being searched
+   * @param {function(*): *=} opt_func The test function which accepts an array
+   *     element and returns a value that is coerced to a boolean. Defaults to
+   *     the identity function.
+   * @param {*=} opt_this Optional 'this' context for opt_func.
+   */
   function findFirstIndexInArray(ary, opt_func, opt_this) {
     var func = opt_func || identity;
     for (var i = 0; i < ary.length; i++) {
@@ -284,6 +295,16 @@ tr.exportTo('tr.b', function() {
     return -1;
   }
 
+  /**
+   * Returns the value of the first element in |ary| for which |opt_func|
+   * returns a truthy value.
+   *
+   * @param {!Array} ary The array being searched.
+   * @param {function(*): *=} opt_func The test function which accepts an array
+   *     element and returns a value that is coerced to a boolean. Defaults to
+   *     the identity function.
+   * @param {*=} opt_this Optional 'this' context for opt_func.
+   */
   function findFirstInArray(ary, opt_func, opt_this) {
     var i = findFirstIndexInArray(ary, opt_func, opt_func);
     if (i === -1)
@@ -291,6 +312,17 @@ tr.exportTo('tr.b', function() {
     return ary[i];
   }
 
+  /**
+   * Returns the key of the first dictionary entry for which |opt_func| returns
+   * a truthy value.
+   *
+   * @param {!Object} dict The dictionary being searched.
+   * @param {function(*, *): *=} opt_func The test function which accepts a
+   *     dictionary key as its first parameter, the corresponding dictionary
+   *     value as its second parameter, and returns a value that is coerced to a
+   *     boolean. Defaults to the identity function (which returns the key).
+   * @param {*=} opt_this Optional 'this' context for opt_func.
+   */
   function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
     var func = opt_func || identity;
     for (var key in dict) {
@@ -300,6 +332,7 @@ tr.exportTo('tr.b', function() {
     return undefined;
   }
 
+  /** Returns the values in an ES6 Map object. */
   function mapValues(map) {
     var values = [];
     for (var value of map.values())
@@ -307,6 +340,15 @@ tr.exportTo('tr.b', function() {
     return values;
   }
 
+  /**
+   * Calls |fn| on each entry in an ES6 Map.
+   *
+   * @param {!Map} The map whose entries are being processed.
+   * @param {function(*, *): *} The function which accepts a map key as its
+   *     first parameter and a map value as its second parameter. Any return
+   *     value is ignored.
+   * @param {*=} opt_this Optional 'this' context for fn.
+   */
   function iterMapItems(map, fn, opt_this) {
     opt_this = opt_this || this;
     for (var key of map.keys())
