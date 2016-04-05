@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+
+<script>
+'use strict';
+
+function discoverMetrics(args) {
+  for (var i = 0; i < args.length; i++) {
+    var filename = args[i];
+    HTMLImportsLoader.loadHTML(filename);
+  }
+
+  var metrics = tr.metrics.MetricRegistry.getAllRegisteredTypeInfos();
+  var discovered_metric_names = [];
+  for (var i = 0; i < metrics.length; i++) {
+    discovered_metric_names.push(metrics[i].constructor.name);
+  }
+  console.log(JSON.stringify(discovered_metric_names));
+  return 0;
+}
+
+if (tr.isHeadless)
+  quit(discoverMetrics(sys.argv.slice(1)));
+
+</script>

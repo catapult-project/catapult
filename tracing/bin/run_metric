@@ -10,13 +10,18 @@ import sys
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
 from tracing.metrics import metric_runner
+from tracing.metrics import discover
 
 def Main(argv):
+  all_metrics = discover.DiscoverMetrics(
+      ['/tracing/metrics/all_metrics.html'])
   parser = argparse.ArgumentParser(
       description='Runs metrics on local traces')
   parser.add_argument('metric_name',
-                      help='The function name of a registered metric, NOT '
-                           'filename')
+                      help=('The function name of a registered metric, NOT '
+                      'filename. Available metrics are: %s' %
+                      ', '.join(all_metrics)),
+                      choices=all_metrics, metavar='metricName')
   parser.add_argument('trace_file_or_dir',
                       help='A trace file, or a dir containing trace files')
 
