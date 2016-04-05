@@ -12,7 +12,7 @@ def ConvertPathToTestName(url):
   return url.replace('.', '_')
 
 
-class SimpleJavascriptTest(
+class SimpleBrowserTest(
     serially_executed_browser_test_case.SeriallyBrowserTestCase):
 
   @classmethod
@@ -23,7 +23,7 @@ class SimpleJavascriptTest(
 
   @classmethod
   def setUpClass(cls):
-    super(cls, SimpleJavascriptTest).setUpClass()
+    super(cls, SimpleBrowserTest).setUpClass()
     cls.action_runner = action_runner.ActionRunner(cls._browser.tabs[0])
     cls.SetStaticServerDir(
         os.path.join(os.path.abspath(__file__), '..', 'pages'))
@@ -38,6 +38,28 @@ class SimpleJavascriptTest(
   def testClickablePage(self):
     url = self.UrlOfStaticFilePath('page_with_clickables.html')
     self.action_runner.Navigate(url)
+    self.action_runner.ExecuteJavaScript('valueSettableByTest = 1997')
+    self.action_runner.ClickElement(text='Click/tap me')
+    self.assertEqual(1997, self.action_runner.EvaluateJavaScript('valueToTest'))
+
+  def testAndroidUI(self):
+    if self._platform.GetOSName() != 'android':
+      self.skipTest('The test is for android only')
+    url = self.UrlOfStaticFilePath('page_with_clickables.html')
+    # Nativgate to page_with_clickables.html
+    self.action_runner.Navigate(url)
+    # Click on history
+    self._platform.system_ui.WaitForUiNode(
+        resource_id='com.android.chrome:id/menu_button')
+    self._platform.system_ui.GetUiNode(
+        resource_id='com.android.chrome:id/menu_button').Tap()
+    self._platform.system_ui.WaitForUiNode(content_desc='History')
+    self._platform.system_ui.GetUiNode(content_desc='History').Tap()
+    # Click on the first entry of the history (page_with_clickables.html)
+    self.action_runner.WaitForElement('#id-0')
+    self.action_runner.ClickElement('#id-0')
+    # Verify that the page's js is interactable
+    self.action_runner.WaitForElement(text='Click/tap me')
     self.action_runner.ExecuteJavaScript('valueSettableByTest = 1997')
     self.action_runner.ClickElement(text='Click/tap me')
     self.assertEqual(1997, self.action_runner.EvaluateJavaScript('valueToTest'))
