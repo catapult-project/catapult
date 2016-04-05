@@ -215,6 +215,14 @@ class StoryRunnerTest(unittest.TestCase):
     self.assertEquals(expected_successes,
                       GetNumberOfSuccessfulPageRuns(self.results))
 
+  def testRunStoryWithMissingArchiveFile(self):
+    story_set = story_module.StorySet(archive_data_file='data/hi.json')
+    story_set.AddStory(page_module.Page(
+        'http://www.testurl.com', story_set, story_set.base_dir))
+    test = DummyTest()
+    self.assertRaises(story_runner.ArchiveError, story_runner.Run, test,
+                      story_set, self.options, self.results)
+
   def testStoryTest(self):
     all_foo = [FooStoryState, FooStoryState, FooStoryState]
     one_bar = [FooStoryState, FooStoryState, BarStoryState]

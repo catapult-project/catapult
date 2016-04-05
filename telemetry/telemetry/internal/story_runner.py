@@ -182,13 +182,14 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   # Filter page set based on options.
   stories = filter(story_module.StoryFilter.IsSelected, story_set)
 
-  if (not finder_options.use_live_sites and story_set.bucket and
+  if (not finder_options.use_live_sites and
       finder_options.browser_options.wpr_mode != wpr_modes.WPR_RECORD):
     serving_dirs = story_set.serving_dirs
-    for directory in serving_dirs:
-      cloud_storage.GetFilesInDirectoryIfChanged(directory,
-                                                 story_set.bucket)
-    if not _UpdateAndCheckArchives(
+    if story_set.bucket:
+      for directory in serving_dirs:
+        cloud_storage.GetFilesInDirectoryIfChanged(directory,
+                                                   story_set.bucket)
+    if story_set.archive_data_file and not _UpdateAndCheckArchives(
         story_set.archive_data_file, story_set.wpr_archive_info,
         stories):
       return
