@@ -33,7 +33,7 @@ def Main(argv):
   for trace in traces:
     results[trace] = metric_runner.RunMetric(trace, metric).AsDict()
 
-  failures = [f for f in results[trace]['failures'] for trace in traces]
+  failures = [f for f in results[trace].get('failures', []) for trace in traces]
   if failures:
     print 'Running metric failed:'
     for failure in failures:
