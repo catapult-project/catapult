@@ -10,6 +10,7 @@ from telemetry.internal.platform.power_monitor import android_power_monitor_base
 def _ReenableChargingIfNeeded(battery):
   if not battery.GetCharging():
     battery.SetCharging(True)
+  logging.info('Charging status checked at exit.')
 
 class AndroidPowerMonitorController(
     android_power_monitor_base.AndroidPowerMonitorBase):
