@@ -6,8 +6,7 @@ import os
 import sys
 import time
 
-from systrace import systrace_agent
-
+from systrace import tracing_agents
 
 class FtraceAgentIo(object):
 
@@ -84,28 +83,25 @@ all_categories = {
 }
 
 
-def try_create_agent(options, categories):
+def try_create_agent(options):
   if options.target != 'linux':
     return False
-  return FtraceAgent(options, categories, FtraceAgentIo)
+  return FtraceAgent(FtraceAgentIo)
 
 
-class FtraceAgent(systrace_agent.SystraceAgent):
+class FtraceAgent(tracing_agents.TracingAgent):
 
-  def __init__(self, options, categories, fio=FtraceAgentIo):
+  def __init__(self, fio=FtraceAgentIo):
     """Initialize a systrace agent.
 
     Args:
       options: The command-line options.
       categories: The trace categories to capture.
     """
-    super(FtraceAgent, self).__init__(options, categories)
-    if not self._categories:
-      self._categories = ["sched"]
+    super(FtraceAgent, self).__init__()
     self._fio = fio
-    self._categories = [x for x in self._categories
-                        if self._is_category_available(x)]
-    self._expect_trace = False
+    self._options = None
+    self._categories = None
 
   def _get_trace_buffer_size(self):
     buffer_size = 4096
@@ -121,14 +117,16 @@ class FtraceAgent(systrace_agent.SystraceAgent):
       wait_time = self._options.trace_time
     return wait_time
 
-  def start(self):
+  def StartAgentTracing(self, options, categories, timeout):
     """Start tracing.
     """
-    if self._options.list_categories or len(self._categories) == 0:
-      self._expect_trace = False
-    else:
-      self._expect_trace = True
-
+    self._options = options
+    self._categories = categories
+    if not self._categories:
+      self._categories = ["sched"]
+    self._categories = [x for x in self._categories
+                        if self._is_category_available(x)]
+    if not (self._options.list_categories or len(self._categories) == 0):
       self._fio.writeFile(FT_BUFFER_SIZE, str(self._get_trace_buffer_size()))
 
       self._fio.writeFile(FT_CLOCK, 'global')
@@ -149,7 +147,10 @@ class FtraceAgent(systrace_agent.SystraceAgent):
 
       self._fio.writeFile(FT_TRACE_ON, '1')
 
-  def collect_result(self):
+  def StopAgentTracing(self, timeout):
+    pass
+
+  def GetResults(self, timeout):
     """Collect the result of tracing.
 
     This function will block while collecting the result. For sync mode, it
@@ -173,27 +174,18 @@ class FtraceAgent(systrace_agent.SystraceAgent):
       if self._options.fix_circular:
         print "WARN: circular buffer fixups are not yet supported."
 
-  def expect_trace(self):
-    """Check if the agent is returning a trace or not.
-
-    This will be determined in collect_result().
-    Returns:
-      Whether the agent is expecting a trace or not.
-    """
-    return self._expect_trace
-
-  def get_trace_data(self):
-    """Get the trace data.
-
-    Returns:
-      The trace data.
-    """
+    # get the output
     d = self._fio.readFile(FT_TRACE)
     self._fio.writeFile(FT_BUFFER_SIZE, "1")
-    return d
+    return tracing_agents.TraceResult('trace-data', d)
 
-  def get_class_name(self):
-    return 'trace-data'
+  def SupportsExplicitClockSync(self):
+    return False
+
+  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    # No implementation, but need to have this to support the API
+    # pylint: disable=unused-argument
+    return False
 
   def _is_category_available(self, category):
     if category not in all_categories:

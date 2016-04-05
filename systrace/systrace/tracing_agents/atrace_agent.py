@@ -10,7 +10,7 @@ import threading
 import time
 import zlib
 
-from systrace import systrace_agent
+from systrace import tracing_agents
 from systrace import util
 
 # Text that ADB sends, but does not need to be displayed to the user.
@@ -51,11 +51,11 @@ LEGACY_TRACE_TAG_BITS = (
 )
 
 
-def try_create_agent(options, categories):
+def try_create_agent(options):
   if options.target != 'android':
     return False
   if options.from_file is not None:
-    return AtraceAgent(options, categories)
+    return AtraceAgent()
 
   device_sdk_version = util.get_device_sdk_version()
   if device_sdk_version >= 18:
@@ -67,42 +67,47 @@ def try_create_agent(options, categories):
                               'version 22 or before.\nYour device SDK version '
                               'is %d.' % device_sdk_version)
         sys.exit(1)
-      return BootAgent(options, categories)
+      return BootAgent()
     else:
-      return AtraceAgent(options, categories)
+      return AtraceAgent()
   elif device_sdk_version >= 16:
-    return AtraceLegacyAgent(options, categories)
+    return AtraceLegacyAgent()
 
 
-class AtraceAgent(systrace_agent.SystraceAgent):
+class AtraceAgent(tracing_agents.TracingAgent):
 
-  def __init__(self, options, categories):
-    super(AtraceAgent, self).__init__(options, categories)
-    self._expect_trace = False
+  def __init__(self):
+    super(AtraceAgent, self).__init__()
     self._adb = None
     self._trace_data = None
     self._tracer_args = None
+    self._options = None
+    self._categories = None
+
+  def StartAgentTracing(self, options, categories, timeout):
+    self._options = options
+    self._categories = categories
     if not self._categories:
       self._categories = get_default_categories(self._options.device_serial)
-
-  def start(self):
     self._tracer_args = self._construct_trace_command()
 
     self._adb = do_popen(self._tracer_args)
 
-  def collect_result(self):
+  def StopAgentTracing(self, timeout):
+    pass
+
+  def GetResults(self, timeout):
     trace_data = self._collect_trace_data()
-    if self._expect_trace:
-      self._trace_data = self._preprocess_trace_data(trace_data)
+    self._trace_data = self._preprocess_trace_data(trace_data)
+    return tracing_agents.TraceResult('trace-data', self._trace_data)
 
-  def expect_trace(self):
-    return self._expect_trace
+  def SupportsExplicitClockSync(self):
+    return False
 
-  def get_trace_data(self):
-    return self._trace_data
-
-  def get_class_name(self):
-    return 'trace-data'
+  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    # No implementation, but need to have this to support the API
+    # pylint: disable=unused-argument
+    return False
 
   def _construct_list_categories_command(self):
     return util.construct_adb_shell_command(
@@ -129,13 +134,10 @@ class AtraceAgent(systrace_agent.SystraceAgent):
     """
     if self._options.list_categories:
       tracer_args = self._construct_list_categories_command()
-      self._expect_trace = False
     elif self._options.from_file is not None:
       tracer_args = ['cat', self._options.from_file]
-      self._expect_trace = True
     else:
       atrace_args = ATRACE_BASE_ARGS[:]
-      self._expect_trace = True
       if self._options.compress_trace_data:
         atrace_args.extend(['-z'])
 
@@ -170,9 +172,9 @@ class AtraceAgent(systrace_agent.SystraceAgent):
     stdout_queue = Queue.Queue(maxsize=128)
     stderr_queue = Queue.Queue()
 
-    if self._expect_trace:
-      # Use stdout.write() (here and for the rest of this function) instead
-      # of print() to avoid extra newlines.
+    # Use stdout.write() (here and for the rest of this function) instead
+    # of print() to avoid extra newlines.
+    if not self._options.list_categories:
       sys.stdout.write('Capturing trace...')
 
     # Use a chunk_size of 1 for stdout so we can display the output to
@@ -193,9 +195,11 @@ class AtraceAgent(systrace_agent.SystraceAgent):
 
     last_status_update_time = time.time()
 
+    send_to_stdout = self._options.list_categories
+
     while (stdout_thread.isAlive() or stderr_thread.isAlive() or
            not stdout_queue.empty() or not stderr_queue.empty()):
-      if self._expect_trace:
+      if not send_to_stdout:
         last_status_update_time = status_update(last_status_update_time)
 
       while not stderr_queue.empty():
@@ -217,7 +221,7 @@ class AtraceAgent(systrace_agent.SystraceAgent):
           # Save, but don't print, the trace data.
           trace_data.append(chunk)
         else:
-          if not self._expect_trace:
+          if send_to_stdout:
             sys.stdout.write(chunk)
           else:
             # Buffer the output from ADB so we can remove some strings that
@@ -244,7 +248,7 @@ class AtraceAgent(systrace_agent.SystraceAgent):
               # Reset our current line.
               current_line = ''
 
-    if self._expect_trace:
+    if not send_to_stdout:
       if reading_trace_data:
         # Indicate to the user that the data download is complete.
         sys.stdout.write('Done.\n')
@@ -326,9 +330,10 @@ class AtraceLegacyAgent(AtraceAgent):
    workqueue - Kernel workqueues (requires root)"""
     return ["echo", LEGACY_CATEGORIES]
 
-  def start(self):
-    super(AtraceLegacyAgent, self).start()
-    if self.expect_trace():
+  def StartAgentTracing(self, options, categories, timeout=10):
+    super(AtraceLegacyAgent, self).StartAgentTracing(options, categories,
+                                                     timeout=timeout)
+    if not self._options.list_categories:
       SHELL_ARGS = ['getprop', 'debug.atrace.tags.enableflags']
       output, return_code = util.run_adb_shell(SHELL_ARGS,
                                                self._options.device_serial)
@@ -383,10 +388,12 @@ class AtraceLegacyAgent(AtraceAgent):
 class BootAgent(AtraceAgent):
   """AtraceAgent that specializes in tracing the boot sequence."""
 
-  def __init__(self, options, categories):
-    super(BootAgent, self).__init__(options, categories)
+  def __init__(self):
+    super(BootAgent, self).__init__()
 
-  def start(self):
+  def StartAgentTracing(self, options, categories, timeout=10):
+    self._options = options
+    self._categories = categories
     try:
       setup_args = self._construct_setup_command()
       try:
@@ -415,7 +422,6 @@ class BootAgent(AtraceAgent):
         self._options.device_serial)
 
   def _construct_trace_command(self):
-    self._expect_trace = True
     atrace_args = ['atrace', '--async_stop']
     setprop_args = ['setprop', BOOTTRACE_PROP, '0']
     rm_args = ['rm', BOOTTRACE_CATEGORIES]

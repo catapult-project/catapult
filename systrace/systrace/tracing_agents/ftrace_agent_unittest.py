@@ -4,13 +4,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import logging
 import unittest
-
+import logging
 from systrace import run_systrace
 from systrace.tracing_agents import ftrace_agent
 
-SYSTRACE_HOST_CMD_DEFAULT = ['./run_systrace.py', '--target=linux']
+SYSTRACE_HOST_CMD_DEFAULT = ['./systrace.py', '--target=linux']
 FT_DIR = "/sys/kernel/debug/tracing/"
 FT_EVENT_DIR = FT_DIR + "events/"
 FT_TRACE_ON = FT_DIR + "tracing_on"
@@ -35,6 +34,11 @@ def make_test_io_interface(permitted_files):
     @staticmethod
     def haveWritePermissions(path):
       return path in permitted_files
+
+    @staticmethod
+    def checkAndWriteFile(path, data):
+      permitted_files[path] = data
+
   return TestIoImpl
 
 
@@ -47,15 +51,13 @@ class FtraceAgentTest(unittest.TestCase):
       FT_EVENT_DIR + "sched/sched_wakeup/enable": "0"
     }
     io_interface = make_test_io_interface(permitted_files)
-    options, categories = run_systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
-    agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
+    agent = ftrace_agent.FtraceAgent(io_interface)
     self.assertEqual(['sched'], agent._avail_categories())
 
     # check for no available categories
     permitted_files = {}
     io_interface = make_test_io_interface(permitted_files)
-    options, categories = run_systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
-    agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
+    agent = ftrace_agent.FtraceAgent(io_interface)
     self.assertEqual([], agent._avail_categories())
 
     # block has some required, some optional events
@@ -64,8 +66,7 @@ class FtraceAgentTest(unittest.TestCase):
       FT_EVENT_DIR + "block/block_rq_issue/enable": "0"
     }
     io_interface = make_test_io_interface(permitted_files)
-    options, categories = run_systrace.parse_options(SYSTRACE_HOST_CMD_DEFAULT)
-    agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
+    agent = ftrace_agent.FtraceAgent(io_interface)
     self.assertEqual(['disk'], agent._avail_categories())
 
   def test_tracing_bootstrap(self):
@@ -77,11 +78,11 @@ class FtraceAgentTest(unittest.TestCase):
     io_interface = make_test_io_interface(permitted_files)
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ["workq"]
     options, categories = run_systrace.parse_options(systrace_cmd)
-    agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
+    agent = ftrace_agent.FtraceAgent(io_interface)
     self.assertEqual(['workq'], agent._avail_categories())
 
     # confirm tracing is enabled, buffer is cleared
-    agent.start()
+    agent.StartAgentTracing(options, categories, 10)
     self.assertEqual(permitted_files[FT_TRACE_ON], "1")
     self.assertEqual(permitted_files[FT_TRACE], "")
 
@@ -90,12 +91,12 @@ class FtraceAgentTest(unittest.TestCase):
     permitted_files[FT_TRACE] = dummy_trace
 
     # confirm tracing is disabled
-    agent.collect_result()
+    agent.StopAgentTracing(10)
+    agent.GetResults(30)
     self.assertEqual(permitted_files[FT_TRACE_ON], "0")
 
     # confirm trace is expected, and read from fs
-    self.assertTrue(agent.expect_trace())
-    self.assertEqual(agent.get_trace_data(), dummy_trace)
+    self.assertEqual(agent.GetResults(30).raw_data, dummy_trace)
 
     # confirm buffer size is reset to 1
     self.assertEqual(permitted_files[FT_BUFFER_SIZE], "1")
@@ -111,31 +112,35 @@ class FtraceAgentTest(unittest.TestCase):
     io_interface = make_test_io_interface(permitted_files)
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ["irq"]
     options, categories = run_systrace.parse_options(systrace_cmd)
-    agent = ftrace_agent.FtraceAgent(options, categories, io_interface)
+    agent = ftrace_agent.FtraceAgent(io_interface)
     self.assertEqual(['irq'], agent._avail_categories())
 
     # confirm all the event nodes are turned on during tracing
-    agent.start()
+    agent.StartAgentTracing(options, categories, 10)
     self.assertEqual(permitted_files[irq_event_path], "1")
     self.assertEqual(permitted_files[ipi_event_path], "1")
 
     # and then turned off when completed.
-    agent.collect_result()
+    agent.StopAgentTracing(10)
+    agent.GetResults(30)
     self.assertEqual(permitted_files[irq_event_path], "0")
     self.assertEqual(permitted_files[ipi_event_path], "0")
 
   def test_trace_time(self):
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ['-t', '10']
     options, categories = run_systrace.parse_options(systrace_cmd)
-    agent = ftrace_agent.FtraceAgent(options, categories)
+    agent = ftrace_agent.FtraceAgent()
+    agent._options = options
+    agent._categories = categories
     self.assertEqual(agent._get_trace_time(), 10)
 
   def test_buffer_size(self):
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ['-b', '16000']
     options, categories = run_systrace.parse_options(systrace_cmd)
-    agent = ftrace_agent.FtraceAgent(options, categories)
+    agent = ftrace_agent.FtraceAgent()
+    agent._options = options
+    agent._categories = categories
     self.assertEqual(agent._get_trace_buffer_size(), 16000)
-
 
 if __name__ == "__main__":
   logging.getLogger().setLevel(logging.DEBUG)

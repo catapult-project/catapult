@@ -107,13 +107,13 @@ def parse_options(argv):
   return (options, categories)
 
 
-def write_trace_html(html_filename, script_dir, agents):
+def write_trace_html(html_filename, script_dir, trace_results):
   """Writes out a trace html file.
 
   Args:
     html_filename: The name of the file to write.
     script_dir: The directory containing this script.
-    agents: The systrace agents.
+    trace_results: A list of TraceResult objects giving the results of traces.
   """
   systrace_dir = os.path.abspath(os.path.dirname(__file__))
   html_prefix = read_asset(systrace_dir, 'prefix.html')
@@ -127,11 +127,11 @@ def write_trace_html(html_filename, script_dir, agents):
                                       trace_viewer_html))
 
   html_file.write('<!-- BEGIN TRACE -->\n')
-  for a in agents:
+  for result in trace_results:
     html_file.write('  <script class="')
-    html_file.write(a.get_class_name())
+    html_file.write(result.source_name)
     html_file.write('" type="application/text">\n')
-    html_file.write(a.get_trace_data())
+    html_file.write(result.raw_data)
     html_file.write('  </script>\n')
   html_file.write('<!-- END TRACE -->\n')
 
@@ -140,7 +140,7 @@ def write_trace_html(html_filename, script_dir, agents):
   print '\n    wrote file://%s\n' % os.path.abspath(html_filename)
 
 
-def create_agents(options, categories):
+def create_agents(options):
   """Create systrace agents.
 
   This function will search systrace agent modules in agent directories and
@@ -171,7 +171,7 @@ def create_agents(options, categories):
         if f:
           f.close()
       if module:
-        agent = module.try_create_agent(options, categories)
+        agent = module.try_create_agent(options)
         if not agent:
           continue
         agents.append(agent)
@@ -180,7 +180,7 @@ def create_agents(options, categories):
 
 def main():
   options, categories = parse_options(sys.argv)
-  agents = create_agents(options, categories)
+  agents = create_agents(options)
 
   if not agents:
     dirs = DEFAULT_AGENT_DIR
@@ -198,16 +198,19 @@ def main():
     update_systrace_trace_viewer.update()
 
   for a in agents:
-    a.start()
+    a.StartAgentTracing(options, categories, 10)
 
   for a in agents:
-    a.collect_result()
-    if not a.expect_trace():
-      # Nothing more to do.
-      return
+    a.StopAgentTracing(10)
 
-  script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-  write_trace_html(options.output_file, script_dir, agents)
+  results = []
+  for a in agents:
+    new_result = a.GetResults(30)
+    results.append(new_result)
+
+  if not options.list_categories:
+    script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    write_trace_html(options.output_file, script_dir, results)
 
 
 def read_asset(src_dir, filename):
