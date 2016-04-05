@@ -78,23 +78,49 @@ def GenerateBreakpadSymbols(minidump, arch, os_name, symbols_dir, browser_dir):
   logging.info('Dumping breakpad symbols.')
   generate_breakpad_symbols_command = binary_manager.FetchPath(
       'generate_breakpad_symbols', arch, os_name)
-  if generate_breakpad_symbols_command is None:
-    return
 
   for binary_path in GetSymbolBinaries(minidump, arch, os_name):
-    cmd = [
-        sys.executable,
-        generate_breakpad_symbols_command,
-        '--binary=%s' % binary_path,
-        '--symbols-dir=%s' % symbols_dir,
-        '--build-dir=%s' % browser_dir,
-        ]
+    symbols_found = False
+    # Check if we have a symbol file for this binary path. Breakpad symbol files
+    # are of the form "$BINARY.breakpad.$ARCH" next to the binary file. We can
+    # simply look for any files which match this pattern and copy the files into
+    # the symbol directory.
+    symbols = glob.glob('%s.breakpad*' % binary_path)
+    if symbols:
+      for symbol_file in sorted(symbols, key=os.path.getmtime, reverse=True):
+        if not os.path.isfile(symbol_file):
+          continue
+        if os.path.getmtime(symbol_file) < os.path.getmtime(binary_path):
+          continue
+        with open(symbol_file, 'r') as f:
+          fields = f.readline().split()
+          if not fields:
+            continue
+          sha = fields[3]
+          binary = ' '.join(fields[4:])
 
-    try:
-      subprocess.check_output(cmd, stderr=open(os.devnull, 'w'))
-    except subprocess.CalledProcessError:
-      logging.warning('Failed to execute "%s"' % ' '.join(cmd))
-      return
+        # The symbol directory has form: "$SYMBOL/$BINARY/$HASH/$BINARY.sym".
+        symbol_output = os.path.join(symbols_dir, binary, sha, binary + '.sym')
+        if not os.path.isfile(symbol_output):
+          os.makedirs(os.path.dirname(symbol_output))
+          shutil.copyfile(symbol_file, symbol_output)
+          symbols_found = True
+
+    # See if we can generate the symbols locally.
+    if not symbols_found and generate_breakpad_symbols_command:
+      cmd = [
+          sys.executable,
+          generate_breakpad_symbols_command,
+          '--binary=%s' % binary_path,
+          '--symbols-dir=%s' % symbols_dir,
+          '--build-dir=%s' % browser_dir,
+          ]
+
+      try:
+        subprocess.check_call(cmd, stderr=open(os.devnull, 'w'))
+      except subprocess.CalledProcessError:
+        logging.warning('Failed to execute "%s"' % ' '.join(cmd))
+        return
 
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
@@ -443,33 +469,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
-
-    symbols = glob.glob(os.path.join(self._browser_directory, '*.breakpad*'))
-    if symbols:
-      for symbol in sorted(symbols, key=os.path.getmtime, reverse=True):
-        if not os.path.isfile(symbol):
-          continue
-        with open(symbol, 'r') as f:
-          fields = f.readline().split()
-          if not fields:
-            continue
-          sha = fields[3]
-          binary = ' '.join(fields[4:])
-        symbol_path = os.path.join(symbols_path, binary, sha)
-        if os.path.exists(symbol_path):
-          continue
-        os.makedirs(symbol_path)
-        shutil.copyfile(symbol, os.path.join(symbol_path, binary + '.sym'))
-    else:
-      # On some platforms generating the symbol table can be very time
-      # consuming, skip it if there's nothing to dump.
-      if self._IsExecutableStripped():
-        logging.info('%s appears to be stripped, skipping symbol dump.' % (
-            self._executable))
-        return
-
-      GenerateBreakpadSymbols(minidump, arch_name, os_name,
-                              symbols_path, self._browser_directory)
+    GenerateBreakpadSymbols(minidump, arch_name, os_name,
+                            symbols_path, self._browser_directory)
 
     return subprocess.check_output([stackwalk, minidump, symbols_path],
                                    stderr=open(os.devnull, 'w'))
