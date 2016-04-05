@@ -28,7 +28,13 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
   top_level_dir = os.path.realpath(top_level_dir)
 
   modules = []
-  for dir_path, _, filenames in os.walk(start_dir):
+  sub_paths = list(os.walk(start_dir))
+  # We sort the directories & file paths to ensure a deterministic ordering when
+  # traversing |top_level_dir|.
+  sub_paths.sort(key=lambda paths_tuple: paths_tuple[0])
+  for dir_path, _, filenames in sub_paths:
+    # Sort the directories to walk recursively by the directory path.
+    filenames.sort()
     for filename in filenames:
       # Filter out unwanted filenames.
       if filename.startswith('.') or filename.startswith('_'):
