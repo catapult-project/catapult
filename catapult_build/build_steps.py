@@ -174,7 +174,15 @@ def main(args=None):
   parser.add_argument('--output-json', help='Output for buildbot status page')
   args = parser.parse_args(args)
 
-  steps = []
+  steps = [{
+      # Always remove stale pyc files first. Not listed as a test above
+      # because it is a step and not a test, and must be first.
+      'name': 'Remove Stale PYC files',
+      'cmd': ['python',
+              os.path.join(args.api_path_checkout,
+                           'catapult_build/remove_stale_pyc_files.py'),
+              args.api_path_checkout]
+  }]
   for test in _CATAPULT_TESTS:
     if args.platform in test.get('disabled', []):
       continue
