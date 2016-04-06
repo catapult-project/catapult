@@ -686,8 +686,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var isAttachedToChromeTrace = this.model.getClockSyncRecordsWithSyncId(
           'ftrace_importer').length !== 0;
 
-      var monotonicSyncs =
-          this.model_.getClockSyncRecordsWithSyncId('monotonic');
+      var monotonicSyncs = this.model_.getClockSyncRecordsWithSyncId(
+          'ftrace_global_to_monotonic');
 
       // If there's no sync to the monotonic clock available, it's okay as long
       // as there's not a Chrome trace present, because that means that the
@@ -698,15 +698,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       // TODO(skyostil): Compute a scaling factor if we have multiple clock sync
       // records.
-      var sync = monotonicSyncs[0].args;
+      var ftraceGlobalTs = monotonicSyncs[0].start;
+      var monotonicTs = monotonicSyncs[0].args.monotonicTs;
 
-      // A parentTs of zero is used as a sentinel value to indicate that
-      // CLOCK_MONOTONIC and the ftrace global clock are identical.
-      if (sync.parentTs === 0)
+      // A monotonic timestamp of zero is used as a sentinel value to indicate
+      // that CLOCK_MONOTONIC and the ftrace global clock are identical.
+      if (monotonicTs === 0)
         return tr.b.identity;
 
       return function(ts) {
-        return ts + sync.parentTs - sync.perfTs;
+        return ts + monotonicTs - ftraceGlobalTs;
       };
     },
 
@@ -768,10 +769,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (!event)
         return false;
 
-      this.addClockSyncRecord_(new InstantClockSyncRecord('monotonic', ts, {
-        perfTs: ts,
-        parentTs: event[1] * 1000
-      }));
+      var monotonicTs = event[1] * 1000;
+      this.addClockSyncRecord_(new InstantClockSyncRecord(
+          'ftrace_global_to_monotonic', ts, { monotonicTs: monotonicTs }));
       return true;
     },
 
