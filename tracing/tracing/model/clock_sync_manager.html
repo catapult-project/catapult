@@ -131,8 +131,47 @@ tr.exportTo('tr.model', function() {
     /**
      * Selects a model clock domain and builds the map of transformers to that
      * domain. If no clock domains are viable candidates, an error is thrown.
+     *
+     * This method acts as a wrapper around its Impl() and adds support for
+     * legacy Chrome traces that don't explicitly specify their clock domain.
      */
     buildModelTimeTransformerMap_() {
+      // If this is a legacy Chrome trace that doesn't specify its clock domain,
+      // we need to collapse all of Chrome's potential clock domains into one.
+      // This ensures that things don't happen like the Chrome domain being
+      // referred to as UNKNOWN_CHROME_LEGACY by the TraceEventImporter and
+      // LINUX_CLOCK_MONOTONIC by the ftrace importer.
+      var actualChromeDomain = this.getActualTraceEventImporterDomain_();
+      if (actualChromeDomain !== undefined) {
+        // TODO(charliea): Right now, it's more convenient to substitute the
+        // actual domain with the legacy domain because it makes it easier to
+        // implement the bias towards picking the Chrome domain that's necessary
+        // during the migration to fully using this class. Once that migration
+        // is complete, we can reverse this so that it makes more sense by
+        // substituting the legacy domain with the actual one.
+        this.substituteDomainInMarkers_(
+            actualChromeDomain, ClockDomainId.UNKNOWN_CHROME_LEGACY);
+      }
+
+      this.buildModelTimeTransformerMapImpl_();
+
+      // In the above example, the ftrace importer will still request a
+      // conversion to model time from LINUX_CLOCK_MONOTONIC, so we need to
+      // make sure that conversion to model time is the same as
+      // UNKNOWN_CHROME_LEGACY because they're actually the same domain.
+      if (actualChromeDomain !== undefined) {
+        var chromeModelTimeTransform = this.modelTimeTransformerByDomainId_[
+            ClockDomainId.UNKNOWN_CHROME_LEGACY];
+        this.modelTimeTransformerByDomainId_[actualChromeDomain] =
+            chromeModelTimeTransform;
+      }
+    },
+
+    /**
+     * Selects a model clock domain and builds the map of transformers to that
+     * domain. If no clock domains are viable candidates, an error is thrown.
+     */
+    buildModelTimeTransformerMapImpl_() {
       var connectorsByDomainId_ = this.getConnectorsByDomainId_();
       var uniqueDomainIds = tr.b.dictionaryKeys(connectorsByDomainId_);
 
@@ -173,6 +212,56 @@ tr.exportTo('tr.model', function() {
         } else {
           this.modelTimeTransformerByDomainId_[conn.marker1.domainId] =
               conn.getTransformer(conn.marker1.domainId, conn.marker2.domainId);
+        }
+      }
+    },
+
+    /**
+     * If any clock sync markers are from a Chrome trace that doesn't explicitly
+     * specify its clock domain, this method returns a best guess at what clock
+     * domain UNKNOWN_CHROME_LEGACY *really* is. If no such best guess can be
+     * made, undefined is returned.
+     */
+    getActualTraceEventImporterDomain_: function() {
+      var connectorsByDomainId = this.getConnectorsByDomainId_();
+      var uniqueDomainIds = tr.b.dictionaryKeys(connectorsByDomainId);
+
+      // If there's no UNKNOWN_CHROME_LEGACY markers, we have nothing to do.
+      if (uniqueDomainIds.indexOf(ClockDomainId.UNKNOWN_CHROME_LEGACY) < 0)
+        return undefined;
+
+      // Otherwise, return the first domain that we see that could be the real
+      // domain for UNKNOWN_CHROME_LEGACY.
+      if (uniqueDomainIds.indexOf(ClockDomainId.LINUX_CLOCK_MONOTONIC) >= 0)
+        return ClockDomainId.LINUX_CLOCK_MONOTONIC;
+
+      if (uniqueDomainIds.indexOf(ClockDomainId.MAC_MACH_ABSOLUTE_TIME) >= 0)
+        return ClockDomainId.MAC_MACH_ABSOLUTE_TIME;
+
+      if (uniqueDomainIds.indexOf(
+          ClockDomainId.WIN_ROLLOVER_PROTECTED_TIME_GET_TIME) >= 0) {
+        return ClockDomainId.WIN_ROLLOVER_PROTECTED_TIME_GET_TIME;
+      }
+
+      if (uniqueDomainIds.indexOf(ClockDomainId.WIN_QPC) >= 0)
+        return ClockDomainId.WIN_QPC;
+
+      // If we didn't see any of these, then UNKNOWN_CHROME_LEGACY isnt' a
+      // a duplicate of another clock domain.
+      return undefined;
+    },
+
+    /**x
+     * Substitutes all instances of |original| domain ID with |replacement|
+     * in registered clock sync markers.
+     */
+    substituteDomainInMarkers_: function(original, replacement) {
+      for (var syncId in this.markersBySyncId_) {
+        for (var i = 0; i < this.markersBySyncId_[syncId].length; i++) {
+          var marker = this.markersBySyncId_[syncId][i];
+
+          if (marker.domainId === original)
+            marker.domainId = replacement;
         }
       }
     },
