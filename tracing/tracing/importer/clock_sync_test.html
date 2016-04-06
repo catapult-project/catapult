@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
   test('import_noClockDomains', function() {
     var m = tr.c.TestUtils.newModelWithEvents([]);
 
-    assert.lengthOf(m.importWarnings, 0);
+    assert.isFalse(m.hasImportWarnings);
   });
 
   test('import_traceEvent', function() {
@@ -38,7 +38,7 @@ tr.b.unittest.testSuite(function() {
       ]});
     var m = tr.c.TestUtils.newModelWithEvents([trace]);
 
-    assert.lengthOf(m.importWarnings, 0);
+    assert.isFalse(m.hasImportWarnings);
 
     assert.equal(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
     assert.equal(m.processes[0].threads[0].sliceGroup.slices[1].start, 2);
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
 
     var m = tr.c.TestUtils.newModelWithEvents([ftrace]);
 
-    assert.lengthOf(m.importWarnings, 0);
+    assert.isFalse(m.hasImportWarnings);
     assert.equal(m.processes[1].threads[0].sliceGroup.slices[0].start, 0);
   });
 
@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
     });
     var m = tr.c.TestUtils.newModelWithEvents([trace]);
 
-    assert.lengthOf(m.importWarnings, 0);
+    assert.isFalse(m.hasImportWarnings);
 
     // Chrome events shouldn't be shifted.
     assert.equal(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
@@ -114,7 +114,7 @@ tr.b.unittest.testSuite(function() {
     });
     var m = tr.c.TestUtils.newModelWithEvents([trace]);
 
-    assert.lengthOf(m.importWarnings, 0);
+    assert.isFalse(m.hasImportWarnings);
 
     // Chrome events shouldn't be shifted.
     assert.equal(m.processes[0].threads[0].sliceGroup.slices[0].start, 0);
