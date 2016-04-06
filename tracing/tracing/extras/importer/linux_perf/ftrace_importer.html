@@ -700,13 +700,13 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // records.
       var sync = monotonicSyncs[0].args;
 
-      // A parentTS of zero is used as a sentinel value to indicate that
+      // A parentTs of zero is used as a sentinel value to indicate that
       // CLOCK_MONOTONIC and the ftrace global clock are identical.
-      if (sync.parentTS === 0)
+      if (sync.parentTs === 0)
         return tr.b.identity;
 
       return function(ts) {
-        return ts + sync.parentTS - sync.perfTS;
+        return ts + sync.parentTs - sync.perfTs;
       };
     },
 
@@ -751,7 +751,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var name = event[1];
         var pieces = event[2].split(' ');
         var args = {
-          perfTS: ts
+          perfTs: ts
         };
         for (var i = 0; i < pieces.length; i++) {
           var parts = pieces[i].split('=');
@@ -768,9 +768,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (!event)
         return false;
 
+      var parentTs =
+
       this.addClockSyncRecord_(new InstantClockSyncRecord('monotonic', ts, {
-        perfTS: ts,
-        parentTS: event[1] * 1000
+        perfTs: ts,
+        parentTs: event[1] * 1000
       }));
       return true;
     },
