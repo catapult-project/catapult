@@ -172,10 +172,9 @@ def GetCmdStatusAndOutput(args, cwd=None, shell=False):
       args, cwd=cwd, shell=shell)
 
   if stderr:
-    logging.critical(stderr)
-  if len(stdout) > 4096:
-    logging.debug('Truncated output:')
-  logging.debug(stdout[:4096])
+    logging.critical('STDERR: %s', stderr)
+  logging.debug('STDOUT: %s%s', stdout[:4096].rstrip(),
+                '<truncated>' if len(stdout) > 4096 else '')
   return (status, stdout)
 
 
@@ -273,7 +272,10 @@ def GetCmdStatusAndOutputWithTimeout(args, timeout, cwd=None, shell=False,
   except TimeoutError:
     raise TimeoutError(output.getvalue())
 
-  return process.returncode, output.getvalue()
+  str_output = output.getvalue()
+  logging.debug('STDOUT+STDERR: %s%s', str_output[:4096].rstrip(),
+                '<truncated>' if len(str_output) > 4096 else '')
+  return process.returncode, str_output
 
 
 def IterCmdOutputLines(args, timeout=None, cwd=None, shell=False,
