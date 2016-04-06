@@ -206,12 +206,22 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return os.path.join(self.profile_directory, 'DevToolsActivePort')
 
   def _GetCdbPath(self):
+    # cdb.exe might have been co-located with the browser's executable
+    # during the build, but that's not a certainty. (This is only done
+    # in Chromium builds on the bots, which is why it's not a hard
+    # requirement.) See if it's available.
+    colocated_cdb = os.path.join(self._browser_directory, 'cdb', 'cdb.exe')
+    if path.IsExecutable(colocated_cdb):
+      return colocated_cdb
     possible_paths = (
+        # Installed copies of the Windows SDK.
+        os.path.join('Windows Kits', '*', 'Debuggers', 'x86'),
+        os.path.join('Windows Kits', '*', 'Debuggers', 'x64'),
+        # Old copies of the Debugging Tools for Windows.
         'Debugging Tools For Windows',
         'Debugging Tools For Windows (x86)',
         'Debugging Tools For Windows (x64)',
-        os.path.join('Windows Kits', '8.0', 'Debuggers', 'x86'),
-        os.path.join('Windows Kits', '8.0', 'Debuggers', 'x64'),
+        # The hermetic copy of the Windows toolchain in depot_tools.
         os.path.join('win_toolchain', 'vs_files', '*', 'win_sdk',
                      'Debuggers', 'x86'),
         os.path.join('win_toolchain', 'vs_files', '*', 'win_sdk',
