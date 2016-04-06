@@ -25,6 +25,21 @@ import imp
 import optparse
 import os
 
+_CATAPULT_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.path.pardir, os.path.pardir)
+
+_DEVIL_DIR = os.path.join(_CATAPULT_DIR, 'devil')
+if _DEVIL_DIR not in sys.path:
+  sys.path.insert(0, _DEVIL_DIR)
+
+_SYSTRACE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir))
+if _SYSTRACE_DIR not in sys.path:
+  sys.path.insert(0, _SYSTRACE_DIR)
+
+from devil.utils import cmd_helper
+from systrace.tracing_agents import atrace_agent
+from systrace.tracing_agents import ftrace_agent
 
 # The default agent directory.
 DEFAULT_AGENT_DIR = 'tracing_agents'
@@ -178,6 +193,18 @@ def create_agents(options):
   return agents
 
 
+def get_device_serials():
+  """Get the serial numbers of devices connected via ADB.
+
+  Only gets serial numbers of "active" devices (e.g. does not get serial
+  numbers of devices which have not been authorized.)
+  """
+
+  cmdout = cmd_helper.GetCmdOutput(['adb', 'devices'])
+  lines = [x.split() for x in cmdout.splitlines()[1:-1]]
+  return [x[0] for x in lines if x[1] == 'device']
+
+
 def main():
   options, categories = parse_options(sys.argv)
   agents = create_agents(options)
@@ -197,6 +224,21 @@ def main():
   else:
     update_systrace_trace_viewer.update()
 
+  if options.target == 'android' and not options.device_serial:
+    devices = get_device_serials()
+    if len(devices) == 0:
+      raise RuntimeError('No ADB devices connected.')
+    elif len(devices) >= 2:
+      raise RuntimeError('Multiple devices connected, serial number required')
+    options.device_serial = devices[0]
+
+  if options.list_categories:
+    if options.target == 'android':
+      atrace_agent.list_categories(options)
+    elif options.target == 'linux':
+      ftrace_agent.list_categories(options)
+    return
+
   for a in agents:
     a.StartAgentTracing(options, categories, 10)
 
@@ -208,9 +250,8 @@ def main():
     new_result = a.GetResults(30)
     results.append(new_result)
 
-  if not options.list_categories:
-    script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-    write_trace_html(options.output_file, script_dir, results)
+  script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+  write_trace_html(options.output_file, script_dir, results)
 
 
 def read_asset(src_dir, filename):

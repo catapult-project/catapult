@@ -89,6 +89,11 @@ def try_create_agent(options):
   return FtraceAgent(FtraceAgentIo)
 
 
+def list_categories(_):
+  agent = FtraceAgent(FtraceAgentIo)
+  agent._print_avail_categories()
+
+
 class FtraceAgent(tracing_agents.TracingAgent):
 
   def __init__(self, fio=FtraceAgentIo):
@@ -117,35 +122,44 @@ class FtraceAgent(tracing_agents.TracingAgent):
       wait_time = self._options.trace_time
     return wait_time
 
+  def _fix_categories(self, categories):
+    """
+    Applies the default category (sched) if there are no categories
+    in the list and removes unavailable categories from the list.
+    Args:
+        categories: List of categories.
+    """
+    if not categories:
+      categories = ["sched"]
+    return [x for x in categories
+            if self._is_category_available(x)]
+
   def StartAgentTracing(self, options, categories, timeout):
     """Start tracing.
     """
     self._options = options
-    self._categories = categories
-    if not self._categories:
-      self._categories = ["sched"]
-    self._categories = [x for x in self._categories
-                        if self._is_category_available(x)]
-    if not (self._options.list_categories or len(self._categories) == 0):
-      self._fio.writeFile(FT_BUFFER_SIZE, str(self._get_trace_buffer_size()))
+    categories = self._fix_categories(categories)
+    self._fio.writeFile(FT_BUFFER_SIZE, str(self._get_trace_buffer_size()))
 
-      self._fio.writeFile(FT_CLOCK, 'global')
-      self._fio.writeFile(FT_TRACER, 'nop')
-      self._fio.writeFile(FT_OVERWRITE, "0")
+    self._fio.writeFile(FT_CLOCK, 'global')
+    self._fio.writeFile(FT_TRACER, 'nop')
+    self._fio.writeFile(FT_OVERWRITE, "0")
 
-      # TODO: riandrews to push necessary patches for TGID option to upstream
-      # linux kernel
-      # self._fio.writeFile(FT_PRINT_TGID, '1')
+    # TODO: riandrews to push necessary patches for TGID option to upstream
+    # linux kernel
+    # self._fio.writeFile(FT_PRINT_TGID, '1')
 
-      for category in self._categories:
-        self._category_enable(category)
+    for category in categories:
+      self._category_enable(category)
 
-      self._fio.writeFile(FT_TRACE, '')
+    self._categories = categories # need to store list of categories to disable
 
-      print "starting tracing."
-      sys.stdout.flush()
+    self._fio.writeFile(FT_TRACE, '')
 
-      self._fio.writeFile(FT_TRACE_ON, '1')
+    print "starting tracing."
+    sys.stdout.flush()
+
+    self._fio.writeFile(FT_TRACE_ON, '1')
 
   def StopAgentTracing(self, timeout):
     pass
@@ -157,22 +171,19 @@ class FtraceAgent(tracing_agents.TracingAgent):
     reads the data, e.g., from stdout, until it finishes. For async mode, it
     blocks until the agent is stopped and the data is ready.
     """
-    if self._options.list_categories or len(self._categories) == 0:
-      self._print_avail_categories()
-    else:
-      try:
-        time.sleep(self._get_trace_time())
-      except KeyboardInterrupt:
-        pass
-      self._fio.writeFile(FT_TRACE_ON, '0')
-      for category in self._categories:
-        self._category_disable(category)
-      if self._options.fix_threads:
-        print "WARN: thread name fixing is not yet supported."
-      if self._options.fix_tgids:
-        print "WARN: tgid fixing is not yet supported."
-      if self._options.fix_circular:
-        print "WARN: circular buffer fixups are not yet supported."
+    try:
+      time.sleep(self._get_trace_time())
+    except KeyboardInterrupt:
+      pass
+    self._fio.writeFile(FT_TRACE_ON, '0')
+    for category in self._categories:
+      self._category_disable(category)
+    if self._options.fix_threads:
+      print "WARN: thread name fixing is not yet supported."
+    if self._options.fix_tgids:
+      print "WARN: tgid fixing is not yet supported."
+    if self._options.fix_circular:
+      print "WARN: circular buffer fixups are not yet supported."
 
     # get the output
     d = self._fio.readFile(FT_TRACE)

@@ -10,6 +10,7 @@ import threading
 import time
 import zlib
 
+from devil.android import device_utils
 from systrace import tracing_agents
 from systrace import util
 
@@ -49,6 +50,19 @@ LEGACY_TRACE_TAG_BITS = (
     ('video', 1 << 9),
     ('camera', 1 << 10),
 )
+
+
+def list_categories(options):
+  """List the possible trace event categories.
+
+  This function needs the tracing options since it needs to get the serial
+  number of the device to send a command to.
+
+  Args:
+      options: Tracing options.
+  """
+  devutils = device_utils.DeviceUtils(options.device_serial)
+  print '\n'.join(devutils.RunShellCommand(LIST_CATEGORIES_ARGS))
 
 
 def try_create_agent(options):
@@ -132,9 +146,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
       the second element is a boolean which will be true if the commend will
       stream trace data.
     """
-    if self._options.list_categories:
-      tracer_args = self._construct_list_categories_command()
-    elif self._options.from_file is not None:
+    if self._options.from_file:
       tracer_args = ['cat', self._options.from_file]
     else:
       atrace_args = ATRACE_BASE_ARGS[:]
@@ -172,11 +184,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
     stdout_queue = Queue.Queue(maxsize=128)
     stderr_queue = Queue.Queue()
 
-    # Use stdout.write() (here and for the rest of this function) instead
-    # of print() to avoid extra newlines.
-    if not self._options.list_categories:
-      sys.stdout.write('Capturing trace...')
-
     # Use a chunk_size of 1 for stdout so we can display the output to
     # the user without waiting for a full line to be sent.
     stdout_thread = FileReaderThread(self._adb.stdout, stdout_queue,
@@ -195,12 +202,9 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     last_status_update_time = time.time()
 
-    send_to_stdout = self._options.list_categories
-
     while (stdout_thread.isAlive() or stderr_thread.isAlive() or
            not stdout_queue.empty() or not stderr_queue.empty()):
-      if not send_to_stdout:
-        last_status_update_time = status_update(last_status_update_time)
+      last_status_update_time = status_update(last_status_update_time)
 
       while not stderr_queue.empty():
         # Pass along errors from adb.
@@ -221,45 +225,41 @@ class AtraceAgent(tracing_agents.TracingAgent):
           # Save, but don't print, the trace data.
           trace_data.append(chunk)
         else:
-          if send_to_stdout:
-            sys.stdout.write(chunk)
-          else:
-            # Buffer the output from ADB so we can remove some strings that
-            # don't need to be shown to the user.
-            current_line += chunk
-            if re.match(TRACE_START_REGEXP, current_line):
-              # We are done capturing the trace.
-              sys.stdout.write('Done.\n')
-              # Now we start downloading the trace data.
-              sys.stdout.write('Downloading trace...')
+          # Buffer the output from ADB so we can remove some strings that
+          # don't need to be shown to the user.
+          current_line += chunk
+          if re.match(TRACE_START_REGEXP, current_line):
+            # We are done capturing the trace.
+            sys.stdout.write('Done.\n')
+            # Now we start downloading the trace data.
+            sys.stdout.write('Downloading trace...')
 
-              current_line = ''
-              # Use a larger chunk size for efficiency since we no longer
-              # need to worry about parsing the stream.
-              stdout_thread.set_chunk_size(4096)
-              reading_trace_data = True
-            elif chunk == '\n' or chunk == '\r':
-              # Remove ADB output that we don't care about.
-              current_line = re.sub(ADB_IGNORE_REGEXP, '', current_line)
-              if len(current_line) > 1:
-                # ADB printed something that we didn't understand, so show it
-                # it to the user (might be helpful for debugging).
-                sys.stdout.write(current_line)
-              # Reset our current line.
-              current_line = ''
+            current_line = ''
+            # Use a larger chunk size for efficiency since we no longer
+            # need to worry about parsing the stream.
+            stdout_thread.set_chunk_size(4096)
+            reading_trace_data = True
+          elif chunk == '\n' or chunk == '\r':
+            # Remove ADB output that we don't care about.
+            current_line = re.sub(ADB_IGNORE_REGEXP, '', current_line)
+            if len(current_line) > 1:
+              # ADB printed something that we didn't understand, so show it
+              # it to the user (might be helpful for debugging).
+              sys.stdout.write(current_line)
+            # Reset our current line.
+            current_line = ''
 
-    if not send_to_stdout:
-      if reading_trace_data:
-        # Indicate to the user that the data download is complete.
-        sys.stdout.write('Done.\n')
-      else:
-        # We didn't receive the trace start tag, so something went wrong.
-        sys.stdout.write('ERROR.\n')
-        # Show any buffered ADB output to the user.
-        current_line = re.sub(ADB_IGNORE_REGEXP, '', current_line)
-        if current_line:
-          sys.stdout.write(current_line)
-          sys.stdout.write('\n')
+    if reading_trace_data:
+      # Indicate to the user that the data download is complete.
+      sys.stdout.write('Done.\n')
+    else:
+      # We didn't receive the trace start tag, so something went wrong.
+      sys.stdout.write('ERROR.\n')
+      # Show any buffered ADB output to the user.
+      current_line = re.sub(ADB_IGNORE_REGEXP, '', current_line)
+      if current_line:
+        sys.stdout.write(current_line)
+        sys.stdout.write('\n')
 
     # The threads should already have stopped, so this is just for cleanup.
     stdout_thread.join()
@@ -333,35 +333,34 @@ class AtraceLegacyAgent(AtraceAgent):
   def StartAgentTracing(self, options, categories, timeout=10):
     super(AtraceLegacyAgent, self).StartAgentTracing(options, categories,
                                                      timeout=timeout)
-    if not self._options.list_categories:
-      SHELL_ARGS = ['getprop', 'debug.atrace.tags.enableflags']
-      output, return_code = util.run_adb_shell(SHELL_ARGS,
-                                               self._options.device_serial)
-      if return_code != 0:
-        print >> sys.stderr, (
-            '\nThe command "%s" failed with the following message:'
-            % ' '.join(SHELL_ARGS))
-        print >> sys.stderr, str(output)
-        sys.exit(1)
+    SHELL_ARGS = ['getprop', 'debug.atrace.tags.enableflags']
+    output, return_code = util.run_adb_shell(SHELL_ARGS,
+                                             self._options.device_serial)
+    if return_code != 0:
+      print >> sys.stderr, (
+          '\nThe command "%s" failed with the following message:'
+          % ' '.join(SHELL_ARGS))
+      print >> sys.stderr, str(output)
+      sys.exit(1)
 
-      flags = 0
-      try:
-        if output.startswith('0x'):
-          flags = int(output, 16)
-        elif output.startswith('0'):
-          flags = int(output, 8)
-        else:
-          flags = int(output)
-      except ValueError:
-        pass
+    flags = 0
+    try:
+      if output.startswith('0x'):
+        flags = int(output, 16)
+      elif output.startswith('0'):
+        flags = int(output, 8)
+      else:
+        flags = int(output)
+    except ValueError:
+      pass
 
-      if flags:
-        tags = []
-        for desc, bit in LEGACY_TRACE_TAG_BITS:
-          if bit & flags:
-            tags.append(desc)
-        categories = tags + self._categories
-        print 'Collecting data with following categories:', ' '.join(categories)
+    if flags:
+      tags = []
+      for desc, bit in LEGACY_TRACE_TAG_BITS:
+        if bit & flags:
+          tags.append(desc)
+      categories = tags + self._categories
+      print 'Collecting data with following categories:', ' '.join(categories)
 
   def _construct_extra_trace_command(self):
     extra_args = []
