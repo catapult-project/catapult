@@ -165,6 +165,7 @@
       'tracing/metrics/system_health/utils.html',
       'tracing/metrics/tracing_metric.html',
       'tracing/metrics/v8/execution_metric.html',
+      'tracing/metrics/v8/v8_metrics.html',
       'tracing/metrics/value_list.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',

@@ -4,6 +4,26 @@
 
 import sys
 
+def _RunArgs(args, input_api):
+  p = input_api.subprocess.Popen(args, stdout=input_api.subprocess.PIPE,
+                                 stderr=input_api.subprocess.STDOUT)
+  out, _ = p.communicate()
+  return (out, p.returncode)
+
+
+def _CheckRegisteredMetrics(input_api, output_api):
+  """ Check that all tracing metrics are imported in all_metrics.html """
+  results = []
+  tracing_dir = input_api.PresubmitLocalPath()
+  out, return_code = _RunArgs(
+      [input_api.python_executable,
+       input_api.os_path.join(tracing_dir, 'bin', 'validate_all_metrics')],
+      input_api)
+  if return_code:
+    results.append(output_api.PresubmitError(
+        'Failed validate_all_metrics: ', long_text=out))
+  return results
+
 
 def CheckChangeOnUpload(input_api, output_api):
   return _CheckChange(input_api, output_api)
@@ -30,6 +50,8 @@ def _CheckChange(input_api, output_api):
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
       pylintrc='../pylintrc'))
 
+  results += _CheckRegisteredMetrics(input_api, output_api)
+
   return results
 
 
@@ -38,6 +60,5 @@ def _GetPathsToPrepend(input_api):
   catapult_dir = input_api.os_path.join(project_dir, '..')
   return [
       project_dir,
-
       input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
   ]
