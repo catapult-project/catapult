@@ -48,9 +48,11 @@ class Oobe(web_contents.WebContents):
     """Logs in as guest."""
     self._ExecuteOobeApi('Oobe.guestLoginForTesting')
 
-  def NavigateFakeLogin(self, username, password, gaia_id):
+  def NavigateFakeLogin(self, username, password, gaia_id,
+                        enterprise_enroll=False):
     """Fake user login."""
-    self._ExecuteOobeApi('Oobe.loginForTesting', username, password, gaia_id)
+    self._ExecuteOobeApi('Oobe.loginForTesting', username, password, gaia_id,
+                         enterprise_enroll)
 
   def NavigateGaiaLogin(self, username, password,
                         enterprise_enroll=False,

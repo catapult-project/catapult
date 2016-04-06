@@ -137,7 +137,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           self.oobe.NavigateGaiaLogin(self._username, self._password)
         else:
           self.oobe.NavigateFakeLogin(self._username, self._password,
-              self._gaia_id)
+              self._gaia_id, not self.browser_options.disable_gaia_services)
 
         self._WaitForLogin()
       except exceptions.TimeoutException:
