@@ -768,8 +768,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (!event)
         return false;
 
-      var parentTs =
-
       this.addClockSyncRecord_(new InstantClockSyncRecord('monotonic', ts, {
         perfTs: ts,
         parentTs: event[1] * 1000
