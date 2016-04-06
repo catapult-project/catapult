@@ -12,14 +12,17 @@ found in the LICENSE file.
 
 tr.exportTo('tr.model', function() {
   var ClockDomainId = {
-    BATTOR: 'battor',
+    BATTOR: 'BATTOR',
 
     // NOTE: Exists for backwards compatibility with old Chrome traces which
     // didn't explicitly specify the clock being used.
-    UNKNOWN_CHROME_LEGACY: 'unknown_chrome_legacy'
+    UNKNOWN_CHROME_LEGACY: 'UNKNOWN_CHROME_LEGACY',
 
-    // TODO(charliea): Add clock domains for the various Chrome TimeTicks
-    // sources.
+    LINUX_CLOCK_MONOTONIC: 'LINUX_CLOCK_MONOTONIC',
+    MAC_MACH_ABSOLUTE_TIME: 'MAC_MACH_ABSOLUTE_TIME',
+    WIN_ROLLOVER_PROTECTED_TIME_GET_TIME:
+        'WIN_ROLLOVER_PROTECTED_TIME_GET_TIME',
+    WIN_QPC: 'WIN_QPC'
   };
 
   // The number of milliseconds above which the BattOr sync is no longer
