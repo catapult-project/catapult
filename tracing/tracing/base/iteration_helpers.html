@@ -83,6 +83,14 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
+  function cloneDictionary(dict) {
+    var clone = {};
+    for (var k in dict) {
+      clone[k] = dict[k];
+    }
+    return clone;
+  }
+
   function dictionaryKeys(dict) {
     var keys = [];
     for (var key in dict)
@@ -362,6 +370,7 @@ tr.exportTo('tr.b', function() {
     compareArrays: compareArrays,
     comparePossiblyUndefinedValues: comparePossiblyUndefinedValues,
     compareNumericWithNaNs: compareNumericWithNaNs,
+    cloneDictionary: cloneDictionary,
     dictionaryLength: dictionaryLength,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,

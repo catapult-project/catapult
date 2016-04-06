@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/utils.html">
 <script>
 'use strict';
@@ -15,8 +16,13 @@ tr.exportTo('tr.v', function() {
     if (typeof(name) !== 'string')
       throw new Error('Expected value_name grouping key to be provided');
 
-    this.groupingKeys = opt_groupingKeys || {};
-    this.groupingKeys.name = name;
+    // Allow callers to re-use groupingKeys dictionaries.
+    this.groupingKeys = {name: name};
+    if (opt_groupingKeys) {
+      for (var keyName in opt_groupingKeys) {
+        this.addGroupingKey(keyName, opt_groupingKeys[keyName]);
+      }
+    }
 
     this.diagnostics = opt_diagnostics || {};
 
@@ -55,8 +61,12 @@ tr.exportTo('tr.v', function() {
     },
 
     addGroupingKey: function(keyName, key) {
+      if (keyName === 'name')
+        throw new Error('Invalid groupingKey name "name"');
+
       if (this.groupingKeys.hasOwnProperty(keyName))
-          throw new Error('Tried to redefine grouping key ' + keyName);
+        throw new Error('Tried to redefine grouping key ' + keyName);
+
       this.groupingKeys[keyName] = key;
     },
 
@@ -66,7 +76,7 @@ tr.exportTo('tr.v', function() {
 
     asJSON: function() {
       var d = {
-        grouping_keys: this.groupingKeys,
+        grouping_keys: tr.b.cloneDictionary(this.groupingKeys),
         description: this.description,
         important: this.important,
         diagnostics: this.diagnostics
@@ -97,7 +107,10 @@ tr.exportTo('tr.v', function() {
     if (d.numeric === undefined)
       throw new Error('Expected numeric to be provided');
     var numeric = tr.v.NumericBase.fromDict(d.numeric);
-    return new NumericValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+    var name = d.grouping_keys.name;
+    d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
+    delete d.grouping_keys.name;
+    return new NumericValue(d.diagnostics.canonical_url, name,
                             numeric, d, d.grouping_keys, d.diagnostics);
   };
 
@@ -122,7 +135,10 @@ tr.exportTo('tr.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.value === undefined)
       throw new Error('Expected value to be provided');
-    return new DictValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+    var name = d.grouping_keys.name;
+    d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
+    delete d.grouping_keys.name;
+    return new DictValue(d.diagnostics.canonical_url, name,
                          d.value, d, d.groupingKeys, d.diagnostics);
   };
 
@@ -176,7 +192,10 @@ tr.exportTo('tr.v', function() {
       throw new Error('Expected units to be undefined');
     if (d.stack_str === undefined)
       throw new Error('Expected stack_str to be provided');
-    return new FailureValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+    var name = d.grouping_keys.name;
+    d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
+    delete d.grouping_keys.name;
+    return new FailureValue(d.diagnostics.canonical_url, name,
                             d, d.grouping_keys, d.diagnostics);
   };
 
@@ -199,7 +218,10 @@ tr.exportTo('tr.v', function() {
   SkipValue.fromDict = function(d) {
     if (d.units !== undefined)
       throw new Error('Expected units to be undefined');
-    return new SkipValue(d.diagnostics.canonical_url, d.grouping_keys.name,
+    var name = d.grouping_keys.name;
+    d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
+    delete d.grouping_keys.name;
+    return new SkipValue(d.diagnostics.canonical_url, name,
                          d, d.grouping_keys, d.diagnostics);
   };
 

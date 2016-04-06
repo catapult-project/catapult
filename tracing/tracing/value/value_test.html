@@ -81,6 +81,41 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(function() { v.addGroupingKey('name', 'bar'); });
   });
+
+  test('nameGroupingKeyThrows', function() {
+    var canonicalUrl = 'my_test.json';
+    var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
+    var options = {};
+    var groupingKeys = {name: 'bar'};
+    assert.throws(function() {
+      new tr.v.NumericValue(
+          canonicalUrl, 'MyScalar', n, options, groupingKeys);
+    });
+  });
+
+  test('reUseGroupingKeys', function() {
+    var canonicalUrl = 'my_test.json';
+    var options = {};
+    var groupingKeys = {a: 'b', c: 'd'};
+    var bytesNumeric = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.sizeInBytes, 314);
+    var bytesValue = new tr.v.NumericValue(
+        canonicalUrl, 'bytes', bytesNumeric, options, groupingKeys);
+    var latencyNumeric = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.timeDurationInMs, 314);
+    var latencyValue = new tr.v.NumericValue(
+        canonicalUrl, 'latency', latencyNumeric, options, groupingKeys);
+
+    var bytesValueDict = bytesValue.asDict();
+    var latencyValueDict = latencyValue.asDict();
+
+    assert.equal('bytes', bytesValueDict.grouping_keys.name);
+    assert.equal('b', bytesValueDict.grouping_keys.a);
+    assert.equal('d', bytesValueDict.grouping_keys.c);
+    assert.equal('latency', latencyValueDict.grouping_keys.name);
+    assert.equal('b', latencyValueDict.grouping_keys.a);
+    assert.equal('d', latencyValueDict.grouping_keys.c);
+  });
 });
 
 </script>
