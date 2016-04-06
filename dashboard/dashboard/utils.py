@@ -48,21 +48,26 @@ def TickMonitoringCustomMetric(metric_name):
   """
   credentials = client.GoogleCredentials.get_application_default()
   monitoring = discovery.build(
-      'cloudmonitoring', 'v2beta2', credentials=credentials)
+      'monitoring', 'v3', credentials=credentials)
   now = _GetNowRfc3339()
   project_id = stored_object.Get(_PROJECT_ID_KEY)
-  desc = {
-      'project': project_id,
-      'metric': 'custom.cloudmonitoring.googleapis.com/%s' % metric_name
-  }
-  point = {
-      'start': now,
-      'end': now,
-      'int64Value': _DEFAULT_CUSTOM_METRIC_VAL
-  }
-  write_request = monitoring.timeseries().write(
-      project=project_id,
-      body={'timeseries': [{'timeseriesDesc': desc, 'point': point}]})
+  points = [{
+      'interval': {
+          'startTime': now,
+          'endTime': now,
+      },
+      'value': {
+          'int64Value': _DEFAULT_CUSTOM_METRIC_VAL,
+      },
+  }]
+  write_request = monitoring.projects().timeSeries().create(
+      name='projects/%s' %project_id,
+      body={'timeSeries': [{
+          'metric': {
+              'type': 'custom.googleapis.com/%s' % metric_name,
+          },
+          'points': points
+      }]})
   write_request.execute()
 
 
