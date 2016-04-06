@@ -173,7 +173,7 @@ class Options(object):
     """
     self._config = tracing_config.TracingConfig()
     self._config.enable_chrome_trace = True
-    self._config.enable_platform_display_trace = True
+    self._config.enable_platform_display_trace = False
 
     if isinstance(overhead_level,
                   tracing_category_filter.TracingCategoryFilter):
