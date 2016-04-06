@@ -102,7 +102,8 @@ class ChromeTracingAgentTest(unittest.TestCase):
   def StopTracing(self, agent):
     agent._platform_backend.tracing_controller_backend.is_tracing_running = (
         False)
-    agent.StopAgentTracing(None)
+    agent.StopAgentTracing()
+    agent.CollectAgentTraceData(None)
 
   def testRegisterDevtoolsClient(self):
     chrome_tracing_devtools_manager.RegisterDevToolsClient(

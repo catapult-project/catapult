@@ -59,9 +59,14 @@ class TracingController(tracing_agent.TracingAgent):
     """ Starts agent tracing for tracing controller"""
     return self._tracing_controller_backend.StartAgentTracing(config, timeout)
 
-  def StopAgentTracing(self, trace_data_builder):
+  def StopAgentTracing(self):
     """ Stops agent tracing for tracing controller. """
-    return self._tracing_controller_backend.StopAgentTracing(trace_data_builder)
+    return self._tracing_controller_backend.StopAgentTracing()
+
+  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
+    """ Collect tracing data. """
+    return self._tracing_controller_backend.CollectTraceData(trace_data_builder,
+                                                             timeout=timeout)
 
   def SupportsExplicitClockSync(self):
     return self._tracing_controller_backend.SupportsExplicitClockSync()

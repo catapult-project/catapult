@@ -118,7 +118,13 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       return True
     return False
 
-  def StopAgentTracing(self, trace_data_builder):
+  def StopAgentTracing(self):
+    # TODO: Split collection and stopping.
+    pass
+
+  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
+    # TODO: Move stopping to StopAgentTracing.
+    del timeout # Unused.
     if not self._trace_config:
       raise ChromeTracingStoppedError(
           'Tracing is not running on platform backend %s.'
@@ -206,7 +212,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     for backend in self._IterInspectorBackends():
       backend.EvaluateJavaScript("console.time('flush-tracing');")
 
-    self.StopAgentTracing(trace_data_builder)
+    self.StopAgentTracing()
+    self.CollectAgentTraceData(trace_data_builder)
     self.StartAgentTracing(config, timeout)
 
     for backend in self._IterInspectorBackends():

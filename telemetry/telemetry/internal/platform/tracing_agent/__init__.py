@@ -45,7 +45,7 @@ class TracingAgent(object):
     """
     raise NotImplementedError
 
-  def StopAgentTracing(self, trace_data_builder):
+  def StopAgentTracing(self):
     """ Override to add tracing agent's custom logic to stop tracing.
 
     StopAgentTracing() should guarantee tracing is stopped, even if there may
@@ -78,4 +78,10 @@ class TracingAgent(object):
     """
     del sync_id # unused
     del record_controller_clocksync_marker_callback # unused
+    raise NotImplementedError
+
+  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
+    """ Override to add agent's custom logic to collect tracing data. """
+    del trace_data_builder
+    del timeout
     raise NotImplementedError

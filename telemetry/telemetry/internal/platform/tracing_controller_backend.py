@@ -110,7 +110,14 @@ class TracingControllerBackend(object):
     raised_exception_messages = []
     for agent in self._active_agents_instances + [self]:
       try:
-        agent.StopAgentTracing(builder)
+        agent.StopAgentTracing()
+      except Exception: # pylint: disable=broad-except
+        raised_exception_messages.append(
+            ''.join(traceback.format_exception(*sys.exc_info())))
+
+    for agent in self._active_agents_instances + [self]:
+      try:
+        agent.CollectAgentTraceData(builder)
       except Exception: # pylint: disable=broad-except
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
@@ -161,25 +168,12 @@ class TracingControllerBackend(object):
     assert trace_event.trace_is_enabled(), 'Tracing didn\'t enable properly.'
     return True
 
-  def StopAgentTracing(self, trace_data_builder):
+  def StopAgentTracing(self):
     if not self._is_tracing_controllable:
       return
     assert trace_event.trace_is_enabled(), 'Tracing not running'
     trace_event.trace_disable()
     assert not trace_event.trace_is_enabled(), 'Tracing didnt disable properly.'
-    with open(self._trace_log, 'r') as fp:
-      data = ast.literal_eval(fp.read() + ']')
-    trace_data_builder.AddEventsTo(trace_data_module.TELEMETRY_PART, data)
-    try:
-      os.remove(self._trace_log)
-      self._trace_log = None
-    except OSError:
-      logging.exception('Error when deleting %s, will try again at exit.',
-                        self._trace_log)
-      def DeleteAtExit(path):
-        os.remove(path)
-      atexit.register(DeleteAtExit, self._trace_log)
-    self._trace_log = None
 
   def SupportsExplicitClockSync(self):
     return True
@@ -237,3 +231,21 @@ class TracingControllerBackend(object):
 
   def ClearStateIfNeeded(self):
     chrome_tracing_agent.ClearStarupTracingStateIfNeeded(self._platform_backend)
+
+  def CollectAgentTraceData(self, trace_data_builder):
+    if not self._is_tracing_controllable:
+      return
+    assert not trace_event.trace_is_enabled(), 'Stop tracing before collection.'
+    with open(self._trace_log, 'r') as fp:
+      data = ast.literal_eval(fp.read() + ']')
+    trace_data_builder.AddEventsTo(trace_data_module.TELEMETRY_PART, data)
+    try:
+      os.remove(self._trace_log)
+      self._trace_log = None
+    except OSError:
+      logging.exception('Error when deleting %s, will try again at exit.',
+                        self._trace_log)
+      def DeleteAtExit(path):
+        os.remove(path)
+      atexit.register(DeleteAtExit, self._trace_log)
+    self._trace_log = None

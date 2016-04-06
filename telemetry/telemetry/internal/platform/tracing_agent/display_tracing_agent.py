@@ -20,7 +20,13 @@ class DisplayTracingAgent(tracing_agent.TracingAgent):
       self._platform_backend.StartDisplayTracing()
       return True
 
-  def StopAgentTracing(self, trace_data_builder):
+  def StopAgentTracing(self):
+    # TODO: Split collection and stopping.
+    pass
+
+  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
+    # TODO: Move stopping to StopAgentTracing.
+    del timeout
     surface_flinger_trace_data = self._platform_backend.StopDisplayTracing()
     trace_data_builder.AddEventsTo(
           trace_data.SURFACE_FLINGER_PART, surface_flinger_trace_data)

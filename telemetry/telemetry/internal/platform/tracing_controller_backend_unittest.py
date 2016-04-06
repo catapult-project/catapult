@@ -25,16 +25,18 @@ class PlatformBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
 
 
 class FakeTracingAgentBase(tracing_agent.TracingAgent):
-  def __init__(self, platform, start=True, clock_sync=True):
+  def __init__(
+      self, platform, start=True, clock_sync=True, split_collection=True):
     super(FakeTracingAgentBase, self).__init__(platform)
     self._start = start
     self._clock_sync = clock_sync
     self._sync_seen = False
+    self._split_collection = split_collection
 
   def StartAgentTracing(self, config, timeout):
     return self._start
 
-  def StopAgentTracing(self, trace_data_builder):
+  def StopAgentTracing(self):
     pass
 
   def SupportsExplicitClockSync(self):
@@ -46,12 +48,14 @@ class FakeTracingAgentBase(tracing_agent.TracingAgent):
     self._sync_seen = True
     callback(sync_id, 1)
 
+  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
+    pass
+
 
 class FakeTracingAgentStartAndClockSync(FakeTracingAgentBase):
   def __init__(self, platform):
-    super(FakeTracingAgentStartAndClockSync, self).__init__(platform,
-                                                            start=True,
-                                                            clock_sync=True)
+    super(FakeTracingAgentStartAndClockSync, self).__init__(
+        platform, start=True, clock_sync=True, split_collection=False)
 
 
 class FakeTracingAgentStartAndNoClockSync(FakeTracingAgentBase):
@@ -155,6 +159,14 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertFalse(self.controller._trace_log, None)
     # Test difference between events
     self.assertNotEqual(sync_event_one, sync_event_two)
+
+  @decorators.Isolated
+  def testCollectAgentDataBeforeStoppingTracing(self):
+    self.assertFalse(self.controller.is_tracing_running)
+    self.assertTrue(self.controller.StartTracing(self.config, 30))
+    self.assertTrue(self.controller.is_tracing_running)
+    with self.assertRaises(AssertionError):
+      self.controller.CollectAgentTraceData(None)
 
   @decorators.Isolated
   def testFlush(self):
