@@ -44,6 +44,15 @@ found in the LICENSE file.
   'use strict';
 
   (function() {
+    var SAMPLE_TYPE = {
+      COMPILER: 'compiler',
+      EXTERNAL: 'external',
+      GC: 'gc',
+      NATIVEV8: '[native v8]',
+      OTHER: 'other',
+      UNKNOWN: 'unknown'
+    };
+
     Polymer({
       created: function() {
         this.viewOption_ = undefined;
@@ -102,6 +111,78 @@ found in the LICENSE file.
         return builder.buildView(viewOption);
       },
 
+      // Constructs function name and file name of sample
+      // if it is compiler, external, gc, other, or unknown.
+      processTypedSampleRow_: function(row) {
+        var title = row.title[0];
+        switch (title) {
+          case SAMPLE_TYPE.COMPILER:
+          case SAMPLE_TYPE.EXTERNAL:
+          case SAMPLE_TYPE.GC:
+          case SAMPLE_TYPE.OTHER:
+            row.functionName = title;
+            row.fileName = 'N/A';
+            return true;
+          case SAMPLE_TYPE.UNKNOWN:
+            row.functionName = SAMPLE_TYPE.UNKNOWN;
+            row.fileName = SAMPLE_TYPE.UNKNOWN;
+            return true;
+          default:
+            return false;
+        }
+      },
+
+      // Constructs function name and file name of native v8 sample.
+      processNativeV8SampleRow_: function(row) {
+        var title = row.title[0];
+        if (!title.includes(SAMPLE_TYPE.NATIVEV8))
+          return false;
+        var arr = title.split(SAMPLE_TYPE.NATIVEV8);
+        row.functionName = arr[0].trim();
+        if (row.functionName === '')
+          row.functionName = '(anonymous function)';
+        row.fileName = SAMPLE_TYPE.NATIVEV8;
+        var fileNameSuffix = arr[1].trim();
+        if (fileNameSuffix !== '')
+          row.fileName += ' ' + fileNameSuffix;
+        return true;
+      },
+
+      // Constructs function name and file name for sample.
+      processGeneralSampleRow_: function(row) {
+        var title = row.title[0];
+        var idx = title.lastIndexOf(' ');
+        if (idx === -1) {
+          row.functionName = title;
+          row.fileName = 'unknown';
+          return;
+        }
+        var prefix = title.substr(0, idx);
+        var suffix = title.substr(idx + 1);
+        if (suffix.startsWith('v8/')) {
+          row.functionName = suffix;
+          row.fileName = 'unknown';
+        } else if (suffix === '') {
+          row.functionName = prefix;
+          row.fileName = 'unknown';
+        } else if (prefix === '') {
+          row.functionName = '(anonymous function)';
+          row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
+        } else {
+          row.functionName = prefix;
+          row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
+        }
+      },
+
+      processSampleRows_: function(rows) {
+        rows.forEach(function(row) {
+          if (!this.processTypedSampleRow_(row) &&
+              !this.processNativeV8SampleRow_(row))
+            this.processGeneralSampleRow_(row);
+          this.processSampleRows_(row.subRows);
+        }, this);
+      },
+
       updateContents_: function() {
         if (this.selection === undefined) {
           this.$.table.tableColumns = [];
@@ -118,16 +199,25 @@ found in the LICENSE file.
           this.createPercentColumn_('Self', samplingData.total),
           this.createSamplesColumn_('Self'),
           {
-            title: 'Symbol',
-            value: function(row) { return row.title[0]; },
-            width: '250px',
+            title: 'Function Name',
+            value: function(row) { return row.functionName; },
+            width: '150px',
             cmp: function(a, b) {
-              return a.title[0].localeCompare(b.title[0]);
+              return a.functionName.localeCompare(b.functionName);
             },
             showExpandButtons: true
+          },
+          {
+            title: 'Location',
+            value: function(row) { return row.fileName; },
+            width: '250px',
+            cmp: function(a, b) {
+              return a.fileName.localeCompare(b.fileName);
+            }
           }
         ];
 
+        this.processSampleRows_(samplingData.subRows);
         this.$.table.tableColumns = columns;
         this.$.table.sortColumnIndex = 1 /* Total samples */;
         this.$.table.sortDescending = true;

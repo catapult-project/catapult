@@ -40,6 +40,7 @@ tr.b.unittest.testSuite(function() {
     view.style.height = '500px';
     this.addHTMLOutput(view);
     view.selection = selection;
+    return view;
   }
 
   test('instantiate_flat', function() {
@@ -63,6 +64,54 @@ tr.b.unittest.testSuite(function() {
       ['BBB', 'AAA', 'BBB'],
       ['BBB', 'AAA', 'BBB'],
       ['BBB', 'AAA', 'BBB']
+    ]);
+  });
+
+  test('processSampleRows', function() {
+    var view = instantiateWithTraces.call(this, [
+      ['gc'],
+      ['external'],
+      ['compiler'],
+      ['other'],
+      ['unknown'],
+      [' [native v8] promise.js:1'],
+      ['dispatch [native v8] promise.js:2'],
+      ['onDispatch http://google.com/a.js:1'],
+      [' http://google.com/a.js:2'],
+      ['f '],
+      ['v8/LoadTime'],
+      ['f']
+    ]);
+    var rows = view.$.table.tableRows;
+
+    assert.deepEqual(rows.map(r => r.functionName), [
+      'gc',
+      'external',
+      'compiler',
+      'other',
+      'unknown',
+      '(anonymous function)',
+      'dispatch',
+      'onDispatch',
+      '(anonymous function)',
+      'f',
+      'v8/LoadTime',
+      'f'
+    ]);
+
+    assert.deepEqual(rows.map(r => r.fileName), [
+      'N/A',
+      'N/A',
+      'N/A',
+      'N/A',
+      'unknown',
+      '[native v8] promise.js:1',
+      '[native v8] promise.js:2',
+      'a.js:1',
+      'a.js:2',
+      'unknown',
+      'unknown',
+      'unknown'
     ]);
   });
 });
