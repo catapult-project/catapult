@@ -9,9 +9,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-/**
- * @fileoverview Utilities for accessing trace data about the Chrome browser.
- */
 tr.exportTo('tr.model.helpers', function() {
   function ChromeRendererHelper(modelHelper, process) {
     tr.model.helpers.ChromeProcessHelper.call(this, modelHelper, process);
@@ -28,25 +25,29 @@ tr.exportTo('tr.model.helpers', function() {
     });
   };
 
+  // Returns true if there is either a main thread or a compositor thread.
   ChromeRendererHelper.isRenderProcess = function(process) {
-    if (!process.findAtMostOneThreadNamed('CrRendererMain'))
-      return false;
-    if (!process.findAtMostOneThreadNamed('Compositor'))
-      return false;
-    return true;
+    if (process.findAtMostOneThreadNamed('CrRendererMain'))
+      return true;
+    if (process.findAtMostOneThreadNamed('Compositor'))
+      return true;
+    return false;
   };
 
   ChromeRendererHelper.prototype = {
     __proto__: tr.model.helpers.ChromeProcessHelper.prototype,
 
+    // May be undefined.
     get mainThread() {
       return this.mainThread_;
     },
 
+    // May be undefined.
     get compositorThread() {
       return this.compositorThread_;
     },
 
+    // May be empty.
     get rasterWorkerThreads() {
       return this.rasterWorkerThreads_;
     }
