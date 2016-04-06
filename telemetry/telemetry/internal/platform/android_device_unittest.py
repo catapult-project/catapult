@@ -7,6 +7,7 @@ import unittest
 from telemetry import decorators
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import android_device
+from telemetry.internal.platform import remote_platform_options
 from telemetry.testing import system_stub
 import mock
 
@@ -86,7 +87,9 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
   @decorators.Enabled('android')
   def testAdbPickOneDeviceReturnsDeviceInstance(self):
     finder_options = browser_options.BrowserFinderOptions()
-    finder_options.device = '555d14fecddddddd'  # pick one
+    platform_options = remote_platform_options.AndroidPlatformOptions(
+        device='555d14fecddddddd')  # pick one
+    finder_options.remote_platform_options = platform_options
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c'),

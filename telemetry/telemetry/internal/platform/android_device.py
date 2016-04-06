@@ -99,21 +99,22 @@ Waiting for device...
 
 def GetDevice(finder_options):
   """Return a Platform instance for the device specified by |finder_options|."""
+  android_platform_options = finder_options.remote_platform_options
   if not CanDiscoverDevices():
     logging.info(
         'No adb command found. Will not try searching for Android browsers.')
     return None
 
-  if finder_options.android_blacklist_file:
+  if android_platform_options.android_blacklist_file:
     blacklist = device_blacklist.Blacklist(
-        finder_options.android_blacklist_file)
+        android_platform_options.android_blacklist_file)
   else:
     blacklist = None
 
-  if (finder_options.device
-      and finder_options.device in GetDeviceSerials(blacklist)):
+  if (android_platform_options.device
+      and android_platform_options.device in GetDeviceSerials(blacklist)):
     return AndroidDevice(
-        finder_options.device,
+        android_platform_options.device,
         enable_performance_mode=not finder_options.no_performance_mode)
 
   devices = AndroidDevice.GetAllConnectedDevices(blacklist)
@@ -181,12 +182,14 @@ def CanDiscoverDevices():
 def FindAllAvailableDevices(options):
   """Returns a list of available devices.
   """
+  android_platform_options = options.remote_platform_options
   devices = []
   try:
     if CanDiscoverDevices():
       blacklist = None
-      if options.android_blacklist_file:
-        blacklist = device_blacklist.Blacklist(options.android_blacklist_file)
+      if android_platform_options.android_blacklist_file:
+        blacklist = device_blacklist.Blacklist(
+            android_platform_options.android_blacklist_file)
       devices = AndroidDevice.GetAllConnectedDevices(blacklist)
   finally:
     if not devices and _HasValidAdb():

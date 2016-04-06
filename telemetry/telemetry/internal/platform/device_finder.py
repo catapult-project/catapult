@@ -28,13 +28,16 @@ def _GetAllAvailableDevices(options):
 def GetDevicesMatchingOptions(options):
   """Returns a list of devices matching the options."""
   devices = []
-  if not options.device or options.device == 'list':
+  remote_platform_options = options.remote_platform_options
+  if (not remote_platform_options.device or
+      remote_platform_options.device == 'list'):
     devices = _GetAllAvailableDevices(options)
-  elif options.device == 'android':
+  elif remote_platform_options.device == 'android':
     devices = android_device.FindAllAvailableDevices(options)
   else:
     devices = _GetAllAvailableDevices(options)
-    devices = [d for d in devices if d.guid == options.device]
+    devices = [d for d in devices if d.guid ==
+               options.remote_platform_options.device]
 
   devices.sort(key=lambda device: device.name)
   return devices

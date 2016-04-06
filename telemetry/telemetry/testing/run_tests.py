@@ -257,12 +257,13 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
         level=logging.INFO,
         format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d'
               '  %(message)s')
-  if args.device and args.device == 'android':
+  if args.remote_platform_options.device == 'android':
     android_devices = android_device.FindAllAvailableDevices(args)
     if not android_devices:
       raise RuntimeError("No Android device found")
     android_devices.sort(key=lambda device: device.name)
-    args.device = android_devices[child.worker_num-1].guid
+    args.remote_platform_options.device = (
+        android_devices[child.worker_num-1].guid)
   options_for_unittests.Push(args)
 
 

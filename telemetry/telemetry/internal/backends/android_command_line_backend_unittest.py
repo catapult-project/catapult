@@ -25,7 +25,7 @@ class _MockBackendSettings(object):
 class AndroidCommandLineBackendTest(unittest.TestCase):
 
   def _GetDeviceForTest(self):
-    serial = options_for_unittests.GetCopy().device
+    serial = options_for_unittests.GetCopy().remote_platform_options.device
     if serial:
       device = device_utils.DeviceUtils(serial)
       return device
