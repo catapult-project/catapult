@@ -40,46 +40,11 @@ tr.b.unittest.testSuite(function() {
     '2.000000 1.000000 4000.000000'
   ];
 
-  var SYSTRACE_LINES = [
-    '# tracer: nop',
-    '#',
-    '# entries-in-buffer/entries-written: 88819/134210   #P:1',
-    '#',
-    '#                              _-----=> irqs-off',
-    '#                             / _----=> need-resched',
-    '#                            | / _---=> hardirq/softirq',
-    '#                            || / _--=> preempt-depth',
-    '#                            ||| /     delay',
-    '#           TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION',
-    '#              | |       |   ||||       |         |',
-    'sh-8550  [001] ...1 0.000000: tracing_mark_write: ' +
-    'trace_event_clock_sync: name=battor regulator=test_regulator',
-    '<8520>-8520  [001] ...1 0.000000: regulator_enable: name=test_regulator',
-    '<8520>-8520  [001] ...1 0.000100: regulator_disable: name=test_regulator',
-    'sh-8550  [001] ...1     0.001000: tracing_mark_write: ' +
-    'trace_event_clock_sync: name=battor regulator=test_regulator'
-  ];
-
   test('canImport', function() {
     assert.isFalse(tr.e.importer.battor.BattorImporter.canImport('string'));
     assert.isFalse(tr.e.importer.battor.BattorImporter.canImport([]));
     assert.isTrue(tr.e.importer.battor.BattorImporter.canImport(
         BATTOR_LINES.join('\n')));
-  });
-
-  test('importCrossCorrelationSync', function() {
-    var m = tr.c.TestUtils.newModelWithEvents(
-        [SYSTRACE_LINES.join('\n'), BATTOR_LINES.join('\n')]);
-
-    assert.isDefined(m.device.powerSeries);
-
-    // Check to see if time shifted correctly
-    m.getAllCounters().forEach(function(counter) {
-      var series = counter.getSeries(0);
-      if (counter.id === 'null.vreg test_regulator enabled')
-        assert.equal(series.getTimestamp(0), 2.0);
-    });
-    assert.equal(m.device.powerSeries.samples[1].start, 0.5);
   });
 
   test('importExplicitClockSync', function() {
@@ -102,25 +67,6 @@ tr.b.unittest.testSuite(function() {
   test('importMissingLinuxTrace', function() {
     var m = tr.c.TestUtils.newModelWithEvents(BATTOR_LINES.join('\n'));
     assert.isTrue(m.hasImportWarnings);
-  });
-
-  test('crossCorrelateWithoutSyncMarkers', function() {
-    // Create model.
-    var m = new tr.Model();
-    var io = new tr.importer.ImportOptions();
-    io.showImportWarnings = false;
-    m.importOptions = io;
-
-    // Create importer and import power trace.
-    var importer = new tr.e.importer.battor.BattorImporter(
-        m, BATTOR_LINES.join('\n'));
-    var series = new tr.model.PowerSeries(m.device);
-    importer.importPowerSamples(series);
-
-    // Check to make sure corrleation sync fails because there are no marks.
-    var syncMarks = [];
-    assert.isUndefined(importer.correlationClockSync(series, syncMarks));
-    assert.isUndefined(m.device.powerSeries);
   });
 
   test('explicitClockSyncWithoutSyncMarkers', function() {
@@ -155,5 +101,8 @@ tr.b.unittest.testSuite(function() {
         BATTOR_LINES.slice(0, 5).join('\n'));
     assert.isTrue(m.hasImportWarnings);
   });
+
+  // TODO(charliea): Once systrace/BattOr sync is working, add a test here
+  // verifying such.
 });
 </script>

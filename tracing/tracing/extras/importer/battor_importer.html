@@ -83,19 +83,11 @@ tr.exportTo('tr.e.importer.battor', function() {
       var series = new tr.model.PowerSeries(this.model_.device);
       this.importPowerSamples(series);
 
-      // Find the sync markers that are identified as being for the BattOr.
-      var battorSyncMarks = this.model_.getClockSyncRecordsWithSyncId('battor');
-
-      // Try each of the clock sync techinques in order of their accuracy.
-      var shiftTs = undefined;
-      shiftTs = this.correlationClockSync(battorSyncMarks, series);
-      if (shiftTs === undefined)
-        shiftTs = this.explicitClockSync();
-
+      var shiftTs = this.explicitClockSync();
       if (shiftTs === undefined) {
         this.model_.importWarning({
           type: 'clock_sync',
-          message: 'All of the BattOr power trace clock sync techinques failed.'
+          message: 'No clock sync marker for the BattOr could be found.'
         });
         return;
       }
@@ -152,106 +144,6 @@ tr.exportTo('tr.e.importer.battor', function() {
           }
         }
       }, this);
-    },
-
-    correlationClockSync: function(syncMarks, series) {
-      // Check for the two markers that surround the sync signal are present.
-      if (syncMarks.length !== 2)
-        return undefined;
-
-      // Find the regulator counter for the sync.
-      var syncCtr = this.model_.kernel.counters[
-          'null.vreg ' + syncMarks[0].args['regulator'] + ' enabled'];
-      if (syncCtr === undefined) {
-        this.model_.importWarning({
-          type: 'clock_sync',
-          message: 'Cannot correlate BattOr power trace without sync vreg.'
-        });
-        return undefined;
-      }
-
-      // Store the sync events from the regulator counter.
-      var syncEvents = [];
-      var firstSyncEventTs = undefined;
-      syncCtr.series[0].iterateAllEvents(function(event) {
-        if (event.timestamp >= syncMarks[0].start &&
-            event.timestamp <= syncMarks[1].start) {
-          if (firstSyncEventTs === undefined)
-            firstSyncEventTs = event.timestamp;
-          var newEvent = {
-              'ts': (event.timestamp - firstSyncEventTs) / 1000, // msec -> sec
-              'val': event.value};
-          syncEvents.push(newEvent);
-        }
-      });
-
-      // Generate samples from sync events to be cross-correlated with power.
-      var syncSamples = [];
-      var syncNumSamples = Math.ceil(
-          syncEvents[syncEvents.length - 1].ts * this.sampleRate_
-      );
-
-      for (var i = 1; i < syncEvents.length; i++) {
-        var sampleStartIdx = Math.ceil(
-            syncEvents[i - 1].ts * this.sampleRate_
-        );
-        var sampleEndIdx = Math.ceil(
-            syncEvents[i].ts * this.sampleRate_
-        );
-
-        for (var j = sampleStartIdx; j < sampleEndIdx; j++) {
-          syncSamples[j] = syncEvents[i - 1].val;
-        }
-      }
-
-      // TODO(aschulman) Low-pass the samples to improve the cross-correlation.
-
-      var powerSamples = series.samples;
-      // Check to make sure there are enough power samples.
-      if (powerSamples.length < syncSamples.length) {
-        this.model_.importWarning({
-          type: 'not_enough_samples',
-          message: 'Not enough power samples to correlate with sync signal.'
-        });
-        return undefined;
-      }
-
-      // Cross-correlate the ground truth with the last 5s of power samples.
-      var maxShift = powerSamples.length - syncSamples.length;
-      var minShift = 0;
-      var corrNumSamples = this.sampleRate_ * 5.0;
-      if (powerSamples.length > corrNumSamples)
-        minShift = powerSamples.length - corrNumSamples;
-
-      var corr = [];
-      for (var shift = minShift; shift <= maxShift; shift++) {
-        var corrSum = 0;
-        var powerAvg = 0;
-        for (var i = 0; i < syncSamples.length; i++) {
-          corrSum += (powerSamples[i + shift].power * syncSamples[i]);
-          powerAvg += powerSamples[i + shift].power;
-        }
-        powerAvg = powerAvg / syncSamples.length;
-        corr.push(corrSum / powerAvg);
-      }
-
-      // Find the sync start time (peak of the cross-correlation).
-      var corrPeakIdx = 0;
-      var corrPeak = 0;
-      for (var i = 0; i < powerSamples.length; i++) {
-        if (corr[i] > corrPeak) {
-          corrPeak = corr[i];
-          corrPeakIdx = i;
-        }
-      }
-
-      // Shift the time of the power samples by the recovered sync start time.
-      var corrPeakTs = ((minShift + corrPeakIdx) / this.sampleRate_);
-      corrPeakTs *= 1000; // sec -> msec
-      var syncStartTs = firstSyncEventTs - this.model_.bounds.min;
-      var shiftTs = syncStartTs - corrPeakTs;
-
-      return shiftTs;
     },
 
     explicitClockSync: function() {
