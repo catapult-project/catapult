@@ -1,0 +1,27 @@
+{
+  "config_type": "BaseConfig",
+  "dependencies": {
+    "battor_agent_binary": {
+      "cloud_storage_base_folder": "binary_dependencies/battor",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux2_x86_64": {
+          "cloud_storage_hash": "b07350155f6a30ca79afa344ec5f9c0dc071eedc",
+          "download_path": "../bin/linux2/x86_64/battor_agent"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "b8d590745daf2448609a81bd30d864fe98c68ec7",
+          "download_path": "../bin/mac/x86_64/battor_agent"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "144e6c466d56ca7954890142f85f0063f455d635",
+          "download_path": "../bin/win/AMD64/battor_agent"
+        },
+        "win_x86": {
+          "cloud_storage_hash": "144e6c466d56ca7954890142f85f0063f455d635",
+          "download_path": "../bin/win/x86_64/battor_agent"
+        }
+      }
+    }
+  }
+}
