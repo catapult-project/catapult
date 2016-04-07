@@ -319,6 +319,7 @@
       'tracing/ui/base/event_presenter.html',
       'tracing/ui/base/fast_rect_renderer.html',
       'tracing/ui/base/favicons.html',
+      'tracing/ui/base/file.html',
       'tracing/ui/base/grouping_table.html',
       'tracing/ui/base/grouping_table_groupby_picker.html',
       'tracing/ui/base/heading.html',

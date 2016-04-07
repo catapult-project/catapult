@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/mre/mre_result.html">
+<link rel="import" href="/tracing/extras/full_config.html">
+<link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/metrics/all_metrics.html">
+<link rel="import" href="/tracing/metrics/metric_map_function.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/file.html">
+<link rel="import" href="/tracing/ui/base/ui.html">
+
+<polymer-element name="tracing-ui-metrics-debugger-app">
+  <template>
+    <style>
+      pre {
+        overflow: auto;
+      }
+      #bar {
+        display: flex;
+        flex-direction: row;
+        padding: 1px 6px;
+      }
+    </style>
+
+    <top-left-controls id="top_left_controls"></top-left-controls>
+    <input id="load_trace" type="file"/>
+    <button id="run_metric">Run metric</button>
+    <div id="trace_info"></div>
+    <pre id="map_results">
+    </pre>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui', function() {
+  Polymer('tracing-ui-metrics-debugger-app', {
+    created: function() {
+      this.metrics_ = [];
+      tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(
+          function(m) {
+            this.metrics_.push({
+              label: m.constructor.name,
+              value: m.constructor.name
+            });
+          }, this);
+      this.activeTrace_ = undefined;
+      this.settingsKey_ = undefined;
+      this.currentMetricName_ = undefined;
+      this.settingsKey_ = 'metrics-debugger-app-metric-name';
+    },
+
+    ready: function() {
+      var metricSelector = tr.ui.b.createSelector(
+          this, 'currentMetricName_',
+          this.settingsKey_,
+          this.metrics_[0].value,
+          this.metrics_);
+      this.$.top_left_controls.appendChild(metricSelector);
+
+      this.$.load_trace.addEventListener('change', function(event) {
+        var file = event.target.files[0];
+        this.onTraceFileSelected_(file);
+      }.bind(this));
+      this.$.run_metric.addEventListener(
+          'click', function(event) {
+            event.stopPropagation();
+            this.onRunMetricClicked_();
+          }.bind(this));
+    },
+
+    onRunMetricClicked_: function() {
+      if (this.activeTrace_ === undefined) {
+        tr.ui.b.Overlay.showError('You must load a trace first!');
+        return;
+      }
+      var result = new pi.mre.MreResult();
+      var model = this.activeTrace_.model;
+      var options = {metric: this.currentMetricName_};
+      try {
+        tr.metrics.metricMapFunction(result, model, options);
+        this.$.map_results.textContent = 'Metric result:\n' +
+            JSON.stringify(result.asDict(), undefined, 2);
+      } catch (err) {
+        tr.ui.b.Overlay.showError('Error running metric:\n' + err.stack);
+        console.error(err);
+      }
+    },
+
+    onTraceFileSelected_: function(file) {
+      tr.ui.b.readFile(file).then(
+          function(data) {
+            this.setActiveTrace(file.name, data);
+          }.bind(this),
+          function(err) {
+            tr.ui.b.Overlay.showError('Error while loading file: ' + err);
+          });
+    },
+
+    setActiveTrace: function(filename, data) {
+      var model = new tr.Model();
+      var importOptions = new tr.importer.ImportOptions();
+      importOptions.pruneEmptyContainers = false;
+      importOptions.showImportWarnings = true;
+      importOptions.trackDetailedModelStats = true;
+
+      var i = new tr.importer.Import(model, importOptions);
+      i.importTracesWithProgressDialog([data]).then(
+          function() {
+            this.activeTrace_ = {
+              filename: filename,
+              model: model,
+            };
+            this.$.trace_info.textContent = 'Trace file ' + filename +
+                ' is loaded.';
+          }.bind(this),
+          function(err) {
+            tr.ui.b.Overlay.showError('Trace import error: ' + err);
+            console.error(err);
+          });
+    },
+  });
+  return {};
+});
+</script>

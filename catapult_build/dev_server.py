@@ -35,8 +35,10 @@ _MAIN_HTML = """<html><body>
 _QUICK_LINKS = [
     ('Trace File Viewer',
      '/tracing_examples/trace_viewer.html'),
+    ('Metrics debugger',
+     '/tracing_examples/metrics_debugger.html'),
     ('Perf Insights Viewer',
-     '/perf_insights_examples/perf_insights_viewer.html')
+     '/perf_insights_examples/perf_insights_viewer.html'),
 ]
 
 _LINK_ITEM = '<li><a href="%s">%s</a></li>'
