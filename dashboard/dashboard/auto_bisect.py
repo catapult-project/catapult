@@ -166,7 +166,8 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if not bisect_bot or '_' not in bisect_bot:
     raise NotBisectableError('Could not select a bisect bot.')
 
-  use_recipe = bool(start_try_job.GetBisectDirectorForTester(bisect_bot))
+  use_recipe = bool(start_try_job.GetBisectDirectorForTester(
+      test.master_name, bisect_bot))
 
   new_bisect_config = start_try_job.GetBisectConfig(
       bisect_bot=bisect_bot,

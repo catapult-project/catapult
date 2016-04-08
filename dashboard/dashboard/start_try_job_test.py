@@ -16,7 +16,6 @@ from dashboard import can_bisect
 from dashboard import namespaced_stored_object
 from dashboard import rietveld_service
 from dashboard import start_try_job
-from dashboard import stored_object
 from dashboard import testing_common
 from dashboard.models import bug_data
 from dashboard.models import graph_data
@@ -317,12 +316,6 @@ class StartBisectTest(testing_common.TestCase):
 
   def setUp(self):
     super(StartBisectTest, self).setUp()
-    stored_object.Set(
-        start_try_job._TESTER_DIRECTOR_MAP_KEY,
-        {
-            'linux_perf_tester': 'linux_perf_bisector',
-            'win64_nv_tester': 'linux_perf_bisector',
-        })
     app = webapp2.WSGIApplication(
         [('/start_try_job', start_try_job.StartBisectHandler)])
     self.testapp = webtest.TestApp(app)
@@ -352,6 +345,19 @@ class StartBisectTest(testing_common.TestCase):
             ['win_x64', 'release_x64'],
             ['', 'release'],
         ])
+    namespaced_stored_object.Set(
+        start_try_job._TESTER_DIRECTOR_MAP_KEY,
+        {
+            'ChromiumPerf': {
+                'linux_perf_tester': 'linux_perf_bisector',
+                'win64_nv_tester': 'linux_perf_bisector',
+            }
+        })
+    namespaced_stored_object.Set(
+        start_try_job._MASTER_BUILDBUCKET_MAP_KEY,
+        {
+            'ChromiumPerf': 'master.tryserver.chromium.perf'
+        })
     testing_common.SetSheriffDomains(['chromium.org'])
     # Add fake Rietveld auth info.
     rietveld_config = rietveld_service.RietveldConfig(
