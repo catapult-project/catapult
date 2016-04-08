@@ -64,6 +64,14 @@ def list_categories(options):
   devutils = device_utils.DeviceUtils(options.device_serial)
   print '\n'.join(devutils.RunShellCommand(LIST_CATEGORIES_ARGS))
 
+def get_available_categories(options):
+  """Gets the list of atrace categories available for tracing.
+  Args:
+      options: Tracing options.
+  """
+  devutils = device_utils.DeviceUtils(options.device_serial)
+  categories_output = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
+  return [c.split('-')[0].strip() for c in categories_output]
 
 def try_create_agent(options):
   if options.target != 'android':
@@ -102,7 +110,12 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._options = options
     self._categories = categories
     if not self._categories:
-      self._categories = get_default_categories(self._options.device_serial)
+      self._categories = DEFAULT_CATEGORIES
+    avail_cats = get_available_categories(options)
+    unavailable = [x for x in self._categories if x not in avail_cats]
+    self._categories = [x for x in self._categories if x in avail_cats]
+    if unavailable:
+      print 'These categories are unavailable: ' + ' '.join(unavailable)
     self._tracer_args = self._construct_trace_command()
 
     self._adb = do_popen(self._tracer_args)
