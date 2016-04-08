@@ -713,7 +713,7 @@ class DeviceUtils(object):
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RunShellCommand(self, cmd, check_return=False, cwd=None, env=None,
                       as_root=False, single_line=False, large_output=False,
-                      timeout=None, retries=None):
+                      raw_output=False, timeout=None, retries=None):
     """Run an ADB shell command.
 
     The command to run |cmd| should be a sequence of program arguments or else
@@ -748,6 +748,8 @@ class DeviceUtils(object):
         expected.
       large_output: Uses a work-around for large shell command output. Without
         this large output will be truncated.
+      raw_output: Whether to only return the raw output
+          (no splitting into lines).
       timeout: timeout in seconds
       retries: number of retries
 
@@ -824,8 +826,12 @@ class DeviceUtils(object):
       # "su -c sh -c" allows using shell features in |cmd|
       cmd = self._Su('sh -c %s' % cmd_helper.SingleQuote(cmd))
 
-    output = handle_large_output(cmd, large_output).splitlines()
+    output = handle_large_output(cmd, large_output)
 
+    if raw_output:
+      return output
+
+    output = output.splitlines()
     if single_line:
       if not output:
         return ''

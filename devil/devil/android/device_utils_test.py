@@ -854,6 +854,12 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
       self.assertEquals(['file1', 'file2', 'file3'],
                         self.device.RunShellCommand(cmd))
 
+  def testRunShellCommand_manyLinesRawOutput(self):
+    cmd = 'ls /some/path'
+    with self.assertCall(self.call.adb.Shell(cmd), '\rfile1\nfile2\r\nfile3\n'):
+      self.assertEquals('\rfile1\nfile2\r\nfile3\n',
+                        self.device.RunShellCommand(cmd, raw_output=True))
+
   def testRunShellCommand_singleLine_success(self):
     cmd = 'echo $VALUE'
     with self.assertCall(self.call.adb.Shell(cmd), 'some value\n'):
