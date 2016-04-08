@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel='import' href='/tracing/base/multi_dimensional_view.html'>
 <link rel='import' href='/tracing/core/test_utils.html'>
 <link rel='import' href='/tracing/model/heap_dump.html'>
+<link rel='import' href='/tracing/model/memory_dump_test_utils.html'>
 <link rel='import'
     href='/tracing/ui/analysis/memory_dump_heap_details_pane.html'>
 <link rel='import'
@@ -31,8 +32,8 @@ tr.b.unittest.testSuite(function() {
   var TitleColumn = tr.ui.analysis.TitleColumn;
   var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
-  var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var checkColumns = tr.ui.analysis.checkColumns;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;

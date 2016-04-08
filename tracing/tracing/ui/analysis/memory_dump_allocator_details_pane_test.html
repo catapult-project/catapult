@@ -30,8 +30,6 @@ tr.b.unittest.testSuite(function() {
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var HeapDump = tr.model.HeapDump;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
-  var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
   var checkNumericFields = tr.ui.analysis.checkNumericFields;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var checkStringFields = tr.ui.analysis.checkStringFields;
@@ -43,6 +41,8 @@ tr.b.unittest.testSuite(function() {
   var SizeColumn = tr.ui.analysis.SizeColumn;
   var StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
   var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;

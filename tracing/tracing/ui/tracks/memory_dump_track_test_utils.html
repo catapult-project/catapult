@@ -25,6 +25,8 @@ tr.exportTo('tr.ui.tracks', function() {
   var VMRegion = tr.model.VMRegion;
   var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
   var SelectionState = tr.model.SelectionState;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
@@ -72,15 +74,13 @@ tr.exportTo('tr.ui.tracks', function() {
     return tr.b.dictionaryValues(allocatorDumps);
   }
 
-  function addProcessMemoryDump(globalMemoryDump, process, start,
+  function addProcessMemoryDumpWithFields(globalMemoryDump, process, start,
       opt_pssValues, opt_dumpData) {
-    var pmd = new ProcessMemoryDump(globalMemoryDump, process, start);
+    var pmd = addProcessMemoryDump(globalMemoryDump, process, start);
     if (opt_pssValues !== undefined)
       pmd.vmRegions = createVMRegions(opt_pssValues);
     if (opt_dumpData !== undefined)
       pmd.memoryAllocatorDumps = createAllocatorDumps(pmd, opt_dumpData);
-    globalMemoryDump.processMemoryDumps[process.pid] = pmd;
-    process.memoryDumps.push(pmd);
   }
 
   function createModelWithDumps(withVMRegions, withAllocatorDumps) {
@@ -96,34 +96,26 @@ tr.exportTo('tr.ui.tracks', function() {
       var pb = model.getOrCreateProcess(6);
       var pc = model.getOrCreateProcess(9);
 
-      var gmd1 = new GlobalMemoryDump(model, 0);
-      // Intentionally undefined level of detail.
-      model.globalMemoryDumps.push(gmd1);
-      addProcessMemoryDump(gmd1, pa, 0, maybePssValues([111]));
-      addProcessMemoryDump(gmd1, pb, 0.2, undefined,
+      var gmd1 = addGlobalMemoryDump(model, 0, LIGHT);
+      addProcessMemoryDumpWithFields(gmd1, pa, 0, maybePssValues([111]));
+      addProcessMemoryDumpWithFields(gmd1, pb, 0.2, undefined,
           maybeDumpData({oilpan: {size: 1024}}));
 
-      var gmd2 = new GlobalMemoryDump(model, 5);
-      gmd2.levelOfDetail = DETAILED;
-      model.globalMemoryDumps.push(gmd2);
-      addProcessMemoryDump(gmd2, pa, 0);
-      addProcessMemoryDump(gmd2, pb, 4.99, maybePssValues([100, 50]),
+      var gmd2 = addGlobalMemoryDump(model, 5, DETAILED);
+      addProcessMemoryDumpWithFields(gmd2, pa, 0);
+      addProcessMemoryDumpWithFields(gmd2, pb, 4.99, maybePssValues([100, 50]),
           maybeDumpData({v8: {size: 512}}));
-      addProcessMemoryDump(gmd2, pc, 5.12, undefined,
+      addProcessMemoryDumpWithFields(gmd2, pc, 5.12, undefined,
           maybeDumpData({oilpan: {size: 128, owns: 'v8'},
               v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
-      var gmd3 = new GlobalMemoryDump(model, 15);
-      gmd3.levelOfDetail = DETAILED;
-      model.globalMemoryDumps.push(gmd3);
-      addProcessMemoryDump(gmd3, pa, 15.5, maybePssValues([]),
+      var gmd3 = addGlobalMemoryDump(model, 15, DETAILED);
+      addProcessMemoryDumpWithFields(gmd3, pa, 15.5, maybePssValues([]),
           maybeDumpData({v8: {size: 768}}));
-      addProcessMemoryDump(gmd3, pc, 14.5, maybePssValues([70, 70, 70]),
-          maybeDumpData({oilpan: {size: 512}}));
+      addProcessMemoryDumpWithFields(gmd3, pc, 14.5,
+          maybePssValues([70, 70, 70]), maybeDumpData({oilpan: {size: 512}}));
 
-      var gmd4 = new GlobalMemoryDump(model, 18);
-      gmd4.levelOfDetail = LIGHT;
-      model.globalMemoryDumps.push(gmd4);
+      var gmd4 = addGlobalMemoryDump(model, 18, LIGHT);
     });
   }
 

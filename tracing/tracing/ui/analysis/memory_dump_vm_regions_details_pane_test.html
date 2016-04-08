@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import"
@@ -26,19 +27,20 @@ tr.b.unittest.testSuite(function() {
   var StringMemoryColumn = tr.ui.analysis.StringMemoryColumn;
   var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
-  var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
-  var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var checkStringFields = tr.ui.analysis.checkStringFields;
   var checkColumns = tr.ui.analysis.checkColumns;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
+  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
   function createVMRegions() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
 
       // First timestamp.
-      var gmd1 = addGlobalMemoryDump(model, 42);
+      var gmd1 = addGlobalMemoryDump(model, 42, DETAILED);
       var pmd1 = addProcessMemoryDump(gmd1, process, 42);
       pmd1.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
@@ -113,7 +115,7 @@ tr.b.unittest.testSuite(function() {
       ];
 
       // Second timestamp.
-      var gmd2 = addGlobalMemoryDump(model, 42);
+      var gmd2 = addGlobalMemoryDump(model, 42, DETAILED);
       var pmd2 = addProcessMemoryDump(gmd2, process, 42);
       pmd2.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({

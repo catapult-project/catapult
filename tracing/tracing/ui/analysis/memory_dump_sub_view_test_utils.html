@@ -35,6 +35,8 @@ tr.exportTo('tr.ui.analysis', function() {
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
   var HeapDump = tr.model.HeapDump;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
@@ -468,24 +470,6 @@ tr.exportTo('tr.ui.analysis', function() {
     return paneEl;
   }
 
-  function addGlobalMemoryDump(model, timestamp) {
-    var gmd = new GlobalMemoryDump(model, timestamp);
-    model.globalMemoryDumps.push(gmd);
-    return gmd;
-  }
-
-  function addProcessMemoryDump(gmd, process, timestamp) {
-    var pmd = new ProcessMemoryDump(gmd, process, timestamp);
-    process.memoryDumps.push(pmd);
-    if (process.pid in gmd.processMemoryDumps) {
-      // Test sanity check.
-      throw new Error('Process memory dump for process with pid=' +
-          process.pid + ' has already been provided');
-    }
-    gmd.processMemoryDumps[process.pid] = pmd;
-    return pmd;
-  }
-
   // TODO(petrcermak): Consider moving this to tracing/ui/base/dom_helpers.html.
   function isElementDisplayed(element) {
     var style = getComputedStyle(element);
@@ -558,8 +542,6 @@ tr.exportTo('tr.ui.analysis', function() {
   }
 
   return {
-    addGlobalMemoryDump: addGlobalMemoryDump,
-    addProcessMemoryDump: addProcessMemoryDump,
     createSingleTestGlobalMemoryDump: createSingleTestGlobalMemoryDump,
     createMultipleTestGlobalMemoryDumps: createMultipleTestGlobalMemoryDumps,
     createSingleTestProcessMemoryDump: createSingleTestProcessMemoryDump,

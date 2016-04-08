@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_overview_pane.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
@@ -32,8 +33,8 @@ tr.b.unittest.testSuite(function() {
   var extractVmRegions = tr.ui.analysis.extractVmRegions;
   var extractMemoryAllocatorDumps = tr.ui.analysis.extractMemoryAllocatorDumps;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
-  var addProcessMemoryDump = tr.ui.analysis.addProcessMemoryDump;
-  var addGlobalMemoryDump = tr.ui.analysis.addGlobalMemoryDump;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
   var ProcessNameColumn = tr.ui.analysis.ProcessNameColumn;
   var UsedMemoryColumn = tr.ui.analysis.UsedMemoryColumn;
   var PeakMemoryColumn = tr.ui.analysis.PeakMemoryColumn;
