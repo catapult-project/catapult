@@ -37,7 +37,6 @@ TRACE_BOOT_CMD = (ADB_SHELL +
 TEST_DIR = os.path.join(os.path.dirname(__file__), os.pardir, 'test_data')
 ATRACE_DATA = os.path.join(TEST_DIR, 'atrace_data')
 ATRACE_DATA_RAW = os.path.join(TEST_DIR, 'atrace_data_raw')
-ATRACE_DATA_RAW_FROM_FILE = os.path.join(TEST_DIR, 'atrace_data_raw_from_file')
 ATRACE_DATA_STRIPPED = os.path.join(TEST_DIR, 'atrace_data_stripped')
 ATRACE_DATA_THREAD_FIXED = os.path.join(TEST_DIR, 'atrace_data_thread_fixed')
 ATRACE_DATA_WITH_THREAD_LIST = os.path.join(TEST_DIR,
@@ -72,16 +71,6 @@ class AtraceAgentTest(unittest.TestCase):
       agent._categories = categories
       trace_data = agent._preprocess_trace_data(atrace_data_raw)
       self.assertEqual(atrace_data, trace_data)
-
-  def test_construct_trace_from_file_command(self):
-    options, categories = run_systrace.parse_options(['run_systrace.py',
-        '--from-file', ATRACE_DATA_RAW_FROM_FILE])
-    agent = atrace_agent.try_create_agent(options)
-    agent._options = options
-    agent._categories = categories
-    tracer_args = agent._construct_trace_command()
-    self.assertEqual(' '.join(['cat', ATRACE_DATA_RAW_FROM_FILE]),
-            ' '.join(tracer_args))
 
   def test_extract_thread_list(self):
     with contextlib.nested(open(ATRACE_EXTRACTED_THREADS, 'r'),

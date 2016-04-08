@@ -69,7 +69,7 @@ def try_create_agent(options):
   if options.target != 'android':
     return False
   if options.from_file is not None:
-    return AtraceAgent()
+    return False
 
   device_sdk_version = util.get_device_sdk_version()
   if device_sdk_version >= 18:
@@ -146,29 +146,26 @@ class AtraceAgent(tracing_agents.TracingAgent):
       the second element is a boolean which will be true if the commend will
       stream trace data.
     """
-    if self._options.from_file:
-      tracer_args = ['cat', self._options.from_file]
-    else:
-      atrace_args = ATRACE_BASE_ARGS[:]
-      if self._options.compress_trace_data:
-        atrace_args.extend(['-z'])
+    atrace_args = ATRACE_BASE_ARGS[:]
+    if self._options.compress_trace_data:
+      atrace_args.extend(['-z'])
 
-      if ((self._options.trace_time is not None)
-          and (self._options.trace_time > 0)):
-        atrace_args.extend(['-t', str(self._options.trace_time)])
+    if ((self._options.trace_time is not None)
+        and (self._options.trace_time > 0)):
+      atrace_args.extend(['-t', str(self._options.trace_time)])
 
-      if ((self._options.trace_buf_size is not None)
-          and (self._options.trace_buf_size > 0)):
-        atrace_args.extend(['-b', str(self._options.trace_buf_size)])
-      elif 'sched' in self._categories:
-        # 'sched' is a high-volume tag, double the default buffer size
-        # to accommodate that
-        atrace_args.extend(['-b', '4096'])
-      extra_args = self._construct_extra_trace_command()
-      atrace_args.extend(extra_args)
+    if ((self._options.trace_buf_size is not None)
+        and (self._options.trace_buf_size > 0)):
+      atrace_args.extend(['-b', str(self._options.trace_buf_size)])
+    elif 'sched' in self._categories:
+      # 'sched' is a high-volume tag, double the default buffer size
+      # to accommodate that
+      atrace_args.extend(['-b', '4096'])
+    extra_args = self._construct_extra_trace_command()
+    atrace_args.extend(extra_args)
 
-      tracer_args = util.construct_adb_shell_command(
-          atrace_args, self._options.device_serial)
+    tracer_args = util.construct_adb_shell_command(
+        atrace_args, self._options.device_serial)
 
     return tracer_args
 
