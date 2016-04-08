@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
+<link rel="import" href="/tracing/model/container_memory_dump.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
+<link rel="import" href="/tracing/model/vm_region.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var VMRegion = tr.model.VMRegion;
+  var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
+  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+  var SIZE_DELTA = tr.model.MemoryDumpTestUtils.SIZE_DELTA;
+  var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
+  var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
+  var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
+  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+
+  function memoryMetricTest(name, modelCallback, expectedNumerics) {
+    test(name, function() {
+      // Create a model and a fake value list.
+      var model = tr.c.TestUtils.newModel(modelCallback);
+      model.canonicalUrl = 'memory://metric.test.com';
+      var valueNameToValues = {};
+      var fakeValueList = {
+        addValue: function(value) {
+          var values = valueNameToValues[value.name];
+          if (values === undefined)
+            valueNameToValues[value.name] = values = [];
+          values.push(value);
+        }
+      };
+
+      // Run the memory metric on the model.
+      tr.metrics.sh.memoryMetric(fakeValueList, model);
+
+      // Check that the names of the added values match expectations.
+      var actualValueNames = Object.keys(valueNameToValues).sort();
+      var expectedValueNames = Object.keys(expectedNumerics).sort();
+      function valueNamesToString(type, valueNames) {
+        var lines = [type + ' value names:'];
+        if (valueNames.length === 0)
+          lines.push('(empty)');
+        else
+          lines.push.apply(lines, valueNames);
+        return lines.join('\n');
+      }
+      assert.deepEqual(actualValueNames, expectedValueNames,
+          valueNamesToString('Expected', expectedValueNames) + '\n' +
+          valueNamesToString('Actual', actualValueNames));
+
+      // Check that the numeric values of the added values match expectations.
+      tr.b.iterItems(valueNameToValues, function(valueName, actualValues) {
+        assert.lengthOf(actualValues, 1,
+            'Multiple \'' + valueName + '\' values');
+        var actualValue = actualValues[0];
+        assert.instanceOf(actualValue, tr.v.NumericValue);
+        assert.strictEqual(actualValue.canonicalUrl,
+            'memory://metric.test.com');
+
+        var actualNumeric = actualValue.numeric;
+        var expectedNumeric = expectedNumerics[valueName];
+        assert.strictEqual(actualNumeric.unit, expectedNumeric.unit,
+            'Invalid \'' + valueName + '\' unit (expected: ' +
+            expectedNumeric.unit.unitName, + ', actual: ' +
+            actualNumeric.unit.unitName + ')');
+
+        if (typeof expectedNumeric.value === 'number') {
+          // Scalar.
+          assert.instanceOf(actualNumeric, tr.v.ScalarNumeric,
+              'Invalid \'' + valueName + '\' class');
+          assert.closeTo(actualNumeric.value, expectedNumeric.value,
+              SIZE_DELTA, 'Invalid \'' + valueName + '\' numeric value');
+        } else if (expectedNumeric.value instanceof Array) {
+          // Histogram.
+          assert.instanceOf(actualNumeric, tr.v.Numeric,
+              'Invalid \'' + valueName + '\' class');
+          assert.strictEqual(actualNumeric.numValues,
+              expectedNumeric.value.length,
+              'Invalid \'' + valueName + '\' Numeric numValues');
+          assert.closeTo(actualNumeric.runningSum,
+              expectedNumeric.value.reduce((a, b) => a + b, 0), SIZE_DELTA,
+              'Invalid \'' + valueName + '\' Numeric runningSum');
+
+          // Check that the bin counts match.
+          var binToCount = new Map();
+          expectedNumeric.value.forEach(function(value) {
+            var bin = actualNumeric.getBinForValue(value);
+            binToCount.set(bin, (binToCount.get(bin) || 0) + 1);
+          });
+          actualNumeric.allBins.forEach(function(bin) {
+            binToCount.set(bin, (binToCount.get(bin) || 0) - bin.count);
+          });
+          binToCount.forEach(function(count, bin) {
+            assert.strictEqual(count, 0, 'Invalid \'' + valueName +
+                '\' bin count for range ' + bin.min + '-' + bin.max);
+          });
+        } else {
+          assert.fail(
+              'Test sanity check: expected value must be a number or an array');
+        }
+      });
+    });
+  }
+
+  function expectBytes(value) {
+    return { unit: tr.v.Unit.byName.sizeInBytes_smallerIsBetter, value: value };
+  }
+
+  function expectUnitless(value) {
+    return { unit: tr.v.Unit.byName.unitlessNumber, value: value };
+  }
+
+  function createProcessWithName(model, name) {
+    var uniquePid =
+        Math.max.apply(null, Object.keys(model.processes).concat([0])) + 1;
+    var process = model.getOrCreateProcess(uniquePid);
+    process.name = name;
+    return process;
+  }
+
+  memoryMetricTest('noDumps', undefined, {
+    'memory_dump_count_total': expectUnitless(0),
+    'memory_dump_count_light': expectUnitless(0),
+    'memory_dump_count_detailed': expectUnitless(0)
+  });
+
+  memoryMetricTest('dumpCountsOnly', function(model) {
+    addGlobalMemoryDump(model, 45, DETAILED);
+    addGlobalMemoryDump(model, 68, LIGHT);
+    addGlobalMemoryDump(model, 89, DETAILED);
+  }, {
+    'memory_dump_count_total': expectUnitless(3),
+    'memory_dump_count_light': expectUnitless(1),
+    'memory_dump_count_detailed': expectUnitless(2)
+  });
+
+  memoryMetricTest('allocatorValues', function(model) {
+    var pBrowser = createProcessWithName(model, 'Browser');
+    var pRendererA = createProcessWithName(model, 'Renderer');
+    var pRendererB = createProcessWithName(model, 'Renderer');
+    var pGpu = createProcessWithName(model, 'GPU Process');
+
+    // Timestamp 1.
+    var gmd1 = addGlobalMemoryDump(model, 20);
+    var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, 19);
+    pmdBrowser1.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser1, 'malloc', {
+        'size': 8,
+        'allocated_objects_size': 4
+      })
+    ];
+    var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, 20);
+    pmdRendererA1.memoryAllocatorDumps = (function() {
+      var mallocDump =
+          newAllocatorDump(pmdRendererA1, 'malloc', { 'size': 16 });
+      var partitionAllocDump =
+          newAllocatorDump(pmdRendererA1, 'partition_alloc');
+      addOwnershipLink(
+          newChildDump(partitionAllocDump, 'allocated_objects', { 'size': 32 }),
+          newChildDump(partitionAllocDump, 'partitions', { 'size': 24 }));
+      return [mallocDump, partitionAllocDump];
+    })();
+    var pmdGpu1 = addProcessMemoryDump(gmd1, pGpu, 21);
+    pmdGpu1.memoryAllocatorDumps = [
+      newAllocatorDump(pmdGpu1, 'gpu', {
+        'size': 30,
+        'allocated_objects_size': 25
+      })
+    ];
+
+    // Timestamp 2.
+    var gmd2 = addGlobalMemoryDump(model, 40);
+    var pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, 41);
+    pmdBrowser2.memoryAllocatorDumps = (function() {
+      var mallocDump = newAllocatorDump(pmdBrowser2, 'malloc', { 'size': 120 });
+      var tracingDump =
+          newAllocatorDump(pmdBrowser2, 'tracing', { 'size': 40 });
+      return [mallocDump, tracingDump];
+    })();
+    var pmdRendererA2 = addProcessMemoryDump(gmd2, pRendererA, 39);
+    pmdRendererA2.memoryAllocatorDumps = (function() {
+      var partitionAllocDump =
+          newAllocatorDump(pmdRendererA2, 'partition_alloc');
+      addOwnershipLink(
+          newChildDump(partitionAllocDump, 'allocated_objects',
+              { 'size': 320 }),
+          newChildDump(partitionAllocDump, 'partitions', { 'size': 240 }));
+      var v8Dump = newAllocatorDump(pmdRendererA2, 'v8', { 'size': 650 });
+      return [partitionAllocDump, v8Dump];
+    })();
+    var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, 40);
+    pmdRendererB2.memoryAllocatorDumps = [
+      newAllocatorDump(pmdRendererB2, 'v8', {
+        'size': 970,
+        'allocated_objects_size': 860
+      }),
+      newAllocatorDump(pmdRendererB2, 'malloc', {
+        'allocated_objects_size': 750
+      })
+    ];
+
+    // Timestamp 3.
+    var gmd3 = addGlobalMemoryDump(model, 60);
+    var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, 60);
+    pmdBrowser3.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser3, 'malloc', {
+        'size': 8000,
+        'allocated_objects_size': 4000
+      })
+    ];
+    var pmdRendererB3 = addProcessMemoryDump(gmd3, pRendererB, 61);
+    // Intentionally pmdRendererB3.memoryAllocatorDumps undefined.
+    var pmdGpu3 = addProcessMemoryDump(gmd3, pGpu, 59);
+    pmdGpu3.memoryAllocatorDumps = (function() {
+      var gpuDump = newAllocatorDump(pmdGpu3, 'gpu', { 'size': 300 });
+      var memtrackDump = newChildDump(gpuDump, 'android_memtrack');
+      newChildDump(memtrackDump, 'gl',
+          { 'memtrack_pss': 500, 'size': 200 /* ignored */ });
+      newChildDump(memtrackDump, 'graphics', { 'memtrack_pss': 700 });
+      return [gpuDump];
+    })();
+
+    // Timestamp 4.
+    var gmd4 = addGlobalMemoryDump(model, 80);
+    var pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, 81);
+    pmdBrowser4.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser4, 'malloc', { 'size': 80000 })
+    ];
+    var pmdRendererB4 = addProcessMemoryDump(gmd4, pRendererB, 79);
+    pmdRendererB4.memoryAllocatorDumps = (function() {
+      var v8Dump = newAllocatorDump(pmdRendererB4, 'v8', { 'size': 9e5 });
+      var partitionAllocDump = newAllocatorDump(pmdRendererB4,
+          'partition_alloc', { 'size': 5e5 });
+      addOwnershipLink(partitionAllocDump, v8Dump);
+      return [v8Dump, partitionAllocDump];
+    })();
+    var pmdGpu4 = addProcessMemoryDump(gmd4, pGpu, 80);
+    pmdGpu4.memoryAllocatorDumps = (function() {
+      var gpuDump = newAllocatorDump(pmdGpu4, 'gpu',
+          { 'memtrack_pss': 666 /* ignored */ });
+      var memtrackDump = newChildDump(gpuDump, 'android_memtrack',
+          { 'memtrack_pss': 777 /* ignored */});
+      newChildDump(memtrackDump, 'gl', { 'memtrack_pss': 5000 });
+      newChildDump(memtrackDump, 'graphics', { 'ignored': 7000 });
+      newChildDump(memtrackDump, 'gfx', { 'memtrack_pss': 4000 });
+      return [gpuDump];
+    })();
+  }, {
+    'memory_allocated_objects_gpu_gpu_process': expectBytes([25, 0, 0, 0]),
+    'memory_allocated_objects_gpu_total': expectBytes([25, 0, 0, 0]),
+    'memory_allocated_objects_malloc_browser': expectBytes([4, 0, 4000, 0]),
+    'memory_allocated_objects_malloc_renderer': expectBytes([0, 750, 0, 0]),
+    'memory_allocated_objects_malloc_total': expectBytes([4, 750, 4000, 0]),
+    'memory_allocated_objects_v8_renderer': expectBytes([0, 860, 0, 0]),
+    'memory_allocated_objects_v8_total': expectBytes([0, 860, 0, 0]),
+    'memory_allocator_gpu_gpu_process': expectBytes([30, 0, 300, 0]),
+    'memory_allocator_gpu_total': expectBytes([30, 0, 300, 0]),
+    'memory_allocator_malloc_browser': expectBytes([8, 120 - 40, 8000, 80000]),
+    'memory_allocator_malloc_renderer': expectBytes([16, 0, 0, 0]),
+    'memory_allocator_malloc_total':
+        expectBytes([8 + 16, 120 - 40, 8000, 80000]),
+    'memory_allocator_partition_alloc_renderer': expectBytes([32, 320, 0, 5e5]),
+    'memory_allocator_partition_alloc_total': expectBytes([32, 320, 0, 5e5]),
+    'memory_allocator_tracing_browser': expectBytes([0, 40, 0, 0]),
+    'memory_allocator_tracing_total': expectBytes([0, 40, 0, 0]),
+    'memory_allocator_v8_renderer': expectBytes([0, 650 + 970, 0, 4e5]),
+    'memory_allocator_v8_total': expectBytes([0, 650 + 970, 0, 4e5]),
+    'memory_android_memtrack_gfx_gpu_process': expectBytes([0, 0, 0, 4000]),
+    'memory_android_memtrack_gfx_total': expectBytes([0, 0, 0, 4000]),
+    'memory_android_memtrack_gl_gpu_process': expectBytes([0, 0, 500, 5000]),
+    'memory_android_memtrack_gl_total': expectBytes([0, 0, 500, 5000]),
+    'memory_android_memtrack_graphics_gpu_process': expectBytes([0, 0, 700, 0]),
+    'memory_android_memtrack_graphics_total': expectBytes([0, 0, 700, 0]),
+    'memory_dump_count_detailed': expectUnitless(0),
+    'memory_dump_count_light': expectUnitless(4),
+    'memory_dump_count_total': expectUnitless(4),
+    'memory_process_count_browser': expectUnitless([1, 1, 1, 1]),
+    'memory_process_count_gpu_process': expectUnitless([1, 0, 1, 1]),
+    'memory_process_count_renderer': expectUnitless([1, 2, 1, 1]),
+    'memory_process_count_total': expectUnitless([3, 3, 3, 3])
+  });
+
+  memoryMetricTest('mmapsValues', function(model) {
+    var pBrowser = createProcessWithName(model, 'Browser');
+    var pRendererA = createProcessWithName(model, 'Renderer');
+    var pRendererB = createProcessWithName(model, 'Renderer');
+    var pRendererC = createProcessWithName(model, 'Renderer');
+
+    // Timestamp 1.
+    var gmd1 = addGlobalMemoryDump(model, 10, DETAILED);
+    var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, 9);
+    pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'proportionalResident': 8 })
+    ]);
+    var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, 10);
+    pmdRendererA1.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xEF01, 256, 0, '[anon:libc_malloc]',
+          { 'privateDirtyResident': 17 })
+    ]);
+    var pmdRendererB1 = addProcessMemoryDump(gmd1, pRendererB, 11);
+    pmdRendererB1.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0x2345, 512, 0, '[heap]',
+          { 'proportionalResident': 67, 'privateDirtyResident': 34 })
+    ]);
+
+    // Timestamp 2 (light global memory dump, so it should be skipped for
+    // mmaps_* values).
+    var gmd2 = addGlobalMemoryDump(model, 20, LIGHT);
+    var pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, 18);
+    var pmdRendererA2 = addProcessMemoryDump(gmd2, pRendererA, 19);
+    var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, 21);
+    var pmdRendererC2 = addProcessMemoryDump(gmd2, pRendererC, 22);
+
+    // Timestamp 3.
+    var gmd3 = addGlobalMemoryDump(model, 30, DETAILED);
+    var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, 30);
+    pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 1024, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'proportionalResident': 80, 'privateDirtyResident': 3 })
+    ]);
+    var pmdRendererA3 = addProcessMemoryDump(gmd3, pRendererA, 29);
+    // Intentionally pmdRendererA3.vmRegions undefined.
+    var pmdRendererC3 = addProcessMemoryDump(gmd3, pRendererC, 31);
+    pmdRendererC3.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0x2345, 2048, 0, '/no/matching/category',
+          { 'proportionalResident': 700 })
+    ]);
+  }, {
+    'memory_dump_count_detailed': expectUnitless(2),
+    'memory_dump_count_light': expectUnitless(1),
+    'memory_dump_count_total': expectUnitless(3),
+    'memory_mmaps_ashmem_browser': expectBytes([0, 0]),
+    'memory_mmaps_ashmem_renderer': expectBytes([0, 0]),
+    'memory_mmaps_ashmem_total': expectBytes([0, 0]),
+    'memory_mmaps_java_heap_browser': expectBytes([8, 80]),
+    'memory_mmaps_java_heap_renderer': expectBytes([0, 0]),
+    'memory_mmaps_java_heap_total': expectBytes([8, 80]),
+    'memory_mmaps_native_heap_browser': expectBytes([0, 0]),
+    'memory_mmaps_native_heap_renderer': expectBytes([67, 0]),
+    'memory_mmaps_native_heap_total': expectBytes([67, 0]),
+    'memory_mmaps_overall_pss_browser': expectBytes([8, 80]),
+    'memory_mmaps_overall_pss_renderer': expectBytes([67, 700]),
+    'memory_mmaps_overall_pss_total': expectBytes([8 + 67, 80 + 700]),
+    'memory_mmaps_private_dirty_browser': expectBytes([0, 3]),
+    'memory_mmaps_private_dirty_renderer': expectBytes([17 + 34, 0]),
+    'memory_mmaps_private_dirty_total': expectBytes([17 + 34, 3]),
+    'memory_process_count_browser': expectUnitless([1, 1, 1]),
+    'memory_process_count_renderer': expectUnitless([2, 3, 2]),
+    'memory_process_count_total': expectUnitless([3, 4, 3])
+  });
+
+  memoryMetricTest('combined', function(model) {
+    var pBrowser = createProcessWithName(model, 'Browser');
+
+    // Timestamp 1.
+    var gmd1 = addGlobalMemoryDump(model, 10, DETAILED);
+    var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, 10);
+    pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'proportionalResident': 100 })
+    ]);
+
+    // Timestamp 2 (light global memory dump, so it should be skipped for
+    // mmaps_* values).
+    var gmd2 = addGlobalMemoryDump(model, 20, LIGHT);
+    var pmdBrowser2 = addProcessMemoryDump(gmd2, pBrowser, 20);
+    pmdBrowser2.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser2, 'malloc', { size: 32 })
+    ];
+
+    // Timestamp 3.
+    var gmd3 = addGlobalMemoryDump(model, 30, DETAILED);
+    var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, 30);
+    pmdBrowser3.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser3, 'malloc', { size: 48 })
+    ];
+    pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 1024, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'proportionalResident': 150 })
+    ]);
+  }, {
+    'memory_allocator_malloc_browser': expectBytes([0, 32, 48]),
+    'memory_allocator_malloc_total': expectBytes([0, 32, 48]),
+    'memory_dump_count_detailed': expectUnitless(2),
+    'memory_dump_count_light': expectUnitless(1),
+    'memory_dump_count_total': expectUnitless(3),
+    'memory_mmaps_ashmem_browser': expectBytes([0, 0]),
+    'memory_mmaps_ashmem_total': expectBytes([0, 0]),
+    'memory_mmaps_java_heap_browser': expectBytes([100, 150]),
+    'memory_mmaps_java_heap_total': expectBytes([100, 150]),
+    'memory_mmaps_native_heap_browser': expectBytes([0, 0]),
+    'memory_mmaps_native_heap_total': expectBytes([0, 0]),
+    'memory_mmaps_overall_pss_browser': expectBytes([100, 150]),
+    'memory_mmaps_overall_pss_total': expectBytes([100, 150]),
+    'memory_mmaps_private_dirty_browser': expectBytes([0, 0]),
+    'memory_mmaps_private_dirty_total': expectBytes([0, 0]),
+    'memory_process_count_browser': expectUnitless([1, 1, 1]),
+    'memory_process_count_total': expectUnitless([1, 1, 1])
+  });
+});
+</script>

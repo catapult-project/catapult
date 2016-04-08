@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/model/container_memory_dump.html">
+<link rel="import" href="/tracing/model/memory_allocator_dump.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+
+  var DISPLAYED_SIZE_NUMERIC_NAME =
+      tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
+  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
+  var ScalarNumeric = tr.v.ScalarNumeric;
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+  var unitlessNumber = tr.v.Unit.byName.unitlessNumber;
+
+  var MMAPS_METRICS = {
+    'overall_pss': {
+      path: [],
+      byteStat: 'proportionalResident'
+    },
+    'private_dirty': {
+      path: [],
+      byteStat: 'privateDirtyResident'
+    },
+    'java_heap': {
+      path: ['Android', 'Java runtime', 'Spaces'],
+      byteStat: 'proportionalResident'
+    },
+    'ashmem': {
+      path: ['Android', 'Ashmem'],
+      byteStat: 'proportionalResident'
+    },
+    'native_heap': {
+      path: ['Native heap'],
+      byteStat: 'proportionalResident'
+    }
+  };
+
+  var LEVEL_OF_DETAIL_NAMES = {};
+  LEVEL_OF_DETAIL_NAMES[LIGHT] = 'light';
+  LEVEL_OF_DETAIL_NAMES[DETAILED] = 'detailed';
+
+  // TODO(petrcermak): Replace this with log-scale before using the metric on
+  // the dashboard.
+  var METRIC_RANGE = tr.b.Range.fromExplicitRange(
+      0, 4 * 1024 * 1024 * 1024 /* 4 GiB */);
+  var METRIC_NUM_BINS = 1000;
+
+  function memoryMetric(valueList, model) {
+    addGeneralMemoryDumpValues(valueList, model);
+    addDetailedMemoryDumpValues(valueList, model);
+    addMemoryDumpCountValues(valueList, model);
+  }
+
+  memoryMetric.prototype = {
+    __proto__: Function.prototype
+  };
+
+  /**
+   * Add general memory dump values calculated from all global memory dumps in
+   * |model| to |valueList|. In particular, this function adds the following
+   * values:
+   *
+   *   * PROCESS COUNTS
+   *     memory_process_count_{browser, renderer, ..., total}
+   *         type: tr.v.Numeric (histogram over all global memory dumps)
+   *         unit: unitlessNumber
+   *
+   *   * ALLOCATOR STATISTICS
+   *     memory_{allocator, allocated_objects, android_memtrack}
+   *     _{v8, malloc, gl,...}_{browser, renderer, ..., total}
+   *         type: tr.v.Numeric (histogram over all global memory dumps)
+   *         unit: sizeInBytes_smallerIsBetter
+   */
+  function addGeneralMemoryDumpValues(valueList, model) {
+    addPerProcessNameMemoryDumpValues(model.globalMemoryDumps,
+        function(processDump, addProcessScalar) {
+          // Increment process_count_* value.
+          addProcessScalar(
+              'process_count',
+              new ScalarNumeric(unitlessNumber, 1));
+
+          if (processDump.memoryAllocatorDumps === undefined)
+            return;
+
+          // Add memory_allocator_<name>_* and memory_allocated_objects_<name>_*
+          // values for each root memory allocator dump.
+          processDump.memoryAllocatorDumps.forEach(function(rootAllocatorDump) {
+            addProcessScalar(
+                'allocator_' + rootAllocatorDump.name,
+                rootAllocatorDump.numerics[DISPLAYED_SIZE_NUMERIC_NAME]);
+            addProcessScalar(
+                'allocated_objects_' + rootAllocatorDump.name,
+                rootAllocatorDump.numerics['allocated_objects_size']);
+          });
+
+          // Add android_memtrack_<name>_* value for each child of the
+          // gpu/android_memtrack memory allocator dump.
+          var memtrackDump = processDump.getMemoryAllocatorDumpByFullName(
+              'gpu/android_memtrack');
+          if (memtrackDump !== undefined) {
+            memtrackDump.children.forEach(function(memtrackChildDump) {
+              addProcessScalar(
+                  'android_memtrack_' + memtrackChildDump.name,
+                  memtrackChildDump.numerics['memtrack_pss']);
+            });
+          }
+        }, valueList, model);
+  }
+
+  /**
+   * Add heavy memory dump values calculated from heavy global memory dumps in
+   * |model| to |valueList|. In particular, this function adds the following
+   * values:
+   *
+   *   * MMAPS STATISTICS
+   *     memory_mmaps_{ashmem, native_heap, overall_pss, ...}
+   *     _{browser, renderer, ..., total}
+   *         type: tr.v.Numeric (histogram over heavy global memory dumps)
+   *         unit: sizeInBytes_smallerIsBetter
+   */
+  function addDetailedMemoryDumpValues(valueList, model) {
+    var heavyGlobalMemoryDumps = model.globalMemoryDumps.filter(
+        g => g.levelOfDetail === DETAILED);
+    addPerProcessNameMemoryDumpValues(heavyGlobalMemoryDumps,
+        function(processDump, addProcessScalar) {
+          // Add memory_mmaps_<name>_* value for each mmap metric.
+          tr.b.iterItems(MMAPS_METRICS, function(metricName, metricSpec) {
+            var node = getDescendantVmRegionClassificationNode(
+                processDump.vmRegions, metricSpec.path);
+            var value = node ? (node.byteStats[metricSpec.byteStat] || 0) : 0;
+            addProcessScalar(
+                'mmaps_' + metricName,
+                new ScalarNumeric(sizeInBytes_smallerIsBetter, value));
+          });
+        }, valueList, model);
+  }
+
+  /**
+   * Get the descendant of a VM region classification |node| specified by the
+   * given |path| of child node titles. If |node| is undefined or such a
+   * descendant does not exist, this function returns undefined.
+   */
+  function getDescendantVmRegionClassificationNode(node, path) {
+    for (var i = 0; i < path.length; i++) {
+      if (node === undefined)
+        break;
+      node = tr.b.findFirstInArray(node.children, c => c.title === path[i]);
+    }
+    return node;
+  }
+
+  /**
+   * Add global memory dump counts in |model| to |valueList|. In particular,
+   * this function adds the following values:
+   *
+   *   * DUMP COUNTS
+   *     memory_dump_count_{light, detailed, total}
+   *         type: tr.v.ScalarNumeric (scalar)
+   *         unit: unitlessNumber
+   *
+   * Note that unlike all other values generated by the memory metric, the
+   * global memory dump counts are NOT instances of tr.v.Numeric (histogram)
+   * because it doesn't make sense to aggregate them (they are already counts
+   * over the whole trace).
+   */
+  function addMemoryDumpCountValues(valueList, model) {
+    var levelOfDetailNameToDumpCount = { 'total': 0 };
+    tr.b.iterItems(LEVEL_OF_DETAIL_NAMES, function(_, levelOfDetailName) {
+      levelOfDetailNameToDumpCount[levelOfDetailName] = 0;
+    });
+
+    model.globalMemoryDumps.forEach(function(globalDump) {
+      // Increment the total dump count.
+      levelOfDetailNameToDumpCount.total++;
+
+      // Increment the level-of-detail-specific dump count (if possible).
+      var levelOfDetailName = LEVEL_OF_DETAIL_NAMES[globalDump.levelOfDetail];
+      if (!(levelOfDetailName in levelOfDetailNameToDumpCount))
+        return;  // Unknown level of detail.
+      levelOfDetailNameToDumpCount[levelOfDetailName]++;
+    });
+
+    // Add memory_dump_count_<level> value for each level of detail (and total).
+    tr.b.iterItems(levelOfDetailNameToDumpCount,
+        function(levelOfDetailName, levelOfDetailDumpCount) {
+          valueList.addValue(new tr.v.NumericValue(
+              model.canonicalUrl,
+              'memory_dump_count_' + levelOfDetailName,
+              new ScalarNumeric(unitlessNumber, levelOfDetailDumpCount)));
+        });
+  }
+
+  /**
+   * Add generic values extracted from process memory dumps and aggregated by
+   * process name into |valueList|.
+   *
+   * For each global memory dump in |globalDumps|,
+   * |customProcessDumpValueExtractor| is applied to every process memory dump
+   * associated with the global memory dump. The second argument provided to the
+   * callback is a function for adding extracted values:
+   *
+   *   function sampleProcessDumpCallback(processDump, addProcessValue) {
+   *     ...
+   *     addProcessValue('value_name_1', valueExtractedFromProcessDump1);
+   *     ...
+   *     addProcessValue('value_name_2', valueExtractedFromProcessDump2);
+   *     ...
+   *   }
+   *
+   * For each global memory dump, the extracted values are summed by process
+   * name (browser, renderer, ..., total). The sums are then aggregated over all
+   * global memory dumps. For example, assuming that
+   * |customProcessDumpValueExtractor| extracts a value called 'x' from each
+   * process memory dump, the following values will be reported:
+   *
+   *    memory_x_browser: tr.v.Numeric aggregated over [
+   *      sum of 'x' in all 'browser' process dumps in global dump 1,
+   *      sum of 'x' in all 'browser' process dumps in global dump 2,
+   *      ...
+   *      sum of 'x' in all 'browser' process dumps in global dump N
+   *    ]
+   *
+   *    memory_x_renderer: tr.v.Numeric aggregated over [
+   *      sum of 'x' in all 'renderer' process dumps in global dump 1,
+   *      sum of 'x' in all 'renderer' process dumps in global dump 2,
+   *      ...
+   *      sum of 'x' in all 'renderer' process dumps in global dump N
+   *    ]
+   *
+   *    ...
+   *
+   *    memory_x_total: tr.v.Numeric aggregated over [
+   *      sum of 'x' in all process dumps in global dump 1,
+   *      sum of 'x' in all process dumps in global dump 2,
+   *      ...
+   *      sum of 'x' in all process dumps in global dump N,
+   *    ]
+   *
+   * @param {!Array<!tr.model.GlobalMemoryDump>} globalDumps Array of global
+   *     memory dumps. The generic values will be extracted from the associated
+   *     process memory dumps.
+   * @param {!function(
+   *     !tr.model.ProcessMemoryDump,
+   *     !function(string, !tr.v.ScalarNumeric))}
+   *     customProcessDumpValueExtractor Callback for extracting values from a
+   *     process memory dump.
+   * @param {!tr.metrics.ValueList} valueList List of values to which the
+   *     resulting aggregated values are added.
+   * @param {!tr.Model} model The underlying trace model.
+   */
+  function addPerProcessNameMemoryDumpValues(
+      globalDumps, customProcessDumpValueExtractor, valueList, model) {
+    var timeToProcessNameToValueNameToScalar =
+        calculatePerProcessNameMemoryDumpValues(
+            globalDumps, customProcessDumpValueExtractor);
+    injectTotalsIntoPerProcessNameMemoryDumpValues(
+        timeToProcessNameToValueNameToScalar);
+    reportPerProcessNameMemoryDumpValues(
+        timeToProcessNameToValueNameToScalar, valueList, model);
+  }
+
+  /**
+   * For each global memory dump in |globalDumps|, calculate per-process-name
+   * sums of values extracted by |customProcessDumpValueExtractor| from the
+   * associated process memory dumps.
+   *
+   * This function returns the following list of nested maps:
+   *
+   *   Global memory dump timestamp (list index)
+   *     -> Process name (dict with keys 'browser', 'renderer', ...)
+   *          -> Value name (dict with keys 'allocator_v8', 'mmaps_ashmem', ...)
+   *               -> Sum of value over the processes (tr.v.ScalarNumeric).
+   *
+   * See addPerProcessNameMemoryDumpValues for more details.
+   */
+  function calculatePerProcessNameMemoryDumpValues(
+      globalDumps, customProcessDumpValueExtractor) {
+    return globalDumps.map(function(globalDump) {
+      // Process name -> Value name -> Sum over processes.
+      var processNameToValueNameToScalar = {};
+
+      tr.b.iterItems(globalDump.processMemoryDumps, function(_, processDump) {
+        // Process name is typically 'browser', 'renderer', etc.
+        var rawProcessName = processDump.process.name || 'unknown';
+        var processName = rawProcessName.toLowerCase().replace(' ', '_');
+
+        // Value name -> Sum over processes.
+        var valueNameToScalar = processNameToValueNameToScalar[processName];
+        if (valueNameToScalar === undefined)
+          processNameToValueNameToScalar[processName] = valueNameToScalar = {};
+
+        customProcessDumpValueExtractor(
+            processDump,
+            function addProcessScalar(name, processDumpScalar) {
+              if (processDumpScalar === undefined)
+                return;
+              var processNameSumScalar = valueNameToScalar[name];
+              if (processNameSumScalar === undefined) {
+                valueNameToScalar[name] = processNameSumScalar =
+                    new ScalarNumeric(
+                        processDumpScalar.unit, processDumpScalar.value);
+              } else {
+                if (processDumpScalar.unit !== processNameSumScalar.unit) {
+                  throw new Error('Multiple units provided for value \'' +
+                      name + '\' of \'' + processName + '\' processes: ' +
+                      processNameSumScalar.unit.unitName + ' and ' +
+                      processDumpScalar.unit.unitName);
+                }
+                processNameSumScalar.value += processDumpScalar.value;
+              }
+            });
+      });
+      return processNameToValueNameToScalar;
+    });
+  }
+
+  /**
+   * For each timestamp (corresponding to a global memory dump) in
+   * |timeToProcessNameToValueNameToScalar|, sum per-process-name values into
+   * total values.
+   *
+   * See addPerProcessNameMemoryDumpValues for more details.
+   */
+  function injectTotalsIntoPerProcessNameMemoryDumpValues(
+      timeToProcessNameToValueNameToScalar) {
+    timeToProcessNameToValueNameToScalar.forEach(
+        function(processNameToValueNameToScalar) {
+          var valueNameToProcessNameToScalar = tr.b.invertArrayOfDicts(
+              tr.b.dictionaryValues(processNameToValueNameToScalar));
+          processNameToValueNameToScalar.total = tr.b.mapItems(
+              valueNameToProcessNameToScalar,
+              function(valueName, perProcessScalars) {
+                var unit = tr.b.findFirstInArray(perProcessScalars).unit;
+                var value = perProcessScalars.reduce(
+                    function(accumulator, scalar) {
+                      if (scalar === undefined)
+                        return accumulator;
+                      if (scalar.unit !== unit) {
+                        throw new Error('Multiple units provided for value \'' +
+                            valueName + '\' of different processes: ' +
+                            unit.unitName + ' and ' + scalar.unit.unitName);
+                      }
+                      return accumulator + scalar.value;
+                    }, 0);
+                return new ScalarNumeric(unit, value);
+              });
+        });
+  }
+
+  /**
+   * For each process name (plus total) and value name, add a tr.v.Numeric
+   * aggregating the associated values across all timestamps (corresponding to
+   * global memory dumps) in |timeToProcessNameToValueNameToScalar| to
+   * |valueList|.
+   *
+   * See addPerProcessNameMemoryDumpValues for more details.
+   */
+  function reportPerProcessNameMemoryDumpValues(
+      timeToProcessNameToValueNameToScalar, valueList, model) {
+    var processNameToTimeToValueNameToScalar =
+        tr.b.invertArrayOfDicts(timeToProcessNameToValueNameToScalar);
+    tr.b.iterItems(
+        processNameToTimeToValueNameToScalar,
+        function(processName, timeToValueNameToScalar) {
+          var valueNameToTimeToScalar =
+              tr.b.invertArrayOfDicts(timeToValueNameToScalar);
+          tr.b.iterItems(
+              valueNameToTimeToScalar,
+              function(valueName, timeToScalar) {
+                valueList.addValue(new tr.v.NumericValue(
+                    model.canonicalUrl,
+                    'memory_' + valueName + '_' + processName,
+                    mergeScalarsIntoNumeric(timeToScalar)));
+              });
+        });
+  }
+
+  /**
+   * Merge a list of tr.v.ScalarNumeric objects into a tr.v.Numeric (histogram).
+   */
+  function mergeScalarsIntoNumeric(scalars) {
+    var unit = tr.b.findFirstInArray(scalars).unit;
+    var values = new Array(scalars.length);
+    for (var i = 0; i < scalars.length; i++) {
+      var scalar = scalars[i];
+      values[i] = scalar === undefined ? 0 : scalar.value;
+    }
+    var numeric = tr.v.Numeric.createLinear(
+        unit, METRIC_RANGE, METRIC_NUM_BINS);
+    values.forEach(numeric.add, numeric);
+    return numeric;
+  }
+
+  tr.metrics.MetricRegistry.register(memoryMetric);
+
+  return {
+    memoryMetric: memoryMetric
+  };
+});
+</script>
