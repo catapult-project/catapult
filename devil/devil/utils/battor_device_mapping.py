@@ -56,8 +56,7 @@ def ReadSerialMapFile(filename):
     result[x['phone']] = x['battor']
   return result
 
-
-def GenerateSerialMapFile(filename, hub_types=None):
+def WriteSerialMapFile(filename, serial_map):
   """Writes a map of phone serial numbers to BattOr serial numbers to file.
 
   Writes a JSON file consisting of a list of items of the following form:
@@ -70,13 +69,13 @@ def GenerateSerialMapFile(filename, hub_types=None):
 
   Args:
       filename: Name of file to write.
+      serial_map: Serial map {phone: battor}
   """
   result = []
-  for (phone, battor) in GenerateSerialMap(hub_types).iteritems():
+  for (phone, battor) in serial_map.iteritems():
     result.append({'phone': phone, 'battor': battor})
   with open(filename, 'w') as outfile:
     json.dump(result, outfile)
-
 
 def GenerateSerialMap(hub_types=None):
   """Generates a map of phone serial numbers to BattOr serial numbers.
@@ -141,6 +140,9 @@ def GenerateSerialMap(hub_types=None):
     result[pair.phone] = pair.battor
   return result
 
+def GenerateSerialMapFile(filename, hub_types=None):
+  """Generates a serial map file and writes it."""
+  WriteSerialMapFile(filename, GenerateSerialMap(hub_types))
 
 def _PhoneToPathMap(serial, serial_map, devtree):
   """Maps phone serial number to TTY path, assuming serial map is provided."""
@@ -204,7 +206,7 @@ def GetBattorPathFromPhoneSerial(serial, serial_map=None,
     raise ValueError('Cannot specify both serial_map and serial_map_file')
 
   if serial_map_file:
-    serial_map = ReadSerialMapFile(serial_map)
+    serial_map = ReadSerialMapFile(serial_map_file)
 
   tty_string = _PhoneToPathMap(serial, serial_map, devtree)
 
