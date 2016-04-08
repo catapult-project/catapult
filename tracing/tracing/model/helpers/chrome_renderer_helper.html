@@ -23,6 +23,11 @@ tr.exportTo('tr.model.helpers', function() {
         return true;
       return false;
     });
+
+    this.isChromeTracingUI_ =
+        process.labels !== undefined &&
+        process.labels.length === 1 &&
+        process.labels[0] === 'chrome://tracing';
   };
 
   // Returns true if there is either a main thread or a compositor thread.
@@ -50,6 +55,10 @@ tr.exportTo('tr.model.helpers', function() {
     // May be empty.
     get rasterWorkerThreads() {
       return this.rasterWorkerThreads_;
+    },
+
+    get isChromeTracingUI() {
+      return this.isChromeTracingUI_;
     }
   };
 
