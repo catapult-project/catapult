@@ -53,3 +53,21 @@ overloaded python imports.
     per-project `bin/run_dev_server_tests` scripts.
   * All python modules should have unique names. `$catpult/catapult_build`
     instead of `$catapult/build`.
+
+## How to add tests
+Catapult supports two types of tests:
+
+  * **dev_server** tests allow for UI testing and JavaScript testing. You can
+    read more about adding them in the
+    [dev_server tests guide](/docs/dev-server-tests.md). If you want to run
+    dev_server tests, please create a `bin/run_dev_server_tests` python
+    executable like [this](/dashboard/bin/run_dev_server_tests).
+  * **python** tests use the [python unit testing framework]
+    (https://docs.python.org/2/library/unittest.html). If you want to run python
+    tests, please create a `bin/run_py_tests` executable like
+    [this](/catapult_build/bin/run_py_tests).
+
+Both types of tests should be added to the configuration in
+[build_steps.py](/catapult_build/build_steps.py). Please see the comments in
+that file for full documentation on specifying test commands, arguments,
+disabled platforms, and required environment variables.
