@@ -84,6 +84,11 @@ class DependencyInfo(object):
       return self._cloud_storage_info.GetRemotePath()
     return None
 
+  def GetRemotePathVersion(self):
+    if self.has_cloud_storage_info:
+      return self._cloud_storage_info.version_in_cs
+    return None
+
   def GetLocalPath(self):
     """Gets the path to a local version of the dependency.
 

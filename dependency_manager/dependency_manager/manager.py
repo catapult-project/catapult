@@ -50,6 +50,52 @@ class DependencyManager(object):
     for config in configs:
       self._UpdateDependencies(config)
 
+
+  def FetchPathWithVersion(self, dependency, platform):
+    """Get a path to an executable for |dependency|, downloading as needed.
+
+    A path to a default executable may be returned if a platform specific
+    version is not specified in the config(s).
+
+    Args:
+        dependency: Name of the desired dependency, as given in the config(s)
+            used in this DependencyManager.
+        platform: Name of the platform the dependency will run on. Often of the
+            form 'os_architecture'. Must match those specified in the config(s)
+            used in this DependencyManager.
+    Returns:
+        <path>, <version> where:
+            <path> is the path to an executable of |dependency| that will run
+            on |platform|, downloading from cloud storage if needed.
+            <version> is the version of the executable at <path> or None.
+
+    Raises:
+        NoPathFoundError: If a local copy of the executable cannot be found and
+            a remote path could not be downloaded from cloud_storage.
+        CredentialsError: If cloud_storage credentials aren't configured.
+        PermissionError: If cloud_storage credentials are configured, but not
+            with an account that has permission to download the remote file.
+        NotFoundError: If the remote file does not exist where expected in
+            cloud_storage.
+        ServerError: If an internal server error is hit while downloading the
+            remote file.
+        CloudStorageError: If another error occured while downloading the remote
+            path.
+        FileNotFoundError: If an attempted download was otherwise unsuccessful.
+
+    """
+    dependency_info = self._GetDependencyInfo(dependency, platform)
+    if not dependency_info:
+      raise exceptions.NoPathFoundError(dependency, platform)
+    path = dependency_info.GetLocalPath()
+    version = None
+    if not path or not os.path.exists(path):
+      path = dependency_info.GetRemotePath()
+      if not path or not os.path.exists(path):
+        raise exceptions.NoPathFoundError(dependency, platform)
+      version = dependency_info.GetRemotePathVersion()
+    return path, version
+
   def FetchPath(self, dependency, platform):
     """Get a path to an executable for |dependency|, downloading as needed.
 
@@ -81,14 +127,7 @@ class DependencyManager(object):
         FileNotFoundError: If an attempted download was otherwise unsuccessful.
 
     """
-    dependency_info = self._GetDependencyInfo(dependency, platform)
-    if not dependency_info:
-      raise exceptions.NoPathFoundError(dependency, platform)
-    path = dependency_info.GetLocalPath()
-    if not path or not os.path.exists(path):
-      path = dependency_info.GetRemotePath()
-      if not path or not os.path.exists(path):
-        raise exceptions.NoPathFoundError(dependency, platform)
+    path, _ = self.FetchPathWithVersion(dependency, platform)
     return path
 
   def LocalPath(self, dependency, platform):

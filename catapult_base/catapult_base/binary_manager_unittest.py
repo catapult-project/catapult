@@ -6,7 +6,6 @@ import json
 import os
 
 from pyfakefs import fake_filesystem_unittest
-from dependency_manager import base_config
 from dependency_manager import exceptions
 
 from catapult_base import binary_manager
@@ -145,15 +144,14 @@ class BinaryManagerTest(fake_filesystem_unittest.TestCase):
         'dependencies': self.expected_dependencies
     }
 
-    base_config_path = os.path.join(os.path.dirname(__file__),
+    self.base_config = os.path.join(os.path.dirname(__file__),
                                     'example_config.json')
-    self.fs.CreateFile(base_config_path, contents=json.dumps(fake_config))
-    self.base_config = base_config.BaseConfig(base_config_path)
+    self.fs.CreateFile(self.base_config, contents=json.dumps(fake_config))
     linux_file = os.path.join(
-        os.path.dirname(base_config_path),
+        os.path.dirname(self.base_config),
         os.path.join('..', '..', 'example', 'location2', 'linux', 'dep_2'))
     android_file = os.path.join(
-        os.path.dirname(base_config_path),
+        os.path.dirname(self.base_config),
         '..', '..', 'example', 'location', 'android_x86', 'l', 'dep_2')
     self.expected_dep2_linux_file = os.path.abspath(linux_file)
     self.expected_dep2_android_file = os.path.abspath(android_file)
@@ -180,37 +178,37 @@ class BinaryManagerTest(fake_filesystem_unittest.TestCase):
 
   def testSuccessfulFetchPathNoOsVersion(self):
     manager = binary_manager.BinaryManager([self.base_config])
-    found_path = manager.FetchPath('dep_2', 'x86_64', 'linux')
+    found_path = manager.FetchPath('dep_2', 'linux', 'x86_64')
     self.assertEqual(self.expected_dep2_linux_file, found_path)
 
   def testSuccessfulFetchPathOsVersion(self):
     manager = binary_manager.BinaryManager([self.base_config])
-    found_path = manager.FetchPath('dep_2', 'x86', 'android', 'l')
+    found_path = manager.FetchPath('dep_2', 'android', 'x86', 'l')
     self.assertEqual(self.expected_dep2_android_file, found_path)
 
   def testSuccessfulFetchPathFallbackToNoOsVersion(self):
     manager = binary_manager.BinaryManager([self.base_config])
-    found_path = manager.FetchPath('dep_2', 'x86_64', 'linux', 'fake_version')
+    found_path = manager.FetchPath('dep_2', 'linux', 'x86_64', 'fake_version')
     self.assertEqual(self.expected_dep2_linux_file, found_path)
 
   def testFailedFetchPathMissingDep(self):
     manager = binary_manager.BinaryManager([self.base_config])
     with self.assertRaises(exceptions.NoPathFoundError):
-      manager.FetchPath('missing_dep', 'x86_64', 'linux')
+      manager.FetchPath('missing_dep', 'linux', 'x86_64')
     with self.assertRaises(exceptions.NoPathFoundError):
-      manager.FetchPath('missing_dep', 'x86', 'android', 'l')
+      manager.FetchPath('missing_dep', 'android', 'x86', 'l')
     with self.assertRaises(exceptions.NoPathFoundError):
-      manager.FetchPath('dep_1', 'bad_arch', 'linux')
+      manager.FetchPath('dep_1', 'linux', 'bad_arch')
     with self.assertRaises(exceptions.NoPathFoundError):
-      manager.FetchPath('dep_1', 'x86', 'bad_os')
+      manager.FetchPath('dep_1', 'bad_os', 'x86')
 
   def testSuccessfulLocalPathNoOsVersion(self):
     manager = binary_manager.BinaryManager([self.base_config])
-    found_path = manager.LocalPath('dep_2', 'x86_64', 'linux')
+    found_path = manager.LocalPath('dep_2', 'linux', 'x86_64')
     self.assertEqual(self.expected_dep2_linux_file, found_path)
 
   def testSuccessfulLocalPathOsVersion(self):
     manager = binary_manager.BinaryManager([self.base_config])
-    found_path = manager.LocalPath('dep_2', 'x86', 'android', 'l')
+    found_path = manager.LocalPath('dep_2', 'android', 'x86', 'l')
     self.assertEqual(self.expected_dep2_android_file, found_path)
 

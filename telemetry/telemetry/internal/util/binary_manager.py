@@ -40,10 +40,9 @@ def InitDependencyManager(environment_config):
     raise exceptions.InitializationError(
         'Trying to re-initialize the binary manager with config %s'
         % environment_config)
-  configs = [dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG),
-             dependency_manager.BaseConfig(CHROME_BINARY_CONFIG)]
+  configs = [TELEMETRY_PROJECT_CONFIG, CHROME_BINARY_CONFIG]
   if environment_config:
-    configs.insert(0, dependency_manager.BaseConfig(environment_config))
+    configs.insert(0, environment_config)
   _binary_manager = binary_manager.BinaryManager(configs)
 
   devil_env.config.Initialize()
@@ -56,7 +55,7 @@ def FetchPath(binary_name, arch, os_name, os_version=None):
   if _binary_manager is None:
     raise exceptions.InitializationError(
         'Called FetchPath with uninitialized binary manager.')
-  return _binary_manager.FetchPath(binary_name, arch, os_name, os_version)
+  return _binary_manager.FetchPath(binary_name, os_name, arch, os_version)
 
 
 def LocalPath(binary_name, arch, os_name, os_version=None):
@@ -66,7 +65,7 @@ def LocalPath(binary_name, arch, os_name, os_version=None):
   if _binary_manager is None:
     raise exceptions.InitializationError(
         'Called LocalPath with uninitialized binary manager.')
-  return _binary_manager.LocalPath(binary_name, arch, os_name, os_version)
+  return _binary_manager.LocalPath(binary_name, os_name, arch, os_version)
 
 
 def FetchBinaryDepdencies(platform, client_config,
@@ -118,12 +117,12 @@ def _FetchReferenceBrowserBinary(platform):
   os_name = platform.GetOSName()
   arch_name = platform.GetArchName()
   manager = binary_manager.BinaryManager(
-             [dependency_manager.BaseConfig(CHROME_BINARY_CONFIG)])
+             [CHROME_BINARY_CONFIG])
   if os_name == 'android':
     os_version = dependency_util.GetChromeApkOsVersion(
         platform.GetOSVersionName())
     manager.FetchPath(
-        'chrome_stable', arch_name, os_name, os_version)
+        'chrome_stable', os_name, arch_name, os_version)
   else:
     manager.FetchPath(
-        'reference_build', arch_name, os_name)
+        'reference_build', os_name, arch_name)
