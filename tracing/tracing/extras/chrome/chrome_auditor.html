@@ -10,11 +10,11 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import"
     href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
-<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import"
     href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/model/constants.html">
 <link rel="import" href="/tracing/model/event_info.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 
 <script>
 'use strict';
@@ -49,12 +49,12 @@ tr.exportTo('tr.e.audits', function() {
       if (!this.modelHelper)
         return;
 
-      this.model.getAllProcesses().forEach(function(process) {
-        if (process.labels !== undefined &&
-            process.labels.length == 1 &&
-            process.labels[0] == 'chrome://tracing')
-          process.important = false;
-      });
+      for (var pid in this.modelHelper.rendererHelpers) {
+        var rendererHelper = this.modelHelper.rendererHelpers[pid];
+
+        if (rendererHelper.isChromeTracingUI)
+          rendererHelper.process.important = false;
+      }
     },
 
     /**

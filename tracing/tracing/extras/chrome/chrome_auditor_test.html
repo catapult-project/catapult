@@ -104,5 +104,26 @@ tr.b.unittest.testSuite(function() {
     assert.equal(slice.title, 'b');
     assert.equal(slice.args.bar, foo);
   });
+
+  test('filterTracingUI', function() {
+    var m = tr.c.TestUtils.newModelWithAuditor(function(m) {
+      m.browserProcess = m.getOrCreateProcess(1);
+      m.browserMain = m.browserProcess.getOrCreateThread(2);
+      m.browserMain.name = 'CrBrowserMain';
+
+      m.renderer1 = m.getOrCreateProcess(3);
+      m.renderer1.labels = ['https://google.com'];
+      m.renderer1Main = m.renderer1.getOrCreateThread(4);
+      m.renderer1Main.name = 'CrRendererMain';
+
+      m.renderer2 = m.getOrCreateProcess(5);
+      m.renderer2.labels = ['chrome://tracing'];
+      m.renderer2Main = m.renderer2.getOrCreateThread(6);
+      m.renderer2Main.name = 'CrRendererMain';
+    }, tr.e.audits.ChromeAuditor);
+
+    assert.isTrue(m.renderer1.important);
+    assert.isFalse(m.renderer2.important);
+  });
 });
 </script>
