@@ -6,6 +6,7 @@ import os
 import sys
 import time
 
+from devil.utils import timeout_retry
 from systrace import tracing_agents
 
 class FtraceAgentIo(object):
@@ -134,7 +135,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
     return [x for x in categories
             if self._is_category_available(x)]
 
-  def StartAgentTracing(self, options, categories, timeout):
+  def _StartAgentTracingImpl(self, options, categories):
     """Start tracing.
     """
     self._options = options
@@ -161,10 +162,19 @@ class FtraceAgent(tracing_agents.TracingAgent):
 
     self._fio.writeFile(FT_TRACE_ON, '1')
 
-  def StopAgentTracing(self, timeout):
+  def StartAgentTracing(self, options, categories, timeout):
+    return timeout_retry.Run(self._StartAgentTracingImpl,
+                             timeout, 1,
+                             args=[options, categories])
+
+  def _StopAgentTracingImpl(self):
     pass
 
-  def GetResults(self, timeout):
+  def StopAgentTracing(self, timeout):
+    return timeout_retry.Run(self._StopAgentTracingImpl,
+                             timeout, 1)
+
+  def _GetResultsImpl(self):
     """Collect the result of tracing.
 
     This function will block while collecting the result. For sync mode, it
@@ -189,6 +199,10 @@ class FtraceAgent(tracing_agents.TracingAgent):
     d = self._fio.readFile(FT_TRACE)
     self._fio.writeFile(FT_BUFFER_SIZE, "1")
     return tracing_agents.TraceResult('trace-data', d)
+
+  def GetResults(self, timeout):
+    return timeout_retry.Run(self._GetResultsImpl,
+                             timeout, 1)
 
   def SupportsExplicitClockSync(self):
     return False
