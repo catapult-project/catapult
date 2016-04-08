@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import"
+    href="/tracing/metrics/system_health/first_paint_metric.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('firstContentfulPaint', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'firstContentfulPaint',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+    });
+    var valueList = new tr.metrics.ValueList();
+    tr.metrics.sh.firstPaintMetric(valueList, model);
+    assert.equal(800, valueList.valueDicts[0].numeric.value);
+  });
+});
+</script>
