@@ -23,11 +23,19 @@ class Tab(web_contents.WebContents):
     super(Tab, self).__init__(inspector_backend)
     self._tab_list_backend = tab_list_backend
     self._browser = browser
+    self._action_runner = None
 
   @property
   def browser(self):
     """The browser in which this tab resides."""
     return self._browser
+
+  @property
+  def action_runner(self):
+    if self._action_runner is None:
+      from telemetry.page import action_runner
+      self._action_runner = action_runner.ActionRunner(self)
+    return self._action_runner
 
   @property
   def url(self):
