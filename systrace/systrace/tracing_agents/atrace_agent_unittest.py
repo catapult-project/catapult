@@ -21,9 +21,6 @@ SYSTRACE_CMD = ['./run_systrace.py', '--time', '10', '-o', 'out.html', '-e',
                 DEVICE_SERIAL] + CATEGORIES
 TRACE_CMD = (ADB_SHELL + ATRACE_ARGS + CATEGORIES)
 
-LEGACY_ATRACE_ARGS = ['atrace', '-z', '-t', '10', '-b', '4096', '-s']
-LEGACY_TRACE_CMD = (ADB_SHELL + LEGACY_ATRACE_ARGS)
-
 STOP_FIX_UPS = ['atrace', '--no-fix-threads', '--no-fix-tgids']
 
 
@@ -128,16 +125,6 @@ class AtraceAgentTest(unittest.TestCase):
 
       res = atrace_agent.fix_missing_tgids(atrace_data, tgid_map)
       self.assertEqual(res, fixed)
-
-
-class AtraceLegacyAgentTest(unittest.TestCase):
-  def test_construct_trace_command(self):
-    options, categories = run_systrace.parse_options(SYSTRACE_CMD)
-    agent = atrace_agent.AtraceLegacyAgent()
-    agent._options = options
-    agent._categories = categories
-    tracer_args = agent._construct_trace_command()
-    self.assertEqual(' '.join(LEGACY_TRACE_CMD), ' '.join(tracer_args))
 
 
 class BootAgentTest(unittest.TestCase):

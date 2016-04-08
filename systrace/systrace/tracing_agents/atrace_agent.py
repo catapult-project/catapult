@@ -84,8 +84,8 @@ def try_create_agent(options):
       return BootAgent()
     else:
       return AtraceAgent()
-  elif device_sdk_version >= 16:
-    return AtraceLegacyAgent()
+  else:
+    return False
 
 
 class AtraceAgent(tracing_agents.TracingAgent):
@@ -313,72 +313,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
       trace_data = fix_circular_traces(trace_data)
 
     return trace_data
-
-
-class AtraceLegacyAgent(AtraceAgent):
-
-  def _construct_list_categories_command(self):
-    LEGACY_CATEGORIES = """       sched - CPU Scheduling
-        freq - CPU Frequency
-        idle - CPU Idle
-        load - CPU Load
-        disk - Disk I/O (requires root)
-         bus - Bus utilization (requires root)
-   workqueue - Kernel workqueues (requires root)"""
-    return ["echo", LEGACY_CATEGORIES]
-
-  def StartAgentTracing(self, options, categories, timeout=10):
-    super(AtraceLegacyAgent, self).StartAgentTracing(options, categories,
-                                                     timeout=timeout)
-    SHELL_ARGS = ['getprop', 'debug.atrace.tags.enableflags']
-    output, return_code = util.run_adb_shell(SHELL_ARGS,
-                                             self._options.device_serial)
-    if return_code != 0:
-      print >> sys.stderr, (
-          '\nThe command "%s" failed with the following message:'
-          % ' '.join(SHELL_ARGS))
-      print >> sys.stderr, str(output)
-      sys.exit(1)
-
-    flags = 0
-    try:
-      if output.startswith('0x'):
-        flags = int(output, 16)
-      elif output.startswith('0'):
-        flags = int(output, 8)
-      else:
-        flags = int(output)
-    except ValueError:
-      pass
-
-    if flags:
-      tags = []
-      for desc, bit in LEGACY_TRACE_TAG_BITS:
-        if bit & flags:
-          tags.append(desc)
-      categories = tags + self._categories
-      print 'Collecting data with following categories:', ' '.join(categories)
-
-  def _construct_extra_trace_command(self):
-    extra_args = []
-    if not self._categories:
-      self._categories = ['sched', ]
-    if 'sched' in self._categories:
-      extra_args.append('-s')
-    if 'freq' in self._categories:
-      extra_args.append('-f')
-    if 'idle' in self._categories:
-      extra_args.append('-i')
-    if 'load' in self._categories:
-      extra_args.append('-l')
-    if 'disk' in self._categories:
-      extra_args.append('-d')
-    if 'bus' in self._categories:
-      extra_args.append('-u')
-    if 'workqueue' in self._categories:
-      extra_args.append('-w')
-
-    return extra_args
 
 
 class BootAgent(AtraceAgent):
