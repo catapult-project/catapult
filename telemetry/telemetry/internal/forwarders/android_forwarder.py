@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import atexit
+from telemetry.internal.util import atexit_with_log
 import logging
 import subprocess
 
@@ -63,7 +63,7 @@ class AndroidForwarder(forwarders.Forwarder):
             p.local_port,
             forwarder.Forwarder.DevicePortForHostPort(p.local_port))
         if p else None for p in port_pairs])
-    atexit.register(self.Close)
+    atexit_with_log.Register(self.Close)
     # TODO(tonyg): Verify that each port can connect to host.
 
   def Close(self):

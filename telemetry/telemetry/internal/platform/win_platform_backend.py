@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import atexit
+from telemetry.internal.util import atexit_with_log
 import collections
 import contextlib
 import ctypes
@@ -388,7 +388,7 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
       socket.create_connection(('127.0.0.1', self._msr_server_port), 5).close()
     except socket.error:
       self.CloseMsrServer()
-    atexit.register(TerminateProcess, self._msr_server_handle)
+    atexit_with_log.Register(TerminateProcess, self._msr_server_handle)
 
   def ReadMsr(self, msr_number, start=0, length=64):
     self._StartMsrServerIfNeeded()

@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import ast
-import atexit
+from telemetry.internal.util import atexit_with_log
 import contextlib
 import gc
 import logging
@@ -247,5 +247,5 @@ class TracingControllerBackend(object):
                         self._trace_log)
       def DeleteAtExit(path):
         os.remove(path)
-      atexit.register(DeleteAtExit, self._trace_log)
+      atexit_with_log.Register(DeleteAtExit, self._trace_log)
     self._trace_log = None

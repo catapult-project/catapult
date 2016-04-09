@@ -4,7 +4,7 @@
 
 """Start and stop Web Page Replay."""
 
-import atexit
+from telemetry.internal.util import atexit_with_log
 import logging
 import os
 import re
@@ -204,7 +204,7 @@ class ReplayServer(object):
           preexec_fn=(_ResetInterruptHandler if is_posix else None))
     try:
       util.WaitFor(self._IsStarted, 30)
-      atexit.register(self.StopServer)
+      atexit_with_log.Register(self.StopServer)
       return forwarders.PortSet(
           self._started_ports['http'],
           self._started_ports['https'],

@@ -255,8 +255,9 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
     logging.getLogger().handlers = []
     logging.basicConfig(
         level=logging.INFO,
-        format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d'
-              '  %(message)s')
+        format='(%(levelname)s) %(asctime)s pid=%(process)d'
+               '  %(module)s.%(funcName)s:%(lineno)d'
+               '  %(message)s')
   if args.remote_platform_options.device == 'android':
     android_devices = android_device.FindAllAvailableDevices(args)
     if not android_devices:

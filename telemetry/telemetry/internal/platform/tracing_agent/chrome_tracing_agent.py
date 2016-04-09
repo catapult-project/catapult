@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import atexit
+from telemetry.internal.util import atexit_with_log
 import logging
 import os
 import shutil
@@ -172,7 +172,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           self._CreateTraceConfigFileString(config), as_root=True)
       # The config file has fixed path on Android. We need to ensure it is
       # always cleaned up.
-      atexit.register(self._RemoveTraceConfigFile)
+      atexit_with_log.Register(self._RemoveTraceConfigFile)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
       self._trace_config_file = os.path.join(tempfile.mkdtemp(),
                                              _CHROME_TRACE_CONFIG_FILE_NAME)

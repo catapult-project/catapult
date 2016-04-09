@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import atexit
+from telemetry.internal.util import atexit_with_log
 import logging
 
 from telemetry.internal.platform.power_monitor import android_power_monitor_base
@@ -23,7 +23,7 @@ class AndroidPowerMonitorController(
     self._candidate_power_monitors = power_monitors
     self._active_monitors = []
     self._battery = battery
-    atexit.register(_ReenableChargingIfNeeded, self._battery)
+    atexit_with_log.Register(_ReenableChargingIfNeeded, self._battery)
 
   def CanMonitorPower(self):
     return any(m.CanMonitorPower() for m in self._candidate_power_monitors)
