@@ -178,7 +178,7 @@ should not make assertions.
 
 | Feature                                                                                                                                     | Status                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [Arrows](https://github.com/lukehoban/es6features#arrows)                                                                                   | [Testing in progress](https://github.com/catapult-project/catapult/issues/2165) |
+| [Arrows](https://github.com/lukehoban/es6features#arrows)                                                                                   | [Approved](https://github.com/catapult-project/catapult/issues/2165) |
 | [Classes](https://github.com/lukehoban/es6features#classes)                                                                                 | To be discussed                                                                 |
 | [Enhanced object literals](https://github.com/lukehoban/es6features#enhanced-object-literals)                                               | To be discussed                                                                 |
 | [Template strings](https://github.com/lukehoban/es6features#template-strings)                                                               | To be discussed                                                                 |
