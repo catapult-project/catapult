@@ -16,9 +16,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pi.m', function() {
-  // Granularity of the histogram.
-  var HISTOGRAM_MAX = 250;
-  var NUM_BINS = 50;
+  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs,
+      tr.b.Range.fromExplicitRange(0, 250), 50);
 
   function taskInfoMapFunction(result, model) {
     var canonicalUrl = model.canonicalUrl;
@@ -98,10 +98,7 @@ tr.exportTo('pi.m', function() {
   function addToHistogram(dict, processName, threadName, value, url) {
     dict[processName] = dict[processName] || {};
     dict[processName][threadName] = dict[processName][threadName] ||
-        tr.v.Numeric.createLinear(
-            tr.v.Unit.byName.timeDurationInMs,
-            tr.b.Range.fromExplicitRange(0, HISTOGRAM_MAX),
-            NUM_BINS);
+        DURATION_NUMERIC_BUILDER.build();
     dict[processName][threadName].add(value, url);
   }
 

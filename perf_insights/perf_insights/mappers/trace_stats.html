@@ -14,6 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pi.m', function() {
+  var COUNT_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.unitlessNumber, tr.b.Range.fromExplicitRange(0, 50000),
+      20);
+
   function traceStatsFunction(result, model) {
     var canonicalUrl = model.canonicalUrl;
     var eventCount = 0;
@@ -43,10 +47,7 @@ tr.exportTo('pi.m', function() {
       seconds_counts[second]++;
     });
 
-    var histogram = tr.v.Numeric.createLinear(
-        tr.v.Unit.byName.unitlessNumber,
-        tr.b.Range.fromExplicitRange(0, 50000),
-        20);
+    var histogram = COUNT_NUMERIC_BUILDER.build();
 
     for (var second in seconds_counts)
       histogram.add(seconds_counts[second]);

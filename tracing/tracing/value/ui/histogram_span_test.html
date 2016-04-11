@@ -13,11 +13,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
+      10);
+
   test('basic', function() {
-    var h = new tr.v.Numeric.createLinear(
-        tr.v.Unit.byName.timeDurationInMs,
-        tr.b.Range.fromExplicitRange(0, 1000),
-        10);
+    var h = DURATION_NUMERIC_BUILDER.build();
     h.add(-1, 'a');
     h.add(0, 'b');
     h.add(0, 'b');
@@ -42,10 +43,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyHistogram', function() {
-    var h = new tr.v.Numeric.createLinear(
-        tr.v.Unit.byName.timeDurationInMs,
-        tr.b.Range.fromExplicitRange(0, 1000),
-        10);
+    var h = DURATION_NUMERIC_BUILDER.build();
 
     var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
@@ -53,10 +51,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nans', function() {
-    var h = new tr.v.Numeric.createLinear(
-        tr.v.Unit.byName.timeDurationInMs,
-        tr.b.Range.fromExplicitRange(0, 1000),
-        10);
+    var h = DURATION_NUMERIC_BUILDER.build();
     h.add(undefined, 'b');
     h.add(NaN, 'c');
 

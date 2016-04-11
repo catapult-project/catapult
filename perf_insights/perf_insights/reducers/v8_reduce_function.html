@@ -15,6 +15,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('pi.r', function() {
+  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+      100);
+
   function ScriptCostInfo() {
     this.threadGroup = undefined;
     this.railTypeName = undefined;
@@ -33,15 +37,8 @@ tr.exportTo('pi.r', function() {
     this.traceURLs = {};
     this.sliceCount = 1;
 
-    this.selfTimeHistogram = tr.v.Numeric.createLinear(
-         tr.v.Unit.byName.timeDurationInMs,
-         tr.b.Range.fromExplicitRange(0, 100),
-         100);
-
-    this.cpuSelfTimeHistogram = tr.v.Numeric.createLinear(
-         tr.v.Unit.byName.timeDurationInMs,
-         tr.b.Range.fromExplicitRange(0, 100),
-         100);
+    this.selfTimeHistogram = DURATION_NUMERIC_BUILDER.build();
+    this.cpuSelfTimeHistogram = DURATION_NUMERIC_BUILDER.build();
   }
 
   ScriptCostInfo.asReduceTarget = function(firstValue) {

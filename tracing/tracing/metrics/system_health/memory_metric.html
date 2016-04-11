@@ -51,15 +51,22 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
-  var LEVEL_OF_DETAIL_NAMES = {};
-  LEVEL_OF_DETAIL_NAMES[LIGHT] = 'light';
-  LEVEL_OF_DETAIL_NAMES[DETAILED] = 'detailed';
+  var LEVEL_OF_DETAIL_NAMES = new Map();
+  LEVEL_OF_DETAIL_NAMES.set(LIGHT, 'light');
+  LEVEL_OF_DETAIL_NAMES.set(DETAILED, 'detailed');
 
-  // TODO(petrcermak): Replace this with log-scale before using the metric on
-  // the dashboard.
-  var METRIC_RANGE = tr.b.Range.fromExplicitRange(
-      0, 4 * 1024 * 1024 * 1024 /* 4 GiB */);
-  var METRIC_NUM_BINS = 1000;
+  var MEMORY_NUMERIC_BUILDER_MAP = new WeakMap();
+  // For unitless numerics (process counts), we use 20 linearly scaled bins
+  // from 0 to 20.
+  MEMORY_NUMERIC_BUILDER_MAP.set(unitlessNumber,
+      tr.v.NumericBuilder.createLinear(tr.v.Unit.byName.unitlessNumber,
+          tr.b.Range.fromExplicitRange(0, 20), 20));
+  // For size numerics (allocator and mmaps stats), we use 1 bin from 0 B to
+  // 1 KiB and 4*24 exponentially scaled bins from 1 KiB to 16 GiB (=2^24 KiB).
+  MEMORY_NUMERIC_BUILDER_MAP.set(sizeInBytes_smallerIsBetter,
+      new tr.v.NumericBuilder(sizeInBytes_smallerIsBetter, 0)
+          .addBinBoundary(1024 /* 1 KiB */)
+          .addExponentialBins(16 * 1024 * 1024 * 1024 /* 16 GiB */, 4 * 24));
 
   function memoryMetric(valueList, model) {
     addGeneralMemoryDumpValues(valueList, model);
@@ -181,7 +188,7 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function addMemoryDumpCountValues(valueList, model) {
     var levelOfDetailNameToDumpCount = { 'total': 0 };
-    tr.b.iterItems(LEVEL_OF_DETAIL_NAMES, function(_, levelOfDetailName) {
+    LEVEL_OF_DETAIL_NAMES.forEach(function(levelOfDetailName) {
       levelOfDetailNameToDumpCount[levelOfDetailName] = 0;
     });
 
@@ -190,7 +197,8 @@ tr.exportTo('tr.metrics.sh', function() {
       levelOfDetailNameToDumpCount.total++;
 
       // Increment the level-of-detail-specific dump count (if possible).
-      var levelOfDetailName = LEVEL_OF_DETAIL_NAMES[globalDump.levelOfDetail];
+      var levelOfDetailName =
+          LEVEL_OF_DETAIL_NAMES.get(globalDump.levelOfDetail);
       if (!(levelOfDetailName in levelOfDetailNameToDumpCount))
         return;  // Unknown level of detail.
       levelOfDetailNameToDumpCount[levelOfDetailName]++;
@@ -396,14 +404,11 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function mergeScalarsIntoNumeric(scalars) {
     var unit = tr.b.findFirstInArray(scalars).unit;
-    var values = new Array(scalars.length);
+    var numeric = MEMORY_NUMERIC_BUILDER_MAP.get(unit).build();
     for (var i = 0; i < scalars.length; i++) {
       var scalar = scalars[i];
-      values[i] = scalar === undefined ? 0 : scalar.value;
+      numeric.add(scalar === undefined ? 0 : scalar.value);
     }
-    var numeric = tr.v.Numeric.createLinear(
-        unit, METRIC_RANGE, METRIC_NUM_BINS);
-    values.forEach(numeric.add, numeric);
     return numeric;
   }
 

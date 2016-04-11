@@ -13,21 +13,20 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
+  var sizeInBytes_smallerIsBetter =
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+
+  var SIZE_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      sizeInBytes_smallerIsBetter, tr.b.Range.fromExplicitRange(1, 100), 100);
 
   function sampleMetric(valueList, model) {
-    var sizeInBytes_smallerIsBetter =
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
     var n1 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 1);
     var n2 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 2);
-    var n3 = new tr.v.Numeric.createLinear(
-      sizeInBytes_smallerIsBetter, tr.b.Range.fromExplicitRange(1, 100), 100);
+    var n3 = SIZE_NUMERIC_BUILDER.build();
     n3.add(1);
-    valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'foo', n1));
-    valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'bar', n2));
-    valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'baz', n3));
+    valueList.addValue(new tr.v.NumericValue(model.canonicalUrl, 'foo', n1));
+    valueList.addValue(new tr.v.NumericValue(model.canonicalUrl, 'bar', n2));
+    valueList.addValue(new tr.v.NumericValue(model.canonicalUrl, 'baz', n3));
   }
 
   sampleMetric.prototype = {

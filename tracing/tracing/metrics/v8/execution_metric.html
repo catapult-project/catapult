@@ -14,20 +14,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
-  var timeDurationInMs_smallerIsBetter =
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
-
-  function createNumeric() {
-    return tr.v.Numeric.createLinear(
-        timeDurationInMs_smallerIsBetter,
-        tr.b.Range.fromExplicitRange(4, 200), 100);
-  }
+  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(4, 200), 100);
 
   function computeExecuteMetrics(valueList, model) {
-    var cpuTotalExecution = createNumeric();
-    var wallTotalExecution = createNumeric();
-    var cpuSelfExecution = createNumeric();
-    var wallSelfExecution = createNumeric();
+    var cpuTotalExecution = DURATION_NUMERIC_BUILDER.build();
+    var wallTotalExecution = DURATION_NUMERIC_BUILDER.build();
+    var cpuSelfExecution = DURATION_NUMERIC_BUILDER.build();
+    var wallSelfExecution = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190
@@ -56,8 +51,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeParseLazyMetrics(valueList, model) {
-    var cpuSelfParseLazy = createNumeric();
-    var wallSelfParseLazy = createNumeric();
+    var cpuSelfParseLazy = DURATION_NUMERIC_BUILDER.build();
+    var wallSelfParseLazy = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190
@@ -78,8 +73,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeCompileFullCodeMetrics(valueList, model) {
-    var cpuSelfCompileFullCode = createNumeric();
-    var wallSelfCompileFullCode = createNumeric();
+    var cpuSelfCompileFullCode = DURATION_NUMERIC_BUILDER.build();
+    var wallSelfCompileFullCode = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190
@@ -103,8 +98,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeCompileIgnitionMetrics(valueList, model) {
-    var cpuSelfCompileIgnition = createNumeric();
-    var wallSelfCompileIgnition = createNumeric();
+    var cpuSelfCompileIgnition = DURATION_NUMERIC_BUILDER.build();
+    var wallSelfCompileIgnition = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190
@@ -128,14 +123,14 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeRecompileMetrics(valueList, model) {
-    var cpuTotalRecompileSynchronous = createNumeric();
-    var wallTotalRecompileSynchronous = createNumeric();
-    var cpuTotalRecompileConcurrent = createNumeric();
-    var wallTotalRecompileConcurrent = createNumeric();
+    var cpuTotalRecompileSynchronous = DURATION_NUMERIC_BUILDER.build();
+    var wallTotalRecompileSynchronous = DURATION_NUMERIC_BUILDER.build();
+    var cpuTotalRecompileConcurrent = DURATION_NUMERIC_BUILDER.build();
+    var wallTotalRecompileConcurrent = DURATION_NUMERIC_BUILDER.build();
     // TODO(eakuefner): Stop computing overall values once dash v2 is ready.
     // https://github.com/catapult-project/catapult/issues/2180
-    var cpuTotalRecompileOverall = createNumeric();
-    var wallTotalRecompileOverall = createNumeric();
+    var cpuTotalRecompileOverall = DURATION_NUMERIC_BUILDER.build();
+    var wallTotalRecompileOverall = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190
@@ -194,8 +189,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeOptimizeCodeMetrics(valueList, model) {
-    var cpuTotalOptimizeCode = createNumeric();
-    var wallTotalOptimizeCode = createNumeric();
+    var cpuTotalOptimizeCode = DURATION_NUMERIC_BUILDER.build();
+    var wallTotalOptimizeCode = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190
@@ -218,8 +213,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeDeoptimizeCodeMetrics(valueList, model) {
-    var cpuTotalDeoptimizeCode = createNumeric();
-    var wallTotalDeoptimizeCode = createNumeric();
+    var cpuTotalDeoptimizeCode = DURATION_NUMERIC_BUILDER.build();
+    var wallTotalDeoptimizeCode = DURATION_NUMERIC_BUILDER.build();
 
     // TODO(eakuefner): Switch to findEvents to avoid double-counting.
     // https://github.com/catapult-project/catapult/issues/2190

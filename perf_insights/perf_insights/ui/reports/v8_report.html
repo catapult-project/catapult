@@ -107,10 +107,17 @@ found in the LICENSE file.
       </div>
     </content>
   </template>
-  <script>
-  'use strict';
+</polymer-element>
 
-  Polymer({
+<script>
+'use strict';
+
+tr.exportTo('pi.ui.r', function() {
+  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+      100);
+
+  Polymer('pi-ui-v8-report', {
     created: function() {
       this.mapResults_ = undefined;
     },
@@ -428,10 +435,7 @@ found in the LICENSE file.
           '#costs-histogram-cost-type');
       var func = selector.selectedItem.func;
 
-      var histogram = tr.v.Numeric.createLinear(
-          tr.v.Unit.byName.timeDurationInMs,
-          tr.b.Range.fromExplicitRange(0, 100),
-          100);
+      var histogram = DURATION_NUMERIC_BUILDER.build();
       this.$.table.selectedTableRow.data.forEach(function(datum) {
         var value = func(datum);
         histogram.addNumeric(tr.v.Numeric.fromDict(value));
@@ -489,5 +493,7 @@ found in the LICENSE file.
       this.$.scripts.setTraceUrlsAndNames(namesAndUrls);
     }
   });
-  </script>
-</polymer-element>
+
+  return {};
+});
+</script>
