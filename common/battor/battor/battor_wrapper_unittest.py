@@ -7,6 +7,7 @@ import unittest
 
 import dependency_manager
 
+from battor import battor_error
 from battor import battor_wrapper
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
@@ -93,12 +94,12 @@ class BattorWrapperTest(unittest.TestCase):
 
   def testInitNonAndroidWithMultipleBattor(self):
     self._battor_list.append('battor2')
-    with self.assertRaises(battor_wrapper.BattorError):
+    with self.assertRaises(battor_error.BattorError):
       self._battor = battor_wrapper.BattorWrapper('platform')
 
   def testInitNonAndroidWithoutBattor(self):
     self._battor_list = []
-    with self.assertRaises(battor_wrapper.BattorError):
+    with self.assertRaises(battor_error.BattorError):
       self._battor = battor_wrapper.BattorWrapper('platform')
 
   def testStartShellPass(self):
@@ -141,7 +142,7 @@ class BattorWrapperTest(unittest.TestCase):
     self._DefaultBattorReplacements()
     self._battor._SendBattorCommandImpl = lambda x, return_results: 'Fail.\n'
     self._battor.StartShell()
-    with self.assertRaises(battor_wrapper.BattorError):
+    with self.assertRaises(battor_error.BattorError):
       self._battor.StartTracing()
 
   def testStopTracingPass(self):
@@ -163,4 +164,3 @@ class BattorWrapperTest(unittest.TestCase):
 if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)
   unittest.main(verbosity=2)
-

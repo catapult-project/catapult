@@ -6,7 +6,7 @@
 import json
 import collections
 
-from devil import base_error
+from battor import battor_error
 from devil.utils import find_usb_devices
 from devil.utils import usb_hubs
 
@@ -27,10 +27,6 @@ def GetBattorSerialNumbers(device_tree_map):
       (bus, device) = find_usb_devices.GetBusDeviceFromTTY(x)
       devnode = device_tree_map[bus].FindDeviceNumber(device)
       yield devnode.serial
-
-
-class BattorError(base_error.BaseError):
-  pass
 
 
 def ReadSerialMapFile(filename):
@@ -120,12 +116,12 @@ def GenerateSerialMap(hub_types=None):
     for (port, serial) in hub.iteritems():
       if serial in battor_serials:
         if port_to_devices[port].battor is not None:
-          raise BattorError('Multiple BattOrs on same port number')
+          raise battor_error.BattorError('Multiple BattOrs on same port number')
         else:
           port_to_devices[port].battor = serial
       else:
         if port_to_devices[port].phone is not None:
-          raise BattorError('Multiple phones on same port number')
+          raise battor_error.BattorError('Multiple phones on same port number')
         else:
           port_to_devices[port].phone = serial
 
@@ -134,9 +130,11 @@ def GenerateSerialMap(hub_types=None):
   result = {}
   for pair in port_to_devices.values():
     if pair.phone is None:
-      raise BattorError('BattOr detected with no corresponding phone')
+      raise battor_error.BattorError(
+          'BattOr detected with no corresponding phone')
     if pair.battor is None:
-      raise BattorError('Phone detected with no corresponding BattOr')
+      raise battor_error.BattorError(
+          'Phone detected with no corresponding BattOr')
     result[pair.phone] = pair.battor
   return result
 
@@ -156,8 +154,9 @@ def _PhoneToPathMap(serial, serial_map, devtree):
           try:
             return bus_device_to_tty[bus_device]
           except KeyError:
-            raise BattorError('Device with given serial number not a BattOr '
-                              '(does not have TTY path)')
+            raise battor_error.BattorError(
+                'Device with given serial number not a BattOr '
+                '(does not have TTY path)')
 
 
 def GetBattorPathFromPhoneSerial(serial, serial_map=None,
@@ -200,7 +199,8 @@ def GetBattorPathFromPhoneSerial(serial, serial_map=None,
     return '/dev/' + all_battors[0]
 
   if not serial:
-    raise BattorError('Two or more BattOrs connected, no serial provided')
+    raise battor_error.BattorError(
+        'Two or more BattOrs connected, no serial provided')
 
   if serial_map and serial_map_file:
     raise ValueError('Cannot specify both serial_map and serial_map_file')
@@ -211,9 +211,11 @@ def GetBattorPathFromPhoneSerial(serial, serial_map=None,
   tty_string = _PhoneToPathMap(serial, serial_map, devtree)
 
   if not tty_string:
-    raise BattorError('No device with given serial number detected.')
+    raise battor_error.BattorError(
+        'No device with given serial number detected.')
 
   if IsBattor(tty_string, devtree):
     return '/dev/' + tty_string
   else:
-    raise BattorError('Device with given serial number is not a BattOr.')
+    raise battor_error.BattorError(
+        'Device with given serial number is not a BattOr.')

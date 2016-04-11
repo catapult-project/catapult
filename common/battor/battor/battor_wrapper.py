@@ -9,13 +9,11 @@ import sys
 import tempfile
 import time
 
+from battor import battor_error
 import dependency_manager
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
 
-
-class BattorError(Exception):
-  pass
 
 class BattorWrapper(object):
   """A class for communicating with a BattOr in python."""
@@ -127,12 +125,13 @@ class BattorWrapper(object):
     device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
     if battor_path:
       if not isinstance(battor_path, basestring):
-        raise BattorError('An invalid BattOr path was specified.')
+        raise battor_error.BattorError('An invalid BattOr path was specified.')
       return battor_path
 
     if target_platform == 'android':
       if not android_device:
-        raise BattorError('Must specify device for Android platform.')
+        raise battor_error.BattorError(
+            'Must specify device for Android platform.')
       if not battor_map_file and not battor_map:
         # No map was passed, so must create one.
         battor_map = battor_device_mapping.GenerateSerialMap()
@@ -144,8 +143,9 @@ class BattorWrapper(object):
     # Not Android and no explicitly passed BattOr.
     battors = battor_device_mapping.GetBattorList(device_tree)
     if len(battors) != 1:
-      raise BattorError('For non-Android platforms, exactly one BattOr must be '
-                        'attached unless address is explicitly given.')
+      raise battor_error.BattorError(
+          'For non-Android platforms, exactly one BattOr must be '
+          'attached unless address is explicitly given.')
     return '/dev/%s' % battors.pop()
 
   def _SendBattorCommandImpl(self, cmd, return_results=True):
@@ -158,8 +158,9 @@ class BattorWrapper(object):
   def _SendBattorCommand(self, cmd, check_return=True):
     status = self._SendBattorCommandImpl(cmd, return_results=check_return)
     if check_return and status != 'Done.\n':
-      raise BattorError('BattOr did not complete command \'%s\' correctly.\n'
-                        'Outputted: %s' % (cmd, status))
+      raise battor_error.BattorError(
+          'BattOr did not complete command \'%s\' correctly.\n'
+          'Outputted: %s' % (cmd, status))
     return status
 
   def _StartShellImpl(self, battor_cmd):
