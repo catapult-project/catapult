@@ -24,6 +24,7 @@ if version != (2, 7):
 import imp
 import optparse
 import os
+import time
 
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, os.path.pardir)
@@ -241,6 +242,13 @@ def main():
 
   for a in agents:
     a.StartAgentTracing(options, categories, 10)
+
+  if options.trace_time:
+    print 'Tracing running for %d seconds.' % options.trace_time
+    time.sleep(options.trace_time)
+  else:
+    print 'Tracing running, stop with ENTER.'
+    raw_input()
 
   for a in agents:
     a.StopAgentTracing(10)
