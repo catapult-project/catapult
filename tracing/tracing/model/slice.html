@@ -118,6 +118,37 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
+     * Finds all topmost slices relative to this slice.
+     *
+     * Slices may have multiple direct descendants which satisfy
+     * |eventPredicate|, and in this case, all of them are topmost as long as
+     * this slice does not satisfy the predicate.
+     *
+     * For instance, suppose we are passing a predicate that checks whether
+     * events titles begin with 'C'.
+     *  C1.findTopmostSlicesRelativeToThisSlice() returns C1 in this example:
+     * [   C1  ]
+     *   [ C2 ]
+     *
+     * and D.findTopmostSlicesRelativeToThisSlice() returns C1 and C2 in this
+     * example:
+     * [      D     ]
+     *   [C1]  [C2]
+     */
+    findTopmostSlicesRelativeToThisSlice: function(eventPredicate, callback,
+                                                   opt_this) {
+      if (eventPredicate(this)) {
+        callback.call(opt_this, this);
+        return;
+      }
+
+      this.subSlices.forEach(function(s) {
+        s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
+                                               opt_this);
+      });
+    },
+
+    /**
      * Obtains all subsequent slices of this slice.
      *
      * Subsequent slices are slices that get executed after a particular

@@ -109,6 +109,10 @@ tr.exportTo('tr.model', function() {
       }
     },
 
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+    },
+
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.CounterSample)) {

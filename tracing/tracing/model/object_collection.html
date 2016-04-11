@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/object_instance.html">
 <link rel="import" href="/tracing/model/time_to_object_instance_map.html">
-<link rel="import" href="/tracing/base/utils.html">
-<link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
 
 <script>
 'use strict';
@@ -39,6 +39,10 @@ tr.exportTo('tr.model', function() {
 
   ObjectCollection.prototype = {
     __proto__: tr.model.EventContainer.prototype,
+
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+    },
 
     iterateAllChildEventContainers: function(callback, opt_this) {
     },

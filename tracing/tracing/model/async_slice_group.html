@@ -134,6 +134,16 @@ tr.exportTo('tr.model', function() {
       return this.viewSubGroups_;
     },
 
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+      for (var i = 0; i < this.slices.length; i++) {
+        var slice = this.slices[i];
+        if (slice.isTopLevel)
+          slice.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
+                                                     opt_this);
+      }
+    },
+
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.AsyncSlice)) {

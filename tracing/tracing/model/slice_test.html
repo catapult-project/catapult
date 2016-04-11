@@ -34,6 +34,47 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(sA.findDescendentSlice('sD'));
   });
 
+  test('findTopmostSlicesRelativeToThisSliceBaseCase', function() {
+    var PREDICATE = slice => slice.title.startsWith('sC');
+
+    var group = new SliceGroup(newFakeThread());
+
+    var sC1 = group.pushSlice(newSliceEx(
+        { title: 'sC1', start: 0.0, duration: 10.0 }));
+    var sC2 = group.pushSlice(newSliceEx(
+        { title: 'sC2', start: 0.0, duration: 4.0 }));
+
+    group.createSubSlices();
+
+    var foundSlices = [];
+    sC1.findTopmostSlicesRelativeToThisSlice(PREDICATE, slice => (
+        foundSlices.push(slice))
+    );
+
+    assert.deepEqual([sC1], foundSlices);
+  });
+
+  test('findTopmostSlicesRelativeToThisSliceRecursive', function() {
+    var PREDICATE = slice => slice.title.startsWith('sC');
+
+    var group = new SliceGroup(newFakeThread());
+
+    var sD = group.pushSlice(newSliceEx(
+        { title: 'sD', start: 0.0, duration: 10.0 }));
+    var sC1 = group.pushSlice(newSliceEx(
+        { title: 'sC1', start: 0.0, duration: 4.0 }));
+    var sC2 = group.pushSlice(newSliceEx(
+        { title: 'sC2', start: 6.0, duration: 3.0 }));
+
+    group.createSubSlices();
+
+    var foundSlices = [];
+    sD.findTopmostSlicesRelativeToThisSlice(PREDICATE, slice => (
+        foundSlices.push(slice)));
+
+    assert.deepEqual([sC1, sC2], foundSlices);
+  });
+
   test('iterateAllDescendents', function() {
     var group = new SliceGroup(newFakeThread());
 

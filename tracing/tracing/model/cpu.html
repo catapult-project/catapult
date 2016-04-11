@@ -58,6 +58,15 @@ tr.exportTo('tr.model', function() {
       return 'CPU ' + this.cpuNumber;
     },
 
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+      // All CpuSlices are toplevel since CpuSlices do not nest.
+      this.slices.forEach(function(s) {
+        s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
+                                               opt_this);
+      });
+    },
+
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.CpuSlice))

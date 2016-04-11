@@ -275,6 +275,17 @@ tr.exportTo('tr.model', function() {
       return newSlice;
     },
 
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                              opt_this) {
+      if (!this.haveTopLevelSlicesBeenBuilt)
+        throw new Error('Nope');
+
+      this.topLevelSlices.forEach(function(s) {
+        s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
+                                               opt_this);
+      });
+    },
+
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       if (eventTypePredicate.call(opt_this, this.sliceConstructor))

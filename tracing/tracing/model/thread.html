@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/event_container.html">
-<link rel="import" href="/tracing/model/async_slice_group.html">
-<link rel="import" href="/tracing/model/slice_group.html">
-<link rel="import" href="/tracing/model/thread_slice.html">
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/model/async_slice_group.html">
+<link rel="import" href="/tracing/model/event_container.html">
+<link rel="import" href="/tracing/model/slice_group.html">
+<link rel="import" href="/tracing/model/thread_slice.html">
 
 <script>
 'use strict';
@@ -71,6 +71,10 @@ tr.exportTo('tr.model', function() {
 
     compareTo: function(that) {
       return Thread.compare(this, that);
+    },
+
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                              opt_this) {
     },
 
     iterateAllChildEventContainers: function(callback, opt_this) {

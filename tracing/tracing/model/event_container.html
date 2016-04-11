@@ -106,6 +106,35 @@ tr.exportTo('tr.model', function() {
         ec.iterateAllChildEventContainers(visit);
       }
       visit(this);
+    },
+
+    /**
+     * Finds topmost slices in this container (see docstring for
+     * findTopmostSlices).
+     */
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+      throw new Error('Not implemented.');
+    },
+
+    /**
+     * The findTopmostSlices* series of helpers find all topmost slices
+     * satisfying the given predicates.
+     *
+     * As an example, suppose we are trying to find slices named 'C', with the
+     * following thread:
+     *
+     *  -> |---C---| |-----D-----|
+     *       |-C-|      |---C---| <-
+     *
+     * findTopmostSlices would locate the pointed-to Cs, because the bottom C on
+     * the  left is not the topmost C, and the right one is, even though it is
+     * not itself a top-level slice.
+     */
+    findTopmostSlices: function(eventPredicate, callback, opt_this) {
+      this.iterateAllEventContainers(function(ec) {
+        findTopmostSlicesInThisContainer(eventPredicate, callback, opt_this);
+      });
     }
   };
 

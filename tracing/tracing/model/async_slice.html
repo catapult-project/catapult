@@ -54,8 +54,8 @@ tr.exportTo('tr.model', function() {
 
     this.duration = duration;
 
-
-    // TODO(nduca): Forgive me for what I must do.
+    // isTopLevel is set at import because only NESTABLE_ASYNC events might not
+    // be topLevel. All legacy async events are toplevel by definition.
     this.isTopLevel = (opt_isTopLevel === true);
 
     if (opt_cpuStart !== undefined)
@@ -101,6 +101,18 @@ tr.exportTo('tr.model', function() {
       var parentAsyncSliceGroup = this.parentContainer.asyncSliceGroup;
       return parentAsyncSliceGroup.stableId + '.' +
           parentAsyncSliceGroup.slices.indexOf(this);
+    },
+
+    findTopmostSlicesRelativeToThisSlice: function(eventPredicate, callback,
+                                                   opt_this) {
+      if (eventPredicate(this))
+        callback.call(opt_this, this);
+      else {
+        this.subSlices.forEach(function(s) {
+          s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
+                                                 opt_this);
+        });
+      }
     },
 
     findDescendentSlice: function(targetTitle) {

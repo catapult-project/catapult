@@ -138,6 +138,10 @@ tr.exportTo('tr', function() {
       return this.helpersByConstructorGUID_[constructor.guid];
     },
 
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+    },
+
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
       if (eventTypePredicate.call(opt_this, GlobalMemoryDump))

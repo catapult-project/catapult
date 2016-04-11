@@ -52,6 +52,10 @@ tr.exportTo('tr.model', function() {
       throw new Error('Not implemented');
     },
 
+    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
+                                               opt_this) {
+    },
+
     iterateAllChildEventContainers: function(callback, opt_this) {
       for (var tid in this.threads)
         callback.call(opt_this, this.threads[tid]);
