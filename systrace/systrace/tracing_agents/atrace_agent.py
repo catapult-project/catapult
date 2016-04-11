@@ -37,21 +37,6 @@ BOOTTRACE_PROP = 'persist.debug.atrace.boottrace'
 # The file path for specifying categories to be traced during boot.
 BOOTTRACE_CATEGORIES = '/data/misc/boottrace/categories'
 
-# This list is based on the tags in frameworks/native/include/utils/Trace.h for
-# legacy platform.
-LEGACY_TRACE_TAG_BITS = (
-    ('gfx', 1 << 1),
-    ('input', 1 << 2),
-    ('view', 1 << 3),
-    ('webview', 1 << 4),
-    ('wm', 1 << 5),
-    ('am', 1 << 6),
-    ('sm', 1 << 7),
-    ('audio', 1 << 8),
-    ('video', 1 << 9),
-    ('camera', 1 << 10),
-)
-
 
 def list_categories(options):
   """List the possible trace event categories.
@@ -96,6 +81,50 @@ def try_create_agent(options):
   else:
     return False
 
+def _construct_extra_atrace_args(options, categories):
+  """Construct extra arguments (-a, -k, categories) for atrace command.
+
+  Args:
+      options: Tracing options.
+      categories: Categories of trace events to capture.
+  """
+  extra_args = []
+
+  if options.app_name is not None:
+    extra_args.extend(['-a', options.app_name])
+
+  if options.kfuncs is not None:
+    extra_args.extend(['-k', options.kfuncs])
+
+  extra_args.extend(categories)
+  return extra_args
+
+def _construct_trace_args(options, categories):
+  """Builds the command used to invoke a trace process.
+  Returns:
+    A tuple where the first element is an array of command arguments, and
+    the second element is a boolean which will be true if the command will
+    stream trace data.
+  """
+  atrace_args = ATRACE_BASE_ARGS[:]
+
+  if options.compress_trace_data:
+    atrace_args.extend(['-z'])
+
+  if (options.trace_time is not None) and (options.trace_time > 0):
+    atrace_args.extend(['-t', str(options.trace_time)])
+
+  if (options.trace_buf_size is not None) and (options.trace_buf_size > 0):
+    atrace_args.extend(['-b', str(options.trace_buf_size)])
+
+  elif 'sched' in categories:
+    # 'sched' is a high-volume tag, double the default buffer size
+    # to accommodate that
+    atrace_args.extend(['-b', '4096'])
+  extra_args = _construct_extra_atrace_args(options, categories)
+
+  atrace_args.extend(extra_args)
+  return atrace_args
 
 class AtraceAgent(tracing_agents.TracingAgent):
 
@@ -117,9 +146,10 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._categories = [x for x in self._categories if x in avail_cats]
     if unavailable:
       print 'These categories are unavailable: ' + ' '.join(unavailable)
-    self._tracer_args = self._construct_trace_command()
+    self._tracer_args = _construct_trace_args(self._options, self._categories)
 
-    self._adb = do_popen(self._tracer_args)
+    shell = ['adb', '-s', self._options.device_serial, 'shell']
+    self._adb = do_popen(shell + self._tracer_args)
 
   def StartAgentTracing(self, options, categories, timeout):
     return timeout_retry.Run(self._StartAgentTracingImpl, timeout, 1,
@@ -150,48 +180,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
   def _construct_list_categories_command(self):
     return util.construct_adb_shell_command(
           LIST_CATEGORIES_ARGS, self._options.device_serial)
-
-  def _construct_extra_trace_command(self):
-    extra_args = []
-    if self._options.app_name is not None:
-      extra_args.extend(['-a', self._options.app_name])
-
-    if self._options.kfuncs is not None:
-      extra_args.extend(['-k', self._options.kfuncs])
-
-    extra_args.extend(self._categories)
-    return extra_args
-
-  def _construct_trace_command(self):
-    """Builds a command-line used to invoke a trace process.
-
-    Returns:
-      A tuple where the first element is an array of command-line arguments, and
-      the second element is a boolean which will be true if the commend will
-      stream trace data.
-    """
-    atrace_args = ATRACE_BASE_ARGS[:]
-    if self._options.compress_trace_data:
-      atrace_args.extend(['-z'])
-
-    if ((self._options.trace_time is not None)
-        and (self._options.trace_time > 0)):
-      atrace_args.extend(['-t', str(self._options.trace_time)])
-
-    if ((self._options.trace_buf_size is not None)
-        and (self._options.trace_buf_size > 0)):
-      atrace_args.extend(['-b', str(self._options.trace_buf_size)])
-    elif 'sched' in self._categories:
-      # 'sched' is a high-volume tag, double the default buffer size
-      # to accommodate that
-      atrace_args.extend(['-b', '4096'])
-    extra_args = self._construct_extra_trace_command()
-    atrace_args.extend(extra_args)
-
-    tracer_args = util.construct_adb_shell_command(
-        atrace_args, self._options.device_serial)
-
-    return tracer_args
 
   def _collect_trace_data(self):
     # Read the output from ADB in a worker thread.  This allows us to monitor

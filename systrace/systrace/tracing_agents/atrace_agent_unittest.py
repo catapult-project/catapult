@@ -19,7 +19,7 @@ ADB_SHELL = ['adb', '-s', DEVICE_SERIAL, 'shell']
 
 SYSTRACE_CMD = ['./run_systrace.py', '--time', '10', '-o', 'out.html', '-e',
                 DEVICE_SERIAL] + CATEGORIES
-TRACE_CMD = (ADB_SHELL + ATRACE_ARGS + CATEGORIES)
+TRACE_ARGS = (ATRACE_ARGS + CATEGORIES)
 
 STOP_FIX_UPS = ['atrace', '--no-fix-threads', '--no-fix-tgids']
 
@@ -49,13 +49,10 @@ ATRACE_FIXED_TGIDS = os.path.join(TEST_DIR, 'atrace_fixed_tgids')
 
 class AtraceAgentTest(unittest.TestCase):
 
-  def test_construct_trace_command(self):
+  def test_construct_trace_args(self):
     options, categories = run_systrace.parse_options(SYSTRACE_CMD)
-    agent = atrace_agent.AtraceAgent()
-    agent._options = options
-    agent._categories = categories
-    tracer_args = agent._construct_trace_command()
-    self.assertEqual(' '.join(TRACE_CMD), ' '.join(tracer_args))
+    tracer_args = atrace_agent._construct_trace_args(options, categories)
+    self.assertEqual(' '.join(TRACE_ARGS), ' '.join(tracer_args))
 
   def test_preprocess_trace_data(self):
     with contextlib.nested(open(ATRACE_DATA_STRIPPED, 'r'),
