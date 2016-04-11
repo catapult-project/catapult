@@ -11,6 +11,7 @@ import time
 import zlib
 
 from devil.android import device_utils
+from devil.utils import timeout_retry
 from systrace import tracing_agents
 from systrace import util
 
@@ -106,7 +107,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._options = None
     self._categories = None
 
-  def StartAgentTracing(self, options, categories, timeout):
+  def _StartAgentTracingImpl(self, options, categories):
     self._options = options
     self._categories = categories
     if not self._categories:
@@ -120,13 +121,23 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     self._adb = do_popen(self._tracer_args)
 
-  def StopAgentTracing(self, timeout):
+  def StartAgentTracing(self, options, categories, timeout):
+    return timeout_retry.Run(self._StartAgentTracingImpl, timeout, 1,
+                             args=[options, categories])
+
+  def _StopAgentTracingImpl(self):
     pass
 
-  def GetResults(self, timeout):
+  def StopAgentTracing(self, timeout):
+    return timeout_retry.Run(self._StopAgentTracingImpl, timeout, 1)
+
+  def _GetResultsImpl(self):
     trace_data = self._collect_trace_data()
     self._trace_data = self._preprocess_trace_data(trace_data)
     return tracing_agents.TraceResult('trace-data', self._trace_data)
+
+  def GetResults(self, timeout):
+    return timeout_retry.Run(self._GetResultsImpl, timeout, 1)
 
   def SupportsExplicitClockSync(self):
     return False
@@ -334,7 +345,7 @@ class BootAgent(AtraceAgent):
   def __init__(self):
     super(BootAgent, self).__init__()
 
-  def StartAgentTracing(self, options, categories, timeout=10):
+  def _StartAgentTracingImpl(self, options, categories):
     self._options = options
     self._categories = categories
     try:
@@ -355,6 +366,10 @@ class BootAgent(AtraceAgent):
           ' '.join(tracer_args))
       print >> sys.stderr, '    ', error
       sys.exit(1)
+
+  def StartAgentTracing(self, options, categories, timeout):
+    return timeout_retry.Run(self._StartAgentTracingImpl, timeout, 1,
+                             args=[options, categories])
 
   def _construct_setup_command(self):
     echo_args = ['echo'] + self._categories + ['>', BOOTTRACE_CATEGORIES]
