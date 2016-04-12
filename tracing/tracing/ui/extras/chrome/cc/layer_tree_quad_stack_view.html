@@ -55,7 +55,7 @@ found in the LICENSE file.
 }
 
 * /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view > #input-event {
-  content: url('./images/input-event.png');
+  background-image: url('./images/input-event.png');
   display: none;
 }
 </style>
@@ -365,7 +365,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     loadDataForImageElement_: function(image, callback) {
-      var imageContent = window.getComputedStyle(image).content;
+      var imageContent = window.getComputedStyle(image).backgroundImage;
       image.src = tr.ui.b.extractUrlString(imageContent);
       image.onload = function() {
         var canvas = document.createElement('canvas');
@@ -376,7 +376,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var imageData = ctx.getImageData(
             0, 0, canvas.width, canvas.height);
         callback(imageData);
-      }
+      };
     },
 
     onQuadStackViewSelectionChange_: function(e) {

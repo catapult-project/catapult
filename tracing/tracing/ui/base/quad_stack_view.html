@@ -40,17 +40,17 @@ found in the LICENSE file.
 }
 
 * /deep/ quad-stack-view > #chrome-left {
-  content: url('../images/chrome-left.png');
+  background-image: url('../images/chrome-left.png');
   display: none;
 }
 
 * /deep/ quad-stack-view > #chrome-mid {
-  content: url('../images/chrome-mid.png');
+  background-image: url('../images/chrome-mid.png');
   display: none;
 }
 
 * /deep/ quad-stack-view > #chrome-right {
-  content: url('../images/chrome-right.png');
+  background-image: url('../images/chrome-right.png');
   display: none;
 }
 </style>
@@ -485,15 +485,15 @@ tr.exportTo('tr.ui.b', function() {
       // the image to draw onto a canvas.
       if (!this.chromeImages_.left.src) {
         var leftContent =
-            window.getComputedStyle(this.chromeImages_.left).content;
+            window.getComputedStyle(this.chromeImages_.left).backgroundImage;
         leftContent = tr.ui.b.extractUrlString(leftContent);
 
         var midContent =
-            window.getComputedStyle(this.chromeImages_.mid).content;
+            window.getComputedStyle(this.chromeImages_.mid).backgroundImage;
         midContent = tr.ui.b.extractUrlString(midContent);
 
         var rightContent =
-            window.getComputedStyle(this.chromeImages_.right).content;
+            window.getComputedStyle(this.chromeImages_.right).backgroundImage;
         rightContent = tr.ui.b.extractUrlString(rightContent);
 
         this.chromeImages_.left.src = leftContent;
