@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/metrics/v8/execution_metric.html">
 <link rel="import" href="/tracing/metrics/value_list.html">
 
@@ -43,6 +44,30 @@ tr.b.unittest.testSuite(function() {
     ].forEach(function(name) {
       assert.isAbove(valueList.getValuesWithName(name).length, 0);
     });
+  });
+
+  test('noDoubleCounting', function() {
+    var events = [
+      {name: 'V8.Execute', args: {}, pid: 52, ts: 0, cat: 'foo', tid: 53,
+       ph: 'B'},
+      {name: 'V8.Execute', args: {}, pid: 52, ts: 100, cat: 'foo', tid: 53,
+       ph: 'E'},
+      {name: 'V8.Execute', args: {}, pid: 52, ts: 20, cat: 'foo', tid: 53,
+       ph: 'B'},
+      {name: 'V8.Execute', args: {}, pid: 52, ts: 40, cat: 'foo', tid: 53,
+       ph: 'E'}
+    ];
+
+    var model = tr.c.TestUtils.newModelWithEvents(JSON.stringify(events), {
+      shiftWorldToZero: false
+    });
+    var valueList = new tr.metrics.ValueList();
+
+    tr.metrics.v8.executionMetric(valueList, model);
+
+    var value = valueList.getValuesWithName('v8_execution_wall_total_sum')[0];
+
+    assert.closeTo(value.numeric.value, 0.1, 1e-5);
   });
 });
 </script>

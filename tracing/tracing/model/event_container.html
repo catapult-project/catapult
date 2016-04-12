@@ -133,8 +133,12 @@ tr.exportTo('tr.model', function() {
      */
     findTopmostSlices: function(eventPredicate, callback, opt_this) {
       this.iterateAllEventContainers(function(ec) {
-        findTopmostSlicesInThisContainer(eventPredicate, callback, opt_this);
+        ec.findTopmostSlicesInThisContainer(eventPredicate, callback, opt_this);
       });
+    },
+
+    findTopmostSlicesNamed: function(name, callback, opt_this) {
+      this.findTopmostSlices(e => e.title === name, callback, opt_this);
     }
   };
 
