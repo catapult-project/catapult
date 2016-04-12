@@ -45,7 +45,6 @@ tr.b.unittest.testSuite(function() {
   var testOptions = {
     setUp: function() {
       this.actual_window_XMLHttpRequest = window.XMLHttpRequest;
-      window.untriagedEventFired = false;
     },
 
     tearDown: function() {
@@ -71,12 +70,13 @@ tr.b.unittest.testSuite(function() {
 
   test('onRemoveBug causes an "untriaged" event to be fired', function() {
     var box = document.createElement('alert-remove-box');
+    var untriagedEventFired = false;
     window.XMLHttpRequest = new XMLHttpRequestMock('{"bug_id": "REMOVE"}');
     box.addEventListener('untriaged', function() {
-      window.untriagedEventFired = true;
+      untriagedEventFired = true;
     });
     box.onRemoveBug(new Event('click'));
-    assert.isTrue(window.untriagedEventFired);
+    assert.isTrue(untriagedEventFired);
   }, testOptions);
 
 });
