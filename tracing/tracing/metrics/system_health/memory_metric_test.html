@@ -115,11 +115,17 @@ tr.b.unittest.testSuite(function() {
   }
 
   function expectBytes(value) {
-    return { unit: tr.v.Unit.byName.sizeInBytes_smallerIsBetter, value: value };
+    return {
+      unit: tr.v.Unit.byName.sizeInBytes_smallerIsBetter,
+      value: value
+    };
   }
 
   function expectUnitless(value) {
-    return { unit: tr.v.Unit.byName.unitlessNumber, value: value };
+    return {
+      unit: tr.v.Unit.byName.unitlessNumber_smallerIsBetter,
+      value: value
+    };
   }
 
   function createProcessWithName(model, name) {
