@@ -122,9 +122,6 @@ _CATAPULT_TESTS = [
             '--no-use-local-chrome',
             '--channel=canary'
         ],
-        # Test failing on Windows:
-        # https://github.com/catapult-project/catapult/issues/1816
-        'disabled': ['win'],
         'outputs_presentation_json': True,
     },
     {
