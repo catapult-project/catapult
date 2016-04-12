@@ -44,11 +44,12 @@ tr.b.unittest.testSuite(function() {
 
   var testOptions = {
     setUp: function() {
+      this.actual_window_XMLHttpRequest = window.XMLHttpRequest;
       window.untriagedEventFired = false;
     },
 
     tearDown: function() {
-      delete window.XMLHttpRequest;
+      window.XMLHttpRequest = this.actual_window_XMLHttpRequest;
     }
   };
 
