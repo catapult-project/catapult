@@ -26,7 +26,7 @@ class ExtensionTest(unittest.TestCase):
     options = options_for_unittests.GetCopy()
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type)
-    options.extensions_to_load = [load_extension]
+    options.browser_options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
 
     if not browser_to_create:
@@ -118,7 +118,7 @@ class MultipleExtensionTest(unittest.TestCase):
     self._extensions_to_load = [extension_to_load.ExtensionToLoad(
                                     d, options.browser_type)
                                 for d in self._extension_dirs]
-    options.extensions_to_load = self._extensions_to_load
+    options.browser_options.extensions_to_load = self._extensions_to_load
     browser_to_create = browser_finder.FindBrowser(options)
     self._browser = None
     # May not find a browser that supports extensions.
@@ -158,7 +158,7 @@ class ComponentExtensionTest(unittest.TestCase):
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type, is_component=True)
 
-    options.extensions_to_load = [load_extension]
+    options.browser_options.extensions_to_load = [load_extension]
     browser_to_create = browser_finder.FindBrowser(options)
     if not browser_to_create:
       logging.warning('Did not find a browser that supports extensions, '

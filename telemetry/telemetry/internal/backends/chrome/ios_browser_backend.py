@@ -20,13 +20,12 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   _DEVICE_LIST_URL = 'http://localhost:9221/json'
 
   def __init__(self, ios_platform_backend, browser_options):
+    browser_options.output_profile_path = '.'
     super(IosBrowserBackend, self).__init__(
         ios_platform_backend,
         supports_tab_control=False,
         supports_extensions=False,
-        browser_options=browser_options,
-        output_profile_path=".",
-        extensions_to_load=None)
+        browser_options=browser_options)
     self._webviews = []
     self._port = None
     self._page = None

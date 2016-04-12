@@ -34,7 +34,7 @@ class PossibleBrowser(possible_app.PossibleApp):
   def Create(self, finder_options):
     raise NotImplementedError()
 
-  def SupportsOptions(self, finder_options):
+  def SupportsOptions(self, browser_options):
     """Tests for extension support."""
     raise NotImplementedError()
 

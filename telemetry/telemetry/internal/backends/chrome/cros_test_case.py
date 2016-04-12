@@ -38,7 +38,7 @@ class CrOSTestCase(unittest.TestCase):
           path=extension_path,
           browser_type=options.browser_type,
           is_component=True)
-      options.extensions_to_load = [self._load_extension]
+      options.browser_options.extensions_to_load = [self._load_extension]
 
     browser_to_create = browser_finder.FindBrowser(options)
     self.assertTrue(browser_to_create)

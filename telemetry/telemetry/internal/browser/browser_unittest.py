@@ -170,7 +170,7 @@ def _GenerateBrowserProfile(number_of_tabs):
   """
   profile_dir = tempfile.mkdtemp()
   options = options_for_unittests.GetCopy()
-  options.output_profile_path = profile_dir
+  options.browser_options.output_profile_path = profile_dir
   browser_to_create = browser_finder.FindBrowser(options)
   with browser_to_create.Create(options) as browser:
     browser.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())

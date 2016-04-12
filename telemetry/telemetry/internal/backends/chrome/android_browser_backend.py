@@ -20,20 +20,19 @@ from devil.android.sdk import intent
 class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   """The backend for controlling a browser instance running on Android."""
   def __init__(self, android_platform_backend, browser_options,
-               backend_settings, output_profile_path, extensions_to_load):
+               backend_settings):
     assert isinstance(android_platform_backend,
                       android_platform_backend_module.AndroidPlatformBackend)
     super(AndroidBrowserBackend, self).__init__(
         android_platform_backend,
         supports_tab_control=backend_settings.supports_tab_control,
-        supports_extensions=False, browser_options=browser_options,
-        output_profile_path=output_profile_path,
-        extensions_to_load=extensions_to_load)
+        supports_extensions=False, browser_options=browser_options)
 
     self._port_keeper = util.PortKeeper()
     # Use the port hold by _port_keeper by default.
     self._port = self._port_keeper.port
 
+    extensions_to_load = browser_options.extensions_to_load
 
     if len(extensions_to_load) > 0:
       raise browser_backend.ExtensionsNotSupportedException(

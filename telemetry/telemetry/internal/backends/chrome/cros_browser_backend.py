@@ -14,13 +14,11 @@ from telemetry.internal import forwarders
 
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
-  def __init__(self, cros_platform_backend, browser_options, cri, is_guest,
-               extensions_to_load):
+  def __init__(self, cros_platform_backend, browser_options, cri, is_guest):
     super(CrOSBrowserBackend, self).__init__(
         cros_platform_backend, supports_tab_control=True,
         supports_extensions=not is_guest,
-        browser_options=browser_options,
-        output_profile_path=None, extensions_to_load=extensions_to_load)
+        browser_options=browser_options)
     assert browser_options.IsCrosBrowserOptions()
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._cri = cri
@@ -28,6 +26,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._forwarder = None
     self._remote_debugging_port = self._cri.GetRemotePort()
     self._port = self._remote_debugging_port
+
+    extensions_to_load = browser_options.extensions_to_load
 
     # Copy extensions to temp directories on the device.
     # Note that we also perform this copy locally to ensure that

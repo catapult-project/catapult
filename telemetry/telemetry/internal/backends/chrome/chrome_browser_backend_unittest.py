@@ -46,15 +46,15 @@ class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, browser_options,
                wpr_http_device_port=None, wpr_https_device_port=None,
                is_running_locally=False):
+    browser_options.extensions_to_load = []
+    browser_options.output_profile_path = None
     super(TestChromeBrowserBackend, self).__init__(
         platform_backend=FakePlatformBackend(
             browser_options.wpr_mode != wpr_modes.WPR_OFF,
             wpr_http_device_port, wpr_https_device_port, is_running_locally),
         supports_tab_control=False,
         supports_extensions=False,
-        browser_options=browser_options,
-        output_profile_path=None,
-        extensions_to_load=[])
+        browser_options=browser_options)
 
 
 class StartupArgsTest(unittest.TestCase):

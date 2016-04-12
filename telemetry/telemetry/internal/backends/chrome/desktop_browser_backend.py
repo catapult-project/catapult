@@ -128,15 +128,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   Mac or Windows.
   """
   def __init__(self, desktop_platform_backend, browser_options, executable,
-               flash_path, is_content_shell, browser_directory,
-               output_profile_path, extensions_to_load):
+               flash_path, is_content_shell, browser_directory):
     super(DesktopBrowserBackend, self).__init__(
         desktop_platform_backend,
         supports_tab_control=not is_content_shell,
         supports_extensions=not is_content_shell,
-        browser_options=browser_options,
-        output_profile_path=output_profile_path,
-        extensions_to_load=extensions_to_load)
+        browser_options=browser_options)
 
     # Initialize fields so that an explosion during init doesn't break in Close.
     self._proc = None
@@ -151,6 +148,8 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._flash_path = flash_path
 
     self._is_content_shell = is_content_shell
+
+    extensions_to_load = browser_options.extensions_to_load
 
     if len(extensions_to_load) > 0 and is_content_shell:
       raise browser_backend.ExtensionsNotSupportedException(

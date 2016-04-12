@@ -395,11 +395,11 @@ class SharedPageState(story.SharedState):
     """
     # Save the current input and output profiles.
     saved_input_profile = finder_options.browser_options.profile_dir
-    saved_output_profile = finder_options.output_profile_path
+    saved_output_profile = finder_options.browser_options.output_profile_path
 
     # Set the input and output profiles.
     finder_options.browser_options.profile_dir = initial_profile
-    finder_options.output_profile_path = final_profile
+    finder_options.browser_options.output_profile_path = final_profile
 
     # Launch the browser, then close it.
     browser = found_browser.Create(finder_options)
@@ -407,7 +407,7 @@ class SharedPageState(story.SharedState):
 
     # Load the saved input and output profiles.
     finder_options.browser_options.profile_dir = saved_input_profile
-    finder_options.output_profile_path = saved_output_profile
+    finder_options.browser_options.output_profile_path = saved_output_profile
 
   def _MigratePregeneratedProfile(self):
     """Migrates the pre-generated profile by launching Chrome with it.

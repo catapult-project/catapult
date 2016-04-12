@@ -26,8 +26,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   # It is OK to have abstract methods. pylint: disable=abstract-method
 
   def __init__(self, platform_backend, supports_tab_control,
-               supports_extensions, browser_options, output_profile_path,
-               extensions_to_load):
+               supports_extensions, browser_options):
     super(ChromeBrowserBackend, self).__init__(
         platform_backend=platform_backend,
         supports_extensions=supports_extensions,
@@ -39,8 +38,8 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     self._devtools_client = None
     self._system_info_backend = None
 
-    self._output_profile_path = output_profile_path
-    self._extensions_to_load = extensions_to_load
+    self._output_profile_path = browser_options.output_profile_path
+    self._extensions_to_load = browser_options.extensions_to_load
 
     if (self.browser_options.dont_override_profile and
         not options_for_unittests.AreSet()):

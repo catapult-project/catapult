@@ -107,7 +107,8 @@ def FindBrowser(options):
       return None
 
   matching_browsers = [b for b in browsers
-      if b.browser_type == options.browser_type and b.SupportsOptions(options)]
+      if b.browser_type == options.browser_type and
+      b.SupportsOptions(options.browser_options)]
 
   chosen_browser = None
   if len(matching_browsers) == 1:

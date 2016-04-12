@@ -36,7 +36,7 @@ class PossibleIOSBrowser(possible_browser.PossibleBrowser):
     return browser.Browser(
         browser_backend, self._platform_backend, self._credentials_path)
 
-  def SupportsOptions(self, finder_options):
+  def SupportsOptions(self, browser_options):
     #TODO(baxley): Implement me.
     return True
 

@@ -119,9 +119,7 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
     self._InitPlatformIfNeeded()
     browser_backend = android_browser_backend.AndroidBrowserBackend(
         self._platform_backend,
-        finder_options.browser_options, self._backend_settings,
-        output_profile_path=finder_options.output_profile_path,
-        extensions_to_load=finder_options.extensions_to_load)
+        finder_options.browser_options, self._backend_settings)
     try:
       return browser.Browser(
           browser_backend, self._platform_backend, self._credentials_path)
@@ -135,8 +133,8 @@ class PossibleAndroidBrowser(possible_browser.PossibleBrowser):
 
       raise original_exception[0], original_exception[1], original_exception[2]
 
-  def SupportsOptions(self, finder_options):
-    if len(finder_options.extensions_to_load) != 0:
+  def SupportsOptions(self, browser_options):
+    if len(browser_options.extensions_to_load) != 0:
       return False
     return True
 

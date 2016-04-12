@@ -37,11 +37,6 @@ class BrowserFinderOptions(optparse.Values):
     self.device = None
     self.cros_ssh_identity = None
 
-    self.extensions_to_load = []
-
-    # If set, copy the generated profile to this path on exit.
-    self.output_profile_path = None
-
     self.cros_remote = None
 
     self.profiler = None
@@ -238,6 +233,11 @@ class BrowserOptions(object):
   def __init__(self):
     self.browser_type = None
     self.show_stdout = False
+
+    self.extensions_to_load = []
+
+    # If set, copy the generated profile to this path on exit.
+    self.output_profile_path = None
 
     # When set to True, the browser will use the default profile.  Telemetry
     # will not provide an alternate profile directory.
