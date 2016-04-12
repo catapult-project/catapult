@@ -174,7 +174,7 @@ should not make assertions.
 
 ## ES6 features
 
-**Use of all ES6 features is currently prohibited.** However, we're currently working to allow them.
+**Use of ES6 features is prohibited unless explicitly approved in the table below.** However, we're currently working to allow them.
 
 | Feature                                                                                                                                     | Status                                                                          |
 |---------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
@@ -185,16 +185,16 @@ should not make assertions.
 | [Destructuring](https://github.com/lukehoban/es6features#destructuring)                                                                     | To be discussed                                                                 |
 | [Default, rest, and spread](https://github.com/lukehoban/es6features#default--rest--spread)                                                 | To be discussed                                                                 |
 | [`let` and `const`](https://github.com/lukehoban/es6features#let--const)                                                                    | To be discussed                                                                 |
-| [Iterators and `for...of`](https://github.com/lukehoban/es6features#iterators--forof)                                                       | To be discussed                                                                 |
+| [Iterators and `for...of`](https://github.com/lukehoban/es6features#iterators--forof)                                                       | Approved                                                                        |
 | [Generators](https://github.com/lukehoban/es6features#generators)                                                                           | To be discussed                                                                 |
 | [Unicode](https://github.com/lukehoban/es6features#unicode)                                                                                 | To be discussed                                                                 |
 | [Modules](https://github.com/lukehoban/es6features#modules)                                                                                 | To be discussed                                                                 |
 | [Module loaders](https://github.com/lukehoban/es6features#module-loaders)                                                                   | To be discussed                                                                 |
-| [`Map`, `Set`, `Weakmap`, and `Weakset`](https://github.com/lukehoban/es6features#map--set--weakmap--weakset)                               | To be discussed                                                                 |
+| [`Map`, `Set`, `WeakMap`, and `WeakSet`](https://github.com/lukehoban/es6features#map--set--weakmap--weakset)                               | Approved                                                                        |
 | [Proxies](https://github.com/lukehoban/es6features#proxies)                                                                                 | To be discussed                                                                 |
 | [Symbols](https://github.com/lukehoban/es6features#symbols)                                                                                 | To be discussed                                                                 |
 | [Subclassable Built-ins](https://github.com/lukehoban/es6features#subclassable-built-ins)                                                   | To be discussed                                                                 |
-| [Promises](https://github.com/lukehoban/es6features#promises)                                                                               | To be discussed                                                                 |
+| [Promises](https://github.com/lukehoban/es6features#promises)                                                                               | Approved                                                                        |
 | [`Math`, `Number`, `String`, `Array`, and `Object` APIs](https://github.com/lukehoban/es6features#math--number--string--array--object-apis) | To be discussed                                                                 |
 | [Binary and octal literals](https://github.com/lukehoban/es6features#binary-and-octal-literals)                                             | To be discussed                                                                 |
 | [Reflect API](https://github.com/lukehoban/es6features#reflect-api)                                                                         | To be discussed                                                                 |
@@ -206,7 +206,7 @@ should not make assertions.
   - **Discussion in progress**: there's not yet agreement that we should use this feature. "Discussion in progress" statuses should link to a Catapult bug thread about whether the feature should be used.
   - **To be discussed**: this feature hasn't been discussed yet.
 
-Use of an ES6 features shouldn't be considered until that feature is supported in both Chrome stable and [our current version of D8](/third_party/vinn/third_party/v8/README.chromium).
+Use of an ES6 features shouldn't be considered until that feature is [supported](https://kangax.github.io/compat-table/es6/) in both Chrome stable and [our current version of D8](/third_party/vinn/third_party/v8/README.chromium).
 
 If you see that Catapult’s version of D8 is behind Chrome stable's, use
 [this script](/third_party/vinn/bin/update_v8) to update it.
