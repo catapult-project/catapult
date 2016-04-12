@@ -23,14 +23,15 @@ class BattorWrapper(object):
   _RECORD_CLOCKSYNC_CMD = 'RecordClockSyncMarker'
 
   def __init__(self, target_platform, android_device=None, battor_path=None,
-               battor_map=None):
+               battor_map_file=None, battor_map=None):
     """Constructor.
 
     Args:
       target_platform: Platform BattOr is attached to.
       android_device: Serial number of Android device.
       battor_path: Path to BattOr device.
-      battor_map: BattOr device map mapping device serial to BattOr path.
+      battor_map_file: File giving map of [device serial: BattOr path]
+      battor_map: Map of [device serial: BattOr path]
 
     Attributes:
       _battor_path: Path to BattOr. Typically similar to /tty/USB0.
@@ -40,8 +41,8 @@ class BattorWrapper(object):
       _battor_shell: A subprocess running the bator_agent_binary
       _trace_results_path: Path to BattOr trace results file.
     """
-    self._battor_path = self._GetBattorPath(
-        target_platform, android_device, battor_path, battor_map)
+    self._battor_path = self._GetBattorPath(target_platform, android_device,
+        battor_path, battor_map_file, battor_map)
     config = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'battor_binary_dependencies.json')
