@@ -89,6 +89,31 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     values = results.FindAllPageSpecificValuesNamed('a')
     assert len(values) == 2
 
+  def testAddValueWithStoryGroupingKeys(self):
+    results = page_test_results.PageTestResults()
+    self.pages[0].grouping_keys['foo'] = 'bar'
+    results.WillRunPage(self.pages[0])
+    results.AddValue(scalar.ScalarValue(
+        self.pages[0], 'a', 'seconds', 3,
+        improvement_direction=improvement_direction.UP))
+    results.DidRunPage(self.pages[0])
+
+    results.PrintSummary()
+
+    values = results.FindPageSpecificValuesForPage(self.pages[0], 'a')
+    v = values[0]
+    self.assertEquals(v.grouping_keys['foo'], 'bar')
+
+  def testAddValueWithDuplicateStoryGroupingKeyFails(self):
+    results = page_test_results.PageTestResults()
+    self.pages[0].grouping_keys['foo'] = 'bar'
+    results.WillRunPage(self.pages[0])
+    with self.assertRaises(AssertionError):
+      results.AddValue(scalar.ScalarValue(
+          self.pages[0], 'a', 'seconds', 3,
+          improvement_direction=improvement_direction.UP,
+          grouping_keys={'foo': 'bar'}))
+
   def testUrlIsInvalidValue(self):
     results = page_test_results.PageTestResults()
     results.WillRunPage(self.pages[0])

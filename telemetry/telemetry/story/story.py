@@ -24,10 +24,13 @@ class Story(object):
     labels: A list or set of string labels that are used for filtering. See
         story.story_filter for more information.
     is_local: If True, the story does not require network.
+    grouping_keys: A dict of grouping keys that will be added to values computed
+        on this story.
   """
 
   def __init__(self, shared_state_class, name='', labels=None,
-               is_local=False, make_javascript_deterministic=True):
+               is_local=False, make_javascript_deterministic=True,
+               grouping_keys=None):
     """
     Args:
       make_javascript_deterministic: Whether JavaScript performed on
@@ -53,6 +56,11 @@ class Story(object):
     self._labels = labels
     self._is_local = is_local
     self._make_javascript_deterministic = make_javascript_deterministic
+    if grouping_keys is None:
+      grouping_keys = {}
+    else:
+      assert isinstance(grouping_keys, dict)
+    self._grouping_keys = grouping_keys
 
   def Run(self, shared_state):
     """Execute the interactions with the applications and/or platforms."""
@@ -73,6 +81,11 @@ class Story(object):
   @property
   def name(self):
     return self._name
+
+  @property
+  def grouping_keys(self):
+    return self._grouping_keys
+
 
   def AsDict(self):
     """Converts a story object to a dict suitable for JSON output."""

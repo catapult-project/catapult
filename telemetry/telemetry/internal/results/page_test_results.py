@@ -175,6 +175,12 @@ class PageTestResults(object):
     self._ValidateValue(value)
     is_first_result = (
       self._current_page_run.story not in self._all_stories)
+
+    for k, v in self._current_page_run.story.grouping_keys.iteritems():
+      assert k not in value.grouping_keys, (
+          'Tried to add story grouping key ' + k + ' already defined by value')
+      value.grouping_keys[k] = v
+
     if not (isinstance(value, skip.SkipValue) or
             isinstance(value, failure.FailureValue) or
             isinstance(value, trace.TraceValue) or
