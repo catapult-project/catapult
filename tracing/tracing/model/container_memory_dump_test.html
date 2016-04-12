@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
 
   test('memoryAllocatorDumps_undefined', function() {
     var md = new ContainerMemoryDump(42);
@@ -71,19 +71,19 @@ tr.b.unittest.testSuite(function() {
       inner_size: 768
     });
 
-    var oilpanBucket1Dump = newChildDump(oilpanDump, 'bucket1', {
+    var oilpanBucket1Dump = addChildDump(oilpanDump, 'bucket1', {
       size: 512,
       objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 3),
       inner_size: 256
     });
 
-    var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2', {
+    var oilpanBucket2Dump = addChildDump(oilpanDump, 'bucket2', {
       size: 512,
       objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512
     });
 
-    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings', {
+    var oilpanBucket2StringsDump = addChildDump(oilpanBucket2Dump, 'strings', {
       size: 512,
       objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512
@@ -117,7 +117,7 @@ tr.b.unittest.testSuite(function() {
 
     var oilpanDump = new MemoryAllocatorDump(containerDump, 'oilpan');
     var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
-    newChildDump(v8Dump, 'heaps');
+    addChildDump(v8Dump, 'heaps');
 
     containerDump.memoryAllocatorDumps = [oilpanDump, v8Dump];
 
@@ -132,8 +132,8 @@ tr.b.unittest.testSuite(function() {
     var containerDump = new ContainerMemoryDump(42);
 
     var v8Dump = new MemoryAllocatorDump(containerDump, 'v8');
-    var v8HeapsDump = newChildDump(v8Dump, 'heaps');
-    var v8HeapSmallDump = newChildDump(v8HeapsDump, 'S');
+    var v8HeapsDump = addChildDump(v8Dump, 'heaps');
+    var v8HeapSmallDump = addChildDump(v8HeapsDump, 'S');
 
     // Setting the memory allocator dumps should update the index properly.
     containerDump.memoryAllocatorDumps = [v8Dump];
@@ -145,7 +145,7 @@ tr.b.unittest.testSuite(function() {
         'v8/heaps/S'), v8HeapSmallDump);
 
     // Add a second grandchild (v8/heaps/L).
-    var v8HeapLargeDump = newChildDump(v8HeapsDump, 'L');
+    var v8HeapLargeDump = addChildDump(v8HeapsDump, 'L');
 
     // Setting the memory allocator dumps again should update the index
     // properly again.

@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
   var sizeInBytes = tr.v.Unit.byName.sizeInBytes;
   var powerInWatts = tr.v.Unit.byName.powerInWatts;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
 
@@ -46,16 +46,16 @@ tr.b.unittest.testSuite(function() {
       'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 7)
     });
 
-    newChildDump(oilpanDump, 'bucket1', {
+    addChildDump(oilpanDump, 'bucket1', {
       size: 512,
       objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 3),
       inner_size: 256,
       outer_size: 1024
     });
 
-    var oilpanBucket2Dump = newChildDump(oilpanDump, 'bucket2');
+    var oilpanBucket2Dump = addChildDump(oilpanDump, 'bucket2');
 
-    var oilpanBucket2StringsDump = newChildDump(oilpanBucket2Dump, 'strings', {
+    var oilpanBucket2StringsDump = addChildDump(oilpanBucket2Dump, 'strings', {
       size: 512,
       objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
       inner_size: 512,
@@ -159,10 +159,10 @@ tr.b.unittest.testSuite(function() {
     var md = new ContainerMemoryDump(42);
 
     var v8Dump = new MemoryAllocatorDump(md, 'v8');
-    var v8HeapsDump = newChildDump(v8Dump, 'heaps');
-    var v8ObjectsDump = newChildDump(v8Dump, 'objects');
-    var v8Object1Dump = newChildDump(v8ObjectsDump, 'obj1');
-    var v8Object2Dump = newChildDump(v8ObjectsDump, 'obj2');
+    var v8HeapsDump = addChildDump(v8Dump, 'heaps');
+    var v8ObjectsDump = addChildDump(v8Dump, 'objects');
+    var v8Object1Dump = addChildDump(v8ObjectsDump, 'obj1');
+    var v8Object2Dump = addChildDump(v8ObjectsDump, 'obj2');
 
     var oilpanDump = new MemoryAllocatorDump(md, 'oilpan');
 

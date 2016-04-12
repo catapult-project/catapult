@@ -76,7 +76,7 @@ tr.exportTo('tr.model', function() {
     return dump;
   };
 
-  MemoryDumpTestUtils.newChildDump =
+  MemoryDumpTestUtils.addChildDump =
       function(parentDump, name, opt_numerics, opt_guid) {
     var childDump = MemoryDumpTestUtils.newAllocatorDump(
         parentDump.containerMemoryDump, parentDump.fullName + '/' + name,

@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   var sizeInBytes_smallerIsBetter =
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
@@ -613,7 +613,7 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var rootDump = new MemoryAllocatorDump(gmd, 'root');
-    newChildDump(rootDump, 'child1');
+    addChildDump(rootDump, 'child1');
     gmd.memoryAllocatorDumps = [rootDump];
 
     assert.throws(function() {
@@ -641,8 +641,8 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var rootDump = new MemoryAllocatorDump(gmd, 'root');
-    var parentDump = newChildDump(rootDump, 'parent');
-    var childDump = newChildDump(parentDump, 'child');
+    var parentDump = addChildDump(rootDump, 'parent');
+    var childDump = addChildDump(parentDump, 'child');
     childDump.parent = rootDump;  // This should correctly be parentDump.
     gmd.memoryAllocatorDumps = [rootDump];
 
@@ -672,7 +672,7 @@ tr.b.unittest.testSuite(function() {
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
     var rootDump = newAllocatorDump(pmd, 'root', { size: 100 });
-    newChildDump(rootDump, 'parent', { size: 49 });
+    addChildDump(rootDump, 'parent', { size: 49 });
     pmd.memoryAllocatorDumps = [rootDump];
 
     assert.throws(function() {
@@ -699,7 +699,7 @@ tr.b.unittest.testSuite(function() {
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
     var rootDump = newAllocatorDump(pmd, 'root', { effective_size: 99 });
-    newChildDump(rootDump, 'parent', { effective_size: 50 });
+    addChildDump(rootDump, 'parent', { effective_size: 50 });
     pmd.memoryAllocatorDumps = [rootDump];
 
     assert.throws(function() {
@@ -784,8 +784,8 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
-    newChildDump(v8Dump, 'child1', {}, 42 /* guid */);
-    newChildDump(v8Dump, 'child2');
+    addChildDump(v8Dump, 'child1', {}, 42 /* guid */);
+    addChildDump(v8Dump, 'child2');
     gmd.memoryAllocatorDumps = [v8Dump];
 
     assert.throws(function() {
@@ -816,7 +816,7 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var parentDump = new MemoryAllocatorDump(gmd, 'parent');
-    var childDump = newChildDump(parentDump, 'child');
+    var childDump = addChildDump(parentDump, 'child');
     childDump.weak = true;
     gmd.memoryAllocatorDumps = [parentDump];
 
@@ -859,7 +859,7 @@ tr.b.unittest.testSuite(function() {
     var gmd = containerDumps[0];
     var parentDump = new MemoryAllocatorDump(gmd, 'parent');
     for (var i = 1; i <= 3; i++)
-      newChildDump(parentDump, 'child' + i);
+      addChildDump(parentDump, 'child' + i);
     var otherDump = new MemoryAllocatorDump(gmd, 'other');
     gmd.memoryAllocatorDumps = [parentDump, otherDump];
 
@@ -3611,7 +3611,7 @@ tr.b.unittest.testSuite(function() {
       model.globalMemoryDumps.push(gmd);
 
       rootDump = newAllocatorDump(gmd, 'root', { size: 64 });
-      childDump = newChildDump(rootDump, 'child', { size: 48 });
+      childDump = addChildDump(rootDump, 'child', { size: 48 });
 
       gmd.memoryAllocatorDumps = [rootDump];
 

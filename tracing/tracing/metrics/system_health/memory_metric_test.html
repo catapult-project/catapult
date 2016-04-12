@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
   var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   function memoryMetricTest(name, modelCallback, expectedNumerics) {
@@ -168,8 +168,8 @@ tr.b.unittest.testSuite(function() {
       var partitionAllocDump =
           newAllocatorDump(pmdRendererA1, 'partition_alloc');
       addOwnershipLink(
-          newChildDump(partitionAllocDump, 'allocated_objects', { 'size': 32 }),
-          newChildDump(partitionAllocDump, 'partitions', { 'size': 24 }));
+          addChildDump(partitionAllocDump, 'allocated_objects', { 'size': 32 }),
+          addChildDump(partitionAllocDump, 'partitions', { 'size': 24 }));
       return [mallocDump, partitionAllocDump];
     })();
     var pmdGpu1 = addProcessMemoryDump(gmd1, pGpu, 21);
@@ -194,9 +194,9 @@ tr.b.unittest.testSuite(function() {
       var partitionAllocDump =
           newAllocatorDump(pmdRendererA2, 'partition_alloc');
       addOwnershipLink(
-          newChildDump(partitionAllocDump, 'allocated_objects',
+          addChildDump(partitionAllocDump, 'allocated_objects',
               { 'size': 320 }),
-          newChildDump(partitionAllocDump, 'partitions', { 'size': 240 }));
+          addChildDump(partitionAllocDump, 'partitions', { 'size': 240 }));
       var v8Dump = newAllocatorDump(pmdRendererA2, 'v8', { 'size': 650 });
       return [partitionAllocDump, v8Dump];
     })();
@@ -225,10 +225,10 @@ tr.b.unittest.testSuite(function() {
     var pmdGpu3 = addProcessMemoryDump(gmd3, pGpu, 59);
     pmdGpu3.memoryAllocatorDumps = (function() {
       var gpuDump = newAllocatorDump(pmdGpu3, 'gpu', { 'size': 300 });
-      var memtrackDump = newChildDump(gpuDump, 'android_memtrack');
-      newChildDump(memtrackDump, 'gl',
+      var memtrackDump = addChildDump(gpuDump, 'android_memtrack');
+      addChildDump(memtrackDump, 'gl',
           { 'memtrack_pss': 500, 'size': 200 /* ignored */ });
-      newChildDump(memtrackDump, 'graphics', { 'memtrack_pss': 700 });
+      addChildDump(memtrackDump, 'graphics', { 'memtrack_pss': 700 });
       return [gpuDump];
     })();
 
@@ -250,11 +250,11 @@ tr.b.unittest.testSuite(function() {
     pmdGpu4.memoryAllocatorDumps = (function() {
       var gpuDump = newAllocatorDump(pmdGpu4, 'gpu',
           { 'memtrack_pss': 666 /* ignored */ });
-      var memtrackDump = newChildDump(gpuDump, 'android_memtrack',
+      var memtrackDump = addChildDump(gpuDump, 'android_memtrack',
           { 'memtrack_pss': 777 /* ignored */});
-      newChildDump(memtrackDump, 'gl', { 'memtrack_pss': 5000 });
-      newChildDump(memtrackDump, 'graphics', { 'ignored': 7000 });
-      newChildDump(memtrackDump, 'gfx', { 'memtrack_pss': 4000 });
+      addChildDump(memtrackDump, 'gl', { 'memtrack_pss': 5000 });
+      addChildDump(memtrackDump, 'graphics', { 'ignored': 7000 });
+      addChildDump(memtrackDump, 'gfx', { 'memtrack_pss': 4000 });
       return [gpuDump];
     })();
   }, {

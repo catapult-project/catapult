@@ -44,7 +44,7 @@ tr.b.unittest.testSuite(function() {
   var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
 
   var SUBALLOCATION_CONTEXT = tr.ui.analysis.SUBALLOCATION_CONTEXT;
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function newSuballocationDump(ownerDump, parentDump, name, size) {
-    var suballocationDump = newChildDump(parentDump, name, { size: size });
+    var suballocationDump = addChildDump(parentDump, name, { size: size });
     if (ownerDump !== undefined)
       addOwnershipLink(ownerDump, suballocationDump);
     return suballocationDump;
@@ -86,29 +86,29 @@ tr.b.unittest.testSuite(function() {
           objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
         });
 
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps',
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps',
             { size: 805306368 /* 768 MiB */ });
-        newChildDump(v8HeapsDump, 'heap42',
+        addChildDump(v8HeapsDump, 'heap42',
             { size: 804782080 /* 767.5 MiB */ });
 
-        var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+        var v8ObjectsDump = addChildDump(v8Dump, 'objects');
         v8ObjectsDump.addDiagnostic('url', 'http://example.com');
-        newChildDump(v8ObjectsDump, 'foo', { size: 1022976 /* 999 KiB */ });
-        newChildDump(v8ObjectsDump, 'bar', { size: 1024000 /* 1000 KiB */ });
+        addChildDump(v8ObjectsDump, 'foo', { size: 1022976 /* 999 KiB */ });
+        addChildDump(v8ObjectsDump, 'bar', { size: 1024000 /* 1000 KiB */ });
 
         var oilpanDump = newAllocatorDump(pmd1, 'oilpan',
             { size: 125829120 /* 120 MiB */ });
         newSuballocationDump(
             oilpanDump, v8Dump, '__99BEAD', 150994944 /* 144 MiB */);
 
-        var oilpanSubDump = newChildDump(oilpanDump, 'animals');
+        var oilpanSubDump = addChildDump(oilpanDump, 'animals');
 
-        var oilpanSubDump1 = newChildDump(oilpanSubDump, 'cow',
+        var oilpanSubDump1 = addChildDump(oilpanSubDump, 'cow',
             { size: 33554432 /* 32 MiB */ });
         newSuballocationDump(
             oilpanSubDump1, v8Dump, '__42BEEF', 67108864 /* 64 MiB */);
 
-        var oilpanSubDump2 = newChildDump(oilpanSubDump, 'chicken',
+        var oilpanSubDump2 = addChildDump(oilpanSubDump, 'chicken',
             { size: 16777216 /* 16 MiB */ });
         newSuballocationDump(
             oilpanSubDump2, v8Dump, '__68DEAD', 33554432 /* 32 MiB */);
@@ -137,10 +137,10 @@ tr.b.unittest.testSuite(function() {
           objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
         });
 
-        var v8ObjectsDump = newChildDump(v8Dump, 'objects');
+        var v8ObjectsDump = addChildDump(v8Dump, 'objects');
         v8ObjectsDump.addDiagnostic('url', 'http://sample.net');
-        newChildDump(v8ObjectsDump, 'foo', { size: 1020928 /* 997 KiB */ });
-        newChildDump(v8ObjectsDump, 'bar', { size: 1026048 /* 1002 KiB */ });
+        addChildDump(v8ObjectsDump, 'foo', { size: 1020928 /* 997 KiB */ });
+        addChildDump(v8ObjectsDump, 'bar', { size: 1026048 /* 1002 KiB */ });
 
         newSuballocationDump(
             undefined, v8Dump, '__99BEAD', 268435456 /* 256 MiB */);
@@ -696,10 +696,10 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.DIFF);
     var pmds = buildProcessMemoryDumps(4 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8'], function(v8Dump) {
-        newChildDump(v8Dump, 'heaps', { size: 64 });
+        addChildDump(v8Dump, 'heaps', { size: 64 });
       });
       addRootDumps(pmds[2], ['v8'], function(v8Dump) {
-        newChildDump(v8Dump, 'heaps', { size: 128 });
+        addChildDump(v8Dump, 'heaps', { size: 128 });
       });
       addRootDumps(pmds[3], ['v8'], function(v8Dump) {});
     });
@@ -729,28 +729,28 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.MAX);
     var pmds = buildProcessMemoryDumps(5 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 32 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 32 });
         var oilpanObjectsDump =
-            newChildDump(oilpanDump, 'objects', { size: 64 });
+            addChildDump(oilpanDump, 'objects', { size: 64 });
         addOwnershipLink(v8HeapsDump, oilpanObjectsDump);
       });
       addRootDumps(pmds[1], ['v8'], function(v8Dump) {
-        newChildDump(v8Dump, 'heaps', { size: 32 });
+        addChildDump(v8Dump, 'heaps', { size: 32 });
         // Missing oilpan/objects dump.
       });
       addRootDumps(pmds[2], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        newChildDump(oilpanDump, 'objects', { size: 64 });
+        addChildDump(oilpanDump, 'objects', { size: 64 });
         // Missing v8/heaps dump.
       });
       addRootDumps(pmds[3], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        newChildDump(v8Dump, 'heaps', { size: 32 });
-        newChildDump(oilpanDump, 'objects', { size: 64 });
+        addChildDump(v8Dump, 'heaps', { size: 32 });
+        addChildDump(oilpanDump, 'objects', { size: 64 });
         // Missing ownership link.
       });
       addRootDumps(pmds[4], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 32 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 32 });
         var oilpanObjectsDump =
-            newChildDump(oilpanDump, 'objects', { size: 64 });
+            addChildDump(oilpanDump, 'objects', { size: 64 });
         addOwnershipLink(v8HeapsDump, oilpanObjectsDump, 2);
       });
     });
@@ -835,44 +835,44 @@ tr.b.unittest.testSuite(function() {
         AggregationMode.DIFF);
     var pmds = buildProcessMemoryDumps(6 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 32 });
-        var v8QueuesDump = newChildDump(v8Dump, 'queues', { size: 8 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 32 });
+        var v8QueuesDump = addChildDump(v8Dump, 'queues', { size: 8 });
         var oilpanObjectsDump =
-            newChildDump(oilpanDump, 'objects', { size: 64 });
+            addChildDump(oilpanDump, 'objects', { size: 64 });
         addOwnershipLink(v8HeapsDump, oilpanObjectsDump);
         addOwnershipLink(v8QueuesDump, oilpanObjectsDump, 1);
       });
       addRootDumps(pmds[1], ['v8'], function(v8Dump) {});
       addRootDumps(pmds[2], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 32 });
-        var v8QueuesDump = newChildDump(v8Dump, 'queues', { size: 8 });
-        var v8PilesDump = newChildDump(v8Dump, 'piles', { size: 48 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 32 });
+        var v8QueuesDump = addChildDump(v8Dump, 'queues', { size: 8 });
+        var v8PilesDump = addChildDump(v8Dump, 'piles', { size: 48 });
         var oilpanObjectsDump =
-            newChildDump(oilpanDump, 'objects', { size: 64 });
+            addChildDump(oilpanDump, 'objects', { size: 64 });
         addOwnershipLink(v8HeapsDump, oilpanObjectsDump, 2);
         addOwnershipLink(v8QueuesDump, oilpanObjectsDump, 1);
         addOwnershipLink(v8PilesDump, oilpanObjectsDump);
       });
       addRootDumps(pmds[3], ['v8', 'blink'], function(v8Dump, blinkDump) {
-        var blinkHandlesDump = newChildDump(blinkDump, 'handles', { size: 32 });
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 64 });
-        var blinkObjectsDump = newChildDump(blinkDump, 'objects', { size: 32 });
+        var blinkHandlesDump = addChildDump(blinkDump, 'handles', { size: 32 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 64 });
+        var blinkObjectsDump = addChildDump(blinkDump, 'objects', { size: 32 });
         addOwnershipLink(blinkHandlesDump, v8HeapsDump, -273);
         addOwnershipLink(v8HeapsDump, blinkObjectsDump, 3);
       });
       addRootDumps(pmds[4], ['v8', 'gpu'], function(v8Dump, gpuDump) {
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 64 });
-        var gpuTile1Dump = newChildDump(gpuDump, 'tile1', { size: 100 });
-        var gpuTile2Dump = newChildDump(gpuDump, 'tile2', { size: 99 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 64 });
+        var gpuTile1Dump = addChildDump(gpuDump, 'tile1', { size: 100 });
+        var gpuTile2Dump = addChildDump(gpuDump, 'tile2', { size: 99 });
         addOwnershipLink(v8HeapsDump, gpuTile1Dump, 3);
         addOwnershipLink(gpuTile2Dump, gpuTile1Dump, -1);
       });
       addRootDumps(pmds[5], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 32 });
-        var v8QueuesDump = newChildDump(v8Dump, 'queues', { size: 8 });
-        var v8PilesDump = newChildDump(v8Dump, 'piles', { size: 48 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 32 });
+        var v8QueuesDump = addChildDump(v8Dump, 'queues', { size: 8 });
+        var v8PilesDump = addChildDump(v8Dump, 'piles', { size: 48 });
         var oilpanObjectsDump =
-            newChildDump(oilpanDump, 'objects', { size: 64 });
+            addChildDump(oilpanDump, 'objects', { size: 64 });
         addOwnershipLink(v8HeapsDump, oilpanObjectsDump, 1);
         addOwnershipLink(v8QueuesDump, oilpanObjectsDump, 1);
         addOwnershipLink(v8PilesDump, oilpanObjectsDump, 7);
@@ -1023,54 +1023,54 @@ tr.b.unittest.testSuite(function() {
     var pmds = buildProcessMemoryDumps(7 /* count */, function(pmds) {
       addRootDumps(pmds[0], ['v8'], function(v8Dump) {
         // Single direct overlap (v8/objects -> v8/heaps).
-        var v8ObjectsDump = newChildDump(v8Dump, 'objects', { size: 1536 });
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 2048 });
+        var v8ObjectsDump = addChildDump(v8Dump, 'objects', { size: 1536 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 2048 });
         addOwnershipLink(v8ObjectsDump, v8HeapsDump);
       });
       // pmd[1] intentionally skipped.
       addRootDumps(pmds[2], ['v8'], function(v8Dump, oilpanDump) {
         // Single direct overlap with inconsistent owned dump size.
-        var v8ObjectsDump = newChildDump(v8Dump, 'objects', { size: 3072 });
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 2048 });
+        var v8ObjectsDump = addChildDump(v8Dump, 'objects', { size: 3072 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 2048 });
         addOwnershipLink(v8ObjectsDump, v8HeapsDump);
       });
       addRootDumps(pmds[3], ['v8'], function(v8Dump) {
         // Single indirect overlap (v8/objects/X -> v8/heaps/42).
-        var v8ObjectsDump = newChildDump(v8Dump, 'objects', { size: 1536 });
-        var v8ObjectsXDump = newChildDump(v8ObjectsDump, 'X', { size: 512 });
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 2048 });
-        var v8Heaps42Dump = newChildDump(v8HeapsDump, '42', { size: 1024 });
+        var v8ObjectsDump = addChildDump(v8Dump, 'objects', { size: 1536 });
+        var v8ObjectsXDump = addChildDump(v8ObjectsDump, 'X', { size: 512 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 2048 });
+        var v8Heaps42Dump = addChildDump(v8HeapsDump, '42', { size: 1024 });
         addOwnershipLink(v8ObjectsXDump, v8Heaps42Dump);
       });
       addRootDumps(pmds[4], ['v8'], function(v8Dump) {
         // Multiple overlaps.
-        var v8ObjectsDump = newChildDump(v8Dump, 'objects', { size: 1024 });
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 2048 });
+        var v8ObjectsDump = addChildDump(v8Dump, 'objects', { size: 1024 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 2048 });
 
-        var v8ObjectsXDump = newChildDump(v8ObjectsDump, 'X', { size: 512 });
-        var v8Heaps42Dump = newChildDump(v8HeapsDump, '42', { size: 1280 });
+        var v8ObjectsXDump = addChildDump(v8ObjectsDump, 'X', { size: 512 });
+        var v8Heaps42Dump = addChildDump(v8HeapsDump, '42', { size: 1280 });
         addOwnershipLink(v8ObjectsXDump, v8Heaps42Dump);
 
-        var v8ObjectsYDump = newChildDump(v8ObjectsDump, 'Y', { size: 128 });
-        var v8Heaps90Dump = newChildDump(v8HeapsDump, '90', { size: 256 });
+        var v8ObjectsYDump = addChildDump(v8ObjectsDump, 'Y', { size: 128 });
+        var v8Heaps90Dump = addChildDump(v8HeapsDump, '90', { size: 256 });
         addOwnershipLink(v8ObjectsYDump, v8Heaps90Dump);
 
-        var v8BlocksDump = newChildDump(v8Dump, 'blocks', { size: 768 });
+        var v8BlocksDump = addChildDump(v8Dump, 'blocks', { size: 768 });
         addOwnershipLink(v8BlocksDump, v8Heaps42Dump);
       });
       addRootDumps(pmds[5], ['v8'], function(v8Dump) {
         // No overlaps, inconsistent parent size.
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 2048 });
-        newChildDump(v8HeapsDump, '42', { size: 1536 });
-        newChildDump(v8HeapsDump, '90', { size: 615 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 2048 });
+        addChildDump(v8HeapsDump, '42', { size: 1536 });
+        addChildDump(v8HeapsDump, '90', { size: 615 });
       });
       addRootDumps(pmds[6], ['v8', 'oilpan'], function(v8Dump, oilpanDump) {
         // No overlaps, inconsistent parent and owned dump size.
-        var v8HeapsDump = newChildDump(v8Dump, 'heaps', { size: 2048 });
-        newChildDump(v8HeapsDump, '42', { size: 1536 });
-        newChildDump(v8HeapsDump, '90', { size: 615 });
+        var v8HeapsDump = addChildDump(v8Dump, 'heaps', { size: 2048 });
+        addChildDump(v8HeapsDump, '42', { size: 1536 });
+        addChildDump(v8HeapsDump, '90', { size: 615 });
         var oilpanObjectsDump =
-            newChildDump(oilpanDump, 'objects', { size: 3072 });
+            addChildDump(oilpanDump, 'objects', { size: 3072 });
         addOwnershipLink(oilpanObjectsDump, v8HeapsDump);
       });
     });

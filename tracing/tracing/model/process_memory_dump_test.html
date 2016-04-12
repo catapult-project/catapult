@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
-  var newChildDump = tr.model.MemoryDumpTestUtils.newChildDump;
+  var addChildDump = tr.model.MemoryDumpTestUtils.addChildDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
       });
 
       var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
-      newChildDump(mallocDump, 'allocated_objects', { size: 2560 });
+      addChildDump(mallocDump, 'allocated_objects', { size: 2560 });
 
       var tracingDump = newAllocatorDump(
           pmd, 'tracing', { size: 1024, resident_size: 1000 });
