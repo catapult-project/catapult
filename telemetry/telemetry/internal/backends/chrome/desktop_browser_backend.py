@@ -78,49 +78,23 @@ def GenerateBreakpadSymbols(minidump, arch, os_name, symbols_dir, browser_dir):
   logging.info('Dumping breakpad symbols.')
   generate_breakpad_symbols_command = binary_manager.FetchPath(
       'generate_breakpad_symbols', arch, os_name)
+  if not generate_breakpad_symbols_command:
+    return
 
   for binary_path in GetSymbolBinaries(minidump, arch, os_name):
-    symbols_found = False
-    # Check if we have a symbol file for this binary path. Breakpad symbol files
-    # are of the form "$BINARY.breakpad.$ARCH" next to the binary file. We can
-    # simply look for any files which match this pattern and copy the files into
-    # the symbol directory.
-    symbols = glob.glob('%s.breakpad*' % binary_path)
-    if symbols:
-      for symbol_file in sorted(symbols, key=os.path.getmtime, reverse=True):
-        if not os.path.isfile(symbol_file):
-          continue
-        if os.path.getmtime(symbol_file) < os.path.getmtime(binary_path):
-          continue
-        with open(symbol_file, 'r') as f:
-          fields = f.readline().split()
-          if not fields:
-            continue
-          sha = fields[3]
-          binary = ' '.join(fields[4:])
+    cmd = [
+        sys.executable,
+        generate_breakpad_symbols_command,
+        '--binary=%s' % binary_path,
+        '--symbols-dir=%s' % symbols_dir,
+        '--build-dir=%s' % browser_dir,
+        ]
 
-        # The symbol directory has form: "$SYMBOL/$BINARY/$HASH/$BINARY.sym".
-        symbol_output = os.path.join(symbols_dir, binary, sha, binary + '.sym')
-        if not os.path.isfile(symbol_output):
-          os.makedirs(os.path.dirname(symbol_output))
-          shutil.copyfile(symbol_file, symbol_output)
-          symbols_found = True
-
-    # See if we can generate the symbols locally.
-    if not symbols_found and generate_breakpad_symbols_command:
-      cmd = [
-          sys.executable,
-          generate_breakpad_symbols_command,
-          '--binary=%s' % binary_path,
-          '--symbols-dir=%s' % symbols_dir,
-          '--build-dir=%s' % browser_dir,
-          ]
-
-      try:
-        subprocess.check_call(cmd, stderr=open(os.devnull, 'w'))
-      except subprocess.CalledProcessError:
-        logging.warning('Failed to execute "%s"' % ' '.join(cmd))
-        return
+    try:
+      subprocess.check_call(cmd, stderr=open(os.devnull, 'w'))
+    except subprocess.CalledProcessError:
+      logging.warning('Failed to execute "%s"' % ' '.join(cmd))
+      return
 
 
 class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
