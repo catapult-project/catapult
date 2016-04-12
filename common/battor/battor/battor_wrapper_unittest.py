@@ -2,13 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# import battor first to run the __init__ to set python paths
+from battor import battor_wrapper
+
+import dependency_manager
 import logging
 import unittest
 
-import dependency_manager
-
 from battor import battor_error
-from battor import battor_wrapper
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
 
@@ -18,6 +19,7 @@ class DependencyManagerMock(object):
     self._fetch_return = 'path'
 
   def FetchPath(self, _, *unused):
+    del unused
     return self._fetch_return
 
 
@@ -28,9 +30,8 @@ class PopenMock(object):
 
 class BattorWrapperTest(unittest.TestCase):
   def setUp(self):
-    self.battor = None
-    self._MAPPING = {}
-    self._IS_BATTOR = True
+    self._battor = None
+    self._is_battor = True
     self._battor_list = ['battor1']
     self._should_pass = True
     self._fake_map = {'battor1': 'device1'}
@@ -50,7 +51,7 @@ class BattorWrapperTest(unittest.TestCase):
     find_usb_devices.GetBusNumberToDeviceTreeMap = lambda fast=False: True
     dependency_manager.DependencyManager = DependencyManagerMock
     battor_device_mapping.GetBattorList = lambda x: self._battor_list
-    battor_device_mapping.IsBattor = lambda x, y: self._IS_BATTOR
+    battor_device_mapping.IsBattor = lambda x, y: self._is_battor
     battor_device_mapping.GenerateSerialMap = lambda: self._fake_map
 
   def tearDown(self):
