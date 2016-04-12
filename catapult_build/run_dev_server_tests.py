@@ -168,6 +168,7 @@ def Main(argv):
         channel = 'dev'
       assert channel in ['stable', 'beta', 'dev', 'canary']
 
+      print 'Fetching the %s chrome binary via the binary_manager.' % channel
       chrome_manager = binary_manager.BinaryManager([CHROME_BINARIES_CONFIG])
       arch, os_name = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
       chrome_path, version = chrome_manager.FetchPathWithVersion(
@@ -188,7 +189,8 @@ def Main(argv):
     ]
     print "Starting Chrome %s..." % chrome_info
     chrome_process = subprocess.Popen(
-        chrome_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        chrome_command, stdout=sys.stdout, stderr=sys.stderr)
+    print 'chrome process command: %s' % ' '.join(chrome_command)
     print "Waiting for tests to finish..."
     server_out, server_err = server_process.communicate()
     print "Killing Chrome..."
