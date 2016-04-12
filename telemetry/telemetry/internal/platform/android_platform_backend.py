@@ -693,7 +693,7 @@ class AndroidPlatformBackend(
                       subprocess.Popen([tombstones, '-w', '--device',
                                         self._device.adb.GetDeviceSerial()],
                                        stdout=subprocess.PIPE).communicate()[0])
-    return ret
+    return (True, ret)
 
   def IsScreenOn(self):
     """Determines if device screen is on."""

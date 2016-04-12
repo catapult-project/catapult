@@ -173,7 +173,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return 'Cannot get standard output on CrOS'
 
   def GetStackTrace(self):
-    return 'Cannot get stack trace on CrOS'
+    return (False, 'Cannot get stack trace on CrOS')
 
   @property
   @decorators.Cache

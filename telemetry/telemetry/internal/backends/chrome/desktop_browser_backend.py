@@ -473,16 +473,23 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return '<Missing link>'
 
   def GetStackTrace(self):
+    """Returns a stack trace if a valid minidump is found, will return a tuple
+       (valid, output) where valid will be True if a valid minidump was found
+       and output will contain either an error message or the attempt to
+       symbolize the minidump if one was found.
+    """
     most_recent_dump = self._GetMostRecentMinidump()
     if not most_recent_dump:
-      return 'No crash dump found.'
+      return (False, 'No crash dump found.')
     logging.info('Minidump found: %s' % most_recent_dump)
     stack = self._GetStackFromMinidump(most_recent_dump)
     if not stack:
       cloud_storage_link = self._UploadMinidumpToCloudStorage(most_recent_dump)
-      return ('Failed to symbolize minidump. Raw stack is uploaded to cloud '
-              'storage: %s.' % cloud_storage_link)
-    return stack
+      error_message = ('Failed to symbolize minidump. Raw stack is uploaded to'
+                       ' cloud storage: %s.' % cloud_storage_link)
+      return (False, error_message)
+
+    return (True, stack)
 
   def __del__(self):
     self.Close()
