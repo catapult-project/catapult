@@ -22,7 +22,7 @@ def _RunArgs(args, input_api):
   return (out, p.returncode)
 
 
-def _CheckTelemetryBinaryDependencies(input_api, output_api):
+def _ValidateDependenciesFile(input_api, output_api, dependencies_path):
   """ Check that binary_dependencies.json has valid format and content.
 
   This check should only be done in CheckChangeOnUpload() only since it invokes
@@ -30,26 +30,24 @@ def _CheckTelemetryBinaryDependencies(input_api, output_api):
   """
   results = []
   telemetry_dir = input_api.PresubmitLocalPath()
-  telemetry_binary_dependencies_path = input_api.os_path.join(
-      telemetry_dir, 'telemetry', 'internal', 'binary_dependencies.json')
   for f in input_api.AffectedFiles():
-    if not f.AbsoluteLocalPath() == telemetry_binary_dependencies_path:
+    if not f.AbsoluteLocalPath() == dependencies_path:
       continue
     out, return_code = _RunArgs([
         input_api.python_executable,
         input_api.os_path.join(telemetry_dir, 'json_format'),
-        telemetry_binary_dependencies_path], input_api)
+        dependencies_path], input_api)
     if return_code:
       results.append(output_api.PresubmitError(
-           'Validating binary_dependencies.json failed:', long_text=out))
+           'Validating %s failed:' % dependencies_path, long_text=out))
       break
     out, return_code = _RunArgs([
         input_api.python_executable,
         input_api.os_path.join(telemetry_dir, 'validate_binary_dependencies'),
-        telemetry_binary_dependencies_path], input_api)
+        dependencies_path], input_api)
     if return_code:
       results.append(output_api.PresubmitError(
-          'Validating binary_dependencies.json failed:', long_text=out))
+          'Validating %s failed:' % dependencies_path, long_text=out))
       break
   return results
 
@@ -112,11 +110,22 @@ def _GetPathsToPrepend(input_api):
   ]
 
 
+def _ValidateAllDependenciesFiles(input_api, output_api):
+  results = []
+  telemetry_dir = input_api.PresubmitLocalPath()
+  binary_dependencies = input_api.os_path.join(
+      telemetry_dir, 'telemetry', 'internal', 'binary_dependencies.json')
+  telemetry_unittest_dependencies = input_api.os_path.join(
+      telemetry_dir, 'telemetry', 'telemetry_unittest_deps.json')
+  for path in [binary_dependencies, telemetry_unittest_dependencies]:
+    results += _ValidateDependenciesFile(input_api, output_api, path)
+  return results
+
 
 def CheckChangeOnUpload(input_api, output_api):
   results = []
   results += _CommonChecks(input_api, output_api)
-  results += _CheckTelemetryBinaryDependencies(input_api, output_api)
+  results += _ValidateAllDependenciesFiles(input_api, output_api)
   return results
 
 
