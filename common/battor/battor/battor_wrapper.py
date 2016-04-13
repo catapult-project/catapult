@@ -21,6 +21,7 @@ class BattorWrapper(object):
   _STOP_TRACING_CMD = 'StopTracing'
   _SUPPORTS_CLOCKSYNC_CMD = 'SupportsExplicitClockSync'
   _RECORD_CLOCKSYNC_CMD = 'RecordClockSyncMarker'
+  _SUPPORTED_PLATFORMS = ['android', 'chromeos', 'linux', 'mac', 'win']
 
   def __init__(self, target_platform, android_device=None, battor_path=None,
                battor_map_file=None, battor_map=None):
@@ -123,8 +124,13 @@ class BattorWrapper(object):
   def _GetBattorPath(self, target_platform, android_device=None,
                      battor_path=None, battor_map_file=None, battor_map=None):
     """Determines most likely path to the correct BattOr."""
+    if target_platform not in self._SUPPORTED_PLATFORMS:
+      raise battor_error.BattorError(
+          '%s is an unsupported platform.' % target_platform)
+
     if target_platform in ['win']
       return None
+
     device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
     if battor_path:
       if not isinstance(battor_path, basestring):

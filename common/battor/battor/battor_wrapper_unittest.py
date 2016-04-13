@@ -70,6 +70,10 @@ class BattorWrapperTest(unittest.TestCase):
     self._battor._SendBattorCommandImpl = lambda x, return_results: 'Done.\n'
     self._battor._StopTracingImpl = lambda *unused: ('Done.\n', None)
 
+  def testBadPlatform(self):
+    with self.assertRaises(battor_error.BattorError):
+      self._battor = battor_wrapper.BattorWrapper('unknown')
+
   def testInitAndroidWithBattor(self):
     self._battor = battor_wrapper.BattorWrapper('android', android_device='abc')
     self.assertEquals(self._battor._battor_path, 'abc_battor')
@@ -90,48 +94,48 @@ class BattorWrapperTest(unittest.TestCase):
     self.assertEquals(self._battor._battor_path, battor_path)
 
   def testInitNonAndroidWithBattor(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self.assertEquals(self._battor._battor_path, '/dev/battor1')
 
   def testInitNonAndroidWithMultipleBattor(self):
     self._battor_list.append('battor2')
     with self.assertRaises(battor_error.BattorError):
-      self._battor = battor_wrapper.BattorWrapper('platform')
+      self._battor = battor_wrapper.BattorWrapper('win')
 
   def testInitNonAndroidWithoutBattor(self):
     self._battor_list = []
     with self.assertRaises(battor_error.BattorError):
-      self._battor = battor_wrapper.BattorWrapper('platform')
+      self._battor = battor_wrapper.BattorWrapper('win')
 
   def testStartShellPass(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor.StartShell()
     self.assertIsNotNone(self._battor._battor_shell)
 
   def testStartShellDoubleStart(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor.StartShell()
     with self.assertRaises(AssertionError):
       self._battor.StartShell()
 
   def testStartShellFail(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor.IsShellRunning = lambda *unused: False
     with self.assertRaises(AssertionError):
       self._battor.StartShell()
 
   def testStartTracingPass(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor.StartShell()
     self._battor.StartTracing()
     self.assertTrue(self._battor._tracing)
 
   def testStartTracingDoubleStart(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor.StartShell()
     self._battor.StartTracing()
@@ -139,7 +143,7 @@ class BattorWrapperTest(unittest.TestCase):
       self._battor.StartTracing()
 
   def testStartTracingCommandFails(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor._SendBattorCommandImpl = lambda x, return_results: 'Fail.\n'
     self._battor.StartShell()
@@ -147,7 +151,7 @@ class BattorWrapperTest(unittest.TestCase):
       self._battor.StartTracing()
 
   def testStopTracingPass(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     self._battor.StartShell()
     self._battor.StartTracing()
@@ -156,7 +160,7 @@ class BattorWrapperTest(unittest.TestCase):
     self.assertFalse(self._battor._tracing)
 
   def testStopTracingNotRunning(self):
-    self._battor = battor_wrapper.BattorWrapper('platform')
+    self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
     with self.assertRaises(AssertionError):
       self._battor.StopTracing()
