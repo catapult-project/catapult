@@ -99,7 +99,7 @@ class Oobe(web_contents.WebContents):
   def _NavigateWebViewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen"""
     self._NavigateWebViewEntry('identifierId', username, 'identifierNext')
-    self._NavigateWebViewEntry('password', password, 'next')
+    self._NavigateWebViewEntry('password', password, 'passwordNext')
     if wait_for_close:
       util.WaitFor(lambda: not self._GaiaWebviewContext(), 20)
 
