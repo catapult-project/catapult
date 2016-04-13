@@ -123,6 +123,8 @@ class BattorWrapper(object):
   def _GetBattorPath(self, target_platform, android_device=None,
                      battor_path=None, battor_map_file=None, battor_map=None):
     """Determines most likely path to the correct BattOr."""
+    if target_platform in ['win']
+      return None
     device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
     if battor_path:
       if not isinstance(battor_path, basestring):
