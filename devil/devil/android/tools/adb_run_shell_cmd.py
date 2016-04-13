@@ -5,11 +5,9 @@
 
 import argparse
 import json
-import logging
 import sys
 
 from devil.android import device_blacklist
-from devil.android import device_errors
 from devil.android import device_utils
 from devil.utils import run_tests_helper
 
@@ -19,6 +17,7 @@ def main():
       'Run an adb shell command on selected devices')
   parser.add_argument('cmd', help='Adb shell command to run.', nargs="+")
   parser.add_argument('-d', '--device', action='append', dest='devices',
+                      default=[],
                       help='Device to run cmd on. Runs on all devices if not '
                            'specified. Set multiple times for multiple devices')
   parser.add_argument('-v', '--verbose', default=0, action='count',
@@ -32,29 +31,15 @@ def main():
 
   args.blacklist_file = device_blacklist.Blacklist(
       args.blacklist_file) if args.blacklist_file else None
-  attached_devices = device_utils.DeviceUtils.HealthyDevices(
-      blacklist=args.blacklist_file)
+  devices = device_utils.DeviceUtils.HealthyDevices(
+      blacklist=args.blacklist_file, device_arg=args.devices)
 
-  if args.devices:
-    selected_devices = []
-    attached_devices = {str(d): d for d in attached_devices}
-    for serial in args.devices:
-      if serial in attached_devices:
-        selected_devices.append(attached_devices[serial])
-      else:
-        logging.warning('Specified device %s not found.', serial)
-  else:
-    selected_devices = attached_devices
-
-  if not selected_devices:
-    raise device_errors.NoDevicesError
-
-  p_out = (device_utils.DeviceUtils.parallel(selected_devices).RunShellCommand(
+  p_out = (device_utils.DeviceUtils.parallel(devices).RunShellCommand(
       args.cmd, large_output=True, as_root=args.as_root, check_return=True)
       .pGet(None))
 
   data = {}
-  for device, output in zip(selected_devices, p_out):
+  for device, output in zip(devices, p_out):
     for line in output:
       print '%s: %s' % (device, line)
     data[str(device)] = output

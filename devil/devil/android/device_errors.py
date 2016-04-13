@@ -8,6 +8,7 @@ Exception classes raised by AdbWrapper and DeviceUtils.
 
 from devil import base_error
 from devil.utils import cmd_helper
+from devil.utils import parallelizer
 
 
 class CommandFailedError(base_error.BaseError):
@@ -107,6 +108,21 @@ class NoDevicesError(base_error.BaseError):
   def __init__(self):
     super(NoDevicesError, self).__init__(
         'No devices attached.', is_infra_error=True)
+
+
+class MultipleDevicesError(base_error.BaseError):
+  """Exception for having multiple attached devices without selecting one."""
+
+  def __init__(self, devices):
+    parallel_devices = parallelizer.Parallelizer(devices)
+    descriptions = parallel_devices.pMap(
+        lambda d: d.build_description).pGet(None)
+    msg = ('More than one device available. Use -d/--device to select a device '
+           'by serial.\n\nAvailable devices:\n')
+    for d, desc in zip(devices, descriptions):
+      msg += '  %s (%s)\n' % (d, desc)
+
+    super(MultipleDevicesError, self).__init__(msg, is_infra_error=True)
 
 
 class NoAdbError(base_error.BaseError):

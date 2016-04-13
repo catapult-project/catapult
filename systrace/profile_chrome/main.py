@@ -151,8 +151,7 @@ def _CreateOptionParser():
   parser.add_option('-d', '--device', help='The Android device ID to use, '
                     'defaults to the value of ANDROID_SERIAL environment '
                     'variable. If not specified, only 0 or 1 connected '
-                    'devices are supported.',
-                    default=os.environ.get('ANDROID_SERIAL', None))
+                    'devices are supported.')
   return parser
 
 
@@ -171,15 +170,7 @@ When in doubt, just try out --trace-frame-viewer.
   if options.verbose:
     logging.getLogger().setLevel(logging.DEBUG)
 
-  devices = device_utils.DeviceUtils.HealthyDevices()
-  device = None
-  if options.device:
-    device = next((d for d in devices if d == options.device), None)
-  elif len(devices) == 1:
-    device = devices[0]
-
-  if not device:
-    parser.error('Use -d/--device to select a device:\n' + '\n'.join(devices))
+  device = device_utils.DeviceUtils.HealthyDevices(device_arg=options.device)[0]
   package_info = profiler.GetSupportedBrowsers()[options.browser]
 
   if options.chrome_categories in ['list', 'help']:

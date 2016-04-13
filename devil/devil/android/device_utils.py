@@ -2146,19 +2146,71 @@ class DeviceUtils(object):
       return parallelizer.SyncParallelizer(devices)
 
   @classmethod
-  def HealthyDevices(cls, blacklist=None, **kwargs):
+  def HealthyDevices(cls, blacklist=None, device_arg='default', **kwargs):
+    """Returns a list of DeviceUtils instances.
+
+    Returns a list of DeviceUtils instances that are attached, not blacklisted,
+    and optionally filtered by --device flags or ANDROID_SERIAL environment
+    variable.
+
+    Args:
+      blacklist: A DeviceBlacklist instance (optional). Device serials in this
+          blacklist will never be returned, but a warning will be logged if they
+          otherwise would have been.
+      device_arg: The value of the --device flag. This can be:
+          'default' -> Same as [], but returns an empty list rather than raise a
+              NoDevicesError.
+          [] -> Returns all devices, unless $ANDROID_SERIAL is set.
+          None -> Use $ANDROID_SERIAL if set, otherwise looks for a single
+              attached device. Raises an exception if multiple devices are
+              attached.
+          'serial' -> Returns an instance for the given serial, if not
+              blacklisted.
+          ['A', 'B', ...] -> Returns instances for the subset that is not
+              blacklisted.
+      A device serial, or a list of device serials (optional).
+
+    Returns:
+      A list of one or more DeviceUtils instances.
+
+    Raises:
+      NoDevicesError: Raised when no non-blacklisted devices exist and
+          device_arg is passed.
+      MultipleDevicesError: Raise when multiple devices exist, but |device_arg|
+          is None.
+    """
+    allow_no_devices = False
+    if device_arg == 'default':
+      allow_no_devices = True
+      device_arg = ()
+
+    select_multiple = (isinstance(device_arg, tuple) or
+                       isinstance(device_arg, list))
     blacklisted_devices = blacklist.Read() if blacklist else []
 
-    def blacklisted(adb):
-      if adb.GetDeviceSerial() in blacklisted_devices:
-        logging.warning('Device %s is blacklisted.', adb.GetDeviceSerial())
+    # adb looks for ANDROID_SERIAL, so support it as well.
+    android_serial = os.environ.get('ANDROID_SERIAL')
+    if not device_arg and android_serial:
+      device_arg = [android_serial]
+
+    def blacklisted(serial):
+      if serial in blacklisted_devices:
+        logging.warning('Device %s is blacklisted.', serial)
         return True
       return False
 
-    devices = []
-    for adb in adb_wrapper.AdbWrapper.Devices():
-      if not blacklisted(adb):
-        devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
+    if device_arg:
+      devices = [cls(x, **kwargs) for x in device_arg if not blacklisted(x)]
+    else:
+      devices = []
+      for adb in adb_wrapper.AdbWrapper.Devices():
+        if not blacklisted(adb.GetDeviceSerial()):
+          devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
+
+    if len(devices) == 0 and not allow_no_devices:
+      raise device_errors.NoDevicesError()
+    if len(devices) > 1 and not select_multiple:
+      raise device_errors.MultipleDevicesError(devices)
     return devices
 
   @decorators.WithTimeoutAndRetriesFromInstance()
