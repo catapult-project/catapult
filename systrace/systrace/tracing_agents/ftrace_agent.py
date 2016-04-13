@@ -5,6 +5,7 @@
 import os
 import sys
 
+from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from systrace import tracing_agents
 
@@ -153,11 +154,16 @@ class FtraceAgent(tracing_agents.TracingAgent):
     sys.stdout.flush()
 
     self._fio.writeFile(FT_TRACE_ON, '1')
+    return True
 
   def StartAgentTracing(self, options, categories, timeout):
-    return timeout_retry.Run(self._StartAgentTracingImpl,
-                             timeout, 1,
-                             args=[options, categories])
+    try:
+      return timeout_retry.Run(self._StartAgentTracingImpl,
+                               timeout, 1,
+                               args=[options, categories])
+    except reraiser_thread.TimeoutError:
+      print 'StartAgentTracing in FtraceAgent timed out.'
+      return False
 
   def _StopAgentTracingImpl(self):
     """Collect the result of tracing.
@@ -177,8 +183,12 @@ class FtraceAgent(tracing_agents.TracingAgent):
       print "WARN: circular buffer fixups are not yet supported."
 
   def StopAgentTracing(self, timeout):
-    return timeout_retry.Run(self._StopAgentTracingImpl,
-                             timeout, 1)
+    try:
+      return timeout_retry.Run(self._StopAgentTracingImpl,
+                               timeout, 1)
+    except reraiser_thread.TimeoutError:
+      print 'StopAgentTracing in FtraceAgent timed out.'
+      return False
 
   def _GetResultsImpl(self):
     # get the output
@@ -187,8 +197,12 @@ class FtraceAgent(tracing_agents.TracingAgent):
     return tracing_agents.TraceResult('trace-data', d)
 
   def GetResults(self, timeout):
-    return timeout_retry.Run(self._GetResultsImpl,
-                             timeout, 1)
+    try:
+      return timeout_retry.Run(self._GetResultsImpl,
+                               timeout, 1)
+    except reraiser_thread.TimeoutError:
+      print 'GetResults in FtraceAgent timed out.'
+      return tracing_agents.TraceResult('', '')
 
   def SupportsExplicitClockSync(self):
     return False
