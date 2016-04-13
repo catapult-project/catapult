@@ -126,11 +126,8 @@ class AtraceAgentTest(unittest.TestCase):
 
 class BootAgentTest(unittest.TestCase):
   def test_boot(self):
-    options, categories = run_systrace.parse_options(SYSTRACE_BOOT_CMD)
-    agent = atrace_agent.BootAgent()
-    agent._options = options
-    agent._categories = categories
-    tracer_args = agent._construct_trace_command()
+    options, _ = run_systrace.parse_options(SYSTRACE_BOOT_CMD)
+    tracer_args = atrace_agent._construct_boot_trace_command(options)
     self.assertEqual(' '.join(TRACE_BOOT_CMD), ' '.join(tracer_args))
 
 if __name__ == "__main__":

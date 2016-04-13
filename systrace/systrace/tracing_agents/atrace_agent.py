@@ -335,9 +335,8 @@ class BootAgent(AtraceAgent):
 
   def _StartAgentTracingImpl(self, options, categories):
     self._options = options
-    self._categories = categories
     try:
-      setup_args = self._construct_setup_command()
+      setup_args = _construct_boot_setup_command(options, categories)
       try:
         subprocess.check_call(setup_args)
         print 'Hit Ctrl+C once the device has booted up.'
@@ -345,7 +344,7 @@ class BootAgent(AtraceAgent):
           time.sleep(1)
       except KeyboardInterrupt:
         pass
-      tracer_args = self._construct_trace_command()
+      tracer_args = _construct_boot_trace_command(options)
       self._adb = subprocess.Popen(tracer_args, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
     except OSError as error:
@@ -359,21 +358,21 @@ class BootAgent(AtraceAgent):
     return timeout_retry.Run(self._StartAgentTracingImpl, timeout, 1,
                              args=[options, categories])
 
-  def _construct_setup_command(self):
-    echo_args = ['echo'] + self._categories + ['>', BOOTTRACE_CATEGORIES]
-    setprop_args = ['setprop', BOOTTRACE_PROP, '1']
-    reboot_args = ['reboot']
-    return util.construct_adb_shell_command(
-        echo_args + ['&&'] + setprop_args + ['&&'] + reboot_args,
-        self._options.device_serial)
+def _construct_boot_setup_command(options, categories):
+  echo_args = ['echo'] + categories + ['>', BOOTTRACE_CATEGORIES]
+  setprop_args = ['setprop', BOOTTRACE_PROP, '1']
+  reboot_args = ['reboot']
+  return util.construct_adb_shell_command(
+      echo_args + ['&&'] + setprop_args + ['&&'] + reboot_args,
+      options.device_serial)
 
-  def _construct_trace_command(self):
-    atrace_args = ['atrace', '--async_stop']
-    setprop_args = ['setprop', BOOTTRACE_PROP, '0']
-    rm_args = ['rm', BOOTTRACE_CATEGORIES]
-    return util.construct_adb_shell_command(
-          atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
-          self._options.device_serial)
+def _construct_boot_trace_command(options):
+  atrace_args = ['atrace', '--async_stop']
+  setprop_args = ['setprop', BOOTTRACE_PROP, '0']
+  rm_args = ['rm', BOOTTRACE_CATEGORIES]
+  return util.construct_adb_shell_command(
+        atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
+        options.device_serial)
 
 
 class FileReaderThread(threading.Thread):
