@@ -4,15 +4,22 @@
 # found in the LICENSE file.
 
 import argparse
+import codecs
 import collections
 import gzip
 import itertools
 import json
 import logging
+import os
 import sys
+
+# Add tracing/ to the path.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from tracing_build import html2trace, trace2html
 
 
 GZIP_FILENAME_SUFFIX = '.gz'
+HTML_FILENAME_SUFFIX = '.html'
 
 
 # Relevant trace event phases. See
@@ -288,7 +295,13 @@ class ProcessIdMap(IdMap):
 def LoadTrace(filename):
   """Load a trace from a (possibly gzipped) file and return its parsed JSON."""
   logging.info('Loading trace %r...', filename)
-  if filename.endswith(GZIP_FILENAME_SUFFIX):
+  if filename.endswith(HTML_FILENAME_SUFFIX):
+    traces = html2trace.ReadTracesFromHTMLFilePath(filename)
+    if len(traces) > 1:
+      logging.warning('HTML trace contains multiple trace data blocks. Only '
+                      'the first block will be merged.')
+    return traces[0]
+  elif filename.endswith(GZIP_FILENAME_SUFFIX):
     with gzip.open(filename, 'rb') as f:
       return json.load(f)
   else:
@@ -303,7 +316,10 @@ def SaveTrace(trace, filename):
     print json.dumps(trace)
   else:
     logging.info('Saving trace %r...', filename)
-    if filename.endswith(GZIP_FILENAME_SUFFIX):
+    if filename.endswith(HTML_FILENAME_SUFFIX):
+      with codecs.open(filename, mode='w', encoding='utf-8') as f:
+        trace2html.WriteHTMLForTraceDataToFile([trace], 'Merged trace', f)
+    elif filename.endswith(GZIP_FILENAME_SUFFIX):
       with gzip.open(filename, 'wb') as f:
         json.dump(trace, f)
     else:
@@ -332,6 +348,8 @@ def MergeTraces(traces):
   trace_components = collections.defaultdict(collections.OrderedDict)
 
   for filename, trace in traces.iteritems():
+    if isinstance(trace, list):
+      trace = {'traceEvents': trace}
     for name, component in trace.iteritems():
       trace_components[name][filename] = component
 
