@@ -3,12 +3,86 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+
+'''
+This script provides tools to map BattOrs to phones.
+
+Phones are identified by the following string:
+
+"Phone serial number" - Serial number of the phone. This can be
+obtained via 'adb devices' or 'usb-devices', and is not expected
+to change for a given phone.
+
+BattOrs are identified by the following two strings:
+
+"BattOr serial number" - Serial number of the BattOr. This can be
+obtained via 'usb-devices', and is not expected to change for
+a given BattOr.
+
+"BattOr path" - The path of the form '/dev/ttyUSB*' that is used
+to communicate with the BattOr (the battor_agent binary takes
+this BattOr path as a parameter). The BattOr path is frequently
+reassigned by the OS, most often when the device is disconnected
+and then reconnected. Thus, the BattOr path cannot be expected
+to be stable.
+
+In a typical application, the user will require the BattOr path
+for the BattOr that is plugged into a given phone. For instance,
+the user will be running tracing on a particular phone, and will
+need to know which BattOr path to use to communicate with the BattOr
+to get the corresponding power trace.
+
+Getting this mapping requires two steps: (1) determining the
+mapping between phone serial numbers and BattOr serial numbers, and
+(2) getting the BattOr path corresponding to a given BattOr serial
+number.
+
+For step (1), we generate a JSON file giving this mapping. This
+JSON file consists of a list of items of the following form:
+[{'phone': <phone serial 1>, 'battor': <battor serial 1>},
+{'phone': <phone serial 2>, 'battor': <battor serial 2>}, ...]
+
+The default way to generate this JSON file is using the function
+GenerateSerialMapFile, which generates a mapping based on assuming
+that the system has two identical USB hubs connected to it, and
+the phone plugged into physical port number 1 on one hub corresponds
+to the BattOr plugged into physical port number 1 on the other hub,
+and similarly with physical port numbers 2, 3, etc. This generates
+the map file based on the structure at the time GenerateSerialMapFile called.
+Note that after the map file is generated, port numbers are no longer used;
+the user could move around the devices in the ports without affecting
+which phone goes with which BattOr. (Thus, if the user wanted to update the
+mapping to match the new port connections, the user would have to
+re-generate this file.)
+
+The script update_mapping.py will do this updating from the command line.
+
+If the user wanted to specify a custom mapping, the user could instead
+create the JSON file manually. (In this case, hubs would not be necessary
+and the physical ports connected would be irrelevant.)
+
+Step (2) is conducted through the function GetBattorPathFromPhoneSerial,
+which takes a serial number mapping generated via step (1) and a phone
+serial number, then gets the corresponding BattOr serial number from the
+map and determines its BattOr path (e.g. /dev/ttyUSB0). Since BattOr paths
+can change if devices are connected and disconnected (even if connected
+or disconnected via the same port) this function should be called to
+determine the BattOr path every time before connecting to the BattOr.
+
+Note that if there is only one BattOr connected to the system, then
+GetBattorPathFromPhoneSerial will always return that BattOr and will ignore
+the mapping file. Thus, if the user never has more than one BattOr connected
+to the system, the user will not need to generate mapping files.
+'''
+
+
 import json
 import collections
 
 from battor import battor_error
 from devil.utils import find_usb_devices
 from devil.utils import usb_hubs
+
 
 def GetBattorList(device_tree_map):
   return [x for x in find_usb_devices.GetTTYList()
