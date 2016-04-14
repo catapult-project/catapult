@@ -108,7 +108,7 @@ tr.exportTo('tr.b', function() {
     var tmp = new Array(ary.length);
     for (var i = 0; i < ary.length; i++)
       tmp[i] = func.call(opt_this, ary[i], i);
-    tmp.sort();
+    tmp.sort((a, b) => a - b);
     var idx = Math.floor((ary.length - 1) * percent);
     return tmp[idx];
   };

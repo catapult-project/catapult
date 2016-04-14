@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -180,6 +181,40 @@ tr.b.unittest.testSuite(function() {
     };
 
     assert.deepEqual(d, tr.v.NumericBase.fromDict(d).asDict());
+  });
+
+  test('numericPercentile', function() {
+    function check(array, min, max, bins, precision) {
+      var n = new tr.v.NumericBuilder.createLinear(
+          tr.v.Unit.byName.timeDurationInMs,
+          tr.b.Range.fromExplicitRange(min, max),
+          bins).build();
+      array.forEach((x) => n.add(x, 'x'));
+      [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
+        var expected = tr.b.Statistics.percentile(array, percent);
+        var actual = n.getApproximatePercentile(percent);
+        assert.closeTo(expected, actual, precision);
+      });
+    }
+    check([1, 2, 5, 7], 0.5, 10.5, 10, 1e-3);
+    check([3, 3, 4, 4], 0.5, 10.5, 10, 1e-3);
+    check([1, 10], 0.5, 10.5, 10, 1e-3);
+    check([1, 2, 3, 4, 5], 0.5, 10.5, 10, 1e-3);
+    check([3, 3, 3, 3, 3], 0.5, 10.5, 10, 1e-3);
+    check([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 0.5, 10.5, 10, 1e-3);
+    check([1, 2, 3, 4, 5, 5, 6, 7, 8, 9, 10], 0.5, 10.5, 10, 1e-3);
+    check([0, 11], 0.5, 10.5, 10, 1);
+    check([0, 6, 11], 0.5, 10.5, 10, 1);
+    var array = [];
+    for (var i = 0; i < 1000; i++)
+      array.push((i * i) % 10 + 1);
+    check(array, 0.5, 10.5, 10, 1e-3);
+    // If the real percentile is outside the bin range then the approximation
+    // error can be high.
+    check([-10000], 0, 10, 10, 10000);
+    check([10000], 0, 10, 10, 10000 - 10);
+    // The result is no more than the bin width away from the real percentile.
+    check([1, 1], 0, 10, 1, 10);
   });
 
   test('numericBuilder_empty', function() {

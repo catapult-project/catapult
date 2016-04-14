@@ -150,6 +150,35 @@ tr.exportTo('tr.v', function() {
       return this.maxCount_;
     },
 
+    /**
+    *  Compute an approximation of percentile based on the counts in the bins.
+    *  If the real percentile lies within |this.range| then the result of
+    *  the function will deviate from the real percentile by at most
+    *  |this.centralBinWidth|.
+    *  If the real percentile is outside |this.range| then the function
+    *  returns the closest range limit: |this.range.min| or |this.range.max|.
+    */
+    getApproximatePercentile: function(percent) {
+      if (!(percent >= 0 && percent <= 1))
+        throw new Error('percent must be [0,1]');
+      if (this.numValues == 0)
+        return 0;
+      var valuesToSkip = Math.floor((this.numValues - 1) * percent);
+      for (var i = 0; i < this.allBins.length; i++) {
+        var bin = this.allBins[i];
+        valuesToSkip -= bin.count;
+        if (valuesToSkip < 0) {
+          if (bin === this.underflowBin)
+            return bin.range.max;
+          else if (bin === this.overflowBin)
+            return bin.range.min;
+          else
+            return bin.range.center;
+        }
+      }
+      throw new Error('Unreachable');
+    },
+
     getInterpolatedCountAt: function(value) {
       var bin = this.getBinForValue(value);
       var idx = this.centralBins.indexOf(bin);
