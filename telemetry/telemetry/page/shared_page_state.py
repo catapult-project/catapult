@@ -137,12 +137,12 @@ class SharedPageState(story.SharedState):
       # TODO(nednguyen): once all platforms support taking screenshot,
       # remove the tab checking logic and consider moving this to story_runner.
       # (crbug.com/369490)
-      if tab.browser.platform.CanTakeScreenshot():
+      if self.platform.CanTakeScreenshot():
         tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
         tf.close()
-        tab.browser.platform.TakeScreenshot(tf.name)
+        self.platform.TakeScreenshot(tf.name)
         results.AddProfilingFile(page, file_handle.FromTempFile(tf))
-      elif tab.IsAlive() and tab.screenshot_supported:
+      elif tab and tab.IsAlive() and tab.screenshot_supported:
         tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
         tf.close()
         image = tab.Screenshot()
