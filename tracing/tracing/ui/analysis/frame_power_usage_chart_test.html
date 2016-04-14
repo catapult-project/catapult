@@ -27,10 +27,10 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_noVSyncs', function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), []);
@@ -51,10 +51,10 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [0];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -74,14 +74,14 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [0, 4];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
-    series.addPowerSample(4, 2000);
-    series.addPowerSample(5, 3000);
-    series.addPowerSample(6, 4000);
-    series.addPowerSample(7, 3000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
+    series.addPowerSample(4, 2);
+    series.addPowerSample(5, 3);
+    series.addPowerSample(6, 4);
+    series.addPowerSample(7, 3);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -106,15 +106,15 @@ tr.b.unittest.testSuite(function() {
 
     // Power samples taken at 0, 1, 2, and 3s after frame start.
     var vSyncTimestamps = [0, 4];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
     // Power samples taken at 0.5, 1.5, 2.5, and 3.5s after frame start.
-    series.addPowerSample(4.5, 2000);
-    series.addPowerSample(5.5, 3000);
-    series.addPowerSample(6.5, 4000);
-    series.addPowerSample(7.5, 3000);
+    series.addPowerSample(4.5, 2);
+    series.addPowerSample(5.5, 3);
+    series.addPowerSample(6.5, 4);
+    series.addPowerSample(7.5, 3);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -138,14 +138,14 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [4];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
-    series.addPowerSample(4, 2000);
-    series.addPowerSample(5, 3000);
-    series.addPowerSample(6, 4000);
-    series.addPowerSample(7, 3000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
+    series.addPowerSample(4, 2);
+    series.addPowerSample(5, 3);
+    series.addPowerSample(6, 4);
+    series.addPowerSample(7, 3);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -165,10 +165,10 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [4];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -186,14 +186,14 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [0, 4, 8, 12];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
-    series.addPowerSample(4, 2000);
-    series.addPowerSample(5, 3000);
-    series.addPowerSample(6, 4000);
-    series.addPowerSample(7, 3000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
+    series.addPowerSample(4, 2);
+    series.addPowerSample(5, 3);
+    series.addPowerSample(6, 4);
+    series.addPowerSample(7, 3);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -217,14 +217,14 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [8];
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
-    series.addPowerSample(4, 2000);
-    series.addPowerSample(5, 3000);
-    series.addPowerSample(6, 4000);
-    series.addPowerSample(7, 3000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
+    series.addPowerSample(4, 2);
+    series.addPowerSample(5, 3);
+    series.addPowerSample(6, 4);
+    series.addPowerSample(7, 3);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);
@@ -237,14 +237,14 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(new tr.Model().device);
 
     var vSyncTimestamps = [0, 4];
-    series.addPowerSample(4, 2000);
-    series.addPowerSample(5, 3000);
-    series.addPowerSample(6, 4000);
-    series.addPowerSample(7, 3000);
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
-    series.addPowerSample(2, 3000);
-    series.addPowerSample(3, 2000);
+    series.addPowerSample(4, 2);
+    series.addPowerSample(5, 3);
+    series.addPowerSample(6, 4);
+    series.addPowerSample(7, 3);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
+    series.addPowerSample(2, 3);
+    series.addPowerSample(3, 2);
 
     var chart = document.createElement('tr-ui-a-frame-power-usage-chart');
     chart.setData(new tr.model.EventSet(series.samples), vSyncTimestamps);

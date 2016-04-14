@@ -36,8 +36,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(series.samples.length, 0);
 
-    var sample1 = series.addPowerSample(0, 1000);
-    var sample2 = series.addPowerSample(1, 2000);
+    var sample1 = series.addPowerSample(0, 1);
+    var sample2 = series.addPowerSample(1, 2);
 
     assert.deepEqual(series.samples, [sample1, sample2]);
   });
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
 
-    assert.equal(series.getEnergyConsumed(0, 1000), 0.001);
+    assert.equal(series.getEnergyConsumed(0, 1000), 1);
   });
 
   test('getEnergyConsumed_twoSamples', function() {
@@ -55,14 +55,14 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
 
-    assert.equal(series.getEnergyConsumed(0, 2000), 0.003);
+    assert.equal(series.getEnergyConsumed(0, 2000), 3);
   });
 
   test('getEnergyConsumed_firstSampleAfterStart', function() {
     var series = new PowerSeries(new Model().device);
     series.addPowerSample(1000, 1);
 
-    assert.equal(series.getEnergyConsumed(0, 2000), 0.001);
+    assert.equal(series.getEnergyConsumed(0, 2000), 1);
   });
 
   test('getEnergyConsumed_extraSamplesBeforeStart', function() {
@@ -72,7 +72,7 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(2000, 1);
     series.addPowerSample(3000, 1);
 
-    assert.equal(series.getEnergyConsumed(2000, 4000), 0.002);
+    assert.equal(series.getEnergyConsumed(2000, 4000), 2);
   });
 
   test('getEnergyConsumed_extraSamplesAfterEnd', function() {
@@ -82,14 +82,14 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(2000, 1);
     series.addPowerSample(3000, 10);
 
-    assert.equal(series.getEnergyConsumed(0, 2000), 0.002);
+    assert.equal(series.getEnergyConsumed(0, 2000), 2);
   });
 
   test('shiftTimestampsForward', function() {
     var series = new PowerSeries(new Model().device);
 
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
 
     series.shiftTimestampsForward(2);
 
@@ -106,14 +106,14 @@ tr.b.unittest.testSuite(function() {
   test('updateBounds', function() {
     var series = new PowerSeries(new Model().device);
 
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
     series.updateBounds();
 
     assert.equal(series.bounds.min, 0);
     assert.equal(series.bounds.max, 1);
 
-    series.addPowerSample(4, 3000);
+    series.addPowerSample(4, 3);
     series.updateBounds();
 
     assert.equal(series.bounds.min, 0);
@@ -132,8 +132,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.deepEqual(eventsInSeries, []);
 
-    var sample1 = series.addPowerSample(0, 1000);
-    var sample2 = series.addPowerSample(1, 2000);
+    var sample1 = series.addPowerSample(0, 1);
+    var sample2 = series.addPowerSample(1, 2);
 
     eventsInSeries = [];
     series.iterateAllEventsInThisContainer(

@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
     var model = new tr.Model();
     var series = new tr.model.PowerSeries(model.device);
-    series.addPowerSample(1, 1000);
+    series.addPowerSample(1, 1);
 
     var view = document.createElement('tr-ui-a-single-power-sample-sub-view');
     view.selection = new tr.model.EventSet(series.samples);
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
   test('setSelection', function() {
     var model = new tr.Model();
     var series = new tr.model.PowerSeries(model.device);
-    series.addPowerSample(1, 1000);
+    series.addPowerSample(1, 1);
 
     var view = document.createElement('tr-ui-a-single-power-sample-sub-view');
     var eventSet = new tr.model.EventSet(series.samples);

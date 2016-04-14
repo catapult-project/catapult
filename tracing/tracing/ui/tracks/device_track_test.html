@@ -106,7 +106,7 @@ tr.b.unittest.testSuite(function() {
   test('addContainersToTrackMap', function() {
     var device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
-    device.powerSeries.addPowerSample(0, 1000);
+    device.powerSeries.addPowerSample(0, 1);
 
     var drawingContainer = createDrawingContainer(device.series);
     var track = new DeviceTrack(drawingContainer.viewport);

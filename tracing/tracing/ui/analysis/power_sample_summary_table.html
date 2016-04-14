@@ -23,14 +23,14 @@ found in the LICENSE file.
           title: 'Min power',
           width: '100px',
           value: function(row) {
-            return tr.v.Unit.byName.powerInWatts.format(row.min / 1000.0);
+            return tr.v.Unit.byName.powerInWatts.format(row.min);
           }
         },
         {
           title: 'Max power',
           width: '100px',
           value: function(row) {
-            return tr.v.Unit.byName.powerInWatts.format(row.max / 1000.0);
+            return tr.v.Unit.byName.powerInWatts.format(row.max);
           }
         },
         {
@@ -38,7 +38,7 @@ found in the LICENSE file.
           width: '100px',
           value: function(row) {
             return tr.v.Unit.byName.powerInWatts.format(
-                row.timeWeightedAverage / 1000.0);
+                row.timeWeightedAverage);
           }
         },
         {
@@ -99,8 +99,8 @@ found in the LICENSE file.
     },
 
     /**
-     * Returns a time-weighted average of the power consumption in between the
-     * first sample (inclusive) and last sample (exclusive).
+     * Returns a time-weighted average of the power consumption (Watts)
+     * in between the first sample (inclusive) and last sample (exclusive).
      */
     getTimeWeightedAverage: function() {
       var energyConsumed = this.getEnergyConsumed();
@@ -108,14 +108,11 @@ found in the LICENSE file.
       if (energyConsumed === 'N/A')
         return 'N/A';
 
-      // Multiply by 1000 to convert Joules to milliJoules.
-      var energyInMillijoules = this.getEnergyConsumed() * 1000;
-
       // Divide by 1000 to convert milliseconds to seconds.
       var durationInSeconds = this.samples.bounds.duration / 1000;
 
       // Convert energy to power in milliwatts by dividing by time in seconds.
-      return energyInMillijoules / durationInSeconds;
+      return this.getEnergyConsumed() / durationInSeconds;
     },
 
     getEnergyConsumed: function() {

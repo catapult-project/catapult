@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_onePowerSample', function() {
     var series = new PowerSeries(new Model().device);
 
-    series.addPowerSample(0, 1000);
+    series.addPowerSample(0, 1);
 
     var table = document.createElement('tr-ui-a-power-sample-table');
     table.samples = new EventSet(series.samples);
@@ -54,8 +54,8 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_twoPowerSamples', function() {
     var series = new PowerSeries(new Model().device);
 
-    series.addPowerSample(0, 1000);
-    series.addPowerSample(1, 2000);
+    series.addPowerSample(0, 1);
+    series.addPowerSample(1, 2);
 
     var table = document.createElement('tr-ui-a-power-sample-table');
     table.samples = new EventSet(series.samples);
@@ -68,7 +68,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_columnsInitialized', function() {
     var series = new PowerSeries(new Model().device);
 
-    series.addPowerSample(0, 1000);
+    series.addPowerSample(0, 1);
 
     var table = document.createElement('tr-ui-a-power-sample-table');
     table.samples = new EventSet(series.samples);

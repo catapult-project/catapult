@@ -132,9 +132,12 @@ tr.exportTo('tr.e.importer.battor', function() {
 
           // Add power sample.
           var time = parseFloat(groups[1]) + minTs;
-          var voltage_mV = parseFloat(groups[2]);
-          var current_mA = parseFloat(groups[3]);
-          series.addPowerSample(time, (voltage_mV * current_mA) / 1000);
+          var voltage_V = parseFloat(groups[2]) / 1000;
+          var current_A = parseFloat(groups[3]) / 1000;
+
+          // Create power sample and convert to internal power units (Watts).
+          var power_W = voltage_V * current_A;
+          series.addPowerSample(time, power_W);
 
           // Found first explicit clock sync - save it.
           if (groups[4] !== undefined &&

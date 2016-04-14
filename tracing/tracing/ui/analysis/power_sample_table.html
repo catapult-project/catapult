@@ -41,7 +41,7 @@ Polymer('tr-ui-a-power-sample-table', {
         title: 'Power',
         width: '100%',
         value: function(row) {
-          return tr.v.ui.createScalarSpan(row.power / 1000, {
+          return tr.v.ui.createScalarSpan(row.power, {
             unit: tr.v.Unit.byName.powerInWatts
           });
         }

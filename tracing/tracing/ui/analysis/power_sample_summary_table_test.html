@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(table.$.table.tableRows[0].min, 1);
     assert.equal(table.$.table.tableRows[0].max, 2);
     assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 1);
-    assert.equal(table.$.table.tableRows[0].energyConsumed, 0.001);
+    assert.equal(table.$.table.tableRows[0].energyConsumed, 1);
     assert.equal(table.$.table.tableRows[0].sampleCount, 2);
   });
 
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(table.$.table.tableRows[0].min, 1);
     assert.equal(table.$.table.tableRows[0].max, 3);
     assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 1.5);
-    assert.equal(table.$.table.tableRows[0].energyConsumed, 0.003);
+    assert.equal(table.$.table.tableRows[0].energyConsumed, 3);
     assert.equal(table.$.table.tableRows[0].sampleCount, 3);
   });
 
@@ -115,19 +115,19 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(columns[0].title, 'Min power');
     assert.equal(columns[0].width, '100px');
-    assert.equal(columns[0].value(row), '0.001 W');
+    assert.equal(columns[0].value(row), '1.000 W');
 
     assert.equal(columns[1].title, 'Max power');
     assert.equal(columns[1].width, '100px');
-    assert.equal(columns[1].value(row), '0.003 W');
+    assert.equal(columns[1].value(row), '3.000 W');
 
     assert.equal(columns[2].title, 'Time-weighted average');
     assert.equal(columns[2].width, '100px');
-    assert.equal(columns[2].value(row), '0.002 W');
+    assert.equal(columns[2].value(row), '1.500 W');
 
     assert.equal(columns[3].title, 'Energy consumed');
     assert.equal(columns[3].width, '100px');
-    assert.equal(columns[3].value(row), '0.003 J');
+    assert.equal(columns[3].value(row), '3.000 J');
 
     assert.equal(columns[4].title, 'Sample count');
     assert.equal(columns[4].width, '100%');

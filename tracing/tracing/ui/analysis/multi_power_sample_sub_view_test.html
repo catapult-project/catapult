@@ -25,10 +25,10 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(model.device);
 
     model.device.vSyncTimestamps = [];
-    series.addPowerSample(1, 1000);
-    series.addPowerSample(2, 2000);
-    series.addPowerSample(3, 3000);
-    series.addPowerSample(4, 2000);
+    series.addPowerSample(1, 1);
+    series.addPowerSample(2, 2);
+    series.addPowerSample(3, 3);
+    series.addPowerSample(4, 2);
 
     var view = document.createElement('tr-ui-a-multi-power-sample-sub-view');
     var eventSet = new tr.model.EventSet(series.samples);
@@ -45,10 +45,10 @@ tr.b.unittest.testSuite(function() {
     var series = new tr.model.PowerSeries(model.device);
 
     model.device.vSyncTimestamps = [0];
-    series.addPowerSample(1, 1000);
-    series.addPowerSample(2, 2000);
-    series.addPowerSample(3, 3000);
-    series.addPowerSample(4, 2000);
+    series.addPowerSample(1, 1);
+    series.addPowerSample(2, 2);
+    series.addPowerSample(3, 3);
+    series.addPowerSample(4, 2);
 
     var view = document.createElement('tr-ui-a-multi-power-sample-sub-view');
     var eventSet = new tr.model.EventSet(series.samples);

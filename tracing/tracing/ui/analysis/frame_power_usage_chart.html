@@ -123,8 +123,7 @@ Polymer('tr-ui-a-frame-power-usage-chart', {
         return;
 
       var point = { x: sample.start - lastVSyncTimestamp };
-      // Divide by 1000 to convert to Watts
-      point['f' + frameNumber] = sample.power / 1000;
+      point['f' + frameNumber] = sample.power;
       points.push(point);
     });
 
