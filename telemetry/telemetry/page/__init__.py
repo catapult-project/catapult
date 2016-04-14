@@ -19,13 +19,15 @@ class Page(story.Story):
                credentials_path=None,
                credentials_bucket=cloud_storage.PUBLIC_BUCKET, labels=None,
                startup_url='', make_javascript_deterministic=True,
-               shared_page_state_class=shared_page_state.SharedPageState):
+               shared_page_state_class=shared_page_state.SharedPageState,
+               grouping_keys=None):
     self._url = url
 
     super(Page, self).__init__(
         shared_page_state_class, name=name, labels=labels,
         is_local=self._scheme in ['file', 'chrome', 'about'],
-        make_javascript_deterministic=make_javascript_deterministic)
+        make_javascript_deterministic=make_javascript_deterministic,
+        grouping_keys=grouping_keys)
 
     self._page_set = page_set
     # Default value of base_dir is the directory of the file that defines the
