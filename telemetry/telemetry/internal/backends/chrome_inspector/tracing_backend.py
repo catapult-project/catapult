@@ -128,6 +128,16 @@ class TracingBackend(object):
     self._is_tracing_running = True
     return True
 
+  def RecordClockSyncMarker(self, sync_id):
+    assert self.is_tracing_running, 'Tracing must be running to clock sync.'
+    req = {
+      'method': 'recordClockSyncMarker',
+      'params': {
+        'syncId': sync_id
+      }
+    }
+    self._inspector_websocket.SyncRequest(req)
+
   def StopTracing(self, trace_data_builder, timeout=30):
     """Stops tracing and pushes results to the supplied TraceDataBuilder.
 

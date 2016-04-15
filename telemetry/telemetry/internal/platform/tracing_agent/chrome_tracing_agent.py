@@ -11,6 +11,7 @@ import sys
 import tempfile
 import traceback
 
+from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
@@ -38,6 +39,10 @@ class ChromeTracingStartedError(Exception):
 
 
 class ChromeTracingStoppedError(Exception):
+  pass
+
+
+class ChromeClockSyncError(Exception):
   pass
 
 
@@ -117,6 +122,29 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       self._trace_config = config
       return True
     return False
+
+  def SupportsExplicitClockSync(self):
+    return True
+
+  def RecordClockSyncMarker(self, sync_id,
+                            record_controller_clock_sync_marker_callback):
+    devtools_clients = (chrome_tracing_devtools_manager
+        .GetActiveDevToolsClients(self._platform_backend))
+    if not devtools_clients:
+      return False
+    has_clock_synced = False
+    timestamp = trace_time.Now()
+    for client in devtools_clients:
+      try:
+        client.RecordChromeClockSyncMarker(sync_id)
+        # We only need one successful clock sync.
+        has_clock_synced = True
+        break
+      except Exception:
+        pass
+    if not has_clock_synced:
+      raise ChromeClockSyncError()
+    record_controller_clock_sync_marker_callback(sync_id, timestamp)
 
   def StopAgentTracing(self):
     # TODO: Split collection and stopping.
