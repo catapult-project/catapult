@@ -80,24 +80,24 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "android_k_arm64-v8a": {
-          "cloud_storage_hash": "acc308a54613674b4d129a6538a99f2ba4d96486",
+          "cloud_storage_hash": "08f7e4dcdeba512043bfe7fe714c571bccc45954",
           "download_path": "bin/reference_build/android_k_arm64-v8a/ChromeStable.apk",
-          "version_in_cs": "49.0.2623.105"
+          "version_in_cs": "48.0.2564.95"
         },
         "android_k_armeabi-v7a": {
-          "cloud_storage_hash": "5c863cea641424d3ef4afb51039789dee86fa64c",
+          "cloud_storage_hash": "798efed0a7ae1460fe297ba1bd16308585c9e6ca",
           "download_path": "bin/reference_build/android_k_armeabi-v7a/ChromeStable.apk",
-          "version_in_cs": "49.0.2623.105"
+          "version_in_cs": "48.0.2564.95"
         },
         "android_l_arm64-v8a": {
-          "cloud_storage_hash": "fd2775d651eab26426b4f8ed3b586a593055e10a",
+          "cloud_storage_hash": "e054040d12a20d6c7c4b847d46e254821b4d4532",
           "download_path": "bin/reference_build/android_l_arm64-v8a/ChromeStable.apk",
-          "version_in_cs": "49.0.2623.105"
+          "version_in_cs": "48.0.2564.95"
         },
         "android_l_armeabi-v7a": {
-          "cloud_storage_hash": "d6b10f3391856a9d5f5a248c9fcf66228cb4dc84",
+          "cloud_storage_hash": "1438bb54959d9fbf891616392959b778df9e62f9",
           "download_path": "bin/reference_build/android_l_armeabi-v7a/ChromeStable.apk",
-          "version_in_cs": "49.0.2623.105"
+          "version_in_cs": "48.0.2564.95"
         },
         "linux_x86_64": {
           "cloud_storage_hash": "80656d2479eb101486a9dd229cbde54e12a04206",
