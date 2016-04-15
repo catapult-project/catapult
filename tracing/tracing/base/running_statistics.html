@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/range.html">
+<script>
+'use strict';
+
+tr.exportTo('tr.b', function() {
+
+  /***
+  * An object of this class computes basic statistics online in O(1).
+  * Usage:
+  * 1. Create an instance.
+  * 2. Add numbers using the |add| method.
+  * 3. Query statistics.
+  * 4. Repeat from step 2.
+  *
+  * @constructor
+  */
+  function RunningStatistics() {
+    this.mean_ = 0;
+    this.count_ = 0;
+    this.max_ = -Infinity;
+    this.min_ = Infinity;
+    this.sum_ = 0;
+    this.variance_ = 0;
+  }
+
+  RunningStatistics.prototype = {
+    get count() {
+      return this.count_;
+    },
+
+    get mean() {
+      if (this.count_ == 0)
+        return undefined;
+      return this.mean_;
+    },
+
+    get max() {
+      return this.max_;
+    },
+
+    get min() {
+      return this.min_;
+    },
+
+    get sum() {
+      return this.sum_;
+    },
+
+    get variance() {
+      if (this.count_ == 0)
+        return undefined;
+      if (this.count_ == 1)
+        return 0;
+      return this.variance_ / (this.count_ - 1);
+    },
+
+    get stddev() {
+      if (this.count_ == 0)
+        return undefined;
+      return Math.sqrt(this.variance);
+    },
+
+    add: function(x) {
+      this.count_++;
+      this.max_ = Math.max(this.max_, x);
+      this.min_ = Math.min(this.min_, x);
+      this.sum_ += x;
+      // The following uses Welford's algorithm for computing running mean
+      // and variance. See http://www.johndcook.com/blog/standard_deviation.
+      if (this.count_ === 1) {
+        this.mean_ = x;
+        this.variance_ = 0;
+      } else {
+        var oldMean = this.mean_;
+        var oldVariance = this.variance_;
+        this.mean_ = oldMean + (x - oldMean) / this.count_;
+        this.variance_ = oldVariance + (x - oldMean) * (x - this.mean_);
+      }
+    }
+  };
+
+  return {
+    RunningStatistics: RunningStatistics
+  };
+});
+</script>
