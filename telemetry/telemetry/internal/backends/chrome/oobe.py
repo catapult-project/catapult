@@ -4,6 +4,7 @@
 
 from functools import partial
 import logging
+import json
 
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -41,8 +42,13 @@ class Oobe(web_contents.WebContents):
     if self.EvaluateJavaScript("typeof %s == 'undefined'" % api):
       raise exceptions.LoginException('%s js api missing' % api)
 
-    js = api + '(' + ("'%s'," * len(args)).rstrip(',') + ');'
-    self.ExecuteJavaScript(js % args)
+    # Example values:
+    #   |api|:          'doLogin'
+    #   |args|:         ['username', 'pass', True]
+    #   js:             '{}({},{},{})'
+    #   js.format(...): 'doLogin("username","pass",true)'
+    js = '{}(' + ('{},' * len(args)).rstrip(',') + ')'
+    self.ExecuteJavaScript(js.format(api, *map(json.dumps, args)))
 
   def NavigateGuestLogin(self):
     """Logs in as guest."""
