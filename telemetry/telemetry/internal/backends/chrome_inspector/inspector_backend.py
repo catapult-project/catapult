@@ -43,7 +43,7 @@ class InspectorBackend(object):
   The owner of an instance of this class is responsible for calling
   Disconnect() before disposing of the instance.
   """
-  def __init__(self, app, devtools_client, context, timeout=60):
+  def __init__(self, app, devtools_client, context, timeout=120):
     self._websocket = inspector_websocket.InspectorWebsocket()
     self._websocket.RegisterDomain(
         'Inspector', self._HandleInspectorDomainNotification)

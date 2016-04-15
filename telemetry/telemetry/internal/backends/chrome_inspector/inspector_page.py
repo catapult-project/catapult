@@ -13,7 +13,7 @@ class InspectorPage(object):
   inspector_websocket. It does not perform any exception handling. All
   inspector_websocket exceptions must be handled by the caller.
   """
-  def __init__(self, inspector_websocket, timeout=60):
+  def __init__(self, inspector_websocket, timeout):
     self._inspector_websocket = inspector_websocket
     self._inspector_websocket.RegisterDomain('Page', self._OnNotification)
 
