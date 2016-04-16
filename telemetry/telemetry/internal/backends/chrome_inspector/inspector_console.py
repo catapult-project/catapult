@@ -34,20 +34,21 @@ class InspectorConsole(object):
 
   def GetCurrentConsoleOutputBuffer(self, timeout=10):
     self._message_output_stream = StringIO.StringIO()
-    self._EnableConsoleOutputStream()
+    self._EnableConsoleOutputStream(timeout)
     try:
       self._inspector_websocket.DispatchNotifications(timeout)
       return self._message_output_stream.getvalue()
     except websocket.WebSocketTimeoutException:
       return self._message_output_stream.getvalue()
     finally:
-      self._DisableConsoleOutputStream()
+      self._DisableConsoleOutputStream(timeout)
       self._message_output_stream.close()
       self._message_output_stream = None
 
 
-  def _EnableConsoleOutputStream(self):
-    self._inspector_websocket.SyncRequest({'method': 'Console.enable'})
+  def _EnableConsoleOutputStream(self, timeout):
+    self._inspector_websocket.SyncRequest({'method': 'Console.enable'}, timeout)
 
-  def _DisableConsoleOutputStream(self):
-    self._inspector_websocket.SyncRequest({'method': 'Console.disable'})
+  def _DisableConsoleOutputStream(self, timeout):
+    self._inspector_websocket.SyncRequest(
+        {'method': 'Console.disable'}, timeout)

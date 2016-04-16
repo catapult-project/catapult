@@ -18,9 +18,10 @@ class SystemInfoBackend(object):
     try:
       if self._page:
         websocket.Connect('ws://127.0.0.1:%i/devtools/page/%i' %
-                          (self._port, self._page))
+                          (self._port, self._page), timeout)
       else:
-        websocket.Connect('ws://127.0.0.1:%i/devtools/browser' % self._port)
+        websocket.Connect('ws://127.0.0.1:%i/devtools/browser' % self._port,
+                          timeout)
       res = websocket.SyncRequest(req, timeout)
     finally:
       websocket.Disconnect()

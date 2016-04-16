@@ -53,7 +53,7 @@ class InspectorWebsocket(object):
     assert domain_name in self._domain_handlers
     del self._domain_handlers[domain_name]
 
-  def Connect(self, url, timeout=10):
+  def Connect(self, url, timeout):
     """Connects the websocket.
 
     Raises:
@@ -96,7 +96,7 @@ class InspectorWebsocket(object):
     if logging.getLogger().isEnabledFor(logging.DEBUG):
       logging.debug('sent [%s]', json.dumps(req, indent=2, sort_keys=True))
 
-  def SyncRequest(self, req, timeout=10):
+  def SyncRequest(self, req, timeout):
     """Sends a request and waits for a response.
 
     Raises:
@@ -123,7 +123,7 @@ class InspectorWebsocket(object):
     self._SendRequest(req)
     self._pending_callbacks[req['id']] = callback
 
-  def DispatchNotifications(self, timeout=10):
+  def DispatchNotifications(self, timeout):
     """Waits for responses from the websocket, dispatching them as necessary.
 
     Raises:
@@ -138,7 +138,7 @@ class InspectorWebsocket(object):
       self._socket.settimeout(timeout)
       self._cur_socket_timeout = timeout
 
-  def _Receive(self, timeout=10):
+  def _Receive(self, timeout):
     if not self._socket:
       raise WebSocketDisconnected()
 

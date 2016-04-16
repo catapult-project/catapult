@@ -72,7 +72,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
 
     inspector.RegisterDomain('Test', OnTestEvent)
     fake_socket.AddResponse('{"method": "Test.foo"}', 5)
-    inspector.DispatchNotifications()
+    inspector.DispatchNotifications(10)
     self.assertEqual(1, len(results))
     self.assertEqual('Test.foo', results[0]['method'])
 
@@ -112,10 +112,10 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     fake_socket.AddResponse('{"method": "Test.foo"}', 5)
     fake_socket.AddResponse('{"method": "Test2.foo"}', 10)
 
-    inspector.DispatchNotifications()
+    inspector.DispatchNotifications(10)
     self.assertEqual(0, len(results))
 
-    inspector.DispatchNotifications()
+    inspector.DispatchNotifications(10)
     self.assertEqual(1, len(results))
     self.assertEqual('Test2.foo', results[0]['method'])
 
@@ -147,17 +147,17 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     request2 = {'method': 'Test.foo'}
     inspector.AsyncRequest(request2, callback1)
     fake_socket.AddResponse('{"id": 5555555, "result": {}}', 1)
-    inspector.DispatchNotifications()
+    inspector.DispatchNotifications(10)
     self.assertEqual(0, response_count[0])
     fake_socket.AddResponse(
         '{"id": %d, "result": {"data": "response2"}}' % request2['id'], 1)
     fake_socket.AddResponse(
         '{"id": %d, "result": {"data": "response1"}}' % request1['id'], 2)
-    inspector.DispatchNotifications()
-    inspector.DispatchNotifications()
+    inspector.DispatchNotifications(10)
+    inspector.DispatchNotifications(10)
     self.assertEqual(2, response_count[0])
     fake_socket.AddResponse('{"id": 6666666, "result": {}}', 1)
-    inspector.DispatchNotifications()
+    inspector.DispatchNotifications(10)
     self.assertEqual(2, response_count[0])
 
   def testEAGAIN(self):
@@ -170,7 +170,7 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     fake_socket.AddResponse(error, 4)
     fake_socket.AddResponse('{"asdf": "qwer"}', 5)
 
-    result = inspector._Receive()
+    result = inspector._Receive(10)
     self.assertEqual(result, {"asdf" : "qwer"})
 
   def testSocketErrorOtherThanEAGAIN(self):
@@ -182,4 +182,5 @@ class InspectorWebsocketUnittest(unittest.TestCase):
     error = socket.error(errno.EPIPE, "error string")
     fake_socket.AddResponse(error, 4)
 
-    self.assertRaises(socket.error, inspector._Receive)
+    with self.assertRaises(socket.error):
+      inspector._Receive(10)

@@ -58,7 +58,7 @@ class InspectorBackend(object):
 
     logging.debug('InspectorBackend._Connect() to %s', self.debugger_url)
     try:
-      self._websocket.Connect(self.debugger_url)
+      self._websocket.Connect(self.debugger_url, timeout)
       self._console = inspector_console.InspectorConsole(self._websocket)
       self._memory = inspector_memory.InspectorMemory(self._websocket)
       self._page = inspector_page.InspectorPage(

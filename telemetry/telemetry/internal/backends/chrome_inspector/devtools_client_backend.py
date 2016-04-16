@@ -49,7 +49,8 @@ def IsDevToolsAgentAvailable(port, app_backend):
 
 def _IsInspectorWebsocketAvailable(inspector_websocket_instance, port):
   try:
-    inspector_websocket_instance.Connect(BROWSER_INSPECTOR_WEBSOCKET_URL % port)
+    inspector_websocket_instance.Connect(
+        BROWSER_INSPECTOR_WEBSOCKET_URL % port, timeout=10)
   except websocket.WebSocketException:
     return False
   except socket.error:
@@ -309,7 +310,7 @@ class DevToolsClientBackend(object):
       self._browser_inspector_websocket = (
           inspector_websocket.InspectorWebsocket())
       self._browser_inspector_websocket.Connect(
-          BROWSER_INSPECTOR_WEBSOCKET_URL % self._devtools_port)
+          BROWSER_INSPECTOR_WEBSOCKET_URL % self._devtools_port, timeout=10)
 
   def IsChromeTracingSupported(self):
     if not self.supports_tracing:

@@ -136,7 +136,7 @@ class TracingBackend(object):
         'syncId': sync_id
       }
     }
-    self._inspector_websocket.SyncRequest(req)
+    self._inspector_websocket.SyncRequest(req, timeout=2)
 
   def StopTracing(self, trace_data_builder, timeout=30):
     """Stops tracing and pushes results to the supplied TraceDataBuilder.
@@ -259,5 +259,5 @@ class TracingBackend(object):
   @decorators.Cache
   def IsTracingSupported(self):
     req = {'method': 'Tracing.hasCompleted'}
-    res = self._inspector_websocket.SyncRequest(req)
+    res = self._inspector_websocket.SyncRequest(req, timeout=10)
     return not res.get('response')
