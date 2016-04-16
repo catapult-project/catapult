@@ -24,6 +24,8 @@ class Trace(webapp2.RequestHandler):
     for filter_name, filter_values in filters.iteritems():
       if filter_name == 'start_time':
         query_parameters.append(('start_time', filter_values))
+      elif filter_name == 'end_time':
+        query_parameters.append(('end_time', filter_values))
       else:
         for filter_value in filter_values:
           query_parameters.append((filter_name, filter_value))

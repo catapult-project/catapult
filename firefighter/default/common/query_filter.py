@@ -49,6 +49,10 @@ def Filters(request):
   if start_time:
     filters['start_time'] = _ParseTime(start_time)
 
+  end_time = request.get('end_time')
+  if end_time:
+    filters['end_time'] = _ParseTime(end_time)
+
   return filters
 
 

@@ -34,14 +34,16 @@ class Query(webapp2.RequestHandler):
 def _QueryEvents(bq, **filters):
   start_time = filters.get(
       'start_time', time.time() - constants.DEFAULT_HISTORY_DURATION_SECONDS)
-  query_start_time_ms = int(start_time * 1000)
   query_start_time_us = int(start_time * 1000000)
+
+  end_time = filters.get('end_time', time.time())
+  query_end_time_us = int(end_time * 1000000)
 
   fields = (
       'name',
       'GREATEST(INTEGER(start_time), %d) AS start_time_us' %
       query_start_time_us,
-      'INTEGER(end_time) AS end_time_us',
+      'LEAST(INTEGER(end_time), %d) AS end_time_us' % query_end_time_us,
       'builder',
       'configuration',
       'hostname',
@@ -50,13 +52,17 @@ def _QueryEvents(bq, **filters):
   )
 
   tables = (constants.BUILDS_TABLE, constants.CURRENT_BUILDS_TABLE)
-  tables = ['[%s.%s@%d-]' % (constants.DATASET, table, query_start_time_ms)
-            for table in tables]
+  tables = ['[%s.%s]' % (constants.DATASET, table) for table in tables]
+  # TODO(dtu): Taking a snapshot of the table should reduce the cost of the
+  # query, but some trace events appear to be missing and not sure why.
+  #tables = ['[%s.%s@%d-]' % (constants.DATASET, table, query_start_time_ms)
+            #for table in tables]
 
   conditions = []
   conditions.append('NOT LOWER(name) CONTAINS "trigger"')
   conditions.append('end_time - start_time >= 1000000')
   conditions.append('end_time > %d' % query_start_time_us)
+  conditions.append('start_time < %d' % query_end_time_us)
   for filter_name, filter_values in filters.iteritems():
     if not isinstance(filter_values, list):
       continue
