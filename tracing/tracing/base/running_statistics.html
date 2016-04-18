@@ -82,7 +82,50 @@ tr.exportTo('tr.b', function() {
         this.mean_ = oldMean + (x - oldMean) / this.count_;
         this.variance_ = oldVariance + (x - oldMean) * (x - this.mean_);
       }
+    },
+
+    merge: function(other) {
+      var result = new RunningStatistics();
+      result.count_ = this.count_ + other.count_;
+      result.sum_ = this.sum_ + other.sum_;
+      result.min_ = Math.min(this.min_, other.min_);
+      result.max_ = Math.max(this.max_, other.max_);
+      if (other.count_ === 0 && this.count_ === 0) {
+        result.mean_ = 0;
+        result.variance_ = 0;
+      } else {
+        // Combine the mean and the variance using the formulas from
+        // https://goo.gl/ddcAep.
+        var mx = this.mean_, my = other.mean_;
+        var vx = this.variance_, vy = other.variance_;
+        var n = this.count_, m = other.count_;
+        result.mean_ = (n * mx + m * my) / (n + m);
+        result.variance_ = vx + vy + n * m * (mx - my) * (mx - my) / (n + m);
+      }
+      return result;
+    },
+
+    asDict: function() {
+      return {
+        mean: this.mean_,
+        count: this.count_,
+        max: this.max_,
+        min: this.min_,
+        sum: this.sum_,
+        variance: this.variance_
+      };
     }
+  };
+
+  RunningStatistics.fromDict = function(d) {
+    var result = new RunningStatistics();
+    result.mean_ = d.mean;
+    result.count_ = d.count;
+    result.max_ = d.max;
+    result.min_ = d.min;
+    result.sum_ = d.sum;
+    result.variance_ = d.variance;
+    return result;
   };
 
   return {

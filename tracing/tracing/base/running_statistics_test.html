@@ -90,5 +90,66 @@ tr.b.unittest.testSuite(function() {
     data = [2, 4, 4, 2];
     assert.closeTo(Statistics.stddev(data), run(data).stddev, 1e-6);
   });
+
+  test('merge', function() {
+    var data1, data2, data, stats;
+    data1 = [];
+    data2 = [];
+    data = data1.concat(data2);
+    stats = run(data1).merge(run(data2));
+    assert.equal(Statistics.sum(data), stats.sum);
+    assert.equal(Statistics.min(data), stats.min);
+    assert.equal(Statistics.max(data), stats.max);
+    assert.equal(Statistics.mean(data), stats.mean);
+    assert.equal(Statistics.variance(data), stats.variance);
+    assert.equal(Statistics.stddev(data), stats.stddev);
+    data1 = [];
+    data2 = [1, 2, 3];
+    data = data1.concat(data2);
+    stats = run(data1).merge(run(data2));
+    assert.equal(Statistics.sum(data), stats.sum);
+    assert.equal(Statistics.min(data), stats.min);
+    assert.equal(Statistics.max(data), stats.max);
+    assert.equal(Statistics.mean(data), stats.mean);
+    assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
+    assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
+    data1 = [1, 2, 3];
+    data2 = [];
+    data = data1.concat(data2);
+    stats = run(data1).merge(run(data2));
+    assert.equal(Statistics.sum(data), stats.sum);
+    assert.equal(Statistics.min(data), stats.min);
+    assert.equal(Statistics.max(data), stats.max);
+    assert.equal(Statistics.mean(data), stats.mean);
+    assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
+    assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
+    data1 = [1, 2, 3];
+    data2 = [10, 20, 100];
+    data = data1.concat(data2);
+    stats = run(data1).merge(run(data2));
+    assert.equal(Statistics.sum(data), stats.sum);
+    assert.equal(Statistics.min(data), stats.min);
+    assert.equal(Statistics.max(data), stats.max);
+    assert.equal(Statistics.mean(data), stats.mean);
+    assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
+    assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
+    data1 = [1, 1, 1, 1, 1];
+    data2 = [10, 20, 10, 40];
+    data = data1.concat(data2);
+    stats = run(data1).merge(run(data2));
+    assert.equal(Statistics.sum(data), stats.sum);
+    assert.equal(Statistics.min(data), stats.min);
+    assert.equal(Statistics.max(data), stats.max);
+    assert.equal(Statistics.mean(data), stats.mean);
+    assert.closeTo(Statistics.variance(data), stats.variance, 1e-6);
+    assert.closeTo(Statistics.stddev(data), stats.stddev, 1e-6);
+  });
+
+  test('serialization', function() {
+    var data;
+    data = [1, 2, 3];
+    var stats = run(data);
+    assert.deepEqual(stats, RunningStatistics.fromDict(stats.asDict()));
+  });
 });
 </script>
