@@ -7,6 +7,9 @@
     'dashboard': {
       'filepath': 'dashboard/'
     },
+    'telemetry': {
+      'filepath': 'telemetry/'
+    },
     'tracing': {
       'filepath': 'tracing/'
     },
@@ -17,6 +20,7 @@
 
   'WATCHLISTS': {
     'dashboard': ['perf-dashboard-reviews@chromium.org'],
+    'telemetry': ['telemetry-reviews@chromium.org'],
     'tracing': ['tracing-review@chromium.org'],
     'perf_insights': ['tracing-review@chromium.org'],
   }
