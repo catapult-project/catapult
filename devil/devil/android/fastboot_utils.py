@@ -5,6 +5,7 @@
 """Provides a variety of device interactions based on fastboot."""
 # pylint: disable=unused-argument
 
+import collections
 import contextlib
 import fnmatch
 import logging
@@ -19,31 +20,57 @@ from devil.utils import timeout_retry
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 _FASTBOOT_REBOOT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
-ALL_PARTITIONS = [
-    'bootloader',
-    'radio',
-    'boot',
-    'recovery',
-    'system',
-    'userdata',
-    'cache',
-]
+_KNOWN_PARTITIONS = collections.OrderedDict([
+      ('bootloader', {'image': 'bootloader*.img', 'restart': True}),
+      ('radio', {'image': 'radio*.img', 'restart': True}),
+      ('boot', {'image': 'boot.img'}),
+      ('recovery', {'image': 'recovery.img'}),
+      ('system', {'image': 'system.img'}),
+      ('userdata', {'image': 'userdata.img', 'wipe_only': True}),
+      ('cache', {'image': 'cache.img', 'wipe_only': True}),
+      ('vendor', {'image': 'vendor*.img', 'optional': True}),
+  ])
+ALL_PARTITIONS = _KNOWN_PARTITIONS.keys()
+
+
+def _FindAndVerifyPartitionsAndImages(partitions, directory):
+  """Validate partitions and images.
+
+  Validate all partition names and partition directories. Cannot stop mid
+  flash so its important to validate everything first.
+
+  Args:
+    Partitions: partitions to be tested.
+    directory: directory containing the images.
+
+  Returns:
+    Dictionary with exact partition, image name mapping.
+  """
+
+  files = os.listdir(directory)
+  return_dict = collections.OrderedDict()
+
+  def find_file(pattern):
+    for filename in files:
+      if fnmatch.fnmatch(filename, pattern):
+        return os.path.join(directory, filename)
+    return None
+  for partition in partitions:
+    partition_info = _KNOWN_PARTITIONS[partition]
+    image_file = find_file(partition_info['image'])
+    if image_file:
+      return_dict[partition] = image_file
+    elif not partition_info.get('optional'):
+      raise device_errors.FastbootCommandFailedError(
+          'Failed to flash device. Could not find image for %s.',
+          partition_info['image'])
+  return return_dict
 
 
 class FastbootUtils(object):
 
   _FASTBOOT_WAIT_TIME = 1
-  _RESTART_WHEN_FLASHING = ['bootloader', 'radio']
   _BOARD_VERIFICATION_FILE = 'android-info.txt'
-  _FLASH_IMAGE_FILES = {
-      'bootloader': 'bootloader*.img',
-      'radio': 'radio*.img',
-      'boot': 'boot.img',
-      'recovery': 'recovery.img',
-      'system': 'system.img',
-      'userdata': 'userdata.img',
-      'cache': 'cache.img',
-  }
 
   def __init__(self, device, fastbooter=None, default_timeout=_DEFAULT_TIMEOUT,
                default_retries=_DEFAULT_RETRIES):
@@ -149,31 +176,6 @@ class FastbootUtils(object):
 
     return False
 
-  def _FindAndVerifyPartitionsAndImages(self, partitions, directory):
-    """Validate partitions and images.
-
-    Validate all partition names and partition directories. Cannot stop mid
-    flash so its important to validate everything first.
-
-    Args:
-      Partitions: partitions to be tested.
-      directory: directory containing the images.
-
-    Returns:
-      Dictionary with exact partition, image name mapping.
-    """
-    files = os.listdir(directory)
-
-    def find_file(pattern):
-      for filename in files:
-        if fnmatch.fnmatch(filename, pattern):
-          return os.path.join(directory, filename)
-      raise device_errors.FastbootCommandFailedError(
-          'Failed to flash device. Counld not find image for %s.', pattern)
-
-    return {name: find_file(self._FLASH_IMAGE_FILES[name])
-            for name in partitions}
-
   def _FlashPartitions(self, partitions, directory, wipe=False, force=False):
     """Flashes all given partiitons with all given images.
 
@@ -199,17 +201,17 @@ class FastbootUtils(object):
             'device type. Run again with force=True to force flashing with an '
             'unverified board.')
 
-    flash_image_files = self._FindAndVerifyPartitionsAndImages(partitions,
-                                                               directory)
+    flash_image_files = _FindAndVerifyPartitionsAndImages(partitions, directory)
+    partitions = flash_image_files.keys()
     for partition in partitions:
-      if partition in ['cache', 'userdata'] and not wipe:
+      if _KNOWN_PARTITIONS[partition].get('wipe_only') and not wipe:
         logging.info(
             'Not flashing in wipe mode. Skipping partition %s.', partition)
       else:
         logging.info(
             'Flashing %s with %s', partition, flash_image_files[partition])
         self.fastboot.Flash(partition, flash_image_files[partition])
-        if partition in self._RESTART_WHEN_FLASHING:
+        if _KNOWN_PARTITIONS[partition].get('restart', False):
           self.Reboot(bootloader=True)
 
   @contextlib.contextmanager
