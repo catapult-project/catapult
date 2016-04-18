@@ -39,7 +39,7 @@ Internal-only value diff:
 # TODO(qyearsley): Make this customizable by storing the value in datastore.
 # Make sure to send a notification to both old and new address if this value
 # gets changed.
-_NOTIFICATION_ADDRESS = 'chrome-perf-dashboard-alerts@google.com'
+_NOTIFICATION_ADDRESS = 'chrome-performance-monitoring-alerts@google.com'
 _SENDER_ADDRESS = 'gasper-alerts@google.com'
 
 

@@ -306,10 +306,10 @@ def _GetReviewersFromCulpritData(culprit_data):
 
 
 def _SendFYIBisectEmail(job, message):
-  """Sends an email to auto-bisect-team about FYI bisect results."""
+  """Sends an email to chrome-performance-monitoring-alerts with FYI results."""
   email_data = email_template.GetBisectFYITryJobEmailReport(job, message)
   mail.send_mail(sender='gasper-alerts@google.com',
-                 to='auto-bisect-team@google.com',
+                 to='chrome-performance-monitoring-alerts@google.com',
                  subject=email_data['subject'],
                  body=email_data['body'],
                  html=email_data['html'])

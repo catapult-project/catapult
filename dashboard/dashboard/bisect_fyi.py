@@ -164,7 +164,7 @@ def _SendEmailAlert(errors_list):
   """Sends email alert about bisect integration tests failures."""
   mail.send_mail(
       sender='gasper-alerts@google.com',
-      to='auto-bisect-team@google.com',
+      to='chrome-performance-monitoring-alerts@google.com',
       subject='[Bisect FYI Alert]Failed to run bisect integration tests.',
       body=_TextBody(errors_list))
 

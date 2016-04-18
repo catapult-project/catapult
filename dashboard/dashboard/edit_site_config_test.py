@@ -102,7 +102,8 @@ class EditSiteConfigTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
     self.assertEqual('gasper-alerts@google.com', messages[0].sender)
-    self.assertEqual('chrome-perf-dashboard-alerts@google.com', messages[0].to)
+    self.assertEqual('chrome-performance-monitoring-alerts@google.com',
+                     messages[0].to)
     self.assertEqual(
         'Config "foo" changed by internal@chromium.org', messages[0].subject)
     self.assertIn(

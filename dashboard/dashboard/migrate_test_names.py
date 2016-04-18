@@ -448,7 +448,7 @@ def _SendNotificationEmail(old_test_key, new_test_key):
       'old_sheriff': old_entity.sheriff.string_id(),
   }
   mail.send_mail(sender='gasper-alerts@google.com',
-                 to='chrome-perf-dashboard-alerts@google.com',
+                 to='chrome-performance-monitoring-alerts@google.com',
                  subject='Sheriffed Test Migrated',
                  body=body)
 
