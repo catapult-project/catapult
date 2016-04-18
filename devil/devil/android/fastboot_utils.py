@@ -96,7 +96,8 @@ class FastbootUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance(
       min_default_timeout=_FASTBOOT_REBOOT_TIMEOUT)
-  def Reboot(self, bootloader=False, timeout=None, retries=None):
+  def Reboot(
+      self, bootloader=False, wait_for_reboot=True, timeout=None, retries=None):
     """Reboots out of fastboot mode.
 
     It reboots the phone either back into fastboot, or to a regular boot. It
@@ -110,7 +111,8 @@ class FastbootUtils(object):
       self.WaitForFastbootMode()
     else:
       self.fastboot.Reboot()
-      self._device.WaitUntilFullyBooted(timeout=_FASTBOOT_REBOOT_TIMEOUT)
+      if wait_for_reboot:
+        self._device.WaitUntilFullyBooted(timeout=_FASTBOOT_REBOOT_TIMEOUT)
 
   def _VerifyBoard(self, directory):
     """Validate as best as possible that the android build matches the device.
@@ -211,7 +213,7 @@ class FastbootUtils(object):
           self.Reboot(bootloader=True)
 
   @contextlib.contextmanager
-  def FastbootMode(self, timeout=None, retries=None):
+  def FastbootMode(self, wait_for_reboot=True, timeout=None, retries=None):
     """Context manager that enables fastboot mode, and reboots after.
 
     Example usage:
@@ -225,7 +227,7 @@ class FastbootUtils(object):
       yield self
     finally:
       self.fastboot.SetOemOffModeCharge(True)
-      self.Reboot()
+      self.Reboot(wait_for_reboot=wait_for_reboot)
 
   def FlashDevice(self, directory, partitions=None, wipe=False):
     """Flash device with build in |directory|.
@@ -242,5 +244,9 @@ class FastbootUtils(object):
     """
     if partitions is None:
       partitions = ALL_PARTITIONS
-    with self.FastbootMode():
+    # If a device is wiped, then it will no longer have adb keys so it cannot be
+    # communicated with to verify that it is rebooted. It is up to the user of
+    # this script to ensure that the adb keys are set on the device after using
+    # this to wipe a device.
+    with self.FastbootMode(wait_for_reboot=not wipe):
       self._FlashPartitions(partitions, directory, wipe=wipe)

@@ -157,13 +157,22 @@ class FastbootUtilsFlashPartitions(FastbootUtilsTest):
 
 class FastbootUtilsFastbootMode(FastbootUtilsTest):
 
-  def testFastbootMode_good(self):
+  def testFastbootMode_goodWait(self):
     with self.assertCalls(
         self.call.fastboot.EnableFastbootMode(),
         self.call.fastboot.fastboot.SetOemOffModeCharge(False),
         self.call.fastboot.fastboot.SetOemOffModeCharge(True),
-        self.call.fastboot.Reboot()):
+        self.call.fastboot.Reboot(wait_for_reboot=True)):
       with self.fastboot.FastbootMode() as fbm:
+        self.assertEqual(self.fastboot, fbm)
+
+  def testFastbootMode_goodNoWait(self):
+    with self.assertCalls(
+        self.call.fastboot.EnableFastbootMode(),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(False),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(True),
+        self.call.fastboot.Reboot(wait_for_reboot=False)):
+      with self.fastboot.FastbootMode(wait_for_reboot=False) as fbm:
         self.assertEqual(self.fastboot, fbm)
 
   def testFastbootMode_exception(self):
@@ -171,7 +180,7 @@ class FastbootUtilsFastbootMode(FastbootUtilsTest):
         self.call.fastboot.EnableFastbootMode(),
         self.call.fastboot.fastboot.SetOemOffModeCharge(False),
         self.call.fastboot.fastboot.SetOemOffModeCharge(True),
-        self.call.fastboot.Reboot()):
+        self.call.fastboot.Reboot(wait_for_reboot=True)):
       with self.assertRaises(NotImplementedError):
         with self.fastboot.FastbootMode() as fbm:
           self.assertEqual(self.fastboot, fbm)
@@ -273,6 +282,36 @@ class FastbootUtilsFindAndVerifyPartitionsAndImages(FastbootUtilsTest):
     with mock.patch('os.listdir', return_value=['test']):
       with self.assertRaises(device_errors.FastbootCommandFailedError):
         self.fastboot._FindAndVerifyPartitionsAndImages(['cache'], 'test')
+
+
+class FastbootUtilsFlashDevice(FastbootUtilsTest):
+
+  def testFlashDevice_wipe(self):
+    with self.assertCalls(
+        self.call.fastboot.EnableFastbootMode(),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(False),
+        self.call.fastboot._FlashPartitions(mock.ANY, 'test', wipe=True),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(True),
+        self.call.fastboot.Reboot(wait_for_reboot=False)):
+      self.fastboot.FlashDevice('test', wipe=True)
+
+  def testFlashDevice_noWipe(self):
+    with self.assertCalls(
+        self.call.fastboot.EnableFastbootMode(),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(False),
+        self.call.fastboot._FlashPartitions(mock.ANY, 'test', wipe=False),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(True),
+        self.call.fastboot.Reboot(wait_for_reboot=True)):
+      self.fastboot.FlashDevice('test', wipe=False)
+
+  def testFlashDevice_partitions(self):
+    with self.assertCalls(
+        self.call.fastboot.EnableFastbootMode(),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(False),
+        self.call.fastboot._FlashPartitions(['boot'], 'test', wipe=False),
+        self.call.fastboot.fastboot.SetOemOffModeCharge(True),
+        self.call.fastboot.Reboot(wait_for_reboot=True)):
+      self.fastboot.FlashDevice('test', partitions=['boot'], wipe=False)
 
 
 if __name__ == '__main__':
