@@ -182,6 +182,10 @@ def CanDiscoverDevices():
 def FindAllAvailableDevices(options):
   """Returns a list of available devices.
   """
+  # Disable Android device discovery when remote testing a CrOS device
+  if options.cros_remote:
+    return []
+
   android_platform_options = options.remote_platform_options
   devices = []
   try:
