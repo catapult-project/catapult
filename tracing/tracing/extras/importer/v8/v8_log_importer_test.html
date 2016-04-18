@@ -109,11 +109,11 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29',
-        'Instantiate native apinatives.js:9:21'],
+        '~Instantiate native apinatives.js:9:21'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29',
-        'Instantiate native apinatives.js:9:21'],
+        '~Instantiate native apinatives.js:9:21'],
         t.samples[1].getUserFriendlyStackTrace());
 
     var childStackFrame = t.samples[0].leafStackFrame;
@@ -143,15 +143,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[1].start, 528674 / 1000);
     assert.equal(t.samples[2].start, 536213 / 1000);
     assert.deepEqual(
-        ['Instantiate native apinatives.js:9:21'],
+        ['~Instantiate native apinatives.js:9:21'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29',
-        'Instantiate native apinatives.js:9:21'],
+        '~Instantiate native apinatives.js:9:21'],
         t.samples[1].getUserFriendlyStackTrace());
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29',
-        'Instantiate native apinatives.js:9:21'],
+        '~Instantiate native apinatives.js:9:21'],
         t.samples[2].getUserFriendlyStackTrace());
 
     var topLevelStackFrame = t.samples[0].leafStackFrame;
@@ -187,19 +187,19 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[4].start, 799146 / 1000);
 
     assert.deepEqual(
-        ['Instantiate native apinatives.js:9:21'],
+        ['~Instantiate native apinatives.js:9:21'],
         t.samples[0].getUserFriendlyStackTrace());
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29',
-        'Instantiate native apinatives.js:9:21'],
+        '~Instantiate native apinatives.js:9:21'],
         t.samples[1].getUserFriendlyStackTrace());
     assert.deepEqual(
         ['InstantiateFunction native apinatives.js:26:29',
-        'Instantiate native apinatives.js:9:21'],
+        '~Instantiate native apinatives.js:9:21'],
         t.samples[2].getUserFriendlyStackTrace());
-    assert.deepEqual(['http://www.google.com/'],
+    assert.deepEqual(['~http://www.google.com/'],
                       t.samples[3].getUserFriendlyStackTrace());
-    assert.deepEqual(['http://www.google.com/'],
+    assert.deepEqual(['~http://www.google.com/'],
                       t.samples[4].getUserFriendlyStackTrace());
 
     var firsStackTopLevelStackFrame = t.samples[0].leafStackFrame;

@@ -20,7 +20,11 @@ found in the LICENSE file.
  * @fileoverview V8LogImporter imports v8.log files into the provided model.
  */
 tr.exportTo('tr.e.importer.v8', function() {
+  var CodeEntry = tr.e.importer.v8.CodeMap.CodeEntry;
+  var CodeMap = tr.e.importer.v8.CodeMap;
   var ColorScheme = tr.b.ColorScheme;
+  var DynamicFuncCodeEntry = tr.e.importer.v8.CodeMap.DynamicFuncCodeEntry;
+  var FunctionEntry = tr.e.importer.v8.CodeMap.FunctionEntry;
 
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
@@ -28,7 +32,7 @@ tr.exportTo('tr.e.importer.v8', function() {
 
     this.logData_ = eventData;
 
-    this.code_map_ = new tr.e.importer.v8.CodeMap();
+    this.code_map_ = new CodeMap();
     this.v8_timer_thread_ = undefined;
     this.v8_thread_ = undefined;
 
@@ -103,10 +107,45 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.v8_timer_thread_.sliceGroup.endSlice(end);
     },
 
-    processCodeCreateEvent_: function(type, kind, address, size, name) {
-      var code_entry = new tr.e.importer.v8.CodeMap.CodeEntry(size, name);
-      code_entry.kind = kind;
-      this.code_map_.addCode(address, code_entry);
+    processCodeCreateEvent_: function(type, kind, address, size, name,
+                                      maybe_func) {
+      function parseState(s) {
+        switch (s) {
+          case '': return CodeMap.CodeState.COMPILED;
+          case '~': return CodeMap.CodeState.OPTIMIZABLE;
+          case '*': return CodeMap.CodeState.OPTIMIZED;
+        }
+        throw new Error('unknown code state: ' + s);
+      }
+
+      if (maybe_func.length) {
+        var funcAddr = parseInt(maybe_func[0]);
+        var state = parseState(maybe_func[1]);
+        var func = this.code_map_.findDynamicEntryByStartAddress(funcAddr);
+        if (!func) {
+          func = new FunctionEntry(name);
+          func.kind = kind;
+          this.code_map_.addCode(funcAddr, func);
+        } else if (func.name !== name) {
+          // Function object has been overwritten with a new one.
+          func.name = name;
+        }
+        var entry = this.code_map_.findDynamicEntryByStartAddress(address);
+        if (entry) {
+          if (entry.size === size && entry.func === func) {
+            // Entry state has changed.
+            entry.state = state;
+          }
+        } else {
+          entry = new DynamicFuncCodeEntry(size, type, func, state);
+          entry.kind = kind;
+          this.code_map_.addCode(address, entry);
+        }
+      } else {
+        var code_entry = new CodeEntry(size, name);
+        code_entry.kind = kind;
+        this.code_map_.addCode(address, code_entry);
+      }
     },
 
     processCodeMoveEvent_: function(from, to) {
@@ -118,8 +157,8 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processSharedLibrary_: function(name, start, end) {
-      var code_entry = new tr.e.importer.v8.CodeMap.CodeEntry(
-          end - start, name);
+      var code_entry = new CodeEntry(end - start, name,
+                                     CodeEntry.TYPE.SHARED_LIB);
       code_entry.kind = -3;  // External code kind.
       for (var i = 0; i < kV8BinarySuffixes.length; i++) {
         var suffix = kV8BinarySuffixes[i];
@@ -229,7 +268,7 @@ tr.exportTo('tr.e.importer.v8', function() {
             processor: this.processTimerEventEnd_.bind(this)
           },
           'code-creation': {
-            parsers: [null, parseInt, parseInt, parseInt, null],
+            parsers: [null, parseInt, parseInt, parseInt, null, 'var-args'],
             processor: this.processCodeCreateEvent_.bind(this)
           },
           'code-move': {

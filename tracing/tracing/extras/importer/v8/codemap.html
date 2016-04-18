@@ -156,6 +156,18 @@ tr.exportTo('tr.e.importer.v8', function() {
   };
 
   /**
+   * Finds a code entry that contains the specified address in static libraries.
+   *
+   * @param {number} addr Address.
+   */
+  CodeMap.prototype.findEntryInLibraries = function(addr) {
+    var pageAddr = addr >>> CodeMap.PAGE_ALIGNMENT;
+    if (pageAddr in this.pages_)
+      return this.findInTree_(this.libraries_, addr);
+    return undefined;
+  };
+
+  /**
    * Finds a code entry that contains the specified address. Both static and
    * dynamic code entries are considered.
    *
@@ -224,25 +236,130 @@ tr.exportTo('tr.e.importer.v8', function() {
   };
 
   /**
+   * Enum for code state regarding its dynamic optimization.
+   *
+   * @enum {number}
+   */
+  CodeMap.CodeState = {
+    COMPILED: 0,
+    OPTIMIZABLE: 1,
+    OPTIMIZED: 2
+  };
+
+  /**
    * Creates a code entry object.
    *
    * @param {number} size Code entry size in bytes.
    * @param {string=} opt_name Code entry name.
    * @constructor
    */
-  CodeMap.CodeEntry = function(size, opt_name) {
+  CodeMap.CodeEntry = function(size, opt_name, opt_type) {
     this.id = tr.b.GUID.allocate();
     this.size = size;
-    this.name = opt_name || '';
+    this.name_ = opt_name || '';
+    this.type = opt_type || '';
     this.nameUpdated_ = false;
   };
 
-  CodeMap.CodeEntry.prototype.getName = function() {
-    return this.name;
+  CodeMap.CodeEntry.prototype = {
+    __proto__: Object.prototype,
+
+    get name() {
+      return this.name_;
+    },
+
+    set name(value) {
+      this.name_ = value;
+    },
+
+    toString: function() {
+      this.name_ + ': ' + this.size.toString(16);
+    }
   };
 
-  CodeMap.CodeEntry.prototype.toString = function() {
-    return this.name + ': ' + this.size.toString(16);
+  CodeMap.CodeEntry.TYPE = {
+    SHARED_LIB: 'SHARED_LIB',
+    CPP: 'CPP'
+  };
+
+  /**
+   * Creates a dynamic code entry.
+   *
+   * @param {number} size Code size.
+   * @param {string} type Code type.
+   * @param {CodeMap.FunctionEntry} func Shared function entry.
+   * @param {CodeMap.CodeState} state Code optimization state.
+   * @constructor
+   */
+  CodeMap.DynamicFuncCodeEntry = function(size, type, func, state) {
+    CodeMap.CodeEntry.call(this, size, '', type);
+    this.func = func;
+    this.state = state;
+  };
+
+  CodeMap.DynamicFuncCodeEntry.STATE_PREFIX = ['', '~', '*'];
+
+  CodeMap.DynamicFuncCodeEntry.prototype = {
+    __proto__: CodeMap.CodeEntry.prototype,
+
+    /**
+     * Returns node name.
+     */
+    get name() {
+      return CodeMap.DynamicFuncCodeEntry.STATE_PREFIX[this.state] +
+        this.func.name;
+    },
+
+    set name(value) {
+      this.name_ = value;
+    },
+
+    /**
+     * Returns raw node name (without type decoration).
+     */
+    getRawName: function() {
+      return this.func.getName();
+    },
+
+    isJSFunction: function() {
+      return true;
+    },
+
+    toString: function() {
+      return this.type + ': ' + this.name + ': ' + this.size.toString(16);
+    }
+  };
+
+  /**
+   * Creates a shared function object entry.
+   *
+   * @param {string} name Function name.
+   * @constructor
+   */
+  CodeMap.FunctionEntry = function(name) {
+    CodeMap.CodeEntry.call(this, 0, name);
+  };
+
+  CodeMap.FunctionEntry.prototype = {
+    __proto__: CodeMap.CodeEntry.prototype,
+
+    /**
+     * Returns node name.
+     */
+    get name() {
+      var name = this.name_;
+      if (name.length == 0) {
+        name = '<anonymous>';
+      } else if (name.charAt(0) == ' ') {
+        // An anonymous function with location: " aaa.js:10".
+        name = '<anonymous>' + name;
+      }
+      return name;
+    },
+
+    set name(value) {
+      this.name_ = value;
+    }
   };
 
   CodeMap.NameGenerator = function() {
