@@ -2184,14 +2184,18 @@ class DeviceUtils(object):
       allow_no_devices = True
       device_arg = ()
 
-    select_multiple = (isinstance(device_arg, tuple) or
-                       isinstance(device_arg, list))
+    select_multiple = True
+    if not (isinstance(device_arg, tuple) or isinstance(device_arg, list)):
+      select_multiple = False
+      if device_arg:
+        device_arg = (device_arg,)
+
     blacklisted_devices = blacklist.Read() if blacklist else []
 
     # adb looks for ANDROID_SERIAL, so support it as well.
     android_serial = os.environ.get('ANDROID_SERIAL')
     if not device_arg and android_serial:
-      device_arg = [android_serial]
+      device_arg = (android_serial,)
 
     def blacklisted(serial):
       if serial in blacklisted_devices:
