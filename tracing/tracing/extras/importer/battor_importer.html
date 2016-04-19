@@ -102,12 +102,6 @@ tr.exportTo('tr.e.importer.battor', function() {
     importPowerSamples: function(series) {
       var lines = this.events_.split('\n');
 
-      // Update the model's bounds.
-      this.model_.updateBounds();
-      var minTs = 0;
-      if (this.model_.bounds.min !== undefined)
-        minTs = this.model_.bounds.min;
-
       lines.forEach(function(line) {
         line = line.trim();
         if (line.length === 0)
@@ -131,7 +125,7 @@ tr.exportTo('tr.e.importer.battor', function() {
           }
 
           // Add power sample.
-          var time = parseFloat(groups[1]) + minTs;
+          var time = parseFloat(groups[1]);
           var voltage_V = parseFloat(groups[2]) / 1000;
           var current_A = parseFloat(groups[3]) / 1000;
 
