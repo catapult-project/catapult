@@ -46,6 +46,23 @@ tr.exportTo('pi', function() {
     return model;
   }
 
+  function mapSingleTraceWithResult(options) {
+    var result = new pi.mre.MreResult();
+
+    pi.runAndConvertErrorsToFailures(
+        result, options.job, options.traceHandle,
+        function() {
+          var mapFunction = options.job.mapFunctionHandle.load();
+          var traceData = options.traceHandle.load();
+          var model = createModelFromTraceData(
+              traceData, options.traceHandle.canonicalUrl,
+              options.extraImportOptions);
+          var opt_options = options.job.mapFunctionHandle.options;
+          pi.mapSingleTrace(result, model, opt_options, mapFunction);
+        });
+    return result;
+  }
+
   function mapSingleTraceMain(args) {
     if (args.length !== 2 && args.length !== 3)
       throw new Error('Must provide two or three arguments.');
@@ -56,27 +73,15 @@ tr.exportTo('pi', function() {
       extraImportOptions: args.length === 3 ? JSON.parse(args[2]) : undefined
     };
 
-    var result = new pi.mre.MreResult();
-
-    var canonicalUrl = options.traceHandle.canonicalUrl;
-
-    pi.runAndConvertErrorsToFailures(
-        result, options.job, options.traceHandle,
-        function() {
-          var mapFunction = options.job.mapFunctionHandle.load();
-          var traceData = options.traceHandle.load();
-          var model = createModelFromTraceData(
-              traceData, canonicalUrl, options.extraImportOptions);
-          var opt_options = options.job.mapFunctionHandle.options;
-          pi.mapSingleTrace(result, model, opt_options, mapFunction);
-        });
+    var result = mapSingleTraceWithResult(options);
 
     console.log('MRE_RESULT: ' + JSON.stringify(result.asDict()));
     return 0;
   }
 
   return {
-    mapSingleTraceMain: mapSingleTraceMain
+    mapSingleTraceMain: mapSingleTraceMain,
+    mapSingleTraceWithResult: mapSingleTraceWithResult
   };
 });
 
