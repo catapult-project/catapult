@@ -18,34 +18,20 @@ found in the LICENSE file.
  * @fileoverview Utilities for accessing trace data about the Chrome browser.
  */
 tr.exportTo('tr.model.helpers', function() {
-  function findChromeBrowserProcess(model) {
-    var browserProcesses = [];
-    model.getAllProcesses().forEach(function(process) {
-      if (!tr.model.helpers.ChromeBrowserHelper.isBrowserProcess(process))
-        return;
-      browserProcesses.push(process);
-    }, this);
-    if (browserProcesses.length === 0)
-      return undefined;
-    if (browserProcesses.length > 1)
-      return undefined;
-    return browserProcesses[0];
+  function findChromeBrowserProcesses(model) {
+    return model.getAllProcesses(
+        tr.model.helpers.ChromeBrowserHelper.isBrowserProcess);
   }
 
   function findChromeRenderProcesses(model) {
-    var rendererProcesses = [];
-    model.getAllProcesses().forEach(function(process) {
-      if (!tr.model.helpers.ChromeRendererHelper.isRenderProcess(process))
-        return;
-      rendererProcesses.push(process);
-    });
-    return rendererProcesses;
+    return model.getAllProcesses(
+        tr.model.helpers.ChromeRendererHelper.isRenderProcess);
   }
 
   function findChromeGpuProcess(model) {
-    var gpuProcesses = model.getAllProcesses().filter(
-      tr.model.helpers.ChromeGpuHelper.isGpuProcess);
-    if (gpuProcesses.length != 1)
+    var gpuProcesses = model.getAllProcesses(
+        tr.model.helpers.ChromeGpuHelper.isGpuProcess);
+    if (gpuProcesses.length !== 1)
       return undefined;
     return gpuProcesses[0];
   }
@@ -56,14 +42,10 @@ tr.exportTo('tr.model.helpers', function() {
   function ChromeModelHelper(model) {
     this.model_ = model;
 
-    // Find browserHelper.
-    this.browserProcess_ = findChromeBrowserProcess(model);
-    if (this.browserProcess_) {
-      this.browserHelper_ = new tr.model.helpers.ChromeBrowserHelper(
-          this, this.browserProcess_);
-    } else {
-      this.browserHelper_ = undefined;
-    }
+    // Find browserHelpers.
+    var browserProcesses = findChromeBrowserProcesses(model);
+    this.browserHelpers_ = browserProcesses.map(
+        p => new tr.model.helpers.ChromeBrowserHelper(this, p));
 
     // Find gpuHelper.
     var gpuProcess = findChromeGpuProcess(model);
@@ -80,7 +62,7 @@ tr.exportTo('tr.model.helpers', function() {
     this.rendererHelpers_ = {};
     rendererProcesses_.forEach(function(renderProcess) {
       var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
-        this, renderProcess);
+          this, renderProcess);
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
   }
@@ -88,7 +70,7 @@ tr.exportTo('tr.model.helpers', function() {
   ChromeModelHelper.guid = tr.b.GUID.allocate();
 
   ChromeModelHelper.supportsModel = function(model) {
-    if (findChromeBrowserProcess(model) !== undefined)
+    if (findChromeBrowserProcesses(model).length)
       return true;
     if (findChromeRenderProcesses(model).length)
       return true;
@@ -108,12 +90,22 @@ tr.exportTo('tr.model.helpers', function() {
       return this.model_;
     },
 
+    // TODO: Make all users of ChromeModelHelper support multiple browsers and
+    // remove this getter (see #2119).
     get browserProcess() {
-      return this.browserProcess_;
+      if (this.browserHelper === undefined)
+        return undefined;
+      return this.browserHelper.process;
     },
 
+    // TODO: Make all users of ChromeModelHelper support multiple browsers and
+    // remove this getter (see #2119).
     get browserHelper() {
-      return this.browserHelper_;
+      return this.browserHelpers_[0];
+    },
+
+    get browserHelpers() {
+      return this.browserHelpers_;
     },
 
     get gpuHelper() {

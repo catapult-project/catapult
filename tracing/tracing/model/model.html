@@ -285,12 +285,18 @@ tr.exportTo('tr', function() {
     },
 
     /**
-     * @return {Array} An array of all processes in the model.
+     * @param {(!function(!tr.model.Process): boolean)=} opt_predicate Optional
+     *     predicate for filtering the returned processes. If undefined, all
+     *     process in the model will be returned.
+     * @return {!Array<!tr.model.Process>} An array of processes in the model.
      */
-    getAllProcesses: function() {
+    getAllProcesses: function(opt_predicate) {
       var processes = [];
-      for (var pid in this.processes)
-        processes.push(this.processes[pid]);
+      for (var pid in this.processes) {
+        var process = this.processes[pid];
+        if (opt_predicate === undefined || opt_predicate(process))
+          processes.push(process);
+      }
       return processes;
     },
 

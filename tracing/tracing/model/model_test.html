@@ -306,5 +306,18 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.isTimeHighResolution);
   });
 
+  test('model_getAllProcesses', function() {
+    var m = new tr.Model();
+    var p1 = m.getOrCreateProcess(1);
+    var p2 = m.getOrCreateProcess(2);
+    var p3 = m.getOrCreateProcess(3);
+    var p4 = m.getOrCreateProcess(4);
+    var p5 = m.getOrCreateProcess(5);
+
+    assert.sameMembers(m.getAllProcesses(), [p1, p2, p3, p4, p5]);
+    assert.sameMembers(m.getAllProcesses(p => true), [p1, p2, p3, p4, p5]);
+    assert.sameMembers(m.getAllProcesses(p => false), []);
+    assert.sameMembers(m.getAllProcesses(p => p.pid % 2 === 0), [p2, p4]);
+  });
 });
 </script>
