@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.v8.utils', function() {
+  // The title of the idle task event.
+  var IDLE_TASK_EVENT = 'SingleThreadIdleTaskRunner::RunTask';
+
+  // GC events start with this prefix.
+  var GC_EVENT_PREFIX = 'V8.GC';
+
+  // Special handling is required for full GCs inside low memory notification.
+  var FULL_GC_EVENT = 'V8.GCCompactor';
+
+  var LOW_MEMORY_EVENT = 'V8.GCLowMemoryNotification';
+
+  // Maps the top-level GC events in timeline to telemetry friendly names.
+  var TOP_GC_EVENTS = {
+      'V8.GCCompactor': 'v8.gc.full_mark_compactor',
+      'V8.GCFinalizeMC': 'v8.gc.latency_mark_compactor',
+      'V8.GCFinalizeMCReduceMemory': 'v8.gc.memory_mark_compactor',
+      'V8.GCIncrementalMarking': 'v8.gc.incremental_step',
+      'V8.GCIncrementalMarkingFinalize': 'v8.gc.incremental_finalize',
+      'V8.GCIncrementalMarkingStart': 'v8.gc.incremental_start',
+      'V8.GCLowMemoryNotification': 'v8.gc.low_memory_mark_compactor',
+      'V8.GCScavenger': 'v8.gc.scavenger'
+  };
+
+  /**
+  * Finds the first parent of the |event| for which the |predicate| holds.
+  */
+  function findParent(event, predicate) {
+    var parent = event.parentSlice;
+    while (parent) {
+      if (predicate(parent)) {
+        return parent;
+      }
+      parent = parent.parentSlice;
+    }
+    return null;
+  }
+
+  function isIdleTask(event) {
+    return event.title === IDLE_TASK_EVENT;
+  }
+
+  function isLowMemoryEvent(event) {
+    return event.title === LOW_MEMORY_EVENT;
+  }
+
+  function isGarbageCollectionEvent(event) {
+    // Low memory notification is handled specially because it contains
+    // several full mark compact events.
+    return event.title && event.title.startsWith(GC_EVENT_PREFIX) &&
+           event.title != LOW_MEMORY_EVENT;
+  }
+
+  function isTopGarbageCollectionEvent(event) {
+    return event.title in TOP_GC_EVENTS;
+  }
+
+  function isSubGarbageCollectionEvent(event) {
+    return isGarbageCollectionEvent(event) &&
+           !isTopGarbageCollectionEvent(event);
+  }
+
+  function topGarbageCollectionEventName(event) {
+    if (event.title === FULL_GC_EVENT) {
+      // Full mark compact events inside a low memory notification
+      // are counted as low memory mark compacts.
+      if (findParent(event, isLowMemoryEvent)) {
+        return TOP_GC_EVENTS[LOW_MEMORY_EVENT];
+      }
+    }
+    return TOP_GC_EVENTS[event.title];
+  }
+
+  function subGarbageCollectionEventName(event) {
+    var topEvent = findParent(event, isTopGarbageCollectionEvent);
+    var prefix = topEvent ? topGarbageCollectionEventName(topEvent) : 'unknown';
+    // Remove redundant prefixes and convert to lower case.
+    var name = event.title.replace('V8.GC_MC_', '')
+                          .replace('V8.GC_SCAVENGER_', '')
+                          .replace('V8.GC_', '').toLowerCase();
+    return prefix + '.' + name;
+  }
+
+  return {
+    findParent: findParent,
+    isIdleTask: isIdleTask,
+    isLowMemoryEvent: isLowMemoryEvent,
+    isGarbageCollectionEvent: isGarbageCollectionEvent,
+    isTopGarbageCollectionEvent: isTopGarbageCollectionEvent,
+    isSubGarbageCollectionEvent: isSubGarbageCollectionEvent,
+    topGarbageCollectionEventName: topGarbageCollectionEventName,
+    subGarbageCollectionEventName: subGarbageCollectionEventName
+  };
+});
+</script>

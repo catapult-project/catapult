@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/metrics/v8/gc_metric.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/model/slice_group.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  function createModel(start, end, slices) {
+    var opts = {
+      customizeModelCallback: function(model) {
+        var group = new tr.model.SliceGroup(tr.c.TestUtils.newFakeThread());
+        var ue = new tr.model.um.AnimationExpectation(
+            model, 'test', start, end);
+        slices.forEach(function(slice) {
+          group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
+        });
+        group.createSubSlices();
+        group.slices.forEach(function(slice) {
+          ue.associatedEvents.push(slice);
+        });
+        model.userModel.expectations.push(ue);
+      }
+    };
+    var model = tr.c.TestUtils.newModelWithEvents([], opts);
+    return model;
+  }
+
+  function constructName(name, suffix) {
+    return 'Animation-' + name + '_' + suffix;
+  }
+
+  function run(slices) {
+    var valueList = new tr.metrics.ValueList();
+    var startTime = slices.reduce((acc, slice) => (Math.min(acc, slice.start)));
+    var endTime = slices.reduce((acc, slice) => (Math.max(acc, slice.end)));
+    var model = createModel(startTime - 1, endTime + 1, slices);
+    tr.metrics.v8.gcMetric(valueList, model);
+    var result = {};
+    valueList.valueDicts.forEach(function(value) {
+      result[value['grouping_keys'].name] = value.numeric.value;
+    });
+    return result;
+  }
+
+  test('topEvents', function() {
+    var events = {
+      'V8.GCCompactor': 'v8.gc.full_mark_compactor',
+      'V8.GCFinalizeMC': 'v8.gc.latency_mark_compactor',
+      'V8.GCFinalizeMCReduceMemory': 'v8.gc.memory_mark_compactor',
+      'V8.GCIncrementalMarking': 'v8.gc.incremental_step',
+      'V8.GCIncrementalMarkingFinalize': 'v8.gc.incremental_finalize',
+      'V8.GCIncrementalMarkingStart': 'v8.gc.incremental_start',
+      'V8.GCScavenger': 'v8.gc.scavenger'
+    };
+    tr.b.iterItems(events, function(timelineName, telemetryName) {
+      var slices = [
+        {
+          title: timelineName, args: {}, start: 100, end: 200,
+          cpuStart: 100, cpuEnd: 200
+        }
+      ];
+      var actual = run(slices);
+      var expected = {
+        sum: 100,
+        count: 1,
+        avg: 100,
+        idle_deadline_overrun_sum: 0,
+        idle_deadline_overrun_count: 1,
+        idle_deadline_overrun_avg: 0,
+        outside_idle_sum: 100,
+        outside_idle_count: 1,
+        outside_idle_avg: 100,
+        percentage_idle: 0
+      };
+      tr.b.iterItems(expected, function(key, value) {
+        var name = constructName(telemetryName, key);
+        assert.equal(name + ':' + value, name + ':' + actual[name]);
+      });
+    });
+  });
+
+  test('idleTimes', function() {
+    var valueList = new tr.metrics.ValueList();
+    var slices = [
+      {
+        title: 'SingleThreadIdleTaskRunner::RunTask',
+        args: {'allotted_time_ms' : 100}, start: 100, end: 200,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 110, end: 190,
+        cpuStart: 110, cpuEnd: 190
+      }
+    ];
+    var actual = run(slices);
+    var expected = {
+      sum: 80,
+      count: 1,
+      avg: 80,
+      idle_deadline_overrun_sum: 0,
+      idle_deadline_overrun_count: 1,
+      idle_deadline_overrun_avg: 0,
+      outside_idle_sum: 0,
+      outside_idle_count: 1,
+      outside_idle_avg: 0,
+      percentage_idle: 100
+    };
+    tr.b.iterItems(expected, function(key, value) {
+      var name = constructName('v8.gc.latency_mark_compactor', key);
+      assert.equal(name + ':' + value, name + ':' + actual[name]);
+    });
+  });
+
+  test('idleTimeOverrun', function() {
+    var valueList = new tr.metrics.ValueList();
+    var slices = [
+      {
+        title: 'SingleThreadIdleTaskRunner::RunTask',
+        args: {'allotted_time_ms' : 10}, start: 100, end: 200,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 110, end: 190,
+        cpuStart: 110, cpuEnd: 190
+      }
+    ];
+    var actual = run(slices);
+    var expected = {
+      sum: 80,
+      count: 1,
+      avg: 80,
+      idle_deadline_overrun_sum: 70,
+      idle_deadline_overrun_count: 1,
+      idle_deadline_overrun_avg: 70,
+      outside_idle_sum: 70,
+      outside_idle_count: 1,
+      outside_idle_avg: 70,
+      percentage_idle: 100 / 8
+    };
+    tr.b.iterItems(expected, function(key, value) {
+      var name = constructName('v8.gc.latency_mark_compactor', key);
+      assert.equal(name + ':' + value, name + ':' + actual[name]);
+    });
+  });
+
+  test('subEvents', function() {
+    var valueList = new tr.metrics.ValueList();
+    var slices = [
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 100, end: 200,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'V8.GC_MC_MARK', args: {}, start: 110, end: 190,
+        cpuStart: 110, cpuEnd: 190
+      },
+    ];
+    var actual = run(slices);
+    var expected = {
+      sum: 80,
+      count: 1,
+      avg: 80
+    };
+    tr.b.iterItems(expected, function(key, value) {
+      var name = constructName('v8.gc.latency_mark_compactor.mark', key);
+      assert.equal(name + ':' + value, name + ':' + actual[name]);
+    });
+  });
+
+  test('total', function() {
+    var valueList = new tr.metrics.ValueList();
+    var slices = [
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 100, end: 200,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCIncrementalMarking', args: {}, start: 210, end: 290,
+        cpuStart: 210, cpuEnd: 290
+      }
+    ];
+    var actual = run(slices);
+    var expected = {
+      sum: 180,
+      count: 2,
+      avg: 90,
+      idle_deadline_overrun_sum: 0,
+      idle_deadline_overrun_count: 2,
+      idle_deadline_overrun_avg: 0,
+      outside_idle_sum: 180,
+      outside_idle_count: 2,
+      outside_idle_avg: 90,
+      percentage_idle: 0
+    };
+    tr.b.iterItems(expected, function(key, value) {
+      var name = constructName('v8.gc.total', key);
+      assert.equal(name + ':' + value, name + ':' + actual[name]);
+    });
+  });
+
+});
+</script>
