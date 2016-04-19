@@ -5,7 +5,7 @@
 import logging
 
 from telemetry.core import exceptions
-from telemetry.page import action_runner as action_runner_module
+from telemetry.internal.actions import action_runner as action_runner_module
 
 # Export story_test.Failure to this page_test module
 from telemetry.web_perf.story_test import Failure

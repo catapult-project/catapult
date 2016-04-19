@@ -59,8 +59,7 @@ class BrowserCredentials(object):
           'Unrecognized credentials type: %s', credentials_type)
     if credentials_type not in self._credentials:
       return False
-    from telemetry.page import action_runner
-    runner = action_runner.ActionRunner(tab)
+    runner = tab.action_runner
     return self._backends[credentials_type].LoginNeeded(
       tab, runner, self._credentials[credentials_type])
 

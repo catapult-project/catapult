@@ -10,7 +10,6 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.image_processing import video
-from telemetry.page import action_runner
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
@@ -236,8 +235,7 @@ class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
   def testMediaRouterDialog(self):
     self._tab.Navigate(self.UrlOfUnittestFile('cast.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    runner = action_runner.ActionRunner(self._tab)
-    runner.TapElement(selector='#start_session_button')
+    self._tab.action_runner.TapElement(selector='#start_session_button')
     # Wait for media router dialog
     start_time = time.time()
     while (time.time() - start_time < 5 and

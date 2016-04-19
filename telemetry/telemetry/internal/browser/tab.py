@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from telemetry.internal.actions import action_runner
 from telemetry.internal.browser import web_contents
 from telemetry.internal.image_processing import video
 
@@ -23,7 +24,7 @@ class Tab(web_contents.WebContents):
     super(Tab, self).__init__(inspector_backend)
     self._tab_list_backend = tab_list_backend
     self._browser = browser
-    self._action_runner = None
+    self._action_runner = action_runner.ActionRunner(self)
 
   @property
   def browser(self):
@@ -32,9 +33,6 @@ class Tab(web_contents.WebContents):
 
   @property
   def action_runner(self):
-    if self._action_runner is None:
-      from telemetry.page import action_runner
-      self._action_runner = action_runner.ActionRunner(self)
     return self._action_runner
 
   @property

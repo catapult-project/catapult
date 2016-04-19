@@ -5,7 +5,6 @@
 """Tests for page_action."""
 
 from telemetry.internal.actions import page_action
-from telemetry.page import action_runner
 from telemetry.testing import tab_test_case
 
 
@@ -13,8 +12,7 @@ class PageActionTest(tab_test_case.TabTestCase):
 
   def testEvaluateCallbackWithElement(self):
     self.Navigate('blank.html')
-    runner = action_runner.ActionRunner(self._tab)
-    runner.ExecuteJavaScript('''
+    self._tab.action_runner.ExecuteJavaScript('''
         (function() {
            function createElement(id, textContent) {
              var el = document.createElement("div");

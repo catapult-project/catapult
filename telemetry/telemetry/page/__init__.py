@@ -10,7 +10,7 @@ from catapult_base import cloud_storage  # pylint: disable=import-error
 
 from telemetry import story
 from telemetry.page import shared_page_state
-from telemetry.page import action_runner as action_runner_module
+from telemetry.internal.actions import action_runner as action_runner_module
 
 
 class Page(story.Story):

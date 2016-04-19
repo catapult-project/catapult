@@ -5,8 +5,8 @@ import unittest
 
 from telemetry.core import exceptions
 from telemetry import decorators
+from telemetry.internal.actions import action_runner as action_runner_module
 from telemetry.internal.actions import page_action
-from telemetry.page import action_runner as action_runner_module
 from telemetry.testing import tab_test_case
 import mock
 from telemetry.timeline import model

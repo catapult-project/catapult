@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 from telemetry.internal.actions import page_action
-from telemetry.page import action_runner as action_runner_module
 from telemetry.testing import tab_test_case
 
 
@@ -16,7 +15,7 @@ class PinchActionTest(tab_test_case.TabTestCase):
     if not page_action.IsGestureSourceTypeSupported(self._tab, 'touch'):
       return
 
-    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner = self._tab.action_runner
     action_runner.ExecuteJavaScript('''
         chrome.gpuBenchmarking.pinchBy = function(
             scaleFactor, anchorLeft, anchorTop, callback, speed) {

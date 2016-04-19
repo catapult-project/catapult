@@ -55,7 +55,11 @@ class TestBrowserCredentials(unittest.TestCase):
         Exception,
         lambda: browser_cred.CanLogin('foobar'))
 
-      tab = {}
+      class FakeTab(object):
+        def __init__(self):
+          self.action_runner = None
+
+      tab = FakeTab()
       ret = browser_cred.LoginNeeded(tab, 'google')
       self.assertTrue(ret)
       self.assertTrue(google_backend.login_needed_called is not None)
