@@ -701,11 +701,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var ftraceGlobalTs = monotonicSyncs[0].start;
       var monotonicTs = monotonicSyncs[0].args.monotonicTs;
 
-      // A monotonic timestamp of zero is used as a sentinel value to indicate
-      // that CLOCK_MONOTONIC and the ftrace global clock are identical.
-      if (monotonicTs === 0)
-        return tr.b.identity;
-
       return function(ts) {
         return ts + monotonicTs - ftraceGlobalTs;
       };
@@ -770,6 +765,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         return false;
 
       var monotonicTs = event[1] * 1000;
+      // A monotonic timestamp of zero is used as a sentinel value to indicate
+      // that CLOCK_MONOTONIC and the ftrace global clock are identical.
+      if (monotonicTs === 0)
+        monotonicTs = ts;
+
       this.addClockSyncRecord_(new InstantClockSyncRecord(
           'ftrace_global_to_monotonic', ts, { monotonicTs: monotonicTs }));
       return true;
