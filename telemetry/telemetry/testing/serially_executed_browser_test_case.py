@@ -22,7 +22,6 @@ class SeriallyBrowserTestCase(unittest.TestCase):
     cls._finder_options = options_for_unittests.GetCopy()
     cls._platform = None
     cls._browser = None
-    cls.StartBrowser(cls._finder_options)
 
   @classmethod
   def StartBrowser(cls, options):

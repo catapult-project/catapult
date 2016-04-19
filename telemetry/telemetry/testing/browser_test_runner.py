@@ -66,7 +66,12 @@ def LoadTests(test_class, finder_options):
   return test_cases
 
 
-def Run(project_config, args):
+class TestRunOptions(object):
+  def __init__(self):
+    self.verbosity = 2
+
+
+def Run(project_config, test_run_options, args):
   binary_manager.InitDependencyManager(project_config.client_config)
   parser = argparse.ArgumentParser(description='Run a browser test suite')
   parser.add_argument('test', type=str, help='Name of the test suite to run')
@@ -97,5 +102,5 @@ def Run(project_config, args):
   for test in LoadTests(test_class, options):
     suite.addTest(test)
 
-  results = unittest.TextTestRunner(verbosity=0).run(suite)
+  results = unittest.TextTestRunner(test_run_options.verbosity).run(suite)
   return len(results.failures)
