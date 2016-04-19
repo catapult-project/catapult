@@ -73,8 +73,19 @@ class TracingAgent(object):
     Only override if supports explicit clock syncing.
     Args:
       sync_id: Unqiue id for sync event.
-      record_controller_clocksync_marker_callback: Function that takes sync_id
-        and a timestamp as argument.
+      record_controller_clocksync_marker_callback: Function that accepts two
+        arguments: a sync ID and a timestamp taken immediately before the
+        controller requested that the agent write a clock sync marker into its
+        trace. Any tracing agent that implements this method must invoke this
+        callback immediately after receiving confirmation from the agent that
+        the clock sync marker was recorded.
+
+        We use a callback here rather than just calling this function after
+        RecordClockSyncMarker because it's important for clock sync accuracy
+        reasons that the "issued" timestamp and "received confirmation"
+        timestamp be as accurate as possible, and some agents are forced to do
+        additional time-consuming cleanup work in RecordClockSyncMarker after
+        receiving this confirmation.
     """
     del sync_id # unused
     del record_controller_clocksync_marker_callback # unused
