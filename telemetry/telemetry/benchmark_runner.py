@@ -388,7 +388,7 @@ def main(environment, extra_commands=None):
   else:
     command = Run
 
-  binary_manager.InitDependencyManager(environment.client_config)
+  binary_manager.InitDependencyManager(environment.client_configs)
 
   # Parse and run the command.
   parser = command.CreateParser()

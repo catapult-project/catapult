@@ -20,8 +20,8 @@ def Run(project_config, no_browser=False,
       'the instance of telemetry.project_config.ProjectConfig.')
   assert project_config.top_level_dir, 'Must specify top level dir for project'
   args.extend(['--top-level-dir', project_config.top_level_dir])
-  if project_config.client_config:
-    args.extend(['--client-config', project_config.client_config])
+  for c in project_config.client_configs:
+    args.extend(['--client-config', c])
   if no_browser and not '--no-browser' in args:
     args.extend(['--no-browser'])
 

@@ -270,7 +270,7 @@ def Main(environment):
     parser.print_help()
     return 0
 
-  binary_manager.InitDependencyManager(environment.client_config)
+  binary_manager.InitDependencyManager(environment.client_configs)
 
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference

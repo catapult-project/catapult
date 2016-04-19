@@ -163,7 +163,7 @@ class BrowserFinderOptions(optparse.Values):
 
       if self.remote_platform_options.device == 'list':
         if binary_manager.NeedsInit():
-          binary_manager.InitDependencyManager(None)
+          binary_manager.InitDependencyManager([])
         devices = device_finder.GetDevicesMatchingOptions(self)
         print 'Available devices:'
         for device in devices:
@@ -174,7 +174,7 @@ class BrowserFinderOptions(optparse.Values):
         self.browser_type = 'exact'
       if self.browser_type == 'list':
         if binary_manager.NeedsInit():
-          binary_manager.InitDependencyManager(None)
+          binary_manager.InitDependencyManager([])
         devices = device_finder.GetDevicesMatchingOptions(self)
         if not devices:
           sys.exit(0)

@@ -60,7 +60,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     parser.add_option('--exact-test-filter', action='store_true', default=False,
                       help='Treat test filter as exact matches (default is '
                            'substring matches).')
-    parser.add_option('--client-config', dest='client_config', default=None)
+    parser.add_option('--client-config', dest='client_configs',
+                      action='append', default=[])
     parser.add_option('--disable-logging-config', action='store_true',
                       default=False, help='Configure logging (default on)')
 
@@ -105,7 +106,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     try:
       # Must initialize the DependencyManager before calling
       # browser_finder.FindBrowser(args)
-      binary_manager.InitDependencyManager(options.client_config)
+      binary_manager.InitDependencyManager(options.client_configs)
       cls.ProcessCommandLineArgs(parser, options, None)
 
       obj = cls()
@@ -133,8 +134,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     if possible_browser and possible_browser.browser_type == 'reference':
       fetch_reference_chrome_binary = True
     binary_manager.FetchBinaryDepdencies(
-        platform, args.client_config, fetch_reference_chrome_binary)
-
+        platform, args.client_configs, fetch_reference_chrome_binary)
 
     # Telemetry seems to overload the system if we run one test per core,
     # so we scale things back a fair amount. Many of the telemetry tests
@@ -248,7 +248,7 @@ def _SetUpProcess(child, context): # pylint: disable=unused-argument
   if binary_manager.NeedsInit():
     # Typ doesn't keep the DependencyManager initialization in the child
     # processes.
-    binary_manager.InitDependencyManager(context.client_config)
+    binary_manager.InitDependencyManager(context.client_configs)
   # We need to reset the handlers in case some other parts of telemetry already
   # set it to make this work.
   if not args.disable_logging_config:
