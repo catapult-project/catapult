@@ -47,39 +47,45 @@ def list_categories(options):
   Args:
       options: Tracing options.
   """
-  devutils = device_utils.DeviceUtils(options.device_serial)
+  devutils = device_utils.DeviceUtils(options.device_serial_number)
   print '\n'.join(devutils.RunShellCommand(LIST_CATEGORIES_ARGS))
+
 
 def get_available_categories(options):
   """Gets the list of atrace categories available for tracing.
   Args:
       options: Tracing options.
   """
-  devutils = device_utils.DeviceUtils(options.device_serial)
+  devutils = device_utils.DeviceUtils(options.device_serial_number)
   categories_output = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
   return [c.split('-')[0].strip() for c in categories_output]
 
+
 def try_create_agent(options):
+  """Create an Atrace agent.
+
+  Args:
+      options: Command line options.
+      categories: Categories of trace events to capture.
+  """
   if options.target != 'android':
     return False
   if options.from_file is not None:
     return False
 
+  # Check device SDK version.
   device_sdk_version = util.get_device_sdk_version()
-  if device_sdk_version >= 18:
-    if options.boot:
-      # atrace --async_stop, which is used by BootAgent, does not work properly
-      # on the device SDK version 22 or before.
-      if device_sdk_version <= 22:
-        print >> sys.stderr, ('--boot option does not work on the device SDK '
-                              'version 22 or before.\nYour device SDK version '
-                              'is %d.' % device_sdk_version)
-        sys.exit(1)
-      return BootAgent()
-    else:
-      return AtraceAgent()
-  else:
+  if device_sdk_version <= 17:
+    print ('Device SDK versions <= 17 not supported.\n'
+           'Your device SDK version is %d.' % device_sdk_version)
     return False
+  if device_sdk_version <= 22 and options.boot:
+    print ('--boot option does not work on the device SDK '
+           'version 22 or before.\nYour device SDK version '
+           'is %d.' % device_sdk_version)
+    return False
+
+  return BootAgent() if options.boot else AtraceAgent()
 
 def _construct_extra_atrace_args(options, categories):
   """Construct extra arguments (-a, -k, categories) for atrace command.
@@ -99,7 +105,7 @@ def _construct_extra_atrace_args(options, categories):
   extra_args.extend(categories)
   return extra_args
 
-def _construct_trace_args(options, categories):
+def _construct_atrace_args(options, categories):
   """Builds the command used to invoke a trace process.
   Returns:
     A tuple where the first element is an array of command arguments, and
@@ -146,9 +152,9 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._categories = [x for x in self._categories if x in avail_cats]
     if unavailable:
       print 'These categories are unavailable: ' + ' '.join(unavailable)
-    self._tracer_args = _construct_trace_args(self._options, self._categories)
+    self._tracer_args = _construct_atrace_args(self._options, self._categories)
 
-    shell = ['adb', '-s', self._options.device_serial, 'shell']
+    shell = ['adb', '-s', self._options.device_serial_number, 'shell']
     self._adb = do_popen(shell + self._tracer_args)
 
   def StartAgentTracing(self, options, categories, timeout):
@@ -179,7 +185,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
   def _construct_list_categories_command(self):
     return util.construct_adb_shell_command(
-          LIST_CATEGORIES_ARGS, self._options.device_serial)
+          LIST_CATEGORIES_ARGS, self._options.device_serial_number)
 
   def _collect_trace_data(self):
     # Read the output from ADB in a worker thread.  This allows us to monitor
@@ -307,7 +313,8 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     if self._options.fix_threads:
       # Issue ps command to device and patch thread names
-      ps_dump = do_preprocess_adb_cmd('ps -t', self._options.device_serial)
+      ps_dump = do_preprocess_adb_cmd('ps -t',
+                                      self._options.device_serial_number)
       if ps_dump is not None:
         thread_names = extract_thread_list(ps_dump)
         trace_data = fix_thread_names(trace_data, thread_names)
@@ -316,7 +323,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
       # Issue printf command to device and patch tgids
       procfs_dump = do_preprocess_adb_cmd('printf "%s\n" ' +
                                           '/proc/[0-9]*/task/[0-9]*',
-                                          self._options.device_serial)
+                                          self._options.device_serial_number)
       if procfs_dump is not None:
         pid2_tgid = extract_tgids(procfs_dump)
         trace_data = fix_missing_tgids(trace_data, pid2_tgid)
@@ -364,7 +371,7 @@ def _construct_boot_setup_command(options, categories):
   reboot_args = ['reboot']
   return util.construct_adb_shell_command(
       echo_args + ['&&'] + setprop_args + ['&&'] + reboot_args,
-      options.device_serial)
+      options.device_serial_number)
 
 def _construct_boot_trace_command(options):
   atrace_args = ['atrace', '--async_stop']
@@ -372,7 +379,7 @@ def _construct_boot_trace_command(options):
   rm_args = ['rm', BOOTTRACE_CATEGORIES]
   return util.construct_adb_shell_command(
         atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
-        options.device_serial)
+        options.device_serial_number)
 
 
 class FileReaderThread(threading.Thread):
@@ -436,9 +443,9 @@ class FileReaderThread(threading.Thread):
     self._chunk_size = chunk_size
 
 
-def get_default_categories(device_serial):
+def get_default_categories(device_serial_number):
   categories_output, return_code = util.run_adb_shell(LIST_CATEGORIES_ARGS,
-                                                    device_serial)
+                                                    device_serial_number)
 
   if return_code == 0 and categories_output:
     categories = [c.split('-')[0].strip()
@@ -462,8 +469,10 @@ def status_update(last_update_time):
 
 def extract_thread_list(trace_text):
   """Removes the thread list from the given trace data.
+
   Args:
     trace_text: The text portion of the trace
+
   Returns:
     a map of thread ids to thread names
   """
@@ -483,8 +492,10 @@ def extract_thread_list(trace_text):
 
 def extract_tgids(trace_text):
   """Removes the procfs dump from the given trace text
+
   Args:
     trace_text: The text portion of the trace
+
   Returns:
     a map of pids to their tgid.
   """
@@ -563,8 +574,10 @@ def fix_thread_names(trace_data, thread_names):
 
 def fix_missing_tgids(trace_data, pid2_tgid):
   """Replaces missing TGIDs from the trace data with those found in procfs
+
   Args:
     trace_data: the atrace data
+
   Returns:
     The updated trace data with missing TGIDs replaced with the correct TGID
   """
@@ -638,6 +651,16 @@ def do_popen(args):
 
 
 def do_preprocess_adb_cmd(command, serial):
+  """Run an ADB command for preprocessing of output.
+
+  Run an ADB command and get the results. This function is used for
+  running commands relating to preprocessing of output data.
+
+  Args:
+      command: Command to run.
+      serial: Serial number of device.
+  """
+
   args = [command]
   dump, ret_code = util.run_adb_shell(args, serial)
   if ret_code != 0:

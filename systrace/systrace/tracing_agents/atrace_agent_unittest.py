@@ -49,9 +49,9 @@ ATRACE_FIXED_TGIDS = os.path.join(TEST_DIR, 'atrace_fixed_tgids')
 
 class AtraceAgentTest(unittest.TestCase):
 
-  def test_construct_trace_args(self):
+  def test_construct_atrace_args(self):
     options, categories = run_systrace.parse_options(SYSTRACE_CMD)
-    tracer_args = atrace_agent._construct_trace_args(options, categories)
+    tracer_args = atrace_agent._construct_atrace_args(options, categories)
     self.assertEqual(' '.join(TRACE_ARGS), ' '.join(tracer_args))
 
   def test_preprocess_trace_data(self):
