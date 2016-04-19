@@ -35,10 +35,6 @@ def make_test_io_interface(permitted_files):
     def haveWritePermissions(path):
       return path in permitted_files
 
-    @staticmethod
-    def checkAndWriteFile(path, data):
-      permitted_files[path] = data
-
   return TestIoImpl
 
 

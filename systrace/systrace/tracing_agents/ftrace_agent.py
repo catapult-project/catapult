@@ -3,18 +3,19 @@
 # found in the LICENSE file.
 
 import os
-import sys
 
 from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from systrace import tracing_agents
 
 class FtraceAgentIo(object):
-
   @staticmethod
   def writeFile(path, data):
-    with open(path, 'w') as f:
-      f.write(data)
+    if FtraceAgentIo.haveWritePermissions(path):
+      with open(path, 'w') as f:
+        f.write(data)
+    else:
+      raise IOError('Cannot write to %s; did you forget sudo/root?' % path)
 
   @staticmethod
   def readFile(path):
@@ -24,6 +25,7 @@ class FtraceAgentIo(object):
   @staticmethod
   def haveWritePermissions(path):
     return os.access(path, os.W_OK)
+
 
 FT_DIR = "/sys/kernel/debug/tracing/"
 FT_CLOCK = FT_DIR + "trace_clock"
@@ -133,8 +135,8 @@ class FtraceAgent(tracing_agents.TracingAgent):
     """
     self._options = options
     categories = self._fix_categories(categories)
-    self._fio.writeFile(FT_BUFFER_SIZE, str(self._get_trace_buffer_size()))
-
+    self._fio.writeFile(FT_BUFFER_SIZE,
+                        str(self._get_trace_buffer_size()))
     self._fio.writeFile(FT_CLOCK, 'global')
     self._fio.writeFile(FT_TRACER, 'nop')
     self._fio.writeFile(FT_OVERWRITE, "0")
@@ -147,12 +149,9 @@ class FtraceAgent(tracing_agents.TracingAgent):
       self._category_enable(category)
 
     self._categories = categories # need to store list of categories to disable
+    print 'starting tracing.'
 
     self._fio.writeFile(FT_TRACE, '')
-
-    print "starting tracing."
-    sys.stdout.flush()
-
     self._fio.writeFile(FT_TRACE_ON, '1')
     return True
 
