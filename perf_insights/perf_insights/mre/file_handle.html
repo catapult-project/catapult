@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/guid.html">
-<link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/extras/full_config.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -40,6 +40,8 @@ tr.exportTo('pi.mre', function() {
   FileHandle.fromDict = function(handleDict) {
     if (handleDict.type === 'url')
       return URLFileHandle.fromDict(handleDict);
+    if (handleDict.type === 'in-memory')
+      return InMemoryFileHandle.fromDict(handleDict);
 
     throw new Error('Not implemented: fromDict for ' + handleDict.type);
   };
@@ -70,13 +72,38 @@ tr.exportTo('pi.mre', function() {
     }
   };
 
+
   URLFileHandle.fromDict = function(handleDict) {
     return new URLFileHandle(handleDict.canonical_url, handleDict.url_to_load);
   };
 
+  function InMemoryFileHandle(fileData, canonicalUrl) {
+    FileHandle.call(this, canonicalUrl);
+    this.fileData = fileData;
+  }
+
+  InMemoryFileHandle.prototype = {
+    __proto__: FileHandle.prototype,
+
+    _asDictInto: function(handleDict) {
+      handleDict.data = this.fileData;
+      handleDict.type = 'in-memory';
+    },
+
+    load: function() {
+      return this.fileData;
+    }
+  };
+
+  InMemoryFileHandle.fromDict = function(handleDict) {
+    return new InMemoryFileHandle(
+        handleDict.data, handleDict.canonical_url);
+  };
+
   return {
     FileHandle: FileHandle,
-    URLFileHandle: URLFileHandle
+    URLFileHandle: URLFileHandle,
+    InMemoryFileHandle: InMemoryFileHandle,
   };
 });
 </script>
