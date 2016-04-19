@@ -455,6 +455,7 @@ def _GuessCommandTelemetry(
       '-v',
       '--browser=%s' % _GuessBrowserName(bisect_bot),
       '--output-format=%s' % ('chartjson' if use_buildbucket else 'buildbot'),
+      '--upload-results',
       '--also-run-disabled-tests',
   ])
 

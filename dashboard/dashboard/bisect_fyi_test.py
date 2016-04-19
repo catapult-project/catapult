@@ -21,7 +21,8 @@ TEST_FYI_CONFIGS = {
             'bug_id': 111,
             'command': ('python src/tools/perf/run_benchmark -v '
                         '--browser=release_x64 --output-format=chartjson '
-                        '--also-run-disabled-tests blink_perf.bindings'),
+                        '--upload-results --also-run-disabled-tests '
+                        'blink_perf.bindings'),
             'good_revision': '357643',
             'gs_bucket': 'chrome-perf',
             'max_time_minutes': '20',
@@ -41,7 +42,8 @@ TEST_FYI_CONFIGS = {
             'bug_id': 222,
             'command': ('python src/tools/perf/run_benchmark -v '
                         '--browser=release_x64 --output-format=chartjson '
-                        '--also-run-disabled-tests blink_perf.bindings'),
+                        '--upload-results --also-run-disabled-tests '
+                        'blink_perf.bindings'),
             'good_revision': '257643',
             'gs_bucket': 'chrome-perf',
             'max_time_minutes': '20',
