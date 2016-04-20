@@ -86,6 +86,18 @@ def parse_options(argv):
                     default=True, action='store_false',
                     help='Tell the device not to send the trace data in '
                     'compressed form.')
+  parser.add_option('--hubs', dest='hub_types', default='plugable_7port',
+                    help='List of hub types to check for for BattOr mapping. '
+                    'Used when updating mapping file.')
+  parser.add_option('--serial-map', dest='serial_map',
+                    default='serial_map.json',
+                    help='File containing pregenerated map of phone serial '
+                    'numbers to BattOr serial numbers.')
+  parser.add_option('--battor_path', dest='battor_path', default=None,
+                    type='string', help='specify a BattOr path to use')
+  parser.add_option('--update-map', dest='update_map', default=False,
+                    action='store_true',
+                    help='force update of phone-to-BattOr map')
   parser.add_option('--link-assets', dest='link_assets', default=False,
                     action='store_true',
                     help='(deprecated)')
@@ -93,6 +105,8 @@ def parse_options(argv):
                     help='reboot the device with tracing during boot enabled. '
                     'The report is created by hitting Ctrl+C after the device '
                     'has booted up.')
+  parser.add_option('--battor', dest='battor', default=False,
+                    action='store_true', help='Use the BattOr tracing agent.')
   parser.add_option('--from-file', dest='from_file', action='store',
                     help='read the trace from a file (compressed) rather than '
                     'running a live trace')

@@ -218,7 +218,10 @@ def GenerateSerialMapFile(filename, hub_types=None):
 
 def _PhoneToPathMap(serial, serial_map, devtree):
   """Maps phone serial number to TTY path, assuming serial map is provided."""
-  battor_serial = serial_map[serial]
+  try:
+    battor_serial = serial_map[serial]
+  except KeyError:
+    raise battor_error.BattorError('Serial number not found in serial map.')
   for tree in devtree.values():
     for node in tree.AllNodes():
       if isinstance(node, find_usb_devices.USBDeviceNode):
