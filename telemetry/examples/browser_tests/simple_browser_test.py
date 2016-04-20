@@ -4,7 +4,6 @@
 
 import os
 
-from telemetry.page import action_runner
 from telemetry.testing import serially_executed_browser_test_case
 
 
@@ -24,7 +23,8 @@ class SimpleBrowserTest(
   @classmethod
   def setUpClass(cls):
     super(cls, SimpleBrowserTest).setUpClass()
-    cls.action_runner = action_runner.ActionRunner(cls._browser.tabs[0])
+    cls.StartBrowser(cls._finder_options)
+    cls.action_runner = cls._browser.tabs[0].action_runner
     cls.SetStaticServerDir(
         os.path.join(os.path.abspath(__file__), '..', 'pages'))
 

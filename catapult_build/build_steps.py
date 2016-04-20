@@ -115,6 +115,16 @@ _CATAPULT_TESTS = [
         'uses_sandbox_env': True,
     },
     {
+        'name': 'Telemetry Integration Tests with Stable Browser',
+        'path': 'telemetry/bin/run_browser_tests',
+        'additional_args': [
+            'SimpleBrowserTest',
+            '--browser=reference',
+        ],
+        'uses_sandbox_env': True,
+        'disabled': ['linux'],  # TODO(nedn): enable this on linux
+    },
+    {
         'name': 'Tracing Dev Server Tests Canary',
         'path': 'tracing/bin/run_dev_server_tests',
         'additional_args': [
