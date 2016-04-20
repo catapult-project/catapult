@@ -25,7 +25,9 @@ Certificate Naming Conventions:
 
 import logging
 import os
+import platform
 import socket
+import subprocess
 import time
 
 openssl_import_error = None
@@ -227,30 +229,60 @@ def generate_cert(root_ca_cert_str, server_cert_str, server_host):
   Returns:
     a PEM formatted certificate string
   """
+  EXTENSION_WHITELIST = set(['subjectAltName'])
+
   if openssl_import_error:
     raise openssl_import_error  # pylint: disable=raising-bad-type
 
   common_name = server_host
+  reused_extensions = []
   if server_cert_str:
-    cert = load_cert(server_cert_str)
-    common_name = cert.get_subject().commonName
-  else:
-    cert = crypto.X509()
+    original_cert = load_cert(server_cert_str)
+    common_name = original_cert.get_subject().commonName
+    for i in xrange(original_cert.get_extension_count()):
+      original_cert_extension = original_cert.get_extension(i)
+      if original_cert_extension.get_short_name() in EXTENSION_WHITELIST:
+        reused_extensions.append(original_cert_extension)
 
   ca_cert = load_cert(root_ca_cert_str)
-  key = load_privatekey(root_ca_cert_str)
+  ca_key = load_privatekey(root_ca_cert_str)
 
-  req = crypto.X509Req()
-  req.get_subject().CN = common_name
-  req.set_pubkey(ca_cert.get_pubkey())
-  req.sign(key, 'sha256')
-
+  cert = crypto.X509()
+  cert.get_subject().CN = common_name
   cert.gmtime_adj_notBefore(-60 * 60)
   cert.gmtime_adj_notAfter(60 * 60 * 24 * 30)
   cert.set_issuer(ca_cert.get_subject())
-  cert.set_subject(req.get_subject())
   cert.set_serial_number(int(time.time()*10000))
-  cert.set_pubkey(req.get_pubkey())
-  cert.sign(key, 'sha256')
+  cert.set_pubkey(ca_key)
+  cert.add_extensions(reused_extensions)
+  cert.sign(ca_key, 'sha256')
 
   return _dump_cert(cert)
+
+
+def install_cert_in_nssdb(home_directory_path, certificate_path):
+  """Installs a certificate into the ~/.pki/nssdb database.
+
+  Args:
+    home_directory_path: Path of the home directory where to install
+    certificate_path: Path of a CA in PEM format
+  """
+  assert os.path.isdir(home_directory_path)
+  assert platform.system() == 'Linux', \
+      'SSL certification authority has only been tested for linux.'
+  if (os.path.abspath(home_directory_path) ==
+          os.path.abspath(os.environ['HOME'])):
+    raise Exception('Modifying $HOME/.pki/nssdb compromises your machine.')
+
+  cert_database_path = os.path.join(home_directory_path, '.pki', 'nssdb')
+  def certutil(args):
+    cmd = ['certutil', '--empty-password', '-d', 'sql:' + cert_database_path]
+    cmd.extend(args)
+    logging.info(subprocess.list2cmdline(cmd))
+    subprocess.check_call(cmd)
+
+  if not os.path.isdir(cert_database_path):
+    os.makedirs(cert_database_path)
+    certutil(['-N'])
+
+  certutil(['-A', '-t', 'PC,,', '-n', certificate_path, '-i', certificate_path])
