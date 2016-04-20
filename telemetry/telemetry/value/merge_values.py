@@ -21,11 +21,11 @@ def DefaultKeyFunc(value):
   Returns:
     A comparable object used to group values.
   """
-  # Grouping keys is a dict but key funcs need to be hashable, so we transform
-  # it to a sorted tuple of tuples here.
-  grouping_keys_sorted = tuple(sorted(value.grouping_keys.iteritems()))
-  return ((('value_name', value.name), ('ue_stable_id', value.tir_label)) +
-          grouping_keys_sorted)
+  # We use the name and tir_label because even in the TBMv2 case, right now
+  # metrics are responsible for mangling grouping keys into the name, and
+  # PageTestResults is responsible for mangling story grouping keys into the
+  # tir_label.
+  return value.name, value.tir_label
 
 
 def MergeLikeValuesFromSamePage(all_values, key_func=DefaultKeyFunc):

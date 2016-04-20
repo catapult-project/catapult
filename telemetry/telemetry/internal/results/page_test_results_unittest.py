@@ -92,6 +92,7 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def testAddValueWithStoryGroupingKeys(self):
     results = page_test_results.PageTestResults()
     self.pages[0].grouping_keys['foo'] = 'bar'
+    self.pages[0].grouping_keys['answer'] = '42'
     results.WillRunPage(self.pages[0])
     results.AddValue(scalar.ScalarValue(
         self.pages[0], 'a', 'seconds', 3,
@@ -103,6 +104,8 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
     values = results.FindPageSpecificValuesForPage(self.pages[0], 'a')
     v = values[0]
     self.assertEquals(v.grouping_keys['foo'], 'bar')
+    self.assertEquals(v.grouping_keys['answer'], '42')
+    self.assertEquals(v.tir_label, '42_bar')
 
   def testAddValueWithDuplicateStoryGroupingKeyFails(self):
     results = page_test_results.PageTestResults()
