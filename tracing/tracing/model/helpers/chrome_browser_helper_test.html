@@ -63,5 +63,21 @@ tr.b.unittest.testSuite(function() {
     assert.equal(1, modelHelper.browserHelper.getAllNetworkEventsInRange(
       getRange(0, 100)).length);
   });
+
+  test('browserName_chrome', function() {
+    var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function() { });
+    var modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    assert.strictEqual(modelHelper.browserHelper.browserName, 'chrome');
+  });
+
+  test('browserName_webview', function() {
+    var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function() { });
+    model.browserProcess.getOrCreateThread(42).name =
+        'Chrome_InProcRendererThread';
+    var modelHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    assert.strictEqual(modelHelper.browserHelper.browserName, 'webview');
+  });
 });
 </script>

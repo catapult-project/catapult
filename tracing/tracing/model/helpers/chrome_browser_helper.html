@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/helpers/chrome_process_helper.html">
 
 <script>
@@ -25,6 +26,14 @@ tr.exportTo('tr.model.helpers', function() {
 
   ChromeBrowserHelper.prototype = {
     __proto__: tr.model.helpers.ChromeProcessHelper.prototype,
+
+    // TODO(petrcermak): Pass browser name in a metadata event (see
+    // crbug.com/605088).
+    get browserName() {
+      var hasInProcessRendererThread = this.process.findAllThreadsNamed(
+          'Chrome_InProcRendererThread').length > 0;
+      return hasInProcessRendererThread ? 'webview' : 'chrome';
+    },
 
     get rendererHelpers() {
       return this.modelHelper.rendererHelpers;

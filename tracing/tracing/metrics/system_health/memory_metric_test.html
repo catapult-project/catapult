@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
+<link rel="import" href="/tracing/metrics/value_list.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/vm_region.html">
@@ -136,24 +137,73 @@ tr.b.unittest.testSuite(function() {
     return process;
   }
 
-  memoryMetricTest('noDumps', undefined, {
-    'memory_dump_count_total': expectUnitless(0),
-    'memory_dump_count_light': expectUnitless(0),
-    'memory_dump_count_detailed': expectUnitless(0)
+  function createChromeBrowserProcess(model) {
+    var process = createProcessWithName(model, 'Browser');
+    process.getOrCreateThread(1).name = 'CrBrowserMain';
+    return process;
+  }
+
+  function createWebViewProcess(model) {
+    var process = createChromeBrowserProcess(model);
+    process.getOrCreateThread(2).name = 'Chrome_InProcRendererThread';
+    return process;
+  }
+
+  memoryMetricTest('noDumps_noBrowser', function(model) {
+    createProcessWithName(model, 'Non-browser');
+  }, {
+    /* no values */
   });
 
-  memoryMetricTest('dumpCountsOnly', function(model) {
+  memoryMetricTest('noDumps_chrome', function(model) {
+    createChromeBrowserProcess(model);
+  }, {
+    'memory:chrome:all:dump_count:detailed': expectUnitless(0),
+    'memory:chrome:all:dump_count:light': expectUnitless(0),
+    'memory:chrome:all:dump_count:total': expectUnitless(0)
+  });
+
+  memoryMetricTest('noDumps_multipleBrowsers', function(model) {
+    createChromeBrowserProcess(model);
+    createWebViewProcess(model);
+    createProcessWithName(model, 'Non-browser');
+    createChromeBrowserProcess(model);
+  }, {
+    'memory:chrome2:all:dump_count:detailed': expectUnitless(0),
+    'memory:chrome2:all:dump_count:light': expectUnitless(0),
+    'memory:chrome2:all:dump_count:total': expectUnitless(0),
+    'memory:chrome:all:dump_count:detailed': expectUnitless(0),
+    'memory:chrome:all:dump_count:light': expectUnitless(0),
+    'memory:chrome:all:dump_count:total': expectUnitless(0),
+    'memory:webview:all:dump_count:detailed': expectUnitless(0),
+    'memory:webview:all:dump_count:light': expectUnitless(0),
+    'memory:webview:all:dump_count:total': expectUnitless(0)
+  });
+
+  memoryMetricTest('dumpCountsOnly_unknownBrowser', function(model) {
     addGlobalMemoryDump(model, 45, DETAILED);
     addGlobalMemoryDump(model, 68, LIGHT);
     addGlobalMemoryDump(model, 89, DETAILED);
   }, {
-    'memory_dump_count_total': expectUnitless(3),
-    'memory_dump_count_light': expectUnitless(1),
-    'memory_dump_count_detailed': expectUnitless(2)
+    'memory:unknown:all:dump_count:detailed': expectUnitless(2),
+    'memory:unknown:all:dump_count:light': expectUnitless(1),
+    'memory:unknown:all:dump_count:total': expectUnitless(3)
   });
 
-  memoryMetricTest('allocatorValues', function(model) {
-    var pBrowser = createProcessWithName(model, 'Browser');
+  memoryMetricTest('dumpCountsOnly_webview', function(model) {
+    var p = createWebViewProcess(model);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 45, LIGHT), p, 45);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 68, LIGHT), p, 68);
+  }, {
+    'memory:webview:all:dump_count:detailed': expectUnitless(0),
+    'memory:webview:all:dump_count:light': expectUnitless(2),
+    'memory:webview:all:dump_count:total': expectUnitless(2),
+    'memory:webview:all:process_count': expectUnitless([1, 1]),
+    'memory:webview:browser:process_count': expectUnitless([1, 1])
+  });
+
+  memoryMetricTest('allocatorValues_chrome', function(model) {
+    var pBrowser = createChromeBrowserProcess(model);
     var pRendererA = createProcessWithName(model, 'Renderer');
     var pRendererB = createProcessWithName(model, 'Renderer');
     var pGpu = createProcessWithName(model, 'GPU Process');
@@ -264,41 +314,54 @@ tr.b.unittest.testSuite(function() {
       return [gpuDump];
     })();
   }, {
-    'memory_allocated_objects_gpu_gpu_process': expectBytes([25, 0, 0, 0]),
-    'memory_allocated_objects_gpu_total': expectBytes([25, 0, 0, 0]),
-    'memory_allocated_objects_malloc_browser': expectBytes([4, 0, 4000, 0]),
-    'memory_allocated_objects_malloc_renderer': expectBytes([0, 750, 0, 0]),
-    'memory_allocated_objects_malloc_total': expectBytes([4, 750, 4000, 0]),
-    'memory_allocated_objects_v8_renderer': expectBytes([0, 860, 0, 0]),
-    'memory_allocated_objects_v8_total': expectBytes([0, 860, 0, 0]),
-    'memory_allocator_gpu_gpu_process': expectBytes([30, 0, 300, 0]),
-    'memory_allocator_gpu_total': expectBytes([30, 0, 300, 0]),
-    'memory_allocator_malloc_browser': expectBytes([8, 120 - 40, 8000, 80000]),
-    'memory_allocator_malloc_renderer': expectBytes([16, 0, 0, 0]),
-    'memory_allocator_malloc_total':
+    'memory:chrome:all:android_memtrack:gfx': expectBytes([0, 0, 0, 4000]),
+    'memory:chrome:all:android_memtrack:gl': expectBytes([0, 0, 500, 5000]),
+    'memory:chrome:all:android_memtrack:graphics': expectBytes([0, 0, 700, 0]),
+    'memory:chrome:all:dump_count:detailed': expectUnitless(0),
+    'memory:chrome:all:dump_count:light': expectUnitless(4),
+    'memory:chrome:all:dump_count:total': expectUnitless(4),
+    'memory:chrome:all:process_count': expectUnitless([3, 3, 3, 3]),
+    'memory:chrome:all:subsystem:gpu': expectBytes([30, 0, 300, 0]),
+    'memory:chrome:all:subsystem:gpu:allocated_objects':
+        expectBytes([25, 0, 0, 0]),
+    'memory:chrome:all:subsystem:malloc':
         expectBytes([8 + 16, 120 - 40, 8000, 80000]),
-    'memory_allocator_partition_alloc_renderer': expectBytes([32, 320, 0, 5e5]),
-    'memory_allocator_partition_alloc_total': expectBytes([32, 320, 0, 5e5]),
-    'memory_allocator_tracing_browser': expectBytes([0, 40, 0, 0]),
-    'memory_allocator_tracing_total': expectBytes([0, 40, 0, 0]),
-    'memory_allocator_v8_renderer': expectBytes([0, 650 + 970, 0, 4e5]),
-    'memory_allocator_v8_total': expectBytes([0, 650 + 970, 0, 4e5]),
-    'memory_android_memtrack_gfx_gpu_process': expectBytes([0, 0, 0, 4000]),
-    'memory_android_memtrack_gfx_total': expectBytes([0, 0, 0, 4000]),
-    'memory_android_memtrack_gl_gpu_process': expectBytes([0, 0, 500, 5000]),
-    'memory_android_memtrack_gl_total': expectBytes([0, 0, 500, 5000]),
-    'memory_android_memtrack_graphics_gpu_process': expectBytes([0, 0, 700, 0]),
-    'memory_android_memtrack_graphics_total': expectBytes([0, 0, 700, 0]),
-    'memory_dump_count_detailed': expectUnitless(0),
-    'memory_dump_count_light': expectUnitless(4),
-    'memory_dump_count_total': expectUnitless(4),
-    'memory_process_count_browser': expectUnitless([1, 1, 1, 1]),
-    'memory_process_count_gpu_process': expectUnitless([1, 0, 1, 1]),
-    'memory_process_count_renderer': expectUnitless([1, 2, 1, 1]),
-    'memory_process_count_total': expectUnitless([3, 3, 3, 3])
+    'memory:chrome:all:subsystem:malloc:allocated_objects':
+        expectBytes([4, 750, 4000, 0]),
+    'memory:chrome:all:subsystem:partition_alloc':
+        expectBytes([32, 320, 0, 5e5]),
+    'memory:chrome:all:subsystem:tracing': expectBytes([0, 40, 0, 0]),
+    'memory:chrome:all:subsystem:v8': expectBytes([0, 650 + 970, 0, 4e5]),
+    'memory:chrome:all:subsystem:v8:allocated_objects':
+        expectBytes([0, 860, 0, 0]),
+    'memory:chrome:browser:process_count': expectUnitless([1, 1, 1, 1]),
+    'memory:chrome:browser:subsystem:malloc':
+        expectBytes([8, 120 - 40, 8000, 80000]),
+    'memory:chrome:browser:subsystem:malloc:allocated_objects':
+        expectBytes([4, 0, 4000, 0]),
+    'memory:chrome:browser:subsystem:tracing': expectBytes([0, 40, 0, 0]),
+    'memory:chrome:gpu_process:android_memtrack:gfx':
+        expectBytes([0, 0, 0, 4000]),
+    'memory:chrome:gpu_process:android_memtrack:gl':
+        expectBytes([0, 0, 500, 5000]),
+    'memory:chrome:gpu_process:android_memtrack:graphics':
+        expectBytes([0, 0, 700, 0]),
+    'memory:chrome:gpu_process:process_count': expectUnitless([1, 0, 1, 1]),
+    'memory:chrome:gpu_process:subsystem:gpu': expectBytes([30, 0, 300, 0]),
+    'memory:chrome:gpu_process:subsystem:gpu:allocated_objects':
+        expectBytes([25, 0, 0, 0]),
+    'memory:chrome:renderer:process_count': expectUnitless([1, 2, 1, 1]),
+    'memory:chrome:renderer:subsystem:malloc': expectBytes([16, 0, 0, 0]),
+    'memory:chrome:renderer:subsystem:malloc:allocated_objects':
+        expectBytes([0, 750, 0, 0]),
+    'memory:chrome:renderer:subsystem:partition_alloc':
+        expectBytes([32, 320, 0, 5e5]),
+    'memory:chrome:renderer:subsystem:v8': expectBytes([0, 650 + 970, 0, 4e5]),
+    'memory:chrome:renderer:subsystem:v8:allocated_objects':
+        expectBytes([0, 860, 0, 0])
   });
 
-  memoryMetricTest('mmapsValues', function(model) {
+  memoryMetricTest('mmapsValues_unknownBrowser', function(model) {
     var pBrowser = createProcessWithName(model, 'Browser');
     var pRendererA = createProcessWithName(model, 'Renderer');
     var pRendererB = createProcessWithName(model, 'Renderer');
@@ -309,7 +372,7 @@ tr.b.unittest.testSuite(function() {
     var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, 9);
     pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
-          { 'proportionalResident': 8 })
+          { 'privateDirtyResident': 8 })
     ]);
     var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, 10);
     pmdRendererA1.vmRegions = VMRegionClassificationNode.fromRegions([
@@ -335,7 +398,7 @@ tr.b.unittest.testSuite(function() {
     var pmdBrowser3 = addProcessMemoryDump(gmd3, pBrowser, 30);
     pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 1024, 0, '/dev/ashmem/dalvik-non moving space',
-          { 'proportionalResident': 80, 'privateDirtyResident': 3 })
+          { 'proportionalResident': 3, 'privateDirtyResident': 80 })
     ]);
     var pmdRendererA3 = addProcessMemoryDump(gmd3, pRendererA, 29);
     // Intentionally pmdRendererA3.vmRegions undefined.
@@ -345,38 +408,43 @@ tr.b.unittest.testSuite(function() {
           { 'proportionalResident': 700 })
     ]);
   }, {
-    'memory_dump_count_detailed': expectUnitless(2),
-    'memory_dump_count_light': expectUnitless(1),
-    'memory_dump_count_total': expectUnitless(3),
-    'memory_mmaps_ashmem_browser': expectBytes([0, 0]),
-    'memory_mmaps_ashmem_renderer': expectBytes([0, 0]),
-    'memory_mmaps_ashmem_total': expectBytes([0, 0]),
-    'memory_mmaps_java_heap_browser': expectBytes([8, 80]),
-    'memory_mmaps_java_heap_renderer': expectBytes([0, 0]),
-    'memory_mmaps_java_heap_total': expectBytes([8, 80]),
-    'memory_mmaps_native_heap_browser': expectBytes([0, 0]),
-    'memory_mmaps_native_heap_renderer': expectBytes([67, 0]),
-    'memory_mmaps_native_heap_total': expectBytes([67, 0]),
-    'memory_mmaps_overall_pss_browser': expectBytes([8, 80]),
-    'memory_mmaps_overall_pss_renderer': expectBytes([67, 700]),
-    'memory_mmaps_overall_pss_total': expectBytes([8 + 67, 80 + 700]),
-    'memory_mmaps_private_dirty_browser': expectBytes([0, 3]),
-    'memory_mmaps_private_dirty_renderer': expectBytes([17 + 34, 0]),
-    'memory_mmaps_private_dirty_total': expectBytes([17 + 34, 3]),
-    'memory_process_count_browser': expectUnitless([1, 1, 1]),
-    'memory_process_count_renderer': expectUnitless([2, 3, 2]),
-    'memory_process_count_total': expectUnitless([3, 4, 3])
+    'memory:unknown:all:dump_count:detailed': expectUnitless(2),
+    'memory:unknown:all:dump_count:light': expectUnitless(1),
+    'memory:unknown:all:dump_count:total': expectUnitless(3),
+    'memory:unknown:all:process_count': expectUnitless([3, 4, 3]),
+    'memory:unknown:all:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:unknown:all:vmstats:java_heap:private_dirty': expectBytes([8, 80]),
+    'memory:unknown:all:vmstats:native_heap:pss': expectBytes([67, 0]),
+    'memory:unknown:all:vmstats:overall:private_dirty':
+        expectBytes([17 + 34 + 8, 80]),
+    'memory:unknown:all:vmstats:overall:pss': expectBytes([67, 700 + 3]),
+    'memory:unknown:browser:process_count': expectUnitless([1, 1, 1]),
+    'memory:unknown:browser:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:unknown:browser:vmstats:java_heap:private_dirty':
+        expectBytes([8, 80]),
+    'memory:unknown:browser:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:unknown:browser:vmstats:overall:private_dirty':
+        expectBytes([8, 80]),
+    'memory:unknown:browser:vmstats:overall:pss': expectBytes([0, 3]),
+    'memory:unknown:renderer:process_count': expectUnitless([2, 3, 2]),
+    'memory:unknown:renderer:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:unknown:renderer:vmstats:java_heap:private_dirty':
+        expectBytes([0, 0]),
+    'memory:unknown:renderer:vmstats:native_heap:pss': expectBytes([67, 0]),
+    'memory:unknown:renderer:vmstats:overall:private_dirty':
+        expectBytes([17 + 34, 0]),
+    'memory:unknown:renderer:vmstats:overall:pss': expectBytes([67, 700])
   });
 
-  memoryMetricTest('combined', function(model) {
-    var pBrowser = createProcessWithName(model, 'Browser');
+  memoryMetricTest('combined_chrome', function(model) {
+    var pBrowser = createChromeBrowserProcess(model);
 
     // Timestamp 1.
     var gmd1 = addGlobalMemoryDump(model, 10, DETAILED);
     var pmdBrowser1 = addProcessMemoryDump(gmd1, pBrowser, 10);
     pmdBrowser1.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 128, 0, '/dev/ashmem/dalvik-non moving space',
-          { 'proportionalResident': 100 })
+          { 'privateDirtyResident': 100 })
     ]);
 
     // Timestamp 2 (light global memory dump, so it should be skipped for
@@ -395,26 +463,253 @@ tr.b.unittest.testSuite(function() {
     ];
     pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 1024, 0, '/dev/ashmem/dalvik-non moving space',
-          { 'proportionalResident': 150 })
+          { 'privateDirtyResident': 150 })
     ]);
   }, {
-    'memory_allocator_malloc_browser': expectBytes([0, 32, 48]),
-    'memory_allocator_malloc_total': expectBytes([0, 32, 48]),
-    'memory_dump_count_detailed': expectUnitless(2),
-    'memory_dump_count_light': expectUnitless(1),
-    'memory_dump_count_total': expectUnitless(3),
-    'memory_mmaps_ashmem_browser': expectBytes([0, 0]),
-    'memory_mmaps_ashmem_total': expectBytes([0, 0]),
-    'memory_mmaps_java_heap_browser': expectBytes([100, 150]),
-    'memory_mmaps_java_heap_total': expectBytes([100, 150]),
-    'memory_mmaps_native_heap_browser': expectBytes([0, 0]),
-    'memory_mmaps_native_heap_total': expectBytes([0, 0]),
-    'memory_mmaps_overall_pss_browser': expectBytes([100, 150]),
-    'memory_mmaps_overall_pss_total': expectBytes([100, 150]),
-    'memory_mmaps_private_dirty_browser': expectBytes([0, 0]),
-    'memory_mmaps_private_dirty_total': expectBytes([0, 0]),
-    'memory_process_count_browser': expectUnitless([1, 1, 1]),
-    'memory_process_count_total': expectUnitless([1, 1, 1])
+    'memory:chrome:all:dump_count:detailed': expectUnitless(2),
+    'memory:chrome:all:dump_count:light': expectUnitless(1),
+    'memory:chrome:all:dump_count:total': expectUnitless(3),
+    'memory:chrome:all:process_count': expectUnitless([1, 1, 1]),
+    'memory:chrome:all:subsystem:malloc': expectBytes([0, 32, 48]),
+    'memory:chrome:all:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:chrome:all:vmstats:java_heap:private_dirty':
+        expectBytes([100, 150]),
+    'memory:chrome:all:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:chrome:all:vmstats:overall:private_dirty':
+        expectBytes([100, 150]),
+    'memory:chrome:all:vmstats:overall:pss': expectBytes([0, 0]),
+    'memory:chrome:browser:process_count': expectUnitless([1, 1, 1]),
+    'memory:chrome:browser:subsystem:malloc': expectBytes([0, 32, 48]),
+    'memory:chrome:browser:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:chrome:browser:vmstats:java_heap:private_dirty':
+        expectBytes([100, 150]),
+    'memory:chrome:browser:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:chrome:browser:vmstats:overall:private_dirty':
+        expectBytes([100, 150]),
+    'memory:chrome:browser:vmstats:overall:pss': expectBytes([0, 0])
+  });
+
+  memoryMetricTest('combined_multipleBrowsers', function(model) {
+    var pWebView = createWebViewProcess(model);
+    var pChrome1 = createChromeBrowserProcess(model);
+    var pRenderer1 = createProcessWithName(model, 'Renderer');
+    var pGpu1 = createProcessWithName(model, 'GPU Process');
+    var pUnknownBrowser = createProcessWithName(model, 'Browser');
+    var pChrome2 = createChromeBrowserProcess(model);
+    var pRenderer2 = createProcessWithName(model, 'Renderer');
+
+    // Timestamp 1 (WebView).
+    var gmd1 = addGlobalMemoryDump(model, 0, LIGHT);
+    var pmdBrowser1 = addProcessMemoryDump(gmd1, pWebView, 0);
+    pmdBrowser1.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser1, 'malloc', { size: 2 }),
+      newAllocatorDump(pmdBrowser1, 'v8', { size: 4 })
+    ];
+
+    // Timestamp 2 (Chrome 1 + Renderer + GPU Process).
+    var gmd2 = addGlobalMemoryDump(model, 10, DETAILED);
+    var pmdBrowser2 = addProcessMemoryDump(gmd2, pChrome1, 12);
+    pmdBrowser2.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 9999, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'privateDirtyResident': 8 })
+    ]);
+    var pmdGpu2 = addProcessMemoryDump(gmd2, pGpu1, 8);
+    pmdGpu2.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 9999, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'privateDirtyResident': 16 })
+    ]);
+    var pmdRenderer2 = addProcessMemoryDump(gmd2, pRenderer1, 8);
+    pmdRenderer2.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser2, 'malloc', { size: 32 })
+    ];
+
+    // Timestamp 3 (Chrome 2).
+    var gmd3 = addGlobalMemoryDump(model, 20, DETAILED);
+    var pmdBrowser3 = addProcessMemoryDump(gmd3, pChrome2, 20);
+    pmdBrowser3.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser3, 'malloc', { size: 64 }),
+      newAllocatorDump(pmdBrowser3, 'sqlite', { size: 128 })
+    ];
+    pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 99, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'privateDirtyResident': 256 })
+    ]);
+
+    // Timestamp 4 (Chrome 2 + Renderer).
+    var gmd4 = addGlobalMemoryDump(model, 30, LIGHT);
+    var pmdBrowser4 = addProcessMemoryDump(gmd4, pChrome2, 28);
+    pmdBrowser4.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser4, 'malloc', { size: 512 })
+    ];
+    var pmdRenderer4 = addProcessMemoryDump(gmd4, pRenderer2, 32);
+    pmdRenderer4.memoryAllocatorDumps = [
+      newAllocatorDump(pmdRenderer4, 'malloc', { size: 1024 }),
+      newAllocatorDump(pmdRenderer4, 'v8', { size: 2048 })
+    ];
+
+    // Timestamp 5 (Unknown browser).
+    var gmd5 = addGlobalMemoryDump(model, 40, LIGHT);
+    var pmdBrowser5 = addProcessMemoryDump(gmd5, pUnknownBrowser, 40);
+    pmdBrowser5.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser5, 'malloc', { size: 4096 }),
+      newAllocatorDump(pmdBrowser5, 'sqlite', { size: 8192 }),
+    ];
+
+    // Timestamp 6 (WebView).
+    var gmd6 = addGlobalMemoryDump(model, 50, DETAILED);
+    var pmdBrowser6 = addProcessMemoryDump(gmd6, pWebView, 50);
+    pmdBrowser6.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser6, 'malloc', { size: 16384 }),
+      newAllocatorDump(pmdBrowser6, 'v8', { allocated_objects_size: 32768 })
+    ];
+    pmdBrowser6.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 99999, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'privateDirtyResident': 65536 })
+    ]);
+
+    // Timestamp 7 (Chrome 1 + GPU Process).
+    var gmd7 = addGlobalMemoryDump(model, 60, DETAILED);
+    var pmdBrowser7 = addProcessMemoryDump(gmd7, pChrome1, 63);
+    pmdBrowser7.memoryAllocatorDumps = [
+      newAllocatorDump(pmdBrowser4, 'malloc', { size: 131072 }),
+      newAllocatorDump(pmdBrowser4, 'sqlite', { size: 262144 })
+    ];
+    pmdBrowser7.vmRegions = VMRegionClassificationNode.fromRegions([
+      new VMRegion(0xABCD, 999999, 0, '/dev/ashmem/dalvik-non moving space',
+          { 'privateDirtyResident': 524288 })
+    ]);
+    var pmdGpu7 = addProcessMemoryDump(gmd7, pGpu1, 57);
+    pmdGpu7.memoryAllocatorDumps = (function() {
+      var gpuDump = newAllocatorDump(pmdGpu7, 'gpu', { 'size': 1048576 });
+      var memtrackDump = addChildDump(gpuDump, 'android_memtrack');
+      addChildDump(memtrackDump, 'gl', { 'memtrack_pss': 2097152 });
+      return [gpuDump];
+    })();
+  }, {
+    // WebView (GMD1, GMD6).
+    'memory:webview:all:dump_count:detailed': expectUnitless(1),
+    'memory:webview:all:dump_count:light': expectUnitless(1),
+    'memory:webview:all:dump_count:total': expectUnitless(2),
+    'memory:webview:all:process_count': expectUnitless([1, 1]),
+    'memory:webview:all:subsystem:malloc': expectBytes([2, 16384]),
+    'memory:webview:all:subsystem:v8': expectBytes([4, 0]),
+    'memory:webview:all:subsystem:v8:allocated_objects':
+        expectBytes([0, 32768]),
+    'memory:webview:all:vmstats:ashmem:pss': expectBytes([0]),
+    'memory:webview:all:vmstats:java_heap:private_dirty': expectBytes([65536]),
+    'memory:webview:all:vmstats:native_heap:pss': expectBytes([0]),
+    'memory:webview:all:vmstats:overall:private_dirty': expectBytes([65536]),
+    'memory:webview:all:vmstats:overall:pss': expectBytes([0]),
+    'memory:webview:browser:process_count': expectUnitless([1, 1]),
+    'memory:webview:browser:subsystem:malloc': expectBytes([2, 16384]),
+    'memory:webview:browser:subsystem:v8': expectBytes([4, 0]),
+    'memory:webview:browser:subsystem:v8:allocated_objects':
+        expectBytes([0, 32768]),
+    'memory:webview:browser:vmstats:ashmem:pss': expectBytes([0]),
+    'memory:webview:browser:vmstats:java_heap:private_dirty':
+        expectBytes([65536]),
+    'memory:webview:browser:vmstats:native_heap:pss': expectBytes([0]),
+    'memory:webview:browser:vmstats:overall:private_dirty':
+        expectBytes([65536]),
+    'memory:webview:browser:vmstats:overall:pss': expectBytes([0]),
+
+    // Chrome 1 (GMD3, GMD4).
+    'memory:chrome:all:android_memtrack:gl': expectBytes([0, 2097152]),
+    'memory:chrome:all:dump_count:detailed': expectUnitless(2),
+    'memory:chrome:all:dump_count:light': expectUnitless(0),
+    'memory:chrome:all:dump_count:total': expectUnitless(2),
+    'memory:chrome:all:process_count': expectUnitless([3, 2]),
+    'memory:chrome:all:subsystem:gpu': expectBytes([0, 1048576]),
+    'memory:chrome:all:subsystem:malloc': expectBytes([32, 131072]),
+    'memory:chrome:all:subsystem:sqlite': expectBytes([0, 262144]),
+    'memory:chrome:all:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:chrome:all:vmstats:java_heap:private_dirty':
+        expectBytes([8 + 16, 524288]),
+    'memory:chrome:all:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:chrome:all:vmstats:overall:private_dirty':
+        expectBytes([8 + 16, 524288]),
+    'memory:chrome:all:vmstats:overall:pss': expectBytes([0, 0]),
+    'memory:chrome:browser:process_count': expectUnitless([1, 1]),
+    'memory:chrome:browser:subsystem:malloc': expectBytes([0, 131072]),
+    'memory:chrome:browser:subsystem:sqlite': expectBytes([0, 262144]),
+    'memory:chrome:browser:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:chrome:browser:vmstats:java_heap:private_dirty':
+        expectBytes([8, 524288]),
+    'memory:chrome:browser:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:chrome:browser:vmstats:overall:private_dirty':
+        expectBytes([8, 524288]),
+    'memory:chrome:browser:vmstats:overall:pss': expectBytes([0, 0]),
+    'memory:chrome:gpu_process:android_memtrack:gl': expectBytes([0, 2097152]),
+    'memory:chrome:gpu_process:process_count': expectUnitless([1, 1]),
+    'memory:chrome:gpu_process:subsystem:gpu': expectBytes([0, 1048576]),
+    'memory:chrome:gpu_process:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:chrome:gpu_process:vmstats:java_heap:private_dirty':
+        expectBytes([16, 0]),
+    'memory:chrome:gpu_process:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:chrome:gpu_process:vmstats:overall:private_dirty':
+        expectBytes([16, 0]),
+    'memory:chrome:gpu_process:vmstats:overall:pss': expectBytes([0, 0]),
+    'memory:chrome:renderer:process_count': expectUnitless([1, 0]),
+    'memory:chrome:renderer:subsystem:malloc': expectBytes([32, 0]),
+    'memory:chrome:renderer:vmstats:ashmem:pss': expectBytes([0, 0]),
+    'memory:chrome:renderer:vmstats:java_heap:private_dirty':
+        expectBytes([0, 0]),
+    'memory:chrome:renderer:vmstats:native_heap:pss': expectBytes([0, 0]),
+    'memory:chrome:renderer:vmstats:overall:private_dirty': expectBytes([0, 0]),
+    'memory:chrome:renderer:vmstats:overall:pss': expectBytes([0, 0]),
+
+    // Chrome 2 (GMD2, GMD7).
+    'memory:chrome2:all:dump_count:detailed': expectUnitless(1),
+    'memory:chrome2:all:dump_count:light': expectUnitless(1),
+    'memory:chrome2:all:dump_count:total': expectUnitless(2),
+    'memory:chrome2:all:process_count': expectUnitless([1, 2]),
+    'memory:chrome2:all:subsystem:malloc': expectBytes([64, 512 + 1024]),
+    'memory:chrome2:all:subsystem:sqlite': expectBytes([128, 0]),
+    'memory:chrome2:all:subsystem:v8': expectBytes([0, 2048]),
+    'memory:chrome2:all:vmstats:ashmem:pss': expectBytes([0]),
+    'memory:chrome2:all:vmstats:java_heap:private_dirty': expectBytes([256]),
+    'memory:chrome2:all:vmstats:native_heap:pss': expectBytes([0]),
+    'memory:chrome2:all:vmstats:overall:private_dirty': expectBytes([256]),
+    'memory:chrome2:all:vmstats:overall:pss': expectBytes([0]),
+    'memory:chrome2:browser:process_count': expectUnitless([1, 1]),
+    'memory:chrome2:browser:subsystem:malloc': expectBytes([64, 512]),
+    'memory:chrome2:browser:subsystem:sqlite': expectBytes([128, 0]),
+    'memory:chrome2:browser:vmstats:ashmem:pss': expectBytes([0]),
+    'memory:chrome2:browser:vmstats:java_heap:private_dirty':
+        expectBytes([256]),
+    'memory:chrome2:browser:vmstats:native_heap:pss': expectBytes([0]),
+    'memory:chrome2:browser:vmstats:overall:private_dirty': expectBytes([256]),
+    'memory:chrome2:browser:vmstats:overall:pss': expectBytes([0]),
+    'memory:chrome2:renderer:process_count': expectUnitless([0, 1]),
+    'memory:chrome2:renderer:subsystem:malloc': expectBytes([0, 1024]),
+    'memory:chrome2:renderer:subsystem:v8': expectBytes([0, 2048]),
+
+    // Unknown browser (GMD5).
+    'memory:unknown:all:dump_count:detailed': expectUnitless(0),
+    'memory:unknown:all:dump_count:light': expectUnitless(1),
+    'memory:unknown:all:dump_count:total': expectUnitless(1),
+    'memory:unknown:all:process_count': expectUnitless([1]),
+    'memory:unknown:all:subsystem:malloc': expectBytes([4096]),
+    'memory:unknown:all:subsystem:sqlite': expectBytes([8192]),
+    'memory:unknown:browser:process_count': expectUnitless([1]),
+    'memory:unknown:browser:subsystem:malloc': expectBytes([4096]),
+    'memory:unknown:browser:subsystem:sqlite': expectBytes([8192])
+  });
+
+  test('dumpIdBrowserClashThrows', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var pWebView = createWebViewProcess(model);
+      var pChrome = createChromeBrowserProcess(model);
+
+      var gmd = addGlobalMemoryDump(model, 10);
+      addProcessMemoryDump(gmd, pWebView, 9);
+      addProcessMemoryDump(gmd, pChrome, 11);
+    });
+    var valueList = new tr.metrics.ValueList();
+
+    assert.throws(function() {
+      tr.metrics.sh.memoryMetric(valueList, model);
+    }, 'Memory dump ID clash across multiple browsers with PIDs: 1 and 2');
   });
 });
 </script>
