@@ -7,11 +7,14 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/linux_perf/ftrace_importer.html">
+<link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/model/clock_sync_manager.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var ClockDomainId = tr.model.ClockDomainId;
   var FTraceImporter = tr.e.importer.linux_perf.FTraceImporter;
   var FTraceImporterTestExports =
       tr.e.importer.linux_perf._FTraceImporterTestExports;
@@ -177,15 +180,28 @@ tr.b.unittest.testSuite(function() {
       '#',
       '#           TASK-PID    CPU#    TIMESTAMP  FUNCTION',
       '#              | |       |          |         |',
-      'sh-26121 [000] ...1 107464.0: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
+      'sh-26121 [000] ...1 15.050: tracing_mark_write: trace_event_clock_sync: name=battor regulator=8941_smbb_boost' // @suppress longLineCheck
     ];
-    var m = newModel(lines.join('\n'));
-    assert.isFalse(m.hasImportWarnings);
 
-    var battorSyncs = m.getClockSyncRecordsWithSyncId('battor');
-    assert.equal(battorSyncs.length, 1);
-    assert.equal(battorSyncs[0].start, 107464000.0);
-    assert.equal(battorSyncs[0].args.regulator, '8941_smbb_boost');
+    var io = new tr.importer.ImportOptions();
+    var m = new tr.Model();
+    var i = new tr.importer.Import(m, io);
+
+    m.clockSyncManager.addClockSyncMarker(ClockDomainId.BATTOR, 'battor', 50);
+
+    i.importTraces([lines.join('\n')]);
+
+    assert.isFalse(m.hasImportWarnings);
+    // The clock sync happened at 15050 in the ftrace global domain and at 50
+    // in the BattOr domain. This means the ftrace global timestamps need 15000
+    // subtracted from them in order to be on the BattOr timeline.
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(ClockDomainId.BATTOR)(3),
+        3);
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+          ClockDomainId.LINUX_FTRACE_GLOBAL)(15003),
+        3);
   });
 
   test('canImport', function() {
@@ -440,6 +456,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(c.slices.length, 2);
 
     assert.closeTo((15180.978813 - 0) * 1000, c.slices[0].start, 1e-5);
+
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL)(100),
+        100);
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            tr.model.ClockDomainId.LINUX_CLOCK_MONOTONIC)(100),
+        100);
   });
 
   test('tracingMarkWriteEOLCleanup', function() {

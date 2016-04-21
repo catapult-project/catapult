@@ -28,7 +28,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/linux_perf/workqueue_parser.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/importer/simple_line_reader.html">
-<link rel="import" href="/tracing/model/clock_sync_record.html">
+<link rel="import" href="/tracing/model/clock_sync_manager.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -48,7 +48,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.e.importer.linux_perf', function() {
-  var InstantClockSyncRecord = tr.model.InstantClockSyncRecord;
+  var MONOTONIC_TO_FTRACE_GLOBAL_SYNC_ID =
+      'linux_clock_monotonic_to_ftrace_global';
 
   /**
    * Imports linux perf events into a specified model.
@@ -58,7 +59,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     this.importPriority = 2;
     this.model_ = model;
     this.events_ = events;
-    this.newlyAddedClockSyncRecords_ = [];
     this.wakeups_ = [];
     this.blocked_reasons_ = [];
     this.kernelThreadStates_ = {};
@@ -145,7 +145,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   };
   TestExports.lineParserWithLegacyFmt = lineParserWithLegacyFmt;
 
-  // Matches the trace_event_clock_sync record
+  // Matches the trace_event_clock_sync marker:
   //  0: trace_event_clock_sync: parent_ts=19581477508
   var traceEventClockSyncRE = /trace_event_clock_sync: parent_ts=(\d+\.?\d*)/;
   TestExports.traceEventClockSyncRE = traceEventClockSyncRE;
@@ -326,22 +326,38 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     /**
+     * Imports clock sync markers into model_.
+     */
+    importClockSyncMarkers: function() {
+      this.lazyInit_();
+
+      this.forEachLine_(function(text, eventBase, cpuNumber, pid, ts) {
+        var eventName = eventBase.eventName;
+        if (eventName !== 'tracing_mark_write' && eventName !== '0')
+          return;
+
+        if (traceEventClockSyncRE.exec(eventBase.details) ||
+            genericClockSyncRE.exec(eventBase.details)) {
+          this.traceClockSyncEvent_(eventName, cpuNumber, pid, ts, eventBase);
+        } else if (realTimeClockSyncRE.exec(eventBase.details)) {
+          // TODO(charliea): Migrate this sync to ClockSyncManager.
+          // This entry syncs CLOCK_REALTIME with CLOCK_MONOTONIC. Store the
+          // offset between the two in the model so that importers parsing files
+          // with CLOCK_REALTIME timestamps can map back to CLOCK_MONOTONIC.
+          var match = realTimeClockSyncRE.exec(eventBase.details);
+          this.model_.realtime_to_monotonic_offset_ms = ts - match[1];
+        }
+      }.bind(this));
+    },
+
+    /**
      * Imports the data in this.events_ into model_.
      */
     importEvents: function() {
-      this.parsers_ = this.createParsers_();
-      this.registerDefaultHandlers_();
-      this.parseLines_();
-      this.importClockSyncRecords_();
-      var modelTimeTransformer = this.getModelTimeTransformer_();
-      if (modelTimeTransformer === undefined) {
-        this.model_.importWarning({
-          type: 'clock_sync',
-          message: 'Cannot import kernel trace without a clock sync.'
-        });
-        return;
-      }
-      this.shiftNewlyAddedClockSyncRecords_(modelTimeTransformer);
+      var modelTimeTransformer =
+          this.model_.clockSyncManager.getModelTimeTransformer(
+            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL);
+
       this.importCpuData_(modelTimeTransformer);
       this.buildMapFromLinuxPidsToThreads_();
       this.buildPerThreadCpuSlicesFromCpuState_();
@@ -674,39 +690,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     /**
-     * Returns a function that acccepts a timestamp in the ftrace global clock
-     * domain and returns that same timestamp in the model's clock domain. If
-     * there are insufficient sync markers to create such a function, undefined
-     * is returned.
-     */
-    getModelTimeTransformer_: function() {
-      // When the trace event importer is run, it creates a clock sync record
-      // with a syncId of 'ftrace_importer' as a signal to this importer that
-      // a Chrome trace is present.
-      var isAttachedToChromeTrace = this.model.getClockSyncRecordsWithSyncId(
-          'ftrace_importer').length !== 0;
-
-      var monotonicSyncs = this.model_.getClockSyncRecordsWithSyncId(
-          'ftrace_global_to_monotonic');
-
-      // If there's no sync to the monotonic clock available, it's okay as long
-      // as there's not a Chrome trace present, because that means that the
-      // ftrace global clock is the model clock domain. If there is a Chrome
-      // trace present, abort the import (by returning undefined).
-      if (monotonicSyncs.length == 0)
-        return isAttachedToChromeTrace ? undefined : tr.b.identity;
-
-      // TODO(skyostil): Compute a scaling factor if we have multiple clock sync
-      // records.
-      var ftraceGlobalTs = monotonicSyncs[0].start;
-      var monotonicTs = monotonicSyncs[0].args.monotonicTs;
-
-      return function(ts) {
-        return ts + monotonicTs - ftraceGlobalTs;
-      };
-    },
-
-    /**
      * Creates an instance of each registered linux perf event parser.
      * This allows the parsers to register handlers for the events they
      * understand.  We also register our own special handlers (for the
@@ -741,7 +724,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      * Processes a trace_event_clock_sync event.
      */
     traceClockSyncEvent_: function(eventName, cpuNumber, pid, ts, eventBase) {
-      // Check for new-style clock sync records.
+      // Check to see if we have a normal clock sync marker that contains a
+      // sync ID and the current time according to the "ftrace global" clock.
       var event = /name=(\w+?)\s(.+)/.exec(eventBase.details);
       if (event) {
         var name = event[1];
@@ -755,11 +739,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             throw new Error('omgbbq');
           args[parts[0]] = parts[1];
         }
-        this.addClockSyncRecord_(new InstantClockSyncRecord(name, ts, args));
+
+        this.model_.clockSyncManager.addClockSyncMarker(
+            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL, name, ts);
         return true;
       }
 
-      // Old-style clock sync records from chromium
+      // Check to see if we have a special clock sync marker that contains both
+      // the current "ftrace global" time and the current CLOCK_MONOTONIC time.
       event = /parent_ts=(\d+\.?\d*)/.exec(eventBase.details);
       if (!event)
         return false;
@@ -770,8 +757,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (monotonicTs === 0)
         monotonicTs = ts;
 
-      this.addClockSyncRecord_(new InstantClockSyncRecord(
-          'ftrace_global_to_monotonic', ts, { monotonicTs: monotonicTs }));
+      // We have a clock sync event that contains two timestamps: a timestamp
+      // according to the ftrace 'global' clock, and that same timestamp
+      // according to clock_gettime(CLOCK_MONOTONIC).
+      this.model_.clockSyncManager.addClockSyncMarker(
+          tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL,
+          MONOTONIC_TO_FTRACE_GLOBAL_SYNC_ID, ts);
+      this.model_.clockSyncManager.addClockSyncMarker(
+          tr.model.ClockDomainId.LINUX_CLOCK_MONOTONIC,
+          MONOTONIC_TO_FTRACE_GLOBAL_SYNC_ID, monotonicTs);
+
       return true;
     },
 
@@ -810,39 +805,6 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         return true;
       }
       return handler(writeEventName, cpuNumber, pid, ts, eventBase, threadName);
-    },
-
-    /**
-     * Populates model clockSyncRecords with found clock sync markers.
-     */
-    importClockSyncRecords_: function() {
-      this.forEachLine_(function(text, eventBase, cpuNumber, pid, ts) {
-        var eventName = eventBase.eventName;
-        if (eventName !== 'tracing_mark_write' && eventName !== '0')
-          return;
-        if (traceEventClockSyncRE.exec(eventBase.details))
-          this.traceClockSyncEvent_(eventName, cpuNumber, pid, ts, eventBase);
-        if (realTimeClockSyncRE.exec(eventBase.details)) {
-          // This entry maps realtime to clock_monotonic; store in the model
-          // so that importers parsing files with realtime timestamps can
-          // map this back to monotonic.
-          var match = realTimeClockSyncRE.exec(eventBase.details);
-          this.model_.realtime_to_monotonic_offset_ms = ts - match[1];
-        }
-        if (genericClockSyncRE.exec(eventBase.details))
-          this.traceClockSyncEvent_(eventName, cpuNumber, pid, ts, eventBase);
-      }.bind(this));
-    },
-
-    addClockSyncRecord_: function(csr) {
-      this.newlyAddedClockSyncRecords_.push(csr);
-      this.model_.clockSyncRecords.push(csr);
-    },
-
-    shiftNewlyAddedClockSyncRecords_: function(modelTimeTransformer) {
-      this.newlyAddedClockSyncRecords_.forEach(function(csr) {
-        csr.start = modelTimeTransformer(csr.start);
-      });
     },
 
     /**
@@ -926,6 +888,17 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var line = this.lines_[i];
         handler.apply(this, line);
       }
+    },
+
+    /**
+     * Initializes the ftrace importer. This initialization can't be done in the
+     * constructor because all trace event handlers may not have been registered
+     * by that point.
+     */
+    lazyInit_: function() {
+      this.parsers_ = this.createParsers_();
+      this.registerDefaultHandlers_();
+      this.parseLines_();
     }
   };
 
