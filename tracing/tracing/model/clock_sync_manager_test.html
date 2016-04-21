@@ -18,11 +18,11 @@ tr.b.unittest.testSuite(function() {
   var testOptions = {
     setUp: function() {
       // Add a few testing clock domains to the list of permissible domains.
-      ClockDomainId.DOMAIN_1 = 'domain1';
-      ClockDomainId.DOMAIN_2 = 'domain2';
-      ClockDomainId.DOMAIN_3 = 'domain3';
-      ClockDomainId.DOMAIN_4 = 'domain4';
-      ClockDomainId.DOMAIN_5 = 'domain5';
+      ClockDomainId.DOMAIN_1 = 'DOMAIN1';
+      ClockDomainId.DOMAIN_2 = 'DOMAIN2';
+      ClockDomainId.DOMAIN_3 = 'DOMAIN3';
+      ClockDomainId.DOMAIN_4 = 'DOMAIN4';
+      ClockDomainId.DOMAIN_5 = 'DOMAIN5';
     },
 
     tearDown: function() {
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
         'clock sync marker to it.');
   }, testOptions);
 
-  test('addClockSyncMarker_throwsWhenAddingDuplicateConnectors', function() {
+  test('addClockSyncMarker_throwsWhenAddingDuplicatePaths', function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
@@ -72,7 +72,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(function() {
       mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 100);
-    }, 'Cannot add multiple connectors between the same clock domains.');
+    }, 'The current code cannot handle multiple paths between the same clock ' +
+        'domains. However, this is a valid operation.');
   }, testOptions);
 
   test('addClockSyncMarker_throwsAfterGetModelTimeTransformer', function() {
@@ -88,7 +89,47 @@ tr.b.unittest.testSuite(function() {
         'transformer.');
   }, testOptions);
 
-  test('getModelTimeTransformer_oneIncompleteSync', function() {
+  test('getModelTimeTransformer_noMarkers', function() {
+    var mgr = new ClockSyncManager();
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
+  }, testOptions);
+
+  test('getModelTimeTransformer_noMarkersSecondDomainThrows', function() {
+    var mgr = new ClockSyncManager();
+
+    mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1);
+
+    assert.throws(function() {
+      mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2);
+    }, 'No clock sync markers exist pairing clock domain "DOMAIN2" with model' +
+        ' clock domain "DOMAIN1".');
+  }, testOptions);
+
+  test('getModelTimeTransformer_noMarkersChromeLegacyFirst', function() {
+    var mgr = new ClockSyncManager();
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(100),
+        100);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(100),
+        100);
+  }, testOptions);
+
+  test('getModelTimeTransformer_noMarkersChromeLegacySecond', function() {
+    var mgr = new ClockSyncManager();
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(100),
+        100);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(100),
+        100);
+  }, testOptions);
+
+  test('getModelTimeTransformer_oneMarker', function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
 
@@ -107,11 +148,44 @@ tr.b.unittest.testSuite(function() {
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
   }, testOptions);
 
+  test('getModelTimeTransformer_oneCompleteSyncWithChromeLegacyBefore',
+      function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.UNKNOWN_CHROME_LEGACY, 'sync1', 350);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+        350);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
+        350);
+  }, testOptions);
+
+  test('getModelTimeTransformer_oneCompleteSyncWithChromeLegacyAfter',
+      function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.LINUX_CLOCK_MONOTONIC, 'sync1', 350);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.UNKNOWN_CHROME_LEGACY)(350),
+        350);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 350);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.LINUX_CLOCK_MONOTONIC)(350),
+        350);
+  }, testOptions);
+
   test('getModelTimeTransformer_twoCompleteSyncs', function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 350);
 
+    var tx = mgr.getTransformerBetween_('DOMAIN1', 'DOMAIN3');
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 200);
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 250);
 
@@ -132,6 +206,21 @@ tr.b.unittest.testSuite(function() {
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(350), 150);
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(150), 150);
+  }, testOptions);
+
+  test('getModelTimeTransformer_indirectlyConnectedGraph',
+      function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 200);
+
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 200);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 300);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_3)(300), 100);
   }, testOptions);
 
   test('getModelTimeTransformer_battorSyncUsesNormalTimestampWhenFast',
@@ -234,7 +323,6 @@ tr.b.unittest.testSuite(function() {
         350);
   }, testOptions);
 
-
   test('getModelTimeTransformer_collapsesChromeLegacyDomainWinHiRes',
       function() {
     var mgr = new ClockSyncManager();
@@ -255,16 +343,6 @@ tr.b.unittest.testSuite(function() {
         350);
   }, testOptions);
 
-  test('getModelTimeTransformer_throwsWithNoAgentMarker', function() {
-    var mgr = new ClockSyncManager();
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
-
-    assert.throws(function() {
-      mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2);
-    }, 'No clock sync markers exist pairing clock domain "domain2" with model' +
-        ' clock domain "domain1".');
-  }, testOptions);
-
   test('getModelTimeTransformer_throwsWithTwoDistinctGraphs', function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
@@ -278,35 +356,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(function() {
       mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_5);
-    }, 'Unable to select a master clock domain because no clock domain is ' +
-        'directly connected to all others.');
-  }, testOptions);
-
-  test('getModelTimeTransformer_throwsWithIndirectlyConnectedGraph',
-      function() {
-    var mgr = new ClockSyncManager();
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
-
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 100);
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync2', 100);
-
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_3, 'sync3', 100);
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_4, 'sync3', 100);
-
-    assert.throws(function() {
-      mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1);
-    }, 'Unable to select a master clock domain because no clock domain is ' +
-        'directly connected to all others.');
-  }, testOptions);
-
-  test('getModelTimeTransformer_throwsWithNoClockSyncMarkers', function() {
-    var mgr = new ClockSyncManager();
-
-    assert.throws(function() {
-      mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1);
-    }, 'Unable to select a master clock domain because no clock domain is ' +
-        'directly connected to all others.');
+    }, 'Unable to select a master clock domain because no path can be found ' +
+        'from "DOMAIN1" to "DOMAIN4"');
   }, testOptions);
 });
 </script>
