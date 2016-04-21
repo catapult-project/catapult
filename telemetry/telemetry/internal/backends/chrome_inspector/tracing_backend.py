@@ -34,6 +34,10 @@ class TracingUnexpectedResponseException(Exception):
   pass
 
 
+class ClockSyncResponseException(Exception):
+  pass
+
+
 class _DevToolsStreamReader(object):
   def __init__(self, inspector_socket, stream_handle):
     self._inspector_websocket = inspector_socket
@@ -131,12 +135,14 @@ class TracingBackend(object):
   def RecordClockSyncMarker(self, sync_id):
     assert self.is_tracing_running, 'Tracing must be running to clock sync.'
     req = {
-      'method': 'recordClockSyncMarker',
+      'method': 'Tracing.recordClockSyncMarker',
       'params': {
         'syncId': sync_id
       }
     }
-    self._inspector_websocket.SyncRequest(req, timeout=2)
+    rc = self._inspector_websocket.SyncRequest(req, timeout=2)
+    if 'error' in rc:
+      raise ClockSyncResponseException(rc['error']['message'])
 
   def StopTracing(self, trace_data_builder, timeout=30):
     """Stops tracing and pushes results to the supplied TraceDataBuilder.

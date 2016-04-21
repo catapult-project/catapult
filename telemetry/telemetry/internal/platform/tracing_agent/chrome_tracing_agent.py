@@ -126,16 +126,16 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
   def SupportsExplicitClockSync(self):
     return True
 
-  def RecordClockSyncMarker(self, sync_id,
-                            record_controller_clock_sync_marker_callback):
-    devtools_clients = (chrome_tracing_devtools_manager
-        .GetActiveDevToolsClients(self._platform_backend))
-    if not devtools_clients:
-      return False
+  def _RecordClockSyncMarkerDevTools(
+      self, sync_id, record_controller_clock_sync_marker_callback,
+      devtools_clients):
     has_clock_synced = False
-    timestamp = trace_time.Now()
+    if not devtools_clients:
+      raise ChromeClockSyncError()
+
     for client in devtools_clients:
       try:
+        timestamp = trace_time.Now()
         client.RecordChromeClockSyncMarker(sync_id)
         # We only need one successful clock sync.
         has_clock_synced = True
@@ -145,6 +145,40 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if not has_clock_synced:
       raise ChromeClockSyncError()
     record_controller_clock_sync_marker_callback(sync_id, timestamp)
+
+  def _RecordClockSyncMarkerAsyncEvent(
+      self, sync_id, record_controller_clock_sync_marker_callback):
+    has_clock_synced = False
+    for backend in self._IterInspectorBackends():
+      try:
+        timestamp = trace_time.Now()
+        backend.EvaluateJavaScript(
+            "console.time('ClockSyncEvent.%s');" % sync_id)
+        backend.EvaluateJavaScript(
+            "console.timeEnd('ClockSyncEvent.%s');" % sync_id)
+        has_clock_synced = True
+        break
+      except Exception:
+        pass
+    if not has_clock_synced:
+      raise ChromeClockSyncError()
+    record_controller_clock_sync_marker_callback(sync_id, timestamp)
+
+  def RecordClockSyncMarker(self, sync_id,
+                            record_controller_clock_sync_marker_callback):
+    devtools_clients = (chrome_tracing_devtools_manager
+        .GetActiveDevToolsClients(self._platform_backend))
+    version = None
+    for client in devtools_clients:
+      version = client.GetChromeBranchNumber()
+      break
+    if int(version) >= 2661:
+      self._RecordClockSyncMarkerDevTools(
+          sync_id, record_controller_clock_sync_marker_callback,
+          devtools_clients)
+    else:  # TODO(rnephew): Remove once chrome stable is past branch 2661.
+      self._RecordClockSyncMarkerAsyncEvent(
+          sync_id, record_controller_clock_sync_marker_callback)
 
   def StopAgentTracing(self):
     # TODO: Split collection and stopping.

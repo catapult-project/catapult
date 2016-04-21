@@ -11,6 +11,7 @@ from telemetry.testing import fakes
 from telemetry.testing import simple_mock
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
+from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 
 
@@ -58,13 +59,21 @@ class TracingBackendTest(tab_test_case.TabTestCase):
       self.assertNotIn(dump_id, expected_dump_ids)
       expected_dump_ids.append(dump_id)
 
-    trace_data = self._tracing_controller.StopTracing()
+    tracing_data = self._tracing_controller.StopTracing()
+
+    # Check that clock sync data is in tracing data.
+    clock_sync_found = False
+    for event in tracing_data.GetEventsFor(trace_data.CHROME_TRACE_PART):
+      if event['name'] == 'clock_sync' or 'ClockSyncEvent' in event['name']:
+        clock_sync_found = True
+        break
+    self.assertTrue(clock_sync_found)
 
     # Check that dumping memory after tracing stopped raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
 
     # Test that trace data is parsable.
-    model = model_module.TimelineModel(trace_data)
+    model = model_module.TimelineModel(tracing_data)
     self.assertGreater(len(model.processes), 0)
 
     # Test that the resulting model contains the requested memory dumps in the
@@ -84,13 +93,13 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     # Check that the method returns None if the dump was not successful.
     self.assertIsNone(self._browser.DumpMemory())
 
-    trace_data = self._tracing_controller.StopTracing()
+    tracing_data = self._tracing_controller.StopTracing()
 
     # Check that dumping memory after tracing stopped raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
 
     # Test that trace data is parsable.
-    model = model_module.TimelineModel(trace_data)
+    model = model_module.TimelineModel(tracing_data)
     self.assertGreater(len(model.processes), 0)
 
     # Test that the resulting model contains no memory dumps.
