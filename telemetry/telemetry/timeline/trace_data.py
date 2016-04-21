@@ -3,6 +3,9 @@
 # found in the LICENSE file.
 
 import json
+import os
+import tempfile
+import zipfile
 
 class NonSerializableTraceData(Exception):
   """Raised when raw trace data cannot be serialized to TraceData."""
@@ -34,13 +37,15 @@ class TraceDataPart(object):
     return self._raw_field_name
 
 
+BATTOR_TRACE_PART = TraceDataPart('battor')
 CHROME_TRACE_PART = TraceDataPart('traceEvents')
 INSPECTOR_TRACE_PART = TraceDataPart('inspectorTimelineEvents')
 SURFACE_FLINGER_PART = TraceDataPart('surfaceFlinger')
 TAB_ID_PART = TraceDataPart('tabIds')
 TELEMETRY_PART = TraceDataPart('telemetry')
 
-ALL_TRACE_PARTS = {CHROME_TRACE_PART,
+ALL_TRACE_PARTS = {BATTOR_TRACE_PART,
+                   CHROME_TRACE_PART,
                    INSPECTOR_TRACE_PART,
                    SURFACE_FLINGER_PART,
                    TAB_ID_PART,
@@ -143,10 +148,23 @@ class TraceData(object):
   def Serialize(self, f, gzip_result=False):
     """Serializes the trace result to a file-like object.
 
-    Always writes in the trace container format.
+    Write in trace container format if gzip_result=False.
+    Writes to a .zip file if gzip_result=True.
     """
-    assert not gzip_result, 'Not implemented'
-    json.dump(self._raw_data, f)
+    if gzip_result:
+      zip_file = zipfile.ZipFile(f, mode='w')
+      try:
+        for part in self.active_parts:
+          tmp_file_name = None
+          with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            tmp_file_name = tmp_file.name
+            tmp_file.write(str(self._raw_data[part.raw_field_name]))
+          zip_file.write(tmp_file_name, arcname=part.raw_field_name)
+          os.remove(tmp_file_name)
+      finally:
+        zip_file.close()
+    else:
+      json.dump(self._raw_data, f)
 
 
 class TraceDataBuilder(object):

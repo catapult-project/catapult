@@ -4,7 +4,10 @@
 
 import cStringIO
 import json
+import os
+import tempfile
 import unittest
+import zipfile
 
 from telemetry.timeline import trace_data
 
@@ -19,6 +22,23 @@ class TraceDataTest(unittest.TestCase):
     self.assertIn('[1, 2, 3]', d)
 
     json.loads(d)
+
+  def testSerializeZip(self):
+    data = trace_data.TraceData({'traceEvents': [1, 2, 3],
+                                 'battor': ['battor_data']})
+    tf = tempfile.NamedTemporaryFile(delete=False)
+    temp_name = tf.name
+    tf.close()
+    try:
+      data.Serialize(temp_name, gzip_result=True)
+      self.assertTrue(zipfile.is_zipfile(temp_name))
+      z = zipfile.ZipFile(temp_name, 'r')
+
+      self.assertIn('battor', z.namelist())
+      self.assertIn('traceEvents', z.namelist())
+      z.close()
+    finally:
+      os.remove(temp_name)
 
   def testValidateWithNonPrimativeRaises(self):
     with self.assertRaises(trace_data.NonSerializableTraceData):
@@ -70,9 +90,11 @@ class TraceDataBuilderTest(unittest.TestCase):
     builder = trace_data.TraceDataBuilder()
     builder.AddEventsTo(trace_data.CHROME_TRACE_PART, [1, 2, 3])
     builder.AddEventsTo(trace_data.TAB_ID_PART, ['tab-7'])
+    builder.AddEventsTo(trace_data.BATTOR_TRACE_PART, ['battor data here'])
 
     d = builder.AsData()
     self.assertTrue(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
     self.assertTrue(d.HasEventsFor(trace_data.TAB_ID_PART))
+    self.assertTrue(d.HasEventsFor(trace_data.BATTOR_TRACE_PART))
 
     self.assertRaises(Exception, builder.AsData)
