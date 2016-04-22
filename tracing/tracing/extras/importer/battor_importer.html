@@ -26,7 +26,6 @@ tr.exportTo('tr.e.importer.battor', function() {
    */
   function BattorImporter(model, events) {
     this.importPriority = 3; // runs after the linux_perf importer
-    this.sampleRate_ = undefined;
     this.model_ = model;
     this.events_ = events;
     this.explicitSyncMark_ = undefined;
@@ -37,7 +36,6 @@ tr.exportTo('tr.e.importer.battor', function() {
       '(?:\\s+<(\\S+)>)?$'
   );
   var battorHeaderLineRE = /^# BattOr/;
-  var sampleRateLineRE = /^# sample_rate (\d+) Hz/;
 
   /**
    * Guesses whether the provided events is a BattOr string.
@@ -105,38 +103,33 @@ tr.exportTo('tr.e.importer.battor', function() {
         if (line.length === 0)
           return;
 
-        if (/^#/.test(line)) {
-          // Parse sample rate.
-          groups = sampleRateLineRE.exec(line);
-          if (!groups)
-            return;
-          this.sampleRate_ = parseInt(groups[1]);
-        } else {
-          // Parse power sample.
-          var groups = battorDataLineRE.exec(line);
-          if (!groups) {
-            this.model_.importWarning({
-              type: 'parse_error',
-              message: 'Unrecognized line: ' + line
-            });
-            return;
-          }
+        if (/^#/.test(line))
+          return;
 
-          // Add power sample.
-          var time = parseFloat(groups[1]);
-          var voltage_V = parseFloat(groups[2]) / 1000;
-          var current_A = parseFloat(groups[3]) / 1000;
+        // Parse power sample.
+        var groups = battorDataLineRE.exec(line);
+        if (!groups) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'Unrecognized line: ' + line
+          });
+          return;
+        }
 
-          // Create power sample and convert to internal power units (Watts).
-          var power_W = voltage_V * current_A;
-          series.addPowerSample(time, power_W);
+        // Add power sample.
+        var time = parseFloat(groups[1]);
+        var voltage_V = parseFloat(groups[2]) / 1000;
+        var current_A = parseFloat(groups[3]) / 1000;
 
-          // Found first explicit clock sync - save it.
-          if (groups[4] !== undefined &&
+        // Create power sample and convert to internal power units (Watts).
+        var power_W = voltage_V * current_A;
+        series.addPowerSample(time, power_W);
+
+        // Found first explicit clock sync - save it.
+        if (groups[4] !== undefined &&
             this.explicitSyncMark_ === undefined) {
-            var id = groups[4];
-            this.explicitSyncMark_ = {'id' : id, 'ts' : time};
-          }
+          var id = groups[4];
+          this.explicitSyncMark_ = {'id' : id, 'ts' : time};
         }
       }, this);
     },
