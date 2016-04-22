@@ -32,8 +32,6 @@ tr.exportTo('tr.e.importer.battor', function() {
     this.explicitSyncMark_ = undefined;
   }
 
-  var TestExports = {};
-
   var battorDataLineRE = new RegExp(
       '^(\\d+\\.\\d+)\\s+(\\d+\\.\\d+)\\s+(\\d+\\.\\d+)' +
       '(?:\\s+<(\\S+)>)?$'
@@ -185,7 +183,6 @@ tr.exportTo('tr.e.importer.battor', function() {
 
   return {
     BattorImporter: BattorImporter,
-    _BattorImporterTestExports: TestExports
   };
 });
 
