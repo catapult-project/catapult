@@ -322,6 +322,99 @@ tr.b.unittest.testSuite(function() {
     assert.throws(
         function() { b1.addExponentialBins(8 /* must be > 8 */, 3); });
   });
+
+  test('getSummarizedScalarNumericsWithNames', function() {
+    var n = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+        100).build();
+
+    n.add(50);
+    n.add(60);
+    n.add(70);
+
+    n.customizeSummaryOptions({
+      count: true,
+      min: true,
+      max: true,
+      sum: true,
+      avg: true,
+      std: true,
+      percentile: [0.5, 1]
+    });
+
+    var results = n.getSummarizedScalarNumericsWithNames();
+    var values = {};
+    results.forEach(function(x) {
+      values[x.name] = x.scalar;
+    });
+
+    assert.strictEqual(values.count.value, 3);
+    assert.strictEqual(values.min.value, 50);
+    assert.strictEqual(values.max.value, 70);
+    assert.strictEqual(values.sum.value, 180);
+    assert.strictEqual(values.avg.value, 60);
+    assert.strictEqual(values.std.value, 10);
+    assert.closeTo(values.pct_050.value, 60, 1);
+    assert.closeTo(values.pct_100.value, 70, 1);
+  });
+
+  test('getSummarizedScalarNumericsWithNamesNoSummaryOptions', function() {
+    var n = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+        100).build();
+
+    n.add(50);
+    n.add(60);
+    n.add(70);
+
+    n.customizeSummaryOptions({
+      count: false,
+      min: false,
+      max: false,
+      sum: false,
+      avg: false,
+      std: false,
+      percentile: []
+    });
+
+    var results = n.getSummarizedScalarNumericsWithNames('abc');
+    assert.strictEqual(results.length, 0);
+  });
+
+  test('getSummarizedScalarNumericsWithNamesEmptyNumericValue', function() {
+    var n = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+        100).build();
+
+    n.customizeSummaryOptions({
+      count: true,
+      min: true,
+      max: true,
+      sum: true,
+      avg: true,
+      std: true,
+      percentile: [0, 0.01, 0.1, 0.5, 0.995, 1]
+    });
+
+    var results = n.getSummarizedScalarNumericsWithNames();
+    var values = {};
+    results.forEach(function(x) {
+      values[x.name] = x.scalar;
+    });
+
+    assert.strictEqual(values.count.value, 0);
+    assert.strictEqual(values.min.value, Infinity);
+    assert.strictEqual(values.max.value, -Infinity);
+    assert.strictEqual(values.sum.value, 0);
+    assert.strictEqual(values.avg, undefined);
+    assert.strictEqual(values.std, undefined);
+    assert.strictEqual(values.pct_000.value, 0);
+    assert.strictEqual(values.pct_001.value, 0);
+    assert.strictEqual(values.pct_010.value, 0);
+    assert.strictEqual(values.pct_050.value, 0);
+    assert.strictEqual(values.pct_099_5.value, 0);
+    assert.strictEqual(values.pct_100.value, 0);
+  });
 });
 
 </script>

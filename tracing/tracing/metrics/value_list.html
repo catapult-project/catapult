@@ -50,25 +50,12 @@ tr.exportTo('tr.metrics', function() {
     if (!(value instanceof tr.v.NumericValue &&
           value.numeric instanceof tr.v.Numeric))
       throw new Error('Tried to compute summary values for non-numeric');
-
-    var canonicalUrl = value.canonicalUrl;
-    var name = value.name;
-    var n = value.numeric;
-    var description = value.description;
-
-    var sumNumeric = new tr.v.ScalarNumeric(n.unit, n.runningSum);
-    var countNumeric = new tr.v.ScalarNumeric(
-        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, n.numValues);
-    var avgNumeric = new tr.v.ScalarNumeric(n.unit, n.average);
-
-    return [
-      new tr.v.NumericValue(canonicalUrl, name + '_sum', sumNumeric,
-      { description: description }),
-      new tr.v.NumericValue(canonicalUrl, name + '_count', countNumeric,
-      { description: description }),
-      new tr.v.NumericValue(canonicalUrl, name + '_avg', avgNumeric,
-      { description: description })
-    ];
+    return value.numeric.getSummarizedScalarNumericsWithNames().map(
+        function(stat) {
+          return new tr.v.NumericValue(
+              value.canonicalUrl, value.name + '_' + stat.name, stat.scalar,
+              { description: value.description });
+        });
   };
 
   return {

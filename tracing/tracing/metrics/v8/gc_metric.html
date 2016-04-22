@@ -184,8 +184,8 @@ tr.exportTo('tr.metrics.v8', function() {
     valueList.addValue(
       new tr.v.NumericValue(model.canonicalUrl,
         stageTitle + '-' + name + '_outside_idle', outsideIdle));
-    var percentage = createPercentage(insideIdle.runningSum,
-                                      cpuDuration.runningSum);
+    var percentage = createPercentage(insideIdle.sum,
+                                      cpuDuration.sum);
     valueList.addValue(
       new tr.v.NumericValue(model.canonicalUrl,
         stageTitle + '-' + name + '_percentage_idle', percentage));

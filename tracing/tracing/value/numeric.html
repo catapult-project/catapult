@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/running_statistics.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -97,7 +98,7 @@ tr.exportTo('tr.v', function() {
     this.numNans = 0;
     this.nanSourceInfos = [];
 
-    this.runningSum = 0;
+    this.running = new tr.b.RunningStatistics();
     this.maxCount_ = 0;
 
     this.underflowBin = binInfo.underflowBin;
@@ -113,6 +114,8 @@ tr.exportTo('tr.v', function() {
       if (bin.count > this.maxCount_)
         this.maxCount_ = bin.count;
     }, this);
+
+    this.summaryOptions = this.defaultSummaryOptions();
   }
 
   Numeric.fromDict = function(d) {
@@ -127,7 +130,10 @@ tr.exportTo('tr.v', function() {
     n.allBins.forEach(function(bin) {
       bin.parentNumeric = n;
     });
-    n.runningSum = d.runningSum;
+    if (d.running)
+      n.running = tr.b.RunningStatistics.fromDict(d.running);
+    if (d.summaryOptions)
+      n.customizeSummaryOptions(d.summaryOptions);
     n.numNans = d.numNans;
     n.nanSourceInfos = d.nanSourceInfos;
     return n;
@@ -143,7 +149,11 @@ tr.exportTo('tr.v', function() {
     },
 
     get average() {
-      return this.runningSum / this.numValues;
+      return this.running.mean;
+    },
+
+    get sum() {
+      return this.running.sum;
     },
 
     get maxCount() {
@@ -249,7 +259,7 @@ tr.exportTo('tr.v', function() {
 
       var bin = this.getBinForValue(value);
       bin.add(value, sourceInfo);
-      this.runningSum += value;
+      this.running.add(value);
       if (bin.count > this.maxCount_)
         this.maxCount_ = bin.count;
     },
@@ -263,10 +273,106 @@ tr.exportTo('tr.v', function() {
       tr.b.Statistics.mergeSampledStreams(this.nanSourceInfos, this.numNans,
           other.nanSourceInfos, other.numNans, MAX_SOURCE_INFOS);
       this.numNans += other.numNans;
-      this.runningSum += other.runningSum;
+      this.running = this.running.merge(other.running);
       for (var i = 0; i < this.allBins.length; ++i) {
         this.allBins[i].addBin(other.allBins[i]);
       }
+    },
+
+    /**
+     * Controls which statistics are exported to dashboard for this numeric.
+     * The |summaryOptions| parameter is a dictionary with optional boolean
+     * fields |count|, |sum|, |avg|, |std|, |min|, |max| and an optional
+     * array field |percentile|.
+     * Each percentile should be a number between 0.0 and 1.0.
+     * The options not included in the |summaryOptions| will not change.
+     */
+    customizeSummaryOptions: function(summaryOptions) {
+      tr.b.iterItems(summaryOptions, function(key, value) {
+        this.summaryOptions[key] = value;
+      }, this);
+    },
+
+    defaultSummaryOptions: function() {
+      return {
+        count: true,
+        sum: true,
+        avg: true,
+        std: true,
+        min: true,
+        max: true,
+        percentile: []
+      };
+    },
+
+    /**
+     * Returns an array of {name: string, scalar: ScalarNumeric} values.
+     * Each enabled summary option produces the corresponding value:
+     * min, max, count, sum, avg, or std.
+     * Each percentile 0.x produces pct_0x0.
+     * Each percentile 0.xx produces pct_0xx.
+     * Each percentile 0.xxy produces pct_0xx_y.
+     * Percentile 1.0 produces pct_100.
+     */
+    getSummarizedScalarNumericsWithNames: function() {
+      function statNameToKey(stat) {
+        switch (stat) {
+          case 'std':
+            return 'stddev';
+          case 'avg':
+            return 'mean';
+        }
+        return stat;
+      }
+      /**
+       * Converts the given percent to a string in the format specified above.
+       * @param {number} percent The percent must be between 0.0 and 1.0.
+       */
+      function percentToString(percent) {
+        if (percent < 0 || percent > 1)
+          throw new Error('Percent must be between 0.0 and 1.0');
+        switch (percent) {
+          case 0:
+            return '000';
+          case 1:
+            return '100';
+        }
+        var str = percent.toString();
+        if (str[1] !== '.')
+          throw new Error('Unexpected percent');
+        // Pad short strings with zeros.
+        str = str + '0'.repeat(Math.max(4 - str.length, 0));
+        if (str.length > 4)
+          str = str.slice(0, 4) + '_' + str.slice(4);
+        return '0' + str.slice(2);
+      }
+
+      var results = [];
+      tr.b.iterItems(this.summaryOptions, function(stat, option) {
+        if (!option)
+          return;
+        if (stat === 'percentile') {
+          option.forEach(function(percent) {
+            var percentile = this.getApproximatePercentile(percent);
+            results.push({
+                name: 'pct_' + percentToString(percent),
+                scalar: new tr.v.ScalarNumeric(this.unit, percentile)
+            });
+          }, this);
+        } else {
+          var statUnit = stat === 'count' ?
+              tr.v.Unit.byName.unitlessNumber_smallerIsBetter : this.unit;
+          var key = statNameToKey(stat);
+          var statValue = this.running[key];
+          if (statValue !== undefined) {
+            results.push({
+                name: stat,
+                scalar: new tr.v.ScalarNumeric(statUnit, statValue)
+            });
+          }
+        }
+      }, this);
+      return results;
     },
 
     clone: function() {
@@ -284,7 +390,8 @@ tr.exportTo('tr.v', function() {
         numNans: this.numNans,
         nanSourceInfos: this.nanSourceInfos,
 
-        runningSum: this.runningSum,
+        running: this.running.asDict(),
+        summaryOptions: this.summaryOptions,
 
         underflowBin: this.underflowBin.asDict(),
         centralBins: this.centralBins.map(function(bin) {

@@ -52,6 +52,7 @@
       'tracing/base/range.html',
       'tracing/base/range_utils.html',
       'tracing/base/rect.html',
+      'tracing/base/running_statistics.html',
       'tracing/base/settings.html',
       'tracing/base/sorted_array_utils.html',
       'tracing/base/statistics.html',

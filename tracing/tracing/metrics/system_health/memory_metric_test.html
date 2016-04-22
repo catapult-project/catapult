@@ -90,9 +90,9 @@ tr.b.unittest.testSuite(function() {
           assert.strictEqual(actualNumeric.numValues,
               expectedNumeric.value.length,
               'Invalid \'' + valueName + '\' Numeric numValues');
-          assert.closeTo(actualNumeric.runningSum,
+          assert.closeTo(actualNumeric.sum,
               expectedNumeric.value.reduce((a, b) => a + b, 0), SIZE_DELTA,
-              'Invalid \'' + valueName + '\' Numeric runningSum');
+              'Invalid \'' + valueName + '\' Numeric sum');
 
           // Check that the bin counts match.
           var binToCount = new Map();
