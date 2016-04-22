@@ -11,6 +11,7 @@ import array
 import cStringIO
 import struct
 import subprocess
+import warnings
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import platform
@@ -147,6 +148,9 @@ class Bitmap(object):
 
   @staticmethod
   def FromPng(png_data):
+    warnings.warn(
+        'Using pure python png decoder, which could be very slow. To speed up, '
+        'consider installing numpy & cv2 (OpenCV).')
     width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
     return Bitmap(4 if meta['alpha'] else 3, width, height, pixels, meta)
 
@@ -204,6 +208,9 @@ class Bitmap(object):
 
     # This particular method can only save to a file, so the result will be
     # written into an in-memory buffer and read back into a Bitmap
+    warnings.warn(
+        'Using pure python png decoder, which could be very slow. To speed up, '
+        'consider installing numpy & cv2 (OpenCV).')
     diff_img = png.from_array(diff, mode='RGB')
     output = cStringIO.StringIO()
     try:

@@ -4,6 +4,8 @@
 
 from __future__ import division
 
+import warnings
+
 from telemetry.internal.util import external_modules
 from telemetry.util import color_histogram
 from telemetry.util import rgba_color
@@ -64,6 +66,9 @@ def FromPng(png_data):
     file_bytes = np.asarray(bytearray(png_data), dtype=np.uint8)
     return cv2.imdecode(file_bytes, cv2.CV_LOAD_IMAGE_COLOR)
   else:
+    warnings.warn(
+        'Using pure python png decoder, which could be very slow. To speed up, '
+        'consider installing numpy & cv2 (OpenCV).')
     width, height, pixels, meta = png.Reader(bytes=png_data).read_flat()
     return FromRGBPixels(width, height, pixels, 4 if meta['alpha'] else 3)
 
