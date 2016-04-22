@@ -14,6 +14,7 @@ from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.browser import user_agent
 
+from devil.android import app_ui
 from devil.android.sdk import intent
 
 
@@ -153,12 +154,18 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         raise
 
   def Foreground(self):
+    package = self._backend_settings.package
+    activity = self._backend_settings.activity
     self.device.StartActivity(
-        intent.Intent(package=self._backend_settings.package,
-                      activity=self._backend_settings.activity,
+        intent.Intent(package=package,
+                      activity=activity,
                       action=None,
                       flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
-        blocking=True)
+        blocking=False)
+    # TODO(crbug.com/601052): The following waits for any UI node for the
+    # package launched to appear on the screen. When the referenced bug is
+    # fixed, remove this workaround and just switch blocking above to True.
+    app_ui.AppUi(self.device, package).WaitForUiNode(package=package)
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
