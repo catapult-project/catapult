@@ -5638,23 +5638,35 @@ tr.b.unittest.testSuite(function() {
 
   test('clockSync_withoutMetadata', function() {
     var events = [{
-      name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
-      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+      name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5000},
+      pid: 1, ts: 15000, cat: '__metadata', tid: 2, ph: 'c'
     }];
 
-    var m = makeModel(events);
+    var io = new tr.importer.ImportOptions();
+    var m = new tr.Model();
+    var i = new tr.importer.Import(m, io);
+
+    m.clockSyncManager.addClockSyncMarker(
+        ClockDomainId.LINUX_FTRACE_GLOBAL, 'abc', 15);
+
+    i.importTraces([events]);
 
     var records = m.getClockSyncRecordsWithSyncId('abc');
     assert.lengthOf(records, 1);
-    assert.equal(records[0].start, .005);
-    assert.equal(records[0].duration, .010);
+    assert.equal(records[0].start, 5);
+    assert.equal(records[0].duration, 10);
 
-    // Make sure that the default trace event importer clock domain was chosen
-    // as the model.
-    assert.equal(
+    // The clock sync happened in UNKNOWN_CHROME_LEGACY at 10ms and in
+    // LINUX_FTRACE_GLOBAL at 15ms. The transformer should shift the ftrace
+    // timestamps back by 5ms.
+    assert.strictEqual(
         m.clockSyncManager.getModelTimeTransformer(
-            ClockDomainId.UNKNOWN_CHROME_LEGACY)(.005),
-        .005);
+            ClockDomainId.UNKNOWN_CHROME_LEGACY)(5),
+        5);
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.LINUX_FTRACE_GLOBAL)(15),
+        10);
     assert.isFalse(m.hasImportWarnings);
   });
 
