@@ -4,6 +4,7 @@
 
 import argparse
 import inspect
+import json
 import re
 import unittest
 
@@ -75,6 +76,9 @@ def Run(project_config, test_run_options, args):
   binary_manager.InitDependencyManager(project_config.client_configs)
   parser = argparse.ArgumentParser(description='Run a browser test suite')
   parser.add_argument('test', type=str, help='Name of the test suite to run')
+  parser.add_argument(
+      '--write-abbreviated-json-results-to', metavar='FILENAME', action='store',
+      help=('If specified, writes the full results to that path in json form.'))
   option, extra_args = parser.parse_known_args(args)
 
   for start_dir in project_config.start_dirs:
@@ -104,4 +108,10 @@ def Run(project_config, test_run_options, args):
 
   results = unittest.TextTestRunner(
       verbosity=test_run_options.verbosity).run(suite)
+  if option.write_abbreviated_json_results_to:
+    with open(option.write_abbreviated_json_results_to, 'w') as f:
+      json_results = {'failures': [], 'valid': True}
+      for (failed_test_case, _) in results.failures:
+        json_results['failures'].append(failed_test_case.id())
+      json.dump(json_results, f)
   return len(results.failures)

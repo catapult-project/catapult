@@ -41,5 +41,5 @@ class SimpleTest(serially_executed_browser_test_case.SeriallyBrowserTestCase):
     self.assertEqual(a * b, partial_sum * self.extra)
 
   def testSimple(self):
-    time.sleep(2)
+    time.sleep(0.5)
     self.assertEqual(1, self.extra)
