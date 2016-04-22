@@ -5651,11 +5651,6 @@ tr.b.unittest.testSuite(function() {
 
     i.importTraces([events]);
 
-    var records = m.getClockSyncRecordsWithSyncId('abc');
-    assert.lengthOf(records, 1);
-    assert.equal(records[0].start, 5);
-    assert.equal(records[0].duration, 10);
-
     // The clock sync happened in UNKNOWN_CHROME_LEGACY at 10ms and in
     // LINUX_FTRACE_GLOBAL at 15ms. The transformer should shift the ftrace
     // timestamps back by 5ms.
@@ -5683,11 +5678,6 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    var records = m.getClockSyncRecordsWithSyncId('abc');
-    assert.lengthOf(records, 1);
-    assert.equal(records[0].start, .005);
-    assert.equal(records[0].duration, .010);
-
     // Make sure that our clock domain was chosen as the model.
     assert.equal(
         m.clockSyncManager.getModelTimeTransformer(ClockDomainId.BATTOR)(.005),
@@ -5714,8 +5704,6 @@ tr.b.unittest.testSuite(function() {
 
     var m = makeModel(events);
 
-    var records = m.getClockSyncRecordsWithSyncId('abc');
-    assert.lengthOf(records, 0);
     assert.isTrue(m.hasImportWarnings);
   });
 

@@ -13,7 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
 <link rel="import" href="/tracing/extras/importer/v8/codemap.html">
 <link rel="import" href="/tracing/importer/importer.html">
-<link rel="import" href="/tracing/model/clock_sync_record.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
 <link rel="import" href="/tracing/model/constants.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
@@ -782,12 +781,6 @@ tr.exportTo('tr.e.importer', function() {
       this.model_.clockSyncManager.addClockSyncMarker(
           this.clockDomainId_, syncId, timestampFromUs(issueStartTs),
           timestampFromUs(issueEndTs));
-
-      // TODO(charliea): Remove this once the new clock sync system is fully
-      // implemented.
-      this.model_.clockSyncRecords.push(new tr.model.PingPongClockSyncRecord(
-          syncId, timestampFromUs(issueStartTs),
-          timestampFromUs(issueEndTs - issueStartTs)));
     },
 
     // Because the order of Jit code events and V8 samples are not guaranteed,
@@ -814,21 +807,6 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     importClockSyncMarkers: function() {
-      // TODO(charliea): Remove this once we're fully moved over to using the
-      // ClockSyncManager.
-      //
-      // Note that we don't insert a "new style" ftrace_importer marker here.
-      // The reason for this is that ftrace uses this marker as a means to
-      // implement the following logic:
-      //
-      //   If there are multiple clock domains, throw an error if they don't
-      //   have clock sync markers connecting them.
-      //
-      // The new ClockSyncManager takes care of this already, so we don't
-      // need such a marker.
-      this.model_.clockSyncRecords.push(
-          new tr.model.InstantClockSyncRecord('ftrace_importer', 0, {}));
-
       for (var i = 0; i < this.events_.length; i++) {
         var event = this.events_[i];
 

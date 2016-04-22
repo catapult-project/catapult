@@ -83,9 +83,6 @@ tr.exportTo('tr', function() {
     this.instantEvents = [];
     this.flowEvents = [];
     this.clockSyncManager = new tr.model.ClockSyncManager();
-    // TODO(charliea): Remove clockSyncRecords once we move over to using the
-    // clockSyncManager.
-    this.clockSyncRecords = [];
     this.intrinsicTimeUnit_ = undefined;
 
     this.stackFrames = {};
@@ -245,12 +242,6 @@ tr.exportTo('tr', function() {
         throw new Error('Stack frame already exists');
       this.stackFrames[stackFrame.id] = stackFrame;
       return stackFrame;
-    },
-
-    getClockSyncRecordsWithSyncId: function(syncId) {
-      return this.clockSyncRecords.filter(function(x) {
-        return x.syncId === syncId;
-      });
     },
 
     /**
