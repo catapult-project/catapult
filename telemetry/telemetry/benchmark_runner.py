@@ -33,11 +33,6 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
 from telemetry.util import matching
-from telemetry import project_config
-
-
-# TODO(aiolos): Remove this once clients move over to project_config version.
-ProjectConfig = project_config.ProjectConfig
 
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
