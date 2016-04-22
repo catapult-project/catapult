@@ -57,10 +57,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.processes[1].threads[0].sliceGroup.slices[0].start, 0);
   });
 
-  // TODO(charliea): Importing currently fails when importing only a BattOr
-  // trace. Once we've moved over to the ClockSyncManager, this should work,
-  // and we should add a test asserting such.
-
   test('import_traceEventWithNoClockDomainAndFtrace', function() {
     // Include a clock sync marker that indicates the LINUX_CLOCK_MONOTONIC time
     // of 20ms is equal to the LINUX_FTRACE_GLOBAL time of 10ms, effectively
