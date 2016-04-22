@@ -27,8 +27,7 @@ tr.exportTo('tr.e.importer.battor', function() {
   function BattorImporter(model, events) {
     this.importPriority = 3; // runs after the linux_perf importer
     this.model_ = model;
-    this.events_ = events;
-    this.explicitSyncMark_ = undefined;
+    this.samples_ = this.linesToSamples_(events.split('\n'));
   }
 
   var battorDataLineRE = new RegExp(
@@ -62,10 +61,22 @@ tr.exportTo('tr.e.importer.battor', function() {
     },
 
     /**
+     * Imports clock sync markers in this.events_ into model_.
+     */
+    importClockSyncMarkers: function() {
+      for (var i = 0; i < this.samples_.length; i++) {
+        var sample = this.samples_[i];
+        if (sample.syncId) {
+          this.model_.clockSyncManager.addClockSyncMarker(
+              tr.model.ClockDomainId.BATTOR, sample.syncId, sample.ts);
+        }
+      }
+    },
+
+    /**
      * Imports the data in this.events_ into model_.
      */
     importEvents: function() {
-      // Fail if the model already has a Power counter.
       if (this.model_.device.powerSeries) {
         this.model_.importWarning({
           type: 'import_error',
@@ -74,37 +85,35 @@ tr.exportTo('tr.e.importer.battor', function() {
         return;
       }
 
-      // Create series and import power samples into it.
-      var name = 'power';
-      var series = new tr.model.PowerSeries(this.model_.device);
-      this.importPowerSamples(series);
+      var modelTimeTransformer =
+          this.model_.clockSyncManager.getModelTimeTransformer(
+              tr.model.ClockDomainId.BATTOR);
 
-      var shiftTs = this.explicitClockSync();
-      if (shiftTs === undefined) {
-        this.model_.importWarning({
-          type: 'clock_sync',
-          message: 'No clock sync marker for the BattOr could be found.'
-        });
-        return;
+      var powerSeries = this.model_.device.powerSeries =
+          new tr.model.PowerSeries(this.model_.device);
+      for (var i = 0; i < this.samples_.length; i++) {
+        var sample = this.samples_[i];
+        powerSeries.addPowerSample(
+            modelTimeTransformer(sample.ts), sample.power);
       }
-
-      series.shiftTimestampsForward(shiftTs);
-      this.model_.device.powerSeries = series;
     },
 
     /**
-     * Walks the events and populates a time series with power samples.
+     * Given an array of strings that make up the lines of a BattOr trace,
+     * returns an array of samples contained within those lines.
      */
-    importPowerSamples: function(series) {
-      var lines = this.events_.split('\n');
+    linesToSamples_: function(lines) {
+      var samples = [];
 
-      lines.forEach(function(line) {
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
         line = line.trim();
-        if (line.length === 0)
-          return;
 
-        if (/^#/.test(line))
-          return;
+        if (line.length === 0)
+          continue;
+
+        if (line.startsWith('#'))
+          continue;
 
         // Parse power sample.
         var groups = battorDataLineRE.exec(line);
@@ -113,61 +122,42 @@ tr.exportTo('tr.e.importer.battor', function() {
             type: 'parse_error',
             message: 'Unrecognized line: ' + line
           });
-          return;
+          continue;
         }
 
-        // Add power sample.
-        var time = parseFloat(groups[1]);
-        var voltage_V = parseFloat(groups[2]) / 1000;
-        var current_A = parseFloat(groups[3]) / 1000;
+        var ts = parseFloat(groups[1]);
+        var voltage = parseFloat(groups[2]) / 1000;
+        var current = parseFloat(groups[3]);
+        var syncId = groups[4];
 
-        // Create power sample and convert to internal power units (Watts).
-        var power_W = voltage_V * current_A;
-        series.addPowerSample(time, power_W);
-
-        // Found first explicit clock sync - save it.
-        if (groups[4] !== undefined &&
-            this.explicitSyncMark_ === undefined) {
-          var id = groups[4];
-          this.explicitSyncMark_ = {'id' : id, 'ts' : time};
-        }
-      }, this);
-    },
-
-    explicitClockSync: function() {
-      // Check to see if an explicit clock sync was found in the BattOr trace.
-      if (this.explicitSyncMark_ === undefined)
-        return undefined;
-
-      // Try to get the matching clock sync record for this explicit sync.
-      var syncMarks = this.model.getClockSyncRecordsWithSyncId(
-          this.explicitSyncMark_['id']);
-      if (syncMarks.length !== 1) {
-        this.model_.importWarning({
-          type: 'missing_sync_marker',
-          message: 'No single clock sync record found for explicit clock sync.'
-        });
-        return undefined;
+        samples.push(new Sample(ts, voltage, current, syncId));
       }
 
-      var clockSync = syncMarks[0];
-
-      // TODO(aschulman) Actual time of sync is assumed to be half-way between
-      // when the sync message was sent and when it was received.  Chromium's
-      // serial I/O library sends bytes within a millisecond, however it seems
-      // to take tens of milliseconds to receive bytes. Therefore, until we
-      // figure out how to receive bytes without this delay, time of sync is
-      // set to the time when the the bytes are sent.
-      var syncTs = clockSync.start;
-      var traceTs = this.explicitSyncMark_['ts'];
-
-      // Shift by the difference between the explicit sync timestamps.
-      return syncTs - traceTs;
-    },
-
-    foundExplicitSyncMark: function() {
-      return this.explicitSyncMark_ !== undefined;
+      return samples;
     }
+  };
+
+  /**
+   * A sample recorded by a BattOr.
+   *
+   * @param {number} ts The timestamp (in milliseconds) of the sample.
+   * @param {number} voltage The voltage (in volts) at the specified time.
+   * @param {number} current The current (in amps) at the specified time.
+   * @param {string=} opt_syncId The sync ID of the sync that happened at this
+   *     sample.
+   *
+   * @constructor
+   */
+  function Sample(ts, voltage, current, opt_syncId) {
+    this.ts = ts;
+    this.voltage = voltage;
+    this.current = current;
+    this.syncId = opt_syncId;
+  }
+
+  Sample.prototype = {
+    /** Returns the instantaneous power consumption (in Watts). */
+    get power() { return this.voltage * this.current; }
   };
 
   tr.importer.Importer.register(BattorImporter);
