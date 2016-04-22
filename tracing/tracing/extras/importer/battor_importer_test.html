@@ -96,12 +96,6 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(m.device.powerSeries);
   });
 
-  test('importNotEnoughSamples', function() {
-    var m = tr.c.TestUtils.newModelWithEvents(
-        BATTOR_LINES.slice(0, 5).join('\n'));
-    assert.isTrue(m.hasImportWarnings);
-  });
-
   // TODO(charliea): Once systrace/BattOr sync is working, add a test here
   // verifying such.
 });
