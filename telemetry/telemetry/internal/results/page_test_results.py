@@ -179,18 +179,18 @@ class PageTestResults(object):
     story_keys = self._current_page_run.story.grouping_keys
 
     if story_keys:
-      assert not value.tir_label, (
-          'Trying to use a TBMv2 story (with grouping keys) with a TBMv1 metric'
-      )
-
       for k, v in story_keys.iteritems():
         assert k not in value.grouping_keys, (
             'Tried to add story grouping key ' + k + ' already defined by ' +
             'value')
         value.grouping_keys[k] = v
 
-      # We sort by key name to make building the tir_label deterministic.
-      value.tir_label = '_'.join(v for _, v in sorted(story_keys.iteritems()))
+      if value.tir_label:
+        logging.warning('Value already has a tir_label (%s) so story_keys (%s) '
+                        'are ignored', value.tir_label, story_keys)
+      else:
+        # We sort by key name to make building the tir_label deterministic.
+        value.tir_label = '_'.join(v for _, v in sorted(story_keys.iteritems()))
 
     if not (isinstance(value, skip.SkipValue) or
             isinstance(value, failure.FailureValue) or
