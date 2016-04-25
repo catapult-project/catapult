@@ -159,7 +159,7 @@ def write_trace_html(html_filename, script_dir, trace_results):
   html_file.write('<!-- BEGIN TRACE -->\n')
   for result in trace_results:
     html_file.write('  <script class="')
-    html_file.write(result.source_name)
+    html_file.write('trace-data')
     html_file.write('" type="application/text">\n')
     html_file.write(result.raw_data)
     html_file.write('  </script>\n')

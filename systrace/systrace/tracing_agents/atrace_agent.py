@@ -2,18 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import Queue
 import re
 import subprocess
 import sys
 import threading
-import time
 import zlib
 
 from devil.android import device_utils
+from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
-from systrace import tracing_agents
+from py_trace_event import trace_time
 from systrace import util
+from systrace.tracing_agents import TraceResult
+from systrace.tracing_agents import TracingAgent
 
 # Text that ADB sends, but does not need to be displayed to the user.
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
@@ -132,13 +133,16 @@ def _construct_atrace_args(options, categories):
   atrace_args.extend(extra_args)
   return atrace_args
 
-class AtraceAgent(tracing_agents.TracingAgent):
+class AtraceAgent(TracingAgent):
 
   def __init__(self):
     super(AtraceAgent, self).__init__()
     self._adb = None
     self._trace_data = None
     self._tracer_args = None
+    self._collection_thread = None
+    self._device_utils = None
+    self._device_serial_number = None
     self._options = None
     self._categories = None
 
@@ -152,147 +156,104 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._categories = [x for x in self._categories if x in avail_cats]
     if unavailable:
       print 'These categories are unavailable: ' + ' '.join(unavailable)
-    self._tracer_args = _construct_atrace_args(self._options, self._categories)
+    self._device_utils = device_utils.DeviceUtils(options.device_serial_number)
+    self._device_serial_number = options.device_serial_number
+    self._tracer_args = _construct_atrace_args(options, self._categories)
+    self._device_utils.RunShellCommand(self._tracer_args + ['--async_start'])
+    return True
 
-    shell = ['adb', '-s', self._options.device_serial_number, 'shell']
-    self._adb = do_popen(shell + self._tracer_args)
+  def StartAgentTracing(self, options, categories, timeout=10):
+    try:
+      return timeout_retry.Run(self._StartAgentTracingImpl,
+                               timeout, 1, args=[options, categories])
+    except reraiser_thread.TimeoutError:
+      print "StartAgentTracing in AtraceAgent timed out."
+      return False
 
-  def StartAgentTracing(self, options, categories, timeout):
-    return timeout_retry.Run(self._StartAgentTracingImpl, timeout, 1,
-                             args=[options, categories])
+  def _collect_and_preprocess(self):
+    """Collects and preprocesses trace data.
 
-  def _StopAgentTracingImpl(self):
-    pass
-
-  def StopAgentTracing(self, timeout):
-    return timeout_retry.Run(self._StopAgentTracingImpl, timeout, 1)
-
-  def _GetResultsImpl(self):
+    Stores results in self._trace_data.
+    """
     trace_data = self._collect_trace_data()
     self._trace_data = self._preprocess_trace_data(trace_data)
-    return tracing_agents.TraceResult('trace-data', self._trace_data)
 
-  def GetResults(self, timeout):
-    return timeout_retry.Run(self._GetResultsImpl, timeout, 1)
+  def _StopAgentTracingImpl(self):
+    """Stops tracing and starts collecting results.
+
+    To synchronously retrieve the results after calling this function,
+    call GetResults().
+    """
+    self._collection_thread = threading.Thread(
+        target=self._collect_and_preprocess)
+    self._collection_thread.start()
+    return True
+
+  def StopAgentTracing(self, timeout=10):
+    try:
+      return timeout_retry.Run(self._StopAgentTracingImpl, timeout, 1)
+    except reraiser_thread.TimeoutError:
+      print "StopAgentTracing in AtraceAgent timed out."
+
+
+  def _GetResultsImpl(self):
+    """Waits for collection thread to finish and returns trace results."""
+    self._collection_thread.join()
+    self._collection_thread = None
+    return TraceResult('systemTraceEvents', self._trace_data)
+
+  def GetResults(self, timeout=30):
+    try:
+      return timeout_retry.Run(self._GetResultsImpl,
+                               timeout, 1)
+    except reraiser_thread.TimeoutError:
+      print "GetResults in AtraceAgent timed out."
 
   def SupportsExplicitClockSync(self):
-    return False
+    return True
 
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
-    # No implementation, but need to have this to support the API
-    # pylint: disable=unused-argument
-    return False
+    """Records a clock sync marker.
 
-  def _construct_list_categories_command(self):
-    return util.construct_adb_shell_command(
-          LIST_CATEGORIES_ARGS, self._options.device_serial_number)
+    Args:
+        sync_id: ID string for clock sync marker.
+    """
+    cmd = 'echo name=%s > /sys/kernel/debug/tracing/trace_marker' % sync_id
+    with self._device_utils.adb.PersistentShell(
+        self._device_serial_number) as shell:
+      t1 = trace_time.Now()
+      shell.RunCommandAndClose(cmd)
+      did_record_sync_marker_callback(t1, sync_id)
+
+  def _dump_trace(self):
+    """Dumps the atrace buffer and returns the dumped buffer."""
+    dump_cmd = self._tracer_args + ['--async_dump']
+    return self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
+
+  def _stop_trace(self):
+    """Stops atrace.
+
+    Tries to stop the atrace asynchronously. Note that on some devices,
+    --async-stop does not work. Thus, this uses the fallback
+    method of running a zero-length synchronous trace if that fails.
+    """
+    self._device_utils.RunShellCommand(self._tracer_args + ['--async_stop'])
+    is_trace_enabled_cmd = ['cat', '/sys/kernel/debug/tracing/tracing_on']
+    trace_on = int(self._device_utils.RunShellCommand(is_trace_enabled_cmd)[0])
+    if trace_on:
+      self._device_utils.RunShellCommand(self._tracer_args + ['-t 0'])
 
   def _collect_trace_data(self):
-    # Read the output from ADB in a worker thread.  This allows us to monitor
-    # the progress of ADB and bail if ADB becomes unresponsive for any reason.
-
-    # Limit the stdout_queue to 128 entries because we will initially be reading
-    # one byte at a time.  When the queue fills up, the reader thread will
-    # block until there is room in the queue.  Once we start downloading the
-    # trace data, we will switch to reading data in larger chunks, and 128
-    # entries should be plenty for that purpose.
-    stdout_queue = Queue.Queue(maxsize=128)
-    stderr_queue = Queue.Queue()
-
-    # Use a chunk_size of 1 for stdout so we can display the output to
-    # the user without waiting for a full line to be sent.
-    stdout_thread = FileReaderThread(self._adb.stdout, stdout_queue,
-                                     text_file=False, chunk_size=1)
-    stderr_thread = FileReaderThread(self._adb.stderr, stderr_queue,
-                                     text_file=True)
-    stdout_thread.start()
-    stderr_thread.start()
-
-    # Holds the trace data returned by ADB.
-    trace_data = []
-    # Keep track of the current line so we can find the TRACE_START_REGEXP.
-    current_line = ''
-    # Set to True once we've received the TRACE_START_REGEXP.
-    reading_trace_data = False
-
-    last_status_update_time = time.time()
-
-    while (stdout_thread.isAlive() or stderr_thread.isAlive() or
-           not stdout_queue.empty() or not stderr_queue.empty()):
-      last_status_update_time = status_update(last_status_update_time)
-
-      while not stderr_queue.empty():
-        # Pass along errors from adb.
-        line = stderr_queue.get()
-        sys.stderr.write(line)
-
-      # Read stdout from adb.  The loop exits if we don't get any data for
-      # ADB_STDOUT_READ_TIMEOUT seconds.
-      while True:
-        try:
-          chunk = stdout_queue.get(True, ADB_STDOUT_READ_TIMEOUT)
-        except Queue.Empty:
-          # Didn't get any data, so exit the loop to check that ADB is still
-          # alive and print anything sent to stderr.
-          break
-
-        if reading_trace_data:
-          # Save, but don't print, the trace data.
-          trace_data.append(chunk)
-        else:
-          # Buffer the output from ADB so we can remove some strings that
-          # don't need to be shown to the user.
-          current_line += chunk
-          if re.match(TRACE_START_REGEXP, current_line):
-            # We are done capturing the trace.
-            sys.stdout.write('Done.\n')
-            # Now we start downloading the trace data.
-            sys.stdout.write('Downloading trace...')
-
-            current_line = ''
-            # Use a larger chunk size for efficiency since we no longer
-            # need to worry about parsing the stream.
-            stdout_thread.set_chunk_size(4096)
-            reading_trace_data = True
-          elif chunk == '\n' or chunk == '\r':
-            # Remove ADB output that we don't care about.
-            current_line = re.sub(ADB_IGNORE_REGEXP, '', current_line)
-            if len(current_line) > 1:
-              # ADB printed something that we didn't understand, so show it
-              # it to the user (might be helpful for debugging).
-              sys.stdout.write(current_line)
-            # Reset our current line.
-            current_line = ''
-
-    if reading_trace_data:
-      # Indicate to the user that the data download is complete.
-      sys.stdout.write('Done.\n')
+    """Reads the output from atrace and stops the trace."""
+    result = self._dump_trace()
+    data_start = re.search(TRACE_START_REGEXP, result)
+    if data_start:
+      data_start = data_start.end(0)
     else:
-      # We didn't receive the trace start tag, so something went wrong.
-      sys.stdout.write('ERROR.\n')
-      # Show any buffered ADB output to the user.
-      current_line = re.sub(ADB_IGNORE_REGEXP, '', current_line)
-      if current_line:
-        sys.stdout.write(current_line)
-        sys.stdout.write('\n')
-
-    # The threads should already have stopped, so this is just for cleanup.
-    stdout_thread.join()
-    stderr_thread.join()
-
-    self._adb.stdout.close()
-    self._adb.stderr.close()
-
-    # The adb process should be done since it's io pipes are closed.  Call
-    # poll() to set the returncode.
-    self._adb.poll()
-
-    if self._adb.returncode != 0:
-      print >> sys.stderr, ('The command "%s" returned error code %d.' %
-                            (' '.join(self._tracer_args), self._adb.returncode))
-      sys.exit(1)
-
-    return trace_data
+      raise IOError('Unable to get atrace data. Did you forget adb root?')
+    output = re.sub(ADB_IGNORE_REGEXP, '', result[data_start:])
+    self._stop_trace()
+    return output
 
   def _preprocess_trace_data(self, trace_data):
     """Performs various processing on atrace data.
@@ -302,7 +263,6 @@ class AtraceAgent(tracing_agents.TracingAgent):
     Returns:
       The processed trace data.
     """
-    trace_data = ''.join(trace_data)
     if trace_data:
       trace_data = strip_and_decompress_trace(trace_data)
 
@@ -344,26 +304,27 @@ class BootAgent(AtraceAgent):
     self._options = options
     try:
       setup_args = _construct_boot_setup_command(options, categories)
-      try:
-        subprocess.check_call(setup_args)
-        print 'Hit Ctrl+C once the device has booted up.'
-        while True:
-          time.sleep(1)
-      except KeyboardInterrupt:
-        pass
-      tracer_args = _construct_boot_trace_command(options)
-      self._adb = subprocess.Popen(tracer_args, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+      subprocess.check_call(setup_args)
     except OSError as error:
       print >> sys.stderr, (
           'The command "%s" failed with the following error:' %
-          ' '.join(tracer_args))
+          ' '.join(setup_args))
       print >> sys.stderr, '    ', error
       sys.exit(1)
 
-  def StartAgentTracing(self, options, categories, timeout):
-    return timeout_retry.Run(self._StartAgentTracingImpl, timeout, 1,
-                             args=[options, categories])
+  def StartAgentTracing(self, options, categories, timeout=10):
+    return timeout_retry.Run(self._StartAgentTracingImpl,
+                             timeout, 1, args=[options, categories])
+
+  def _dump_trace(self): #called by StopAgentTracing
+    """Dumps the running trace asynchronously and returns the dumped trace."""
+    dump_cmd = _construct_boot_trace_command(self._options)
+    return self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
+
+  def _stop_trace(self): # called by _collect_trace_data via StopAgentTracing
+    # pylint: disable=no-self-use
+    # This is a member function for consistency with AtraceAgent
+    pass # don't need to stop separately; already done in dump_trace
 
 def _construct_boot_setup_command(options, categories):
   echo_args = ['echo'] + categories + ['>', BOOTTRACE_CATEGORIES]
@@ -380,91 +341,6 @@ def _construct_boot_trace_command(options):
   return util.construct_adb_shell_command(
         atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
         options.device_serial_number)
-
-
-class FileReaderThread(threading.Thread):
-  """Reads data from a file/pipe on a worker thread.
-
-  Use the standard threading. Thread object API to start and interact with the
-  thread (start(), join(), etc.).
-  """
-
-  def __init__(self, file_object, output_queue, text_file, chunk_size=-1):
-    """Initializes a FileReaderThread.
-
-    Args:
-      file_object: The file or pipe to read from.
-      output_queue: A Queue.Queue object that will receive the data
-      text_file: If True, the file will be read one line at a time, and
-          chunk_size will be ignored.  If False, line breaks are ignored and
-          chunk_size must be set to a positive integer.
-      chunk_size: When processing a non-text file (text_file = False),
-          chunk_size is the amount of data to copy into the queue with each
-          read operation.  For text files, this parameter is ignored.
-    """
-    threading.Thread.__init__(self)
-    self._file_object = file_object
-    self._output_queue = output_queue
-    self._text_file = text_file
-    self._chunk_size = chunk_size
-    assert text_file or chunk_size > 0
-
-  def run(self):
-    """Overrides Thread's run() function.
-
-    Returns when an EOF is encountered.
-    """
-    if self._text_file:
-      # Read a text file one line at a time.
-      for line in self._file_object:
-        self._output_queue.put(line)
-    else:
-      # Read binary or text data until we get to EOF.
-      while True:
-        chunk = self._file_object.read(self._chunk_size)
-        if not chunk:
-          break
-        self._output_queue.put(chunk)
-
-  def set_chunk_size(self, chunk_size):
-    """Change the read chunk size.
-
-    This function can only be called if the FileReaderThread object was
-    created with an initial chunk_size > 0.
-    Args:
-      chunk_size: the new chunk size for this file.  Must be > 0.
-    """
-    # The chunk size can be changed asynchronously while a file is being read
-    # in a worker thread.  However, type of file can not be changed after the
-    # the FileReaderThread has been created.  These asserts verify that we are
-    # only changing the chunk size, and not the type of file.
-    assert not self._text_file
-    assert chunk_size > 0
-    self._chunk_size = chunk_size
-
-
-def get_default_categories(device_serial_number):
-  categories_output, return_code = util.run_adb_shell(LIST_CATEGORIES_ARGS,
-                                                    device_serial_number)
-
-  if return_code == 0 and categories_output:
-    categories = [c.split('-')[0].strip()
-                  for c in categories_output.splitlines()]
-    return [c for c in categories if c in DEFAULT_CATEGORIES]
-
-  return []
-
-
-def status_update(last_update_time):
-  current_time = time.time()
-  if (current_time - last_update_time) >= MIN_TIME_BETWEEN_STATUS_UPDATES:
-    # Gathering a trace may take a while.  Keep printing something so users
-    # don't think the script has hung.
-    sys.stdout.write('.')
-    sys.stdout.flush()
-    return current_time
-
-  return last_update_time
 
 
 def extract_thread_list(trace_text):
@@ -526,7 +402,8 @@ def strip_and_decompress_trace(trace_data):
     trace_data = trace_data.replace('\r\r\n', '\n')
 
   # Skip the initial newline.
-  trace_data = trace_data[1:]
+  if trace_data[0] == '\n':
+    trace_data = trace_data[1:]
 
   if not trace_data.startswith(TRACE_TEXT_HEADER):
     # No header found, so assume the data is compressed.
@@ -634,21 +511,6 @@ def fix_circular_traces(out):
     end_of_header = re.search(r'^[^#]', out, re.MULTILINE).start()
     out = out[:end_of_header] + out[start_of_full_trace:]
   return out
-
-
-def do_popen(args):
-  try:
-    adb = subprocess.Popen(args, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-  except OSError as error:
-    print >> sys.stderr, (
-      'The command "%s" failed with the following error:' %
-      ' '.join(args))
-    print >> sys.stderr, '    ', error
-    sys.exit(1)
-
-  return adb
-
 
 def do_preprocess_adb_cmd(command, serial):
   """Run an ADB command for preprocessing of output.
