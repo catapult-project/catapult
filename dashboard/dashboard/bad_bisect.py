@@ -4,6 +4,8 @@
 
 """URL endpoint to record bad bisect."""
 
+import json
+
 from google.appengine.api import users
 
 from dashboard import oauth2_decorator
@@ -21,6 +23,9 @@ class BadBisectHandler(request_handler.RequestHandler):
     """Renders bad_bisect.html."""
     if not utils.IsValidSheriffUser():
       self._RenderError('No permission.')
+      return
+    if self.request.get('list'):
+      self.response.out.write(_PrintRecentFeedback())
       return
     if not self.request.get('try_job_id'):
       self._RenderError('Missing try_job_id.')
@@ -67,3 +72,19 @@ def _LogFeedback(try_job_id, email):
   message = '%s marked try job %d.' % (email, try_job_id)
   logger.Log(message)
   logger.Save()
+
+def _PrintRecentFeedback():
+  jobs = try_job.TryJob.query().fetch()
+  results = []
+  for job in jobs:
+    if not job.bad_result_emails:
+      continue
+    results.append({
+        'bad_result_emails': list(job.bad_result_emails),
+        'try_job_id': job.key.id(),
+        'status': job.results_data.get('status'),
+        'buildbot_log_url': job.results_data.get('buildbot_log_url'),
+        'bug_id': job.results_data.get('bug_id'),
+        'score': job.results_data.get('score'),
+    })
+  return json.dumps(results)

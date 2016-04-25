@@ -97,7 +97,7 @@ def GetReport(try_job_entity):
   results_data['result'] = result
   report = _BISECT_REPORT_TEMPLATE % results_data
   if try_job_entity.bug_id > 0:
-    report += _REPORT_BAD_BISECT_TEMPLATE % try_job_entity.bug_id
+    report += _REPORT_BAD_BISECT_TEMPLATE % try_job_entity.key.id()
   report += _RESULTS_THANK_YOU
   return report
 
