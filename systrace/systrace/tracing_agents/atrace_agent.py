@@ -195,7 +195,6 @@ class AtraceAgent(TracingAgent):
     except reraiser_thread.TimeoutError:
       print "StopAgentTracing in AtraceAgent timed out."
 
-
   def _GetResultsImpl(self):
     """Waits for collection thread to finish and returns trace results."""
     self._collection_thread.join()
@@ -222,7 +221,7 @@ class AtraceAgent(TracingAgent):
     with self._device_utils.adb.PersistentShell(
         self._device_serial_number) as shell:
       t1 = trace_time.Now()
-      shell.RunCommandAndClose(cmd)
+      shell.RunCommand(cmd, close=True)
       did_record_sync_marker_callback(t1, sync_id)
 
   def _dump_trace(self):

@@ -180,6 +180,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
       print "WARN: tgid fixing is not yet supported."
     if self._options.fix_circular:
       print "WARN: circular buffer fixups are not yet supported."
+    return True
 
   def StopAgentTracing(self, timeout):
     try:

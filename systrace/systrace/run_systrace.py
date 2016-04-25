@@ -10,40 +10,37 @@ This is a tool for capturing a trace that includes data from both userland and
 the kernel.  It creates an HTML file for visualizing the trace.
 """
 
-import sys
-
 # Make sure we're using a new enough version of Python.
 # The flags= parameter of re.sub() is new in Python 2.7. And Systrace does not
 # support Python 3 yet.
+
+import sys
+
 version = sys.version_info[:2]
 if version != (2, 7):
   sys.stderr.write('This script does not support Python %d.%d. '
                    'Please use Python 2.7.\n' % version)
   sys.exit(1)
 
-import imp
+
 import optparse
 import os
 import time
 
+_SYSTRACE_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), os.path.pardir))
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, os.path.pardir)
-
 _DEVIL_DIR = os.path.join(_CATAPULT_DIR, 'devil')
 if _DEVIL_DIR not in sys.path:
   sys.path.insert(0, _DEVIL_DIR)
-
-_SYSTRACE_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.path.pardir))
 if _SYSTRACE_DIR not in sys.path:
   sys.path.insert(0, _SYSTRACE_DIR)
 
 from devil.utils import cmd_helper
+from systrace import systrace_runner
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import ftrace_agent
-
-# The default agent directory.
-DEFAULT_AGENT_DIR = 'tracing_agents'
 
 
 def parse_options(argv):
@@ -56,8 +53,8 @@ def parse_options(argv):
   usage = 'Usage: %prog [options] [category1 [category2 ...]]'
   desc = 'Example: %prog -b 32768 -t 15 gfx input view sched freq'
   parser = optparse.OptionParser(usage=usage, description=desc)
-  parser.add_option('-o', dest='output_file', help='write HTML to FILE',
-                    default='trace.html', metavar='FILE')
+  parser.add_option('-o', dest='output_file', help='write trace output to FILE',
+                    default=None, metavar='FILE')
   parser.add_option('-t', '--time', dest='trace_time', type='int',
                     help='trace for N seconds', metavar='N')
   parser.add_option('-b', '--buf-size', dest='trace_buf_size', type='int',
@@ -68,6 +65,9 @@ def parse_options(argv):
   parser.add_option('-l', '--list-categories', dest='list_categories',
                     default=False, action='store_true',
                     help='list the available categories and exit')
+  parser.add_option('-j', '--json', dest='write_json',
+                    default=False, action='store_true',
+                    help='write a JSON file')
   parser.add_option('-a', '--app', dest='app_name', default=None, type='string',
                     action='store',
                     help='enable application-level tracing for comma-separated '
@@ -114,130 +114,42 @@ def parse_options(argv):
                     type='string', help='(deprecated)')
   parser.add_option('-e', '--serial', dest='device_serial_number',
                     type='string', help='adb device serial number')
-  parser.add_option('--agent-dirs', dest='agent_dirs', type='string',
-                    help='the directories of additional systrace agent modules.'
-                    ' The directories should be comma separated, e.g., '
-                    '--agent-dirs=dir1,dir2,dir3. Directory |%s| is the default'
-                    ' agent directory and will always be checked.'
-                    % DEFAULT_AGENT_DIR)
   parser.add_option('--target', dest='target', default='android', type='string',
                     help='chose tracing target (android or linux)')
+  parser.add_option('--timeout', dest='timeout', type='int',
+                    help='timeout for start and stop tracing (seconds)')
+  parser.add_option('--collection-timeout', dest='collection_timeout',
+                    type='int', help='timeout for data collection (seconds)')
 
   options, categories = parser.parse_args(argv[1:])
+
+  if options.output_file is None:
+    options.output_file = 'trace.json' if options.write_json else 'trace.html'
 
   if options.link_assets or options.asset_dir != 'trace-viewer':
     parser.error('--link-assets and --asset-dir are deprecated.')
 
-  if (options.trace_time is not None) and (options.trace_time <= 0):
-    parser.error('the trace time must be a positive number')
+  if options.trace_time and options.trace_time < 0:
+    parser.error('the trace time must be a non-negative number')
 
   if (options.trace_buf_size is not None) and (options.trace_buf_size <= 0):
     parser.error('the trace buffer size must be a positive number')
 
   return (options, categories)
 
-
-def write_trace_html(html_filename, script_dir, trace_results):
-  """Writes out a trace html file.
-
-  Args:
-    html_filename: The name of the file to write.
-    script_dir: The directory containing this script.
-    trace_results: A list of TraceResult objects giving the results of traces.
-  """
-  systrace_dir = os.path.abspath(os.path.dirname(__file__))
-  html_prefix = read_asset(systrace_dir, 'prefix.html')
-  html_suffix = read_asset(systrace_dir, 'suffix.html')
-  trace_viewer_html = read_asset(script_dir, 'systrace_trace_viewer.html')
-
-  # Open the file in binary mode to prevent python from changing the
-  # line endings.
-  html_file = open(html_filename, 'wb')
-  html_file.write(html_prefix.replace('{{SYSTRACE_TRACE_VIEWER_HTML}}',
-                                      trace_viewer_html))
-
-  html_file.write('<!-- BEGIN TRACE -->\n')
-  for result in trace_results:
-    html_file.write('  <script class="')
-    html_file.write('trace-data')
-    html_file.write('" type="application/text">\n')
-    html_file.write(result.raw_data)
-    html_file.write('  </script>\n')
-  html_file.write('<!-- END TRACE -->\n')
-
-  html_file.write(html_suffix)
-  html_file.close()
-  print '\n    wrote file://%s\n' % os.path.abspath(html_filename)
-
-
-def create_agents(options):
-  """Create systrace agents.
-
-  This function will search systrace agent modules in agent directories and
-  create the corresponding systrace agents.
-  Args:
-    options: The command-line options.
-    categories: The trace categories to capture.
-  Returns:
-    The list of systrace agents.
-  """
-  agent_dirs = [os.path.join(os.path.dirname(__file__), DEFAULT_AGENT_DIR)]
-  if options.agent_dirs:
-    agent_dirs.extend(options.agent_dirs.split(','))
-
-  agents = []
-  for agent_dir in agent_dirs:
-    if not agent_dir:
-      continue
-    for filename in os.listdir(agent_dir):
-      (module_name, ext) = os.path.splitext(filename)
-      if (ext != '.py' or module_name == '__init__'
-          or module_name.endswith('_unittest')):
-        continue
-      (f, pathname, data) = imp.find_module(module_name, [agent_dir])
-      try:
-        module = imp.load_module(module_name, f, pathname, data)
-      finally:
-        if f:
-          f.close()
-      if module:
-        agent = module.try_create_agent(options)
-        if not agent:
-          continue
-        agents.append(agent)
-  return agents
-
-
 def get_device_serials():
-  """Get the serial numbers of devices connected via ADB.
+  """Get the serial numbers of devices connected via adb.
 
   Only gets serial numbers of "active" devices (e.g. does not get serial
   numbers of devices which have not been authorized.)
   """
-
   cmdout = cmd_helper.GetCmdOutput(['adb', 'devices'])
   lines = [x.split() for x in cmdout.splitlines()[1:-1]]
   return [x[0] for x in lines if x[1] == 'device']
 
-
 def main():
+  # Parse the command line options.
   options, categories = parse_options(sys.argv)
-  agents = create_agents(options)
-
-  if not agents:
-    dirs = DEFAULT_AGENT_DIR
-    if options.agent_dirs:
-      dirs += ',' + options.agent_dirs
-    sys.stderr.write('No systrace agent is available in directories |%s|.\n' %
-                     dirs)
-    sys.exit(1)
-
-  try:
-    from . import update_systrace_trace_viewer
-  except ImportError:
-    pass
-  else:
-    update_systrace_trace_viewer.update()
 
   if options.target == 'android' and not options.device_serial_number:
     devices = get_device_serials()
@@ -247,6 +159,8 @@ def main():
       raise RuntimeError('Multiple devices connected, serial number required')
     options.device_serial_number = devices[0]
 
+  # If list_categories is selected, just print the list of categories.
+  # In this case, use of the tracing controller is not necessary.
   if options.list_categories:
     if options.target == 'android':
       atrace_agent.list_categories(options)
@@ -254,37 +168,29 @@ def main():
       ftrace_agent.list_categories(options)
     return
 
-  for a in agents:
-    a.StartAgentTracing(options, categories, 10)
+  # Set up the systrace runner and start tracing.
+  script_dir = os.path.dirname(os.path.abspath(__file__))
+  controller = systrace_runner.SystraceRunner(
+      script_dir, options, categories)
+  controller.StartTracing()
 
-  if options.trace_time:
-    print 'Tracing running for %d seconds.' % options.trace_time
+  # Wait for the given number of seconds or until the user presses enter.
+  # pylint: disable=superfluous-parens
+  # (need the parens so no syntax error if trying to load with Python 3)
+  if options.from_file is not None:
+    print('Reading results from file.')
+  elif options.trace_time:
+    print('Starting tracing (%d seconds)' % options.trace_time)
     time.sleep(options.trace_time)
   else:
-    print 'Tracing running, stop with ENTER.'
-    raw_input()
-
-  for a in agents:
-    a.StopAgentTracing(10)
-
-  results = []
-  for a in agents:
-    new_result = a.GetResults(30)
-    results.append(new_result)
-
-  script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
-  write_trace_html(options.output_file, script_dir, results)
+    raw_input('Starting tracing (stop with enter)')
 
 
-def read_asset(src_dir, filename):
-  return open(os.path.join(src_dir, filename)).read()
-
+  # Stop tracing and collect the output.
+  print('Tracing completed. Collecting output...')
+  controller.StopTracing()
+  print('Outputting Systrace results...')
+  controller.OutputSystraceResults(write_json=options.write_json)
 
 if __name__ == '__main__' and __package__ is None:
-  # Add current package to search path.
-  _SYSTRACE_DIR = os.path.abspath(
-      os.path.join(os.path.dirname(__file__), os.path.pardir))
-  sys.path.insert(0, _SYSTRACE_DIR)
-  __package__ = "systrace"  # pylint: disable=redefined-builtin
-
   main()

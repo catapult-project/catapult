@@ -19,7 +19,7 @@ from devil.utils import timeout_retry
 from systrace import tracing_agents
 from py_trace_event import trace_event
 
-def ControllerAgentClockSync(name, issue_ts):
+def ControllerAgentClockSync(issue_ts, name):
   '''Record the clock sync marker for controller tracing agent.
 
   Unlike with the other tracing agents, the tracing controller should not
@@ -116,6 +116,7 @@ class TracingController(object):
     self._options = options
     self._categories = categories
     self._trace_in_progress = False
+    self.all_results = None
 
   def StartTracing(self):
     """Start tracing for all tracing agents.
@@ -218,6 +219,7 @@ class TracingController(object):
         print 'Warning: Exception getting results from %s:' % str(agent)
         print sys.exc_info()[0]
         raise
+    self.all_results = all_results
     return all_results
 
 
