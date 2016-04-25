@@ -201,7 +201,8 @@ tr.exportTo('tr.ui.analysis', function() {
         newAllocatorDump(pmd2B, 'tracing', {
           size: 1572864 /* 1.5 MiB */,
           resident_size: 2097152 /* 2 MiB */
-        })
+        }),
+        newAllocatorDump(pmd2B, 'gpu', { memtrack_pss: 524288 /* 512 KiB */ })
       ];
 
       // Resettable peak total size only.
@@ -247,6 +248,10 @@ tr.exportTo('tr.ui.analysis', function() {
         newAllocatorDump(pmd3B, 'tracing', {
           size: 2097152 /* 2 MiB */,
           resident_size: 3145728 /* 3 MiB */
+        }),
+        newAllocatorDump(pmd3C, 'gpu', {
+          size: 1048576 /* 1 MiB */,
+          memtrack_pss: 786432 /* 768 KiB */
         })
       ];
 

@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
+<link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_overview_pane.html">
 <link rel="import"
@@ -22,6 +23,7 @@ tr.b.unittest.testSuite(function() {
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+  var MemoryAllocatorDump = tr.model.MemoryAllocatorDump;
   var HeapDump = tr.model.HeapDump;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
@@ -67,6 +69,7 @@ tr.b.unittest.testSuite(function() {
     { title: spanMatcher('Swapped'), type: ByteStatColumn },
     { title: spanMatcher('Private'), type: UsedMemoryColumn },
     { title: colorLegendMatcher('blink'), type: AllocatorColumn },
+    { title: colorLegendMatcher('gpu'), type: AllocatorColumn },
     { title: colorLegendMatcher('malloc'), type: AllocatorColumn },
     { title: colorLegendMatcher('oilpan'), type: AllocatorColumn },
     { title: colorLegendMatcher('v8'), type: AllocatorColumn },
@@ -200,21 +203,21 @@ tr.b.unittest.testSuite(function() {
           {
             title: colorLegendMatcher('Process 1'),
             sizes: [[29884416], undefined, [9437184], [5767168], undefined,
-                undefined, undefined, [7340032], undefined, undefined,
-                [2097152]],
+                undefined, undefined, undefined, [7340032], undefined,
+                undefined, [2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
           },
           {
             title: colorLegendMatcher('Process 2'),
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
-                [7340032], [1048576], [1], [5242880], [1572864]],
+                [7340032], [0], [1048576], [1], [5242880], [1572864]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
             title: colorLegendMatcher('Process 4'),
             sizes: [undefined, [17825792], undefined, undefined, undefined,
                 undefined, undefined, undefined, undefined, undefined,
-                undefined],
+                undefined, undefined],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
           }
         ],
@@ -222,7 +225,8 @@ tr.b.unittest.testSuite(function() {
           {
             title: 'Total',
             sizes: [[47710208], [57671680], [27787264], [5767168], [32],
-                [8912896], [7340032], [8388608], [1], [5242880], [3670016]],
+                [8912896], [7340032], [0], [8388608], [1], [5242880],
+                [3670016]],
             contexts: undefined
           }
         ],
@@ -239,7 +243,7 @@ tr.b.unittest.testSuite(function() {
             title: colorLegendMatcher('Process 1'),
             sizes: [[31457280, 29884416, undefined], undefined,
                 [10485760, 9437184, undefined], [8388608, 5767168, undefined],
-                undefined, undefined, undefined,
+                undefined, undefined, undefined, undefined,
                 [undefined, 7340032, undefined], undefined, undefined,
                 [undefined, 2097152, undefined]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 1)
@@ -249,23 +253,24 @@ tr.b.unittest.testSuite(function() {
             sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
                 [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
-                [undefined, 7340032, 6291456], [2097152, 1048576, 786432],
-                [undefined, 1, undefined], [5242880, 5242880, 5767168],
-                [1048576, 1572864, 2097152]],
+                [undefined, 7340032, 6291456], [undefined, 0, 1048576],
+                [2097152, 1048576, 786432], [undefined, 1, undefined],
+                [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           },
           {
             title: colorLegendMatcher('Process 3'),
             sizes: [undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined, undefined, [2147483648, undefined,
-                1073741824], [1073741824, undefined, 2147483648], undefined],
+                undefined, undefined, undefined, undefined,
+                [2147483648, undefined, 1073741824],
+                [1073741824, undefined, 2147483648], undefined],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 3)
           },
           {
             title: colorLegendMatcher('Process 4'),
             sizes: [undefined, [undefined, 17825792, 17825792], undefined,
                 undefined, undefined, undefined, undefined, undefined,
-                undefined, undefined, undefined],
+                undefined, undefined, undefined, undefined],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 4)
           }
         ],
@@ -276,8 +281,9 @@ tr.b.unittest.testSuite(function() {
                 [40370176, 57671680, 58720256], [28835840, 27787264, 18350080],
                 [8388608, 5767168, -2621440], [32, 32, 64],
                 [10485760, 8912896, 7340032], [undefined, 7340032, 6291456],
-                [2097152, 8388608, 786432], [2147483648, 1, 1073741824],
-                [1078984704, 5242880, 2153250816], [1048576, 3670016, 2097152]],
+                [undefined, 0, 1048576], [2097152, 8388608, 786432],
+                [2147483648, 1, 1073741824], [1078984704, 5242880, 2153250816],
+                [1048576, 3670016, 2097152]],
             contexts: undefined
           }
         ],
@@ -293,7 +299,7 @@ tr.b.unittest.testSuite(function() {
           {
             title: colorLegendMatcher('Process 2'),
             sizes: [[17825792], [39845888], [18350080], [0], [32], [8912896],
-                [7340032], [1048576], [1], [5242880], [1572864]],
+                [7340032], [0], [1048576], [1], [5242880], [1572864]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           }
         ],
@@ -312,9 +318,9 @@ tr.b.unittest.testSuite(function() {
             sizes: [[19398656, 17825792, 15728640],
                 [40370176, 39845888, 40894464], [18350080, 18350080, 18350080],
                 [0, 0, -2621440], [32, 32, 64], [10485760, 8912896, 7340032],
-                [undefined, 7340032, 6291456], [2097152, 1048576, 786432],
-                [undefined, 1, undefined], [5242880, 5242880, 5767168],
-                [1048576, 1572864, 2097152]],
+                [undefined, 7340032, 6291456], [undefined, 0, 1048576],
+                [2097152, 1048576, 786432], [undefined, 1, undefined],
+                [5242880, 5242880, 5767168], [1048576, 1572864, 2097152]],
             contexts: extractProcessMemoryDumps(processMemoryDumps, 2)
           }
         ],
@@ -337,7 +343,7 @@ tr.b.unittest.testSuite(function() {
 
     // Simulate clicking on the 'malloc' cell of the second process.
     table.selectedTableRow = table.tableRows[1];
-    table.selectedColumnIndex = 8;
+    table.selectedColumnIndex = 9;
     assert.lengthOf(viewEl.requestedChildPanes, 2);
     var lastChildPane = viewEl.requestedChildPanes[1];
     assert.equal(
@@ -347,7 +353,7 @@ tr.b.unittest.testSuite(function() {
         extractMemoryAllocatorDumps(processMemoryDumps, 2, 'malloc'));
 
     // Simulate clicking on the 'Oilpan' cell of the second process.
-    table.selectedColumnIndex = 9;
+    table.selectedColumnIndex = 10;
     assert.lengthOf(viewEl.requestedChildPanes, 3);
     var lastChildPane = viewEl.requestedChildPanes[2];
     assert.isUndefined(viewEl.lastChildPane);
@@ -444,7 +450,7 @@ tr.b.unittest.testSuite(function() {
 
           // Select the 'v8' column of the first process (empty cell).
           table.selectedTableRow = table.tableRows[0];
-          table.selectedColumnIndex = 9;
+          table.selectedColumnIndex = 10;
         });
 
     simulateView(
@@ -670,6 +676,7 @@ tr.b.unittest.testSuite(function() {
 
     var HAS_HEAP_DUMPS = 1 << 2;
     var HAS_ALLOCATOR_HEAP_DUMP = 1 << 3;
+    var MISSING_SIZE = 1 << 4;
     function checkAllocatorColumnInfosAndColor(fieldAndDumpMask,
         expectedInfos) {
       checkOverviewColumnInfosAndColor(c,
@@ -679,19 +686,16 @@ tr.b.unittest.testSuite(function() {
               pmd.heapDumps = {};
             if (mask & HAS_ALLOCATOR_HEAP_DUMP)
               pmd.heapDumps['Allocator'] = new HeapDump(pmd, 'Allocator');
+            var mad = new MemoryAllocatorDump(pmd, 'Allocator');
+            if (!(mask & MISSING_SIZE)) {
+              mad.addNumeric('size',
+                  new ScalarNumeric(sizeInBytes_smallerIsBetter, 7));
+            }
+            pmd.memoryAllocatorDumps = [mad];
           },
           expectedInfos,
           undefined /* no color */);
     }
-
-    var EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP = {
-      icon: '\u2630',
-      message: 'Heap dump provided.'
-    };
-    var EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP = {
-      icon: '\u2630',
-      message: 'Heap dump provided at some selected timestamps.'
-    };
 
     // No context.
     checkOverviewColumnInfosAndColor(c,
@@ -705,7 +709,7 @@ tr.b.unittest.testSuite(function() {
         [] /* no infos */,
         undefined /* no color */);
 
-    // No process memory dumps have heap dumps.
+    // No infos.
     checkAllocatorColumnInfosAndColor([
       FIELD | DUMP
     ], [] /* no infos */);
@@ -715,6 +719,15 @@ tr.b.unittest.testSuite(function() {
       0,
       FIELD | DUMP
     ], [] /* infos */);
+
+    var EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP = {
+      icon: '\u2630',
+      message: 'Heap dump provided.'
+    };
+    var EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP = {
+      icon: '\u2630',
+      message: 'Heap dump provided at some selected timestamps.'
+    };
 
     // All process memory dumps have heap dumps.
     checkAllocatorColumnInfosAndColor([
@@ -736,6 +749,55 @@ tr.b.unittest.testSuite(function() {
       FIELD | DUMP | HAS_HEAP_DUMPS,
       FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP
     ], [EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP]);
+
+    var EXPECTED_ALL_MISSING_SIZE = {
+      icon: '\u26A0',
+      message: 'Size was not provided.',
+      color: 'red'
+    };
+    var EXPECTED_SOME_MISSING_SIZE = {
+      icon: '\u26A0',
+      message: 'Size was not provided at some selected timestamps.',
+      color: 'red'
+    };
+
+    // All process memory dumps are missing allocator size.
+    checkAllocatorColumnInfosAndColor([
+      FIELD | DUMP | MISSING_SIZE
+    ], [EXPECTED_ALL_MISSING_SIZE]);
+    checkAllocatorColumnInfosAndColor([
+      FIELD | DUMP | MISSING_SIZE,
+      FIELD | DUMP | MISSING_SIZE,
+      FIELD | DUMP | MISSING_SIZE
+    ], [EXPECTED_ALL_MISSING_SIZE]);
+
+    // Some process memory dumps use Android memtrack PSS fallback.
+    checkAllocatorColumnInfosAndColor([
+      0,
+      FIELD | DUMP | MISSING_SIZE
+    ], [EXPECTED_SOME_MISSING_SIZE]);
+    checkAllocatorColumnInfosAndColor([
+      FIELD | DUMP | MISSING_SIZE,
+      FIELD | DUMP,
+      FIELD | DUMP | MISSING_SIZE
+    ], [EXPECTED_SOME_MISSING_SIZE]);
+
+    // Combination of heap dump and memtrack fallback infos.
+    checkAllocatorColumnInfosAndColor([
+      FIELD | DUMP | MISSING_SIZE | HAS_HEAP_DUMPS |
+          HAS_ALLOCATOR_HEAP_DUMP
+    ], [
+      EXPECTED_ALL_HAVE_ALLOCATOR_HEAP_DUMP,
+      EXPECTED_ALL_MISSING_SIZE
+    ]);
+    checkAllocatorColumnInfosAndColor([
+      FIELD | DUMP | HAS_HEAP_DUMPS | HAS_ALLOCATOR_HEAP_DUMP,
+      FIELD | DUMP,
+      FIELD | DUMP | MISSING_SIZE
+    ], [
+      EXPECTED_SOME_HAVE_ALLOCATOR_HEAP_DUMP,
+      EXPECTED_SOME_MISSING_SIZE
+    ]);
   });
 
   test('tracingColumn', function() {
