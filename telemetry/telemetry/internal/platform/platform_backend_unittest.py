@@ -13,7 +13,8 @@ from telemetry import decorators
 class PlatformBackendTest(unittest.TestCase):
   @decorators.Disabled('mac',       # crbug.com/440666
                        'vista',     # crbug.com/479337
-                       'chromeos')  # crbug.com/483212
+                       'chromeos',  # crbug.com/483212
+                       'win')       # catapult/issues/2282
   def testPowerMonitoringSync(self):
     # Tests that the act of monitoring power doesn't blow up.
     platform = platform_module.GetHostPlatform()

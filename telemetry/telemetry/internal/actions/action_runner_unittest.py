@@ -182,7 +182,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
   @decorators.Disabled('android', 'debug',  # crbug.com/437068
-                       'chromeos')          # crbug.com/483212
+                       'chromeos',          # crbug.com/483212
+                       'win')               # catapult/issues/2282
   def testTapElement(self):
     self.Navigate('page_with_clickables.html')
     action_runner = action_runner_module.ActionRunner(self._tab,
