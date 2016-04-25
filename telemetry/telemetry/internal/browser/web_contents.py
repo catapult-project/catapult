@@ -20,6 +20,15 @@ class WebContents(object):
         'network_quiescence.js')) as f:
       self._quiescence_js = f.read()
 
+    with open(os.path.join(os.path.dirname(__file__),
+        'wait_for_frame.js')) as f:
+      self._wait_for_frame_js = f.read()
+
+    # An incrementing ID used to query frame timing javascript. Using a new id
+    # with each request ensures that previously timed-out wait for frame
+    # requests don't impact new requests.
+    self._wait_for_frame_id = 0
+
   @property
   def id(self):
     """Return the unique id string for this tab object."""
@@ -71,6 +80,22 @@ class WebContents(object):
     self.WaitForJavaScriptExpression(
         'document.readyState == "interactive" || '
         'document.readyState == "complete"', timeout)
+
+  def WaitForFrameToBeDisplayed(self,
+          timeout=DEFAULT_WEB_CONTENTS_TIMEOUT):
+    """Waits for a frame to be displayed before returning.
+
+    Raises:
+      exceptions.Error: See WaitForJavaScriptExpression() for a detailed list
+      of possible exceptions.
+    """
+    # Generate a new id for each call of this function to ensure that we track
+    # each request to wait seperately.
+    self._wait_for_frame_id += 1
+    self.WaitForJavaScriptExpression(self._wait_for_frame_js +
+        'window.__telemetry_testHasFramePassed("' +
+        str(self._wait_for_frame_id) + '")',
+        timeout)
 
   def WaitForJavaScriptExpression(self, expr, timeout):
     """Waits for the given JavaScript expression to be True.

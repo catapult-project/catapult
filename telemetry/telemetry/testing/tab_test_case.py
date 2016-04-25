@@ -36,6 +36,7 @@ class TabTestCase(browser_test_case.BrowserTestCase):
     url = self.UrlOfUnittestFile(filename)
     self._tab.Navigate(url, script_to_evaluate_on_commit)
     self._tab.WaitForDocumentReadyStateToBeComplete()
+    self._tab.WaitForFrameToBeDisplayed()
 
   def _RestartBrowser(self):
     if not self._browser.tabs:
