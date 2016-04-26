@@ -106,7 +106,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     var name = event.title.replace('V8.GC_MC_', '')
                           .replace('V8.GC_SCAVENGER_', '')
                           .replace('V8.GC_', '')
-                          .replace('_', '-').toLowerCase();
+                          .replace(/_/g, '-').toLowerCase();
     return prefix + '-' + name;
   }
 
