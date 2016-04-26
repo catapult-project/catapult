@@ -160,14 +160,17 @@ tr.exportTo('tr.v', function() {
       return this.maxCount_;
     },
 
-    /**
-    *  Compute an approximation of percentile based on the counts in the bins.
-    *  If the real percentile lies within |this.range| then the result of
-    *  the function will deviate from the real percentile by at most
-    *  |this.centralBinWidth|.
-    *  If the real percentile is outside |this.range| then the function
-    *  returns the closest range limit: |this.range.min| or |this.range.max|.
-    */
+    /*
+     * Compute an approximation of percentile based on the counts in the bins.
+     * If the real percentile lies within |this.range| then the result of
+     * the function will deviate from the real percentile by at most
+     * the maximum width of the bin(s) within which the point(s)
+     * from which the real percentile would be calculated lie.
+     * If the real percentile is outside |this.range| then the function
+     * returns the closest range limit: |this.range.min| or |this.range.max|.
+     *
+     * @param {number} percent The percent must be between 0.0 and 1.0.
+     */
     getApproximatePercentile: function(percent) {
       if (!(percent >= 0 && percent <= 1))
         throw new Error('percent must be [0,1]');
