@@ -14,7 +14,7 @@ class SharedState(object):
     Override to do any action before running stories that
     share this same state.
     Args:
-      test: a page_test.PageTest or story_test.StoryTest instance.
+      test: a legacy_page_test.LegacyPageTest or story_test.StoryTest instance.
       options: a BrowserFinderOptions instance that contains command line
         options.
       story_set: a story.StorySet instance.

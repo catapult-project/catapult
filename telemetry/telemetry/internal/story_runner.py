@@ -16,7 +16,7 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.results import results_options
 from telemetry.internal.util import exception_formatter
 from telemetry import page
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.util import wpr_modes
 from telemetry.value import failure
@@ -84,7 +84,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     state.RunStory(results)
     if isinstance(test, story_test.StoryTest):
       test.Measure(state.platform, results)
-  except (page_test.Failure, exceptions.TimeoutException,
+  except (legacy_page_test.Failure, exceptions.TimeoutException,
           exceptions.LoginException, exceptions.ProfilingException):
     ProcessError()
   except exceptions.Error:
@@ -297,7 +297,7 @@ def RunBenchmark(benchmark, finder_options):
     pt._enabled_strings = benchmark._enabled_strings
 
   stories = benchmark.CreateStorySet(finder_options)
-  if isinstance(pt, page_test.PageTest):
+  if isinstance(pt, legacy_page_test.LegacyPageTest):
     if any(not isinstance(p, page.Page) for p in stories.stories):
       raise Exception(
           'PageTest must be used with StorySet containing only '

@@ -16,7 +16,7 @@ from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry import story
 from telemetry.util import image_util
 from telemetry.util import wpr_modes
@@ -299,7 +299,7 @@ class SharedPageState(story.SharedState):
     if self._current_page.credentials:
       if not self.browser.credentials.LoginNeeded(
           self._current_tab, self._current_page.credentials):
-        raise page_test.Failure(
+        raise legacy_page_test.Failure(
             'Login as ' + self._current_page.credentials + ' failed')
       self._did_login_for_current_page = True
 
@@ -332,7 +332,7 @@ class SharedPageState(story.SharedState):
         # Avoid trying to recover from an unknown multi-tab state.
         exception_formatter.PrintFormattedException(
             msg='Telemetry Error during multi tab test:')
-        raise page_test.MultiTabTestAppCrashError
+        raise legacy_page_test.MultiTabTestAppCrashError
       raise
     except Exception:
       if self._finder_options.browser_options.take_screenshot_for_failed_page:

@@ -7,7 +7,7 @@ import optparse
 from telemetry import decorators
 from telemetry.internal import story_runner
 from telemetry.internal.util import command_line
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.web_perf import timeline_based_measurement
 
 Disabled = decorators.Disabled
@@ -215,7 +215,7 @@ class Benchmark(command_line.Command):
       |test()| if |test| is a PageTest class.
       Otherwise, a TimelineBasedMeasurement instance.
     """
-    is_page_test = issubclass(self.test, page_test.PageTest)
+    is_page_test = issubclass(self.test, legacy_page_test.LegacyPageTest)
     is_tbm = self.test == timeline_based_measurement.TimelineBasedMeasurement
     if not is_page_test and not is_tbm:
       raise TypeError('"%s" is not a PageTest or a TimelineBasedMeasurement.' %

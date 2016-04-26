@@ -6,14 +6,14 @@ import unittest
 
 from telemetry import benchmark as benchmark_module
 from telemetry import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.testing import fakes
 import mock
 
 
 # pylint: disable=abstract-method
-class DummyPageTest(page_test.PageTest):
+class DummyPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self):
     super(DummyPageTest, self).__init__()
     # Without disabling the above warning, this complains that

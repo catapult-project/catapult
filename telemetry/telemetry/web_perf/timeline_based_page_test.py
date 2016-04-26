@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 
-class TimelineBasedPageTest(page_test.PageTest):
+class TimelineBasedPageTest(legacy_page_test.LegacyPageTest):
   """Page test that collects metrics with TimelineBasedMeasurement.
 
   WillRunStory(), Measure() and DidRunStory() are all done in story_runner

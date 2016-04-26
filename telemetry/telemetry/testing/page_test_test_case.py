@@ -13,7 +13,7 @@ from telemetry.core import util
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.page import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.testing import options_for_unittests
 
 
@@ -59,7 +59,7 @@ class PageTestTestCase(unittest.TestCase):
         continue
       setattr(options, k, v)
 
-    if isinstance(measurement, page_test.PageTest):
+    if isinstance(measurement, legacy_page_test.LegacyPageTest):
       measurement.CustomizeBrowserOptions(options.browser_options)
     options.output_file = None
     options.output_formats = ['none']
@@ -100,7 +100,7 @@ class PageTestTestCase(unittest.TestCase):
     measurement = BuggyMeasurement()
     try:
       self.RunMeasurement(measurement, ps, options=options)
-    except page_test.TestNotSupportedOnPlatformError:
+    except legacy_page_test.TestNotSupportedOnPlatformError:
       pass
     if start_tracing_called[0]:
       self.assertTrue(stop_tracing_called[0])

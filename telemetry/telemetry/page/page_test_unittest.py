@@ -9,48 +9,48 @@ import unittest
 from telemetry import decorators
 from telemetry import story
 from telemetry.page import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
 from telemetry.util import wpr_modes
 from telemetry.wpr import archive_info
 
 
-class PageTestThatFails(page_test.PageTest):
+class PageTestThatFails(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
-    raise page_test.Failure
+    raise legacy_page_test.Failure
 
 
-class PageTestForBlank(page_test.PageTest):
+class PageTestForBlank(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if contents.strip() != 'Hello world':
-      raise page_test.MeasurementFailure(
+      raise legacy_page_test.MeasurementFailure(
           'Page contents were: ' + contents)
 
 
-class PageTestForReplay(page_test.PageTest):
+class PageTestForReplay(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
     # Web Page Replay returns '404 Not found' if a page is not in the archive.
     contents = tab.EvaluateJavaScript('document.body.textContent')
     if '404 Not Found' in contents.strip():
-      raise page_test.MeasurementFailure('Page not in archive.')
+      raise legacy_page_test.MeasurementFailure('Page not in archive.')
 
 
-class PageTestQueryParams(page_test.PageTest):
+class PageTestQueryParams(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, page, tab, results):
     query = tab.EvaluateJavaScript('window.location.search')
     expected = '?foo=1'
     if query.strip() != expected:
-      raise page_test.MeasurementFailure(
+      raise legacy_page_test.MeasurementFailure(
           'query was %s, not %s.' % (query, expected))
 
 
-class PageTestWithAction(page_test.PageTest):
+class PageTestWithAction(legacy_page_test.LegacyPageTest):
 
   def __init__(self):
     super(PageTestWithAction, self).__init__()
@@ -163,7 +163,7 @@ class PageTestUnitTest(page_test_test_case.PageTestTestCase):
 class MultiTabPageTestUnitTest(unittest.TestCase):
 
   def testNoTabForPageReturnsFalse(self):
-    class PageTestWithoutTabForPage(page_test.PageTest):
+    class PageTestWithoutTabForPage(legacy_page_test.LegacyPageTest):
 
       def ValidateAndMeasurePage(self, *_):
         pass
@@ -171,7 +171,7 @@ class MultiTabPageTestUnitTest(unittest.TestCase):
     self.assertFalse(test.is_multi_tab_test)
 
   def testHasTabForPageReturnsTrue(self):
-    class PageTestWithTabForPage(page_test.PageTest):
+    class PageTestWithTabForPage(legacy_page_test.LegacyPageTest):
 
       def ValidateAndMeasurePage(self, *_):
         pass
@@ -182,7 +182,7 @@ class MultiTabPageTestUnitTest(unittest.TestCase):
     self.assertTrue(test.is_multi_tab_test)
 
   def testHasTabForPageInAncestor(self):
-    class PageTestWithTabForPage(page_test.PageTest):
+    class PageTestWithTabForPage(legacy_page_test.LegacyPageTest):
 
       def ValidateAndMeasurePage(self, *_):
         pass

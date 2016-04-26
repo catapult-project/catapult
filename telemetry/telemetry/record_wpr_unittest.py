@@ -10,7 +10,7 @@ from telemetry import story
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.page import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry import record_wpr
 from telemetry.testing import options_for_unittests
 from telemetry.testing import tab_test_case
@@ -41,7 +41,7 @@ class MockStorySet(story.StorySet):
     self.AddStory(MockPage(self, url))
 
 
-class MockPageTest(page_test.PageTest):
+class MockPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self):
     super(MockPageTest, self).__init__()
     self._action_name_to_run = "RunPageInteractions"

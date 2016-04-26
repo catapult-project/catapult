@@ -22,7 +22,7 @@ from telemetry.internal import story_runner
 from telemetry.internal.testing.page_sets import example_domain
 from telemetry.internal.util import exception_formatter
 from telemetry.page import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
 from telemetry.util import image_util
 from telemetry.testing import fakes
@@ -40,7 +40,7 @@ SIMPLE_CREDENTIALS_STRING = """
 """
 
 
-class DummyTest(page_test.PageTest):
+class DummyTest(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, *_):
     pass
@@ -149,7 +149,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
 
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
 
       def __init__(self, *args):
         super(Test, self).__init__(
@@ -187,7 +187,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
 
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
 
       def __init__(self, *args, **kwargs):
         super(Test, self).__init__(*args, **kwargs)
@@ -241,7 +241,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
 
         f.write(SIMPLE_CREDENTIALS_STRING)
 
-      class TestThatInstallsCredentialsBackend(page_test.PageTest):
+      class TestThatInstallsCredentialsBackend(legacy_page_test.LegacyPageTest):
 
         def __init__(self, credentials_backend):
           super(TestThatInstallsCredentialsBackend, self).__init__()
@@ -273,7 +273,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         shared_page_state_class=shared_page_state.SharedTabletPageState)
     story_set.AddStory(page)
 
-    class TestUserAgent(page_test.PageTest):
+    class TestUserAgent(legacy_page_test.LegacyPageTest):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
         actual_user_agent = tab.EvaluateJavaScript('window.navigator.userAgent')
@@ -303,7 +303,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir())
     story_set.AddStory(page)
 
-    class TestOneTab(page_test.PageTest):
+    class TestOneTab(legacy_page_test.LegacyPageTest):
 
       def DidStartBrowser(self, browser):
         browser.tabs.New()
@@ -328,7 +328,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir())
     story_set.AddStory(page)
 
-    class TestMultiTabs(page_test.PageTest):
+    class TestMultiTabs(legacy_page_test.LegacyPageTest):
       def TabForPage(self, page, browser):
         del page  # unused
         return browser.tabs.New()
@@ -353,7 +353,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir())
     story_set.AddStory(page)
 
-    class TestBeforeLaunch(page_test.PageTest):
+    class TestBeforeLaunch(legacy_page_test.LegacyPageTest):
 
       def __init__(self):
         super(TestBeforeLaunch, self).__init__()
@@ -394,7 +394,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         startup_url='about:blank', shared_page_state_class=TestSharedState)
     story_set.AddStory(page)
 
-    class Measurement(page_test.PageTest):
+    class Measurement(legacy_page_test.LegacyPageTest):
 
       def __init__(self):
         super(Measurement, self).__init__()
@@ -425,14 +425,14 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir())
     story_set.AddStory(page)
 
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
 
       def __init__(self):
         super(Test, self).__init__()
         self.did_call_clean_up = False
 
       def ValidateAndMeasurePage(self, *_):
-        raise page_test.Failure
+        raise legacy_page_test.Failure
 
       def DidRunPage(self, platform):
         del platform  # unused
@@ -464,7 +464,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         base_dir=util.GetUnittestDataDir(),
         shared_page_state_class=UnrunnableSharedState))
 
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
 
       def __init__(self, *args, **kwargs):
         super(Test, self).__init__(*args, **kwargs)
@@ -495,7 +495,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set.AddStory(page_module.Page(
         'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
 
-    class Measurement(page_test.PageTest):
+    class Measurement(legacy_page_test.LegacyPageTest):
 
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
@@ -543,7 +543,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
   def testSingleTabMeansCrashWillCauseFailureValue(self):
     self.CaptureFormattedException()
 
-    class SingleTabTest(page_test.PageTest):
+    class SingleTabTest(legacy_page_test.LegacyPageTest):
       # Test is not multi-tab because it does not override TabForPage.
 
       def ValidateAndMeasurePage(self, *_):
@@ -560,7 +560,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
   def testMultipleTabsMeansCrashRaises(self):
     self.CaptureFormattedException()
 
-    class MultipleTabsTest(page_test.PageTest):
+    class MultipleTabsTest(legacy_page_test.LegacyPageTest):
       # Test *is* multi-tab because it overrides TabForPage.
 
       def TabForPage(self, page, browser):
@@ -570,7 +570,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         pass
 
     test = MultipleTabsTest()
-    with self.assertRaises(page_test.MultiTabTestAppCrashError):
+    with self.assertRaises(legacy_page_test.MultiTabTestAppCrashError):
       self._RunPageTestThatRaisesAppCrashException(test, max_failures=1)
     self.assertFormattedExceptionOnlyHas('AppCrashException')
 
@@ -578,7 +578,7 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     story_set = example_domain.ExampleDomainPageSet()
     body = []
 
-    class TestWpr(page_test.PageTest):
+    class TestWpr(legacy_page_test.LegacyPageTest):
       def ValidateAndMeasurePage(self, page, tab, results):
         del page, results  # unused
         body.append(tab.EvaluateJavaScript('document.body.innerText'))

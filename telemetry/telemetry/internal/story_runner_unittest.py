@@ -17,7 +17,7 @@ from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import exception_formatter as ex_formatter_module
 from telemetry.page import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry import story as story_module
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
@@ -86,7 +86,7 @@ class BarStoryState(TestSharedPageState):
   pass
 
 
-class DummyTest(page_test.PageTest):
+class DummyTest(legacy_page_test.LegacyPageTest):
   def RunPage(self, *_):
     pass
 
@@ -440,7 +440,7 @@ class StoryRunnerTest(unittest.TestCase):
 
     # This erroneous test is set up to raise exception for the 2nd story
     # run.
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
@@ -470,7 +470,7 @@ class StoryRunnerTest(unittest.TestCase):
     self.SuppressExceptionFormatting()
     story_set = story_module.StorySet()
 
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
@@ -508,7 +508,7 @@ class StoryRunnerTest(unittest.TestCase):
         raise DidRunTestError
 
 
-    class Test(page_test.PageTest):
+    class Test(legacy_page_test.LegacyPageTest):
       def __init__(self, *args):
         super(Test, self).__init__(*args)
         self.run_count = 0
@@ -543,7 +543,7 @@ class StoryRunnerTest(unittest.TestCase):
     story_set.AddStory(blank_story)
     story_set.AddStory(green_story)
 
-    class Measurement(page_test.PageTest):
+    class Measurement(legacy_page_test.LegacyPageTest):
       i = 0
       def RunPage(self, page, _, results):
         self.i += 1
@@ -687,7 +687,7 @@ class StoryRunnerTest(unittest.TestCase):
 
       def Run(self, shared_state):
         self.was_run = True
-        raise page_test.Failure
+        raise legacy_page_test.Failure
 
     self.SuppressExceptionFormatting()
 

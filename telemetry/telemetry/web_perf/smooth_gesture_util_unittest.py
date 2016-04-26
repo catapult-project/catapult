@@ -6,7 +6,7 @@ import unittest
 
 from telemetry import decorators
 from telemetry.page import page as page_module
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.testing import page_test_test_case
 from telemetry.timeline import async_slice
 from telemetry.timeline import model as model_module
@@ -120,7 +120,7 @@ class SmoothGestureTest(page_test_test_case.PageTestTestCase):
       'file://scrollable_page.html', ps, base_dir=ps.base_dir))
     models = []
     tab_ids = []
-    class ScrollingGestureTestMeasurement(page_test.PageTest):
+    class ScrollingGestureTestMeasurement(legacy_page_test.LegacyPageTest):
       def __init__(self):
         # pylint: disable=bad-super-call
         super(ScrollingGestureTestMeasurement, self).__init__()

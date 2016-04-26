@@ -14,14 +14,14 @@ from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import binary_manager
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.util import matching
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.web_perf import timeline_based_page_test
 
 
-class RecorderPageTest(page_test.PageTest):
+class RecorderPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self):
     super(RecorderPageTest, self).__init__()
     self.page_test = None

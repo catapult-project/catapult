@@ -6,7 +6,7 @@ import unittest
 
 from telemetry.internal import story_runner
 from telemetry.page import page
-from telemetry.page import page_test
+from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
 from telemetry import story as story_module
 from telemetry.testing import fakes
@@ -20,7 +20,7 @@ def SetUpPageRunnerArguments(options):
   story_runner.ProcessCommandLineArgs(parser, options)
 
 
-class DummyTest(page_test.PageTest):
+class DummyTest(legacy_page_test.LegacyPageTest):
 
   def ValidateAndMeasurePage(self, *_):
     pass
