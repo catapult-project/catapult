@@ -14,8 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name='tr-ui-sp-file-size-stats-side-panel'
-    extends='tr-ui-side-panel'>
+<dom-module id="tr-ui-sp-file-size-stats-side-panel">
   <template>
     <style>
     :host {
@@ -49,13 +48,16 @@ found in the LICENSE file.
       <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
     </table-container>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
 (function() {
 
-  Polymer('tr-ui-sp-file-size-stats-side-panel', {
+  Polymer({
+    is: 'tr-ui-sp-file-size-stats-side-panel',
+    Behaviors: [Catapult.tr_ui_side_panel]
+
     ready: function() {
       this.model_ = undefined;
       this.selection_ = new tr.model.EventSet();
