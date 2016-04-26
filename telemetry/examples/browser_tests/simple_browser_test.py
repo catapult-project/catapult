@@ -50,9 +50,9 @@ class SimpleBrowserTest(
     self.action_runner.Navigate(url)
     # Click on history
     self._platform.system_ui.WaitForUiNode(
-        resource_id='com.android.chrome:id/menu_button')
+        resource_id='com.google.android.apps.chrome:id/menu_button')
     self._platform.system_ui.GetUiNode(
-        resource_id='com.android.chrome:id/menu_button').Tap()
+        resource_id='com.google.android.apps.chrome:id/menu_button').Tap()
     self._platform.system_ui.WaitForUiNode(content_desc='History')
     self._platform.system_ui.GetUiNode(content_desc='History').Tap()
     # Click on the first entry of the history (page_with_clickables.html)
