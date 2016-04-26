@@ -32,6 +32,7 @@ found in the LICENSE file.
       return undefined;
     },
 
+    // TODO(polymer): Convert to Polymer property
     /**
      * Each element extending this one must implement
      * a 'selection' property.
@@ -43,7 +44,7 @@ found in the LICENSE file.
     get selection() {
       throw new Error('Not implemented!');
     }
-  }
+  };
 
   if (!window.Catapult)
     window.Catapult = {};
