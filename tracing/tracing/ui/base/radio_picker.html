@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name='tr-ui-b-radio-picker'>
+<dom-module id="tr-ui-b-radio-picker">
   <template>
     <style>
     #container {
@@ -25,6 +25,8 @@ found in the LICENSE file.
   'use strict';
 
   Polymer({
+    is: 'tr-ui-b-radio-picker',
+
     created: function() {
       this.needsInit_ = true;
       this.settingsKey_ = undefined;
@@ -74,10 +76,10 @@ found in the LICENSE file.
         input.addEventListener('click', function() {
           this.select(e.key);
         }.bind(this));
-        label.innerHTML = e.label;
+        Polymer.dom(label).innerHTML = e.label;
         label.style.display = 'inline';
-        radio_button.appendChild(input);
-        radio_button.appendChild(label);
+        Polymer.dom(radio_button).appendChild(input);
+        Polymer.dom(radio_button).appendChild(label);
         this.radio_buttons_[e.key] = input;
       }.bind(this));
 
@@ -91,7 +93,8 @@ found in the LICENSE file.
       if (this.radio_buttons_ === undefined)
         return;
       for (var key in this.radio_buttons_)
-        this.$.container.appendChild(this.radio_buttons_[key].parentElement);
+        Polymer.dom(this.$.container).appendChild(
+            this.radio_buttons_[key].parentElement);
       if (this.selectedKey_ !== undefined)
         this.select(this.selectedKey_);
     },
@@ -119,4 +122,4 @@ found in the LICENSE file.
     },
   });
   </script>
-</polymer-element>
+</dom-module>
