@@ -28,42 +28,41 @@ found in the LICENSE file.
     </div>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-single-async-slice-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-single-async-slice-sub-view",
+  // TODO(polymer): Convert to Polymer property
+  get selection() {
+    return this.$.content.selection;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  set selection(selection) {
+    if (selection.length !== 1)
+      throw new Error('Only supports single slices');
+    this.$.content.setSelectionWithoutErrorChecks(selection);
+    this.$.relatedEvents.setRelatedEvents(selection);
+    if (this.$.relatedEvents.hasRelatedEvents()) {
+      this.$.relatedEvents.style.display = '';
+    } else {
+      this.$.relatedEvents.style.display = 'none';
+    }
+  },
 
-    get selection() {
-      return this.$.content.selection;
-    },
+  getEventRows_: function(event) {
+    // TODO(nduca): Figure out if there is a cleaner way to do this.
+    var rows = this.__proto__.__proto__.getEventRows_(event);
 
-    set selection(selection) {
-      if (selection.length !== 1)
-        throw new Error('Only supports single slices');
-      this.$.content.setSelectionWithoutErrorChecks(selection);
-      this.$.relatedEvents.setRelatedEvents(selection);
-      if (this.$.relatedEvents.hasRelatedEvents()) {
-        this.$.relatedEvents.style.display = '';
-      } else {
-        this.$.relatedEvents.style.display = 'none';
-      }
-    },
-
-    getEventRows_: function(event) {
-      // TODO(nduca): Figure out if there is a cleaner way to do this.
-      var rows = this.__proto__.__proto__.getEventRows_(event);
-
-      // Put the ID up top.
-      rows.splice(0, 0, {
-        name: 'ID',
-        value: event.id
-      });
-      return rows;
-    },
+    // Put the ID up top.
+    rows.splice(0, 0, {
+      name: 'ID',
+      value: event.id
+    });
+    return rows;
+  },
 
     get relatedEventsToHighlight() {
       if (!this.currentSelection_)

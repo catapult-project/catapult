@@ -18,33 +18,32 @@ found in the LICENSE file.
     <div id='content'></div>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-multi-instant-event-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-multi-instant-event-sub-view",
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  // TODO(polymer): Convert to Polymer property
+  set selection(selection) {
+    this.$.content.textContent = '';
+    var realView = document.createElement('tr-ui-a-multi-event-sub-view');
+    realView.eventsHaveDuration = false;
+    realView.eventsHaveSubRows = false;
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+    this.$.content.appendChild(realView);
+    realView.setSelectionWithoutErrorChecks(selection);
 
-    set selection(selection) {
-      this.$.content.textContent = '';
-      var realView = document.createElement('tr-ui-a-multi-event-sub-view');
-      realView.eventsHaveDuration = false;
-      realView.eventsHaveSubRows = false;
+    this.currentSelection_ = selection;
+  },
 
-      this.$.content.appendChild(realView);
-      realView.setSelectionWithoutErrorChecks(selection);
-
-      this.currentSelection_ = selection;
-    },
-
-    get selection() {
-      return this.currentSelection_;
-    }
-  });
-  </script>
+  get selection() {
+    return this.currentSelection_;
+  }
+});
+</script>

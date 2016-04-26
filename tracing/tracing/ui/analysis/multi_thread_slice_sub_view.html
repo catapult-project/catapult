@@ -27,71 +27,70 @@ found in the LICENSE file.
     <div id="content"></div>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-multi-thread-slice-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-multi-thread-slice-sub-view",
+  created: function() {
+    this.selection_ = undefined;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  // TODO(polymer): Convert to Polymer property
+  get selection() {
+    return this.selection_;
+  },
 
-    created: function() {
-      this.selection_ = undefined;
-    },
+  set selection(selection) {
+    this.selection_ = selection;
 
-    get selection() {
-      return this.selection_;
-    },
+    // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
+    // the frame viewer that needs this feature, so ~shrug~.
+    // We check for its presence so that we do not have a hard dependency
+    // on frame viewer.
+    if (tr.isExported('tr.ui.e.chrome.cc.RasterTaskSelection')) {
+      if (tr.ui.e.chrome.cc.RasterTaskSelection.supports(selection)) {
+        var ltvSelection = new tr.ui.e.chrome.cc.RasterTaskSelection(
+            selection);
 
-    set selection(selection) {
-      this.selection_ = selection;
+        var ltv = new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
+        ltv.objectSnapshot = ltvSelection.containingSnapshot;
+        ltv.selection = ltvSelection;
+        ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
 
-      // TODO(nduca): This is a gross hack for cc Frame Viewer, but its only
-      // the frame viewer that needs this feature, so ~shrug~.
-      // We check for its presence so that we do not have a hard dependency
-      // on frame viewer.
-      if (tr.isExported('tr.ui.e.chrome.cc.RasterTaskSelection')) {
-        if (tr.ui.e.chrome.cc.RasterTaskSelection.supports(selection)) {
-          var ltvSelection = new tr.ui.e.chrome.cc.RasterTaskSelection(
-              selection);
+        this.$.content.textContent = '';
+        this.$.content.appendChild(ltv);
 
-          var ltv = new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
-          ltv.objectSnapshot = ltvSelection.containingSnapshot;
-          ltv.selection = ltvSelection;
-          ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
-
-          this.$.content.textContent = '';
-          this.$.content.appendChild(ltv);
-
-          this.requiresTallView_ = true;
-          return;
-        }
+        this.requiresTallView_ = true;
+        return;
       }
-
-      this.$.content.textContent = '';
-
-      var mesv = document.createElement('tr-ui-a-multi-event-sub-view');
-      mesv.selection = selection;
-      this.$.content.appendChild(mesv);
-
-      var relatedEvents = document.createElement('tr-ui-a-related-events');
-      relatedEvents.setRelatedEvents(selection);
-
-      if (relatedEvents.hasRelatedEvents()) {
-        this.$.content.appendChild(relatedEvents);
-      }
-    },
-
-    get requiresTallView() {
-      if (this.$.content.children.length === 0)
-        return false;
-      var childTagName = this.$.content.children[0].tagName;
-      if (childTagName === 'TR-UI-A-MULTI-EVENT-SUB-VIEW')
-        return false;
-
-      // Using raster task view.
-      return true;
     }
-  });
-  </script>
+
+    this.$.content.textContent = '';
+
+    var mesv = document.createElement('tr-ui-a-multi-event-sub-view');
+    mesv.selection = selection;
+    this.$.content.appendChild(mesv);
+
+    var relatedEvents = document.createElement('tr-ui-a-related-events');
+    relatedEvents.setRelatedEvents(selection);
+
+    if (relatedEvents.hasRelatedEvents()) {
+      this.$.content.appendChild(relatedEvents);
+    }
+  },
+
+  get requiresTallView() {
+    if (this.$.content.children.length === 0)
+      return false;
+    var childTagName = this.$.content.children[0].tagName;
+    if (childTagName === 'TR-UI-A-MULTI-EVENT-SUB-VIEW')
+      return false;
+
+    // Using raster task view.
+    return true;
+  }
+});
+</script>

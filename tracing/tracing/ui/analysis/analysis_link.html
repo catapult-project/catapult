@@ -25,119 +25,89 @@ found in the LICENSE file.
 
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    is: 'tr-ui-a-analysis-link',
+Polymer({
+  is: 'tr-ui-a-analysis-link',
 
-    properties: {
-      href: {
-        type: String
-      }
-    },
-
-    listeners: {
-      'click': 'onClicked_',
-      'mouseenter': 'onMouseEnter_',
-      'mouseleave': 'onMouseLeave_'
-    },
-
-    ready: function() {
-      this.selection_ = undefined;
-    },
-
-    attached: function() {
-      // Save an instance of the controller since it's going to be used in
-      // detached() where it can no longer be obtained.
-      this.controller_ =
-          tr.c.BrushingStateController.getControllerForElement(this);
-    },
-
-    detached: function() {
-      // Reset highlights.
-      this.clearHighlight_();
-      this.controller_ = undefined;
-    },
-
-    set color(c) {
-      this.style.color = c;
-    },
-
-    /**
-     * @return {*|function():*}
-     */
-    get selection() {
-      return this.selection_;
-    },
-
-    /**
-     * |selection| can be anything except a function, or else a function that
-     * can return anything.
-     *
-     * In the context of trace_viewer, |selection| must usually be an EventSet
-     * whose events will be highlighted by trace_viewer when this link is
-     * clicked or mouse-entered.
-     *
-     * If |selection| is not a function, then it will be dispatched to this
-     * link's embedder via a RequestSelectionChangeEvent when this link is
-     * clicked or mouse-entered.
-     *
-     * If |selection| is a function, then it will be called when this link is
-     * clicked or mouse-entered, and its result will be dispatched to this
-     * link's embedder via a RequestSelectionChangeEvent.
-     *
-     * @param {*|function():*} selection
-     */
-    set selection(selection) {
-      this.selection_ = selection;
-      this.textContent = selection.userFriendlyName;
-    },
-
-    setSelectionAndContent: function(selection, opt_textContent) {
-      this.selection_ = selection;
-      if (opt_textContent)
-        this.textContent = opt_textContent;
-    },
-
-    /**
-     * If |selection| is a function, call it and return the result.
-     * Otherwise return |selection| directly.
-     *
-     * @return {*}
-     */
-    getCurrentSelection_: function() {
-      // Gets the current selection, invoking the selection function if needed.
-      if (typeof this.selection_ === 'function')
-        return this.selection_();
-      return this.selection_;
-    },
-
-    setHighlight_: function(opt_eventSet) {
-      if (this.controller_)
-        this.controller_.changeAnalysisLinkHoveredEvents(opt_eventSet);
-    },
-
-    clearHighlight_: function(opt_eventSet) {
-      this.setHighlight_();
-    },
-
-    onClicked_: function(clickEvent) {
-      clickEvent.stopPropagation();
-      if (!this.selection_)
-        return;
-
-      var selectionChangeEvent = new tr.model.RequestSelectionChangeEvent();
-      selectionChangeEvent.selection = this.getCurrentSelection_();
-      this.dispatchEvent(selectionChangeEvent);
-    },
-
-    onMouseEnter_: function() {
-      this.setHighlight_(this.getCurrentSelection_());
-    },
-
-    onMouseLeave_: function() {
-      this.clearHighlight_();
+  properties: {
+    href: {
+      type: String
     }
-  });
-  </script>
+  },
+
+  listeners: {
+    'click': 'onClicked_',
+    'mouseenter': 'onMouseEnter_',
+    'mouseleave': 'onMouseLeave_'
+  },
+
+  ready: function() {
+    this.selection_ = undefined;
+  },
+
+  attached: function() {
+    // Save an instance of the controller since it's going to be used in
+    // detached() where it can no longer be obtained.
+    this.controller_ =
+        tr.c.BrushingStateController.getControllerForElement(this);
+  },
+
+  detached: function() {
+    // Reset highlights.
+    this.clearHighlight_();
+    this.controller_ = undefined;
+  },
+
+  // TODO(polymer): Convert to Polymer property
+  get selection() {
+    return this.selection_;
+  },
+
+  set selection(selection) {
+    // Selection can be either an EventSet or a function.
+    this.selection_ = selection;
+    this.textContent = selection.userFriendlyName;
+  },
+
+  setSelectionAndContent: function(selection, opt_textContent) {
+    this.selection_ = selection;
+    if (opt_textContent)
+      this.textContent = opt_textContent;
+  },
+
+  getCurrentSelection_: function() {
+    // Gets the current selection, invoking the selection function if needed.
+    if (typeof this.selection_ === 'function')
+      return this.selection_();
+    return this.selection_;
+  },
+
+  setHighlight_: function(opt_eventSet) {
+    if (this.controller_)
+      this.controller_.changeAnalysisLinkHoveredEvents(opt_eventSet);
+  },
+
+  clearHighlight_: function(opt_eventSet) {
+    this.setHighlight_();
+  },
+
+  onClicked_: function() {
+    if (!this.selection_)
+      return;
+
+    var event = new tr.model.RequestSelectionChangeEvent();
+    event.selection = this.getCurrentSelection_();
+    this.dispatchEvent(event);
+  },
+
+  onMouseEnter_: function() {
+    this.setHighlight_(this.getCurrentSelection_());
+  },
+
+  onMouseLeave_: function() {
+    this.clearHighlight_();
+  }
+});
+</script>

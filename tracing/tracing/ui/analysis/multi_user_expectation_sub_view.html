@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import"
   href="/tracing/ui/analysis/user_expectation_related_samples_table.html">
 
-<<<<<<< a6e43f99193eb71a5c4231140641bf5dd77d9a90:tracing/tracing/ui/analysis/multi_user_expectation_sub_view.html
 <dom-module id="tr-ui-a-multi-user-expectation-sub-view">
   <template>
     <style>
@@ -29,46 +28,47 @@ found in the LICENSE file.
       <tr-ui-a-user-expectation-related-samples-table id="relatedSamples"></tr-ui-a-user-expectation-related-samples-table>
     </div>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
 
-    is: "tr-ui-a-multi-interaction-record-sub-view",
+  is: "tr-ui-a-multi-interaction-record-sub-view",
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    set selection(selection) {
-      this.currentSelection_ = selection;
-      this.$.realView.setSelectionWithoutErrorChecks(selection);
+  set selection(selection) {
+    this.currentSelection_ = selection;
+    this.$.realView.setSelectionWithoutErrorChecks(selection);
 
-      this.currentSelection_ = selection;
+    this.currentSelection_ = selection;
 
-      this.$.relatedSamples.selection = selection;
-      if (this.$.relatedSamples.hasRelatedSamples())
-        this.$.events.style.display = '';
-      else
-        this.$.events.style.display = 'none';
-    },
+    this.$.relatedSamples.selection = selection;
+    if (this.$.relatedSamples.hasRelatedSamples())
+      this.$.events.style.display = '';
+    else
+      this.$.events.style.display = 'none';
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
-        return undefined;
-      var selection = new tr.model.EventSet();
-      this.currentSelection_.forEach(function(ir) {
-        ir.associatedEvents.forEach(function(event) {
-          selection.push(event);
-        });
+  get relatedEventsToHighlight() {
+    if (!this.currentSelection_)
+      return undefined;
+    var selection = new tr.model.EventSet();
+    this.currentSelection_.forEach(function(ir) {
+      ir.associatedEvents.forEach(function(event) {
+        selection.push(event);
       });
-      return selection;
-    }
-  });
-  </script>
+    });
+    return selection;
+  }
+});
+</script>

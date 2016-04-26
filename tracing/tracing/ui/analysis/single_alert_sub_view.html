@@ -9,59 +9,58 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-single-alert-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-single-alert-sub-view",
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  // TODO(polymer): Convert to Polymer property
+  set selection(selection) {
+    this.currentSelection_ = selection;
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+    this.textContent = '';
+    var realView = document.createElement('tr-ui-a-single-event-sub-view');
+    realView.addExtraRowsCallback = function(rows) {
+      // Alert description.
+      var alert = this.currentSelection_[0];
 
-    set selection(selection) {
-      this.currentSelection_ = selection;
+      var descriptionEl = tr.ui.b.createSpan({
+        textContent: alert.info.description
+      });
+      rows.push({
+        name: 'Description',
+        value: descriptionEl
+      });
 
-      this.textContent = '';
-      var realView = document.createElement('tr-ui-a-single-event-sub-view');
-      realView.addExtraRowsCallback = function(rows) {
-        // Alert description.
-        var alert = this.currentSelection_[0];
-
-        var descriptionEl = tr.ui.b.createSpan({
-          textContent: alert.info.description
+      // Associated events...
+      if (alert.associatedEvents.length) {
+        var eventSubRows = [];
+        alert.associatedEvents.forEach(function(event, i) {
+          var linkEl = document.createElement('tr-ui-a-analysis-link');
+          linkEl.setSelectionAndContent(function() {
+            return event;
+          }, event.userFriendlyName);
+          eventSubRows.push({
+            name: i,
+            value: linkEl
+          });
         });
+
         rows.push({
-          name: 'Description',
-          value: descriptionEl
+          name: 'Alerts', value: '',
+          isExpanded: true, subRows: eventSubRows
         });
+      }
+    }.bind(this);
 
-        // Associated events...
-        if (alert.associatedEvents.length) {
-          var eventSubRows = [];
-          alert.associatedEvents.forEach(function(event, i) {
-            var linkEl = document.createElement('tr-ui-a-analysis-link');
-            linkEl.setSelectionAndContent(function() {
-              return event;
-            }, event.userFriendlyName);
-            eventSubRows.push({
-              name: i,
-              value: linkEl
-            });
-          });
-
-          rows.push({
-            name: 'Alerts', value: '',
-            isExpanded: true, subRows: eventSubRows
-          });
-        }
-      }.bind(this);
-
-      this.appendChild(realView);
-      realView.setSelectionWithoutErrorChecks(selection);
-    }
-  });
-  </script>
+    this.appendChild(realView);
+    realView.setSelectionWithoutErrorChecks(selection);
+  }
+});
+</script>

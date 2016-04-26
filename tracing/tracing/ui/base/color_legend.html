@@ -31,52 +31,52 @@ that label, using the getColorId* methods from base/color_scheme.
     <span id="label"></span>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-b-color-legend",
 
-    is: "tr-ui-b-color-legend",
+  ready: function() {
+    var blackSquareCharCode = 9632;
+    this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
+    this.label_ = undefined;
 
-    ready: function() {
-      var blackSquareCharCode = 9632;
-      this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
-      this.label_ = undefined;
+    this.compoundEventSelectionState_ =
+        tr.model.CompoundEventSelectionState.NOT_SELECTED;
+  },
 
-      this.compoundEventSelectionState_ =
-          tr.model.CompoundEventSelectionState.NOT_SELECTED;
-    },
+  // TODO(polymer): Convert to Polymer property
+  set compoundEventSelectionState(compoundEventSelectionState) {
+    this.compoundEventSelectionState_ = compoundEventSelectionState;
+    // TODO(nduca): Adjust appearance based on associated state.
+  },
 
-    set compoundEventSelectionState(compoundEventSelectionState) {
-      this.compoundEventSelectionState_ = compoundEventSelectionState;
-      // TODO(nduca): Adjust appearance based on associated state.
-    },
+  get label() {
+    return this.label_;
+  },
 
-    get label() {
-      return this.label_;
-    },
-
-    set label(label) {
-      if (label === undefined) {
-        this.setLabelAndColorId(undefined, undefined);
-        return;
-      }
-
-      var colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
-          label);
-      this.setLabelAndColorId(label, colorId);
-    },
-
-    setLabelAndColorId: function(label, colorId) {
-      this.label_ = label;
-
-      this.$.label.textContent = '';
-      this.$.label.appendChild(tr.ui.b.asHTMLOrTextNode(label));
-
-      if (colorId === undefined)
-        this.$.square.style.color = 'initial';
-      else
-        this.$.square.style.color = tr.b.ColorScheme.colorsAsStrings[colorId];
+  set label(label) {
+    if (label === undefined) {
+      this.setLabelAndColorId(undefined, undefined);
+      return;
     }
-  });
-  </script>
+
+    var colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
+        label);
+    this.setLabelAndColorId(label, colorId);
+  },
+
+  setLabelAndColorId: function(label, colorId) {
+    this.label_ = label;
+
+    this.$.label.textContent = '';
+    this.$.label.appendChild(tr.ui.b.asHTMLOrTextNode(label));
+
+    if (colorId === undefined)
+      this.$.square.style.color = 'initial';
+    else
+      this.$.square.style.color = tr.b.ColorScheme.colorsAsStrings[colorId];
+  }
+});
+</script>

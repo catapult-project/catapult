@@ -89,89 +89,89 @@ found in the LICENSE file.
     </table>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-single-thread-time-slice-sub-view",
 
-    is: "tr-ui-a-single-thread-time-slice-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+  // TODO(polymer): Convert to Polymer property
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  set selection(selection) {
+    var timeSlice = tr.b.getOnlyElement(selection);
 
-    set selection(selection) {
-      var timeSlice = tr.b.getOnlyElement(selection);
+    if (!(timeSlice instanceof tr.model.ThreadTimeSlice))
+      throw new Error('Only supports thread time slices');
 
-      if (!(timeSlice instanceof tr.model.ThreadTimeSlice))
-        throw new Error('Only supports thread time slices');
+    this.currentSelection_ = selection;
 
-      this.currentSelection_ = selection;
+    var thread = timeSlice.thread;
 
-      var thread = timeSlice.thread;
+    var shadowRoot = this.shadowRoot;
+    shadowRoot.querySelector('#state').textContent = timeSlice.title;
+    var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
+    shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
 
-      var shadowRoot = this.shadowRoot;
-      shadowRoot.querySelector('#state').textContent = timeSlice.title;
-      var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
-      shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
+    shadowRoot.querySelector('#process-name').textContent =
+        thread.parent.userFriendlyName;
+    shadowRoot.querySelector('#thread-name').textContent =
+        thread.userFriendlyName;
 
-      shadowRoot.querySelector('#process-name').textContent =
-          thread.parent.userFriendlyName;
-      shadowRoot.querySelector('#thread-name').textContent =
-          thread.userFriendlyName;
+    shadowRoot.querySelector('#start').setValueAndUnit(
+        timeSlice.start, tr.v.Unit.byName.timeStampInMs);
+    shadowRoot.querySelector('#duration').setValueAndUnit(
+        timeSlice.duration, tr.v.Unit.byName.timeDurationInMs);
 
-      shadowRoot.querySelector('#start').setValueAndUnit(
-          timeSlice.start, tr.v.Unit.byName.timeStampInMs);
-      shadowRoot.querySelector('#duration').setValueAndUnit(
-          timeSlice.duration, tr.v.Unit.byName.timeDurationInMs);
+    var onCpuEl = shadowRoot.querySelector('#on-cpu');
+    onCpuEl.textContent = '';
+    var runningInsteadEl = shadowRoot.querySelector('#running-instead');
+    if (timeSlice.cpuOnWhichThreadWasRunning) {
+      runningInsteadEl.parentElement.removeChild(runningInsteadEl);
 
-      var onCpuEl = shadowRoot.querySelector('#on-cpu');
-      onCpuEl.textContent = '';
-      var runningInsteadEl = shadowRoot.querySelector('#running-instead');
-      if (timeSlice.cpuOnWhichThreadWasRunning) {
-        runningInsteadEl.parentElement.removeChild(runningInsteadEl);
+      var cpuLink = document.createElement('tr-ui-a-analysis-link');
+      cpuLink.selection = new tr.model.EventSet(
+          timeSlice.getAssociatedCpuSlice());
+      cpuLink.textContent =
+          timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
+      onCpuEl.appendChild(cpuLink);
+    } else {
+      onCpuEl.parentElement.removeChild(onCpuEl);
 
+      var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
+      if (cpuSliceThatTookCpu) {
         var cpuLink = document.createElement('tr-ui-a-analysis-link');
-        cpuLink.selection = new tr.model.EventSet(
-            timeSlice.getAssociatedCpuSlice());
-        cpuLink.textContent =
-            timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
-        onCpuEl.appendChild(cpuLink);
+        cpuLink.selection = new tr.model.EventSet(cpuSliceThatTookCpu);
+        if (cpuSliceThatTookCpu.thread)
+          cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
+        else
+          cpuLink.textContent = cpuSliceThatTookCpu.title;
+        runningInsteadEl.appendChild(cpuLink);
       } else {
-        onCpuEl.parentElement.removeChild(onCpuEl);
-
-        var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
-        if (cpuSliceThatTookCpu) {
-          var cpuLink = document.createElement('tr-ui-a-analysis-link');
-          cpuLink.selection = new tr.model.EventSet(cpuSliceThatTookCpu);
-          if (cpuSliceThatTookCpu.thread)
-            cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
-          else
-            cpuLink.textContent = cpuSliceThatTookCpu.title;
-          runningInsteadEl.appendChild(cpuLink);
-        } else {
-          runningInsteadEl.parentElement.removeChild(runningInsteadEl);
-        }
-      }
-
-      var argsEl = shadowRoot.querySelector('#args');
-      if (tr.b.dictionaryKeys(timeSlice.args).length > 0) {
-        var argsView =
-            document.createElement('tr-ui-a-generic-object-view');
-        argsView.object = timeSlice.args;
-
-        argsEl.parentElement.style.display = '';
-        argsEl.textContent = '';
-        argsEl.appendChild(argsView);
-      } else {
-        argsEl.parentElement.style.display = 'none';
+        runningInsteadEl.parentElement.removeChild(runningInsteadEl);
       }
     }
-  });
-  </script>
+
+    var argsEl = shadowRoot.querySelector('#args');
+    if (tr.b.dictionaryKeys(timeSlice.args).length > 0) {
+      var argsView =
+          document.createElement('tr-ui-a-generic-object-view');
+      argsView.object = timeSlice.args;
+
+      argsEl.parentElement.style.display = '';
+      argsEl.textContent = '';
+      argsEl.appendChild(argsView);
+    } else {
+      argsEl.parentElement.style.display = 'none';
+    }
+  }
+});
+</script>

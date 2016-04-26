@@ -41,15 +41,14 @@ found in the LICENSE file.
 // TODO(charliea): Add a dropdown that allows the user to select which type of
 // power sample analysis view they want (e.g. table of samples, graph).
 Polymer({
-
   is: 'tr-ui-a-multi-power-sample-sub-view',
-
   behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
   ready: function() {
     this.currentSelection_ = undefined;
   },
 
+  // TODO(polymer): Convert to Polymer property
   get selection() {
     return this.currentSelection_;
   },

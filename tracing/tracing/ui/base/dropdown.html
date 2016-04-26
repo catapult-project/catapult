@@ -71,91 +71,91 @@ found in the LICENSE file.
     </dialog>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
 
-    is: "tr-ui-b-dropdown",
+  is: "tr-ui-b-dropdown",
 
-    ready: function() {
-      this.$.outer.tabIndex = 0;
-    },
+  ready: function() {
+    this.$.outer.tabIndex = 0;
+  },
 
-    get iconElement() {
-      return this.$.icon;
-    },
+  get iconElement() {
+    return this.$.icon;
+  },
 
-    onOuterKeyDown_: function(e) {
-      if (e.keyCode === ' '.charCodeAt(0)) {
-        this.toggle_();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    },
-
-    onOuterClick_: function(e) {
-      var or = this.$.outer.getBoundingClientRect();
-      var inside = true;
-      inside &= e.clientX >= or.left;
-      inside &= e.clientX < or.right;
-      inside &= e.clientY >= or.top;
-      inside &= e.clientY < or.bottom;
-      if (!inside)
-        return;
-
-      e.preventDefault();
+  onOuterKeyDown_: function(e) {
+    if (e.keyCode === ' '.charCodeAt(0)) {
       this.toggle_();
-    },
-
-    toggle_: function() {
-      if (!this.isOpen)
-        this.show();
-      else
-        this.close();
-    },
-
-    show: function() {
-      if (this.isOpen)
-        return;
-
-      this.$.outer.classList.add('open');
-
-      var ddr = this.$.outer.getBoundingClientRect();
-      var rW = Math.max(ddr.width, 150);
-      this.$.dialog.style.minWidth = rW + 'px';
-      this.$.dialog.showModal();
-
-      var ddw = this.$.outer.getBoundingClientRect().width;
-      var w = this.$.dialog.getBoundingClientRect().width;
-      this.$.dialog.style.top = ddr.bottom - 1 + 'px';
-      this.$.dialog.style.left = ddr.left + 'px';
-    },
-
-    onDialogClick_: function(e) {
-      if (!this.isOpen)
-        return;
-      if (e.srcElement !== this.$.dialog)
-        return;
       e.preventDefault();
-      this.close();
-    },
-
-    onDialogCancel_: function(e) {
-      e.preventDefault();
-      this.close();
-    },
-
-    close: function() {
-      if (!this.isOpen)
-        return;
-      this.$.dialog.close();
-      this.$.outer.classList.remove('open');
-      this.$.outer.focus();
-    },
-
-    get isOpen() {
-      return this.$.dialog.hasAttribute('open');
+      e.stopPropagation();
     }
-  });
-  </script>
+  },
+
+  onOuterClick_: function(e) {
+    var or = this.$.outer.getBoundingClientRect();
+    var inside = true;
+    inside &= e.clientX >= or.left;
+    inside &= e.clientX < or.right;
+    inside &= e.clientY >= or.top;
+    inside &= e.clientY < or.bottom;
+    if (!inside)
+      return;
+
+    e.preventDefault();
+    this.toggle_();
+  },
+
+  toggle_: function() {
+    if (!this.isOpen)
+      this.show();
+    else
+      this.close();
+  },
+
+  show: function() {
+    if (this.isOpen)
+      return;
+
+    this.$.outer.classList.add('open');
+
+    var ddr = this.$.outer.getBoundingClientRect();
+    var rW = Math.max(ddr.width, 150);
+    this.$.dialog.style.minWidth = rW + 'px';
+    this.$.dialog.showModal();
+
+    var ddw = this.$.outer.getBoundingClientRect().width;
+    var w = this.$.dialog.getBoundingClientRect().width;
+    this.$.dialog.style.top = ddr.bottom - 1 + 'px';
+    this.$.dialog.style.left = ddr.left + 'px';
+  },
+
+  onDialogClick_: function(e) {
+    if (!this.isOpen)
+      return;
+    if (e.srcElement !== this.$.dialog)
+      return;
+    e.preventDefault();
+    this.close();
+  },
+
+  onDialogCancel_: function(e) {
+    e.preventDefault();
+    this.close();
+  },
+
+  close: function() {
+    if (!this.isOpen)
+      return;
+    this.$.dialog.close();
+    this.$.outer.classList.remove('open');
+    this.$.outer.focus();
+  },
+
+  get isOpen() {
+    return this.$.dialog.hasAttribute('open');
+  }
+});
+</script>

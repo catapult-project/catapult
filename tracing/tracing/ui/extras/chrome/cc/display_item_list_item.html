@@ -74,62 +74,61 @@ An element displaying basic information about a display item in a list view.
       </template>
     </div>
   </template>
-  <script>
-    'use strict';
-    (function() {
-      // Extracts the "type" and "details" parts of the unstructured (plaintext)
-      // display item format, even if the details span multiple lines.
-      // For example, given "FooDisplayItem type=hello\nworld", produces
-      // "FooDisplayItem" as the first capture and "type=hello\nworld" as the
-      // second. Either capture could be the empty string, but this regex will
-      // still successfully match.
-      var DETAILS_SPLIT_REGEX = /^(\S*)\s*([\S\s]*)$/;
+<script>
+'use strict';
+(function() {
+  // Extracts the "type" and "details" parts of the unstructured (plaintext)
+  // display item format, even if the details span multiple lines.
+  // For example, given "FooDisplayItem type=hello\nworld", produces
+  // "FooDisplayItem" as the first capture and "type=hello\nworld" as the
+  // second. Either capture could be the empty string, but this regex will
+  // still successfully match.
+  var DETAILS_SPLIT_REGEX = /^(\S*)\s*([\S\s]*)$/;
 
-      Polymer({
-        is: 'tr-ui-e-chrome-cc-display-item-list-item',
+  Polymer({
+    is: 'tr-ui-e-chrome-cc-display-item-list-item',
 
-        created: function() {
-          this.name = '';
-          this.rawDetails = '';
-          this.richDetails = undefined;
-          this.data_ = undefined;
-        },
+    created: function() {
+      this.name = '';
+      this.rawDetails = '';
+      this.richDetails = undefined;
+      this.data_ = undefined;
+    },
 
-        get data() {
-          return this.data_;
-        },
+    get data() {
+      return this.data_;
+    },
 
-        set data(data) {
-          this.data_ = data;
+    set data(data) {
+      this.data_ = data;
 
-          if (!data) {
-            this.name = 'DATA MISSING';
-            this.rawDetails = '';
-            this.richDetails = undefined;
-          } else if (typeof data === 'string') {
-            var match = data.match(DETAILS_SPLIT_REGEX);
-            this.name = match[1];
-            this.rawDetails = match[2];
-            this.richDetails = undefined;
-          } else {
-            this.name = data.name;
-            this.rawDetails = '';
-            this.richDetails = data;
-          }
-        },
+      if (!data) {
+        this.name = 'DATA MISSING';
+        this.rawDetails = '';
+        this.richDetails = undefined;
+      } else if (typeof data === 'string') {
+        var match = data.match(DETAILS_SPLIT_REGEX);
+        this.name = match[1];
+        this.rawDetails = match[2];
+        this.richDetails = undefined;
+      } else {
+        this.name = data.name;
+        this.rawDetails = '';
+        this.richDetails = data;
+      }
+    },
 
-        stopPropagation: function (e) {
-          e.stopPropagation();
-        },
+    stopPropagation: function (e) {
+      e.stopPropagation();
+    },
 
-        _computeIf: function (richDetails) {
-          return richDetails && richDetails.skp64;
-        },
+    _computeIf: function (richDetails) {
+      return richDetails && richDetails.skp64;
+    },
 
-        _computeHref: function (richDetails) {
-          return 'data:application/octet-stream;base64,' + richDetails.skp64;
-        }
-      });
-    })();
-  </script>
-</polymer-element>
+    _computeHref: function (richDetails) {
+      return 'data:application/octet-stream;base64,' + richDetails.skp64;
+    }
+  });
+})();
+</script>

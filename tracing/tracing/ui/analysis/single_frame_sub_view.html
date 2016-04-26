@@ -25,32 +25,34 @@ found in the LICENSE file.
     </tr-ui-a-alert-sub-view>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-single-frame-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-single-frame-sub-view",
+  ready: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  // TODO(polymer): Convert to Polymer property
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    ready: function() {
-      this.currentSelection_ = undefined;
-    },
+  set selection(selection) {
+    if (selection.length != 1)
+      throw new Error('Only supports single frame!');
+    this.currentSelection_ = selection;
+    this.$.asv.selection = tr.b.getOnlyElement(selection).associatedAlerts;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
-
-    set selection(selection) {
-      this.currentSelection_ = selection;
-      this.$.asv.selection = tr.b.getOnlyElement(selection).associatedAlerts;
-    },
-
-    get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
-        return undefined;
-      return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
-    }
-  });
-  </script>
+  get relatedEventsToHighlight() {
+    if (!this.currentSelection_)
+      return undefined;
+    return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
+  }
+});
+</script>
+>>>>>>> e0865ec... Checkpoint.

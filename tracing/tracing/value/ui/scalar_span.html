@@ -160,230 +160,220 @@ tr.exportTo('tr.v.ui', function() {
   <script>
   'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-v-ui-scalar-span",
 
-    is: "tr-v-ui-scalar-span",
+  ready: function() {
+    this.value_ = undefined;
+    this.unit_ = undefined;
+    this.context_ = undefined;
 
-    ready: function() {
-      this.value_ = undefined;
-      this.unit_ = undefined;
-      this.context_ = undefined;
+    this.warning_ = undefined;
+    this.percentage_ = undefined;
+    this.significance_ = tr.v.Significance.DONT_CARE;
+  },
 
-      this.warning_ = undefined;
-      this.percentage_ = undefined;
-      this.significance_ = tr.v.Significance.DONT_CARE;
-    },
+  get significance() {
+    return this.significance_;
+  },
 
-    get significance() {
-      return this.significance_;
-    },
+  set significance(s) {
+    this.significance_ = s;
+    this.updateContent_();
+  },
 
-    set significance(s) {
-      this.significance_ = s;
-      this.updateContent_();
-    },
+  set contentTextDecoration(deco) {
+    this.$.content.style.textDecoration = deco;
+  },
 
-    set contentTextDecoration(deco) {
-      this.$.content.style.textDecoration = deco;
-    },
+  get value() {
+    return this.value_;
+  },
 
-    get value() {
-      return this.value_;
-    },
-
-    set value(value) {
-      if (value instanceof tr.v.ScalarNumeric) {
-        this.value_ = value.value;
-        this.unit_ = value.unit;
-      } else {
-        this.value_ = value;
-      }
-      this.updateContent_();
-    },
-
-    get unit() {
-      return this.unit_;
-    },
-
-    set unit(unit) {
-      this.unit_ = unit;
-      this.updateContent_();
-    },
-
-    get context() {
-      return this.context_;
-    },
-
-    set context(context) {
-      this.context_ = context;
-      this.updateContent_();
-    },
-
-    setValueAndUnit: function(value, unit) {
+  set value(value) {
+    if (value instanceof tr.v.ScalarNumeric) {
+      this.value_ = value.value;
+      this.unit_ = value.unit;
+    } else {
       this.value_ = value;
-      this.unit_ = unit;
-      this.updateContent_();
-    },
-
-    get percentage() {
-      return this.percentage_;
-    },
-
-    set percentage(percentage) {
-      this.percentage_ = percentage;
-      this.updateSparkline_();
-    },
-
-    get rightAlign() {
-      return this.$.content.classList.contains('right-align');
-    },
-
-    set rightAlign(rightAlign) {
-      if (rightAlign)
-        this.$.content.classList.add('right-align');
-      else
-        this.$.content.classList.remove('right-align');
-    },
-
-    updateSparkline_: function() {
-      if (this.percentage_ === undefined) {
-        this.$.sparkline.style.display = 'none';
-        this.$.sparkline.style.width = '0';
-      } else {
-        this.$.sparkline.style.display = 'block';
-        this.$.sparkline.style.width = (this.percentage_ * 100) + '%';
-      }
-    },
-
-    updateContent_: function() {
-      this.$.significance.textContent = '';
-      this.$.content.textContent = '';
-      this.$.content.classList.remove('better');
-      this.$.content.classList.remove('worse');
-      this.$.significance.classList.remove('better');
-      this.$.significance.classList.remove('worse');
-
-      if (this.unit_ === undefined)
-        return;
-
-      this.$.content.title = '';
-      this.$.content.textContent = this.unit_.format(this.value, this.context);
-      this.updateDelta_();
-    },
-
-    updateDelta_: function() {
-      if (!this.unit_.isDelta)
-        return;
-
-      var biggerIsBetter = false;
-      var smallerIsBetter = false;
-      switch (this.unit_.improvementDirection) {
-        case tr.v.ImprovementDirection.DONT_CARE:
-          return;
-
-        case tr.v.ImprovementDirection.BIGGER_IS_BETTER:
-          biggerIsBetter = true;
-          break;
-
-        case tr.v.ImprovementDirection.SMALLER_IS_BETTER:
-          smallerIsBetter = true;
-          break;
-      }
-
-      var better = ((biggerIsBetter && this.value > 0) ||
-          (smallerIsBetter && this.value < 0));
-      var worse = ((biggerIsBetter && this.value < 0) ||
-          (smallerIsBetter && this.value > 0));
-
-      var changeClass = '';
-      var emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
-      var title = '';
-
-      if (better) {
-        changeClass = 'better';
-        emoji = tr.v.ui.Emoji.GRINNING_FACE;
-        title = 'improvement';
-      } else if (worse) {
-        changeClass = 'worse';
-        emoji = tr.v.ui.Emoji.CONFOUNDED_FACE;
-        title = 'regression';
-      } else {
-        title = 'no change';
-      }
-
-      // Set the content class separately from the significance class so that
-      // NEUTRAL_FACE is always a neutral color.
-      if (changeClass)
-        this.$.content.classList.add(changeClass);
-
-      switch (this.significance) {
-        case tr.v.Significance.DONT_CARE:
-          emoji = '';
-          changeClass = '';
-          break;
-
-        case tr.v.Significance.INSIGNIFICANT:
-          changeClass = '';
-          emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
-          if (better || worse)
-            title = 'insignificant ' + title;
-          break;
-
-        case tr.v.Significance.SIGNIFICANT:
-          if (!better && !worse)
-            throw new Error('How can no change be significant?');
-
-          title = 'significant ' + title;
-          break;
-      }
-
-      this.$.significance.textContent = emoji;
-      this.$.significance.title = title;
-      this.$.content.title = title;
-      if (changeClass)
-        this.$.significance.classList.add(changeClass);
-    },
-
-    get warning() {
-      return this.warning_;
-    },
-
-    set warning(warning) {
-      this.warning_ = warning;
-      var warningEl = this.$.warning;
-      if (this.warning_) {
-        warningEl.title = warning;
-        warningEl.style.display = '';
-      } else {
-        warningEl.title = '';
-        warningEl.style.display = 'none';
-      }
-    },
-
-    // tr-v-ui-time-stamp-span property
-    get timestamp() {
-      return this.value;
-    },
-
-    set timestamp(timestamp) {
-      if (timestamp instanceof tr.b.u.TimeStamp) {
-        this.value = timestamp;
-        return;
-      }
-      this.setValueAndUnit(timestamp, tr.b.u.Units.timeStampInMs);
-    },
-
-    // tr-v-ui-time-duration-span property
-    get duration() {
-      return this.value;
-    },
-
-    set duration(duration) {
-      if (duration instanceof tr.b.u.TimeDuration) {
-        this.value = duration;
-        return;
-      }
-      this.setValueAndUnit(duration, tr.b.u.Units.timeDurationInMs);
     }
-  });
-  </script>
+    this.updateContent_();
+  },
+
+  get unit() {
+    return this.unit_;
+  },
+
+  set unit(unit) {
+    this.unit_ = unit;
+    this.updateContent_();
+  },
+
+  setValueAndUnit: function(value, unit) {
+    this.value_ = value;
+    this.unit_ = unit;
+    this.updateContent_();
+  },
+
+  get percentage() {
+    return this.percentage_;
+  },
+
+  set percentage(percentage) {
+    this.percentage_ = percentage;
+    this.updateSparkline_();
+  },
+
+  get rightAlign() {
+    return this.$.content.classList.contains('right-align');
+  },
+
+  set rightAlign(rightAlign) {
+    if (rightAlign)
+      this.$.content.classList.add('right-align');
+    else
+      this.$.content.classList.remove('right-align');
+  },
+
+  updateSparkline_: function() {
+    if (this.percentage_ === undefined) {
+      this.$.sparkline.style.display = 'none';
+      this.$.sparkline.style.width = '0';
+    } else {
+      this.$.sparkline.style.display = 'block';
+      this.$.sparkline.style.width = (this.percentage_ * 100) + '%';
+    }
+  },
+
+  updateContent_: function() {
+    this.$.significance.textContent = '';
+    this.$.content.textContent = '';
+    this.$.content.classList.remove('better');
+    this.$.content.classList.remove('worse');
+    this.$.significance.classList.remove('better');
+    this.$.significance.classList.remove('worse');
+
+    if (this.unit_ === undefined)
+      return;
+
+    this.$.content.title = '';
+    this.$.content.textContent = this.unit_.format(this.value, this.context);
+    this.updateDelta_();
+  },
+
+  updateDelta_: function() {
+    if (!this.unit_.isDelta)
+      return;
+
+    var biggerIsBetter = false;
+    var smallerIsBetter = false;
+    switch (this.unit_.improvementDirection) {
+      case tr.v.ImprovementDirection.DONT_CARE:
+        return;
+
+      case tr.v.ImprovementDirection.BIGGER_IS_BETTER:
+        biggerIsBetter = true;
+        break;
+
+      case tr.v.ImprovementDirection.SMALLER_IS_BETTER:
+        smallerIsBetter = true;
+        break;
+    }
+
+    var better = ((biggerIsBetter && this.value > 0) ||
+        (smallerIsBetter && this.value < 0));
+    var worse = ((biggerIsBetter && this.value < 0) ||
+        (smallerIsBetter && this.value > 0));
+
+    var changeClass = '';
+    var emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
+    var title = '';
+
+    if (better) {
+      changeClass = 'better';
+      emoji = tr.v.ui.Emoji.GRINNING_FACE;
+      title = 'improvement';
+    } else if (worse) {
+      changeClass = 'worse';
+      emoji = tr.v.ui.Emoji.CONFOUNDED_FACE;
+      title = 'regression';
+    } else {
+      title = 'no change';
+    }
+
+    // Set the content class separately from the significance class so that
+    // NEUTRAL_FACE is always a neutral color.
+    if (changeClass)
+      this.$.content.classList.add(changeClass);
+
+    switch (this.significance) {
+      case tr.v.Significance.DONT_CARE:
+        emoji = '';
+        changeClass = '';
+        break;
+
+      case tr.v.Significance.INSIGNIFICANT:
+        changeClass = '';
+        emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
+        if (better || worse)
+          title = 'insignificant ' + title;
+        break;
+
+      case tr.v.Significance.SIGNIFICANT:
+        if (!better && !worse)
+          throw new Error('How can no change be significant?');
+
+        title = 'significant ' + title;
+        break;
+    }
+
+    this.$.significance.textContent = emoji;
+    this.$.significance.title = title;
+    this.$.content.title = title;
+    if (changeClass)
+      this.$.significance.classList.add(changeClass);
+  },
+
+  get warning() {
+    return this.warning_;
+  },
+
+  set warning(warning) {
+    this.warning_ = warning;
+    var warningEl = this.$.warning;
+    if (this.warning_) {
+      warningEl.title = warning;
+      warningEl.style.display = '';
+    } else {
+      warningEl.title = '';
+      warningEl.style.display = 'none';
+    }
+  },
+
+  // tr-v-ui-time-stamp-span property
+  get timestamp() {
+    return this.value;
+  },
+
+  set timestamp(timestamp) {
+    if (timestamp instanceof tr.b.u.TimeStamp) {
+      this.value = timestamp;
+      return;
+    }
+    this.setValueAndUnit(timestamp, tr.b.u.Units.timeStampInMs);
+  },
+
+  // tr-v-ui-time-duration-span property
+  get duration() {
+    return this.value;
+  },
+
+  set duration(duration) {
+    if (duration instanceof tr.b.u.TimeDuration) {
+      this.value = duration;
+      return;
+    }
+    this.setValueAndUnit(duration, tr.b.u.Units.timeDurationInMs);
+  }
+});
+</script>

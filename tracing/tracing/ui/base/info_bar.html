@@ -35,50 +35,51 @@ found in the LICENSE file.
     <span id='buttons'></span>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
 
-    is: 'tr-ui-b-info-bar',
+  is: 'tr-ui-b-info-bar',
 
-    ready: function() {
-      this.messageEl_ = this.$.message;
-      this.buttonsEl_ = this.$.buttons;
+  ready: function() {
+    this.messageEl_ = this.$.message;
+    this.buttonsEl_ = this.$.buttons;
 
-      this.message = '';
-      this.visible = false;
-    },
+    this.message = '';
+    this.visible = false;
+  },
 
-    get message() {
-      return this.messageEl_.textContent;
-    },
+  // TODO(polymer): Convert to Polymer property
+  get message() {
+    return this.messageEl_.textContent;
+  },
 
-    set message(message) {
-      this.messageEl_.textContent = message;
-    },
+  set message(message) {
+    this.messageEl_.textContent = message;
+  },
 
-    get visible() {
-      return !this.classList.contains('info-bar-hidden');
-    },
+  get visible() {
+    return !this.classList.contains('info-bar-hidden');
+  },
 
-    set visible(visible) {
-      if (visible)
-        this.classList.remove('info-bar-hidden');
-      else
-        this.classList.add('info-bar-hidden');
-    },
+  set visible(visible) {
+    if (visible)
+      this.classList.remove('info-bar-hidden');
+    else
+      this.classList.add('info-bar-hidden');
+  },
 
-    removeAllButtons: function() {
-      this.buttonsEl_.textContent = '';
-    },
+  removeAllButtons: function() {
+    this.buttonsEl_.textContent = '';
+  },
 
-    addButton: function(text, clickCallback) {
-      var button = document.createElement('button');
-      button.textContent = text;
-      button.addEventListener('click', clickCallback);
-      this.buttonsEl_.appendChild(button);
-      return button;
-    }
-  });
-  </script>
+  addButton: function(text, clickCallback) {
+    var button = document.createElement('button');
+    button.textContent = text;
+    button.addEventListener('click', clickCallback);
+    this.buttonsEl_.appendChild(button);
+    return button;
+  }
+});
+</script>

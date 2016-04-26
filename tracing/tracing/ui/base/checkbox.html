@@ -20,7 +20,6 @@ found in the LICENSE file.
     <input type="checkbox" id="checkbox" class="inline"/>
     <div id="label" class="inline"></div>
   </template>
-
   <script>
   'use strict';
 
@@ -51,6 +50,7 @@ found in the LICENSE file.
       this.$.checkbox.checked = this.checked_;
     },
 
+    // TODO(polymer): Convert to Polymer property
     get defaultCheckedValue() {
       return this.defaultCheckedValue_;
     },
@@ -102,8 +102,7 @@ found in the LICENSE file.
       this.checked_ = checked;
       this.maybeUpdateElements_();
       tr.b.Settings.set(this.settingsKey_, this.checked_);
-    },
-
+    }
   });
   </script>
 </dom-module>

@@ -46,88 +46,86 @@ found in the LICENSE file.
     <content></content>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-single-object-snapshot-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-single-object-snapshot-sub-view",
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  // TODO(polymer): Convert to Polymer property
+  get requiresTallView() {
+    if (this.children.length === 0)
+      return false;
+    if (this.children[0] instanceof tr.ui.analysis.ObjectSnapshotView)
+      return this.children[0].requiresTallView;
+  },
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get requiresTallView() {
-      if (this.children.length === 0)
-        return false;
-      if (this.children[0] instanceof tr.ui.analysis.ObjectSnapshotView)
-        return this.children[0].requiresTallView;
-    },
+  set selection(selection) {
+    var snapshot = tr.b.getOnlyElement(selection);
+    if (!(snapshot instanceof tr.model.ObjectSnapshot))
+      throw new Error('Only supports object instances');
 
-    get selection() {
-      return this.currentSelection_;
-    },
+    this.textContent = '';
+    this.currentSelection_ = selection;
 
-    set selection(selection) {
-      var snapshot = tr.b.getOnlyElement(selection);
-      if (!(snapshot instanceof tr.model.ObjectSnapshot))
-        throw new Error('Only supports object instances');
-
-      this.textContent = '';
-      this.currentSelection_ = selection;
-
-      var typeInfo = tr.ui.analysis.ObjectSnapshotView.getTypeInfo(
-          snapshot.objectInstance.category, snapshot.objectInstance.typeName);
-      if (typeInfo) {
-        var customView = new typeInfo.constructor();
-        this.appendChild(customView);
-        customView.modelEvent = snapshot;
-      } else {
-        this.appendGenericAnalysis_(snapshot);
-      }
-    },
-
-    appendGenericAnalysis_: function(snapshot) {
-      var instance = snapshot.objectInstance;
-
-      this.textContent = '';
-
-      var titleEl = document.createElement('div');
-      titleEl.classList.add('title');
-      titleEl.appendChild(document.createTextNode('Snapshot of '));
-      this.appendChild(titleEl);
-
-      var instanceLinkEl = document.createElement('tr-ui-a-analysis-link');
-      instanceLinkEl.selection = new tr.model.EventSet(instance);
-      titleEl.appendChild(instanceLinkEl);
-
-      titleEl.appendChild(document.createTextNode(' @ '));
-
-      titleEl.appendChild(tr.v.ui.createScalarSpan(snapshot.ts, {
-        unit: tr.v.Unit.byName.timeStampInMs,
-        ownerDocument: this.ownerDocument
-      }));
-
-      var tableEl = document.createElement('table');
-      this.appendChild(tableEl);
-
-      var rowEl = document.createElement('tr');
-      tableEl.appendChild(rowEl);
-
-      var labelEl = document.createElement('td');
-      labelEl.textContent = 'args:';
-      rowEl.appendChild(labelEl);
-
-      var argsEl = document.createElement('td');
-      argsEl.id = 'args';
-      rowEl.appendChild(argsEl);
-
-      var objectViewEl = document.createElement('tr-ui-a-generic-object-view');
-      objectViewEl.object = snapshot.args;
-      argsEl.appendChild(objectViewEl);
+    var typeInfo = tr.ui.analysis.ObjectSnapshotView.getTypeInfo(
+        snapshot.objectInstance.category, snapshot.objectInstance.typeName);
+    if (typeInfo) {
+      var customView = new typeInfo.constructor();
+      this.appendChild(customView);
+      customView.modelEvent = snapshot;
+    } else {
+      this.appendGenericAnalysis_(snapshot);
     }
-  });
-  </script>
-</polymer-element>
+  },
+
+  appendGenericAnalysis_: function(snapshot) {
+    var instance = snapshot.objectInstance;
+
+    this.textContent = '';
+
+    var titleEl = document.createElement('div');
+    titleEl.classList.add('title');
+    titleEl.appendChild(document.createTextNode('Snapshot of '));
+    this.appendChild(titleEl);
+
+    var instanceLinkEl = document.createElement('tr-ui-a-analysis-link');
+    instanceLinkEl.selection = new tr.model.EventSet(instance);
+    titleEl.appendChild(instanceLinkEl);
+
+    titleEl.appendChild(document.createTextNode(' @ '));
+
+    titleEl.appendChild(tr.v.ui.createScalarSpan(snapshot.ts, {
+      unit: tr.v.Unit.byName.timeStampInMs,
+      ownerDocument: this.ownerDocument
+    }));
+
+    var tableEl = document.createElement('table');
+    this.appendChild(tableEl);
+
+    var rowEl = document.createElement('tr');
+    tableEl.appendChild(rowEl);
+
+    var labelEl = document.createElement('td');
+    labelEl.textContent = 'args:';
+    rowEl.appendChild(labelEl);
+
+    var argsEl = document.createElement('td');
+    argsEl.id = 'args';
+    rowEl.appendChild(argsEl);
+
+    var objectViewEl = document.createElement('tr-ui-a-generic-object-view');
+    objectViewEl.object = snapshot.args;
+    argsEl.appendChild(objectViewEl);
+  }
+});
+</script>

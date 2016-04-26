@@ -52,132 +52,132 @@ found in the LICENSE file.
     </result-area>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
 
-    is: 'tr-ui-e-drive-comments-side-panel',
+  is: 'tr-ui-e-drive-comments-side-panel',
 
-    behaviors: [Catapult.tr_ui_side_panel],
+  behaviors: [Catapult.tr_ui_side_panel],
 
-    ready: function() {
-      this.rangeOfInterest_ = new tr.b.Range();
-      this.selection_ = undefined;
-      this.comments_ = [];
-      this.annotationFromComment_ = undefined;
-      this.textAreaFocused = false;
-    },
+  ready: function() {
+    this.rangeOfInterest_ = new tr.b.Range();
+    this.selection_ = undefined;
+    this.comments_ = [];
+    this.annotationFromComment_ = undefined;
+    this.textAreaFocused = false;
+  },
 
-    setCommentProvider: function(commentProvider) {
-      this.commentProvider_ = commentProvider;
-    },
+  setCommentProvider: function(commentProvider) {
+    this.commentProvider_ = commentProvider;
+  },
 
-    attached: function() {
-      if (this.commentProvider_ === undefined) {
-        this.commentProvider_ =
-            new tr.ui.e.drive.analysis.DefaultCommentProvider();
-      }
-      this.commentProvider_.attachToElement(this);
-    },
-
-    detached: function() {
-      this.commentProvider_.detachFromElement();
-    },
-
-    commentClick: function(event, detail, sender) {
-      var anchor = sender.comment.anchor;
-      if (anchor === undefined)
-        return;
-
-      var uiState =
-          JSON.parse(anchor).a[0][tr.ui.e.drive.constants.ANCHOR_NAME];
-
-      var myEvent = new CustomEvent('navigateToUIState', { detail:
-          new tr.ui.b.UIState(new tr.model.Location(uiState.location.xWorld,
-                                                uiState.location.yComponents),
-                                                uiState.scaleX)
-          });
-      document.dispatchEvent(myEvent);
-
-      if (this.annotationFromComment_)
-        this.model.removeAnnotation(this.annotationFromComment_);
-      var loc = new tr.model.Location(uiState.location.xWorld,
-                                  uiState.location.yComponents);
-
-      var text = sender.comment.author.displayName + ': ' +
-          sender.comment.content;
-      this.annotationFromComment_ =
-          new tr.model.CommentBoxAnnotation(loc, text);
-      this.model.addAnnotation(this.annotationFromComment_);
-    },
-
-    textareaKeypress: function(event, detail, sender) {
-      // Check for return key.
-      if (event.keyCode === 13 && !event.ctrlKey) {
-        this.commentProvider_.addComment(this.$.commentinput.value);
-        this.$.commentinput.value = '';
-      }
-      event.stopPropagation();
-      return true;
-    },
-
-    textAreaFocus: function(event) {
-      this.textAreaFocused = true;
-    },
-
-    textAreaBlur: function(event) {
-      this.textAreaFocused = false;
-    },
-
-    get rangeOfInterest() {
-      return this.rangeOfInterest_;
-    },
-
-    set rangeOfInterest(rangeOfInterest) {
-      this.rangeOfInterest_ = rangeOfInterest;
-      this.updateContents_();
-    },
-
-    get currentRangeOfInterest() {
-      if (this.rangeOfInterest_.isEmpty)
-        return this.model_.bounds;
-      else
-        return this.rangeOfInterest_;
-    },
-
-    get model() {
-      return this.model_;
-    },
-
-    set model(model) {
-      this.model_ = model;
-      this.updateContents_();
-    },
-
-    set selection(selection) {
-      this.selection_ = selection;
-    },
-
-    updateContents_: function() {
-      this.commentProvider_.updateComments();
-    },
-
-    supportsModel: function(m) {
-      if (m === undefined) {
-        return {
-          supported: false,
-          reason: 'Unknown tracing model'
-        };
-      }
-      return {
-        supported: true
-      };
-    },
-
-    get textLabel() {
-      return 'Comments';
+  attached: function() {
+    if (this.commentProvider_ === undefined) {
+      this.commentProvider_ =
+          new tr.ui.e.drive.analysis.DefaultCommentProvider();
     }
-  });
+    this.commentProvider_.attachToElement(this);
+  },
 
-  </script>
+  detached: function() {
+    this.commentProvider_.detachFromElement();
+  },
+
+  commentClick: function(event, detail, sender) {
+    var anchor = sender.comment.anchor;
+    if (anchor === undefined)
+      return;
+
+    var uiState =
+        JSON.parse(anchor).a[0][tr.ui.e.drive.constants.ANCHOR_NAME];
+
+    var myEvent = new CustomEvent('navigateToUIState', { detail:
+        new tr.ui.b.UIState(new tr.model.Location(uiState.location.xWorld,
+                                              uiState.location.yComponents),
+                                              uiState.scaleX)
+        });
+    document.dispatchEvent(myEvent);
+
+    if (this.annotationFromComment_)
+      this.model.removeAnnotation(this.annotationFromComment_);
+    var loc = new tr.model.Location(uiState.location.xWorld,
+                                uiState.location.yComponents);
+
+    var text = sender.comment.author.displayName + ': ' +
+        sender.comment.content;
+    this.annotationFromComment_ =
+        new tr.model.CommentBoxAnnotation(loc, text);
+    this.model.addAnnotation(this.annotationFromComment_);
+  },
+
+  textareaKeypress: function(event, detail, sender) {
+    // Check for return key.
+    if (event.keyCode === 13 && !event.ctrlKey) {
+      this.commentProvider_.addComment(this.$.commentinput.value);
+      this.$.commentinput.value = '';
+    }
+    event.stopPropagation();
+    return true;
+  },
+
+  textAreaFocus: function(event) {
+    this.textAreaFocused = true;
+  },
+
+  textAreaBlur: function(event) {
+    this.textAreaFocused = false;
+  },
+
+  get rangeOfInterest() {
+    return this.rangeOfInterest_;
+  },
+
+  set rangeOfInterest(rangeOfInterest) {
+    this.rangeOfInterest_ = rangeOfInterest;
+    this.updateContents_();
+  },
+
+  get currentRangeOfInterest() {
+    if (this.rangeOfInterest_.isEmpty)
+      return this.model_.bounds;
+    else
+      return this.rangeOfInterest_;
+  },
+
+  get model() {
+    return this.model_;
+  },
+
+  set model(model) {
+    this.model_ = model;
+    this.updateContents_();
+  },
+
+  set selection(selection) {
+    this.selection_ = selection;
+  },
+
+  updateContents_: function() {
+    this.commentProvider_.updateComments();
+  },
+
+  supportsModel: function(m) {
+    if (m === undefined) {
+      return {
+        supported: false,
+        reason: 'Unknown tracing model'
+      };
+    }
+    return {
+      supported: true
+    };
+  },
+
+  get textLabel() {
+    return 'Comments';
+  }
+});
+
+</script>

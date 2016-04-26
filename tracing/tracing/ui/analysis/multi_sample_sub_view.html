@@ -39,9 +39,18 @@ found in the LICENSE file.
     </tr-ui-b-table>
   </template>
 </dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+(function() {
+  var SAMPLE_TYPE = {
+    COMPILER: 'compiler',
+    EXTERNAL: 'external',
+    GC: 'gc',
+    NATIVEV8: '[native v8]',
+    OTHER: 'other',
+    UNKNOWN: 'unknown'
+  };
 
   (function() {
     var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
@@ -54,218 +63,210 @@ found in the LICENSE file.
       UNKNOWN: 'unknown'
     };
 
-    Polymer({
-      is: "tr-ui-a-multi-sample-sub-view",
+  Polymer({
+    is: "tr-ui-a-multi-sample-sub-view",
 
-      behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-      created: function() {
-        this.viewOption_ = undefined;
-        this.selection_ = undefined;
-      },
+    created: function() {
+      this.viewOption_ = undefined;
+      this.selection_ = undefined;
+    },
 
-      ready: function() {
-        var viewSelector = tr.ui.b.createSelector(
-            this, 'viewOption', 'tracing.ui.analysis.multi_sample_sub_view',
-            MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
-            [
-              {
-                label: 'Top-down (Tree)',
-                value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
-              },
-              {
-                label: 'Top-down (Heavy)',
-                value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
-              },
-              {
-                label: 'Bottom-up (Heavy)',
-                value: MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
-              }
-            ]);
-        this.$.control.appendChild(viewSelector);
-        this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-      },
-
-      get selection() {
-        return this.selection_;
-      },
-
-      set selection(selection) {
-        this.selection_ = selection;
-        this.updateContents_();
-      },
-
-      get viewOption() {
-        return this.viewOption_;
-      },
-
-      set viewOption(viewOption) {
-        this.viewOption_ = viewOption;
-        this.updateContents_();
-      },
-
-      createSamplingSummary_: function(selection, viewOption) {
-        var builder = new MultiDimensionalViewBuilder(
-            1 /* dimensions */, 1 /* valueCount */);
-        var samples = selection.getEventsOrganizedByBaseType().sample;
-
-        samples.forEach(function(sample) {
-          builder.addPath([sample.getUserFriendlyStackTrace().reverse()],
-              [1], MultiDimensionalViewBuilder.ValueKind.SELF);
-        });
-
-        return builder.buildView(viewOption);
-      },
-
-      // Constructs function name and file name of sample
-      // if it is compiler, external, gc, other, or unknown.
-      processTypedSampleRow_: function(row) {
-        var title = row.title[0];
-        switch (title) {
-          case SAMPLE_TYPE.COMPILER:
-          case SAMPLE_TYPE.EXTERNAL:
-          case SAMPLE_TYPE.GC:
-          case SAMPLE_TYPE.OTHER:
-            row.functionName = title;
-            row.fileName = 'N/A';
-            return true;
-          case SAMPLE_TYPE.UNKNOWN:
-            row.functionName = SAMPLE_TYPE.UNKNOWN;
-            row.fileName = SAMPLE_TYPE.UNKNOWN;
-            return true;
-          default:
-            return false;
-        }
-      },
-
-      // Constructs function name and file name of native v8 sample.
-      processNativeV8SampleRow_: function(row) {
-        var title = row.title[0];
-        if (!title.includes(SAMPLE_TYPE.NATIVEV8))
-          return false;
-        var arr = title.split(SAMPLE_TYPE.NATIVEV8);
-        row.functionName = arr[0].trim();
-        if (row.functionName === '')
-          row.functionName = '(anonymous function)';
-        row.fileName = SAMPLE_TYPE.NATIVEV8;
-        var fileNameSuffix = arr[1].trim();
-        if (fileNameSuffix !== '')
-          row.fileName += ' ' + fileNameSuffix;
-        return true;
-      },
-
-      // Constructs function name and file name for sample.
-      processGeneralSampleRow_: function(row) {
-        var title = row.title[0];
-        var idx = title.lastIndexOf(' ');
-        if (idx === -1) {
-          row.functionName = title;
-          row.fileName = 'unknown';
-          return;
-        }
-        var prefix = title.substr(0, idx);
-        var suffix = title.substr(idx + 1);
-        if (suffix.startsWith('v8/')) {
-          row.functionName = suffix;
-          row.fileName = 'unknown';
-        } else if (suffix === '') {
-          row.functionName = prefix;
-          row.fileName = 'unknown';
-        } else if (prefix === '') {
-          row.functionName = '(anonymous function)';
-          row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
-        } else {
-          row.functionName = prefix;
-          row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
-        }
-      },
-
-      processSampleRows_: function(rows) {
-        rows.forEach(function(row) {
-          if (!this.processTypedSampleRow_(row) &&
-              !this.processNativeV8SampleRow_(row))
-            this.processGeneralSampleRow_(row);
-          this.processSampleRows_(row.subRows);
-        }, this);
-      },
-
-      updateContents_: function() {
-        if (this.selection === undefined) {
-          this.$.table.tableColumns = [];
-          this.$.table.tableRows = [];
-          this.$.table.rebuild();
-          return;
-        }
-
-        var samplingData = this.createSamplingSummary_(
-            this.selection, this.viewOption);
-        var total = samplingData.values[0].total;
-        var columns = [
-          this.createPercentColumn_('Total', total),
-          this.createSamplesColumn_('Total'),
-          this.createPercentColumn_('Self', total),
-          this.createSamplesColumn_('Self'),
-          {
-            title: 'Function Name',
-            value: function(row) { return row.functionName; },
-            width: '150px',
-            cmp: function(a, b) {
-              return a.functionName.localeCompare(b.functionName);
+    ready: function() {
+      var viewSelector = tr.ui.b.createSelector(
+          this, 'viewOption', 'tracing.ui.analysis.multi_sample_sub_view',
+          tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW,
+          [
+            {
+              label: 'Top-down (Tree)',
+              value: tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW
             },
-            showExpandButtons: true
-          },
-          {
-            title: 'Location',
-            value: function(row) { return row.fileName; },
-            width: '250px',
-            cmp: function(a, b) {
-              return a.fileName.localeCompare(b.fileName);
+            {
+              label: 'Top-down (Heavy)',
+              value: tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW
+            },
+            {
+              label: 'Bottom-up (Heavy)',
+              value: tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW
             }
-          }
-        ];
+          ]);
+      this.$.control.appendChild(viewSelector);
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+    },
 
-        this.processSampleRows_(samplingData.subRows);
-        this.$.table.tableColumns = columns;
-        this.$.table.sortColumnIndex = 1 /* Total samples */;
-        this.$.table.sortDescending = true;
-        this.$.table.tableRows = samplingData.subRows;
-        this.$.table.rebuild();
-      },
+    // TODO(polymer): Convert to Polymer property
+    get selection() {
+      return this.selection_;
+    },
 
-      createPercentColumn_: function(title, samplingDataTotal) {
-        var field = title.toLowerCase();
-        return {
-          title: title + ' percent',
-          value: function(row) {
-            var percent = row.values[0][field] / samplingDataTotal;
+    set selection(selection) {
+      this.selection_ = selection;
+      this.updateContents_();
+    },
 
-            var span = document.createElement('tr-v-ui-scalar-span');
-            span.value = (percent * 100).toFixed(2);
-            span.percentage = percent;
-            span.unit = tr.v.Unit.byName.unitlessNumber;
-            return span;
+    get viewOption() {
+      return this.viewOption_;
+    },
 
-          }.bind(this),
-          width: '60px',
-          cmp: function(a, b) {
-            return a.values[0][field] - b.values[0][field];
-          }
-        };
-      },
+    createSamplingSummary_: function(selection, viewOption) {
+      var builder = new MultiDimensionalViewBuilder(
+          1 /* dimensions */, 1 /* valueCount */);
+      var samples = selection.getEventsOrganizedByBaseType().sample;
 
-      createSamplesColumn_: function(title) {
-        var field = title.toLowerCase();
-        return {
-          title: title + ' samples',
-          value: function(row) {
-            return row.values[0][field];
-          },
-          width: '60px',
-          cmp: function(a, b) {
-            return a.values[0][field] - b.values[0][field];
-          }
-        };
+      samples.forEach(function(sample) {
+        builder.addPath([sample.getUserFriendlyStackTrace().reverse()],
+            [1], MultiDimensionalViewBuilder.ValueKind.SELF);
+      });
+    },
+
+    // Constructs function name and file name of sample
+    // if it is compiler, external, gc, other, or unknown.
+    processTypedSampleRow_: function(row) {
+      var title = row.title[0];
+      switch (title) {
+        case SAMPLE_TYPE.COMPILER:
+        case SAMPLE_TYPE.EXTERNAL:
+        case SAMPLE_TYPE.GC:
+        case SAMPLE_TYPE.OTHER:
+          row.functionName = title;
+          row.fileName = 'N/A';
+          return true;
+        case SAMPLE_TYPE.UNKNOWN:
+          row.functionName = SAMPLE_TYPE.UNKNOWN;
+          row.fileName = SAMPLE_TYPE.UNKNOWN;
+          return true;
+        default:
+          return false;
       }
-    });
-  })();
-  </script>
+    },
+
+    // Constructs function name and file name of native v8 sample.
+    processNativeV8SampleRow_: function(row) {
+      var title = row.title[0];
+      if (!title.includes(SAMPLE_TYPE.NATIVEV8))
+        return false;
+      var arr = title.split(SAMPLE_TYPE.NATIVEV8);
+      row.functionName = arr[0].trim();
+      if (row.functionName === '')
+        row.functionName = '(anonymous function)';
+      row.fileName = SAMPLE_TYPE.NATIVEV8;
+      var fileNameSuffix = arr[1].trim();
+      if (fileNameSuffix !== '')
+        row.fileName += ' ' + fileNameSuffix;
+      return true;
+    },
+
+    // Constructs function name and file name for sample.
+    processGeneralSampleRow_: function(row) {
+      var title = row.title[0];
+      var idx = title.lastIndexOf(' ');
+      if (idx === -1) {
+        row.functionName = title;
+        row.fileName = 'unknown';
+        return;
+      }
+      var prefix = title.substr(0, idx);
+      var suffix = title.substr(idx + 1);
+      if (suffix.startsWith('v8/')) {
+        row.functionName = suffix;
+        row.fileName = 'unknown';
+      } else if (suffix === '') {
+        row.functionName = prefix;
+        row.fileName = 'unknown';
+      } else if (prefix === '') {
+        row.functionName = '(anonymous function)';
+        row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
+      } else {
+        row.functionName = prefix;
+        row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
+      }
+    },
+
+    processSampleRows_: function(rows) {
+      rows.forEach(function(row) {
+        if (!this.processTypedSampleRow_(row) &&
+            !this.processNativeV8SampleRow_(row))
+          this.processGeneralSampleRow_(row);
+        this.processSampleRows_(row.subRows);
+      }, this);
+    },
+
+    updateContents_: function() {
+      if (this.selection === undefined) {
+        this.$.table.tableColumns = [];
+        this.$.table.tableRows = [];
+        this.$.table.rebuild();
+        return;
+      }
+
+      var samplingData = this.createSamplingSummary_(
+          this.selection, this.viewOption);
+      var columns = [
+        this.createPercentColumn_('Total', samplingData.total),
+        this.createSamplesColumn_('Total'),
+        this.createPercentColumn_('Self', samplingData.total),
+        this.createSamplesColumn_('Self'),
+        {
+          title: 'Function Name',
+          value: function(row) { return row.functionName; },
+          width: '150px',
+          cmp: function(a, b) {
+            return a.functionName.localeCompare(b.functionName);
+          },
+          showExpandButtons: true
+        },
+        {
+          title: 'Location',
+          value: function(row) { return row.fileName; },
+          width: '250px',
+          cmp: function(a, b) {
+            return a.fileName.localeCompare(b.fileName);
+          }
+        }
+      ];
+
+      this.processSampleRows_(samplingData.subRows);
+      this.$.table.tableColumns = columns;
+      this.$.table.sortColumnIndex = 1 /* Total samples */;
+      this.$.table.sortDescending = true;
+      this.$.table.tableRows = samplingData.subRows;
+      this.$.table.rebuild();
+    },
+
+    createPercentColumn_: function(title, samplingDataTotal) {
+      var field = title.toLowerCase();
+      return {
+        title: title + ' percent',
+        value: function(row) {
+          var percent = row[field] / samplingDataTotal;
+
+          var span = document.createElement('tr-v-ui-scalar-span');
+          span.value = (percent * 100).toFixed(2);
+          span.percentage = percent;
+          span.unit = tr.v.Unit.byName.unitlessNumber;
+          return span;
+        }.bind(this),
+        width: '60px',
+        cmp: function(a, b) {
+          return a.values[0][field] - b.values[0][field];
+        }
+      };
+    },
+
+    createSamplesColumn_: function(title) {
+      var field = title.toLowerCase();
+      return {
+        title: title + ' samples',
+        value: function(row) {
+          return row.values[0][field];
+        },
+        width: '60px',
+        cmp: function(a, b) {
+          return a.values[0][field] - b.values[0][field];
+        }
+      };
+    }
+  });
+})();
+</script>

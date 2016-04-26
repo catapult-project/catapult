@@ -33,44 +33,42 @@ found in the LICENSE file.
     </div>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-multi-async-slice-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-multi-async-slice-sub-view",
+  // TODO(polymer): Convert these to Polymer properties.
+  get selection() {
+    return this.$.content.selection;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
-
-    get selection() {
-      return this.$.content.selection;
-    },
-
-    set selection(selection) {
-      this.$.content.selection = selection;
-      this.$.relatedEvents.setRelatedEvents(selection);
-      if (this.$.relatedEvents.hasRelatedEvents()) {
-        this.$.relatedEvents.style.display = '';
-      } else {
-        this.$.relatedEvents.style.display = 'none';
-      }
-    },
-
-    get relatedEventsToHighlight() {
-      if (!this.$.content.selection)
-        return undefined;
-      var selection = new tr.model.EventSet();
-      this.$.content.selection.forEach(function(asyncEvent) {
-        if (!asyncEvent.associatedEvents)
-          return;
-        asyncEvent.associatedEvents.forEach(function(event) {
-          selection.push(event);
-        });
-      });
-      if (selection.length)
-        return selection;
-      return undefined;
+  set selection(selection) {
+    this.$.content.selection = selection;
+    this.$.relatedEvents.setRelatedEvents(selection);
+    if (this.$.relatedEvents.hasRelatedEvents()) {
+      this.$.relatedEvents.style.display = '';
+    } else {
+      this.$.relatedEvents.style.display = 'none';
     }
-  });
-  </script>
+  },
 
+  get relatedEventsToHighlight() {
+    if (!this.$.content.selection)
+      return undefined;
+    var selection = new tr.model.EventSet();
+    this.$.content.selection.forEach(function(asyncEvent) {
+      if (!asyncEvent.associatedEvents)
+        return;
+      asyncEvent.associatedEvents.forEach(function(event) {
+        selection.push(event);
+      });
+    });
+    if (selection.length)
+      return selection;
+    return undefined;
+  }
+});
+</script>

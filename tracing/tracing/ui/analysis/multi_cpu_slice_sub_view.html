@@ -21,25 +21,24 @@ found in the LICENSE file.
     <tr-ui-a-multi-event-sub-view id="content"></tr-ui-a-multi-event-sub-view>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
+  is: "tr-ui-a-multi-cpu-slice-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    is: "tr-ui-a-multi-cpu-slice-sub-view",
+  ready: function() {
+    this.$.content.eventsHaveSubRows = false;
+  },
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  // TODO(polymer): Convert this and below to Polymer property
+  get selection() {
+    return this.$.content.selection;
+  },
 
-    ready: function() {
-      this.$.content.eventsHaveSubRows = false;
-    },
-
-    get selection() {
-      return this.$.content.selection;
-    },
-
-    set selection(selection) {
-      this.$.content.setSelectionWithoutErrorChecks(selection);
-    }
-  });
-  </script>
+  set selection(selection) {
+    this.$.content.setSelectionWithoutErrorChecks(selection);
+  }
+});
+</script>

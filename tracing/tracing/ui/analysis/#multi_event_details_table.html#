@@ -123,21 +123,17 @@ Polymer({
     ];
   },
 
-  getSelectionTitle_: function() {
-    if (!this.selection || !this.selection.length)
-      return '<No selection>';
-
-    var firstTitle = tr.b.getFirstElement(this.selection).title;
-    if (!tr.b.every(this.selection, (event) => event.title === firstTitle))
-      return '<Different titles>';
-
-    return firstTitle;
-  },
-
   updateTitleTable_: function() {
-    this.$.titletable.tableRows = [{
+    var title;
+    if (this.selection_ && this.selection_.length)
+      title = this.selection_[0].title;
+    else
+      title = '<No selection>';
+
+    var table = this.$.titletable;
+    table.tableRows = [{
       title: 'Title',
-      value: this.getSelectionTitle_()
+      value: title
     }];
   },
 
@@ -331,3 +327,5 @@ Polymer({
   }
 });
 </script>
+
+

@@ -60,28 +60,25 @@ found in the LICENSE file.
           {{ comment.content }}</div>
     </div>
   </template>
-  </dom-module>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: "tr-ui-e-drive-comment-element",
 
-  <script>
-  'use strict';
-  Polymer({
-
-    is: "tr-ui-e-drive-comment-element",
-
-    properties: {
-      comment: {
-        type: String,
-        observer: "_commentChanged"
-      }
-    },
-
-    _commentChanged: function() {
-      this.createdDate = new Date(this.comment.createdDate).toLocaleString();
-    },
-
-    _computeCommentContentPrefix: function(comment) {
-      return comment.anchor ? '&#9875;&nbsp;' : '';
+  properties: {
+    comment: {
+      type: String,
+      observer: "_commentChanged"
     }
+  },
 
-  });
-  </script>
+  _commentChanged: function() {
+    this.createdDate = new Date(this.comment.createdDate).toLocaleString();
+  },
+
+  _computeCommentContentPrefix: function(comment) {
+    return comment.anchor ? '&#9875;&nbsp;' : '';
+  }
+});
+</script>

@@ -31,53 +31,91 @@ found in the LICENSE file.
       <tr-ui-a-user-expectation-related-samples-table id="relatedSamples"></tr-ui-a-user-expectation-related-samples-table>
     </div>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    is: 'tr-ui-a-single-user-expectation-sub-view',
-    Behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+Polymer({
+  is: 'tr-ui-a-single-user-expectation-sub-view',
+  Behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  // TODO(polymer): Convert to Polymer property
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    set selection(selection) {
-      this.$.realView.addEventListener('customize-rows',
-          this.onCustomizeRows_.bind(this));
+  set selection(selection) {
+    this.$.realView.addEventListener('customize-rows',
+        this.onCustomizeRows_.bind(this));
 
-      this.currentSelection_ = selection;
-      this.$.realView.setSelectionWithoutErrorChecks(selection);
+    this.currentSelection_ = selection;
+    this.$.realView.setSelectionWithoutErrorChecks(selection);
 
-      this.$.relatedSamples.selection = selection;
-      if (this.$.relatedSamples.hasRelatedSamples())
-        this.$.events.style.display = '';
-      else
-        this.$.events.style.display = 'none';
-    },
+    this.$.relatedSamples.selection = selection;
+    if (this.$.relatedSamples.hasRelatedSamples())
+      this.$.events.style.display = '';
+    else
+      this.$.events.style.display = 'none';
+  },
 
-    get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
-        return undefined;
-      return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
-    },
+  get relatedEventsToHighlight() {
+    if (!this.currentSelection_)
+      return undefined;
+    return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
+  },
 
-    onCustomizeRows_: function(event) {
-      var ue = tr.b.getOnlyElement(this.selection);
+  onCustomizeRows_: function(event) {
+    var ue = tr.b.getOnlyElement(this.selection);
 
-      if (ue.rawCpuMs) {
-        event.rows.push({
-          name: 'Total CPU',
-          value: tr.v.ui.createScalarSpan(ue.totalCpuMs, {
-            unit: tr.v.Unit.byName.timeDurationInMs
-          })
-        });
+    var valueList = new tr.metrics.ValueList();
+
+    function runMetric(metricInfo) {
+      try {
+        metricInfo.constructor(valueList, ue.parentModel);
+      } catch (failure) {
+        console.error(metricInfo, failure);
       }
     }
-  });
-  </script>
-</dom-module>
+
+    tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(runMetric);
+
+    // Metrics may have been computed more than once, so avoid displaying them
+    // more than once by collecting them in a dictionary.
+    // https://github.com/catapult-project/catapult/issues/2154
+    var metricValues = {};
+
+    valueList.valueDicts.forEach(function(value) {
+      if (value.grouping_keys.userExpectationStableId !== ue.stableId)
+        return;
+
+      if ((value.type !== 'numeric') ||
+          (value.numeric.type !== 'scalar'))
+        return;
+
+      metricValues[value.grouping_keys.name] = value.numeric;
+    });
+
+    for (var name in metricValues) {
+      event.rows.push({
+        name: name,
+        value: tr.v.ui.createScalarSpan(metricValues[name].value, {
+          unit: tr.v.Unit.fromJSON(metricValues[name].unit)
+        })
+      });
+    }
+
+    if (ue.rawCpuMs) {
+      event.rows.push({
+        name: 'Total CPU',
+        value: tr.v.ui.createScalarSpan(ue.totalCpuMs, {
+          unit: tr.v.Unit.byName.timeDurationInMs
+        })
+      });
+    }
+  }
+});
+</script>

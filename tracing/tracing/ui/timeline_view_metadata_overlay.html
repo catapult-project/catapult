@@ -21,24 +21,24 @@ found in the LICENSE file.
     <tr-v-ui-generic-table-view id="gtv"></tr-v-ui-generic-table-view>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
+Polymer({
 
-    is: "tr-ui-timeline-view-metadata-overlay",
+  is: "tr-ui-timeline-view-metadata-overlay",
 
-    created: function() {
-      this.metadata_ = undefined;
-    },
+  created: function() {
+    this.metadata_ = undefined;
+  },
 
-    get metadata() {
-      return this.metadata_;
-    },
+  get metadata() {
+    return this.metadata_;
+  },
 
-    set metadata(metadata) {
-      this.metadata_ = metadata;
-      this.$.gtv.items = this.metadata_;
-    }
-  });
-  </script>
+  set metadata(metadata) {
+    this.metadata_ = metadata;
+    this.$.gtv.items = this.metadata_;
+  }
+});
+</script>

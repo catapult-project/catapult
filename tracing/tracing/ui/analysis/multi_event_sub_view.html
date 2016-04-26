@@ -13,8 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name="tr-ui-a-multi-event-sub-view"
-    extends="tr-ui-a-sub-view">
 <dom-module id="tr-ui-a-multi-event-sub-view">
   <template>
     <style>
@@ -48,86 +46,86 @@ found in the LICENSE file.
     <div id="content"></div>
   </template>
 </dom-module>
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  Polymer({
-    is: 'tr-ui-a-multi-event-sub-view',
+Polymer({
+  is: 'tr-ui-a-multi-event-sub-view',
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  created: function() {
+    this.currentSelection_ = undefined;
+    this.eventsHaveDuration_ = true;
+    this.eventsHaveSubRows_ = true;
+  },
 
-    created: function() {
-      this.currentSelection_ = undefined;
-      this.eventsHaveDuration_ = true;
-      this.eventsHaveSubRows_ = true;
-    },
+  // TODO(polymer): Convert to Polymer properties.
+  set selection(selection) {
+    if (selection.length <= 1)
+      throw new Error('Only supports multiple items');
+    this.setSelectionWithoutErrorChecks(selection);
+  },
 
-    set selection(selection) {
-      if (selection.length <= 1)
-        throw new Error('Only supports multiple items');
-      this.setSelectionWithoutErrorChecks(selection);
-    },
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  setSelectionWithoutErrorChecks: function(selection) {
+    this.currentSelection_ = selection;
+    this.updateContents_();
+  },
 
-    setSelectionWithoutErrorChecks: function(selection) {
-      this.currentSelection_ = selection;
-      this.updateContents_();
-    },
+  get eventsHaveDuration() {
+    return this.eventsHaveDuration_;
+  },
 
-    get eventsHaveDuration() {
-      return this.eventsHaveDuration_;
-    },
+  set eventsHaveDuration(eventsHaveDuration) {
+    this.eventsHaveDuration_ = eventsHaveDuration;
+    this.updateContents_();
+  },
 
-    set eventsHaveDuration(eventsHaveDuration) {
-      this.eventsHaveDuration_ = eventsHaveDuration;
-      this.updateContents_();
-    },
+  get eventsHaveSubRows() {
+    return this.eventsHaveSubRows_;
+  },
 
-    get eventsHaveSubRows() {
-      return this.eventsHaveSubRows_;
-    },
+  set eventsHaveSubRows(eventsHaveSubRows) {
+    this.eventsHaveSubRows_ = eventsHaveSubRows;
+    this.updateContents_();
+  },
 
-    set eventsHaveSubRows(eventsHaveSubRows) {
-      this.eventsHaveSubRows_ = eventsHaveSubRows;
-      this.updateContents_();
-    },
+  updateContents_: function() {
+    var selection = this.currentSelection_;
 
-    updateContents_: function() {
-      var selection = this.currentSelection_;
+    this.$.content.textContent = '';
+    if (!selection)
+      return;
 
-      this.$.content.textContent = '';
-      if (!selection)
-        return;
+    var eventsByTitle = selection.getEventsOrganizedByTitle();
+    var numTitles = tr.b.dictionaryLength(eventsByTitle);
 
-      var eventsByTitle = selection.getEventsOrganizedByTitle();
-      var numTitles = tr.b.dictionaryLength(eventsByTitle);
+    var summaryTableEl = document.createElement(
+        'tr-ui-a-multi-event-summary-table');
+    summaryTableEl.configure({
+      showTotals: numTitles > 1,
+      eventsByTitle: eventsByTitle,
+      eventsHaveDuration: this.eventsHaveDuration_,
+      eventsHaveSubRows: this.eventsHaveSubRows_
+    });
+    this.$.content.appendChild(summaryTableEl);
 
-      var summaryTableEl = document.createElement(
-          'tr-ui-a-multi-event-summary-table');
-      summaryTableEl.configure({
-        showTotals: numTitles > 1,
-        eventsByTitle: eventsByTitle,
-        eventsHaveDuration: this.eventsHaveDuration_,
-        eventsHaveSubRows: this.eventsHaveSubRows_
-      });
-      this.$.content.appendChild(summaryTableEl);
+    var selectionSummaryTableEl = document.createElement(
+        'tr-ui-a-selection-summary-table');
+    selectionSummaryTableEl.selection = this.currentSelection_;
+    this.$.content.appendChild(selectionSummaryTableEl);
 
-      var selectionSummaryTableEl = document.createElement(
-          'tr-ui-a-selection-summary-table');
-      selectionSummaryTableEl.selection = this.currentSelection_;
-      this.$.content.appendChild(selectionSummaryTableEl);
-
-      if (numTitles === 1) {
-        var detailsTableEl = document.createElement(
-            'tr-ui-a-multi-event-details-table');
-        detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
-        detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
-        detailsTableEl.selection = selection;
-        this.$.content.appendChild(detailsTableEl);
-      }
+    if (numTitles === 1) {
+      var detailsTableEl = document.createElement(
+          'tr-ui-a-multi-event-details-table');
+      detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
+      detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
+      detailsTableEl.selection = selection;
+      this.$.content.appendChild(detailsTableEl);
     }
-  });
-  </script>
+  }
+});
+</script>

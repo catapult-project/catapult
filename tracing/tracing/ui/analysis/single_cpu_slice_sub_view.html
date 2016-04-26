@@ -79,64 +79,63 @@ found in the LICENSE file.
     </table>
   </template>
 </dom-module>
-  <script>
-  'use strict';
-  Polymer({
+<script>
+'use strict';
 
-    is: "tr-ui-a-single-cpu-slice-sub-view",
+Polymer({
+  is: "tr-ui-a-single-cpu-slice-sub-view",
+  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
 
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  set selection(selection) {
+    var cpuSlice = tr.b.getOnlyElement(selection);
+    if (!(cpuSlice instanceof tr.model.CpuSlice))
+       throw new Error('Only supports thread time slices');
 
-    set selection(selection) {
-      var cpuSlice = tr.b.getOnlyElement(selection);
-      if (!(cpuSlice instanceof tr.model.CpuSlice))
-        throw new Error('Only supports thread time slices');
+    this.currentSelection_ = selection;
 
-      this.currentSelection_ = selection;
+    var thread = cpuSlice.threadThatWasRunning;
 
-      var thread = cpuSlice.threadThatWasRunning;
-
-      var shadowRoot = this.shadowRoot;
-      if (thread) {
-        shadowRoot.querySelector('#process-name').textContent =
-            thread.parent.userFriendlyName;
-        shadowRoot.querySelector('#thread-name').textContent =
-            thread.userFriendlyName;
-      } else {
-        shadowRoot.querySelector('#process-name').parentElement.style.display =
-            'none';
-        shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
-      }
-
-      shadowRoot.querySelector('#start').setValueAndUnit(
-          cpuSlice.start, tr.v.Unit.byName.timeStampInMs);
-      shadowRoot.querySelector('#duration').setValueAndUnit(
-          cpuSlice.duration, tr.v.Unit.byName.timeDurationInMs);
-
-      var runningThreadEl = shadowRoot.querySelector('#running-thread');
-
-      var timeSlice = cpuSlice.getAssociatedTimeslice();
-      if (!timeSlice) {
-        runningThreadEl.parentElement.style.display = 'none';
-      } else {
-        var threadLink = document.createElement('tr-ui-a-analysis-link');
-        threadLink.selection = new tr.model.EventSet(timeSlice);
-        threadLink.textContent = 'Click to select';
-        runningThreadEl.parentElement.style.display = '';
-        runningThreadEl.textContent = '';
-        runningThreadEl.appendChild(threadLink);
-      }
-
-      shadowRoot.querySelector('#args').object = cpuSlice.args;
-
+    var shadowRoot = this.shadowRoot;
+    if (thread) {
+      shadowRoot.querySelector('#process-name').textContent =
+          thread.parent.userFriendlyName;
+      shadowRoot.querySelector('#thread-name').textContent =
+          thread.userFriendlyName;
+    } else {
+      shadowRoot.querySelector('#process-name').parentElement.style.display =
+          'none';
+      shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
     }
-  });
-  </script>
+
+    shadowRoot.querySelector('#start').setValueAndUnit(
+        cpuSlice.start, tr.v.Unit.byName.timeStampInMs);
+    shadowRoot.querySelector('#duration').setValueAndUnit(
+        cpuSlice.duration, tr.v.Unit.byName.timeDurationInMs);
+
+    var runningThreadEl = shadowRoot.querySelector('#running-thread');
+
+    var timeSlice = cpuSlice.getAssociatedTimeslice();
+    if (!timeSlice) {
+      runningThreadEl.parentElement.style.display = 'none';
+    } else {
+      var threadLink = document.createElement('tr-ui-a-analysis-link');
+      threadLink.selection = new tr.model.EventSet(timeSlice);
+      threadLink.textContent = 'Click to select';
+      runningThreadEl.parentElement.style.display = '';
+      runningThreadEl.textContent = '';
+      runningThreadEl.appendChild(threadLink);
+    }
+
+    shadowRoot.querySelector('#args').object = cpuSlice.args;
+
+  }
+});
+</script>

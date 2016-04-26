@@ -1522,138 +1522,139 @@ tr.exportTo('tr.ui.b', function() {
   </template>
 </dom-module>
 
-  <script>
-  'use strict';
+<script>
+'use strict';
 
-  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
-  Polymer({
+Polymer({
 
-    is: "tr-ui-b-table-header-cell",
+  is: "tr-ui-b-table-header-cell",
 
-    listeners: {
-      'tap': 'onTap_'
-    },
+  listeners: {
+    'tap': 'onTap_'
+  },
 
-    created: function() {
-      this.tapCallback_ = undefined;
-      this.cellTitle_ = '';
-      this.align_ = undefined;
-      this.selectable_ = false;
-      this.column_ = undefined;
-    },
+  created: function() {
+    this.tapCallback_ = undefined;
+    this.cellTitle_ = '';
+    this.align_ = undefined;
+    this.selectable_ = false;
+    this.column_ = undefined;
+  },
 
-    ready: function() {
-      this.$.button.addEventListener('click', this.onSelect_.bind(this));
-      this.$.side.addEventListener('click', this.onTap_.bind(this));
-    },
+  ready: function() {
+    this.$.button.addEventListener('click', this.onSelect_.bind(this));
+    this.$.side.addEventListener('click', this.onTap_.bind(this));
+  },
 
-    onSelect_: function() {
-      this.selected = this.$.button.getAttribute('selected') !== 'true';
-      tr.b.dispatchSimpleEvent(this, 'selected-column-changed', true, false,
-          {column: this.column, selected: this.selected});
-    },
+  onSelect_: function() {
+    this.selected = this.$.button.getAttribute('selected') !== 'true';
+    tr.b.dispatchSimpleEvent(this, 'selected-column-changed', true, false,
+        {column: this.column, selected: this.selected});
+  },
 
-    set column(column) {
-      this.column_ = column;
-      this.selectable = column.selectable;
-      this.align = column.align;
-      this.cellTitle = column.title;
-    },
+  set column(column) {
+    this.column_ = column;
+    this.selectable = column.selectable;
+    this.align = column.align;
+    this.cellTitle = column.title;
+  },
 
-    get column() {
-      return this.column_;
-    },
+  get column() {
+    return this.column_;
+  },
 
-    set selectable(selectable) {
-      this.selectable_ = selectable;
-      this.cellTitle = this.$.title.childNodes[0] ||
-          this.$.button.childNodes[0];
-    },
+  set selectable(selectable) {
+    this.selectable_ = selectable;
+    this.cellTitle = this.$.title.childNodes[0] ||
+        this.$.button.childNodes[0];
+  },
 
-    get selectable() {
-      return this.selectable_;
-    },
+  get selectable() {
+    return this.selectable_;
+  },
 
-    set selected(selected) {
-      if (selected)
-        this.$.button.setAttribute('selected', true);
-      else
-        this.$.button.removeAttribute('selected');
-    },
+  set selected(selected) {
+    if (selected)
+      this.$.button.setAttribute('selected', true);
+    else
+      this.$.button.removeAttribute('selected');
+  },
 
-    get selected() {
-      if (!this.selectable_)
-        return false;
-      return this.$.button.getAttribute('selected') === 'true';
-    },
+  get selected() {
+    if (!this.selectable_)
+      return false;
+    return this.$.button.getAttribute('selected') === 'true';
+  },
 
-    set cellTitle(value) {
-      this.cellTitle_ = value;
+  set cellTitle(value) {
+    this.cellTitle_ = value;
 
-      var titleNode = tr.ui.b.asHTMLOrTextNode(
-          this.cellTitle_, this.ownerDocument);
+    var titleNode = tr.ui.b.asHTMLOrTextNode(
+        this.cellTitle_, this.ownerDocument);
 
-      this.$.title.innerText = '';
-      this.$.button.innerText = '';
+    this.$.title.innerText = '';
+    this.$.button.innerText = '';
 
-      if (this.selectable_)
-        this.$.button.appendChild(titleNode);
-      else
-        this.$.title.appendChild(titleNode);
-    },
+    if (this.selectable_)
+      this.$.button.appendChild(titleNode);
+    else
+      this.$.title.appendChild(titleNode);
+  },
 
-    get cellTitle() {
-      return this.cellTitle_;
-    },
+  get cellTitle() {
+    return this.cellTitle_;
+  },
 
-    set align(align) {
-      switch (align) {
-        case undefined:
-        case ColumnAlignment.LEFT:
-          this.style.justifyContent = '';
-          break;
 
-        case ColumnAlignment.RIGHT:
-          this.style.justifyContent = 'flex-end';
-          break;
+  set align(align) {
+    switch (align) {
+      case undefined:
+      case ColumnAlignment.LEFT:
+        this.style.justifyContent = '';
+        break;
 
-        default:
-          throw new Error('Invalid alignment of column (title=\'' +
-              this.cellTitle_ + '\'): ' + align);
-      }
-      this.align_ = align;
-    },
+      case ColumnAlignment.RIGHT:
+        this.style.justifyContent = 'flex-end';
+        break;
 
-    get align() {
-      return this.align_;
-    },
-
-    clearSideContent: function() {
-      this.$.side.textContent = '';
-    },
-
-    set sideContent(content) {
-      this.$.side.textContent = content;
-      this.$.side.style.display = content ? 'inline' : 'none';
-    },
-
-    get sideContent() {
-      return this.$.side.textContent;
-    },
-
-    set tapCallback(callback) {
-      this.style.cursor = 'pointer';
-      this.tapCallback_ = callback;
-    },
-
-    get tapCallback() {
-      return this.tapCallback_;
-    },
-
-    onTap_: function() {
-      if (this.tapCallback_)
-        this.tapCallback_();
+      default:
+        throw new Error('Invalid alignment of column (title=\'' +
+            this.cellTitle_ + '\'): ' + align);
     }
-  });
+    this.align_ = align;
+  },
+
+  get align() {
+    return this.align_;
+  },
+
+  clearSideContent: function() {
+    this.$.side.textContent = '';
+  },
+
+  set sideContent(content) {
+    this.$.side.textContent = content;
+    this.$.side.style.display = content ? 'inline' : 'none';
+  },
+
+  get sideContent() {
+    return this.$.side.textContent;
+  },
+
+  set tapCallback(callback) {
+    this.style.cursor = 'pointer';
+    this.tapCallback_ = callback;
+  },
+
+  get tapCallback() {
+    return this.tapCallback_;
+  },
+
+  onTap_: function() {
+    if (this.tapCallback_)
+      this.tapCallback_();
+  }
+});
 </script>
