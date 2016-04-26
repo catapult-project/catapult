@@ -140,7 +140,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
 
-      this.appendChild(node);
+      Polymer.dom(this).appendChild(node);
 
       this.pictureAsImageData_ = undefined;
       this.zoomScaleValue_ = 1;

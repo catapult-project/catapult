@@ -86,7 +86,7 @@ using custom elements specialized for different event types.
     ready: function() {
       this.tabView_ = document.createElement('tr-ui-a-tab-view');
       this.tabView_.style.flex = '1 1 auto';
-      this.appendChild(this.tabView_);
+      Polymer.dom(this).appendChild(this.tabView_);
       this.brushingStateController_ = undefined;
       this.onSelectedTabChange_ = this.onSelectedTabChange_.bind(this);
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);

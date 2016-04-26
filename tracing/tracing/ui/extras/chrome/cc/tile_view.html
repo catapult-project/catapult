@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.classList.add('tr-ui-e-chrome-cc-tile-snapshot-view');
       this.layerTreeView_ =
           new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
-      this.appendChild(this.layerTreeView_);
+      Polymer.dom(this).appendChild(this.layerTreeView_);
     },
 
     updateContents: function() {

@@ -44,9 +44,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.dragBar_.target = this.analysisEl_;
 
-      this.appendChild(this.layerTreeQuadStackView_);
-      this.appendChild(this.dragBar_);
-      this.appendChild(this.analysisEl_);
+      Polymer.dom(this).appendChild(this.layerTreeQuadStackView_);
+      Polymer.dom(this).appendChild(this.dragBar_);
+      Polymer.dom(this).appendChild(this.analysisEl_);
 
       this.layerTreeQuadStackView_.addEventListener('selection-change',
           function() {

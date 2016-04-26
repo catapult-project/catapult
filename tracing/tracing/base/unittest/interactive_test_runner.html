@@ -184,7 +184,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.onTestFlaky_ = this.onTestFlaky_.bind(this);
       this.onTestPassed_ = this.onTestPassed_.bind(this);
 
-      this.appendChild(tr.ui.b.instantiateTemplate(
+      Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate(
           '#x-base-interactive-test-runner-template', THIS_DOC));
 
       this.querySelector(

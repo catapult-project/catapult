@@ -66,11 +66,11 @@ tr.exportTo('tr.ui.tracks', function() {
         track.cpu = cpu;
         if (!track.hasVisibleContent)
           continue;
-        this.appendChild(track);
+        Polymer.dom(this).appendChild(track);
         didAppendAtLeastOneTrack = true;
       }
       if (didAppendAtLeastOneTrack)
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
     }
   };
 

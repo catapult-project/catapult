@@ -241,7 +241,7 @@ tr.exportTo('tr.ui.b', function() {
       var template = THIS_DOC.querySelector('#chart-base-template');
       var svgEl = template.content.querySelector('svg');
       for (var i = 0; i < svgEl.children.length; i++)
-        this.appendChild(svgEl.children[i].cloneNode(true));
+        Polymer.dom(this).appendChild(svgEl.children[i].cloneNode(true));
 
       // svg likes to take over width & height properties for some reason. This
       // works around it.

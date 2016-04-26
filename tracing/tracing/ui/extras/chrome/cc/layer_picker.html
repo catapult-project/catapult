@@ -41,9 +41,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
 
       this.itemList_ = new tr.ui.b.ListView();
-      this.appendChild(this.controls_);
+      Polymer.dom(this).appendChild(this.controls_);
 
-      this.appendChild(this.itemList_);
+      Polymer.dom(this).appendChild(this.itemList_);
 
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));

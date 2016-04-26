@@ -38,7 +38,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     decorate: function() {
       this.opsList_ = new tr.ui.b.ListView();
-      this.appendChild(this.opsList_);
+      Polymer.dom(this).appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;
       this.selectedOpIndex_ = undefined;

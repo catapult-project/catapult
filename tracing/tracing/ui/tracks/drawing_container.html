@@ -40,7 +40,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.canvas_ = document.createElement('canvas');
       this.canvas_.className = 'drawing-container-canvas';
       this.canvas_.style.left = tr.ui.b.constants.HEADING_WIDTH + 'px';
-      this.appendChild(this.canvas_);
+      Polymer.dom(this).appendChild(this.canvas_);
 
       this.ctx_ = this.canvas_.getContext('2d');
 

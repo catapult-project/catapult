@@ -153,7 +153,7 @@ tr.exportTo('tr.ui.b', function() {
     addItem: function(textContent) {
       var item = document.createElement('div');
       item.textContent = textContent;
-      this.appendChild(item);
+      Polymer.dom(this).appendChild(item);
       return item;
     }
 

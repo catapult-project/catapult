@@ -375,7 +375,7 @@ tr.exportTo('tr.ui.b', function() {
 
       var node = tr.ui.b.instantiateTemplate('#quad-stack-view-template',
                                           THIS_DOC);
-      this.appendChild(node);
+      Polymer.dom(this).appendChild(node);
       this.updateHeaderVisibility_();
       this.canvas_ = this.querySelector('#canvas');
       this.chromeImages_ = {
@@ -643,7 +643,7 @@ tr.exportTo('tr.ui.b', function() {
           tr.ui.b.MOUSE_SELECTOR_MODE.ROTATE;
       this.mouseModeSelector_.mode = tr.ui.b.MOUSE_SELECTOR_MODE.PANSCAN;
       this.mouseModeSelector_.pos = {x: 0, y: 100};
-      this.appendChild(this.mouseModeSelector_);
+      Polymer.dom(this).appendChild(this.mouseModeSelector_);
       this.mouseModeSelector_.settingsKey =
           'quadStackView.mouseModeSelector';
 

@@ -59,7 +59,7 @@ Polymer({
       }
     }.bind(this);
 
-    this.appendChild(realView);
+    Polymer.dom(this).appendChild(realView);
     realView.setSelectionWithoutErrorChecks(selection);
   }
 });

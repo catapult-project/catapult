@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     decorate: function() {
       this.classList.add('tr-ui-e-chrome-cc-picture-snapshot-view');
       this.pictureDebugger_ = new tr.ui.e.chrome.cc.PictureDebugger();
-      this.appendChild(this.pictureDebugger_);
+      Polymer.dom(this).appendChild(this.pictureDebugger_);
     },
 
     updateContents: function() {

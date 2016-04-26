@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      this.appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
+      Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
           THIS_DOC));
 
       this.timelineView_ = this.querySelector('tr-ui-timeline-view');

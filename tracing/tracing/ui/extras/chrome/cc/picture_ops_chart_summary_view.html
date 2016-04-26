@@ -49,7 +49,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.chart_ = document.createElement('canvas');
       this.chartCtx_ = this.chart_.getContext('2d');
-      this.appendChild(this.chart_);
+      Polymer.dom(this).appendChild(this.chart_);
 
       this.opsTimingData_ = [];
 

@@ -62,7 +62,7 @@ tr.exportTo('tr.ui.tracks', function() {
       track.height = ALLOCATED_MEMORY_TRACK_HEIGHT + 'px';
       track.series = series;
       track.autoSetAllAxes({expandMax: true});
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
     }
   };
 

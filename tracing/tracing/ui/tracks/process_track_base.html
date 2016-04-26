@@ -54,7 +54,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.headerEl_.appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
-      this.appendChild(this.headerEl_);
+      Polymer.dom(this).appendChild(this.headerEl_);
     },
 
     get processBase() {
@@ -156,7 +156,7 @@ tr.exportTo('tr.ui.tracks', function() {
       track.process = this.process;
       if (!track.hasVisibleContent)
         return;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       // no spacing track, since this track only shown in collapsed state
     },
 
@@ -167,7 +167,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       var track = new tr.ui.tracks.FrameTrack(this.viewport);
       track.frames = frames;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
     },
 
     appendObjectInstanceTracks_: function() {
@@ -228,11 +228,11 @@ tr.exportTo('tr.ui.tracks', function() {
         }
         var track = new trackConstructor(this.viewport);
         track.objectInstances = visibleInstances;
-        this.appendChild(track);
+        Polymer.dom(this).appendChild(track);
         didAppendAtLeastOneTrack = true;
       }, this);
       if (didAppendAtLeastOneTrack)
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
     },
 
     appendCounterTracks_: function() {
@@ -244,8 +244,8 @@ tr.exportTo('tr.ui.tracks', function() {
       counters.forEach(function(counter) {
         var track = new tr.ui.tracks.CounterTrack(this.viewport);
         track.counter = counter;
-        this.appendChild(track);
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(track);
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
       }.bind(this));
     },
 
@@ -260,8 +260,8 @@ tr.exportTo('tr.ui.tracks', function() {
         track.thread = thread;
         if (!track.hasVisibleContent)
           return;
-        this.appendChild(track);
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(track);
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
       }.bind(this));
     }
   };

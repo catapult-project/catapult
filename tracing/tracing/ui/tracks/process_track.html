@@ -117,7 +117,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (processMemoryDumps.length) {
         var pmdt = new tr.ui.tracks.ProcessMemoryDumpTrack(this.viewport_);
         pmdt.memoryDumps = processMemoryDumps;
-        this.appendChild(pmdt);
+        Polymer.dom(this).appendChild(pmdt);
       }
     },
 

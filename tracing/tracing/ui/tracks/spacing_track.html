@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.classList.add('spacing-track');
 
       this.heading_ = document.createElement('tr-ui-heading');
-      this.appendChild(this.heading_);
+      Polymer.dom(this).appendChild(this.heading_);
     },
 
     addAllEventsMatchingFilterToSelection: function(filter, selection) {

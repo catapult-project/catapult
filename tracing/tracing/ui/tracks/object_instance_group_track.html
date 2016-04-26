@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var hasMultipleRows = this.subRows.length > 1;
       var track = new tr.ui.tracks.ObjectInstanceTrack(this.viewport);
       track.objectInstances = objectInstances;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       return track;
     },
 

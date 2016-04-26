@@ -81,7 +81,7 @@ Polymer({
         snapshot.objectInstance.category, snapshot.objectInstance.typeName);
     if (typeInfo) {
       var customView = new typeInfo.constructor();
-      this.appendChild(customView);
+      Polymer.dom(this).appendChild(customView);
       customView.modelEvent = snapshot;
     } else {
       this.appendGenericAnalysis_(snapshot);
@@ -96,7 +96,7 @@ Polymer({
     var titleEl = document.createElement('div');
     titleEl.classList.add('title');
     titleEl.appendChild(document.createTextNode('Snapshot of '));
-    this.appendChild(titleEl);
+    Polymer.dom(this).appendChild(titleEl);
 
     var instanceLinkEl = document.createElement('tr-ui-a-analysis-link');
     instanceLinkEl.selection = new tr.model.EventSet(instance);
@@ -110,7 +110,7 @@ Polymer({
     }));
 
     var tableEl = document.createElement('table');
-    this.appendChild(tableEl);
+    Polymer.dom(this).appendChild(tableEl);
 
     var rowEl = document.createElement('tr');
     tableEl.appendChild(rowEl);

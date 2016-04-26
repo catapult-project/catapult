@@ -202,7 +202,7 @@ tr.b.unittest.testSuite(function() {
         rectEl.setAttribute('y', 10);
         rectEl.setAttribute('width', 180);
         rectEl.setAttribute('height', 180);
-        this.appendChild(rectEl);
+        Polymer.dom(this).appendChild(rectEl);
       }
     };
     var el = new cls();
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
         rectEl.setAttribute('y', 10);
         rectEl.setAttribute('width', 180);
         rectEl.setAttribute('height', 180);
-        this.appendChild(rectEl);
+        Polymer.dom(this).appendChild(rectEl);
       }
     };
 

@@ -27,7 +27,7 @@ Polymer({
     realView.eventsHaveDuration = false;
     realView.eventsHaveSubRows = false;
 
-    this.appendChild(realView);
+    Polymer.dom(this).appendChild(realView);
     realView.setSelectionWithoutErrorChecks(selection);
 
     this.currentSelection_ = selection;

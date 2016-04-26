@@ -126,7 +126,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-picture-debugger-template', THIS_DOC);
 
-      this.appendChild(node);
+      Polymer.dom(this).appendChild(node);
 
       this.pictureAsImageData_ = undefined;
       this.showOverdraw_ = false;
@@ -208,7 +208,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           e.stopPropagation();
         }
       }));
-      this.appendChild(hkc);
+      Polymer.dom(this).appendChild(hkc);
 
       // Add a mutation observer so that when the view is resized we can
       // update the chart summary view.

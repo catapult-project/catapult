@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.rects_ = null;
 
       this.heading_ = document.createElement('tr-ui-heading');
-      this.appendChild(this.heading_);
+      Polymer.dom(this).appendChild(this.heading_);
     },
 
     set heading(heading) {

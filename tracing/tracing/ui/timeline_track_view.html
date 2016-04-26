@@ -91,7 +91,7 @@ Polymer({
 
     this.rulerTrackContainer_ =
         new tr.ui.tracks.DrawingContainer(this.viewport_);
-    this.appendChild(this.rulerTrackContainer_);
+    Polymer.dom(this).appendChild(this.rulerTrackContainer_);
     this.rulerTrackContainer_.invalidate();
 
     this.rulerTrack_ = new tr.ui.tracks.RulerTrack(this.viewport_);
@@ -103,7 +103,7 @@ Polymer({
 
     this.modelTrackContainer_ =
         new tr.ui.tracks.DrawingContainer(this.viewport_);
-    this.appendChild(this.modelTrackContainer_);
+    Polymer.dom(this).appendChild(this.modelTrackContainer_);
     this.modelTrackContainer_.style.display = 'block';
     this.modelTrackContainer_.invalidate();
 
@@ -161,7 +161,7 @@ Polymer({
     this.mouseModeSelector_ = document.createElement(
         'tr-ui-b-mouse-mode-selector');
     this.mouseModeSelector_.targetElement = this;
-    this.appendChild(this.mouseModeSelector_);
+    Polymer.dom(this).appendChild(this.mouseModeSelector_);
 
     this.mouseModeSelector_.addEventListener('beginpan',
         this.onBeginPanScan_.bind(this));

@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     decorate: function() {
       this.classList.add('tr-ui-e-chrome-cc-display-item-list-view');
       this.displayItemDebugger_ = new tr.ui.e.chrome.cc.DisplayItemDebugger();
-      this.appendChild(this.displayItemDebugger_);
+      Polymer.dom(this).appendChild(this.displayItemDebugger_);
     },
 
     updateContents: function() {

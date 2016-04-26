@@ -37,7 +37,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       this.textContent = '';
 
       var stats = snapshot.getStats();
-      this.appendChild(this.buildList_(stats));
+      Polymer.dom(this).appendChild(this.buildList_(stats));
     },
 
     isFloat: function(n) {

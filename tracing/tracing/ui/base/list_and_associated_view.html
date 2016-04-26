@@ -35,8 +35,8 @@ tr.exportTo('tr.ui.b', function() {
       this.listView_.addEventListener('selection-changed',
                                       this.onSelectionChanged_.bind(this));
       this.placeholder_ = document.createElement('div');
-      this.appendChild(this.listView_);
-      this.appendChild(this.placeholder_);
+      Polymer.dom(this).appendChild(this.listView_);
+      Polymer.dom(this).appendChild(this.placeholder_);
     },
 
     get listView() {

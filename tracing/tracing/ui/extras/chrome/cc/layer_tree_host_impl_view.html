@@ -48,9 +48,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 
-      this.appendChild(this.layerPicker_);
-      this.appendChild(this.dragHandle_);
-      this.appendChild(this.layerView_);
+      Polymer.dom(this).appendChild(this.layerPicker_);
+      Polymer.dom(this).appendChild(this.dragHandle_);
+      Polymer.dom(this).appendChild(this.layerView_);
 
       // Make sure we have the current values from layerView_ and layerPicker_,
       // since those might have been created before we added the listener.
