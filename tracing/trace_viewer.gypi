@@ -47,6 +47,7 @@
       'tracing/base/iteration_helpers.html',
       'tracing/base/math.html',
       'tracing/base/multi_dimensional_view.html',
+      'tracing/base/piecewise_linear_function.html',
       'tracing/base/quad.html',
       'tracing/base/raf.html',
       'tracing/base/range.html',

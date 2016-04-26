@@ -15,12 +15,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
+  // The time window size for mutator utilization computation.
+  // It is equal to the duration of one frame corresponding to 60 FPS rendering.
+  var TARGET_FPS = 60;
+  var MS_PER_SECOND = 1000;
+  var WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
+
   function gcMetric(valueList, model) {
     addDurationOfTopEvents(valueList, model);
     addTotalDurationOfTopEvents(valueList, model);
     addDurationOfSubEvents(valueList, model);
     addIdleTimesOfTopEvents(valueList, model);
     addTotalIdleTimesOfTopEvents(valueList, model);
+    addMutatorUtilization(valueList, model);
   }
 
   gcMetric.prototype = {
@@ -159,7 +166,6 @@ tr.exportTo('tr.metrics.v8', function() {
       var overrun = 0;
       if (idleTask) {
         var allottedTime = idleTask['args']['allotted_time_ms'];
-        console.log(allottedTime);
         if (event.duration > allottedTime) {
           overrun = event.duration - allottedTime;
           // Don't count time over the deadline as being inside idle time.
@@ -189,6 +195,44 @@ tr.exportTo('tr.metrics.v8', function() {
     valueList.addValue(
       new tr.v.NumericValue(model.canonicalUrl,
         stageTitle + '-' + name + '_percentage_idle', percentage));
+  }
+
+  function addMutatorUtilization(valueList, model) {
+    groupAndProcessEvents(model,
+        tr.metrics.v8.utils.isTopV8ExecuteEvent,
+        event => 'v8.execute',
+        function(stageTitle, name, events) {
+          events.sort((a, b) => a.start - b.start);
+          var time = 0;
+          var pauses = [];
+          // Glue together the v8.execute events and adjust the GC pause
+          // times accordingly.
+          events.forEach(function(topEvent) {
+            topEvent.findTopmostSlicesRelativeToThisSlice(function(e) {
+              if (tr.metrics.v8.utils.isTopGarbageCollectionEvent(e)) {
+                pauses.push({ start: e.start - topEvent.start + time,
+                              end: e.end - topEvent.start + time });
+              }
+            });
+            time += topEvent.duration;
+          });
+          // Now we have one big v8.execute interval from 0 to |time| and
+          // a list of GC pauses.
+          var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
+              0, time, WINDOW_SIZE_MS, pauses);
+          [0.95, 0.99].forEach(function(percent) {
+            var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
+                mutatorUtilization.percentile(1.0 - percent) * 100);
+            valueList.addValue(new tr.v.NumericValue(model.canonicalUrl,
+                stageTitle + '-mutator_utilization_pct_0' + percent * 100,
+                value));
+          });
+          var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
+              mutatorUtilization.min);
+          valueList.addValue(new tr.v.NumericValue(model.canonicalUrl,
+              stageTitle + '-mutator_utilization_min', value));
+        }
+    );
   }
 
   /**
@@ -225,7 +269,8 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   return {
-    gcMetric: gcMetric
+    gcMetric: gcMetric,
+    WINDOW_SIZE_MS: WINDOW_SIZE_MS // For testing purposes only.
   };
 });
 </script>

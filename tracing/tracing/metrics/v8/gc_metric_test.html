@@ -209,5 +209,37 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
+  test('mutatorUtilization', function() {
+    var valueList = new tr.metrics.ValueList();
+    var slices = [
+      {
+        title: 'V8.Execute', args: {}, start: 100, end: 200,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 150, end: 160,
+        cpuStart: 150, cpuEnd: 160
+      },
+      {
+        title: 'V8.Execute', args: {}, start: 1000, end: 1200,
+        cpuStart: 1000, cpuEnd: 1200
+      },
+      {
+        title: 'V8.GCIncrementalMarking', args: {}, start: 1010, end: 1020,
+        cpuStart: 1010, cpuEnd: 1020
+      }
+    ];
+    var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
+        0, 300, tr.metrics.v8.WINDOW_SIZE_MS,
+        [{start: 50, end: 60}, {start: 110, end: 120}]);
+    var actual = run(slices);
+    assert.strictEqual(
+        actual['Animation-mutator_utilization_pct_095'],
+        mutatorUtilization.percentile(1 - 0.95) * 100);
+    assert.strictEqual(
+        actual['Animation-mutator_utilization_pct_099'],
+        mutatorUtilization.percentile(1 - 0.99) * 100);
+  });
+
 });
 </script>
