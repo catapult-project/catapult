@@ -118,15 +118,15 @@ An element displaying basic information about a display item in a list view.
       }
     },
 
-    stopPropagation: function (e) {
+    stopPropagation: function(e) {
       e.stopPropagation();
     },
 
-    _computeIf: function (richDetails) {
+    _computeIf: function(richDetails) {
       return richDetails && richDetails.skp64;
     },
 
-    _computeHref: function (richDetails) {
+    _computeHref: function(richDetails) {
       return 'data:application/octet-stream;base64,' + richDetails.skp64;
     }
   });
