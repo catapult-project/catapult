@@ -35,7 +35,6 @@ found in the LICENSE file.
 'use strict';
 
 Polymer({
-
   is: 'tr-v-ui-histogram-span',
 
   created: function() {
@@ -60,6 +59,7 @@ Polymer({
     this.$.chart.appendChild(this.chart_);
   },
 
+  // TODO(polymer): Convert to Polymer property
   get brushedBins() {
     return this.brushedBins_;
   },

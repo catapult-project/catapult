@@ -146,7 +146,6 @@ tr.exportTo('tr.v.ui', function() {
   };
 
   Polymer({
-
     is: 'tr-v-ui-generic-table-view',
 
     created: function() {
@@ -154,6 +153,7 @@ tr.exportTo('tr.v.ui', function() {
       this.importantColumNames_ = [];
     },
 
+    // TODO(polymer): Convert to Polymer property
     get items() {
       return this.items_;
     },
