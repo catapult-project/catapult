@@ -14,9 +14,11 @@ found in the LICENSE file.
 
   <script src="/components/webcomponentsjs/webcomponents-lite.js"></script>
   <script>
-      // Force Polymer into native shadowDom mode
-      window.Polymer = window.Polymer || {};
-      window.Polymer.dom = 'shadow';
+    'use strict';
+
+    // Force Polymer into native shadowDom mode
+    window.Polymer = window.Polymer || {};
+    window.Polymer.dom = 'shadow';
   </script>
   <link rel="import" href="/components/polymer/polymer.html">
   <link rel="import" href="/tracing/base/unittest/interactive_test_runner.html">
