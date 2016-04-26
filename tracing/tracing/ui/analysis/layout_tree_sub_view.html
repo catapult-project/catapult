@@ -7,17 +7,19 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 
-<polymer-element name="tr-ui-a-layout-tree-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id="tr-ui-a-layout-tree-sub-view">
   <template>
     <div id="content"></div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
-  Polymer('tr-ui-a-layout-tree-sub-view', {
+  Polymer({
+    is: 'tr-ui-a-layout-tree-sub-view',
+    behaviors: ['tr-ui-a-sub-view']
+
     set selection(selection) {
       this.currentSelection_ = selection;
       this.updateContents_();
@@ -28,7 +30,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     updateContents_: function() {
-      this.$.content.textContent = '';
+      this.set('$.content.textContent', '');
       if (!this.currentSelection_)
         return;
 
@@ -193,9 +195,9 @@ tr.exportTo('tr.ui.analysis', function() {
         return snapshot.rootLayoutObject;
       });
       table.rebuild();
-      this.$.content.appendChild(table);
-    }
-  });
+        Polymer.dom(this.$.content).appendChild(table);
+      },
+    });
 
   return {};
 });
