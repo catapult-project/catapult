@@ -620,7 +620,7 @@ class BatteryUtils(object):
         self._device.RunShellCommand(
             ['dumpsys', 'battery', 'reset'], check_return=True)
         raise device_errors.CommandFailedError(
-            'Non-zero pmi value found after reset.')
+            'Non-zero pmi value found after reset: "%s"' % line)
     self._device.RunShellCommand(
         ['dumpsys', 'battery', 'reset'], check_return=True)
     return True
