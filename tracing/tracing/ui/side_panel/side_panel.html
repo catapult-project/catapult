@@ -7,19 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name='tr-ui-side-panel'>
-  <template>
-    <style>
-    :host {
-      overflow: auto;
-    }
-    </style>
-  </template>
+<polymer-element is='tr-ui-side-panel'>
   <script>
-(function() {
   'use strict';
+(function() {
 
-  /** @behavior tr_ui_side_panel */
+ /** Catapult.tr_ui_side_panel */
   var tr_ui_side_panel = {
 
     get rangeOfInterest() {
