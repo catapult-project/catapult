@@ -53,7 +53,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(outerElement.children[1].testProperty, 'Test');
 
     // Make sure we can still instantiate inner templates, if we need them.
-    var innerElement = THIS_DOC.importNode(outerElement.children[0].content, true);
+    var innerElement = THIS_DOC.importNode(
+        outerElement.children[0].content, true);
     assert.equal(innerElement.children.length, 2);
     assert.equal(innerElement.children[0].testProperty, 'Test');
     assert.equal(
