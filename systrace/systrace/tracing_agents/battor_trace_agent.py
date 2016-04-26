@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from os import path
+import atexit
 import logging
 
 from battor import battor_wrapper
@@ -14,7 +15,6 @@ from devil.utils import timeout_retry
 from py_trace_event import trace_time
 from systrace.tracing_agents import TracingAgent
 from systrace.tracing_agents import TraceResult
-from telemetry.internal.util import atexit_with_log
 
 def try_create_agent(options):
   if options.from_file is not None:
@@ -59,7 +59,7 @@ class BattorTraceAgent(TracingAgent):
     dev_utils = device_utils.DeviceUtils(options.device_serial)
     self._battery_utils = battery_utils.BatteryUtils(dev_utils)
     self._battery_utils.SetCharging(False)
-    atexit_with_log.Register(_reenable_charging_if_needed, self._battery_utils)
+    atexit.register(_reenable_charging_if_needed, self._battery_utils)
     self._battor_wrapper.StartShell()
     self._battor_wrapper.StartTracing()
     return True
