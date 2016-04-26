@@ -253,7 +253,7 @@ class BatteryUtils(object):
       if entry[_DUMP_VERSION_INDEX] not in ['8', '9']:
         # Wrong dumpsys version.
         raise device_errors.DeviceVersionError(
-            'Dumpsys version must be 8 or 9. %s found.'
+            'Dumpsys version must be 8 or 9. "%s" found.'
             % entry[_DUMP_VERSION_INDEX])
       if _ROW_TYPE_INDEX < len(entry) and entry[_ROW_TYPE_INDEX] == 'uid':
         current_package = entry[_PACKAGE_NAME_INDEX]
@@ -608,8 +608,11 @@ class BatteryUtils(object):
         ['dumpsys', 'battery', 'set', 'usb', '1'], check_return=True)
     self._device.RunShellCommand(
         ['dumpsys', 'battery', 'set', 'ac', '1'], check_return=True)
-    self._device.RunShellCommand(
+    reset_output = self._device.RunShellCommand(
         ['dumpsys', 'batterystats', '--reset'], check_return=True)
+    logging.info('Output from resetting batterystats:')
+    for l in reset_output:
+      logging.info('  %s', l)
     battery_data = self._device.RunShellCommand(
         ['dumpsys', 'batterystats', '--charged', '-c'],
         check_return=True, large_output=True)
