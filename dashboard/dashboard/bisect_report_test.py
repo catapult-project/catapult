@@ -105,10 +105,10 @@ Date    : 1/2/2015
 
 
 ===== TESTED REVISIONS =====
-Revision                Mean Value  Std. Dev.   Num Values  Good?
-chromium@306475         70          0           3           good
-chromium@306476         80          0           3           bad         <-
-chromium@306477         80          0           3           bad
+Revision         Mean  Std Dev  N  Good?
+chromium@306475  70    0        3  good
+chromium@306476  80    0        3  bad    <--
+chromium@306477  80    0        3  bad
 
 Bisect job ran on: linux
 Bug ID: 12345
@@ -138,10 +138,10 @@ Status: completed
 
 
 ===== TESTED REVISIONS =====
-Revision                Mean Value  Std. Dev.   Num Values  Good?
-chromium@306475         70          0           3           good
-chromium@306476         80          0           3           bad
-chromium@306477         80          0           3           bad
+Revision         Mean  Std Dev  N  Good?
+chromium@306475  70    0        3  good
+chromium@306476  80    0        3  bad
+chromium@306477  80    0        3  bad
 
 Bisect job ran on: linux
 Bug ID: 12345
@@ -274,10 +274,10 @@ Status: completed
 
 
 ===== TESTED REVISIONS =====
-Revision                Mean Value  Std. Dev.   Num Values  Good?
-chromium@306475         70          0           3           good
-chromium@306476         80          0           3           bad
-chromium@306477         80          0           3           bad
+Revision         Mean  Std Dev  N  Good?
+chromium@306475  70    0        3  good
+chromium@306476  80    0        3  bad
+chromium@306477  80    0        3  bad
 
 Bisect job ran on: linux
 Bug ID: 12345

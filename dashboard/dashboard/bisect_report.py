@@ -5,6 +5,7 @@
 """Generates reports base on bisect result data."""
 
 import copy
+import math
 
 _CONFIDENCE_THRESHOLD = 99.5
 
@@ -120,18 +121,18 @@ def _RevisionTable(results_data):
         r.get('revision_string', _MakeLegacyRevisionString(r)),
         _FormatNumber(r['mean_value']),
         _FormatNumber(r['std_dev']),
-        len(r['values']),
+        _FormatNumber(len(r['values'])),
         r['result'],
-        '<-' if r['commit_hash'] == culprit_commit_hash  else '',
+        '<--' if r['commit_hash'] == culprit_commit_hash  else '',
     ]
     return map(str, result)
   revision_rows = [RevisionRow(r) for r in results_data['revision_data']]
 
   headers_row = [[
       'Revision',
-      'Mean Value' if not is_return_code else 'Exit Code',
-      'Std. Dev.',
-      'Num Values',
+      'Mean' if not is_return_code else 'Exit Code',
+      'Std Dev',
+      'N',
       'Good?',
       '',
   ]]
@@ -144,12 +145,21 @@ def _FormatNumber(x):
     return 'N/A'
   if isinstance(x, int):
     return str(x)
-  return str(round(x, 6))
+
+  if x >= 10**5:
+    # It's a little awkward to round 123456789.987 to 123457000.0,
+    # so just make it 123456790.
+    return str(int(round(x)))
+  # Round to 6 significant figures.
+  return str(round(x, 5-int(math.floor(math.log10(abs(x))))))
 
 
 def _PrettyTable(data):
-  results = []
+  column_lengths = [max(map(len, c)) for c in zip(*data)]
+  formatted_rows = []
   for row in data:
-    results.append(
-        (('%-24s' + '%-12s' * (len(row) - 1)) % tuple(row)).rstrip())
-  return '\n'.join(results)
+    formatted_elements = []
+    for element_length, element in zip(column_lengths, row):
+      formatted_elements.append(element.ljust(element_length))
+    formatted_rows.append('  '.join(formatted_elements).strip())
+  return '\n'.join(formatted_rows)
