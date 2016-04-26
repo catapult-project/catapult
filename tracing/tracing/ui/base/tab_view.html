@@ -272,10 +272,12 @@ window.TracingAnalysisTabView = Polymer({
     if (previousSelected)
       child.selected = previousSelected;
 
-    observerAttributeSelected.observe(child,
-        { attributeFilter: ['selected'] });
-    observerAttributeTabLabel.observe(child,
-        { attributeFilter: ['tab-label'] });
+    observerAttributeSelected.observe(child, {
+      attributeFilter: ['selected']
+    });
+    observerAttributeTabLabel.observe(child, {
+      attributeFilter: ['tab-label']
+    });
 
   },
 
