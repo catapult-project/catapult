@@ -21,6 +21,7 @@ _CATAPULT_DIR = os.path.join(
 
 _AddDirToPythonPath(_CATAPULT_DIR, 'catapult_base')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_utils')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'devil')

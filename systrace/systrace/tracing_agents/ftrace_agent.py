@@ -4,9 +4,11 @@
 
 import os
 
-from devil.utils import reraiser_thread
-from devil.utils import timeout_retry
+from py_utils import Timeout
+
 from systrace import tracing_agents
+from systrace.tracing_agents import GET_RESULTS_TIMEOUT
+from systrace.tracing_agents import START_STOP_TIMEOUT
 
 class FtraceAgentIo(object):
   @staticmethod
@@ -130,7 +132,8 @@ class FtraceAgent(tracing_agents.TracingAgent):
     return [x for x in categories
             if self._is_category_available(x)]
 
-  def _StartAgentTracingImpl(self, options, categories):
+  @Timeout(START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, categories, timeout=None):
     """Start tracing.
     """
     self._options = options
@@ -155,16 +158,8 @@ class FtraceAgent(tracing_agents.TracingAgent):
     self._fio.writeFile(FT_TRACE_ON, '1')
     return True
 
-  def StartAgentTracing(self, options, categories, timeout):
-    try:
-      return timeout_retry.Run(self._StartAgentTracingImpl,
-                               timeout, 1,
-                               args=[options, categories])
-    except reraiser_thread.TimeoutError:
-      print 'StartAgentTracing in FtraceAgent timed out.'
-      return False
-
-  def _StopAgentTracingImpl(self):
+  @Timeout(START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     """Collect the result of tracing.
 
     This function will block while collecting the result. For sync mode, it
@@ -182,27 +177,12 @@ class FtraceAgent(tracing_agents.TracingAgent):
       print "WARN: circular buffer fixups are not yet supported."
     return True
 
-  def StopAgentTracing(self, timeout):
-    try:
-      return timeout_retry.Run(self._StopAgentTracingImpl,
-                               timeout, 1)
-    except reraiser_thread.TimeoutError:
-      print 'StopAgentTracing in FtraceAgent timed out.'
-      return False
-
-  def _GetResultsImpl(self):
+  @Timeout(GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
     # get the output
     d = self._fio.readFile(FT_TRACE)
     self._fio.writeFile(FT_BUFFER_SIZE, "1")
     return tracing_agents.TraceResult('trace-data', d)
-
-  def GetResults(self, timeout):
-    try:
-      return timeout_retry.Run(self._GetResultsImpl,
-                               timeout, 1)
-    except reraiser_thread.TimeoutError:
-      print 'GetResults in FtraceAgent timed out.'
-      return tracing_agents.TraceResult('', '')
 
   def SupportsExplicitClockSync(self):
     return False

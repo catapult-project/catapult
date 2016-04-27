@@ -185,7 +185,6 @@ def main():
   else:
     raw_input('Starting tracing (stop with enter)')
 
-
   # Stop tracing and collect the output.
   print('Tracing completed. Collecting output...')
   controller.StopTracing()

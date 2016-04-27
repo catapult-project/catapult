@@ -10,9 +10,10 @@ from battor import battor_wrapper
 from devil.android import battery_utils
 from devil.android import device_utils
 from devil.utils import battor_device_mapping
-from devil.utils import reraiser_thread
-from devil.utils import timeout_retry
 from py_trace_event import trace_time
+from py_utils import Timeout
+from systrace.tracing_agents import GET_RESULTS_TIMEOUT
+from systrace.tracing_agents import START_STOP_TIMEOUT
 from systrace.tracing_agents import TracingAgent
 from systrace.tracing_agents import TraceResult
 
@@ -38,7 +39,8 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper = None
     self._battery_utils = None
 
-  def _StartAgentTracingImpl(self, options):
+  @Timeout(START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, _, timeout=None):
     """Starts tracing.
 
     Args:
@@ -64,15 +66,8 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper.StartTracing()
     return True
 
-  def StartAgentTracing(self, options, _, timeout=10):
-    try:
-      return timeout_retry.Run(self._StartAgentTracingImpl,
-                               timeout, 0, args=[options])
-    except reraiser_thread.TimeoutError:
-      print 'StartAgentTracing in battor_trace_agent timed out.'
-      return False
-
-  def _StopAgentTracingImpl(self):
+  @Timeout(START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     """Stops tracing and collects the results asynchronously.
 
     Creates a new process that stops the tracing and collects the results.
@@ -82,13 +77,6 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper.StopTracing()
     self._battery_utils.SetCharging(True)
     return True
-
-  def StopAgentTracing(self, timeout=10):
-    try:
-      return timeout_retry.Run(self._StopAgentTracingImpl, timeout, 0)
-    except reraiser_thread.TimeoutError:
-      print 'StopAgentTracing in battor_trace_agent timed out.'
-      return False
 
   def SupportsExplicitClockSync(self):
     """Returns whether this function supports explicit clock sync."""
@@ -106,7 +94,8 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper.RecordClockSyncMarker(sync_id)
     did_record_sync_marker_callback(sync_id, ts)
 
-  def _GetResultsImpl(self):
+  @Timeout(GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
     """Waits until data collection is completed and get the trace data.
 
     The trace data is the data that comes out of the BattOr, and is in the
@@ -127,10 +116,3 @@ class BattorTraceAgent(TracingAgent):
     """
     return TraceResult('powerTraceAsString',
                        '\n'.join(self._battor_wrapper.CollectTraceData()))
-
-  def GetResults(self, timeout=30):
-    try:
-      return timeout_retry.Run(self._GetResultsImpl, timeout, 0)
-    except reraiser_thread.TimeoutError:
-      print 'GetResults in battor_trace_agent timed out.'
-      return TraceResult('', '')

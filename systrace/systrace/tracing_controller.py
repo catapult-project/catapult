@@ -14,10 +14,13 @@ import sys
 import tempfile
 import uuid
 
-from devil.utils import reraiser_thread
-from devil.utils import timeout_retry
 from systrace import tracing_agents
+from systrace.tracing_agents import GET_RESULTS_TIMEOUT
+from systrace.tracing_agents import START_STOP_TIMEOUT
+
 from py_trace_event import trace_event
+from py_utils import Timeout
+
 
 def ControllerAgentClockSync(issue_ts, name):
   '''Record the clock sync marker for controller tracing agent.
@@ -34,13 +37,16 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     super(TracingControllerAgent, self).__init__()
     self._log_path = None
 
-  def _StartAgentTracingImpl(self):
+  @Timeout(START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, categories, timeout=None):
     """Start tracing for the controller tracing agent.
 
     Start tracing for the controller tracing agent. Note that
     the tracing controller records the "controller side"
     of the clock sync records, and nothing else.
     """
+    del options
+    del categories
     if not trace_event.trace_can_enable():
       raise RuntimeError, ('Cannot enable trace_event;'
                            ' ensure catapult_base is in PYTHONPATH')
@@ -51,15 +57,8 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     trace_event.trace_enable(self._log_path)
     return True
 
-  def StartAgentTracing(self, options, categories, timeout=10):
-    # pylint: disable=unused-argument
-    # don't need the options and categories arguments in this
-    # case, but including them for consistency with the
-    # function prototypes for other TracingAgents
-    return timeout_retry.Run(self._StartAgentTracingImpl,
-                             timeout, 1)
-
-  def _StopAgentTracingImpl(self):
+  @Timeout(START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     """Stops tracing for the controller tracing agent.
     """
     # pylint: disable=no-self-use
@@ -68,11 +67,8 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     trace_event.trace_disable()
     return True
 
-  def StopAgentTracing(self, timeout=10):
-    return timeout_retry.Run(self._StopAgentTracingImpl,
-                             timeout, 1)
-
-  def _GetResultsImpl(self):
+  @Timeout(GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
     """Gets the log output from the controller tracing agent.
 
     This output only contains the "controller side" of the clock sync records.
@@ -80,10 +76,6 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     with open(self._log_path, 'r') as outfile:
       result = outfile.read() + ']'
     return tracing_agents.TraceResult('traceEvents', ast.literal_eval(result))
-
-  def GetResults(self, timeout=30):
-    return timeout_retry.Run(self._GetResultsImpl,
-                             timeout, 1)
 
   def SupportsExplicitClockSync(self):
     '''Returns whether this supports explicit clock sync.
@@ -202,19 +194,16 @@ class TracingController(object):
       try:
         trace_result = agent.GetResults(
             timeout=self._options.collection_timeout)
+        if not trace_result:
+          print 'Warning: Timeout when getting results from %s.' % str(agent)
+          continue
         if trace_result.source_name in all_results:
           print 'Warning: Duplicate tracing agents'
         all_results[trace_result.source_name] = trace_result.raw_data
-      # Check for exceptions. On timeout, continue; on other exceptions,
-      # reraise and abort. Note that reraiser_thread.TimeoutError
-      # will only be raised on a timeout error if the tracing agent
-      # uses timeout_retry for timeout handling. A tracing agent using
-      # a different timeout mechanism may generate a different exception.
-      # In this case this code will re-raise that exception rather than
-      # continuing with the other tracing agents, since this code won't
-      # be able to identify that exception as a timeout exception.
-      except reraiser_thread.TimeoutError:
-        print 'Warning: Timeout when getting results from %s.' % str(agent)
+      # Check for exceptions. If any exceptions are seen, reraise and abort.
+      # Note that a timeout exception will be swalloed by the timeout
+      # mechanism and will not get to that point (it will return False instead
+      # of the trace result, which will be dealt with above)
       except:
         print 'Warning: Exception getting results from %s:' % str(agent)
         print sys.exc_info()[0]

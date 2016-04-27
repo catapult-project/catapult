@@ -10,6 +10,11 @@ This class represents an agent that captures traces from a particular
 tool (e.g. atrace, ftrace.)
 '''
 
+# Timeout interval constants.
+
+START_STOP_TIMEOUT = 10.0
+GET_RESULTS_TIMEOUT = 30.0
+
 
 class TraceResult(object):
   def __init__(self, source_name, raw_data):
@@ -21,7 +26,7 @@ class TracingAgent(object):
   def __init__(self):
     pass
 
-  def StartAgentTracing(self, options, categories, timeout):
+  def StartAgentTracing(self, options, categories, timeout=None):
     '''Starts running the trace for this agent. Stops with timeout if
     not completed within timeout interval.
 
@@ -35,7 +40,7 @@ class TracingAgent(object):
     '''
     pass
 
-  def StopAgentTracing(self, timeout):
+  def StopAgentTracing(self, timeout=None):
     '''Stops running the trace for this agent and returns immediately.
     Stops with timeout if not completed within timeout interval.
 
@@ -67,7 +72,7 @@ class TracingAgent(object):
     '''
     raise NotImplementedError
 
-  def GetResults(self, timeout):
+  def GetResults(self, timeout=None):
     '''Get the completed trace for this agent, stopping with timeout
 
     Get the completed trace for this agent. Call only after
