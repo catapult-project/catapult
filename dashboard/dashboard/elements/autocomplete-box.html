@@ -43,16 +43,15 @@ property 'group' sets to the header item name.
     ]
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
-<link rel="import" href="/components/core-item/core-item.html">
-<link rel="import" href="/components/core-menu/core-menu.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="/components/paper-input/paper-input-decorator.html">
-<link rel="import" href="/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/components/paper-item/paper-item.html">
+<link rel="import" href="/components/paper-material/paper-material.html">
+<link rel="import" href="/components/paper-menu/paper-menu.html">
 
 <link rel="import" href="/dashboard/static/autocomplete.html">
 
-<polymer-element name="autocomplete-box"
-                 attributes="placeholder dataList disabled multi value">
+<dom-module id="autocomplete-box">
   <template>
     <style>
       #container * {
@@ -74,13 +73,13 @@ property 'group' sets to the header item name.
         padding-right: 8px;
       }
 
-      #dropdown > core-item {
+      #dropdown > paper-item {
         min-height: 25px;
         color: #616161;
         text-indent: 10px;
       }
 
-      #dropdown > core-item[head] {
+      #dropdown > paper-item[head] {
         color: darkblue;
         text-indent: 0;
       }
@@ -95,49 +94,61 @@ property 'group' sets to the header item name.
         color: gray;
         font-size: 90%;
         padding-left: 5px;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: right;
       }
     </style>
 
     <div id="container">
 
-        <paper-input-decorator label="{{placeholder}}" floatinglabel="" layout vertical
+        <paper-input-decorator label="{{placeholder}}" floatinglabel="" class="layout vertical"
                                id="textbox-container">
-          <input is="core-input"
-                 on-click="{{showHideDropdown}}"
-                 on-keyup="{{onTextboxKeyup}}"
-                 on-keydown="{{onTextboxKeydown}}"
+          <input is="paper-input"
+                 on-click="showHideDropdown"
+                 on-keyup="onTextboxKeyup"
+                 on-keydown="onTextboxKeydown"
                  placeholder="{{placeholder}}"
-                 disabled?="{{disabled}}"
+                 disabled$="{{disabled}}"
                  id="textbox"
-                 value="{{value}}">
+                 value="{{value::input}}">
         </paper-input-decorator>
 
-        <paper-shadow id="dropdown-container" hidden="true">
+        <paper-material id="dropdown-container" hidden>
           <div class="dropdown-scroller" layered>
-            <core-menu id="dropdown"
-                       on-core-activate="{{onDropdownSelect}}"
-                       multi?="{{multi}}">
-              <template repeat="{{dataList}}">
-                <core-item label="{{name}}" head?="{{head}}"
-                           hidden?="{{hidden}}">
-                  <div class="{{{tag: tag} | tokenList}}">{{tag}}</div>
-                </core-item>
+            <paper-menu id="dropdown"
+                        on-core-activate="onDropdownSelect"
+                        multi$="{{multi}}">
+              <template is="dom-repeat" items="{{dataList}}">
+                <paper-item head$="{{item.head}}"
+                            hidden$="{{hidden}}"
+                            class="layout horizontal">
+                  <div class="flex">{{item.name}}</div>
+                  <div class="tag">{{item.tag}}</div>
+                </paper-item>
               </template>
-            </core-menu>
+            </paper-menu>
           </div>
-        </paper-shadow>
+        </paper-material>
     </div>
     <span id="size-check">{{value}}</span>
 
   </template>
   <script>
     'use strict';
-    Polymer('autocomplete-box', {
-
-      TEXTBOX_MIN_WIDTH: 152,
+    Polymer({
+      id: 'autocomplete-box',
+      properties: {
+        TEXTBOX_MIN_WIDTH: {
+          type: Number,
+          value: 152
+        }
+        dataList: { notify: true },
+        disabled: { notify: true },
+        multi: { notify: true },
+        placeholder: { notify: true },
+        value: {
+          notify: true,
+          observer: 'valueChanged'
+        }
+      },
 
       ready: function() {
         this.value = '';
@@ -214,7 +225,8 @@ property 'group' sets to the header item name.
       onDropdownSelect: function(event, detail, sender) {
         this.$.textbox.focus();
         var item = detail.item.templateInstance.model;
-        var isSelected = detail.item.classList.contains('core-selected');
+        var isSelected = Polymer.dom(
+            detail.item).classList.contains('core-selected');
         if (this.multi) {
           if (item.head) {
             this.onHeadItemSelected(item.name, isSelected);
@@ -457,7 +469,7 @@ property 'group' sets to the header item name.
                                       newWidth : this.TEXTBOX_MIN_WIDTH);
       },
 
-      valueChanged: function(oldValue, newValue) {
+      valueChanged: function(newValue, oldValue) {
         // Ignore empty changes.
         if (!oldValue && !newValue) {
           return;
@@ -490,4 +502,4 @@ property 'group' sets to the header item name.
       }
     });
   </script>
-</polymer-element>
+</dom-module>
