@@ -292,7 +292,7 @@ Polymer({
 
     // Create summary.
     var latencySummaryText = document.createElement('div');
-    laPolymer.dom(tencySummaryText).appendChild(tr.ui.b.createSpan({
+    Polymer.dom(latencySummaryText).appendChild(tr.ui.b.createSpan({
       textContent: 'Average Latency ' + averageLatency + ' ms',
       bold: true}));
     Polymer.dom(resultArea).appendChild(latencySummaryText);
