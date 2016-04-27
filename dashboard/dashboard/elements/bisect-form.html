@@ -13,10 +13,9 @@ the bisect process after the user clicks on the bisect button.
 <link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
-<link rel="import" href="/dashboard/elements/base-form.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="bisect-form" extends="base-form"
+<polymer-element name="bisect-form"
                  attributes="xsrfToken testPath
                              earlierRevision laterRevision bugId">
   <template>
@@ -152,6 +151,13 @@ the bisect process after the user clicks on the bisect button.
       </template>
     </paper-action-dialog>
 
+    <div id="toasts" hidden>
+      <div id="jobsubmitted">
+        <b>Job submitted!</b>
+        <a href="{{lastSubmittedJobUrl}}"
+           target="_blank">View job {{lastSubmittedJobId}}.</a>
+      </div>
+    </div>
   </template>
   <script>
     'use strict';
@@ -207,7 +213,10 @@ the bisect process after the user clicks on the bisect button.
               this.loading = false;
             }.bind(this),
             function errorCallback(msg) {
-              this.showErrorMessage('An error occurred', msg);
+              this.fire('display-toast', {
+                  'text': 'An error occurred: ' + msg,
+                  'error': true
+              });
               this.close();
             }.bind(this));
         },
@@ -240,10 +249,9 @@ the bisect process after the user clicks on the bisect button.
           simple_xhr.send(
               '/start_try_job', params,
               function successCallback(info) {
-                var message = '<b>Job submitted!</b> ' +
-                              '<a href="{{issue_url}}" target="_blank">' +
-                              'View job {{issue_id}}.</a>';
-                this.showMessage(message, info);
+                this.lastSubmittedJobId = info['issue_id'];
+                this.lastSubmittedJobUrl = info['issue_url'];
+                this.fire('display-toast', {'content': this.$.jobsubmitted});
 
                 // Refresh bisect result log element.
                 var bisectLog = document.getElementById('bisect-result-log');
@@ -254,7 +262,10 @@ the bisect process after the user clicks on the bisect button.
                 this.close();
               }.bind(this),
               function errorCallback(msg) {
-                this.showErrorMessage('An error occurred', msg);
+                this.fire('display-toast', {
+                    'text': 'An error occurred: ' + msg,
+                    'error': true
+                });
                 this.close();
               }.bind(this));
         },

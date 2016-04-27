@@ -135,11 +135,3 @@ input[type=checkbox]:checked::after {
   top: -5px;
   left: -1px;
 }
-
-#message-bar {
-  top: 27px;
-}
-
-#warning-message {
-  position: static !important;
-}

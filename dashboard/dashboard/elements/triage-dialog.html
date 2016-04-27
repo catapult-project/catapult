@@ -12,11 +12,9 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
 
-<link rel="import" href="/dashboard/elements/base-form.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="triage-dialog" extends="base-form"
-                 attributes="xsrfToken alerts">
+<polymer-element name="triage-dialog" attributes="xsrfToken alerts">
   <template>
     <style>
       #container {
@@ -94,6 +92,21 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       </template>
     </paper-action-dialog>
 
+    <div id="toasts" hidden>
+      <div id="jobsubmitted">
+        Bug <a href="http://crbug.com/{{lastSubmittedBugId}}"
+               target="_blank">{{lastSubmittedBugId}}</a> created/updated.
+        <template if="{{lastSubmittedTryJobId}}">
+          Bisect job <a href="{{lastSubmittedTryJobUrl}}"
+                        target="_blank">{{lastSubmittedTryJobId}}</a> started.
+        </template>
+        <template if="{{lastSubmittedTryJobError}}">
+          <span class="error">No bisect automatically started.
+                              {{lastSubmittedTryJobError}}</span>
+        </template>
+      </div>
+    </div>
+
   </template>
   <script>
     'use strict';
@@ -146,16 +159,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        *     bug_result.html.
        */
       showCreatedBugResult: function(data) {
-        var message = ('Bug <a href="http://crbug.com/{{bug_id}}" ' +
-                       'target="_blank">{{bug_id}}</a> created/updated. ');
-        if (data['issue_id']) {
-          message += ('Bisect job <a href="{{issue_url}}" target="_blank">' +
-                      '{{issue_id}}</a> started.');
-        }
-        if (data['bisect_error']) {
-          message += 'No bisect automatically started. {{bisect_error}}';
-        }
-        this.showMessage(message, data);
+        this.lastSubmittedBugId = data['bug_id'];
+        this.lastSubmittedTryJobId = data['issue_id'];
+        this.lastSubmittedTryJobUrl = data['issue_url'];
+        this.lastSubmittedTryJobError = data['bisect_error'];
+        this.fire('display-toast', {'content': this.$.jobsubmitted});
       },
 
       /**
@@ -236,12 +244,14 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             });
             this.loading = false;
             if (successMessage) {
-              this.showMessage(successMessage);
+              this.fire('display-toast', {'text': successMessage});
             }
           }.bind(this),
           function(msg) {
-            this.showErrorMessage('There was a problem triaging the bug',
-                                  msg);
+            this.fire('display-toast', {
+                'text': 'There was a problem triaging the bug: ' + msg,
+                'error': true
+            });
             this.loading = false;
           }.bind(this));
       },
@@ -266,12 +276,14 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
               'newDataIndex': info.dataIndex,
               'alerts': this.alerts
             });
-            this.showMessage('Alert moved.');
+            this.fire('display-toast', {'text': 'Alert moved.'});
             this.loading = false;
           }.bind(this),
           function(msg) {
-            this.showErrorMessage('There was a problem triaging the bug',
-                                  msg);
+            this.fire('display-toast', {
+                'text': 'There was a problem triaging the bug: ' + msg,
+                'error': true
+            });
             this.loading = false;
           }.bind(this));
       },

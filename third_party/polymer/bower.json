@@ -18,6 +18,7 @@
     "paper-progress": "Polymer/paper-progress#0.5.5",
     "paper-shadow": "Polymer/paper-shadow#0.5.5",
     "paper-spinner": "Polymer/paper-spinner#0.5.5",
+    "paper-toast": "Polymer/paper-toast#0.5.5",
     "polymer": "Polymer/polymer#0.5.5"
   }
 }

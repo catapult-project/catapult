@@ -13,19 +13,15 @@ found in the LICENSE file.
     <link rel="import" href="/dashboard/elements/alerts-page.html">
     <link rel="import" href="/dashboard/elements/load-analytics.html">
     <link rel="import" href="/dashboard/elements/nav-bar.html">
+    <link rel="import" href="/dashboard/elements/toplevel-toast.html">
     <link rel="import" href="/dashboard/static/uri.html">
 
-    <style>
-      #message-bar {
-        top: 26px;
-      }
-    </style>
   </head>
 
   <body>
     <nav-bar></nav-bar>
+    <toplevel-toast></toplevel-toast>
     <h1>Chrome Performance Alerts</h1>
-    <overlay-message id="message-bar"></overlay-message>
     <alerts-page></alerts-page>
     <load-analytics></load-analytics>
 

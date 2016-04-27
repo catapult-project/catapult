@@ -6,7 +6,6 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/dashboard/elements/chart-container.html">
 <link rel="import" href="/dashboard/elements/login-warning.html">
-<link rel="import" href="/dashboard/elements/overlay-message.html">
 <link rel="import" href="/dashboard/elements/test-picker.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
@@ -18,22 +17,7 @@ found in the LICENSE file.
         display: flex;
         margin: 5px;
       }
-      overlay-message {
-        top: 0px;
-      }
     </style>
-    <template if="{{warningMessage}}">
-      <overlay-message id="warning-message"
-                       opened="true"
-                       autoCloseDisabled
-                       duration="-1">
-      {{warningMessage}}
-      <template if="{{warningBug}}">
-        <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
-          bug #{{warningBug}}.</a>
-      </template>
-      </overlay-message>
-    </template>
 
     <login-warning id="login-warning" loginLink="{{loginUrl}}"
                    hidden?="{{isInternalUser}}">
@@ -44,6 +28,16 @@ found in the LICENSE file.
                    testSuites="{{testSuites}}"></test-picker>
     </div>
     <section id="charts-container"></section>
+
+    <div id="toasts" hidden>
+      <div id="warningtoast">
+        {{warningMessage}}
+        <template if="{{warningBug}}">
+          <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
+            bug #{{warningBug}}.</a>
+        </template>
+      </div>
+    </div>
 
   </template>
 
@@ -59,6 +53,12 @@ found in the LICENSE file.
             this.revisionInfo = response['revision_info'];
             this.warningBug = response['warning_bug'];
             this.warningMessage = response['warning_message'];
+            if (this.warningMessage) {
+              this.fire('display-toast', {
+                  'content': this.$.warningtoast,
+                  'error': true
+              });
+            }
             this.xsrfToken = response['xsrf_token'];
             this.testSuites = response['test_suites'];
             for (var i = 0; i < this.charts.length; i++) {
@@ -236,20 +236,13 @@ found in the LICENSE file.
        */
       onPageStateRequest: function(event) {
         var status = event.detail.status;
-        var messageBar = document.getElementById('message-bar');
-        var messageConfig = {
-          'autoCloseDisabled': true,
-          'duration': 0,
-          'delay': 200
-        };
         if (status == 'loading') {
-          messageBar.updateContent('Saving report...', messageConfig);
-        } else if (status == 'complete') {
-          messageBar['hide']();
+          this.fire('display-toast', {'text': 'Saving report...'});
         } else if (status == 'error') {
-          messageBar.updateContent(
-              '<span style="color: red;">Failed to save report</span>',
-              messageConfig);
+          this.fire('display-toast', {
+              'text': 'Failed to save report.',
+              'error': true
+          });
         }
       }
     });

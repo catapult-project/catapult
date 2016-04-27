@@ -90,17 +90,6 @@ found in the LICENSE file.
     <template if="{{error}}">
       <div class="error">{{error}}</div>
     </template>
-    <!-- TODO(sullivan): The below should be in a template if={{!loading}}.
-         This doesn't work correctly due to polymer 0.5 bug, let's try again
-         in polymer 1.0 -->
-    <template if="{{warningMessage}}">
-      <overlay-message id="warning-message" opened="true" autoCloseDisabled duration="-1">
-      {{warningMessage}}
-      <template if="{{warningBug}}">
-        <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See bug #{{warningBug}}.</a>
-      </template>
-      </overlay-message>
-    </template>
     <login-warning id="login-warning" loginLink="{{loginUrl}}"
                    hidden?="{{isInternalUser}}">
     </login-warning>
@@ -134,6 +123,15 @@ found in the LICENSE file.
     <div id="bottom">
       <section id="charts-container"></section>
     </div>
+
+    <div id="toasts" hidden>
+      <div id="warningtoast">
+        {{warningMessage}}
+        <template if="{{warningBug}}">
+          <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
+            bug #{{warningBug}}.</a>
+        </template>
+      </div>
 
   </template>
   <script>
@@ -362,6 +360,14 @@ found in the LICENSE file.
             this.isInternalUser = response['is_internal_user'];
             this.testSuites = response['test_suites'];
             this.xsrfToken = response['xsrf_token'];
+            this.warningBug = response['warning_bug'];
+            this.warningMessage = response['warning_message'];
+            if (this.warningMessage) {
+              this.fire('display-toast', {
+                  'content': this.$.warningtoast,
+                  'error': true
+              });
+            }
             this.bugId = uri.getParameter('bug_id');
             if (this.bugId) {
               this.$['bug-info'].initialize(
