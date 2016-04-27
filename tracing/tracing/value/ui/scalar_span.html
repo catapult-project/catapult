@@ -78,34 +78,6 @@ tr.exportTo('tr.v.ui', function() {
     return span;
   }
 
-  tr.v.Unit.addEventListener('display-mode-changed', function(e) {
-
-    // Can't do this subclass dependency, and subclasses
-    // have been eliminated, so querySelectorAll works
-
-    var scalarSpans = document.querySelectorAll('tr-v-ui-scalar-span');
-    for (var i = 0; i < scalarSpans.length; i++)
-      scalarSpans[i].updateContent_();
-
-//    var scalarSpanTagName = 'tr-v-ui-scalar-span';
-//    var subclassNames = tr.ui.b.getPolymerElementsThatSubclass(
-//        scalarSpanTagName);
-//    subclassNames.push(scalarSpanTagName);
-//    var isSubclass = {};
-//    subclassNames.forEach(function(n) {
-//      isSubclass[n.toUpperCase()] = true;
-//    });
-
-//    var m = tr.b.findDeepElementsMatchingPredicate(
-//        document.body,
-//        function(el) {
-//         return isSubclass[el.tagName];
-//        });
-//    m.forEach(function(el) {
-//      el.updateContent_();
-//    });
-  });
-
   return {
     Emoji: Emoji,
     createScalarSpan: createScalarSpan
@@ -180,6 +152,16 @@ Polymer({
   set significance(s) {
     this.significance_ = s;
     this.updateContent_();
+  },
+
+  attached: function() {
+    tr.v.Unit.addEventListener(
+        'display-mode-changed', this.updateContent_.bind(this));
+  },
+
+  detached: function() {
+    tr.v.Unit.removeEventListener(
+        'display-mode-changed', this.updateContent_.bind(this));
   },
 
   set contentTextDecoration(deco) {
