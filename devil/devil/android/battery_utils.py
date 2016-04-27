@@ -608,25 +608,27 @@ class BatteryUtils(object):
         ['dumpsys', 'battery', 'set', 'usb', '1'], check_return=True)
     self._device.RunShellCommand(
         ['dumpsys', 'battery', 'set', 'ac', '1'], check_return=True)
-    reset_output = self._device.RunShellCommand(
-        ['dumpsys', 'batterystats', '--reset'], check_return=True)
-    logging.info('Output from resetting batterystats:')
-    for l in reset_output:
-      logging.info('  %s', l)
-    battery_data = self._device.RunShellCommand(
-        ['dumpsys', 'batterystats', '--charged', '-c'],
-        check_return=True, large_output=True)
-    for line in battery_data:
-      l = line.split(',')
-      if (len(l) > _PWI_POWER_CONSUMPTION_INDEX and l[_ROW_TYPE_INDEX] == 'pwi'
-          and l[_PWI_POWER_CONSUMPTION_INDEX] != 0):
-        self._device.RunShellCommand(
-            ['dumpsys', 'battery', 'reset'], check_return=True)
-        raise device_errors.CommandFailedError(
-            'Non-zero pmi value found after reset: "%s"' % line)
     self._device.RunShellCommand(
-        ['dumpsys', 'battery', 'reset'], check_return=True)
-    return True
+        ['dumpsys', 'batterystats', '--reset'], check_return=True)
+
+    def test_if_clear():
+      battery_data = self._device.RunShellCommand(
+          ['dumpsys', 'batterystats', '--charged', '-c'],
+          check_return=True, large_output=True)
+      for line in battery_data:
+        l = line.split(',')
+        if (len(l) > _PWI_POWER_CONSUMPTION_INDEX
+            and l[_ROW_TYPE_INDEX] == 'pwi'
+            and float(l[_PWI_POWER_CONSUMPTION_INDEX]) != 0.0):
+          return False
+      return True
+
+    try:
+      timeout_retry.WaitFor(test_if_clear, wait_period=1)
+      return True
+    finally:
+      self._device.RunShellCommand(
+          ['dumpsys', 'battery', 'reset'], check_return=True)
 
   def _DiscoverDeviceProfile(self):
     """Checks and caches device information.
