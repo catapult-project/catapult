@@ -95,11 +95,11 @@ Polymer({
     this.rulerTrackContainer_.invalidate();
 
     this.rulerTrack_ = new tr.ui.tracks.RulerTrack(this.viewport_);
-    this.rulerTrackContainer_.appendChild(this.rulerTrack_);
+    Polymer.dom(this.rulerTrackContainer_).appendChild(this.rulerTrack_);
 
     this.upperModelTrack_ = new tr.ui.tracks.ModelTrack(this.viewport_);
     this.upperModelTrack_.upperMode = true;
-    this.rulerTrackContainer_.appendChild(this.upperModelTrack_);
+    Polymer.dom(this.rulerTrackContainer_).appendChild(this.upperModelTrack_);
 
     this.modelTrackContainer_ =
         new tr.ui.tracks.DrawingContainer(this.viewport_);
@@ -110,7 +110,7 @@ Polymer({
     this.viewport_.modelTrackContainer = this.modelTrackContainer_;
 
     this.modelTrack_ = new tr.ui.tracks.ModelTrack(this.viewport_);
-    this.modelTrackContainer_.appendChild(this.modelTrack_);
+    Polymer.dom(this.modelTrackContainer_).appendChild(this.modelTrack_);
 
     this.timingTool_ = new tr.ui.b.TimingTool(this.viewport_, this);
 

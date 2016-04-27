@@ -155,9 +155,9 @@ tr.exportTo('tr.ui.analysis', function() {
       symbolEl.style.paddingRight = '4px';
       symbolEl.style.cursor = 'help';
       symbolEl.style.weight = 'bold';
-      titleEl.appendChild(symbolEl);
+      Polymer.dom(titleEl).appendChild(symbolEl);
 
-      titleEl.appendChild(document.createTextNode(title));
+      Polymer.dom(titleEl).appendChild(document.createTextNode(title));
 
       return titleEl;
     }
@@ -214,22 +214,23 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info_bar.message = 'Note: Values displayed in the heavy view ' +
           'are lower bounds (except for the root).';
 
-      this.$.view_mode_container.appendChild(tr.ui.b.createSelector(
-          this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
-          MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
-          [
-            {
-              label: 'Top-down (Tree)',
-              value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
-            },
-            {
-              label: 'Top-down (Heavy)',
-              value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
-            },
-            {
-              label: 'Bottom-up (Heavy)',
-              value: MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
-            }
+      Polymer.dom(this.$.view_mode_container).appendChild(
+          tr.ui.b.createSelector(
+              this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
+              MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
+              [
+                {
+                  label: 'Top-down (Tree)',
+                  value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
+                },
+                {
+                  label: 'Top-down (Heavy)',
+                  value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
+                },
+                {
+                  label: 'Bottom-up (Heavy)',
+                  value: MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
+                }
           ]));
     },
 

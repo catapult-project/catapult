@@ -174,7 +174,7 @@ Polymer({
         window.tr.metrics.sh.SystemHealthMetric) {
       this.railScoreSpan_ = document.createElement(
           'tr-metrics-ui-sh-system-health-span');
-      this.rightControls.appendChild(this.railScoreSpan_);
+      Polymer.dom(this.rightControls).appendChild(this.railScoreSpan_);
     } else {
       this.railScoreSpan_ = undefined;
     }
@@ -183,7 +183,7 @@ Polymer({
     this.optionsDropdown_.iconElement.textContent = 'View Options';
 
     this.showFlowEvents_ = false;
-    this.optionsDropdown_.appendChild(tr.ui.b.createCheckBox(
+    Polymer.dom(this.optionsDropdown_).appendChild(tr.ui.b.createCheckBox(
         this, 'showFlowEvents',
         'tr.ui.TimelineView.showFlowEvents', false,
         'Flow events'));
@@ -192,13 +192,14 @@ Polymer({
         this, 'highlightVSync',
         'tr.ui.TimelineView.highlightVSync', false,
         'Highlight VSync');
-    this.optionsDropdown_.appendChild(this.highlightVSyncCheckbox_);
+    Polymer.dom(this.optionsDropdown_).appendChild(
+        this.highlightVSyncCheckbox_);
 
     this.initMetadataButton_();
     this.initConsoleButton_();
     this.initHelpButton_();
 
-    this.collapsingControls.appendChild(this.scriptingCtl_);
+    Polymer.dom(this.collapsingControls).appendChild(this.scriptingCtl_);
 
     this.dragEl_ = this.$.drag_handle;
 
@@ -250,7 +251,7 @@ Polymer({
     if (!link) {
       link = document.createElement('link');
       link.rel = 'shortcut icon';
-      document.head.appendChild(link);
+      Polymer.dom(document.head).appendChild(link);
     }
     link.href = faviconData;
   },
@@ -283,7 +284,7 @@ Polymer({
     function onClick(e) {
       var dlg = new tr.ui.b.Overlay();
       dlg.title = 'Chrome Tracing Help';
-      dlg.appendChild(
+      Polymer.dom(dlg).appendChild(
           document.createElement('tr-ui-timeline-view-help-overlay'));
       dlg.visible = true;
 
@@ -315,7 +316,7 @@ Polymer({
           'tr-ui-timeline-view-metadata-overlay');
       metadataOverlay.metadata = this.model.metadata;
 
-      dlg.appendChild(metadataOverlay);
+      Polymer.dom(dlg).appendChild(metadataOverlay);
       dlg.visible = true;
 
       e.stopPropagation();
@@ -394,7 +395,7 @@ Polymer({
 
       this.trackView.brushingStateController = this.brushingStateController_;
 
-      this.trackViewContainer_.appendChild(this.trackView_);
+      Polymer.dom(this.trackViewContainer_).appendChild(this.trackView_);
       this.trackView_.viewport.addEventListener(
           'change', this.onViewportChanged_);
     }

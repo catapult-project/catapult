@@ -221,7 +221,7 @@ tr.b.unittest.testSuite(function() {
     container.id = 'track_view_container';
 
     var timeline = document.createElement('tr-ui-timeline-view');
-    timeline.appendChild(container);
+    Polymer.dom(timeline).appendChild(container);
 
     // This is for testing only, have to make sure things link up right.
     timeline.trackViewContainer_ = container;

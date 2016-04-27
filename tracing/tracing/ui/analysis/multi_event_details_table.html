@@ -168,7 +168,7 @@ Polymer({
         linkEl.setSelectionAndContent(function() {
             return new tr.model.EventSet(row.event);
         });
-        linkEl.appendChild(tr.v.ui.createScalarSpan(row.start, {
+        Polymer.dom(linkEl).appendChild(tr.v.ui.createScalarSpan(row.start, {
           unit: tr.v.Unit.byName.timeStampInMs,
           ownerDocument: ownerDocument
         }));

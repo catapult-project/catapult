@@ -241,11 +241,11 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           'click',
           this.onRecordButtonClicked_.bind(this));
       this.recordButtonEl_.style.fontSize = '110%';
-      this.buttons.appendChild(this.recordButtonEl_);
+      Polymer.dom(this.buttons).appendChild(this.recordButtonEl_);
 
       this.categoriesView_ = this.querySelector('.categories-column-view');
       this.presetsEl_ = this.querySelector('.category-presets');
-      this.presetsEl_.appendChild(tr.ui.b.createOptionGroup(
+      Polymer.dom(this.presetsEl_).appendChild(tr.ui.b.createOptionGroup(
           this, 'currentlyChosenPreset',
           'about_tracing.record_selection_dialog_preset',
           DEFAULT_PRESETS[0].categoryFilter,
@@ -267,10 +267,12 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           'recordSelectionDialog.useSampling', DEFAULT_SAMPLING_TRACING,
           'State sampling');
       this.tracingModesContainerEl_ = this.querySelector('.tracing-modes');
-      this.tracingModesContainerEl_.appendChild(this.tracingRecordModeSltr_);
-      this.tracingModesContainerEl_.appendChild(this.systemTracingBn_);
-      this.tracingModesContainerEl_.appendChild(this.samplingTracingBn_);
-
+      Polymer.dom(this.tracingModesContainerEl_).appendChild(
+          this.tracingRecordModeSltr_);
+      Polymer.dom(this.tracingModesContainerEl_).appendChild(
+          this.systemTracingBn_);
+      Polymer.dom(this.tracingModesContainerEl_).appendChild(
+          this.samplingTracingBn_);
 
       this.enabledCategoriesContainerEl_ =
           this.querySelector('.default-enabled-categories .categories');
@@ -536,10 +538,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         labelEl.setAttribute('for', category);
 
         var divEl = document.createElement('div');
-        divEl.appendChild(inputEl);
-        divEl.appendChild(labelEl);
+        Polymer.dom(divEl).appendChild(inputEl);
+        Polymer.dom(divEl).appendChild(labelEl);
 
-        parent.appendChild(divEl);
+        Polymer.dom(parent).appendChild(divEl);
       }
     },
 
@@ -640,10 +642,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       for (var i = 0; i < messages.length; ++i) {
         var messageDiv = document.createElement('div');
         messageDiv.textContent = messages[i];
-        contentDiv.appendChild(messageDiv);
+        Polymer.dom(contentDiv).appendChild(messageDiv);
       }
       this.warningOverlay_.textContent = '';
-      this.warningOverlay_.appendChild(contentDiv);
+      Polymer.dom(this.warningOverlay_).appendChild(contentDiv);
     },
 
     createDefaultDisabledWarningDialog_: function(warningLink) {

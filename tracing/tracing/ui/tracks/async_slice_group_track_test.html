@@ -216,8 +216,8 @@ tr.b.unittest.testSuite(function() {
     processTrack.process = process;
     threadTrack.thread = thread;
     groupTrack.group = group;
-    processTrack.appendChild(threadTrack);
-    threadTrack.appendChild(groupTrack);
+    Polymer.dom(processTrack).appendChild(threadTrack);
+    Polymer.dom(threadTrack).appendChild(groupTrack);
 
     assert.equal(processTrack.eventContainer, process);
     assert.equal(threadTrack.eventContainer, thread);

@@ -35,7 +35,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     appendChild: function(x) {
-      HTMLUnknownElement.prototype.appendChild.call(this, x);
+      Polymer.dom(HTMLUnknownElement.prototype).appendChild.call(this, x);
       this.didMutate_(this.observer_.takeRecords());
     },
 

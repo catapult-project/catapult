@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
     if (opt_parentElement)
-      opt_parentElement.appendChild(viewEl);
+      Polymer.dom(opt_parentElement).appendChild(viewEl);
     if (selection === undefined) {
       viewEl.selection = undefined;
     } else {

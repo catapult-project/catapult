@@ -24,15 +24,15 @@ tr.b.unittest.testSuite(function() {
 
   test('simpleHotkeyManager', function() {
     var rootElement = document.createElement('div');
-    document.body.appendChild(rootElement);
+    Polymer.dom(document.body).appendChild(rootElement);
     try {
       var elementShadow = rootElement.createShadowRoot();
 
       var hkc = document.createElement('tv-ui-b-hotkey-controller');
-      elementShadow.appendChild(hkc);
+      Polymer.dom(elementShadow).appendChild(hkc);
 
       var subElement = document.createElement('div');
-      elementShadow.appendChild(subElement);
+      Polymer.dom(elementShadow).appendChild(subElement);
 
       assert.equal(tr.b.getHotkeyControllerForElement(subElement), hkc);
 
@@ -63,19 +63,19 @@ tr.b.unittest.testSuite(function() {
 
   test('nestedHotkeyController', function() {
     var rootElement = document.createElement('div');
-    document.body.appendChild(rootElement);
+    Polymer.dom(document.body).appendChild(rootElement);
     try {
       var elementShadow = rootElement.createShadowRoot();
 
       var hkc = document.createElement('tv-ui-b-hotkey-controller');
-      elementShadow.appendChild(hkc);
+      Polymer.dom(elementShadow).appendChild(hkc);
 
       var subElement = document.createElement('div');
-      elementShadow.appendChild(subElement);
+      Polymer.dom(elementShadow).appendChild(subElement);
       assert.equal(tr.b.getHotkeyControllerForElement(elementShadow), hkc);
 
       var subHKC = document.createElement('tv-ui-b-hotkey-controller');
-      subElement.appendChild(subHKC);
+      Polymer.dom(subElement).appendChild(subHKC);
 
       assert.equal(tr.b.getHotkeyControllerForElement(subElement), subHKC);
 
@@ -99,15 +99,15 @@ tr.b.unittest.testSuite(function() {
 
   test('inputInsideHKC', function() {
     var rootElement = document.createElement('div');
-    document.body.appendChild(rootElement);
+    Polymer.dom(document.body).appendChild(rootElement);
     try {
       var elementShadow = rootElement.createShadowRoot();
 
       var hkc = document.createElement('tv-ui-b-hotkey-controller');
-      elementShadow.appendChild(hkc);
+      Polymer.dom(elementShadow).appendChild(hkc);
 
       var inputEl = document.createElement('input');
-      elementShadow.appendChild(inputEl);
+      Polymer.dom(elementShadow).appendChild(inputEl);
 
       var didGetCalled = false;
       hkc.addHotKey(new tr.ui.b.HotKey({

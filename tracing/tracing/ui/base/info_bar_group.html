@@ -59,7 +59,7 @@ Polymer({
         bar.addButton(button.buttonText, button.onClick);
       }, this);
 
-      this.$.messages.appendChild(bar);
+      Polymer.dom(this.$.messages).appendChild(bar);
     }, this);
   }
 });

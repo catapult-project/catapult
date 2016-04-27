@@ -83,7 +83,7 @@ Polymer({
         instance.category, instance.typeName);
     if (typeInfo) {
       var customView = new typeInfo.constructor();
-      this.$.content.appendChild(customView);
+      Polymer.dom(this.$.content).appendChild(customView);
       customView.modelEvent = instance;
     } else {
       this.appendGenericAnalysis_(instance);
@@ -112,7 +112,7 @@ Polymer({
     instance.snapshots.forEach(function(snapshot) {
       var snapshotLink = document.createElement('tr-ui-a-analysis-link');
       snapshotLink.selection = new tr.model.EventSet(snapshot);
-      snapshotsEl.appendChild(snapshotLink);
+      Polymer.dom(snapshotsEl).appendChild(snapshotLink);
     });
   }
 });

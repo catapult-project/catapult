@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     container.id = 'track_view_container';
 
     var view = document.createElement('tr-ui-timeline-view');
-    view.appendChild(container);
+    Polymer.dom(view).appendChild(container);
     view.trackViewContainer_ = container;
     return view;
   }
@@ -112,11 +112,11 @@ tr.b.unittest.testSuite(function() {
 
     var simpleButton1 = document.createElement('tr-ui-b-toolbar-button');
     simpleButton1.textContent = 'M';
-    view.leftControls.appendChild(simpleButton1);
+    Polymer.dom(view.leftControls).appendChild(simpleButton1);
 
     var simpleButton2 = document.createElement('tr-ui-b-toolbar-button');
     simpleButton2.textContent = 'am button';
-    view.leftControls.appendChild(simpleButton2);
+    Polymer.dom(view.leftControls).appendChild(simpleButton2);
 
     this.addHTMLOutput(view);
   });

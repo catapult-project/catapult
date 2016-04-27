@@ -38,9 +38,9 @@ tr.b.unittest.testSuite(function() {
 
   test('add', function() {
     var container = new SimpleContainer();
-    container.appendChild(createChild());
-    container.appendChild(createChild());
-    container.appendChild(createChild());
+    Polymer.dom(container).appendChild(createChild());
+    Polymer.dom(container).appendChild(createChild());
+    Polymer.dom(container).appendChild(createChild());
     assert.isTrue(container.children[0].decorated);
     assert.isTrue(container.children[1].decorated);
     assert.isTrue(container.children[2].decorated);
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
   test('clearUsingTextContent', function() {
     var c0 = createChild();
     var container = new SimpleContainer();
-    container.appendChild(c0);
+    Polymer.dom(container).appendChild(c0);
     container.textContent = '';
     assert.isFalse(c0.decorated);
   });
@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
   test('clear', function() {
     var c0 = createChild();
     var container = new SimpleContainer();
-    container.appendChild(c0);
+    Polymer.dom(container).appendChild(c0);
     container.clear();
     assert.isFalse(c0.decorated);
   });
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
     var c0 = createChild();
     var c1 = createChild();
     var container = new SimpleContainer();
-    container.appendChild(c1);
+    Polymer.dom(container).appendChild(c1);
     container.insertBefore(c0, c1);
     assert.isTrue(c0.decorated);
     assert.isTrue(c1.decorated);
@@ -76,8 +76,8 @@ tr.b.unittest.testSuite(function() {
     var c0 = createChild();
     var c1 = createChild();
     var container = new SimpleContainer();
-    container.appendChild(c1);
-    container.appendChild(c0);
+    Polymer.dom(container).appendChild(c1);
+    Polymer.dom(container).appendChild(c0);
     container.insertBefore(c0, c1);
     assert.isTrue(c0.decorated);
     assert.isTrue(c1.decorated);
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
     var c0 = createChild();
     var c1 = createChild();
     var container = new SimpleContainer();
-    container.appendChild(c0);
+    Polymer.dom(container).appendChild(c0);
     container.replaceChild(c1, c0);
     assert.isFalse(c0.decorated);
     assert.isTrue(c1.decorated);

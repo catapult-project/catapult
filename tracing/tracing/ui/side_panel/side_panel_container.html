@@ -170,7 +170,7 @@ Polymer({
         setAttribute('selected', true);
     this.setAttribute('expanded', true);
 
-    this.activePanelContainer_.appendChild(panel);
+    Polymer.dom(this.activePanelContainer_).appendChild(panel);
     this.dragHandle_.target = panel;
     panel.rangeOfInterest = this.rangeOfInterest_;
     panel.selection = this.selection_;
@@ -222,7 +222,7 @@ Polymer({
           this.activePanelContainer_.removeChild(this.activePanel);
         this.removeAttribute('expanded');
       }
-      this.tabStrip_.appendChild(labelEl);
+      Polymer.dom(this.tabStrip_).appendChild(labelEl);
     }, this);
 
     // Restore the active panel, or collapse

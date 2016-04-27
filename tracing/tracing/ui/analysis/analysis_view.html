@@ -177,7 +177,7 @@ using custom elements specialized for different event types.
           eventTypeName, subSelection, previousSubViews[eventTypeName]);
         // Store the eventTypeName for future tab restoration.
         subView._eventTypeName = eventTypeName;
-        this.tabView_.appendChild(subView);
+        Polymer.dom(this.tabView_).appendChild(subView);
 
         subView.selection = subSelection;
       }

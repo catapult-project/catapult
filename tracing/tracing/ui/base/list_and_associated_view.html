@@ -94,7 +94,7 @@ tr.exportTo('tr.ui.b', function() {
         var itemEl;
         if (i >= this.listView_.children.length) {
           itemEl = document.createElement('div');
-          this.listView_.appendChild(itemEl);
+          Polymer.dom(this.listView_).appendChild(itemEl);
         } else {
           itemEl = this.listView_.children[i];
         }

@@ -60,10 +60,10 @@ tr.b.unittest.testSuite(function() {
     thirdTab.setAttribute('tab-label', 'Third Tab Label');
     thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
 
-    tabView.appendChild(firstTab);
-    tabView.appendChild(secondTab);
-    tabView.appendChild(thirdTab);
-    tabViewContainer.appendChild(tabView);
+    Polymer.dom(tabView).appendChild(firstTab);
+    Polymer.dom(tabView).appendChild(secondTab);
+    Polymer.dom(tabView).appendChild(thirdTab);
+    Polymer.dom(tabViewContainer).appendChild(tabView);
 
     this.addHTMLOutput(tabViewContainer);
 
@@ -116,10 +116,10 @@ tr.b.unittest.testSuite(function() {
     thirdTab.setAttribute('tab-label', 'Third Tab Label');
     thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
 
-    tabView.appendChild(firstTab);
-    tabView.appendChild(secondTab);
-    tabView.appendChild(thirdTab);
-    tabViewContainer.appendChild(tabView);
+    Polymer.dom(tabView).appendChild(firstTab);
+    Polymer.dom(tabView).appendChild(secondTab);
+    Polymer.dom(tabView).appendChild(thirdTab);
+    Polymer.dom(tabViewContainer).appendChild(tabView);
 
     this.addHTMLOutput(tabViewContainer);
     tabView.selectedTab = secondTab;
@@ -133,7 +133,7 @@ tr.b.unittest.testSuite(function() {
     tabViewContainer.style.width = '400px';
     tabViewContainer.style.height = '200px';
 
-    tabViewContainer.appendChild(tabView);
+    Polymer.dom(tabViewContainer).appendChild(tabView);
 
     this.addHTMLOutput(tabViewContainer);
 
@@ -150,9 +150,9 @@ tr.b.unittest.testSuite(function() {
     var t2 = document.createElement('div');
     var t3 = document.createElement('div');
 
-    tabView.appendChild(t1);
-    tabView.appendChild(t2);
-    tabView.appendChild(t3);
+    Polymer.dom(tabView).appendChild(t1);
+    Polymer.dom(tabView).appendChild(t2);
+    Polymer.dom(tabView).appendChild(t3);
 
     assert.isUndefined(tabView.selectedTab);
     tabView.selectedTab = t1;
@@ -195,7 +195,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(t3.hasAttribute('selected'));
     assert.isTrue(Object.is(t3, tabView.selectedTab));
 
-    tabViewContainer.appendChild(tabView);
+    Polymer.dom(tabViewContainer).appendChild(tabView);
 
     this.addHTMLOutput(tabViewContainer);
   });
@@ -223,15 +223,15 @@ tr.b.unittest.testSuite(function() {
     t2.selected = false;
     t3.selected = false;
 
-    tabView.appendChild(t1);
-    tabView.appendChild(t2);
-    tabView.appendChild(t3);
+    Polymer.dom(tabView).appendChild(t1);
+    Polymer.dom(tabView).appendChild(t2);
+    Polymer.dom(tabView).appendChild(t3);
 
     t1.setAttribute('tab-label', 'This should be selected');
     t2.setAttribute('tab-label', 'Not selected');
     t3.setAttribute('tab-label', 'Not selected');
 
-    tabViewContainer.appendChild(tabView);
+    Polymer.dom(tabViewContainer).appendChild(tabView);
 
     this.addHTMLOutput(tabViewContainer);
   });
@@ -243,9 +243,9 @@ tr.b.unittest.testSuite(function() {
     var t3 = document.createElement('div');
     var invalidChild = document.createElement('div');
 
-    tabView.appendChild(t1);
-    tabView.appendChild(t2);
-    tabView.appendChild(t3);
+    Polymer.dom(tabView).appendChild(t1);
+    Polymer.dom(tabView).appendChild(t2);
+    Polymer.dom(tabView).appendChild(t3);
 
     tabView.selectedTab = t1;
 
@@ -269,8 +269,8 @@ tr.b.unittest.testSuite(function() {
     var t2 = document.createElement('div');
     var invalidChild = document.createElement('div');
 
-    tabView.appendChild(t1);
-    tabView.appendChild(t2);
+    Polymer.dom(tabView).appendChild(t1);
+    Polymer.dom(tabView).appendChild(t2);
 
     var numChangeEvents = 0;
     tabView.addEventListener('selected-tab-change', function() {
@@ -305,9 +305,9 @@ tr.b.unittest.testSuite(function() {
     var t3 = document.createElement('div');
     t3.textContent = 'This text should NOT be visible, also.';
 
-    tabView.appendChild(t1);
-    tabView.appendChild(t2);
-    tabView.appendChild(t3);
+    Polymer.dom(tabView).appendChild(t1);
+    Polymer.dom(tabView).appendChild(t2);
+    Polymer.dom(tabView).appendChild(t3);
 
     t1.setAttribute('tab-label', 'This should not exist');
     t2.setAttribute('tab-label', 'Not selected');
@@ -316,7 +316,7 @@ tr.b.unittest.testSuite(function() {
     tabView.selectedTab = t1;
     tabView.removeChild(t1);
 
-    tabViewContainer.appendChild(tabView);
+    Polymer.dom(tabViewContainer).appendChild(tabView);
 
     this.addHTMLOutput(tabViewContainer);
   });

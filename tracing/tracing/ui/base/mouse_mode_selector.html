@@ -222,7 +222,7 @@ tr.exportTo('tr.ui.b', function() {
         button.mode = mode;
         button.classList.add('tool-button');
 
-        this.buttonsEl_.appendChild(button);
+        Polymer.dom(this.buttonsEl_).appendChild(button);
       }
     },
 

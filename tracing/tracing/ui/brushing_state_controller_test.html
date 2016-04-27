@@ -130,7 +130,7 @@ tr.b.unittest.testSuite(function() {
 
   function addChildDiv(element) {
     var child = element.ownerDocument.createElement('div');
-    element.appendChild(child);
+    Polymer.dom(element).appendChild(child);
     return child;
   }
 

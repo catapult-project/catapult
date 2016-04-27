@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     divEl.style.width = '400px';
     divEl.style.background = '#ccc';
     divEl.style.textAlign = 'center';
-    paneEl.appendChild(divEl);
+    Polymer.dom(paneEl).appendChild(divEl);
 
     if (opt_rebuildPaneCallback)
       paneEl.rebuildPane_ = opt_rebuildPaneCallback;

@@ -62,7 +62,8 @@ tr.exportTo('tr.ui', function() {
           this.settingsKey_,
           this.metrics_[0].value,
           this.metrics_);
-      Polymer.dom(this.$.top_left_controls).appendChild(metricSelector);
+      Polymer.dom(this.$.top_left_controls).appendChild(
+          metricSelector);
 
       this.$.load_trace.addEventListener('change', function(event) {
         var file = event.target.files[0];

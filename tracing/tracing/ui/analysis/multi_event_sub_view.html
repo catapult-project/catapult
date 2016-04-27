@@ -111,12 +111,12 @@ Polymer({
       eventsHaveDuration: this.eventsHaveDuration_,
       eventsHaveSubRows: this.eventsHaveSubRows_
     });
-    this.$.content.appendChild(summaryTableEl);
+    Polymer.dom(this.$.content).appendChild(summaryTableEl);
 
     var selectionSummaryTableEl = document.createElement(
         'tr-ui-a-selection-summary-table');
     selectionSummaryTableEl.selection = this.currentSelection_;
-    this.$.content.appendChild(selectionSummaryTableEl);
+    Polymer.dom(this.$.content).appendChild(selectionSummaryTableEl);
 
     if (numTitles === 1) {
       var detailsTableEl = document.createElement(
@@ -124,7 +124,7 @@ Polymer({
       detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
       detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
       detailsTableEl.selection = selection;
-      this.$.content.appendChild(detailsTableEl);
+      Polymer.dom(this.$.content).appendChild(detailsTableEl);
     }
   }
 });

@@ -136,7 +136,7 @@ Polymer({
       return;
 
     var panel = this.createAlertsTable_(this.model_.alerts);
-    this.$.result_area.appendChild(panel);
+    Polymer.dom(this.$.result_area).appendChild(panel);
   },
 
   supportsModel: function(m) {

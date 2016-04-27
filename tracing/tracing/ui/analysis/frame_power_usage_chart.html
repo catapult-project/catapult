@@ -73,7 +73,7 @@ Polymer({
       return;
 
     this.chart_ = this.createChart_(data);
-    this.$.content.appendChild(this.chart_);
+    Polymer.dom(this.$.content).appendChild(this.chart_);
   },
 
   createChart_: function(data) {

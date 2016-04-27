@@ -173,26 +173,26 @@ tr.exportTo('tr.b.unittest', function() {
 
     addError: function(normalizedException) {
       var errorEl = document.createElement('x-html-test-case-error');
-      errorEl.appendChild(tr.ui.b.instantiateTemplate(
+      Polymer.dom(errorEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
       errorEl.querySelector('#stack').textContent = normalizedException.stack;
-      this.querySelector('#details').appendChild(errorEl);
+      Polymer.dom(this.querySelector('#details')).appendChild(errorEl);
       this.updateColorAndStatus_();
     },
 
     addFlaky: function() {
       var flakyEl = document.createElement('x-html-test-case-flaky');
-      flakyEl.appendChild(tr.ui.b.instantiateTemplate(
+      Polymer.dom(flakyEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-flaky-template', THIS_DOC));
       flakyEl.querySelector('#message').textContent = 'FLAKY';
-      this.querySelector('#details').appendChild(flakyEl);
+      Polymer.dom(this.querySelector('#details')).appendChild(flakyEl);
       this.updateColorAndStatus_();
     },
 
     addHTMLOutput: function(element) {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
-      htmlResultEl.appendChild(element);
-      this.querySelector('#details').appendChild(htmlResultEl);
+      Polymer.dom(htmlResultEl).appendChild(element);
+      Polymer.dom(this.querySelector('#details')).appendChild(htmlResultEl);
     },
 
     updateHTMLOutputDisplayState_: function() {

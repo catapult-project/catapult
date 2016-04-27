@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
 
     var node = tr.ui.b.asHTMLOrTextNode(value);
     var spanEl = document.createElement('span');
-    spanEl.appendChild(node);
+    Polymer.dom(spanEl).appendChild(node);
     test.addHTMLOutput(spanEl);
 
     assert.strictEqual(node.textContent, expectedTextContent);

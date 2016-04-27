@@ -71,7 +71,7 @@ Polymer({
     this.label_ = label;
 
     this.$.label.textContent = '';
-    this.$.label.appendChild(tr.ui.b.asHTMLOrTextNode(label));
+    Polymer.dom(this.$.label).appendChild(tr.ui.b.asHTMLOrTextNode(label));
 
     if (colorId === undefined)
       this.$.square.style.color = 'initial';

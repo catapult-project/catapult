@@ -76,14 +76,14 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       progressDlg.userCanClose = false;
 
       bufferPercentFullDiv = document.createElement('div');
-      progressDlg.appendChild(bufferPercentFullDiv);
+      Polymer.dom(progressDlg).appendChild(bufferPercentFullDiv);
 
       var stopButton = document.createElement('button');
       stopButton.textContent = 'Stop';
       progressDlg.clickStopButton = function() {
         stopButton.click();
       };
-      progressDlg.appendChild(stopButton);
+      Polymer.dom(progressDlg).appendChild(stopButton);
 
       var recordingOptions = {
         categoryFilter: selectionDlg.categoryFilter(),

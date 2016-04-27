@@ -89,7 +89,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
               '<' + tag + (id ? ' ' : '') +
               (id ? id : '') + (className ? ' ' : '') +
               (className ? className : '') + '>';
-          item.appendChild(elementInfo);
+          Polymer.dom(item).appendChild(elementInfo);
         }
 
         // Display the Skia params.
@@ -98,7 +98,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         if (op.info.length > 0) {
           var infoItem = document.createElement('div');
           infoItem.textContent = JSON.stringify(op.info);
-          item.appendChild(infoItem);
+          Polymer.dom(item).appendChild(infoItem);
         }
 
         // Display the op timing, if available.
@@ -107,10 +107,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           time.classList.add('time');
           var rounded = op.cmd_time.toFixed(4);
           time.textContent = '(' + rounded + 'ms)';
-          item.appendChild(time);
+          Polymer.dom(item).appendChild(time);
         }
 
-        this.opsList_.appendChild(item);
+        Polymer.dom(this.opsList_).appendChild(item);
       }
     },
 

@@ -103,12 +103,14 @@ tr.exportTo('tr.ui.analysis', function() {
         var prefixEl = tr.ui.b.createSpan({textContent: prefix});
         // Enforce same width of '+++' and '---'.
         prefixEl.style.fontFamily = 'monospace';
-        titleEl.appendChild(prefixEl);
-        titleEl.appendChild(tr.ui.b.asHTMLOrTextNode(NO_BREAK_SPACE));
+        Polymer.dom(titleEl).appendChild(prefixEl);
+        Polymer.dom(titleEl).appendChild(
+            tr.ui.b.asHTMLOrTextNode(NO_BREAK_SPACE));
       }
       if (color !== undefined)
         titleEl.style.color = color;
-      titleEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedTitle));
+      Polymer.dom(titleEl).appendChild(
+          tr.ui.b.asHTMLOrTextNode(formattedTitle));
       return titleEl;
     },
 
@@ -331,7 +333,8 @@ tr.exportTo('tr.ui.analysis', function() {
       fieldEl.style.display = 'flex';
       fieldEl.style.alignItems = 'center';
       fieldEl.style.justifyContent = 'flex-end';
-      fieldEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedFields));
+      Polymer.dom(fieldEl).appendChild(
+          tr.ui.b.asHTMLOrTextNode(formattedFields));
 
       // Add info icons with tooltips.
       infos.forEach(function(info) {
@@ -343,7 +346,7 @@ tr.exportTo('tr.ui.analysis', function() {
         if (info.color !== undefined)
           infoEl.style.color = info.color;
         infoEl.title = info.message;
-        fieldEl.appendChild(infoEl);
+        Polymer.dom(fieldEl).appendChild(infoEl);
       }, this);
 
       // Set the color of the element.
@@ -567,15 +570,15 @@ tr.exportTo('tr.ui.analysis', function() {
       if (firstString === undefined) {
         // String was added ("+NEW_VALUE" in red).
         var spanEl = tr.ui.b.createSpan({color: 'red'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('+'));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode('+'));
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(lastString)));
         return spanEl;
       } else if (lastString === undefined) {
         // String was removed ("-OLD_VALUE" in green).
         var spanEl = tr.ui.b.createSpan({color: 'green'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('-'));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode('-'));
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(firstString)));
         return spanEl;
       } else if (firstString === lastString) {
@@ -584,11 +587,11 @@ tr.exportTo('tr.ui.analysis', function() {
       } else {
         // String changed ("OLD_VALUE -> NEW_VALUE" in orange).
         var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(firstString)));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             ' ' + RIGHTWARDS_ARROW + ' '));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(lastString)));
         return spanEl;
       }

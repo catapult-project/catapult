@@ -287,7 +287,7 @@ found in the LICENSE file.
         downloadingOverlay.title = 'Downloading...';
         downloadingOverlay.userCanClose = false;
         downloadingOverlay.msgEl = document.createElement('div');
-        downloadingOverlay.appendChild(downloadingOverlay.msgEl);
+        Polymer.dom(downloadingOverlay).appendChild(downloadingOverlay.msgEl);
         downloadingOverlay.msgEl.style.margin = '20px';
         downloadingOverlay.update = function(msg) {
           this.msgEl.textContent = msg;
@@ -328,7 +328,7 @@ found in the LICENSE file.
         img.height = 30;
         img.width = 30;
         img.className = 'collaborator-img';
-        collabspan.appendChild(img);
+        Polymer.dom(collabspan).appendChild(img);
         imageList.push({'image': img, 'name': user.displayName});
       }
       for (i = 0; i < imageList.length; i++) {
@@ -339,17 +339,17 @@ found in the LICENSE file.
             className: 'collaborator-tooltip-content'
         });
         collabTooltipContent.textContent = imageList[i].name;
-        collabTooltip.appendChild(collabTooltipContent);
-        collabspan.appendChild(collabTooltip);
+        Polymer.dom(collabTooltip).appendChild(collabTooltipContent);
+        Polymer.dom(collabspan).appendChild(collabTooltip);
         var collabTooltipArrow = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow'});
-        collabTooltip.appendChild(collabTooltipArrow);
+        Polymer.dom(collabTooltip).appendChild(collabTooltipArrow);
         var collabTooltipArrowBefore = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow-before'});
-        collabTooltipArrow.appendChild(collabTooltipArrowBefore);
+        Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowBefore);
         var collabTooltipArrowAfter = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow-after'});
-        collabTooltipArrow.appendChild(collabTooltipArrowAfter);
+        Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowAfter);
 
         var rect = imageList[i].image.getBoundingClientRect();
         collabTooltip.style.top = (rect.bottom - 6) + 'px';

@@ -58,19 +58,19 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     ready: function() {
-      this.$.aggregation_mode_container.appendChild(tr.ui.b.createSelector(
-          this, 'aggregationMode', 'memoryDumpHeaderPane.aggregationMode',
-          tr.ui.analysis.MemoryColumn.AggregationMode.DIFF,
-          [
-            {
-              label: 'Diff',
-              value: tr.ui.analysis.MemoryColumn.AggregationMode.DIFF
-            },
-            {
-              label: 'Max',
-              value: tr.ui.analysis.MemoryColumn.AggregationMode.MAX
-            }
-          ]));
+      Polymer.dom(this.$.aggregation_mode_container).appendChild(
+          tr.ui.b.createSelector(this, 'aggregationMode',
+              'memoryDumpHeaderPane.aggregationMode',
+              tr.ui.analysis.MemoryColumn.AggregationMode.DIFF, [
+                {
+                  label: 'Diff',
+                  value: tr.ui.analysis.MemoryColumn.AggregationMode.DIFF
+                },
+                {
+                  label: 'Max',
+                  value: tr.ui.analysis.MemoryColumn.AggregationMode.MAX
+                }
+              ]));
     },
 
     /**
@@ -124,19 +124,20 @@ tr.exportTo('tr.ui.analysis', function() {
       var containerDumpCount = this.containerMemoryDumps_.length;
       var isMultiSelection = containerDumpCount > 1;
 
-      this.$.label.appendChild(document.createTextNode(
+      Polymer.dom(this.$.label).appendChild(document.createTextNode(
           'Selected ' + containerDumpCount + ' memory dump' +
           (isMultiSelection ? 's' : '') +
           ' in ' + this.containerMemoryDumps_[0].containerName + ' at '));
       // TODO(petrcermak): Use <tr-v-ui-scalar-span> once it can be displayed
       // inline. See https://github.com/catapult-project/catapult/issues/1371.
-      this.$.label.appendChild(document.createTextNode(
+      Polymer.dom(this.$.label).appendChild(document.createTextNode(
           tr.v.Unit.byName.timeStampInMs.format(
               this.containerMemoryDumps_[0].start)));
       if (isMultiSelection) {
         var ELLIPSIS = String.fromCharCode(8230);
-        this.$.label.appendChild(document.createTextNode(ELLIPSIS));
-        this.$.label.appendChild(document.createTextNode(
+        Polymer.dom(this.$.label).appendChild(
+            document.createTextNode(ELLIPSIS));
+        Polymer.dom(this.$.label).appendChild(document.createTextNode(
             tr.v.Unit.byName.timeStampInMs.format(
                 this.containerMemoryDumps_[containerDumpCount - 1].start)));
       }

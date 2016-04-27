@@ -77,7 +77,7 @@ Polymer({
     var button = document.createElement('button');
     button.textContent = text;
     button.addEventListener('click', clickCallback);
-    this.buttonsEl_.appendChild(button);
+    Polymer.dom(this.buttonsEl_).appendChild(button);
     return button;
   }
 });

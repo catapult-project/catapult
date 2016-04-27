@@ -90,7 +90,7 @@ found in the LICENSE file.
               value: tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW
             }
           ]);
-      this.$.control.appendChild(viewSelector);
+      Polymer.dom(this.$.control).appendChild(viewSelector);
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
     },
 

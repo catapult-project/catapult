@@ -37,7 +37,7 @@ Sample use case:
   Create an empty stacked pane view and add it to the DOM:
 
     var paneView = document.createElement('tr-ui-a-stacked-pane-view');
-    someParentView.appendChild(paneView);
+    Polymer.dom(someParentView).appendChild(paneView);
 
   Define one or more pane subclasses:
 
@@ -160,7 +160,7 @@ Polymer({
     this.listeners_.set(pane, listener);
     pane.addEventListener('request-child-pane-change', listener);
 
-    paneContainer.appendChild(pane);
+    Polymer.dom(paneContainer).appendChild(pane);
     pane.appended();
   },
 

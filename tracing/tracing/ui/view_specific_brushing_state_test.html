@@ -18,13 +18,13 @@ tr.b.unittest.testSuite(function() {
     var stateElement = document.createElement(
         'tr-ui-b-view-specific-brushing-state');
     stateElement.viewId = viewId;
-    containerEl.appendChild(stateElement);
+    Polymer.dom(containerEl).appendChild(stateElement);
     return stateElement;
   }
 
   function addChildDiv(element) {
     var child = element.ownerDocument.createElement('div');
-    element.appendChild(child);
+    Polymer.dom(element).appendChild(child);
     return child;
   }
 

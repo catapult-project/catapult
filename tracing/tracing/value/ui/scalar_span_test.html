@@ -370,9 +370,9 @@ tr.b.unittest.testSuite(function() {
 
     var overall = document.createElement('div');
     overall.style.display = 'flex';
-    overall.appendChild(spanA);
+    Polymer.dom(overall).appendChild(spanA);
     spanB.style.marginLeft = '4px';
-    overall.appendChild(spanB);
+    Polymer.dom(overall).appendChild(spanB);
     this.addHTMLOutput(overall);
   });
 
@@ -403,7 +403,7 @@ tr.b.unittest.testSuite(function() {
       if (percentage !== null)
         span.percentage = percentage;
 
-      div.appendChild(span);
+      Polymer.dom(div).appendChild(span);
 
       var computedStyle = getComputedStyle(span.$.sparkline);
       assert.equal(computedStyle.display, expectedDisplay);

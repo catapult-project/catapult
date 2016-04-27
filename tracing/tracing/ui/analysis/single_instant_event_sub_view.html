@@ -35,7 +35,7 @@ Polymer({
     var realView = document.createElement('tr-ui-a-single-event-sub-view');
     realView.setSelectionWithoutErrorChecks(selection);
 
-    this.$.content.appendChild(realView);
+    Polymer.dom(this.$.content).appendChild(realView);
 
     this.currentSelection_ = selection;
   },

@@ -162,16 +162,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Show timing summary');
 
       var pictureInfo = this.querySelector('picture-info');
-      pictureInfo.appendChild(overdrawCheckbox);
-      pictureInfo.appendChild(chartCheckbox);
+      Polymer.dom(pictureInfo).appendChild(overdrawCheckbox);
+      Polymer.dom(pictureInfo).appendChild(chartCheckbox);
 
       this.drawOpsView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
       var leftPanel = this.querySelector('left-panel');
-      leftPanel.appendChild(this.drawOpsChartSummaryView_);
-      leftPanel.appendChild(this.drawOpsView_);
+      Polymer.dom(leftPanel).appendChild(this.drawOpsChartSummaryView_);
+      Polymer.dom(leftPanel).appendChild(this.drawOpsView_);
 
       var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
@@ -183,7 +183,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           rightPanel.querySelector('tr-ui-e-chrome-cc-picture-ops-chart-view'));
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
-      this.rasterArea_.appendChild(this.infoBar_);
+      Polymer.dom(this.rasterArea_).appendChild(this.infoBar_);
 
       this.insertBefore(middleDragHandle, rightPanel);
 
@@ -432,7 +432,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.rasterArea_;
-      this.rasterArea_.appendChild(this.mouseModeSelector_);
+      Polymer.dom(this.rasterArea_).appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
           tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;

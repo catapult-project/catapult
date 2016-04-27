@@ -235,9 +235,9 @@ tr.exportTo('tr.b.unittest', function() {
         link.textContent = l.title;
 
         var li = document.createElement('li');
-        li.appendChild(link);
+        Polymer.dom(li).appendChild(link);
 
-        linksEl.appendChild(li);
+        Polymer.dom(linksEl).appendChild(li);
       }, this);
     },
 
@@ -343,15 +343,15 @@ tr.exportTo('tr.b.unittest', function() {
     onTestFailed_: function() {
       var span = document.createElement('span');
       span.classList.add('fail');
-      span.appendChild(document.createTextNode('F'));
-      this.querySelector('#shortform-results').appendChild(span);
+      Polymer.dom(span).appendChild(document.createTextNode('F'));
+      Polymer.dom(this.querySelector('#shortform-results')).appendChild(span);
     },
 
     onTestFlaky_: function() {
       var span = document.createElement('span');
       span.classList.add('flaky');
-      span.appendChild(document.createTextNode('~'));
-      this.querySelector('#shortform-results').appendChild(span);
+      Polymer.dom(span).appendChild(document.createTextNode('~'));
+      Polymer.dom(this.querySelector('#shortform-results')).appendChild(span);
     },
 
     onResultsStatsChanged_: function() {
@@ -410,7 +410,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.results_.addEventListener('testflaky', this.onTestFlaky_);
       this.results_.addEventListener('statschange',
                                      this.onResultsStatsChanged_);
-      resultsContainer.appendChild(this.results_);
+      Polymer.dom(resultsContainer).appendChild(this.results_);
 
       var tests = this.allTests_.filter(function(test) {
         var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
@@ -605,10 +605,10 @@ tr.exportTo('tr.b.unittest', function() {
       var element = document.createElement('div');
       element.style.flex = '1 1 auto';
       element.style.overflow = 'auto';
-      overlay.appendChild(element);
+      Polymer.dom(overlay).appendChild(element);
 
       element.textContent = 'Loading tests...';
-      document.body.appendChild(overlay);
+      Polymer.dom(document.body).appendChild(overlay);
     }
     function hideLoadingOverlay() {
       var overlay = document.body.querySelector('#tests-loading-overlay');
@@ -644,7 +644,7 @@ tr.exportTo('tr.b.unittest', function() {
       runner.style.height = '100%';
       runner.testLinks = runnerConfig.testLinks;
       runner.allTests = loader.getAllTests();
-      document.body.appendChild(runner);
+      Polymer.dom(document.body).appendChild(runner);
 
       runner.setState(state);
       updateTitle(state);

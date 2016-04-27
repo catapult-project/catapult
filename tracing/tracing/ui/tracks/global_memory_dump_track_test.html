@@ -26,10 +26,10 @@ tr.b.unittest.testSuite(function() {
     var div = document.createElement('div');
     var viewport = new Viewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = new GlobalMemoryDumpTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     drawingContainer.invalidate();
 
     track.memoryDumps = dumps;

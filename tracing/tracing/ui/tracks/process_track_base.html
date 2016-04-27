@@ -51,7 +51,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.processNameEl_.classList.add('process-track-name');
 
       this.headerEl_ = tr.ui.b.createDiv({className: 'process-track-header'});
-      this.headerEl_.appendChild(this.processNameEl_);
+      Polymer.dom(this.headerEl_).appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
       Polymer.dom(this).appendChild(this.headerEl_);

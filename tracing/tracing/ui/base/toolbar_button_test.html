@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
     el.style.width = '100px';
     el.style.height = '40px';
 
-    el.appendChild(tr.ui.b.createSpan({textContent: 'blahblah'}));
+    Polymer.dom(el).appendChild(tr.ui.b.createSpan({textContent: 'blahblah'}));
 
     this.addHTMLOutput(el);
   });

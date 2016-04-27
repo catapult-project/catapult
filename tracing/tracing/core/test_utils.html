@@ -456,8 +456,8 @@ tr.exportTo('tr.c', function() {
     });
 
     var outputEl = document.createElement('div');
-    outputEl.appendChild(copyButtonEl);
-    outputEl.appendChild(testSourceEl);
+    Polymer.dom(outputEl).appendChild(copyButtonEl);
+    Polymer.dom(outputEl).appendChild(testSourceEl);
     test.addHTMLOutput(outputEl);
   };
 

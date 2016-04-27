@@ -34,7 +34,7 @@ tr.exportTo('tr.b.unittest', function() {
                  testRelpath + '"');
         });
 
-        tr.doc.head.appendChild(importEl);
+        Polymer.dom(tr.doc.head).appendChild(importEl);
       });
     },
 

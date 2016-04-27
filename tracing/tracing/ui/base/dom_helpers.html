@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.b', function() {
       if (opt_dictionary.tooltip)
         spanEl.title = opt_dictionary.tooltip;
       if (opt_dictionary.parent)
-        opt_dictionary.parent.appendChild(spanEl);
+        Polymer.dom(opt_dictionary.parent).appendChild(spanEl);
       if (opt_dictionary.bold)
         spanEl.style.fontWeight = 'bold';
       if (opt_dictionary.italic)
@@ -56,7 +56,7 @@ tr.exportTo('tr.ui.b', function() {
       if (opt_dictionary.className)
         divEl.className = opt_dictionary.className;
       if (opt_dictionary.parent)
-        opt_dictionary.parent.appendChild(divEl);
+        Polymer.dom(opt_dictionary.parent).appendChild(divEl);
       if (opt_dictionary.textContent)
         divEl.textContent = opt_dictionary.textContent;
       if (opt_dictionary.maxWidth)
@@ -101,7 +101,7 @@ tr.exportTo('tr.ui.b', function() {
       optionEl.textContent = item.label;
       optionEl.targetPropertyValue = item.value;
       optionEl.item = item;
-      selectorEl.appendChild(optionEl);
+      Polymer.dom(selectorEl).appendChild(optionEl);
     }
     function onChange(e) {
       var value = selectorEl.selectedOptions[0].targetPropertyValue;
@@ -194,8 +194,8 @@ tr.exportTo('tr.ui.b', function() {
       labelEl.setAttribute('for', id);
 
       var spanEl = createSpan({className: 'labeled-option'});
-      spanEl.appendChild(radioEl);
-      spanEl.appendChild(labelEl);
+      Polymer.dom(spanEl).appendChild(radioEl);
+      Polymer.dom(spanEl).appendChild(labelEl);
 
       spanEl.__defineSetter__('checked', function(opt_bool) {
         var changed = radioEl.checked !== (!!opt_bool);
@@ -209,9 +209,10 @@ tr.exportTo('tr.ui.b', function() {
         return radioEl.checked;
       });
 
-      optionGroupEl.appendChild(spanEl);
+      Polymer.dom(optionGroupEl).appendChild(spanEl);
     }
-    optionGroupEl.appendChild(createEditCategorySpan(optionGroupEl, targetEl));
+    Polymer.dom(optionGroupEl).appendChild(
+        createEditCategorySpan(optionGroupEl, targetEl));
     // Since this option group element is not yet added to the tree,
     // querySelector will fail during updateEditCategoriesStatus_ call.
     // Hence, creating the element with the 'expanded' classlist category
@@ -253,8 +254,8 @@ tr.exportTo('tr.ui.b', function() {
     var labelEl = document.createElement('label');
     labelEl.textContent = label;
     labelEl.setAttribute('for', id);
-    spanEl.appendChild(buttonEl);
-    spanEl.appendChild(labelEl);
+    Polymer.dom(spanEl).appendChild(buttonEl);
+    Polymer.dom(spanEl).appendChild(labelEl);
 
     spanEl.__defineSetter__('checked', function(opt_bool) {
       var changed = buttonEl.checked !== (!!opt_bool);

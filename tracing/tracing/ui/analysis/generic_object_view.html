@@ -248,19 +248,19 @@ Polymer({
     indentSpan.style.whiteSpace = 'pre';
     for (var i = 0; i < indent; i++)
       indentSpan.textContent += ' ';
-    row.appendChild(indentSpan);
+    Polymer.dom(row).appendChild(indentSpan);
 
     var labelSpan = document.createElement('span');
     labelSpan.textContent = label;
-    row.appendChild(labelSpan);
+    Polymer.dom(row).appendChild(labelSpan);
 
-    row.appendChild(dataElement);
+    Polymer.dom(row).appendChild(dataElement);
     var suffixSpan = document.createElement('span');
     suffixSpan.textContent = suffix;
-    row.appendChild(suffixSpan);
+    Polymer.dom(row).appendChild(suffixSpan);
 
     row.dataElement = dataElement;
-    this.$.content.appendChild(row);
+    Polymer.dom(this.$.content).appendChild(row);
   },
 
   appendSimpleText_: function(label, indent, text, suffix) {
@@ -291,8 +291,8 @@ Polymer({
     this.labelEl_ = document.createElement('div');
     this.genericObjectView_ =
         document.createElement('tr-ui-a-generic-object-view');
-    this.shadowRoot.appendChild(this.labelEl_);
-    this.shadowRoot.appendChild(this.genericObjectView_);
+    Polymer.dom(this.shadowRoot).appendChild(this.labelEl_);
+    Polymer.dom(this.shadowRoot).appendChild(this.genericObjectView_);
   },
 
   get label() {

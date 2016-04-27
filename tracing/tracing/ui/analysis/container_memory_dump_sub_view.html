@@ -89,7 +89,7 @@ tr.exportTo('tr.ui.analysis', function() {
           tr.b.dictionaryValues(this.dumpsByContainerName_)[0];
       var dumpView = this.ownerDocument.createElement(
           'tr-ui-a-stacked-pane-view');
-      this.$.content.appendChild(dumpView);
+      Polymer.dom(this.$.content).appendChild(dumpView);
       dumpView.setPaneBuilder(function() {
         var headerPane = document.createElement(
             'tr-ui-a-memory-dump-header-pane');
@@ -128,22 +128,23 @@ tr.exportTo('tr.ui.analysis', function() {
           singleDumpValue_: function(row) {
             var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet([row]));
-            linkEl.appendChild(tr.v.ui.createScalarSpan(row.start, {
-              unit: tr.v.Unit.byName.timeStampInMs,
-              ownerDocument: ownerDocument
-            }));
+            Polymer.dom(linkEl).appendChild(tr.v.ui.createScalarSpan(
+                row.start, {
+                  unit: tr.v.Unit.byName.timeStampInMs,
+                  ownerDocument: ownerDocument
+                }));
             return linkEl;
           },
 
           groupedDumpValue_: function(row) {
             var linkEl = ownerDocument.createElement('tr-ui-a-analysis-link');
             linkEl.setSelectionAndContent(new tr.model.EventSet(row.subRows));
-            linkEl.appendChild(tr.ui.b.createSpan({
+            Polymer.dom(linkEl).appendChild(tr.ui.b.createSpan({
               ownerDocument: ownerDocument,
               textContent: row.subRows.length + ' memory dump' +
                   (row.subRows.length === 1 ? '' : 's') + ' in '
             }));
-            linkEl.appendChild(tr.ui.b.createSpan({
+            Polymer.dom(linkEl).appendChild(tr.ui.b.createSpan({
               ownerDocument: ownerDocument,
               textContent: row.containerName,
               bold: true
@@ -158,7 +159,7 @@ tr.exportTo('tr.ui.analysis', function() {
       table.tableRows = rows;
       table.showHeader = false;
       table.rebuild();
-      this.$.content.appendChild(table);
+      Polymer.dom(this.$.content).appendChild(table);
     }
   });
 

@@ -48,7 +48,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(tr.ui.b.createSelector(
+      Polymer.dom(this.controls_).appendChild(tr.ui.b.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       showPureTransformLayers.classList.add('show-transform-layers');
       showPureTransformLayers.title =
           'When checked, pure transform layers are shown';
-      this.controls_.appendChild(showPureTransformLayers);
+      Polymer.dom(this.controls_).appendChild(showPureTransformLayers);
     },
 
     get lthiSnapshot() {
@@ -197,12 +197,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(tr.ui.b.createSpan());
+        var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
         labelEl.textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
         item.renderPassId = id;
-        this.itemList_.appendChild(item);
+        Polymer.dom(this.itemList_).appendChild(item);
 
         if (id == selectedRenderPassId) {
           renderPass.selectionState =
@@ -226,11 +226,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var id = layer.layerId;
 
           var item = this.createElementWithDepth_(layerInfo.depth);
-          var labelEl = item.appendChild(tr.ui.b.createSpan());
+          var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
           labelEl.textContent = layerInfo.name + ' ' + id;
 
-          var notesEl = item.appendChild(tr.ui.b.createSpan());
+          var notesEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
           if (layerInfo.isMaskLayer)
             notesEl.textContent += '(mask)';
           if (layerInfo.isReplicaLayer)
@@ -243,7 +243,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           }
 
           item.layer = layer;
-          this.itemList_.appendChild(item);
+          Polymer.dom(this.itemList_).appendChild(item);
 
           if (layer.layerId == selectedLayerId) {
             layer.selectionState = tr.model.SelectionState.SELECTED;
@@ -258,7 +258,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(tr.ui.b.createSpan());
+      var indentEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
       indentEl.style.whiteSpace = 'pre';
       for (var i = 0; i < depth; i++)
         indentEl.textContent = indentEl.textContent + ' ';

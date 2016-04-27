@@ -78,8 +78,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
-          THIS_DOC));
+      Polymer.dom(this).appendChild(
+          tr.ui.b.instantiateTemplate('#profiling-view-template', THIS_DOC));
 
       this.timelineView_ = this.querySelector('tr-ui-timeline-view');
       this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
@@ -93,7 +93,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       var buttons = this.querySelector('x-timeline-view-buttons');
       buttons.parentElement.removeChild(buttons);
-      this.timelineView_.leftControls.appendChild(buttons);
+      Polymer.dom(this.timelineView_.leftControls).appendChild(buttons);
       this.initButtons_();
 
       this.timelineView_.hotkeyController.addHotKey(new tr.ui.b.HotKey({

@@ -62,15 +62,15 @@ Polymer({
             return tr.v.ui.createScalarSpan(event.ts, timeSpanConfig);
 
           var spanEl = document.createElement('span');
-          spanEl.appendChild(tr.v.ui.createScalarSpan(
+          Polymer.dom(spanEl).appendChild(tr.v.ui.createScalarSpan(
               event.creationTs, timeSpanConfig));
-          spanEl.appendChild(tr.ui.b.createSpan({
+          Polymer.dom(spanEl).appendChild(tr.ui.b.createSpan({
               textContent: '-',
               marginLeft: '4px',
               marginRight: '4px'
           }));
           if (event.deletionTs != Number.MAX_VALUE) {
-            spanEl.appendChild(tr.v.ui.createScalarSpan(
+            Polymer.dom(spanEl).appendChild(tr.v.ui.createScalarSpan(
                 event.deletionTs, timeSpanConfig));
           }
           return spanEl;

@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
 
     var track = new CpuTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
@@ -86,7 +86,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
 
     var track = new CpuTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;

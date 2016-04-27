@@ -131,7 +131,7 @@ Polymer({
       threadLink.textContent = 'Click to select';
       runningThreadEl.parentElement.style.display = '';
       runningThreadEl.textContent = '';
-      runningThreadEl.appendChild(threadLink);
+      Polymer.dom(runningThreadEl).appendChild(threadLink);
     }
 
     shadowRoot.querySelector('#args').object = cpuSlice.args;

@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     var div = document.createElement('div');
     var viewport = new tr.ui.TimelineViewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
     var track = new tr.ui.tracks.InteractionTrack(viewport);
     track.model = tr.c.TestUtils.newModel(function(model) {
       var process = model.getOrCreateProcess(1);
@@ -44,7 +44,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(2, track.subRows_.length);
     assert.equal(2, track.subRows_[0].length);
     assert.equal(3, track.subRows_[1].length);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(div);
   });
 });

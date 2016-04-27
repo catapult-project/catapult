@@ -138,7 +138,7 @@ found in the LICENSE file.
           [{label: 'Group by process', value: GROUP_BY_PROCESS_NAME},
            {label: 'Group by thread', value: GROUP_BY_THREAD_NAME}
           ]);
-      toolbarEl.appendChild(this.groupBySelector_);
+      Polymer.dom(toolbarEl).appendChild(this.groupBySelector_);
 
       this.groupingUnitSelector_ = tr.ui.b.createSelector(
           this, 'groupingUnit',
@@ -146,13 +146,13 @@ found in the LICENSE file.
           [{label: 'Wall time', value: WALL_TIME_GROUPING_UNIT},
            {label: 'CPU time', value: CPU_TIME_GROUPING_UNIT}
           ]);
-      toolbarEl.appendChild(this.groupingUnitSelector_);
+      Polymer.dom(toolbarEl).appendChild(this.groupingUnitSelector_);
 
       this.showCpuIdleTimeCheckbox_ = tr.ui.b.createCheckBox(
           this, 'showCpuIdleTime',
           'timeSummarySidePanel.showCpuIdleTime', this.showCpuIdleTime_,
           'Show CPU idle time');
-      toolbarEl.appendChild(this.showCpuIdleTimeCheckbox_);
+      Polymer.dom(toolbarEl).appendChild(this.showCpuIdleTimeCheckbox_);
       this.updateShowCpuIdleTimeCheckboxVisibility_();
     },
 
@@ -346,15 +346,15 @@ found in the LICENSE file.
 
       // Create summary.
       var summaryText = document.createElement('div');
-      summaryText.appendChild(tr.ui.b.createSpan({
+      Polymer.dom(summaryText).appendChild(tr.ui.b.createSpan({
         textContent: 'Total ' + this.groupingUnit_ + ': ',
         bold: true}));
-      summaryText.appendChild(tr.v.ui.createScalarSpan(
+      Polymer.dom(summaryText).appendChild(tr.v.ui.createScalarSpan(
           getValueFromGroup(allGroup), {
             unit: tr.v.Unit.byName.timeDurationInMs,
             ownerDocument: this.ownerDocument
           }));
-      resultArea.appendChild(summaryText);
+      Polymer.dom(resultArea).appendChild(summaryText);
 
       // If needed, add in the idle time.
       var extraValue = 0;
@@ -382,7 +382,8 @@ found in the LICENSE file.
           extraValue);
 
       if (groups.length == 0) {
-        resultArea.appendChild(tr.ui.b.createSpan({textContent: 'No data'}));
+        Polymer.dom(resultArea).appendChild(
+            tr.ui.b.createSpan({textContent: 'No data'}));
         return undefined;
       }
 
@@ -390,7 +391,7 @@ found in the LICENSE file.
           groups,
           this.groupingUnit_ + ' breakdown by ' + this.groupBy_,
           getValueFromGroup, extraData);
-      resultArea.appendChild(this.chart_);
+      Polymer.dom(resultArea).appendChild(this.chart_);
 
       this.chart_.addEventListener('click', function() {
         var event = new tr.model.RequestSelectionChangeEvent();

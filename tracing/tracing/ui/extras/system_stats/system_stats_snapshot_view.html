@@ -56,10 +56,10 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       for (var statName in stats) {
         var statText = document.createElement('li');
         statText.textContent = '' + statName + ': ';
-        statList.appendChild(statText);
+        Polymer.dom(statList).appendChild(statText);
 
         if (stats[statName] instanceof Object) {
-          statList.appendChild(this.buildList_(stats[statName]));
+          Polymer.dom(statList).appendChild(this.buildList_(stats[statName]));
         } else {
           if (this.isFloat(stats[statName]))
             statText.textContent += stats[statName].toFixed(2);

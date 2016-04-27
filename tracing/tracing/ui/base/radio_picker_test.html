@@ -36,7 +36,7 @@ tr.b.unittest.testSuite(function() {
     var rp = document.createElement('tr-ui-b-radio-picker');
     rp.items = items;
     rp.settingsKey = 'radio-picker-test-one';
-    container1.appendChild(rp);
+    Polymer.dom(container1).appendChild(rp);
     this.addHTMLOutput(container1);
     assert.equal(rp.selectedKey, undefined);
     rp.select('Toyota');
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
     var rp2 = document.createElement('tr-ui-b-radio-picker');
     rp2.items = items;
     rp2.settingsKey = 'radio-picker-test-one';
-    container2.appendChild(rp2);
+    Polymer.dom(container2).appendChild(rp2);
     this.addHTMLOutput(container2);
 
     assert.equal(rp2.selectedKey, 'Toyota');
@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
     var rp = document.createElement('tr-ui-b-radio-picker');
     rp.settingsKey = 'radio-picker-test-two';
     rp.items = items;
-    container1.appendChild(rp);
+    Polymer.dom(container1).appendChild(rp);
     this.addHTMLOutput(container1);
     assert.equal(rp.selectedKey, undefined);
     rp.select('Boeing');
@@ -76,7 +76,7 @@ tr.b.unittest.testSuite(function() {
     container2.style.border = 'solid';
     var rp2 = document.createElement('tr-ui-b-radio-picker');
     rp2.settingsKey = 'radio-picker-test-two';
-    container2.appendChild(rp2);
+    Polymer.dom(container2).appendChild(rp2);
     this.addHTMLOutput(container2);
     rp2.items = items;
 

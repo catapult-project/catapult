@@ -73,7 +73,8 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (this.powerSeriesTrack_.hasVisibleContent) {
         Polymer.dom(this).appendChild(this.powerSeriesTrack_);
-        Polymer.dom(this).appendChild(new tr.ui.tracks.SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(
+            new tr.ui.tracks.SpacingTrack(this.viewport));
       }
     },
 

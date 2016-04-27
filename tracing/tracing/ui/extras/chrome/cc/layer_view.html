@@ -88,12 +88,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         var layer = selection.layer;
         if (layer && layer.args && layer.args.pictures) {
-          this.analysisEl_.appendChild(
+          Polymer.dom(this.analysisEl_).appendChild(
               this.createPictureBtn_(layer.args.pictures));
         }
 
         var analysis = selection.createAnalysis();
-        this.analysisEl_.appendChild(analysis);
+        Polymer.dom(this.analysisEl_).appendChild(analysis);
       } else {
         this.dragBar_.style.display = 'none';
         this.analysisEl_.style.display = 'none';

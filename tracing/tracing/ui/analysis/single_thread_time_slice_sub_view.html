@@ -141,7 +141,7 @@ Polymer({
           timeSlice.getAssociatedCpuSlice());
       cpuLink.textContent =
           timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
-      onCpuEl.appendChild(cpuLink);
+      Polymer.dom(onCpuEl).appendChild(cpuLink);
     } else {
       onCpuEl.parentElement.removeChild(onCpuEl);
 
@@ -153,7 +153,7 @@ Polymer({
           cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
         else
           cpuLink.textContent = cpuSliceThatTookCpu.title;
-        runningInsteadEl.appendChild(cpuLink);
+        Polymer.dom(runningInsteadEl).appendChild(cpuLink);
       } else {
         runningInsteadEl.parentElement.removeChild(runningInsteadEl);
       }
@@ -167,7 +167,7 @@ Polymer({
 
       argsEl.parentElement.style.display = '';
       argsEl.textContent = '';
-      argsEl.appendChild(argsView);
+      aPolymer.dom(rgsEl).appendChild(argsView);
     } else {
       argsEl.parentElement.style.display = 'none';
     }

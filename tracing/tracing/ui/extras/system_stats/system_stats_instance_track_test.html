@@ -49,11 +49,11 @@ tr.b.unittest.testSuite(function() {
     var div = document.createElement('div');
     var viewport = new Viewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = new SystemStatsInstanceTrack(viewport);
     track.objectInstances = objectInstances;
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();

@@ -120,7 +120,7 @@ tr.exportTo('tr.ui', function() {
         this.iframe_ = document.createElement('iframe');
         this.iframe_.style.cssText =
             'position:absolute;width:100%;height:0;border:0;visibility:hidden;';
-        this.parentEl_.appendChild(this.iframe_);
+        Polymer.dom(this.parentEl_).appendChild(this.iframe_);
 
         this.iframe_.contentWindow.addEventListener('resize', this.onResize_);
       }

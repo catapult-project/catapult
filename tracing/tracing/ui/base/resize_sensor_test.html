@@ -18,7 +18,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var sensor = document.createElement('tr-ui-b-resize-sensor');
-    sensor.appendChild(document.createTextNode('hello'));
+    Polymer.dom(sensor).appendChild(document.createTextNode('hello'));
 
     var resizeCount = 0;
     function onResize(event) {

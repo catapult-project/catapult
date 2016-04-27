@@ -61,7 +61,7 @@ Polymer({
         ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
 
         this.$.content.textContent = '';
-        this.$.content.appendChild(ltv);
+        Polymer.dom(this.$.content).appendChild(ltv);
 
         this.requiresTallView_ = true;
         return;
@@ -72,13 +72,13 @@ Polymer({
 
     var mesv = document.createElement('tr-ui-a-multi-event-sub-view');
     mesv.selection = selection;
-    this.$.content.appendChild(mesv);
+    Polymer.dom(this.$.content).appendChild(mesv);
 
     var relatedEvents = document.createElement('tr-ui-a-related-events');
     relatedEvents.setRelatedEvents(selection);
 
     if (relatedEvents.hasRelatedEvents()) {
-      this.$.content.appendChild(relatedEvents);
+      Polymer.dom(this.$.content).appendChild(relatedEvents);
     }
   },
 

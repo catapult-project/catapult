@@ -159,7 +159,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.displayItemListView_ = new tr.ui.b.ListView();
       this.displayItemListView_.addEventListener('selection-changed',
           this.onDisplayItemListSelection_.bind(this));
-      this.displayItemInfo_.appendChild(this.displayItemListView_);
+      Polymer.dom(this.displayItemInfo_).appendChild(this.displayItemListView_);
 
       this.displayListFilename_ = this.querySelector('.dlfilename');
       this.displayListExportButton_ = this.querySelector('.dlexport');
@@ -209,7 +209,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var listItem = document.createElement(
             'tr-ui-e-chrome-cc-display-item-list-item');
         listItem.data = item;
-        this.displayItemListView_.appendChild(listItem);
+        Polymer.dom(this.displayItemListView_).appendChild(listItem);
       }.bind(this));
     },
 
@@ -368,7 +368,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.rasterArea_;
-      this.rasterArea_.appendChild(this.mouseModeSelector_);
+      Polymer.dom(this.rasterArea_).appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
           tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;
