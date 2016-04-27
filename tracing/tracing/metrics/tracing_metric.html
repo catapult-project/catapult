@@ -25,60 +25,61 @@ tr.exportTo('tr.metrics', function() {
       return a.timeInterval - b.timeInterval;
     });
 
+    var totalTraceBytes = eventStats.reduce((a, b) =>
+                                            (a + b.totalEventSizeinBytes), 0);
+
+    // We maintain a sliding window of records [start ... end-1] where end
+    // increments each time through the loop, and we move start just far enough
+    // to keep the window less than 1 second wide. Note that we need to compute
+    // the number of time intervals (i.e. units that timeInterval is given in)
+    // in one second to know how wide the sliding window should be.
     var maxEventCountPerSec = 0;
     var maxEventBytesPerSec = 0;
-    var totalTraceBytes = 0;
+    var INTERVALS_PER_SEC = Math.floor(
+        1000 / model.stats.TIME_INTERVAL_SIZE_IN_MS);
 
-    var WINDOW_SIZE = Math.floor(1000 / model.stats.TIME_INTERVAL_SIZE_IN_MS);
     var runningEventNumPerSec = 0;
     var runningEventBytesPerSec = 0;
     var start = 0;
     var end = 0;
+
     while (end < eventStats.length) {
-      var startEventStats = eventStats[start];
-      var endEventStats = eventStats[end];
-      var timeWindow =
-          endEventStats.timeInterval - startEventStats.timeInterval;
-      if (timeWindow >= WINDOW_SIZE) {
-        runningEventNumPerSec -= startEventStats.numEvents;
-        runningEventBytesPerSec -= startEventStats.totalEventSizeinBytes;
+      // Slide the end marker forward. Moving the end marker from N
+      // to N+1 adds eventStats[N] to the sliding window.
+      runningEventNumPerSec += eventStats[end].numEvents;
+      runningEventBytesPerSec += eventStats[end].totalEventSizeinBytes;
+      end++;
+
+      // Slide the start marker forward so that the time interval covered
+      // by the window is less than 1 second wide.
+      while ((eventStats[end - 1].timeInterval -
+              eventStats[start].timeInterval) >= INTERVALS_PER_SEC) {
+        runningEventNumPerSec -= eventStats[start].numEvents;
+        runningEventBytesPerSec -= eventStats[start].totalEventSizeinBytes;
         start++;
-        continue;
       }
 
-      runningEventNumPerSec += endEventStats.numEvents;
-      if (maxEventCountPerSec < runningEventNumPerSec)
-        maxEventCountPerSec = runningEventNumPerSec;
+      // Update maximum values.
+      maxEventCountPerSec = Math.max(maxEventCountPerSec,
+                                     runningEventNumPerSec);
+      maxEventBytesPerSec = Math.max(maxEventBytesPerSec,
+                                     runningEventBytesPerSec);
 
-      runningEventBytesPerSec += endEventStats.totalEventSizeinBytes;
-      if (maxEventBytesPerSec < runningEventBytesPerSec)
-        maxEventBytesPerSec = runningEventBytesPerSec;
-
-      totalTraceBytes += endEventStats.totalEventSizeinBytes;
-
-      end++;
     }
 
     var stats = model.stats.allTraceEventStats;
-    var categoryStatsMap = new Map();
-    var categoryStats = [];
-    for (var i = 0; i < stats.length; i++) {
-      var categoryStat = categoryStatsMap.get(stats[i].category);
-      if (categoryStat === undefined) {
-        categoryStat = {
-          category: stats[i].category,
-          totalEventSizeinBytes: 0
-        };
-        categoryStatsMap.set(stats[i].category, categoryStat);
-        categoryStats.push(categoryStat);
-      }
-      categoryStat.totalEventSizeinBytes += stats[i].totalEventSizeinBytes;
-    }
-    var maxCategoryStats = categoryStats.reduce(function(a, b) {
-      return a.totalEventSizeinBytes < b.totalEventSizeinBytes ? b : a;
-    });
-    var maxEventBytesPerCategory = maxCategoryStats.totalEventSizeinBytes;
-    var maxCategoryName = maxCategoryStats.category;
+    var categoryNamesToTotalEventSizes = (
+        stats.reduce((map, stat) => (
+            map.set(stat.category,
+                   ((map.get(stat.category) || 0) +
+                    stat.totalEventSizeinBytes))), new Map()));
+
+    // Determine the category with the highest total event size.
+    var maxCatNameAndBytes = Array.from(
+        categoryNamesToTotalEventSizes.entries()).reduce(
+            (a, b) => (b[1] >= a[1]) ? b : a);
+    var maxEventBytesPerCategory = maxCatNameAndBytes[1];
+    var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 
     var maxEventCountPerSecValue = new tr.v.ScalarNumeric(
         tr.v.Unit.byName.unitlessNumber_smallerIsBetter, maxEventCountPerSec);
@@ -89,7 +90,7 @@ tr.exportTo('tr.metrics', function() {
 
     var diagnostics = {
       category_with_max_event_size: {
-        name: maxCategoryName,
+        name: categoryWithMaxEventBytes,
         size_in_bytes: maxEventBytesPerCategory
       }
     };
