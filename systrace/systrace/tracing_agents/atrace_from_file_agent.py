@@ -2,15 +2,14 @@
 # Copyright (c) 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import py_utils
 import re
 
 from devil.utils import cmd_helper
-from py_utils import Timeout
 
 from systrace import tracing_agents
 from systrace.tracing_agents import atrace_agent
-from systrace.tracing_agents import GET_RESULTS_TIMEOUT
-from systrace.tracing_agents import START_STOP_TIMEOUT
 
 # ADB sends this text to indicate the beginning of the trace data.
 TRACE_START_REGEXP = r'TRACE\:'
@@ -30,11 +29,11 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
     self._trace_data = False
     self._fix_circular_traces = options.fix_circular
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, options, categories, timeout=None):
     pass
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     self._trace_data = self._read_trace_data()
 
@@ -44,7 +43,7 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
   def RecordClockSyncMarker(self, sync_id, did_record_clock_sync_callback):
     raise NotImplementedError
 
-  @Timeout(GET_RESULTS_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
     return tracing_agents.TraceResult('trace-data', self._trace_data)
 

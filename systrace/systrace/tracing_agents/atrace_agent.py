@@ -3,20 +3,16 @@
 # found in the LICENSE file.
 
 import re
+import py_utils
 import subprocess
 import sys
 import threading
 import zlib
 
 from devil.android import device_utils
-from systrace import util
-from systrace.tracing_agents import GET_RESULTS_TIMEOUT
-from systrace.tracing_agents import START_STOP_TIMEOUT
-from systrace.tracing_agents import TraceResult
-from systrace.tracing_agents import TracingAgent
-
-from py_utils import Timeout
 from py_trace_event import trace_time
+from systrace import tracing_agents
+from systrace import util
 
 
 # Text that ADB sends, but does not need to be displayed to the user.
@@ -136,7 +132,7 @@ def _construct_atrace_args(options, categories):
   atrace_args.extend(extra_args)
   return atrace_args
 
-class AtraceAgent(TracingAgent):
+class AtraceAgent(tracing_agents.TracingAgent):
 
   def __init__(self):
     super(AtraceAgent, self).__init__()
@@ -149,7 +145,7 @@ class AtraceAgent(TracingAgent):
     self._options = None
     self._categories = None
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, options, categories, timeout=None):
     self._options = options
     self._categories = categories
@@ -174,7 +170,7 @@ class AtraceAgent(TracingAgent):
     trace_data = self._collect_trace_data()
     self._trace_data = self._preprocess_trace_data(trace_data)
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     """Stops tracing and starts collecting results.
 
@@ -186,12 +182,12 @@ class AtraceAgent(TracingAgent):
     self._collection_thread.start()
     return True
 
-  @Timeout(GET_RESULTS_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
     """Waits for collection thread to finish and returns trace results."""
     self._collection_thread.join()
     self._collection_thread = None
-    return TraceResult('systemTraceEvents', self._trace_data)
+    return tracing_agents.TraceResult('systemTraceEvents', self._trace_data)
 
   def SupportsExplicitClockSync(self):
     return True
@@ -284,7 +280,7 @@ class BootAgent(AtraceAgent):
   def __init__(self):
     super(BootAgent, self).__init__()
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, options, categories, timeout=None):
     self._options = options
     try:

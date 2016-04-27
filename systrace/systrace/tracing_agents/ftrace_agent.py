@@ -3,12 +3,9 @@
 # found in the LICENSE file.
 
 import os
-
-from py_utils import Timeout
+import py_utils
 
 from systrace import tracing_agents
-from systrace.tracing_agents import GET_RESULTS_TIMEOUT
-from systrace.tracing_agents import START_STOP_TIMEOUT
 
 class FtraceAgentIo(object):
   @staticmethod
@@ -132,7 +129,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
     return [x for x in categories
             if self._is_category_available(x)]
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, options, categories, timeout=None):
     """Start tracing.
     """
@@ -158,7 +155,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
     self._fio.writeFile(FT_TRACE_ON, '1')
     return True
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     """Collect the result of tracing.
 
@@ -177,7 +174,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
       print "WARN: circular buffer fixups are not yet supported."
     return True
 
-  @Timeout(GET_RESULTS_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
     # get the output
     d = self._fio.readFile(FT_TRACE)

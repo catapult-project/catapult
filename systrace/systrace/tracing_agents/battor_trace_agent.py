@@ -5,17 +5,14 @@
 from os import path
 import atexit
 import logging
+import py_utils
 
 from battor import battor_wrapper
 from devil.android import battery_utils
 from devil.android import device_utils
 from devil.utils import battor_device_mapping
 from py_trace_event import trace_time
-from py_utils import Timeout
-from systrace.tracing_agents import GET_RESULTS_TIMEOUT
-from systrace.tracing_agents import START_STOP_TIMEOUT
-from systrace.tracing_agents import TracingAgent
-from systrace.tracing_agents import TraceResult
+from systrace import tracing_agents
 
 def try_create_agent(options):
   if options.from_file is not None:
@@ -29,7 +26,7 @@ def _reenable_charging_if_needed(battery):
     battery.SetCharging(True)
   logging.info('Charging status checked at exit.')
 
-class BattorTraceAgent(TracingAgent):
+class BattorTraceAgent(tracing_agents.TracingAgent):
   # Class representing tracing agent that gets data from a BattOr.
   # BattOrs are high-frequency power monitors used for battery testing.
   def __init__(self):
@@ -39,7 +36,7 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper = None
     self._battery_utils = None
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, options, _, timeout=None):
     """Starts tracing.
 
@@ -66,7 +63,7 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper.StartTracing()
     return True
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     """Stops tracing and collects the results asynchronously.
 
@@ -94,7 +91,7 @@ class BattorTraceAgent(TracingAgent):
     self._battor_wrapper.RecordClockSyncMarker(sync_id)
     did_record_sync_marker_callback(sync_id, ts)
 
-  @Timeout(GET_RESULTS_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
     """Waits until data collection is completed and get the trace data.
 
@@ -114,5 +111,5 @@ class BattorTraceAgent(TracingAgent):
     Returns:
       The trace data.
     """
-    return TraceResult('powerTraceAsString',
-                       '\n'.join(self._battor_wrapper.CollectTraceData()))
+    return tracing_agents.TraceResult('powerTraceAsString',
+               '\n'.join(self._battor_wrapper.CollectTraceData()))

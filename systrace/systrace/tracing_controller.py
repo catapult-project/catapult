@@ -11,15 +11,13 @@ manages the clock sync process.
 
 import ast
 import sys
+import py_utils
 import tempfile
 import uuid
 
 from systrace import tracing_agents
-from systrace.tracing_agents import GET_RESULTS_TIMEOUT
-from systrace.tracing_agents import START_STOP_TIMEOUT
-
 from py_trace_event import trace_event
-from py_utils import Timeout
+
 
 
 def ControllerAgentClockSync(issue_ts, name):
@@ -37,7 +35,7 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     super(TracingControllerAgent, self).__init__()
     self._log_path = None
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, options, categories, timeout=None):
     """Start tracing for the controller tracing agent.
 
@@ -57,7 +55,7 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     trace_event.trace_enable(self._log_path)
     return True
 
-  @Timeout(START_STOP_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     """Stops tracing for the controller tracing agent.
     """
@@ -67,7 +65,7 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     trace_event.trace_disable()
     return True
 
-  @Timeout(GET_RESULTS_TIMEOUT)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
     """Gets the log output from the controller tracing agent.
 
