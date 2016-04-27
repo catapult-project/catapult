@@ -12,9 +12,11 @@ from telemetry import story
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
+from telemetry.timeline import trace_data
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
+from telemetry.value import trace
 
 
 def _MakeStorySet():
@@ -183,6 +185,19 @@ class ChartJsonTest(unittest.TestCase):
         summary_values)
 
     self.assertTrue('summary' in d['charts']['foo'])
+
+  def testAsChartDictWithTraceValuesThatHasTirLabel(self):
+    v = trace.TraceValue(self._story_set[0], trace_data.TraceData({'test': 1}))
+    v.tir_label = 'background'
+
+    d = chart_json_output_formatter.ResultsAsChartDict(
+        self._benchmark_metadata,
+        page_specific_values=[v],
+        summary_values=[v])
+
+    self.assertTrue('trace' in d['charts'])
+    self.assertTrue('http://www.foo.com/' in d['charts']['trace'],
+                    msg=d['charts']['trace'])
 
   def testAsChartDictValueSmokeTest(self):
     v0 = list_of_scalar_values.ListOfScalarValues(
