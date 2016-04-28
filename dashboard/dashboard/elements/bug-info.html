@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/elements/bisect-button.html">
 
-<polymer-element name="bug-info">
+<dom-module id="bug-info">
   <template>
     <style>
       #container {
@@ -28,6 +28,16 @@ found in the LICENSE file.
         font-weight: bold;
         color: red;
       }
+
+      li {
+        display: inline;
+        /* Width of a space is 0.25em. */
+        padding: 0 0.15em 0 0.4em;
+      }
+
+      li + li {
+        border-left: solid 1px;
+      }
     </style>
     <div id="container" style="display:none">
       <div class="info-bar">
@@ -37,14 +47,15 @@ found in the LICENSE file.
           <span id="warning" class="warning"></span>
           <bisect-button id="bisect" class="mini"></bisect-button>
         </p>
-        <template bind if="{{ownerInfo}}">
+        <template is="dom-if" if="{{ownerInfo}}">
           <p>
             Owners:
-            <template repeat="{{owner, index in ownerInfo}}">
-              <!--TODO(chrisphan): Link this to bug comment dialog.-->
-              <a href="#" onclick="return false;">{{owner.email}}</a>
-              <span hidden?="{{index == ownerInfo.length - 1}}"> | </span>
-            </template>
+            <ul>
+              <template is="dom-repeat" items="{{ownerInfo}}">
+                <!--TODO(chrisphan): Link this to bug comment dialog.-->
+                <li><a href="#" onclick="return false;">{{item.email}}</a></li>
+              </template>
+            </ul>
           </p>
         </template>
       </div>
@@ -52,9 +63,12 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
-    Polymer('bug-info', {
-      alertsTable: null,
-      bugId: null,
+    Polymer({
+      is: 'bug-info',
+      properties: {
+        alertsTable: { value: null},
+        bugId: { value: null},
+      }
 
       /**
        * Initializes this element.
@@ -153,4 +167,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>
