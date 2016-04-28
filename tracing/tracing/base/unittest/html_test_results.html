@@ -116,7 +116,7 @@ tr.exportTo('tr.b.unittest', function() {
   var HTMLTestCaseResult = tr.ui.b.define('x-html-test-case-result');
 
   HTMLTestCaseResult.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate(
