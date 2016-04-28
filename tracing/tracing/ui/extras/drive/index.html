@@ -10,9 +10,9 @@ found in the LICENSE file.
   <script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
 
   <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/tracing/ui/extras/drive/drive_comment_provider.html">
   <link rel="import" href="/tracing/ui/extras/full_config.html">
   <link rel="import" href="/tracing/ui/timeline_view.html">
-  <link rel="import" href="/tracing/ui/extras/drive/drive_comment_provider.html">
 
   <style>
     body {
@@ -209,7 +209,7 @@ found in the LICENSE file.
           setTimeout(onRepeatAuthApiLoad, 30000);
         }, 30000);
       }});
-    }
+    };
 
     function onAuthApiLoad(tryImmediate, resultCallback) {
       window.gapi.auth.authorize(
@@ -291,7 +291,7 @@ found in the LICENSE file.
         downloadingOverlay.msgEl.style.margin = '20px';
         downloadingOverlay.update = function(msg) {
           this.msgEl.textContent = msg;
-        }
+        };
         downloadingOverlay.visible = true;
 
         var accessToken = gapi.auth.getToken().access_token;

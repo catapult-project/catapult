@@ -119,7 +119,7 @@ tr.exportTo('tr.ui.b', function() {
       var setter = this.view_.__lookupSetter__(this.viewProperty_);
       if (!setter) {
         var prop = this.viewProperty_;
-        setter = function(value) { this[prop] = value; }
+        setter = function(value) { this[prop] = value; };
       }
       if (this.listView_.selectedElement) {
         setter.call(this.view_,
