@@ -23,78 +23,78 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="group-report-page">
+<dom-module id="group-report-page">
+  <style>
+    .error {
+      color: #dd4b39;
+      font-weight: bold;
+    }
+
+    /* The action bar contains the graph button and triage button. */
+    #action-bar {
+      margin-top: 20px;
+      width: 100%;
+    }
+
+    /* The top container contains the action bar and alerts list. */
+    #top {
+      display: inline-flex;
+      display: -webkit-inline-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      align-items: flex-start;
+      -webkit-align-items: flex-start;
+      margin-bottom: 15px;
+      width: 100%
+    }
+
+    /* The bottom container contains the charts. */
+    #bottom {
+      display: flex;
+      display: -webkit-flex;
+      flex-direction: column;
+      -webkit-flex-direction: column;
+      min-width: 100%;
+      min-height: 100%;
+    }
+
+    /* Triage dialog at the top level when the user clicks the triage button. */
+    triage-dialog {
+      position: absolute;
+      margin-top: 30px;
+      z-index: 1000;
+    }
+
+    /* This class indicates a button toggled on (e.g. show improvements). */
+    .alert-togglebutton {
+      float: right;
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+
+    #bisect-result-log {
+      width: 100%;
+      display: block;
+    }
+
+    #loading-spinner {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
   <template>
-    <style>
-      .error {
-        color: #dd4b39;
-        font-weight: bold;
-      }
-
-      /* The action bar contains the graph button and triage button. */
-      #action-bar {
-        margin-top: 20px;
-        width: 100%;
-      }
-
-      /* The top container contains the action bar and alerts list. */
-      #top {
-        display: inline-flex;
-        display: -webkit-inline-flex;
-        flex-direction: column;
-        -webkit-flex-direction: column;
-        align-items: flex-start;
-        -webkit-align-items: flex-start;
-        margin-bottom: 15px;
-        width: 100%
-      }
-
-      /* The bottom container contains the charts. */
-      #bottom {
-        display: flex;
-        display: -webkit-flex;
-        flex-direction: column;
-        -webkit-flex-direction: column;
-        min-width: 100%;
-        min-height: 100%;
-      }
-
-      /* Triage dialog at the top level when the user clicks the triage button. */
-      triage-dialog {
-        position: absolute;
-        margin-top: 30px;
-        z-index: 1000;
-      }
-
-      /* This class indicates a button toggled on (e.g. show improvements). */
-      .alert-togglebutton {
-        float: right;
-        margin-left: 4px;
-        margin-right: 4px;
-      }
-
-      #bisect-result-log {
-        width: 100%;
-        display: block;
-      }
-
-      #loading-spinner {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-      }
-    </style>
-    <template if="{{loading}}">
+    <template is="dom-if" if="{{loading}}">
       <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
-    <template if="{{error}}">
+    <template is="dom-if" if="{{error}}">
       <div class="error">{{error}}</div>
     </template>
     <login-warning id="login-warning" loginLink="{{loginUrl}}"
                    hidden?="{{isInternalUser}}">
     </login-warning>
     <div id="top">
-      <div id="action-bar" hidden?="{{loading || error}}">
+      <div id="action-bar" hidden$="{{computeOr(loading, error)}}">
         <paper-button toggle raised
                       id="improvements-toggle"
                       class="alert-togglebutton"
@@ -103,7 +103,7 @@ found in the LICENSE file.
         </paper-button>
       </div>
       <bug-info id="bug-info" xsrfToken="{{xsrfToken}}"></bug-info>
-      <template if="{{bugId}}">
+      <template is="dom-if" if="{{bugId}}">
       <quick-log id="bisect-result-log"
                  xsrfToken="{{xsrfToken}}"
                  logNamespace="bisect_result"
@@ -113,11 +113,11 @@ found in the LICENSE file.
                  expandOnReady="true"></quick-log>
       </template>
       <alerts-table id="alerts-table"
-                    hidden?="{{loading || error}}"
+                    hidden$="{{computeOr(loading, error)}}"
                     xsrfToken="{{xsrfToken}}"
                     alertList="{{alertList}}"
                     extraColumns="{{extraColumns}}"
-                    on-changeselection="{{onAlertSelectionChange}}"></alerts-table>
+                    on-changeselection="onAlertSelectionChange"></alerts-table>
     </div>
 
     <div id="bottom">
@@ -126,19 +126,32 @@ found in the LICENSE file.
 
     <div id="toasts" hidden>
       <div id="warningtoast">
-        {{warningMessage}}
-        <template if="{{warningBug}}">
-          <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
-            bug #{{warningBug}}.</a>
+        <span>{{warningMessage}}</span>
+        <template is="dom-if" if="{{warningBug}}">
+          <a href$="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
+            bug #<span>{{warningBug}}</span>.</a>
         </template>
       </div>
 
   </template>
   <script>
     'use strict';
-    Polymer('group-report-page', {
-      loading: true,
-
+    Polymer({
+      is: 'group-report-page',
+      properties: {
+        extraColumns: {
+          type: Array,
+          value: () =>
+            [{
+              'key': 'percent_changed',
+              'label': 'Delta %'
+            }]
+        },
+        loading: {
+          type: Boolean,
+          value: true
+        }
+      },
       get alertsTable() {
         return this.$['alerts-table'];
       },
@@ -291,9 +304,10 @@ found in the LICENSE file.
           var chart = document.createElement('chart-container');
           this.graphElements_[alert['key']] = chart;
           if (insertBefore) {
-            containerElement.insertBefore(chart, containerElement.firstChild);
+            Polymer.dom(containerElement).insertBefore(
+                chart, Polymer.dom(containerElement.firstChild));
           } else {
-            containerElement.appendChild(chart);
+            Polymer.dom(containerElement).appendChild(chart);
           }
 
           // Set graph params.
@@ -327,8 +341,10 @@ found in the LICENSE file.
         var chartsContainer = this.$['charts-container'];
         for (var key in this.graphElements_) {
           if (!(key in alerts) && key in this.graphElements_) {
-            if (this.graphElements_[key].parentNode == chartsContainer) {
-              chartsContainer.removeChild(this.graphElements_[key]);
+            if (Polymer.dom(this.graphElements_[key]).parentNode ==
+                chartsContainer) {
+              Polymer.dom(chartsContainer).removeChild(
+                  this.graphElements_[key]);
               delete this.graphElements_[key];
             }
           }
@@ -384,7 +400,10 @@ found in the LICENSE file.
             this.error = msg;
             this.loading = false;
           }.bind(this));
+      },
+      computeOr: function(error, loading) {
+        return error | loading;
       }
     });
   </script>
-</polymer-element>
+</dom-module>
