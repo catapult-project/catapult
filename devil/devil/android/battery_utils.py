@@ -608,10 +608,10 @@ class BatteryUtils(object):
         ['dumpsys', 'battery', 'set', 'usb', '1'], check_return=True)
     self._device.RunShellCommand(
         ['dumpsys', 'battery', 'set', 'ac', '1'], check_return=True)
-    self._device.RunShellCommand(
-        ['dumpsys', 'batterystats', '--reset'], check_return=True)
 
     def test_if_clear():
+      self._device.RunShellCommand(
+          ['dumpsys', 'batterystats', '--reset'], check_return=True)
       battery_data = self._device.RunShellCommand(
           ['dumpsys', 'batterystats', '--charged', '-c'],
           check_return=True, large_output=True)
