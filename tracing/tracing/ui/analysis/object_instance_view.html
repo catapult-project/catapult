@@ -15,7 +15,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var ObjectInstanceView = tr.ui.b.define('object-instance-view');
 
   ObjectInstanceView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.objectInstance_ = undefined;
