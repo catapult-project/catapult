@@ -6,7 +6,11 @@ The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
---><script>(function () {
+-->
+
+
+
+<script>(function () {
 function resolve() {
 document.body.removeAttribute('unresolved');
 }
@@ -22,28 +26,22 @@ addEventListener('DOMContentLoaded', resolve);
 }());
 window.Polymer = {
 Settings: function () {
-var user = window.Polymer || {};
+var settings = window.Polymer || {};
 var parts = location.search.slice(1).split('&');
 for (var i = 0, o; i < parts.length && (o = parts[i]); i++) {
 o = o.split('=');
-o[0] && (user[o[0]] = o[1] || true);
+o[0] && (settings[o[0]] = o[1] || true);
 }
-var wantShadow = user.dom === 'shadow';
-var hasShadow = Boolean(Element.prototype.createShadowRoot);
-var nativeShadow = hasShadow && !window.ShadowDOMPolyfill;
-var useShadow = wantShadow && hasShadow;
-var hasNativeImports = Boolean('import' in document.createElement('link'));
-var useNativeImports = hasNativeImports;
-var useNativeCustomElements = !window.CustomElements || window.CustomElements.useNative;
-return {
-wantShadow: wantShadow,
-hasShadow: hasShadow,
-nativeShadow: nativeShadow,
-useShadow: useShadow,
-useNativeShadow: useShadow && nativeShadow,
-useNativeImports: useNativeImports,
-useNativeCustomElements: useNativeCustomElements
-};
+settings.wantShadow = settings.dom === 'shadow';
+settings.hasShadow = Boolean(Element.prototype.createShadowRoot);
+settings.nativeShadow = settings.hasShadow && !window.ShadowDOMPolyfill;
+settings.useShadow = settings.wantShadow && settings.hasShadow;
+settings.hasNativeImports = Boolean('import' in document.createElement('link'));
+settings.useNativeImports = settings.hasNativeImports;
+settings.useNativeCustomElements = !window.CustomElements || window.CustomElements.useNative;
+settings.useNativeShadow = settings.useShadow && settings.nativeShadow;
+settings.usePolyfillProto = !settings.useNativeCustomElements && !Object.__proto__;
+return settings;
 }()
 };
 (function () {
@@ -74,7 +72,6 @@ prototype = Polymer.Base.chainObject(prototype, base);
 prototype.registerCallback();
 return prototype.constructor;
 };
-window.Polymer = Polymer;
 if (userPolymer) {
 for (var i in userPolymer) {
 Polymer[i] = userPolymer[i];
@@ -160,7 +157,6 @@ for (var i = 0, h; i < callbacks.length; i++) {
 h = callbacks[i];
 h[1].apply(h[0], h[2] || Polymer.nar);
 }
-;
 }
 };
 if (window.HTMLImports) {
@@ -172,6 +168,9 @@ Polymer.RenderStatus._catchFirstRender();
 }
 Polymer.ImportStatus = Polymer.RenderStatus;
 Polymer.ImportStatus.whenLoaded = Polymer.ImportStatus.whenReady;
+(function () {
+'use strict';
+var settings = Polymer.Settings;
 Polymer.Base = {
 __isPolymerInstance__: true,
 _addFeature: function (feature) {
@@ -181,13 +180,30 @@ registerCallback: function () {
 this._desugarBehaviors();
 this._doBehavior('beforeRegister');
 this._registerFeatures();
-this._doBehavior('registered');
+if (!settings.lazyRegister) {
+this.ensureRegisterFinished();
+}
 },
 createdCallback: function () {
+if (!this.__hasRegisterFinished) {
+this._ensureRegisterFinished(this.__proto__);
+}
 Polymer.telemetry.instanceCount++;
 this.root = this;
 this._doBehavior('created');
 this._initFeatures();
+},
+ensureRegisterFinished: function () {
+this._ensureRegisterFinished(this);
+},
+_ensureRegisterFinished: function (proto) {
+if (proto.__hasRegisterFinished !== proto.is) {
+proto.__hasRegisterFinished = proto.is;
+if (proto._finishRegisterFeatures) {
+proto._finishRegisterFeatures();
+}
+proto._doBehavior('registered');
+}
 },
 attachedCallback: function () {
 var self = this;
@@ -267,6 +283,7 @@ Polymer.isInstance = function (obj) {
 return Boolean(obj && obj.__isPolymerInstance__);
 };
 Polymer.telemetry.instanceCount = 0;
+}());
 (function () {
 var modules = {};
 var lcModules = {};
@@ -283,7 +300,7 @@ createdCallback: function () {
 this.register();
 },
 register: function (id) {
-var id = id || this.id || this.getAttribute('name') || this.getAttribute('is');
+id = id || this.id || this.getAttribute('name') || this.getAttribute('is');
 if (id) {
 this.id = id;
 modules[id] = this;
@@ -343,11 +360,16 @@ this.behaviors = this._desugarSomeBehaviors(this.behaviors);
 }
 },
 _desugarSomeBehaviors: function (behaviors) {
+var behaviorSet = [];
 behaviors = this._flattenBehaviorsList(behaviors);
 for (var i = behaviors.length - 1; i >= 0; i--) {
-this._mixinBehavior(behaviors[i]);
+var b = behaviors[i];
+if (behaviorSet.indexOf(b) === -1) {
+this._mixinBehavior(b);
+behaviorSet.unshift(b);
 }
-return behaviors;
+}
+return behaviorSet;
 },
 _flattenBehaviorsList: function (behaviors) {
 var flat = [];
@@ -401,6 +423,7 @@ this._marshalBehavior(this);
 });
 Polymer.Base._behaviorProperties = {
 hostAttributes: true,
+beforeRegister: true,
 registered: true,
 properties: true,
 observers: true,
@@ -468,7 +491,6 @@ if (info) {
 return info;
 }
 }
-;
 }
 return info || Polymer.nob;
 },
@@ -484,7 +506,7 @@ return p;
 },
 _prepPropertyInfo: function () {
 this._propertyInfo = {};
-for (var i = 0, p; i < this.behaviors.length; i++) {
+for (var i = 0; i < this.behaviors.length; i++) {
 this._addPropertyInfo(this._propertyInfo, this.behaviors[i].properties);
 }
 this._addPropertyInfo(this._propertyInfo, this.properties);
@@ -519,26 +541,17 @@ t.readOnly = s.readOnly;
 });
 Polymer.CaseMap = {
 _caseMap: {},
+_rx: {
+dashToCamel: /-[a-z]/g,
+camelToDash: /([A-Z])/g
+},
 dashToCamelCase: function (dash) {
-var mapped = Polymer.CaseMap._caseMap[dash];
-if (mapped) {
-return mapped;
-}
-if (dash.indexOf('-') < 0) {
-return Polymer.CaseMap._caseMap[dash] = dash;
-}
-return Polymer.CaseMap._caseMap[dash] = dash.replace(/-([a-z])/g, function (m) {
+return this._caseMap[dash] || (this._caseMap[dash] = dash.indexOf('-') < 0 ? dash : dash.replace(this._rx.dashToCamel, function (m) {
 return m[1].toUpperCase();
-});
+}));
 },
 camelToDashCase: function (camel) {
-var mapped = Polymer.CaseMap._caseMap[camel];
-if (mapped) {
-return mapped;
-}
-return Polymer.CaseMap._caseMap[camel] = camel.replace(/([a-z][A-Z])/g, function (g) {
-return g[0] + '-' + g[1].toLowerCase();
-});
+return this._caseMap[camel] || (this._caseMap[camel] = camel.replace(this._rx.camelToDash, '-$1').toLowerCase());
 }
 };
 Polymer.Base._addFeature({
@@ -578,7 +591,7 @@ this._setAttributeToProperty(model, info.attribute, i, info);
 },
 _setAttributeToProperty: function (model, attribute, property, info) {
 if (!this._serializing) {
-var property = property || Polymer.CaseMap.dashToCamelCase(attribute);
+property = property || Polymer.CaseMap.dashToCamelCase(attribute);
 info = info || this._propertyInfo && this._propertyInfo[property];
 if (info && !info.readOnly) {
 var v = this.getAttribute(attribute);
@@ -608,7 +621,7 @@ case Number:
 value = Number(value);
 break;
 case Boolean:
-value = value !== null;
+value = value != null;
 break;
 case Object:
 try {
@@ -639,7 +652,7 @@ case 'boolean':
 return value ? '' : undefined;
 case 'object':
 if (value instanceof Date) {
-return value;
+return value.toString();
 } else if (value) {
 try {
 return JSON.stringify(value);
@@ -652,31 +665,7 @@ return value != null ? value : undefined;
 }
 }
 });
-Polymer.Base._addFeature({
-_setupDebouncers: function () {
-this._debouncers = {};
-},
-debounce: function (jobName, callback, wait) {
-return this._debouncers[jobName] = Polymer.Debounce.call(this, this._debouncers[jobName], callback, wait);
-},
-isDebouncerActive: function (jobName) {
-var debouncer = this._debouncers[jobName];
-return debouncer && debouncer.finish;
-},
-flushDebouncer: function (jobName) {
-var debouncer = this._debouncers[jobName];
-if (debouncer) {
-debouncer.complete();
-}
-},
-cancelDebouncer: function (jobName) {
-var debouncer = this._debouncers[jobName];
-if (debouncer) {
-debouncer.stop();
-}
-}
-});
-Polymer.version = '1.2.3';
+Polymer.version = '1.4.0';
 Polymer.Base._addFeature({
 _registerFeatures: function () {
 this._prepIs();
@@ -691,8 +680,6 @@ _marshalBehavior: function (b) {
 },
 _initFeatures: function () {
 this._marshalHostAttributes();
-this._setupDebouncers();
 this._marshalBehaviors();
 }
 });</script>
-

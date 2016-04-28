@@ -19,191 +19,277 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
-  <link rel="import" href="../../iron-icons/iron-icons.html">
-  <link rel="import" href="../../iron-icon/iron-icon.html">
-  <link rel="import" href="../../paper-listbox/paper-listbox.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
   <link rel="import" href="../../paper-item/paper-item.html">
-  <link rel="import" href="../../paper-button/paper-button.html">
-  <link rel="import" href="../../paper-styles/demo-pages.html">
+  <link rel="import" href="../../paper-listbox/paper-listbox.html">
   <link rel="import" href="../../paper-tabs/paper-tabs.html">
-
   <link rel="import" href="../paper-dropdown-menu.html">
+  <link rel="import" href="../paper-dropdown-menu-light.html">
 
-  <style is="custom-style">
-    paper-dropdown-menu {
-      text-align: left;
-      margin: auto;
-      width: 180px;
-    }
-
-    paper-dropdown-menu.letters {
-      width: 90px;
-    }
-
+  <style is="custom-style" include="demo-pages-shared-styles">
     paper-tabs {
       width: 400px;
     }
 
-    .horizontal-section {
-      text-align: center;
+    .vertical-section-container {
+      max-width: 500px;
     }
 
-    .nounderline {
-      --paper-input-container-underline: {
-        display: none;
-      };
+    paper-dropdown-menu {
+      width: 200px;
+      margin-right: 20px;
     }
   </style>
 
 </head>
-<body>
+<body unresolved>
+  <div class="vertical-section-container centered">
+    <h4>This is a plain paper-dropdown-menu</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <paper-dropdown-menu label="Dinosaurs">
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
 
-  <template id="Demo" is="dom-bind">
+        <paper-dropdown-menu-light label="Dinosaurs (light)">
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>Basic Menu</h4>
-        <div class="horizontal-section">
+    <h4>You can pre-select a value using the <i>selected</i> attribute</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <paper-dropdown-menu label="Dinosaurs">
+          <paper-listbox class="dropdown-content" selected="1">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-dropdown-menu-light label="Dinosaurs (light)">
+          <paper-listbox class="dropdown-content" selected="1">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
+
+    <h4>You can change the direction in which the menu opens</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <paper-dropdown-menu label="Upwards and to the left!" vertical-align="bottom" horizontal-align="left">
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-dropdown-menu-light label="Upwards and to the left! (light)" vertical-align="bottom" horizontal-align="left">
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
+
+
+    <h4>A paper-dropdown-menu can be disabled</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <paper-dropdown-menu label="Disabled dinosaurs" disabled>
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
+
+        <paper-dropdown-menu-light label="Disabled dinosaurs (light)" disabled>
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
+
+    <!-- TODO(noms): enable this demo when the webcomponentsjs bug is fixed -->
+    <!-- <h4>Here is an example of a long, scrolling menu, using a <i>dom-repeat</i></h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <template is="dom-bind" id="Demo">
           <paper-dropdown-menu label="Dinosaurs">
             <paper-listbox class="dropdown-content">
-              <template is="dom-repeat" items="[[dinosaurs]]" as="dinosaur">
+              <template is="dom-repeat" items='[[dinosaurs]]' as="dinosaur">
                 <paper-item>[[dinosaur]]</paper-item>
               </template>
             </paper-listbox>
           </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+        </template>
+      </template>
+    </demo-snippet> -->
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>Pre-selected Value</h4>
-        <div class="horizontal-section">
-          <paper-dropdown-menu label="Dinosaurs">
-            <paper-listbox class="dropdown-content" selected="1">
-              <template is="dom-repeat" items="[[dinosaurs]]" as="dinosaur">
-                <paper-item>[[dinosaur]]</paper-item>
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+    <h4>A paper-dropdown-menu can contain any kind of content, such as tabs</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <paper-dropdown-menu label="Menu tabs!?">
+          <paper-tabs class="dropdown-content">
+            <paper-tab>cheddar</paper-tab>
+            <paper-tab>stilton</paper-tab>
+            <paper-tab>emmental</paper-tab>
+          </paper-tabs>
+        </paper-dropdown-menu>
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>Disabled</h4>
-        <div class="horizontal-section">
-          <paper-dropdown-menu disabled label="Disabled">
-            <paper-listbox class="dropdown-content">
-              <template is="dom-repeat" items="[[letters]]" as="letter">
-                <paper-item>[[letter]]</paper-item>
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+        <paper-dropdown-menu-light label="Menu tabs!? (light)">
+          <paper-tabs class="dropdown-content">
+            <paper-tab>cheddar</paper-tab>
+            <paper-tab>stilton</paper-tab>
+            <paper-tab>emmental</paper-tab>
+          </paper-tabs>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>Alternative Content</h4>
-        <div class="horizontal-section">
-          <paper-dropdown-menu label="Menu tabs!?">
-            <paper-tabs class="dropdown-content">
-              <template is="dom-repeat" items="[[letters]]" as="letter">
-                <paper-tab>[[letter]]</paper-tab>
-              </template>
-            </paper-tabs>
-          </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+    <h4>You can remove the ripple and the animations</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <paper-dropdown-menu label="Dinosaurs" noink no-animations>
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>No underline (menu from bottom)</h4>
-        <div class="horizontal-section">
-          <paper-dropdown-menu class="nounderline" label="Letters" vertical-align="bottom">
-            <paper-listbox class="dropdown-content">
-              <template is="dom-repeat" items="[[letters]]" as="letter">
-                <paper-item>[[letter]]</paper-item>
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+        <paper-dropdown-menu-light label="Dinosaurs (light)" noink no-animations>
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>No Label Float</h4>
-        <div class="horizontal-section">
-          <paper-dropdown-menu class="letters" label="Letters" no-label-float>
-            <paper-listbox class="dropdown-content">
-              <template is="dom-repeat" items="[[letters]]" as="letter">
-                <paper-item>[[letter]]</paper-item>
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+    <h4>You can style a paper-dropdown-menu using custom properties</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <style is="custom-style">
+          paper-dropdown-menu.custom {
+            --paper-input-container-label: {
+              color: var(--paper-pink-500);
+              font-style: italic;
+              text-align: center;
+              font-weight: bold;
+            };
+            --paper-input-container-input: {
+              color: var(--paper-indigo-500);
+              font-style: normal;
+              font-family: serif;
+              text-transform: uppercase;
+            }
+            /* no underline */
+            --paper-input-container-underline: {
+              display: none;
+            };
+          }
 
-    <div class="horizontal-section-container">
-      <div>
-        <h4>No Ripple, No Animations</h4>
-        <div class="horizontal-section">
-          <paper-dropdown-menu label="Dinosaurs" noink no-animations>
-            <paper-listbox class="dropdown-content">
-              <template is="dom-repeat" items="[[dinosaurs]]" as="dinosaur">
-                <paper-item>[[dinosaur]]</paper-item>
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
-      </div>
-    </div>
+          paper-dropdown-menu-light.custom {
+            --paper-dropdown-menu-label: {
+              color: var(--paper-pink-500);
+              font-style: italic;
+              text-align: center;
+              font-weight: bold;
+            };
+            --paper-dropdown-menu-input: {
+              color: var(--paper-indigo-500);
+              font-style: normal;
+              font-family: serif;
+              text-transform: uppercase;
+              /* no underline */
+              border-bottom: none;
+            }
+          }
+        </style>
+        <paper-dropdown-menu class="custom" label="Custom" no-label-float>
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu>
 
-  </template>
+        <paper-dropdown-menu-light class="custom" label="Custom (light)" no-label-float>
+          <paper-listbox class="dropdown-content">
+            <paper-item>allosaurus</paper-item>
+            <paper-item>brontosaurus</paper-item>
+            <paper-item>carcharodontosaurus</paper-item>
+            <paper-item>diplodocus</paper-item>
+          </paper-listbox>
+        </paper-dropdown-menu-light>
+      </template>
+    </demo-snippet>
+  </div>
 
   <script>
-    Demo.letters = [
-      'alpha',
-      'beta',
-      'gamma',
-      'delta',
-      'epsilon'
-    ];
-    Demo.dinosaurs = [
-      'allosaurus',
-      'brontosaurus',
-      'carcharodontosaurus',
-      'diplodocus',
-      'ekrixinatosaurus',
-      'fukuiraptor',
-      'gallimimus',
-      'hadrosaurus',
-      'iguanodon',
-      'jainosaurus',
-      'kritosaurus',
-      'liaoceratops',
-      'megalosaurus',
-      'nemegtosaurus',
-      'ornithomimus',
-      'protoceratops',
-      'quetecsaurus',
-      'rajasaurus',
-      'stegosaurus',
-      'triceratops',
-      'utahraptor',
-      'vulcanodon',
-      'wannanosaurus',
-      'xenoceratops',
-      'yandusaurus',
-      'zephyrosaurus'
-    ];
+  // document.addEventListener('WebComponentsReady', function() {
+  //   Demo.dinosaurs = [
+  //     'allosaurus',
+  //     'brontosaurus',
+  //     'carcharodontosaurus',
+  //     'diplodocus',
+  //     'ekrixinatosaurus',
+  //     'fukuiraptor',
+  //     'gallimimus',
+  //     'hadrosaurus',
+  //     'iguanodon',
+  //     'jainosaurus',
+  //     'kritosaurus',
+  //     'liaoceratops',
+  //     'megalosaurus',
+  //     'nemegtosaurus',
+  //     'ornithomimus',
+  //     'protoceratops',
+  //     'quetecsaurus',
+  //     'rajasaurus',
+  //     'stegosaurus',
+  //     'triceratops',
+  //     'utahraptor',
+  //     'vulcanodon',
+  //     'wannanosaurus',
+  //     'xenoceratops',
+  //     'yandusaurus',
+  //     'zephyrosaurus'
+  //   ];
+  // });
   </script>
-
 </body>
 </html>

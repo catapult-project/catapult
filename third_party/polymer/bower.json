@@ -16,6 +16,7 @@
     "paper-input": "PolymerElements/paper-input#^1.0.0",
     "paper-progress": "PolymerElements/paper-progress#^1.0.0",
     "paper-spinner": "PolymerElements/paper-spinner#^1.0.0",
+    "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "polymer": "Polymer/polymer#^1.0.0"
   }
 }

@@ -12,9 +12,9 @@ thing! https://github.com/PolymerLabs/tedium/issues
 
 -->
 
-[![Build Status](https://travis-ci.org/PolymerElements/paper-input.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-input)
+[![Build status](https://travis-ci.org/PolymerElements/paper-input.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-input)
 
-_[Demo and API Docs](https://elements.polymer-project.org/elements/paper-input)_
+_[Demo and API docs](https://elements.polymer-project.org/elements/paper-input)_
 
 
 ##&lt;paper-input&gt;
@@ -109,6 +109,9 @@ For example:
 </paper-input-container>
 ```
 
+Do not wrap `<paper-input-container>` around elements that already include it, such as `<paper-input>`.
+Doing so may cause events to bounce infintely between the container and its contained element.
+
 ### Listening for input changes
 
 By default, it listens for changes on the `bind-value` attribute on its children nodes and perform
@@ -128,6 +131,10 @@ compound input field like a social security number input. The custom input eleme
   <ssn-input class="paper-input-input"></ssn-input>
 </paper-input-container>
 ```
+
+If you're using a `<paper-input-container>` imperatively, it's important to make sure
+that you attach its children (the `iron-input` and the optional `label`) before you
+attach the `<paper-input-container>` itself, so that it can be set up correctly.
 
 ### Validation
 
@@ -162,8 +169,8 @@ The following custom properties and mixins are available for styling:
 | Custom property | Description | Default |
 | --- | --- | --- |
 | `--paper-input-container-color` | Label and underline color when the input is not focused | `--secondary-text-color` |
-| `--paper-input-container-focus-color` | Label and underline color when the input is focused | `--default-primary-color` |
-| `--paper-input-container-invalid-color` | Label and underline color when the input is is invalid | `--google-red-500` |
+| `--paper-input-container-focus-color` | Label and underline color when the input is focused | `--primary-color` |
+| `--paper-input-container-invalid-color` | Label and underline color when the input is is invalid | `--error-color` |
 | `--paper-input-container-input-color` | Input foreground color | `--primary-text-color` |
 | `--paper-input-container` | Mixin applied to the container | `{}` |
 | `--paper-input-container-disabled` | Mixin applied to the container when it's disabled | `{}` |
@@ -200,7 +207,7 @@ The following custom properties and mixins are available for styling:
 
 | Custom property | Description | Default |
 | --- | --- | --- |
-| `--paper-input-container-invalid-color` | The foreground color of the error | `--google-red-500` |
+| `--paper-input-container-invalid-color` | The foreground color of the error | `--error-color` |
 | `--paper-input-error` | Mixin applied to the error | `{}` |
 
 

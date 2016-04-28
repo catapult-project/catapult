@@ -9,6 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html">
 
 <!--
 `iron-collapse` creates a collapsible block of content.  By default, the content
@@ -56,11 +57,15 @@ and instead put a div inside and style that.
     :host {
       display: block;
       transition-duration: 300ms;
-      overflow: auto;
+      overflow: visible;
     }
 
     :host(.iron-collapse-closed) {
       display: none;
+    }
+
+    :host(:not(.iron-collapse-opened)) {
+      overflow: hidden;
     }
 
   </style>
@@ -78,6 +83,10 @@ and instead put a div inside and style that.
   Polymer({
 
     is: 'iron-collapse',
+
+    behaviors: [
+      Polymer.IronResizableBehavior
+    ],
 
     properties: {
 
@@ -113,6 +122,10 @@ and instead put a div inside and style that.
         type: Boolean
       },
 
+    },
+
+    get dimension() {
+      return this.horizontal ? 'width' : 'height';
     },
 
     hostAttributes: {
@@ -155,7 +168,7 @@ and instead put a div inside and style that.
 
       this._updateTransition(false);
       // If we can animate, must do some prep work.
-      if (animated && !this.noAnimation) {
+      if (animated && !this.noAnimation && this._isDisplayed) {
         // Animation will start at the current size.
         var startSize = this._calcSize();
         // For `auto` we must calculate what is the final size for the animation.
@@ -193,8 +206,10 @@ and instead put a div inside and style that.
     },
 
     _horizontalChanged: function() {
-      this.dimension = this.horizontal ? 'width' : 'height';
       this.style.transitionProperty = this.dimension;
+      var otherDimension = this.dimension === 'width' ? 'height' : 'width';
+      this.style[otherDimension] = '';
+      this.updateSize(this.opened ? 'auto' : '0px', false);
     },
 
     _openedChanged: function() {
@@ -221,6 +236,20 @@ and instead put a div inside and style that.
       this.toggleClass('iron-collapse-closed', !this.opened);
       this.toggleClass('iron-collapse-opened', this.opened);
       this._updateTransition(false);
+      this.notifyResize();
+    },
+
+    /**
+     * Simplistic heuristic to detect if element has a parent with display: none
+     *
+     * @private
+     */
+    get _isDisplayed() {
+      var rect = this.getBoundingClientRect();
+      for (var prop in rect) {
+        if (rect[prop] !== 0) return true;
+      }
+      return false;
     },
 
     _calcSize: function() {

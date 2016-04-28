@@ -7,7 +7,7 @@
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-// @version 0.7.20
+// @version 0.7.22
 (function() {
   window.WebComponents = window.WebComponents || {
     flags: {}
@@ -3420,10 +3420,7 @@ if (WebComponents.flags.shadow) {
         var unwrappedActiveElement = unwrap(this).ownerDocument.activeElement;
         if (!unwrappedActiveElement || !unwrappedActiveElement.nodeType) return null;
         var activeElement = wrap(unwrappedActiveElement);
-        if (activeElement === this.host) {
-          return null;
-        }
-        while (!this.contains(activeElement) && !this.host.contains(activeElement)) {
+        while (!this.contains(activeElement)) {
           while (activeElement.parentNode) {
             activeElement = activeElement.parentNode;
           }
@@ -6368,7 +6365,7 @@ window.HTMLImports.addModule(function(scope) {
       if (doc && this._mayParse.indexOf(doc) < 0) {
         this._mayParse.push(doc);
         var nodes = doc.querySelectorAll(this.parseSelectorsForNode(doc));
-        for (var i = 0, l = nodes.length, p = 0, n; i < l && (n = nodes[i]); i++) {
+        for (var i = 0, l = nodes.length, n; i < l && (n = nodes[i]); i++) {
           if (!this.isParsed(n)) {
             if (this.hasResource(n)) {
               return nodeIsImport(n) ? this.nextToParseInDoc(n.__doc, n) : n;
@@ -6933,6 +6930,9 @@ window.CustomElements.addModule(function(scope) {
       definition.prototype = Object.create(HTMLElement.prototype);
     }
     definition.__name = name.toLowerCase();
+    if (definition.extends) {
+      definition.extends = definition.extends.toLowerCase();
+    }
     definition.lifecycle = definition.lifecycle || {};
     definition.ancestry = ancestry(definition.extends);
     resolveTagName(definition);
@@ -7105,21 +7105,6 @@ window.CustomElements.addModule(function(scope) {
   }
   wrapDomMethodToForceUpgrade(Node.prototype, "cloneNode");
   wrapDomMethodToForceUpgrade(document, "importNode");
-  if (isIE) {
-    (function() {
-      var importNode = document.importNode;
-      document.importNode = function() {
-        var n = importNode.apply(document, arguments);
-        if (n.nodeType == n.DOCUMENT_FRAGMENT_NODE) {
-          var f = document.createDocumentFragment();
-          f.appendChild(n);
-          return f;
-        } else {
-          return n;
-        }
-      };
-    })();
-  }
   document.registerElement = register;
   document.createElement = createElement;
   document.createElementNS = createElementNS;

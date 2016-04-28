@@ -19,9 +19,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
     <link rel="import" href="../iron-collapse.html">
+    <link rel="import" href="../../paper-styles/shadow.html">
     <link rel="stylesheet" href="../../paper-styles/demo.css">
 
-    <style>
+    <style is="custom-style">
       .heading {
         padding: 10px 15px;
         margin-top: 20px;
@@ -42,6 +43,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         border-top: none;
         border-bottom-left-radius: 5px;
         border-bottom-right-radius: 5px;
+        @apply(--shadow-elevation-2dp);
       }
 
       #collapse3 {

@@ -1,4 +1,5 @@
 <!--
+@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -39,7 +40,6 @@ animations to be run when switching to or switching out of the page.
       left: 0;
       bottom: 0;
       right: 0;
-      height: 100%;
     }
 
     :host > ::content > :not(.iron-selected):not(.neon-animating) {
@@ -86,19 +86,21 @@ animations to be run when switching to or switching out of the page.
 
     },
 
-    observers: [
-      '_selectedChanged(selected)'
-    ],
-
     listeners: {
+      'iron-select': '_onIronSelect',
       'neon-animation-finish': '_onNeonAnimationFinish'
     },
 
-    _selectedChanged: function(selected) {
+    _onIronSelect: function(event) {
+      var selectedPage = event.detail.item;
 
-      var selectedPage = this.selectedItem;
+      // Only consider child elements.
+      if (this.items.indexOf(selectedPage) < 0) {
+        return;
+      }
+      
       var oldPage = this._valueToItem(this._prevSelected) || false;
-      this._prevSelected = selected;
+      this._prevSelected = this.selected;
 
       // on initial load and if animateInitialSelection is negated, simply display selectedPage.
       if (!oldPage && !this.animateInitialSelection) {
@@ -213,7 +215,7 @@ animations to be run when switching to or switching out of the page.
     },
 
     _notifyPageResize: function() {
-      var selectedPage = this.selectedItem;
+      var selectedPage = this.selectedItem || this._valueToItem(this.selected);
       this.resizerShouldNotify = function(element) {
         return element == selectedPage;
       }

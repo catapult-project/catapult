@@ -18,7 +18,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       /*
        * Constants:
-       *      STROKEWIDTH = 3px
        *      ARCSIZE     = 270 degrees (amount of circle the arc takes up)
        *      ARCTIME     = 1333ms (time it takes to expand and contract arc)
        *      ARCSTARTROT = 216 degrees (how much the start location of the arc
@@ -266,7 +265,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .circle {
         box-sizing: border-box;
         height: 100%;
-        border-width: 3px; /* STROKEWIDTH */
+        border-width: var(--paper-spinner-stroke-width, 3px); /* STROKEWIDTH */
         border-style: solid;
         border-color: inherit;
         border-bottom-color: transparent !important;

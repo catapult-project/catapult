@@ -51,6 +51,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <script>
 
+    function runAfterOpen(menu, callback) {
+      menu.$.menuButton.$.dropdown.addEventListener('iron-overlay-opened', function() {
+        Polymer.Base.async(callback, 1);
+      });
+      MockInteractions.tap(menu);
+    }
+
     suite('<paper-dropdown-menu>', function() {
       var dropdownMenu;
 
@@ -65,10 +72,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         expect(contentRect.width).to.be.equal(0);
         expect(contentRect.height).to.be.equal(0);
 
-        MockInteractions.tap(dropdownMenu);
-        expect(dropdownMenu.opened).to.be.equal(true);
-
-        Polymer.Base.async(function() {
+        runAfterOpen(dropdownMenu, function() {
           contentRect = content.getBoundingClientRect();
 
           expect(dropdownMenu.opened).to.be.equal(true);
@@ -77,12 +81,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           expect(contentRect.height).to.be.greaterThan(0);
           done();
         });
+
+        expect(dropdownMenu.opened).to.be.equal(true);
       });
 
       test('closes when an item is activated', function(done) {
-        MockInteractions.tap(dropdownMenu);
-
-        Polymer.Base.async(function() {
+        runAfterOpen(dropdownMenu, function() {
           var firstItem = Polymer.dom(content).querySelector('paper-item');
 
           MockInteractions.tap(firstItem);
@@ -95,9 +99,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       test('sets selected item to the activated item', function(done) {
-        MockInteractions.tap(dropdownMenu);
-
-        Polymer.Base.async(function() {
+        runAfterOpen(dropdownMenu, function() {
           var firstItem = Polymer.dom(content).querySelector('paper-item');
 
           MockInteractions.tap(firstItem);

@@ -1,21 +1,44 @@
 {
   "name": "paper-toast",
+  "version": "1.2.2",
+  "description": "A material design notification toast",
   "private": true,
-  "dependencies": {
-    "core-media-query": "Polymer/core-media-query#^0.5",
-    "core-overlay": "Polymer/core-overlay#^0.5",
-    "font-roboto": "Polymer/font-roboto#^0.5",
-    "paper-button": "Polymer/paper-button#^0.5"
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "authors": [
+    "The Polymer Authors"
+  ],
+  "keywords": [
+    "web-components",
+    "polymer",
+    "toast",
+    "notification"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/PolymerElements/paper-toast.git"
   },
-  "version": "0.5.5",
-  "homepage": "https://github.com/Polymer/paper-toast",
-  "_release": "0.5.5",
+  "main": "paper-toast.html",
+  "dependencies": {
+    "iron-a11y-announcer": "PolymerElements/iron-a11y-announcer#^1.0.0",
+    "iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.0.9",
+    "polymer": "Polymer/polymer#^1.1.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "paper-button": "PolymerElements/paper-button#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  },
+  "ignore": [],
+  "homepage": "https://github.com/PolymerElements/paper-toast",
+  "_release": "1.2.2",
   "_resolution": {
     "type": "version",
-    "tag": "0.5.5",
-    "commit": "9b84763ac5dcfeb267c8a4f1ea8d1ede61653e6a"
+    "tag": "v1.2.2",
+    "commit": "7168963180e3a0ce4b668955ee46f4297ba35c41"
   },
-  "_source": "git://github.com/Polymer/paper-toast.git",
-  "_target": "0.5.5",
-  "_originalSource": "Polymer/paper-toast"
+  "_source": "git://github.com/PolymerElements/paper-toast.git",
+  "_target": "^1.0.0",
+  "_originalSource": "PolymerElements/paper-toast"
 }
