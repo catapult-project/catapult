@@ -249,6 +249,57 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(V8LogImporter.canImport(''));
     assert.isFalse(V8LogImporter.canImport([]));
   });
+
+  test('CppSymbolsProcess', function() {
+    var lines = [
+      'shared-library,"/usr/loca/v8/out/native/d8",0x00400000, 0x01860000',
+      'cpp,0x00600000,100,"v8::internal::Heap::AllocateByteArray"',
+      'cpp,0x00700000,100,"v8::internal::Utf8StringKey::AsHandle"',
+      'tick,0x00600010,121,0,0x0,5',
+      'tick,0x00700010,122,0,0x0,5',
+      'tick,0x00800010,123,0,0x0,5'];
+    var m = newModel(lines.join('\n'));
+    var p = m.processes[-32];
+    var t = p.findAllThreadsNamed('V8')[0];
+    assert.equal(t.samples.length, 3);
+    assert.equal(t.samples[0].leafStackFrame.title,
+                 'v8::internal::Heap::AllocateByteArray /usr/loca/v8/out/native/d8');  // @suppress longLineCheck
+    assert.equal(t.samples[1].leafStackFrame.title,
+                 'v8::internal::Utf8StringKey::AsHandle /usr/loca/v8/out/native/d8');  // @suppress longLineCheck
+    assert.equal(t.samples[2].leafStackFrame.title,
+                 '/usr/loca/v8/out/native/d8');
+  });
+
+  test('CppSymbolsWithJsStack', function() {
+    var lines = [
+      'shared-library,"/usr/loca/v8/out/native/d8",0x00400000, 0x01860000',
+      'cpp,0x00600000,100,"v8::internal::Heap::AllocateByteArray"',
+      'cpp,0x00700000,100,"v8::internal::Utf8StringKey::AsHandle"',
+      'code-creation,LazyCompile,0,0x2905d0c0,1800,"InstantiateFunction native apinatives.js:26:29",0x56b19124,', // @suppress longLineCheck
+      'tick,0x00700010,1,0,0x3,0,0x2905d304',
+      'tick,0x00600010,3,0,0x3,0,0x2905d306',
+      'tick,0x00800010,5,0,0x3,0,0x2905d306',
+      'tick,0x01860010,5,0,0x3,0,0x2905d306'];
+    var m = newModel(lines.join('\n'));
+    var p = m.processes[-32];
+    var t = p.findAllThreadsNamed('V8')[0];
+    assert.equal(t.samples.length, 4);
+    assert.deepEqual(t.samples[0].stackTrace.map(r => r.title), [
+      'v8::internal::Utf8StringKey::AsHandle /usr/loca/v8/out/native/d8',
+      'InstantiateFunction native apinatives.js:26:29'
+    ]);
+    assert.deepEqual(t.samples[1].stackTrace.map(r => r.title), [
+      'v8::internal::Heap::AllocateByteArray /usr/loca/v8/out/native/d8',
+      'InstantiateFunction native apinatives.js:26:29'
+    ]);
+    assert.deepEqual(t.samples[2].stackTrace.map(r => r.title), [
+      '/usr/loca/v8/out/native/d8',
+      'InstantiateFunction native apinatives.js:26:29'
+    ]);
+    assert.deepEqual(t.samples[3].stackTrace.map(r => r.title), [
+      'InstantiateFunction native apinatives.js:26:29'
+    ]);
+  });
 });
 </script>
 

@@ -170,6 +170,12 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.code_map_.addLibrary(start, code_entry);
     },
 
+    processCppSymbol_: function(address, size, name) {
+      var code_entry = new CodeEntry(size, name, CodeEntry.TYPE.CPP);
+      code_entry.kind = -1;
+      this.code_map_.addStaticCode(address, code_entry);
+    },
+
     findCodeKind_: function(kind) {
       for (name in CodeKinds) {
         if (CodeKinds[name].kinds.indexOf(kind) >= 0) {
@@ -178,7 +184,8 @@ tr.exportTo('tr.e.importer.v8', function() {
       }
     },
 
-    processTickEvent_: function(pc, start, unused_x, unused_y, vmstate, stack) {
+    processTickEvent_: function(pc, start, is_external_callback,
+                                tos_or_external_callback, vmstate, stack) {
       start /= 1000;
 
       function findChildWithEntryID(stackFrame, entryID) {
@@ -189,47 +196,82 @@ tr.exportTo('tr.e.importer.v8', function() {
         return undefined;
       }
 
-      var lastStackFrame;
-      if (stack && stack.length) {
-
-        lastStackFrame = this.root_stack_frame_;
-        // v8 log stacks are inverted, leaf first and the root at the end.
-        stack = stack.reverse();
-        for (var i = 0; i < stack.length; i++) {
-          if (!stack[i])
-            break;
-          var entry = this.code_map_.findEntry(stack[i]);
-
-          var entryID = entry ? entry.id : 'Unknown';
-          var childFrame = findChildWithEntryID(lastStackFrame, entryID);
-          if (childFrame === undefined) {
-            var entryName = entry ? entry.name : 'Unknown';
-            lastStackFrame = new tr.model.StackFrame(
-                lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(), entryName,
-                ColorScheme.getColorIdForGeneralPurposeString(entryName));
-            lastStackFrame.entryID = entryID;
-            this.model_.addStackFrame(lastStackFrame);
-          } else {
-            lastStackFrame = childFrame;
+      function processStack(pc, func, stack) {
+        var fullStack = func ? [pc, func] : [pc];
+        var prevFrame = pc;
+        for (var i = 0, n = stack.length; i < n; ++i) {
+          var frame = stack[i];
+          var firstChar = frame.charAt(0);
+          if (firstChar === '+' || firstChar === '-') {
+            // An offset from the previous frame.
+            prevFrame += parseInt(frame, 16);
+            fullStack.push(prevFrame);
+            // Filter out possible 'overflow' string.
+          } else if (firstChar !== 'o') {
+            fullStack.push(parseInt(frame, 16));
           }
+          // Otherwise, they will be skipped.
         }
-      } else {
-        var pcEntry = this.code_map_.findEntry(pc);
-        var pcEntryID = 'v8pc-' + (pcEntry ? pcEntry.id : 'Unknown');
-        if (this.model_.stackFrames[pcEntryID] === undefined) {
-          var pcEntryName = pcEntry ? pcEntry.name : 'Unknown';
-          lastStackFrame = new tr.model.StackFrame(
-              undefined, pcEntryID, pcEntryName,
-              ColorScheme.getColorIdForGeneralPurposeString(pcEntryName));
-          this.model_.addStackFrame(lastStackFrame);
-        }
-        lastStackFrame = this.model_.stackFrames[pcEntryID];
+        return fullStack;
       }
 
-      var sample = new tr.model.Sample(
+      if (is_external_callback) {
+        // Don't use PC when in external callback code, as it can point
+        // inside callback's code, and we will erroneously report
+        // that a callback calls itself. Instead use tos_or_external_callback,
+        // as simply resetting PC will produce unaccounted ticks.
+        pc = tos_or_external_callback;
+        tos_or_external_callback = 0;
+      } else if (tos_or_external_callback) {
+        // Find out, if top of stack was pointing inside a JS function
+        // meaning that we have encountered a frameless invocation.
+        var funcEntry = this.code_map_.findEntry(tos_or_external_callback);
+        if (!funcEntry || !funcEntry.isJSFunction || !funcEntry.isJSFunction())
+          tos_or_external_callback = 0;
+      }
+
+      var processedStack = processStack(pc, tos_or_external_callback, stack);
+      var lastStackFrame = this.root_stack_frame_;
+      // v8 log stacks are inverted, leaf first and the root at the end.
+      processedStack = processedStack.reverse();
+      for (var i = 0, n = processedStack.length; i < n; i++) {
+        var frame = processedStack[i];
+        if (!frame)
+          break;
+        var entry = this.code_map_.findEntry(frame);
+
+        if (!entry && i !== 0) {
+          continue;
+        }
+
+        var sourceInfo = undefined;
+        if (entry && entry.type === CodeEntry.TYPE.CPP) {
+          var libEntry = this.code_map_.findEntryInLibraries(frame);
+          if (libEntry)
+            sourceInfo = libEntry.name;
+        }
+
+        var entryID = entry ? entry.id : 'Unknown';
+        var childFrame = findChildWithEntryID(lastStackFrame, entryID);
+        if (childFrame === undefined) {
+          var entryName = entry ? entry.name : 'Unknown';
+          lastStackFrame = new tr.model.StackFrame(
+            lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(), entryName,
+            ColorScheme.getColorIdForGeneralPurposeString(entryName),
+            sourceInfo);
+          lastStackFrame.entryID = entryID;
+          this.model_.addStackFrame(lastStackFrame);
+        } else {
+          lastStackFrame = childFrame;
+        }
+      }
+
+      if (lastStackFrame !== this.root_stack_frame_) {
+        var sample = new tr.model.Sample(
           undefined, this.v8_thread_, 'V8 PC',
           start, lastStackFrame, 1);
-      this.model_.samples.push(sample);
+        this.model_.samples.push(sample);
+      }
     },
 
     processDistortion_: function(distortion_in_picoseconds) {
@@ -279,8 +321,13 @@ tr.exportTo('tr.e.importer.v8', function() {
             parsers: [parseInt],
             processor: this.processCodeDeleteEvent_.bind(this)
           },
+          'cpp': {
+            parsers: [parseInt, parseInt, null],
+            processor: this.processCppSymbol_.bind(this)
+          },
           'tick': {
-            parsers: [parseInt, parseInt, null, null, parseInt, 'var-args'],
+            parsers: [parseInt, parseInt, parseInt, parseInt, parseInt,
+                      'var-args'],
             processor: this.processTickEvent_.bind(this)
           },
           'distortion': {
