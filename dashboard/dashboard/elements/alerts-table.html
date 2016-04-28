@@ -15,9 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="alerts-table"
-                 attributes="sortBy sortDirection
-                             xsrfToken alertList extraColumns">
+<dom-module id="alerts-table">
   <template>
     <style>
       #alerts {
@@ -266,12 +264,12 @@ found in the LICENSE file.
       }
     </style>
     <div>
-      <triage-dialog id="triage" on-triaged="{{onTriaged}}" xsrfToken="{{xsrfToken}}">
+      <triage-dialog id="triage" on-triaged="onTriaged" xsrfToken="{{xsrfToken}}">
       </triage-dialog>
-      <paper-button raised id="file-bug-button" on-click="{{showTriageDialog}}">
+      <paper-button raised id="file-bug-button" on-click="showTriageDialog">
         Triage
       </paper-button>
-      <paper-button raised id="graph-button" on-click="{{showGraphs}}">
+      <paper-button raised id="graph-button" on-click="showGraphs">
         Graph
       </paper-button>
     </div>
@@ -280,70 +278,70 @@ found in the LICENSE file.
       <tr>
         <th id="groupheader"></th>
         <th id="checkheader">
-          <input type="checkbox" id="header-checkbox" on-change="{{onHeaderCheckboxChange}}">
+          <input type="checkbox" id="header-checkbox" on-change="onHeaderCheckboxChange">
         </th>
         <th id="graphheader"></th>
-        <th id="bug_id" on-click="{{columnHeaderClicked}}">Bug ID</th>
-        <th id="end_revision" on-click="{{columnHeaderClicked}}">Revisions</th>
-        <th id="master" on-click="{{columnHeaderClicked}}">Master</th>
-        <th id="bot" on-click="{{columnHeaderClicked}}">Bot</th>
-        <th id="testsuite" on-click="{{columnHeaderClicked}}">Test Suite</th>
-        <th id="test" on-click="{{columnHeaderClicked}}">Test</th>
-        <template repeat="{{extraColumns}}">
-          <th id="{{key}}" on-click="{{columnHeaderClicked}}">{{label}}</th>
+        <th id="bug_id" on-click="columnHeaderClicked">Bug ID</th>
+        <th id="end_revision" on-click="columnHeaderClicked">Revisions</th>
+        <th id="master" on-click="columnHeaderClicked">Master</th>
+        <th id="bot" on-click="columnHeaderClicked">Bot</th>
+        <th id="testsuite" on-click="columnHeaderClicked">Test Suite</th>
+        <th id="test" on-click="columnHeaderClicked">Test</th>
+        <template is="dom-repeat" items="{{extraColumns}}">
+          <th id="{{item.key}}" on-click="columnHeaderClicked">{{item.label}}</th>
         </template>
       </tr>
       </thead>
       <tbody>
-      <template repeat="{{alertList}}">
-        <tr class="{{rowType}}"
-            improvement?={{improvement}}
-            triaged?={{triaged}}
-            hidden?={{hideRow}}
-            highlighted?={{highlighted}}
-            expanded?={{expanded}}
-            on-click="{{onRowClicked}}">
+      <template is="dom-repeat" items="{{alertList}}">
+        <tr class$="{{item.rowType}}"
+            improvement$="{{item.improvement}}"
+            triaged$="{{item.triaged}}"
+            hidden$="{{item.hideRow}}"
+            highlighted$="{{item.highlighted}}"
+            expanded$="{{item.expanded}}"
+            on-click="onRowClicked">
 
           <td>
             <a class="kd-button counter"
-               expanded?={{expanded}}
-               on-click="{{onExpandGroupButtonClicked}}"
-               hidden?="{{!(size > 1)}}">{{size}}</a>
+               expanded$="{{expanded}}"
+               on-click="onExpandGroupButtonClicked"
+               hidden$="{{!computeIsPlural(size))}}">{{size}}</a>
           </td>
           <td>
             <input type="checkbox"
                    id="{{key}}"
                    checked="{{selected}}"
-                   on-change="{{onCheckboxChange}}">
+                   on-change="onCheckboxChange">
           </td>
 
           <td>
-            <a href="{{dashboard_link}}" class="graph-link" target="_blank">
-              <core-icon icon="trending-up"></core-icon>
+            <a href$="{{dashboard_link}}" class="graph-link" target="_blank">
+              📈  <!-- chart with upwards trend character U+1F4C8 -->
             </a>
           </td>
 
-          <td hidden?="{{hide_bug_id}}">
+          <td hidden$="{{hide_bug_id}}">
             <bug-info-span bugId="{{bug_id}}"
                            key="{{key}}"
                            recovered?="{{recovered}}"
                            xsrfToken="{{xsrfToken}}"
-                           on-untriaged="{{onUntriaged}}">
+                           on-untriaged="onUntriaged">
             </bug-info-span>
-            <bisect-status hidden?="{{!(bug_id > 0)}}"
+            <bisect-status hidden$="{{!bug_id}}"
                            status="{{bisect_status}}">
             </bisect-status>
           </td>
           <td class="revision_range">
             <revision-range start={{start_revision}} end="{{end_revision}}"></revision-range>
           </td>
-          <td class="master"><label>{{master}}</label><label hidden?="{{(!additionColumnValues.master || expanded)}}">...</label></td>
-          <td class="bot"><label>{{bot}}</label><label hidden?="{{(!additionColumnValues.bot || expanded)}}">...</label></td>
-          <td class="testsuite"><label>{{testsuite}}</label><label hidden?="{{(!additionColumnValues.testsuite || expanded)}}">...</label></td>
-          <td class="test"><label>{{test}}</label><label hidden?="{{(!additionColumnValues.test || expanded)}}">...</label></td>
+          <td class="master"><label>{{master}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.master, expanded)}}">...</label></td>
+          <td class="bot"><label>{{bot}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.bot, expanded)}}">...</label></td>
+          <td class="testsuite"><label>{{testsuite}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.testsuite, expanded)}}">...</label></td>
+          <td class="test"><label>{{test}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.test, expanded)}}">...</label></td>
 
-          <template repeat="{{extraColumns}}">
-            <td class="{{key}}"><label>{{value}}</td>
+          <template is="dom-repeat" items="{{extraColumns}}">
+            <td class="{{item.key}}"><label>{{item.value}}</td>
           </template>
         </tr>
       </template>
@@ -368,30 +366,46 @@ found in the LICENSE file.
       return '/group_report?keys=' + keys.join(',');
     }
 
-    Polymer('alerts-table', {
+    Polymer({
 
-      /**
-       * The field to sort by. Note that this will be both the id of a th
-       * element in the table, and a property of an item in the alert list.
-       */
-      sortBy: 'end_revision',
+      is: 'alerts-table',
+      properties: {
+        /**
+         * The field to sort by. Note that this will be both the id of a th
+         * element in the table, and a property of an item in the alert list.
+         */
+        sortBy: {
+          type: String,
+          value: 'end_revision',
+          notify: true,
+          observer: 'sortByChanged'
+        },
 
-      /**
-       * Sort direction, either 'down' (increasing) or 'up' (decreasing).
-       */
-      sortDirection: 'down',
+        /**
+         * Sort direction, either 'down' (increasing) or 'up' (decreasing).
+         */
+        sortDirection: {
+          type: String,
+          value: 'down',
+          notify: true,
+          observer: 'sortDirectionChanged'
+        },
 
-      /**
-       * Previous id of checkbox input element that was checked.
-       */
-      previousCheckboxId: null,
+        /**
+         * Previous id of checkbox input element that was checked.
+         */
+        previousCheckboxId: { value: null },
 
-      /**
-       * Current id of checkbox input element that was checked.
-       */
-      currentCheckboxId: null,
+        /**
+         * Current id of checkbox input element that was checked.
+         */
+        currentCheckboxId: { value: null },
 
-      NUM_ALERTS_TO_CHECK_ON_INIT: 10,
+        NUM_ALERTS_TO_CHECK_ON_INIT: {
+          type: Number,
+          value: 10
+        }
+      },
 
       /**
        * Custom element lifecycle callback, called once this element is ready.
@@ -399,6 +413,10 @@ found in the LICENSE file.
       ready: function() {
         this.checkedAlerts = [];
       },
+
+      computeAbsentOrExpanded: (prop, exanded) => !prop || expanded,
+
+      computeIsPlural: n => n > 1,
 
       isRecursiveChange: function() {
         if (this.isRecursingIntoChange) {
@@ -533,7 +551,7 @@ found in the LICENSE file.
        * Toggles expansion of a group of alerts.
        */
       onExpandGroupButtonClicked: function(event, detail, sender) {
-        var row = sender.parentNode.parentNode;
+        var row = Polymer.dom(Polymer.dom(sender).parentNode).parentNode;
         var alertIndex = row.rowIndex - 1;
         var alert = this.alertList[alertIndex];
         var isExpand = !alert.expanded;
@@ -681,7 +699,7 @@ found in the LICENSE file.
         var newDirection = 'down';
         // Because the <th> element may have been added based on an entry in
         // this.extraColumns, this.$[this.sortBy] may not work.
-        var th = this.$.alerts.querySelector('#' + this.sortBy);
+        var th = Polymer.dom(this.$.alerts).querySelector('#' + this.sortBy);
         if (th.getAttribute('data-sort-direction') == 'down') {
           newDirection = 'up';
         }
@@ -692,12 +710,13 @@ found in the LICENSE file.
        * Update the table headers to indicate the current table sorting.
        */
       updateHeaders: function() {
-        var headers = this.$.alerts.querySelectorAll('th');
+        var headers = Polymer.dom(this.$.alerts).querySelectorAll('th');
         for (var i = 0; i < headers.length; i++) {
           if (headers[i].id == this.sortBy) {
-            headers[i].setAttribute('data-sort-direction', this.sortDirection);
+            Polymer.dom(headers[i]).setAttribute('data-sort-direction',
+                                                 this.sortDirection);
           } else {
-            headers[i].removeAttribute('data-sort-direction');
+            Polymer.dom(headers[i]).removeAttribute('data-sort-direction');
           }
         }
       },
@@ -917,7 +936,8 @@ found in the LICENSE file.
       onCheckboxChange: function(event, detail, sender) {
         if (sender) {
           // Checks group member rows.
-          var alertIndex = sender.parentNode.parentNode.rowIndex - 1;
+          var alertIndex = Polymer.dom(
+              Polymer.dom(sender).parentNode).parentNode.rowIndex - 1;
           var alert = this.alertList[alertIndex];
           this.updateGroupCheckboxes(alert, alertIndex, alert.selected);
 
@@ -998,4 +1018,4 @@ found in the LICENSE file.
     });
   })();
   </script>
-</polymer-element>
+</dom-module>
