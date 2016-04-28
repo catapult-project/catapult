@@ -162,7 +162,7 @@ tr.exportTo('tr.b.unittest', function() {
   var InteractiveTestRunner = tr.ui.b.define('x-base-interactive-test-runner');
 
   InteractiveTestRunner.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.allTests_ = undefined;
