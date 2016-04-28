@@ -218,7 +218,7 @@ tr.exportTo('tr.ui.b', function() {
   var ChartBase = tr.ui.b.define('svg', undefined, svgNS);
 
   ChartBase.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     getDataSeries: function(key) {
       if (!this.seriesByKey_.has(key))
