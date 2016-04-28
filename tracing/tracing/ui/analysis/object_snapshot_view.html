@@ -15,7 +15,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var ObjectSnapshotView = tr.ui.b.define('object-snapshot-view');
 
   ObjectSnapshotView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.objectSnapshot_ = undefined;
