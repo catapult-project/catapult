@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<polymer-element name="chart-slider" attributes="testpath startrev endrev">
+<dom-module id="chart-slider">
   <template>
     <style>
       #revisions_container {
@@ -17,8 +17,27 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
-    Polymer('chart-slider', {
-      edgeDist: 2,
+    Polymer({
+
+      is: 'chart-slider',
+      properties: {
+        edgeDist: {
+          type: Number,
+          value: 2
+        },
+        endrev: {
+          notify: true,
+          observer: 'endrevChanged'
+        },
+        startrev: {
+          notify: true,
+          observer: 'startrevChanged'
+        },
+        testpath: {
+          notify: true,
+          observer: 'testpathChanged'
+        }
+      },
 
       /**
        * Initializes the element. This is a lifecycle callback method.
@@ -380,4 +399,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

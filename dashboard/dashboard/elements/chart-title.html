@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<polymer-element name="chart-title" attributes="seriesGroupList">
+<dom-module id="chart-title">
   <template>
     <style>
       .title {
@@ -26,17 +26,17 @@ found in the LICENSE file.
     </style>
 
     <h3>
-      <template repeat="{{part, partIndex in titleParts}}">
+      <template is="dom-repeat" items="{{part, partIndex in titleParts}}" as="part" index-as="partIndex">
         <a class="title disabled" href="javascript:void(0);"
-           on-click="{{onClicked}}" disabled?="{{partIndex == currentIndex}}"
+           on-click="onClicked" disabled$="{{computeStrictEqual(partIndex, currentIndex}}"
            class="title">
           {{part}}
         </a>
-        <span hidden?="{{partIndex == titleParts.length - 1}}">/</span>
+        <span hidden$="{{computeIsLast(partIndex, titleParts)}}">/</span>
       </template>
     </h3>
     <div>
-      <template repeat="{{info in suiteDescriptions}}">
+      <template is="dom-repeat" items="{{suiteDescriptions}}" as="info">
         <div><b>{{info.suite}}</b>: {{info.description}}</div>
       </template>
     </div>
@@ -44,7 +44,15 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
-    Polymer('chart-title', {
+    Polymer({
+
+      is: 'chart-title',
+      properties: {
+        seriesGroupList: { notify: true }
+      },
+
+      computeIsLast: (idx, arr) => idx === arr.length - 1,
+      computeStrictEqual: (a, b) => a === b,
 
       /**
        * Sets the title of the chart based on the current state of the chart.
@@ -187,4 +195,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>
