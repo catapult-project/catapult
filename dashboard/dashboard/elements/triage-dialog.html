@@ -362,27 +362,22 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         }
 
         var alert = this.alerts[0];
-        var summary = this.template(
-            '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}',
-            {
-              'range': minMax,
-              'type': type,
-              'suite': alert.testsuite,
-              'start': String(startRev),
-              'end': String(endRev)
-            });
+        var summary = '{{range}} {{type}} in {{suite}} at {{start}}:{{end}}'.
+            replace('{{range}}', minMax).
+            replace('{{type}}', type).
+            replace('{{suite}}', alert.testsuite).
+            replace('{{start}}', startRev).
+            replace('{{end}}', endRev);
         return summary;
       },
 
       getBugTitleForStoppageAlert: function() {
         var alert = this.alerts[0];
-        var summary = this.template(
-            'No data received for {{suite}} from {{bot}} since {{rev}}',
-            {
-              'suite': alert.testsuite,
-              'bot': alert.bot,
-              'rev': alert.end_revision
-            });
+        var summary =
+            'No data received for {{suite}} from {{bot}} since {{rev}}'.
+                replace('{{suite}}', alert.testsuite).
+                replace('{{bot}}', alert.bot).
+                replace('{{rev}}', alert.end_revision);
         return summary;
       },
 
