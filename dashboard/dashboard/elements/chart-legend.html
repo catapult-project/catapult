@@ -9,12 +9,10 @@ found in the LICENSE file.
 <link rel="import" href="/components/core-selector/core-selector.html">
 <link rel="import" href="/components/core-tooltip/core-tooltip.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/components/paper-material/paper-material.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
-<polymer-element name="chart-legend"
-                 attributes="seriesGroupList indicesToGraph showCompact
-                             collapseLegend deltaAbsolute deltaPercent showDelta">
+<dom-module id="chart-legend">
   <template>
     <style>
       .row {
@@ -39,7 +37,7 @@ found in the LICENSE file.
         width: 293px;
       }
 
-      core-icon.info {
+      iron-icon.info {
         height: 15px;
         width: 15px;
         opacity: .75;
@@ -177,17 +175,17 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="rhs" compact?="{{showCompact}}" collapse-legend?="{{collapseLegend}}">
+    <div id="rhs" compact$="{{showCompact}}" collapse-legend$="{{collapseLegend}}">
       <paper-icon-button id="expand-legend-btn" icon="arrow-drop-down"
                          title="legend" role="button"
-                         on-click="{{toggleLegend}}"></paper-icon-button>
+                         on-click="toggleLegend"></paper-icon-button>
 
-      <core-collapse id="collapsible-legend" opened?="{{!collapseLegend}}">
+      <iron-collapse id="collapsible-legend" opened$="{{!collapseLegend}}">
 
-        <template bind if="{{!showDelta}}">
+        <template is="dom-if" if="{{!showDelta}}">
           <div id="delta-off">Click and drag graph to measure or zoom.</div>
         </template>
-        <template bind if="{{showDelta}}">
+        <template is="dom-if" if="{{showDelta}}">
           Delta: {{deltaAbsolute}} or {{deltaPercent}}%.<br>
           Click selected range to zoom.
         </template>
@@ -195,67 +193,59 @@ found in the LICENSE file.
         <div id="traces">Traces:
           <a href="javascript:void(0);"
              class="trace-link"
-             on-click="{{onSelectAll}}">select all</a>
+             on-click="onSelectAll">select all</a>
           &#124;
           <a href="javascript:void(0);"
              class="trace-link"
-             on-click="{{onDeselectAll}}">deselect all</a>
+             on-click="onDeselectAll">deselect all</a>
           &#124;
           <a href="javascript:void(0);"
              class="trace-link"
-             on-click="{{onSelectCore}}">core only</a>
+             on-click="onSelectCore">core only</a>
         </div>
 
         <!-- List of series group boxes starts here. -->
         <div id="sg-container">
-          <template repeat="{{seriesGroup, groupIndex in seriesGroupList}}">
+          <template is="dom-repeat" items="{{seriesGroupList}}" as="seriesGroup" index-as="groupIndex">
 
-            <paper-shadow z="1"
-                          class="series-set"
-                          draggable="true"
-                          on-dragstart="{{onSeriesDragStart}}"
-                          on-dragend="{{onSeriesDragEnd}}">
+            <paper-material elevation="1"
+                            class="series-set"
+                            draggable="true"
+                            on-dragstart="onSeriesDragStart"
+                            on-dragend="onSeriesDragEnd">
 
-              <div horizontal layout>
+              <div class="horizontal layout">
                 <input type="checkbox"
-                       on-change="{{onCheckAllCheckboxClicked}}"
-                       checked="{{seriesGroup.selection == 'all'}}"
-                       hidden?="{{seriesGroup.tests.length == 0}}">
+                       on-change="onCheckAllCheckboxClicked"
+                       checked="{{computeSelectionIsAll(seriesGroup)}}"
+                       hidden?="{{!seriesGroup.tests.length}}">
                 <span flex four></span>
-                <div class="close-icon" on-click="{{onCloseSeriesGroupClicked}}">
+                <div class="close-icon" on-click="onCloseSeriesGroupClicked">
                   ❌ <!-- cross mark U+274C -->
                 </div>
               </div>
 
-              <core-selector class="list" selected="{{multiSelected}}" multi>
+              <iron-selector class="list" selected="{{multiSelected}}" multi>
 
-                <template repeat="{{test, testIndex in seriesGroup.tests}}">
+                <template is="dom-repeat" items="{{in seriesGroup.tests}}" as="test">
                   <div class="row" id="{{test.index}}"
-                       loading?="{{test.index == undefined}}"
-                       hidden?="{{test.hidden}}">
+                       loading$="{{computeIsUndefined(test.index)}}"
+                       hidden$="{{test.hidden}}">
 
-                    <label horizontal layout center>
+                    <label class="horizontal layout center">
+
                       <input type="checkbox"
                              checked="{{test.selected}}"
-                             on-change="{{onCheckboxClicked}}"
-                             disabled?="{{test.index == undefined}}">
+                             on-change="onCheckboxClicked"
+                             disabled$="{{computeIsUndefined(test.index)}}">
                       <span class="test-name"
-                            important?="{{test.important}}"
+                            important$="{{test.important}}"
                             style="color:{{test.color}};"
-                            on-mouseover='{{seriesMouseover}}'
-                            on-mouseout='{{seriesMouseout}}'>
-                          {{test.name}}
-                        <core-tooltip>
-                          <core-icon icon="info-outline" class="info"></core-icon>
-                          <div tip layout vertical class="tooltip-content">
-                            <span>{{test.direction}} is better</span>
-                            <span>Units: {{test.units}}</span>
-                            <span>{{test.description}}</span>
-                            <span><a href="/new_points?pattern={{test.path}}">See new points</a></span>
-                            <span><a href="/graph_csv?test_path={{test.path}}">Download as CSV</a></span>
-                            <span><a href="/debug_alert?test_path={{test.path}}">Debug alert page</a></span>
-                          </div>
-                        </core-tooltip>
+                            on-mouseover='seriesMouseover'
+                            on-mouseout='seriesMouseout'>
+                        {{test.name}}
+                        <iron-icon icon="info-outline" class="info"
+                                   on-click="toggleDescription"></iron-icon>
                       </span>
                     </label>
 
@@ -263,36 +253,51 @@ found in the LICENSE file.
 
                 </template>
 
-              </core-selector>
+              </iron-selector>
 
-              <div horizontal end-justified layout>
-                <template if="{{seriesGroup.numHidden > 0}}">
+              <div class="horizontal end-justified layout">
+                <template is="dom-if" if="{{computeIsPositive(seriesGroup.numHidden)}}">
                   <a href="javascript:void(0);" class="expand-link"
-                     on-click="{{onExpandSeriesClicked}}">{{seriesGroup.numHidden}} more</a>
+                     on-click="onExpandSeriesClicked">{{seriesGroup.numHidden}} more</a>
                 </template>
-                <template if="{{seriesGroup.numHidden == 0}}">
+                <template is="dom-if" if="{{!seriesGroup.numHidden}}">
                   <a href="javascript:void(0);" class="expand-link"
-                     on-click="{{onExpandSeriesClicked}}">less</a>
+                     on-click="onExpandSeriesClicked">less</a>
                 </template>
               </div>
 
-              <template if="{{seriesGroup.numPendingRequests > 0}}">
+              <template is="dom-if" if="{{computeIsPositive(seriesGroup.numPendingRequests)}}">
                 <div class="sg-loading">
                   <paper-spinner active></paper-spinner>
                 </div>
               </template>
-            </paper-shadow>
+            </paper-material>
           </template>
         </div>
 
 
-      </core-collapse>
+      </iron-collapse>
     </div>
 
   </template>
   <script>
     'use strict';
-    Polymer('chart-legend', {
+    Polymer({
+
+      is: 'chart-legend',
+      properties: {
+        collapseLegend: { notify: true },
+        deltaAbsolute: { notify: true },
+        deltaPercent: { notify: true },
+        indicesToGraph: { notify: true },
+        seriesGroupList: { notify: true },
+        showCompact: { notify: true },
+        showDelta: { notify: true }
+      },
+
+      computeIsPositive: n => n > 0,
+      computeIsUndefined: x => x === undefined,
+      computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 
       /**
        * Event handler for the change event of any of the checkboxes.
