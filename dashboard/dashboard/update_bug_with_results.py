@@ -15,6 +15,7 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_fyi
 from dashboard import bisect_report
+from dashboard import buildbucket_service
 from dashboard import datastore_hooks
 from dashboard import email_template
 from dashboard import issue_tracker_service
@@ -44,6 +45,18 @@ your CL be related.
 """
 
 _CONFIDENCE_LEVEL_TO_CC_AUTHOR = 95
+
+_BUILD_FAILURE_REASON = {
+    'BUILD_FAILURE': 'the build has failed',
+    'INFRA_FAILURE': 'the build has failed due to infrastructure failure.',
+    'BUILDBUCKET_FAILURE': 'the buildbucket service failure.',
+    'INVALID_BUILD_DEFINITION': 'incorrect bisect configuation.',
+    'CANCELED_EXPLICITLY': 'the build was canceled explicitly.',
+    'TIMEOUT': 'the build was canceled by buildbot on timeout.',
+}
+
+class BisectJobFailure(Exception):
+  pass
 
 
 class BugUpdateFailure(Exception):
@@ -99,7 +112,11 @@ def _CheckJob(job, issue_tracker):
     return
 
   results_data = job.results_data
-  if not results_data or results_data['status'] not in [COMPLETED, FAILED]:
+  # Skip this check for bisect fyi jobs, because if the job is fails due to
+  # bisect recipe or infra failures then an alert message should be sent to the
+  # team.
+  if ((not results_data or results_data['status'] not in [COMPLETED, FAILED])
+      and job.job_type != 'bisect-fyi'):
     return
 
   if job.job_type == 'perf-try':
@@ -126,13 +143,18 @@ def _CheckBisectJob(job, issue_tracker):
 
 def _CheckFYIBisectJob(job, issue_tracker):
   try:
-    _PostResult(job, issue_tracker)
+    if not _IsBisectJobCompleted(job):
+      return
     error_message = bisect_fyi.VerifyBisectFYIResults(job)
+    _PostResult(job, issue_tracker)
     if not bisect_fyi.IsBugUpdated(job, issue_tracker):
       error_message += '\nFailed to update bug with bisect results.'
+  except BisectJobFailure as e:
+    error_message = 'Bisect job failed because, %s' % e
   except BugUpdateFailure as e:
     error_message = 'Failed to update bug with bisect results: %s' % e
   if job.results_data['status'] == FAILED or error_message:
+    job.SetFailed()
     _SendFYIBisectEmail(job, error_message)
 
 
@@ -332,3 +354,46 @@ def UpdateQuickLog(job):
     job.log_record_id = logger.Log(report)
     logger.Save()
     job.put()
+
+
+def _IsBisectJobCompleted(job):
+  return _ValidateBuildbucketResponse(
+      buildbucket_service.GetJobStatus(job.buildbucket_job_id), job)
+
+
+def _ValidateBuildbucketResponse(job_info, job):
+  """Checks and validates the response from the buildbucket service for bisect.
+
+  Args:
+    job_info: A dictionary containing the response from the buildbucket service.
+
+  Returns:
+    True if bisect job is completed successfully and False for pending job.
+
+  Raises:
+    BisectJobFailure: When job is completed but build is failed or cancelled.
+  """
+  job_info = job_info['build']
+  json_response = json.dumps(job_info)
+  if not job_info:
+    raise BisectJobFailure('No response from Buildbucket.')
+
+  if job_info.get('status') in ['SCHEDULED', 'STARTED']:
+    return False
+
+  if not job.results_data:
+    job.results_data = {}
+  job.results_data['buildbot_log_url'] = str(job_info.get('url'))
+
+  if job_info.get('result') is None:
+    raise BisectJobFailure('No "result" in try job results. '
+                           'Buildbucket response: %s' % json_response)
+
+  # There are various failure and cancellation reasons for a buildbucket
+  # job to fail as listed in https://goto.google.com/bb_status.
+  if (job_info.get('status') == 'COMPLETED' and
+      job_info.get('result') != 'SUCCESS'):
+    reason = (job_info.get('cancelation_reason') or
+              job_info.get('failure_reason'))
+    raise BisectJobFailure(_BUILD_FAILURE_REASON.get(reason))
+  return True

@@ -320,12 +320,12 @@ def GetBisectFYITryJobEmailReport(job, message):
   """Gets the contents of the email to send once a bisect FYI job completes."""
   results_data = job.results_data
   subject_dict = {
-      'bot': results_data['bisect_bot'],
+      'bot': job.bot,
       'test_name': job.job_name,
   }
   report_dict = {
       'message': message,
-      'bot': results_data['bisect_bot'],
+      'bot': job.bot,
       'job_url': results_data['buildbot_log_url'],
       'test_name': job.job_name,
       'config': job.config if job.config else 'Undefined',

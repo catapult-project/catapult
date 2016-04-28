@@ -412,6 +412,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_ValidateBuildbucketResponse',
+      mock.MagicMock(return_value=True))
   def testFYI_Failed_Job_SendEmail(self):
     stored_object.Set(
         bisect_fyi._BISECT_FYI_CONFIGS_KEY,
@@ -431,6 +434,70 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.testapp.get('/update_bug_with_results')
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
+      mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_ValidateBuildbucketResponse',
+      mock.MagicMock(side_effect=update_bug_with_results.BisectJobFailure))
+  def testFYI_Failed_Job_SendEmail_On_Exception(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    sample_bisect_results['status'] = 'failed'
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=sample_bisect_results,
+                    internal_only=True,
+                    config=utils.BisectConfigPythonString(bisect_config),
+                    job_type='bisect-fyi',
+                    job_name='positive_culprit',
+                    email='chris@email.com')
+
+    self.testapp.get('/update_bug_with_results')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(1, len(messages))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
+      mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_ValidateBuildbucketResponse',
+      mock.MagicMock(return_value=False))
+  def testFYI_Failed_Job_NoSendEmail(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    sample_bisect_results['status'] = 'failed'
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=sample_bisect_results,
+                    internal_only=True,
+                    config=utils.BisectConfigPythonString(bisect_config),
+                    job_type='bisect-fyi',
+                    job_name='positive_culprit',
+                    email='chris@email.com')
+
+    self.testapp.get('/update_bug_with_results')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(0, len(messages))
 
   @mock.patch.object(
       update_bug_with_results.quick_logger.QuickLogger,
@@ -467,6 +534,126 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     mock_update_bug.assert_called_once_with(
         12345, mock.ANY, cc_list=mock.ANY, merge_issue=mock.ANY,
         labels=mock.ANY, owner=mock.ANY)
+
+  def testValidateBuildbucketResponse_Scheduled(self):
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    buildbucket_response_scheduled = r"""{
+     "build": {
+       "status": "SCHEDULED",
+       "id": "9043191319901995952"
+     }
+    }"""
+    self.assertFalse(update_bug_with_results._ValidateBuildbucketResponse(
+        json.loads(buildbucket_response_scheduled), job))
+
+  def testValidateBuildbucketResponse_Started(self):
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    buildbucket_response_started = r"""{
+     "build": {
+       "status": "STARTED",
+       "id": "9043191319901995952"
+     }
+    }"""
+    self.assertFalse(update_bug_with_results._ValidateBuildbucketResponse(
+        json.loads(buildbucket_response_started), job))
+
+  def testValidateBuildbucketResponse_Success(self):
+    buildbucket_response_success = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "url": "http://build.chromium.org/linux_perf_bisector/builds/47",
+       "id": "9043278384371361584",
+       "result": "SUCCESS"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    self.assertTrue(update_bug_with_results._ValidateBuildbucketResponse(
+        json.loads(buildbucket_response_success), job))
+    self.assertEqual(job.results_data.get('buildbot_log_url'),
+                     'http://build.chromium.org/linux_perf_bisector/builds/47')
+
+  def testValidateBuildbucketResponse_Failed(self):
+    buildbucket_response_failed = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "url": "http://build.chromium.org/linux_perf_bisector/builds/41",
+       "failure_reason": "BUILD_FAILURE",
+       "result": "FAILURE",
+       "failure_reason": "BUILD_FAILURE",
+       "id": "9043547105089652704"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON['BUILD_FAILURE']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_failed), job)
+    self.assertEqual(job.results_data.get('buildbot_log_url'),
+                     'http://build.chromium.org/linux_perf_bisector/builds/41')
+
+  def testValidateBuildbucketResponse_Canceled(self):
+    buildbucket_response_canceled = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "id": "9043278384371361584",
+       "result": "CANCELED",
+       "cancelation_reason": "CANCELED_EXPLICITLY"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON['CANCELED_EXPLICITLY']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_canceled), job)
+    self.assertEqual(job.results_data.get('buildbot_log_url'),
+                     'None')
+
+  def testValidateBuildbucketResponse_Timeout(self):
+    buildbucket_response_canceled = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "cancelation_reason": "TIMEOUT",
+       "id": "9043278384371361584",
+       "result": "CANCELED"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON['TIMEOUT']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_canceled), job)
+    self.assertEqual(job.results_data.get('buildbot_log_url'),
+                     'None')
+
+  def testValidateBuildbucketResponse_InvalidConfig(self):
+    buildbucket_response_failed = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "url": "http://build.chromium.org/linux_perf_bisector/builds/41",
+       "failure_reason": "INVALID_BUILD_DEFINITION",
+       "id": "9043278384371361584",
+       "result": "FAILURE"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON[
+            'INVALID_BUILD_DEFINITION']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_failed), job)
+    self.assertEqual(job.results_data.get('buildbot_log_url'),
+                     'http://build.chromium.org/linux_perf_bisector/builds/41')
 
 
 if __name__ == '__main__':
