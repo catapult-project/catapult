@@ -368,7 +368,7 @@ tr.exportTo('tr.ui.b', function() {
   var QuadStackView = tr.ui.b.define('quad-stack-view');
 
   QuadStackView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.className = 'quad-stack-view';

@@ -24,7 +24,7 @@ tr.exportTo('tr.ui.b', function() {
    */
   var ListAndAssociatedView = tr.ui.b.define('x-list-and-associated-view');
   ListAndAssociatedView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.list_ = undefined;

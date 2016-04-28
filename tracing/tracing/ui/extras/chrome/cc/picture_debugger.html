@@ -120,7 +120,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   var PictureDebugger = tr.ui.b.define('tr-ui-e-chrome-cc-picture-debugger');
 
   PictureDebugger.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       var node = tr.ui.b.instantiateTemplate(

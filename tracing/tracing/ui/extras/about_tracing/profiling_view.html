@@ -69,13 +69,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   /**
    * ProfilingView
    * @constructor
-   * @extends {HTMLUnknownElement}
+   * @extends {HTMLDivElement}
    */
   var ProfilingView = tr.ui.b.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
 
   ProfilingView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function(tracingControllerClient) {
       Polymer.dom(this).appendChild(

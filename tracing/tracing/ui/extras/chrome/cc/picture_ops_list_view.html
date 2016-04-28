@@ -34,7 +34,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       tr.ui.b.define('tr-ui-e-chrome-cc-picture-ops-list-view');
 
   PictureOpsListView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.opsList_ = new tr.ui.b.ListView();

@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   var LayerView = tr.ui.b.define('tr-ui-e-chrome-cc-layer-view');
 
   LayerView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.layerTreeQuadStackView_ =

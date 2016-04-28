@@ -134,7 +134,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       'tr-ui-e-chrome-cc-display-item-debugger');
 
   DisplayItemDebugger.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       var node = tr.ui.b.instantiateTemplate(

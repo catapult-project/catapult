@@ -191,7 +191,7 @@ tr.b.unittest.testSuite(function() {
     var svgNS = 'http://www.w3.org/2000/svg';
     var cls = tr.ui.b.define('svg', undefined, svgNS);
     cls.prototype = {
-      __proto__: HTMLUnknownElement.prototype,
+      __proto__: HTMLDivElement.prototype,
 
       decorate: function() {
         this.setAttribute('width', 200);
@@ -215,7 +215,7 @@ tr.b.unittest.testSuite(function() {
     var svgNS = 'http://www.w3.org/2000/svg';
     var cls = tr.ui.b.define('svg', undefined, svgNS);
     cls.prototype = {
-      __proto__: HTMLUnknownElement.prototype,
+      __proto__: HTMLDivElement.prototype,
 
       decorate: function() {
         this.setAttribute('width', 200);
