@@ -11,8 +11,8 @@ chart, a revision range selecting mini-chart at the bottom, and all of the alert
 triaging functionality in the chart.
 -->
 
-<link rel="import" href="/components/core-collapse/core-collapse.html">
-<link rel="import" href="/components/core-icon/core-icon.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/components/iron-icon/iron-icon.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/alert-icon.html">
@@ -25,12 +25,7 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="chart-container"
-                 attributes="graphParams revisionInfo xsrfToken alertKey
-                             showCompact collapseLegend testSuites
-                             isInternalUser"
-                 on-drop="{{onDrop}}"
-                 on-dragover="{{allowDrop}}">
+<dom-module name="chart-container">
 
   <template>
     <style>
@@ -138,7 +133,7 @@ triaging functionality in the chart.
       color: #e91e63;
     }
 
-    #close-chart > core-icon {
+    #close-chart > iron-icon {
       margin-right: 4px;
     }
 
@@ -147,14 +142,14 @@ triaging functionality in the chart.
     }
     </style>
 
-    <div id="container" compact?="{{showCompact}}">
-      <div id="top-bar" horizontal layout>
-        <div flex horizontal center-justified layout>
+    <div id="container" compact$="{{showCompact}}">
+      <div id="top-bar" class="horizontal layout">
+        <div class="flex horizontal center-justified layout">
           <chart-title id="title" seriesGroupList="{{seriesGroupList}}"
                        testSuites="{{testSuites}}"></chart-title>
         </div>
-        <div horizontal layout center>
-          <paper-button id="close-chart" on-click="{{closeChartClicked}}">
+        <div class="horizontal layout center">
+          <paper-button id="close-chart" on-click="closeChartClicked">
             Close
           </paper-button>
         </div>
@@ -167,34 +162,34 @@ triaging functionality in the chart.
         <chart-tooltip id="tooltip"
                        xsrfToken="{{xsrfToken}}"></chart-tooltip>
 
-        <div id="plots-container" on-mouseleave="{{onMouseLeave}}">
+        <div id="plots-container" on-mouseleave="onMouseLeave">
           <div id="plot">
             <div id="loading-div">
               <img src="//www.google.com/images/loading.gif">
             </div>
           </div>
-          <chart-slider id="slider" on-revisionrange="{{onRevisionRange}}"></chart-slider>
+          <chart-slider id="slider" on-revisionrange="onRevisionRange"></chart-slider>
         </div>
 
         <div id="warning">
-          <template repeat="{{item in warnings}}">
+          <template is="dom-repeat" items="{{warnings}}">
             <span>{{item}}</span><br>
           </template>
         </div>
 
         <a hidden id="original"
-           on-click="{{onViewOriginal}}"
+           on-click="onViewOriginal"
            href="javascript:void(0);">View original graph</a>
 
         <chart-legend id="legend"
-                      seriesGroupList={{seriesGroupList}}
-                      indicesToGraph={{indicesToGraph}}
-                      collapseLegend={{collapseLegend}}
-                      on-dragstart={{legendSeriesDragStart}}
-                      on-dragend={{legendSeriesDragEnd}}
-                      deltaAbsolute={{deltaAbsolute}}
-                      deltaPercent={{deltaPercent}}
-                      showDelta={{showDelta}}>
+                      seriesGroupList="{{seriesGroupList}}"
+                      indicesToGraph="{{indicesToGraph}}"
+                      collapseLegend="{{collapseLegend}}"
+                      on-dragstart="legendSeriesDragStart"
+                      on-dragend="legendSeriesDragEnd"
+                      deltaAbsolute="{{deltaAbsolute}}"
+                      deltaPercent="{{deltaPercent}}"
+                      showDelta="{{showDelta}}">
       </div>
 
     </div>
@@ -206,6 +201,9 @@ triaging functionality in the chart.
       // Minimum multiple standard deviation for a value to be considered
       // an outlier.
       var MULTIPLE_OF_STD_DEV = 5;
+
+      // Regex for links in series annotation which are shown in tooltip.
+      var TOOLTIP_LINK_REGEX = /\[(.+?)\]\((.+?)\)/g;
 
       /**
        * Gets the mean for list of numbers.
@@ -355,32 +353,56 @@ triaging functionality in the chart.
         return Object.keys(dict);
       };
 
-      Polymer('chart-container', {
+      Polymer({
 
-        SERIES_SELECTION_OPTIONS: ['important', 'all', 'none'],
+        is: 'chart-container',
+        properties: {
+          SERIES_SELECTION_OPTIONS: {
+            type: Array,
+            value: () => ['important', 'all', 'none']
 
-        // Regex for links in series annotation which are shown in tooltip.
-        TOOLTIP_LINK_REGEX: /\[(.+?)\]\((.+?)\)/g,
+          // Default values for reverting series highlighting.
+          DEFAULT_SERIES_PROPERTIES: {
+            type: Object,
+            value: () => {
+              lineWidth: 2,
+              opacity: 1,
+              fill: 0.2,
+              shadowSize: 3
+            }
+          },
 
-        // Default values for reverting series highlighting.
-        DEFAULT_SERIES_PROPERTIES: {
-            lineWidth: 2,
-            opacity: 1,
-            fill: 0.2,
-            shadowSize: 3
+          DEFAULT_JSON_PROPERTIES: {
+            type: Object,
+            value: () => {
+              annotations: {
+                series: {}
+              },
+              data: {},
+              error_bars: {},
+              warning: null
+            }
+          },
+
+          // Amount of time before a warning is shown for tests with no new
+          // data.
+          STALE_DATA_DELTA_MS: 7 * 86400000,
+
+          alertKey: { notify: true },
+          collapseLegend: {
+            notify: true,
+            observer: 'collapseLegendChanged'
+          },
+          graphParams: { notify: true },
+          indicesToGraph: { observer: 'indicesToGraphChanged' },
+          isInternalUser: { notify: true },
+          onUri: { observer: 'onUriChanged' },
+          revisionInfo: { notify: true },
+          showCompact: { notify: true },
+          testSuites: { notify: true },
+          warnings: { observer: 'warningsChanged' },
+          xsrfToken: { notify: true }
         },
-
-        DEFAULT_JSON_PROPERTIES: {
-            annotations: {
-              series: {}
-            },
-            data: {},
-            error_bars: {},
-            warning: null
-        },
-
-        // Amount of time before a warning is shown for tests with no new data.
-        STALE_DATA_DELTA_MS: 7 * 86400000,
 
         created: function() {
           // List of indices of series which are selected and will be plotted.
@@ -1066,7 +1088,7 @@ triaging functionality in the chart.
          * Handler for the click event of X button on the top-right corner.
          */
         closeChartClicked: function() {
-          this.parentNode.removeChild(this);
+          Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
           this.fire('chartclosed', {
             target: this,
             stateName: 'chartclosed',
@@ -1522,7 +1544,8 @@ triaging functionality in the chart.
               alertIcon.initialize(
                 annotations[jsonSeriesIndex][dataIndex]['g_anomaly'],
                 this.alertKey);
-              this.$['alert-icon-container'].appendChild(alertIcon);
+              Polymer.dom(
+                  this.$['alert-icon-container']).appendChild(alertIcon);
               alertIcon.setPosition(top, left);
 
               alertIcon.onmouseover = this.showTooltip.bind(
@@ -2413,8 +2436,13 @@ triaging functionality in the chart.
             state.push([seriesGroup.path, selected]);
           });
           return state;
+        },
+
+        listeners: {
+          drop: 'onDrop',
+          dragover: 'allowDrop'
         }
       });
     })();
   </script>
-</polymer-element>
+</dom-module>
