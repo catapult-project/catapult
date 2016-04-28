@@ -23,7 +23,7 @@ _MASTERS = [
 _KEYS = [
     'master', 'builder', 'hostname',
 
-    'os family', 'os version',
+    'os family', 'os version', 'bitness (userland)',
 
     'product name', 'architecture', 'processor count', 'processor type',
     'memory total',
@@ -33,7 +33,7 @@ _KEYS = [
 
     'android device 1', 'android device 2', 'android device 3',
     'android device 4', 'android device 5', 'android device 6',
-    'android device 7',
+    'android device 7', 'android device 8',
 ]
 _EXCLUDED_KEYS = frozenset([
     'architecture (userland)',
