@@ -104,7 +104,7 @@ Polymer({
       var parent = promptEl.parentElement;
       var nextEl = promptEl.nextSibling;
       promptEl.remove();
-      parent.insertBefore(promptEl, nextEl);
+      Polymer.dom(parent).insertBefore(promptEl, nextEl);
     }
   },
 

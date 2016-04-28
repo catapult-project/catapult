@@ -180,20 +180,23 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var rightPanel = this.querySelector('right-panel');
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
-      this.rasterArea_.insertBefore(this.infoBar_, this.rasterCanvas_);
+      Polymer.dom(this.rasterArea_).insertBefore(
+          this.infoBar_, this.rasterCanvas_);
 
-      this.insertBefore(middleDragHandle, rightPanel);
+      Polymer.dom(this).insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
       this.pictureOpsListView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
-      rightPanel.insertBefore(this.pictureOpsListView_, this.rasterArea_);
+      Polymer.dom(rightPanel).insertBefore(
+          this.pictureOpsListView_, this.rasterArea_);
 
       this.pictureOpsListDragHandle_ =
           document.createElement('tr-ui-b-drag-handle');
       this.pictureOpsListDragHandle_.horizontal = false;
       this.pictureOpsListDragHandle_.target = this.pictureOpsListView_;
-      rightPanel.insertBefore(this.pictureOpsListDragHandle_, this.rasterArea_);
+      Polymer.dom(rightPanel).insertBefore(
+          this.pictureOpsListDragHandle_, this.rasterArea_);
     },
 
     get picture() {

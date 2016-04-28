@@ -34,6 +34,7 @@ tr.exportTo('tr.ui.b', function() {
           { get: undefined, set: this.onSetTextContent_});
     },
 
+    // TODO(polymer): Do we need to use Polymer.dom on these functions?
     appendChild: function(x) {
       Polymer.dom(HTMLUnknownElement.prototype).appendChild.call(this, x);
       this.didMutate_(this.observer_.takeRecords());

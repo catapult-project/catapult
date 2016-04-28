@@ -609,11 +609,13 @@ tr.exportTo('tr.ui.b', function() {
 
           if (lastAddedRow === undefined) {
             // Put first into the table.
-            tableSection.insertBefore(htmlNode, tableSection.firstChild);
+            Polymer.dom(tableSection).insertBefore(
+                htmlNode, tableSection.firstChild);
           } else {
             // This is shorthand for insertAfter(htmlNode, lastAdded).
             var nextSiblingOfLastAdded = lastAddedRow.nextSibling;
-            tableSection.insertBefore(htmlNode, nextSiblingOfLastAdded);
+            Polymer.dom(tableSection).insertBefore(
+                htmlNode, nextSiblingOfLastAdded);
           }
           this.updateTabIndexForTableRowNode_(htmlNode);
 

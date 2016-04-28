@@ -185,7 +185,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
       Polymer.dom(this.rasterArea_).appendChild(this.infoBar_);
 
-      this.insertBefore(middleDragHandle, rightPanel);
+      Polymer.dom(this).insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
