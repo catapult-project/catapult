@@ -19,4 +19,6 @@ executable("bitmaptools") {
   deps = [
     "//build/config/sanitizers:deps",
   ]
+  
+  cflags = [ "-Wno-unused-result" ]
 }
