@@ -14,6 +14,8 @@ import dependency_manager
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
 
+import serial
+from serial.tools import list_ports
 
 class BattorWrapper(object):
   """A class for communicating with a BattOr in python."""
@@ -128,9 +130,15 @@ class BattorWrapper(object):
       raise battor_error.BattorError(
           '%s is an unsupported platform.' % target_platform)
     if target_platform in ['win']:
-      # TODO: We need a way to automatically detect correct port.
-      # crbug.com/60397
-      return 'COM3'
+      # Right now, the BattOr agent binary isn't able to automatically detect
+      # the BattOr port on Windows. To get around this, we know that the BattOr
+      # shows up with a name of 'USB Serial Port', so use the COM port that
+      # corresponds to a device with that name.
+      for (port, desc, _) in serial.tools.list_ports.comports():
+        if 'USB Serial Port' in desc:
+          return port
+      raise battor_error.BattorError(
+          'Could not find BattOr attached to machine.')
     device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
     if battor_path:
       if not isinstance(battor_path, basestring):
