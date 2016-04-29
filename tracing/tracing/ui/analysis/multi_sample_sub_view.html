@@ -100,12 +100,13 @@ found in the LICENSE file.
       },
 
       createSamplingSummary_: function(selection, viewOption) {
-        var builder = new tr.b.MultiDimensionalViewBuilder(1 /* dimensions */);
+        var builder = new tr.b.MultiDimensionalViewBuilder(
+            1 /* dimensions */, 1 /* valueCount */);
         var samples = selection.getEventsOrganizedByBaseType().sample;
 
         samples.forEach(function(sample) {
           builder.addPath([sample.getUserFriendlyStackTrace().reverse()],
-              1, tr.b.MultiDimensionalViewBuilder.ValueKind.SELF);
+              [1], tr.b.MultiDimensionalViewBuilder.ValueKind.SELF);
         });
 
         return builder.buildView(viewOption);
@@ -193,10 +194,11 @@ found in the LICENSE file.
 
         var samplingData = this.createSamplingSummary_(
             this.selection, this.viewOption);
+        var total = samplingData.values[0].total;
         var columns = [
-          this.createPercentColumn_('Total', samplingData.total),
+          this.createPercentColumn_('Total', total),
           this.createSamplesColumn_('Total'),
-          this.createPercentColumn_('Self', samplingData.total),
+          this.createPercentColumn_('Self', total),
           this.createSamplesColumn_('Self'),
           {
             title: 'Function Name',
@@ -230,7 +232,7 @@ found in the LICENSE file.
         return {
           title: title + ' percent',
           value: function(row) {
-            var percent = row[field] / samplingDataTotal;
+            var percent = row.values[0][field] / samplingDataTotal;
 
             var span = document.createElement('tr-v-ui-scalar-span');
             span.value = (percent * 100).toFixed(2);
@@ -241,7 +243,7 @@ found in the LICENSE file.
           }.bind(this),
           width: '60px',
           cmp: function(a, b) {
-            return a[field] - b[field];
+            return a.values[0][field] - b.values[0][field];
           }
         };
       },
@@ -251,11 +253,11 @@ found in the LICENSE file.
         return {
           title: title + ' samples',
           value: function(row) {
-            return row[field];
+            return row.values[0][field];
           },
           width: '60px',
           cmp: function(a, b) {
-            return a[field] - b[field];
+            return a.values[0][field] - b.values[0][field];
           }
         };
       }

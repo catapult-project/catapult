@@ -285,7 +285,8 @@ tr.exportTo('tr.ui.analysis', function() {
         if (heapDump === undefined)
           return undefined;
 
-        var builder = new tr.b.MultiDimensionalViewBuilder(2 /* dimensions */);
+        var builder = new tr.b.MultiDimensionalViewBuilder(
+            2 /* dimensions */, 1 /* valueCount */);
 
         // Build the heap tree.
         heapDump.entries.forEach(function(entry) {
@@ -297,7 +298,7 @@ tr.exportTo('tr.ui.analysis', function() {
           var objectTypeNamePath = objectTypeName === undefined ?
               [] : [objectTypeName];
 
-          builder.addPath([stackTracePath, objectTypeNamePath], entry.size,
+          builder.addPath([stackTracePath, objectTypeNamePath], [entry.size],
               tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
         }, this);
 
@@ -322,7 +323,8 @@ tr.exportTo('tr.ui.analysis', function() {
       // of the values of its numeric).
       var cells = tr.ui.analysis.createCells(nodes, function(node) {
         return {
-          'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, node.total)
+          'Size': new ScalarNumeric(
+              sizeInBytes_smallerIsBetter, node.values[0].total)
         };
       });
 
@@ -355,21 +357,24 @@ tr.exportTo('tr.ui.analysis', function() {
             var hasDisplayedChildren = false;
             for (var child of node.children[dimension].values()) {
               // Don't show lower-bound sub-rows in tree-view.
-              if (!this.heavyView && child.isLowerBound)
+              if (!this.heavyView && child.values[0].isLowerBound)
                 continue;
               childDict[child.title[dimension]] = child;
-              displayedChildrenTotal += child.total;
+              displayedChildrenTotal += child.values[0].total;
               hasDisplayedChildren = true;
             }
 
             // Add '<other>' node if necessary in tree-view.
-            if (!this.heavyView && displayedChildrenTotal < node.total &&
+            if (!this.heavyView &&
+                displayedChildrenTotal < node.values[0].total &&
                 hasDisplayedChildren) {
               var otherTitle = node.title.slice();
               otherTitle[dimension] = '<other>';
               childDict['<other>'] = {
                 title: otherTitle,
-                total: node.total - displayedChildrenTotal,
+                values: [
+                  { total: node.values[0].total - displayedChildrenTotal }
+                ],
                 children: [new Map(), new Map()]
               };
             }

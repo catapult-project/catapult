@@ -27,43 +27,43 @@ found in the LICENSE file.
  *
  * Example: Given the following collection of two dimensional paths:
  *
- *    <----------- dimension 0 ------------>  <-- dimension 1 -->
- *   [['Loop::Run()', 'Execute()', 'Call()'], ['Object', 'View']]:   total=1
- *   [['Loop::Run()', 'Execute()', 'Call()'], ['Object', 'Widget']]: total=2
- *   [['Loop::Run()', 'Execute()', 'Load()'], ['Object']]:           total=4
- *   [['Loop::Run()', 'Execute()'],           ['int']]:              total=8
- *   [['Loop::Run()'],                        ['Object', 'Window']]: total=16
- *   [['Loop::Stop()'],                       ['Object']]:           total=32
+ *   <===================== Path =====================>   <== Total values ===>
+ *    <------- dimension 0 ------->  <- dimension 1 ->    <- v 0 ->  <- v 1 ->
+ *   [['Run()', 'Exec()', 'Call()'], ['Obj', 'View']  ]: [1        , 3
+ *   [['Run()', 'Exec()', 'Call()'], ['Obj', 'Widget']]: [2        , 5
+ *   [['Run()', 'Exec()', 'Load()'], ['Obj']          ]: [4        , 11
+ *   [['Run()', 'Exec()']          , ['int']          ]: [8        , 7
+ *   [['Run()']                    , ['Obj', 'Window']]: [16       , 0
+ *   [['Stop()']                   , ['Obj']          ]: [32       , 13
  *
  * a multi-dimensional view provides a recursive breakdown of the aggregated
- * values, e.g.:
+ * values, e.g. (total values shown in square brackets):
  *
- *   (root):      total=63
+ *   (root): [63, 39]
  *     |
  *     | break down by 0th dimension
  *     v
- *   Loop::Run(): total=31
+ *   Run():  [31, 26]
  *     |
  *     | break down by 0th dimension
  *     v
- *   Execute():   total=15
+ *   Exec(): [15, 26]
  *     |
  *     | break down by 1st dimension
  *     v
- *   Object:      total=7
+ *   Obj:    [7, 19]
  *     |
  *     | break down by 0th dimension again
  *     v
- *   Call():      total=3
+ *   Call(): [3, 8]
  *     |
  *     | break down by 1st dimension again
  *     v
- *   View:        total=1
+ *   View:   [1, 3]
  *
  * Observe that the recursive breakdown above is over both dimensions.
- * Furthermore, the underlying single-dimension paths (Loop::Run() -> Execute()
- * -> Call() and Object -> View) can be arbitrarily interleaved in the
- * breakdown.
+ * Furthermore, the underlying single-dimension paths (Run() -> Exec() -> Call()
+ * and Obj -> View) can be arbitrarily interleaved in the breakdown.
  */
 tr.exportTo('tr.b', function() {
 
@@ -121,7 +121,7 @@ tr.exportTo('tr.b', function() {
    *       | (node 1) |   | (node 2) |   | (node 3) |   | (node 4) |
    *       +----------+   +----------+   +----------+   +----------+
    *
-   * The self/total value of a node represents the aggregated value of all
+   * The self/total values of a node represents the aggregated values of all
    * paths (in the collection from which the view was built) matching the node
    * excluding/including the node's descendants.
    *
@@ -137,7 +137,7 @@ tr.exportTo('tr.b', function() {
    *
    * @{constructor}
    */
-  function MultiDimensionalViewNode(title, isLowerBound) {
+  function MultiDimensionalViewNode(title, valueCount) {
     // List of titles of this node wrt each dimension.
     this.title = title;
 
@@ -147,12 +147,13 @@ tr.exportTo('tr.b', function() {
     for (var i = 0; i < dimensions; i++)
       this.children[i] = new Map();
 
-    this.total = 0;
-    this.self = 0;
-
-    // Flag whether the values of this node are only lower bounds (i.e.
-    // aggregated from children rather than provided directly).
-    this.isLowerBound = !!isLowerBound;
+    // For each value index (from 0 to |valueCount| - 1), we store the self and
+    // total values together with a Boolean flag whether the value is only a
+    // lower bound (i.e. aggregated from children rather than provided
+    // directly).
+    this.values = new Array(valueCount);
+    for (var i = 0; i < valueCount; i++)
+      this.values[i] = { total: 0, self: 0, isLowerBound: true };
   }
 
   MultiDimensionalViewNode.prototype = {
@@ -191,7 +192,8 @@ tr.exportTo('tr.b', function() {
    *      A multi-dimensional path in the view corresponds to all paths in the
    *      collection that have it as their substring reversed.
    *
-   * For example, the following collection of 2-dimensional paths:
+   * For example, the following collection of 2-dimensional paths (with single
+   * values):
    *
    *                  2-dimensional path                | self
    *    Time (0th dimension) | Activity (1st dimension) | value
@@ -250,9 +252,9 @@ tr.exportTo('tr.b', function() {
    * 2-dimensional top-down tree view shown above:
    *
    *   var builder = new MultiDimensionalViewBuilder(2);
-   *   builder.addPath([['Saturday'], ['Cooking']], 1, SELF);
-   *   builder.addPath([['Saturday'], ['Sports', 'Football']], 2, SELF);
-   *   builder.addPath([['Sunday'], ['Sports', 'Basketball']], 3, SELF);
+   *   builder.addPath([['Saturday'], ['Cooking']], [1], SELF);
+   *   builder.addPath([['Saturday'], ['Sports', 'Football']], [2], SELF);
+   *   builder.addPath([['Sunday'], ['Sports', 'Basketball']], [3], SELF);
    *   var treeViewRoot = builder.buildTopDownTreeView();
    *
    * The heavy views can be constructed analogously (by calling
@@ -264,10 +266,14 @@ tr.exportTo('tr.b', function() {
    *
    * @{constructor}
    */
-  function MultiDimensionalViewBuilder(dimensions) {
-    if (dimensions < 0)
-      throw new Error('Dimensions must be non-negative');
+  function MultiDimensionalViewBuilder(dimensions, valueCount) {
+    if (typeof(dimensions) !== 'number' || dimensions < 0)
+      throw new Error('Dimensions must be a non-negative number');
     this.dimensions_ = dimensions;
+
+    if (typeof(valueCount) !== 'number' || valueCount < 0)
+      throw new Error('Number of values must be a non-negative number');
+    this.valueCount_ = valueCount;
 
     this.buildRoot_ = this.createRootNode_();
     this.topDownTreeViewRoot_ = undefined;
@@ -287,7 +293,7 @@ tr.exportTo('tr.b', function() {
 
   MultiDimensionalViewBuilder.prototype = {
     /**
-     * Add a value associated with a multi-dimensional path to the tree.
+     * Add values associated with a multi-dimensional path to the tree.
      *
      * The path must have the same number of dimensions as the builder. Its
      * elements must be single-dimension paths (lists of strings) of arbitrary
@@ -295,11 +301,12 @@ tr.exportTo('tr.b', function() {
      * root of the tree, each single-dimension path is traversed from left to
      * right to reach the node corresponding to the whole path.
      *
-     * The builder supports adding both kinds of values (self/total) for an
-     * arbitrary multi-dimensional path. The rationale for adding a total value
-     * (in addition to/instead of a self value) is to cater for missing
-     * sub-paths. Example: Consider the following collection of
-     * single-dimensional paths:
+     * The length of the provided list of values must be equal to the builder's
+     * value count. The builder supports adding both kinds of values
+     * (self/total) wrt all value indices for an arbitrary multi-dimensional
+     * path. The rationale for adding total values (in addition to/instead of
+     * self values) is to cater for missing sub-paths. Example: Consider the
+     * following collection of single-dimensional paths (with single values):
      *
      *   [['Loop::Run()', 'Execute()', 'FunctionBig']]:       self=99000
      *   [['Loop::Run()', 'Execute()', 'FunctionSmall1']]:    self=1
@@ -323,16 +330,29 @@ tr.exportTo('tr.b', function() {
      * Important: No paths can be added to a builder once either view has been
      * built!
      */
-    addPath: function(path, value, valueKind) {
+    addPath: function(path, values, valueKind) {
       if (this.buildRoot_ === undefined) {
         throw new Error(
             'Paths cannot be added after either view has been built');
       }
       if (path.length !== this.dimensions_)
         throw new Error('Path must be ' + this.dimensions_ + '-dimensional');
+      if (values.length !== this.valueCount_)
+        throw new Error('Must provide ' + this.valueCount_ + ' values');
+
+      var valueName;
+      switch (valueKind) {
+        case MultiDimensionalViewBuilder.ValueKind.SELF:
+          valueName = 'self';
+          break;
+        case MultiDimensionalViewBuilder.ValueKind.TOTAL:
+          valueName = 'total';
+          break;
+        default:
+          throw new Error('Invalid value kind: ' + valueKind);
+      }
 
       var node = this.buildRoot_;
-
       for (var d = 0; d < path.length; d++) {
         var singleDimensionPath = path[d];
         var singleDimensionPathLength = singleDimensionPath.length;
@@ -342,20 +362,14 @@ tr.exportTo('tr.b', function() {
           node = this.getOrCreateChildNode_(node, d, singleDimensionPath[i]);
       }
 
-      switch (valueKind) {
-        case MultiDimensionalViewBuilder.ValueKind.SELF:
-          node.self += value;
-          break;
-
-        case MultiDimensionalViewBuilder.ValueKind.TOTAL:
-          node.total += value;
-          break;
-
-        default:
-          throw new Error('Invalid value kind: ' + valueKind);
+      for (var v = 0; v < this.valueCount_; v++) {
+        var addedValue = values[v];
+        if (addedValue === undefined)
+          continue;
+        var nodeValue = node.values[v];
+        nodeValue[valueName] += addedValue;
+        nodeValue.isLowerBound = false;
       }
-
-      node.isLowerBound = false;
     },
 
     buildView: function(viewType) {
@@ -424,7 +438,7 @@ tr.exportTo('tr.b', function() {
 
     createRootNode_: function() {
       return new MultiDimensionalViewNode(
-          new Array(this.dimensions_) /* title */, true /* isLowerBound */);
+          new Array(this.dimensions_) /* title */, this.valueCount_);
     },
 
     getOrCreateChildNode_: function(
@@ -440,8 +454,7 @@ tr.exportTo('tr.b', function() {
 
       var childTitle = parentNode.title.slice();
       childTitle[dimension] = childDimensionTitle;
-      childNode = new MultiDimensionalViewNode(
-          childTitle, true /* isLowerBound */);
+      childNode = new MultiDimensionalViewNode(childTitle, this.valueCount_);
       dimensionChildren.set(childDimensionTitle, childNode);
 
       return childNode;
@@ -544,30 +557,35 @@ tr.exportTo('tr.b', function() {
      * be done is to propagate self and total values from subsumed child nodes
      * in each dimension.
      *
-     * To derive the expression for the lower bound on the total value, we rely
-     * on the following assumptions:
+     * To derive the expression for the lower bound on the total value wrt
+     * value index V (from 1 to |this.valueCount_| - 1), we rely on the
+     * following assumptions:
      *
-     *   1. Each node's self value does NOT overlap with the self or total value
+     *   1. Self/total values associated with different value indices are
+     *      independent. From this point onwards, "self/total value" refers to
+     *      self/total value wrt the fixed value index V.
+     *
+     *   2. Each node's self value does NOT overlap with the self or total value
      *      of any other node.
      *
-     *   2. The total values of a node's children wrt a single dimension (e.g.
+     *   3. The total values of a node's children wrt a single dimension (e.g.
      *      [path1/A, path2] and [path1/B, path2]) do NOT overlap.
      *
-     *   3. The total values of a node's children wrt different dimensions
+     *   4. The total values of a node's children wrt different dimensions
      *      (e.g. [path1/A, path2] and [path1, path2/1]) MIGHT overlap.
      *
      * As a consequence of assumptions 1 and 3, the total value of a node can
      * be split into the part that cannot overlap (so-called "self-sum") and
      * the part that can overlap (so-called "residual"):
      *
-     *   total(N) = selfSum(N) + residual(N)                            (A)
+     *   total(N, V) = selfSum(N, V) + residual(N, V)                   (A)
      *
      * where the self-sum is calculated as the sum of the node's self value
      * plus the sum of its descendants' self values (summed over all
      * dimensions):
      *
-     *   selfSum(N) = self(N) + sum over all descendants C of N {
-     *       self (C)                                                   (B)
+     *   selfSum(N, V) = self(N, V) + sum over all descendants C of N {
+     *       self (C, V)                                                (B)
      *   }
      *
      * Observe that the residual of a node does not include any self value (of
@@ -577,16 +595,16 @@ tr.exportTo('tr.b', function() {
      * dimensions might overlap. This gives us the following lower bound on the
      * residual of a node:
      *
-     *   residual(N) >= minResidual(N) = max over dimensions D {
+     *   residual(N, V) >= minResidual(N, V) = max over dimensions D {
      *       sum over children C of N at dimension D {
-     *           residual(C)                                            (C)
+     *           residual(C, V)                                         (C)
      *       }
      *   })
      *
      * By combining equation (A) and inequality (C), we get a lower bound on
      * the total value of a node:
      *
-     *   total(N) >= selfSum(N) + minResidual(N)
+     *   total(N, V) >= selfSum(N, V) + minResidual(N, V)
      *
      * For example, given a two-dimensional node [path1, path2] with self value
      * 10 and four children (2 wrt each dimension):
@@ -602,23 +620,25 @@ tr.exportTo('tr.b', function() {
      * residual values are equal to the differences between their total and
      * self values), the lower bound on the total value of [path1, path2] is:
      *
-     *   total([path1, path2])
-     *       >= selfSum([path1, path2]) +
-     *          minResidual([path1, path2])
-     *        = self([path1, path2]) +
+     *   total([path1, path2], 0)
+     *       >= selfSum([path1, path2], 0) +
+     *          minResidual([path1, path2], 0)
+     *        = self([path1, path2], 0) +
      *          sum over all descendants C of [path1, path2] {
-     *              self (C)
+     *              self (C, 0)
      *          } +
      *          max over dimensions D {
      *              sum over children C of [path1, path2] at dimension D {
-     *                  residual(C)
+     *                  residual(C, 0)
      *              }
      *          }
-     *        = self([path1, path2]) +
-     *          ((self([path1/A, path2]) + self([path1/B, path2])) +
-     *           (self([path1, path2/1]) + self([path1, path2/2]))) +
-     *          max(residual([path1/A, path2]) + residual([path1/B, path2]),
-     *              residual([path1, path2/1]) + residual([path1, path2/2]))
+     *        = self([path1, path2], 0) +
+     *          ((self([path1/A, path2], 0) + self([path1/B, path2], 0)) +
+     *           (self([path1, path2/1], 0) + self([path1, path2/2], 0))) +
+     *          max(residual([path1/A, path2], 0) +
+     *              residual([path1/B, path2], 0),
+     *              residual([path1, path2/1], 0) +
+     *              residual([path1, path2/2], 0))
      *        = 10 +
      *          ((21 + 25) + (3 + 40)) +
      *          max((30 - 21) + (32 - 25), (15 - 3) + (41 - 40))
@@ -637,36 +657,59 @@ tr.exportTo('tr.b', function() {
      *      lists of the associated node's children (avoids square complexity
      *      in the size of the graph):
      *
-     *        dimensionalSelfSum(N)[D] =
-     *            self(N) +
+     *        dimensionalSelfSum(N, V)[D] =
+     *            self(N, V) +
      *            sum I = 0 to D {
      *                sum over children C of N at dimension I {
-     *                    dimensionalSelfSum(C)[I]
+     *                    dimensionalSelfSum(C, V)[I]
      *                }
      *            }
      */
     finalizeTotalValues_: function(
         node, firstDimensionToFinalize, dimensionalSelfSumsMap) {
+      // Dimension D -> Value index V -> dimensionalSelfSum(|node|, V)[D].
       var dimensionalSelfSums = new Array(this.dimensions_);
-      var maxChildResidualSum = 0;
-      var nodeSelfSum = node.self;
+
+      // Value index V -> minResidual(|node|, V).
+      var minResidual = new Array(this.valueCount_);
+      for (var i = 0; i < this.valueCount_; i++)
+        minResidual[i] = 0;
+
+      // Value index V -> dimensionalSelfSum(|node|, V)[|d|].
+      var nodeSelfSums = new Array(this.valueCount_);
+      for (var i = 0; i < this.valueCount_; i++)
+        nodeSelfSums[i] = node.values[i].self;
 
       for (var d = 0; d < this.dimensions_; d++) {
-        var childResidualSum = 0;
+        // Value index V -> sum over children C of |node| at dimension |d| {
+        // residual(C, V) }.
+        var childResidualSums = new Array(this.valueCount_);
+        for (var v = 0; v < this.valueCount_; v++)
+          childResidualSums[v] = 0;
+
         for (var childNode of node.children[d].values()) {
           if (d >= firstDimensionToFinalize)
             this.finalizeTotalValues_(childNode, d, dimensionalSelfSumsMap);
+          // Dimension D -> Value index V ->
+          // dimensionalSelfSum(|childNode|, V)[D].
           var childNodeSelfSums = dimensionalSelfSumsMap.get(childNode);
-          nodeSelfSum += childNodeSelfSums[d];
-          var residual =
-              childNode.total - childNodeSelfSums[this.dimensions_ - 1];
-          childResidualSum += residual;
+          for (var v = 0; v < this.valueCount_; v++) {
+            nodeSelfSums[v] += childNodeSelfSums[d][v];
+            var residual = childNode.values[v].total -
+                childNodeSelfSums[this.dimensions_ - 1][v];
+            childResidualSums[v] += residual;
+          }
         }
-        dimensionalSelfSums[d] = nodeSelfSum;
-        maxChildResidualSum = Math.max(maxChildResidualSum, childResidualSum);
+
+        dimensionalSelfSums[d] = nodeSelfSums.slice();
+        for (var v = 0; v < this.valueCount_; v++)
+          minResidual[v] = Math.max(minResidual[v], childResidualSums[v]);
       }
 
-      node.total = Math.max(node.total, nodeSelfSum + maxChildResidualSum);
+      for (var v = 0; v < this.valueCount_; v++) {
+        node.values[v].total = Math.max(
+            node.values[v].total, nodeSelfSums[v] + minResidual[v]);
+      }
 
       if (dimensionalSelfSumsMap.has(node))
         throw new Error('Internal error: Node finalized more than once');
@@ -681,9 +724,7 @@ tr.exportTo('tr.b', function() {
       // children).
       var treeViewRoot = this.buildTopDownTreeView();
       var heavyViewRoot = this.createRootNode_();
-      heavyViewRoot.total = treeViewRoot.total;
-      heavyViewRoot.self = treeViewRoot.self;
-      heavyViewRoot.isLowerBound = treeViewRoot.isLowerBound;
+      heavyViewRoot.values = treeViewRoot.values;
 
       // 2. Create recursion depth trackers (to avoid total value
       // double-counting).
@@ -815,9 +856,8 @@ tr.exportTo('tr.b', function() {
       var heavyViewChildNode = this.getOrCreateChildNode_(
           heavyViewParentNode, currentDimension, dimensionTitle);
 
-      heavyViewChildNode.self += treeViewChildNode.self;
-      if (!currentOrPreviousDimensionsRecursive)
-        heavyViewChildNode.total += treeViewChildNode.total;
+      this.addNodeValues_(treeViewChildNode, heavyViewChildNode,
+          !currentOrPreviousDimensionsRecursive /* addTotal */);
 
       // Add the descendants of the tree-view child node wrt the next
       // dimensions as children of the heavy-view child node.
@@ -913,9 +953,8 @@ tr.exportTo('tr.b', function() {
 
         // The self and total values are taken from the original top-down tree
         // view child node (rather than the ancestor node).
-        heavyViewDescendantNode.self += treeViewChildNode.self;
-        if (!currentOrPreviousDimensionsRecursive)
-          heavyViewDescendantNode.total += treeViewChildNode.total;
+        this.addNodeValues_(treeViewChildNode, heavyViewDescendantNode,
+            !currentOrPreviousDimensionsRecursive);
 
         // Add the descendants of the tree-view child node wrt the next
         // dimensions as children of the heavy-view child node.
@@ -923,6 +962,16 @@ tr.exportTo('tr.b', function() {
             heavyViewDescendantNode, currentDimension + 1,
             recursionDepthTrackers, currentOrPreviousDimensionsRecursive,
             this.addDimensionToBottomUpHeavyViewNode_.bind(this));
+      }
+    },
+
+    addNodeValues_: function(sourceNode, targetNode, addTotal) {
+      var targetNodeValues = targetNode.values;
+      var sourceNodeValues = sourceNode.values;
+      for (var i = 0; i < this.valueCount_; i++) {
+        targetNodeValues[i].self += sourceNodeValues[i].self;
+        if (addTotal)
+          targetNodeValues[i].total += sourceNodeValues[i].total;
       }
     }
   };
