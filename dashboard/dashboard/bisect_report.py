@@ -143,7 +143,7 @@ def _RevisionTable(results_data):
 def _FormatNumber(x):
   if x is None:
     return 'N/A'
-  if isinstance(x, int):
+  if isinstance(x, int) or x == 0:
     return str(x)
 
   if x >= 10**5:
