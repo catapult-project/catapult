@@ -425,7 +425,7 @@ def _ExtractValueAndError(trace):
       if trace.get('none_value_reason'):
         return float('nan'), float('nan')
       raise BadRequestError('Expected list of scalar values, got: %r' % values)
-    if not all(isinstance(v, float) or isinstance(v, int) for v in values):
+    if not all(_IsNumber(v) for v in values):
       raise BadRequestError('Non-number found in values list: %r' % values)
     value = math_utils.Mean(values)
     std = trace.get('std')
@@ -439,6 +439,10 @@ def _ExtractValueAndError(trace):
     return _GeomMeanAndStdDevFromHistogram(trace)
 
   raise BadRequestError('Invalid value type in chart object: %r' % trace_type)
+
+
+def _IsNumber(v):
+  return isinstance(v, float) or isinstance(v, int) or isinstance(v, long)
 
 
 def _EscapeName(name):

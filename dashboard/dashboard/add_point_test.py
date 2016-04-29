@@ -1205,6 +1205,14 @@ class FlattenTraceTest(testing_common.TestCase):
     self.assertTrue(math.isnan(row['value']))
     self.assertEqual(row['error'], 0)
 
+  def testFlattenTrace_ScalarLongValue(self):
+    """Tests that scalar values can be longs."""
+    trace = self._SampleTrace()
+    trace.update({'value': 1000000000L})
+    row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+    self.assertEqual(row['value'], 1000000000L)
+    self.assertEqual(row['error'], 0)
+
   def testFlattenTrace_InvalidScalarValue_RaisesError(self):
     """Tests that scalar NoneValue is flattened to NaN."""
     trace = self._SampleTrace()
@@ -1222,6 +1230,17 @@ class FlattenTraceTest(testing_common.TestCase):
     row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
     self.assertAlmostEqual(row['value'], 13)
     self.assertAlmostEqual(row['error'], 6.78232998)
+
+  def testFlattenTrace_ListValue_WithLongs(self):
+    """Tests that lists of scalars can include longs."""
+    trace = self._SampleTrace()
+    trace.update({
+        'type': 'list_of_scalar_values',
+        'values': [1000000000L, 2000000000L],
+    })
+    row = add_point._FlattenTrace('foo', 'bar', 'baz', trace)
+    self.assertAlmostEqual(row['value'], 1500000000L)
+    self.assertAlmostEqual(row['error'], 500000000L)
 
   def testFlattenTrace_ListValueWithStd(self):
     """Tests that lists with reported std use std as error."""
