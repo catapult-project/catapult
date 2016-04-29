@@ -105,7 +105,9 @@ def _CheckJob(job, issue_tracker):
     job: A TryJob entity, which represents one bisect try job.
     issue_tracker: An issue_tracker_service.IssueTrackerService instance.
   """
+  logging.info('Checking job %s', job.key.id())
   if _IsStale(job):
+    logging.info('Stale')
     job.SetStaled()
     # TODO(chrisphan): Add a staled TryJob log.
     # TODO(chrisphan): Do we want to send a FYI Bisect email here?
@@ -117,13 +119,17 @@ def _CheckJob(job, issue_tracker):
   # team.
   if ((not results_data or results_data['status'] not in [COMPLETED, FAILED])
       and job.job_type != 'bisect-fyi'):
+    logging.info('Not yet COMPLETED/FAILED')
     return
 
   if job.job_type == 'perf-try':
+    logging.info('Sending perf try job mail')
     _SendPerfTryJobEmail(job)
   elif job.job_type == 'bisect-fyi':
+    logging.info('Checking FYI bisect job')
     _CheckFYIBisectJob(job, issue_tracker)
   else:
+    logging.info('Checking bisect job')
     _CheckBisectJob(job, issue_tracker)
 
   if results_data['status'] == COMPLETED:

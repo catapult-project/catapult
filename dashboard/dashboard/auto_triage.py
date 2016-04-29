@@ -64,10 +64,13 @@ class AutoTriageHandler(request_handler.RequestHandler):
       TriageBugs.UpdateRecoveredBugs(bug_id)
       return
 
+    logging.info('Triaging anomalies')
     TriageAnomalies.Process()
     utils.TickMonitoringCustomMetric('TriageAnomalies')
+    logging.info('Triaging bugs')
     TriageBugs.Process()
     utils.TickMonitoringCustomMetric('TriageBugs')
+    logging.info('/auto_triage complete')
 
 
 class TriageAnomalies(object):
@@ -112,7 +115,9 @@ class TriageBugs(object):
 
     # For each bugs, add a task to check if all their anomalies have recovered.
     for bug in bugs:
+      logging.info('Processing bug %s', bug.key.id())
       if bug.status == bug_data.BUG_STATUS_OPENED:
+        logging.info('Adding update task to task queue')
         taskqueue.add(
             url='/auto_triage',
             params={'update_recovered_bug': True, 'bug_id': bug.key.id()},
@@ -228,6 +233,7 @@ def _IsApproximatelyEqual(delta1, delta2):
 
 def _AddLogForRecoveredAnomaly(anomaly_entity):
   """Adds a quick log entry for an anomaly that has recovered."""
+  logging.info('_AddLogForRecoveredAnomaly %s', anomaly_entity.key.id())
   formatter = quick_logger.Formatter()
   sheriff_key = anomaly_entity.test.get().sheriff
   if not sheriff_key:
