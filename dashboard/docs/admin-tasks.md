@@ -13,6 +13,41 @@ here: [https://code.google.com/status/appengine](https://code.google.com/status
   - Search the logs
   - Is the test internal-only and the user is logged out?
 
+## Handling stackdriver alerts
+
+We use stackdriver monitoring to check if the dashboard is running as expected.
+When you get an alert mail from stackdriver, you should do the following:
+
+**Understand what alerted**, and find the relevant code. We have two main types
+of alerts:
+
+1. **Metric Absence on Custom Metrics**. When we have some piece of code which
+   absolutely must run regularly, we call `utils.TickMonitoringCustomMetric`
+   every time the code completes. If that call is **not** made, it generally
+   means the code failed, and we send an alert. You'll want to search the code
+   for the call to tick the metric with that name, so you can understand where
+   the likely failure is.
+2. **Metric Threshold on Task Queue add-point-queue**. When this happens, we are
+   seeing too many errors adding data to the datastore in `add_point_queue.py`.
+
+**Analyze the logs for errors**. Once you have a basic idea what codepath is
+failing, you'll want to look at the logs. There are two main entry points for
+this:
+
+1. **[Error Reporting Page](http://go/chromeperf-errors)**. This page
+   lists common errors that have occurred recently, grouped together. You'll
+   want to look out especially for ones marked `NEW ERROR`. Click through to
+   look at callstacks and relevant logs.
+2. **[Logs page](http://go/chromeperf-logs)**. This page allows you to search
+   all the logs. You'll want to try and find log entries on the URLs where the
+   problem occurred.
+   ([Logs page help](https://cloud.google.com/logging/docs/view/logs_viewer))
+
+**File a bug and follow up**. The bug should be labeled `P0`, `Perf Dashboard`,
+`Bug`. If it is clear the problem is with bisect, add that label as well. Reply
+to the email and link the bug, and update the bug with your findings as you
+understand the problem better.
+
 ## Scheduled downtime
 
 If it's necessary at some point to have scheduled downtime, announce
