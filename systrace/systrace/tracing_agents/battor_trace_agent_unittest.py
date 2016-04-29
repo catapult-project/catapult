@@ -14,8 +14,9 @@ from devil.android import battery_utils
 from devil.utils import battor_device_mapping
 
 
-mock_opts = namedtuple('mock_opts', ['target', 'device_serial', 'hub_types',
-                                     'battor_path', 'update_map', 'serial_map'])
+mock_opts = namedtuple('mock_opts', ['target', 'device_serial_number',
+                                     'hub_types', 'battor_path',
+                                     'update_map', 'serial_map'])
 OPTIONS = mock_opts('android', 'Phn2', ['plugable_7port'],
                     None, False, __file__)
 CATEGORIES = None

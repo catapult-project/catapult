@@ -165,15 +165,13 @@ class BattorWrapper(object):
           'attached unless address is explicitly given.')
     return '/dev/%s' % battors.pop()
 
-  def _SendBattorCommandImpl(self, cmd, return_results=True):
+  def _SendBattorCommandImpl(self, cmd):
     """Sends command to the BattOr."""
     self._battor_shell.stdin.write('%s\n' % cmd)
-    if return_results:
-      return self._battor_shell.stdout.readline()
-    return
+    return self._battor_shell.stdout.readline()
 
   def _SendBattorCommand(self, cmd, check_return=True):
-    status = self._SendBattorCommandImpl(cmd, return_results=check_return)
+    status = self._SendBattorCommandImpl(cmd)
     if check_return and not 'Done.' in status:
       raise battor_error.BattorError(
           'BattOr did not complete command \'%s\' correctly.\n'

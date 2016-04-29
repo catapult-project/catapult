@@ -51,11 +51,11 @@ class BattorTraceAgent(tracing_agents.TracingAgent):
                                                   options.hub_types)
     self._battor_wrapper = battor_wrapper.BattorWrapper(
         target_platform=options.target,
-        android_device=options.device_serial,
+        android_device=options.device_serial_number,
         battor_path=options.battor_path,
         battor_map_file=options.serial_map)
 
-    dev_utils = device_utils.DeviceUtils(options.device_serial)
+    dev_utils = device_utils.DeviceUtils(options.device_serial_number)
     self._battery_utils = battery_utils.BatteryUtils(dev_utils)
     self._battery_utils.SetCharging(False)
     atexit.register(_reenable_charging_if_needed, self._battery_utils)
@@ -89,7 +89,7 @@ class BattorTraceAgent(tracing_agents.TracingAgent):
     """
     ts = trace_time.Now()
     self._battor_wrapper.RecordClockSyncMarker(sync_id)
-    did_record_sync_marker_callback(sync_id, ts)
+    did_record_sync_marker_callback(ts, sync_id)
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
