@@ -127,7 +127,7 @@ tr.exportTo('tr.e.importer.battor', function() {
 
         var ts = parseFloat(groups[1]);
         var voltage = parseFloat(groups[2]) / 1000;
-        var current = parseFloat(groups[3]);
+        var current = parseFloat(groups[3]) / 1000;
         var syncId = groups[4];
 
         samples.push(new Sample(ts, voltage, current, syncId));
