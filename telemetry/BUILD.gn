@@ -18,5 +18,6 @@ executable("bitmaptools") {
 
   deps = [
     "//build/config/sanitizers:deps",
+    "//build/win:default_exe_manifest",
   ]
 }
