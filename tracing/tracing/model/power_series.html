@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/power_sample.html">
 
@@ -80,6 +81,14 @@ tr.exportTo('tr.model', function() {
       }
 
       return energyConsumed;
+    },
+
+    getSamplesWithinRange: function(start, end) {
+      var startIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, start);
+      var endIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, end);
+      return this.samples.slice(startIndex, endIndex);
     },
 
     shiftTimestampsForward: function(amount) {

@@ -463,6 +463,14 @@ found in the LICENSE file.
       });
 
       addBinding({
+        keyCode: 'p'.charCodeAt(0),
+        callback: function(e) {
+          this.selectPowerSamplesInCurrentTimeRange_();
+          e.stopPropagation();
+        }
+      });
+
+      addBinding({
         keyCode: 'h'.charCodeAt(0),
         callback: function(e) {
           this.toggleHighDetails_();
@@ -733,6 +741,16 @@ found in the LICENSE file.
       this.xNavStringMarker_ =
           new tr.model.XMarkerAnnotation(worldCenter);
       this.model.addAnnotation(this.xNavStringMarker_);
+    },
+
+    selectPowerSamplesInCurrentTimeRange_: function() {
+      var selectionBounds = this.brushingStateController_.selection.bounds;
+      if (this.model.device.powerSeries && !selectionBounds.empty) {
+        var events = this.model.device.powerSeries.getSamplesWithinRange(
+            selectionBounds.min, selectionBounds.max);
+        var selection = new tr.model.EventSet(events);
+        this.brushingStateController_.changeSelectionFromTimeline(selection);
+      }
     },
 
     setCurrentSelectionAsInterestRange_: function() {
