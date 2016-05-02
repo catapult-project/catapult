@@ -7,8 +7,8 @@
 import json
 
 from google.appengine.api import users
+from google.appengine.ext.webapp import util
 
-from dashboard import oauth2_decorator
 from dashboard import quick_logger
 from dashboard import request_handler
 from dashboard import utils
@@ -18,14 +18,17 @@ from dashboard.models import try_job
 
 class BadBisectHandler(request_handler.RequestHandler):
 
-  @oauth2_decorator.DECORATOR.oauth_required
   def get(self):
     """Renders bad_bisect.html."""
-    if not utils.IsValidSheriffUser():
-      self._RenderError('No permission.')
-      return
     if self.request.get('list'):
       self.response.out.write(_PrintRecentFeedback())
+      return
+    self._RenderForm()
+
+  @util.login_required
+  def _RenderForm(self):
+    if not utils.IsValidSheriffUser():
+      self._RenderError('No permission.')
       return
     if not self.request.get('try_job_id'):
       self._RenderError('Missing try_job_id.')

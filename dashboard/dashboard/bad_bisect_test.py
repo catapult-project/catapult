@@ -39,7 +39,7 @@ class BadBisectHandlerTest(testing_common.TestCase):
     self.UnsetCurrentUser()
     self.testapp.get('/bad_bisect?', {'try_job_id': '1234'})
     response = self.testapp.get('/bad_bisect')
-    self.assertIn('<h1 class="error">', response.body)
+    self.assertEqual(302, response.status_code)
 
   def testGet_RenderForm(self):
     response = self.testapp.get('/bad_bisect?', {'try_job_id': '1234'})
