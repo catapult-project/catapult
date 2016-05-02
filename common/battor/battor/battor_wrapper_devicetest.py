@@ -49,25 +49,31 @@ class BattorWrapperDeviceTest(unittest.TestCase):
                    else '/dev/%s' % self._battor_list[0])
     battor = battor_wrapper.BattorWrapper(self._platform,
                                           battor_path=battor_path)
-    battor.StartShell()
-    battor.StartTracing()
-    # TODO(rnephew): This sleep is required for now because crbug.com/602266
-    # causes the BattOr to crash when the trace time is too short. Once that bug
-    # is fixed, we should remove this delay.
-    time.sleep(1)
-    battor.RecordClockSyncMarker('abc')
-    # Sleep here because clock sync marker will be flaky if not.
-    time.sleep(1)
-    battor.StopTracing()
+    try:
+      battor.StartShell()
+      battor.StartTracing()
+      # TODO(rnephew): This sleep is required for now because crbug.com/602266
+      # causes the BattOr to crash when the trace time is too short. Once that
+      # bug is fixed, we should remove this delay.
+      time.sleep(1)
+      battor.RecordClockSyncMarker('abc')
+      # Sleep here because clock sync marker will be flaky if not.
+      time.sleep(1)
+      battor.StopTracing()
 
-    # Below is a work around for crbug.com/603309. On this short of a trace, 5
-    # seconds is enough to ensure that the trace will finish flushing to the
-    # file. The process is then killed so that BattorWrapper knows that the
-    # process has been closed after tracing stops.
-    if self._platform == 'win':
-      time.sleep(5)
-      battor._battor_shell.kill()
-    results = battor.CollectTraceData()
+      # Below is a work around for crbug.com/603309. On this short of a trace, 5
+      # seconds is enough to ensure that the trace will finish flushing to the
+      # file. The process is then killed so that BattorWrapper knows that the
+      # process has been closed after tracing stops.
+      if self._platform == 'win':
+        time.sleep(5)
+        battor._battor_shell.kill()
+      results = battor.CollectTraceData()
+    except:
+      if battor._battor_shell is not None:
+        battor._battor_shell.kill()
+        battor._battor_shell = None
+      raise
     self.assertTrue('# BattOr' in results[0])
     self.assertTrue('# voltage_range' in results[1])
     self.assertTrue('# current_range' in results[2])
