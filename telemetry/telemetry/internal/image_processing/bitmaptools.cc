@@ -237,8 +237,8 @@ int main() {
   _setmode(_fileno(stdin), _O_BINARY);
   _setmode(_fileno(stdout), _O_BINARY);
 #else
-  static_cast<void>(freopen(NULL, "rb", stdin));
-  static_cast<void>(freopen(NULL, "wb", stdout));
+  stdin = freopen(NULL, "rb", stdin);
+  stdout = freopen(NULL, "wb", stdout);
 #endif
 
   if (!bmp.Read()) return -1;
