@@ -35,6 +35,7 @@ import datetime
 import logging
 
 from google.appengine.api import datastore_errors
+from google.appengine.runtime import apiproxy_errors
 from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
@@ -140,6 +141,10 @@ def Set(key, value, days_to_keep=None, namespace=None):
                         expire_time=expire_time).put()
   except datastore_errors.BadRequestError as e:
     logging.warning('BadRequestError for key %s: %s', key, e)
+  except apiproxy_errors.RequestTooLargeError as e:
+    # TODO(sullivan): Fix instead of swallowing exception.
+    # https://github.com/catapult-project/catapult/issues/2305
+    logging.error('RequestTooLargeError for key %s: %s', key, e)
 
 
 def SetExternal(key, value, days_to_keep=None):
