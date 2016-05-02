@@ -442,8 +442,6 @@ def _GuessCommandTelemetry(
   # TODO(qyearsley): Use metric to add a --story-filter flag for Telemetry.
   # See: http://crbug.com/448628
   command = []
-  if bisect_bot.startswith('win'):
-    command.append('python')
 
   if use_buildbucket:
     test_cmd = 'src/tools/perf/run_benchmark'

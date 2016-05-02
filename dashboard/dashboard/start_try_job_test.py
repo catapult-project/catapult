@@ -154,11 +154,9 @@ config = {
 }
 
 On Windows:
-  - If you're calling a python script you will need to add "python" to
-the command:
 
 config = {
-  'command': 'python tools/perf/run_benchmark -v --browser=release kraken',
+  'command': 'tools/perf/run_benchmark -v --browser=release kraken',
   'good_revision': '185319',
   'bad_revision': '185364',
   'metric': 'Total/Total',
@@ -233,11 +231,9 @@ config = {
 }
 
 On Windows:
-  - If you're calling a python script you will need to add "python" to
-the command:
 
 config = {
-  'command': 'python tools/perf/run_benchmark -v --browser=release smoothness.key_mobile_sites',
+  'command': 'tools/perf/run_benchmark -v --browser=release smoothness.key_mobile_sites',
   'metric': 'mean_frame_time/mean_frame_time',
   'repeat_count': '20',
   'max_time_minutes': '20',
