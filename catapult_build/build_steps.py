@@ -28,6 +28,10 @@ _CATAPULT_TESTS = [
         'path': 'common/battor/battor/battor_wrapper_devicetest.py',
     },
     {
+        'name': 'BattOr Unit Tests',
+        'path': 'common/battor/bin/run_py_tests',
+    },
+    {
         'name': 'Build Python Tests',
         'path': 'catapult_build/bin/run_py_tests',
     },
