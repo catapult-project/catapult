@@ -477,7 +477,12 @@ class CrOSInterface(object):
     mount_prefix = 'guestfs' if is_guest else '/home/.shadow/'
     return mount and mount.startswith(mount_prefix)
 
-  def TakeScreenShot(self, screenshot_prefix):
+  def TakeScreenshot(self, file_path):
+    stdout, stderr = self.RunCmdOnDevice(
+        ['/usr/local/autotest/bin/screenshot.py', file_path])
+    return stdout == '' and stderr == ''
+
+  def TakeScreenshotWithPrefix(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""
     # TODO(achuith): Find a better location for screenshots. Cros autotests
     # upload everything in /var/log so use /var/log/screenshots for now.
@@ -491,11 +496,9 @@ class CrOSInterface(object):
       screenshot_file = ('%s%s-%d%s' %
                          (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
       if not self.FileExistsOnDevice(screenshot_file):
-        self.RunCmdOnDevice([
-            '/usr/local/autotest/bin/screenshot.py', screenshot_file
-        ])
-        return
+        return self.TakeScreenshot(screenshot_file)
     logging.warning('screenshot directory full.')
+    return False
 
   def GetArchName(self):
     return self.RunCmdOnDevice(['uname', '-m'])[0]

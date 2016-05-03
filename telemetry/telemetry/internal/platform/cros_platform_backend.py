@@ -167,3 +167,9 @@ class CrosPlatformBackend(
       logging.warning(
           'PathExists: params timeout and retries are not support on CrOS.')
     return self._cri.FileExistsOnDevice(path)
+
+  def CanTakeScreenshot(self):
+    return True
+
+  def TakeScreenshot(self, file_path):
+    return self._cri.TakeScreenshot(file_path)

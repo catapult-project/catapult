@@ -135,14 +135,14 @@ class CrOSInterfaceTest(unittest.TestCase):
       self.assertTrue(remote_port_1 != remote_port_2)
 
   @decorators.Enabled('cros-chrome')
-  def testTakeScreenShot(self):
+  def testTakeScreenshotWithPrefix(self):
     with self._GetCRI() as cri:
 
       def _Cleanup():
         cri.RmRF('/var/log/screenshots/test-prefix*')
 
       _Cleanup()
-      cri.TakeScreenShot('test-prefix')
+      self.assertTrue(cri.TakeScreenshotWithPrefix('test-prefix'))
       self.assertTrue(cri.FileExistsOnDevice(
           '/var/log/screenshots/test-prefix-0.png'))
       _Cleanup()
