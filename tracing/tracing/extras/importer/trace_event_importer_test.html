@@ -48,10 +48,11 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles,
-      expectedObjectTypeName) {
+      expectedObjectTypeName, expectedCount) {
     assert.strictEqual(entry.heapDump, expectedDump);
     assert.strictEqual(entry.size, expectedSize);
     assert.strictEqual(entry.objectTypeName, expectedObjectTypeName);
+    assert.strictEqual(entry.count, expectedCount);
     if (expectedTitles === undefined) {
       assert.isUndefined(entry.leafStackFrame);
     } else {
@@ -4434,17 +4435,17 @@ tr.b.unittest.testSuite(function() {
                   { bt: '' /* root */, type: '24', size: '2e6fc8' },
                   { bt: '' /* root */, type: '25', size: '1737e4' },
                   { bt: '-1', type: '22', size: '5b6cd6' },
-                  { bt: 'FOUR-AND-A-BIT', size: '18f0' },
+                  { bt: 'FOUR-AND-A-BIT', size: '18f0', count: '100' },
                   { bt: 'FOUR-AND-A-BIT', type: '26', size: 'c78' },
                   { bt: '\u03C0', size: 'e3a8' }
                 ]
               },
               malloc: {
                 entries: [
-                  { bt: '', size: '789' },
-                  { bt: '0.5', size: '123' },
-                  { bt: 'NaN', size: '456' },
-                  { bt: '3', type: '25', size: 'cd' }
+                  { bt: '', size: '789', count: '50' },
+                  { bt: '0.5', size: '123', count: '60' },
+                  { bt: 'NaN', size: '456', count: '70' },
+                  { bt: '3', type: '25', size: 'cd', count: '80' }
                 ]
               }
             }
@@ -4671,7 +4672,7 @@ tr.b.unittest.testSuite(function() {
         ['<self>'], '[unknown]');
     checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
         ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask'], undefined /* sum over all types */);
+            'MessageLoop::RunTask'], undefined /* sum over all types */, 256);
     checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 3192,
         ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
             'MessageLoop::RunTask'], 'blink::WebFrame *');
@@ -4685,14 +4686,16 @@ tr.b.unittest.testSuite(function() {
     var mallocEntries3 = mallocDump3.entries;
     assert.lengthOf(mallocEntries3, 4);
     checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
-        undefined /* sum over all types */);
+        undefined /* sum over all types */, 80);
     checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
-        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */);
+        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */,
+        96);
     checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
-        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */);
+        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */,
+        112);
     checkHeapEntry(mallocEntries3[3], mallocDump3, 205,
         ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *');
+            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *', 128);
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(

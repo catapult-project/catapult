@@ -2493,7 +2493,9 @@ tr.exportTo('tr.e.importer', function() {
           }
 
           var size = parseInt(entry.size, 16);
-          heapDump.addEntry(leafStackFrame, objectTypeName, size);
+          var count = entry.count === undefined ? undefined :
+              parseInt(entry.count, 16);
+          heapDump.addEntry(leafStackFrame, objectTypeName, size, count);
         }
 
         // Throw away heap dumps with no entries. This can happen if all raw

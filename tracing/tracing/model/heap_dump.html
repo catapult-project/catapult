@@ -22,7 +22,7 @@ tr.exportTo('tr.model', function() {
    *
    * @{constructor}
    */
-  function HeapEntry(heapDump, leafStackFrame, objectTypeName, size) {
+  function HeapEntry(heapDump, leafStackFrame, objectTypeName, size, count) {
     this.heapDump = heapDump;
 
     // The leaf stack frame of the associated backtrace (e.g. drawQuad for the
@@ -35,6 +35,7 @@ tr.exportTo('tr.model', function() {
     this.objectTypeName = objectTypeName;
 
     this.size = size;
+    this.count = count;
   }
 
   /**
@@ -50,8 +51,9 @@ tr.exportTo('tr.model', function() {
   }
 
   HeapDump.prototype = {
-    addEntry: function(leafStackFrame, objectTypeName, size) {
-      var entry = new HeapEntry(this, leafStackFrame, objectTypeName, size);
+    addEntry: function(leafStackFrame, objectTypeName, size, count) {
+      var entry = new HeapEntry(
+          this, leafStackFrame, objectTypeName, size, count);
       this.entries.push(entry);
       return entry;
     }
