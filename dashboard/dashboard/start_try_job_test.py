@@ -38,7 +38,7 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
 +  "builder_type": "",
-+  "command": "python tools/perf/run_benchmark -v --browser=release --output-format=buildbot --upload-results --also-run-disabled-tests dromaeo.jslibstylejquery",
++  "command": "tools/perf/run_benchmark -v --browser=release --output-format=buildbot --upload-results --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
@@ -154,11 +154,9 @@ config = {
 }
 
 On Windows:
-  - If you're calling a python script you will need to add "python" to
-the command:
 
 config = {
-  'command': 'python tools/perf/run_benchmark -v --browser=release kraken',
+  'command': 'tools/perf/run_benchmark -v --browser=release kraken',
   'good_revision': '185319',
   'bad_revision': '185364',
   'metric': 'Total/Total',
@@ -233,11 +231,10 @@ config = {
 }
 
 On Windows:
-  - If you're calling a python script you will need to add "python" to
-the command:
 
 config = {
-  'command': 'python tools/perf/run_benchmark -v --browser=release smoothness.key_mobile_sites',
+  'command': 'tools/perf/run_benchmark -v --browser=release \
+      smoothness.key_mobile_sites',
   'metric': 'mean_frame_time/mean_frame_time',
   'repeat_count': '20',
   'max_time_minutes': '20',
@@ -604,7 +601,7 @@ class StartBisectTest(testing_common.TestCase):
             'bug_id': '-1',
         },
         {
-            'command': ('python tools/perf/run_benchmark -v '
+            'command': ('tools/perf/run_benchmark -v '
                         '--browser=release --output-format=buildbot '
                         '--upload-results '
                         '--also-run-disabled-tests '
@@ -938,7 +935,7 @@ class StartBisectTest(testing_common.TestCase):
             'use_archive': 'true',
         },
         {
-            'command': ('python tools/perf/run_benchmark -v '
+            'command': ('tools/perf/run_benchmark -v '
                         '--browser=release --output-format=buildbot '
                         '--upload-results '
                         '--also-run-disabled-tests '
@@ -969,7 +966,7 @@ class StartBisectTest(testing_common.TestCase):
             'use_archive': ''
         },
         {
-            'command': ('python tools/perf/run_benchmark -v '
+            'command': ('tools/perf/run_benchmark -v '
                         '--browser=release_x64 --output-format=buildbot '
                         '--upload-results '
                         '--also-run-disabled-tests '
