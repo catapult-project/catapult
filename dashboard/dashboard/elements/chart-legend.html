@@ -7,11 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/components/core-icon-button/core-icon-button.html">
 <link rel="import" href="/components/core-selector/core-selector.html">
+<link rel="import" href="/components/core-tooltip/core-tooltip.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-shadow/paper-shadow.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
-
-<link rel="import" href="/dashboard/elements/tooltip-test-description.html">
 
 <polymer-element name="chart-legend"
                  attributes="seriesGroupList indicesToGraph showCompact
@@ -21,10 +20,6 @@ found in the LICENSE file.
       .row {
         margin-bottom: 2px;
         opacity: 1;
-      }
-
-      .row:hover core-icon.info {
-        visibility: visible;
       }
 
       .row[loading] {
@@ -50,7 +45,6 @@ found in the LICENSE file.
         opacity: .75;
         margin-left: 5px;
         cursor: pointer;
-        visibility: hidden;
       }
 
       .close-icon {
@@ -67,6 +61,19 @@ found in the LICENSE file.
       .test-name[important] {
         font-size: 105%;
         font-weight: bolder;
+      }
+
+      .tooltip-content {
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .tooltip-content a {
+        color: #9cf;
+      }
+
+      .tooltip-content a:visited {
+        color: #fac;
       }
 
       /* Checkboxes */
@@ -228,7 +235,6 @@ found in the LICENSE file.
                        hidden?="{{test.hidden}}">
 
                     <label horizontal layout center>
-
                       <input type="checkbox"
                              checked="{{test.selected}}"
                              on-change="{{onCheckboxClicked}}"
@@ -238,9 +244,18 @@ found in the LICENSE file.
                             style="color:{{test.color}};"
                             on-mouseover='{{seriesMouseover}}'
                             on-mouseout='{{seriesMouseout}}'>
-                        {{test.name}}
-                        <core-icon icon="info-outline" class="info"
-                                   on-click="{{toggleDescription}}"></core-icon>
+                          {{test.name}}
+                        <core-tooltip>
+                          <core-icon icon="info-outline" class="info"></core-icon>
+                          <div tip layout vertical class="tooltip-content">
+                            <span>{{test.direction}} is better</span>
+                            <span>Units: {{test.units}}</span>
+                            <span>{{test.description}}</span>
+                            <span><a href="/new_points?pattern={{test.path}}">See new points</a></span>
+                            <span><a href="/graph_csv?test_path={{test.path}}">Download as CSV</a></span>
+                            <span><a href="/debug_alert?test_path={{test.path}}">Debug alert page</a></span>
+                          </div>
+                        </core-tooltip>
                       </span>
                     </label>
 
@@ -278,26 +293,6 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer('chart-legend', {
-
-      /**
-       * Shows or hides the detailed description for an item in the legend.
-       */
-      toggleDescription: function(event, detail, sender) {
-        event.preventDefault();
-        var model = event.target.templateInstance.model;
-        var seriesGroup = this.seriesGroupList[model.groupIndex];
-        var test = seriesGroup.tests[model.testIndex];
-        if (test.index == undefined) {
-          return;
-        }
-
-        var description = document.createElement('tooltip-test-description');
-        description.test = test;
-        // This assumes that the tooltip element is present at the top-level.
-        // See https://github.com/catapult-project/catapult/issues/2172.
-        document.getElementById('legend-details-tooltip').set(
-            description, event.pageX, event.pageY);
-      },
 
       /**
        * Event handler for the change event of any of the checkboxes.

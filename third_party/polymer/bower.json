@@ -10,6 +10,7 @@
     "core-menu": "Polymer/core-menu#0.5.5",
     "core-overlay": "Polymer/core-overlay#0.5.5",
     "core-selector": "Polymer/core-selector#0.5.5",
+    "core-tooltip": "Polymer/core-tooltip#0.5.5",
     "paper-button": "Polymer/paper-button#0.5.5",
     "paper-dialog": "Polymer/paper-dialog#0.5.5",
     "paper-dropdown-menu": "Polymer/paper-dropdown-menu#0.5.5",
