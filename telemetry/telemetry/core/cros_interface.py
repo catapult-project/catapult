@@ -326,15 +326,12 @@ class CrOSInterface(object):
     Returns:
       A string containing the contents of the file.
     """
-    # TODO: handle the self.local case
-    assert not self.local
-    t = tempfile.NamedTemporaryFile()
-    self.GetFile(filename, t.name)
-    with open(t.name, 'r') as f2:
-      res = f2.read()
-      logging.debug("GetFileContents(%s)->%s" % (filename, res))
-      f2.close()
-      return res
+    with tempfile.NamedTemporaryFile() as t:
+      self.GetFile(filename, t.name)
+      with open(t.name, 'r') as f2:
+        res = f2.read()
+        logging.debug("GetFileContents(%s)->%s" % (filename, res))
+        return res
 
   def ListProcesses(self):
     """Returns (pid, cmd, ppid, state) of all processes on the device."""
@@ -502,6 +499,12 @@ class CrOSInterface(object):
 
   def GetArchName(self):
     return self.RunCmdOnDevice(['uname', '-m'])[0]
+
+  def SysVendor(self):
+    return self.GetFileContents('/sys/class/dmi/id/sys_vendor').rstrip()
+
+  def IsRunningOnVM(self):
+    return self.SysVendor() == 'QEMU'
 
   def RestartUI(self, clear_enterprise_policy):
     logging.info('(Re)starting the ui (logs the user out)')
