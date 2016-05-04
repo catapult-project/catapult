@@ -15,7 +15,7 @@ See https://github.com/catapult-project/catapult/issues/1905
 <link rel="import" href="/dashboard/elements/trace-form.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="trace-button" attributes="traceInfo bugId xsrfToken">
+<dom-module id="trace-button">
   <template>
     <style>
       /*
@@ -36,9 +36,9 @@ See https://github.com/catapult-project/catapult/issues/1905
     </style>
     <paper-button raised
         id="button"
-        disabled?={{!canTrace}}
-        enabled?={{canTrace}}
-        on-click="{{onTrace}}">Trace</paper-button>
+        disabled$={{!canTrace}}
+        enabled$={{canTrace}}
+        on-click="onTrace">Trace</paper-button>
     <trace-form
         id="trace"
         xsrfToken="{{xsrfToken}}"
@@ -51,7 +51,18 @@ See https://github.com/catapult-project/catapult/issues/1905
   <script>
     'use strict';
     (function() {
-      Polymer('trace-button', {
+      Polymer({
+
+        is: 'trace-button',
+        properties: {
+          bugId: { notify: true },
+          traceInfo: {
+            notify: true,
+            observer: 'traceInfoChanged'
+          },
+          xsrfToken: { notify: true }
+        }
+
         /**
          * Initializes this element; this is an element lifecycle callback.
          */
@@ -100,4 +111,4 @@ See https://github.com/catapult-project/catapult/issues/1905
       });
     })();
   </script>
-</polymer-element>
+</dom-module>
