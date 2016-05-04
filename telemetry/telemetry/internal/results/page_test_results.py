@@ -185,12 +185,14 @@ class PageTestResults(object):
             'value')
         value.grouping_keys[k] = v
 
+      # We sort by key name to make building the tir_label deterministic.
+      story_keys_label = '_'.join(v for _, v in sorted(story_keys.iteritems()))
       if value.tir_label:
-        logging.warning('Value already has a tir_label (%s) so story_keys (%s) '
-                        'are ignored', value.tir_label, story_keys)
+        assert value.tir_label == story_keys_label, (
+            'Value has an explicit tir_label (%s) that does not match the '
+            'one computed from story_keys (%s)' % (value.tir_label, story_keys))
       else:
-        # We sort by key name to make building the tir_label deterministic.
-        value.tir_label = '_'.join(v for _, v in sorted(story_keys.iteritems()))
+        value.tir_label = story_keys_label
 
     if not (isinstance(value, skip.SkipValue) or
             isinstance(value, failure.FailureValue) or
