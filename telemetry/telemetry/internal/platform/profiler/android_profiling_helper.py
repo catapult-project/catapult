@@ -55,12 +55,15 @@ def _FindMatchingUnstrippedLibraryOnHost(device, lib):
     # First find a matching stripped library on the host. This avoids the need
     # to pull the stripped library from the device, which can take tens of
     # seconds.
+    # Check the GN stripped lib path first, and the GYP ones afterwards.
+    host_lib_path = os.path.join(out_path, lib_base)
     host_lib_pattern = os.path.join(out_path, '*_apk', 'libs', '*', lib_base)
-    for stripped_host_lib in glob.glob(host_lib_pattern):
-      with open(stripped_host_lib) as f:
-        host_md5 = hashlib.md5(f.read()).hexdigest()
-        if host_md5 == device_md5:
-          return stripped_host_lib
+    for stripped_host_lib in [host_lib_path] + glob.glob(host_lib_pattern):
+      if os.path.exists(stripped_host_lib):
+        with open(stripped_host_lib) as f:
+          host_md5 = hashlib.md5(f.read()).hexdigest()
+          if host_md5 == device_md5:
+            return stripped_host_lib
     return None
 
   out_path = None
@@ -73,8 +76,16 @@ def _FindMatchingUnstrippedLibraryOnHost(device, lib):
   if not stripped_host_lib:
     return None
 
-  # The corresponding unstripped library will be under out/Release/lib.
-  unstripped_host_lib = os.path.join(out_path, 'lib', lib_base)
+  # The corresponding unstripped library will be under lib.unstripped for GN, or
+  # lib for GYP.
+  unstripped_host_lib_paths = [
+      os.path.join(out_path, 'lib.unstripped', lib_base),
+      os.path.join(out_path, 'lib', lib_base)
+  ]
+  unstripped_host_lib = next(
+      (lib for lib in unstripped_host_lib_paths if os.path.exists(lib)), None)
+  if unstripped_host_lib is None:
+    return None
 
   # Make sure the unstripped library matches the stripped one. We do this
   # by comparing the hashes of text sections in both libraries. This isn't an
@@ -206,7 +217,7 @@ def CreateSymFs(device, symfs_dir, libraries, use_symlinks=True):
       if not unstripped_host_lib:
         logging.warning('Could not find symbols for %s.' % lib)
         logging.warning('Is the correct output directory selected '
-                        '(CHROMIUM_OUT_DIR)? Did you install the APK after '
+                        '(CHROMIUM_OUTPUT_DIR)? Did you install the APK after '
                         'building?')
         continue
       if use_symlinks:
