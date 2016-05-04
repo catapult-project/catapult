@@ -11,7 +11,7 @@ TODO(qyearsley) Expand this element to take information about revision types
 to allow it to show links).
 -->
 
-<polymer-element name="revision-range" attributes="start end">
+<dom-module id="revision-range">
   <template>
     <span>{{displayRevisionRange}}</span>
   </template>
@@ -74,7 +74,12 @@ to allow it to show links).
         return revision.toString();
       }
 
-      Polymer('revision-range', {
+      Polymer({
+        is: 'revision-range',
+        properties: {
+          end: { notify: true },
+          start: { notify: true }
+        },
         ready: function() {
           this.displayRevisionRange = this.getDisplayRevisionRange();
         },
@@ -92,4 +97,4 @@ to allow it to show links).
       });
     })();
   </script>
-</polymer-element>
+</dom-module>
