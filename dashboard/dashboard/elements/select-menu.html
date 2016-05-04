@@ -5,28 +5,30 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-menu/core-menu.html">
+<link rel="import" href="/components/iron-dropdown/iron-dropdown.html">
 <link rel="import" href="/components/paper-dropdown-menu/paper-dropdown-menu.html">
-<link rel="import" href="/components/paper-dropdown/paper-dropdown.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
+<link rel="import" href="/components/paper-menu/paper-menu.html">
 
-<polymer-element name="select-menu" attributes="menuItems">
+<dom-module id="select-menu">
   <template>
   <style>
   </style>
   <paper-dropdown-menu>
-    <paper-dropdown class="dropdown">
-      <core-menu class="menu" valueattr="label" id="menu">
-        <template repeat="{{menuItems}}">
-          <paper-item label="{{}}">{{}}</paper-item>
+    <iron-dropdown class="dropdown">
+      <paper-menu class="menu" valueattr="label" id="menu">
+        <template is="dom-repeat" items="{{menuItems}}">
+          <paper-item label="{{item}}">{{item}}</paper-item>
         </template>
-      </core-menu>
-    </paper-dropdown>
+      </paper-menu>
+    </iron-dropdown>
   </paper-dropdown-menu>
   </template>
   <script>
     'use strict';
-    Polymer('select-menu', {
+    Polymer({
+      is: 'select-menu',
+      properties: { menuItems: { notify: true } },
       select: function(label) {
         this.$.menu.selected = label;
       },
@@ -36,4 +38,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>
