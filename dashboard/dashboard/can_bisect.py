@@ -10,12 +10,10 @@ from dashboard import request_handler
 from dashboard import namespaced_stored_object
 
 # A set of suites for which we can't do performance bisects.
-# This list currently also exists in the front-end code.
 _UNBISECTABLE_SUITES = [
     'arc-perf-test',
     'browser_tests',
     'content_browsertests',
-    'resource_sizes',
     'sizes',
     'v8',
 ]
