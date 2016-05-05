@@ -10,18 +10,16 @@ the bisect process after the user clicks on the bisect button.
 -->
 
 <link rel="import" href="/components/paper-button/paper-button.html">
-<link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="bisect-form"
-                 attributes="xsrfToken testPath
-                             earlierRevision laterRevision bugId">
+<dom-module is="bisect-form">
   <template>
 
-    <paper-action-dialog id="container" autoCloseDisabled="true">
-      <!-- Styling for paper-action-dialog's children. -->
+    <paper-dialog id="container" autoCloseDisabled="true">
+      <!-- Styling for paper-dialog's children. -->
       <style>
         #loading {
           background-color: white;
@@ -63,8 +61,8 @@ the bisect process after the user clicks on the bisect button.
           <tr>
             <td>Bisect bot:</td>
             <td>
-              <select id="bot" value="{{bot}}">
-                <template repeat="{{name in botList}}">
+              <select id="bot" value="{{bot::input}}">
+                <template is="dom-repeat" items="{{botList}}" as="name">
                 <option value="{{name}}">{{name}}</option>
                 </template>
               </select>
@@ -73,8 +71,8 @@ the bisect process after the user clicks on the bisect button.
           <tr>
             <td>Metric:</td>
             <td>
-              <select id="metric" value="{{metric}}">
-                <template repeat="{{name in metricList}}">
+              <select id="metric" value="{{metric::input}}">
+                <template is="dom-repeat" items="{{metricList}}" as="name">
                 <option value="{{name}}">{{name}}</option>
                 </template>
               </select>
@@ -82,26 +80,26 @@ the bisect process after the user clicks on the bisect button.
           </tr>
           <tr>
             <td>Bug ID:</td>
-            <td><input type="number" value="{{bugId}}"></td>
+            <td><input type="number" value="{{bugId::input}}"></td>
           </tr>
           <tr>
             <td>Earlier revision:</td>
-            <td><input type="text" value="{{earlierRevision}}"></td>
+            <td><input type="text" value="{{earlierRevision::input}}"></td>
           </tr>
           <tr>
             <td>Later revision:</td>
-            <td><input type="text" value="{{laterRevision}}"></td>
+            <td><input type="text" value="{{laterRevision::input}}"></td>
           </tr>
           <tr>
             <td>Repeat count:</td>
-            <td><input type="number" min="1" max="100" value="{{REPEAT_COUNT}}"></td>
+            <td><input type="number" min="1" max="100" value="{{REPEAT_COUNT::input}}"></td>
           </tr>
           <tr>
             <td>Max time (min):</td>
-            <td><input type="number" min="1" max="60" value="{{MAX_TIME_MINUTES}}"></td>
+            <td><input type="number" min="1" max="60" value="{{MAX_TIME_MINUTES::input}}"></td>
           </tr>
 
-          <template if="{{canUseArchive}}">
+          <template is="dom-if" if="{{canUseArchive}}">
             <tr>
               <td>Use archive:</td>
               <td><input type="checkbox"
@@ -114,12 +112,12 @@ the bisect process after the user clicks on the bisect button.
           <tr>
             <td>Bisect mode:</td>
             <td>
-              <select type="text" value="{{BISECT_MODE}}">
+              <select type="text" value="{{BISECT_MODE::input}}">
                 <option value="mean">mean</option>
                 <option value="std_dev">std_dev</option>
                 <option value="return_code">return_code</option>
               </select>
-              <p class="error" hidden?="{{BISECT_MODE != 'return_code'}}">
+              <p class="error" hidden$="{{isNotReturnCode(BISECT_MODE)}}">
                 If you would like to bisect on a test failure, please carefully
                 check the revision range on the buildbot status page and update
                 the <b>Earlier Revision</b> and <b>Later Revision</b> fields above
@@ -140,16 +138,16 @@ the bisect process after the user clicks on the bisect button.
 
       <p class="error">{{error}}</p>
 
-      <paper-button affirmative raised autofocus disabled?="{{error}}"
-                    on-click="{{onSendToTrybot}}">Start bisect</paper-button>
+      <paper-button affirmative raised autofocus disabled$="{{error}}"
+                    on-click="onSendToTrybot">Start bisect</paper-button>
       <paper-button dismissive raised>Close</paper-button>
 
-      <template if="{{loading}}">
+      <template is="dom-if" if="{{loading}}">
         <div id="loading">
           <paper-spinner active></paper-spinner>
         </div>
       </template>
-    </paper-action-dialog>
+    </paper-dialog>
 
     <div id="toasts" hidden>
       <div id="jobsubmitted">
@@ -177,12 +175,35 @@ the bisect process after the user clicks on the bisect button.
         return rev > 200000 && rev < 500000;
       }
 
-      Polymer('bisect-form', {
-        // Default values of variables that are bound to inputs in the form.
-        // See: http://goo.gl/I94Kyj
-        REPEAT_COUNT: 20,
-        MAX_TIME_MINUTES: 20,
-        BISECT_MODE: 'mean',
+      Polymer({
+        is: 'bisect-form',
+        properties: {
+          // Default values of variables that are bound to inputs in the form.
+          // See: http://goo.gl/I94Kyj
+          BISECT_MODE: {
+            type: String,
+            value: 'mean'
+          },
+          MAX_TIME_MINUTES: {
+            type: Number,
+            value: 20
+          },
+          REPEAT_COUNT: {
+            type: Number,
+            value: 20
+          },
+          bugId: { notify: true },
+          earlierRevision: {
+            notify: true,
+            observer: 'earlierRevisionChanged'
+          },
+          laterRevision: {
+            notify: true,
+            observer: 'laterRevisionChanged'
+          },
+          testPath: { notify: true },
+          xsrfToken: { notify: true }
+        },
 
         /**
          * Initializes and shows the bisect form.
@@ -305,8 +326,11 @@ the bisect process after the user clicks on the bisect button.
 
         close: function() {
           this.$.container.close();
+        },
+        isNotReturnCode: function(bisectMode) {
+          return bisectMode != 'return_code';
         }
       });
     })();
   </script>
-</polymer-element>
+</dom-module>

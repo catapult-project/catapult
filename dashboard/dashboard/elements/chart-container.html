@@ -360,28 +360,29 @@ triaging functionality in the chart.
           SERIES_SELECTION_OPTIONS: {
             type: Array,
             value: () => ['important', 'all', 'none']
+          },
 
           // Default values for reverting series highlighting.
           DEFAULT_SERIES_PROPERTIES: {
             type: Object,
-            value: () => {
+            value: () => ({
               lineWidth: 2,
               opacity: 1,
               fill: 0.2,
               shadowSize: 3
-            }
+            })
           },
 
           DEFAULT_JSON_PROPERTIES: {
             type: Object,
-            value: () => {
+            value: () => ({
               annotations: {
                 series: {}
               },
               data: {},
               error_bars: {},
               warning: null
-            }
+            })
           },
 
           // Amount of time before a warning is shown for tests with no new

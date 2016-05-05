@@ -10,16 +10,14 @@ on a point on a graph. It shows more detailed information about the point that
 was just clicked.
 -->
 
-<link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
 
 <link rel="import" href="/dashboard/elements/alert-remove-box.html">
 <link rel="import" href="/dashboard/elements/bisect-button.html">
 <link rel="import" href="/dashboard/elements/trace-button.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 
-<polymer-element
-    name="chart-tooltip"
-    attributes="testPath value bugId pointId revisions links alerts xsrfToken">
+<dom-module id="chart-tooltip">
   <template>
     <style>
       #container {
@@ -39,7 +37,7 @@ was just clicked.
                      xsrfToken="{{xsrfToken}}"
                      alerts="{{alerts}}"></triage-dialog>
 
-      <paper-action-dialog id="tooltip" layered="false" autoCloseDisabled="true">
+      <paper-dialog id="tooltip" layered="false" autoCloseDisabled="true">
         <style>
           #test-name {
             width : 300px;
@@ -54,12 +52,12 @@ was just clicked.
         <!-- TODO(qyearsley): Either (1) Display alert details on mouse-over as
              well as click (The alerts attribute is only set currently on click,
              not on hover) OR (2) Display alert details in the triage dialog. -->
-        <template bind repeat="{{alerts}}">
+        <template is="dom-repeat" items="{{alerts}}">
           <div class="important">
             <b>Alert information:</b><br>
-            Median of segment before: {{median_before_anomaly}}<br>
-            Median of segment after: {{median_after_anomaly}}<br>
-            Relative change: {{percent_changed}}<br>
+            Median of segment before: {{item.median_before_anomaly}}<br>
+            Median of segment after: {{item.median_after_anomaly}}<br>
+            Relative change: {{item.percent_changed}}<br>
           </div>
         </template>
 
@@ -68,23 +66,23 @@ was just clicked.
         </div>
 
         <div>
-          Value: <b>{{value}}</b> <span hidden?={{!stddev}}>(± {{stddev}})</span>
+          Value: <b>{{value}}</b> <span hidden$={{!stddev}}>(± {{stddev}})</span>
         </div>
 
         <div>
-          <span hidden?={{!pointId}}>Point ID: {{pointId}}</span><br>
-          <span hidden?={{!timestamp}}>Time added: {{timestamp}}</span>
+          <span hidden$={{!pointId}}>Point ID: {{pointId}}</span><br>
+          <span hidden$={{!timestamp}}>Time added: {{timestamp}}</span>
         </div>
 
-        <template bind if="{{bugId}}">
+        <template is="dom-if" if="{{bugId}}">
           <div>
-            <span hidden?={{alertInvalidOrIgnored}}>Bug ID:
+            <span hidden$={{alertInvalidOrIgnored}}>Bug ID:
               <b><a target="_blank" href="http://crbug.com/{{bugId}}">{{bugId}}</a></b>
             </span>
 
-            <span hidden?="{{bugId != -1}}">Invalid alert</span>
-            <span hidden?="{{bugId != -2}}">Ignored alert</span>
-            <span hidden?="{{!recovered}}">Recovered alert</span>
+            <span hidden$="{{bugNotInvalid(bugId)}}">Invalid alert</span>
+            <span hidden$="{{bugNotIgnored(bugId)}}">Ignored alert</span>
+            <span hidden$="{{!recovered}}">Recovered alert</span>
             <alert-remove-box key="{{alertKey}}" xsrfToken="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
             </alert-remove-box><br>
             <a href="/group_report?keys={{alertKey}}">View alert graph</a>
@@ -92,20 +90,20 @@ was just clicked.
         </template>
 
         <div>
-          <template repeat={{revisions}}>
-            {{name}}<template bind if="{{start}}"> range</template>:
+          <template is="dom-repeat" items={{revisions}}>
+            {{item.name}}<template bind if="{{item.start}}"> range</template>:
             <b>
-              <a href="{{url}}" on-click="{{onRevisionRangeClick}}">
-                <template bind if="{{start}}">{{displayStart}} - </template>
-                {{displayEnd}}
+              <a href="{{item.url}}" on-click="{{item.onRevisionRangeClick}}">
+                <template bind if="{{item.start}}">{{item.displayStart}} - </template>
+                {item.{displayEnd}}
               </a>
             </b><br>
           </template>
         </div>
 
         <div>
-          <template repeat={{links}}>
-            <span class="annotation-link"><a href="{{url}}" target="_blank">{{text}}</a></span><br />
+          <template is="dom-repeat" items={{links}}>
+            <span class="annotation-link"><a href="{{item.url}}" target="_blank">{{item.text}}</a></span><br />
           </template>
         </div>
 
@@ -116,20 +114,52 @@ was just clicked.
                       bugId="{{bugId}}"
                       traceInfo="{{bisectInfo}}"></trace-button>
 
-      </paper-action-dialog>
+      </paper-dialog>
     </div>
   </template>
   <script>
     'use strict';
-    Polymer('chart-tooltip', {
-      traceName: null,
-      value: null,
-      stddev: null,
-      hideStddev: true,
-      bugId: null,
-      stdioUri: null,
-      hideStdioUri: true,
-      revisions: [],
+    Polymer({
+      is: 'chart-tooltip',
+      properties: {
+        alerts: {
+          notify: true,
+          observer: 'alertsChanged'
+        },
+        bugId: {
+          value: null,
+          notify: true
+        },
+        hideStddev: {
+          type: Boolean,
+          value: true
+        },
+        hideStdioUri: {
+          type: Boolean,
+          value: true
+        },
+        links: { notify: true },
+        pointId: { notify: true },
+        revisions: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          notify: true
+        },
+        stddev: { value: null },
+        stdioUri: { value: null },
+        testPath: {
+          notify: true,
+          observer: 'testPathChanged'
+        },
+        traceName: { value: null },
+        value: {
+          value: null,
+          notify: true
+        },
+        xsrfToken: { notify: true }
+      },
 
       ready: function() {
         // This allows tooltip to show beyond the current window size.
@@ -142,7 +172,7 @@ was just clicked.
         // Note: Though this deep shadow DOM selector was deprecated, it was
         // a solution in Polymer 0.5 to customize elements.  This can be done
         // using custom CSS properties when migrating to Polymer 1.0.
-        this.$.tooltip.sizingTarget = document.querySelector(
+        this.$.tooltip.sizingTarget = Polymer.dom(document).querySelector(
             'html /deep/ paper-action-dialog::shadow #scroller');
 
         // We're going to call 'open' tooltip and hide it's container on
@@ -206,7 +236,7 @@ was just clicked.
         // Add a short delay before closing as a workaround for a bug in
         // core-overlay where core-overlay is opened and closed too frequent.
         // See: https://github.com/dart-lang/paper-elements/issues/83"
-        this.closeTooltipJob = this.job(
+        this.closeTooltipJob = this.debounce(
             this.closeTooltipJob,
             function() {
               this.$.container.hidden = true;
@@ -217,7 +247,13 @@ was just clicked.
       setPosition: function(top, left) {
         this.$.container.style.top = top + 'px';
         this.$.container.style.left = left + 'px';
+      },
+      bugNotInvalid: function(bugId) {
+        return bugId != -1;
+      },
+      bugNotIgnored: function(bugId) {
+        return bugId != -2;
       }
     });
   </script>
-</polymer-element>
+</dom-module>

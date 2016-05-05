@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/components/paper-toast/paper-toast.html">
-<polymer-element name="toplevel-toast">
+<dom-module is="toplevel-toast">
   <template>
     <style>
       .error {
@@ -25,7 +25,8 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
-    Polymer('toplevel-toast', {
+    Polymer({
+      is: 'toplevel-toast',
       ready: function() {
         document.addEventListener(
             'display-toast', this.displayToast.bind(this));
@@ -54,4 +55,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

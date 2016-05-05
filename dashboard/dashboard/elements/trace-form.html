@@ -10,18 +10,16 @@ the trace process after the user clicks on the trace button.
 -->
 
 <link rel="import" href="/components/paper-button/paper-button.html">
-<link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="trace-form"
-                 attributes="xsrfToken testPath
-                             earlierRevision laterRevision bugId rerunInfo">
+<dom-module is="trace-form">
   <template>
 
-    <paper-action-dialog id="container" autoCloseDisabled="true">
-      <!-- Styling for paper-action-dialog's children. -->
+    <paper-dialog id="container" autoCloseDisabled="true">
+      <!-- Styling for paper-dialog's children. -->
       <style>
         #loading {
           background-color: white;
@@ -54,7 +52,7 @@ the trace process after the user clicks on the trace button.
         }
       </style>
 
-      <form on-submit="{{onSendToTrybot}}">
+      <form on-submit="onSendToTrybot">
         <table>
           <tr>
             <td>Record a before/after trace profile.</td>
@@ -62,9 +60,9 @@ the trace process after the user clicks on the trace button.
           <tr>
             <td>Perf try bot:</td>
             <td>
-              <input type="text" list="bot-list" id="bot" value="{{bot}}">
+              <input type="text" list="bot-list" id="bot" value="{{bot::input}}">
               <datalist id="bot-list">
-                <template repeat="{{name in botList}}">
+                <template is="dom-repeat" items="{{botList}}" as="name">
                   <option value="{{name}}"></option>
                 </template>
               </datalist>
@@ -82,22 +80,22 @@ the trace process after the user clicks on the trace button.
           </tr>
           <tr>
             <td>Earlier revision:</td>
-            <td><input type="text" value="{{earlierRevision}}"></td>
+            <td><input type="text" value="{{earlierRevision::input}}"></td>
           </tr>
           <tr>
             <td>Later revision:</td>
-            <td><input type="text" value="{{laterRevision}}"></td>
+            <td><input type="text" value="{{laterRevision::input}}"></td>
           </tr>
         </table>
       </form>
 
       <p class="error">{{error}}</p>
 
-      <paper-button affirmative raised autofocus disabled?="{{error}}"
-                    on-click="{{onSendToTrybot}}">Send to perf try bot</paper-button>
+      <paper-button affirmative raised autofocus disabled$="{{error}}"
+                    on-click="onSendToTrybot">Send to perf try bot</paper-button>
       <paper-button dismissive raised>Close</paper-button>
 
-      <template if="{{loading}}">
+      <template is="dom-if" if="{{loading}}">
         <div id="loading">
           <paper-spinner active></paper-spinner>
         </div>
@@ -109,7 +107,7 @@ the trace process after the user clicks on the trace button.
              target="_blank">View issue {{lastSubmittedJobId}} in Rietveld.</a>
         </div>
       </div>
-    </paper-action-dialog>
+    </paper-dialog>
 
   </template>
   <script>
@@ -130,7 +128,22 @@ the trace process after the user clicks on the trace button.
         return rev > 200000 && rev < 500000;
       }
 
-      Polymer('trace-form', {
+      Polymer({
+        is: 'trace-form',
+        properties: {
+          bugId: { notify: true },
+          earlierRevision: {
+            notify: true,
+            observer: 'earlierRevisionChanged'
+          },
+          laterRevision: {
+            notify: true,
+            observer: 'laterRevisionChanged'
+          },
+          rerunInfo: { notify: true },
+          testPath: { notify: true },
+          xsrfToken: { notify: true }
+        },
         /**
          * Initializes and shows the trace form.
          */
@@ -251,4 +264,4 @@ the trace process after the user clicks on the trace button.
       });
     })();
   </script>
-</polymer-element>
+</dom-module>

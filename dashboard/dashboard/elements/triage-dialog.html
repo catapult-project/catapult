@@ -24,7 +24,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
     </style>
 
     <paper-dialog id="container" alwaysOnTop>
-      <!-- Styling for paper-action-dialog's children. -->
+      <!-- Styling for paper-dialog's children. -->
       <style>
         #loading {
           background-color: white;
@@ -90,7 +90,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           <paper-spinner active></paper-spinner>
         </div>
       </template>
-    </paper-action-dialog>
+    </paper-dialog>
 
     <div id="toasts" hidden>
       <div id="jobsubmitted">
@@ -134,7 +134,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         // This allows tooltip to show beyond the current window size.
         // See chart-tooltip.html for more details.
         this.$.container.sizingTarget = Polymer.dom(document).querySelector(
-            'html /deep/ paper-action-dialog::shadow #scroller');
+            'html /deep/ paper-dialog::shadow #scroller');
 
         this.bugWindow = null;
         this.close();
