@@ -159,7 +159,13 @@ def _CheckFYIBisectJob(job, issue_tracker):
     error_message = 'Bisect job failed because, %s' % e
   except BugUpdateFailure as e:
     error_message = 'Failed to update bug with bisect results: %s' % e
-  if job.results_data['status'] == FAILED or error_message:
+
+  # When the job fails before getting to the point where it post bisect results
+  # to the dashboard, the tryjob's results_data is not set.
+  # As a special case for Bisect FYI jobs, we query buildbucket to get the
+  # bisect job's status.
+  if ((job.results_data and job.results_data.get('status') == FAILED) or
+      error_message):
     job.SetFailed()
     _SendFYIBisectEmail(job, error_message)
 
