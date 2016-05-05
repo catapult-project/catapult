@@ -5,15 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-progress/paper-progress.html">
 
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 
-<polymer-element name="test-picker" attributes="hasChart xsrfToken testSuites">
+<dom-module id="test-picker">
   <template>
     <style>
       #container * {
@@ -42,7 +43,7 @@ found in the LICENSE file.
         color: #fff;
       }
 
-      core-icon {
+      iron-icon {
         height: 25px;
       }
 
@@ -66,34 +67,34 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="container" horizontal layout center wrap>
-      <template repeat="{{box, index in selectionModels}}">
+    <div id="container" class="horizontal layout center wrap">
+      <template is="dom-repeat" items="{{selectionModels}}" as="box">
         <autocomplete-box datalist={{box.datalist}}
                           placeholder="{{box.placeholder}}"
                           disabled={{box.disabled}}
                           multi={{box.multi}}
-                          on-dropdownselect="{{onDropdownSelect}}"
+                          on-dropdownselect="onDropdownSelect"
                           id="selection-{{index}}"></autocomplete-box>
       </template>
 
-      <template if="{{loading}}">
+      <template is="dom-if" if="{{loading}}">
         <div id="loading">
           <paper-progress indeterminate></paper-progress>
         </div>
       </template>
 
-      <core-icon-button id="dnd-btn"
-                        icon="open-with"
-                        disabled?="{{!enableAddSeries || !hasChart}}"
-                        draggable="{{enableAddSeries && hasChart}}"
-                        on-dragstart="{{onSeriesButtonDragStart}}">
+      <paper-icon-button id="dnd-btn"
+                         icon="open-with"
+                         disabled$="{{!computeAnd(enableAddSeries, hasChart)}}"
+                         draggable="{{computeAnd(enableAddSeries, hasChart)}}"
+                         on-dragstart="onSeriesButtonDragStart">
         Drag me
-      </core-icon-button>
+      </paper-icon-button>
 
       <paper-button raised
                     id="add-graph-btn"
-                    on-click="{{onAddButtonClicked}}"
-                    disabled?="{{!enableAddSeries}}">Add</paper-button>
+                    on-click="onAddButtonClicked"
+                    disabled$="{{!enableAddSeries}}">Add</paper-button>
     </div>
 
     <div id="suite-description"></div>
@@ -102,13 +103,40 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-    Polymer('test-picker', {
+    Polymer({
 
-      TESTSUITE_LABEL: 'Test suite',
-      BOT_LABEL: 'Bot',
-      SUBTEST_LABEL: 'Subtest',
-      DEPRECATED_TAG: 'no new data',
-      UNMONITORED_TAG: 'unmonitored',
+      is: 'test-picker',
+      properties: {
+        TESTSUITE_LABEL: {
+          type: String,
+          value: 'Test suite',
+        },
+        BOT_LABEL: {
+          type: String,
+          value: 'Bot',
+        },
+        SUBTEST_LABEL: {
+          type: String,
+          value: 'Subtest',
+        },
+        DEPRECATED_TAG: {
+          type: String,
+          value: 'no new data',
+        },
+        UNMONITORED_TAG: {
+          type: String,
+          value: 'unmonitored',
+        },
+        hasChart: { notify: true },
+        testSuites: {
+          notify: true,
+          observer: 'testSuitesChanged'
+        },
+        xsrfToken: { notify: true }
+
+      },
+
+      computeAnd: (x, y) => x && y,
 
       ready: function() {
         this.pageStateLoading = true;
@@ -224,7 +252,7 @@ found in the LICENSE file.
         var descriptionElement = this.$['suite-description'];
         var suite = this.getSelectionMenu(0).value;
         if (!suite || !this.testSuites[suite]) {
-          descriptionElement.innerHTML = '';
+          Polymer.dom(descriptionElement).innerHTML = '';
           return;
         }
 
@@ -232,9 +260,9 @@ found in the LICENSE file.
         if (description) {
           var descriptionHTML = '<b>' + suite + '</b>: ';
           descriptionHTML += this.convertMarkdownLinks(description);
-          descriptionElement.innerHTML = descriptionHTML;
+          Polymer.dom(descriptionElement).innerHTML = descriptionHTML;
         } else {
-          descriptionElement.innerHTML = '';
+          Polymer.dom(descriptionElement).innerHTML = '';
         }
       },
 
@@ -386,7 +414,8 @@ found in the LICENSE file.
       },
 
       getSelectionMenu: function(index) {
-        return this.$.container.querySelector('#selection-' + index);
+        return Polymer.dom(this.$.container).querySelector(
+            '#selection-' + index);
       },
 
       /**
@@ -519,4 +548,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

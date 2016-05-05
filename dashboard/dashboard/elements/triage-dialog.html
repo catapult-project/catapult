@@ -10,11 +10,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 -->
 
 <link rel="import" href="/components/paper-button/paper-button.html">
-<link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/components/paper-dialog/paper-dialog.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="triage-dialog" attributes="xsrfToken alerts">
+<dom-module id="triage-dialog">
   <template>
     <style>
       #container {
@@ -23,7 +23,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       }
     </style>
 
-    <paper-action-dialog id="container" layered="false">
+    <paper-dialog id="container" alwaysOnTop>
       <!-- Styling for paper-action-dialog's children. -->
       <style>
         #loading {
@@ -66,26 +66,26 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         <fieldset name="Triage">
           <legend>Triage</legend>
           <paper-button class="submit-button" raised affirmative
-                        on-click="{{fileNewBug}}">New bug</paper-button>
+                        on-click="fileNewBug">New bug</paper-button>
           <paper-button class="submit-button" raised affirmative
-                        on-click="{{associateWithBug}}">Existing bug</paper-button>
+                        on-click="associateWithBug">Existing bug</paper-button>
           <paper-button class="submit-button" raised affirmative
-                        on-click="{{markIgnored}}">Ignore valid alert</paper-button>
+                        on-click="markIgnored">Ignore valid alert</paper-button>
         </fieldset>
         <fieldset name="Fix-up alert">
           <legend>Fix-up</legend>
-          <select class="kennedy-button" id="nudgeSelect" hidden?="{{!nudgeList}}" on-change="{{nudgeAlert}}">
-            <option template repeat="{{nudgeList}}" value="{{endRevision}}" selected?="{{selected}}">
-              Nudge {{amount}} {{displayEndRevision}} ({{value}})
+          <select class="kennedy-button" id="nudgeSelect" hidden$="{{!nudgeList}}" on-change="nudgeAlert">
+            <option template is="dom-repeat" items="{{nudgeList}}" value="{{item.endRevision}}" selected$="{{item.selected}}">
+              Nudge {{item.amount}} {{item.displayEndRevision}} ({{item.value}})
             </option>
           </select>
-          <paper-button raised on-click="{{markInvalid}}">Report invalid alert</paper-button>
+          <paper-button raised on-click="markInvalid">Report invalid alert</paper-button>
         </fieldset>
       </form>
 
       <paper-button dismissive raised>Close</paper-button>
 
-      <template if="{{loading}}">
+      <template is="dom-if" if="{{loading}}">
         <div id="loading">
           <paper-spinner active></paper-spinner>
         </div>
@@ -96,11 +96,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       <div id="jobsubmitted">
         Bug <a href="http://crbug.com/{{lastSubmittedBugId}}"
                target="_blank">{{lastSubmittedBugId}}</a> created/updated.
-        <template if="{{lastSubmittedTryJobId}}">
+        <template is="dom-if" if="{{!!lastSubmittedTryJobId}}">
           Bisect job <a href="{{lastSubmittedTryJobUrl}}"
                         target="_blank">{{lastSubmittedTryJobId}}</a> started.
         </template>
-        <template if="{{lastSubmittedTryJobError}}">
+        <template is="dom-if" if="{{lastSubmittedTryJobError}}">
           <span class="error">No bisect automatically started.
                               {{lastSubmittedTryJobError}}</span>
         </template>
@@ -110,9 +110,21 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
   </template>
   <script>
     'use strict';
-    Polymer('triage-dialog', {
-      // A string describing the magnitude of change from zero to non-zero.
-      FREAKIN_HUGE: 'zero-to-nonzero',
+    Polymer({
+
+      is: 'triage-dialog',
+      properties: {
+        // A string describing the magnitude of change from zero to non-zero.
+        FREAKIN_HUGE: {
+          type: String,
+          value: 'zero-to-nonzero',
+        },
+        alerts: {
+          notify: true,
+          observer: 'alertsChanged'
+        },
+        xsrfToken: { notify: true }
+      },
 
       /**
        * Custom element lifecycle callback.
@@ -121,7 +133,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       ready: function() {
         // This allows tooltip to show beyond the current window size.
         // See chart-tooltip.html for more details.
-        this.$.container.sizingTarget = document.querySelector(
+        this.$.container.sizingTarget = Polymer.dom(document).querySelector(
             'html /deep/ paper-action-dialog::shadow #scroller');
 
         this.bugWindow = null;
@@ -405,11 +417,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             input.name = data[i].name;
             input.value = (typeof data[i].value === 'object' ?
                 JSON.stringify(data[i].value) : data[i].value);
-            form.appendChild(input);
+            Polymer.dom(form).appendChild(input);
           }
         }
         form.style.display = 'none';
-        document.body.appendChild(form);
+        Polymer.dom(document.body).appendChild(form);
         form.submit();
         return popup;
       },
@@ -423,4 +435,4 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       }
     });
   </script>
-</polymer-element>
+</dom-module>

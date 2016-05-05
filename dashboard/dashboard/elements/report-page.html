@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="report-page" attributes="hasChart charts">
+<dom-module id="report-page">
   <template>
     <style>
       #nav-container {
@@ -20,7 +20,7 @@ found in the LICENSE file.
     </style>
 
     <login-warning id="login-warning" loginLink="{{loginUrl}}"
-                   hidden?="{{isInternalUser}}">
+                   hidden$="{{isInternalUser}}">
     </login-warning>
 
     <div id="nav-container">
@@ -32,7 +32,7 @@ found in the LICENSE file.
     <div id="toasts" hidden>
       <div id="warningtoast">
         {{warningMessage}}
-        <template if="{{warningBug}}">
+        <template is="dom-if" if="{{!!warningBug}}">
           <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
             bug #{{warningBug}}.</a>
         </template>
@@ -44,6 +44,13 @@ found in the LICENSE file.
   <script>
     'use strict';
     Polymer('report-page', {
+
+      is: 'report-page',
+      properties: {
+        charts: { notify: true },
+        hasChart: { notify: true },
+        onRevisionRange: { observer: 'onRevisionRangeChanged' }
+      },
 
       ready: function() {
         simple_xhr.send('/report', uri.getAllParameters(),
@@ -132,10 +139,10 @@ found in the LICENSE file.
         var chart = document.createElement('chart-container');
         if (isPrepend) {
           this.charts.unshift(chart);
-          container.insertBefore(chart, container.firstChild);
+          Polymer.dom(container).insertBefore(chart, container.firstChild);
         } else {
           this.charts.push(chart);
-          container.appendChild(chart);
+          Polymer.dom(container).appendChild(chart);
         }
 
         chart.addEventListener(
@@ -189,7 +196,7 @@ found in the LICENSE file.
        * When the revision range changes for one graph, update the rest of
        * the graphs and the URI.
        */
-      onRevisionRangeChanged: function(event) {
+      onRevisionRangeChanged: function(_, event) {
         for (var i = 0; i < this.charts.length; i++) {
           var chart = this.charts[i];
           if (chart == event.target) {
@@ -247,4 +254,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>
