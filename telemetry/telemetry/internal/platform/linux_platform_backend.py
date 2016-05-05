@@ -86,7 +86,7 @@ class LinuxPlatformBackend(
     if application == 'ipfw':
       self._InstallIpfw()
     elif application == 'avconv':
-      self._InstallBinary(application, fallback_package='libav-tools')
+      self._InstallBinary(application)
     elif application in _POSSIBLE_PERFHOST_APPLICATIONS:
       self._InstallBinary(application)
     else:
@@ -152,21 +152,8 @@ class LinuxPlatformBackend(
         'You may proceed by manually building and installing dummynet for ' \
         'your kernel. See: http://info.iet.unipi.it/~luigi/dummynet/'
 
-  def _InstallBinary(self, bin_name, fallback_package=None):
+  def _InstallBinary(self, bin_name):
     bin_path = binary_manager.FetchPath(
         bin_name, self.GetArchName(), self.GetOSName())
-    if not bin_path:
-      raise Exception('Could not find the binary package %s' % bin_name)
     os.environ['PATH'] += os.pathsep + os.path.dirname(bin_path)
-
-    try:
-      cloud_storage.GetIfChanged(bin_path, cloud_storage.INTERNAL_BUCKET)
-      os.chmod(bin_path, 0755)
-    except cloud_storage.CloudStorageError, e:
-      logging.error(str(e))
-      if fallback_package:
-        raise Exception('You may proceed by manually installing %s via:\n'
-                        'sudo apt-get install %s' %
-                        (bin_name, fallback_package))
-
     assert self.CanLaunchApplication(bin_name), 'Failed to install ' + bin_name
