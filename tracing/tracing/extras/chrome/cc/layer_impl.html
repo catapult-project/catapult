@@ -44,10 +44,9 @@ tr.exportTo('tr.e.cc', function() {
 
       // Import & validate this.args
       tr.e.cc.moveRequiredFieldsFromArgsToToplevel(
-          this, ['layerId', 'children',
-                 'layerQuad']);
+          this, ['layerId', 'layerQuad']);
       tr.e.cc.moveOptionalFieldsFromArgsToToplevel(
-          this, ['maskLayer', 'replicaLayer',
+          this, ['children', 'maskLayer', 'replicaLayer',
                  'idealContentsScale', 'geometryContentsScale',
                  'layoutRects', 'usingGpuRasterization']);
 
@@ -66,8 +65,14 @@ tr.exportTo('tr.e.cc', function() {
             this.args.animationBounds[3], this.args.animationBounds[4]);
       }
 
-      for (var i = 0; i < this.children.length; i++)
-        this.children[i].parentLayer = this;
+      // After Slimming Paint v2, compositor no longer knows hierarchy
+      // information. If the children value is undefined, the tracing
+      // data comes from the new version of cc, otherwise we set the
+      // parentLayer as we did before SPv2.
+      if (this.children) {
+        for (var i = 0; i < this.children.length; i++)
+          this.children[i].parentLayer = this;
+      }
       if (this.maskLayer)
         this.maskLayer.parentLayer = this;
       if (this.replicaLayer)
