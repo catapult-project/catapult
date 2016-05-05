@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/extras/drive/comment_element.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
 
 <dom-module id='tr-ui-e-drive-comments-side-panel'>
   <template>
@@ -178,4 +179,7 @@ Polymer({
   }
 });
 
+tr.ui.side_panel.SidePanelRegistry.register(function() {
+  return document.createElement('tr-ui-e-drive-comments-side-panel');
+});
 </script>

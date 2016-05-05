@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
-<link rel='import' href='/tracing/ui/base/polymer_utils.html'>
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
 
 <dom-module id='tr-ui-side-panel-container'>
   <template>
@@ -200,11 +200,11 @@ Polymer({
     this.tabStrip_.textContent = '';
     var supportedPanelTypes = [];
 
-    var panelTypes =
-        tr.ui.b.getPolymerElementsThatSubclass('tr-ui-side-panel');
-    panelTypes.forEach(function(panelType) {
+    for (var panelTypeInfo of
+        tr.ui.side_panel.SidePanelRegistry.getAllRegisteredTypeInfos()) {
       var labelEl = document.createElement('tab-strip-label');
-      var panel = document.createElement(panelType);
+      var panel = panelTypeInfo.constructor();
+      var panelType = panel.tagName;
 
       labelEl.textContent = panel.textLabel;
       labelEl.panelType = panelType;
@@ -223,7 +223,7 @@ Polymer({
         this.removeAttribute('expanded');
       }
       Polymer.dom(this.tabStrip_).appendChild(labelEl);
-    }, this);
+    }
 
     // Restore the active panel, or collapse
     if (previouslyActivePanelType &&

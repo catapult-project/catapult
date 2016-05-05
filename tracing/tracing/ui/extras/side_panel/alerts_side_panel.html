@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/line_chart.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
-
+<link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
 
 <dom-module id='tr-ui-e-s-alerts-side-panel'>
   <template>
@@ -160,5 +160,9 @@ Polymer({
   get textLabel() {
     return 'Alerts';
   }
+});
+
+tr.ui.side_panel.SidePanelRegistry.register(function() {
+  return document.createElement('tr-ui-e-s-alerts-side-panel');
 });
 </script>
