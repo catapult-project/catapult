@@ -141,7 +141,9 @@ Try rerunning this script under sudo or setting
       required_libs = \
           android_profiling_helper.GetRequiredLibrariesForPerfProfile(
               self._output_file)
-      symfs_root = os.path.dirname(self._output_file)
+      symfs_root = os.path.join(os.path.dirname(self._output_file), 'symfs')
+      if not os.path.exists(symfs_root):
+        os.makedirs(symfs_root)
       kallsyms = android_profiling_helper.CreateSymFs(device,
                                                       symfs_root,
                                                       required_libs,

@@ -17,6 +17,44 @@ from devil.utils import find_usb_devices
 import serial
 from serial.tools import list_ports
 
+
+def IsBattOrConnected(test_platform, android_device=None,
+                      android_device_map=None, android_device_file=None):
+  """Returns True if BattOr is detected."""
+  if test_platform == 'android':
+    if not android_device:
+      raise battor_error.BattorError('Must past android device serial when '
+                                     'determining support on android platform')
+
+    if not android_device_map:
+      if android_device_file:
+        android_device_map = battor_device_mapping.ReadSerialMapFile(
+            android_device_file)
+      else:
+        android_device_map = battor_device_mapping.GenerateSerialMap()
+
+    # If neither if statement above is triggered, it means that an
+    # android_device_map was passed in and will be used.
+    return str(android_device) in android_device_map
+
+  elif test_platform == 'win':
+    for (_, desc, _) in serial.tools.list_ports.comports():
+      if 'USB Serial Port' in desc:
+        return True
+    return False
+
+  elif test_platform == 'mac':
+    # TODO(rnephew): When we have a BattOr that can attach to mac, find a way
+    # to detect BattOrs on mac.
+    return False
+
+  elif test_platform == 'linux':
+    device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
+    return bool(battor_device_mapping.GetBattorList(device_tree))
+
+  return False
+
+
 class BattorWrapper(object):
   """A class for communicating with a BattOr in python."""
   _START_TRACING_CMD = 'StartTracing'

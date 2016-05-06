@@ -3,9 +3,15 @@
 # found in the LICENSE file.
 import logging
 
+from telemetry import decorators
 from telemetry.core import exceptions
 
 
+# pylint: disable=line-too-long
+@decorators.Deprecated(2017, 5, 5, 'Use the login helper modules in '
+                       'https://code.google.com/p/chromium/codesearch#chromium/src/tools/perf/page_sets/login_helpers/'
+                       ' instead.')
+# pylint: enable=line-too-long
 class FormBasedCredentialsBackend(object):
   def __init__(self):
     self._logged_in = False

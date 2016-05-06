@@ -23,20 +23,29 @@ _PERCENTILES = (0, 0.05, 0.25, 0.5, 0.75, 0.95, 1)
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('bisect_url', help='Buildbot URL of a bisect run.')
+  parser.add_argument('bisect_url_or_debug_info_file',
+                      help='The Buildbot URL of a bisect run, or a file '
+                      'containing the output from the Debug Info step.')
   parser.add_argument('output', nargs='?', help='File path to save a PNG to.')
   args = parser.parse_args()
 
+  url = (args.bisect_url_or_debug_info_file +
+         '/steps/Debug%20Info/logs/Debug%20Info/text')
+  try:
+    f = urllib2.urlopen(url)
+  except ValueError:  # Not a valid URL.
+    f = open(args.bisect_url_or_debug_info_file, 'r')
+
   results = []
-  url = args.bisect_url + '/steps/Debug%20Info/logs/Debug%20Info/text'
-  for line in urllib2.urlopen(url).readlines():
-    regex = (r'(?:chromium@)?(?P<commit>[0-9]+)\s*'
+  for line in f.readlines():
+    regex = (r'(?:(?:[a-z0-9-]+@)?[a-z0-9]+,)*'
+             r'(?:[a-z0-9-]+@)?(?P<commit>[a-z0-9]+)\s*'
              r'(?P<values>\[(?:-?[0-9.]+, )*-?[0-9.]*\])')
     match = re.match(regex, line)
     if not match:
       continue
 
-    commit = int(match.group('commit'))
+    commit = match.group('commit')
     values = json.loads(match.group('values'))
     if not values:
       continue

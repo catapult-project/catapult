@@ -70,6 +70,14 @@ _NON_TELEMETRY_TEST_COMMANDS = {
         '--test-launcher-print-test-stdio=always',
         '--enable-gpu',
     ],
+    'resource_sizes': [
+        'build/android/resource_sizes.py',
+        'out/Release/apks/Chrome.apk',
+        '--so-path out/Release/libchrome.so',
+        '--so-with-symbols-path out/Release/lib.unstripped/libchrome.so',
+        '--chartjson',
+        '--build_type Release',
+    ],
 }
 
 

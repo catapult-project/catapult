@@ -30,12 +30,13 @@ OMAHAPROXY_VERSION_MAP_URL = 'https://omahaproxy.appspot.com/all.json'
 V8_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.path.pardir, 'third_party',
     'v8')
-V8_BINARY_PATH = os.path.join(V8_PATH, '{os}', '{arch}', 'd8')
+V8_DST_PATH = os.path.join(V8_PATH, '{os}', '{arch}')
 V8_README_PATH = os.path.join(V8_PATH, 'README.chromium')
 
 V8_CHECKOUT_BINARY_PATH = os.path.join(
     '{v8_root}', 'v8', 'out', 'Release', 'd8')
-V8_GENERATE_GYP_CMD = os.path.join('build', 'gyp_v8') + ' -Dtarget_arch={arch}'
+V8_GENERATE_GYP_CMD = (sys.executable + ' ' + os.path.join('build', 'gyp_v8') +
+                       ' -Dtarget_arch={arch}')
 V8_COMPILE_CMD = 'ninja -C {0} d8'.format(os.path.join('out', 'Release'))
 V8_STRIP_CMD = 'strip -x {0}'.format(os.path.join('out', 'Release', 'd8'))
 
@@ -50,7 +51,8 @@ PYTHON_SYSTEM_TO_CHROME_OS = {
 # Dict from the acceptable return values for Python's platform.machine() to the
 # corresponding ninja architecture name.
 PYTHON_MACHINE_TO_NINJA_ARCH = {
-  'x86_64': 'x64'
+  'x86_64': 'x64',
+  'AMD64': 'x64'
 }
 
 def Main(args):
@@ -62,18 +64,19 @@ def Main(args):
   target_arch = platform.machine()
 
   if target_channel not in VALID_CHANNEL_LIST:
-    print('Invalid target channel. Valid: {0}'.format(VALID_CHANNEL_LIST))
+    print 'Invalid target channel %s. Valid: %s' % (
+        target_channel, VALID_CHANNEL_LIST)
     return 1
 
   if platform.system() not in PYTHON_SYSTEM_TO_CHROME_OS:
-    print('System not supported. Valid: {0}'.format(
-        PYTHON_SYSTEM_TO_CHROME_OS.keys()))
+    print 'System not supported %s. Valid: %s' % (
+        platform.system(), PYTHON_SYSTEM_TO_CHROME_OS)
     return 1
   target_os = PYTHON_SYSTEM_TO_CHROME_OS[platform.system()]
 
   if target_arch not in PYTHON_MACHINE_TO_NINJA_ARCH:
-    print('Invalid target architecture. Valid: {0}'.format(
-        PYTHON_MACHINE_TO_NINJA_ARCH.keys()))
+    print 'Invalid target architecture %s. Valid: %s' % (
+        target_arch, PYTHON_MACHINE_TO_NINJA_ARCH)
     return 1
 
   v8_version = GetV8Version(target_os, target_channel)
@@ -97,6 +100,11 @@ def GetV8Version(target_os, target_channel):
           curr_version['channel'] == target_channel):
         return curr_version['v8_version']
 
+def _RunCommand(command):
+  print 'Run: %s' % command
+  subprocess.check_call(command, shell=True, stderr=sys.stderr,
+                        stdout=sys.stdout)
+
 def UpdateV8Binary(v8_version, target_os, target_arch):
   """Updates the catapult V8 binary for the specified OS to be the specified V8
   version."""
@@ -104,24 +112,37 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
   # channel, and build the d8 binary.
   with TempDir() as v8_checkout_path:
     with ChangeDirectory(v8_checkout_path):
-      subprocess.check_call('fetch v8', shell=True)
+      os.environ['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+      _RunCommand('fetch v8')
       with ChangeDirectory('v8'):
-        subprocess.check_call('git checkout {0}'.format(v8_version), shell=True)
-
+        _RunCommand('git checkout {0}'.format(v8_version))
+        _RunCommand('gclient sync')
+        if not 'GYP_DEFINES' in os.environ:
+          os.environ['GYP_DEFINES'] = ''
         os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
         os.environ['GYP_GENERATORS'] = 'ninja'
         ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
-        subprocess.check_call(
-            V8_GENERATE_GYP_CMD.format(arch=ninja_arch), shell=True)
-        subprocess.check_call(V8_COMPILE_CMD, shell=True)
+        _RunCommand(
+            V8_GENERATE_GYP_CMD.format(arch=ninja_arch))
+        _RunCommand(V8_COMPILE_CMD)
         if target_os in ['linux', 'mac']:
-          subprocess.check_call(V8_STRIP_CMD, shell=True)
+          _RunCommand(V8_STRIP_CMD)
 
-    # Move the d8 binary into place.
-    d8_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path)
-    d8_dst = V8_BINARY_PATH.format(os=target_os, arch=target_arch)
+    # Copy the d8 binary into place.
+    d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path)
+    d8_dst_dir = V8_DST_PATH.format(os=target_os, arch=target_arch)
 
-    shutil.move(d8_src, d8_dst)
+    # Append .exe extension on win
+    if target_os == 'win':
+      d8_bin_src += '.exe'
+    shutil.copy(d8_bin_src, d8_dst_dir)
+    # Also copy dll files on win
+    if target_os == 'win':
+      d8_dir_src = os.path.dirname(d8_bin_src)
+      for f in os.listdir(d8_dir_src):
+        if f.endswith('.dll'):
+          lib_path = os.path.join(d8_dir_src, f)
+          shutil.copy(lib_path, d8_dst_dir)
 
 def UpdateReadmeFile(v8_version, target_os):
   """Updates the V8 version number in the V8 README.chromium file."""
@@ -156,7 +177,9 @@ class TempDir:
     return self.path
 
   def __exit__(self, etype, value, traceback):
-    shutil.rmtree(self.path)
+    shutil.rmtree(self.path, ignore_errors=True)
+    if os.path.isdir(self.path):
+      print '%s still exists. You may want to delete it' % self.path
 
 if __name__ == '__main__':
   sys.exit(Main(sys.argv[1:]))

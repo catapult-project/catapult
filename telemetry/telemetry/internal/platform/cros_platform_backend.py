@@ -170,7 +170,9 @@ class CrosPlatformBackend(
 
   def CanTakeScreenshot(self):
     # crbug.com/609001: screenshots don't work on VMs.
-    return not self.cri.IsRunningOnVM()
+    logging.info('Sys vendor=' + self.cri.SysVendor() +
+                 ', IsRunningOnVM=' + repr(self.cri.IsRunningOnVM()))
+    return False
 
   def TakeScreenshot(self, file_path):
     return self._cri.TakeScreenshot(file_path)

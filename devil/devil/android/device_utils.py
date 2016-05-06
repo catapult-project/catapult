@@ -1133,13 +1133,14 @@ class DeviceUtils(object):
       all_changed_files += changed_files
       all_stale_files += stale_files
       cache_commit_funcs.append(cache_commit_func)
-      if (os.path.isdir(h) and changed_files and not up_to_date_files
-          and not stale_files):
-        missing_dirs.append(d)
+      if changed_files and not up_to_date_files and not stale_files:
+        if os.path.isdir(h):
+          missing_dirs.append(d)
+        else:
+          missing_dirs.append(posixpath.dirname(d))
 
     if delete_device_stale and all_stale_files:
-      self.RunShellCommand(['rm', '-f'] + all_stale_files,
-                             check_return=True)
+      self.RunShellCommand(['rm', '-f'] + all_stale_files, check_return=True)
 
     if all_changed_files:
       if missing_dirs:
@@ -1157,11 +1158,12 @@ class DeviceUtils(object):
       track_stale: whether to bother looking for stale files (slower)
 
     Returns:
-      a three-element tuple
+      a four-element tuple
       1st element: a list of (host_files_path, device_files_path) tuples to push
       2nd element: a list of host_files_path that are up-to-date
       3rd element: a list of stale files under device_path, or [] when
         track_stale == False
+      4th element: a cache commit function.
     """
     try:
       # Length calculations below assume no trailing /.

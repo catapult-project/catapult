@@ -57,4 +57,10 @@ PACKAGE_INFO = {
         '/data/local/chrome-command-line',
         'chrome_devtools_remote',
         'org.chromium.chrome.tests'),
+    'content_shell': PackageInfo(
+        'org.chromium.content_shell_apk',
+        '.ContentShellActivity',
+        '/data/local/tmp/content-shell-command-line',
+        'content_shell_devtools_remote',
+        None),
 }

@@ -62,7 +62,9 @@ class _SingleProcessVTuneProfiler(object):
               self._output_file)
 
       device = self._browser_backend.device
-      symfs_root = os.path.dirname(self._output_file)
+      symfs_root = os.path.join(os.path.dirname(self._output_file), 'symfs')
+      if not os.path.exists(symfs_root):
+        os.makedirs(symfs_root)
       android_profiling_helper.CreateSymFs(device,
                                            symfs_root,
                                            required_libs,

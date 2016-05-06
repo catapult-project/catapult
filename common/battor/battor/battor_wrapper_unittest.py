@@ -29,6 +29,101 @@ class PopenMock(object):
     pass
 
 
+class IsBattOrConnectedTest(unittest.TestCase):
+  def setUp(self):
+    # Windows monkey patches.
+    self._serial_tools_return = []
+    self._comports = serial.tools.list_ports.comports
+    serial.tools.list_ports.comports = lambda: self._serial_tools_return
+
+    # Linux/Android monkey patches.
+    self._generate_serial_map_return = {}
+    self._generate_serial_map = battor_device_mapping.GenerateSerialMap
+    battor_device_mapping.GenerateSerialMap = (
+        lambda: self._generate_serial_map_return)
+
+    self._read_serial_map_file_return = {}
+    self._read_serial_map_file = battor_device_mapping.ReadSerialMapFile
+    battor_device_mapping.ReadSerialMapFile = (
+        lambda f: self._read_serial_map_file_return)
+
+    self._get_bus_number_to_device_tree_map = (
+        find_usb_devices.GetBusNumberToDeviceTreeMap)
+    find_usb_devices.GetBusNumberToDeviceTreeMap = lambda fast=None: None
+
+    self._get_battor_list_return = []
+    self._get_battor_list = battor_device_mapping.GetBattorList
+    battor_device_mapping.GetBattorList = lambda x: self._get_battor_list_return
+
+    # TODO(rnephew): Add Mac monkey patches when supported.
+
+  def tearDown(self):
+    serial.tools.list_ports.comports = self._comports
+    battor_device_mapping.GenerateSerialMap = self._generate_serial_map
+    battor_device_mapping.ReadSerialMapFile = self._read_serial_map_file
+    find_usb_devices.GetBusNumberToDeviceTreeMap = (
+        self._get_bus_number_to_device_tree_map)
+    battor_device_mapping.GetBattorList = self._get_battor_list
+
+  def forceException(self):
+    raise NotImplementedError
+
+  def testAndroidWithBattor(self):
+    self._generate_serial_map_return = {'abc': '123'}
+    self.assertTrue(battor_wrapper.IsBattOrConnected('android', 'abc'))
+
+  def testAndroidWithoutMatchingBattor(self):
+    self._generate_serial_map_return = {'notabc': 'not123'}
+    self.assertFalse(battor_wrapper.IsBattOrConnected('android', 'abc'))
+
+  def testAndroidNoDevicePassed(self):
+    with self.assertRaises(battor_error.BattorError):
+      battor_wrapper.IsBattOrConnected('android')
+
+  def testAndroidWithMapAndFile(self):
+    device_map = {'abc': '123'}
+    battor_device_mapping.ReadSerialMapFile = self.forceException
+    self.assertTrue(
+        battor_wrapper.IsBattOrConnected('android', android_device='abc',
+                                        android_device_map=device_map,
+                                        android_device_file='file'))
+
+  def testAndroidWithMap(self):
+    self.assertTrue(
+        battor_wrapper.IsBattOrConnected('android', android_device='abc',
+                                        android_device_map={'abc', '123'}))
+
+  def testAndroidWithFile(self):
+    self._read_serial_map_file_return = {'abc': '123'}
+    self.assertTrue(
+      battor_wrapper.IsBattOrConnected('android', android_device='abc',
+                                      android_device_file='file'))
+
+  def testLinuxWithBattor(self):
+    self._get_battor_list_return = ['battor']
+    self.assertTrue(battor_wrapper.IsBattOrConnected('linux'))
+
+  def testLinuxWithoutBattor(self):
+    self._get_battor_list_return = []
+    self.assertFalse(battor_wrapper.IsBattOrConnected('linux'))
+
+  def testMacWithBattor(self):
+    # TODO(rnephew) Fix test when mac is done.
+    self.assertFalse(battor_wrapper.IsBattOrConnected('mac'))
+
+  def testMacWithoutBattor(self):
+    self._get_battor_list_return = []
+    self.assertFalse(battor_wrapper.IsBattOrConnected('mac'))
+
+  def testWinWithBattor(self):
+    self._serial_tools_return = [('COM4', 'USB Serial Port', '')]
+    self.assertTrue(battor_wrapper.IsBattOrConnected('win'))
+
+  def testWinWithoutBattor(self):
+    self._get_battor_list_return = []
+    self.assertFalse(battor_wrapper.IsBattOrConnected('win'))
+
+
 class BattorWrapperTest(unittest.TestCase):
   def setUp(self):
     self._battor = None
