@@ -15,7 +15,7 @@ found in the LICENSE file.
         box-sizing: border-box;
       }
 
-      tab-strip[tabs-hidden] {
+      tab-strip.hidden {
         display: none;
       }
 
@@ -196,16 +196,16 @@ window.TracingAnalysisTabView = Polymer({
 
   get tabsHidden() {
     var ts = this.shadowRoot.querySelector('tab-strip');
-    return ts.hasAttribute('tabs-hidden');
+    return ts.classList.contains('hidden');
   },
 
   set tabsHidden(tabsHidden) {
     tabsHidden = !!tabsHidden;
     var ts = this.shadowRoot.querySelector('tab-strip');
     if (tabsHidden)
-      ts.setAttribute('tabs-hidden', true);
+      ts.classList.add('hidden');
     else
-      ts.removeAttribute('tabs-hidden');
+      ts.classList.remove('hidden');
   },
 
   get tabs() {
