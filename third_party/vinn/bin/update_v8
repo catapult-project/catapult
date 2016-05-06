@@ -97,6 +97,10 @@ def GetV8Version(target_os, target_channel):
           curr_version['channel'] == target_channel):
         return curr_version['v8_version']
 
+def _RunCommand(command):
+  print 'Run: %s' % command
+  subprocess.check_call(command, shell=True)
+
 def UpdateV8Binary(v8_version, target_os, target_arch):
   """Updates the catapult V8 binary for the specified OS to be the specified V8
   version."""
@@ -104,18 +108,20 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
   # channel, and build the d8 binary.
   with TempDir() as v8_checkout_path:
     with ChangeDirectory(v8_checkout_path):
-      subprocess.check_call('fetch v8', shell=True)
+      _RunCommand('fetch v8')
       with ChangeDirectory('v8'):
-        subprocess.check_call('git checkout {0}'.format(v8_version), shell=True)
-
+        _RunCommand('git checkout {0}'.format(v8_version))
+        _RunCommand('gclient sync')
+        if not 'GYP_DEFINES' in os.environ:
+          os.environ['GYP_DEFINES'] = ''
         os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
         os.environ['GYP_GENERATORS'] = 'ninja'
         ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
-        subprocess.check_call(
-            V8_GENERATE_GYP_CMD.format(arch=ninja_arch), shell=True)
-        subprocess.check_call(V8_COMPILE_CMD, shell=True)
+        _RunCommand(
+            V8_GENERATE_GYP_CMD.format(arch=ninja_arch))
+        _RunCommand(V8_COMPILE_CMD)
         if target_os in ['linux', 'mac']:
-          subprocess.check_call(V8_STRIP_CMD, shell=True)
+          _RunCommand(V8_STRIP_CMD)
 
     # Move the d8 binary into place.
     d8_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path)
