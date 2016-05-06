@@ -19,6 +19,7 @@ from dashboard import buildbucket_job_status
 from dashboard import can_bisect
 from dashboard import change_internal_only
 from dashboard import debug_alert
+from dashboard import delete_test_data
 from dashboard import dump_graph_json
 from dashboard import edit_anomalies
 from dashboard import edit_anomaly_configs
@@ -72,6 +73,7 @@ _URL_MAPPING = [
     ('/change_internal_only', change_internal_only.ChangeInternalOnlyHandler),
     ('/debug_alert', debug_alert.DebugAlertHandler),
     ('/delete_expired_entities', layered_cache.DeleteExpiredEntitiesHandler),
+    ('/delete_test_data', delete_test_data.DeleteTestDataHandler),
     ('/dump_graph_json', dump_graph_json.DumpGraphJsonHandler),
     ('/edit_anomalies', edit_anomalies.EditAnomaliesHandler),
     ('/edit_anomaly_configs', edit_anomaly_configs.EditAnomalyConfigsHandler),

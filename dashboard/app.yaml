@@ -104,6 +104,11 @@ handlers:
   login: admin
   secure: always
 
+- url: /delete_test_data
+  script: dashboard.dispatcher.APP
+  login: admin
+  secure: always
+
 - url: /edit_anomaly_configs
   script: dashboard.dispatcher.APP
   login: admin
