@@ -40,7 +40,7 @@ def Main():
 
 
 if __name__ == '__main__':
-  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+  tracing_path = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                  os.path.pardir))
   sys.path.append(tracing_path)
   import tracing_project
