@@ -104,7 +104,7 @@ def MapSingleTrace(trace_handle,
     except Exception:
       pass
     result.AddFailure(failure.Failure(
-        job.map_function_handle.AsUserFriendlyString(),
+        job,
         trace_handle.canonical_url,
         'Error', 'vinn runtime error while mapping trace.',
         'vinn runtime error while mapping trace.', 'Unknown stack'))

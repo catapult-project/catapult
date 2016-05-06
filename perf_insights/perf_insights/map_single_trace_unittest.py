@@ -7,6 +7,7 @@ import unittest
 from perf_insights import function_handle
 from perf_insights import map_single_trace
 from perf_insights.mre import file_handle
+from perf_insights.mre import failure
 from perf_insights.mre import job as job_module
 
 
@@ -107,6 +108,25 @@ class MapSingleTraceTests(unittest.TestCase):
     self.assertEquals(len(result.pairs), 0)
     f = result.failures[0]
     self.assertIsInstance(f, map_single_trace.FunctionLoadingFailure)
+
+  def testMapperWithUnexpectedError(self):
+    events = [
+      {'pid': 1, 'tid': 2, 'ph': 'X', 'name': 'a', 'cat': 'c',
+       'ts': 0, 'dur': 10, 'args': {}},
+    ]
+    trace_handle = file_handle.InMemoryFileHandle(
+        '/a.json', json.dumps(events))
+
+    with map_single_trace.TemporaryMapScript("""
+          quit(100);
+    """) as map_script:
+      result = map_single_trace.MapSingleTrace(trace_handle,
+                                               _Handle(map_script.filename))
+
+    self.assertEquals(len(result.failures), 1)
+    self.assertEquals(len(result.pairs), 0)
+    f = result.failures[0]
+    self.assertIsInstance(f, failure.Failure)
 
   def testNoMapper(self):
     events = [
