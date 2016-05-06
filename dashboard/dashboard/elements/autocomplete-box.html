@@ -222,7 +222,7 @@ property 'group' sets to the header item name.
       /**
        * Handles item selected on drop-down menu.
        */
-      onDropdownSelect: function(event, detail, sender) {
+      onDropdownSelect: function(event, detail) {
         this.$.textbox.focus();
         var item = detail.item.templateInstance.model;
         var isSelected = Polymer.dom(

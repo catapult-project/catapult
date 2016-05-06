@@ -311,9 +311,10 @@ found in the LICENSE file.
       /**
        * Event handler for the change event of any of the checkboxes.
        */
-      onCheckboxClicked: function(event, detail, sender) {
+      onCheckboxClicked: function(event, detail) {
         var model = event.target.templateInstance.model;
-        this.updateIndicesToGraph(model.test.index, sender.checked);
+        this.updateIndicesToGraph(
+            model.test.index, event.currentTarget.checked);
         this.updateSeriesGroupCheckedState(model.seriesGroup);
         this.updateNumHidden(model.seriesGroup);
         this.fireChartStateChangedEvent();
@@ -408,7 +409,8 @@ found in the LICENSE file.
       /**
        * Event handler for the change event of check all checkboxes.
        */
-      onCheckAllCheckboxClicked: function(event, detail, sender) {
+      onCheckAllCheckboxClicked: function(event, detail) {
+        var sender = event.currentTarget;
         var model = event.target.templateInstance.model;
         var groupIndex = model.groupIndex;
 
@@ -428,7 +430,7 @@ found in the LICENSE file.
       /**
        * Event handler for series group close button clicked.
        */
-      onCloseSeriesGroupClicked: function(event, detail, sender) {
+      onCloseSeriesGroupClicked: function(event, detail) {
         var model = event.target.templateInstance.model;
         this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
       },
@@ -436,9 +438,9 @@ found in the LICENSE file.
       /**
        * Event handler for click event of expand link.
        */
-      onExpandSeriesClicked: function(event, detail, sender) {
+      onExpandSeriesClicked: function(event, detail) {
         var groupIndex = event.target.templateInstance.model.groupIndex;
-        var isCollapse = sender.text == 'less' ? true : false;
+        var isCollapse = event.currentTarget.text == 'less' ? true : false;
         var seriesGroup = this.seriesGroupList[groupIndex];
         seriesGroup.tests.forEach(function(test) {
           if (isCollapse) {
@@ -456,7 +458,7 @@ found in the LICENSE file.
        * On series group box drag-start, set data to be transferred to on
        * drop event.
        */
-      onSeriesDragStart: function(event, detail, sender) {
+      onSeriesDragStart: function(event, detail) {
         var groupIndex = event.target.templateInstance.model.groupIndex;
         var testPath = this.seriesGroupList[groupIndex].path;
         var selectedTests = [];
@@ -477,7 +479,7 @@ found in the LICENSE file.
        * On series group box drag-end, checks if drop target is valid,
        * and remove series group.
        */
-      onSeriesDragEnd: function(event, detail, sender) {
+      onSeriesDragEnd: function(event, detail) {
         // Successful drop.
         if (event.dataTransfer.dropEffect == 'copy') {
           var model = event.target.templateInstance.model;
@@ -551,14 +553,14 @@ found in the LICENSE file.
         this.fireChartStateChangedEvent();
       },
 
-      seriesMouseover: function(event, detail, sender) {
+      seriesMouseover: function(event, detail) {
         var model = event.target.templateInstance.model;
         this.fire('seriesmouseover', {
           'index': model.test.index
         });
       },
 
-      seriesMouseout: function(event, detail, sender) {
+      seriesMouseout: function(event, detail) {
         var model = event.target.templateInstance.model;
         this.fire('seriesmouseout', {
           'index': model.test.index

@@ -1111,9 +1111,8 @@ triaging functionality in the chart.
          * @param {Object} detail The detail object given when firing the
          *     event. This is set in graph.js and it contains 'start_rev' and
          *     'end_rev'.
-         * @param {Object} sender Object that invoked the event.
          */
-        onRevisionRange: function(event, detail, sender) {
+        onRevisionRange: function(event, detail) {
           var newGraphParams = deepCopy(this.graphParams);
           newGraphParams['rev'] = null;
           newGraphParams['num_points'] = null;
@@ -1593,7 +1592,7 @@ triaging functionality in the chart.
          * series group from the test path created from clicked title
          * parts.
          */
-        onTitleClicked: function(event, detail, sender) {
+        onTitleClicked: function(event, detail) {
           var titleParts = event.detail.titleParts;
           var partIndex = event.detail.partIndex;
           var testPath = titleParts.slice(0, partIndex + 1).join('/');

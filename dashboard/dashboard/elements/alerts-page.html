@@ -190,7 +190,8 @@ found in the LICENSE file.
         }
       },
 
-      onPushHistoryState: function(event, detail, sender) {
+      onPushHistoryState: function(event, detail) {
+        sender = event.currentTarget;
         if (!sender) {
           return;
         }

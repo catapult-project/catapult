@@ -194,8 +194,9 @@ was just clicked.
       /**
        * Shows the CL descriptions for the given revision range.
        */
-      onRevisionRangeClick: function(event, detail, sender) {
-        window.open(sender.href, 'changelog', 'width=1000,height=1000');
+      onRevisionRangeClick: function(event, detail) {
+        window.open(
+            event.currentTarget.href, 'changelog', 'width=1000,height=1000');
         event.preventDefault();
       },
 
@@ -217,7 +218,7 @@ was just clicked.
       /**
        * Fires a 'triaged' event, which should be caught in chart-container.
        */
-      onUntriaged: function(event, detail, sender) {
+      onUntriaged: function(event, detail) {
         this.fire('triaged', {
           'alerts': this.triagedAlerts,
           'bugid': null

@@ -421,7 +421,7 @@ found in the LICENSE file.
       /**
        * Handler for drag start event for series drag button.
        */
-      onSeriesButtonDragStart: function(event, detail, sender) {
+      onSeriesButtonDragStart: function(event, detail) {
         var selection = this.getCurrentSelection();
         var testPathAndSelected = selection.getTestPathAndSelectedSeries();
         event.dataTransfer.setData('type', 'seriesdnd');
@@ -433,7 +433,7 @@ found in the LICENSE file.
       /**
        * Fires add event on 'Add' button clicked.
        */
-      onAddButtonClicked: function(event, detail, sender) {
+      onAddButtonClicked: function(event, detail) {
         this.fire('add');
       },
 
