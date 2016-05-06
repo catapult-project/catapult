@@ -30,7 +30,7 @@ _DEFAULT_NUM_POINTS = 150
 
 # If data for more than this many tests is requested for unselected tests,
 # an empty response will be returned.
-_MAX_UNSELECTED_TESTS = 50
+_MAX_UNSELECTED_TESTS = 55
 
 # Dictionary mapping improvement directions constants to strings.
 _BETTER_DICT = {
