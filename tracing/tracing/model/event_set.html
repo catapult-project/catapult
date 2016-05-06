@@ -7,8 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/guid.html">
-<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/event_registry.html">
 
 <script>
@@ -29,7 +29,7 @@ tr.exportTo('tr.model', function() {
     this.bounds_dirty_ = true;
     this.bounds_ = new tr.b.Range();
     this.length_ = 0;
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
     this.pushed_guids_ = {};
 
     if (opt_events) {

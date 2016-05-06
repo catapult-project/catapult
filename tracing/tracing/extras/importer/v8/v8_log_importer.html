@@ -256,7 +256,7 @@ tr.exportTo('tr.e.importer.v8', function() {
         if (childFrame === undefined) {
           var entryName = entry ? entry.name : 'Unknown';
           lastStackFrame = new tr.model.StackFrame(
-            lastStackFrame, 'v8sf-' + tr.b.GUID.allocate(), entryName,
+            lastStackFrame, 'v8sf-' + tr.b.GUID.allocateSimple(), entryName,
             ColorScheme.getColorIdForGeneralPurposeString(entryName),
             sourceInfo);
           lastStackFrame.entryID = entryID;

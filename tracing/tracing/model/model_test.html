@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
     function Helper(model) {
       this.model = model;
     }
-    Helper.guid = tr.b.GUID.allocate();
+    Helper.guid = tr.b.GUID.allocateSimple();
     Helper.supportsModel = function(model) {
       return true;
     };
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
     function UnsupportedHelper(model) {
       this.model = model;
     }
-    UnsupportedHelper.guid = tr.b.GUID.allocate();
+    UnsupportedHelper.guid = tr.b.GUID.allocateSimple();
     UnsupportedHelper.supportsModel = function(model) {
       return false;
     };

@@ -15,7 +15,7 @@ tr.exportTo('tr.b.unittest', function() {
   function TestCase(name, opt_testFn, opt_options) {
     if (!name)
       throw new Error('Name must be provided');
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
     this.suite_ = undefined; // Set by TestSuite.addTest.
     this.name_ = name;
 

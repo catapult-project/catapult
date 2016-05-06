@@ -254,7 +254,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    * @constructor
    */
   CodeMap.CodeEntry = function(size, opt_name, opt_type) {
-    this.id = tr.b.GUID.allocate();
+    this.id = tr.b.GUID.allocateSimple();
     this.size = size;
     this.name_ = opt_name || '';
     this.type = opt_type || '';

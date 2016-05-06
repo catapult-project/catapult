@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/base/rect.html">
 <link rel="import" href="/tracing/extras/chrome/cc/picture_as_image_data.html">
 <link rel="import" href="/tracing/extras/chrome/cc/util.html">
-<link rel="import" href="/tracing/base/guid.html">
-<link rel="import" href="/tracing/base/rect.html">
-<link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/model/object_instance.html">
 
 <script>
@@ -26,7 +26,7 @@ tr.exportTo('tr.e.cc', function() {
     this.skp64_ = skp64;
     this.layerRect_ = layerRect;
 
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
   }
 
   Picture.prototype = {
@@ -162,7 +162,7 @@ tr.exportTo('tr.e.cc', function() {
   };
 
   function LayeredPicture(pictures) {
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
     this.pictures_ = pictures;
     this.layerRect_ = undefined;
   }
@@ -285,7 +285,7 @@ tr.exportTo('tr.e.cc', function() {
 
   PictureSnapshot.HasSkiaBenchmarking = function() {
     return tr.isExported('chrome.skiaBenchmarking');
-  }
+  };
 
   PictureSnapshot.CanRasterize = function() {
     if (!PictureSnapshot.HasSkiaBenchmarking())
@@ -293,7 +293,7 @@ tr.exportTo('tr.e.cc', function() {
     if (!window.chrome.skiaBenchmarking.rasterize)
       return false;
     return true;
-  }
+  };
 
   PictureSnapshot.CanGetOps = function() {
     if (!PictureSnapshot.HasSkiaBenchmarking())
@@ -301,7 +301,7 @@ tr.exportTo('tr.e.cc', function() {
     if (!window.chrome.skiaBenchmarking.getOps)
       return false;
     return true;
-  }
+  };
 
   PictureSnapshot.CanGetOpTimings = function() {
     if (!PictureSnapshot.HasSkiaBenchmarking())
@@ -309,7 +309,7 @@ tr.exportTo('tr.e.cc', function() {
     if (!window.chrome.skiaBenchmarking.getOpTimings)
       return false;
     return true;
-  }
+  };
 
   PictureSnapshot.CanGetInfo = function() {
     if (!PictureSnapshot.HasSkiaBenchmarking())
@@ -317,7 +317,7 @@ tr.exportTo('tr.e.cc', function() {
     if (!window.chrome.skiaBenchmarking.getInfo)
       return false;
     return true;
-  }
+  };
 
   PictureSnapshot.HowToEnablePictureDebugging = function() {
     if (tr.isHeadless)
@@ -340,7 +340,7 @@ tr.exportTo('tr.e.cc', function() {
     if (!global.chrome.skiaBenchmarking.getInfo)
       return 'Your chrome is old: skiaBenchmarking.getInfo not found';
     return 'Rasterizing is on';
-  }
+  };
 
   PictureSnapshot.prototype = {
     __proto__: ObjectSnapshot.prototype,

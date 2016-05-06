@@ -16,7 +16,7 @@ tr.exportTo('pi.mre', function() {
     this.mapFunctionHandle_ = mapFunctionHandle;
     this.reduceFunctionHandle_ = reduceFunctionHandle;
     if (opt_guid === undefined)
-      this.guid_ = tr.b.GUID.allocate();
+      this.guid_ = tr.b.GUID.allocateSimple();
     else
       this.guid_ = opt_guid;
   }

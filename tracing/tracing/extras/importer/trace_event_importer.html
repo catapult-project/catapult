@@ -299,7 +299,7 @@ tr.exportTo('tr.e.importer', function() {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
       this.allFlowEvents_.push({
-        refGuid: tr.b.GUID.getLastGuid(),
+        refGuid: tr.b.GUID.getLastSimpleGuid(),
         sequenceNumber: this.allFlowEvents_.length,
         event: event,
         slice: opt_slice,  // slice for events that have flow info
@@ -628,7 +628,7 @@ tr.exportTo('tr.e.importer', function() {
           return childFrame;
 
         var frame = new tr.model.StackFrame(
-            lastStackFrame, tr.b.GUID.allocate(), entry.name,
+            lastStackFrame, tr.b.GUID.allocateSimple(), entry.name,
             ColorScheme.getColorIdForGeneralPurposeString(entry.name),
             entry.sourceInfo);
 
@@ -695,7 +695,7 @@ tr.exportTo('tr.e.importer', function() {
             event.name];
       }
       if (stackFrame === undefined) {
-        var id = 'te-' + tr.b.GUID.allocate();
+        var id = 'te-' + tr.b.GUID.allocateSimple();
         stackFrame = new tr.model.StackFrame(
             undefined, id, event.name,
             ColorScheme.getColorIdForGeneralPurposeString(event.name));

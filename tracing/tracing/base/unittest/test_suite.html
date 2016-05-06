@@ -4,10 +4,12 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/base/unittest/test_case.html">
 <link rel="import" href="/tracing/base/unittest/constants.html">
+<link rel="import" href="/tracing/base/unittest/test_case.html">
+
 <script>
 'use strict';
 
@@ -18,7 +20,7 @@ tr.exportTo('tr.b.unittest', function() {
   var TestTypes = tr.b.unittest.TestTypes;
 
   function TestSuite(name, suiteConstructor) {
-    this.guid = tr.b.GUID.allocate();
+    this.guid = tr.b.GUID.allocateSimple();
     this.name_ = name;
     this.tests_ = [];
     this.testNames_ = {}; // For dupe checking.

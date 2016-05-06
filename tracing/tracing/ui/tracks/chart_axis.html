@@ -19,7 +19,7 @@ tr.exportTo('tr.ui.tracks', function() {
    * @constructor
    */
   function ChartAxis(opt_min, opt_max) {
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
     this.bounds = new tr.b.Range();
     if (opt_min !== undefined)
       this.bounds.addValue(opt_min);

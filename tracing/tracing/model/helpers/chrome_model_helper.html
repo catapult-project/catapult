@@ -67,7 +67,7 @@ tr.exportTo('tr.model.helpers', function() {
     }, this);
   }
 
-  ChromeModelHelper.guid = tr.b.GUID.allocate();
+  ChromeModelHelper.guid = tr.b.GUID.allocateSimple();
 
   ChromeModelHelper.supportsModel = function(model) {
     if (findChromeBrowserProcesses(model).length)

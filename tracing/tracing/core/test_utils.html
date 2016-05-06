@@ -128,7 +128,7 @@ tr.exportTo('tr.c', function() {
     if (options.id)
       slice.id = options.id;
     else
-      slice.id = tr.b.GUID.allocate();
+      slice.id = tr.b.GUID.allocateSimple();
 
     if (options.startStackFrame)
       slice.startStackFrame = options.startStackFrame;
@@ -176,7 +176,7 @@ tr.exportTo('tr.c', function() {
     if (options.id !== undefined)
       id = options.id;
     else
-      id = tr.b.GUID.allocate();
+      id = tr.b.GUID.allocateSimple();
 
     var event = new tr.model.FlowEvent(
         options.cat ? options.cat : 'cat',
@@ -260,7 +260,8 @@ tr.exportTo('tr.c', function() {
   TestUtils.newStackTrace = function(model, titles) {
     var frame = undefined;
     titles.forEach(function(title) {
-      frame = new tr.model.StackFrame(frame, tr.b.GUID.allocate(), title, 7);
+      frame = new tr.model.StackFrame(
+          frame, tr.b.GUID.allocateSimple(), title, 7);
       if (model)
         model.addStackFrame(frame);
     });

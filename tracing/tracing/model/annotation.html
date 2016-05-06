@@ -19,7 +19,7 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function Annotation() {
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
     this.view_ = undefined;
   };
 
@@ -39,7 +39,7 @@ tr.exportTo('tr.model', function() {
 
   Annotation.fromDict = function() {
     throw new Error('Not implemented');
-  }
+  };
 
   Annotation.prototype = {
     get guid() {

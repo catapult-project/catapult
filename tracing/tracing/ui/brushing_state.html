@@ -17,7 +17,7 @@ tr.exportTo('tr.ui.b', function() {
   var SelectionState = tr.model.SelectionState;
 
   function BrushingState() {
-    this.guid_ = tr.b.GUID.allocate();
+    this.guid_ = tr.b.GUID.allocateSimple();
     this.selection_ = new EventSet();
     this.findMatches_ = new EventSet();
     this.analysisViewRelatedEvents_ = new EventSet();

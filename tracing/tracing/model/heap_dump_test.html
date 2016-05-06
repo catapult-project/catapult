@@ -30,8 +30,10 @@ tr.b.unittest.testSuite(function() {
     var pmd = new ProcessMemoryDump(gmd, process, 42);
     process.memoryDumps.push(pmd);
 
-    var rootFrame = new StackFrame(undefined, tr.b.GUID.allocate(), undefined);
-    var childFrame = new StackFrame(rootFrame, tr.b.GUID.allocate(), 'draw');
+    var rootFrame = new StackFrame(
+        undefined, tr.b.GUID.allocateSimple(), undefined);
+    var childFrame = new StackFrame(
+        rootFrame, tr.b.GUID.allocateSimple(), 'draw');
     rootFrame.addChild(childFrame);
 
     var dump = new HeapDump(pmd);

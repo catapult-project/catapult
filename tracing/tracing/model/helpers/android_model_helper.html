@@ -69,7 +69,7 @@ tr.exportTo('tr.model.helpers', function() {
     }, this);
   };
 
-  AndroidModelHelper.guid = tr.b.GUID.allocate();
+  AndroidModelHelper.guid = tr.b.GUID.allocateSimple();
 
   AndroidModelHelper.supportsModel = function(model) {
     return true;

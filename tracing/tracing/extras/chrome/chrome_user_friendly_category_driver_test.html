@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/model/event_set.html">
 <link rel="import"
     href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
+<link rel="import" href="/tracing/model/event_set.html">
 
 <script>
 'use strict';
@@ -19,29 +19,29 @@ tr.b.unittest.testSuite(function() {
 
   test('userFriendlyCategory', function() {
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'FrameView::layout',
       category: 'cat'
     }), 'layout');
 
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'Script',
       category: 'cat'
     }), 'script');
 
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'Paint',
       category: 'cat'
     }), 'record');
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'Document::updateStyle',
       category: 'cat'
     }), 'style');
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       category: 'cat'
     }), 'parseHTML');
@@ -49,19 +49,19 @@ tr.b.unittest.testSuite(function() {
 
   test('ufcFromTraceCategory', function() {
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'netlog'
     }), 'net');
 
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'foobar,overhead'
     }), 'overhead');
 
     assert.equal(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'startup'
     }), 'startup');
@@ -69,7 +69,7 @@ tr.b.unittest.testSuite(function() {
 
   test('ufcUndefined', function() {
     assert.isUndefined(ufcFromEvent({
-      guid: tr.b.GUID.allocate(),
+      guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'other'
     }));

@@ -111,7 +111,7 @@ tr.b.unittest.testSuite(function() {
             var slice = tr.c.TestUtils.newAsyncSliceEx({
               name: 'Test' + i,
               colorId: tid + mod,
-              id: tr.b.GUID.allocate(),
+              id: tr.b.GUID.allocateSimple(),
               start: i * 10,
               duration: 9,
               isTopLevel: true
