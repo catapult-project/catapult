@@ -370,6 +370,20 @@ found in the LICENSE file.
 
       is: 'alerts-table',
       properties: {
+        alertList: {
+          type: Array,
+          notify: true,
+          observer: 'alertListChanged'
+        },
+
+        extraColumns: {
+          type: Array
+        },
+
+        xsrfToken: {
+          type: String
+        },
+
         /**
          * The field to sort by. Note that this will be both the id of a th
          * element in the table, and a property of an item in the alert list.
