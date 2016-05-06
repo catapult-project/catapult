@@ -92,6 +92,8 @@ tr.exportTo('tr.ui.analysis', function() {
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+  var unitlessNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
 
   /** @{enum} */
   var RowDimension = {
@@ -161,6 +163,21 @@ tr.exportTo('tr.ui.analysis', function() {
   };
 
   var COLUMN_RULES = [
+    {
+      condition: 'Size',
+      importance: 3,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Count',
+      importance: 2,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
+    {
+      condition: 'Average size',
+      importance: 1,
+      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+    },
     {
       importance: 0,
       columnConstructor: tr.ui.analysis.NumericMemoryColumn
@@ -286,7 +303,8 @@ tr.exportTo('tr.ui.analysis', function() {
           return undefined;
 
         var builder = new tr.b.MultiDimensionalViewBuilder(
-            2 /* dimensions */, 1 /* valueCount */);
+            2 /* dimensions (stack frames, object type) */,
+            2 /* valueCount (size, count) */);
 
         // Build the heap tree.
         heapDump.entries.forEach(function(entry) {
@@ -298,7 +316,8 @@ tr.exportTo('tr.ui.analysis', function() {
           var objectTypeNamePath = objectTypeName === undefined ?
               [] : [objectTypeName];
 
-          builder.addPath([stackTracePath, objectTypeNamePath], [entry.size],
+          builder.addPath([stackTracePath, objectTypeNamePath],
+              [entry.size, entry.count],
               tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
         }, this);
 
@@ -311,21 +330,34 @@ tr.exportTo('tr.ui.analysis', function() {
       if (definedHeapDump === undefined)
         return [];
 
+      // Show allocation counts if at least one heap dump has an entry with
+      // defined count.
+      var showCount = this.heapDumps.some(
+          h => h !== undefined && h.entries.some(e => e.count !== undefined));
+
       // The title of the root row is the name of the allocator.
       var rootRowTitle = definedHeapDump.allocatorName;
       return [this.createHeapRowRecursively_(
-          stackFrameTrees, RowDimension.ROOT, rootRowTitle)];
+          stackFrameTrees, RowDimension.ROOT, rootRowTitle, showCount)];
     },
 
-    createHeapRowRecursively_: function(nodes, dimension, title) {
+    createHeapRowRecursively_: function(nodes, dimension, title, showCount) {
       // Transform a chronological list of stack frame tree nodes into a
       // dictionary of cells (where each cell contains a chronological list
       // of the values of its numeric).
       var cells = tr.ui.analysis.createCells(nodes, function(node) {
-        return {
-          'Size': new ScalarNumeric(
-              sizeInBytes_smallerIsBetter, node.values[0].total)
+        var size = node.values[0].total;
+        var row = {
+          'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, size)
         };
+        if (showCount) {
+          var count = node.values[1].total;
+          row['Count'] = new ScalarNumeric(unitlessNumber_smallerIsBetter,
+              count);
+          row['Average size'] = new ScalarNumeric(sizeInBytes_smallerIsBetter,
+              count === 0 ? 0 : size / count);
+        }
+        return row;
       });
 
       var row = {
@@ -337,9 +369,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Recursively create sub-rows for children (if applicable).
       var stackFrameSubRows = this.createHeapDimensionSubRowsRecursively_(
-          nodes, RowDimension.STACK_FRAME);
+          nodes, RowDimension.STACK_FRAME, showCount);
       var objectTypeSubRows = this.createHeapDimensionSubRowsRecursively_(
-          nodes, RowDimension.OBJECT_TYPE);
+          nodes, RowDimension.OBJECT_TYPE, showCount);
       var subRows = stackFrameSubRows.concat(objectTypeSubRows);
       if (subRows.length > 0)
         row.subRows = subRows;
@@ -347,33 +379,42 @@ tr.exportTo('tr.ui.analysis', function() {
       return row;
     },
 
-    createHeapDimensionSubRowsRecursively_: function(nodes, dimension) {
+    createHeapDimensionSubRowsRecursively_: function(
+        nodes, dimension, showCount) {
       // Sub-row name (list index) -> Timestamp (list index) -> Child
       // MultiDimensionalViewNode.
       var dimensionGroupedChildNodes = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(nodes, function(node) {
             var childDict = {};
-            var displayedChildrenTotal = 0;
+            var displayedChildrenTotalSize = 0;
+            var displayedChildrenTotalCount = 0;
             var hasDisplayedChildren = false;
             for (var child of node.children[dimension].values()) {
-              // Don't show lower-bound sub-rows in tree-view.
+              // Don't show lower-bound size sub-rows in tree-view.
               if (!this.heavyView && child.values[0].isLowerBound)
                 continue;
               childDict[child.title[dimension]] = child;
-              displayedChildrenTotal += child.values[0].total;
+              displayedChildrenTotalSize += child.values[0].total;
+              displayedChildrenTotalCount += child.values[1].total;
               hasDisplayedChildren = true;
             }
 
+            var nodeTotalSize = node.values[0].total;
+            var nodeTotalCount = node.values[1].total;
+
             // Add '<other>' node if necessary in tree-view.
-            if (!this.heavyView &&
-                displayedChildrenTotal < node.values[0].total &&
+            var hasUnclassifiedSizeOrCount =
+                displayedChildrenTotalSize < nodeTotalSize ||
+                displayedChildrenTotalCount < nodeTotalCount;
+            if (!this.heavyView && hasUnclassifiedSizeOrCount &&
                 hasDisplayedChildren) {
               var otherTitle = node.title.slice();
               otherTitle[dimension] = '<other>';
               childDict['<other>'] = {
                 title: otherTitle,
                 values: [
-                  { total: node.values[0].total - displayedChildrenTotal }
+                  { total: nodeTotalSize - displayedChildrenTotalSize },
+                  { total: nodeTotalCount - displayedChildrenTotalCount }
                 ],
                 children: [new Map(), new Map()]
               };
@@ -386,7 +427,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return dimensionGroupedChildNodes.map(function(subRowNodes) {
         var subRowTitle = tr.b.findFirstInArray(subRowNodes).title[dimension];
         return this.createHeapRowRecursively_(
-            subRowNodes, dimension, subRowTitle);
+            subRowNodes, dimension, subRowTitle, showCount);
       }, this);
     },
 
