@@ -4,7 +4,10 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
+<link rel="import" href="/tracing/base/math.html">
 <link rel="import" href="/tracing/base/range.html">
+
 <script>
 'use strict';
 
@@ -473,6 +476,232 @@ tr.exportTo('tr.b', function() {
       if (Math.random() < probOfSwapping) {
         samplesA[i] = samplesB[i];
       }
+    }
+  };
+
+  /* Continuous distributions are defined by probability density functions.
+   *
+   * Random variables are referred to by capital letters: X, Y, Z.
+   * Particular values from these distributions are referred to by lowercase
+   * letters like |x|.
+   * The probability that |X| ever exactly equals |x| is P(X==x) = 0.
+   *
+   * For a discrete probability distribution, aka histogram, see tr.v.Numeric.
+   */
+  function Distribution() {
+  };
+
+  Distribution.prototype = {
+    /* The probability density of the random variable at value |x| is the
+     * relative likelihood for this random variable to take on the given value
+     * |x|.
+     *
+     * @param {number} x A value from the random distribution.
+     * @return {number} probability density at x.
+     */
+    computeDensity: function(x) {
+      throw Error('Not implemented');
+    },
+
+    /* A percentile is the probability that a sample from the distribution is
+     * less than the given value |x|. This function is monotonically increasing.
+     *
+     * @param {number} x A value from the random distribution.
+     * @return {number} P(X<x).
+     */
+    computePercentile: function(x) {
+      throw Error('Not implemented');
+    },
+
+    /* A complementary percentile is the probability that a sample from the
+     * distribution is greater than the given value |x|. This function is
+     * monotonically decreasing.
+     *
+     * @param {number} x A value from the random distribution.
+     * @return {number} P(X>x).
+     */
+    computeComplementaryPercentile: function(x) {
+      return 1 - this.computePercentile(x);
+    },
+
+    /* Compute the mean of the probability distribution.
+     *
+     * @return {number} mean.
+     */
+    get mean() {
+      throw Error('Not implemented');
+    },
+
+    /* The mode of a distribution is the most likely value.
+     * The maximum of the computeDensity() function is at this mode.
+     * @return {number} mode.
+     */
+    get mode() {
+      throw Error('Not implemented');
+    },
+
+    /* The median is the center value of the distribution.
+     * computePercentile(median) = computeComplementaryPercentile(median) = 0.5
+     *
+     * @return {number} median.
+     */
+    get median() {
+      throw Error('Not implemented');
+    },
+
+    /* The standard deviation is a measure of how dispersed or spread out the
+     * distribution is (this statistic has the same units as the values).
+     *
+     * @return {number} standard deviation.
+     */
+    get standardDeviation() {
+      throw Error('Not implemented');
+    },
+
+    /* An alternative measure of how spread out the distribution is,
+     * the variance is the square of the standard deviation.
+     * @return {number} variance.
+     */
+    get variance() {
+      throw Error('Not implemented');
+    }
+  };
+
+  Statistics.UniformDistribution = function(opt_range) {
+    if (!opt_range)
+      opt_range = tr.b.Range.fromExplicitRange(0, 1);
+    this.range = opt_range;
+  };
+
+  Statistics.UniformDistribution.prototype = {
+    __proto__: Distribution.prototype,
+
+    computeDensity: function(x) {
+      return 1 / this.range.range;
+    },
+
+    computePercentile: function(x) {
+      return tr.b.normalize(x, this.range.min, this.range.max);
+    },
+
+    get mean() {
+      return this.range.center;
+    },
+
+    get mode() {
+      return undefined;
+    },
+
+    get median() {
+      return this.mean;
+    },
+
+    get standardDeviation() {
+      return Math.sqrt(this.variance);
+    },
+
+    get variance() {
+      return Math.pow(this.range.range, 2) / 12;
+    }
+  };
+
+  /* The Normal or Gaussian distribution, or bell curve, is common in complex
+   * processes such as are found in many of the natural sciences.  If Z is the
+   * standard normal distribution with mean = 0 and variance = 1, then the
+   * general normal distribution is Y = mean + Z*sqrt(variance).
+   * https://www.desmos.com/calculator/tqtbjm4s3z
+   */
+  Statistics.NormalDistribution = function(opt_mean, opt_variance) {
+    this.mean_ = opt_mean || 0;
+    this.variance_ = opt_variance || 1;
+    this.standardDeviation_ = Math.sqrt(this.variance_);
+  };
+
+  Statistics.NormalDistribution.prototype = {
+    __proto__: Distribution.prototype,
+
+    computeDensity: function(x) {
+      var scale = (1.0 / (this.standardDeviation * Math.sqrt(2.0 * Math.PI)));
+      var exponent = -Math.pow(x - this.mean, 2) / (2.0 * this.variance);
+      return scale * Math.exp(exponent);
+    },
+
+    computePercentile: function(x) {
+      var standardizedX = ((x - this.mean) /
+                           Math.sqrt(2.0 * this.variance));
+      return (1.0 + tr.b.erf(standardizedX)) / 2.0;
+    },
+
+    get mean() {
+      return this.mean_;
+    },
+
+    get median() {
+      return this.mean;
+    },
+
+    get mode() {
+      return this.mean;
+    },
+
+    get standardDeviation() {
+      return this.standardDeviation_;
+    },
+
+    get variance() {
+      return this.variance_;
+    }
+  };
+
+  /* The log-normal distribution is a continuous probability distribution of a
+   * random variable whose logarithm is normally distributed.
+   * If Y is the general normal distribution, then X = exp(Y) is the general
+   * log-normal distribution.
+   * X will have different parameters from Y,
+   * so the mean of Y is called the "location" of X,
+   * and the standard deviation of Y is called the "shape" of X.
+   * The standard lognormal distribution exp(Z) has location = 0 and shape = 1.
+   * https://www.desmos.com/calculator/tqtbjm4s3z
+   */
+  Statistics.LogNormalDistribution = function(opt_location, opt_shape) {
+    this.normalDistribution_ = new Statistics.NormalDistribution(
+        opt_location, Math.pow(opt_shape || 1, 2));
+  };
+
+  Statistics.LogNormalDistribution.prototype = {
+    __proto__: Statistics.NormalDistribution.prototype,
+
+    computeDensity: function(x) {
+      return this.normalDistribution_.computeDensity(Math.log(x)) / x;
+    },
+
+    computePercentile: function(x) {
+      return this.normalDistribution_.computePercentile(Math.log(x));
+    },
+
+    get mean() {
+      return Math.exp(this.normalDistribution_.mean +
+          (this.normalDistribution_.variance / 2));
+    },
+
+    get variance() {
+      var nm = this.normalDistribution_.mean;
+      var nv = this.normalDistribution_.variance;
+      return (Math.exp(2 * (nm + nv)) -
+              Math.exp(2 * nm + nv));
+    },
+
+    get standardDeviation() {
+      return Math.sqrt(this.variance);
+    },
+
+    get median() {
+      return Math.exp(this.normalDistribution_.mean);
+    },
+
+    get mode() {
+      return Math.exp(this.normalDistribution_.mean -
+                      this.normalDistribution_.variance);
     }
   };
 

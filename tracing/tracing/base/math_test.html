@@ -10,6 +10,16 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('erf', function() {
+    assert.closeTo(-1, tr.b.erf(-1e10), 1e-6);
+    assert.closeTo(-0.8427, tr.b.erf(-1), 1e-6);
+    assert.closeTo(-0.5205, tr.b.erf(-0.5), 1e-6);
+    assert.closeTo(0, tr.b.erf(0), 1e-6);
+    assert.closeTo(0.5205, tr.b.erf(0.5), 1e-6);
+    assert.closeTo(0.8427, tr.b.erf(1), 1e-6);
+    assert.closeTo(1, tr.b.erf(1e10), 1e-6);
+  });
+
   test('clamping', function() {
     assert.equal(tr.b.clamp(2, 1, 3), 2);
     assert.equal(tr.b.clamp(1, 1, 3), 1);

@@ -91,6 +91,14 @@ tr.exportTo('tr.b', function() {
       return this.max_ - this.min_;
     },
 
+    normalize: function(x) {
+      return tr.b.normalize(x, this.min, this.max);
+    },
+
+    lerp: function(x) {
+      return tr.b.lerp(x, this.min, this.max);
+    },
+
     equals: function(that) {
       if (this.isEmpty && that.isEmpty)
         return true;

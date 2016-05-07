@@ -46,6 +46,61 @@ tr.b.unittest.testSuite(function() {
     return samples;
   }
 
+  test('normalDistribution', function() {
+    for (var mean = -100; mean <= 100; mean += 25) {
+      for (var stddev = 0.1; stddev < 2; stddev += 0.2) {
+        var dist = new Statistics.NormalDistribution(mean, stddev * stddev);
+        assert.closeTo(mean, dist.mean, 1e-6);
+        assert.closeTo(stddev, dist.standardDeviation, 1e-6);
+        assert.closeTo(0, dist.standardDeviation * dist.computeDensity(
+            -1e10), 1e-5);
+        assert.closeTo(0.05399, dist.standardDeviation * dist.computeDensity(
+            dist.mean - 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(0.24197, dist.standardDeviation * dist.computeDensity(
+            dist.mean - dist.standardDeviation), 1e-5);
+        assert.closeTo(0.39894, dist.standardDeviation * dist.computeDensity(
+            dist.mean), 1e-5);
+        assert.closeTo(0.24197, dist.standardDeviation * dist.computeDensity(
+            dist.mean + dist.standardDeviation), 1e-5);
+        assert.closeTo(0.054, dist.standardDeviation * dist.computeDensity(
+            dist.mean + 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(0, dist.standardDeviation * dist.computeDensity(
+            1e10), 1e-5);
+
+        assert.closeTo(0, dist.computePercentile(-1e10), 1e-5);
+        assert.closeTo(0.02275, dist.computePercentile(
+            dist.mean - 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(0.15866, dist.computePercentile(
+            dist.mean - dist.standardDeviation), 1e-5);
+        assert.closeTo(0.5, dist.computePercentile(dist.mean), 1e-5);
+        assert.closeTo(0.841344, dist.computePercentile(
+            dist.mean + dist.standardDeviation), 1e-5);
+        assert.closeTo(0.97725, dist.computePercentile(
+            dist.mean + 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(1, dist.computePercentile(1e10), 1e-5);
+      }
+    }
+  });
+
+  test('logNormalDistribution', function() {
+    // Unlike the Normal distribution, the LogNormal distribution can look very
+    // different depending on its parameters, and it's defined in terms of the
+    // Normal distribution anyway, so only test the standard LogNormal
+    // distribution.
+    var dist = new Statistics.LogNormalDistribution(0, 1);
+    assert.closeTo(0.3678, dist.mode, 1e-4);
+    assert.closeTo(1, dist.median, 1e-6);
+    assert.closeTo(1.6487, dist.mean, 1e-4);
+    assert.closeTo(0.65774, dist.computeDensity(dist.mode), 1e-5);
+    assert.closeTo(0.39894, dist.computeDensity(dist.median), 1e-5);
+    assert.closeTo(0.21354, dist.computeDensity(dist.mean), 1e-5);
+    assert.closeTo(0, dist.computePercentile(1e-10), 1e-6);
+    assert.closeTo(0.15865, dist.computePercentile(dist.mode), 1e-5);
+    assert.closeTo(0.5, dist.computePercentile(dist.median), 1e-6);
+    assert.closeTo(0.69146, dist.computePercentile(dist.mean), 1e-5);
+    assert.closeTo(1, dist.computePercentile(1e100), 1e-5);
+  });
+
   test('divideIfPossibleOrZero', function() {
     assert.equal(Statistics.divideIfPossibleOrZero(1, 2), 0.5);
     assert.equal(Statistics.divideIfPossibleOrZero(0, 2), 0);
