@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 
 <script>
 'use strict';
@@ -26,7 +26,7 @@ tr.b.unittest.testSuite(function() {
     var didRSC = false;
     link.addEventListener('requestSelectionChange', function(e) {
       didRSC = true;
-      assert.equal(e.selection[0], s10);
+      assert.isTrue(e.selection.equals(new tr.model.EventSet(s10)));
     });
     link.click();
     assert.isTrue(didRSC);
@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
 
     var didRSC = false;
     link.addEventListener('requestSelectionChange', function(e) {
-      assert.equal(e.selection[0], s10);
+      assert.isTrue(e.selection.equals(new tr.model.EventSet(s10)));
       didRSC = true;
     });
     link.click();
