@@ -5,8 +5,69 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/tracing/ui/analysis/power_sample_table.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
+
+<polymer-element name="tr-ui-a-power-sample-table">
+  <template>
+    <style>
+    :host {
+      display: flex;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+
+Polymer('tr-ui-a-power-sample-table', {
+  ready: function() {
+    this.$.table.tableColumns = [
+      {
+        title: 'Time',
+        width: '100px',
+        value: function(row) {
+          return tr.v.ui.createScalarSpan(row.start, {
+            unit: tr.v.Unit.byName.timeStampInMs
+          });
+        }
+      },
+      {
+        title: 'Power',
+        width: '100%',
+        value: function(row) {
+          return tr.v.ui.createScalarSpan(row.power, {
+            unit: tr.v.Unit.byName.powerInWatts
+          });
+        }
+      }
+    ];
+    this.sample = undefined;
+  },
+
+  get sample() {
+    return this.sample_;
+  },
+
+  set sample(sample) {
+    this.sample_ = sample;
+    this.updateContents_();
+  },
+
+  updateContents_: function() {
+    if (this.sample == undefined)
+      this.$.table.tableRows = [];
+    else
+      this.$.table.tableRows = [this.sample];
+    this.$.table.rebuild();
+  }
+});
+</script>
 
 <polymer-element name="tr-ui-a-single-power-sample-sub-view"
     extends="tr-ui-a-sub-view">
@@ -24,6 +85,7 @@ found in the LICENSE file.
   Polymer({
     ready: function() {
       this.currentSelection_ = undefined;
+
     },
 
     get selection() {
@@ -36,7 +98,9 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      this.$.samplesTable.samples = this.selection;
+      if (this.selection.length != 1)
+        throw 'Cannot pass multiple samples to sample table.';
+      this.$.samplesTable.sample = this.selection[0];
     }
   });
   </script>

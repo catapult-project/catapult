@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/frame_power_usage_chart.html">
 <link rel="import" href="/tracing/ui/analysis/power_sample_summary_table.html">
-<link rel="import" href="/tracing/ui/analysis/power_sample_table.html">
 
 <polymer-element name="tr-ui-a-multi-power-sample-sub-view"
     extends="tr-ui-a-sub-view">
@@ -30,8 +29,6 @@ found in the LICENSE file.
     <div id="tables">
       <tr-ui-a-power-sample-summary-table id="summaryTable">
       </tr-ui-a-power-sample-summary-table>
-      <tr-ui-a-power-sample-table id="samplesTable">
-      </tr-ui-a-power-sample-table>
     </div>
     <tr-ui-a-frame-power-usage-chart id="chart">
     </tr-ui-a-frame-power-usage-chart>
@@ -63,7 +60,6 @@ Polymer('tr-ui-a-multi-power-sample-sub-view', {
         [] : this.selection[0].series.device.vSyncTimestamps;
 
     this.$.summaryTable.samples = samples;
-    this.$.samplesTable.samples = samples;
     this.$.chart.setData(this.selection, vSyncTimestamps);
   }
 });

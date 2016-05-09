@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
     var eventSet = new tr.model.EventSet(series.samples);
     view.selection = eventSet;
 
-    assert.deepEqual(view.$.samplesTable.samples, eventSet);
+    assert.deepEqual(view.$.samplesTable.sample, series.samples[0]);
   });
 });
 </script>
