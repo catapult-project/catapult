@@ -155,7 +155,7 @@ found in the LICENSE file.
     },
 
     updateHitCountEl: function() {
-      if (!this.controller || !this.hasFocus) {
+      if (!this.controller || this.$.filter.value.length === 0) {
         this.$.hitCount.textContent = '';
         return;
       }
