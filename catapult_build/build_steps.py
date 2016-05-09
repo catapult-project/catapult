@@ -26,7 +26,6 @@ _CATAPULT_TESTS = [
     {
         'name': 'BattOr Smoke Tests',
         'path': 'common/battor/battor/battor_wrapper_devicetest.py',
-        'disabled': ['win'],
     },
     {
         'name': 'BattOr Unit Tests',
