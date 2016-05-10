@@ -117,6 +117,14 @@ class JSChecker(object):
             error.token.string == 'of'):
           return False  # ES6 for...of statement.
 
+        if (error.code == errors.LINE_STARTS_WITH_OPERATOR and
+            error.token.string == '*'):
+          return False  # *[...] syntax
+
+        if (error.code == errors.MISSING_SPACE and
+            error.token.string == '['):
+          return False  # *[...] syntax
+
         return error.code not in [
             errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
             errors.MISSING_JSDOC_TAG_THIS,
