@@ -2217,7 +2217,7 @@ class DeviceUtils(object):
       raise device_errors.NoDevicesError()
     if len(devices) > 1 and not select_multiple:
       raise device_errors.MultipleDevicesError(devices)
-    return devices
+    return sorted(devices)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
