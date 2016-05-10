@@ -33,6 +33,9 @@ _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
 
 _READY_STATE = 'device'
 
+_VERITY_DISABLE_RE = re.compile('Verity (already)? disabled')
+_VERITY_ENABLE_RE = re.compile('Verity (already)? enabled')
+
 
 def VerifyLocalFileExists(path):
   """Verifies a local file exists.
@@ -802,6 +805,20 @@ class AdbWrapper(object):
     if isinstance(cmd, basestring):
       cmd = [cmd]
     return self._RunDeviceAdbCmd(['emu'] + cmd, timeout, retries)
+
+  def DisableVerity(self, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
+    """Disable Marshmallow's Verity security feature"""
+    output = self._RunDeviceAdbCmd(['disable-verity'], timeout, retries)
+    if output and _VERITY_DISABLE_RE.search(output):
+      raise device_errors.AdbCommandFailedError(
+          ['disable-verity'], output, device_serial=self._device_serial)
+
+  def EnableVerity(self, timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
+    """Enable Marshmallow's Verity security feature"""
+    output = self._RunDeviceAdbCmd(['enable-verity'], timeout, retries)
+    if output and _VERITY_ENABLE_RE.search(output):
+      raise device_errors.AdbCommandFailedError(
+          ['enable-verity'], output, device_serial=self._device_serial)
 
   @property
   def is_emulator(self):
