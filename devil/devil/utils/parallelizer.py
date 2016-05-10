@@ -65,8 +65,6 @@ class Parallelizer(object):
   """Allows parallel execution of method calls across a group of objects."""
 
   def __init__(self, objs):
-    assert (objs is not None and len(objs) > 0), (
-        "Passed empty list to 'Parallelizer'")
     self._orig_objs = objs
     self._objs = objs
 
@@ -110,8 +108,6 @@ class Parallelizer(object):
     """
     self.pGet(None)
 
-    if not self._objs:
-      raise AttributeError('Nothing to call.')
     for o in self._objs:
       if not callable(o):
         raise AttributeError("'%s' is not callable" % o.__name__)

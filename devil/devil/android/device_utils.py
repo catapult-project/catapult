@@ -2134,13 +2134,7 @@ class DeviceUtils(object):
 
     Returns:
       A Parallelizer operating over |devices|.
-
-    Raises:
-      device_errors.NoDevicesError: If no devices are passed.
     """
-    if not devices:
-      raise device_errors.NoDevicesError()
-
     devices = [d if isinstance(d, cls) else cls(d) for d in devices]
     if async:
       return parallelizer.Parallelizer(devices)

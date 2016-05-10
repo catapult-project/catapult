@@ -72,13 +72,9 @@ class ParallelizerTestObjectHelper(object):
 
 class ParallelizerTest(unittest.TestCase):
 
-  def testInitWithNone(self):
-    with self.assertRaises(AssertionError):
-      parallelizer.Parallelizer(None)
-
   def testInitEmptyList(self):
-    with self.assertRaises(AssertionError):
-      parallelizer.Parallelizer([])
+    r = parallelizer.Parallelizer([]).replace('a', 'b').pGet(0.1)
+    self.assertEquals([], r)
 
   def testMethodCall(self):
     test_data = ['abc_foo', 'def_foo', 'ghi_foo']
