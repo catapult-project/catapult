@@ -123,13 +123,13 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate basic', function() {
     var chart = createBasicChart();
-    chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
     this.addHTMLOutput(chart);
+    chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
   }, testOptions);
 
   test('data is loaded when a series group is added', function() {
     var chart = createBasicChart();
-    testing_common.addToFixture(chart);
+    this.addHTMLOutput(chart);
     chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
     assert.equal(chart.getDataForFlot().length, 3);
   }, testOptions);
@@ -148,7 +148,7 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock(graphQuery, JSON.stringify(graphJson));
 
     var chart = document.createElement('chart-container');
-    testing_common.addToFixture(chart);
+    this.addHTMLOutput(chart);
     chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
 
     return new Promise(function(resolve) {
@@ -156,7 +156,7 @@ tr.b.unittest.testSuite(function() {
         assert.notEqual(-1, chart.warnings[0].indexOf('Graph out of date!'));
         resolve();
       }
-      setTimeout(check, 10);
+      requestAnimationFrame(check);
     });
   }, testOptions);
 

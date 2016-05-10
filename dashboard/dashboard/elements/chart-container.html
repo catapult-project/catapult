@@ -394,36 +394,11 @@ triaging functionality in the chart.
             notify: true,
             observer: 'collapseLegendChanged'
           },
-          graphParams: { notify: true },
-          indicesToGraph: { observer: 'indicesToGraphChanged' },
-          isInternalUser: { notify: true },
-          onUri: { observer: 'onUriChanged' },
-          revisionInfo: { notify: true },
-          showCompact: { notify: true },
-          testSuites: { notify: true },
-          warnings: { observer: 'warningsChanged' },
-          xsrfToken: { notify: true }
-        },
-
-        created: function() {
-          // List of indices of series which are selected and will be plotted.
-          // We declare this here to avoid changed event on load.
-          this.indicesToGraph = [];
-        },
-
-        /**
-         * Initializes the chart-container element and all of its properties.
-         *
-         * This is a custom element lifecycle callback that's called when an
-         * instance of the element is ready.
-         * http://www.polymer-project.org/polymer.html#lifecyclemethods
-         *
-         * We use 'ready' instead of 'created' to know when the element has its
-         * bindings, Shadow DOM has been created, and its on-* handlers and
-         * property observers have been set up.
-         * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
-         */
-        ready: function() {
+          indicesToGraph: {
+            type: Array,
+            value: () => [],
+            observer: 'indicesToGraphChanged'
+          },
           // TODO(chrisphan): Make seriesGroupList a class.
           // A list of series group dictionary. A series group contains test
           // path and list of test information. This is displayed in
@@ -439,96 +414,171 @@ triaging functionality in the chart.
           //              etc.
           //         }]
           //   }]
-          this.seriesGroupList = [],
+          seriesGroupList: {
+            type: Array,
+            value: () => [],
+          },
 
           // Data series index of the point that was most recently clicked.
-          this.currentItem = null;
+          currentItem: {
+            value: null
+          },
 
           // Meta-data about tests, which will be displayed in the legend.
-          this.legendTests = [];
+          legendTests: {
+            type: Array,
+            value: () => []
+          },
 
           // Text to display next to the y-axis.
-          this.chartYAxisLabel = '';
+          chartYAxisLabel: {
+            value: '',
+            type: String
+          },
 
           // Y-axis delta of current zoom selection, as an absolute number
           // and as a percentage of the original selection.
-          this.deltaAbsolute = 0;
-          this.deltaPercent = 0;
+          deltaAbsolute: {
+            value: 0,
+            type: Number
+          },
+          deltaPercent: {
+            value: 0,
+            type: Number
+          },
 
           // Information about the last selection range.
-          this.lastSelectedDelta = null;
+          lastSelectedDelta: { value: null },
 
           // Whether or not the user is currently selecting a range.
-          this.selecting = false;
+          selecting: {
+            type: Boolean,
+            value: false
+          },
 
           // Y-axis start value in the last selection range.
-          this.firstSelectedValue = 0;
+          firstSelectedValue: {
+            type: Number,
+            value: 0
+          },
 
           // Whether or not the tooltip is "sticky". Sticky means that it will
           // stay visible when the user is no longer hovering over the point.
-          this.stickyTooltip = false;
+          stickyTooltip: {
+            type: Boolean,
+            value: false
+          },
 
           // Map of series indexes to arrays with revision information.
-          this.revisionMap = null;
-
-          // Warning text to be shown over the chart, if any.
-          this.warnings = [];
+          revisionMap: {
+            type: Object,
+            value: null
+          },
 
           // Whether or not the chart can currently be drawn.
-          this.drawable = true;
+          drawable: {
+            type: Boolean,
+            value: true
+          },
 
           // The Flot Plot object, returned by $.plot.
-          this.chart = null;
+          chart: {
+            value: null
+          },
+
+          // Timeout ID of the timer used by this.resizeHandler.
+          resizeTimer: { value: null },
+
+          // Maintain the next series index as new graph json comes in.
+          nextSeriesIndex: { value: null },
+
+          // Whether this chart-container allows a series group to be dropped
+          // on-to it.
+          droppable: {
+            type: Boolean,
+            value: true
+          },
+
+          // Whether to show delta in chart-legend.
+          showDelta: {
+            type: Boolean,
+            value: false
+          },
+
+          // Chart options to be given when initializing the Flot chart.
+          // See: https://github.com/flot/flot/blob/master/API.md#plot-options
+          chartOptions: {
+            type: Object,
+            value: () => ({
+              grid: {
+                hoverable: true,
+                clickable: true,
+                borderWidth: 1,
+                borderColor: 'rgba(0, 0, 0, 0.5)'
+              },
+              crosshair: {
+                mode: 'xy',
+                color: 'rgba(34, 34, 34, 0.3)',
+                lineWidth: 0.3
+              },
+              xaxis: {},
+              yaxis: {
+                labelWidth: 60
+              },
+              selection: {
+                mode: 'y'
+              }
+            })
+          },
+
+          // Warning text to be shown over the chart, if any.
+          warnings: {
+            type: Array,
+            value: () => [],
+            observer: 'warningsChanged'
+          },
+
+          graphParams: {
+            type: Object,
+            value: () => ({})
+          },
+
+          // List of XMLHttpRequests sent for graph json.
+          graphJsonRequests: {
+            type: Array,
+            value: () => []
+          },
+
+          isInternalUser: { notify: true },
+          onUri: { observer: 'onUriChanged' },
+          revisionInfo: { notify: true },
+          showCompact: { notify: true },
+          testSuites: { notify: true },
+          xsrfToken: { notify: true }
+        },
+
+        /**
+         * Initializes the chart-container element and all of its properties.
+         *
+         * This is a custom element lifecycle callback that's called when an
+         * instance of the element is ready.
+         * http://www.polymer-project.org/polymer.html#lifecyclemethods
+         *
+         * We use 'ready' instead of 'created' to know when the element has its
+         * bindings, Shadow DOM has been created, and its on-* handlers and
+         * property observers have been set up.
+         * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
+         */
+        ready: function() {
 
           // Handler for the 'resize' event.
           this.resizeHandler = this.onResize.bind(this);
 
-          // Timeout ID of the timer used by this.resizeHandler.
-          this.resizeTimer = null;
-
-          // Maintain the next series index as new graph json comes in.
-          this.nextSeriesIndex = null;
-
-          // Whether this chart-container allows a series group to be dropped
-          // on-to it.
-          this.droppable = true;
-
-          // Whether to show delta in chart-legend.
-          this.showDelta = false;
-
           // The data fetched from the graph_json handler for this chart.
           this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
 
-          // Chart options to be given when initializing the Flot chart.
-          // See: https://github.com/flot/flot/blob/master/API.md#plot-options
-          this.chartOptions = {
-            grid: {
-              hoverable: true,
-              clickable: true,
-              borderWidth: 1,
-              borderColor: 'rgba(0, 0, 0, 0.5)'
-            },
-            crosshair: {
-              mode: 'xy',
-              color: 'rgba(34, 34, 34, 0.3)',
-              lineWidth: 0.3
-            },
-            xaxis: {
-              tickFormatter: this.formatXAxis.bind(this)
-            },
-            yaxis: {
-              labelWidth: 90,
-              tickFormatter: this.formatYAxis.bind(this)
-            },
-            selection: {
-              mode: 'y'
-            }
-          };
-
-          this.graphParams = {};
-
-          // List of XMLHttpRequests sent for graph json.
-          this.graphJsonRequests = [];
+          this.chartOptions.xaxis.tickFormatter = this.formatXAxis.bind(this);
+          this.chartOptions.yaxis.tickFormatter = this.formatYAxis.bind(this);
 
           this.$.legend.addEventListener(
               'seriesmouseover', this.seriesMouseover.bind(this), true);

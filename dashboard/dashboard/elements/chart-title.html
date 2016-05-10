@@ -26,13 +26,13 @@ found in the LICENSE file.
     </style>
 
     <h3>
-      <template is="dom-repeat" items="{{part, partIndex in titleParts}}" as="part" index-as="partIndex">
+      <template is="dom-repeat" items="{{titleParts}}">
         <a class="title disabled" href="javascript:void(0);"
-           on-click="onClicked" disabled$="{{computeStrictEqual(partIndex, currentIndex}}"
+           on-click="onClicked" disabled$="{{computeStrictEqual(index, currentIndex}}"
            class="title">
-          {{part}}
+          {{item}}
         </a>
-        <span hidden$="{{computeIsLast(partIndex, titleParts)}}">/</span>
+        <span hidden$="{{computeIsLast(index, titleParts)}}">/</span>
       </template>
     </h3>
     <div>
@@ -48,7 +48,15 @@ found in the LICENSE file.
 
       is: 'chart-title',
       properties: {
-        seriesGroupList: { notify: true }
+        seriesGroupList: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
+        titleParts: {
+          type: Array,
+          value: () => []
+        }
       },
 
       computeIsLast: (idx, arr) => idx === arr.length - 1,
