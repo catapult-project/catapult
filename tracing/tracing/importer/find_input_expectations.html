@@ -123,12 +123,8 @@ tr.exportTo('tr.importer', function() {
   }
 
   function causedFrame(event) {
-    for (var i = 0; i < event.associatedEvents.length; ++i) {
-      if (event.associatedEvents[i].title ===
-          tr.model.helpers.IMPL_RENDERING_STATS)
-        return true;
-    }
-    return false;
+    return event.associatedEvents.some(
+        x => x.title === tr.model.helpers.IMPL_RENDERING_STATS);
   }
 
   function getSortedInputEvents(modelHelper) {
