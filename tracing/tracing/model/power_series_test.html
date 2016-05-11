@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(series.samples, [sample1, sample2]);
   });
 
-  test('getEnergyConsumed_oneSample', function() {
+  test('getEnergyConsumed_oneInterval', function() {
     var series = new PowerSeries(new Model().device);
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
@@ -50,17 +50,26 @@ tr.b.unittest.testSuite(function() {
     assert.equal(series.getEnergyConsumed(0, 1000), 1);
   });
 
-  test('getEnergyConsumed_twoSamples', function() {
+  test('getEnergyConsumed_twoIntervals', function() {
     var series = new PowerSeries(new Model().device);
     series.addPowerSample(0, 1);
     series.addPowerSample(1000, 2);
+    series.addPowerSample(2000, 2);
 
     assert.equal(series.getEnergyConsumed(0, 2000), 3);
   });
 
-  test('getEnergyConsumed_firstSampleAfterStart', function() {
+  test('getEnergyConsumed_oneSample', function() {
     var series = new PowerSeries(new Model().device);
     series.addPowerSample(1000, 1);
+
+    assert.equal(series.getEnergyConsumed(0, 2000), 0);
+  });
+
+  test('getEnergyConsumed_samplesAfterStart', function() {
+    var series = new PowerSeries(new Model().device);
+    series.addPowerSample(1000, 1);
+    series.addPowerSample(2000, 2);
 
     assert.equal(series.getEnergyConsumed(0, 2000), 1);
   });
@@ -72,7 +81,7 @@ tr.b.unittest.testSuite(function() {
     series.addPowerSample(2000, 1);
     series.addPowerSample(3000, 1);
 
-    assert.equal(series.getEnergyConsumed(2000, 4000), 2);
+    assert.equal(series.getEnergyConsumed(2000, 4000), 1);
   });
 
   test('getEnergyConsumed_extraSamplesAfterEnd', function() {
