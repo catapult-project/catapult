@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 
 import gc
-import platform as _platform
+import logging
 import unittest
 
 from telemetry import decorators
@@ -21,16 +21,7 @@ class PlatformBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
     self._mock_files = {}
 
   def GetOSName(self):
-    if 'Win' in _platform.system():
-      return 'win'
-    elif 'Linux' in _platform.system():
-      return 'android'
-    elif 'Darwin' in _platform.system():
-      return 'mac'
-
-  @property
-  def device(self):
-    return 'string'
+    return 'android'
 
 
 class FakeTracingAgentBase(tracing_agent.TracingAgent):
@@ -348,3 +339,9 @@ class TracingControllerBackendTest(unittest.TestCase):
     with self.controller._DisableGarbageCollection():
       self.assertFalse(gc.isenabled())
     self.assertTrue(gc.isenabled())
+
+
+if __name__ == '__main__':
+  logging.getLogger().setLevel(logging.DEBUG)
+  unittest.main(verbosity=2)
+

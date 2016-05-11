@@ -23,9 +23,6 @@ CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'catapult_base',
                                     'catapult_base', 'chrome_binaries.json')
 
 
-BATTOR_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'battor',
-                                    'battor', 'battor_binary_dependencies.json')
-
 NoPathFoundError = dependency_manager.NoPathFoundError
 CloudStorageError = dependency_manager.CloudStorageError
 
@@ -86,10 +83,7 @@ def FetchBinaryDepdencies(platform, client_configs,
     fetch_reference_chrome_binary: whether to fetch reference chrome binary for
       the given platform.
   """
-  configs = [
-      dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG),
-      dependency_manager.BaseConfig(BATTOR_BINARY_CONFIG)
-  ]
+  configs = [dependency_manager.BaseConfig(TELEMETRY_PROJECT_CONFIG)]
   dep_manager = dependency_manager.DependencyManager(configs)
   target_platform = '%s_%s' % (platform.GetOSName(), platform.GetArchName())
   dep_manager.PrefetchPaths(target_platform)

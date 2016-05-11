@@ -27,9 +27,6 @@ def IsBattOrConnected(test_platform, android_device=None,
                                      'determining support on android platform')
 
     if not android_device_map:
-      device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap()
-      if len(battor_device_mapping.GetBattorList(device_tree)) == 1:
-        return True
       if android_device_file:
         android_device_map = battor_device_mapping.ReadSerialMapFile(
             android_device_file)
