@@ -314,50 +314,60 @@ tr.b.unittest.testSuite(function() {
       return [gpuDump];
     })();
   }, {
-    'memory:chrome:all:android_memtrack:gfx': expectBytes([0, 0, 0, 4000]),
-    'memory:chrome:all:android_memtrack:gl': expectBytes([0, 0, 500, 5000]),
-    'memory:chrome:all:android_memtrack:graphics': expectBytes([0, 0, 700, 0]),
+    'memory:chrome:all:subsystem:gpu:android_memtrack:gfx:memtrack_pss':
+        expectBytes([0, 0, 0, 4000]),
+    'memory:chrome:all:subsystem:gpu:android_memtrack:gl:memtrack_pss':
+        expectBytes([0, 0, 500, 5000]),
+    'memory:chrome:all:subsystem:gpu:android_memtrack:graphics:memtrack_pss':
+        expectBytes([0, 0, 700, 0]),
     'memory:chrome:all:dump_count:detailed': expectUnitless(0),
     'memory:chrome:all:dump_count:light': expectUnitless(4),
     'memory:chrome:all:dump_count:total': expectUnitless(4),
     'memory:chrome:all:process_count': expectUnitless([3, 3, 3, 3]),
-    'memory:chrome:all:subsystem:gpu': expectBytes([30, 0, 300, 0]),
-    'memory:chrome:all:subsystem:gpu:allocated_objects':
+    'memory:chrome:all:subsystem:gpu:effective_size':
+        expectBytes([30, 0, 300, 0]),
+    'memory:chrome:all:subsystem:gpu:allocated_objects_size':
         expectBytes([25, 0, 0, 0]),
-    'memory:chrome:all:subsystem:malloc':
+    'memory:chrome:all:subsystem:malloc:effective_size':
         expectBytes([8 + 16, 120 - 40, 8000, 80000]),
-    'memory:chrome:all:subsystem:malloc:allocated_objects':
+    'memory:chrome:all:subsystem:malloc:allocated_objects_size':
         expectBytes([4, 750, 4000, 0]),
-    'memory:chrome:all:subsystem:partition_alloc':
+    'memory:chrome:all:subsystem:partition_alloc:effective_size':
         expectBytes([32, 320, 0, 5e5]),
-    'memory:chrome:all:subsystem:tracing': expectBytes([0, 40, 0, 0]),
-    'memory:chrome:all:subsystem:v8': expectBytes([0, 650 + 970, 0, 4e5]),
-    'memory:chrome:all:subsystem:v8:allocated_objects':
+    'memory:chrome:all:subsystem:tracing:effective_size':
+        expectBytes([0, 40, 0, 0]),
+    'memory:chrome:all:subsystem:v8:effective_size':
+        expectBytes([0, 650 + 970, 0, 4e5]),
+    'memory:chrome:all:subsystem:v8:allocated_objects_size':
         expectBytes([0, 860, 0, 0]),
     'memory:chrome:browser:process_count': expectUnitless([1, 1, 1, 1]),
-    'memory:chrome:browser:subsystem:malloc':
+    'memory:chrome:browser:subsystem:malloc:effective_size':
         expectBytes([8, 120 - 40, 8000, 80000]),
-    'memory:chrome:browser:subsystem:malloc:allocated_objects':
+    'memory:chrome:browser:subsystem:malloc:allocated_objects_size':
         expectBytes([4, 0, 4000, 0]),
-    'memory:chrome:browser:subsystem:tracing': expectBytes([0, 40, 0, 0]),
-    'memory:chrome:gpu_process:android_memtrack:gfx':
+    'memory:chrome:browser:subsystem:tracing:effective_size':
+        expectBytes([0, 40, 0, 0]),
+    'memory:chrome:gpu_process:subsystem:gpu:android_memtrack:gfx:memtrack_pss':
         expectBytes([0, 0, 0, 4000]),
-    'memory:chrome:gpu_process:android_memtrack:gl':
+    'memory:chrome:gpu_process:subsystem:gpu:android_memtrack:gl:memtrack_pss':
         expectBytes([0, 0, 500, 5000]),
-    'memory:chrome:gpu_process:android_memtrack:graphics':
+    'memory:chrome:gpu_process:subsystem:gpu:android_memtrack:graphics:memtrack_pss':
         expectBytes([0, 0, 700, 0]),
     'memory:chrome:gpu_process:process_count': expectUnitless([1, 0, 1, 1]),
-    'memory:chrome:gpu_process:subsystem:gpu': expectBytes([30, 0, 300, 0]),
-    'memory:chrome:gpu_process:subsystem:gpu:allocated_objects':
+    'memory:chrome:gpu_process:subsystem:gpu:effective_size':
+        expectBytes([30, 0, 300, 0]),
+    'memory:chrome:gpu_process:subsystem:gpu:allocated_objects_size':
         expectBytes([25, 0, 0, 0]),
     'memory:chrome:renderer:process_count': expectUnitless([1, 2, 1, 1]),
-    'memory:chrome:renderer:subsystem:malloc': expectBytes([16, 0, 0, 0]),
-    'memory:chrome:renderer:subsystem:malloc:allocated_objects':
+    'memory:chrome:renderer:subsystem:malloc:effective_size':
+        expectBytes([16, 0, 0, 0]),
+    'memory:chrome:renderer:subsystem:malloc:allocated_objects_size':
         expectBytes([0, 750, 0, 0]),
-    'memory:chrome:renderer:subsystem:partition_alloc':
+    'memory:chrome:renderer:subsystem:partition_alloc:effective_size':
         expectBytes([32, 320, 0, 5e5]),
-    'memory:chrome:renderer:subsystem:v8': expectBytes([0, 650 + 970, 0, 4e5]),
-    'memory:chrome:renderer:subsystem:v8:allocated_objects':
+    'memory:chrome:renderer:subsystem:v8:effective_size':
+        expectBytes([0, 650 + 970, 0, 4e5]),
+    'memory:chrome:renderer:subsystem:v8:allocated_objects_size':
         expectBytes([0, 860, 0, 0])
   });
 
@@ -470,7 +480,8 @@ tr.b.unittest.testSuite(function() {
     'memory:chrome:all:dump_count:light': expectUnitless(1),
     'memory:chrome:all:dump_count:total': expectUnitless(3),
     'memory:chrome:all:process_count': expectUnitless([1, 1, 1]),
-    'memory:chrome:all:subsystem:malloc': expectBytes([0, 32, 48]),
+    'memory:chrome:all:subsystem:malloc:effective_size':
+        expectBytes([0, 32, 48]),
     'memory:chrome:all:vmstats:ashmem:pss': expectBytes([0, 0]),
     'memory:chrome:all:vmstats:java_heap:private_dirty':
         expectBytes([100, 150]),
@@ -479,7 +490,8 @@ tr.b.unittest.testSuite(function() {
         expectBytes([100, 150]),
     'memory:chrome:all:vmstats:overall:pss': expectBytes([0, 0]),
     'memory:chrome:browser:process_count': expectUnitless([1, 1, 1]),
-    'memory:chrome:browser:subsystem:malloc': expectBytes([0, 32, 48]),
+    'memory:chrome:browser:subsystem:malloc:effective_size':
+        expectBytes([0, 32, 48]),
     'memory:chrome:browser:vmstats:ashmem:pss': expectBytes([0, 0]),
     'memory:chrome:browser:vmstats:java_heap:private_dirty':
         expectBytes([100, 150]),
@@ -528,7 +540,11 @@ tr.b.unittest.testSuite(function() {
     var pmdBrowser3 = addProcessMemoryDump(gmd3, pChrome2, 20);
     pmdBrowser3.memoryAllocatorDumps = [
       newAllocatorDump(pmdBrowser3, 'malloc', { size: 64 }),
-      newAllocatorDump(pmdBrowser3, 'sqlite', { size: 128 })
+      newAllocatorDump(pmdBrowser3, 'sqlite', { size: 128 }),
+      newAllocatorDump(pmdBrowser3, 'discardable', {
+        size: 8388608,
+        locked_size: 4194304
+      })
     ];
     pmdBrowser3.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 99, 0, '/dev/ashmem/dalvik-non moving space',
@@ -539,7 +555,8 @@ tr.b.unittest.testSuite(function() {
     var gmd4 = addGlobalMemoryDump(model, 30, LIGHT);
     var pmdBrowser4 = addProcessMemoryDump(gmd4, pChrome2, 28);
     pmdBrowser4.memoryAllocatorDumps = [
-      newAllocatorDump(pmdBrowser4, 'malloc', { size: 512 })
+      newAllocatorDump(pmdBrowser4, 'malloc', { size: 512 }),
+      newAllocatorDump(pmdBrowser3, 'discardable', { size: 16777216 })
     ];
     var pmdRenderer4 = addProcessMemoryDump(gmd4, pRenderer2, 32);
     pmdRenderer4.memoryAllocatorDumps = [
@@ -591,9 +608,10 @@ tr.b.unittest.testSuite(function() {
     'memory:webview:all:dump_count:light': expectUnitless(1),
     'memory:webview:all:dump_count:total': expectUnitless(2),
     'memory:webview:all:process_count': expectUnitless([1, 1]),
-    'memory:webview:all:subsystem:malloc': expectBytes([2, 16384]),
-    'memory:webview:all:subsystem:v8': expectBytes([4, 0]),
-    'memory:webview:all:subsystem:v8:allocated_objects':
+    'memory:webview:all:subsystem:malloc:effective_size':
+        expectBytes([2, 16384]),
+    'memory:webview:all:subsystem:v8:effective_size': expectBytes([4, 0]),
+    'memory:webview:all:subsystem:v8:allocated_objects_size':
         expectBytes([0, 32768]),
     'memory:webview:all:vmstats:ashmem:pss': expectBytes([0]),
     'memory:webview:all:vmstats:java_heap:private_dirty': expectBytes([65536]),
@@ -601,9 +619,10 @@ tr.b.unittest.testSuite(function() {
     'memory:webview:all:vmstats:overall:private_dirty': expectBytes([65536]),
     'memory:webview:all:vmstats:overall:pss': expectBytes([0]),
     'memory:webview:browser:process_count': expectUnitless([1, 1]),
-    'memory:webview:browser:subsystem:malloc': expectBytes([2, 16384]),
-    'memory:webview:browser:subsystem:v8': expectBytes([4, 0]),
-    'memory:webview:browser:subsystem:v8:allocated_objects':
+    'memory:webview:browser:subsystem:malloc:effective_size':
+        expectBytes([2, 16384]),
+    'memory:webview:browser:subsystem:v8:effective_size': expectBytes([4, 0]),
+    'memory:webview:browser:subsystem:v8:allocated_objects_size':
         expectBytes([0, 32768]),
     'memory:webview:browser:vmstats:ashmem:pss': expectBytes([0]),
     'memory:webview:browser:vmstats:java_heap:private_dirty':
@@ -614,14 +633,18 @@ tr.b.unittest.testSuite(function() {
     'memory:webview:browser:vmstats:overall:pss': expectBytes([0]),
 
     // Chrome 1 (GMD3, GMD4).
-    'memory:chrome:all:android_memtrack:gl': expectBytes([0, 2097152]),
+    'memory:chrome:all:subsystem:gpu:android_memtrack:gl:memtrack_pss':
+        expectBytes([0, 2097152]),
     'memory:chrome:all:dump_count:detailed': expectUnitless(2),
     'memory:chrome:all:dump_count:light': expectUnitless(0),
     'memory:chrome:all:dump_count:total': expectUnitless(2),
     'memory:chrome:all:process_count': expectUnitless([3, 2]),
-    'memory:chrome:all:subsystem:gpu': expectBytes([0, 1048576]),
-    'memory:chrome:all:subsystem:malloc': expectBytes([32, 131072]),
-    'memory:chrome:all:subsystem:sqlite': expectBytes([0, 262144]),
+    'memory:chrome:all:subsystem:gpu:effective_size':
+        expectBytes([0, 1048576]),
+    'memory:chrome:all:subsystem:malloc:effective_size':
+        expectBytes([32, 131072]),
+    'memory:chrome:all:subsystem:sqlite:effective_size':
+        expectBytes([0, 262144]),
     'memory:chrome:all:vmstats:ashmem:pss': expectBytes([0, 0]),
     'memory:chrome:all:vmstats:java_heap:private_dirty':
         expectBytes([8 + 16, 524288]),
@@ -630,8 +653,10 @@ tr.b.unittest.testSuite(function() {
         expectBytes([8 + 16, 524288]),
     'memory:chrome:all:vmstats:overall:pss': expectBytes([0, 0]),
     'memory:chrome:browser:process_count': expectUnitless([1, 1]),
-    'memory:chrome:browser:subsystem:malloc': expectBytes([0, 131072]),
-    'memory:chrome:browser:subsystem:sqlite': expectBytes([0, 262144]),
+    'memory:chrome:browser:subsystem:malloc:effective_size':
+        expectBytes([0, 131072]),
+    'memory:chrome:browser:subsystem:sqlite:effective_size':
+        expectBytes([0, 262144]),
     'memory:chrome:browser:vmstats:ashmem:pss': expectBytes([0, 0]),
     'memory:chrome:browser:vmstats:java_heap:private_dirty':
         expectBytes([8, 524288]),
@@ -639,9 +664,11 @@ tr.b.unittest.testSuite(function() {
     'memory:chrome:browser:vmstats:overall:private_dirty':
         expectBytes([8, 524288]),
     'memory:chrome:browser:vmstats:overall:pss': expectBytes([0, 0]),
-    'memory:chrome:gpu_process:android_memtrack:gl': expectBytes([0, 2097152]),
+    'memory:chrome:gpu_process:subsystem:gpu:android_memtrack:gl:memtrack_pss':
+        expectBytes([0, 2097152]),
     'memory:chrome:gpu_process:process_count': expectUnitless([1, 1]),
-    'memory:chrome:gpu_process:subsystem:gpu': expectBytes([0, 1048576]),
+    'memory:chrome:gpu_process:subsystem:gpu:effective_size':
+        expectBytes([0, 1048576]),
     'memory:chrome:gpu_process:vmstats:ashmem:pss': expectBytes([0, 0]),
     'memory:chrome:gpu_process:vmstats:java_heap:private_dirty':
         expectBytes([16, 0]),
@@ -650,12 +677,14 @@ tr.b.unittest.testSuite(function() {
         expectBytes([16, 0]),
     'memory:chrome:gpu_process:vmstats:overall:pss': expectBytes([0, 0]),
     'memory:chrome:renderer:process_count': expectUnitless([1, 0]),
-    'memory:chrome:renderer:subsystem:malloc': expectBytes([32, 0]),
+    'memory:chrome:renderer:subsystem:malloc:effective_size':
+        expectBytes([32, 0]),
     'memory:chrome:renderer:vmstats:ashmem:pss': expectBytes([0, 0]),
     'memory:chrome:renderer:vmstats:java_heap:private_dirty':
         expectBytes([0, 0]),
     'memory:chrome:renderer:vmstats:native_heap:pss': expectBytes([0, 0]),
-    'memory:chrome:renderer:vmstats:overall:private_dirty': expectBytes([0, 0]),
+    'memory:chrome:renderer:vmstats:overall:private_dirty':
+        expectBytes([0, 0]),
     'memory:chrome:renderer:vmstats:overall:pss': expectBytes([0, 0]),
 
     // Chrome 2 (GMD2, GMD7).
@@ -663,17 +692,28 @@ tr.b.unittest.testSuite(function() {
     'memory:chrome2:all:dump_count:light': expectUnitless(1),
     'memory:chrome2:all:dump_count:total': expectUnitless(2),
     'memory:chrome2:all:process_count': expectUnitless([1, 2]),
-    'memory:chrome2:all:subsystem:malloc': expectBytes([64, 512 + 1024]),
-    'memory:chrome2:all:subsystem:sqlite': expectBytes([128, 0]),
-    'memory:chrome2:all:subsystem:v8': expectBytes([0, 2048]),
+    'memory:chrome2:all:subsystem:discardable:effective_size':
+        expectBytes([8388608, 16777216]),
+    'memory:chrome2:all:subsystem:discardable:locked_size':
+        expectBytes([4194304, 0]),
+    'memory:chrome2:all:subsystem:malloc:effective_size':
+        expectBytes([64, 512 + 1024]),
+    'memory:chrome2:all:subsystem:sqlite:effective_size': expectBytes([128, 0]),
+    'memory:chrome2:all:subsystem:v8:effective_size': expectBytes([0, 2048]),
     'memory:chrome2:all:vmstats:ashmem:pss': expectBytes([0]),
     'memory:chrome2:all:vmstats:java_heap:private_dirty': expectBytes([256]),
     'memory:chrome2:all:vmstats:native_heap:pss': expectBytes([0]),
     'memory:chrome2:all:vmstats:overall:private_dirty': expectBytes([256]),
     'memory:chrome2:all:vmstats:overall:pss': expectBytes([0]),
     'memory:chrome2:browser:process_count': expectUnitless([1, 1]),
-    'memory:chrome2:browser:subsystem:malloc': expectBytes([64, 512]),
-    'memory:chrome2:browser:subsystem:sqlite': expectBytes([128, 0]),
+    'memory:chrome2:browser:subsystem:malloc:effective_size':
+        expectBytes([64, 512]),
+    'memory:chrome2:browser:subsystem:discardable:effective_size':
+        expectBytes([8388608, 16777216]),
+    'memory:chrome2:browser:subsystem:discardable:locked_size':
+        expectBytes([4194304, 0]),
+    'memory:chrome2:browser:subsystem:sqlite:effective_size':
+        expectBytes([128, 0]),
     'memory:chrome2:browser:vmstats:ashmem:pss': expectBytes([0]),
     'memory:chrome2:browser:vmstats:java_heap:private_dirty':
         expectBytes([256]),
@@ -681,19 +721,23 @@ tr.b.unittest.testSuite(function() {
     'memory:chrome2:browser:vmstats:overall:private_dirty': expectBytes([256]),
     'memory:chrome2:browser:vmstats:overall:pss': expectBytes([0]),
     'memory:chrome2:renderer:process_count': expectUnitless([0, 1]),
-    'memory:chrome2:renderer:subsystem:malloc': expectBytes([0, 1024]),
-    'memory:chrome2:renderer:subsystem:v8': expectBytes([0, 2048]),
+    'memory:chrome2:renderer:subsystem:malloc:effective_size':
+        expectBytes([0, 1024]),
+    'memory:chrome2:renderer:subsystem:v8:effective_size':
+        expectBytes([0, 2048]),
 
     // Unknown browser (GMD5).
     'memory:unknown:all:dump_count:detailed': expectUnitless(0),
     'memory:unknown:all:dump_count:light': expectUnitless(1),
     'memory:unknown:all:dump_count:total': expectUnitless(1),
     'memory:unknown:all:process_count': expectUnitless([1]),
-    'memory:unknown:all:subsystem:malloc': expectBytes([4096]),
-    'memory:unknown:all:subsystem:sqlite': expectBytes([8192]),
+    'memory:unknown:all:subsystem:malloc:effective_size': expectBytes([4096]),
+    'memory:unknown:all:subsystem:sqlite:effective_size': expectBytes([8192]),
     'memory:unknown:browser:process_count': expectUnitless([1]),
-    'memory:unknown:browser:subsystem:malloc': expectBytes([4096]),
-    'memory:unknown:browser:subsystem:sqlite': expectBytes([8192])
+    'memory:unknown:browser:subsystem:malloc:effective_size':
+        expectBytes([4096]),
+    'memory:unknown:browser:subsystem:sqlite:effective_size':
+        expectBytes([8192])
   });
 
   test('dumpIdBrowserClashThrows', function() {

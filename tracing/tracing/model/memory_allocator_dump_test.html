@@ -185,6 +185,26 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(v8Object2Dump.isDescendantOf(v8Object1Dump));
   });
 
+  test('memoryAllocatorDumps_getDescendantDumpByFullName', function() {
+    var containerDump = new ContainerMemoryDump(42);
+
+    var gpuDump = new MemoryAllocatorDump(containerDump, 'gpu');
+    containerDump.memoryAllocatorDumps = [gpuDump];
+
+    var memtrackDump = addChildDump(gpuDump, 'android_memtrack');
+    var glDump = addChildDump(memtrackDump, 'gl');
+    var gfxDump = addChildDump(memtrackDump, 'gfx');
+    var tileDump = addChildDump(gfxDump, 'tile');
+
+    assert.strictEqual(gpuDump.getDescendantDumpByFullName(
+        'android_memtrack'), memtrackDump);
+    assert.strictEqual(gpuDump.getDescendantDumpByFullName(
+        'android_memtrack/gfx/tile'), tileDump);
+    assert.strictEqual(memtrackDump.getDescendantDumpByFullName('gl'), glDump);
+    assert.strictEqual(memtrackDump.getDescendantDumpByFullName(
+        'gfx/tile'), tileDump);
+  });
+
   test('memoryAllocatorDumpLink_instantiate', function() {
     var d1 = new MemoryAllocatorDump('v8/isolate1');
     var d2 = new MemoryAllocatorDump('oilpan/document1');

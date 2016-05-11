@@ -20,8 +20,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
 
-  var DISPLAYED_SIZE_NUMERIC_NAME =
-      tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
   var ScalarNumeric = tr.v.ScalarNumeric;
@@ -30,7 +28,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
 
-  var MMAPS_METRICS = {
+  var MMAPS_VALUES = {
     'overall:pss': {
       path: [],
       byteStat: 'proportionalResident'
@@ -52,6 +50,11 @@ tr.exportTo('tr.metrics.sh', function() {
       byteStat: 'proportionalResident'
     }
   };
+
+  var SUBSYSTEM_VALUES = [
+    tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME,
+    'allocated_objects_size'
+  ];
 
   var ALL_PROCESS_NAMES = 'all';
 
@@ -177,11 +180,11 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    *   * ALLOCATOR STATISTICS
    *     memory:{chrome, webview}:{browser, renderer, ..., all}:subsystem:
-   *         {v8, malloc, ...}
+   *         {v8, malloc, ...}:{effective_size, allocated_objects_size}
    *     memory:{chrome, webview}:{browser, renderer, ..., all}:subsystem:
-   *         {v8, malloc, ...}:allocated_objects
-   *     memory:{chrome, webview}:{browser, renderer, ..., all}:
-   *         android_memtrack:{gl, ...}
+   *         gpu:android_memtrack:{gl, ...}:memtrack_pss
+   *     memory:{chrome, webview}:{browser, renderer, ..., all}:subsystem:
+   *         discardable:locked_size
    *     type: tr.v.Numeric (histogram over all matching global memory dumps)
    *     unit: sizeInBytes_smallerIsBetter
    */
@@ -198,30 +201,44 @@ tr.exportTo('tr.metrics.sh', function() {
           if (processDump.memoryAllocatorDumps === undefined)
             return;
 
-          // Add memory:<browser-name>:<process-name>:subsystem:<name> and
-          // memory:<browser-name>:<process-name>:subsystem:<name>:
-          // allocated_objects values for each root memory allocator dump.
           processDump.memoryAllocatorDumps.forEach(function(rootAllocatorDump) {
-            addProcessScalar(
-                'subsystem:' + rootAllocatorDump.name,
-                rootAllocatorDump.numerics[DISPLAYED_SIZE_NUMERIC_NAME]);
-            addProcessScalar(
-                'subsystem:' + rootAllocatorDump.name + ':allocated_objects',
-                rootAllocatorDump.numerics['allocated_objects_size']);
-          });
+            var subsystemPrefix = 'subsystem:' + rootAllocatorDump.name;
 
-          // Add memory:<browser-name>:<process-name>:android_memtrack:<name>
-          // value for each child of the gpu/android_memtrack memory allocator
-          // dump.
-          var memtrackDump = processDump.getMemoryAllocatorDumpByFullName(
-              'gpu/android_memtrack');
-          if (memtrackDump !== undefined) {
-            memtrackDump.children.forEach(function(memtrackChildDump) {
+            // Add generic values for each root memory allocator dump
+            // (memory:<browser-name>:<process-name>:subsystem:<name>:
+            // {effective_size, allocated_objects_size}).
+            SUBSYSTEM_VALUES.forEach(function(valueName) {
               addProcessScalar(
-                  'android_memtrack:' + memtrackChildDump.name,
-                  memtrackChildDump.numerics['memtrack_pss']);
+                  subsystemPrefix + ':' + valueName,
+                  rootAllocatorDump.numerics[valueName]);
             });
-          }
+
+            // Add subsystem-specific values.
+            switch (rootAllocatorDump.name) {
+              // memory:<browser-name>:<process-name>:subsystem:gpu:
+              // android_memtrack:<component-name>:memtrack_pss.
+              case 'gpu':
+                var memtrackDump =
+                    rootAllocatorDump.getDescendantDumpByFullName(
+                        'android_memtrack');
+                if (memtrackDump !== undefined) {
+                  memtrackDump.children.forEach(function(memtrackChildDump) {
+                    addProcessScalar(
+                        subsystemPrefix + ':android_memtrack:' +
+                            memtrackChildDump.name + ':memtrack_pss',
+                        memtrackChildDump.numerics['memtrack_pss']);
+                  });
+                }
+                break;
+              // memory:<browser-name>:<process-name>:subsystem:discardable:
+              // locked_size.
+              case 'discardable':
+                addProcessScalar(
+                    subsystemPrefix + ':locked_size',
+                    rootAllocatorDump.numerics['locked_size']);
+                break;
+            }
+          });
         }, valueList, model);
   }
 
@@ -245,12 +262,12 @@ tr.exportTo('tr.metrics.sh', function() {
         function(processDump, addProcessScalar) {
           // Add memory:<browser-name>:<process-name>:vmstats:<name> value for
           // each mmap metric.
-          tr.b.iterItems(MMAPS_METRICS, function(metricName, metricSpec) {
+          tr.b.iterItems(MMAPS_VALUES, function(valueName, valueSpec) {
             var node = getDescendantVmRegionClassificationNode(
-                processDump.vmRegions, metricSpec.path);
-            var value = node ? (node.byteStats[metricSpec.byteStat] || 0) : 0;
+                processDump.vmRegions, valueSpec.path);
+            var value = node ? (node.byteStats[valueSpec.byteStat] || 0) : 0;
             addProcessScalar(
-                'vmstats:' + metricName,
+                'vmstats:' + valueName,
                 new ScalarNumeric(sizeInBytes_smallerIsBetter, value));
           });
         }, valueList, model);
