@@ -27,7 +27,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('slice-group-track');
+      Polymer.dom(this).classList.add('slice-group-track');
       this.group_ = undefined;
       // Set the collapse threshold so we don't collapse by default, but the
       // user can explicitly collapse if they want it.

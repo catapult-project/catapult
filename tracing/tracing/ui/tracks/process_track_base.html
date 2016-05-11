@@ -44,11 +44,11 @@ tr.exportTo('tr.ui.tracks', function() {
 
       this.processBase_ = undefined;
 
-      this.classList.add('process-track-base');
-      this.classList.add('expanded');
+      Polymer.dom(this).classList.add('process-track-base');
+      Polymer.dom(this).classList.add('expanded');
 
       this.processNameEl_ = tr.ui.b.createSpan();
-      this.processNameEl_.classList.add('process-track-name');
+      Polymer.dom(this.processNameEl_).classList.add('process-track-name');
 
       this.headerEl_ = tr.ui.b.createDiv({className: 'process-track-header'});
       Polymer.dom(this.headerEl_).appendChild(this.processNameEl_);
@@ -75,7 +75,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get expanded() {
-      return this.classList.contains('expanded');
+      return Polymer.dom(this).classList.contains('expanded');
     },
 
     set expanded(expanded) {
@@ -84,7 +84,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.expanded === expanded)
         return;
 
-      this.classList.toggle('expanded');
+      Polymer.dom(this).classList.toggle('expanded');
 
       // Expanding and collapsing tracks is, essentially, growing and shrinking
       // the viewport. We dispatch a change event to trigger any processing

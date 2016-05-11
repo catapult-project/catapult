@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('chart-track');
+      Polymer.dom(this).classList.add('chart-track');
       this.series_ = undefined;
 
       // GUID -> {axis: ChartAxis, series: [ChartSeries]}.

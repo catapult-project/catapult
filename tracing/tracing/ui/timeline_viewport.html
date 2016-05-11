@@ -157,7 +157,7 @@ tr.exportTo('tr.ui', function() {
       }
       if (this.iframe_) {
         this.iframe_.removeEventListener('resize', this.onResize_);
-        this.parentEl_.removeChild(this.iframe_);
+        Polymer.dom(this.parentEl_).removeChild(this.iframe_);
       }
     },
 

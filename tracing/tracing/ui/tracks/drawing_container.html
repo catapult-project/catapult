@@ -35,7 +35,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('drawing-container');
+      Polymer.dom(this).classList.add('drawing-container');
 
       this.canvas_ = document.createElement('canvas');
       this.canvas_.className = 'drawing-container-canvas';

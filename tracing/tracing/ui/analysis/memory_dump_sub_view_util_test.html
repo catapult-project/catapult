@@ -151,15 +151,16 @@ tr.b.unittest.testSuite(function() {
   function checkCellValue(
       test, value, expectedText, expectedColor, opt_expectedInfos) {
     var expectedInfos = opt_expectedInfos || [];
-    assert.lengthOf(value.childNodes, 1 + expectedInfos.length);
+    assert.lengthOf(Polymer.dom(value).childNodes, 1 + expectedInfos.length);
     assert.strictEqual(value.style.color, expectedColor);
     if (typeof expectedText === 'string')
-      assert.strictEqual(value.childNodes[0].textContent, expectedText);
+      assert.strictEqual(
+          Polymer.dom(value).childNodes[0].textContent, expectedText);
     else
-      expectedText(value.childNodes[0]);
+      expectedText(Polymer.dom(value).childNodes[0]);
     for (var i = 0; i < expectedInfos.length; i++) {
       var expectedInfo = expectedInfos[i];
-      var infoEl = value.childNodes[i + 1];
+      var infoEl = Polymer.dom(value).childNodes[i + 1];
       assert.strictEqual(infoEl.textContent, expectedInfo.icon);
       assert.strictEqual(infoEl.title, expectedInfo.message);
       assert.strictEqual(infoEl.style.color, expectedInfo.color || '');

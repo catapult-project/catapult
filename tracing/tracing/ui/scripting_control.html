@@ -90,19 +90,20 @@ Polymer({
     var promptEl = this.$.prompt;
     if (focused) {
       promptEl.focus();
-      this.$.root.classList.add('focused');
+      Polymer.dom(this.$.root).classList.add('focused');
       // Move cursor to the end of any existing text.
       if (promptEl.innerText.length > 0) {
         var sel = window.getSelection();
-        sel.collapse(promptEl.firstChild, promptEl.innerText.length);
+        sel.collapse(
+            Polymer.dom(promptEl).firstChild, promptEl.innerText.length);
       }
     } else {
       promptEl.blur();
-      this.$.root.classList.remove('focused');
+      Polymer.dom(this.$.root).classList.remove('focused');
       // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
       // keyboard focus.
       var parent = promptEl.parentElement;
-      var nextEl = promptEl.nextSibling;
+      var nextEl = Polymer.dom(promptEl).nextSibling;
       promptEl.remove();
       Polymer.dom(parent).insertBefore(promptEl, nextEl);
     }
@@ -163,10 +164,10 @@ Polymer({
   toggleVisibility: function() {
     var root = this.$.root;
     if (!this.visible) {
-      root.classList.remove('hidden');
+      Polymer.dom(root).classList.remove('hidden');
       this._setFocused(true);
     } else {
-      root.classList.add('hidden');
+      Polymer.dom(root).classList.add('hidden');
       this._setFocused(false);
     }
   },
@@ -177,7 +178,7 @@ Polymer({
 
   get visible() {
     var root = this.$.root;
-    return !root.classList.contains('hidden');
+    return !Polymer.dom(root).classList.contains('hidden');
   },
 
   get controller() {

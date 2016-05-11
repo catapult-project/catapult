@@ -164,7 +164,8 @@ tr.exportTo('tr.b.unittest', function() {
       }
 
       if (this.testCaseHRef_) {
-        titleEl.innerHTML = '<a href="' + this.testCaseHRef_ + '">' +
+        Polymer.dom(titleEl).innerHTML =
+            '<a href="' + this.testCaseHRef_ + '">' +
             this.testCase_.fullyQualifiedName + '</a>';
       } else {
         titleEl.textContent = this.testCase_.fullyQualifiedName;
@@ -175,8 +176,10 @@ tr.exportTo('tr.b.unittest', function() {
       var errorEl = document.createElement('x-html-test-case-error');
       Polymer.dom(errorEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
-      errorEl.querySelector('#stack').textContent = normalizedException.stack;
-      Polymer.dom(this.querySelector('#details')).appendChild(errorEl);
+      Polymer.dom(errorEl).querySelector('#stack').
+          textContent = normalizedException.stack;
+      Polymer.dom(Polymer.dom(this).querySelector('#details')).appendChild(
+          errorEl);
       this.updateColorAndStatus_();
     },
 
@@ -184,8 +187,9 @@ tr.exportTo('tr.b.unittest', function() {
       var flakyEl = document.createElement('x-html-test-case-flaky');
       Polymer.dom(flakyEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-flaky-template', THIS_DOC));
-      flakyEl.querySelector('#message').textContent = 'FLAKY';
-      Polymer.dom(this.querySelector('#details')).appendChild(flakyEl);
+      Polymer.dom(flakyEl).querySelector('#message').textContent = 'FLAKY';
+      Polymer.dom(Polymer.dom(this).querySelector('#details')).appendChild(
+          flakyEl);
       this.updateColorAndStatus_();
     },
 
@@ -354,7 +358,7 @@ tr.exportTo('tr.b.unittest', function() {
         testCaseResult.showHTMLOutput = this.showHTMLOutput_;
         testCaseResult.testCase = testCase;
         if ((i % 2) === 0)
-          testCaseResult.classList.add('dark');
+          Polymer.dom(testCaseResult).classList.add('dark');
 
         var href = this.getHRefForTestCase(testCase);
         if (href)

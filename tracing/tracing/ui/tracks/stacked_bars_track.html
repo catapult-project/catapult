@@ -27,7 +27,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('stacked-bars-track');
+      Polymer.dom(this).classList.add('stacked-bars-track');
       this.objectInstance_ = null;
 
       this.heading_ = document.createElement('tr-ui-heading');

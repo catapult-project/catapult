@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('cpu-track');
+      Polymer.dom(this).classList.add('cpu-track');
       this.detailedMode_ = true;
     },
 

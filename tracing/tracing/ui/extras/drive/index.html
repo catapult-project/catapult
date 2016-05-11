@@ -317,7 +317,7 @@ found in the LICENSE file.
       var allCollaborators = driveDocument_.getCollaborators();
       var collaboratorCount = allCollaborators.length;
       var collabspan = document.getElementById('collabs');
-      collabspan.innerHTML = '';
+      Polymer.dom(collabspan).innerHTML = '';
       var imageList = [];
       for (var i = 0; i < collaboratorCount; i++) {
         var user = allCollaborators[i];

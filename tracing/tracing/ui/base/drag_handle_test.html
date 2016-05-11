@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
       dragHandle.forceMutationObserverFlush_();
       assert.equal(el.getLowerElHeight(), 110);
     } finally {
-      document.head.removeChild(styleEl);
+      Polymer.dom(document.head).removeChild(styleEl);
     }
   });
 });

@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.e.chrome.gpu', function() {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('tr-ui-e-chrome-gpu-state-snapshot-view');
+      Polymer.dom(this).classList.add('tr-ui-e-chrome-gpu-state-snapshot-view');
       this.screenshotImage_ = document.createElement('img');
       Polymer.dom(this).appendChild(this.screenshotImage_);
     },

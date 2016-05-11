@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/task.html">
-<link rel="import" href="/tracing/ui/tracks/track.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/tracks/track.html">
 
 <script>
 'use strict';
@@ -120,7 +120,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     clearTracks_: function() {
       this.tracks_.forEach(function(track) {
-        this.removeChild(track);
+        Polymer.dom(this).removeChild(track);
       }, this);
     }
   };

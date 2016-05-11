@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('object-instance-group-track');
+      Polymer.dom(this).classList.add('object-instance-group-track');
       this.objectInstances_ = undefined;
     },
 

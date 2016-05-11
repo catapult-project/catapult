@@ -106,7 +106,7 @@ Polymer({
     }
     html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
     html += '</table>';
-    this.$.content.innerHTML = html;
+    Polymer.dom(this.$.content).innerHTML = html;
     var snapshotsEl = this.$.content.querySelector('#snapshots');
     instance.snapshots.forEach(function(snapshot) {
       var snapshotLink = document.createElement('tr-ui-a-analysis-link');

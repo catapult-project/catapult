@@ -114,7 +114,7 @@ Polymer({
 
     var thread = timeSlice.thread;
 
-    var shadowRoot = this.shadowRoot;
+    var shadowRoot = Polymer.dom(this.root);
     shadowRoot.querySelector('#state').textContent = timeSlice.title;
     var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
     shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
@@ -133,7 +133,7 @@ Polymer({
     onCpuEl.textContent = '';
     var runningInsteadEl = shadowRoot.querySelector('#running-instead');
     if (timeSlice.cpuOnWhichThreadWasRunning) {
-      runningInsteadEl.parentElement.removeChild(runningInsteadEl);
+      Polymer.dom(runningInsteadEl.parentElement).removeChild(runningInsteadEl);
 
       var cpuLink = document.createElement('tr-ui-a-analysis-link');
       cpuLink.selection = new tr.model.EventSet(
@@ -142,7 +142,7 @@ Polymer({
           timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
       Polymer.dom(onCpuEl).appendChild(cpuLink);
     } else {
-      onCpuEl.parentElement.removeChild(onCpuEl);
+      Polymer.dom(onCpuEl.parentElement).removeChild(onCpuEl);
 
       var cpuSliceThatTookCpu = timeSlice.getCpuSliceThatTookCpu();
       if (cpuSliceThatTookCpu) {
@@ -154,7 +154,8 @@ Polymer({
           cpuLink.textContent = cpuSliceThatTookCpu.title;
         Polymer.dom(runningInsteadEl).appendChild(cpuLink);
       } else {
-        runningInsteadEl.parentElement.removeChild(runningInsteadEl);
+        Polymer.dom(runningInsteadEl.parentElement).removeChild(
+            runningInsteadEl);
       }
     }
 

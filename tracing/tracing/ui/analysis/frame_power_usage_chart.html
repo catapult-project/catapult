@@ -88,8 +88,8 @@ Polymer({
 
   clearChart_: function() {
     var content = this.$.content;
-    while (content.firstChild)
-      content.removeChild(content.firstChild);
+    while (Polymer.dom(content).firstChild)
+      Polymer.dom(content).removeChild(Polymer.dom(content).firstChild);
 
     this.chart_ = undefined;
   },

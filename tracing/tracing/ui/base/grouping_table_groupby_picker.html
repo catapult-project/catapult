@@ -128,7 +128,7 @@ tr.exportTo('tr.ui.b', function() {
 
       this.needsInit_ = false;
 
-      var addGroupEl = Polymer.dom(this.shadowRoot).querySelector('#add-group');
+      var addGroupEl = Polymer.dom(this.root).querySelector('#add-group');
       Polymer.dom(addGroupEl.iconElement).textContent = 'Add another...';
 
       this.currentGroupKeys = tr.b.Settings.get(
@@ -167,8 +167,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateGroups_: function() {
-      var groupsEl = Polymer.dom(this.shadowRoot).querySelector('groups');
-      var addGroupEl = Polymer.dom(this.shadowRoot).querySelector('#add-group');
+      var groupsEl = Polymer.dom(this.root).querySelector('groups');
+      var addGroupEl = Polymer.dom(this.root).querySelector('#add-group');
 
       Polymer.dom(groupsEl).textContent = '';
       Polymer.dom(addGroupEl).textContent = '';

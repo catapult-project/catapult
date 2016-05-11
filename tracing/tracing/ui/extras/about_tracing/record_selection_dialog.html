@@ -228,7 +228,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       tr.ui.b.Overlay.prototype.decorate.call(this);
       this.title = 'Record a new trace...';
 
-      this.classList.add('record-dialog-overlay');
+      Polymer.dom(this).classList.add('record-dialog-overlay');
 
       var node =
           tr.ui.b.instantiateTemplate('#record-selection-dialog-template',
@@ -243,8 +243,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.recordButtonEl_.style.fontSize = '110%';
       Polymer.dom(this.buttons).appendChild(this.recordButtonEl_);
 
-      this.categoriesView_ = this.querySelector('.categories-column-view');
-      this.presetsEl_ = this.querySelector('.category-presets');
+      this.categoriesView_ = Polymer.dom(this).querySelector(
+          '.categories-column-view');
+      this.presetsEl_ = Polymer.dom(this).querySelector('.category-presets');
       Polymer.dom(this.presetsEl_).appendChild(tr.ui.b.createOptionGroup(
           this, 'currentlyChosenPreset',
           'about_tracing.record_selection_dialog_preset',
@@ -266,7 +267,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           undefined, undefined,
           'recordSelectionDialog.useSampling', DEFAULT_SAMPLING_TRACING,
           'State sampling');
-      this.tracingModesContainerEl_ = this.querySelector('.tracing-modes');
+      this.tracingModesContainerEl_ = Polymer.dom(this).querySelector(
+          '.tracing-modes');
       Polymer.dom(this.tracingModesContainerEl_).appendChild(
           this.tracingRecordModeSltr_);
       Polymer.dom(this.tracingModesContainerEl_).appendChild(
@@ -275,23 +277,27 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
           this.samplingTracingBn_);
 
       this.enabledCategoriesContainerEl_ =
-          this.querySelector('.default-enabled-categories .categories');
+          Polymer.dom(this).querySelector(
+              '.default-enabled-categories .categories');
 
       this.disabledCategoriesContainerEl_ =
-          this.querySelector('.default-disabled-categories .categories');
+          Polymer.dom(this).querySelector(
+              '.default-disabled-categories .categories');
 
       this.createGroupSelectButtons_(
-          this.querySelector('.default-enabled-categories'));
+          Polymer.dom(this).querySelector('.default-enabled-categories'));
       this.createGroupSelectButtons_(
-          this.querySelector('.default-disabled-categories'));
+          Polymer.dom(this).querySelector('.default-disabled-categories'));
       this.createDefaultDisabledWarningDialog_(
-          this.querySelector('.warning-default-disabled-categories'));
+          Polymer.dom(this).querySelector(
+              '.warning-default-disabled-categories'));
       this.editCategoriesOpened_ = false;
 
       // TODO(chrishenry): When used with tr.ui.b.Overlay (such as in
       // chrome://tracing, this does not yet look quite right due to
       // the 10px overlay content padding (but it's good enough).
-      this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
+      this.infoBarGroup_ = Polymer.dom(this).querySelector(
+          'tr-ui-b-info-bar-group');
 
       this.addEventListener('visible-change', this.onVisibleChange_.bind(this));
     },
@@ -372,7 +378,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateManualSelectionView_: function() {
-      var classList = this.categoriesView_.classList;
+      var classList = Polymer.dom(this.categoriesView_).classList;
       if (!this.usingPreset_()) {
         classList.remove('categories-column-view-hidden');
       } else {
@@ -384,7 +390,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     updateCategoryColumnView_: function(shouldReadFromSettings) {
-      var categorySet = this.querySelectorAll('.categories');
+      var categorySet = Polymer.dom(this).querySelectorAll('.categories');
       for (var i = 0; i < categorySet.length; ++i) {
         var categoryGroup = categorySet[i].children;
         for (var j = 0; j < categoryGroup.length; ++j) {
@@ -417,26 +423,31 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     changeEditCategoriesState_: function(editCategoriesState) {
-      var presetOptionsGroup = this.querySelector('.labeled-option-group');
+      var presetOptionsGroup = Polymer.dom(this).querySelector(
+          '.labeled-option-group');
       if (!presetOptionsGroup)
         return;
 
       this.editCategoriesOpened_ = editCategoriesState;
       if (this.editCategoriesOpened_)
-          presetOptionsGroup.classList.add('categories-expanded');
+          Polymer.dom(presetOptionsGroup).classList.add('categories-expanded');
       else
-          presetOptionsGroup.classList.remove('categories-expanded');
+          Polymer.dom(presetOptionsGroup).classList.remove(
+              'categories-expanded');
     },
 
     updatePresetDescription_: function() {
-      var description = this.querySelector('.category-description');
+      var description = Polymer.dom(this).querySelector(
+          '.category-description');
       if (this.usingPreset_()) {
         description.innerText = this.currentlyChosenPreset_;
-        description.classList.remove('category-description-hidden');
+        Polymer.dom(description).classList.remove(
+            'category-description-hidden');
       } else {
         description.innerText = '';
-        if (!description.classList.contains('category-description-hidden'))
-          description.classList.add('category-description-hidden');
+        if (!Polymer.dom(description).classList.contains(
+            'category-description-hidden'))
+          Polymer.dom(description).classList.add('category-description-hidden');
       }
     },
 
@@ -504,13 +515,15 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
     unselectedCategories_: function() {
       var inputs =
-          this.enabledCategoriesContainerEl_.querySelectorAll('input');
+          Polymer.dom(this.enabledCategoriesContainerEl_).querySelectorAll(
+              'input');
       return this.collectInputs_(inputs, false);
     },
 
     enabledDisabledByDefaultCategories_: function() {
       var inputs =
-          this.disabledCategoriesContainerEl_.querySelectorAll('input');
+          Polymer.dom(this.disabledCategoriesContainerEl_).querySelectorAll(
+              'input');
       return this.collectInputs_(inputs, true);
     },
 
@@ -535,7 +548,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
         var labelEl = document.createElement('label');
         labelEl.textContent = category.replace('disabled-by-default-', '');
-        labelEl.setAttribute('for', category);
+        Polymer.dom(labelEl).setAttribute('for', category);
 
         var divEl = document.createElement('div');
         Polymer.dom(divEl).appendChild(inputEl);
@@ -562,8 +575,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         return a.toLowerCase().localeCompare(b.toLowerCase());
       }
 
-      this.enabledCategoriesContainerEl_.innerHTML = ''; // Clear old categories
-      this.disabledCategoriesContainerEl_.innerHTML = '';
+      // Clear old categories
+      Polymer.dom(this.enabledCategoriesContainerEl_).innerHTML = '';
+      Polymer.dom(this.disabledCategoriesContainerEl_).innerHTML = '';
 
       this.recordButtonEl_.focus();
 
@@ -605,15 +619,16 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         var categoryEl = this.querySelector(
             '#category-preset-Manually-select-settings');
         categoryEl.checked = true;
-        var description = this.querySelector('.category-description');
+        var description = Polymer.dom(this).querySelector(
+            '.category-description');
         description.innerText = '';
-        description.classList.add('category-description-hidden');
+        Polymer.dom(description).classList.add('category-description-hidden');
       }
     },
 
     createGroupSelectButtons_: function(parent) {
       var flipInputs = function(dir) {
-        var inputs = parent.querySelectorAll('input');
+        var inputs = Polymer.dom(parent).querySelectorAll('input');
         for (var i = 0; i < inputs.length; i++) {
           if (inputs[i].checked === dir)
             continue;
@@ -623,13 +638,13 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         }
       };
 
-      var allBtn = parent.querySelector('.all-btn');
+      var allBtn = Polymer.dom(parent).querySelector('.all-btn');
       allBtn.onclick = function(evt) {
         flipInputs(true);
         evt.preventDefault();
       };
 
-      var noneBtn = parent.querySelector('.none-btn');
+      var noneBtn = Polymer.dom(parent).querySelector('.none-btn');
       noneBtn.onclick = function(evt) {
         flipInputs(false);
         evt.preventDefault();

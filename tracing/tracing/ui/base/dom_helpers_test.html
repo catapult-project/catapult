@@ -22,8 +22,8 @@ tr.b.unittest.testSuite(function() {
       parent: divEl
     });
     var eltInDocument = document.querySelector('.a-div-class>.a-span-class');
-    assert.equal(eltInDocument.textContent, testText);
-    eltInDocument.parentElement.removeChild(eltInDocument);
+    assert.equal(Polymer.dom(eltInDocument).textContent, testText);
+    Polymer.dom(eltInDocument.parentElement).removeChild(eltInDocument);
   });
 
   test('createSpan_ownerDocument', function() {

@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.picture_ = picture;
       this.pictureDataProcessed_ = false;
 
-      if (this.classList.contains('hidden'))
+      if (Polymer.dom(this).classList.contains('hidden'))
         return;
 
       this.processPictureData_();
@@ -87,12 +87,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     hide: function() {
-      this.classList.add('hidden');
+      Polymer.dom(this).classList.add('hidden');
     },
 
     show: function() {
 
-      this.classList.remove('hidden');
+      Polymer.dom(this).classList.remove('hidden');
 
       if (this.pictureDataProcessed_)
         return;

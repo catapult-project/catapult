@@ -22,8 +22,8 @@ tr.exportTo('tr.b.unittest', function() {
       return new Promise(function(resolve, reject) {
         var importEl = document.createElement('link');
         importEl.moduleName = moduleName;
-        importEl.setAttribute('rel', 'import');
-        importEl.setAttribute('href', testRelpath);
+        Polymer.dom(importEl).setAttribute('rel', 'import');
+        Polymer.dom(importEl).setAttribute('href', testRelpath);
 
         importEl.addEventListener('load', function() {
           resolve({testRelpath: testRelpath,

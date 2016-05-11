@@ -32,7 +32,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('thread-track');
+      Polymer.dom(this).classList.add('thread-track');
     },
 
     get thread() {

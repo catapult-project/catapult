@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('ruler-track');
+      Polymer.dom(this).classList.add('ruler-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
       this.strings_usecs_ = [];
@@ -55,9 +55,9 @@ tr.exportTo('tr.ui.tracks', function() {
 
     viewportChange_: function() {
       if (this.viewport.interestRange.isEmpty)
-        this.classList.remove('tall-mode');
+        Polymer.dom(this).classList.remove('tall-mode');
       else
-        this.classList.add('tall-mode');
+        Polymer.dom(this).classList.add('tall-mode');
     },
 
     draw: function(type, viewLWorld, viewRWorld) {

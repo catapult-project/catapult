@@ -24,7 +24,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('tr-ui-e-system-stats-snapshot-view');
+      Polymer.dom(this).classList.add('tr-ui-e-system-stats-snapshot-view');
     },
 
     updateContents: function() {

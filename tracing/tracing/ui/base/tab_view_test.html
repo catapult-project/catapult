@@ -49,16 +49,16 @@ tr.b.unittest.testSuite(function() {
     var tabView = new TracingAnalysisTabView();
 
     var firstTab = document.createElement('div');
-    firstTab.setAttribute('tab-label', 'First Tab Label');
-    firstTab.innerHTML = '<p>' + TAB_TEXT + '<p>';
+    Polymer.dom(firstTab).setAttribute('tab-label', 'First Tab Label');
+    Polymer.dom(firstTab).innerHTML = '<p>' + TAB_TEXT + '<p>';
 
     var secondTab = document.createElement('div');
-    secondTab.setAttribute('tab-label', 'Second Tab Label');
-    secondTab.innerHTML = '<b>' + 'Second Tab Text' + '</b>';
+    Polymer.dom(secondTab).setAttribute('tab-label', 'Second Tab Label');
+    Polymer.dom(secondTab).innerHTML = '<b>' + 'Second Tab Text' + '</b>';
 
     var thirdTab = document.createElement('div');
-    thirdTab.setAttribute('tab-label', 'Third Tab Label');
-    thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
+    Polymer.dom(thirdTab).setAttribute('tab-label', 'Third Tab Label');
+    Polymer.dom(thirdTab).innerHTML = '<b>' + 'Third Tab Text' + '</b>';
 
     Polymer.dom(tabView).appendChild(firstTab);
     Polymer.dom(tabView).appendChild(secondTab);
@@ -67,13 +67,13 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(tabViewContainer);
 
-    thirdTab.setAttribute('tab-label', 'Something Different');
+    Polymer.dom(thirdTab).setAttribute('tab-label', 'Something Different');
 
     var button = document.createElement('button');
     button.textContent = 'Change label';
 
     button.addEventListener('click', function() {
-      thirdTab.setAttribute('tab-label', 'Label Changed');
+      Polymer.dom(thirdTab).setAttribute('tab-label', 'Label Changed');
     });
 
     tabView.selectedTab = secondTab;
@@ -105,16 +105,16 @@ tr.b.unittest.testSuite(function() {
     tabView.tabStripHeadingText = 'Hello world:';
 
     var firstTab = document.createElement('div');
-    firstTab.setAttribute('tab-label', 'First Tab Label');
-    firstTab.innerHTML = '<p>' + TAB_TEXT + '<p>';
+    Polymer.dom(firstTab).setAttribute('tab-label', 'First Tab Label');
+    Polymer.dom(firstTab).innerHTML = '<p>' + TAB_TEXT + '<p>';
 
     var secondTab = document.createElement('div');
-    secondTab.setAttribute('tab-label', 'Second Tab Label');
-    secondTab.innerHTML = '<b>' + 'Second Tab Text' + '</b>';
+    Polymer.dom(secondTab).setAttribute('tab-label', 'Second Tab Label');
+    Polymer.dom(secondTab).innerHTML = '<b>' + 'Second Tab Text' + '</b>';
 
     var thirdTab = document.createElement('div');
-    thirdTab.setAttribute('tab-label', 'Third Tab Label');
-    thirdTab.innerHTML = '<b>' + 'Third Tab Text' + '</b>';
+    Polymer.dom(thirdTab).setAttribute('tab-label', 'Third Tab Label');
+    Polymer.dom(thirdTab).innerHTML = '<b>' + 'Third Tab Text' + '</b>';
 
     Polymer.dom(tabView).appendChild(firstTab);
     Polymer.dom(tabView).appendChild(secondTab);
@@ -227,9 +227,9 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(tabView).appendChild(t2);
     Polymer.dom(tabView).appendChild(t3);
 
-    t1.setAttribute('tab-label', 'This should be selected');
-    t2.setAttribute('tab-label', 'Not selected');
-    t3.setAttribute('tab-label', 'Not selected');
+    Polymer.dom(t1).setAttribute('tab-label', 'This should be selected');
+    Polymer.dom(t2).setAttribute('tab-label', 'Not selected');
+    Polymer.dom(t3).setAttribute('tab-label', 'Not selected');
 
     Polymer.dom(tabViewContainer).appendChild(tabView);
 
@@ -309,12 +309,12 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(tabView).appendChild(t2);
     Polymer.dom(tabView).appendChild(t3);
 
-    t1.setAttribute('tab-label', 'This should not exist');
-    t2.setAttribute('tab-label', 'Not selected');
-    t3.setAttribute('tab-label', 'Not selected');
+    Polymer.dom(t1).setAttribute('tab-label', 'This should not exist');
+    Polymer.dom(t2).setAttribute('tab-label', 'Not selected');
+    Polymer.dom(t3).setAttribute('tab-label', 'Not selected');
 
     tabView.selectedTab = t1;
-    tabView.removeChild(t1);
+    Polymer.dom(tabView).removeChild(t1);
 
     Polymer.dom(tabViewContainer).appendChild(tabView);
 

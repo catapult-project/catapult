@@ -97,9 +97,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       } else {
         this.dragBar_.style.display = 'none';
         this.analysisEl_.style.display = 'none';
-        var analysis = this.analysisEl_.firstChild;
+        var analysis = Polymer.dom(this.analysisEl_).firstChild;
         if (analysis)
-          this.analysisEl_.removeChild(analysis);
+          Polymer.dom(this.analysisEl_).removeChild(analysis);
         this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }

@@ -342,14 +342,14 @@ tr.exportTo('tr.b.unittest', function() {
 
     onTestFailed_: function() {
       var span = document.createElement('span');
-      span.classList.add('fail');
+      Polymer.dom(span).classList.add('fail');
       Polymer.dom(span).appendChild(document.createTextNode('F'));
       Polymer.dom(this.querySelector('#shortform-results')).appendChild(span);
     },
 
     onTestFlaky_: function() {
       var span = document.createElement('span');
-      span.classList.add('flaky');
+      Polymer.dom(span).classList.add('flaky');
       Polymer.dom(span).appendChild(document.createTextNode('~'));
       Polymer.dom(this.querySelector('#shortform-results')).appendChild(span);
     },
@@ -360,7 +360,7 @@ tr.exportTo('tr.b.unittest', function() {
       var numTestsOverall = this.runner_.testCases.length;
       var numTestsThatRan = stats.numTestsThatPassed +
           stats.numTestsThatFailed + stats.numFlakyTests;
-      statsEl.innerHTML =
+      Polymer.dom(statsEl).innerHTML =
           '<span>' + numTestsThatRan + '/' + numTestsOverall +
           '</span> tests run, ' +
           '<span class="unittest-failed">' + stats.numTestsThatFailed +
@@ -396,7 +396,7 @@ tr.exportTo('tr.b.unittest', function() {
         this.results_.removeEventListener('statschange',
                                           this.onResultsStatsChanged_);
         delete this.results_.getHRefForTestCase;
-        resultsContainer.removeChild(this.results_);
+        Polymer.dom(resultsContainer).removeChild(this.results_);
       }
 
       this.results_ = new tr.b.unittest.HTMLTestResults();
@@ -611,8 +611,9 @@ tr.exportTo('tr.b.unittest', function() {
       Polymer.dom(document.body).appendChild(overlay);
     }
     function hideLoadingOverlay() {
-      var overlay = document.body.querySelector('#tests-loading-overlay');
-      document.body.removeChild(overlay);
+      var overlay = Polymer.dom(document.body).querySelector(
+          '#tests-loading-overlay');
+      Polymer.dom(document.body).removeChild(overlay);
     }
 
     function updateTitle(state) {

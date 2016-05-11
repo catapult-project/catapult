@@ -142,7 +142,7 @@ tr.exportTo('tr.ui.b', function() {
      * Initializes the overlay element.
      */
     decorate: function() {
-      this.classList.add('overlay');
+      Polymer.dom(this).classList.add('overlay');
 
       this.parentEl_ = this.ownerDocument.body;
 
@@ -246,7 +246,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     hide_: function() {
-      this.parentEl_.removeChild(this);
+      Polymer.dom(this.parentEl_).removeChild(this);
 
       this.parentEl_.removeEventListener('focusin', this.onFocusIn_);
 

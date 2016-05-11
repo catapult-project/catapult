@@ -23,10 +23,10 @@ tr.b.unittest.testSuite(function() {
     var a_ = a.createShadowRoot();
 
     var b = createElement('b');
-    Polymer.dom(a_).appendChild(b);
+    a_.appendChild(b);
 
     var b_ = b.createShadowRoot();
-    Polymer.dom(b_).appendChild(createElement('c', 'x'));
+    b_.appendChild(createElement('c', 'x'));
 
     var m = tr.b.findDeepElementMatching(a, 'c.x');
     assert.equal(m, b_.children[0]);

@@ -55,7 +55,7 @@ tr.exportTo('tr.model', function() {
 
     set parentFrame(parentFrame) {
       if (this.parentFrame_)
-        this.parentFrame_.removeChild(this);
+        Polymer.dom(this.parentFrame_).removeChild(this);
       this.parentFrame_ = parentFrame;
       if (this.parentFrame_)
         this.parentFrame_.addChild(this);

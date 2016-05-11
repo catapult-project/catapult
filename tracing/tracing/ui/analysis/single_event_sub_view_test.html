@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {
     var e = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(e);
-    assert.isDefined(e.nextSibling.children[0].stackFrame);
+    assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
   });
 
   test('instantiate_withSingleEndStackFrame', function() {
@@ -139,8 +139,8 @@ tr.b.unittest.testSuite(function() {
     var e = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(e);
-    assert.isDefined(e.nextSibling.children[0].stackFrame);
-    assert.equal(e.nextSibling.children[0].stackFrame.title, 'b2');
+    assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
+    assert.equal(Polymer.dom(e).nextSibling.children[0].stackFrame.title, 'b2');
   });
 
   test('instantiate_withDifferentStartAndEndStackFrames', function() {
@@ -155,14 +155,16 @@ tr.b.unittest.testSuite(function() {
     var eA = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start Stack Trace/);
     assert.isDefined(eA);
-    assert.isDefined(eA.nextSibling.children[0].stackFrame);
-    assert.equal(eA.nextSibling.children[0].stackFrame.title, 'a2');
+    assert.isDefined(Polymer.dom(eA).nextSibling.children[0].stackFrame);
+    assert.equal(
+        Polymer.dom(eA).nextSibling.children[0].stackFrame.title, 'a2');
 
     var eB = tr.b.findDeepElementWithTextContent(
         analysisEl, /End Stack Trace/);
     assert.isDefined(eB);
-    assert.isDefined(eB.nextSibling.children[0].stackFrame);
-    assert.equal(eB.nextSibling.children[0].stackFrame.title, 'b2');
+    assert.isDefined(Polymer.dom(eB).nextSibling.children[0].stackFrame);
+    assert.equal(
+        Polymer.dom(eB).nextSibling.children[0].stackFrame.title, 'b2');
   });
 
   test('instantiate_withSameStartAndEndStackFrames', function() {
@@ -177,8 +179,8 @@ tr.b.unittest.testSuite(function() {
     var e = tr.b.findDeepElementWithTextContent(
         analysisEl, /Start\+End Stack Trace/);
     assert.isDefined(e);
-    assert.isDefined(e.nextSibling.children[0].stackFrame);
-    assert.equal(e.nextSibling.children[0].stackFrame.title, 'a2');
+    assert.isDefined(Polymer.dom(e).nextSibling.children[0].stackFrame);
+    assert.equal(Polymer.dom(e).nextSibling.children[0].stackFrame.title, 'a2');
   });
 
   test('analyzeSelectionWithSingleSlice', function() {

@@ -32,7 +32,7 @@ tr.exportTo('tr.ui.tracks', function() {
     decorate: function(viewport) {
       ContainerTrack.prototype.decorate.call(this, viewport);
 
-      this.classList.add('device-track');
+      Polymer.dom(this).classList.add('device-track');
       this.device_ = undefined;
       this.powerSeriesTrack_ = undefined;
     },

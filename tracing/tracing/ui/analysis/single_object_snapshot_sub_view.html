@@ -93,7 +93,7 @@ Polymer({
     this.textContent = '';
 
     var titleEl = document.createElement('div');
-    titleEl.classList.add('title');
+    Polymer.dom(titleEl).classList.add('title');
     Polymer.dom(titleEl).appendChild(document.createTextNode('Snapshot of '));
     Polymer.dom(this).appendChild(titleEl);
 

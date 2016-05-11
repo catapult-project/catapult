@@ -37,9 +37,9 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var dlg = new tr.ui.b.Overlay();
-    dlg.classList.add('example-overlay');
+    Polymer.dom(dlg).classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
-    dlg.innerHTML = 'hello';
+    Polymer.dom(dlg).innerHTML = 'hello';
     Polymer.dom(dlg.buttons).appendChild(makeButton('i am a button'));
     Polymer.dom(dlg.buttons).appendChild(makeCloseButton(dlg));
     Polymer.dom(dlg.buttons).appendChild(tr.ui.b.createSpan(
@@ -49,18 +49,18 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_noButtons', function() {
     var dlg = new tr.ui.b.Overlay();
-    dlg.classList.add('example-overlay');
+    Polymer.dom(dlg).classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
-    dlg.innerHTML = 'hello';
+    Polymer.dom(dlg).innerHTML = 'hello';
     addShowButtonForDialog.call(this, dlg);
   });
 
   test('instantiate_disableUserClose', function() {
     var dlg = new tr.ui.b.Overlay();
-    dlg.classList.add('example-overlay');
+    Polymer.dom(dlg).classList.add('example-overlay');
     dlg.userCanClose = false;
     dlg.title = 'Unclosable';
-    dlg.innerHTML = 'This has no close X button.';
+    Polymer.dom(dlg).innerHTML = 'This has no close X button.';
     Polymer.dom(dlg.buttons).appendChild(makeCloseButton(dlg));
     addShowButtonForDialog.call(this, dlg);
   });

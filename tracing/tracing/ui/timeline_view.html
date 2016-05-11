@@ -142,7 +142,8 @@ Polymer({
 
   attached: function() {
     this.async(function() {
-      this.trackViewContainer_ = this.querySelector('#track_view_container');
+      this.trackViewContainer_ = Polymer.dom(this).querySelector(
+          '#track_view_container');
       if (!this.trackViewContainer_)
         console.error('missing trackviewContainer');
     });
@@ -246,7 +247,8 @@ Polymer({
       faviconData = tr.ui.b.FaviconsByHue['blue'];
 
     // Find link if its there
-    var link = document.head.querySelector('link[rel="shortcut icon"]');
+    var link = Polymer.dom(document.head).querySelector(
+        'link[rel="shortcut icon"]');
     if (!link) {
       link = document.createElement('link');
       link.rel = 'shortcut icon';
@@ -345,8 +347,8 @@ Polymer({
   },
 
   get viewTitle() {
-    return this.titleEl_.textContent.substring(
-        this.titleEl_.textContent.length - 2);
+    return Polymer.dom(this.titleEl_).textContent.substring(
+        Polymer.dom(this.titleEl_).textContent.length - 2);
   },
 
   set viewTitle(text) {
@@ -369,14 +371,15 @@ Polymer({
     var modelInstanceChanged = model != this.model;
     var modelValid = model && !model.bounds.isEmpty;
 
-    var importWarningsEl = this.shadowRoot.querySelector('#import-warnings');
-    importWarningsEl.textContent = '';
+    var importWarningsEl = Polymer.dom(this.root).querySelector(
+        '#import-warnings');
+    Polymer.dom(importWarningsEl).textContent = '';
 
     // Remove old trackView if the model has completely changed.
     if (modelInstanceChanged) {
       if (this.railScoreSpan_)
         this.railScoreSpan_.model = undefined;
-      this.trackViewContainer_.textContent = '';
+      Polymer.dom(this.trackViewContainer_).textContent = '';
       if (this.trackView_) {
         this.trackView_.viewport.removeEventListener(
             'change', this.onViewportChanged_);

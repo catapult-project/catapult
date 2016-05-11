@@ -44,7 +44,7 @@ Polymer({
   },
 
   set viewId(viewId) {
-    this.setAttribute('view-id', viewId);
+    Polymer.dom(this).setAttribute('view-id', viewId);
   },
 
   /**

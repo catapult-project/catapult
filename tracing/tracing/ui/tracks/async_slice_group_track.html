@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('async-slice-group-track');
+      Polymer.dom(this).classList.add('async-slice-group-track');
       this.group_ = undefined;
     },
 

@@ -30,8 +30,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase.prototype.decorate.call(this);
-      this.margin.top = 0;
-      this.classList.add('pie-chart');
+      Polymer.dom(this).classList.add('pie-chart');
 
       this.data_ = undefined;
 

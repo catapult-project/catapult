@@ -33,7 +33,8 @@ tr.exportTo('tr.ui.annotations', function() {
     __proto__: tr.ui.annotations.AnnotationView.prototype,
 
     removeTextArea: function() {
-      this.textArea_.parentNode.removeChild(this.textArea_);
+      Polymer.dom(Polymer.dom(this.textArea_).parentNode).removeChild(
+          this.textArea_);
     },
 
     draw: function(ctx) {

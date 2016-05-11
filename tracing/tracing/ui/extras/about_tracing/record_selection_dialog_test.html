@@ -209,7 +209,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
-    var classList = dlg.categoriesView_.classList;
+    var classList = Polymer.dom(dlg.categoriesView_).classList;
     assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Verify manual settings do not modify the checkboxes.
@@ -297,7 +297,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
-    var classList = dlg.categoriesView_.classList;
+    var classList = Polymer.dom(dlg.categoriesView_).classList;
     assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Switch to manual settings and verify the default values are not returned.
@@ -346,7 +346,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
-    var classList = dlg.categoriesView_.classList;
+    var classList = Polymer.dom(dlg.categoriesView_).classList;
     assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Switch to manual settings and verify the default values are not returned.

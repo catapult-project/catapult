@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
 
   test('modeNameSetter', function() {
     var icon = document.createElement('tr-ui-b-mouse-mode-icon');
-    icon.setAttribute('mode-name', 'SELECTION');
+    Polymer.dom(icon).setAttribute('mode-name', 'SELECTION');
     this.addHTMLOutput(icon);
 
     return Promise.resolve().then(function() {

@@ -142,11 +142,11 @@ tr.exportTo('tr.ui.analysis', function() {
       var symbolEl = document.createElement('span');
       var symbolColorName;
       if (dimension === RowDimension.STACK_FRAME) {
-        symbolEl.textContent = LATIN_SMALL_LETTER_F_WITH_HOOK;
+        Polymer.dom(symbolEl).textContent = LATIN_SMALL_LETTER_F_WITH_HOOK;
         symbolEl.title = 'Stack frame';
         symbolColorName = 'heap_dump_stack_frame';
       } else {
-        symbolEl.textContent = CIRCLED_LATIN_CAPITAL_LETTER_T;
+        Polymer.dom(symbolEl).textContent = CIRCLED_LATIN_CAPITAL_LETTER_T;
         symbolEl.title = 'Object type';
         symbolColorName = 'heap_dump_object_type';
       }

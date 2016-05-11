@@ -291,8 +291,8 @@ Polymer({
     this.labelEl_ = document.createElement('div');
     this.genericObjectView_ =
         document.createElement('tr-ui-a-generic-object-view');
-    Polymer.dom(this.shadowRoot).appendChild(this.labelEl_);
-    Polymer.dom(this.shadowRoot).appendChild(this.genericObjectView_);
+    Polymer.dom(this.root).appendChild(this.labelEl_);
+    Polymer.dom(this.root).appendChild(this.genericObjectView_);
   },
 
   get label() {

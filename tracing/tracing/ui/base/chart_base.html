@@ -227,7 +227,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     decorate: function() {
-      this.classList.add('chart-base');
+      Polymer.dom(this).classList.add('chart-base');
       this.chartTitle_ = undefined;
       this.seriesByKey_ = new Map();
       this.width_ = 400;

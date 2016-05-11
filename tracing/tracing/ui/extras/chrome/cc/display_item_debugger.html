@@ -358,12 +358,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (showOpsList) {
         this.pictureOpsListView_.picture = this.picture_;
         if (this.pictureOpsListView_.numOps > 0) {
-          this.pictureOpsListView_.classList.add('hasPictureOps');
-          this.pictureOpsListDragHandle_.classList.add('hasPictureOps');
+          Polymer.dom(this.pictureOpsListView_).classList.add('hasPictureOps');
+          Polymer.dom(this.pictureOpsListDragHandle_).classList.add(
+              'hasPictureOps');
         }
       } else {
-        this.pictureOpsListView_.classList.remove('hasPictureOps');
-        this.pictureOpsListDragHandle_.classList.remove('hasPictureOps');
+        Polymer.dom(this.pictureOpsListView_).classList.remove('hasPictureOps');
+        Polymer.dom(this.pictureOpsListDragHandle_).classList.remove(
+            'hasPictureOps');
       }
     },
 

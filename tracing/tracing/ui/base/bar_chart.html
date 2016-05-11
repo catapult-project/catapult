@@ -23,7 +23,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
-      this.classList.add('bar-chart');
+      Polymer.dom(this).classList.add('bar-chart');
 
       // BarChart allows bars to have arbitrary, non-uniform widths. Bars need
       // not all be the same width. The width of each bar is automatically

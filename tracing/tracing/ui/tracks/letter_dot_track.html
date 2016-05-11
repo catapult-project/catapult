@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('letter-dot-track');
+      Polymer.dom(this).classList.add('letter-dot-track');
       this.items_ = undefined;
 
       this.heading_ = document.createElement('tr-ui-heading');

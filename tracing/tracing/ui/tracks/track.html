@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
         throw new Error('viewport is required when creating a Track.');
 
       this.viewport_ = viewport;
-      this.classList.add('track');
+      Polymer.dom(this).classList.add('track');
     },
 
     get viewport() {
@@ -57,11 +57,11 @@ tr.exportTo('tr.ui.tracks', function() {
     context: function() {
       // This is a little weird here, but we have to be able to walk up the
       // parent tree to get the context.
-      if (!this.parentNode)
+      if (!Polymer.dom(this).parentNode)
         return undefined;
-      if (!this.parentNode.context)
+      if (!Polymer.dom(this).parentNode.context)
         throw new Error('Parent container does not support context() method.');
-      return this.parentNode.context();
+      return Polymer.dom(this).parentNode.context();
     },
 
     decorateChild_: function(childTrack) {

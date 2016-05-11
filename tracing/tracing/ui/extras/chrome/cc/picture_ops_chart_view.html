@@ -69,7 +69,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this, 'usePercentileScale',
           'PictureOpsChartView.usePercentileScale', false,
           'Limit to 95%-ile');
-      this.usePercentileScaleCheckbox_.classList.add('use-percentile-scale');
+      Polymer.dom(this.usePercentileScaleCheckbox_).classList.add(
+          'use-percentile-scale');
       Polymer.dom(this).appendChild(this.usePercentileScaleCheckbox_);
     },
 

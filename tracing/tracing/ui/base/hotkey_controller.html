@@ -44,7 +44,7 @@ Polymer({
     if (host.parentElement)
       parentElement = host.parentElement;
     else
-      parentElement = host.parentNode.host;
+      parentElement = Polymer.dom(host).parentNode.host;
     var parentController = tr.b.getHotkeyControllerForElement(
         parentElement);
 
@@ -204,8 +204,8 @@ Polymer({
         return this.parentElement;
 
       var node = this;
-      while (node.parentNode) {
-        node = node.parentNode;
+      while (Polymer.dom(node).parentNode) {
+        node = Polymer.dom(node).parentNode;
       }
       return node.host;
     }
@@ -284,8 +284,8 @@ tr.exportTo('tr.b', function() {
 
   function findHost(initialNode) {
     var node = initialNode;
-    while (node.parentNode) {
-      node = node.parentNode;
+    while (Polymer.dom(node).parentNode) {
+      node = Polymer.dom(node).parentNode;
     }
     return node.host;
   }

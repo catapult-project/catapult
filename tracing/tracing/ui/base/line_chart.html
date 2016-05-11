@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
-      this.classList.add('line-chart');
+      Polymer.dom(this).classList.add('line-chart');
     },
 
     isDatumFieldSeries_: function(fieldName) {

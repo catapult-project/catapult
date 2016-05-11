@@ -119,11 +119,13 @@ this.tr = (function() {
 
     showPanicElementIfNeeded();
     var panicMessageEl = document.createElement('div');
-    panicMessageEl.innerHTML =
+    Polymer.dom(panicMessageEl).innerHTML =
         '<h2 id="message"></h2>' +
         '<pre id="details"></pre>';
-    panicMessageEl.querySelector('#message').textContent = panicTitle;
-    panicMessageEl.querySelector('#details').textContent = panicDetails;
+    Polymer.dom(panicMessageEl).querySelector('#message').
+        textContent = panicTitle;
+    Polymer.dom(panicMessageEl).querySelector('#details').
+        textContent = panicDetails;
     Polymer.dom(panicElement).appendChild(panicMessageEl);
 
     rawPanicMessages.push({

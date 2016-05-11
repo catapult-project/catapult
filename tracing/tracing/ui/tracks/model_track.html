@@ -43,7 +43,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('model-track');
+      Polymer.dom(this).classList.add('model-track');
 
       var typeInfos = tr.ui.tracks.Highlighter.getAllRegisteredTypeInfos();
       this.highlighters_ = typeInfos.map(
@@ -394,7 +394,8 @@ tr.exportTo('tr.ui.tracks', function() {
       var bounds = track.getBoundingClientRect();
       var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
       if (size === 0)
-        return this.calculateTrackY_(track.parentNode, canvasBounds);
+        return this.calculateTrackY_(
+            Polymer.dom(track).parentNode, canvasBounds);
 
       return bounds.top - canvasBounds.top + (bounds.height / 2);
     },

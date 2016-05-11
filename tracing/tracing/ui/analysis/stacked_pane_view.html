@@ -118,16 +118,16 @@ Polymer({
 
     // Remove all descendants of the parent pane (or all panes if no parent
     // pane was specified) in reverse order.
-    while (paneContainer.lastElementChild !== null &&
-           paneContainer.lastElementChild !== opt_parentPane) {
-      var removedPane = this.$.pane_container.lastElementChild;
+    while (Polymer.dom(paneContainer).lastElementChild !== null &&
+           Polymer.dom(paneContainer).lastElementChild !== opt_parentPane) {
+      var removedPane = Polymer.dom(this.$.pane_container).lastElementChild;
       var listener = this.listeners_.get(removedPane);
       if (listener === undefined)
         throw new Error('No listener associated with pane');
       this.listeners_.delete(removedPane);
       removedPane.removeEventListener(
           'request-child-pane-change', listener);
-      paneContainer.removeChild(removedPane);
+      Polymer.dom(paneContainer).removeChild(removedPane);
     }
 
     if (opt_parentPane && opt_parentPane.parentElement !== paneContainer)
@@ -171,7 +171,7 @@ Polymer({
    * panes would be rebuilt as well).
    */
   rebuild: function() {
-    var currentPane = this.$.pane_container.firstElementChild;
+    var currentPane = Polymer.dom(this.$.pane_container).firstElementChild;
     while (currentPane) {
       currentPane.rebuild();
       currentPane = currentPane.nextElementSibling;
@@ -181,7 +181,7 @@ Polymer({
   // For testing purposes.
   get panesForTesting() {
     var panes = [];
-    var currentChild = this.$.pane_container.firstElementChild;
+    var currentChild = Polymer.dom(this.$.pane_container).firstElementChild;
     while (currentChild) {
       panes.push(currentChild);
       currentChild = currentChild.nextElementSibling;

@@ -16,8 +16,9 @@ tr.exportTo('tr.b', function() {
         return true;
     }
 
-    if (element.shadowRoot) {
-      if (_iterateElementDeeplyImpl(element.shadowRoot, cb, thisArg, false))
+    if (element.root) {
+      if (_iterateElementDeeplyImpl(Polymer.dom(element.root), cb, thisArg,
+          false))
         return true;
     }
     for (var i = 0; i < element.children.length; i++) {

@@ -57,7 +57,7 @@ tr.b.unittest.testSuite(function() {
       assert.isTrue(didGetCalled);
 
     } finally {
-      document.body.removeChild(rootElement);
+      Polymer.dom(document.body).removeChild(rootElement);
     }
   });
 
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
       rootElement.dispatchEvent(e);
       assert.isTrue(didGetCalled);
     } finally {
-      document.body.removeChild(rootElement);
+      Polymer.dom(document.body).removeChild(rootElement);
     }
   });
 
@@ -130,7 +130,7 @@ tr.b.unittest.testSuite(function() {
       inputEl.dispatchEvent(e);
       assert.isFalse(didGetCalled);
     } finally {
-      document.body.removeChild(rootElement);
+      Polymer.dom(document.body).removeChild(rootElement);
     }
   });
 

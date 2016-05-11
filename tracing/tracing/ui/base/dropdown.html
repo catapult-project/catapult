@@ -118,7 +118,7 @@ Polymer({
     if (this.isOpen)
       return;
 
-    this.$.outer.classList.add('open');
+    Polymer.dom(this.$.outer).classList.add('open');
 
     var ddr = this.$.outer.getBoundingClientRect();
     var rW = Math.max(ddr.width, 150);
@@ -149,7 +149,7 @@ Polymer({
     if (!this.isOpen)
       return;
     this.$.dialog.close();
-    this.$.outer.classList.remove('open');
+    Polymer.dom(this.$.outer).classList.remove('open');
     this.$.outer.focus();
   },
 

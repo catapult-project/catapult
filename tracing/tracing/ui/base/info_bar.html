@@ -58,14 +58,14 @@ Polymer({
   },
 
   get visible() {
-    return !this.classList.contains('info-bar-hidden');
+    return !Polymer.dom(this).classList.contains('info-bar-hidden');
   },
 
   set visible(visible) {
     if (visible)
-      this.classList.remove('info-bar-hidden');
+      Polymer.dom(this).classList.remove('info-bar-hidden');
     else
-      this.classList.add('info-bar-hidden');
+      Polymer.dom(this).classList.add('info-bar-hidden');
   },
 
   removeAllButtons: function() {

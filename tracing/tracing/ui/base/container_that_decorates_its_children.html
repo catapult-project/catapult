@@ -62,7 +62,8 @@ tr.exportTo('tr.ui.b', function() {
 
     clear: function() {
       while (this.lastChild)
-        HTMLDivElement.prototype.removeChild.call(this, this.lastChild);
+        HTMLDivElement.prototype.removeChild.call(
+            this, Polymer.dom(this).lastChild);
       this.didMutate_(this.observer_.takeRecords());
     },
 

@@ -486,7 +486,7 @@ tr.exportTo('tr.ui.b', function() {
           // If the table can be sorted by this column, attach a tap callback
           // to the column.
           if (this.tableColumns_[i].cmp) {
-            td.classList.add('sensitive');
+            Polymer.dom(td).classList.add('sensitive');
             headerCell.tapCallback = this.createSortCallback_(i);
             // Set arrow position, depending on the sortColumnIndex.
             if (this.sortColumnIndex_ === i)
@@ -610,10 +610,10 @@ tr.exportTo('tr.ui.b', function() {
           if (lastAddedRow === undefined) {
             // Put first into the table.
             Polymer.dom(tableSection).insertBefore(
-                htmlNode, tableSection.firstChild);
+                htmlNode, Polymer.dom(tableSection).firstChild);
           } else {
             // This is shorthand for insertAfter(htmlNode, lastAdded).
-            var nextSiblingOfLastAdded = lastAddedRow.nextSibling;
+            var nextSiblingOfLastAdded = Polymer.dom(lastAddedRow).nextSibling;
             Polymer.dom(tableSection).insertBefore(
                 htmlNode, nextSiblingOfLastAdded);
           }
@@ -697,7 +697,7 @@ tr.exportTo('tr.ui.b', function() {
           }
 
           if (this.doesColumnIndexSupportSelection(i))
-            td.classList.add('supports-selection');
+            Polymer.dom(td).classList.add('supports-selection');
 
           if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
             if (rowInfo.userRow[this.subRowsPropertyName_] &&
@@ -707,7 +707,7 @@ tr.exportTo('tr.ui.b', function() {
                   'expand-button');
               expandButton.textContent = RIGHT_ARROW;
               if (rowInfo.isExpanded)
-                expandButton.classList.add('button-expanded');
+                Polymer.dom(expandButton).classList.add('button-expanded');
             } else {
               td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
             }
@@ -791,8 +791,8 @@ tr.exportTo('tr.ui.b', function() {
             continue;
 
           var subNode = subRowInfo.htmlNode;
-          if (subNode && subNode.parentNode === tableSection) {
-            tableSection.removeChild(subNode);
+          if (subNode && Polymer.dom(subNode).parentNode === tableSection) {
+            Polymer.dom(tableSection).removeChild(subNode);
             this.removeSubNodes_(tableSection, subRowInfo, rowInfoMap);
           }
         }
@@ -845,7 +845,7 @@ tr.exportTo('tr.ui.b', function() {
           if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
             var trElement = this.ownerDocument.createElement('tr');
             Polymer.dom(this.$.body).appendChild(trElement);
-            trElement.classList.add('empty-row');
+            Polymer.dom(trElement).classList.add('empty-row');
             var td = this.ownerDocument.createElement('td');
             Polymer.dom(trElement).appendChild(td);
             td.colSpan = this.tableColumns_.length;
@@ -866,9 +866,9 @@ tr.exportTo('tr.ui.b', function() {
               this.tableFooterRows_, this.tableFooterRowsInfo_, 0,
               undefined, undefined);
           if (this.tableFooterRowsInfo_.length) {
-            this.$.body.classList.add('has-footer');
+            Polymer.dom(this.$.body).classList.add('has-footer');
           } else {
-            this.$.body.classList.remove('has-footer');
+            Polymer.dom(this.$.body).classList.remove('has-footer');
           }
           this.footerDirty_ = false;
         }
@@ -942,7 +942,7 @@ tr.exportTo('tr.ui.b', function() {
         // Otherwise, rebuild.
         var expandButton = rowInfo.htmlNode.querySelector('expand-button');
         if (rowInfo.isExpanded) {
-          expandButton.classList.add('button-expanded');
+          Polymer.dom(expandButton).classList.add('button-expanded');
           var lastAddedRow = rowInfo.htmlNode;
           if (rowInfo.userRow[this.subRowsPropertyName_]) {
             this.generateTableRowNodes_(
@@ -952,7 +952,7 @@ tr.exportTo('tr.ui.b', function() {
                 lastAddedRow, rowInfo);
           }
         } else {
-          expandButton.classList.remove('button-expanded');
+          Polymer.dom(expandButton).classList.remove('button-expanded');
           this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
         }
 
@@ -1027,13 +1027,13 @@ tr.exportTo('tr.ui.b', function() {
       setHighlightStyle_: function(highlightAttribute, resolvedHighlightStyle) {
         switch (resolvedHighlightStyle) {
           case HighlightStyle.NONE:
-            this.$.body.removeAttribute(highlightAttribute);
+            Polymer.dom(this.$.body).removeAttribute(highlightAttribute);
             break;
           case HighlightStyle.LIGHT:
-            this.$.body.setAttribute(highlightAttribute, 'light');
+            Polymer.dom(this.$.body).setAttribute(highlightAttribute, 'light');
             break;
           case HighlightStyle.DARK:
-            this.$.body.setAttribute(highlightAttribute, 'dark');
+            Polymer.dom(this.$.body).setAttribute(highlightAttribute, 'dark');
             break;
           default:
             throw new Error('Invalid resolved highlight style ' +
@@ -1228,7 +1228,7 @@ tr.exportTo('tr.ui.b', function() {
         if (this.selectionMode_ === SelectionMode.ROW)
           row.tabIndex = 0;
         else
-          row.removeAttribute('tabIndex');
+          Polymer.dom(row).removeAttribute('tabIndex');
 
         var enableCellTab = this.selectionMode_ === SelectionMode.CELL;
         for (var i = 0; i < this.tableColumns_.length; i++) {
@@ -1236,7 +1236,7 @@ tr.exportTo('tr.ui.b', function() {
           if (enableCellTab && this.doesColumnIndexSupportSelection(i))
             cell.tabIndex = 0;
           else
-            cell.removeAttribute('tabIndex');
+            Polymer.dom(cell).removeAttribute('tabIndex');
         }
       },
 
@@ -1268,18 +1268,18 @@ tr.exportTo('tr.ui.b', function() {
         // Row selection.
         var rowNode = this.selectedTableRowInfo_.htmlNode;
         if (select)
-          rowNode.setAttribute('selected', true);
+          Polymer.dom(rowNode).setAttribute('selected', true);
         else
-          rowNode.removeAttribute('selected');
+          Polymer.dom(rowNode).removeAttribute('selected');
 
         // Cell selection (if applicable).
         var cellNode = rowNode.children[this.selectedColumnIndex_];
         if (!cellNode)
           return;
         if (select)
-          cellNode.setAttribute('selected', true);
+          Polymer.dom(cellNode).setAttribute('selected', true);
         else
-          cellNode.removeAttribute('selected');
+          Polymer.dom(cellNode).removeAttribute('selected');
       },
 
       doesColumnIndexSupportSelection: function(columnIndex) {

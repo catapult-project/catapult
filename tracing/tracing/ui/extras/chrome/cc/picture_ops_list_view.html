@@ -80,7 +80,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // Display the element info associated with the op, if available.
         if (op.elementInfo.tag || op.elementInfo.id || op.elementInfo.class) {
           var elementInfo = document.createElement('span');
-          elementInfo.classList.add('elementInfo');
+          Polymer.dom(elementInfo).classList.add('elementInfo');
           var tag = op.elementInfo.tag ? op.elementInfo.tag : 'unknown';
           var id = op.elementInfo.id ? 'id=' + op.elementInfo.id : undefined;
           var className = op.elementInfo.class ? 'class=' +
@@ -104,7 +104,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // Display the op timing, if available.
         if (op.cmd_time && op.cmd_time >= 0.0001) {
           var time = document.createElement('span');
-          time.classList.add('time');
+          Polymer.dom(time).classList.add('time');
           var rounded = op.cmd_time.toFixed(4);
           time.textContent = '(' + rounded + 'ms)';
           Polymer.dom(item).appendChild(time);
@@ -134,9 +134,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           beforeSelectedOp = false;
           this.selectedOpIndex_ = op.opIndex;
         } else if (beforeSelectedOp) {
-          op.setAttribute('beforeSelection', 'beforeSelection');
+          Polymer.dom(op).setAttribute('beforeSelection', 'beforeSelection');
         } else {
-          op.removeAttribute('beforeSelection');
+          Polymer.dom(op).removeAttribute('beforeSelection');
         }
       }
 

@@ -214,7 +214,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       Polymer.dom(this.controls_).appendChild(showInputEventsCheckbox);
 
       this.whatRasterizedLink_ = document.createElement('a');
-      this.whatRasterizedLink_.classList.add('what-rasterized');
+      Polymer.dom(this.whatRasterizedLink_).classList.add('what-rasterized');
       this.whatRasterizedLink_.textContent = 'What rasterized?';
       this.whatRasterizedLink_.addEventListener(
           'click', this.onWhatRasterizedLinkClicked_.bind(this));

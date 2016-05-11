@@ -72,9 +72,9 @@ Polymer({
   set active(active) {
     this.active_ = !!active;
     if (this.active_)
-      this.classList.add('active');
+      Polymer.dom(this).classList.add('active');
     else
-      this.classList.remove('active');
+      Polymer.dom(this).classList.remove('active');
     this.updateContents_();
   },
 

@@ -60,7 +60,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
-      showPureTransformLayers.classList.add('show-transform-layers');
+      Polymer.dom(showPureTransformLayers).classList.add(
+          'show-transform-layers');
       showPureTransformLayers.title =
           'When checked, pure transform layers are shown';
       Polymer.dom(this.controls_).appendChild(showPureTransformLayers);

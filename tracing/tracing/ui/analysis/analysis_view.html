@@ -95,13 +95,13 @@ using custom elements specialized for different event types.
 
     set tallMode(value) {
       if (value)
-        this.classList.add('tall-mode');
+        Polymer.dom(this).classList.add('tall-mode');
       else
-        this.classList.remove('tall-mode');
+        Polymer.dom(this).classList.remove('tall-mode');
     },
 
     get tallMode() {
-      return this.classList.contains('tall-mode');
+      return Polymer.dom(this).classList.contains('tall-mode');
     },
 
     get tabView() {
@@ -196,7 +196,7 @@ using custom elements specialized for different event types.
       }
       // If all else fails, pick the first tab.
       if (!tab)
-        tab = this.tabView_.firstChild;
+        tab = Polymer.dom(this.tabView_).firstChild;
 
       this.tabView_.selectedTab = tab;
       this.onSelectedTabChange_();

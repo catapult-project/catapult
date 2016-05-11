@@ -92,7 +92,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       this.saveButton_ = this.querySelector('#save-button');
 
       var buttons = this.querySelector('x-timeline-view-buttons');
-      buttons.parentElement.removeChild(buttons);
+      Polymer.dom(buttons.parentElement).removeChild(buttons);
       Polymer.dom(this.timelineView_.leftControls).appendChild(buttons);
       this.initButtons_();
 

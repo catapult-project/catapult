@@ -206,14 +206,14 @@ Polymer({
   },
 
   get rightAlign() {
-    return this.$.content.classList.contains('right-align');
+    return Polymer.dom(this.$.content).classList.contains('right-align');
   },
 
   set rightAlign(rightAlign) {
     if (rightAlign)
-      this.$.content.classList.add('right-align');
+      Polymer.dom(this.$.content).classList.add('right-align');
     else
-      this.$.content.classList.remove('right-align');
+      Polymer.dom(this.$.content).classList.remove('right-align');
   },
 
   updateSparkline_: function() {

@@ -122,8 +122,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     ready: function() {
-      this.buttonsEl_ = this.shadowRoot.querySelector('.buttons');
-      this.dragHandleEl_ = this.shadowRoot.querySelector('.drag-handle');
+      this.buttonsEl_ = Polymer.dom(this.root).querySelector('.buttons');
+      this.dragHandleEl_ = Polymer.dom(this.root).querySelector(
+          '.drag-handle');
       this.supportedModeMask = MOUSE_SELECTOR_MODE.ALL_MODES;
 
       this.dragHandleEl_.addEventListener('mousedown',
@@ -220,7 +221,7 @@ tr.exportTo('tr.ui.b', function() {
 
         var button = document.createElement('tr-ui-b-mouse-mode-icon');
         button.mode = mode;
-        button.classList.add('tool-button');
+        Polymer.dom(button).classList.add('tool-button');
 
         Polymer.dom(this.buttonsEl_).appendChild(button);
       }

@@ -152,10 +152,10 @@ tr.exportTo('tr.ui.b', function() {
       return false;
 
     var cur = el;
-    while (cur.parentNode) {
+    while (Polymer.dom(cur).parentNode) {
       if (cur == potentialParent)
         return true;
-      cur = cur.parentNode;
+      cur = Polymer.dom(cur).parentNode;
     }
     return false;
   };

@@ -9,10 +9,10 @@ found in the LICENSE file.
       href="/tracing/ui/extras/system_stats/system_stats_instance_track.css">
 
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
-<link rel="import" href="/tracing/ui/tracks/stacked_bars_track.html">
-<link rel="import" href="/tracing/ui/tracks/object_instance_track.html">
 <link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/tracks/object_instance_track.html">
+<link rel="import" href="/tracing/ui/tracks/stacked_bars_track.html">
 
 <script>
 'use strict';
@@ -57,7 +57,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.StackedBarsTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('tr-ui-e-system-stats-instance-track');
+      Polymer.dom(this).classList.add('tr-ui-e-system-stats-instance-track');
       this.objectInstance_ = null;
     },
 

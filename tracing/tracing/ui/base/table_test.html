@@ -385,7 +385,8 @@ tr.b.unittest.testSuite(function() {
         });
     assert.isDefined(bToplevelEl);
     var expandButton = bToplevelEl.parentElement.querySelector('expand-button');
-    assert.isTrue(expandButton.classList.contains('button-expanded'));
+    assert.isTrue(Polymer.dom(expandButton).classList.contains(
+        'button-expanded'));
   });
 
 
@@ -1250,7 +1251,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     // check that we don't have 'undefined' anywhere
-    assert.isTrue(table.$.body.innerHTML.indexOf('undefined') < 0);
+    assert.isTrue(Polymer.dom(table.$.body).innerHTML.indexOf('undefined') < 0);
   });
 
   test('customizeTableRowCallback', function() {

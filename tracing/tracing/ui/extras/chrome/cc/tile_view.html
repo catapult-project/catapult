@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('tr-ui-e-chrome-cc-tile-snapshot-view');
+      Polymer.dom(this).classList.add('tr-ui-e-chrome-cc-tile-snapshot-view');
       this.layerTreeView_ =
           new tr.ui.e.chrome.cc.LayerTreeHostImplSnapshotView();
       Polymer.dom(this).appendChild(this.layerTreeView_);
