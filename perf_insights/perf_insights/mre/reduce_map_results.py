@@ -57,7 +57,9 @@ def ReduceMapResults(job_results, key, file_handle, job):
             'vinn runtime error while reducing results.', 'Unknown stack'))
 
       elif found_type == 'RESULTS':
-        job_results.AddPair(key, found_dict[key])
+        if not key in job_results.pairs:
+          job_results.pairs[key] = []
+        job_results.pairs[key].append(found_dict[key])
     else:
       if len(line) > 0:
         sys.stderr.write(line)
