@@ -16,6 +16,7 @@ from telemetry.internal.browser import browser_info as browser_info_module
 from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
+from telemetry.page import cache_temperature
 from telemetry.page import legacy_page_test
 from telemetry import story
 from telemetry.util import image_util
@@ -76,6 +77,7 @@ class SharedPageState(story.SharedState):
 
     self._first_browser = True
     self._did_login_for_current_page = False
+    self._previous_page = None
     self._current_page = None
     self._current_tab = None
 
@@ -158,6 +160,7 @@ class SharedPageState(story.SharedState):
     try:
       if self._current_tab and self._current_tab.IsAlive():
         self._current_tab.CloseConnections()
+      self._previous_page = self._current_page
     except Exception:
       if self._current_tab:
         self._current_tab.Close()
@@ -268,6 +271,9 @@ class SharedPageState(story.SharedState):
       # loading so we'll wait forever.
       if started_browser:
         self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
+
+    cache_temperature.EnsurePageCacheTemperature(
+        self._current_page, self.browser, self._previous_page)
 
     # Start profiling if needed.
     if self._finder_options.profiler:
