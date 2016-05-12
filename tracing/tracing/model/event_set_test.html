@@ -42,6 +42,14 @@ tr.b.unittest.testSuite(function() {
     assert.equal(eventSet.length, 0);
   });
 
+  test('iteration', function() {
+    var eventSet = new tr.model.EventSet([{guid: 1}, {guid: 2}, {guid: 3}]);
+
+    var expectedId = 1;
+    for (var event of eventSet)
+      assert.equal(event.guid, expectedId++);
+  });
+
   test('uniqueContents', function() {
     var sample1 = {guid: 1};
     var sample2 = {guid: 2};
