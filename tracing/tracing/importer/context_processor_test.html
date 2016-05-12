@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/importer/context_processor.html">
+<link rel="import" href="/tracing/model/scoped_id.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var ContextProcessor = tr.importer.ContextProcessor;
+
+  test('empty', function() {
+    var processor = new ContextProcessor();
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('enterAndLeave', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+    processor.enterContext('type', id);
+    assert.deepEqual(processor.activeContexts, [expectedContext]);
+    processor.leaveContext('type', id);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('parallelContexts', function() {
+    var processor = new ContextProcessor();
+    var idA = new tr.model.ScopedId('ptr', 123);
+    var idB = new tr.model.ScopedId('idx', 456);
+    var expectedContextA = {type: 'A', snapshot: {scope: 'ptr', idRef: 123}};
+    var expectedContextB = {type: 'B', snapshot: {scope: 'idx', idRef: 456}};
+
+    // Entering and leaving in order.
+    processor.enterContext('A', idA);
+    assert.deepEqual(processor.activeContexts, [expectedContextA]);
+    processor.enterContext('B', idB);
+    assert.deepEqual(processor.activeContexts, [expectedContextA,
+                                                expectedContextB]);
+    processor.leaveContext('B', idB);
+    assert.deepEqual(processor.activeContexts, [expectedContextA]);
+    processor.leaveContext('A', idA);
+    assert.deepEqual(processor.activeContexts, []);
+
+    // Entering and leaving out of order.
+    processor.enterContext('B', idB);
+    assert.deepEqual(processor.activeContexts, [expectedContextB]);
+    processor.enterContext('A', idA);
+    assert.deepEqual(processor.activeContexts, [expectedContextA,
+                                                expectedContextB]);
+    processor.leaveContext('B', idB);
+    assert.deepEqual(processor.activeContexts, [expectedContextA]);
+    processor.leaveContext('A', idA);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('contextStack', function() {
+    var processor = new ContextProcessor();
+    var idA = new tr.model.ScopedId('ptr', 123);
+    var idB = new tr.model.ScopedId('idx', 456);
+    var expectedContextA = {
+        type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+    var expectedContextB = {
+        type: 'type', snapshot: {scope: 'idx', idRef: 456}};
+
+    // Entering and leaving the same context type.
+    processor.enterContext('type', idA);
+    assert.deepEqual(processor.activeContexts, [expectedContextA]);
+    processor.enterContext('type', idB);
+    assert.deepEqual(processor.activeContexts, [expectedContextB]);
+    processor.leaveContext('type', idB);
+    assert.deepEqual(processor.activeContexts, [expectedContextA]);
+    processor.leaveContext('type', idA);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('contextCached', function() {
+    var processor = new ContextProcessor();
+    var idA = new tr.model.ScopedId('ptr', 123);
+    var idB = new tr.model.ScopedId('idx', 456);
+    var expectedContextA = {
+        type: 'A', snapshot: {scope: 'ptr', idRef: 123}};
+    var expectedContextB = {
+        type: 'B', snapshot: {scope: 'idx', idRef: 456}};
+
+    processor.enterContext('A', idA);
+    var firstSet = processor.activeContexts;
+    processor.enterContext('B', idB);
+    var secondSet = processor.activeContexts;
+    processor.leaveContext('B', idB);
+    processor.leaveContext('A', idA);
+
+    assert.deepEqual(firstSet, [expectedContextA]);
+    assert.deepEqual(secondSet, [expectedContextA, expectedContextB]);
+
+    // Identical context objects should be the same instance.
+    assert(Object.is(firstSet[0], secondSet[0]));
+  });
+
+  test('contextSetCached', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+
+    processor.enterContext('type', id);
+    var firstSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    processor.enterContext('type', id);
+    var secondSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    assert.deepEqual(firstSet, [expectedContext]);
+    assert(Object.is(firstSet, secondSet));
+  });
+
+  test('contextSetIsOrdered', function() {
+    var processor = new ContextProcessor();
+    var idA = new tr.model.ScopedId('ptr', 123);
+    var idB = new tr.model.ScopedId('idx', 456);
+    var expectedContextA = {type: 'A', snapshot: {scope: 'ptr', idRef: 123}};
+    var expectedContextB = {type: 'B', snapshot: {scope: 'idx', idRef: 456}};
+
+    processor.enterContext('A', idA);
+    processor.enterContext('B', idB);
+    var firstSet = processor.activeContexts;
+    processor.leaveContext('B', idB);
+    processor.leaveContext('A', idA);
+
+    processor.enterContext('B', idB);
+    processor.enterContext('A', idA);
+    var secondSet = processor.activeContexts;
+    processor.leaveContext('A', idA);
+    processor.leaveContext('B', idB);
+
+    assert.deepEqual(firstSet, [expectedContextA, expectedContextB]);
+    assert(Object.is(firstSet, secondSet));
+  });
+
+  test('contextSetIsFrozen', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    assert(Object.isFrozen(processor.activeContexts));
+    processor.enterContext('type', id);
+    assert(Object.isFrozen(processor.activeContexts));
+    processor.leaveContext('type', id);
+    assert(Object.isFrozen(processor.activeContexts));
+  });
+
+  test('cacheInvalidation', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+
+    processor.enterContext('type', id);
+    var firstSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    processor.invalidateContextCacheForSnapshot(id);
+
+    processor.enterContext('type', id);
+    var secondSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    assert.deepEqual(firstSet, [expectedContext]);
+    assert.deepEqual(secondSet, [expectedContext]);
+    assert(!Object.is(firstSet, secondSet));
+    assert(!Object.is(firstSet[0], secondSet[0]));
+  });
+
+  test('cacheInvalidationForUnrelatedSnapshot', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    var unrelatedId = new tr.model.ScopedId('ofs', 789);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+
+    processor.enterContext('type', id);
+    var firstSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    processor.invalidateContextCacheForSnapshot(unrelatedId);
+
+    processor.enterContext('type', id);
+    var secondSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    assert.deepEqual(firstSet, [expectedContext]);
+    assert.deepEqual(secondSet, [expectedContext]);
+    assert(Object.is(firstSet, secondSet));
+    assert(Object.is(firstSet[0], secondSet[0]));
+  });
+});
+</script>

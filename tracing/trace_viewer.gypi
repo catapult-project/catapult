@@ -149,6 +149,7 @@
       'tracing/extras/tquery/filter_not.html',
       'tracing/extras/tquery/tquery.html',
       'tracing/extras/vsync/vsync_auditor.html',
+      'tracing/importer/context_processor.html',
       'tracing/importer/empty_importer.html',
       'tracing/importer/find_input_expectations.html',
       'tracing/importer/find_load_expectations.html',

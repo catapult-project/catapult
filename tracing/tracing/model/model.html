@@ -638,7 +638,7 @@ tr.exportTo('tr', function() {
     },
 
     searchItemForIDRefs_: function(pid, itemTimestampField, item) {
-      if (!item.args)
+      if (!item.args && !item.contexts)
         return;
       var patchupsToApply = this.patchupsToApply_;
 
@@ -686,6 +686,7 @@ tr.exportTo('tr', function() {
       }
 
       iterObjectFieldsRecursively(item.args);
+      iterObjectFieldsRecursively(item.contexts);
     }
   };
 

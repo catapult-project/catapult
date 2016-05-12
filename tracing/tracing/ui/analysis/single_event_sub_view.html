@@ -229,15 +229,32 @@ found in the LICENSE file.
           var argView =
               document.createElement('tr-ui-a-generic-object-view');
           argView.object = args[argName];
-          subRows.push({ name: argName,
-                      value: argView});
+          subRows.push({name: argName, value: argView});
         }
         rows.push({
-          name: 'Args', value: '',
-          isExpanded: true, subRows: subRows
+          name: 'Args',
+          value: '',
+          isExpanded: true,
+          subRows: subRows
         });
       }
-      return rows;
+    },
+
+    addContextsToRows_: function(rows, contexts) {
+      if (contexts.length) {
+        var subRows = contexts.map(function(context) {
+          var contextView =
+              document.createElement('tr-ui-a-generic-object-view');
+          contextView.object = context;
+          return {name: 'Context', value: contextView};
+        });
+        rows.push({
+          name: 'Contexts',
+          value: '',
+          isExpanded: true,
+          subRows: subRows
+        });
+      }
     },
 
     updateContents_: function() {
@@ -254,6 +271,7 @@ found in the LICENSE file.
         rows.push({ name: 'Args', value: 'Stripped' });
       else
         this.addArgsToRows_(rows, event.args);
+      this.addContextsToRows_(rows, event.contexts);
 
       var event = new tr.b.Event('customize-rows');
       event.rows = rows;

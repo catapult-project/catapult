@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.importer', function() {
+  /**
+   * The context processor consumes context events and maintains a set of
+   * active contexts for a single thread.
+   *
+   * @constructor
+   */
+  function ContextProcessor(model) {
+    this.model_ = model;
+    this.activeContexts_ = [];
+    this.stackPerType_ = {};
+    // Cache of unique context objects.
+    this.contextCache_ = {};
+    // Cache of unique context object sets.
+    this.contextSetCache_ = {};
+    this.cachedEntryForActiveContexts_ = undefined;
+    // All seen context object snapshots.
+    this.seenSnapshots_ = {};
+  };
+
+  ContextProcessor.prototype = {
+    enterContext: function(contextType, scopedId) {
+      var newActiveContexts = [this.getOrCreateContext_(contextType, scopedId)];
+      for (var oldContext of this.activeContexts_) {
+        if (oldContext.type === contextType) {
+          // If a previous context of the same type is active, it is removed
+          // and pushed onto the stack for this type.
+          this.pushContext_(oldContext);
+        } else {
+          // Otherwise the old context is it is still active.
+          newActiveContexts.push(oldContext);
+        }
+      }
+      this.activeContexts_ = newActiveContexts;
+      this.cachedEntryForActiveContexts_ = undefined;
+    },
+
+    leaveContext: function(contextType, scopedId) {
+      var newActiveContexts = [];
+      for (var oldContext of this.activeContexts_) {
+        if (oldContext.type === contextType &&
+            oldContext.snapshot.scope === scopedId.scope &&
+            oldContext.snapshot.idRef === scopedId.id) {
+          // If we left this context, remove it from the active set and
+          // restore any previous context of the same type.
+          var previousContext = this.popContext_(contextType);
+          if (previousContext)
+            newActiveContexts.push(previousContext);
+        } else if (oldContext.type !== contextType) {
+          // If a previous context is of a different type, it is still
+          // active.
+          newActiveContexts.push(oldContext);
+        } else {
+          // Should never find two active contexts of the same type.
+          this.model_.importWarning({
+            type: 'context_event_parse_error',
+            message: 'Multiple contexts of the same type active: ' +
+                contextType + '.'
+          });
+        }
+      }
+      this.activeContexts_ = newActiveContexts;
+      this.cachedEntryForActiveContexts_ = undefined;
+    },
+
+    getOrCreateContext_: function(contextType, scopedId) {
+      var context = {
+        type: contextType,
+        snapshot: {
+          scope: scopedId.scope,
+          idRef: scopedId.id
+        }
+      };
+      var key = this.getContextKey_(context);
+      if (key in this.contextCache_)
+        return this.contextCache_[key];
+      this.contextCache_[key] = context;
+      var snapshotKey = this.getSnapshotKey_(scopedId);
+      this.seenSnapshots_[snapshotKey] = true;
+      return context;
+    },
+
+    pushContext_: function(context) {
+      if (!(context.type in this.stackPerType_))
+        this.stackPerType_[context.type] = [];
+      this.stackPerType_[context.type].push(context);
+    },
+
+    popContext_: function(contextType) {
+      if (!(contextType in this.stackPerType_))
+        return undefined;
+      return this.stackPerType_[contextType].pop();
+    },
+
+    getContextKey_: function(context) {
+      return [
+        context.type,
+        context.snapshot.scope,
+        context.snapshot.idRef
+      ].join('\x00');
+    },
+
+    getSnapshotKey_: function(scopedId) {
+      return [
+        scopedId.scope,
+        scopedId.idRef
+      ].join('\x00');
+    },
+
+    get activeContexts() {
+      // Keep a single instance for each unique set of active contexts to
+      // reduce memory usage.
+      if (this.cachedEntryForActiveContexts_ === undefined) {
+        var key = [];
+        for (var context of this.activeContexts_)
+          key.push(this.getContextKey_(context));
+        key.sort();
+        key = key.join('\x00');
+        if (key in this.contextSetCache_) {
+          this.cachedEntryForActiveContexts_ = this.contextSetCache_[key];
+        } else {
+          this.activeContexts_.sort(function(a, b) {
+            var keyA = this.getContextKey_(a);
+            var keyB = this.getContextKey_(b);
+            if (keyA < keyB)
+              return -1;
+            if (keyA > keyB)
+              return 1;
+            return 0;
+          }.bind(this));
+          this.contextSetCache_[key] = Object.freeze(this.activeContexts_);
+          this.cachedEntryForActiveContexts_ = this.contextSetCache_[key];
+        }
+      }
+      return this.cachedEntryForActiveContexts_;
+    },
+
+    invalidateContextCacheForSnapshot: function(scopedId) {
+      var snapshotKey = this.getSnapshotKey_(scopedId);
+      if (!(snapshotKey in this.seenSnapshots_))
+        return;
+      this.contextCache_ = {};
+      this.contextSetCache_ = {};
+      this.cachedEntryForActiveContexts_ = undefined;
+      this.activeContexts_ = this.activeContexts_.slice();
+      this.seenSnapshots_ = {};
+    },
+  };
+
+  return {
+    ContextProcessor: ContextProcessor
+  };
+});
+</script>

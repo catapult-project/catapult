@@ -25,6 +25,9 @@ tr.exportTo('tr.model', function() {
     this.duration = 0;
     this.cpuStart = undefined;
     this.cpuDuration = undefined;
+    // The set of contexts this event belongs to (order is unimportant). This
+    // array should never be modified.
+    this.contexts = Object.freeze([]);
   }
 
   TimedEvent.prototype = {
