@@ -31,10 +31,10 @@ class ProcessMemoryMaps(object):
   """Represents 'process_mmaps' trace file entry."""
 
   class Region(object):
-    def __init__(self, start_address, size, file_name):
+    def __init__(self, start_address, size, file_path):
       self._start_address = start_address
       self._size = size
-      self._file_name = file_name
+      self._file_path = file_path
 
     @property
     def start_address(self):
@@ -49,8 +49,8 @@ class ProcessMemoryMaps(object):
       return self._size
 
     @property
-    def file_name(self):
-      return self._file_name
+    def file_path(self):
+      return self._file_path
 
     def __cmp__(self, other):
       if isinstance(other, type(self)):
@@ -62,7 +62,7 @@ class ProcessMemoryMaps(object):
 
     def __repr__(self):
       return 'Region(0x{:X} - 0x{:X}, {})'.format(
-          self.start_address, self.end_address, self.file_name)
+          self.start_address, self.end_address, self.file_path)
 
   def __init__(self, process_mmaps):
     """Parses 'process_mmaps' dictionary."""
@@ -105,84 +105,54 @@ class ProcessMemoryMaps(object):
 class StackFrames(object):
   """Represents 'stackFrames' trace file entry."""
 
+  class PCFrame(object):
+    def __init__(self, pc, frame):
+      self._modified = False
+      self._pc = pc
+      self._frame = frame
+
+    @property
+    def modified(self):
+      return self._modified
+
+    @property
+    def pc(self):
+      return self._pc
+
+    @property
+    def name(self):
+      return self._frame['name']
+
+    @name.setter
+    def name(self, value):
+      self._modified = True
+      self._frame['name'] = value
+
   def __init__(self, stack_frames):
-    """Constructs object using 'stackFrames' dictionary.
+    """Constructs object using 'stackFrames' dictionary."""
+    self._pc_frames = []
+    for frame in stack_frames.itervalues():
+      pc_frame = self._ParsePCFrame(frame)
+      if pc_frame:
+        self._pc_frames.append(pc_frame)
 
-    Saves reference to the dictionary for later modification by SymbolizePCs().
-    """
-    self._stack_frames = stack_frames
+  @property
+  def pc_frames(self):
+    return self._pc_frames
 
-  def CollectPCs(self):
-    """Parses stack frames and returns list of PCs (program counters)."""
-    return [pc for _, pc in self._IteratePCs()]
-
-  def SymbolizePCs(self, pc_symbol_map):
-    """Symbolizes PCs using the provided pc->symbol mapping.
-
-    Function translates each PC using |pc_symbol_map| and updates stack_frames
-    dictionary this object was created with.
-    """
-    symbolized = False
-    for frame, pc in self._IteratePCs():
-      if pc in pc_symbol_map:
-        frame['name'] = pc_symbol_map[pc]
-        symbolized = True
-    return symbolized
+  @property
+  def modified(self):
+    return any(f.modified for f in self._pc_frames)
 
   _PC_TAG = 'pc:'
 
-  def _ParsePC(self, name):
+  @classmethod
+  def _ParsePCFrame(self, frame):
+    name = frame['name']
     if not name.startswith(self._PC_TAG):
       return None
-    return long(name[len(self._PC_TAG):], 16)
-
-  def _IteratePCs(self):
-    for frame in self._stack_frames.itervalues():
-      pc = self._ParsePC(frame['name'])
-      if pc is not None:
-        yield (frame, pc)
-
-
-class Symbolizer(object):
-  """Convenience wrapper for ELFSymbolizer."""
-
-  def __init__(self, binary_path, addr2line_path):
-    self._pc_symbol_map = {}
-    self._failed_pcs = set()
-    self._queued_pcs = set()
-    self._elf_symbolizer = elf_symbolizer.ELFSymbolizer(
-        binary_path,
-        addr2line_path,
-        self._SymbolizerCallback)
-
-  @property
-  def pc_symbol_map(self):
-    return self._pc_symbol_map
-
-  @property
-  def failed_pcs(self):
-    return self._failed_pcs
-
-  def SymbolizeAsync(self, pc, region):
-    if pc in self._queued_pcs:
-      return
-
-    # SymbolizeAsync() asserts that the type of address is int. We operate
-    # on longs (since they are raw pointers possibly from 64-bit processes).
-    # It's OK to cast here because we're passing relative address, which
-    # should always fit into int.
-    self._elf_symbolizer.SymbolizeAsync(int(pc - region.start_address), pc)
-    self._queued_pcs.add(pc)
-
-  def Join(self):
-    self._elf_symbolizer.Join()
-
-  def _SymbolizerCallback(self, sym_info, pc):
-    self._queued_pcs.remove(pc)
-    if sym_info.name:
-      self._pc_symbol_map[pc] = sym_info.name
-    else:
-      self._failed_pcs.add(pc)
+    pc = long(name[len(self._PC_TAG):], 16)
+    return self.PCFrame(pc, frame)
 
 
 class Process(object):
@@ -229,54 +199,91 @@ def CollectProcesses(trace):
   return [p for p in process_map.itervalues() if p.mmaps and p.stack_frames]
 
 
-def SymbolizeProcess(process, addr2line_path):
-  """Symbolizes all PCs in the given process."""
+class SymbolizableFile(object):
+  """Holds file path, addresses to symbolize and stack frames to update.
 
-  pcs = process.stack_frames.CollectPCs()
-  if not pcs:
-    return False
+  This class is a link between ELFSymbolizer and a trace file: it specifies
+  what to symbolize (addresses) and what to update with the symbolization
+  result (frames).
+  """
+  def __init__(self, file_path):
+    self.path = file_path
+    self.frames_by_address = collections.defaultdict(list)
 
-  print 'Symbolizing {} ({})...'.format(process.name, process.pid)
+
+def ResolveSymbolizableFiles(processes):
+  """Resolves and groups PCs into list of SymbolizableFiles.
+
+  As part of the grouping process, this function resolves PC from each stack
+  frame to the corresponding mmap region. Stack frames that failed to resolve
+  are symbolized with '<unresolved>'.
+  """
+  symfile_by_path = {}
+  for process in processes:
+    for frame in process.stack_frames.pc_frames:
+      region = process.mmaps.FindRegion(frame.pc)
+      if region is None:
+        frame.name = '<unresolved>'
+        continue
+
+      symfile = symfile_by_path.get(region.file_path)
+      if symfile is None:
+        symfile = SymbolizableFile(region.file_path)
+        symfile_by_path[symfile.path] = symfile
+
+      relative_pc = frame.pc - region.start_address
+      symfile.frames_by_address[relative_pc].append(frame)
+  return symfile_by_path.values()
+
+
+def SymbolizeFiles(symfiles, addr2line_path):
+  """Symbolizes each file in the given list of SymbolizableFiles
+     and updates stack frames with symbolization results."""
+  print 'Symbolizing...'
 
   def _SubPrintf(message, *args):
     print ('  ' + message).format(*args)
 
-  unresolved_pcs_count = 0
-  pending_pc_regions = collections.defaultdict(list)
-  for pc in pcs:
-    region = process.mmaps.FindRegion(pc)
-    if region is None:
-      unresolved_pcs_count += 1
-      continue
-    pc_regions = pending_pc_regions[region.file_name]
-    pc_regions.append((pc, region))
+  for symfile in symfiles:
+    unsymbolized_name = '<{}>'.format(
+        symfile.path if symfile.path else 'unnamed')
 
-  if unresolved_pcs_count != 0:
-    _SubPrintf('{} PCs were not resolved.', unresolved_pcs_count)
-
-  pc_symbol_map = {}
-  for file_name, pc_regions in pending_pc_regions.iteritems():
     problem = None
-    if not os.path.isabs(file_name):
+    if not os.path.isabs(symfile.path):
       problem = 'not a file'
-    elif not os.path.isfile(file_name):
+    elif not os.path.isfile(symfile.path):
       problem = "file doesn't exist"
     if problem:
-      _SubPrintf('Not symbolizing {} PCs for "{}": {}.',
-                 len(pc_regions), file_name, problem)
+      _SubPrintf("Can't symbolize {} PCs for '{}': {}.",
+                 len(symfile.frames_by_address),
+                 symfile.path,
+                 problem)
+      for frames in symfile.frames_by_address.itervalues():
+        for frame in frames:
+          frame.name = unsymbolized_name
       continue
 
-    symbolizer = Symbolizer(file_name, addr2line_path)
-    for pc, region in pc_regions:
-      symbolizer.SymbolizeAsync(pc, region)
-    symbolizer.Join()
-    _SubPrintf('{}: {} PCs symbolized ({} failed)',
-               file_name,
-               len(symbolizer.pc_symbol_map),
-               len(symbolizer.failed_pcs))
-    pc_symbol_map.update(symbolizer.pc_symbol_map)
+    def _SymbolizerCallback(sym_info, frames):
+      symbolized_name = sym_info.name if sym_info.name else unsymbolized_name
+      for frame in frames:
+        frame.name = symbolized_name
 
-  return process.stack_frames.SymbolizePCs(pc_symbol_map)
+    symbolizer = elf_symbolizer.ELFSymbolizer(symfile.path,
+                                              addr2line_path,
+                                              _SymbolizerCallback)
+
+    _SubPrintf('Symbolizing {} PCs from {}...',
+               len(symfile.frames_by_address),
+               symfile.path)
+
+    for address, frames in symfile.frames_by_address.iteritems():
+      # SymbolizeAsync() asserts that the type of address is int. We operate
+      # on longs (since they are raw pointers possibly from 64-bit processes).
+      # It's OK to cast here because we're passing relative PC, which should
+      # always fit into int.
+      symbolizer.SymbolizeAsync(int(address), frames)
+
+    symbolizer.Join()
 
 
 def FindInSystemPath(binary_name):
@@ -316,13 +323,10 @@ def main():
     trace = json.load(trace_file)
 
   processes = CollectProcesses(trace)
+  symfiles = ResolveSymbolizableFiles(processes)
+  SymbolizeFiles(symfiles, addr2line_path)
 
-  update_trace = False
-  for process in processes:
-    if SymbolizeProcess(process, addr2line_path):
-      update_trace = True
-
-  if update_trace:
+  if any(p.stack_frames.modified for p in processes):
     if options.backup:
       backup_file_path = trace_file_path + BACKUP_FILE_TAG
       print 'Backing up trace file to {}...'.format(backup_file_path)
