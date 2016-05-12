@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
+
+<polymer-element name='tr-ui-value-set-view'>
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      width: 400px;
+    }
+    table-container {
+      display: flex;
+      min-height: 0px;
+      overflow-y: auto;
+    }
+    div#error {
+      color: red;
+    }
+    </style>
+
+    <div id="error"></div>
+    <table-container>
+      <tr-ui-b-table id="table"></tr-ui-b-table>
+    </table-container>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+tr.exportTo('tr.ui', function() {
+  Polymer('tr-ui-value-set-view', {
+    ready: function() {
+      this.$.table.sortDescending = true;
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.table.tableColumns = [
+        {
+          title: 'Name',
+          value: function(value) {
+            var nameEl = document.createElement('span');
+            nameEl.textContent = value.name;
+            nameEl.title = value.description;
+            nameEl.style.textOverflow = 'ellipsis';
+            return nameEl;
+          },
+          cmp: function(a, b) {
+            return a.name.localeCompare(b.name);
+          },
+          width: '200px'
+        },
+        {
+          title: 'Value',
+          textAlign: 'right',
+          value: function(value) {
+            if (value.unit) {
+              return tr.v.ui.createScalarSpan(
+                  value.value, {unit: value.unit});
+            }
+            return value.value;
+          },
+          cmp: function(a, b) {
+            return a.value - b.value;
+          },
+          width: '80px'
+        }
+      ];
+      this.$.table.sortColumnIndex = 1;
+    },
+
+    set error(err) {
+      this.$.error.textContent = err;
+      this.$.table.tableRows = [];
+      this.$.table.rebuild();
+    },
+
+    set values(values) {
+      this.$.error.textContent = '';
+
+      this.$.table.tableRows = values.map(function(value) {
+        var row = {
+          name: value.name,
+          value: '',
+          unit: undefined,
+          description: value.description,
+        };
+
+        if (value.numeric) {
+          row.unit = value.numeric.unit;
+          if (value.numeric.value) {
+            row.value = value.numeric.value;
+          } else if (value.numeric.average) {
+            row.value = value.numeric.average;
+          }
+        }
+
+        return row;
+      });
+
+      this.$.table.rebuild();
+    }
+  });
+
+  return {};
+});
+</script>

@@ -23,6 +23,10 @@ tr.exportTo('tr.metrics', function() {
       return this.values_.map(function(v) { return v.asDict(); });
     },
 
+    map: function(cb, opt_this) {
+      return this.values_.map(cb, opt_this);
+    },
+
     getValuesWithName: function(name) {
       return this.values_.filter(function(value) {
         return value.name.indexOf(name) > -1;
