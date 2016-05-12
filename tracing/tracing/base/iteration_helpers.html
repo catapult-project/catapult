@@ -18,6 +18,25 @@ tr.exportTo('tr.b', function() {
     return values;
   }
 
+  /**
+   * Returns the only element in the iterable. If the iterable is empty or has
+   * more than one element, an error is thrown.
+   */
+  function getOnlyElement(iterable) {
+    var iterator = iterable[Symbol.iterator]();
+
+    var firstIteration = iterator.next();
+    if (firstIteration.done)
+      throw new Error('getOnlyElement was passed an empty iterable.');
+
+    var secondIteration = iterator.next();
+    if (!secondIteration.done)
+      throw new Error(
+          'getOnlyElement was passed an iterable with multiple elements.');
+
+    return firstIteration.value;
+  }
+
   function compareArrays(x, y, elementCmp) {
     var minLength = Math.min(x.length, y.length);
     for (var i = 0; i < minLength; i++) {
@@ -375,6 +394,7 @@ tr.exportTo('tr.b', function() {
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     dictionaryContainsValue: dictionaryContainsValue,
+    getOnlyElement: getOnlyElement,
     group: group,
     iterItems: iterItems,
     mapItems: mapItems,

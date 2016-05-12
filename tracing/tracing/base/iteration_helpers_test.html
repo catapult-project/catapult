@@ -11,6 +11,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
   var compareArrays = tr.b.compareArrays;
+  var getOnlyElement = tr.b.getOnlyElement;
 
   test('comparePossiblyUndefinedValues', function() {
     function cmp(x, y) {
@@ -50,10 +51,24 @@ tr.b.unittest.testSuite(function() {
     assert.equal(compareArrays([1], [1], cmp), 0);
   });
 
+  test('getOnlyElement_empty', function() {
+    assert.throws(() => getOnlyElement([]),
+        'getOnlyElement was passed an empty iterable.');
+  });
+
+  test('getOnlyElement_oneItem', function() {
+    assert.equal(getOnlyElement([1]), 1);
+  });
+
+  test('getOnlyElement_twoItems', function() {
+    assert.throws(() => getOnlyElement([1, 2]),
+        'getOnlyElement was passed an iterable with multiple elements.');
+  });
+
   test('group', function() {
     // Empty array
     var srcArray = [];
-    var fn = function(curr) { return (curr % 2); }
+    var fn = function(curr) { return (curr % 2); };
     var dstDict = {};
 
     assert.deepEqual(tr.b.group(srcArray, fn), dstDict);
