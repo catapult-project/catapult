@@ -228,9 +228,9 @@ tr.exportTo('tr.metrics.sh', function() {
     return score;
   }
 
-  function responsivenessMetric(valueList, model) {
+  function responsivenessMetric(values, model) {
     var scores = [];
-    var diagnosticValues = new tr.metrics.ValueList();
+    var diagnosticValues = new tr.metrics.ValueSet();
 
     model.userModel.expectations.forEach(function(ue) {
       // Responsiveness is not defined for Idle.
@@ -252,7 +252,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var diagnostics = {values: diagnosticValues.valueDicts};
 
-    valueList.addValue(new tr.v.NumericValue(
+    values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'responsiveness',
         new tr.v.ScalarNumeric(UNIT, overallScore),
         options, groupingKeys, diagnostics));

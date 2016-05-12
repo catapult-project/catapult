@@ -71,7 +71,7 @@ tr.exportTo('tr.metrics.sh', function() {
     return firstPaintEvent;
   }
 
-  function firstPaintMetric(valueList, model) {
+  function firstPaintMetric(values, model) {
     var rendererHelper = findTargetRendererHelper(model);
     var navigationStartEvent = findNavigationStartEvent(rendererHelper);
 
@@ -89,7 +89,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var timeToFirstContentfulPaint =
         firstContentfulPaintEvent.start - navigationStartEvent.start;
-    valueList.addValue(new tr.v.NumericValue(
+    values.addValue(new tr.v.NumericValue(
         model.canonicalUrlThatCreatedThisTrace, 'firstContentfulPaint',
         new tr.v.ScalarNumeric(timeDurationInMs_smallerIsBetter,
             timeToFirstContentfulPaint),

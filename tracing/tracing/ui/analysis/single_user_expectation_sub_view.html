@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 <link rel="import"
@@ -66,11 +66,11 @@ found in the LICENSE file.
     onCustomizeRows_: function(event) {
       var ue = this.selection[0];
 
-      var valueList = new tr.metrics.ValueList();
+      var values = new tr.metrics.ValueSet();
 
       function runMetric(metricInfo) {
         try {
-          metricInfo.constructor(valueList, ue.parentModel);
+          metricInfo.constructor(values, ue.parentModel);
         } catch (failure) {
           console.error(metricInfo, failure);
         }
@@ -83,7 +83,7 @@ found in the LICENSE file.
       // https://github.com/catapult-project/catapult/issues/2154
       var metricValues = {};
 
-      valueList.valueDicts.forEach(function(value) {
+      values.valueDicts.forEach(function(value) {
         if (value.grouping_keys.userExpectationStableId !== ue.stableId)
           return;
 

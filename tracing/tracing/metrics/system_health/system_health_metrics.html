@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  function SystemHealthMetrics(valueList, model) {
-    tr.metrics.sh.responsivenessMetric(valueList, model);
-    tr.metrics.sh.EfficiencyMetric(valueList, model);
-    tr.metrics.sh.hazardMetric(valueList, model);
+  function SystemHealthMetrics(values, model) {
+    tr.metrics.sh.responsivenessMetric(values, model);
+    tr.metrics.sh.EfficiencyMetric(values, model);
+    tr.metrics.sh.hazardMetric(values, model);
   }
 
   SystemHealthMetrics.prototype = {

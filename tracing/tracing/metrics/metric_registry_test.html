@@ -18,10 +18,10 @@ tr.b.unittest.testSuite(function() {
   var ThreadSlice = tr.model.ThreadSlice;
 
   test('FindMetricByName', function() {
-    function sampleMetricA(valueList, model) {
+    function sampleMetricA(values, model) {
       var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
       var n1 = new tr.v.ScalarNumeric(unit, 1);
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'foo', n1));
     }
     sampleMetricA.prototype = {
@@ -29,13 +29,13 @@ tr.b.unittest.testSuite(function() {
     };
     tr.metrics.MetricRegistry.register(sampleMetricA);
 
-    function sampleMetricB(valueList, model) {
+    function sampleMetricB(values, model) {
       var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
       var n1 = new tr.v.ScalarNumeric(unit, 1);
       var n2 = new tr.v.ScalarNumeric(unit, 2);
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'foo', n1));
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'bar', n2));
     }
     sampleMetricB.prototype = {
@@ -43,16 +43,16 @@ tr.b.unittest.testSuite(function() {
     };
     tr.metrics.MetricRegistry.register(sampleMetricB);
 
-    function sampleMetricC(valueList, model) {
+    function sampleMetricC(values, model) {
       var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
       var n1 = new tr.v.ScalarNumeric(unit, 1);
       var n2 = new tr.v.ScalarNumeric(unit, 2);
       var n3 = new tr.v.ScalarNumeric(unit, 3);
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'foo', n1));
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'bar', n2));
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'baz', n3));
     }
     sampleMetricC.prototype = {

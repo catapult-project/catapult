@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import"
     href="/tracing/metrics/system_health/responsiveness_metric.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/user_model/animation_expectation.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
 
@@ -22,9 +22,9 @@ tr.b.unittest.testSuite(function() {
           model, 'test', 0, duration, opt_isAnimationBegin);
       model.userModel.expectations.push(ue);
     });
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.responsivenessMetric(valueList, model);
-    return valueList.valueDicts[0].numeric.value;
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.responsivenessMetric(values, model);
+    return values.valueDicts[0].numeric.value;
   }
 
   function metricsForAnimation(customizeAnimationCallback) {
@@ -34,19 +34,19 @@ tr.b.unittest.testSuite(function() {
       customizeAnimationCallback(ue);
       model.userModel.expectations.push(ue);
     });
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.responsivenessMetric(valueList, model);
-    valueList = valueList.valueDicts;
-    assert.equal(1, valueList.length);
-    valueList = valueList[0].diagnostics.values;
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.responsivenessMetric(values, model);
+    values = values.valueDicts;
+    assert.equal(1, values.length);
+    values = values[0].diagnostics.values;
     var metrics = {};
-    for (var i = 0; i < valueList.length; ++i) {
-      if (valueList[i].grouping_keys.name === 'responsiveness') {
-        metrics.responsiveness = valueList[i].numeric.value;
-      } else if (valueList[i].grouping_keys.name === 'smoothness') {
-        metrics.smoothness = valueList[i].numeric.value;
-      } else if (valueList[i].grouping_keys.name === 'throughput') {
-        metrics.throughput = valueList[i].numeric.value;
+    for (var i = 0; i < values.length; ++i) {
+      if (values[i].grouping_keys.name === 'responsiveness') {
+        metrics.responsiveness = values[i].numeric.value;
+      } else if (values[i].grouping_keys.name === 'smoothness') {
+        metrics.smoothness = values[i].numeric.value;
+      } else if (values[i].grouping_keys.name === 'throughput') {
+        metrics.throughput = values[i].numeric.value;
       }
     }
     return metrics;

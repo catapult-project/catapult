@@ -4,9 +4,11 @@ Copyright (c) 2015 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/utils.html">
+
 <script>
 'use strict';
 
@@ -15,6 +17,12 @@ tr.exportTo('tr.v', function() {
                  opt_diagnostics) {
     if (typeof(name) !== 'string')
       throw new Error('Expected value_name grouping key to be provided');
+
+    // If this Value is being deserialized, then its guid will be set by
+    // fromDict().
+    // If this Value is being computed by a metric, then its guid will be
+    // allocated the first time the guid is gotten by asDict().
+    this.guid_ = undefined;
 
     // Allow callers to re-use groupingKeys dictionaries.
     this.groupingKeys = {name: name};
@@ -52,6 +60,20 @@ tr.exportTo('tr.v', function() {
   };
 
   Value.prototype = {
+    get guid() {
+      if (this.guid_ === undefined)
+        this.guid_ = tr.b.GUID.allocateUUID4();
+
+      return this.guid_;
+    },
+
+    set guid(guid) {
+      if (this.guid_ !== undefined)
+        throw new Error('Cannot reset guid');
+
+      this.guid_ = guid;
+    },
+
     get name() {
       return this.groupingKeys.name;
     },
@@ -76,6 +98,7 @@ tr.exportTo('tr.v', function() {
 
     asJSON: function() {
       var d = {
+        guid: this.guid,
         grouping_keys: tr.b.cloneDictionary(this.groupingKeys),
         description: this.description,
         important: this.important,
@@ -110,8 +133,10 @@ tr.exportTo('tr.v', function() {
     var name = d.grouping_keys.name;
     d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
     delete d.grouping_keys.name;
-    return new NumericValue(d.diagnostics.canonical_url, name,
-                            numeric, d, d.grouping_keys, d.diagnostics);
+    var value = new NumericValue(d.diagnostics.canonical_url, name,
+                                 numeric, d, d.grouping_keys, d.diagnostics);
+    value.guid = d.guid;
+    return value;
   };
 
   NumericValue.prototype = {
@@ -138,8 +163,10 @@ tr.exportTo('tr.v', function() {
     var name = d.grouping_keys.name;
     d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
     delete d.grouping_keys.name;
-    return new DictValue(d.diagnostics.canonical_url, name,
-                         d.value, d, d.groupingKeys, d.diagnostics);
+    var value = new DictValue(d.diagnostics.canonical_url, name,
+                              d.value, d, d.groupingKeys, d.diagnostics);
+    value.guid = d.guid;
+    return value;
   };
 
   DictValue.prototype = {
@@ -195,8 +222,10 @@ tr.exportTo('tr.v', function() {
     var name = d.grouping_keys.name;
     d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
     delete d.grouping_keys.name;
-    return new FailureValue(d.diagnostics.canonical_url, name,
-                            d, d.grouping_keys, d.diagnostics);
+    var value = new FailureValue(d.diagnostics.canonical_url, name,
+                                 d, d.grouping_keys, d.diagnostics);
+    value.guid = d.guid;
+    return value;
   };
 
   FailureValue.prototype = {
@@ -221,8 +250,10 @@ tr.exportTo('tr.v', function() {
     var name = d.grouping_keys.name;
     d.grouping_keys = tr.b.cloneDictionary(d.groupingKeys);
     delete d.grouping_keys.name;
-    return new SkipValue(d.diagnostics.canonical_url, name,
-                         d, d.grouping_keys, d.diagnostics);
+    var value = new SkipValue(d.diagnostics.canonical_url, name,
+                              d, d.grouping_keys, d.diagnostics);
+    value.guid = d.guid;
+    return value;
   };
 
   SkipValue.prototype = {

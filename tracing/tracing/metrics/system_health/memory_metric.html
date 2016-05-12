@@ -76,11 +76,11 @@ tr.exportTo('tr.metrics.sh', function() {
           .addBinBoundary(1024 /* 1 KiB */)
           .addExponentialBins(16 * 1024 * 1024 * 1024 /* 16 GiB */, 4 * 24));
 
-  function memoryMetric(valueList, model) {
+  function memoryMetric(values, model) {
     var browserNameToGlobalDumps = splitGlobalDumpsByBrowserName(model);
-    addGeneralMemoryDumpValues(browserNameToGlobalDumps, valueList, model);
-    addDetailedMemoryDumpValues(browserNameToGlobalDumps, valueList, model);
-    addMemoryDumpCountValues(browserNameToGlobalDumps, valueList, model);
+    addGeneralMemoryDumpValues(browserNameToGlobalDumps, values, model);
+    addDetailedMemoryDumpValues(browserNameToGlobalDumps, values, model);
+    addMemoryDumpCountValues(browserNameToGlobalDumps, values, model);
   }
 
   memoryMetric.prototype = {
@@ -170,7 +170,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * Add general memory dump values calculated from all global memory dumps in
-   * |model| to |valueList|. In particular, this function adds the following
+   * |model| to |values|. In particular, this function adds the following
    * values:
    *
    *   * PROCESS COUNTS
@@ -189,7 +189,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *     unit: sizeInBytes_smallerIsBetter
    */
   function addGeneralMemoryDumpValues(
-      browserNameToGlobalDumps, valueList, model) {
+      browserNameToGlobalDumps, values, model) {
     addPerProcessNameMemoryDumpValues(browserNameToGlobalDumps,
         gmd => true /* process all global memory dumps */,
         function(processDump, addProcessScalar) {
@@ -239,12 +239,12 @@ tr.exportTo('tr.metrics.sh', function() {
                 break;
             }
           });
-        }, valueList, model);
+        }, values, model);
   }
 
   /**
    * Add heavy memory dump values calculated from heavy global memory dumps in
-   * |model| to |valueList|. In particular, this function adds the following
+   * |model| to |values|. In particular, this function adds the following
    * values:
    *
    *   * VIRTUAL MEMORY STATISTICS
@@ -256,7 +256,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *     unit: sizeInBytes_smallerIsBetter
    */
   function addDetailedMemoryDumpValues(
-      browserNameToGlobalDumps, valueList, model) {
+      browserNameToGlobalDumps, values, model) {
     addPerProcessNameMemoryDumpValues(browserNameToGlobalDumps,
         g => g.levelOfDetail === DETAILED,
         function(processDump, addProcessScalar) {
@@ -270,7 +270,7 @@ tr.exportTo('tr.metrics.sh', function() {
                 'vmstats:' + valueName,
                 new ScalarNumeric(sizeInBytes_smallerIsBetter, value));
           });
-        }, valueList, model);
+        }, values, model);
   }
 
   /**
@@ -288,7 +288,7 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   /**
-   * Add global memory dump counts in |model| to |valueList|. In particular,
+   * Add global memory dump counts in |model| to |values|. In particular,
    * this function adds the following values:
    *
    *   * DUMP COUNTS
@@ -302,7 +302,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * over all global dumps associated with the relevant browser).
    */
   function addMemoryDumpCountValues(
-      browserNameToGlobalDumps, valueList, model) {
+      browserNameToGlobalDumps, values, model) {
     browserNameToGlobalDumps.forEach(function(globalDumps, browserName) {
       var levelOfDetailNameToDumpCount = { 'total': 0 };
       LEVEL_OF_DETAIL_NAMES.forEach(function(levelOfDetailName) {
@@ -325,7 +325,7 @@ tr.exportTo('tr.metrics.sh', function() {
       // detail (and total).
       tr.b.iterItems(levelOfDetailNameToDumpCount,
           function(levelOfDetailName, levelOfDetailDumpCount) {
-            valueList.addValue(new tr.v.NumericValue(
+            values.addValue(new tr.v.NumericValue(
                 model.canonicalUrl,
                 ['memory', browserName, ALL_PROCESS_NAMES, 'dump_count',
                     levelOfDetailName].join(':'),
@@ -337,7 +337,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * Add generic values extracted from process memory dumps and aggregated by
-   * browser and process name into |valueList|.
+   * browser and process name into |values|.
    *
    * For each browser and set of global dumps in |browserNameToGlobalDumps|,
    * |customProcessDumpValueExtractor| is applied to every process memory dump
@@ -395,13 +395,13 @@ tr.exportTo('tr.metrics.sh', function() {
    *     !function(string, !tr.v.ScalarNumeric))}
    *     customProcessDumpValueExtractor Callback for extracting values from a
    *     process memory dump.
-   * @param {!tr.metrics.ValueList} valueList List of values to which the
+   * @param {!tr.metrics.ValueSet} values List of values to which the
    *     resulting aggregated values are added.
    * @param {!tr.Model} model The underlying trace model.
    */
   function addPerProcessNameMemoryDumpValues(
       browserNameToGlobalDumps, customGlobalDumpFilter,
-      customProcessDumpValueExtractor, valueList, model) {
+      customProcessDumpValueExtractor, values, model) {
     browserNameToGlobalDumps.forEach(function(globalDumps, browserName) {
       var filteredGlobalDumps = globalDumps.filter(customGlobalDumpFilter);
       var timeToProcessNameToValueNameToScalar =
@@ -410,7 +410,7 @@ tr.exportTo('tr.metrics.sh', function() {
       injectTotalsIntoPerProcessNameMemoryDumpValues(
           timeToProcessNameToValueNameToScalar);
       reportPerProcessNameMemoryDumpValues(
-          timeToProcessNameToValueNameToScalar, browserName, valueList, model);
+          timeToProcessNameToValueNameToScalar, browserName, values, model);
     });
   }
 
@@ -506,12 +506,12 @@ tr.exportTo('tr.metrics.sh', function() {
    * For each process name (plus total over 'all' process names) and value
    * name, add a tr.v.Numeric aggregating the associated values across all
    * timestamps (corresponding to global memory dumps associated with the given
-   * browser) in |timeToProcessNameToValueNameToScalar| to |valueList|.
+   * browser) in |timeToProcessNameToValueNameToScalar| to |values|.
    *
    * See addPerProcessNameMemoryDumpValues for more details.
    */
   function reportPerProcessNameMemoryDumpValues(
-      timeToProcessNameToValueNameToScalar, browserName, valueList, model) {
+      timeToProcessNameToValueNameToScalar, browserName, values, model) {
     var processNameToTimeToValueNameToScalar =
         tr.b.invertArrayOfDicts(timeToProcessNameToValueNameToScalar);
     tr.b.iterItems(
@@ -522,7 +522,7 @@ tr.exportTo('tr.metrics.sh', function() {
           tr.b.iterItems(
               valueNameToTimeToScalar,
               function(valueName, timeToScalar) {
-                valueList.addValue(new tr.v.NumericValue(
+                values.addValue(new tr.v.NumericValue(
                     model.canonicalUrl,
                     ['memory', browserName, processName, valueName].join(':'),
                     mergeScalarsIntoNumeric(timeToScalar)));

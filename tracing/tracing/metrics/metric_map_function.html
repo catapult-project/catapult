@@ -4,10 +4,11 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/perf_insights/function_handle.html">
 <link rel="import" href="/tracing/metrics/all_metrics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 
 <script>
 'use strict';
@@ -19,13 +20,13 @@ tr.exportTo('tr.metrics', function() {
     var metricName = options.metric;
     if (metricName === undefined)
       throw new Error('A metric name should be specified.');
-    var valueList = new tr.metrics.ValueList();
+    var values = new tr.metrics.ValueSet();
     var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
     if (metric === undefined)
       throw new Error('"' + metricName + '" is not a registered metric.');
-    metric.constructor(valueList, model);
+    metric.constructor(values, model);
 
-    result.addPair('values', valueList.valueDicts);
+    result.addPair('values', values.valueDicts);
   }
 
   pi.FunctionRegistry.register(metricMapFunction);

@@ -21,7 +21,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   var DESCRIPTION = 'Normalized CPU budget consumption';
 
-  function EfficiencyMetric(valueList, model) {
+  function EfficiencyMetric(values, model) {
     var scores = [];
 
     model.userModel.expectations.forEach(function(ue) {
@@ -56,7 +56,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
       scores.push(score);
 
-      valueList.addValue(new tr.v.NumericValue(
+      values.addValue(new tr.v.NumericValue(
           model.canonicalUrl, 'efficiency',
           new tr.v.ScalarNumeric(UNIT, score),
           options, groupingKeys));
@@ -73,7 +73,7 @@ tr.exportTo('tr.metrics.sh', function() {
     if (overallScore === undefined)
       return;
 
-    valueList.addValue(new tr.v.NumericValue(
+    values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'efficiency',
         new tr.v.ScalarNumeric(UNIT, overallScore),
         options, groupingKeys));

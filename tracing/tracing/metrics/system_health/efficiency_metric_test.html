@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import"
     href="/tracing/metrics/system_health/efficiency_metric.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
 
 <script>
@@ -37,17 +37,17 @@ tr.b.unittest.testSuite(function() {
   test('optimalEfficiency', function() {
     var model = createModel();
     model.userModel.expectations[0].associatedEvents[0].cpuSelfTime = 10;
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.EfficiencyMetric(valueList, model);
-    assert.equal(1, valueList.valueDicts[0].numeric.value);
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.EfficiencyMetric(values, model);
+    assert.equal(1, values.valueDicts[0].numeric.value);
   });
 
   test('pessimalEfficiency', function() {
     var model = createModel();
     model.userModel.expectations[0].associatedEvents[0].cpuSelfTime = 100;
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.EfficiencyMetric(valueList, model);
-    assert.equal(0, valueList.valueDicts[0].numeric.value);
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.EfficiencyMetric(values, model);
+    assert.equal(0, values.valueDicts[0].numeric.value);
   });
 });
 </script>

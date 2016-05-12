@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import"
     href="/tracing/metrics/system_health/hazard_metric.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
 
 <script>
@@ -19,9 +19,9 @@ tr.b.unittest.testSuite(function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       customizeModelCallback(model);
     });
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.hazardMetric(valueList, model);
-    var valueDicts = valueList.valueDicts;
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.hazardMetric(values, model);
+    var valueDicts = values.valueDicts;
     assert.equal(1, valueDicts.length);
     return valueDicts[0];
   }

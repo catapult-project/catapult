@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/metrics/metric_registry.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
@@ -112,14 +112,14 @@ tr.exportTo('tr.ui', function() {
 
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(
           this.currentMetricName_);
-      var valueList = new tr.metrics.ValueList();
+      var values = new tr.metrics.ValueSet();
       try {
-        metric.constructor(valueList, this.model_);
+        metric.constructor(values, this.model_);
       } catch (err) {
         this.$.results.error = err;
         return;
       }
-      this.$.results.values = valueList;
+      this.$.results.values = values;
     }
   });
 

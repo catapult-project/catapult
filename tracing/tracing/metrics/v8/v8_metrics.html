@@ -14,10 +14,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
-  function v8AndMemoryMetrics(valueList, model) {
-    tr.metrics.v8.executionMetric(valueList, model);
-    tr.metrics.v8.gcMetric(valueList, model);
-    tr.metrics.sh.memoryMetric(valueList, model);
+  function v8AndMemoryMetrics(values, model) {
+    tr.metrics.v8.executionMetric(values, model);
+    tr.metrics.v8.gcMetric(values, model);
+    tr.metrics.sh.memoryMetric(values, model);
   }
 
   v8AndMemoryMetrics.prototype = {

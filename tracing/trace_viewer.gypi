@@ -172,7 +172,7 @@
       'tracing/metrics/v8/gc_metric.html',
       'tracing/metrics/v8/utils.html',
       'tracing/metrics/v8/v8_metrics.html',
-      'tracing/metrics/value_list.html',
+      'tracing/metrics/value_set.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',
       'tracing/model/annotation.html',

@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     var results =
-        tr.metrics.ValueList.computeSummaryValuesForNumericValue(
+        tr.metrics.ValueSet.computeSummaryValuesForNumericValue(
             new tr.v.NumericValue('url', 'abc', n, { description: 'desc' }));
     var values = {};
     results.forEach(function(x) {

@@ -18,10 +18,12 @@ tr.b.unittest.testSuite(function() {
     var canonicalUrl = 'my_test.json';
     var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
     var v = new tr.v.NumericValue(canonicalUrl, 'MyNumeric', n);
+    assert.isDefined(v.guid);
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.NumericValue);
+    assert.equal(v.guid, v2.guid);
     assert.equal(v.name, v2.name);
     assert.equal(v.numeric.value, v2.numeric.value);
     assert.equal(v.canonicalUrl, v2.canonicalUrl);
@@ -30,10 +32,12 @@ tr.b.unittest.testSuite(function() {
   test('dictValueBasic', function() {
     var canonicalUrl = 'my_test.json';
     var v = new tr.v.DictValue(canonicalUrl, 'MyDict', {my_key: 'my_value'});
+    assert.isDefined(v.guid);
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.DictValue);
+    assert.equal(v.guid, v2.guid);
     assert.equal(v.groupingKeys.value_name, v2.groupingKeys.value_name);
     assert.deepEqual(v.value, v2.value);
   });
@@ -43,10 +47,12 @@ tr.b.unittest.testSuite(function() {
     var v = new tr.v.FailureValue(
       canonicalUrl, 'MyFailure',
       {description: 'Description', stack: tr.b.stackTraceAsString()});
+    assert.isDefined(v.guid);
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.FailureValue);
+    assert.equal(v.guid, v2.guid);
     assert.equal(v.name, v2.name);
     assert.equal(v.description, v2.description);
     assert.equal(v.stack, v2.stack);
@@ -57,9 +63,11 @@ tr.b.unittest.testSuite(function() {
     var canonicalUrl = 'my_test.json';
     var v = new tr.v.SkipValue(canonicalUrl, 'MySkip',
                                {description: 'WhySkipped'});
+    assert.isDefined(v.guid);
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
+    assert.equal(v.guid, v2.guid);
     assert.instanceOf(v2, tr.v.SkipValue);
     assert.equal(v.groupingKeys.value_name, v2.groupingKeys.value_name);
     assert.equal(v.description, v2.description);

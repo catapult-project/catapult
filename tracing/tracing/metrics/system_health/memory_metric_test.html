@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/vm_region.html">
@@ -749,10 +749,10 @@ tr.b.unittest.testSuite(function() {
       addProcessMemoryDump(gmd, pWebView, 9);
       addProcessMemoryDump(gmd, pChrome, 11);
     });
-    var valueList = new tr.metrics.ValueList();
+    var values = new tr.metrics.ValueSet();
 
     assert.throws(function() {
-      tr.metrics.sh.memoryMetric(valueList, model);
+      tr.metrics.sh.memoryMetric(values, model);
     }, 'Memory dump ID clash across multiple browsers with PIDs: 1 and 2');
   });
 });

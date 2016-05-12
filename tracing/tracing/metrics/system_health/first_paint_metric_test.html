@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import"
     href="/tracing/metrics/system_health/first_paint_metric.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 
 <script>
 'use strict';
@@ -34,9 +34,9 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.sh.firstPaintMetric(valueList, model);
-    assert.equal(800, valueList.valueDicts[0].numeric.value);
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.firstPaintMetric(values, model);
+    assert.equal(800, values.valueDicts[0].numeric.value);
   });
 });
 </script>

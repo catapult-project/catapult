@@ -89,9 +89,9 @@ tr.exportTo('tr.metrics.sh', function() {
   // end point (the first contentful paint) while many parts of the page are
   // still loading. (There may not necessarily be an Idle after a Load in
   // real-world traces, but there almost always is in telemetry.)
-  function computeLongIdleTaskHazard(hazardScores, valueList, ue) {
+  function computeLongIdleTaskHazard(hazardScores, values, ue) {
     var longTaskScores = [];
-    var durationValues = new tr.metrics.ValueList();
+    var durationValues = new tr.metrics.ValueSet();
 
     findLongTasks(ue).forEach(function(longTask) {
       longTaskScores.push(computeResponsivenessRisk(longTask.duration));
@@ -118,7 +118,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     hazardScores.push(hazardScore);
 
-    valueList.addValue(new tr.v.NumericValue(
+    values.addValue(new tr.v.NumericValue(
         ue.parentModel.canonicalUrlThatCreatedThisTrace,
         'long idle tasks hazard',
         new tr.v.ScalarNumeric(
@@ -126,9 +126,9 @@ tr.exportTo('tr.metrics.sh', function() {
         options, groupingKeys, diagnostics));
   }
 
-  function hazardMetric(valueList, model) {
+  function hazardMetric(values, model) {
     var hazardScores = [];
-    var hazardValues = new tr.metrics.ValueList();
+    var hazardValues = new tr.metrics.ValueSet();
 
     model.userModel.expectations.forEach(function(ue) {
       // Add normalized metrics to diagnostics.values.
@@ -148,7 +148,7 @@ tr.exportTo('tr.metrics.sh', function() {
     if (overallHazard === undefined)
       overallHazard = 0;
 
-    valueList.addValue(new tr.v.NumericValue(
+    values.addValue(new tr.v.NumericValue(
         model.canonicalUrlThatCreatedThisTrace, 'hazard',
         new tr.v.ScalarNumeric(
             normalizedPercentage_smallerIsBetter, overallHazard),

@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/metrics/tracing_metric.html">
-<link rel="import" href="/tracing/metrics/value_list.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
 
 <script>
 'use strict';
@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('hasEventSizesInBytes', function() {
-    var valueList = new tr.metrics.ValueList();
+    var allValues = new tr.metrics.ValueSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
@@ -37,25 +37,25 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), false);
     assert.isFalse(model.importOptions.trackDetailedModelStats);
     assert.throws(function() {
-      tr.metrics.tracingMetric(valueList, model);
+      tr.metrics.tracingMetric(allValues, model);
     }, 'Please enable ImportOptions.trackDetailedModelStats.');
 
     model = makeModel(JSON.stringify(events), true);
     assert.isTrue(model.importOptions.trackDetailedModelStats);
-    tr.metrics.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(allValues, model);
   });
 
   test('totalTraceSize', function() {
-    var valueList = new tr.metrics.ValueList();
+    var allValues = new tr.metrics.ValueSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    tr.metrics.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(allValues, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
-    var values = valueList.getValuesWithName('Total trace size in bytes');
+    var values = allValues.getValuesWithName('Total trace size in bytes');
     assert.strictEqual(values.length, 1);
     assert.strictEqual(values[0].numeric.value, eventStringSize);
   });
@@ -71,23 +71,23 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 2, cat: 'foo', ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    var valueList = new tr.metrics.ValueList();
-    tr.metrics.tracingMetric(valueList, model);
+    var allValues = new tr.metrics.ValueSet();
+    tr.metrics.tracingMetric(allValues, model);
 
     var maxEventCountPerSec = 3;
-    var values = valueList.getValuesWithName('Max number of events per second');
+    var values = allValues.getValuesWithName('Max number of events per second');
     assert.strictEqual(values.length, 1);
     assert.strictEqual(values[0].numeric.value, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
-    var values = valueList.getValuesWithName(
+    var values = allValues.getValuesWithName(
         'Max event size in bytes per second');
     assert.strictEqual(values.length, 1);
     assert.strictEqual(values[0].numeric.value, maxEventBytesPerSec);
   });
 
   test('diagnostics', function() {
-    var valueList = new tr.metrics.ValueList();
+    var allValues = new tr.metrics.ValueSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 535, cat: 'foo', tid: 53, ph: 'B'},
@@ -96,9 +96,9 @@ tr.b.unittest.testSuite(function() {
       {name: 'bb', args: {}, pid: 52, ts: 578, cat: 'bar', tid: 53, ph: 'E'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    tr.metrics.tracingMetric(valueList, model);
+    tr.metrics.tracingMetric(allValues, model);
 
-    for (var i = 0; i < valueList.length; i++) {
+    for (var i = 0; i < allValues.length; i++) {
       assert.strictEqual(
           values[i].diagnostics.category_with_max_event_size.name,
           'foo');
