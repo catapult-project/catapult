@@ -5,27 +5,28 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/base.html">
+
 <script>
 
 'use strict';
 
 tr.exportTo('tr.b', function() {
   function _iterateElementDeeplyImpl(element, cb, thisArg, includeElement) {
-    if (includeElement) {
-      if (cb.call(thisArg, element))
-        return true;
-    }
+    if (includeElement && cb.call(thisArg, element))
+      return true;
 
-    if (element.root) {
-      if (_iterateElementDeeplyImpl(Polymer.dom(element.root), cb, thisArg,
-          false))
+    if (element.root &&
+        _iterateElementDeeplyImpl(element.root, cb, thisArg, false))
+      return true;
+
+    var children = Polymer.dom(element).children;
+    for (var i = 0; i < children.length; i++)
+      if (_iterateElementDeeplyImpl(children[i], cb, thisArg, true))
         return true;
-    }
-    for (var i = 0; i < element.children.length; i++) {
-      if (_iterateElementDeeplyImpl(element.children[i], cb, thisArg, true))
-        return true;
-    }
+
+    return false;
   }
+
   function iterateElementDeeply(element, cb, thisArg) {
     _iterateElementDeeplyImpl(element, cb, thisArg, false);
   }
