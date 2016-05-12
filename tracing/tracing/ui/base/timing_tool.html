@@ -275,8 +275,7 @@ tr.exportTo('tr.ui.b', function() {
       };
 
       var eventBounds = new tr.b.Range();
-      for (var i = 0; i < selection.length; i++) {
-        var event = selection[i];
+      for (var event of selection) {
         var track = viewport.trackForEvent(event);
         var trackRect = track.getBoundingClientRect();
 
