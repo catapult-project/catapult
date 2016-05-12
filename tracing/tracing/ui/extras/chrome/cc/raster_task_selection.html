@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/chrome/cc/raster_task.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
-<link rel="import" href="/tracing/ui/extras/chrome/cc/selection.html">
 <link rel="import" href="/tracing/ui/extras/chrome/cc/raster_task_view.html">
+<link rel="import" href="/tracing/ui/extras/chrome/cc/selection.html">
 
 <script>
 'use strict';
@@ -32,6 +32,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       return tile;
     });
   }
+
   RasterTaskSelection.whySuported = function(selection) {
     if (!(selection instanceof tr.model.EventSet))
       return {ok: false, why: 'Must be selection'};
@@ -39,20 +40,19 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     if (selection.length === 0)
       return {ok: false, why: 'Selection must be non empty'};
 
-    var tile0;
-    for (var i = 0; i < selection.length; i++) {
-      var event = selection[i];
+    var referenceSnapshot = undefined;
+    for (var event of selection) {
       if (!(event instanceof tr.model.Slice))
         return {ok: false, why: 'Not a slice'};
 
-      var tile = tr.e.cc.getTileFromRasterTaskSlice(selection[i]);
+      var tile = tr.e.cc.getTileFromRasterTaskSlice(event);
       if (tile === undefined)
         return {ok: false, why: 'No tile found'};
 
-      if (i === 0) {
-        tile0 = tile;
+      if (!referenceSnapshot) {
+        referenceSnapshot = tile.containingSnapshot;
       } else {
-        if (tile.containingSnapshot != tile0.containingSnapshot) {
+        if (tile.containingSnapshot != referenceSnapshot) {
           return {
             ok: false,
             why: 'Raster tasks are from different compositor instances'
@@ -61,7 +61,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
     }
     return {ok: true};
-  }
+  };
 
   RasterTaskSelection.supports = function(selection) {
     return RasterTaskSelection.whySuported(selection).ok;
