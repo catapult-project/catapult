@@ -23,15 +23,21 @@ def IsBattOrConnected(test_platform, android_device=None,
   """Returns True if BattOr is detected."""
   if test_platform == 'android':
     if not android_device:
-      raise battor_error.BattorError('Must past android device serial when '
-                                     'determining support on android platform')
+      raise ValueError('Must pass android device serial when determining '
+                       'support on android platform')
 
     if not android_device_map:
+      device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap()
+      if len(battor_device_mapping.GetBattorList(device_tree)) == 1:
+        return True
       if android_device_file:
         android_device_map = battor_device_mapping.ReadSerialMapFile(
             android_device_file)
       else:
-        android_device_map = battor_device_mapping.GenerateSerialMap()
+        try:
+          android_device_map = battor_device_mapping.GenerateSerialMap()
+        except battor_error.BattorError:
+          return False
 
     # If neither if statement above is triggered, it means that an
     # android_device_map was passed in and will be used.

@@ -35,6 +35,7 @@ _AddDirToPythonPath(_CATAPULT_DIR, 'dependency_manager')
 _AddDirToPythonPath(_CATAPULT_DIR, 'devil')
 _AddDirToPythonPath(_CATAPULT_DIR, 'tracing')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
 
 
 from telemetry.core import util

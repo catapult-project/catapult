@@ -77,7 +77,7 @@ class IsBattOrConnectedTest(unittest.TestCase):
     self.assertFalse(battor_wrapper.IsBattOrConnected('android', 'abc'))
 
   def testAndroidNoDevicePassed(self):
-    with self.assertRaises(battor_error.BattorError):
+    with self.assertRaises(ValueError):
       battor_wrapper.IsBattOrConnected('android')
 
   def testAndroidWithMapAndFile(self):

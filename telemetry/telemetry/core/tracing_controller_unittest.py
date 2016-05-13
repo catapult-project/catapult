@@ -2,12 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import time
+
+from battor import battor_wrapper
 from telemetry import decorators
 from telemetry.core import platform as platform_module
 from telemetry.testing import browser_test_case
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
 from telemetry.timeline import tracing_config
+from telemetry.timeline import trace_data as trace_data_module
 
 
 class TracingControllerTest(tab_test_case.TabTestCase):
@@ -182,3 +186,22 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   @decorators.Isolated
   def testStartupTracingOnDesktop(self):
     self._StartupTracing(platform_module.GetHostPlatform())
+
+  def testBattOrTracing(self):
+    test_platform = self._browser.platform.GetOSName()
+    device = (self._browser.platform._platform_backend.device
+              if test_platform == 'android' else None)
+    if (not battor_wrapper.IsBattOrConnected(test_platform,
+                                             android_device=device)):
+      return # Do not run the test if no BattOr is connected.
+
+    tracing_controller = self._browser.platform.tracing_controller
+    config = tracing_config.TracingConfig()
+    config.enable_battor_trace = True
+    tracing_controller.StartTracing(config)
+    # We wait 1s before starting and stopping tracing to avoid crbug.com/602266,
+    # which would cause a crash otherwise.
+    time.sleep(1)
+    trace_data = tracing_controller.StopTracing()
+    self.assertTrue(
+        trace_data.HasEventsFor(trace_data_module.BATTOR_TRACE_PART))

@@ -67,6 +67,8 @@ class TracingConfig(object):
       enable_android_graphics_memtrack: a boolean that specifies whether
           to enable the memtrack_helper daemon to track graphics memory on
           Android (see goo.gl/4Y30p9). Doesn't have any effects on other OSs.
+      enable_battor_trace: a boolean that specifies whether to enable BattOr
+          tracing.
 
       The following ones are specific to chrome tracing. See
       base/trace_event/trace_config.h for more information.
@@ -81,6 +83,7 @@ class TracingConfig(object):
     self.enable_chrome_trace = False
     self.enable_platform_display_trace = False
     self.enable_android_graphics_memtrack = False
+    self.enable_battor_trace = False
     self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
     self._enable_systrace = False
     # Tracing category filter.
