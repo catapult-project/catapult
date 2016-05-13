@@ -246,9 +246,9 @@ class HttpArchive(dict):
       print >>out, ('Status: %s\n'
                     'Reason: %s\n'
                     'Headers delay: %s\n'
-                    'Response headers:') % (
+                    'Untrimmed response headers:') % (
           response.status, response.reason, response.delays['headers'])
-      for k, v in response.headers:
+      for k, v in response.original_headers:
         print >>out, '    %s: %s' % (k, v)
       print >>out, ('Chunk count: %s\n'
                     'Chunk lengths: %s\n'
@@ -712,7 +712,17 @@ class ArchivedHttpRequest(object):
         stripped_headers, self.is_ssl)
 
 class ArchivedHttpResponse(object):
-  """All the data needed to recreate all HTTP response."""
+  """All the data needed to recreate all HTTP response.
+
+  Upon creation, the headers are "trimmed" (i.e. edited or dropped).
+  The original headers are saved to self.original_headers, while the
+  trimmed ones are used to allow responses to match in a wider variety
+  of playback situations.
+
+  For pickling, 'original_headers' are stored in the archive.  For unpickling
+  the headers are trimmed again. That allows for changes to the trim
+  function and can help with debugging.
+  """
 
   # CHUNK_EDIT_SEPARATOR is used to edit and view text content.
   # It is not sent in responses. It is added by get_data_as_text()
@@ -749,7 +759,8 @@ class ArchivedHttpResponse(object):
     self.version = version
     self.status = status
     self.reason = reason
-    self.headers = headers
+    self.original_headers = headers
+    self.headers = self._TrimHeaders(headers)
     self.response_data = response_data
     self.delays = delays
     self.fix_delays()
@@ -770,6 +781,16 @@ class ArchivedHttpResponse(object):
             'Server delay length mismatch: %d (expected %d): %s',
             num_delays, expected_num_delays, self.delays['data'])
 
+  @classmethod
+  def _TrimHeaders(cls, headers):
+    """Removes headers that are known to cause problems during replay.
+
+    These headers are removed for the following reasons:
+    - content-security-policy: Causes problems with script injection.
+    """
+    undesirable_keys = ['content-security-policy']
+    return [(k, v) for k, v in headers if k.lower() not in undesirable_keys]
+
   def __repr__(self):
     return repr((self.version, self.status, self.reason, sorted(self.headers),
                  self.response_data))
@@ -785,6 +806,9 @@ class ArchivedHttpResponse(object):
   def __setstate__(self, state):
     """Influence how to unpickle.
 
+    "original_headers" are the original request headers.
+    "headers" are the trimmed headers used for replaying responses.
+
     Args:
       state: a dictionary for __dict__
     """
@@ -797,8 +821,21 @@ class ArchivedHttpResponse(object):
       del state['server_delays']
     elif 'delays' not in state:
       state['delays'] = None
+    state['original_headers'] = state['headers']
+    state['headers'] = self._TrimHeaders(state['original_headers'])
     self.__dict__.update(state)
     self.fix_delays()
+
+  def __getstate__(self):
+    """Influence how to pickle.
+
+    Returns:
+      a dict to use for pickling
+    """
+    state = self.__dict__.copy()
+    state['headers'] = state['original_headers']
+    del state['original_headers']
+    return state
 
   def get_header(self, key, default=None):
     for k, v in self.headers:

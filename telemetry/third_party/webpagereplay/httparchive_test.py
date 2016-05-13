@@ -62,7 +62,7 @@ class HttpArchiveTest(unittest.TestCase):
     archive = httparchive.HttpArchive()
     self.assertEqual(len(archive), 0)
 
-  def test__TrimHeaders(self):
+  def test_request__TrimHeaders(self):
     request = httparchive.ArchivedHttpRequest
     header1 = {'accept-encoding': 'gzip,deflate'}
     self.assertEqual(request._TrimHeaders(header1),
@@ -397,6 +397,48 @@ class HttpArchiveTest(unittest.TestCase):
     }
     request = create_request(request_headers)
     self.assertEqual(archive.get(request), response)
+
+  def test_response__TrimHeaders(self):
+    response = httparchive.ArchivedHttpResponse
+    header1 = [('access-control-allow-origin', '*'),
+               ('content-type', 'image/jpeg'),
+               ('content-length', 2878)]
+    self.assertEqual(response._TrimHeaders(header1), header1)
+
+    header2 = [('content-type', 'text/javascript; charset=utf-8'),
+               ('connection', 'keep-alive'),
+               ('cache-control', 'private, must-revalidate, max-age=0'),
+               ('content-encoding', 'gzip')]
+    self.assertEqual(response._TrimHeaders(header2), header2)
+
+    header3 = [('content-security-policy', """\
+default-src 'self' http://*.cnn.com:* https://*.cnn.com:* \
+*.cnn.net:* *.turner.com:* *.ugdturner.com:* *.vgtf.net:*; \
+script-src 'unsafe-inline' 'unsafe-eval' 'self' *; \
+style-src 'unsafe-inline' 'self' *; frame-src 'self' *; \
+object-src 'self' *; img-src 'self' * data:; media-src 'self' *; \
+font-src 'self' *; connect-src 'self' *"""),
+               ('access-control-allow-origin', '*'),
+               ('content-type', 'text/html; charset=utf-8'),
+               ('content-encoding', 'gzip')]
+    self.assertEqual(response._TrimHeaders(header3), [
+        ('access-control-allow-origin', '*'),
+        ('content-type', 'text/html; charset=utf-8'),
+        ('content-encoding', 'gzip')
+    ])
+
+    header4 = [('content-security-policy', """\
+default-src * data: blob:;script-src *.facebook.com *.fbcdn.net \
+*.facebook.net *.google-analytics.com *.virtualearth.net *.google.com \
+127.0.0.1:* *.spotilocal.com:* 'unsafe-inline' 'unsafe-eval' \
+fbstatic-a.akamaihd.net fbcdn-static-b-a.akamaihd.net *.atlassolutions.com \
+blob: chrome-extension://lifbcibllhkdhoafpjfnlhfpfgnpldfl \
+*.liverail.com;style-src * 'unsafe-inline' data:;connect-src *.facebook.com \
+*.fbcdn.net *.facebook.net *.spotilocal.com:* *.akamaihd.net \
+wss://*.facebook.com:* https://fb.scanandcleanlocal.com:* \
+*.atlassolutions.com attachment.fbsbx.com ws://localhost:* \
+blob: 127.0.0.1:* *.liverail.com""")]
+    self.assertEqual(response._TrimHeaders(header4), [])
 
 
 class ArchivedHttpResponse(unittest.TestCase):
