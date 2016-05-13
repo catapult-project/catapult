@@ -359,8 +359,8 @@ window.TracingAnalysisTabView = Polymer({
   /**
    * Handler called when a click event happens on any of the tab buttons.
    */
-  tabButtonSelectHandler_: function(event, detail, sender) {
-    this.changeSelectedTabById_(sender.getAttribute('button-id'));
+  tabButtonSelectHandler_: function(event) {
+    this.changeSelectedTabById_(event.currentTarget.id);
   },
 
   /**

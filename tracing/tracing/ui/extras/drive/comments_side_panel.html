@@ -84,9 +84,9 @@ Polymer({
     this.commentProvider_.detachFromElement();
   },
 
-  commentClick: function(event, detail, sender) {
-    var anchor = sender.comment.anchor;
-    if (anchor === undefined)
+  commentClick: function(event) {
+    var anchor = event.currentTarget.comment.anchor;
+    if (!anchor)
       return;
 
     var uiState =
@@ -111,7 +111,7 @@ Polymer({
     this.model.addAnnotation(this.annotationFromComment_);
   },
 
-  textareaKeypress: function(event, detail, sender) {
+  textareaKeypress: function(event) {
     // Check for return key.
     if (event.keyCode === 13 && !event.ctrlKey) {
       this.commentProvider_.addComment(this.$.commentinput.value);
