@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -19,12 +20,6 @@ found in the LICENSE file.
     :host {
       display: flex;
       flex-direction: column;
-      width: 400px;
-    }
-    table-container {
-      display: flex;
-      min-height: 0px;
-      overflow-y: auto;
     }
     div#error {
       color: red;
@@ -105,6 +100,12 @@ tr.exportTo('tr.ui', function() {
     },
 
     updateContents_: function() {
+      this.style.width = '';
+      tr.b.requestAnimationFrame(function() {
+        var width = this.$.results.getBoundingClientRect().width + 15;
+        this.style.width = width + 'px';
+      }, this);
+
       if (!this.model_) {
         this.$.results.error = 'Missing model';
         return;

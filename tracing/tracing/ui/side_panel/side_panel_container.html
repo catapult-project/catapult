@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel='import' href='/tracing/ui/base/polymer_utils.html'>
+<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 
 <polymer-element name='tr-ui-side-panel-container' is='HTMLUnknownElement'>
   <template>
@@ -66,6 +66,7 @@ found in the LICENSE file.
     </style>
 
     <active-panel-container id='active_panel_container'>
+      <tr-ui-b-drag-handle id="side_panel_drag_handle"></tr-ui-b-drag-handle>
     </active-panel-container>
     <tab-strip id='tab_strip'></tab-strip>
   </template>
@@ -77,6 +78,8 @@ found in the LICENSE file.
       this.activePanelContainer_ = this.$.active_panel_container;
       this.tabStrip_ = this.$.tab_strip;
 
+      this.dragHandle_ = this.$.side_panel_drag_handle;
+      this.dragHandle_.horizontal = false;
       this.rangeOfInterest_ = new tr.b.Range();
       this.brushingStateController_ = undefined;
       this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
@@ -126,9 +129,9 @@ found in the LICENSE file.
     },
 
     get activePanel() {
-      if (this.activePanelContainer_.children.length === 0)
+      if (this.activePanelContainer_.children.length < 2)
         return undefined;
-      return this.activePanelContainer_.children[0];
+      return this.activePanelContainer_.children[1];
     },
 
     get activePanelType() {
@@ -150,7 +153,9 @@ found in the LICENSE file.
         this.getLabelElementForPanelType_(
             this.activePanelType).removeAttribute('selected');
       }
-      this.activePanelContainer_.textContent = '';
+
+      if (this.activePanel)
+        this.activePanelContainer_.removeChild(this.activePanel);
 
       if (panelType === undefined) {
         this.removeAttribute('expanded');
@@ -163,6 +168,7 @@ found in the LICENSE file.
       this.setAttribute('expanded', true);
 
       this.activePanelContainer_.appendChild(panel);
+      this.dragHandle_.target = panel;
       panel.rangeOfInterest = this.rangeOfInterest_;
       panel.selection = this.selection_;
       panel.model = this.model;
@@ -222,7 +228,8 @@ found in the LICENSE file.
         this.activePanelType = previouslyActivePanelType;
         this.setAttribute('expanded', true);
       } else {
-        this.activePanelContainer_.textContent = '';
+        if (this.activePanel)
+          this.activePanelContainer_.removeChild(this.activePanel);
         this.removeAttribute('expanded');
       }
     },

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -15,7 +16,6 @@ found in the LICENSE file.
     :host {
       display: flex;
       flex-direction: column;
-      width: 400px;
     }
     table-container {
       display: flex;
@@ -54,7 +54,6 @@ tr.exportTo('tr.ui', function() {
           cmp: function(a, b) {
             return a.name.localeCompare(b.name);
           },
-          width: '200px'
         },
         {
           title: 'Value',
@@ -69,7 +68,6 @@ tr.exportTo('tr.ui', function() {
           cmp: function(a, b) {
             return a.value - b.value;
           },
-          width: '80px'
         }
       ];
       this.$.table.sortColumnIndex = 1;
@@ -77,11 +75,13 @@ tr.exportTo('tr.ui', function() {
 
     set error(err) {
       this.$.error.textContent = err;
-      this.$.table.tableRows = [];
-      this.$.table.rebuild();
+      this.$.table.style.display = 'none';
+      this.style.width = '10em';
     },
 
     set values(values) {
+      this.style.width = '';
+      this.$.table.style.display = '';
       this.$.error.textContent = '';
 
       this.$.table.tableRows = values.map(function(value) {
@@ -105,6 +105,10 @@ tr.exportTo('tr.ui', function() {
       });
 
       this.$.table.rebuild();
+
+      tr.b.requestAnimationFrame(function() {
+        this.style.width = this.$.table.getBoundingClientRect().width;
+      }, this);
     }
   });
 
