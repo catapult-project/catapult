@@ -34,4 +34,3 @@ if __name__ == '__main__':
 
   from catapult_build import run_with_typ
   _RunTestsOrDie(os.path.join(_PERF_INSIGHTS_PATH, 'perf_insights'))
-  _RunTestsOrDie(os.path.join(_PERF_INSIGHTS_PATH, 'perf_insights_build'))
