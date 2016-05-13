@@ -152,26 +152,38 @@ tr.exportTo('tr.b', function() {
     // lower bound (i.e. aggregated from children rather than provided
     // directly).
     this.values = new Array(valueCount);
-    for (var i = 0; i < valueCount; i++)
-      this.values[i] = { total: 0, self: 0, isLowerBound: true };
+    for (var v = 0; v < valueCount; v++)
+      this.values[v] = { self: 0, total: 0, totalState: NOT_PROVIDED };
   }
+
+  /**
+   * States of total values stored in multi-dimensional view nodes.
+   *
+   * @enum
+   */
+  MultiDimensionalViewNode.TotalState = {
+    // Neither total nor self value was provided for either the node or any of
+    // its descendants.
+    NOT_PROVIDED: 0,
+
+    // The total value was NOT provided for the node, but the self value was
+    // provided for the node or the total or self value was provided for at
+    // least one of its descendants.
+    LOWER_BOUND: 1,
+
+    // The total value was provided for the node.
+    EXACT: 2
+  };
+  // Cache the total value states to avoid repeated object field lookups.
+  var NOT_PROVIDED = MultiDimensionalViewNode.TotalState.NOT_PROVIDED;
+  var LOWER_BOUND = MultiDimensionalViewNode.TotalState.LOWER_BOUND;
+  var EXACT = MultiDimensionalViewNode.TotalState.EXACT;
 
   MultiDimensionalViewNode.prototype = {
     /** Duck type <tr-ui-b-table> rows. */
     get subRows() {
       return tr.b.mapValues(this.children[0]);
     }
-  };
-
-  /**
-   * Types of multi-dimensional views provided by MultiDimensionalViewBuilder.
-   *
-   * @enum
-   */
-  var MultiDimensionalViewType = {
-    TOP_DOWN_TREE_VIEW: 0,
-    TOP_DOWN_HEAVY_VIEW: 1,
-    BOTTOM_UP_HEAVY_VIEW: 2
   };
 
   /**
@@ -291,6 +303,17 @@ tr.exportTo('tr.b', function() {
     TOTAL: 1
   };
 
+  /**
+   * Types of multi-dimensional views provided by MultiDimensionalViewBuilder.
+   *
+   * @enum
+   */
+  MultiDimensionalViewBuilder.ViewType = {
+    TOP_DOWN_TREE_VIEW: 0,
+    TOP_DOWN_HEAVY_VIEW: 1,
+    BOTTOM_UP_HEAVY_VIEW: 2
+  };
+
   MultiDimensionalViewBuilder.prototype = {
     /**
      * Add values associated with a multi-dimensional path to the tree.
@@ -340,13 +363,13 @@ tr.exportTo('tr.b', function() {
       if (values.length !== this.valueCount_)
         throw new Error('Must provide ' + this.valueCount_ + ' values');
 
-      var valueName;
+      var isTotal;
       switch (valueKind) {
         case MultiDimensionalViewBuilder.ValueKind.SELF:
-          valueName = 'self';
+          isTotal = false;
           break;
         case MultiDimensionalViewBuilder.ValueKind.TOTAL:
-          valueName = 'total';
+          isTotal = true;
           break;
         default:
           throw new Error('Invalid value kind: ' + valueKind);
@@ -367,18 +390,23 @@ tr.exportTo('tr.b', function() {
         if (addedValue === undefined)
           continue;
         var nodeValue = node.values[v];
-        nodeValue[valueName] += addedValue;
-        nodeValue.isLowerBound = false;
+        if (isTotal) {
+          nodeValue.total += addedValue;
+          nodeValue.totalState = EXACT;
+        } else {
+          nodeValue.self += addedValue;
+          nodeValue.totalState = Math.max(nodeValue.totalState, LOWER_BOUND);
+        }
       }
     },
 
     buildView: function(viewType) {
       switch (viewType) {
-        case MultiDimensionalViewType.TOP_DOWN_TREE_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW:
           return this.buildTopDownTreeView();
-        case MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW:
           return this.buildTopDownHeavyView();
-        case MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW:
           return this.buildBottomUpHeavyView();
         default:
           throw new Error('Unknown multi-dimensional view type: ' + viewType);
@@ -555,7 +583,7 @@ tr.exportTo('tr.b', function() {
      * The intermediate builder tree, a node of which we want to finalize
      * recursively, already has the right shape. The only thing that needs to
      * be done is to propagate self and total values from subsumed child nodes
-     * in each dimension.
+     * in each dimension and update total value states appropriately.
      *
      * To derive the expression for the lower bound on the total value wrt
      * value index V (from 1 to |this.valueCount_| - 1), we rely on the
@@ -585,7 +613,7 @@ tr.exportTo('tr.b', function() {
      * dimensions):
      *
      *   selfSum(N, V) = self(N, V) + sum over all descendants C of N {
-     *       self (C, V)                                                (B)
+     *       self(C, V)                                                 (B)
      *   }
      *
      * Observe that the residual of a node does not include any self value (of
@@ -664,6 +692,12 @@ tr.exportTo('tr.b', function() {
      *                    dimensionalSelfSum(C, V)[I]
      *                }
      *            }
+     *
+     * This method also (recursively) ensures that, for each value index V, if
+     * at least one of the descendants C of node N has at least a LOWER_BOUND
+     * on total(C, V), then the N will also be marked as having a LOWER_BOUND
+     * on total(N, V) (unless N contains the EXACT value of total(N, V), in
+     * which case its relevant totalState won't be modified).
      */
     finalizeTotalValues_: function(
         node, firstDimensionToFinalize, dimensionalSelfSumsMap) {
@@ -672,13 +706,16 @@ tr.exportTo('tr.b', function() {
 
       // Value index V -> minResidual(|node|, V).
       var minResidual = new Array(this.valueCount_);
-      for (var i = 0; i < this.valueCount_; i++)
-        minResidual[i] = 0;
+      for (var v = 0; v < this.valueCount_; v++)
+        minResidual[v] = 0;
+
+      // Value index V -> |node| value V.
+      var nodeValues = node.values;
 
       // Value index V -> dimensionalSelfSum(|node|, V)[|d|].
       var nodeSelfSums = new Array(this.valueCount_);
-      for (var i = 0; i < this.valueCount_; i++)
-        nodeSelfSums[i] = node.values[i].self;
+      for (var v = 0; v < this.valueCount_; v++)
+        nodeSelfSums[v] = nodeValues[v].self;
 
       for (var d = 0; d < this.dimensions_; d++) {
         // Value index V -> sum over children C of |node| at dimension |d| {
@@ -693,11 +730,16 @@ tr.exportTo('tr.b', function() {
           // Dimension D -> Value index V ->
           // dimensionalSelfSum(|childNode|, V)[D].
           var childNodeSelfSums = dimensionalSelfSumsMap.get(childNode);
+          var childNodeValues = childNode.values;
           for (var v = 0; v < this.valueCount_; v++) {
             nodeSelfSums[v] += childNodeSelfSums[d][v];
-            var residual = childNode.values[v].total -
+            var residual = childNodeValues[v].total -
                 childNodeSelfSums[this.dimensions_ - 1][v];
             childResidualSums[v] += residual;
+            if (childNodeValues[v].totalState > NOT_PROVIDED) {
+              nodeValues[v].totalState = Math.max(
+                  nodeValues[v].totalState, LOWER_BOUND);
+            }
           }
         }
 
@@ -707,8 +749,8 @@ tr.exportTo('tr.b', function() {
       }
 
       for (var v = 0; v < this.valueCount_; v++) {
-        node.values[v].total = Math.max(
-            node.values[v].total, nodeSelfSums[v] + minResidual[v]);
+        nodeValues[v].total = Math.max(
+            nodeValues[v].total, nodeSelfSums[v] + minResidual[v]);
       }
 
       if (dimensionalSelfSumsMap.has(node))
@@ -968,10 +1010,17 @@ tr.exportTo('tr.b', function() {
     addNodeValues_: function(sourceNode, targetNode, addTotal) {
       var targetNodeValues = targetNode.values;
       var sourceNodeValues = sourceNode.values;
-      for (var i = 0; i < this.valueCount_; i++) {
-        targetNodeValues[i].self += sourceNodeValues[i].self;
-        if (addTotal)
-          targetNodeValues[i].total += sourceNodeValues[i].total;
+      for (var v = 0; v < this.valueCount_; v++) {
+        var targetNodeValue = targetNodeValues[v];
+        var sourceNodeValue = sourceNodeValues[v];
+        targetNodeValue.self += sourceNodeValue.self;
+        if (addTotal) {
+          targetNodeValue.total += sourceNodeValue.total;
+          if (sourceNodeValue.totalState > NOT_PROVIDED) {
+            targetNodeValue.totalState = Math.max(
+                targetNodeValue.totalState, LOWER_BOUND);
+          }
+        }
       }
     }
   };
@@ -1108,10 +1157,9 @@ tr.exportTo('tr.b', function() {
 
   return {
     MultiDimensionalViewBuilder: MultiDimensionalViewBuilder,
-    MultiDimensionalViewType: MultiDimensionalViewType,
+    MultiDimensionalViewNode: MultiDimensionalViewNode,
 
     // Exports below are for testing only.
-    MultiDimensionalViewNode: MultiDimensionalViewNode,
     RecursionDepthTracker: RecursionDepthTracker,
     zFunction: zFunction
   };

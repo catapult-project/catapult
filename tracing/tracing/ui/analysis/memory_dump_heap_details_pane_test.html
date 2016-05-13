@@ -21,10 +21,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var MultiDimensionalViewType = tr.b.MultiDimensionalViewType;
-  var TOP_DOWN_TREE_VIEW = tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW;
-  var TOP_DOWN_HEAVY_VIEW = tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW;
-  var BOTTOM_UP_HEAVY_VIEW = tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW;
+  var ViewType = tr.b.MultiDimensionalViewBuilder.ViewType;
+  var TOP_DOWN_TREE_VIEW = ViewType.TOP_DOWN_TREE_VIEW;
+  var TOP_DOWN_HEAVY_VIEW = ViewType.TOP_DOWN_HEAVY_VIEW;
+  var BOTTOM_UP_HEAVY_VIEW = ViewType.BOTTOM_UP_HEAVY_VIEW;
   var HeapDump = tr.model.HeapDump;
   var RowDimension = tr.ui.analysis.RowDimension;
   var ROOT = RowDimension.ROOT;
@@ -156,7 +156,7 @@ tr.b.unittest.testSuite(function() {
     addHeapEntry(hd2, ['MessageLoop::RunTask', 'FunctionCall', 'V8.Execute'],
         'blink::Node', 819200 /* 800 KiB */, 4);
     addHeapEntry(hd2, ['MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'],
-        undefined /* sum over all types */, 204800 /* 200 KiB */);
+        undefined /* sum over all types */, 204800 /* 200 KiB */, 313);
     addHeapEntry(hd2, ['MessageLoop::RunTask', 'FunctionCall', 'FunctionCall'],
         'v8::Context', 122880 /* 120 KiB */, 270);
     addHeapEntry(hd2,

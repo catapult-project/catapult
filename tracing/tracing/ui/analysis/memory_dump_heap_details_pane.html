@@ -94,6 +94,8 @@ tr.exportTo('tr.ui.analysis', function() {
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+  var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
+  var TotalState = tr.b.MultiDimensionalViewNode.TotalState;
 
   /** @{enum} */
   var RowDimension = {
@@ -198,19 +200,19 @@ tr.exportTo('tr.ui.analysis', function() {
 
       this.$.view_mode_container.appendChild(tr.ui.b.createSelector(
           this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
-          tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW,
+          MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
           [
             {
               label: 'Top-down (Tree)',
-              value: tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW
+              value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
             },
             {
               label: 'Top-down (Heavy)',
-              value: tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW
+              value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
             },
             {
               label: 'Bottom-up (Heavy)',
-              value: tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW
+              value: MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
             }
           ]));
     },
@@ -257,8 +259,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get heavyView() {
       switch (this.viewMode) {
-        case tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW:
-        case tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW:
           return true;
         default:
           return false;
@@ -302,7 +304,7 @@ tr.exportTo('tr.ui.analysis', function() {
         if (heapDump === undefined)
           return undefined;
 
-        var builder = new tr.b.MultiDimensionalViewBuilder(
+        var builder = new MultiDimensionalViewBuilder(
             2 /* dimensions (stack frames, object type) */,
             2 /* valueCount (size, count) */);
 
@@ -318,7 +320,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
           builder.addPath([stackTracePath, objectTypeNamePath],
               [entry.size, entry.count],
-              tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+              MultiDimensionalViewBuilder.ValueKind.TOTAL);
         }, this);
 
         return builder.buildView(this.viewMode);
@@ -330,18 +332,13 @@ tr.exportTo('tr.ui.analysis', function() {
       if (definedHeapDump === undefined)
         return [];
 
-      // Show allocation counts if at least one heap dump has an entry with
-      // defined count.
-      var showCount = this.heapDumps.some(
-          h => h !== undefined && h.entries.some(e => e.count !== undefined));
-
       // The title of the root row is the name of the allocator.
       var rootRowTitle = definedHeapDump.allocatorName;
       return [this.createHeapRowRecursively_(
-          stackFrameTrees, RowDimension.ROOT, rootRowTitle, showCount)];
+          stackFrameTrees, RowDimension.ROOT, rootRowTitle)];
     },
 
-    createHeapRowRecursively_: function(nodes, dimension, title, showCount) {
+    createHeapRowRecursively_: function(nodes, dimension, title) {
       // Transform a chronological list of stack frame tree nodes into a
       // dictionary of cells (where each cell contains a chronological list
       // of the values of its numeric).
@@ -350,15 +347,16 @@ tr.exportTo('tr.ui.analysis', function() {
         var row = {
           'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, size)
         };
-        if (showCount) {
-          var count = node.values[1].total;
+        var countValue = node.values[1];
+        if (countValue.totalState >= this.minDisplayedTotalState_) {
+          var count = countValue.total;
           row['Count'] = new ScalarNumeric(unitlessNumber_smallerIsBetter,
               count);
           row['Average size'] = new ScalarNumeric(sizeInBytes_smallerIsBetter,
               count === 0 ? 0 : size / count);
         }
         return row;
-      });
+      }, this);
 
       var row = {
         dimension: dimension,
@@ -369,9 +367,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
       // Recursively create sub-rows for children (if applicable).
       var stackFrameSubRows = this.createHeapDimensionSubRowsRecursively_(
-          nodes, RowDimension.STACK_FRAME, showCount);
+          nodes, RowDimension.STACK_FRAME);
       var objectTypeSubRows = this.createHeapDimensionSubRowsRecursively_(
-          nodes, RowDimension.OBJECT_TYPE, showCount);
+          nodes, RowDimension.OBJECT_TYPE);
       var subRows = stackFrameSubRows.concat(objectTypeSubRows);
       if (subRows.length > 0)
         row.subRows = subRows;
@@ -379,8 +377,17 @@ tr.exportTo('tr.ui.analysis', function() {
       return row;
     },
 
-    createHeapDimensionSubRowsRecursively_: function(
-        nodes, dimension, showCount) {
+    get minDisplayedTotalState_() {
+      if (this.heavyView) {
+        // Show lower-bound and exact values in heavy views.
+        return TotalState.LOWER_BOUND;
+      } else {
+        // Show only exact values in tree view.
+        return TotalState.EXACT;
+      }
+    },
+
+    createHeapDimensionSubRowsRecursively_: function(nodes, dimension) {
       // Sub-row name (list index) -> Timestamp (list index) -> Child
       // MultiDimensionalViewNode.
       var dimensionGroupedChildNodes = tr.b.dictionaryValues(
@@ -389,10 +396,12 @@ tr.exportTo('tr.ui.analysis', function() {
             var displayedChildrenTotalSize = 0;
             var displayedChildrenTotalCount = 0;
             var hasDisplayedChildren = false;
+            var allDisplayedChildrenHaveDisplayedCounts = true;
             for (var child of node.children[dimension].values()) {
-              // Don't show lower-bound size sub-rows in tree-view.
-              if (!this.heavyView && child.values[0].isLowerBound)
+              if (child.values[0].totalState < this.minDisplayedTotalState_)
                 continue;
+              if (child.values[1].totalState < this.minDisplayedTotalState_)
+                allDisplayedChildrenHaveDisplayedCounts = false;
               childDict[child.title[dimension]] = child;
               displayedChildrenTotalSize += child.values[0].total;
               displayedChildrenTotalCount += child.values[1].total;
@@ -413,8 +422,20 @@ tr.exportTo('tr.ui.analysis', function() {
               childDict['<other>'] = {
                 title: otherTitle,
                 values: [
-                  { total: nodeTotalSize - displayedChildrenTotalSize },
-                  { total: nodeTotalCount - displayedChildrenTotalCount }
+                  {
+                    self: 0,
+                    total: nodeTotalSize - displayedChildrenTotalSize,
+                    totalState: this.minDisplayedTotalState_
+                  },
+                  {
+                    self: 0,
+                    total: nodeTotalCount - displayedChildrenTotalCount,
+                    // Don't show allocation count of the '<other>' node if
+                    // there is a displayed child node that did NOT display
+                    // allocation count.
+                    totalState: allDisplayedChildrenHaveDisplayedCounts ?
+                        this.minDisplayedTotalState_ : TotalState.NOT_PROVIDED
+                  }
                 ],
                 children: [new Map(), new Map()]
               };
@@ -427,7 +448,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return dimensionGroupedChildNodes.map(function(subRowNodes) {
         var subRowTitle = tr.b.findFirstInArray(subRowNodes).title[dimension];
         return this.createHeapRowRecursively_(
-            subRowNodes, dimension, subRowTitle, showCount);
+            subRowNodes, dimension, subRowTitle);
       }, this);
     },
 

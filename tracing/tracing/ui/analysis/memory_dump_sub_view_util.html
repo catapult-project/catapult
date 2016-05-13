@@ -830,9 +830,10 @@ tr.exportTo('tr.ui.analysis', function() {
     });
   }
 
-  function createCells(timeToValues, valueFieldsGetter) {
+  function createCells(timeToValues, valueFieldsGetter, opt_this) {
+    opt_this = opt_this || this;
     var fieldNameToFields = tr.b.invertArrayOfDicts(
-        timeToValues, valueFieldsGetter);
+        timeToValues, valueFieldsGetter, opt_this);
     return tr.b.mapItems(fieldNameToFields, function(fieldName, fields) {
       return new tr.ui.analysis.MemoryCell(fields);
     });
