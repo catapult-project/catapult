@@ -26,6 +26,9 @@ tr.b.unittest.testSuite(function() {
         duration: 0.0,
         args: {frame: '0xdeadbeef'}
       }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'blink.user_timing',
         title: 'firstContentfulPaint',
@@ -36,7 +39,72 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.metrics.ValueSet();
     tr.metrics.sh.firstPaintMetric(values, model);
-    assert.equal(800, values.valueDicts[0].numeric.value);
+    var numeric = values.valueDicts[0].numeric;
+    assert.equal(1, numeric.running.count);
+    assert.equal(800, numeric.running.mean);
+  });
+
+  test('firstContentfulPaintIgnoringWarmCache', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+
+      // warm cache navigation
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'blink.console',
+        title: 'telemetry.internal.warmCache.start',
+        start: 250,
+        duration: 0.0
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'firstContentfulPaint',
+        start: 1000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      mainThread.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx({
+        cat: 'blink.console',
+        title: 'telemetry.internal.warmCache.end',
+        start: 1250,
+        duration: 0.0
+      }));
+
+      // measurement navigation
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 2000,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 2100,
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'firstContentfulPaint',
+        start: 2400,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+    });
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.firstPaintMetric(values, model);
+    var numeric = values.valueDicts[0].numeric;
+    assert.equal(1, numeric.running.count);
+    assert.equal(400, numeric.running.mean);
   });
 });
 </script>
