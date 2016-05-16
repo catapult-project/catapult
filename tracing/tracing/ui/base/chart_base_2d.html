@@ -149,13 +149,11 @@ tr.exportTo('tr.ui.b', function() {
 
       // Y.
       var yRange = new tr.b.Range();
-      this.data_.forEach(function(datum) {
-        this.seriesKeys_.forEach(function(key) {
-          // Allow for sparse data
-          if (datum[key] !== undefined)
-            yRange.addValue(datum[key]);
-        });
-      }, this);
+      var keySet = new Set(this.seriesKeys_);
+      for (var i = 0; i < this.data_.length; i++)
+        for (var key in this.data_[i])
+          if (keySet.has(key))
+            yRange.addValue(this.data_[i][key]);
 
       this.yScale_.range([height, 0]);
       this.yScale_.domain([yRange.min, yRange.max]);
