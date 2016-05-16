@@ -68,11 +68,11 @@ found in the LICENSE file.
     </style>
 
     <div id="container" class="horizontal layout center wrap">
-      <template is="dom-repeat" items="{{selectionModels}}" as="box">
-        <autocomplete-box datalist={{box.datalist}}
-                          placeholder="{{box.placeholder}}"
-                          disabled={{box.disabled}}
-                          multi={{box.multi}}
+      <template is="dom-repeat" items="{{selectionModels}}">
+        <autocomplete-box datalist={{item.datalist}}
+                          placeholder="{{item.placeholder}}"
+                          disabled={{item.disabled}}
+                          multi={{item.multi}}
                           on-dropdownselect="onDropdownSelect"
                           id="selection-{{index}}"></autocomplete-box>
       </template>
@@ -107,14 +107,6 @@ found in the LICENSE file.
 
       is: 'test-picker',
       properties: {
-        TESTSUITE_LABEL: {
-          type: String,
-          value: 'Test suite',
-        },
-        BOT_LABEL: {
-          type: String,
-          value: 'Bot',
-        },
         SUBTEST_LABEL: {
           type: String,
           value: 'Subtest',
@@ -132,6 +124,38 @@ found in the LICENSE file.
           notify: true,
           observer: 'testSuitesChanged'
         },
+
+        pageStateLoading: {
+          type: Boolean,
+          value: true
+        },
+
+        hasChart: {
+          type: Boolean,
+          value: false
+        },
+
+        enableAddSeries: {
+          type: Boolean,
+          value: false
+        },
+
+        selectionModels: {
+          type: Array,
+          value: () => ([
+            {
+              datalist: undefined,
+              placeholder: 'Test suite',
+            },
+            {
+              datalist: undefined,
+              placeholder: 'Bot',
+              disabled: true,
+              multi: true
+            }
+          ])
+        },
+
         xsrfToken: { notify: true }
 
       },
@@ -144,17 +168,7 @@ found in the LICENSE file.
         this.enableAddSeries = false;
         this.selectedSuite = null;
         this.suiteDescription = null;
-        this.selectionModels = [
-          {
-            placeholder: this.TESTSUITE_LABEL,
-            datalist: this.getSuiteItems()
-          },
-          {
-            placeholder: this.BOT_LABEL,
-            disabled: true,
-            multi: true
-          }
-        ];
+        this.selectionModels[0].datalist = this.getSuiteItems();
       },
 
       testSuitesChanged: function() {
@@ -414,8 +428,8 @@ found in the LICENSE file.
       },
 
       getSelectionMenu: function(index) {
-        return Polymer.dom(this.$.container).querySelector(
-            '#selection-' + index);
+        Polymer.dom.flush();
+        return Polymer.dom(this.$.container).children[index];
       },
 
       /**

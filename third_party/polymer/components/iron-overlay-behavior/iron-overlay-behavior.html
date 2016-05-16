@@ -330,16 +330,16 @@ context. You should place this element as a child of `<body>` whenever possible.
 
       this.__isAnimating = true;
 
-      if (this.opened) {
-        // requestAnimationFrame for non-blocking rendering
-        this.__openChangedAsync = window.requestAnimationFrame(function() {
-          this.__openChangedAsync = null;
+      // requestAnimationFrame for non-blocking rendering
+      this.__openChangedAsync = window.requestAnimationFrame(function() {
+        this.__openChangedAsync = null;
+        if (this.opened) {
           this._prepareRenderOpened();
           this._renderOpened();
-        }.bind(this));
-      } else {
-        this._renderClosed();
-      }
+        } else {
+          this._renderClosed();
+        }
+      }.bind(this));
     },
 
     _canceledChanged: function() {
@@ -516,9 +516,19 @@ context. You should place this element as a child of `<body>` whenever possible.
       var nodeToCheck = shift ? this.__firstFocusableNode : this.__lastFocusableNode;
       var nodeToSet = shift ? this.__lastFocusableNode : this.__firstFocusableNode;
       if (this.withBackdrop && this._focusedChild === nodeToCheck) {
-        // We set here the _focusedChild so that _onCaptureFocus will handle the
-        // wrapping of the focus (the next event after tab is focus).
+        // When the overlay contains the last focusable element of the document
+        // and it's already focused, pressing TAB would move the focus outside
+        // the document (e.g. to the browser search bar). Similarly, when the
+        // overlay contains the first focusable element of the document and it's
+        // already focused, pressing Shift+TAB would move the focus outside the
+        // document (e.g. to the browser search bar).
+        // In both cases, we would not receive a focus event, but only a blur.
+        // In order to achieve focus wrapping, we prevent this TAB event and
+        // force the focus. This will also prevent the focus to temporarily move
+        // outside the overlay, which might cause scrolling.
+        event.preventDefault();
         this._focusedChild = nodeToSet;
+        this._applyFocus();
       }
     },
 

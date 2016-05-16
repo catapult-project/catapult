@@ -18,7 +18,7 @@ TODO(qyearsley): Expand this element and use it in chart-tooltip.
      <span hidden$="{{computeIsPositive(bugId)}}">{{statusString()}}</span>
     <alert-remove-box hidden$="{{!bugId}}"
                       key="{{key}}"
-                      xsrfToken="{{xsrfToken}}">
+                      xsrf-token="{{xsrfToken}}">
     </alert-remove-box>
   </template>
   <script>
@@ -54,7 +54,7 @@ TODO(qyearsley): Expand this element and use it in chart-tooltip.
         else if (this.recovered)
           return 'Recovered';
         else
-          return 'Unknown';
+          return '';
       }
     });
   </script>

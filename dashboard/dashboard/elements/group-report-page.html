@@ -90,7 +90,7 @@ found in the LICENSE file.
     <template is="dom-if" if="{{error}}">
       <div class="error">{{error}}</div>
     </template>
-    <login-warning id="login-warning" loginLink="{{loginUrl}}"
+    <login-warning id="login-warning" login-link="{{loginLink}}"
                    hidden?="{{isInternalUser}}">
     </login-warning>
     <div id="top">
@@ -102,21 +102,21 @@ found in the LICENSE file.
           Show all improvements
         </paper-button>
       </div>
-      <bug-info id="bug-info" xsrfToken="{{xsrfToken}}"></bug-info>
+      <bug-info id="bug-info" xsrf-token="{{xsrfToken}}"></bug-info>
       <template is="dom-if" if="{{bugId}}">
       <quick-log id="bisect-result-log"
-                 xsrfToken="{{xsrfToken}}"
-                 logNamespace="bisect_result"
-                 logName="{{bugId}}"
-                 logLabel="Bisect results"
-                 loadOnReady="true"
-                 expandOnReady="true"></quick-log>
+                 xsrf-token="{{xsrfToken}}"
+                 log-namespace="bisect_result"
+                 log-name="{{bugId}}"
+                 log-label="Bisect results"
+                 load-on-ready="true"
+                 expand-on-ready="true"></quick-log>
       </template>
       <alerts-table id="alerts-table"
                     hidden$="{{computeOr(loading, error)}}"
-                    xsrfToken="{{xsrfToken}}"
-                    alertList="{{alertList}}"
-                    extraColumns="{{extraColumns}}"
+                    xsrf-token="{{xsrfToken}}"
+                    alert-list="{{alertList}}"
+                    extra-columns="{{extraColumns}}"
                     on-changeselection="onAlertSelectionChange"></alerts-table>
     </div>
 
@@ -150,6 +150,56 @@ found in the LICENSE file.
         loading: {
           type: Boolean,
           value: true
+        },
+
+        alertList: {
+          type: Array,
+          value: () => []
+        },
+
+        ownerInfo: {
+          type: Object,
+          value: () => ({})
+        },
+
+        subtests: {
+          type: Object,
+          value: () => ({})
+        },
+
+        revisionInfo: {
+          type: Object,
+          value: () => ({})
+        },
+
+        loginLink: {
+          type: String,
+          value: ''
+        },
+
+        isInternalUser: {
+          type: Boolean,
+          value: false
+        },
+
+        testSuites: {
+          type: Object,
+          value: () => ({})
+        },
+
+        xsrfToken: {
+          type: String,
+          value: ''
+        },
+
+        warningBug: {
+          type: Number,
+          value: 0
+        },
+
+        warningMessage: {
+          type: String,
+          value: ''
         }
       },
       get alertsTable() {
@@ -166,11 +216,6 @@ found in the LICENSE file.
         }
         return charts;
       },
-
-      extraColumns: [{
-        'key': 'percent_changed',
-        'label': 'Delta %'
-      }],
 
       onToggleImprovements: function(event, details) {
         var improvementsToggle = event.currentTarget;

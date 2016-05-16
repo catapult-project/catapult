@@ -123,6 +123,26 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           notify: true,
           observer: 'alertsChanged'
         },
+        lastSubmittedBugId: {
+          type: Number,
+          value: 0
+        },
+        lastSubmittedTryJobId: {
+          type: Number,
+          value: 0
+        },
+        lastSubmittedTryJobUrl: {
+          type: String,
+          value: ''
+        },
+        lastSubmittedTryJobError: {
+          type: String,
+          value: ''
+        },
+        nudgeList: {
+          type: Array,
+          value: () => []
+        },
         xsrfToken: { notify: true }
       },
 
@@ -184,8 +204,6 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       show: function() {
         if (this.alerts && this.alerts.length && this.alerts[0].nudgeList) {
           this.nudgeList = this.alerts[0].nudgeList;
-        } else {
-          this.nudgeList = null;
         }
         this.open();
         this.bugid = null;

@@ -19,13 +19,13 @@ found in the LICENSE file.
       }
     </style>
 
-    <login-warning id="login-warning" loginLink="{{loginUrl}}"
+    <login-warning id="login-warning" login-link="{{loginUrl}}"
                    hidden$="{{isInternalUser}}">
     </login-warning>
 
     <div id="nav-container">
-      <test-picker id="test-picker" xsrfToken="{{xsrfToken}}"
-                   testSuites="{{testSuites}}"></test-picker>
+      <test-picker id="test-picker" xsrf-token="{{xsrfToken}}"
+                   test-suites="{{testSuites}}"></test-picker>
     </div>
     <section id="charts-container"></section>
 
@@ -49,7 +49,35 @@ found in the LICENSE file.
       properties: {
         charts: { notify: true },
         hasChart: { notify: true },
-        onRevisionRange: { observer: 'onRevisionRangeChanged' }
+        onRevisionRange: { observer: 'onRevisionRangeChanged' },
+        isInternalUser: {
+          type: Boolean,
+          value: false
+        },
+        loginUrl: {
+          type: String,
+          value: ''
+        },
+        revisionInfo: {
+          type: Object,
+          value: () => ({})
+        },
+        warningBug: {
+          type: Number,
+          value: 0
+        },
+        warningMessage: {
+          type: String,
+          value: ''
+        },
+        xsrfToken: {
+          type: String,
+          value: ''
+        },
+        testSuites: {
+          type: Object,
+          value: () => ({})
+        }
       },
 
       ready: function() {

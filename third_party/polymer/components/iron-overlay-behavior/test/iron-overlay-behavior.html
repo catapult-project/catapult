@@ -553,15 +553,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               // Go to last element.
               MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
-              // Simulate TAB & focus out of overlay.
+              // Spy keydown.
+              var tabSpy = sinon.spy();
+              document.addEventListener('keydown', tabSpy);
+              // Simulate TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9);
-              MockInteractions.focus(document.body);
-
               assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
-              // Simulate Shift+TAB & focus out of overlay.
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+              // Simulate Shift+TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
-              MockInteractions.focus(document.body);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
+              assert.isTrue(tabSpy.calledTwice, 'keydown spy called again');
+              assert.isTrue(tabSpy.getCall(1).args[0].defaultPrevented, 'keydown default prevented again');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
               done();
             }, 1);
           });
@@ -574,13 +580,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             Polymer.Base.async(function() {
               // Go to last element.
               MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
-              // Simulate TAB & focus out of overlay.
+              // Simulate TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9);
-              MockInteractions.focus(document.body);
               assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
-              // Simulate Shift+TAB & focus out of overlay.
+              // Simulate Shift+TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
-              MockInteractions.focus(document.body);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
               done();
             }, 1);

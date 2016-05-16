@@ -264,7 +264,7 @@ found in the LICENSE file.
       }
     </style>
     <div>
-      <triage-dialog id="triage" on-triaged="onTriaged" xsrfToken="{{xsrfToken}}">
+      <triage-dialog id="triage" on-triaged="onTriaged" xsrf-token="{{xsrfToken}}">
       </triage-dialog>
       <paper-button raised id="file-bug-button" on-click="showTriageDialog">
         Triage
@@ -304,14 +304,14 @@ found in the LICENSE file.
 
           <td>
             <a class="kd-button counter"
-               expanded$="{{expanded}}"
+               expanded$="{{item.expanded}}"
                on-click="onExpandGroupButtonClicked"
-               hidden$="{{!computeIsPlural(size))}}">{{size}}</a>
+               hidden$="{{!computeIsPlural(item.size))}}">{{item.size}}</a>
           </td>
           <td>
             <input type="checkbox"
                    id="{{item.key}}"
-                   checked="{{selected}}"
+                   checked="{{item.selected::change}}"
                    on-change="onCheckboxChange">
           </td>
 
@@ -322,10 +322,10 @@ found in the LICENSE file.
           </td>
 
           <td hidden$="{{item.hide_bug_id}}">
-            <bug-info-span bugId="{{item.bug_id}}"
+            <bug-info-span bug-id="{{item.bug_id}}"
                            key="{{item.key}}"
                            recovered$="{{item.recovered}}"
-                           xsrfToken="{{xsrfToken}}"
+                           xsrf-token="{{xsrfToken}}"
                            on-untriaged="onUntriaged">
             </bug-info-span>
             <bisect-status hidden$="{{!item.bug_id}}"
@@ -335,13 +335,13 @@ found in the LICENSE file.
           <td class="revision_range">
             <revision-range start={{item.start_revision}} end="{{item.end_revision}}"></revision-range>
           </td>
-          <td class="master"><label>{{item.master}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.master, expanded)}}">...</label></td>
-          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.bot, expanded)}}">...</label></td>
-          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.testsuite, expanded)}}">...</label></td>
-          <td class="test"><label>{{item.test}}</label><label hidden$="{{computeAbsentOrExpanded(additionColumnValues.test, expanded)}}">...</label></td>
+          <td class="master"><label>{{item.master}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.master, expanded)}}">...</label></td>
+          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.bot, expanded)}}">...</label></td>
+          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.testsuite, expanded)}}">...</label></td>
+          <td class="test"><label>{{item.test}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.test, expanded)}}">...</label></td>
 
-          <template is="dom-repeat" items="{{extraColumns}}">
-            <td class="{{item.key}}"><label>{{item.value}}</td>
+          <template is="dom-repeat" items="{{extraColumns}}" as="column" index-as="colnum">
+            <td class="{{column.key}}"><label>{{computeExtraColumnValue(alertList.*, index, column.key)}}</td>
           </template>
         </tr>
       </template>
@@ -384,6 +384,7 @@ found in the LICENSE file.
 
         extraColumns: {
           type: Array,
+          notify: true,
           value: () => []
         },
 
@@ -432,12 +433,18 @@ found in the LICENSE file.
        * Custom element lifecycle callback, called once this element is ready.
        */
       ready: function() {
-        this.checkedAlerts = [];
       },
 
       computeAbsentOrExpanded: (prop, exanded) => !prop || expanded,
 
       computeIsPlural: n => n > 1,
+
+      computeExtraColumnValue: function(change, index, key) {
+        // Unused 'change' argument is used to clarify that this has a
+        // dependency on alertList. For more details, see
+        // https://www.polymer-project.org/1.0/docs/devguide/data-binding.html#array-binding
+        return this.get('alertList.' + index)[key];
+      },
 
       /**
        * Initializes the table.
@@ -453,41 +460,8 @@ found in the LICENSE file.
         this.initRowsBasedOnQueryParameters();
         this.showAlertsGrouped();
         this.updateBugColumn();
-        if (this.extraColumns) {
-          this.prepareExtraColumnsForHeader();
-          this.prepareExtraColumnsForBodyRows();
-        }
         this.maybeDisableButtons();
         this.recursingAlertListChanged = false;
-      },
-
-      /**
-       * Sets the columnHeaderClicked function for items in this.extraColumns.
-       * This is done so that this function is available for binding in the
-       * template above, so that the table can be sorted by any of the extra
-       * columns.
-       */
-      prepareExtraColumnsForHeader: function() {
-        // Set the columnHeaderClicked so it can be used in in the repeat
-        // template above in the table header.
-        this.extraColumns.forEach(function(column) {
-          column.columnHeaderClicked = this.columnHeaderClicked.bind(this);
-          this.columnHeaderClicked.bind(this);
-        }, this);
-      },
-
-      /**
-       * Sets an extraColumns property on each of the items in this.alertList.
-       * This is done so that it can be used in in the repeat template above.
-       */
-      prepareExtraColumnsForBodyRows: function() {
-        // Set the columnHeaderClicked so it can be used in in the repeat
-        // template above in the table header.
-        this.alertList.forEach(function(alert) {
-          alert.extraColumns = this.extraColumns.map(function(column) {
-            return {key: column.key, value: alert[column.key]};
-          });
-        }, this);
       },
 
       /**
@@ -522,7 +496,7 @@ found in the LICENSE file.
           orderedAlertList.push.apply(
               orderedAlertList, groupMap[alertOrder[i]]);
         }
-        this.alertList = orderedAlertList;
+        this.set('alertList', orderedAlertList);
         this.addEllipsis();
       },
 
@@ -680,11 +654,11 @@ found in the LICENSE file.
           var alert = this.alertList[i];
           if (event.currentTarget.checked) {
             if (!alert.hideRow) {
-              alert.selected = true;
+              this.set('alertList.' + i + '.selected', true);
               this.updateGroupCheckboxes(alert, i, true);
             }
           } else {
-            alert.selected = false;
+            this.set('alertList.' + i + '.selected', false);
           }
         }
         this.onCheckboxChange();
@@ -807,6 +781,12 @@ found in the LICENSE file.
           }
         });
         this.alertList = sortedAlertList;
+        for (var i = 0; i < this.extraColumns.length; i++) {
+          for (var j = 0; j < this.alertList.length; j++) {
+            this.set('alertList.' + j + '.' + this.extraColumns[i].key,
+                     this.alertList[j][this.extraColumns[i].key]);
+          }
+        }
         this.updateHeaders();
       },
 
@@ -945,7 +925,7 @@ found in the LICENSE file.
        * alert in the table.
        */
       onCheckboxChange: function(event, detail) {
-        if (event.currentTarget) {
+        if (event && event.currentTarget) {
           // Checks group member rows.
           var alertIndex = Polymer.dom(Polymer.dom(
               event.currentTarget).parentNode).parentNode.rowIndex - 1;

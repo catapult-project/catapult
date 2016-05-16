@@ -18,6 +18,7 @@
     "paper-spinner": "PolymerElements/paper-spinner#^1.0.0",
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-tooltip": "PolymerElements/paper-tooltip#^1.0.0",
-    "polymer": "Polymer/polymer#^1.0.0"
+    "polymer": "Polymer/polymer#^1.0.0",
+    "paper-listbox": "polymerelements/paper-listbox#^1.1.2"
   }
 }

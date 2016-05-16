@@ -19,6 +19,10 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var table = document.createElement('alerts-table');
+    table.extraColumns = [{
+      'key': 'percent_changed',
+      'label': 'Delta %'
+    }];
     table.alertList = [
       {
         'key': '12345',

@@ -44,7 +44,6 @@ property 'group' sets to the header item name.
 -->
 
 <link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="/components/paper-input/paper-input-decorator.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
 <link rel="import" href="/components/paper-material/paper-material.html">
 <link rel="import" href="/components/paper-menu/paper-menu.html">
@@ -99,18 +98,13 @@ property 'group' sets to the header item name.
 
     <div id="container">
 
-        <paper-input-decorator label="{{placeholder}}" floatinglabel="" class="layout vertical"
-                               id="textbox-container">
-          <input is="paper-input"
-                 on-click="showHideDropdown"
-                 on-keyup="onTextboxKeyup"
-                 on-keydown="onTextboxKeydown"
-                 placeholder="{{placeholder}}"
-                 disabled$="{{disabled}}"
-                 id="textbox"
-                 value="{{value::input}}">
-        </paper-input-decorator>
-
+        <paper-input label="{{placeholder}}"
+                     on-click="showHideDropdown"
+                     on-keyup="onTextboxKeyup"
+                     on-keydown="onTextboxKeydown"
+                     disabled$="{{disabled}}"
+                     id="textbox"
+                     value="{{value::input}}"></paper-input>
         <paper-material id="dropdown-container" hidden>
           <div class="dropdown-scroller" layered>
             <paper-menu id="dropdown"
@@ -141,12 +135,17 @@ property 'group' sets to the header item name.
           value: 152
         },
         dataList: { notify: true },
-        disabled: { notify: true },
+        disabled: {
+          notify: true,
+          type: Boolean,
+          disabled: false
+        },
         multi: { notify: true },
         placeholder: { notify: true },
         value: {
           notify: true,
-          observer: 'valueChanged'
+          observer: 'valueChanged',
+          type: String
         }
       },
 
