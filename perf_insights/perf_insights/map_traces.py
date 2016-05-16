@@ -35,7 +35,6 @@ def Main(argv):
   corpus_driver_cmdline.AddArguments(parser)
   parser.add_argument('--query')
   parser.add_argument('--map_function_handle')
-  parser.add_argument('--reduce_function_handle')
   parser.add_argument('-j', '--jobs', type=int,
                       default=map_runner.AUTO_JOB_COUNT)
   parser.add_argument('-o', '--output-file')
@@ -61,14 +60,10 @@ def Main(argv):
 
   try:
     map_handle = None
-    reduce_handle = None
     if args.map_function_handle:
       map_handle = function_handle.FunctionHandle.FromUserFriendlyString(
           args.map_function_handle)
-    if args.reduce_function_handle:
-      reduce_handle = function_handle.FunctionHandle.FromUserFriendlyString(
-          args.reduce_function_handle)
-    job = job_module.Job(map_handle, reduce_handle)
+    job = job_module.Job(map_handle)
   except function_handle.UserFriendlyStringInvalidError:
     error_lines = [
         'The map_traces command-line API has changed! You must now specify the',

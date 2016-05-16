@@ -12,9 +12,8 @@ found in the LICENSE file.
 
 tr.exportTo('pi.mre', function() {
 
-  function Job(mapFunctionHandle, reduceFunctionHandle, opt_guid) {
+  function Job(mapFunctionHandle, opt_guid) {
     this.mapFunctionHandle_ = mapFunctionHandle;
-    this.reduceFunctionHandle_ = reduceFunctionHandle;
     if (opt_guid === undefined)
       this.guid_ = tr.b.GUID.allocateSimple();
     else
@@ -23,14 +22,11 @@ tr.exportTo('pi.mre', function() {
 
   Job.prototype = {
     get mapFunctionHandle() { return this.mapFunctionHandle_; },
-    get reduceFunctionHandle() { return this.reduceFunctionHandle_; },
     get guid() { return this.guid_; },
 
     asDict: function() {
       return {
         map_function_handle: this.mapFunctionHandle_.asDict(),
-        reduce_function_handle: this.reduceFunctionHandle_ ?
-            this.reduceFunctionHandle_.asDict() : undefined,
         guid: this.guid_.toString()
       };
     }
@@ -42,13 +38,8 @@ tr.exportTo('pi.mre', function() {
           mapFunctionHandle = pi.FunctionHandle.fromDict(
               jobDict.map_function_handle);
     }
-    var reduceFunctionHandle = null;
-    if (jobDict.reduce_function_handle != null) {
-        reduceFunctionHandle = pi.FunctionHandle.fromDict(
-            jobDict.reduce_function_handle);
-    }
 
-    return new Job(mapFunctionHandle, reduceFunctionHandle, jobDict.guid);
+    return new Job(mapFunctionHandle, jobDict.guid);
   };
 
   return {

@@ -19,8 +19,7 @@ class FailureTests(unittest.TestCase):
 
   def testAsDict(self):
     map_function_handle = _SingleFileFunctionHandle('foo.html', 'Foo', '2')
-    reduce_function_handle = _SingleFileFunctionHandle('bar.html', 'Bar', '3')
-    job = job_module.Job(map_function_handle, reduce_function_handle, '1')
+    job = job_module.Job(map_function_handle, '1')
     failure = failure_module.Failure(job, 'foo.html:Foo',
                                      'file://foo.html',
                                      'err', 'desc', 'stack')
@@ -36,8 +35,7 @@ class FailureTests(unittest.TestCase):
 
   def testFromDict(self):
     map_function_handle = _SingleFileFunctionHandle('foo.html', 'Foo', '2')
-    reduce_function_handle = _SingleFileFunctionHandle('bar.html', 'Bar', '3')
-    job = job_module.Job(map_function_handle, reduce_function_handle, '1')
+    job = job_module.Job(map_function_handle, '1')
 
     failure_dict = {
         'job_guid': '1',

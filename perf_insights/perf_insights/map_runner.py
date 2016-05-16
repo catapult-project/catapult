@@ -8,8 +8,6 @@ import tempfile
 
 from perf_insights import map_single_trace
 from perf_insights.mre import file_handle
-from perf_insights.mre import mre_result
-from perf_insights.mre import reduce_map_results
 from perf_insights.mre import threaded_work_queue
 from perf_insights.results import gtest_progress_reporter
 
@@ -96,31 +94,6 @@ class MapRunner(object):
 
     return self._map_results
 
-  def _Reduce(self, job_results, key, map_results_file_name):
-    reduce_map_results.ReduceMapResults(job_results, key,
-                                        map_results_file_name, self._job)
-
-  def RunReducer(self, reduce_handles_with_keys):
-    if self._job.reduce_function_handle:
-      self._wq.Reset()
-
-      job_results = mre_result.MreResult()
-
-      for cur in reduce_handles_with_keys:
-        handle = cur['handle']
-        for key in cur['keys']:
-          self._wq.PostAnyThreadTask(
-              self._Reduce, job_results, key, handle)
-
-      def _Stop():
-        self._wq.Stop()
-
-      self._wq.PostAnyThreadTask(_Stop)
-      self._wq.Run()
-
-      return job_results
-    return None
-
   def _ConvertResultsToFileHandlesAndKeys(self, results_list):
     handles_and_keys = []
     for current_result in results_list:
@@ -133,14 +106,7 @@ class MapRunner(object):
     return handles_and_keys
 
   def Run(self):
-    mapper_results = self.RunMapper()
-    reduce_handles = self._ConvertResultsToFileHandlesAndKeys(mapper_results)
-    reducer_results = self.RunReducer(reduce_handles)
-
-    if reducer_results:
-      results = [reducer_results]
-    else:
-      results = mapper_results
+    results = self.RunMapper()
 
     for of in self._output_formatters:
       of.Format(results)

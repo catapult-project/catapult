@@ -95,8 +95,6 @@ def Main(argv):
 
     if args.map_function_handle:
       results = runner.RunMapper()
-    elif args.reduce_function_handle:
-      results = runner.RunReducer(trace_handles)
 
     output_formatter.Format(results)
 

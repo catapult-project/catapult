@@ -25,8 +25,7 @@ def _SingleFileFunctionHandle(filename, function_name, guid):
 class TranslateCommonValuesTest(unittest.TestCase):
   def testTranslateMreFailure(self):
     map_function_handle = _SingleFileFunctionHandle('foo.html', 'Foo', '2')
-    reduce_function_handle = _SingleFileFunctionHandle('bar.html', 'Bar', '3')
-    job = job_module.Job(map_function_handle, reduce_function_handle, '1')
+    job = job_module.Job(map_function_handle, '1')
 
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
     p = page.Page('http://www.foo.com/', story_set, story_set.base_dir)

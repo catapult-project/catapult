@@ -25,7 +25,7 @@ class FileHandle(object):
   def PrepareFileForProcessing(self):
     """Ensure that the URL to the file will be acessible during processing.
 
-    This function must do any pre-work to ensure that mappers and reducers will
+    This function must do any pre-work to ensure that mappers will
     be able to read from the URL contained in the file handle.
 
     Raises:
