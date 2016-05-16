@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -102,14 +103,13 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
-      if (selection.length !== 1)
-        throw new Error('Only supports single slices');
-      if (!(selection[0] instanceof tr.model.ThreadTimeSlice))
+      var timeSlice = tr.b.getOnlyElement(selection);
+
+      if (!(timeSlice instanceof tr.model.ThreadTimeSlice))
         throw new Error('Only supports thread time slices');
 
       this.currentSelection_ = selection;
 
-      var timeSlice = selection[0];
       var thread = timeSlice.thread;
 
       var shadowRoot = this.shadowRoot;

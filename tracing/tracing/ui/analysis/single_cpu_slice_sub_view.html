@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
@@ -91,14 +92,12 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
-      if (selection.length !== 1)
-        throw new Error('Only supports single slices');
-      if (!(selection[0] instanceof tr.model.CpuSlice))
+      var cpuSlice = tr.b.getOnlyElement(selection);
+      if (!(cpuSlice instanceof tr.model.CpuSlice))
         throw new Error('Only supports thread time slices');
 
       this.currentSelection_ = selection;
 
-      var cpuSlice = selection[0];
       var thread = cpuSlice.threadThatWasRunning;
 
       var shadowRoot = this.shadowRoot;

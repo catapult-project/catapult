@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
@@ -64,7 +65,7 @@ found in the LICENSE file.
     },
 
     onCustomizeRows_: function(event) {
-      var ue = this.selection[0];
+      var ue = tr.b.getOnlyElement(this.selection);
 
       var values = new tr.metrics.ValueSet();
 

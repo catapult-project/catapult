@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
@@ -67,15 +68,13 @@ found in the LICENSE file.
     },
 
     set selection(selection) {
-      if (selection.length !== 1)
-        throw new Error('Only supports single item selections');
-      if (!(selection[0] instanceof tr.model.ObjectInstance))
+      var instance = tr.b.getOnlyElement(selection);
+      if (!(instance instanceof tr.model.ObjectInstance))
         throw new Error('Only supports object instances');
 
       this.$.content.textContent = '';
       this.currentSelection_ = selection;
 
-      var instance = selection[0];
       var typeInfo = tr.ui.analysis.ObjectInstanceView.getTypeInfo(
           instance.category, instance.typeName);
       if (typeInfo) {
