@@ -20,7 +20,7 @@ tr.exportTo('tr.ui', function() {
 
   function FindController(brushingStateController) {
     this.brushingStateController_ = brushingStateController;
-    this.filterHits_ = new tr.model.EventSet();
+    this.filterHits_ = [];
     this.currentHitIndex_ = -1;
     this.activePromise_ = Promise.resolve();
     this.activeTask_ = undefined;
@@ -68,7 +68,7 @@ tr.exportTo('tr.ui', function() {
       // TODO(beaudoin): Cancel anything left in the task queue, without
       // invalidating the promise.
       this.enqueueOperation_(function() {
-        this.filterHits_ = new tr.model.EventSet();
+        this.filterHits_ = [];
         this.currentHitIndex_ = -1;
       }.bind(this));
 
@@ -98,12 +98,12 @@ tr.exportTo('tr.ui', function() {
           this.enqueueOperation_(sc.findTextCleared.bind(sc));
         } else {
           var filter = new tr.c.FullTextFilter(filterText);
-          var filterHits = new tr.model.EventSet();
+          var filterHitSet = new tr.model.EventSet();
           this.enqueueOperation_(sc.addAllEventsMatchingFilterToSelectionAsTask(
-              filter, filterHits));
+              filter, filterHitSet));
           this.enqueueOperation_(function() {
-            this.filterHits_ = filterHits;
-            sc.findTextChangedTo(filterHits);
+            this.filterHits_ = filterHitSet.toArray();
+            sc.findTextChangedTo(filterHitSet);
           }.bind(this));
         }
       }
@@ -111,7 +111,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * Returns the most recent filter hits as a tr.model.EventSet. Call
+     * Returns the most recent filter hits as an array. Call
      * |startFiltering| to ensure this is up to date after the filter settings
      * have been changed.
      */
@@ -135,7 +135,7 @@ tr.exportTo('tr.ui', function() {
         return;
 
       this.brushingStateController_.findFocusChangedTo(
-          this.filterHits.subEventSet(this.currentHitIndex_, 1));
+          new tr.model.EventSet(this.filterHits[this.currentHitIndex]));
     },
 
     findNext: function() {
