@@ -29,7 +29,10 @@ def _RunTest(test, chrome_command):
     command = ['python'] + command
   if test.get('chrome_path_arg') and chrome_command:
     command += ['--chrome_path', chrome_command]
-  return subprocess.call(command)
+  try:
+    return subprocess.call(command)
+  except OSError:
+    return 1
 
 
 def Main(name, tests, argv):
