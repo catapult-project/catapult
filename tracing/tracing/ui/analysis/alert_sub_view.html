@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
@@ -149,7 +150,7 @@ found in the LICENSE file.
     get relatedEventsToHighlight() {
       if (!this.currentSelection_)
         return undefined;
-      return this.currentSelection_[0].associatedEvents;
+      return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
     }
   });
   </script>

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import"
     href="/tracing/metrics/system_health/efficiency_metric.html">
@@ -36,7 +37,8 @@ tr.b.unittest.testSuite(function() {
 
   test('optimalEfficiency', function() {
     var model = createModel();
-    model.userModel.expectations[0].associatedEvents[0].cpuSelfTime = 10;
+    var exp = model.userModel.expectations[0];
+    tr.b.getOnlyElement(exp.associatedEvents).cpuSelfTime = 10;
     var values = new tr.metrics.ValueSet();
     tr.metrics.sh.EfficiencyMetric(values, model);
     assert.equal(1, values.valueDicts[0].numeric.value);
@@ -44,7 +46,8 @@ tr.b.unittest.testSuite(function() {
 
   test('pessimalEfficiency', function() {
     var model = createModel();
-    model.userModel.expectations[0].associatedEvents[0].cpuSelfTime = 100;
+    var exp = model.userModel.expectations[0];
+    tr.b.getOnlyElement(exp.associatedEvents).cpuSelfTime = 100;
     var values = new tr.metrics.ValueSet();
     tr.metrics.sh.EfficiencyMetric(values, model);
     assert.equal(0, values.valueDicts[0].numeric.value);

@@ -42,19 +42,12 @@ tr.exportTo('tr.importer', function() {
 
     // Return true if any associatedEvent's typeName is in typeNames.
     containsTypeNames: function(typeNames) {
-      for (var i = 0; i < this.associatedEvents.length; ++i) {
-        if (typeNames.indexOf(this.associatedEvents[i].typeName) >= 0)
-          return true;
-      }
-      return false;
+      return this.associatedEvents.some(
+          x => typeNames.indexOf(x.typeName) >= 0);
     },
 
     containsSliceTitle: function(title) {
-      for (var i = 0; i < this.associatedEvents.length; ++i) {
-        if (title === this.associatedEvents[i].title)
-          return true;
-      }
-      return false;
+      return this.associatedEvents.some(x => title === x.title);
     },
 
     createInteractionRecord: function(model) {
