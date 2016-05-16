@@ -108,9 +108,9 @@ tr.b.unittest.testSuite(function() {
     var ir3 = model.userModel.expectations.push(
         TestUtils.newInteractionRecord(model, 20, 10));
 
-    assert.equal('UserExpectation.0', ir1.stableId);
-    assert.equal('UserExpectation.1', ir2.stableId);
-    assert.equal('UserExpectation.2', ir3.stableId);
+    assert.equal('UserExpectation.' + ir1.guid, ir1.stableId);
+    assert.equal('UserExpectation.' + ir2.guid, ir2.stableId);
+    assert.equal('UserExpectation.' + ir3.guid, ir3.stableId);
   });
 
 });
