@@ -11,8 +11,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/animation_controller.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/draw_helpers.html">
-<link rel="import" href="/tracing/ui/timeline_interest_range.html">
 <link rel="import" href="/tracing/ui/timeline_display_transform.html">
+<link rel="import" href="/tracing/ui/timeline_interest_range.html">
 <link rel="import" href="/tracing/ui/tracks/container_to_track_map.html">
 <link rel="import" href="/tracing/ui/tracks/event_to_track_map.html">
 
@@ -378,8 +378,7 @@ tr.exportTo('tr.ui', function() {
      */
     getShiftedSelection: function(selection, offset) {
       var newSelection = new tr.model.EventSet();
-      for (var i = 0; i < selection.length; i++) {
-        var event = selection[i];
+      for (var event of selection) {
 
         // If this is a flow event, then move to its slice based on the
         // offset direction.
