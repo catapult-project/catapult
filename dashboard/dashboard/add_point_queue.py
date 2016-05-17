@@ -12,7 +12,8 @@ from google.appengine.ext import ndb
 
 from dashboard import add_point
 from dashboard import datastore_hooks
-from dashboard import find_anomalies
+# TODO(sullivan): uncomment
+#from dashboard import find_anomalies
 from dashboard import graph_revisions
 from dashboard import request_handler
 from dashboard import stored_object
@@ -74,11 +75,13 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     # it requires the new row to have a timestamp, which happens upon put.
     graph_revisions.AddRowsToCache(added_rows)
 
-    for test_key in monitored_test_keys:
-      if not _IsRefBuild(test_key):
-        find_anomalies.ProcessTest(test_key)
-      else:
-        logging.warn('Ref data marked as monitored: %s', str(test_key))
+    # TODO(sullivan): Uncomment once we figure out
+    # https://github.com/catapult-project/catapult/issues/2340
+    #for test_key in monitored_test_keys:
+    #  if not _IsRefBuild(test_key):
+    #    find_anomalies.ProcessTest(test_key)
+    #  else:
+    #    logging.warn('Ref data marked as monitored: %s', str(test_key))
 
 
 def _PrewarmGets(data):
