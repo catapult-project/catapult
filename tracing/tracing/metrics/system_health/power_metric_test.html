@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/power_metric.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('powerMetric_multipleFrames', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.metrics.ValueSet();
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    // We want values in different frames, so they must go up by more than 16.66
+    // milliseconds.
+    model.device.powerSeries.addPowerSample('1', '.1');
+    model.device.powerSeries.addPowerSample('2', '.1');
+    model.device.powerSeries.addPowerSample('18', '.2');
+    model.device.powerSeries.addPowerSample('36', '.3');
+    model.device.powerSeries.addPowerSample('53', '.4');
+    model.device.powerSeries.addPowerSample('70', '.5');
+    model.canonicalUrl = 'power://metric.test.com';
+    tr.metrics.sh.PowerMetric(valueSet, model);
+    var powerEntries = valueSet.valueDicts.filter(
+        (dict) => dict.grouping_keys.name === 'power_energy');
+    var powerEntry = tr.b.getOnlyElement(powerEntries);
+    assert.equal(powerEntry.numeric.centralBins[0].count, 5);
+    assert.closeTo(powerEntry.numeric.running.sum, 0.0172, 1e-4);
+  });
+
+  test('powerMetric_oneFrame', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.metrics.ValueSet();
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    // We want values in the same frame, so they must go up by less than 16.66
+    // milliseconds.
+    model.device.powerSeries.addPowerSample('1', '.1');
+    model.device.powerSeries.addPowerSample('2', '.1');
+    model.device.powerSeries.addPowerSample('3', '.2');
+    model.device.powerSeries.addPowerSample('4', '.3');
+    model.device.powerSeries.addPowerSample('5', '.4');
+    model.device.powerSeries.addPowerSample('6', '.5');
+    model.canonicalUrl = 'power://metric.test.com';
+    tr.metrics.sh.PowerMetric(valueSet, model);
+    var powerEntries = valueSet.valueDicts.filter(
+        (dict) => dict.grouping_keys.name === 'power_energy');
+    var powerEntry = tr.b.getOnlyElement(powerEntries);
+    assert.equal(powerEntry.numeric.centralBins[0].count, 1);
+    assert.closeTo(powerEntry.numeric.running.sum, 0.0011, 1e-4);
+  });
+
+  test('powerMetric_noPowerSeries', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.metrics.ValueSet();
+    model.canonicalUrl = 'power://metric.test.com';
+    tr.metrics.sh.PowerMetric(valueSet, model);
+    var powerEntries = valueSet.valueDicts.filter(
+        (dict) => dict.grouping_keys.name === 'power_energy');
+    assert.lengthOf(powerEntries, 0);
+  });
+});
+</script>

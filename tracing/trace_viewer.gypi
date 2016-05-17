@@ -166,6 +166,7 @@
       'tracing/metrics/system_health/first_paint_metric.html',
       'tracing/metrics/system_health/hazard_metric.html',
       'tracing/metrics/system_health/memory_metric.html',
+      'tracing/metrics/system_health/power_metric.html',
       'tracing/metrics/system_health/responsiveness_metric.html',
       'tracing/metrics/system_health/system_health_metrics.html',
       'tracing/metrics/system_health/utils.html',
