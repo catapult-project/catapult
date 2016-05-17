@@ -23,6 +23,31 @@ tr.exportTo('tr.metrics.sh', function() {
   var timeDurationInMs_smallerIsBetter =
     tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
 
+  var FAST_RESPONSE_HISTOGRAM = tr.v.Numeric.fromDict({
+    unit: 'unitless',
+    min: 66,
+    max: 2200,
+    centralBinWidth: 214,
+    underflowBin: {min: -Number.MAX_VALUE, max: 66, count: 1000},
+    centralBins: [
+      {min: 66, max: 280, count: 708},
+      {min: 280, max: 493, count: 223},
+      {min: 493, max: 706, count: 50},
+      {min: 706, max: 920, count: 33},
+      {min: 920, max: 1133, count: 23},
+      {min: 1133, max: 1346, count: 17},
+      {min: 1346, max: 1560, count: 12},
+      {min: 1560, max: 1773, count: 8},
+      {min: 1773, max: 1987, count: 4},
+      {min: 1987, max: 2200, count: 1}
+    ],
+    overflowBin: {min: 2200, max: Number.MAX_VALUE, count: 0}
+  });
+
+  function computeDurationResponsiveness(histogram, duration) {
+    return histogram.getInterpolatedCountAt(duration) / histogram.maxCount;
+  }
+
   function findLongTasks(ue) {
     var longTasks = [];
     // NB: This misses tasks that were associated with another UE,
@@ -64,8 +89,8 @@ tr.exportTo('tr.metrics.sh', function() {
     // that would be *un*satisifed with the responsiveness of that hypothetical
     // Scroll Response. The fraction of users who are unsatisfied with something
     // is equal to 1 - the fraction of users who are satisfied with it.
-    return 1 - tr.metrics.sh.computeDurationResponsiveness(
-        tr.metrics.sh.FAST_RESPONSE_HISTOGRAM, durationMs);
+    return 1 - computeDurationResponsiveness(
+        FAST_RESPONSE_HISTOGRAM, durationMs);
   }
 
   // This weighting function is similar to tr.metrics.sh.perceptualBlend,
