@@ -44,6 +44,7 @@ property 'group' sets to the header item name.
 -->
 
 <link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
 <link rel="import" href="/components/paper-material/paper-material.html">
 <link rel="import" href="/components/paper-menu/paper-menu.html">
@@ -97,30 +98,29 @@ property 'group' sets to the header item name.
     </style>
 
     <div id="container">
-
-        <paper-input label="{{placeholder}}"
-                     on-click="showHideDropdown"
-                     on-keyup="onTextboxKeyup"
-                     on-keydown="onTextboxKeydown"
-                     disabled$="{{disabled}}"
-                     id="textbox"
-                     value="{{value::input}}"></paper-input>
-        <paper-material id="dropdown-container" hidden>
-          <div class="dropdown-scroller" layered>
-            <paper-menu id="dropdown"
-                        on-core-activate="onDropdownSelect"
-                        multi$="{{multi}}">
-              <template is="dom-repeat" items="{{dataList}}">
-                <paper-item head$="{{item.head}}"
-                            hidden$="{{hidden}}"
-                            class="layout horizontal">
-                  <div class="flex">{{item.name}}</div>
-                  <div class="tag">{{item.tag}}</div>
-                </paper-item>
-              </template>
-            </paper-menu>
-          </div>
-        </paper-material>
+      <paper-input label="{{placeholder}}"
+                   on-click="showHideDropdown"
+                   on-keyup="onTextboxKeyup"
+                   on-keydown="onTextboxKeydown"
+                   disabled$="{{disabled}}"
+                   id="textbox"
+                   value="{{value::input}}"></paper-input>
+      <paper-material id="dropdown-container" hidden>
+        <div class="dropdown-scroller" layered>
+          <paper-menu id="dropdown"
+                      on-core-activate="onDropdownSelect"
+                      multi$="{{multi}}">
+            <template is="dom-repeat" items="{{dataList}}">
+              <paper-item head$="{{item.head}}"
+                          hidden$="{{hidden}}"
+                          class="layout horizontal">
+                <div class="flex">{{item.name}}</div>
+                <div class="tag">{{item.tag}}</div>
+              </paper-item>
+            </template>
+          </paper-menu>
+        </div>
+      </paper-material>
     </div>
     <span id="size-check">{{value}}</span>
 
@@ -485,7 +485,7 @@ property 'group' sets to the header item name.
       },
 
       showDropdown: function() {
-        var textContainer = this.$['textbox-container'];
+        var textContainer = this.$['textbox'];
         this.$['dropdown-container'].style.top = textContainer.offsetTop +
             textContainer.offsetHeight + 'px';
         this.$['dropdown-container'].style.left = textContainer.offsetLeft +

@@ -22,6 +22,24 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
+  test('instantiate', function() {
+    var testPicker = document.createElement('test-picker');
+    testPicker.testSuites = {
+      'endure': {
+        'mas': {'Chromium': {'mac': false, 'win7': true}},
+        'dep': true
+      },
+      'dromaeo': {
+        'mas': {'Chromium': {'mac': false, 'win7': false}}
+      },
+      'scrolling': {
+        'mas': {'Chromium': {'mac': false, 'win7': false}},
+        'mon': ['average/www.yahoo.com']
+      }
+    };
+    this.addHTMLOutput(testPicker);
+  }, testOptions);
+
   test('getSuiteItems', function() {
     var testPicker = document.createElement('test-picker');
     testPicker.testSuites = {
