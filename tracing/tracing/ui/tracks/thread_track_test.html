@@ -61,13 +61,15 @@ tr.b.unittest.testSuite(function() {
     var x = (1.5 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
-    assert.equal(t1.sliceGroup.slices[0], selection[0]);
+    assert.isTrue(selection.equals(
+        new EventSet([t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]])));
 
     var selection = new EventSet();
     track.addIntersectingEventsInRangeToSelection(
         (1.5 / wW) * vW, (1.8 / wW) * vW,
         y, y + h, selection);
-    assert.equal(t1.sliceGroup.slices[0], selection[0]);
+    assert.isTrue(selection.equals(
+        new EventSet([t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]])));
   });
 
   test('filterThreadSlices', function() {

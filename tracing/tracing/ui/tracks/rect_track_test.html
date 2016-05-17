@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/slice.html">
-<link rel="import" href="/tracing/ui/timeline_track_view.html">
-<link rel="import" href="/tracing/ui/base/draw_helpers.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/draw_helpers.html">
+<link rel="import" href="/tracing/ui/timeline_track_view.html">
 
 <script>
 'use strict';
@@ -153,9 +153,9 @@ tr.b.unittest.testSuite(function() {
     track.addAllEventsMatchingFilterToSelection(
         new tr.c.TitleOrCategoryFilter('b'), selection);
 
-    assert.equal(2, selection.length);
-    assert.equal(track.rects[1].modelItem, selection[0]);
-    assert.equal(track.rects[2].modelItem, selection[1]);
+    var predictedSelection = new EventSet(
+        [track.rects[1].modelItem, track.rects[2].modelItem]);
+    assert.isTrue(selection.equals(predictedSelection));
   });
 
   test('selectionHitTesting', function() {
@@ -191,7 +191,7 @@ tr.b.unittest.testSuite(function() {
     var x = (1.5 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
-    assert.equal(track.rects[0].modelItem, selection[0]);
+    assert.isTrue(selection.equals(new EventSet(track.rects[0].modelItem)));
 
     var selection = new EventSet();
     x = (2.1 / wW) * vW;
@@ -203,7 +203,7 @@ tr.b.unittest.testSuite(function() {
     x = (6.8 / wW) * vW;
     track.addIntersectingEventsInRangeToSelection(
         x, x + 1, y, y + 1, selection);
-    assert.equal(track.rects[1].modelItem, selection[0]);
+    assert.isTrue(selection.equals(new EventSet(track.rects[1].modelItem)));
 
     var selection = new EventSet();
     x = (9.9 / wW) * vW;

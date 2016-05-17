@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/extras/side_panel/alerts_side_panel.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/extras/side_panel/alerts_side_panel.html">
 
 <script>
 'use strict';
@@ -36,6 +36,8 @@ tr.b.unittest.testSuite(function() {
       new tr.model.Alert(ALERT_INFO_1, 2),
       new tr.model.Alert(ALERT_INFO_2, 3)
     ];
+
+    var predicted_alerts = new tr.model.EventSet([alerts[0], alerts[1]]);
     panel.model = createModelWithAlerts(alerts);
     panel.style.height = '100px';
     this.addHTMLOutput(panel);
@@ -43,9 +45,7 @@ tr.b.unittest.testSuite(function() {
     var selectionChanged = false;
     panel.addEventListener('requestSelectionChange', function(e) {
       selectionChanged = true;
-      assert.lengthOf(e.selection, 2);
-      assert.equal(alerts[0], e.selection[0]);
-      assert.equal(alerts[1], e.selection[1]);
+      assert.isTrue(e.selection.equals(predicted_alerts));
     });
     panel.selectAlertsOfType(ALERT_INFO_1.title);
 

@@ -52,8 +52,8 @@ tr.b.unittest.testSuite(function() {
     // Clicking the analysis link should focus the Binder1's timeslice.
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
-      assert.equal(1, e.selection.length);
-      assert.equal(thread.timeSlices[0], e.selection[0]);
+      assert.isTrue(e.selection.equals(
+          new tr.model.EventSet(thread.timeSlices[0])));
       didSelectionChangeHappen = true;
     });
     view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
