@@ -30,8 +30,9 @@ Once you're ready for a review do:
 
 `git cl upload`
 
-Once uploaded you can view the CL in Rietveld and request a review by clicking
-the 'publish & mail' link. You can also click the "CQ Dry Run" link to run all
+Once uploaded you can view the CL in Rietveld and **request a review** by
+clicking the 'publish & mail' link, and adding a reviewer from the
+[OWNERS](/OWNERS) file. You can also click the "CQ Dry Run" link to run all
 the tests on your change.
 
 If you get review feedback, edit and commit locally and then do another upload
