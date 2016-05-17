@@ -1,13 +1,10 @@
 # Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import json
 import multiprocessing
 import sys
-import tempfile
 
 from perf_insights import map_single_trace
-from perf_insights.mre import file_handle
 from perf_insights.mre import threaded_work_queue
 from perf_insights.results import gtest_progress_reporter
 
@@ -93,17 +90,6 @@ class MapRunner(object):
       self._wq.Run()
 
     return self._map_results
-
-  def _ConvertResultsToFileHandlesAndKeys(self, results_list):
-    handles_and_keys = []
-    for current_result in results_list:
-      _, path = tempfile.mkstemp()
-      with open(path, 'w') as results_file:
-        json.dump(current_result.AsDict(), results_file)
-      rh = file_handle.URLFileHandle(path, 'file://' + path)
-      handles_and_keys.append(
-          {'handle': rh, 'keys': current_result.pairs.keys()})
-    return handles_and_keys
 
   def Run(self):
     results = self.RunMapper()
