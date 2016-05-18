@@ -34,9 +34,8 @@ def Main(argv):
   else:
     traces = [args.trace_file_or_dir]
 
-  results = {}
-  for trace in traces:
-    results[trace] = metric_runner.RunMetric(trace, metric).AsDict()
+  results = {k: v.AsDict()
+      for k, v in metric_runner.RunMetricOnTraces(traces, metric).iteritems()}
 
   failures = []
   for trace in traces:

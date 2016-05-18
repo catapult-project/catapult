@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 import os
 
-from perf_insights import map_single_trace
 from perf_insights import function_handle
+from perf_insights import map_runner
+from perf_insights import progress_reporter
 from perf_insights.mre import file_handle
 from perf_insights.mre import job as job_module
 
@@ -27,9 +28,16 @@ def _GetMetricRunnerHandle(metric):
   return job_module.Job(map_function_handle, None)
 
 def RunMetric(filename, metric, extra_import_options=None):
-  url = 'file://' + os.path.abspath(filename)
-  th = file_handle.URLFileHandle(filename, url)
-  result = map_single_trace.MapSingleTrace(
-      th, _GetMetricRunnerHandle(metric), extra_import_options)
+  result = RunMetricOnTraces([filename], metric, extra_import_options)
+  return result[filename]
 
-  return result
+def RunMetricOnTraces(filenames, metric, extra_import_options=None):
+  trace_handles = [
+      file_handle.URLFileHandle(f, 'file://%s' % f) for f in filenames]
+  job = _GetMetricRunnerHandle(metric)
+  runner = map_runner.MapRunner(
+      trace_handles, job,
+      extra_import_options=extra_import_options,
+      progress_reporter=progress_reporter.ProgressReporter())
+  map_results = runner.RunMapper()
+  return map_results

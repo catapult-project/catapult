@@ -22,7 +22,8 @@ class MapRunner(object):
   def __init__(self, trace_handles, job,
                stop_on_error=False, progress_reporter=None,
                jobs=AUTO_JOB_COUNT,
-               output_formatters=None):
+               output_formatters=None,
+               extra_import_options=None):
     self._job = job
     self._stop_on_error = stop_on_error
     self._failed_canonical_url_to_dump = None
@@ -32,6 +33,7 @@ class MapRunner(object):
     else:
       self._progress_reporter = progress_reporter
     self._output_formatters = output_formatters or []
+    self._extra_import_options = extra_import_options
 
     self._trace_handles = trace_handles
     self._num_traces_merged_into_results = 0
@@ -47,7 +49,8 @@ class MapRunner(object):
     run_reporter = self._progress_reporter.WillRun(canonical_url)
     result = map_single_trace.MapSingleTrace(
         trace_handle,
-        self._job)
+        self._job,
+        extra_import_options=self._extra_import_options)
 
     had_failure = len(result.failures) > 0
 
@@ -55,10 +58,11 @@ class MapRunner(object):
       run_reporter.DidAddFailure(f)
     run_reporter.DidRun(had_failure)
 
-    self._wq.PostMainThreadTask(self._MergeResultIntoMaster, result)
+    self._wq.PostMainThreadTask(
+        self._MergeResultIntoMaster, result, trace_handle)
 
-  def _MergeResultIntoMaster(self, result):
-    self._map_results.append(result)
+  def _MergeResultIntoMaster(self, result, trace_handle):
+    self._map_results[trace_handle.canonical_url] = result
 
     had_failure = len(result.failures) > 0
     if self._stop_on_error and had_failure:
@@ -77,7 +81,7 @@ class MapRunner(object):
     self._wq.Stop()
 
   def RunMapper(self):
-    self._map_results = []
+    self._map_results = {}
 
     if not self._trace_handles:
       err = MapError("No trace handles specified.")
@@ -92,7 +96,8 @@ class MapRunner(object):
     return self._map_results
 
   def Run(self):
-    results = self.RunMapper()
+    results_by_trace = self.RunMapper()
+    results = results_by_trace.values()
 
     for of in self._output_formatters:
       of.Format(results)
