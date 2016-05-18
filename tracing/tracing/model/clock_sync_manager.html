@@ -308,11 +308,12 @@ tr.exportTo('tr.model', function() {
         // This makes sure that we don't have two separate clock sync graphs:
         // one attached to UNKNOWN_CHROME_LEGACY and the other attached to the
         // real Chrome clock domain.
-        for (var domainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
-          if (domainId === ClockDomainId.UNKNOWN_CHROME_LEGACY)
+        for (var chromeDomainId of POSSIBLE_CHROME_CLOCK_DOMAINS) {
+          if (chromeDomainId === ClockDomainId.UNKNOWN_CHROME_LEGACY)
             continue;
 
-          this.collapseDomains_(ClockDomainId.UNKNOWN_CHROME_LEGACY, domainId);
+          this.collapseDomains_(
+              ClockDomainId.UNKNOWN_CHROME_LEGACY, chromeDomainId);
         }
       }
 
