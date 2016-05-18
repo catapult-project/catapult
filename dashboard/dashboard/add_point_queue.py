@@ -168,6 +168,12 @@ def _AddRow(row_dict, bot_whitelist):
   new_row = graph_data.Row(id=row_id, parent=test_container_key, **columns)
   entity_put_futures.append(new_row.put_async())
 
+  utils.TickMonitoringCustomMetric('RowAdded', {
+      'master': master,
+      'bot': bot,
+      'test_suite': test.split("/")[0]
+  })
+
   return new_row, parent_test, entity_put_futures
 
 

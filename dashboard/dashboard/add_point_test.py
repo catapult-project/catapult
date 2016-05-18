@@ -147,7 +147,8 @@ class AddPointTest(testing_common.TestCase):
     testing_common.SetIpWhitelist([_WHITELISTED_IP])
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
-  def testPost_MonitoredRow_CorrectlyAdded(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_MonitoredRow_CorrectlyAdded(self, unused_mock_tick):
     """Tests that adding a chart causes the correct row to be added."""
     sheriff.Sheriff(
         id='X', patterns=['ChromiumPerf/win7/my_test_suite/*']).put()
@@ -169,7 +170,14 @@ class AddPointTest(testing_common.TestCase):
         'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test', 'my_test_suite').get()
     self.assertEqual('foo', test_suite.description)
 
-  def testPost_UnmonitoredRow_NotAdded(self):
+    unused_mock_tick.assert_called_once_with('RowAdded', {
+        'master': 'ChromiumPerf',
+        'bot': 'win7',
+        'test_suite': 'my_test_suite'
+    })
+
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_UnmonitoredRow_NotAdded(self, unused_mock_tick):
     """Tests that adding a chart causes the correct row to be added."""
     data_param = json.dumps(_SAMPLE_DASHBOARD_JSON)
     self.testapp.post(
@@ -178,6 +186,8 @@ class AddPointTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(0, len(rows))
+    # This should be reverted when catapult issue 2340 is fixed.
+    self.assertFalse(unused_mock_tick.called)
 
   def testPost_TestPathTooLong_PointRejected(self):
     """Tests that an error is returned when the test path would be too long."""
@@ -190,7 +200,8 @@ class AddPointTest(testing_common.TestCase):
     tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(0, len(tests))
 
-  def testPost_TrailingSlash_Ignored(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_TrailingSlash_Ignored(self, unused_mock_tick):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = 'mach_ports_parent/mach_ports/'
     self.testapp.post(
@@ -203,7 +214,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('mach_ports', tests[1].key.id())
     self.assertEqual('mach_ports_parent', tests[1].parent_test.id())
 
-  def testPost_LeadingSlash_Ignored(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_LeadingSlash_Ignored(self, unused_mock_tick):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['test'] = '/boot_time/pre_plugin_time'
     self.testapp.post(
@@ -286,7 +298,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertIn(
         'Bad value for "revision", should be numerical.\n', response.body)
 
-  def testPost_NewTest_AnomalyConfigPropertyIsAdded(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_NewTest_AnomalyConfigPropertyIsAdded(self, unused_mock_tick):
     """Tests that AnomalyConfig keys are added to Tests upon creation.
 
     Like with sheriffs, AnomalyConfig keys are to Test when the Test is put
@@ -345,7 +358,8 @@ class AddPointTest(testing_common.TestCase):
         'Test', 'dromaeo', 'Test', 'jslib').get()
     self.assertIsNone(no_config_test.overridden_anomaly_config)
 
-  def testPost_NewTest_AddsUnits(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_NewTest_AddsUnits(self, unused_mock_tick):
     """Tests that units and improvement direction are added for new Tests."""
     data_param = json.dumps([
         {
@@ -372,7 +386,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('ms', tests[1].units)
     self.assertEqual(anomaly.DOWN, tests[1].improvement_direction)
 
-  def testPost_NewPointWithNewUnits_TestUnitsAreUpdated(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_NewPointWithNewUnits_TestUnitsAreUpdated(self, unused_mock_tick):
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
     parent = graph_data.Test(id='scrolling_benchmark', parent=parent).put()
@@ -405,7 +420,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('fps', tests[1].units)
     self.assertEqual(anomaly.UP, tests[1].improvement_direction)
 
-  def testPost_NewPoint_UpdatesImprovementDirection(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_NewPoint_UpdatesImprovementDirection(self, unused_mock_tick):
     """Tests that adding a point updates units for an existing Test."""
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
@@ -439,7 +455,8 @@ class AddPointTest(testing_common.TestCase):
     test = frame_time_key.get()
     self.assertEqual(anomaly.UP, test.improvement_direction)
 
-  def testPost_DirectionUpdatesWithUnitMap(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_DirectionUpdatesWithUnitMap(self, unused_mock_tick):
     """Tests that adding a point updates units for an existing Test."""
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
@@ -470,7 +487,9 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('ms', tests[1].units)
     self.assertEqual(anomaly.DOWN, tests[1].improvement_direction)
 
-  def testPost_AddNewPointToDeprecatedTest_ResetsDeprecated(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_AddNewPointToDeprecatedTest_ResetsDeprecated(
+      self, unused_mock_tick):
     """Tests that adding a point sets the test to be non-deprecated."""
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
@@ -499,7 +518,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('mean_frame_time', tests[1].key.string_id())
     self.assertFalse(tests[1].deprecated)
 
-  def testPost_NewSuite_CachedSubTestsDeleted(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_NewSuite_CachedSubTestsDeleted(self, unused_mock_tick):
     """Tests that cached test lists are cleared as new test suites are added."""
     # Set the cached test lists. Note that no actual Test entities are added
     # here, so when a new point is added, it will still count as a new Test.
@@ -582,7 +602,8 @@ class AddPointTest(testing_common.TestCase):
         'Bad value for "value", should be numerical.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
-  def testPost_BadSupplementalColumnName_ColumnDropped(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_BadSupplementalColumnName_ColumnDropped(self, unused_mock_tick):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {'q_foo': 'bar'}
 
@@ -594,7 +615,8 @@ class AddPointTest(testing_common.TestCase):
     row = graph_data.Row.query().get()
     self.assertFalse(hasattr(row, 'q_foo'))
 
-  def testPost_LongSupplementalColumnName_ColumnDropped(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_LongSupplementalColumnName_ColumnDropped(self, unused_mock_tick):
     point = copy.deepcopy(_SAMPLE_POINT)
     key = 'a_' + ('a' * add_point._MAX_COLUMN_NAME_LENGTH)
     point['supplemental_columns'] = {
@@ -610,7 +632,8 @@ class AddPointTest(testing_common.TestCase):
     row = graph_data.Row.query().get()
     self.assertFalse(hasattr(row, key))
 
-  def testPost_NoTestSuiteName_BenchmarkNameUsed(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_NoTestSuiteName_BenchmarkNameUsed(self, unused_mock_tick):
     sample = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     del sample['test_suite_name']
     data_param = json.dumps(sample)
@@ -621,7 +644,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
     self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
 
-  def testPost_TestSuiteNameIsNone_BenchmarkNameUsed(self):
+  @mock.patch('dashboard.add_point_queue.utils.TickMonitoringCustomMetric')
+  def testPost_TestSuiteNameIsNone_BenchmarkNameUsed(self, unused_mock_tick):
     sample = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     sample['test_suite_name'] = None
     data_param = json.dumps(sample)
