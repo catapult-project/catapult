@@ -31,7 +31,7 @@ tr.exportTo('tr.e.importer.battor', function() {
   }
 
   var battorDataLineRE = new RegExp(
-      '^(\\d+\\.\\d+)\\s+(\\d+\\.\\d+)\\s+(\\d+\\.\\d+)' +
+      '^(-?\\d+\\.\\d+)\\s+(-?\\d+\\.\\d+)\\s+(-?\\d+\\.\\d+)' +
       '(?:\\s+<(\\S+)>)?$'
   );
   var battorHeaderLineRE = /^# BattOr/;
@@ -120,7 +120,7 @@ tr.exportTo('tr.e.importer.battor', function() {
         if (!groups) {
           this.model_.importWarning({
             type: 'parse_error',
-            message: 'Unrecognized line: ' + line
+            message: 'Unrecognized line in BattOr trace: ' + line
           });
           continue;
         }
@@ -129,6 +129,17 @@ tr.exportTo('tr.e.importer.battor', function() {
         var voltage = parseFloat(groups[2]) / 1000;
         var current = parseFloat(groups[3]) / 1000;
         var syncId = groups[4];
+
+        if (voltage < 0 || current < 0) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'The following line in the BattOr trace has a negative ' +
+                'voltage or current, neither of which are allowed: ' + line +
+                '. A common cause of this is that the device is charging ' +
+                'while the trace is being recorded.'
+          });
+          continue;
+        }
 
         samples.push(new Sample(ts, voltage, current, syncId));
       }
