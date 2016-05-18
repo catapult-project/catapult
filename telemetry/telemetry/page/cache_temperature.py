@@ -23,6 +23,32 @@ PCV1_COLD = 'pcv1-cold'
 # once just before the run.
 PCV1_WARM = 'pcv1-warm'
 
+class MarkTelemetryInternal(object):
+
+  def __init__(self, browser, identifier):
+    self.browser = browser
+    self.identifier = identifier
+
+  def __enter__(self):
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.time('telemetry.{0}.warmCache.start');""".format(
+          self.identifier))
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.timeEnd('telemetry.{0}.warmCache.start');""".format(
+          self.identifier))
+    return self
+
+  def __exit__(self, exception_type, exception_value, traceback):
+    if exception_type:
+      return True
+
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.time('telemetry.{0}.warmCache.end');""".format(
+          self.identifier))
+    self.browser.tabs[0].ExecuteJavaScript(
+        """console.timeEnd('telemetry.{0}.warmCache.end');""".format(
+          self.identifier))
+    return True
 
 def EnsurePageCacheTemperature(page, browser, previous_page=None):
   temperature = page.cache_temperature
@@ -30,9 +56,16 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
 
   if temperature == ANY:
     return
-  elif temperature == PCV1_COLD:
-    any_valid_tab = browser.tabs[0]
-    any_valid_tab.ClearCache(force=True)
+
+  if temperature == PCV1_COLD:
+    if previous_page is None:
+      with MarkTelemetryInternal(browser, 'ensure_diskcache'):
+        tab = browser.tabs[0]
+        tab.Navigate("http://does.not.exist")
+        tab.WaitForDocumentReadyStateToBeComplete()
+
+    any_tab = browser.tabs[0]
+    any_tab.ClearCache(force=True)
   elif temperature == PCV1_WARM:
     if (previous_page is not None and
         previous_page.url == page.url and
@@ -40,17 +73,10 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
             previous_page.cache_temperature == PCV1_WARM)):
       return
 
-    tab = browser.tabs[0]
-    tab.ExecuteJavaScript(
-        """console.time('telemetry.internal.warmCache.start');""")
-    tab.ExecuteJavaScript(
-        """console.timeEnd('telemetry.internal.warmCache.start');""")
-    tab.Navigate(page.url)
-    util.WaitFor(tab.HasReachedQuiescence, 60)
-    tab.WaitForDocumentReadyStateToBeComplete()
-    tab.Navigate("about:blank")
-    tab.WaitForDocumentReadyStateToBeComplete()
-    tab.ExecuteJavaScript(
-        """console.time('telemetry.internal.warmCache.end');""")
-    tab.ExecuteJavaScript(
-        """console.timeEnd('telemetry.internal.warmCache.end');""")
+    with MarkTelemetryInternal(browser, 'warmCache'):
+      tab = browser.tabs[0]
+      tab.Navigate(page.url)
+      util.WaitFor(tab.HasReachedQuiescence, 60)
+      tab.WaitForDocumentReadyStateToBeComplete()
+      tab.Navigate("about:blank")
+      tab.WaitForDocumentReadyStateToBeComplete()

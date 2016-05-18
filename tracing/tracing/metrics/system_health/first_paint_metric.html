@@ -114,16 +114,15 @@ tr.exportTo('tr.metrics.sh', function() {
   function prepareTelemetryInternalEventPredicate(rendererHelper) {
     var ignoreRegions = [];
 
-    var warmCacheStart;
+    var internalRegionStart;
     rendererHelper.mainThread.asyncSliceGroup.iterateAllEventsInThisContainer(
         () => true, function(slice) {
-          if (slice.title === 'telemetry.internal.warmCache.start')
-            warmCacheStart = slice.start;
-          if (slice.title === 'telemetry.internal.warmCache.end') {
-            var warmCacheTimedEvent = new tr.model.TimedEvent(warmCacheStart);
-            warmCacheTimedEvent.duration = slice.end - warmCacheStart;
-
-            ignoreRegions.push(warmCacheTimedEvent);
+          if (!!slice.title.match(/^telemetry\.internal\.[^.]*\.start$/))
+            internalRegionStart = slice.start;
+          if (!!slice.title.match(/^telemetry\.internal\.[^.]*\.end$/)) {
+            var timedEvent = new tr.model.TimedEvent(internalRegionStart);
+            timedEvent.duration = slice.end - internalRegionStart;
+            ignoreRegions.push(timedEvent);
           }
         }, this);
 
