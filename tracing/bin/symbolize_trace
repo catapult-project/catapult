@@ -9,6 +9,7 @@ import collections
 import gzip
 import json
 import os
+import re
 import sys
 
 _SYMBOLS_PATH = os.path.abspath(os.path.join(
@@ -25,6 +26,16 @@ import symbols.elf_symbolizer as elf_symbolizer
 # src/base/trace_event/common/trace_event_common.h.
 TRACE_EVENT_PHASE_METADATA = 'M'
 TRACE_EVENT_PHASE_MEMORY_DUMP = 'v'
+
+
+# Matches Android library paths, supports both K (/data/app-lib/<>/lib.so)
+# as well as L+ (/data/app/<>/lib/<>/lib.so). Library name is available
+# via 'name' group.
+ANDROID_PATH_MATCHER = re.compile(
+    r'^/data/(?:app/[^/]+/lib/[^/]+/|app-lib/[^/]+/)(?P<name>.*\.so)')
+
+# Subpath of output path where unstripped libraries are stored.
+ANDROID_UNSTRIPPED_SUBPATH = 'lib.unstripped'
 
 
 class ProcessMemoryMaps(object):
@@ -172,7 +183,10 @@ def CollectProcesses(trace):
 
   process_map = {}
 
-  for event in trace['traceEvents']:
+  # Android traces produced via 'chrome://inspect/?tracing#devices' are
+  # just list of events.
+  events = trace if isinstance(trace, list) else trace['traceEvents']
+  for event in events:
     name = event.get('name')
     if not name:
       continue
@@ -244,6 +258,7 @@ def SymbolizeFiles(symfiles, addr2line_path):
   def _SubPrintf(message, *args):
     print ('  ' + message).format(*args)
 
+  symbolized = False
   for symfile in symfiles:
     unsymbolized_name = '<{}>'.format(
         symfile.path if symfile.path else 'unnamed')
@@ -264,13 +279,18 @@ def SymbolizeFiles(symfiles, addr2line_path):
       continue
 
     def _SymbolizerCallback(sym_info, frames):
+      # Unwind inline chain to the top.
+      while sym_info.inlined_by:
+        sym_info = sym_info.inlined_by
+
       symbolized_name = sym_info.name if sym_info.name else unsymbolized_name
       for frame in frames:
         frame.name = symbolized_name
 
     symbolizer = elf_symbolizer.ELFSymbolizer(symfile.path,
                                               addr2line_path,
-                                              _SymbolizerCallback)
+                                              _SymbolizerCallback,
+                                              inlines=True)
 
     _SubPrintf('Symbolizing {} PCs from {}...',
                len(symfile.frames_by_address),
@@ -284,6 +304,9 @@ def SymbolizeFiles(symfiles, addr2line_path):
       symbolizer.SymbolizeAsync(int(address), frames)
 
     symbolizer.Join()
+    symbolized = True
+
+  return symbolized
 
 
 def FindInSystemPath(binary_name):
@@ -293,6 +316,18 @@ def FindInSystemPath(binary_name):
     if os.path.isfile(binary_path):
       return binary_path
   return None
+
+
+def HaveFilesFromAndroid(symfiles):
+  return any(ANDROID_PATH_MATCHER.match(f.path) for f in symfiles)
+
+
+def RemapAndroidFiles(symfiles, output_path):
+  for symfile in symfiles:
+    match = ANDROID_PATH_MATCHER.match(symfile.path)
+    if match:
+      name = match.group('name')
+      symfile.path = os.path.join(output_path, ANDROID_UNSTRIPPED_SUBPATH, name)
 
 
 # Suffix used for backup files.
@@ -305,6 +340,9 @@ def main():
   parser.add_argument('--no-backup',
                       dest='backup', default='true', action='store_false',
                       help="Don't create {} files".format(BACKUP_FILE_TAG))
+  parser.add_argument('--output-directory',
+                      help='The path to the build output directory, such ' +
+                           'as out/Debug. Only needed for Android.')
   options = parser.parse_args()
 
   trace_file_path = options.file
@@ -324,9 +362,17 @@ def main():
 
   processes = CollectProcesses(trace)
   symfiles = ResolveSymbolizableFiles(processes)
-  SymbolizeFiles(symfiles, addr2line_path)
 
-  if any(p.stack_frames.modified for p in processes):
+  # Android trace files don't have any indication they are from Android.
+  # So we're checking for Android-specific paths.
+  if HaveFilesFromAndroid(symfiles):
+    if not options.output_directory:
+      parser.error('The trace file appears to be from Android. Please '
+                   "specify output directory (e.g. 'out/Debug') to properly "
+                   'symbolize it.')
+    RemapAndroidFiles(symfiles, os.path.abspath(options.output_directory))
+
+  if SymbolizeFiles(symfiles, addr2line_path):
     if options.backup:
       backup_file_path = trace_file_path + BACKUP_FILE_TAG
       print 'Backing up trace file to {}...'.format(backup_file_path)
