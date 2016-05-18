@@ -108,8 +108,7 @@ tr.exportTo('tr.e.importer', function() {
     this.events_ = undefined;
     this.sampleEvents_ = undefined;
     this.stackFrameEvents_ = undefined;
-    this.systemTraceEvents_ = undefined;
-    this.battorData_ = undefined;
+    this.subtraces_ = [];
     this.eventsWereFromString_ = false;
     this.softwareMeasuredCpuCount_ = undefined;
 
@@ -163,15 +162,11 @@ tr.exportTo('tr.e.importer', function() {
       var container = this.events_;
       this.events_ = this.events_.traceEvents;
 
-      // Some trace_event implementations put ftrace_importer traces as a
-      // huge string inside container.systemTraceEvents. If we see that, pull it
-      // out. It will be picked up by extractSubtraces later on.
-      this.systemTraceEvents_ = container.systemTraceEvents;
-
-      // Some trace_event implementations put battor power traces as a
-      // huge string inside container.powerTraceAsString. If we see that, pull
-      // it out. It will be picked up by extractSubtraces later on.
-      this.battorData_ = container.powerTraceAsString;
+      // Some trace authors store subtraces as specific properties of the trace.
+      if (container.powerTraceAsString)
+        this.subtraces_.push(container.powerTraceAsString);
+      if (container.systemTraceEvents)
+        this.subtraces_.push(container.systemTraceEvents);
 
       // Sampling data.
       this.sampleEvents_ = container.samples;
@@ -252,14 +247,11 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     extractSubtraces: function() {
-      var systemEventsTmp = this.systemTraceEvents_;
-      var battorDataTmp = this.battorData_;
-      this.systemTraceEvents_ = undefined;
-      this.battorData_ = undefined;
-      var subTraces = systemEventsTmp ? [systemEventsTmp] : [];
-      if (battorDataTmp)
-        subTraces.push(battorDataTmp);
-       return subTraces;
+      // Because subtraces can be quite large, we need to make sure that we
+      // don't hold a reference to the memory.
+      var subtraces = this.subtraces_;
+      this.subtraces_ = [];
+      return subtraces;
     },
 
     /**
