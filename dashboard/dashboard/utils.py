@@ -36,7 +36,7 @@ def _GetNowRfc3339():
   return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
 
-def TickMonitoringCustomMetric(metric_name, labels=None):
+def TickMonitoringCustomMetric(metric_name):
   """Increments the stackdriver custom metric with the given name.
 
   This is used for cron job monitoring; if these metrics stop being received
@@ -51,8 +51,6 @@ def TickMonitoringCustomMetric(metric_name, labels=None):
       'monitoring', 'v3', credentials=credentials)
   now = _GetNowRfc3339()
   project_id = stored_object.Get(_PROJECT_ID_KEY)
-  # Data format documentation:
-  # https://cloud.google.com/monitoring/api/ref_v3/rest/v3/TimeSeries
   points = [{
       'interval': {
           'startTime': now,
@@ -62,15 +60,12 @@ def TickMonitoringCustomMetric(metric_name, labels=None):
           'int64Value': _DEFAULT_CUSTOM_METRIC_VAL,
       },
   }]
-  metric = {
-      'type': 'custom.googleapis.com/%s' % metric_name,
-  }
-  if labels:
-    metric['labels'] = labels
   write_request = monitoring.projects().timeSeries().create(
       name='projects/%s' %project_id,
       body={'timeSeries': [{
-          'metric': metric,
+          'metric': {
+              'type': 'custom.googleapis.com/%s' % metric_name,
+          },
           'points': points
       }]})
   write_request.execute()
