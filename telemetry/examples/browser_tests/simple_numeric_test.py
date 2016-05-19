@@ -57,3 +57,6 @@ class SimpleTest(serially_executed_browser_test_case.SeriallyBrowserTestCase):
   def TestSimple(self):
     time.sleep(0.5)
     self.assertEqual(1, self.extra)
+
+  def TestException(self):
+    raise Exception('Expected exception')

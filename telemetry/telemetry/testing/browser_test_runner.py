@@ -134,9 +134,17 @@ def Run(project_config, test_run_options, args):
   if option.write_abbreviated_json_results_to:
     with open(option.write_abbreviated_json_results_to, 'w') as f:
       json_results = {'failures': [], 'successes': [], 'valid': True}
-      for (failed_test_case, _) in results.failures:
+      # Treat failures and errors identically in the JSON
+      # output. Failures are those which cooperatively fail using
+      # Python's unittest APIs; errors are those which abort the test
+      # case early with an execption.
+      failures = []
+      failures.extend(results.failures)
+      failures.extend(results.errors)
+      failures.sort(key=lambda entry: entry[0].id())
+      for (failed_test_case, _) in failures:
         json_results['failures'].append(failed_test_case.id())
       for passed_test_case in results.successes:
         json_results['successes'].append(passed_test_case.id())
       json.dump(json_results, f)
-  return len(results.failures)
+  return len(results.failures + results.errors)

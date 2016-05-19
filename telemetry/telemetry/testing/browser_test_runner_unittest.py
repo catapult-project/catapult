@@ -59,8 +59,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
   @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
   def testJsonOutputFormatPositiveFilter(self, mockInitDependencyManager):
     self.baseTest(
-      mockInitDependencyManager, 'TestSimple',
-      ['browser_tests.simple_numeric_test.SimpleTest.TestSimple'],
+      mockInitDependencyManager, '(TestSimple|TestException).*',
+      ['browser_tests.simple_numeric_test.SimpleTest.TestException',
+       'browser_tests.simple_numeric_test.SimpleTest.TestSimple'],
       [])
 
   @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
