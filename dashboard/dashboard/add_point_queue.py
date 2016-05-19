@@ -57,10 +57,6 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     for row_dict in data:
       try:
         new_row, parent_test, put_futures = _AddRow(row_dict, bot_whitelist)
-        # TODO(sullivan): REVERT AFTER FIXING
-        # https://github.com/catapult-project/catapult/issues/2340
-        if not new_row:
-          continue
         added_rows.append(new_row)
         is_monitored = parent_test.sheriff and parent_test.has_rows
         if is_monitored:
@@ -139,11 +135,6 @@ def _AddRow(row_dict, bot_whitelist):
     RuntimeError: The required parent entities couldn't be created.
   """
   parent_test = _GetParentTest(row_dict, bot_whitelist)
-  if not parent_test.sheriff:
-    # TODO(sullivan): REVERT THIS AFTER RESOLVING
-    # https://github.com/catapult-project/catapult/issues/2340
-    # Drop unmonitored data until dashboard can catch up
-    return None, parent_test, []
   test_container_key = utils.GetTestContainerKey(parent_test.key)
 
   columns = add_point.GetAndValidateRowProperties(row_dict)

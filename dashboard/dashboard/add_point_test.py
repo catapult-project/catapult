@@ -17,13 +17,13 @@ from google.appengine.ext import ndb
 from dashboard import add_point
 from dashboard import add_point_queue
 from dashboard import layered_cache
+from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import units_to_direction
 from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
-from dashboard.models import sheriff
 
 # TODO(qyearsley): Shorten this module.
 # See https://github.com/catapult-project/catapult/issues/1917
@@ -147,38 +147,6 @@ class AddPointTest(testing_common.TestCase):
     testing_common.SetIpWhitelist([_WHITELISTED_IP])
     self.SetCurrentUser('foo@bar.com', is_admin=True)
 
-  def testPost_MonitoredRow_CorrectlyAdded(self):
-    """Tests that adding a chart causes the correct row to be added."""
-    sheriff.Sheriff(
-        id='X', patterns=['ChromiumPerf/win7/my_test_suite/*']).put()
-    data_param = json.dumps(_SAMPLE_DASHBOARD_JSON)
-    self.testapp.post(
-        '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
-    self.assertEqual(1, len(rows))
-    self.assertEqual(12345, rows[0].revision)
-    self.assertEqual(22.4, rows[0].value)
-    self.assertEqual(0, rows[0].error)
-    self.assertEqual('12.3.45.6', rows[0].r_chrome)
-    self.assertEqual('234567', rows[0].r_blink)
-    self.assertEqual('mavericks', rows[0].a_os)
-    self.assertEqual('intel', rows[0].a_gpu_oem)
-    test_suite = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test', 'my_test_suite').get()
-    self.assertEqual('foo', test_suite.description)
-
-  def testPost_UnmonitoredRow_NotAdded(self):
-    """Tests that adding a chart causes the correct row to be added."""
-    data_param = json.dumps(_SAMPLE_DASHBOARD_JSON)
-    self.testapp.post(
-        '/add_point', {'data': data_param},
-        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
-    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
-    self.assertEqual(0, len(rows))
-
   def testPost_TestPathTooLong_PointRejected(self):
     """Tests that an error is returned when the test path would be too long."""
     point = copy.deepcopy(_SAMPLE_POINT)
@@ -285,6 +253,91 @@ class AddPointTest(testing_common.TestCase):
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.assertIn(
         'Bad value for "revision", should be numerical.\n', response.body)
+
+  def testPost_InvalidSupplementalRevision_DropsRevision(self):
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['supplemental_columns'] = {
+        'r_one': '1234',
+        'r_two': 'I am not a valid revision or version.',
+    }
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    # Supplemental revision numbers with an invalid format should be dropped.
+    row = graph_data.Row.query().get()
+    self.assertEqual('1234', row.r_one)
+    self.assertFalse(hasattr(row, 'r_two'))
+
+  def testPost_UnWhitelistedBots_MarkedInternalOnly(self):
+    stored_object.Set(
+        add_point_queue.BOT_WHITELIST_KEY, ['linux-release', 'win7'])
+    parent = graph_data.Master(id='ChromiumPerf').put()
+    parent = graph_data.Bot(
+        id='suddenly_secret', parent=parent, internal_only=False).put()
+    graph_data.Test(id='dromaeo', parent=parent, internal_only=False).put()
+
+    data_param = json.dumps([
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/dom',
+            'value': '33.2',
+            'revision': '1234',
+        },
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'very_secret',
+            'test': 'dromaeo/dom',
+            'value': '100.1',
+            'revision': '1234',
+        },
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'suddenly_secret',
+            'test': 'dromaeo/dom',
+            'value': '22.3',
+            'revision': '1234',
+        },
+    ])
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    bots = graph_data.Bot.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(3, len(bots))
+    self.assertEqual('suddenly_secret', bots[0].key.string_id())
+    self.assertTrue(bots[0].internal_only)
+    self.assertEqual('very_secret', bots[1].key.string_id())
+    self.assertTrue(bots[1].internal_only)
+    self.assertEqual('win7', bots[2].key.string_id())
+    self.assertFalse(bots[2].internal_only)
+
+    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(6, len(tests))
+    self.assertEqual('dromaeo', tests[0].key.string_id())
+    self.assertEqual('suddenly_secret', tests[0].key.parent().string_id())
+    self.assertTrue(tests[0].internal_only)
+    self.assertEqual('dom', tests[1].key.string_id())
+    self.assertTrue(tests[1].internal_only)
+    self.assertEqual('dromaeo', tests[2].key.string_id())
+    self.assertEqual('very_secret', tests[2].key.parent().string_id())
+    self.assertTrue(tests[2].internal_only)
+    self.assertEqual('dom', tests[3].key.string_id())
+    self.assertTrue(tests[3].internal_only)
+    self.assertEqual('dromaeo', tests[4].key.string_id())
+    self.assertEqual('win7', tests[4].key.parent().string_id())
+    self.assertFalse(tests[4].internal_only)
+    self.assertEqual('dom', tests[5].key.string_id())
+    self.assertFalse(tests[5].internal_only)
+
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(3, len(rows))
+    self.assertTrue(rows[0].internal_only)
+    self.assertTrue(rows[1].internal_only)
+    self.assertFalse(rows[2].internal_only)
 
   def testPost_NewTest_AnomalyConfigPropertyIsAdded(self):
     """Tests that AnomalyConfig keys are added to Tests upon creation.
@@ -499,6 +552,27 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('mean_frame_time', tests[1].key.string_id())
     self.assertFalse(tests[1].deprecated)
 
+  def testPost_GitHashSupplementalRevision_Accepted(self):
+    """Tests that git hashes can be added as supplemental revision columns."""
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 123
+    point['supplemental_columns'] = {
+        'r_chromium_rev': '2eca27b067e3e57c70e40b8b95d0030c5d7c1a7f',
+        'r_webkit_rev': 'bf9aa8d62561bb2e4d7bc09e9d9e8c6a665ddc88',
+    }
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(1, len(rows))
+    self.assertEqual(123, rows[0].key.id())
+    self.assertEqual(123, rows[0].revision)
+    self.assertEqual(
+        '2eca27b067e3e57c70e40b8b95d0030c5d7c1a7f', rows[0].r_chromium_rev)
+    self.assertEqual(
+        'bf9aa8d62561bb2e4d7bc09e9d9e8c6a665ddc88', rows[0].r_webkit_rev)
+
   def testPost_NewSuite_CachedSubTestsDeleted(self):
     """Tests that cached test lists are cleared as new test suites are added."""
     # Set the cached test lists. Note that no actual Test entities are added
@@ -582,6 +656,33 @@ class AddPointTest(testing_common.TestCase):
         'Bad value for "value", should be numerical.\n', response.body)
     self.assertIsNone(graph_data.Row.query().get())
 
+  def testPost_WithBadPointErrorValue_ErrorValueDropped(self):
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['error'] = 'not a number'
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    row = graph_data.Row.query().get()
+    self.assertIsNone(row.error)
+
+  def testPost_TooManyColumns_SomeColumnsDropped(self):
+    """Tests that some columns are dropped if there are too many."""
+    point = copy.deepcopy(_SAMPLE_POINT)
+    supplemental_columns = {}
+    for i in range(1, add_point._MAX_NUM_COLUMNS * 2):
+      supplemental_columns['d_run_%d' % i] = i
+    point['supplemental_columns'] = supplemental_columns
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    row = graph_data.Row.query().get()
+    row_dict = row.to_dict()
+    data_columns = [c for c in row_dict if c.startswith('d_')]
+    self.assertGreater(len(data_columns), 1)
+    self.assertLessEqual(len(data_columns), add_point._MAX_NUM_COLUMNS)
+
   def testPost_BadSupplementalColumnName_ColumnDropped(self):
     point = copy.deepcopy(_SAMPLE_POINT)
     point['supplemental_columns'] = {'q_foo': 'bar'}
@@ -610,6 +711,116 @@ class AddPointTest(testing_common.TestCase):
     row = graph_data.Row.query().get()
     self.assertFalse(hasattr(row, key))
 
+  def testPost_LongSupplementalAnnotation_ColumnDropped(self):
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['supplemental_columns'] = {
+        'a_one': 'z' * (add_point._STRING_COLUMN_MAX_LENGTH + 1),
+        'a_two': 'hello',
+    }
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    # Row properties with names that are too long are not added.
+    row = graph_data.Row.query().get()
+    self.assertFalse(hasattr(row, 'a_one'))
+    self.assertEqual('hello', row.a_two)
+
+  def testPost_BadSupplementalDataColumn_ColumnDropped(self):
+    """Tests that bad supplemental data columns are dropped."""
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['supplemental_columns'] = {
+        'd_run_1': 'hello',
+        'd_run_2': 42.5,
+    }
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    # Row data properties that aren't numerical aren't added.
+    row = graph_data.Row.query().get()
+    self.assertFalse(hasattr(row, 'd_run_1'))
+    self.assertEqual(42.5, row.d_run_2)
+
+  def testPost_RevisionTooLow_Rejected(self):
+    # If a point's ID is much lower than the last one, it should be rejected
+    # because this indicates that the revision type was accidentally changed.
+    # First add one point; it's accepted because it's the first in the series.
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 1408479179
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    test_path = 'ChromiumPerf/win7/my_test_suite/my_test'
+    last_added_revision = ndb.Key('LastAddedRevision', test_path).get()
+    self.assertEqual(1408479179, last_added_revision.revision)
+
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 285000
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(1, len(rows))
+
+  def testPost_RevisionTooHigh_Rejected(self):
+    # First add one point; it's accepted because it's the first in the series.
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 285000
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 1408479179
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])}, status=400,
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(1, len(rows))
+
+  def testPost_MultiplePointsWithCloseRevisions_Accepted(self):
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 285000
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 285200
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['revision'] = 285100
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    rows = graph_data.Row.query().fetch()
+    self.assertEqual(3, len(rows))
+
+  def testPost_ValidRow_CorrectlyAdded(self):
+    """Tests that adding a chart causes the correct row to be added."""
+    data_param = json.dumps(_SAMPLE_DASHBOARD_JSON)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(1, len(rows))
+    self.assertEqual(12345, rows[0].revision)
+    self.assertEqual(22.4, rows[0].value)
+    self.assertEqual(0, rows[0].error)
+    self.assertEqual('12.3.45.6', rows[0].r_chrome)
+    self.assertEqual('234567', rows[0].r_blink)
+    self.assertEqual('mavericks', rows[0].a_os)
+    self.assertEqual('intel', rows[0].a_gpu_oem)
+    test_suite = ndb.Key(
+        'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test', 'my_test_suite').get()
+    self.assertEqual('foo', test_suite.description)
+
   def testPost_NoTestSuiteName_BenchmarkNameUsed(self):
     sample = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
     del sample['test_suite_name']
@@ -631,6 +842,37 @@ class AddPointTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
     self.assertIsNone(utils.TestKey('ChromiumPerf/win7/my_test_suite').get())
     self.assertIsNotNone(utils.TestKey('ChromiumPerf/win7/my_benchmark').get())
+
+  def testPost_WithBenchmarkRerunOptions_AddsTraceRerunOptions(self):
+    sample_json = copy.deepcopy(_SAMPLE_DASHBOARD_JSON)
+    sample_json['chart_data']['trace_rerun_options'] = [['foo', '--foo']]
+    data_param = json.dumps(sample_json)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual('--foo', rows[0].a_trace_rerun_options.foo)
+
+  def testPost_FormatV1_CorrectlyAdded(self):
+    """Tests that adding a chart causes the correct trace to be added."""
+    data_param = json.dumps(_SAMPLE_DASHBOARD_JSON_WITH_TRACE)
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(2, len(rows))
+    self.assertEqual(12345, rows[0].revision)
+    self.assertEqual(22.4, rows[0].value)
+    self.assertEqual(0, rows[0].error)
+    self.assertEqual('12.3.45.6', rows[0].r_chrome)
+    self.assertFalse(hasattr(rows[0], 'a_tracing_uri'))
+    self.assertEqual(33.2, rows[1].value)
+    self.assertEqual('https://console.developer.google.com/m',
+                     rows[1].a_tracing_uri)
 
   def testPost_FormatV1_BadMaster_Rejected(self):
     """Tests that attempting to post with no master name will error."""
