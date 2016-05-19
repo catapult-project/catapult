@@ -73,6 +73,7 @@ def LoadTests(test_class, finder_options, filter_regex_str):
           setattr(test_class, generated_test_name, GenerateTestMethod(
               based_method, args))
           test_cases.append(test_class(generated_test_name))
+  test_cases.sort(key=lambda t: t.id())
   return test_cases
 
 

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import string
 import tempfile
 import unittest
 import json
@@ -19,6 +20,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
   def baseTest(self, mockInitDependencyManager, test_filter,
                failures, successes):
     options = browser_test_runner.TestRunOptions()
+    options.verbosity = 0
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
         client_configs=['a', 'b', 'c'],
@@ -37,8 +39,8 @@ class BrowserTestRunnerTest(unittest.TestCase):
       mockInitDependencyManager.assert_called_with(['a', 'b', 'c'])
       with open(temp_file_name) as f:
         test_result = json.load(f)
-      self.assertEquals(set(test_result['failures']), set(failures))
-      self.assertEquals(set(test_result['successes']), set(successes))
+      self.assertEquals(test_result['failures'], failures)
+      self.assertEquals(test_result['successes'], successes)
       self.assertEquals(test_result['valid'], True)
     finally:
       os.remove(temp_file_name)
@@ -60,3 +62,17 @@ class BrowserTestRunnerTest(unittest.TestCase):
       mockInitDependencyManager, 'TestSimple',
       ['browser_tests.simple_numeric_test.SimpleTest.TestSimple'],
       [])
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testExecutingTestsInSortedOrder(self, mockInitDependencyManager):
+    alphabetical_tests = []
+    prefix = 'browser_tests.simple_numeric_test.SimpleTest.Alphabetical_'
+    for i in xrange(20):
+      alphabetical_tests.append(prefix + str(i))
+    for c in string.uppercase[:26]:
+      alphabetical_tests.append(prefix + c)
+    for c in string.lowercase[:26]:
+      alphabetical_tests.append(prefix + c)
+    alphabetical_tests.sort()
+    self.baseTest(
+        mockInitDependencyManager, 'Alphabetical', [], alphabetical_tests)
