@@ -185,7 +185,7 @@ class TraceDataBuilder(object):
     self._raw_data = None
     return data
 
-  def AddEventsTo(self, part, events, as_string=False):
+  def AddEventsTo(self, part, events):
     """Note: this won't work when called from multiple browsers.
 
     Each browser's trace_event_impl zeros its timestamps when it writes them
@@ -195,12 +195,15 @@ class TraceDataBuilder(object):
     if self._raw_data == None:
       raise Exception('Already called AsData() on this builder.')
 
-    if as_string:
-      assert isinstance(events, basestring)
-      self._raw_data[part.raw_field_name] = events
-    else:
-      assert isinstance(events, list)
+    if isinstance(events, basestring):
+      if part.raw_field_name in self._raw_data:
+        self._raw_data[part.raw_field_name] += events
+      else:
+        self._raw_data[part.raw_field_name] = events
+    elif isinstance(events, list):
       self._raw_data.setdefault(part.raw_field_name, []).extend(events)
+    else:
+      raise TypeError('Trace event of unkown type being added. %s' % events)
 
   def HasEventsFor(self, part):
     return _HasEventsFor(part, self._raw_data)
