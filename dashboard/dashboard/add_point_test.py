@@ -24,6 +24,7 @@ from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
+from dashboard.models import sheriff
 
 # TODO(qyearsley): Shorten this module.
 # See https://github.com/catapult-project/catapult/issues/1917
@@ -146,6 +147,154 @@ class AddPointTest(testing_common.TestCase):
     # is tested in post_data_handler_test.py.
     testing_common.SetIpWhitelist([_WHITELISTED_IP])
     self.SetCurrentUser('foo@bar.com', is_admin=True)
+
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  def testPost(self, mock_process_test):
+    """Tests all basic functionality of a POST request."""
+    sheriff.Sheriff(
+        id='my_sheriff1', email='a@chromium.org', patterns=['*/*/*/dom']).put()
+    data_param = json.dumps([
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/dom',
+            'revision': 12345,
+            'value': 22.4,
+            'error': 1.23,
+            'supplemental_columns': {
+                'r_webkit': 1355,
+                'a_extra': 'hello',
+                'd_median': 22.2,
+            },
+        },
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/jslib',
+            'revision': 12345,
+            'value': 44.3,
+        }
+    ])
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    # Verify everything was added to the database correctly
+    rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(2, len(rows))
+
+    # Verify all properties of the first Row.
+    self.assertEqual('dom', rows[0].parent_test.string_id())
+    self.assertEqual('Test', rows[0].parent_test.kind())
+    self.assertEqual(12345, rows[0].key.id())
+    self.assertEqual(12345, rows[0].revision)
+    self.assertEqual(22.4, rows[0].value)
+    self.assertEqual(1.23, rows[0].error)
+    self.assertEqual('1355', rows[0].r_webkit)
+    self.assertEqual('hello', rows[0].a_extra)
+    self.assertEqual(22.2, rows[0].d_median)
+    self.assertTrue(rows[0].internal_only)
+
+    # Verify all properties of the second Row.
+    self.assertEqual(12345, rows[1].key.id())
+    self.assertEqual(12345, rows[1].revision)
+    self.assertEqual(44.3, rows[1].value)
+    self.assertTrue(rows[1].internal_only)
+    self.assertEqual('jslib', rows[1].parent_test.string_id())
+    self.assertEqual('Test', rows[1].parent_test.kind())
+
+    # There were three Test entities inserted -- the parent Test,
+    # and the two child Test entities in the order given.
+    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(3, len(tests))
+
+    # Nothing was specified for units, so they have their default
+    # values. Same for other the tests below.
+    self.assertEqual('dromaeo', tests[0].key.id())
+    self.assertEqual('win7', tests[0].bot.id())
+    self.assertIsNone(tests[0].parent_test)
+    self.assertFalse(tests[0].has_rows)
+    self.assertEqual('ChromiumPerf/win7/dromaeo', tests[0].test_path)
+    self.assertTrue(tests[0].internal_only)
+    self.assertEqual(1, len(tests[0].monitored))
+    self.assertEqual('dom', tests[0].monitored[0].string_id())
+    self.assertIsNone(tests[0].units)
+
+    self.assertEqual('dom', tests[1].key.id())
+    self.assertEqual('dromaeo', tests[1].parent_test.id())
+    self.assertEqual('my_sheriff1', tests[1].sheriff.string_id())
+    self.assertIsNone(tests[1].bot)
+    self.assertTrue(tests[1].has_rows)
+    self.assertEqual('ChromiumPerf/win7/dromaeo/dom', tests[1].test_path)
+    self.assertTrue(tests[1].internal_only)
+    self.assertIsNone(tests[1].units)
+
+    self.assertEqual('jslib', tests[2].key.id())
+    self.assertEqual('dromaeo', tests[2].parent_test.id())
+    self.assertIsNone(tests[2].sheriff)
+    self.assertIsNone(tests[2].bot)
+    self.assertTrue(tests[2].has_rows)
+    self.assertEqual('ChromiumPerf/win7/dromaeo/jslib', tests[2].test_path)
+    self.assertTrue(tests[2].internal_only)
+    self.assertIsNone(tests[2].units)
+
+    # Both sample entries have the same master' and 'bot' values, so one
+    # Master and one Bot entity were created.
+    bots = graph_data.Bot.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(1, len(bots))
+    self.assertEqual('win7', bots[0].key.id())
+    self.assertEqual('ChromiumPerf', bots[0].key.parent().id())
+    self.assertTrue(bots[0].internal_only)
+    masters = graph_data.Master.query().fetch(limit=_FETCH_LIMIT)
+    self.assertEqual(1, len(masters))
+    self.assertEqual('ChromiumPerf', masters[0].key.id())
+    self.assertIsNone(masters[0].key.parent())
+
+    # Verify that an anomaly processing was called.
+    mock_process_test.assert_called_once_with(tests[1].key)
+
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  def testPost_TestNameEndsWithUnderscoreRef_ProcessTestIsNotCalled(
+      self, mock_process_test):
+    """Tests that Tests ending with "_ref" aren't analyzed for Anomalies."""
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['test'] = '1234/abcd_ref'
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertFalse(mock_process_test.called)
+
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  def testPost_TestNameEndsWithSlashRef_ProcessTestIsNotCalled(
+      self, mock_process_test):
+    """Tests that leaf tests named ref aren't added to the task queue."""
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['test'] = '1234/ref'
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertFalse(mock_process_test.called)
+
+  @mock.patch.object(add_point_queue.find_anomalies, 'ProcessTest')
+  def testPost_TestNameEndsContainsButDoesntEndWithRef_ProcessTestIsCalled(
+      self, mock_process_test):
+    sheriff.Sheriff(
+        id='ref_sheriff', email='a@chromium.org', patterns=['*/*/*/*']).put()
+    point = copy.deepcopy(_SAMPLE_POINT)
+    point['test'] = '_ref/abcd'
+    self.testapp.post(
+        '/add_point', {'data': json.dumps([point])},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+    self.assertTrue(mock_process_test.called)
 
   def testPost_TestPathTooLong_PointRejected(self):
     """Tests that an error is returned when the test path would be too long."""
@@ -338,6 +487,68 @@ class AddPointTest(testing_common.TestCase):
     self.assertTrue(rows[0].internal_only)
     self.assertTrue(rows[1].internal_only)
     self.assertFalse(rows[2].internal_only)
+
+  @mock.patch.object(
+      add_point_queue.find_anomalies, 'ProcessTest', mock.MagicMock())
+  def testPost_NewTest_SheriffPropertyIsAdded(self):
+    """Tests that sheriffs are added to tests when Tests are created."""
+    sheriff1 = sheriff.Sheriff(
+        id='sheriff1', email='a@chromium.org',
+        patterns=['ChromiumPerf/*/*/jslib']).put()
+    sheriff2 = sheriff.Sheriff(
+        id='sheriff2', email='a@chromium.org',
+        patterns=['*/*/image_benchmark/*', '*/*/scrolling_benchmark/*']).put()
+
+    data_param = json.dumps([
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'scrolling_benchmark/mean_frame_time',
+            'revision': 123456,
+            'value': 700,
+        },
+        {
+            'master': 'ChromiumPerf',
+            'bot': 'win7',
+            'test': 'dromaeo/jslib',
+            'revision': 123445,
+            'value': 200,
+        },
+        {
+            'master': 'ChromiumWebkit',
+            'bot': 'win7',
+            'test': 'dromaeo/jslib',
+            'revision': 12345,
+            'value': 205.3,
+        }
+    ])
+    self.testapp.post(
+        '/add_point', {'data': data_param},
+        extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
+
+    self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
+
+    sheriff1_test = ndb.Key(
+        'Master', 'ChromiumPerf', 'Bot', 'win7',
+        'Test', 'dromaeo', 'Test', 'jslib').get()
+    self.assertEqual(sheriff1, sheriff1_test.sheriff)
+
+    sheriff2_test = ndb.Key(
+        'Master', 'ChromiumPerf', 'Bot', 'win7',
+        'Test', 'scrolling_benchmark',
+        'Test', 'mean_frame_time').get()
+    self.assertEqual(sheriff2, sheriff2_test.sheriff)
+
+    no_sheriff_test = ndb.Key(
+        'Master', 'ChromiumWebkit', 'Bot', 'win7',
+        'Test', 'dromaeo', 'Test', 'jslib').get()
+    self.assertIsNone(no_sheriff_test.sheriff)
+
+    test_suite = ndb.Key(
+        'Master', 'ChromiumPerf', 'Bot', 'win7',
+        'Test', 'scrolling_benchmark').get()
+    self.assertEqual(1, len(test_suite.monitored))
+    self.assertEqual('mean_frame_time', test_suite.monitored[0].string_id())
 
   def testPost_NewTest_AnomalyConfigPropertyIsAdded(self):
     """Tests that AnomalyConfig keys are added to Tests upon creation.
