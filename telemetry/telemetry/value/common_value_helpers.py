@@ -1,6 +1,8 @@
 # Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+import copy
 from telemetry.value import failure
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
@@ -12,6 +14,10 @@ def TranslateMreFailure(mre_failure, page):
 
 def TranslateScalarValue(scalar_value, page):
   assert IsScalarNumericValue(scalar_value)
+
+  # This function should not modify scalar_value because it is also held by
+  # PageTestResults.value_set.
+  scalar_value = copy.deepcopy(scalar_value)
 
   value = scalar_value['numeric']['value']
   scalar_value['value'] = value

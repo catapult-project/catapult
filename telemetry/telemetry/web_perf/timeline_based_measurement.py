@@ -308,6 +308,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
           common_value_helpers.TranslateMreFailure(d, page))
 
     value_dicts = mre_result.pairs.get('values', [])
+    results.value_set.extend(value_dicts)
     for d in value_dicts:
       if common_value_helpers.IsScalarNumericValue(d):
         results.AddValue(

@@ -42,6 +42,9 @@ tr.exportTo('tr.v', function() {
     if (d.type === 'scalar')
       return ScalarNumeric.fromDict(d);
 
+    if (d.type === 'numeric')
+      return Numeric.fromDict(d);
+
     throw new Error('Not implemented');
   };
 
@@ -367,7 +370,7 @@ tr.exportTo('tr.v', function() {
               tr.v.Unit.byName.unitlessNumber_smallerIsBetter : this.unit;
           var key = statNameToKey(stat);
           var statValue = this.running[key];
-          if (statValue !== undefined) {
+          if (typeof(statValue) === 'number') {
             results.push({
                 name: stat,
                 scalar: new tr.v.ScalarNumeric(statUnit, statValue)
@@ -619,7 +622,17 @@ tr.exportTo('tr.v', function() {
 
     asDictInto_: function(d) {
       d.type = 'scalar';
-      d.value = this.value;
+
+      // Infinity and NaN are left out of JSON for security reasons that do not
+      // apply to our use cases.
+      if (this.value === Infinity)
+        d.value = 'Infinity';
+      else if (this.value === -Infinity)
+        d.value = '-Infinity';
+      else if (isNaN(this.value))
+        d.value = 'NaN';
+      else
+        d.value = this.value;
     },
 
     toString: function() {
@@ -628,6 +641,18 @@ tr.exportTo('tr.v', function() {
   };
 
   ScalarNumeric.fromDict = function(d) {
+    // Infinity and NaN are left out of JSON for security reasons that do not
+    // apply to our use cases.
+    if (typeof(d.value) === 'string') {
+      if (d.value === '-Infinity') {
+        d.value = -Infinity;
+      } else if (d.value === 'Infinity') {
+        d.value = Infinity;
+      } else if (d.value === 'NaN') {
+        d.value = NaN;
+      }
+    }
+
     return new ScalarNumeric(tr.v.Unit.fromJSON(d.unit), d.value);
   };
 

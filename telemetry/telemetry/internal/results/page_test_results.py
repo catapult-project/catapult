@@ -63,6 +63,15 @@ class PageTestResults(object):
     self._pages_to_profiling_files = collections.defaultdict(list)
     self._pages_to_profiling_files_cloud_url = collections.defaultdict(list)
 
+    # You'd expect this to be a set(), but Values are dictionaries, which are
+    # unhashable. We could wrap Values with custom __eq/hash__, but we don't
+    # actually need set-ness in python.
+    self._value_set = []
+
+  @property
+  def value_set(self):
+    return self._value_set
+
   def __copy__(self):
     cls = self.__class__
     result = cls.__new__(cls)

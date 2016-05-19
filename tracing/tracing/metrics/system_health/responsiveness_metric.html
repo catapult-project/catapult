@@ -70,7 +70,8 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.b.Range.fromExplicitRange(0, 300), 60);
 
   function responsivenessMetric(values, model) {
-    tr.metrics.sh.firstPaintMetric(values, model);
+    // TODO(benjhayden): Add categories to benchmark to support:
+    // tr.metrics.sh.firstPaintMetric(values, model);
 
     var responseNumeric = RESPONSE_NUMERIC_BUILDER.build();
     var throughputNumeric = THROUGHPUT_NUMERIC_BUILDER.build();

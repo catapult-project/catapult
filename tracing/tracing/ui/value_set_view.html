@@ -94,9 +94,9 @@ tr.exportTo('tr.ui', function() {
 
         if (value.numeric) {
           row.unit = value.numeric.unit;
-          if (value.numeric.value) {
+          if (value.numeric.value !== undefined) {
             row.value = value.numeric.value;
-          } else if (value.numeric.average) {
+          } else if (value.numeric.average !== undefined) {
             row.value = value.numeric.average;
           }
         }

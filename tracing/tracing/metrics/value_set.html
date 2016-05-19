@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -28,6 +29,14 @@ tr.exportTo('tr.metrics', function() {
 
     map: function(cb, opt_this) {
       return tr.b.dictionaryValues(this.values_).map(cb, opt_this);
+    },
+
+    addValueDicts: function(dicts) {
+      dicts.forEach(function(dict) {
+        var value = tr.v.Value.fromDict(dict);
+        this.addValue(value);
+        // TODO(TBMv2.1): Patch up RelatedValueSets here.
+      }, this);
     },
 
     getValuesWithName: function(name) {

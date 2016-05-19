@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/value_set.html">
+<link rel="import" href="/tracing/ui/value_set_view.html">
+
+<tr-ui-value-set-view id="values"></tr-ui-value-set-view>
+
+<script>
+'use strict';
+
+window.values = new tr.metrics.ValueSet();
+
+document.addEventListener('DOMContentLoaded', function() {
+  var valueSetView = document.getElementById('values');
+  valueSetView.values = window.values;
+});
+</script>
+<!--
+Html2OutputFormatter will append script tags that import ValueSets into
+window.values.
+-->
