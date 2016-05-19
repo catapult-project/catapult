@@ -398,3 +398,6 @@ class Platform(object):
   def local_servers(self):
     """Returns the currently running local servers."""
     return self._local_server_controller.local_servers
+
+  def HasBattOrConnected(self):
+    return  self._platform_backend.HasBattOrConnected()

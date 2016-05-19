@@ -4,6 +4,7 @@
 
 import weakref
 
+from battor import battor_wrapper
 from telemetry.internal import forwarders
 from telemetry.internal.forwarders import do_nothing_forwarder
 from telemetry.internal.platform import network_controller_backend
@@ -293,3 +294,6 @@ class PlatformBackend(object):
       Whether the path exists on the target platform.
     """
     raise NotImplementedError()
+
+  def HasBattOrConnected(self):
+    return battor_wrapper.IsBattOrConnected(self.GetOSName())

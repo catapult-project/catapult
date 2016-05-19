@@ -8,6 +8,7 @@ import re
 import subprocess
 import tempfile
 
+from battor import battor_wrapper
 from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -732,6 +733,12 @@ class AndroidPlatformBackend(
     input_methods = self._device.RunShellCommand('dumpsys input_method',
                                                  check_return=True)
     return self._IsScreenLocked(input_methods)
+
+  def HasBattOrConnected(self):
+    # str(self.device) is the device id as a string.
+    return battor_wrapper.IsBattOrConnected(self.GetOSName(),
+                                            android_device=str(self.device))
+
 
 def _FixPossibleAdbInstability():
   """Host side workaround for crbug.com/268450 (adb instability).
