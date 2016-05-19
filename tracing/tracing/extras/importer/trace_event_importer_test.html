@@ -5639,7 +5639,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(C.subSlices.length, 0);
   });
 
-  test('clockSync_withoutMetadata', function() {
+  test('clockSync_requesterWithoutMetadata', function() {
     var events = [{
       name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5000},
       pid: 1, ts: 15000, cat: '__metadata', tid: 2, ph: 'c'
@@ -5668,7 +5668,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
   });
 
-  test('clockSync_withMetadata', function() {
+  test('clockSync_requesterWithMetadata', function() {
     var events = {
       traceEvents: [{
         name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
@@ -5688,20 +5688,35 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(m.hasImportWarnings);
   });
 
-  test('clockSync_missingSyncId', function() {
-    var events = [{
-      name: 'clock_sync', args: {issue_ts: 5},
-      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
-    }];
+  test('clockSync_recipient', function() {
+    var events = {
+      traceEvents: [{
+        name: 'clock_sync', args: {sync_id: 'abc'}, pid: 1, ts: 15000,
+        cat: '__metadata', tid: 2, ph: 'c'
+      }],
+      metadata: {
+        'clock-domain': ClockDomainId.TELEMETRY
+      }
+    };
 
     var m = makeModel(events);
 
-    assert.isTrue(m.hasImportWarnings);
+    m.clockSyncManager.addClockSyncMarker(
+        ClockDomainId.LINUX_CLOCK_MONOTONIC, 'abc', 10);
+
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.TELEMETRY)(15),
+        10);
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.LINUX_CLOCK_MONOTONIC)(10),
+        10);
   });
 
-  test('clockSync_missingStartTs', function() {
+  test('clockSync_missingSyncId', function() {
     var events = [{
-      name: 'clock_sync', args: {sync_id: 'abc'},
+      name: 'clock_sync', args: {issue_ts: 5},
       pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
     }];
 

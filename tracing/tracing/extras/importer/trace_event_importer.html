@@ -800,29 +800,43 @@ tr.exportTo('tr.e.importer', function() {
         throw new Error('Invalid clock sync event phase "' + event.ph + '".');
 
       var syncId = event.args.sync_id;
-      var issueStartTs = event.args.issue_ts;
-      var issueEndTs = event.ts;
-
       if (syncId === undefined) {
         this.model_.importWarning({
           type: 'clock_sync_parse_error',
-          message: 'Clock sync at time ' + issueEndTs + ' without an ID.'
+          message: 'Clock sync at time ' + event.ts + ' without an ID.'
         });
         return;
       }
 
-      if (issueStartTs === undefined) {
-        this.model_.importWarning({
-          type: 'clock_sync_parse_error',
-          message: 'Clock sync at time ' + issueEndTs + ' with ID ' + syncId +
-              ' without a start timestamp.'
-        });
-        return;
+      if (event.args && event.args.issue_ts !== undefined) {
+        // When Chrome is the tracing controller and is the requester of the
+        // clock sync, the clock sync event looks like:
+        //
+        //   {
+        //     "args": {
+        //       "sync_id": "abc123",
+        //       "issue_ts": 12340
+        //     }
+        //     "ph": "c"
+        //     "ts": 12345
+        //     ...
+        //   }
+        this.model_.clockSyncManager.addClockSyncMarker(
+            this.clockDomainId_, syncId, timestampFromUs(event.args.issue_ts),
+            timestampFromUs(event.ts));
+      } else {
+        // When Chrome is a tracing agent and is the recipient of the clock
+        // sync request, the clock sync event looks like:
+        //
+        //   {
+        //     "args": { "sync_id": "abc123" }
+        //     "ph": "c"
+        //     "ts": 12345
+        //     ...
+        //   }
+        this.model_.clockSyncManager.addClockSyncMarker(
+            this.clockDomainId_, syncId, timestampFromUs(event.ts));
       }
-
-      this.model_.clockSyncManager.addClockSyncMarker(
-          this.clockDomainId_, syncId, timestampFromUs(issueStartTs),
-          timestampFromUs(issueEndTs));
     },
 
     // Because the order of Jit code events and V8 samples are not guaranteed,

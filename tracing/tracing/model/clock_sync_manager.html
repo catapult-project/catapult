@@ -23,7 +23,18 @@ tr.exportTo('tr.model', function() {
     MAC_MACH_ABSOLUTE_TIME: 'MAC_MACH_ABSOLUTE_TIME',
     WIN_ROLLOVER_PROTECTED_TIME_GET_TIME:
         'WIN_ROLLOVER_PROTECTED_TIME_GET_TIME',
-    WIN_QPC: 'WIN_QPC'
+    WIN_QPC: 'WIN_QPC',
+
+    // "Telemetry" isn't really a clock domain because Telemetry actually
+    // can use one of several clock domains, just like Chrome. However,
+    // because there's a chance that Telemetry is running off of the same
+    // clock as Chrome (e.g. LINUX_CLOCK_MONOTONIC) but on a separate device
+    // (i.e. on a host computer with Chrome running on an attached phone),
+    // there's a chance that Chrome and Telemetry will erroneously get put into
+    // the same clock domain. The solution for this is that clock domains should
+    // actually be some (unique_device_id, clock_id) tuple. For now, though,
+    // we'll hack around this by putting Telemetry into its own clock domain.
+    TELEMETRY: 'TELEMETRY'
   };
 
   var POSSIBLE_CHROME_CLOCK_DOMAINS = new Set([
