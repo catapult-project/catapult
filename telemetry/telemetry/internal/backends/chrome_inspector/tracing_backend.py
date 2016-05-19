@@ -98,7 +98,7 @@ class TracingBackend(object):
   def is_tracing_running(self):
     return self._is_tracing_running
 
-  def StartTracing(self, trace_options, custom_categories=None, timeout=10):
+  def StartTracing(self, trace_options, timeout=10):
     """When first called, starts tracing, and returns True.
 
     If called during tracing, tracing is unchanged, and it returns False.
@@ -115,12 +115,11 @@ class TracingBackend(object):
     req = {
       'method': 'Tracing.start',
       'params': {
+        'categories': trace_options.tracing_category_filter.filter_string,
         'options': trace_options.GetTraceOptionsStringForChromeDevtool(),
         'transferMode': 'ReturnAsStream'
       }
     }
-    if custom_categories:
-      req['params']['categories'] = custom_categories
     logging.info('Start Tracing Request: %s', repr(req))
     response = self._inspector_websocket.SyncRequest(req, timeout)
 

@@ -92,7 +92,7 @@ class BrowserBackend(app_backend.AppBackend):
   def supports_system_info(self):
     return False
 
-  def StartTracing(self, trace_options, custom_categories=None,
+  def StartTracing(self, trace_options,
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 

@@ -93,8 +93,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         raise ChromeTracingStartedError(
             'Tracing is already running on devtools at port %s on platform'
             'backend %s.' % (client.remote_port, self._platform_backend))
-      client.StartChromeTracing(
-          config, config.tracing_category_filter.filter_string, timeout)
+      client.StartChromeTracing(config, timeout)
     return True
 
   def StartAgentTracing(self, config, timeout):

@@ -122,9 +122,7 @@ class DevToolsClientBackend(object):
       return
 
     self._CreateTracingBackendIfNeeded(is_tracing_running=False)
-    self.StartChromeTracing(
-        trace_config=trace_config,
-        custom_categories=trace_config.tracing_category_filter.filter_string)
+    self.StartChromeTracing(trace_config)
 
   @property
   def remote_port(self):
@@ -318,21 +316,14 @@ class DevToolsClientBackend(object):
     self._CreateTracingBackendIfNeeded()
     return self._tracing_backend.IsTracingSupported()
 
-  def StartChromeTracing(
-      self, trace_config, custom_categories=None, timeout=10):
+  def StartChromeTracing(self, trace_config, timeout=10):
     """
     Args:
         trace_config: An tracing_config.TracingConfig instance.
-        custom_categories: An optional string containing a list of
-                         comma separated categories that will be traced
-                         instead of the default category set.  Example: use
-                         "webkit,cc,disabled-by-default-cc.debug" to trace only
-                         those three event categories.
     """
     assert trace_config and trace_config.enable_chrome_trace
     self._CreateTracingBackendIfNeeded()
-    return self._tracing_backend.StartTracing(
-        trace_config, custom_categories, timeout)
+    return self._tracing_backend.StartTracing(trace_config, timeout)
 
   def RecordChromeClockSyncMarker(self, sync_id):
     assert self.is_tracing_running, 'Tracing must be running to clock sync.'
