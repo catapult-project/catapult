@@ -22,24 +22,28 @@ class SimpleTest(serially_executed_browser_test_case.SeriallyBrowserTestCase):
     print '%s: %.3fms' % (self.id(), t)
 
   @classmethod
-  def GenerateTestCases_TestFoo(cls, options):
+  def GenerateTestCases_AdderTest(cls, options):
     yield 'add_1_and_2', (1, 2, options.adder_sum)
     yield 'add_2_and_3', (2, 3, options.adder_sum)
     yield 'add_7_and_3', (7, 3, options.adder_sum)
+    # Filtered out in browser_test_runner_unittest.py
+    yield 'dontrun_add_1_and_2', (1, 2, options.adder_sum)
 
-  def TestFoo(self, a, b, partial_sum):
+  def AdderTest(self, a, b, partial_sum):
     self.assertEqual(a + b, partial_sum)
 
   @classmethod
-  def GenerateTestCases_TestBar(cls, options):
+  def GenerateTestCases_MultiplierTest(cls, options):
     del options  # unused
     yield 'multiplier_simple', (10, 2, 4)
     yield 'multiplier_simple_2', (2, 3, 5)
     yield 'multiplier_simple_3', (10, 3, 6)
+    # Filtered out in browser_test_runner_unittest.py
+    yield 'dontrun_multiplier_simple', (10, 2, 4)
 
-  def TestBar(self, a, b, partial_sum):
+  def MultiplierTest(self, a, b, partial_sum):
     self.assertEqual(a * b, partial_sum * self.extra)
 
-  def testSimple(self):
+  def TestSimple(self):
     time.sleep(0.5)
     self.assertEqual(1, self.extra)

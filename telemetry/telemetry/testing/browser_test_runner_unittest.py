@@ -16,8 +16,8 @@ from telemetry.testing import browser_test_runner
 
 class BrowserTestRunnerTest(unittest.TestCase):
 
-  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
-  def testJsonOutputFormat(self, mockInitDependencyManager):
+  def baseTest(self, mockInitDependencyManager, test_filter,
+               failures, successes):
     options = browser_test_runner.TestRunOptions()
     config = project_config.ProjectConfig(
         top_level_dir=os.path.join(util.GetTelemetryDir(), 'examples'),
@@ -32,15 +32,31 @@ class BrowserTestRunnerTest(unittest.TestCase):
       browser_test_runner.Run(
           config, options,
           ['SimpleTest',
-           '--write-abbreviated-json-results-to=%s' % temp_file_name])
+           '--write-abbreviated-json-results-to=%s' % temp_file_name,
+           '--test-filter=%s' % test_filter])
       mockInitDependencyManager.assert_called_with(['a', 'b', 'c'])
       with open(temp_file_name) as f:
         test_result = json.load(f)
-      self.assertEquals(test_result['failures'], [
-          'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_2',
-          'browser_tests.simple_numeric_test.SimpleTest.add_1_and_2',
-          'browser_tests.simple_numeric_test.SimpleTest.add_7_and_3',
-          'browser_tests.simple_numeric_test.SimpleTest.testSimple'])
+      self.assertEquals(set(test_result['failures']), set(failures))
+      self.assertEquals(set(test_result['successes']), set(successes))
       self.assertEquals(test_result['valid'], True)
     finally:
       os.remove(temp_file_name)
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputFormatNegativeFilter(self, mockInitDependencyManager):
+    self.baseTest(
+      mockInitDependencyManager, '^(add|multiplier).*',
+      ['browser_tests.simple_numeric_test.SimpleTest.add_1_and_2',
+       'browser_tests.simple_numeric_test.SimpleTest.add_7_and_3',
+       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_2'],
+      ['browser_tests.simple_numeric_test.SimpleTest.add_2_and_3',
+       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple',
+       'browser_tests.simple_numeric_test.SimpleTest.multiplier_simple_3'])
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputFormatPositiveFilter(self, mockInitDependencyManager):
+    self.baseTest(
+      mockInitDependencyManager, 'TestSimple',
+      ['browser_tests.simple_numeric_test.SimpleTest.TestSimple'],
+      [])

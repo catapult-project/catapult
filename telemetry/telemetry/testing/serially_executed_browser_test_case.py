@@ -22,37 +22,42 @@ class SeriallyBrowserTestCase(unittest.TestCase):
     cls._finder_options = options_for_unittests.GetCopy()
     cls._platform = None
     cls._browser = None
+    cls.platform = None
+    cls.browser = None
 
   @classmethod
   def StartBrowser(cls, options):
-    assert not cls._browser, 'Browser is started. Must close it first'
+    assert not cls.browser, 'Browser is started. Must close it first'
     browser_to_create = browser_finder.FindBrowser(options)
-    cls._browser = browser_to_create.Create(options)
-    if not cls._platform:
-      cls._platform = cls._browser.platform
+    cls.browser = browser_to_create.Create(options)
+    cls._browser = cls.browser
+    if not cls.platform:
+      cls.platform = cls.browser.platform
+      cls._platform = cls.platform
     else:
-      assert cls._platform == cls._browser.platform, (
+      assert cls.platform == cls.browser.platform, (
           'All browser launches within same test suite must use browsers on '
           'the same platform')
 
   @classmethod
   def StopBrowser(cls):
-    assert cls._browser, 'Browser is not started'
-    cls._browser.Close()
+    assert cls.browser, 'Browser is not started'
+    cls.browser.Close()
+    cls.browser = None
     cls._browser = None
 
   @classmethod
   def tearDownClass(cls):
-    if cls._platform:
-      cls._platform.StopAllLocalServers()
-    if cls._browser:
+    if cls.platform:
+      cls.platform.StopAllLocalServers()
+    if cls.browser:
       cls.StopBrowser()
 
   @classmethod
   def SetStaticServerDir(cls, dir_path):
-    assert cls._platform
-    cls._platform.SetHTTPServerDirectories(dir_path)
+    assert cls.platform
+    cls.platform.SetHTTPServerDirectories(dir_path)
 
   @classmethod
   def UrlOfStaticFilePath(cls, file_path):
-    return cls._platform.http_server.UrlOf(file_path)
+    return cls.platform.http_server.UrlOf(file_path)

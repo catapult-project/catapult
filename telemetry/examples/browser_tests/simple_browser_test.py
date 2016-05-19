@@ -15,7 +15,7 @@ class SimpleBrowserTest(
     serially_executed_browser_test_case.SeriallyBrowserTestCase):
 
   @classmethod
-  def GenerateTestCases_TestJavascript(cls, options):
+  def GenerateTestCases_JavascriptTest(cls, options):
     del options  # unused
     for path in ['page_with_link.html', 'page_with_clickables.html']:
       yield 'add_1_and_2_' + ConvertPathToTestName(path), (path, 1, 2, 3)
@@ -28,21 +28,21 @@ class SimpleBrowserTest(
     cls.SetStaticServerDir(
         os.path.join(os.path.abspath(__file__), '..', 'pages'))
 
-  def TestJavascript(self, file_path, num_1, num_2, expected_sum):
+  def JavascriptTest(self, file_path, num_1, num_2, expected_sum):
     url = self.UrlOfStaticFilePath(file_path)
     self.action_runner.Navigate(url)
     actual_sum = self.action_runner.EvaluateJavaScript(
         '%i + %i' % (num_1, num_2))
     self.assertEquals(expected_sum, actual_sum)
 
-  def testClickablePage(self):
+  def TestClickablePage(self):
     url = self.UrlOfStaticFilePath('page_with_clickables.html')
     self.action_runner.Navigate(url)
     self.action_runner.ExecuteJavaScript('valueSettableByTest = 1997')
     self.action_runner.ClickElement(text='Click/tap me')
     self.assertEqual(1997, self.action_runner.EvaluateJavaScript('valueToTest'))
 
-  def testAndroidUI(self):
+  def TestAndroidUI(self):
     if self._platform.GetOSName() != 'android':
       self.skipTest('The test is for android only')
     url = self.UrlOfStaticFilePath('page_with_clickables.html')
