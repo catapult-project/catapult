@@ -100,9 +100,9 @@ def _GetOutputStream(output_format, output_dir):
   # TODO(eakuefner): Factor this hack out after we rewrite HTMLOutputFormatter.
   if output_format == 'html' or output_format == 'html2':
     open(output_file, 'a').close() # Create file if it doesn't exist.
-    return codecs.open(output_file, 'r+', 'utf-8')
+    return codecs.open(output_file, mode='r+', encoding='utf-8')
   else:
-    return codecs.open(output_file, 'w+', 'utf-8')
+    return open(output_file, mode='w+')
 
 
 def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
