@@ -81,7 +81,7 @@ def Main():
       'trace_file_or_dir',
       help='Path to trace file or directory of trace files.')
   parser.add_argument(
-      '--output-file',
+      '--output_file',
       help='Path to output file to store results.')
   args = parser.parse_args()
 
