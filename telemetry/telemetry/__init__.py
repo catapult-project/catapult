@@ -36,7 +36,6 @@ _AddDirToPythonPath(_CATAPULT_DIR, 'devil')
 _AddDirToPythonPath(_CATAPULT_DIR, 'tracing')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
-_AddDirToPythonPath(_CATAPULT_DIR, 'tracing', 'tracing_build')
 
 
 from telemetry.core import util

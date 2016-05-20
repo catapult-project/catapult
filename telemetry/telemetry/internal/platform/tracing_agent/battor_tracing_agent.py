@@ -6,17 +6,9 @@ import logging
 
 from battor import battor_error
 from battor import battor_wrapper
-from devil.android import battery_utils
 from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
-from telemetry.internal.util import atexit_with_log
 from telemetry.timeline import trace_data
-
-
-def _ReenableChargingIfNeeded(battery):
-  if not battery.GetCharging():
-    battery.SetCharging(True)
-  logging.info('Charging status checked at exit.')
 
 
 class BattOrTracingAgent(tracing_agent.TracingAgent):
@@ -33,9 +25,6 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     android_device = (
         platform_backend.device if platform_backend.GetOSName() == 'android'
         else None)
-    self._battery = (
-        battery_utils.BatteryUtils(platform_backend.device)
-        if platform_backend.GetOSName() == 'android' else None)
     self._battor = battor_wrapper.BattorWrapper(platform_backend.GetOSName(),
                                                 android_device=android_device)
 
@@ -63,24 +52,16 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     if not config.enable_battor_trace:
       return False
     try:
-      if self._battery:
-        self._battery.SetCharging(False)
-        atexit_with_log.Register(_ReenableChargingIfNeeded, self._battery)
-
       self._battor.StartShell()
       self._battor.StartTracing()
       return True
     except battor_error.BattorError:
-      if self._battery:
-        self._battery.SetCharging(True)
       logging.exception('Failure in starting tracing on BattOr.')
       return False
 
   def StopAgentTracing(self):
     """Stops tracing on the BattOr."""
     self._battor.StopTracing()
-    if self._battery:
-      self._battery.SetCharging(True)
 
   def SupportsExplicitClockSync(self):
     return self._battor.SupportsExplicitClockSync()
@@ -101,5 +82,4 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
     data = '\n'.join(self._battor.CollectTraceData(timeout=timeout))
-    trace_data_builder.AddEventsTo(
-        trace_data.BATTOR_TRACE_PART, data, as_string=True)
+    trace_data_builder.AddEventsTo(trace_data.BATTOR_TRACE_PART, [data])
