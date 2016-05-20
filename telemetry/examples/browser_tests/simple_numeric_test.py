@@ -8,6 +8,8 @@ import time
 from telemetry.testing import serially_executed_browser_test_case
 
 
+_prev_test_name = None
+
 class SimpleTest(serially_executed_browser_test_case.SeriallyBrowserTestCase):
 
   @classmethod
@@ -29,15 +31,25 @@ class SimpleTest(serially_executed_browser_test_case.SeriallyBrowserTestCase):
   def GenerateTestCases_AlphabeticalTest(cls, options):
     del options  # unused
     prefix = 'Alphabetical_'
+    test_names = []
     for character in string.lowercase[:26]:
-      yield prefix + character, ()
+      test_names.append(prefix + character)
     for character in string.uppercase[:26]:
-      yield prefix + character, ()
+      test_names.append(prefix + character)
     for num in xrange(20):
-      yield prefix + str(num), ()
+      test_names.append(prefix + str(num))
+
+    # Shuffle |test_names| so the tests will be generated in a random order.
+    test_names = (test_names[25:40] + test_names[40:70] + test_names[:25] +
+                  test_names[70:])
+    for t in test_names:
+      yield t, ()
 
   def AlphabeticalTest(self):
-    pass
+    test_name = self.id()
+    global _prev_test_name
+    self.assertLess(_prev_test_name, test_name)
+    _prev_test_name = test_name
 
   def AdderTest(self, a, b, partial_sum):
     self.assertEqual(a + b, partial_sum)
