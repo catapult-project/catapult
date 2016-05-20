@@ -80,8 +80,10 @@ tr.exportTo('tr.metrics.sh', function() {
     var objects = rendererHelper.process.objects;
     var frameLoaderInstances = objects.instancesByTypeName_['FrameLoader'];
     if (frameLoaderInstances === undefined) {
-      throw new Error(
-          'Couldn\'t find any FrameLoader instances to query frame url.');
+      console.warn('Failed to find FrameLoader for frameId "' + frameIdRef +
+          '" at ts ' + ts + ', the trace maybe incomplete or from an old' +
+          'Chrome.');
+      return undefined;
     }
     frameLoaderInstances.forEach(function(instance) {
       if (!instance.isAliveAt(ts))
@@ -172,7 +174,7 @@ tr.exportTo('tr.metrics.sh', function() {
     firstPaintEvents.forEach(function(ev) {
       var frameIdRef = ev.args['frame'];
       var url = findUrlOfFrameAt(rendererHelper, frameIdRef, ev.start);
-      if (shouldIgnoreURL(url))
+      if (url === undefined || shouldIgnoreURL(url))
         return;
       var navigationStartEvent =
         findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ev.start);
