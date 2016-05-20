@@ -467,6 +467,26 @@ tr.b.unittest.testSuite(function() {
         100);
   });
 
+  test('clockSyncMarkWriteSecondIgnored', function() {
+    var lines = [
+      'systrace.sh-8182  [000] 15186.203900: tracing_mark_write: ' +
+          'trace_event_clock_sync: parent_ts=0',
+      'systrace.sh-8182  [000] 15187.203900: tracing_mark_write: ' +
+          'trace_event_clock_sync: parent_ts=0'
+    ];
+    var m = newModel(lines.join('\n'));
+    assert.isFalse(m.hasImportWarnings);
+
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL)(100),
+        100);
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            tr.model.ClockDomainId.LINUX_CLOCK_MONOTONIC)(100),
+        100);
+  });
+
   test('tracingMarkWriteEOLCleanup', function() {
     var lines = [
       'systrace.sh-8182  [001] ...1 2068001.677892: tracing_mark_write: ' +

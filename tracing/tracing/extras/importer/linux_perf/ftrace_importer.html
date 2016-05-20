@@ -67,6 +67,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     this.pseudoThreadCounter = 1;
     this.parsers_ = [];
     this.eventHandlers_ = {};
+    this.haveClockSyncedMonotonicToGlobal_ = false;
   }
 
   var TestExports = {};
@@ -757,6 +758,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (monotonicTs === 0)
         monotonicTs = ts;
 
+      if (this.haveClockSyncedMonotonicToGlobal_)
+        // ftrace sometimes includes multiple clock syncs between the monotonic
+        // and global clocks within a single trace. We protect against this by
+        // only taking the first one into account.
+        return true;
+
       // We have a clock sync event that contains two timestamps: a timestamp
       // according to the ftrace 'global' clock, and that same timestamp
       // according to clock_gettime(CLOCK_MONOTONIC).
@@ -767,6 +774,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           tr.model.ClockDomainId.LINUX_CLOCK_MONOTONIC,
           MONOTONIC_TO_FTRACE_GLOBAL_SYNC_ID, monotonicTs);
 
+      this.haveClockSyncedMonotonicToGlobal_ = true;
       return true;
     },
 
