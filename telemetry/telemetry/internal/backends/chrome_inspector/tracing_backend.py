@@ -112,11 +112,13 @@ class TracingBackend(object):
       raise TracingUnsupportedException(
           'Chrome tracing not supported for this app.')
 
+    categories, options = (
+        trace_options.GetChromeTraceCategoriesAndOptionsForDevTools())
     req = {
       'method': 'Tracing.start',
       'params': {
-        'categories': trace_options.tracing_category_filter.filter_string,
-        'options': trace_options.GetTraceOptionsStringForChromeDevtool(),
+        'categories': categories,
+        'options': options,
         'transferMode': 'ReturnAsStream'
       }
     }

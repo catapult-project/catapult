@@ -2,9 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import json
+import re
 
 from telemetry.timeline import tracing_category_filter
+
+RECORD_MODE_PARAM = 'record_mode'
+ENABLE_SYSTRACE_PARAM = 'enable_systrace'
 
 ECHO_TO_CONSOLE = 'trace-to-console'
 ENABLE_SYSTRACE = 'enable-systrace'
@@ -20,6 +23,32 @@ RECORD_MODE_MAP = {
   RECORD_AS_MUCH_AS_POSSIBLE: 'record-as-much-as-possible',
   ECHO_TO_CONSOLE: 'trace-to-console'
 }
+
+
+def ConvertStringToCamelCase(string):
+  """Convert an underscore/hyphen-case string to its camel-case counterpart.
+
+  This function is the inverse of Chromium's ConvertFromCamelCase function
+  in src/content/browser/devtools/protocol/tracing_handler.cc.
+  """
+  parts = re.split(r'[-_]', string)
+  return parts[0] + ''.join([p.title() for p in parts[1:]])
+
+
+def ConvertDictKeysToCamelCaseRecursively(data):
+  """Recursively convert dictionary keys from underscore/hyphen- to camel-case.
+
+  This function is the inverse of Chromium's ConvertDictKeyStyle function
+  in src/content/browser/devtools/protocol/tracing_handler.cc.
+  """
+  if isinstance(data, dict):
+    return {ConvertStringToCamelCase(k):
+            ConvertDictKeysToCamelCaseRecursively(v)
+            for k, v in data.iteritems()}
+  elif isinstance(data, list):
+    return map(ConvertDictKeysToCamelCaseRecursively, data)
+  else:
+    return data
 
 
 class MemoryDumpConfig(object):
@@ -75,7 +104,6 @@ class TracingConfig(object):
           record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
                        record modes in chrome.
           enable_systrace: a boolean that specifies whether to enable systrace.
-
   """
 
   def __init__(self):
@@ -94,14 +122,6 @@ class TracingConfig(object):
   @property
   def tracing_category_filter(self):
     return self._tracing_category_filter
-
-  def GetChromeTraceConfigJsonString(self):
-    result = {}
-    result.update(self.GetDictForChromeTracing())
-    result.update(self._tracing_category_filter.GetDictForChromeTracing())
-    if self._memory_dump_config:
-      result.update(self._memory_dump_config.GetDictForChromeTracing())
-    return json.dumps(result, sort_keys=True)
 
   def SetNoOverheadFilter(self):
     """Sets a filter with the least overhead possible.
@@ -165,20 +185,65 @@ class TracingConfig(object):
   def enable_systrace(self, value):
     self._enable_systrace = value
 
-  def GetTraceOptionsStringForChromeDevtool(self):
-    """Map Chrome tracing options in Telemetry to the DevTools API string."""
-    result = [RECORD_MODE_MAP[self._record_mode]]
-    if self._enable_systrace:
-      result.append(ENABLE_SYSTRACE)
-    return ','.join(result)
+  def GetChromeTraceConfigForStartupTracing(self):
+    """Map the config to a JSON string for startup tracing.
 
-  def GetDictForChromeTracing(self):
-    RECORD_MODE_PARAM = 'record_mode'
-    ENABLE_SYSTRACE_PARAM = 'enable_systrace'
-
-    result = {}
-    result[RECORD_MODE_PARAM] = (
-        RECORD_MODE_MAP[self._record_mode])
-    if self._enable_systrace:
-      result[ENABLE_SYSTRACE_PARAM] = True
+    All keys in the returned dictionary use underscore-case (e.g.
+    'enable_systrace'). In addition, the 'record_mode' value uses hyphen-case
+    (e.g. 'record-until-full').
+    """
+    result = {
+        RECORD_MODE_PARAM: RECORD_MODE_MAP[self._record_mode],
+        ENABLE_SYSTRACE_PARAM: self._enable_systrace
+    }
+    result.update(self._tracing_category_filter.GetDictForChromeTracing())
+    if self._memory_dump_config:
+      result.update(self._memory_dump_config.GetDictForChromeTracing())
     return result
+
+  @property
+  def can_be_passed_via_categories_and_options_for_devtools(self):
+    """Returns True iff the config can be passed via the legacy DevTools API.
+
+    Legacy DevTools Tracing.start API:
+      Available since:    the introduction of the Tracing.start request.
+      Parameters:         categories (string), options (string),
+                          bufferUsageReportingInterval (number),
+                          transferMode (enum).
+      TraceConfig method: GetChromeTraceCategoriesAndOptionsStringsForDevTools()
+
+    Modern DevTools Tracing.start API:
+      Available since:    Chrome 51.0.2683.0.
+      Parameters:         traceConfig (dict),
+                          bufferUsageReportingInterval (number),
+                          transferMode (enum).
+      TraceConfig method: GetChromeTraceConfigDictForDevTools()
+    """
+    # Memory dump config cannot be passed via the 'options' string in the
+    # DevTools Tracing.start request.
+    return not self._memory_dump_config
+
+  def GetChromeTraceConfigForDevTools(self):
+    """Map the config to a DevTools API config dictionary.
+
+    All keys in the returned dictionary use camel-case (e.g. 'enableSystrace').
+    In addition, the 'recordMode' value also uses camel-case (e.g.
+    'recordUntilFull'). This is to invert the camel-case ->
+    underscore/hyphen-case mapping performed in Chromium's
+    TracingHandler::GetTraceConfigFromDevToolsConfig method in
+    src/content/browser/devtools/protocol/tracing_handler.cc.
+    """
+    result = self.GetChromeTraceConfigForStartupTracing()
+    if result[RECORD_MODE_PARAM]:
+      result[RECORD_MODE_PARAM] = ConvertStringToCamelCase(
+          result[RECORD_MODE_PARAM])
+    return ConvertDictKeysToCamelCaseRecursively(result)
+
+  def GetChromeTraceCategoriesAndOptionsForDevTools(self):
+    """Map the categories and options to their DevTools API counterparts."""
+    # TODO: assert self.can_be_passed_via_categories_and_options_for_devtools
+    options_parts = [RECORD_MODE_MAP[self._record_mode]]
+    if self._enable_systrace:
+      options_parts.append(ENABLE_SYSTRACE)
+    return (self._tracing_category_filter.stable_filter_string,
+            ','.join(options_parts))

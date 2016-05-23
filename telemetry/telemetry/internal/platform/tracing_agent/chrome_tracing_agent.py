@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 from telemetry.internal.util import atexit_with_log
+import json
 import logging
 import os
 import shutil
@@ -223,8 +224,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
   def _CreateTraceConfigFileString(self, config):
     # See src/components/tracing/trace_config_file.h for the format
-    trace_config_str = config.GetChromeTraceConfigJsonString()
-    return '{"trace_config":' + trace_config_str + '}'
+    result = {'trace_config': config.GetChromeTraceConfigForStartupTracing()}
+    return json.dumps(result, sort_keys=True)
 
   def _CreateTraceConfigFile(self, config):
     assert not self._trace_config_file
