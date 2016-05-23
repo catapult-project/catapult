@@ -19,11 +19,15 @@ def GetPersistentDeviceList(file_name):
   Returns: List of device serial numbers that were on the bot.
   """
   with open(file_name) as f:
-    return f.read().splitlines()
+    return [d for d in f.read().splitlines() if d != '(error)']
 
 
 def WritePersistentDeviceList(file_name, device_list):
   path = os.path.dirname(file_name)
+  assert isinstance(device_list, list)
+  # If there is a problem with ADB "(error)" can be added to the device list.
+  # These should be removed before saving.
+  device_list = [d for d in device_list if d != '(error)']
   if not os.path.exists(path):
     os.makedirs(path)
   with open(file_name, 'w') as f:
