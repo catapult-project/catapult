@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import cStringIO
+import datetime
+import exceptions
 import json
 import os
 import tempfile
@@ -98,3 +100,43 @@ class TraceDataBuilderTest(unittest.TestCase):
     self.assertTrue(d.HasTraceFor(trace_data.BATTOR_TRACE_PART))
 
     self.assertRaises(Exception, builder.AsData)
+
+  def testSetTraceFor(self):
+    telemetry_trace = {
+        'traceEvents': [1, 2, 3],
+        'metadata': {
+          'field1': 'value1'
+        }
+    }
+
+    builder = trace_data.TraceDataBuilder()
+    builder.SetTraceFor(trace_data.TELEMETRY_PART, telemetry_trace)
+    d = builder.AsData()
+
+    self.assertEqual(d.GetTraceFor(trace_data.TELEMETRY_PART), telemetry_trace)
+
+  def testSetTraceForRaisesWithInvalidPart(self):
+    builder = trace_data.TraceDataBuilder()
+
+    self.assertRaises(exceptions.AssertionError,
+                      lambda: builder.SetTraceFor('not_a_trace_part', {}))
+
+  def testSetTraceForRaisesWithInvalidTrace(self):
+    builder = trace_data.TraceDataBuilder()
+
+    self.assertRaises(exceptions.AssertionError, lambda:
+        builder.SetTraceFor(trace_data.TELEMETRY_PART, datetime.time.min))
+
+  def testSetTraceForRaisesWithAlreadySetPart(self):
+    builder = trace_data.TraceDataBuilder()
+    builder.SetTraceFor(trace_data.TELEMETRY_PART, {})
+
+    self.assertRaises(exceptions.Exception,
+        lambda: builder.SetTraceFor(trace_data.TELEMETRY_PART, {}))
+
+  def testSetTraceForRaisesAfterAsData(self):
+    builder = trace_data.TraceDataBuilder()
+    builder.AsData()
+
+    self.assertRaises(exceptions.Exception,
+        lambda: builder.SetTraceFor(trace_data.TELEMETRY_PART, {}))

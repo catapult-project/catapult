@@ -198,5 +198,19 @@ class TraceDataBuilder(object):
 
     self._raw_data.setdefault(part.raw_field_name, []).extend(events)
 
+  def SetTraceFor(self, part, trace):
+    assert isinstance(part, TraceDataPart)
+    assert (isinstance(trace, basestring) or
+            isinstance(trace, dict) or
+            isinstance(trace, list))
+
+    if self._raw_data == None:
+      raise Exception('Already called AsData() on this builder.')
+
+    if part.raw_field_name in self._raw_data:
+      raise Exception('Trace part %s is already set.' % part.raw_field_name)
+
+    self._raw_data[part.raw_field_name] = trace
+
   def HasTraceFor(self, part):
     return _HasTraceFor(part, self._raw_data)
