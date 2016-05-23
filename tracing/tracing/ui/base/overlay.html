@@ -165,26 +165,30 @@ tr.exportTo('tr.ui.b', function() {
       Polymer.dom(this.shadow_).appendChild(
           tr.ui.b.instantiateTemplate('#overlay-template', THIS_DOC));
 
-      this.closeBtn_ = this.shadow_.querySelector('close-button');
+      this.closeBtn_ = Polymer.dom(this.shadow_).querySelector('close-button');
+      this.closeBtn_.addEventListener('click', this.onClose_);
 
-      this.shadow_
+      Polymer.dom(this.shadow_)
           .querySelector('overlay-frame')
           .addEventListener('click', this.onClick_);
 
       this.observer_ = new WebKitMutationObserver(
           this.didButtonBarMutate_.bind(this));
-      this.observer_.observe(this.shadow_.querySelector('button-bar'),
-                             { childList: true });
+      this.observer_.observe(
+          Polymer.dom(this.shadow_).querySelector('button-bar'),
+          { childList: true });
 
       // title is a variable on regular HTMLElements. However, we want to
       // use it for something more useful.
       Object.defineProperty(
           this, 'title', {
             get: function() {
-              return this.shadow_.querySelector('title').textContent;
+              return Polymer.dom(Polymer.dom(this.shadow_)
+                  .querySelector('title')).textContent;
             },
             set: function(title) {
-              this.shadow_.querySelector('title').textContent = title;
+              Polymer.dom(Polymer.dom(this.shadow_).querySelector('title'))
+                  .textContent = title;
             }
           });
     },
@@ -196,7 +200,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get buttons() {
-      return this.shadow_.querySelector('button-bar');
+      return Polymer.dom(this.shadow_).querySelector('button-bar');
     },
 
     get visible() {
@@ -231,7 +235,8 @@ tr.exportTo('tr.ui.b', function() {
       // Focus the first thing we find that makes sense. (Skip the close button
       // as it doesn't make sense as the first thing to focus.)
       var focusEl = undefined;
-      var elList = this.querySelectorAll('button, input, list, select, a');
+      var elList =
+          Polymer.dom(this).querySelectorAll('button, input, list, select, a');
       if (elList.length > 0) {
         if (elList[0] === this.closeBtn_) {
           if (elList.length > 1)
@@ -277,10 +282,13 @@ tr.exportTo('tr.ui.b', function() {
 
     didButtonBarMutate_: function(e) {
       var hasButtons = this.buttons.children.length > 0;
-      if (hasButtons)
-        this.shadow_.querySelector('button-bar').style.display = undefined;
-      else
-        this.shadow_.querySelector('button-bar').style.display = 'none';
+      if (hasButtons) {
+        Polymer.dom(this.shadow_).querySelector('button-bar').style.display =
+            undefined;
+      } else {
+        Polymer.dom(this.shadow_).querySelector('button-bar').style.display =
+            'none';
+      }
     },
 
     onKeyDown_: function(e) {
@@ -313,18 +321,18 @@ tr.exportTo('tr.ui.b', function() {
   Overlay.showError = function(msg, opt_err) {
     var o = new Overlay();
     o.title = 'Error';
-    o.textContent = msg;
+    Polymer.dom(o).textContent = msg;
     if (opt_err) {
       var e = tr.b.normalizeException(opt_err);
 
       var stackDiv = document.createElement('pre');
-      stackDiv.textContent = e.stack;
+      Polymer.dom(stackDiv).textContent = e.stack;
       stackDiv.style.paddingLeft = '8px';
       stackDiv.style.margin = 0;
       o.appendChild(stackDiv);
     }
     var b = document.createElement('button');
-    b.textContent = 'OK';
+    Polymer.dom(b).textContent = 'OK';
     b.addEventListener('click', function() {
       o.visible = false;
     });

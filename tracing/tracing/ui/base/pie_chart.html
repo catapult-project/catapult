@@ -100,7 +100,7 @@ tr.exportTo('tr.ui.b', function() {
         }
       });
 
-      var titleWidth = this.querySelector(
+      var titleWidth = Polymer.dom(this).querySelector(
           '#title').getBoundingClientRect().width;
       var margin = this.margin;
       var marginWidth = margin.left + margin.right;

@@ -16,7 +16,8 @@ tr.b.unittest.testSuite(function() {
     var dd = document.createElement('tr-ui-b-dropdown');
     dd.style.marginLeft = '50px';
     dd.style.width = '50px';
-    dd.iconElement.textContent = 'Settings ' + String.fromCharCode(0x2699);
+    Polymer.dom(dd.iconElement).textContent =
+        'Settings ' + String.fromCharCode(0x2699);
 
     Polymer.dom(dd).appendChild(tr.ui.b.createDiv({textContent: 'item 1'}));
     Polymer.dom(dd).appendChild(

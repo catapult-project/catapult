@@ -802,7 +802,7 @@ Polymer({
     };
 
     var headingWidth = window.getComputedStyle(
-        this.querySelector('tr-ui-heading')).width;
+        Polymer.dom(this).querySelector('tr-ui-heading')).width;
     var trackTitleWidth = parseInt(headingWidth);
     clipRect.left = clipRect.left + trackTitleWidth;
 
@@ -840,7 +840,7 @@ Polymer({
     var hiWX = dt.xViewToWorld(
         (hiX - canv.offsetLeft) * pixelRatio);
 
-    this.$.drag_box.textContent =
+    Polymer.dom(this.$.drag_box).textContent =
         tr.v.Unit.byName.timeDurationInMs.format(hiWX - loWX);
 
     var e = new tr.b.Event('selectionChanging');
@@ -1138,7 +1138,7 @@ Polymer({
     }
     this.pendingHintTextClearTimeout_ = setTimeout(
         this.hideHintText_.bind(this), 1000);
-    this.$.hint_text.textContent = text;
+    Polymer.dom(this.$.hint_text).textContent = text;
     this.$.hint_text.style.display = '';
   },
 

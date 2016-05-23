@@ -342,7 +342,7 @@ tr.exportTo('tr.ui.analysis', function() {
         infoEl.style.paddingLeft = '4px';
         infoEl.style.cursor = 'help';
         infoEl.style.fontWeight = 'bold';
-        infoEl.textContent = info.icon;
+        Polymer.dom(infoEl).textContent = info.icon;
         if (info.color !== undefined)
           infoEl.style.color = info.color;
         infoEl.title = info.message;

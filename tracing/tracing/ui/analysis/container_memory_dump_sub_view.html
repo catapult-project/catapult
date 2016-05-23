@@ -69,7 +69,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     updateContents_: function() {
-      this.$.content.textContent = '';
+      Polymer.dom(this.$.content).textContent = '';
 
       if (this.dumpsByContainerName_ === undefined)
         return;

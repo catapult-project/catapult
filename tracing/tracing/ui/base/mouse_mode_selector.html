@@ -211,7 +211,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       this.supportedModeMask_ = supportedModeMask;
-      this.buttonsEl_.textContent = '';
+      Polymer.dom(this.buttonsEl_).textContent = '';
       for (var modeName in MOUSE_SELECTOR_MODE) {
         if (modeName == 'ALL_MODES')
           continue;

@@ -69,7 +69,7 @@ Polymer({
   setLabelAndColorId: function(label, colorId) {
     this.label_ = label;
 
-    this.$.label.textContent = '';
+    Polymer.dom(this.$.label).textContent = '';
     Polymer.dom(this.$.label).appendChild(tr.ui.b.asHTMLOrTextNode(label));
 
     if (colorId === undefined)

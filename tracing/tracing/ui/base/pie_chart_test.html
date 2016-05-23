@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
       didGetClick = true;
     });
 
-    var arc0 = chart.querySelectorAll('.paths > path')[1];
+    var arc0 = Polymer.dom(chart).querySelectorAll('.paths > path')[1];
     tr.b.dispatchSimpleEvent(arc0, 'click');
     assert.isTrue(didGetClick);
   });

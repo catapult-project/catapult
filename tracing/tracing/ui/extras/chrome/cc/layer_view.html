@@ -84,7 +84,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (selection) {
         this.dragBar_.style.display = '';
         this.analysisEl_.style.display = '';
-        this.analysisEl_.textContent = '';
+        Polymer.dom(this.analysisEl_).textContent = '';
 
         var layer = selection.layer;
         if (layer && layer.args && layer.args.pictures) {
@@ -120,7 +120,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         selection.push(snapshot);
         return selection;
       };
-      link.textContent = 'View in Picture Debugger';
+      Polymer.dom(link).textContent = 'View in Picture Debugger';
       return link;
     },
 

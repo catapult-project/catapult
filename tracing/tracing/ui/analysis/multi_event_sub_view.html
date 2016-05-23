@@ -95,7 +95,7 @@ Polymer({
   updateContents_: function() {
     var selection = this.currentSelection_;
 
-    this.$.content.textContent = '';
+    Polymer.dom(this.$.content).textContent = '';
     if (!selection)
       return;
 

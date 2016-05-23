@@ -21,7 +21,8 @@ tr.b.unittest.testSuite(function() {
       textContent: testText,
       parent: divEl
     });
-    var eltInDocument = document.querySelector('.a-div-class>.a-span-class');
+    var eltInDocument = Polymer.dom(document)
+        .querySelector('.a-div-class>.a-span-class');
     assert.equal(Polymer.dom(eltInDocument).textContent, testText);
     Polymer.dom(eltInDocument.parentElement).removeChild(eltInDocument);
   });
@@ -126,13 +127,13 @@ tr.b.unittest.testSuite(function() {
     // Default owner document.
     var node = tr.ui.b.asHTMLOrTextNode('Hello, World!');
     assert.instanceOf(node, Node);
-    assert.equal(node.textContent, 'Hello, World!');
+    assert.equal(Polymer.dom(node).textContent, 'Hello, World!');
     assert.strictEqual(node.ownerDocument, document);
 
     // Custom owner document.
     var node = tr.ui.b.asHTMLOrTextNode('Bye, World!', THIS_DOC);
     assert.instanceOf(node, Node);
-    assert.equal(node.textContent, 'Bye, World!');
+    assert.equal(Polymer.dom(node).textContent, 'Bye, World!');
     assert.strictEqual(node.ownerDocument, THIS_DOC);
   });
 

@@ -215,7 +215,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.whatRasterizedLink_ = document.createElement('a');
       Polymer.dom(this.whatRasterizedLink_).classList.add('what-rasterized');
-      this.whatRasterizedLink_.textContent = 'What rasterized?';
+      Polymer.dom(this.whatRasterizedLink_).textContent = 'What rasterized?';
       this.whatRasterizedLink_.addEventListener(
           'click', this.onWhatRasterizedLinkClicked_.bind(this));
       Polymer.dom(this).appendChild(this.whatRasterizedLink_);
@@ -614,7 +614,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
       if (this.showInputEvents && this.layerTreeImpl.tracedInputLatencies &&
           this.inputEventImageData_ === undefined) {
-        var image = this.querySelector('#input-event');
+        var image = Polymer.dom(this).querySelector('#input-event');
         if (!image.src) {
           this.loadDataForImageElement_(image, function(imageData) {
             this.inputEventImageData_ = imageData;
@@ -1124,13 +1124,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.infoBar_.message = 'Some problems were encountered...';
         this.infoBar_.addButton('More info...', function(e) {
           var overlay = new tr.ui.b.Overlay();
-          overlay.textContent = '';
+          Polymer.dom(overlay).textContent = '';
           infoBarMessages.forEach(function(message) {
             var title = document.createElement('h3');
-            title.textContent = message.header;
+            Polymer.dom(title).textContent = message.header;
 
             var details = document.createElement('div');
-            details.textContent = message.details;
+            Polymer.dom(details).textContent = message.details;
 
             Polymer.dom(overlay).appendChild(title);
             Polymer.dom(overlay).appendChild(details);
@@ -1169,10 +1169,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     updateWhatRasterizedLinkState_: function() {
       var tasks = this.getWhatRasterized_();
       if (tasks.length) {
-        this.whatRasterizedLink_.textContent = tasks.length + ' raster tasks';
+        Polymer.dom(this.whatRasterizedLink_).textContent =
+            tasks.length + ' raster tasks';
         this.whatRasterizedLink_.style.display = '';
       } else {
-        this.whatRasterizedLink_.textContent = '';
+        Polymer.dom(this.whatRasterizedLink_).textContent = '';
         this.whatRasterizedLink_.style.display = 'none';
       }
     },

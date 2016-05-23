@@ -75,7 +75,7 @@ tr.exportTo('tr.b', function() {
     return findDeepElementMatchingPredicate(element, function(element) {
       if (element.children.length !== 0)
         return false;
-      return re.test(element.textContent);
+      return re.test(Polymer.dom(element).textContent);
     });
   }
   return {

@@ -60,7 +60,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(
         innerElement.children[1].getAttribute('test-attribute'),
         'TestAttribute');
-    assert.equal(innerElement.children[1].textContent, 'Foo');
+    assert.equal(Polymer.dom(innerElement.children[1]).textContent, 'Foo');
   });
 
   test('extractUrlStringAcceptsBothVersions', function() {

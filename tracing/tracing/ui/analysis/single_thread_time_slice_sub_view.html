@@ -115,13 +115,14 @@ Polymer({
     var thread = timeSlice.thread;
 
     var shadowRoot = Polymer.dom(this.root);
-    shadowRoot.querySelector('#state').textContent = timeSlice.title;
+    Polymer.dom(shadowRoot.querySelector('#state')).textContent =
+        timeSlice.title;
     var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
     shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
 
-    shadowRoot.querySelector('#process-name').textContent =
+    Polymer.dom(shadowRoot.querySelector('#process-name')).textContent =
         thread.parent.userFriendlyName;
-    shadowRoot.querySelector('#thread-name').textContent =
+    Polymer.dom(shadowRoot.querySelector('#thread-name')).textContent =
         thread.userFriendlyName;
 
     shadowRoot.querySelector('#start').setValueAndUnit(
@@ -130,7 +131,7 @@ Polymer({
         timeSlice.duration, tr.v.Unit.byName.timeDurationInMs);
 
     var onCpuEl = shadowRoot.querySelector('#on-cpu');
-    onCpuEl.textContent = '';
+    Polymer.dom(onCpuEl).textContent = '';
     var runningInsteadEl = shadowRoot.querySelector('#running-instead');
     if (timeSlice.cpuOnWhichThreadWasRunning) {
       Polymer.dom(runningInsteadEl.parentElement).removeChild(runningInsteadEl);
@@ -138,7 +139,7 @@ Polymer({
       var cpuLink = document.createElement('tr-ui-a-analysis-link');
       cpuLink.selection = new tr.model.EventSet(
           timeSlice.getAssociatedCpuSlice());
-      cpuLink.textContent =
+      Polymer.dom(cpuLink).textContent =
           timeSlice.cpuOnWhichThreadWasRunning.userFriendlyName;
       Polymer.dom(onCpuEl).appendChild(cpuLink);
     } else {
@@ -149,9 +150,10 @@ Polymer({
         var cpuLink = document.createElement('tr-ui-a-analysis-link');
         cpuLink.selection = new tr.model.EventSet(cpuSliceThatTookCpu);
         if (cpuSliceThatTookCpu.thread)
-          cpuLink.textContent = cpuSliceThatTookCpu.thread.userFriendlyName;
+          Polymer.dom(cpuLink).textContent =
+              cpuSliceThatTookCpu.thread.userFriendlyName;
         else
-          cpuLink.textContent = cpuSliceThatTookCpu.title;
+          Polymer.dom(cpuLink).textContent = cpuSliceThatTookCpu.title;
         Polymer.dom(runningInsteadEl).appendChild(cpuLink);
       } else {
         Polymer.dom(runningInsteadEl.parentElement).removeChild(
@@ -166,7 +168,7 @@ Polymer({
       argsView.object = timeSlice.args;
 
       argsEl.parentElement.style.display = '';
-      argsEl.textContent = '';
+      Polymer.dom(argsEl).textContent = '';
       Polymer.dom(argsEl).appendChild(argsView);
     } else {
       argsEl.parentElement.style.display = 'none';

@@ -29,7 +29,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     detach: function() {
-      this.textContent = '';
+      Polymer.dom(this).textContent = '';
     },
 
     get tracks_() {

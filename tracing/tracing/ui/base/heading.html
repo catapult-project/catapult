@@ -123,7 +123,7 @@ Polymer({
     }
 
     if (this.arrowVisible_) {
-      this.$.arrow.textContent =
+      Polymer.dom(this.$.arrow).textContent =
           this.expanded_ ? this.DOWN_ARROW : this.RIGHT_ARROW;
     }
 
@@ -133,10 +133,10 @@ Polymer({
     if (this.selectionGenerator_) {
       this.$.link.style.display = 'inline-block';
       this.$.link.selection = this.selectionGenerator_;
-      this.$.link.textContent = this.heading_;
+      Polymer.dom(this.$.link).textContent = this.heading_;
     } else {
       this.$.heading_content.style.display = 'inline-block';
-      this.$.heading_content.textContent = this.heading_;
+      Polymer.dom(this.$.heading_content).textContent = this.heading_;
     }
   }
 });

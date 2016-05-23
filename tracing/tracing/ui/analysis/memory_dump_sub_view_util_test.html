@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(spanEl).appendChild(node);
     test.addHTMLOutput(spanEl);
 
-    assert.strictEqual(node.textContent, expectedTextContent);
+    assert.strictEqual(Polymer.dom(node).textContent, expectedTextContent);
     if (opt_expectedColor === undefined)
       assert.notInstanceOf(node, HTMLElement);
     else
@@ -155,13 +155,14 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(value.style.color, expectedColor);
     if (typeof expectedText === 'string')
       assert.strictEqual(
-          Polymer.dom(value).childNodes[0].textContent, expectedText);
+          Polymer.dom(Polymer.dom(value).childNodes[0]).textContent,
+          expectedText);
     else
       expectedText(Polymer.dom(value).childNodes[0]);
     for (var i = 0; i < expectedInfos.length; i++) {
       var expectedInfo = expectedInfos[i];
       var infoEl = Polymer.dom(value).childNodes[i + 1];
-      assert.strictEqual(infoEl.textContent, expectedInfo.icon);
+      assert.strictEqual(Polymer.dom(infoEl).textContent, expectedInfo.icon);
       assert.strictEqual(infoEl.title, expectedInfo.message);
       assert.strictEqual(infoEl.style.color, expectedInfo.color || '');
     }
@@ -196,33 +197,33 @@ tr.b.unittest.testSuite(function() {
     var row = {title: 'added', contexts: [undefined, undefined, undefined, {}]};
     assert.equal(column.formatTitle(row), 'added');
     var value = column.value(row);
-    assert.equal(value.textContent, '+++\u00A0added');
+    assert.equal(Polymer.dom(value).textContent, '+++\u00A0added');
     assert.equal(value.style.color, 'red');
 
     var row = {title: 'removed', contexts: [true, true, undefined, undefined]};
     assert.equal(column.formatTitle(row), 'removed');
     var value = column.value(row);
-    assert.equal(value.textContent, '---\u00A0removed');
+    assert.equal(Polymer.dom(value).textContent, '---\u00A0removed');
     assert.equal(value.style.color, 'green');
 
     var row = {title: 'flaky', contexts: [true, undefined, true, true]};
     assert.equal(column.formatTitle(row), 'flaky');
     var value = column.value(row);
-    assert.equal(value.textContent, 'flaky');
+    assert.equal(Polymer.dom(value).textContent, 'flaky');
     assert.equal(value.style.color, 'purple');
 
     var row =
         {title: 'added-flaky', contexts: [undefined, {}, undefined, true]};
     assert.equal(column.formatTitle(row), 'added-flaky');
     var value = column.value(row);
-    assert.equal(value.textContent, '+++\u00A0added-flaky');
+    assert.equal(Polymer.dom(value).textContent, '+++\u00A0added-flaky');
     assert.equal(value.style.color, 'purple');
 
     var row =
         {title: 'removed-flaky', contexts: [true, undefined, {}, undefined]};
     assert.equal(column.formatTitle(row), 'removed-flaky');
     var value = column.value(row);
-    assert.equal(value.textContent, '---\u00A0removed-flaky');
+    assert.equal(Polymer.dom(value).textContent, '---\u00A0removed-flaky');
     assert.equal(value.style.color, 'purple');
   });
 

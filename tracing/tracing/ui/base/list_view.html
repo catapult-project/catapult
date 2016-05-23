@@ -86,7 +86,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get selectedElement() {
-      var el = this.querySelector('.list-item[selected]');
+      var el = Polymer.dom(this).querySelector('.list-item[selected]');
       if (!el)
         return undefined;
       return el;
@@ -106,7 +106,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getElementByIndex: function(index) {
-      return this.querySelector('.list-item:nth-child(' + index + ')');
+      return Polymer.dom(this)
+          .querySelector('.list-item:nth-child(' + index + ')');
     },
 
     clear: function() {

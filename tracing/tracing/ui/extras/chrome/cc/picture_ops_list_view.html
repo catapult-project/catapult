@@ -75,7 +75,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var op = ops[i];
         var item = document.createElement('div');
         item.opIndex = op.opIndex;
-        item.textContent = i + ') ' + op.cmd_string;
+        Polymer.dom(item).textContent = i + ') ' + op.cmd_string;
 
         // Display the element info associated with the op, if available.
         if (op.elementInfo.tag || op.elementInfo.id || op.elementInfo.class) {
@@ -85,7 +85,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var id = op.elementInfo.id ? 'id=' + op.elementInfo.id : undefined;
           var className = op.elementInfo.class ? 'class=' +
               op.elementInfo.class : undefined;
-          elementInfo.textContent =
+          Polymer.dom(elementInfo).textContent =
               '<' + tag + (id ? ' ' : '') +
               (id ? id : '') + (className ? ' ' : '') +
               (className ? className : '') + '>';
@@ -97,7 +97,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // (https://github.com/google/trace-viewer/issues/782)
         if (op.info.length > 0) {
           var infoItem = document.createElement('div');
-          infoItem.textContent = JSON.stringify(op.info);
+          Polymer.dom(infoItem).textContent = JSON.stringify(op.info);
           Polymer.dom(item).appendChild(infoItem);
         }
 
@@ -106,7 +106,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var time = document.createElement('span');
           Polymer.dom(time).classList.add('time');
           var rounded = op.cmd_time.toFixed(4);
-          time.textContent = '(' + rounded + 'ms)';
+          Polymer.dom(time).textContent = '(' + rounded + 'ms)';
           Polymer.dom(item).appendChild(time);
         }
 

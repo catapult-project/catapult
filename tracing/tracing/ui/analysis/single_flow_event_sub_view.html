@@ -34,7 +34,7 @@ Polymer({
       linkEl.setSelectionAndContent(function() {
           return new tr.model.EventSet(slice);
       });
-      linkEl.textContent = slice.userFriendlyName;
+      Polymer.dom(linkEl).textContent = slice.userFriendlyName;
       return linkEl;
     }
 

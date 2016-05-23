@@ -236,7 +236,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       Polymer.dom(this).appendChild(node);
 
       this.recordButtonEl_ = document.createElement('button');
-      this.recordButtonEl_.textContent = 'Record';
+      Polymer.dom(this.recordButtonEl_).textContent = 'Record';
       this.recordButtonEl_.addEventListener(
           'click',
           this.onRecordButtonClicked_.bind(this));
@@ -547,7 +547,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         inputEl.onclick = this.updateSetting_.bind(this);
 
         var labelEl = document.createElement('label');
-        labelEl.textContent = category.replace('disabled-by-default-', '');
+        Polymer.dom(labelEl).textContent =
+            category.replace('disabled-by-default-', '');
         Polymer.dom(labelEl).setAttribute('for', category);
 
         var divEl = document.createElement('div');
@@ -656,10 +657,10 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       for (var i = 0; i < messages.length; ++i) {
         var messageDiv = document.createElement('div');
-        messageDiv.textContent = messages[i];
+        Polymer.dom(messageDiv).textContent = messages[i];
         Polymer.dom(contentDiv).appendChild(messageDiv);
       }
-      this.warningOverlay_.textContent = '';
+      Polymer.dom(this.warningOverlay_).textContent = '';
       Polymer.dom(this.warningOverlay_).appendChild(contentDiv);
     },
 

@@ -19,15 +19,17 @@ tr.b.unittest.testSuite(function() {
   var Unit = tr.v.Unit;
   var THIS_DOC = document._currentScript.ownerDocument;
 
+
   function checkScalarSpan(test, value, unit, expectedContent, opt_options) {
     var options = opt_options || {};
     var span = tr.v.ui.createScalarSpan(new tr.v.ScalarNumeric(unit, value),
         {significance: options.significance});
 
     test.addHTMLOutput(span);
-    assert.strictEqual(span.$.content.textContent, expectedContent);
-    assert.strictEqual(window.getComputedStyle(span.$.content).color,
-        options.expectedColor || 'rgb(0, 0, 0)');
+    assert.strictEqual(
+        Polymer.dom(span.$.content).textContent, expectedTextContent);
+    assert.strictEqual(
+        span.$.content.style.color, opt_expectedColor || 'rgb(0, 0, 0)');
 
     if (options.expectedTitle)
       assert.strictEqual(span.$.content.title, options.expectedTitle);
@@ -384,9 +386,9 @@ tr.b.unittest.testSuite(function() {
       span.setValueAndUnit(73, Unit.byName.timeStampInMs);
       this.addHTMLOutput(span);
 
-      assert.isTrue(span.$.content.textContent.indexOf('ns') > 0);
+      assert.isTrue(Polymer.dom(span.$.content).textContent.indexOf('ns') > 0);
       Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ms;
-      assert.isTrue(span.$.content.textContent.indexOf('ms') > 0);
+      assert.isTrue(Polymer.dom(span.$.content).textContent.indexOf('ms') > 0);
     } finally {
       Unit.reset();
     }

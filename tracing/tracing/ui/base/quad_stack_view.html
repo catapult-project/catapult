@@ -377,14 +377,14 @@ tr.exportTo('tr.ui.b', function() {
                                           THIS_DOC);
       Polymer.dom(this).appendChild(node);
       this.updateHeaderVisibility_();
-      this.canvas_ = this.querySelector('#canvas');
+      this.canvas_ = Polymer.dom(this).querySelector('#canvas');
       this.chromeImages_ = {
-        left: this.querySelector('#chrome-left'),
-        mid: this.querySelector('#chrome-mid'),
-        right: this.querySelector('#chrome-right')
+        left: Polymer.dom(this).querySelector('#chrome-left'),
+        mid: Polymer.dom(this).querySelector('#chrome-mid'),
+        right: Polymer.dom(this).querySelector('#chrome-right')
       };
 
-      var stackingDistanceSlider = this.querySelector(
+      var stackingDistanceSlider = Polymer.dom(this).querySelector(
           '#stacking-distance-slider');
       stackingDistanceSlider.value = tr.b.Settings.get(
           'quadStackView.stackingDistance', 45);
@@ -408,17 +408,17 @@ tr.exportTo('tr.ui.b', function() {
 
     updateHeaderVisibility_: function() {
       if (this.headerText)
-        this.querySelector('#header').style.display = '';
+        Polymer.dom(this).querySelector('#header').style.display = '';
       else
-        this.querySelector('#header').style.display = 'none';
+        Polymer.dom(this).querySelector('#header').style.display = 'none';
     },
 
     get headerText() {
-      return this.querySelector('#header').textContent;
+      return Polymer.dom(this).querySelector('#header').textContent;
     },
 
     set headerText(headerText) {
-      this.querySelector('#header').textContent = headerText;
+      Polymer.dom(this).querySelector('#header').textContent = headerText;
       this.updateHeaderVisibility_();
     },
 
@@ -430,7 +430,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get stackingDistance() {
-      return this.querySelector('#stacking-distance-slider').value;
+      return Polymer.dom(this).querySelector('#stacking-distance-slider').value;
     },
 
     get mouseModeSelector() {

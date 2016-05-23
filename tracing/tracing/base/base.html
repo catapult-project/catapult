@@ -122,9 +122,9 @@ this.tr = (function() {
     Polymer.dom(panicMessageEl).innerHTML =
         '<h2 id="message"></h2>' +
         '<pre id="details"></pre>';
-    Polymer.dom(panicMessageEl).querySelector('#message').
+    Polymer.dom(Polymer.dom(panicMessageEl).querySelector('#message')).
         textContent = panicTitle;
-    Polymer.dom(panicMessageEl).querySelector('#details').
+    Polymer.dom(Polymer.dom(panicMessageEl).querySelector('#details')).
         textContent = panicDetails;
     Polymer.dom(panicElement).appendChild(panicMessageEl);
 

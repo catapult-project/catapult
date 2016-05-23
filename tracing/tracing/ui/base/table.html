@@ -246,7 +246,7 @@ tr.exportTo('tr.ui.b', function() {
         this.selectedTableRowInfo_ = undefined;
         this.selectedColumnIndex_ = undefined;
 
-        this.textContent = '';
+        Polymer.dom(this).textContent = '';
         this.tableColumns_ = [];
         this.tableRows_ = [];
         this.tableRowsInfo_ = new WeakMap();
@@ -469,7 +469,7 @@ tr.exportTo('tr.ui.b', function() {
 
       generateHeaderColumns_: function() {
         this.headerCells_ = [];
-        this.$.head.textContent = '';
+        Polymer.dom(this.$.head).textContent = '';
         if (!this.showHeader_)
           return;
 
@@ -705,7 +705,7 @@ tr.exportTo('tr.ui.b', function() {
               td.style.paddingLeft = INDENT_SPACE + 'px';
               var expandButton = this.appendNewElement_(td,
                   'expand-button');
-              expandButton.textContent = RIGHT_ARROW;
+              Polymer.dom(expandButton).textContent = RIGHT_ARROW;
               if (rowInfo.isExpanded)
                 Polymer.dom(expandButton).classList.add('button-expanded');
             } else {
@@ -835,9 +835,9 @@ tr.exportTo('tr.ui.b', function() {
           this.headerDirty_ = false;
         }
         if (this.bodyDirty_) {
-          this.$.cols.textContent = '';
+          Polymer.dom(this.$.cols).textContent = '';
           this.generateTableColNodes_();
-          this.$.body.textContent = '';
+          Polymer.dom(this.$.body).textContent = '';
           this.generateTableRowNodes_(
               this.$.body,
               this.tableRows_, this.tableRowsInfo_, 0,
@@ -860,7 +860,7 @@ tr.exportTo('tr.ui.b', function() {
           this.applySizes_();
 
         if (this.footerDirty_) {
-          this.$.foot.textContent = '';
+          Polymer.dom(this.$.foot).textContent = '';
           this.generateTableRowNodes_(
               this.$.foot,
               this.tableFooterRows_, this.tableFooterRowsInfo_, 0,
@@ -940,7 +940,8 @@ tr.exportTo('tr.ui.b', function() {
           return;
 
         // Otherwise, rebuild.
-        var expandButton = rowInfo.htmlNode.querySelector('expand-button');
+        var expandButton = Polymer.dom(rowInfo.htmlNode)
+            .querySelector('expand-button');
         if (rowInfo.isExpanded) {
           Polymer.dom(expandButton).classList.add('button-expanded');
           var lastAddedRow = rowInfo.htmlNode;
@@ -1632,16 +1633,20 @@ Polymer({
   },
 
   clearSideContent: function() {
-    this.$.side.textContent = '';
+    Polymer.dom(this.$.side).textContent = '';
   },
 
   set sideContent(content) {
+<<<<<<< HEAD
     this.$.side.textContent = content;
     this.$.side.style.display = content ? 'inline' : 'none';
+=======
+    Polymer.dom(this.$.side).textContent = content;
+>>>>>>> f9b5fe7... Migrate querySelector, querySelectorAll and textContent
   },
 
   get sideContent() {
-    return this.$.side.textContent;
+    return Polymer.dom(this.$.side).textContent;
   },
 
   set tapCallback(callback) {

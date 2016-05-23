@@ -108,7 +108,7 @@ Polymer({
         var linkEl = document.createElement('a');
         linkEl.target = '_blank';
         linkEl.href = linkObject.href;
-        linkEl.textContent = linkObject.textContent;
+        Polymer.dom(linkEl).textContent = Polymer.dom(linkObject).textContent;
         rows.push({
           name: linkObject.label,
           value: linkEl

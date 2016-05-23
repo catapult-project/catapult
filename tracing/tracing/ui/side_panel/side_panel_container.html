@@ -157,8 +157,7 @@ Polymer({
           this.activePanelType)).removeAttribute('selected');
     }
 
-    if (this.activePanel)
-      this.activePanelContainer_.removeChild(this.activePanel);
+    Polymer.dom(this.activePanelContainer_).textContent = '';
 
     if (panelType === undefined) {
       Polymer.dom(this).removeAttribute('expanded');
@@ -197,7 +196,7 @@ Polymer({
   updateContents_: function() {
     var previouslyActivePanelType = this.activePanelType;
 
-    this.tabStrip_.textContent = '';
+    Polymer.dom(this.tabStrip_).textContent = '';
     var supportedPanelTypes = [];
 
     for (var panelTypeInfo of
@@ -206,7 +205,7 @@ Polymer({
       var panel = panelTypeInfo.constructor();
       var panelType = panel.tagName;
 
-      labelEl.textContent = panel.textLabel;
+      Polymer.dom(labelEl).textContent = panel.textLabel;
       labelEl.panelType = panelType;
 
       var supported = panel.supportsModel(this.model);
@@ -231,7 +230,7 @@ Polymer({
       this.activePanelType = previouslyActivePanelType;
       Polymer.dom(this).setAttribute('expanded', true);
     } else {
-      this.activePanelContainer_.textContent = '';
+      Polymer.dom(this.activePanelContainer_).textContent = '';
       Polymer.dom(this).removeAttribute('expanded');
     }
   },

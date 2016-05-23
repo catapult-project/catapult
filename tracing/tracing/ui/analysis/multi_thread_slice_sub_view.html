@@ -59,7 +59,7 @@ Polymer({
         ltv.selection = ltvSelection;
         ltv.extraHighlightsByLayerId = ltvSelection.extraHighlightsByLayerId;
 
-        this.$.content.textContent = '';
+        Polymer.dom(this.$.content).textContent = '';
         Polymer.dom(this.$.content).appendChild(ltv);
 
         this.requiresTallView_ = true;
@@ -67,7 +67,7 @@ Polymer({
       }
     }
 
-    this.$.content.textContent = '';
+    Polymer.dom(this.$.content).textContent = '';
 
     var mesv = document.createElement('tr-ui-a-multi-event-sub-view');
     mesv.selection = selection;

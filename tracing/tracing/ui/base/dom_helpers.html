@@ -28,8 +28,10 @@ tr.exportTo('tr.ui.b', function() {
     if (opt_dictionary) {
       if (opt_dictionary.className)
         spanEl.className = opt_dictionary.className;
-      if (opt_dictionary.textContent)
-        spanEl.textContent = opt_dictionary.textContent;
+      if (Polymer.dom(opt_dictionary).textContent) {
+        Polymer.dom(spanEl).textContent =
+            Polymer.dom(opt_dictionary).textContent;
+      }
       if (opt_dictionary.tooltip)
         spanEl.title = opt_dictionary.tooltip;
       if (opt_dictionary.parent)
@@ -57,8 +59,9 @@ tr.exportTo('tr.ui.b', function() {
         divEl.className = opt_dictionary.className;
       if (opt_dictionary.parent)
         Polymer.dom(opt_dictionary.parent).appendChild(divEl);
-      if (opt_dictionary.textContent)
-        divEl.textContent = opt_dictionary.textContent;
+      if (Polymer.dom(opt_dictionary).textContent)
+        Polymer.dom(divEl).textContent =
+            Polymer.dom(opt_dictionary).textContent;
       if (opt_dictionary.maxWidth)
         divEl.style.maxWidth = opt_dictionary.maxWidth;
     }
@@ -98,7 +101,7 @@ tr.exportTo('tr.ui.b', function() {
     for (var i = 0; i < items.length; i++) {
       var item = items[i];
       var optionEl = document.createElement('option');
-      optionEl.textContent = item.label;
+      Polymer.dom(optionEl).textContent = item.label;
       optionEl.targetPropertyValue = item.value;
       optionEl.item = item;
       Polymer.dom(selectorEl).appendChild(optionEl);
@@ -152,7 +155,7 @@ tr.exportTo('tr.ui.b', function() {
 
   function createEditCategorySpan(optionGroupEl, targetEl) {
     var spanEl = createSpan({className: 'edit-categories'});
-    spanEl.textContent = 'Edit categories';
+    Polymer.dom(spanEl).textContent = 'Edit categories';
     Polymer.dom(spanEl).classList.add('labeled-option');
 
     spanEl.addEventListener('click', function() {
@@ -190,7 +193,7 @@ tr.exportTo('tr.ui.b', function() {
         radioEl.checked = true;
 
       var labelEl = document.createElement('label');
-      labelEl.textContent = item.label;
+      Polymer.dom(labelEl).textContent = item.label;
       Polymer.dom(labelEl).setAttribute('for', id);
 
       var spanEl = createSpan({className: 'labeled-option'});
@@ -252,7 +255,7 @@ tr.exportTo('tr.ui.b', function() {
     Polymer.dom(buttonEl).setAttribute('id', id);
 
     var labelEl = document.createElement('label');
-    labelEl.textContent = label;
+    Polymer.dom(labelEl).textContent = label;
     Polymer.dom(labelEl).setAttribute('for', id);
     Polymer.dom(spanEl).appendChild(buttonEl);
     Polymer.dom(spanEl).appendChild(labelEl);

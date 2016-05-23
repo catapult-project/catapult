@@ -131,7 +131,7 @@ Polymer({
   },
 
   updateContents_: function() {
-    this.$.result_area.textContent = '';
+    Polymer.dom(this.$.result_area).textContent = '';
     if (this.model_ === undefined)
       return;
 

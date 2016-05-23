@@ -87,7 +87,7 @@ Polymer({
 
       var link = document.createElement('a');
       link.href = 'trace_viewer.html#' + page.url;
-      link.textContent = baseName;
+      Polymer.dom(link).textContent = baseName;
 
       var row = {
         label: link,

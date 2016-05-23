@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
   function decorate(source, constr) {
     var elements;
     if (typeof source == 'string')
-      elements = tr.doc.querySelectorAll(source);
+      elements = Polymer.dom(tr.doc).querySelectorAll(source);
     else
       elements = [source];
 

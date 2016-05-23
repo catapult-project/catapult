@@ -23,7 +23,7 @@ Polymer({
   set selection(selection) {
     this.currentSelection_ = selection;
 
-    this.textContent = '';
+    Polymer.dom(this).textContent = '';
     var realView = document.createElement('tr-ui-a-single-event-sub-view');
     realView.addExtraRowsCallback = function(rows) {
       // Alert description.

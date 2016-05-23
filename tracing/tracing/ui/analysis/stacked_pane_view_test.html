@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
     paneEl.paneId = paneId;
 
     var divEl = document.createElement('div');
-    divEl.textContent = 'Pane ' + paneId;
+    Polymer.dom(divEl).textContent = 'Pane ' + paneId;
     divEl.style.width = '400px';
     divEl.style.background = '#ccc';
     divEl.style.textAlign = 'center';

@@ -136,7 +136,7 @@ Polymer({
   },
 
   filterTextChanged: function() {
-    this.$.hitCount.textContent = '';
+    Polymer.dom(this.$.hitCount).textContent = '';
     this.$.spinner.style.visibility = 'visible';
     this.controller.startFiltering(this.$.filter.value).then(function() {
       this.$.spinner.style.visibility = 'hidden';
@@ -158,13 +158,13 @@ Polymer({
 
   updateHitCountEl: function() {
     if (!this.controller || !this.hasFocus) {
-      this.$.hitCount.textContent = '';
+      Polymer.dom(this.$.hitCount).textContent = '';
       return;
     }
 
     var n = this.controller.filterHits.length;
     var i = n === 0 ? -1 : this.controller.currentHitIndex;
-    this.$.hitCount.textContent = (i + 1) + ' of ' + n;
+    Polymer.dom(this.$.hitCount).textContent = (i + 1) + ' of ' + n;
   },
 
   setText: function(string) {

@@ -119,7 +119,8 @@ tr.exportTo('tr.ui.tracks', function() {
       if (!this.processBase_)
         return;
 
-      this.processNameEl_.textContent = this.processBase_.userFriendlyName;
+      Polymer.dom(this.processNameEl_).textContent =
+          this.processBase_.userFriendlyName;
       this.headerEl_.title = this.processBase_.userFriendlyDetails;
 
       // Create the object instance tracks for this process.

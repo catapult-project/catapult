@@ -105,14 +105,15 @@ Polymer({
 
     var shadowRoot = Polymer.dom(this.root);
     if (thread) {
-      shadowRoot.querySelector('#process-name').textContent =
+      Polymer.dom(shadowRoot.querySelector('#process-name')).textContent =
           thread.parent.userFriendlyName;
-      shadowRoot.querySelector('#thread-name').textContent =
+      Polymer.dom(shadowRoot.querySelector('#thread-name')).textContent =
           thread.userFriendlyName;
     } else {
       shadowRoot.querySelector('#process-name').parentElement.style.display =
           'none';
-      shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
+      Polymer.dom(shadowRoot.querySelector('#thread-name')).textContent =
+          cpuSlice.title;
     }
 
     shadowRoot.querySelector('#start').setValueAndUnit(
@@ -128,9 +129,9 @@ Polymer({
     } else {
       var threadLink = document.createElement('tr-ui-a-analysis-link');
       threadLink.selection = new tr.model.EventSet(timeSlice);
-      threadLink.textContent = 'Click to select';
+      Polymer.dom(threadLink).textContent = 'Click to select';
       runningThreadEl.parentElement.style.display = '';
-      runningThreadEl.textContent = '';
+      Polymer.dom(runningThreadEl).textContent = '';
       Polymer.dom(runningThreadEl).appendChild(threadLink);
     }
 

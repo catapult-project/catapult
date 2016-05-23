@@ -312,7 +312,7 @@ found in the LICENSE file.
     updateContents_: function() {
       var resultArea = this.$.result_area;
       this.chart_ = undefined;
-      resultArea.textContent = '';
+      Polymer.dom(resultArea).textContent = '';
 
       if (this.model_ === undefined)
         return;

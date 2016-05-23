@@ -200,7 +200,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var item = this.createElementWithDepth_(renderPassInfo.depth);
         var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
-        labelEl.textContent = renderPassInfo.name + ' ' + id;
+        Polymer.dom(labelEl).textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
         item.renderPassId = id;
         Polymer.dom(this.itemList_).appendChild(item);
@@ -229,18 +229,18 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var item = this.createElementWithDepth_(layerInfo.depth);
           var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
-          labelEl.textContent = layerInfo.name + ' ' + id;
+          Polymer.dom(labelEl).textContent = layerInfo.name + ' ' + id;
 
           var notesEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
           if (layerInfo.isMaskLayer)
-            notesEl.textContent += '(mask)';
+            Polymer.dom(notesEl).textContent += '(mask)';
           if (layerInfo.isReplicaLayer)
-            notesEl.textContent += '(replica)';
+            Polymer.dom(notesEl).textContent += '(replica)';
 
           if (layer.gpuMemoryUsageInBytes !== undefined) {
             var rounded = bytesToRoundedMegabytes(layer.gpuMemoryUsageInBytes);
             if (rounded !== 0)
-              notesEl.textContent += ' (' + rounded + ' MB)';
+              Polymer.dom(notesEl).textContent += ' (' + rounded + ' MB)';
           }
 
           item.layer = layer;
@@ -261,8 +261,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       var indentEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
       indentEl.style.whiteSpace = 'pre';
-      for (var i = 0; i < depth; i++)
-        indentEl.textContent = indentEl.textContent + ' ';
+      for (var i = 0; i < depth; i++) {
+        Polymer.dom(indentEl).textContent =
+            Polymer.dom(indentEl).textContent + ' ';
+      }
       return item;
     },
 

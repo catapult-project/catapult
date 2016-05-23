@@ -89,7 +89,7 @@ tr.exportTo('tr.importer', function() {
       Polymer.dom(overlay).appendChild(overlay.msgEl);
       overlay.msgEl.style.margin = '20px';
       overlay.update = function(msg) {
-        this.msgEl.textContent = msg;
+        Polymer.dom(this.msgEl).textContent = msg;
       };
       overlay.visible = true;
 

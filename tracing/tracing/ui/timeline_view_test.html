@@ -111,11 +111,11 @@ tr.b.unittest.testSuite(function() {
     view.model = model11;
 
     var simpleButton1 = document.createElement('tr-ui-b-toolbar-button');
-    simpleButton1.textContent = 'M';
+    Polymer.dom(simpleButton1).textContent = 'M';
     Polymer.dom(view.leftControls).appendChild(simpleButton1);
 
     var simpleButton2 = document.createElement('tr-ui-b-toolbar-button');
-    simpleButton2.textContent = 'am button';
+    Polymer.dom(simpleButton2).textContent = 'am button';
     Polymer.dom(view.leftControls).appendChild(simpleButton2);
 
     this.addHTMLOutput(view);

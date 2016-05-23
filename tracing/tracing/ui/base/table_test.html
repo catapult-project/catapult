@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
     // Check that the first column has a non-empty header.
     var firstColumnTitle = tr.b.findDeepElementMatchingPredicate(
         firstColumnHeader, function(element) {
-      return element.textContent === 'First Column';
+      return Polymer.dom(element).textContent === 'First Column';
     });
     assert.isDefined(firstColumnTitle);
 
@@ -328,7 +328,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     var button = THIS_DOC.createElement('button');
-    button.textContent = 'Sort By Col 0';
+    Polymer.dom(button).textContent = 'Sort By Col 0';
     button.addEventListener('click', function() {
       table.sortDescending = !table.sortDescending;
       table.sortColumnIndex = 0;
@@ -374,17 +374,18 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     var a1El = tr.b.findDeepElementMatchingPredicate(table, function(element) {
-      return element.textContent == 'a1';
+      return Polymer.dom(element).textContent == 'a1';
     });
     assert.isDefined(a1El);
 
     var bToplevelEl = tr.b.findDeepElementMatchingPredicate(
         table,
         function(element) {
-          return element.textContent == 'bToplevel';
+          return Polymer.dom(element).textContent == 'bToplevel';
         });
     assert.isDefined(bToplevelEl);
-    var expandButton = bToplevelEl.parentElement.querySelector('expand-button');
+    var expandButton = Polymer.dom(bToplevelEl.parentElement)
+        .querySelector('expand-button');
     assert.isTrue(Polymer.dom(expandButton).classList.contains(
         'button-expanded'));
   });
@@ -1171,8 +1172,10 @@ tr.b.unittest.testSuite(function() {
 
     var firstColumnHeader = table.$.head.children[0].children[0].children[0];
     var secondColumnHeader = table.$.head.children[0].children[1].children[0];
-    assert.equal(firstColumnHeader.cellTitle.textContent, 'First Column');
-    assert.equal(secondColumnHeader.cellTitle.textContent, 'Second Column');
+    assert.equal(Polymer.dom(firstColumnHeader.cellTitle).textContent,
+        'First Column');
+    assert.equal(Polymer.dom(secondColumnHeader.cellTitle).textContent,
+        'Second Column');
   });
 
   test('align', function() {
@@ -1225,7 +1228,8 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    assert.equal(2, table.$.body.children[1].children[0].textContent);
+    assert.equal(
+        2, Polymer.dom(table.$.body.children[1].children[0]).textContent);
   });
 
   test('shouldNotRenderUndefined', function() {
@@ -1377,7 +1381,7 @@ tr.b.unittest.testSuite(function() {
 
     var cRow = tr.b.findDeepElementMatchingPredicate(
         table, function(element) {
-      return element.textContent === 'C';
+      return Polymer.dom(element).textContent === 'C';
     });
     assert.equal(cRow, undefined);
 
@@ -1402,7 +1406,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.isTrue(callbackCalled);
     cRow = tr.b.findDeepElementMatchingPredicate(table, function(element) {
-      return element.textContent === 'C';
+      return Polymer.dom(element).textContent === 'C';
     });
     assert.isDefined(cRow);
   });

@@ -290,7 +290,7 @@ found in the LICENSE file.
         Polymer.dom(downloadingOverlay).appendChild(downloadingOverlay.msgEl);
         downloadingOverlay.msgEl.style.margin = '20px';
         downloadingOverlay.update = function(msg) {
-          this.msgEl.textContent = msg;
+          Polymer.dom(this.msgEl).textContent = msg;
         };
         downloadingOverlay.visible = true;
 
@@ -338,7 +338,7 @@ found in the LICENSE file.
         var collabTooltipContent = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-content'
         });
-        collabTooltipContent.textContent = imageList[i].name;
+        Polymer.dom(collabTooltipContent).textContent = imageList[i].name;
         Polymer.dom(collabTooltip).appendChild(collabTooltipContent);
         Polymer.dom(collabspan).appendChild(collabTooltip);
         var collabTooltipArrow = tr.ui.b.createDiv({
@@ -414,7 +414,7 @@ found in the LICENSE file.
           },
           function(err) {
             var downloadingOverlay = new tr.ui.b.Overlay();
-            downloadingOverlay.textContent =
+            Polymer.dom(downloadingOverlay).textContent =
                 tr.b.normalizeException(err).message;
             downloadingOverlay.title = 'Import error';
             downloadingOverlay.visible = true;
@@ -434,7 +434,7 @@ found in the LICENSE file.
     }
 
     function onLoad() {
-      timelineViewEl_ = document.querySelector('x-timeline-view');
+      timelineViewEl_ = Polymer.dom(document).querySelector('x-timeline-view');
       timelineViewEl_.globalMode = true;
       var navbar = document.getElementById('navbar');
       timelineViewEl_.style.top = navbar.offsetHeight + 'px';

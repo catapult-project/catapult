@@ -193,7 +193,8 @@ tr.exportTo('tr.ui.b', function() {
         groupEl.groupKey = key;
         Polymer.dom(groupEl).appendChild(
             document.importNode(groupTemplateEl.content, true));
-        groupEl.querySelector('#key').textContent = group.label;
+        Polymer.dom(Polymer.dom(groupEl).querySelector('#key')).textContent =
+            group.label;
         Polymer.dom(groupsEl).appendChild(groupEl);
 
         this.configureRemoveButtonForGroup_(groupEl);
@@ -203,7 +204,7 @@ tr.exportTo('tr.ui.b', function() {
       // Adjust dropdown.
       tr.b.iterItems(unusedGroups, function(key, group) {
         var groupEl = document.createElement('possible-group');
-        groupEl.textContent = group.label;
+        Polymer.dom(groupEl).textContent = group.label;
         groupEl.addEventListener('click', function() {
           var newKeys = this.currentGroupKeys.slice();
           newKeys.push(key);
@@ -222,7 +223,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     configureRemoveButtonForGroup_: function(groupEl) {
-      var removeEl = groupEl.querySelector('#remove');
+      var removeEl = Polymer.dom(groupEl).querySelector('#remove');
       removeEl.addEventListener('click', function() {
         var newKeys = this.currentGroupKeys.slice();
         var i = newKeys.indexOf(groupEl.groupKey);

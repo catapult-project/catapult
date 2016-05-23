@@ -430,10 +430,10 @@ tr.exportTo('tr.c', function() {
   TestUtils.addSourceListing = function(test, source) {
     var testSourceEl = document.createElement('pre');
     testSourceEl.style.fontFamily = 'monospace';
-    testSourceEl.textContent = source;
+    Polymer.dom(testSourceEl).textContent = source;
 
     var copyButtonEl = document.createElement('button');
-    copyButtonEl.textContent = 'Copy into to clipboard';
+    Polymer.dom(copyButtonEl).textContent = 'Copy into to clipboard';
     copyButtonEl.addEventListener('click', function() {
       var selection = window.getSelection();
 

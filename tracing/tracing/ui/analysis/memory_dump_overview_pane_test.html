@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
     return function(actualTitle) {
       assert.instanceOf(actualTitle, HTMLElement);
       assert.strictEqual(actualTitle.tagName, 'SPAN');
-      assert.strictEqual(actualTitle.textContent, expectedTitle);
+      assert.strictEqual(Polymer.dom(actualTitle).textContent, expectedTitle);
     };
   }
 
@@ -115,7 +115,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkSpanWithColor(span, expectedText, expectedColorReservedName) {
     assert.strictEqual(span.tagName, 'SPAN');
-    assert.strictEqual(span.textContent, expectedText);
+    assert.strictEqual(Polymer.dom(span).textContent, expectedText);
     checkColor(span.style.color, expectedColorReservedName);
   }
 
@@ -372,7 +372,7 @@ tr.b.unittest.testSuite(function() {
       var viewEl =
           tr.ui.analysis.createTestPane('tr-ui-a-memory-dump-overview-pane');
       var table = viewEl.$.table;
-      containerEl.textContent = '';
+      Polymer.dom(containerEl).textContent = '';
       Polymer.dom(containerEl).appendChild(viewEl);
 
       var displayedProcessMemoryDumps = processMemoryDumps.map(

@@ -144,11 +144,11 @@ window.TracingAnalysisTabView = Polymer({
   },
 
   get tabStripHeadingText() {
-    return this.$.tsh.textContent;
+    return Polymer.dom(this.$.tsh).textContent;
   },
 
   set tabStripHeadingText(tabStripHeadingText) {
-    this.$.tsh.textContent = tabStripHeadingText;
+    Polymer.dom(this.$.tsh).textContent = tabStripHeadingText;
     if (!!tabStripHeadingText)
       this.$.tshh.style.display = '';
     else

@@ -70,7 +70,7 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(thirdTab).setAttribute('tab-label', 'Something Different');
 
     var button = document.createElement('button');
-    button.textContent = 'Change label';
+    Polymer.dom(button).textContent = 'Change label';
 
     button.addEventListener('click', function() {
       Polymer.dom(thirdTab).setAttribute('tab-label', 'Label Changed');
@@ -126,7 +126,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiateChildrenAlreadyInside', function() {
-    var tabViewTemplate = THIS_DOC.querySelector('#tab-view-test-template');
+    var tabViewTemplate = Polymer.dom(THIS_DOC)
+        .querySelector('#tab-view-test-template');
     // var tabView = tabViewTemplate.createInstance();
     var tabView = THIS_DOC.importNode(tabViewTemplate.content, true);
     var tabViewContainer = document.createElement('div');
@@ -213,11 +214,11 @@ tr.b.unittest.testSuite(function() {
     var tabView = new TracingAnalysisTabView();
 
     var t1 = document.createElement('div');
-    t1.textContent = 'This text should BE visible.';
+    Polymer.dom(t1).textContent = 'This text should BE visible.';
     var t2 = document.createElement('div');
-    t2.textContent = 'This text should NOT be visible.';
+    Polymer.dom(t2).textContent = 'This text should NOT be visible.';
     var t3 = document.createElement('div');
-    t3.textContent = 'This text should NOT be visible, also.';
+    Polymer.dom(t3).textContent = 'This text should NOT be visible, also.';
 
     t1.selected = true;
     t2.selected = false;
@@ -299,11 +300,11 @@ tr.b.unittest.testSuite(function() {
     var tabView = new TracingAnalysisTabView();
 
     var t1 = document.createElement('div');
-    t1.textContent = 'This text should BE visible.';
+    Polymer.dom(t1).textContent = 'This text should BE visible.';
     var t2 = document.createElement('div');
-    t2.textContent = 'This text should NOT be visible.';
+    Polymer.dom(t2).textContent = 'This text should NOT be visible.';
     var t3 = document.createElement('div');
-    t3.textContent = 'This text should NOT be visible, also.';
+    Polymer.dom(t3).textContent = 'This text should NOT be visible, also.';
 
     Polymer.dom(tabView).appendChild(t1);
     Polymer.dom(tabView).appendChild(t2);

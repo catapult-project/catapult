@@ -86,7 +86,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateContents_: function() {
-      this.textContent = '';
+      Polymer.dom(this).textContent = '';
       if (!this.model_)
         return;
 

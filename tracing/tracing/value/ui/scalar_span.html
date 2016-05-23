@@ -227,14 +227,14 @@ Polymer({
   },
 
   updateContent_: function() {
-    this.$.significance.textContent = '';
-    this.$.content.textContent = '';
-    this.$.content.classList.remove('better');
-    this.$.content.classList.remove('worse');
-    this.$.significance.classList.remove('better');
-    this.$.significance.classList.remove('worse');
+    Polymer.dom(this.$.significance).textContent = '';
+    Polymer.dom(this.$.content).textContent = '';
+    Polymer.dom(this.$.content).classList.remove('better');
+    Polymer.dom(this.$.content).classList.remove('worse');
+    Polymer.dom(this.$.significance).classList.remove('better');
+    Polymer.dom(this.$.significance).classList.remove('worse');
 
-    if (this.unit_ === undefined)
+    if (this.unit_ === undefined) {
       return;
 
     this.$.content.title = '';
@@ -261,6 +261,7 @@ Polymer({
         break;
     }
 
+<<<<<<< HEAD
     var better = ((biggerIsBetter && this.value > 0) ||
         (smallerIsBetter && this.value < 0));
     var worse = ((biggerIsBetter && this.value < 0) ||
@@ -280,6 +281,36 @@ Polymer({
       title = 'regression';
     } else {
       title = 'no change';
+=======
+    Polymer.dom(this.$.content).textContent = this.unit_.format(this.value);
+
+    var BIGGER_IS_BETTER = tr.v.ImprovementDirection.BIGGER_IS_BETTER;
+    var SMALLER_IS_BETTER = tr.v.ImprovementDirection.SMALLER_IS_BETTER;
+    var color = '';
+    if (this.unit_.isDelta) {
+      var improvementDirection = this.unit_.improvementDirection;
+      if (this.value > 0) {
+        // Positive delta.
+        switch (improvementDirection) {
+          case BIGGER_IS_BETTER:
+            color = 'green';
+            break;
+          case SMALLER_IS_BETTER:
+            color = 'red';
+            break;
+        }
+      } else if (this.value < 0) {
+        // Negative delta.
+        switch (improvementDirection) {
+          case BIGGER_IS_BETTER:
+            color = 'red';
+            break;
+          case SMALLER_IS_BETTER:
+            color = 'green';
+            break;
+        }
+      }
+>>>>>>> f9b5fe7... Migrate querySelector, querySelectorAll and textContent
     }
 
     // Set the content class separately from the significance class so that

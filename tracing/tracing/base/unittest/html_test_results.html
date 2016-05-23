@@ -157,9 +157,9 @@ tr.exportTo('tr.b.unittest', function() {
       this.updateTitle_();
     },
     updateTitle_: function() {
-      var titleEl = this.querySelector('#title');
+      var titleEl = Polymer.dom(this).querySelector('#title');
       if (this.testCase_ === undefined) {
-        titleEl.textContent = '';
+        Polymer.dom(titleEl).textContent = '';
         return;
       }
 
@@ -168,7 +168,7 @@ tr.exportTo('tr.b.unittest', function() {
             '<a href="' + this.testCaseHRef_ + '">' +
             this.testCase_.fullyQualifiedName + '</a>';
       } else {
-        titleEl.textContent = this.testCase_.fullyQualifiedName;
+        Polymer.dom(titleEl).textContent = this.testCase_.fullyQualifiedName;
       }
     },
 
@@ -176,7 +176,7 @@ tr.exportTo('tr.b.unittest', function() {
       var errorEl = document.createElement('x-html-test-case-error');
       Polymer.dom(errorEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-error-template', THIS_DOC));
-      Polymer.dom(errorEl).querySelector('#stack').
+      Polymer.dom(Polymer.dom(errorEl).querySelector('#stack')).
           textContent = normalizedException.stack;
       Polymer.dom(Polymer.dom(this).querySelector('#details')).appendChild(
           errorEl);
@@ -187,7 +187,8 @@ tr.exportTo('tr.b.unittest', function() {
       var flakyEl = document.createElement('x-html-test-case-flaky');
       Polymer.dom(flakyEl).appendChild(tr.ui.b.instantiateTemplate(
           '#x-html-test-case-flaky-template', THIS_DOC));
-      Polymer.dom(flakyEl).querySelector('#message').textContent = 'FLAKY';
+      Polymer.dom(Polymer.dom(flakyEl).querySelector('#message'))
+          .textContent = 'FLAKY';
       Polymer.dom(Polymer.dom(this).querySelector('#details')).appendChild(
           flakyEl);
       this.updateColorAndStatus_();
@@ -196,11 +197,13 @@ tr.exportTo('tr.b.unittest', function() {
     addHTMLOutput: function(element) {
       var htmlResultEl = document.createElement('x-html-test-case-html-result');
       Polymer.dom(htmlResultEl).appendChild(element);
-      Polymer.dom(this.querySelector('#details')).appendChild(htmlResultEl);
+      Polymer.dom(Polymer.dom(this).querySelector('#details'))
+          .appendChild(htmlResultEl);
     },
 
     updateHTMLOutputDisplayState_: function() {
-      var htmlResults = this.querySelectorAll('x-html-test-case-html-result');
+      var htmlResults =
+          Polymer.dom(this).querySelectorAll('x-html-test-case-html-result');
       var display;
       if (this.showHTMLOutput)
         display = '';
@@ -211,11 +214,11 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     get hadErrors() {
-      return !!this.querySelector('x-html-test-case-error');
+      return !!Polymer.dom(this).querySelector('x-html-test-case-error');
     },
 
     get isFlaky() {
-      return !!this.querySelector('x-html-test-case-flaky');
+      return !!Polymer.dom(this).querySelector('x-html-test-case-flaky');
     },
 
     get duration() {
@@ -257,12 +260,12 @@ tr.exportTo('tr.b.unittest', function() {
         status = 'passed';
       }
 
-      var statusEl = this.querySelector('#status');
+      var statusEl = Polymer.dom(this).querySelector('#status');
       if (this.duration_)
-        statusEl.textContent = status + ' (' +
+        Polymer.dom(statusEl).textContent = status + ' (' +
             this.duration_.toFixed(2) + 'ms)';
       else
-        statusEl.textContent = status;
+        Polymer.dom(statusEl).textContent = status;
       statusEl.className = colorCls;
     },
 
@@ -272,7 +275,8 @@ tr.exportTo('tr.b.unittest', function() {
 
     set testReturnValue(testReturnValue) {
       this.testReturnValue_ = testReturnValue;
-      this.querySelector('#return-value').textContent = testReturnValue;
+      Polymer.dom(Polymer.dom(this).querySelector('#return-value'))
+          .textContent = testReturnValue;
     }
   };
 
@@ -319,7 +323,8 @@ tr.exportTo('tr.b.unittest', function() {
 
     set showHTMLOutput(showHTMLOutput) {
       this.showHTMLOutput_ = showHTMLOutput;
-      var testCaseResults = this.querySelectorAll('x-html-test-case-result');
+      var testCaseResults =
+          Polymer.dom(this).querySelectorAll('x-html-test-case-result');
       for (var i = 0; i < testCaseResults.length; i++)
         testCaseResults[i].showHTMLOutput = showHTMLOutput;
     },
@@ -331,7 +336,8 @@ tr.exportTo('tr.b.unittest', function() {
     set showPendingAndPassedTests(showPendingAndPassedTests) {
       this.showPendingAndPassedTests_ = showPendingAndPassedTests;
 
-      var testCaseResults = this.querySelectorAll('x-html-test-case-result');
+      var testCaseResults =
+          Polymer.dom(this).querySelectorAll('x-html-test-case-result');
       for (var i = testCaseResults.length - 1; i >= 0; i--)
         this.updateDisplayStateForResult_(testCaseResults[i]);
     },
@@ -472,7 +478,6 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     log_: function(msg) {
-      //this.textContent += msg;
       tr.b.dispatchSimpleEvent(this, 'statschange');
     }
   };

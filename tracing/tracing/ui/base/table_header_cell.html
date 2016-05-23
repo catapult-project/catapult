@@ -65,15 +65,15 @@ found in the LICENSE file.
     },
 
     clearSideContent: function() {
-      this.$.side.textContent = '';
+      Polymer.dom(this.$.side).textContent = '';
     },
 
     set sideContent(content) {
-      this.$.side.textContent = content;
+      Polymer.dom(this.$.side).textContent = content;
     },
 
     get sideContent() {
-      return this.$.side.textContent;
+      return Polymer.dom(this.$.side).textContent;
     },
 
     set tapCallback(callback) {

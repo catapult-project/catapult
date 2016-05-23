@@ -249,7 +249,7 @@ Polymer({
     var resultArea = this.$.result_area;
     this.latencyChart_ = undefined;
     this.frametimeChart_ = undefined;
-    resultArea.textContent = '';
+    Polymer.dom(resultArea).textContent = '';
 
     if (this.modelHelper_ === undefined)
       return;

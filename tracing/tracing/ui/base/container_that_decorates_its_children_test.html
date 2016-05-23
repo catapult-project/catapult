@@ -50,7 +50,7 @@ tr.b.unittest.testSuite(function() {
     var c0 = createChild();
     var container = new SimpleContainer();
     Polymer.dom(container).appendChild(c0);
-    container.textContent = '';
+    Polymer.dom(container).textContent = '';
     assert.isFalse(c0.decorated);
   });
 

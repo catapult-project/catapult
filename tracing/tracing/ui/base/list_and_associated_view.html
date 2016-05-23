@@ -101,9 +101,9 @@ tr.exportTo('tr.ui.b', function() {
         itemEl.item = this.list_[i];
         var getter = this.list_[i].__lookupGetter__(this.listProperty_);
         if (getter)
-          itemEl.textContent = getter.call(this.list_[i]);
+          Polymer.dom(itemEl).textContent = getter.call(this.list_[i]);
         else
-          itemEl.textContent = this.list_[i][this.listProperty_];
+          Polymer.dom(itemEl).textContent = this.list_[i][this.listProperty_];
       }
 
       if (this.children[1] == this.placeholder_) {

@@ -136,7 +136,7 @@ found in the LICENSE file.
           title: 'Title',
           value: function(row) {
             var titleEl = document.createElement('span');
-            titleEl.textContent = row.title;
+            Polymer.dom(titleEl).textContent = row.title;
             titleEl.style.textOverflow = 'ellipsis';
             return titleEl;
           },

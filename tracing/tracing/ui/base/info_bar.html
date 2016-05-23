@@ -50,11 +50,11 @@ Polymer({
   },
 
   get message() {
-    return this.messageEl_.textContent;
+    return Polymer.dom(this.messageEl_).textContent;
   },
 
   set message(message) {
-    this.messageEl_.textContent = message;
+    Polymer.dom(this.messageEl_).textContent = message;
   },
 
   get visible() {
@@ -69,12 +69,12 @@ Polymer({
   },
 
   removeAllButtons: function() {
-    this.buttonsEl_.textContent = '';
+    Polymer.dom(this.buttonsEl_).textContent = '';
   },
 
   addButton: function(text, clickCallback) {
     var button = document.createElement('button');
-    button.textContent = text;
+    Polymer.dom(button).textContent = text;
     button.addEventListener('click', clickCallback);
     Polymer.dom(this.buttonsEl_).appendChild(button);
     return button;

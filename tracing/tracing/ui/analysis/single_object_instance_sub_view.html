@@ -75,7 +75,7 @@ Polymer({
     if (!(instance instanceof tr.model.ObjectInstance))
       throw new Error('Only supports object instances');
 
-    this.$.content.textContent = '';
+    Polymer.dom(this.$.content).textContent = '';
     this.currentSelection_ = selection;
 
     var typeInfo = tr.ui.analysis.ObjectInstanceView.getTypeInfo(
@@ -107,7 +107,7 @@ Polymer({
     html += '<tr><td>snapshots:</td><td id="snapshots"></td></tr>\n';
     html += '</table>';
     Polymer.dom(this.$.content).innerHTML = html;
-    var snapshotsEl = this.$.content.querySelector('#snapshots');
+    var snapshotsEl = Polymer.dom(this.$.content).querySelector('#snapshots');
     instance.snapshots.forEach(function(snapshot) {
       var snapshotLink = document.createElement('tr-ui-a-analysis-link');
       snapshotLink.selection = new tr.model.EventSet(snapshot);

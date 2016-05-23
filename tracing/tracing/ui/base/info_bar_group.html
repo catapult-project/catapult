@@ -49,7 +49,7 @@ Polymer({
   },
 
   updateContents_: function() {
-    this.$.messages.textContent = '';
+    Polymer.dom(this.$.messages).textContent = '';
     this.messages_.forEach(function(message) {
       var bar = document.createElement('tr-ui-b-info-bar');
       bar.message = message.text;

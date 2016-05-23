@@ -187,9 +187,9 @@ tr.exportTo('tr.b.unittest', function() {
       Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate(
           '#x-base-interactive-test-runner-template', THIS_DOC));
 
-      this.querySelector(
+      Polymer.dom(this).querySelector(
           'input[name=test-type-to-run][value=unit]').checked = true;
-      var testTypeToRunEls = tr.b.asArray(this.querySelectorAll(
+      var testTypeToRunEls = tr.b.asArray(Polymer.dom(this).querySelectorAll(
           'input[name=test-type-to-run]'));
 
       testTypeToRunEls.forEach(
@@ -198,7 +198,7 @@ tr.exportTo('tr.b.unittest', function() {
                 'click', this.onTestTypeToRunClick_.bind(this));
           }, this);
 
-      var shortFormatEl = this.querySelector('#short-format');
+      var shortFormatEl = Polymer.dom(this).querySelector('#short-format');
       shortFormatEl.checked = this.shortFormat_;
       shortFormatEl.addEventListener(
           'click', this.onShortFormatClick_.bind(this));
@@ -209,7 +209,8 @@ tr.exportTo('tr.b.unittest', function() {
       this.__defineSetter__(
           'title',
           function(title) {
-            this.querySelector('#title').textContent = title;
+            Polymer.dom(Polymer.dom(this).querySelector('#title')).textContent =
+                title;
           });
     },
 
@@ -227,12 +228,12 @@ tr.exportTo('tr.b.unittest', function() {
     },
     set testLinks(testLinks) {
       this.testLinks_ = testLinks;
-      var linksEl = this.querySelector('#links');
-      linksEl.textContent = '';
+      var linksEl = Polymer.dom(this).querySelector('#links');
+      Polymer.dom(linksEl).textContent = '';
       this.testLinks_.forEach(function(l) {
         var link = document.createElement('a');
         link.href = l.linkPath;
-        link.textContent = l.title;
+        Polymer.dom(link).textContent = l.title;
 
         var li = document.createElement('li');
         Polymer.dom(li).appendChild(link);
@@ -258,7 +259,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     set shortFormat(shortFormat) {
       this.shortFormat_ = shortFormat;
-      this.querySelector('#short-format').checked = shortFormat;
+      Polymer.dom(this).querySelector('#short-format').checked = shortFormat;
       if (this.results_)
         this.results_.shortFormat = shortFormat;
       if (!this.suppressStateChange_)
@@ -266,7 +267,8 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onShortFormatClick_: function(e) {
-      this.shortFormat_ = this.querySelector('#short-format').checked;
+      this.shortFormat_ =
+          Polymer.dom(this).querySelector('#short-format').checked;
       this.updateShortFormResultsDisplay_();
       this.updateResultsGivenShortFormat_();
       if (!this.suppressStateChange_)
@@ -275,7 +277,8 @@ tr.exportTo('tr.b.unittest', function() {
 
     updateShortFormResultsDisplay_: function() {
       var display = this.shortFormat_ ? '' : 'none';
-      this.querySelector('#shortform-results').style.display = display;
+      Polymer.dom(this).querySelector('#shortform-results').style.display =
+          display;
     },
 
     updateResultsGivenShortFormat_: function() {
@@ -309,7 +312,7 @@ tr.exportTo('tr.b.unittest', function() {
         default:
           throw new Error('Invalid test type to run: ' + testTypeToRun);
       }
-      this.querySelector(sel).checked = true;
+      Polymer.dom(this).querySelector(sel).checked = true;
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
         tr.b.dispatchSimpleEvent(this, 'statechange');
@@ -336,7 +339,7 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onTestPassed_: function() {
-      this.querySelector('#shortform-results').
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results')).
           appendChild(document.createTextNode('.'));
     },
 
@@ -344,18 +347,20 @@ tr.exportTo('tr.b.unittest', function() {
       var span = document.createElement('span');
       Polymer.dom(span).classList.add('fail');
       Polymer.dom(span).appendChild(document.createTextNode('F'));
-      Polymer.dom(this.querySelector('#shortform-results')).appendChild(span);
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
+          .appendChild(span);
     },
 
     onTestFlaky_: function() {
       var span = document.createElement('span');
       Polymer.dom(span).classList.add('flaky');
       Polymer.dom(span).appendChild(document.createTextNode('~'));
-      Polymer.dom(this.querySelector('#shortform-results')).appendChild(span);
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
+          .appendChild(span);
     },
 
     onResultsStatsChanged_: function() {
-      var statsEl = this.querySelector('#stats');
+      var statsEl = Polymer.dom(this).querySelector('#stats');
       var stats = this.results_.getStats();
       var numTestsOverall = this.runner_.testCases.length;
       var numTestsThatRan = stats.numTestsThatPassed +
@@ -388,7 +393,8 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     beginRunning_: function() {
-      var resultsContainer = this.querySelector('#results-container');
+      var resultsContainer =
+          Polymer.dom(this).querySelector('#results-container');
       if (this.results_) {
         this.results_.removeEventListener('testpassed', this.onTestPassed_);
         this.results_.removeEventListener('testfailed', this.onTestFailed_);
@@ -607,7 +613,7 @@ tr.exportTo('tr.b.unittest', function() {
       element.style.overflow = 'auto';
       Polymer.dom(overlay).appendChild(element);
 
-      element.textContent = 'Loading tests...';
+      Polymer.dom(element).textContent = 'Loading tests...';
       Polymer.dom(document.body).appendChild(overlay);
     }
     function hideLoadingOverlay() {
@@ -634,7 +640,8 @@ tr.exportTo('tr.b.unittest', function() {
       if (state.shortFormat)
         title += '(s)';
       document.title = title;
-      var runner = document.querySelector('x-base-interactive-test-runner');
+      var runner = Polymer.dom(document).querySelector(
+          'x-base-interactive-test-runner');
       if (runner)
         runner.title = title;
     }

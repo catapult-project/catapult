@@ -113,11 +113,11 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     updateLabel_: function() {
-      this.$.label.textContent = '';
+      Polymer.dom(this.$.label).textContent = '';
 
       if (this.containerMemoryDumps_ === undefined ||
           this.containerMemoryDumps_.length <= 0) {
-        this.$.label.textContent = 'No memory dumps selected';
+        Polymer.dom(this.$.label).textContent = 'No memory dumps selected';
         return;
       }
 

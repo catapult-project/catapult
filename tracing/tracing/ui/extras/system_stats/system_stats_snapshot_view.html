@@ -30,11 +30,11 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     updateContents: function() {
       var snapshot = this.objectSnapshot_;
       if (!snapshot || !snapshot.getStats()) {
-        this.textContent = 'No system stats snapshot found.';
+        Polymer.dom(this).textContent = 'No system stats snapshot found.';
         return;
       }
       // Clear old snapshot view.
-      this.textContent = '';
+      Polymer.dom(this).textContent = '';
 
       var stats = snapshot.getStats();
       Polymer.dom(this).appendChild(this.buildList_(stats));
@@ -55,16 +55,16 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
       for (var statName in stats) {
         var statText = document.createElement('li');
-        statText.textContent = '' + statName + ': ';
+        Polymer.dom(statText).textContent = '' + statName + ': ';
         Polymer.dom(statList).appendChild(statText);
 
         if (stats[statName] instanceof Object) {
           Polymer.dom(statList).appendChild(this.buildList_(stats[statName]));
         } else {
           if (this.isFloat(stats[statName]))
-            statText.textContent += stats[statName].toFixed(2);
+            Polymer.dom(statText).textContent += stats[statName].toFixed(2);
           else
-            statText.textContent += stats[statName];
+            Polymer.dom(statText).textContent += stats[statName];
         }
       }
 

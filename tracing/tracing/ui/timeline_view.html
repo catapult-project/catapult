@@ -181,7 +181,7 @@ Polymer({
     }
 
     this.optionsDropdown_ = this.$.view_options_dropdown;
-    this.optionsDropdown_.iconElement.textContent = 'View Options';
+    Polymer.dom(this.optionsDropdown_.iconElement).textContent = 'View Options';
 
     this.showFlowEvents_ = false;
     Polymer.dom(this.optionsDropdown_).appendChild(tr.ui.b.createCheckBox(
@@ -353,12 +353,12 @@ Polymer({
 
   set viewTitle(text) {
     if (text === undefined) {
-      this.titleEl_.textContent = '';
+      Polymer.dom(this.titleEl_).textContent = '';
       this.titleEl_.hidden = true;
       return;
     }
     this.titleEl_.hidden = false;
-    this.titleEl_.textContent = text;
+    Polymer.dom(this.titleEl_).textContent = text;
   },
 
   get model() {

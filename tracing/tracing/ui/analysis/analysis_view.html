@@ -157,7 +157,7 @@ using custom elements specialized for different event types.
       }
 
       this.tabView_.saveTabStates();
-      this.tabView_.textContent = '';
+      Polymer.dom(this.tabView_).textContent = '';
       if (selection.length == 0) {
         this.tabView_.tabStripHeadingText = 'Nothing selected. Tap stuff.';
       } else if (selection.length == 1) {
@@ -185,7 +185,7 @@ using custom elements specialized for different event types.
       // name.
       var tab;
       if (lastSelectedTabTagName)
-        tab = this.tabView_.querySelector(lastSelectedTabTagName);
+        tab = Polymer.dom(this.tabView_).querySelector(lastSelectedTabTagName);
 
       // If that fails, look for a tab with that typeName.
       if (!tab && lastSelectedTabTypeName) {

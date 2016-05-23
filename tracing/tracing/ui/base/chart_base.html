@@ -238,8 +238,9 @@ tr.exportTo('tr.ui.b', function() {
       // This should use tr.ui.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
       // hack.
-      var template = THIS_DOC.querySelector('#chart-base-template');
-      var svgEl = template.content.querySelector('svg');
+      var template = Polymer.dom(THIS_DOC)
+          .querySelector('#chart-base-template');
+      var svgEl = Polymer.dom(template.content).querySelector('svg');
       for (var i = 0; i < svgEl.children.length; i++)
         Polymer.dom(this).appendChild(svgEl.children[i].cloneNode(true));
 
@@ -306,7 +307,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get chartAreaElement() {
-      return this.querySelector('#chart-area');
+      return Polymer.dom(this).querySelector('#chart-area');
     },
 
     setSize: function(size) {
