@@ -54,36 +54,36 @@ class TraceDataTest(unittest.TestCase):
   def testEmptyArrayValue(self):
     # We can import empty lists and empty string.
     d = trace_data.TraceData([])
-    self.assertFalse(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
+    self.assertFalse(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
 
   def testEmptyStringValue(self):
     d = trace_data.TraceData('')
-    self.assertFalse(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
+    self.assertFalse(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
 
   def testListForm(self):
     d = trace_data.TraceData([{'ph': 'B'}])
-    self.assertTrue(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
-    self.assertEquals(1, len(d.GetEventsFor(trace_data.CHROME_TRACE_PART)))
+    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
+    self.assertEquals(1, len(d.GetTraceFor(trace_data.CHROME_TRACE_PART)))
 
   def testStringForm(self):
     d = trace_data.TraceData('[{"ph": "B"}]')
-    self.assertTrue(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
-    self.assertEquals(1, len(d.GetEventsFor(trace_data.CHROME_TRACE_PART)))
+    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
+    self.assertEquals(1, len(d.GetTraceFor(trace_data.CHROME_TRACE_PART)))
 
   def testStringForm2(self):
     d = trace_data.TraceData('{"inspectorTimelineEvents": [1]}')
-    self.assertTrue(d.HasEventsFor(trace_data.INSPECTOR_TRACE_PART))
-    self.assertEquals(1, len(d.GetEventsFor(trace_data.INSPECTOR_TRACE_PART)))
+    self.assertTrue(d.HasTraceFor(trace_data.INSPECTOR_TRACE_PART))
+    self.assertEquals(1, len(d.GetTraceFor(trace_data.INSPECTOR_TRACE_PART)))
 
   def testCorrectlyMalformedStringForm(self):
     d = trace_data.TraceData("""[
       {"ph": "B"}""")
-    self.assertTrue(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
+    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
 
   def testCorrectlyMalformedStringForm2(self):
     d = trace_data.TraceData("""[
       {"ph": "B"},""")
-    self.assertTrue(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
+    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
 
 class TraceDataBuilderTest(unittest.TestCase):
   def testBasicChrome(self):
@@ -93,8 +93,8 @@ class TraceDataBuilderTest(unittest.TestCase):
     builder.AddEventsTo(trace_data.BATTOR_TRACE_PART, ['battor data here'])
 
     d = builder.AsData()
-    self.assertTrue(d.HasEventsFor(trace_data.CHROME_TRACE_PART))
-    self.assertTrue(d.HasEventsFor(trace_data.TAB_ID_PART))
-    self.assertTrue(d.HasEventsFor(trace_data.BATTOR_TRACE_PART))
+    self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
+    self.assertTrue(d.HasTraceFor(trace_data.TAB_ID_PART))
+    self.assertTrue(d.HasTraceFor(trace_data.BATTOR_TRACE_PART))
 
     self.assertRaises(Exception, builder.AsData)

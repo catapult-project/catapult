@@ -43,7 +43,7 @@ class TraceValue(value_module.Value):
       title = ''
     content = StringIO.StringIO()
     trace2html.WriteHTMLForTraceDataToFile(
-        [trace_data.GetEventsFor(trace_data_module.CHROME_TRACE_PART)],
+        [trace_data.GetTraceFor(trace_data_module.CHROME_TRACE_PART)],
         title,
         content)
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')

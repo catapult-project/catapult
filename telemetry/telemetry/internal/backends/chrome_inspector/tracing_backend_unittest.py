@@ -63,7 +63,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
     # Check that clock sync data is in tracing data.
     clock_sync_found = False
-    for event in tracing_data.GetEventsFor(trace_data.CHROME_TRACE_PART):
+    for event in tracing_data.GetTraceFor(trace_data.CHROME_TRACE_PART):
       if event['name'] == 'clock_sync' or 'ClockSyncEvent' in event['name']:
         clock_sync_found = True
         break

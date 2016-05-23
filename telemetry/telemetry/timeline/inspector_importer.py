@@ -14,7 +14,7 @@ class InspectorTimelineImporter(importer.TimelineImporter):
     super(InspectorTimelineImporter, self).__init__(model,
                                                     trace_data,
                                                     import_order=1)
-    self._events = trace_data.GetEventsFor(
+    self._events = trace_data.GetTraceFor(
       trace_data_module.INSPECTOR_TRACE_PART)
 
   @staticmethod

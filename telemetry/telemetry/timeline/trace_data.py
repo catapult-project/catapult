@@ -52,7 +52,7 @@ ALL_TRACE_PARTS = {BATTOR_TRACE_PART,
                    TELEMETRY_PART}
 
 
-def _HasEventsFor(part, raw):
+def _HasTraceFor(part, raw):
   assert isinstance(part, TraceDataPart)
   if part.raw_field_name not in raw:
     return False
@@ -136,11 +136,11 @@ class TraceData(object):
         'value': v
       }
 
-  def HasEventsFor(self, part):
-    return _HasEventsFor(part, self._raw_data)
+  def HasTraceFor(self, part):
+    return _HasTraceFor(part, self._raw_data)
 
-  def GetEventsFor(self, part):
-    if not self.HasEventsFor(part):
+  def GetTraceFor(self, part):
+    if not self.HasTraceFor(part):
       return []
     assert isinstance(part, TraceDataPart)
     return self._raw_data[part.raw_field_name]
@@ -198,5 +198,5 @@ class TraceDataBuilder(object):
 
     self._raw_data.setdefault(part.raw_field_name, []).extend(events)
 
-  def HasEventsFor(self, part):
-    return _HasEventsFor(part, self._raw_data)
+  def HasTraceFor(self, part):
+    return _HasTraceFor(part, self._raw_data)

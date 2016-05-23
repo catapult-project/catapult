@@ -90,7 +90,7 @@ class FakeTracingAgentNoStartAndClockSync(FakeTracingAgentBase):
 
 class TracingControllerBackendTest(unittest.TestCase):
   def _getControllerLogAsList(self, data):
-    return data.GetEventsFor(trace_data.TELEMETRY_PART)
+    return data.GetTraceFor(trace_data.TELEMETRY_PART)
 
   def _getSyncCount(self, data):
     return len([entry for entry in self._getControllerLogAsList(data)

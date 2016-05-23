@@ -150,8 +150,8 @@ class BattOrTracingAgentTest(unittest.TestCase):
     self.android_agent.CollectAgentTraceData(builder)
     self.assertTrue(self.android_agent._battor._collect_trace_data_called)
     builder = builder.AsData()
-    self.assertTrue(builder.HasEventsFor(trace_data.BATTOR_TRACE_PART))
-    data_from_builder = builder.GetEventsFor(trace_data.BATTOR_TRACE_PART)
+    self.assertTrue(builder.HasTraceFor(trace_data.BATTOR_TRACE_PART))
+    data_from_builder = builder.GetTraceFor(trace_data.BATTOR_TRACE_PART)
     self.assertListEqual(['\n'.join(_BATTOR_RETURN)], data_from_builder)
 
   def testRecordClockSyncMarker(self):
