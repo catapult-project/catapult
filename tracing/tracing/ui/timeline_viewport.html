@@ -116,14 +116,7 @@ tr.exportTo('tr.ui', function() {
       if (!this.isAttachedToDocumentOrInTestMode || this.clientWidth == 0)
         return;
 
-      if (!this.iframe_) {
-        this.iframe_ = document.createElement('iframe');
-        this.iframe_.style.cssText =
-            'position:absolute;width:100%;height:0;border:0;visibility:hidden;';
-        Polymer.dom(this.parentEl_).appendChild(this.iframe_);
-
-        this.iframe_.contentWindow.addEventListener('resize', this.onResize_);
-      }
+      window.addEventListener('resize', this.dispatchChangeEvent.bind(this));
 
       var curSize = this.parentEl_.clientWidth + 'x' +
           this.parentEl_.clientHeight;
@@ -155,10 +148,7 @@ tr.exportTo('tr.ui', function() {
         window.clearInterval(this.checkForAttachInterval_);
         this.checkForAttachInterval_ = undefined;
       }
-      if (this.iframe_) {
-        this.iframe_.removeEventListener('resize', this.onResize_);
-        Polymer.dom(this.parentEl_).removeChild(this.iframe_);
-      }
+      window.removeEventListener('resize', this.dispatchChangeEvent.bind(this));
     },
 
     initAnimationController_: function() {
