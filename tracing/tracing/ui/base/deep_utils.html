@@ -16,6 +16,7 @@ tr.exportTo('tr.b', function() {
       return true;
 
     if (element.root &&
+        element.root !== element &&
         _iterateElementDeeplyImpl(element.root, cb, thisArg, false))
       return true;
 
