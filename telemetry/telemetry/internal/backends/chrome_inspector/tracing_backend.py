@@ -86,13 +86,16 @@ class TracingBackend(object):
 
   _TRACING_DOMAIN = 'Tracing'
 
-  def __init__(self, inspector_socket, is_tracing_running=False):
+  def __init__(self, inspector_socket, is_tracing_running=False,
+               support_modern_devtools_tracing_start_api=False):
     self._inspector_websocket = inspector_socket
     self._inspector_websocket.RegisterDomain(
         self._TRACING_DOMAIN, self._NotificationHandler)
     self._trace_events = []
     self._is_tracing_running = is_tracing_running
     self._has_received_all_tracing_data = False
+    self._support_modern_devtools_tracing_start_api = (
+        support_modern_devtools_tracing_start_api)
 
   @property
   def is_tracing_running(self):
@@ -112,17 +115,19 @@ class TracingBackend(object):
       raise TracingUnsupportedException(
           'Chrome tracing not supported for this app.')
 
-    categories, options = (
-        trace_options.GetChromeTraceCategoriesAndOptionsForDevTools())
-    req = {
-      'method': 'Tracing.start',
-      'params': {
-        'categories': categories,
-        'options': options,
-        'transferMode': 'ReturnAsStream'
-      }
-    }
-    logging.info('Start Tracing Request: %s', repr(req))
+    params = {'transferMode': 'ReturnAsStream'}
+    if self._support_modern_devtools_tracing_start_api:
+      params['traceConfig'] = trace_options.GetChromeTraceConfigForDevTools()
+    else:
+      if trace_options.requires_modern_devtools_tracing_start_api:
+        raise TracingUnsupportedException(
+            'Trace options require modern Tracing.start DevTools API, '
+            'which is NOT supported by the browser')
+      params['categories'], params['options'] = (
+          trace_options.GetChromeTraceCategoriesAndOptionsForDevTools())
+
+    req = {'method': 'Tracing.start', 'params': params}
+    logging.info('Start Tracing Request: %r', req)
     response = self._inspector_websocket.SyncRequest(req, timeout)
 
     if 'error' in response:

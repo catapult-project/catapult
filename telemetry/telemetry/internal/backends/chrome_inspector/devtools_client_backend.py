@@ -161,6 +161,14 @@ class DevToolsClientBackend(object):
     # passed 2512.
     return self.GetChromeBranchNumber() >= 2512
 
+  @property
+  def support_modern_devtools_tracing_start_api(self):
+    # Modern DevTools Tracing.start API (via 'traceConfig' parameter) was not
+    # supported until Chromium branch number 2683 (see crrev.com/1808353002).
+    # TODO(petrcermak): Remove this once stable Chrome and reference browser
+    # have passed 2683.
+    return self.GetChromeBranchNumber() >= 2683
+
   def IsAlive(self):
     """Whether the DevTools server is available and connectable."""
     return (self._devtools_http and
@@ -294,7 +302,8 @@ class DevToolsClientBackend(object):
     if not self._tracing_backend:
       self._CreateAndConnectBrowserInspectorWebsocketIfNeeded()
       self._tracing_backend = tracing_backend.TracingBackend(
-          self._browser_inspector_websocket, is_tracing_running)
+          self._browser_inspector_websocket, is_tracing_running,
+          self.support_modern_devtools_tracing_start_api)
 
   def _CreateMemoryBackendIfNeeded(self):
     assert self.supports_overriding_memory_pressure_notifications

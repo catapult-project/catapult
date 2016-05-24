@@ -25,8 +25,7 @@ class TracingConfigTests(unittest.TestCase):
     }, config.GetChromeTraceConfigForDevTools())
 
     # Trace categories and options for DevTools (legacy API).
-    self.assertTrue(
-        config.can_be_passed_via_categories_and_options_for_devtools)
+    self.assertFalse(config.requires_modern_devtools_tracing_start_api)
     self.assertEquals(('', 'record-as-much-as-possible'),
                       config.GetChromeTraceCategoriesAndOptionsForDevTools())
 
@@ -57,8 +56,7 @@ class TracingConfigTests(unittest.TestCase):
     }, config.GetChromeTraceConfigForDevTools())
 
     # Trace categories and options for DevTools (legacy API).
-    self.assertTrue(
-        config.can_be_passed_via_categories_and_options_for_devtools)
+    self.assertFalse(config.requires_modern_devtools_tracing_start_api)
     self.assertEquals(('x,disabled-by-default-z,-y,DELAY(7;foo)',
                        'record-until-full,enable-systrace'),
                       config.GetChromeTraceCategoriesAndOptionsForDevTools())
@@ -84,10 +82,9 @@ class TracingConfigTests(unittest.TestCase):
     }, config.GetChromeTraceConfigForDevTools())
 
     # Trace categories and options for DevTools (legacy API).
-    self.assertFalse(
-        config.can_be_passed_via_categories_and_options_for_devtools)
-    self.assertEquals(('', 'trace-to-console'),
-                      config.GetChromeTraceCategoriesAndOptionsForDevTools())
+    self.assertTrue(config.requires_modern_devtools_tracing_start_api)
+    with self.assertRaises(AssertionError):
+      config.GetChromeTraceCategoriesAndOptionsForDevTools()
 
     dump_config.AddTrigger('light', 250)
     dump_config.AddTrigger('detailed', 2000)
@@ -117,7 +114,6 @@ class TracingConfigTests(unittest.TestCase):
     }, config.GetChromeTraceConfigForDevTools())
 
     # Trace categories and options for DevTools (legacy API).
-    self.assertFalse(
-        config.can_be_passed_via_categories_and_options_for_devtools)
-    self.assertEquals(('', 'trace-to-console'),
-                      config.GetChromeTraceCategoriesAndOptionsForDevTools())
+    self.assertTrue(config.requires_modern_devtools_tracing_start_api)
+    with self.assertRaises(AssertionError):
+      config.GetChromeTraceCategoriesAndOptionsForDevTools()
