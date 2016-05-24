@@ -85,8 +85,8 @@ found in the LICENSE file.
         <tab-button
             button-id="{{item.id }}"
             on-click="tabButtonSelectHandler_"
-            selected="{{_computeTabSelectState(selectedTab_, item)}}">
-          <button-label>{{_computeTabLabel(item)}}</button-label>
+            selected="{{computeTabSelectState_(selectedTab_, item)}}">
+          <button-label>{{computeTabLabel_(item)}}</button-label>
         </tab-button>
       </template>
     </tab-strip>
@@ -182,11 +182,12 @@ window.TracingAnalysisTabView = Polymer({
     // Search for the specific node in our tabs list.
     // If it is not there print a warning.
     var contentTabId = undefined;
-    for (var i = 0; i < this.tabs_.length; i++)
+    for (var i = 0; i < this.tabs_.length; i++) {
       if (this.tabs_[i].content === content) {
         contentTabId = this.tabs_[i].id;
         break;
       }
+    }
 
     if (contentTabId === undefined)
       return;
@@ -434,11 +435,11 @@ window.TracingAnalysisTabView = Polymer({
     }
   },
 
-  _computeTabLabel: function(tab) {
+  computeTabLabel_: function(tab) {
     return tab.label ? tab.label : 'No Label';
   },
 
-  _computeTabSelectState: function(selectedTab, tab) {
+  computeTabSelectState_: function(selectedTab, tab) {
     return selectedTab.id === tab.id;
   }
 
