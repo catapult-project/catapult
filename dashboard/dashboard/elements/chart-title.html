@@ -98,16 +98,16 @@ found in the LICENSE file.
       },
 
       onClicked: function(event) {
-        var model = event.target.templateInstance.model;
-        if (model.partIndex == this.currentIndex) {
+        var index = event.model.index;
+        if (index == this.currentIndex) {
           return;
         }
         this.fire('titleclicked', {
             titleParts: this.titleParts,
-            partIndex: model.partIndex
+            partIndex: index
         });
 
-        this.currentIndex = model.partIndex;
+        this.currentIndex = index;
       },
 
       /**
