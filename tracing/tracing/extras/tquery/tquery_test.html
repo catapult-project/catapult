@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/scripting_controller.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/tquery/tquery.html">
@@ -78,15 +79,15 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(hasTitle('a')).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 1);
+    assert.equal(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter('b').selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 2);
+    assert.equal(tr.b.getOnlyElement(result).guid, 2);
 
     var result = tquery.filter(/^c$/).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 3);
+    assert.equal(tr.b.getOnlyElement(result).guid, 3);
   });
 
   test('tqueryFilterHasAncestor', function() {
@@ -100,11 +101,11 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(hasAncestor('b')).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 4);
+    assert.equal(tr.b.getOnlyElement(result).guid, 4);
 
     var result = tquery.filter(hasAncestor()).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 4);
+    assert.equal(tr.b.getOnlyElement(result).guid, 4);
 
     var result = tquery.filter(hasAncestor('a')).selection;
     assert.equal(result.length, 0);
@@ -121,11 +122,11 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(allOf('a1')).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 1);
+    assert.equal(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter(allOf('a1', /1/)).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 1);
+    assert.equal(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter(allOf()).selection;
     assert.equal(result.length, 3);
@@ -142,12 +143,13 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(anyOf('a', 'b')).selection;
     assert.equal(result.length, 2);
-    assert.equal(result[0].guid, 1);
-    assert.equal(result[1].guid, 2);
+    var nextGuid = 1;
+    for (var event of result)
+      assert.equal(event.guid, nextGuid++);
 
     var result = tquery.filter(anyOf('not there', 'a')).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 1);
+    assert.equal(tr.b.getOnlyElement(result).guid, 1);
 
     var result = tquery.filter(anyOf()).selection;
     assert.equal(result.length, 3);
@@ -164,13 +166,13 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(isTopLevel()).selection;
     assert.equal(result.length, 3);
-    assert.equal(result[0].guid, 1);
-    assert.equal(result[1].guid, 2);
-    assert.equal(result[2].guid, 3);
+    var nextGuid = 1;
+    for (var event of result)
+      assert.equal(event.guid, nextGuid++);
 
     var result = tquery.filter(isTopLevel('a')).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 1);
+    assert.equal(tr.b.getOnlyElement(result).guid, 1);
   });
 
   test('tqueryFilterHasDuration', function() {
@@ -185,11 +187,11 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(hasDuration(1.5, 2.5)).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 2);
+    assert.equal(tr.b.getOnlyElement(result).guid, 2);
 
     var result = tquery.filter(hasDuration(3, Infinity)).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 3);
+    assert.equal(tr.b.getOnlyElement(result).guid, 3);
 
     var result = tquery.filter(hasDuration(-1, 0)).selection;
     assert.equal(result.length, 0);
@@ -198,7 +200,7 @@ tr.b.unittest.testSuite(function() {
       return d > 2;
     })).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 3);
+    assert.equal(tr.b.getOnlyElement(result).guid, 3);
   });
 
   test('tqueryFilterNot', function() {
@@ -212,8 +214,10 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(not(/a/)).selection;
     assert.equal(result.length, 2);
-    assert.equal(result[0].guid, 2);
-    assert.equal(result[1].guid, 3);
+    var nextGuid = 2;
+    for (var event of result) {
+      assert.equal(event.guid, nextGuid++);
+    }
 
     // Test a not() without any subexpressions.
     assert.throws(function() { not(); });
@@ -233,7 +237,7 @@ tr.b.unittest.testSuite(function() {
 
     var result = tquery.filter(noneOf(/a/, /b/)).selection;
     assert.equal(result.length, 1);
-    assert.equal(result[0].guid, 3);
+    assert.equal(tr.b.getOnlyElement(result).guid, 3);
   });
 });
 </script>

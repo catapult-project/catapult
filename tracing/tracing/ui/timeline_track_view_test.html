@@ -64,25 +64,21 @@ tr.b.unittest.testSuite(function() {
     var timeline = document.createElement('tr-ui-timeline-track-view');
     timeline.model = model;
 
-    var expected = [t1asg.slices[0],
-                    t1.sliceGroup.slices[0]];
+    var expected = new tr.model.EventSet(
+        [t1asg.slices[0], t1.sliceGroup.slices[0]]);
     var result = new tr.model.EventSet;
     var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tr.c.TitleOrCategoryFilter('a'), result);
     Task.RunSynchronously(filterTask);
-    assert.equal(result.length, 2);
-    assert.equal(result[0], expected[0]);
-    assert.equal(result[1], expected[1]);
+    assert.isTrue(result.equals(expected));
 
-    var expected = [t1asg.slices[1],
-                    t1.sliceGroup.slices[1]];
+    var expected = new tr.model.EventSet(
+        [t1asg.slices[1], t1.sliceGroup.slices[1]]);
     var result = new tr.model.EventSet();
     var filterTask = timeline.addAllEventsMatchingFilterToSelectionAsTask(
         new tr.c.TitleOrCategoryFilter('b'), result);
     Task.RunSynchronously(filterTask);
-    assert.equal(result.length, 2);
-    assert.equal(result[0], expected[0]);
-    assert.equal(result[1], expected[1]);
+    assert.isTrue(result.equals(expected));
   });
 
   test('emptyThreadsDeleted', function() {

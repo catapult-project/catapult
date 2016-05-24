@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -141,11 +142,11 @@ tr.b.unittest.testSuite(function() {
       }
     });
     assert.equal(inFlows.length, 1);
-    assert.equal(inFlows[0].title, 'a_b');
+    assert.equal(tr.b.getOnlyElement(inFlows).title, 'a_b');
     assert.equal(outFlows.length, 1);
-    assert.equal(outFlows[0].title, 'bbb_c');
+    assert.equal(tr.b.getOnlyElement(outFlows).title, 'bbb_c');
     assert.equal(internalFlows.length, 1);
-    assert.equal(internalFlows[0].title, 'b_bbb');
+    assert.equal(tr.b.getOnlyElement(internalFlows).title, 'b_bbb');
   });
 
   test('validateConnectedEvents', function() {

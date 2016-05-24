@@ -319,31 +319,31 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(tableEl.tableRows, 3);
     assert.lengthOf(tableEl.tableColumns, 1);
     var rows = tableEl.tableRows;
-    var column = tableEl.tableColumns[0];
+    var col = tableEl.tableColumns[0];
 
-    assert.equal(column.value(rows[0]).textContent,
+    assert.equal(col.value(rows[0]).textContent,
         '2 memory dumps in Process 1');
-    assert.equal(column.value(rows[1]).textContent,
+    assert.equal(col.value(rows[1]).textContent,
         '3 memory dumps in Process 2');
-    assert.equal(column.value(rows[2]).textContent,
+    assert.equal(col.value(rows[2]).textContent,
         '1 memory dump in Process 4');
 
     // Check that the analysis link is associated with the right dumps.
-    assert.sameMembers(tr.b.asArray(column.value(rows[1]).selection), [
+    assert.isTrue(col.value(rows[1]).selection.equals(new tr.model.EventSet([
       globalMemoryDumps[0].processMemoryDumps[2],
       globalMemoryDumps[1].processMemoryDumps[2],
       globalMemoryDumps[2].processMemoryDumps[2]
-    ]);
+    ])));
 
     assert.lengthOf(rows[1].subRows, 3);
     var subRow = rows[1].subRows[0];
 
     // Check the timestamp.
-    assert.equal(column.value(subRow).children[0].value, 42);
+    assert.equal(col.value(subRow).children[0].value, 42);
 
     // Check that the analysis link is associated with the right dump.
-    assert.sameMembers(tr.b.asArray(column.value(subRow).selection),
-        [globalMemoryDumps[0].processMemoryDumps[2]]);
+    assert.isTrue(col.value(subRow).selection.equals(
+        new tr.model.EventSet(globalMemoryDumps[0].processMemoryDumps[2])));
   });
 });
 </script>

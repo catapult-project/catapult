@@ -125,9 +125,10 @@ tr.b.unittest.testSuite(function() {
     function listener(e) {
       selectionChanged = true;
       assert.equal(e.selection.length, 3);
-      assert.equal(e.selection[0].start, 20);
-      assert.equal(e.selection[1].start, 31);
-      assert.equal(e.selection[2].start, 40);
+      var predictedStarts = [20, 31, 40];
+      var i = 0;
+      for (var event of e.selection)
+        assert.equal(event.start, predictedStarts[i++]);
     }
     panel.ownerDocument.addEventListener('requestSelectionChange', listener);
     try {

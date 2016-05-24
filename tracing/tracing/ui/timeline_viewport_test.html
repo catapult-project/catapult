@@ -61,8 +61,8 @@ tr.b.unittest.testSuite(function() {
     sel.push(t1.sliceGroup.slices[0]);
 
     var shifted = track.viewport.getShiftedSelection(sel, 1);
-    assert.equal(shifted.length, 1);
-    assert.equal(shifted[0], t1.sliceGroup.slices[1]);
+    assert.isTrue(shifted.equals(
+        new tr.model.EventSet(t1.sliceGroup.slices[1])));
   });
 
   test('locationObj', function() {
