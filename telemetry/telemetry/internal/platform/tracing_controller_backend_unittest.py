@@ -89,11 +89,20 @@ class FakeTracingAgentNoStartAndClockSync(FakeTracingAgentBase):
 
 
 class TracingControllerBackendTest(unittest.TestCase):
-  def _getControllerLogAsList(self, data):
-    return data.GetTraceFor(trace_data.TELEMETRY_PART)
+  def _getControllerEventsAslist(self, data):
+    telemetry_trace = data.GetTraceFor(trace_data.TELEMETRY_PART)
+    if not telemetry_trace:
+      return []
+    return telemetry_trace["traceEvents"]
+
+  def _getControllerClockDomain(self, data):
+    telemetry_trace = data.GetTraceFor(trace_data.TELEMETRY_PART)
+    if not telemetry_trace or not telemetry_trace["metadata"]:
+      return ""
+    return telemetry_trace["metadata"]["clock-domain"]
 
   def _getSyncCount(self, data):
-    return len([entry for entry in self._getControllerLogAsList(data)
+    return len([entry for entry in self._getControllerEventsAslist(data)
                 if entry.get('name') == 'clock_sync'])
 
   def setUp(self):
@@ -153,7 +162,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertTrue(self.controller.is_tracing_running)
     data = self.controller.StopTracing()
     self.assertEqual(self._getSyncCount(data), 1)
-    sync_event_one = [x for x in self._getControllerLogAsList(data)
+    sync_event_one = [x for x in self._getControllerEventsAslist(data)
                       if x.get('name') == 'clock_sync'][0]
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEqual(self.controller._trace_log, None)
@@ -162,7 +171,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     self.assertTrue(self.controller.is_tracing_running)
     data = self.controller.StopTracing()
     self.assertEqual(self._getSyncCount(data), 1)
-    sync_event_two = [x for x in self._getControllerLogAsList(data)
+    sync_event_two = [x for x in self._getControllerEventsAslist(data)
                       if x.get('name') == 'clock_sync'][0]
     self.assertFalse(self.controller.is_tracing_running)
     self.assertFalse(self.controller._trace_log, None)
@@ -247,6 +256,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 2)
+    self.assertEquals(self._getControllerClockDomain(data), "TELEMETRY")
 
   @decorators.Isolated
   def testMultipleAgents(self):
@@ -289,7 +299,8 @@ class TracingControllerBackendTest(unittest.TestCase):
     data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 1)
-    log = self._getControllerLogAsList(data)
+    self.assertEquals(self._getControllerClockDomain(data), "TELEMETRY")
+    log = self._getControllerEventsAslist(data)
     for entry in log:
       if entry.get('name') == 'clock_sync':
         self.assertEqual(entry['args']['sync_id'], sync_id)
@@ -315,6 +326,7 @@ class TracingControllerBackendTest(unittest.TestCase):
     data = self.controller.StopTracing()
     self.assertFalse(self.controller.is_tracing_running)
     self.assertEquals(self._getSyncCount(data), 4)
+    self.assertEquals(self._getControllerClockDomain(data), "TELEMETRY")
 
   @decorators.Isolated
   def testIssueClockSyncMarker_tracingNotControllable(self):
