@@ -27,7 +27,7 @@ class Link(object):
     assert os.path.exists(full_src_path)
     if not os.path.exists(full_dst_path_dirname):
       sys.stdout.write('ERROR\n\n')
-      sys.stdout.write(' dst dir doesn\'t exist\n' % self.full_dst_path_dirname)
+      sys.stdout.write(' dst dir doesn\'t exist: %s\n' % full_dst_path_dirname)
       sys.stdout.write('\n\n')
       sys.exit(255)
 
