@@ -584,6 +584,9 @@ tr.exportTo('tr.e.importer', function() {
         } else {
           this.importObjectTypeNameMap_(objectTypeNameMap, event.pid);
         }
+      } else if (event.name === 'TraceConfig') {
+          this.model_.metadata.push(
+              {name: 'TraceConfig', value: event.args.value});
       } else {
         this.model_.importWarning({
           type: 'metadata_parse_error',

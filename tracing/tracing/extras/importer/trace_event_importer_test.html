@@ -5300,6 +5300,28 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.metadata[0].value, metadataValue);
   });
 
+  test('importTraceConfigAsMetadata', function() {
+    var traceConfigData = {
+        enable_argument_filter: false,
+        enable_sampling: false,
+        enable_systrace: false,
+        record_mode: 'record-until-full'
+    };
+
+    var eventData = {
+      traceEvents: [
+      { name: 'TraceConfig', args: { value: traceConfigData },
+        pid: 2, ts: 0, tid: 1, ph: 'M', cat: '__metadata' },
+      ],
+    };
+
+    var m = makeModel(eventData);
+    assert.isTrue(m.metadata instanceof Array);
+    assert.equal(m.metadata.length, 1);
+    assert.equal(m.metadata[0].name, 'TraceConfig');
+    assert.equal(m.metadata[0].value, traceConfigData);
+  });
+
   test('importMarks', function() {
     var eventData = {
       traceEvents: [
