@@ -26,7 +26,6 @@ from dashboard import edit_anomaly_configs
 from dashboard import edit_bug_labels
 from dashboard import edit_sheriffs
 from dashboard import edit_site_config
-from dashboard import edit_test_owners
 from dashboard import email_summary
 from dashboard import file_bug
 from dashboard import get_logs
@@ -80,7 +79,6 @@ _URL_MAPPING = [
     ('/edit_bug_labels', edit_bug_labels.EditBugLabelsHandler),
     ('/edit_sheriffs', edit_sheriffs.EditSheriffsHandler),
     ('/edit_site_config', edit_site_config.EditSiteConfigHandler),
-    ('/edit_test_owners', edit_test_owners.EditTestOwnersHandler),
     ('/email_summary', email_summary.EmailSummaryHandler),
     ('/file_bug', file_bug.FileBugHandler),
     ('/get_logs', get_logs.GetLogsHandler),
