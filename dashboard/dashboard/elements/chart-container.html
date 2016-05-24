@@ -145,8 +145,8 @@ triaging functionality in the chart.
     <div id="container" compact$="{{showCompact}}">
       <div id="top-bar" class="horizontal layout">
         <div class="flex horizontal center-justified layout">
-          <chart-title id="title" seriesGroupList="{{seriesGroupList}}"
-                       testSuites="{{testSuites}}"></chart-title>
+          <chart-title id="title" series-group-list="{{seriesGroupList}}"
+                       test-suites="{{testSuites}}"></chart-title>
         </div>
         <div class="horizontal layout center">
           <paper-button id="close-chart" on-click="closeChartClicked">
@@ -160,7 +160,7 @@ triaging functionality in the chart.
         </div>
         <div id="alert-icon-container"></div>
         <chart-tooltip id="tooltip"
-                       xsrfToken="{{xsrfToken}}"></chart-tooltip>
+                       xsrf-token="{{xsrfToken}}"></chart-tooltip>
 
         <div id="plots-container" on-mouseleave="onMouseLeave">
           <div id="plot">
@@ -182,14 +182,14 @@ triaging functionality in the chart.
            href="javascript:void(0);">View original graph</a>
 
         <chart-legend id="legend"
-                      seriesGroupList="{{seriesGroupList}}"
-                      indicesToGraph="{{indicesToGraph}}"
-                      collapseLegend="{{collapseLegend}}"
+                      series-group-list="{{seriesGroupList}}"
+                      indices-to-graph="{{indicesToGraph}}"
+                      collapse-legend="{{collapseLegend}}"
                       on-dragstart="legendSeriesDragStart"
                       on-dragend="legendSeriesDragEnd"
-                      deltaAbsolute="{{deltaAbsolute}}"
-                      deltaPercent="{{deltaPercent}}"
-                      showDelta="{{showDelta}}">
+                      delta-absolute="{{deltaAbsolute}}"
+                      delta-percent="{{deltaPercent}}"
+                      show-delta="{{showDelta}}">
       </div>
 
     </div>
@@ -387,7 +387,10 @@ triaging functionality in the chart.
 
           // Amount of time before a warning is shown for tests with no new
           // data.
-          STALE_DATA_DELTA_MS: 7 * 86400000,
+          STALE_DATA_DELTA_MS: {
+            type: Number,
+            value: 7 * 86400000
+          },
 
           alertKey: { notify: true },
           collapseLegend: {
@@ -397,7 +400,6 @@ triaging functionality in the chart.
           indicesToGraph: {
             type: Array,
             value: () => [],
-            observer: 'indicesToGraphChanged'
           },
           // TODO(chrisphan): Make seriesGroupList a class.
           // A list of series group dictionary. A series group contains test
@@ -415,6 +417,7 @@ triaging functionality in the chart.
           //         }]
           //   }]
           seriesGroupList: {
+            notify: true,
             type: Array,
             value: () => [],
           },
@@ -556,6 +559,9 @@ triaging functionality in the chart.
           testSuites: { notify: true },
           xsrfToken: { notify: true }
         },
+        observers: [
+          'indicesToGraphChanged(indicesToGraph.splices)'
+        ],
 
         /**
          * Initializes the chart-container element and all of its properties.
@@ -677,7 +683,7 @@ triaging functionality in the chart.
             } else {
               unSelectedTestPathDict[testPath] = [];
             }
-            this.seriesGroupList.push(seriesGroup);
+            this.push('seriesGroupList', seriesGroup);
           }
           if (Object.keys(selectedTestPathDict).length > 0) {
             this.sendGraphJsonRequest(selectedTestPathDict, true);
@@ -1028,7 +1034,7 @@ triaging functionality in the chart.
           this.hideTooltipEvenIfSticky();
           this.clearAlertIcons();
           this.$['loading-div'].style.display = '';
-          this.indicesToGraph = [];
+          this.set('indicesToGraph', []);
           this.json.warnings = [];
           this.warnings = [];
 
@@ -1084,12 +1090,12 @@ triaging functionality in the chart.
          * Updates the list of indices of traces to plot with seriesGroupList.
          */
         updateIndicesToGraph: function() {
-          this.indicesToGraph = [];
+          this.set('indicesToGraph', []);
           for (var i = 0; i < this.seriesGroupList.length; i++) {
             var tests = this.seriesGroupList[i].tests;
             for (var j = 0; j < tests.length; j++) {
               if (tests[j].selected && tests[j].index != undefined) {
-                this.indicesToGraph.push(tests[j].index);
+                this.push('indicesToGraph', tests[j].index);
               }
             }
           }
@@ -1625,7 +1631,7 @@ triaging functionality in the chart.
             delete this.json.annotations[indexToRemove];
             delete this.json['error_bars'][indexToRemove];
             if (this.indicesToGraph.indexOf(indexToRemove) != -1) {
-              this.indicesToGraph.splice(
+              this.splice('indicesToGraph',
                   this.indicesToGraph.indexOf(indexToRemove), 1);
             }
           }
@@ -1647,8 +1653,8 @@ triaging functionality in the chart.
           var partIndex = event.detail.partIndex;
           var testPath = titleParts.slice(0, partIndex + 1).join('/');
           this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
-          this.seriesGroupList = [];
-          this.indicesToGraph = [];
+          this.set('seriesGroupList', []);
+          this.set('indicesToGraph', []);
           this.addSeriesGroup([[testPath, []]], true);
           this.fireChartStateChangedEvent(this.seriesGroupList);
         },
@@ -2444,7 +2450,7 @@ triaging functionality in the chart.
               detail.id == this.$.legend.getAttribute('uniqueid'));
           var shouldReload = false;
           if (isSameTarget) {
-            this.seriesGroupList = detail.state;
+            this.set('seriesGroupList', detail.state);
             shouldReload = true;
           }
 

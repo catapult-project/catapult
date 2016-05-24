@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/autocomplete-box.html">
+
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  test('instantiate', function() {
+    var box = document.createElement('autocomplete-box');
+    box.placeholder = 'Placeholder text';
+    box.datalist = [
+        {'name': 'Apples'},
+        {'name': 'Bananas'},
+        {'name': 'Carrots'}
+    ];
+    box.setDataList(box.datalist); // Yes this is really the API :(
+    this.addHTMLOutput(box);
+  });
+
+    test('instantiateComplex', function() {
+      var box = document.createElement('autocomplete-box');
+      box.placeholder = 'Placeholder text';
+      box.multi = true;
+      box.datalist = [
+          {'name': 'ChromiumPerf', 'head': true},
+          {'name': 'windows', 'group': 'ChromiumPerf', 'tag': 'hello'},
+          {'name': 'mac', 'group': 'ChromiumPerf', 'tag': 'world'},
+          {'name': 'Android', 'head': true},
+          {'name': 'nexus5', 'group': 'Android'},
+          {'name': 'g1', 'group': 'Android'},
+          {'name': 'galaxy s6', 'group': 'Android'},
+      ];
+      box.setDataList(box.datalist); // Yes this is really the API :(
+      this.addHTMLOutput(box);
+    });
+
+});
+</script>

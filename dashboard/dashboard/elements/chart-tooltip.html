@@ -34,7 +34,7 @@ was just clicked.
 
     <div id="container">
       <triage-dialog id="triage"
-                     xsrfToken="{{xsrfToken}}"
+                     xsrf-token="{{xsrfToken}}"
                      alerts="{{alerts}}"></triage-dialog>
 
       <paper-dialog id="tooltip" layered="false" autoCloseDisabled="true">
@@ -83,7 +83,7 @@ was just clicked.
             <span hidden$="{{bugNotInvalid(bugId)}}">Invalid alert</span>
             <span hidden$="{{bugNotIgnored(bugId)}}">Ignored alert</span>
             <span hidden$="{{!recovered}}">Recovered alert</span>
-            <alert-remove-box key="{{alertKey}}" xsrfToken="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
+            <alert-remove-box key="{{alertKey}}" xsrf-token="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
             </alert-remove-box><br>
             <a href="/group_report?keys={{alertKey}}">View alert graph</a>
           </div>
@@ -107,12 +107,12 @@ was just clicked.
           </template>
         </div>
 
-        <bisect-button affirmative xsrfToken="{{xsrfToken}}"
-                       bugId="{{bugId}}"
-                       bisectInfo="{{bisectInfo}}"></bisect-button>
-        <trace-button affirmative xsrfToken="{{xsrfToken}}"
-                      bugId="{{bugId}}"
-                      traceInfo="{{bisectInfo}}"></trace-button>
+        <bisect-button affirmative xsrf-token="{{xsrfToken}}"
+                       bug-id="{{bugId}}"
+                       bisect-info="{{bisectInfo}}"></bisect-button>
+        <trace-button affirmative xsrf-token="{{xsrfToken}}"
+                      bug-id="{{bugId}}"
+                      trace-info="{{bisectInfo}}"></trace-button>
 
       </paper-dialog>
     </div>

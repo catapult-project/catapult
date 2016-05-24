@@ -73,13 +73,13 @@ property 'group' sets to the header item name.
         padding-right: 8px;
       }
 
-      #dropdown > paper-item {
+      #dropdown paper-item {
         min-height: 25px;
         color: #616161;
         text-indent: 10px;
       }
 
-      #dropdown > paper-item[head] {
+      #dropdown paper-item[head] {
         color: darkblue;
         text-indent: 0;
       }
@@ -98,17 +98,20 @@ property 'group' sets to the header item name.
     </style>
 
     <div id="container">
-      <paper-input label="{{placeholder}}"
-                   on-click="showHideDropdown"
-                   on-keyup="onTextboxKeyup"
-                   on-keydown="onTextboxKeydown"
-                   disabled$="{{disabled}}"
-                   id="textbox"
-                   value="{{value::input}}"></paper-input>
+      <div id="textbox-container" class="layout vertical">
+        <paper-input label="{{placeholder}}"
+                     on-click="showHideDropdown"
+                     on-keyup="onTextboxKeyup"
+                     on-keydown="onTextboxKeydown"
+                     disabled$="{{disabled}}"
+                     id="textbox"
+                     value="{{value::input}}"></paper-input>
+      </div>
       <paper-material id="dropdown-container" hidden>
         <div class="dropdown-scroller" layered>
           <paper-menu id="dropdown"
-                      on-core-activate="onDropdownSelect"
+                      on-iron-select="onDropdownSelect"
+                      on-iron-deselect="onDropdownSelect"
                       multi$="{{multi}}">
             <template is="dom-repeat" items="{{dataList}}">
               <paper-item head$="{{item.head}}"
@@ -134,7 +137,11 @@ property 'group' sets to the header item name.
           type: Number,
           value: 152
         },
-        dataList: { notify: true },
+        dataList: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
         disabled: {
           notify: true,
           type: Boolean,
@@ -142,6 +149,11 @@ property 'group' sets to the header item name.
         },
         multi: { notify: true },
         placeholder: { notify: true },
+        selectedItems: {
+          type: Array,
+          notify: true,
+          value: () => []
+        },
         value: {
           notify: true,
           observer: 'valueChanged',
@@ -152,7 +164,6 @@ property 'group' sets to the header item name.
       ready: function() {
         this.value = '';
         this.$.dropdown.selected = [];
-        this.selectedItems = [];
         this.hasVisibleItems = true;
         this.initAutocomplete();
       },
@@ -174,7 +185,7 @@ property 'group' sets to the header item name.
        * @param {Array} dataList List of drop-down items.
        */
       setDataList: function(dataList) {
-        this.dataList = dataList;
+        this.set('dataList', dataList);
         this.updateCurrentSelection();
         this.initAutocomplete();
       },
@@ -187,7 +198,7 @@ property 'group' sets to the header item name.
         var key = event.keyCode || event.charCode;
         if (key == 8 || key == 46) {  // Backspace and Delete.
           if (this.value.length == 0) {
-            this.selectedItems = [];
+            this.set('selectedItems', []);
             this.$.dropdown.selected = [];
             this.fire('dropdownselect');
           }
@@ -223,9 +234,10 @@ property 'group' sets to the header item name.
        */
       onDropdownSelect: function(event, detail) {
         this.$.textbox.focus();
-        var item = detail.item.templateInstance.model;
-        var isSelected = Polymer.dom(
-            detail.item).classList.contains('core-selected');
+        var index = this.$.dropdown.indexOf(detail.item);
+        var item = this.dataList[index];
+        var isSelected = Polymer.dom(detail.item).classList.contains(
+            'iron-selected');
         if (this.multi) {
           if (item.head) {
             this.onHeadItemSelected(item.name, isSelected);
@@ -327,7 +339,7 @@ property 'group' sets to the header item name.
             }
           }
         }
-        this.selectedItems = matchedItems;
+        this.set('selectedItems', matchedItems);
         this.value = this.getSelectedValues().join(',');
       },
 
@@ -372,15 +384,15 @@ property 'group' sets to the header item name.
        */
       setItemSelection: function(item, isSelected) {
         if (!this.multi) {
-          this.selectedItems = [];
+          this.set('selectedItems', []);
         }
         var itemIndex = this.getItemIndex(item);
         if (isSelected) {
           if (itemIndex == -1) {
-            this.selectedItems.push(item);
+            this.push('selectedItems', item);
           }
         } else if (itemIndex > -1) {
-          this.selectedItems.splice(itemIndex, 1);
+          this.splice('selectedItems', itemIndex, 1);
         }
       },
 
@@ -405,7 +417,7 @@ property 'group' sets to the header item name.
           // Remove only the last selected item.
           var lastItem = this.selectedItems[this.selectedItems.length - 1];
           if (this.selectedItems.length == currentParts.length) {
-            this.selectedItems.pop();
+            this.pop('selectedItems');
           }
         } else {
           currentValue = this.value;

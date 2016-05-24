@@ -115,8 +115,8 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock(graphQuery, JSON.stringify(GRAPH_JSON));
     var revisionQuery = ('/graph_revisions?test_path=' +
         encodeURIComponent('ChromiumPerf/win/dromaeo/dom'));
-    testing_common.addXhrMock(revisionQuery,
-                              JSON.stringify(GRAPH_REVISION_JSON));
+    testing_common.addXhrMock(
+        revisionQuery, JSON.stringify(GRAPH_REVISION_JSON));
     var chart = document.createElement('chart-container');
     return chart;
   };
@@ -146,6 +146,10 @@ tr.b.unittest.testSuite(function() {
     var graphQuery = ('/graph_json?graphs=' +
                       encodeURIComponent(JSON.stringify(params)));
     testing_common.addXhrMock(graphQuery, JSON.stringify(graphJson));
+    var revisionQuery = ('/graph_revisions?test_path=' +
+        encodeURIComponent('ChromiumPerf/win/dromaeo/dom'));
+    testing_common.addXhrMock(
+        revisionQuery, JSON.stringify(GRAPH_REVISION_JSON));
 
     var chart = document.createElement('chart-container');
     this.addHTMLOutput(chart);

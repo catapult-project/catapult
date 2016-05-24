@@ -228,7 +228,7 @@ found in the LICENSE file.
 
               <iron-selector class="list" selected="{{multiSelected}}" multi>
 
-                <template is="dom-repeat" items="{{in seriesGroup.tests}}" as="test">
+                <template is="dom-repeat" items="{{seriesGroup.tests}}" as="test">
                   <div class="row" id="{{test.index}}"
                        loading$="{{computeIsUndefined(test.index)}}"
                        hidden$="{{test.hidden}}">
@@ -299,7 +299,11 @@ found in the LICENSE file.
         deltaAbsolute: { notify: true },
         deltaPercent: { notify: true },
         indicesToGraph: { notify: true },
-        seriesGroupList: { notify: true },
+        seriesGroupList: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
         showCompact: { notify: true },
         showDelta: { notify: true }
       },
