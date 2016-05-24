@@ -27,7 +27,7 @@ class TraceDataTest(unittest.TestCase):
 
   def testSerializeZip(self):
     data = trace_data.TraceData({'traceEvents': [1, 2, 3],
-                                 'battor': ['battor_data']})
+                                 'powerTraceAsString': 'battor_data'})
     tf = tempfile.NamedTemporaryFile(delete=False)
     temp_name = tf.name
     tf.close()
@@ -36,7 +36,7 @@ class TraceDataTest(unittest.TestCase):
       self.assertTrue(zipfile.is_zipfile(temp_name))
       z = zipfile.ZipFile(temp_name, 'r')
 
-      self.assertIn('battor', z.namelist())
+      self.assertIn('powerTraceAsString', z.namelist())
       self.assertIn('traceEvents', z.namelist())
       z.close()
     finally:
@@ -92,7 +92,7 @@ class TraceDataBuilderTest(unittest.TestCase):
     builder = trace_data.TraceDataBuilder()
     builder.AddEventsTo(trace_data.CHROME_TRACE_PART, [1, 2, 3])
     builder.AddEventsTo(trace_data.TAB_ID_PART, ['tab-7'])
-    builder.AddEventsTo(trace_data.BATTOR_TRACE_PART, ['battor data here'])
+    builder.SetTraceFor(trace_data.BATTOR_TRACE_PART, 'battor data here')
 
     d = builder.AsData()
     self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))

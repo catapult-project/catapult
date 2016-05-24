@@ -12,6 +12,7 @@ from telemetry import page as page_module
 from telemetry.testing import system_stub
 from telemetry.timeline import trace_data
 from telemetry.value import trace
+from tracing_build import html2trace
 
 
 class TestBase(unittest.TestCase):
@@ -103,6 +104,42 @@ class ValueTest(TestBase):
       if os.path.exists(test_temp_file.name):
         test_temp_file.close()
         os.remove(test_temp_file.name)
+
+  def testFindTraceParts(self):
+    raw_data = {
+      'powerTraceAsString': 'Battor Data',
+      'traceEvents': 'Chrome Data',
+      'tabIds': 'Tab Data',
+    }
+    data = trace_data.TraceData(raw_data)
+    v = trace.TraceValue(None, data)
+    tempdir = tempfile.mkdtemp()
+    temp_path = os.path.join(tempdir, 'test.json')
+    battor_seen = False
+    chrome_seen = False
+    tabs_seen = False
+    try:
+      trace_files = html2trace.CopyTraceDataFromHTMLFilePath(v.filename,
+                                                             temp_path)
+      for f in trace_files:
+        with open(f, 'r') as trace_file:
+          d = trace_file.read()
+          if d == raw_data['powerTraceAsString']:
+            self.assertFalse(battor_seen)
+            battor_seen = True
+          elif d == raw_data['traceEvents']:
+            self.assertFalse(chrome_seen)
+            chrome_seen = True
+          elif d == raw_data['tabIds']:
+            self.assertFalse(tabs_seen)
+            tabs_seen = True
+      self.assertTrue(battor_seen)
+      self.assertTrue(chrome_seen)
+      self.assertTrue(tabs_seen)
+    finally:
+      shutil.rmtree(tempdir)
+      os.remove(v.filename)
+
 
 
 def _IsEmptyDir(path):

@@ -37,7 +37,7 @@ class TraceDataPart(object):
     return self._raw_field_name
 
 
-BATTOR_TRACE_PART = TraceDataPart('battor')
+BATTOR_TRACE_PART = TraceDataPart('powerTraceAsString')
 CHROME_TRACE_PART = TraceDataPart('traceEvents')
 INSPECTOR_TRACE_PART = TraceDataPart('inspectorTimelineEvents')
 SURFACE_FLINGER_PART = TraceDataPart('surfaceFlinger')

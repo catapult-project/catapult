@@ -36,16 +36,20 @@ class TraceValue(value_module.Value):
     self._cloud_url = None
     self._serialized_file_handle = None
 
+  def _GetTraceParts(self, trace_data):
+    return [trace_data.GetTraceFor(p)
+            for p in trace_data_module.ALL_TRACE_PARTS
+            if trace_data.HasTraceFor(p)]
+
   def _GetTempFileHandle(self, trace_data):
     if self.page:
       title = self.page.display_name
     else:
       title = ''
     content = StringIO.StringIO()
-    trace2html.WriteHTMLForTraceDataToFile(
-        [trace_data.GetTraceFor(trace_data_module.CHROME_TRACE_PART)],
-        title,
-        content)
+
+    trace2html.WriteHTMLForTraceDataToFile(self._GetTraceParts(trace_data),
+                                           title, content)
     tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
     tf.write(content.getvalue().encode('utf-8'))
     tf.close()
