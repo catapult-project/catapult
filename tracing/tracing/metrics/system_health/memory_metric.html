@@ -27,6 +27,8 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
   var unitlessNumber_smallerIsBetter =
       tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+  var DISPLAYED_SIZE_NUMERIC_NAME =
+      tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
 
   var MMAPS_VALUES = {
     'overall:pss': {
@@ -343,6 +345,24 @@ tr.exportTo('tr.metrics.sh', function() {
                 new ScalarNumeric(sizeInBytes_smallerIsBetter, value),
                 valueSpec.descriptionPrefix);
           });
+
+          // Add memory:<browser-name>:<process-name>:subsystem:v8:
+          // code_and_metadata_size if there was at least one
+          // v8/isolate_xxx/code_and_metadata_size memory allocator dump
+          // in the trace.
+          var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
+          if (v8Dump !== undefined) {
+            v8Dump.children.forEach(function(isolateDump) {
+              isolateDump.children.forEach(function(isolateChild) {
+                if (isolateChild.name === 'code_and_metadata_size') {
+                  addProcessScalar(
+                      'subsystem:v8:code_and_metadata_size',
+                      isolateChild.numerics[DISPLAYED_SIZE_NUMERIC_NAME]);
+                }
+              });
+            });
+          }
+
         }, values, model);
   }
 
