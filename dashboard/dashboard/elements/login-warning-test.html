@@ -21,8 +21,8 @@ tr.b.unittest.testSuite(function() {
 
   test('should become visible when "missing" attribute is set', function() {
     var element = document.createElement('login-warning');
-    element.setAttribute('missing', 'foo');
-    document.body.appendChild(element);
+    Polymer.dom(element).setAttribute('missing', 'foo');
+    Polymer.dom(document.body).appendChild(element);
     assert.isFalse(element.messageElement.hidden);
   });
 

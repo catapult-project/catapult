@@ -16,22 +16,22 @@ tr.b.unittest.testSuite(function() {
 
   test('displayRevisionRange works with simple revision ranges', function() {
     var range = document.createElement('revision-range');
-    range.setAttribute('start', 20030);
-    range.setAttribute('end', 20050);
+    Polymer.dom(range).setAttribute('start', 20030);
+    Polymer.dom(range).setAttribute('end', 20050);
     assert.equal(range.getDisplayRevisionRange(), '20030 - 20050');
   });
 
   test('displayRevisionRange works with single revisions', function() {
     var range = document.createElement('revision-range');
-    range.setAttribute('start', 20030);
-    range.setAttribute('end', 20030);
+    Polymer.dom(range).setAttribute('start', 20030);
+    Polymer.dom(range).setAttribute('end', 20030);
     assert.equal(range.getDisplayRevisionRange(), '20030');
   });
 
   test('getDisplayRevisionRange formats Chrome/Chrome OS versions', function() {
     var range = document.createElement('revision-range');
-    range.setAttribute('start', 18120000539000000);
-    range.setAttribute('end', 18120000539000000);
+    Polymer.dom(range).setAttribute('start', 18120000539000000);
+    Polymer.dom(range).setAttribute('end', 18120000539000000);
     assert.equal(
         range.getDisplayRevisionRange(),
         'Cr 1812.0 / CrOS 5390.0.0');
@@ -39,8 +39,8 @@ tr.b.unittest.testSuite(function() {
 
   test('getDisplayRevisionRange formats timestamps', function() {
     var range = document.createElement('revision-range');
-    range.setAttribute('start', 1420001111);
-    range.setAttribute('end', 1420001111);
+    Polymer.dom(range).setAttribute('start', 1420001111);
+    Polymer.dom(range).setAttribute('end', 1420001111);
     assert.equal(
         range.getDisplayRevisionRange(),
         '2014-12-31T04:45:11.000Z');

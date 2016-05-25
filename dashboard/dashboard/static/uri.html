@@ -94,7 +94,8 @@ var uri = (function() {
       state['id'] = detail.id;
     } else if (detail.target) {
       if (!detail.target.getAttribute('uniqueid')) {
-        detail.target.setAttribute('uniqueid', Controller.uniqueId());
+        Polymer.dom(detail.target).setAttribute(
+            'uniqueid', Controller.uniqueId());
       }
       state['id'] = detail.target.getAttribute('uniqueid');
     }

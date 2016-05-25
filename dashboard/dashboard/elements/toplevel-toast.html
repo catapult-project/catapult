@@ -38,9 +38,9 @@ found in the LICENSE file.
         // not have occurred by the time this event fires.
         window.requestAnimationFrame(function() {
           this.text = detail.text;
-          var content = this.$.content;
+          var content = Polymer.dom(this.$.content);
           for (var i = content.childNodes.length - 1; i >= 0; i--) {
-            content.removeChild(content.childNodes[i]);
+          content.removeChild(content.childNodes[i]);
           }
           if (detail.content) {
             content.appendChild(detail.content.cloneNode(true));

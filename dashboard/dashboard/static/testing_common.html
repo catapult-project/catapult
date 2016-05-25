@@ -77,9 +77,9 @@ var testing_common = (function() {
   function addToFixture(node) {
     if (!fixture) {
       fixture = document.createElement('div');
-      document.body.appendChild(fixture);
+      Polymer.dom(document.body).appendChild(fixture);
     }
-    fixture.appendChild(node);
+    Polymer.dom(fixture).appendChild(node);
   };
 
   function clearFixture() {
