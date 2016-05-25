@@ -105,10 +105,11 @@ window.TracingAnalysisTabView = Polymer({
   properties: {
     tabs_: {
       type: Array,
-      value: function() { return [];}
+      value: () => []
     },
     selectedTab_: {
-      type: Object
+      type: Object,
+      value: () => {}
     }
   },
 
@@ -133,8 +134,8 @@ window.TracingAnalysisTabView = Polymer({
     // The order of the tabs is relevant for the tab ordering.
 
     // Register any already existing children.
-    for (var i = 0; i < this.children.length; i++)
-      this.processAddedChild_(this.children[i]);
+    for (var i = 0; i < Polymer.dom(this).children.length; i++)
+      this.processAddedChild_(Polymer.dom(this).children[i]);
 
     // In case the user decides to add more tabs, make sure we watch for
     // any child mutations.
@@ -164,8 +165,10 @@ window.TracingAnalysisTabView = Polymer({
 
     // Do not give access to the user to the inner data structure.
     // A user should only be able to mutate the added tab content.
-    if (this.selectedTab_)
-      return this.selectedTab_.content;
+    var selectedTab = this.get('selectedTab_');
+    if (selectedTab)
+      return selectedTab.content;
+
     return undefined;
   },
 
@@ -184,8 +187,8 @@ window.TracingAnalysisTabView = Polymer({
     // If it is not there print a warning.
     var contentTabId = undefined;
     for (var i = 0; i < this.tabs_.length; i++) {
-      if (this.tabs_[i].content === content) {
-        contentTabId = this.tabs_[i].id;
+      if (this.get('tabs_.' + i).content === content) {
+        contentTabId = this.get('tabs_.' + i).id;
         break;
       }
     }
@@ -239,7 +242,7 @@ window.TracingAnalysisTabView = Polymer({
       // When receiving a child with the selected attribute, if we have no
       // selected tab, mark the child as the selected tab, otherwise keep
       // the previous selection.
-      if (this.selectedTab_)
+      if (this.get('selectedTab_'))
         Polymer.dom(child).removeAttribute('selected');
       else
         this.setSelectedTabById_(tabObject.id);
@@ -261,7 +264,7 @@ window.TracingAnalysisTabView = Polymer({
               return;
             }
 
-            var wasSelected = tabView.selectedTab_ === tabObject;
+            var wasSelected = (tabView.get('selectedTab_') === tabObject);
             if (wasSelected)
               tabView.changeSelectedTabById_(undefined);
           },
@@ -285,14 +288,15 @@ window.TracingAnalysisTabView = Polymer({
    * Function called on light-dom child removal.
    */
   processRemovedChild_: function(child) {
-    for (var i = 0; i < this.tabs_.length; i++) {
+    for (var i = 0; i < this.get('tabs_').length; i++) {
+      var tab = this.get('tabs_.' + i);
       // Make sure ids are the same as the tab position after removal.
-      this.tabs_[i].id = i;
-      if (this.tabs_[i].content === child) {
-        this.tabs_[i].observers.forAttributeSelected.disconnect();
-        this.tabs_[i].observers.forAttributeTabLabel.disconnect();
+      tab.id = i;
+      if (tab.content === child) {
+        tab.observers.forAttributeSelected.disconnect();
+        tab.observers.forAttributeTabLabel.disconnect();
         // The user has removed the currently selected tab.
-        if (this.tabs_[i] === this.selectedTab_) {
+        if (tab === this.get('selectedTab_')) {
           this.clearSelectedTab_();
           this.fire('selected-tab-change');
         }
@@ -314,10 +318,10 @@ window.TracingAnalysisTabView = Polymer({
     var tabObject = undefined;
     // First figure out which child has been changed.
     for (var i = 0; i < this.tabs_.length; i++) {
-      var observers = this.tabs_[i].observers;
+      var observers = this.get('tabs_.' + i).observers;
       if (observers.forAttributeSelected === observer ||
           observers.forAttributeTabLabel === observer) {
-          tabObject = this.tabs_[i];
+          tabObject = this.get('tabs_.' + i);
           break;
       }
     }
@@ -369,8 +373,8 @@ window.TracingAnalysisTabView = Polymer({
    * This does the actual work. :)
    */
   changeSelectedTabById_: function(id) {
-    var newTab = id !== undefined ? this.tabs_[id] : undefined;
-    var changed = this.selectedTab_ !== newTab;
+    var newTab = id !== undefined ? this.get('tabs_.' + id) : undefined;
+    var changed = this.get('selectedTab_') !== newTab;
     this.saveCurrentTabScrollPosition_();
     this.clearSelectedTab_();
     if (id !== undefined) {
@@ -387,13 +391,14 @@ window.TracingAnalysisTabView = Polymer({
    * id. The corresponding light-dom element receives the selected attribute.
    */
   setSelectedTabById_: function(id) {
-    this.selectedTab_ = this.tabs_[id];
+    this.set('selectedTab_', this.get('tabs_.' + id));
     // Disconnect observer while we mutate the child.
-    this.selectedTab_.observers.forAttributeSelected.disconnect();
-    Polymer.dom(this.selectedTab_.content).setAttribute('selected', 'selected');
+    this.get('selectedTab_').observers.forAttributeSelected.disconnect();
+    Polymer.dom(this.get('selectedTab_').content)
+        .setAttribute('selected', 'selected');
     // Reconnect the observer to watch for changes in the future.
-    this.selectedTab_.observers.forAttributeSelected.observe(
-        this.selectedTab_.content, { attributeFilter: ['selected'] });
+    this.get('selectedTab_').observers.forAttributeSelected.observe(
+        this.get('selectedTab_').content, { attributeFilter: ['selected'] });
 
   },
 
@@ -403,20 +408,22 @@ window.TracingAnalysisTabView = Polymer({
   },
 
   saveCurrentTabScrollPosition_: function() {
-    if (this.selectedTab_) {
-      this.selectedTab_.content._savedScrollTop =
+    var selectedTab = this.get('selectedTab_');
+    if (selectedTab) {
+      selectedTab.content._savedScrollTop =
           this.$['content-container'].scrollTop;
-      this.selectedTab_.content._savedScrollLeft =
+      selectedTab.content._savedScrollLeft =
           this.$['content-container'].scrollLeft;
     }
   },
 
   restoreCurrentTabScrollPosition_: function() {
-    if (this.selectedTab_) {
+    var selectedTab = this.get('selectedTab_');
+    if (selectedTab) {
       this.$['content-container'].scrollTop =
-          this.selectedTab_.content._savedScrollTop || 0;
+          selectedTab.content._savedScrollTop || 0;
       this.$['content-container'].scrollLeft =
-          this.selectedTab_.content._savedScrollLeft || 0;
+          selectedTab.content._savedScrollLeft || 0;
     }
   },
 
@@ -425,14 +432,15 @@ window.TracingAnalysisTabView = Polymer({
    * of the selected attribute from the light-dom element.
    */
   clearSelectedTab_: function() {
-    if (this.selectedTab_) {
+    var selectedTab = this.get('selectedTab_');
+    if (selectedTab) {
       // Disconnect observer while we mutate the child.
-      this.selectedTab_.observers.forAttributeSelected.disconnect();
-      Polymer.dom(this.selectedTab_.content).removeAttribute('selected');
+      selectedTab.observers.forAttributeSelected.disconnect();
+      Polymer.dom(selectedTab.content).removeAttribute('selected');
       // Reconnect the observer to watch for changes in the future.
-      this.selectedTab_.observers.forAttributeSelected.observe(
-          this.selectedTab_.content, { attributeFilter: ['selected'] });
-      this.selectedTab_ = undefined;
+      selectedTab.observers.forAttributeSelected.observe(
+          selectedTab.content, { attributeFilter: ['selected'] });
+      this.set('selectedTab_', undefined);
     }
   },
 

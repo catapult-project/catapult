@@ -151,8 +151,8 @@ using custom elements specialized for different event types.
         'selected-tab-change', this.onSelectedTabChange_);
 
       var previousSubViews = {};
-      for (var i = 0; i < this.tabView_.children.length; i++) {
-        var previousSubView = this.tabView_.children[i];
+      for (var i = 0; i < Polymer.dom(this.tabView_).children.length; i++) {
+        var previousSubView = Polymer.dom(this.tabView_).children[i];
         previousSubViews[previousSubView._eventTypeName] = previousSubView;
       }
 
@@ -190,7 +190,7 @@ using custom elements specialized for different event types.
       // If that fails, look for a tab with that typeName.
       if (!tab && lastSelectedTabTypeName) {
         var tab = tr.b.findFirstInArray(
-            this.tabView_.children, function(tab) {
+            Polymer.dom(this.tabView_).children, function(tab) {
           return tab._eventTypeName === lastSelectedTabTypeName;
         });
       }
