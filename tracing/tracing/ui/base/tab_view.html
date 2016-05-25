@@ -51,11 +51,11 @@ found in the LICENSE file.
         width: 100%;
       }
 
-      ::content > * {
+      tabs-content-container ::content > * {
         flex: 1 1 auto;
       }
 
-      ::content > *:not([selected]) {
+      tabs-content-container ::content > *:not([selected]) {
         display: none;
       }
 
@@ -83,7 +83,7 @@ found in the LICENSE file.
       </tab-strip-heading>
       <template is="dom-repeat" items="{{tabs_}}">
         <tab-button
-            button-id="{{item.id }}"
+            id="{{item.id}}"
             on-click="tabButtonSelectHandler_"
             selected="{{computeTabSelectState_(selectedTab_, item)}}">
           <button-label>{{computeTabLabel_(item)}}</button-label>
@@ -140,7 +140,8 @@ window.TracingAnalysisTabView = Polymer({
     // any child mutations.
     this.childrenObserver_ = new MutationObserver(
         this.childrenUpdated_.bind(this));
-    this.childrenObserver_.observe(this, { childList: 'true' });
+    this.childrenObserver_.observe(
+        this.$['content-container'], { childList: 'true' });
   },
 
   get tabStripHeadingText() {
