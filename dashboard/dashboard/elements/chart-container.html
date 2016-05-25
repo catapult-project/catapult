@@ -2092,7 +2092,7 @@ triaging functionality in the chart.
                   'url': annotation['a_tracing_uri']
               });
             } else if (key.indexOf('a_') === 0) {
-              var match = this.TOOLTIP_LINK_REGEX.exec(annotation[key]);
+              var match = TOOLTIP_LINK_REGEX.exec(annotation[key]);
               if (match) {
                 links.push({
                     'text': match[1],
