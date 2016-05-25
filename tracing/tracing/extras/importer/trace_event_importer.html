@@ -102,6 +102,25 @@ tr.exportTo('tr.e.importer', function() {
     }
   ];
 
+  // The list of fields on the trace that are known to contain subtraces.
+  var SUBTRACE_FIELDS = new Set([
+    'powerTraceAsString',
+    'systemTraceEvents',
+  ]);
+
+  // The complete list of fields on the trace that should not be treated as
+  // trace metadata.
+  var NON_METADATA_FIELDS = new Set([
+    'samples',
+    'stackFrames',
+    'traceAnnotations',
+    'traceEvents'
+  ]);
+  // TODO(charliea): Replace this with the spread (...) operator in literal
+  // above once v8 is updated to a sufficiently recent version (>M45).
+  for (var subtraceField in SUBTRACE_FIELDS)
+    NON_METADATA_FIELDS.add(subtraceField);
+
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
     this.model_ = model;
@@ -163,10 +182,9 @@ tr.exportTo('tr.e.importer', function() {
       this.events_ = this.events_.traceEvents;
 
       // Some trace authors store subtraces as specific properties of the trace.
-      if (container.powerTraceAsString)
-        this.subtraces_.push(container.powerTraceAsString);
-      if (container.systemTraceEvents)
-        this.subtraces_.push(container.systemTraceEvents);
+      for (var subtraceField of SUBTRACE_FIELDS)
+        if (container[subtraceField])
+          this.subtraces_.push(container[subtraceField]);
 
       // Sampling data.
       this.sampleEvents_ = container.samples;
@@ -182,20 +200,13 @@ tr.exportTo('tr.e.importer', function() {
         this.model_.intrinsicTimeUnit = unit;
       }
 
-      var knownFieldNames = {
-        powerTraceAsString: true,
-        samples: true,
-        stackFrames: true,
-        systemTraceEvents: true,
-        traceAnnotations: true,
-        traceEvents: true
-      };
       // Any other fields in the container should be treated as metadata.
       for (var fieldName in container) {
-        if (fieldName in knownFieldNames)
+        if (NON_METADATA_FIELDS.has(fieldName))
           continue;
-        this.model_.metadata.push({name: fieldName,
-          value: container[fieldName]});
+
+        this.model_.metadata.push(
+            { name: fieldName, value: container[fieldName] });
 
         if (fieldName === 'metadata') {
           var metadata = container[fieldName];
