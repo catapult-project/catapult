@@ -165,9 +165,10 @@ found in the LICENSE file.
         // JavaScript-built DOM!!
         var container = this.$['charts-container'];
         var chart = document.createElement('chart-container');
-        if (isPrepend) {
+        if (isPrepend && Polymer.dom(container).children.length > 0) {
           this.charts.unshift(chart);
-          Polymer.dom(container).insertBefore(chart, container.firstChild);
+          Polymer.dom(container).insertBefore(chart,
+              Polymer.dom(container).children[0]);
         } else {
           this.charts.push(chart);
           Polymer.dom(container).appendChild(chart);

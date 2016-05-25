@@ -348,9 +348,10 @@ found in the LICENSE file.
           var alert = alerts[i];
           var chart = document.createElement('chart-container');
           this.graphElements_[alert['key']] = chart;
-          if (insertBefore) {
+          if (insertBefore &&
+              Polymer.dom(containerElement).children.length > 0) {
             Polymer.dom(containerElement).insertBefore(
-                chart, Polymer.dom(containerElement.firstChild));
+                chart, Polymer.dom(containerElement).children[0]);
           } else {
             Polymer.dom(containerElement).appendChild(chart);
           }
