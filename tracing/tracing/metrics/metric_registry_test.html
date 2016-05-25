@@ -24,9 +24,6 @@ tr.b.unittest.testSuite(function() {
       values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'foo', n1));
     }
-    sampleMetricA.prototype = {
-      __proto__: Function.prototype
-    };
     tr.metrics.MetricRegistry.register(sampleMetricA);
 
     function sampleMetricB(values, model) {
@@ -38,9 +35,6 @@ tr.b.unittest.testSuite(function() {
       values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'bar', n2));
     }
-    sampleMetricB.prototype = {
-      __proto__: Function.prototype
-    };
     tr.metrics.MetricRegistry.register(sampleMetricB);
 
     function sampleMetricC(values, model) {
@@ -55,12 +49,23 @@ tr.b.unittest.testSuite(function() {
       values.addValue(new tr.v.NumericValue(
         model.canonicalUrl, 'baz', n3));
     }
-    sampleMetricC.prototype = {
-      __proto__: Function.prototype
-    };
     tr.metrics.MetricRegistry.register(sampleMetricC);
 
     assert.isTrue(tr.metrics.MetricRegistry.findTypeInfoWithName('sampleMetricB').constructor === sampleMetricB); // @suppress longLineCheck
+  });
+
+  test('registerNonFunctionThrows', function() {
+    assert.throws(function() {
+      tr.metrics.MetricRegistry.register('not a function');
+    });
+
+    assert.throws(function() {
+      tr.metrics.MetricRegistry.register(function() {});
+    });
+
+    assert.throws(function() {
+      tr.metrics.MetricRegistry.register(function(a) {});
+    });
   });
 });
 </script>

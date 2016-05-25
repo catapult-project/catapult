@@ -30,10 +30,6 @@ tr.exportTo('tr.metrics.v8', function() {
     addV8ExecuteMutatorUtilization(values, model);
   }
 
-  gcMetric.prototype = {
-    __proto__: Function.prototype
-  };
-
   tr.metrics.MetricRegistry.register(gcMetric);
 
   var timeDurationInMs_smallerIsBetter =

@@ -86,10 +86,6 @@ tr.exportTo('tr.metrics.sh', function() {
     addMemoryDumpCountValues(browserNameToGlobalDumps, values, model);
   }
 
-  memoryMetric.prototype = {
-    __proto__: Function.prototype
-  };
-
   /**
    * Splits the global memory dumps in |model| by browser name.
    *

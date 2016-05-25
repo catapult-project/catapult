@@ -210,10 +210,6 @@ tr.exportTo('tr.metrics.v8', function() {
     computeDeoptimizeCodeMetrics(values, model);
   }
 
-  executionMetric.prototype = {
-    __proto__: Function.prototype
-  };
-
   tr.metrics.MetricRegistry.register(executionMetric);
 
   return {

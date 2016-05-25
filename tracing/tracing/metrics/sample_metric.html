@@ -29,10 +29,6 @@ tr.exportTo('tr.metrics', function() {
     values.addValue(new tr.v.NumericValue(model.canonicalUrl, 'baz', n3));
   }
 
-  sampleMetric.prototype = {
-    __proto__: Function.prototype
-  };
-
   tr.metrics.MetricRegistry.register(sampleMetric);
 
   return {

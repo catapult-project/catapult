@@ -180,10 +180,6 @@ tr.exportTo('tr.metrics.sh', function() {
         options, groupingKeys, diagnostics));
   }
 
-  hazardMetric.prototype = {
-    __proto__: Function.prototype
-  };
-
   tr.metrics.MetricRegistry.register(hazardMetric);
 
   return {

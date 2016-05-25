@@ -20,10 +20,6 @@ tr.exportTo('tr.metrics.v8', function() {
     tr.metrics.sh.memoryMetric(values, model);
   }
 
-  v8AndMemoryMetrics.prototype = {
-    __proto__: Function.prototype
-  };
-
   tr.metrics.MetricRegistry.register(v8AndMemoryMetrics);
 
   return {

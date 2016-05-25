@@ -79,10 +79,6 @@ tr.exportTo('tr.metrics.sh', function() {
         options, groupingKeys));
   }
 
-  EfficiencyMetric.prototype = {
-    __proto__: Function.prototype
-  };
-
   tr.metrics.MetricRegistry.register(EfficiencyMetric);
 
   return {
