@@ -57,6 +57,16 @@ tr.exportTo('tr.model', function() {
     initialize: function() {
     },
 
+    /**
+     * Called when an object reference is resolved as this ObjectSnapshot.
+     * @param {Object} item The event (async slice, slice or object) containing
+     *     the resolved reference.
+     * @param {Object} object The object directly containing the reference.
+     * @param {String} field The field name of the reference in |object|.
+     */
+    referencedAt: function(item, object, field) {
+    },
+
     addBoundsToRange: function(range) {
       range.addValue(this.ts);
     },
