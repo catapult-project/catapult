@@ -475,6 +475,23 @@ class DeviceUtilsWaitUntilFullyBootedTest(DeviceUtilsTest):
         (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
       self.device.WaitUntilFullyBooted(wifi=False)
 
+  def testWaitUntilFullyBooted_deviceBrieflyOffline(self):
+    with self.assertCalls(
+        self.call.adb.WaitForDevice(),
+        # sd_card_ready
+        (self.call.device.GetExternalStoragePath(), '/fake/storage/path'),
+        (self.call.adb.Shell('test -d /fake/storage/path'), ''),
+        # pm_ready
+        (self.call.device._GetApplicationPathsInternal('android',
+                                                       skip_cache=True),
+         ['package:/some/fake/path']),
+        # boot_completed
+        (self.call.device.GetProp('sys.boot_completed', cache=False),
+         self.AdbCommandError()),
+        # boot_completed
+        (self.call.device.GetProp('sys.boot_completed', cache=False), '1')):
+      self.device.WaitUntilFullyBooted(wifi=False)
+
   def testWaitUntilFullyBooted_sdCardReadyFails_noPath(self):
     with self.assertCalls(
         self.call.adb.WaitForDevice(),

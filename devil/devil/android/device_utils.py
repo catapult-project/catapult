@@ -506,7 +506,10 @@ class DeviceUtils(object):
         return False
 
     def boot_completed():
-      return self.GetProp('sys.boot_completed', cache=False) == '1'
+      try:
+        return self.GetProp('sys.boot_completed', cache=False) == '1'
+      except device_errors.CommandFailedError:
+        return False
 
     def wifi_enabled():
       return 'Wi-Fi is enabled' in self.RunShellCommand(['dumpsys', 'wifi'],
