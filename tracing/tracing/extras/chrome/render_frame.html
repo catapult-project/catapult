@@ -29,6 +29,14 @@ tr.exportTo('tr.e.chrome', function() {
     initialize: function() {
     },
 
+    referencedAt: function(item, object, field) {
+      if (item instanceof tr.e.chrome.FrameTreeNodeSnapshot &&
+          object === item.args &&
+          field === 'RenderFrame') {
+        this.args.frameTreeNode = item;
+      }
+    },
+
     get userFriendlyName() {
       return 'RenderFrame';
     }
