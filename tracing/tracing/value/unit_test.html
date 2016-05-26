@@ -170,5 +170,19 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Unit.byName.powerInWatts.format(.001), '0.001 W');
     assert.equal(Unit.byName.powerInWatts.format(.001005), '0.001 W');
   });
+
+  test('unitlessNumber', function() {
+    assert.equal(Unit.byName.unitlessNumber.format(1), '1.000');
+    assert.equal(Unit.byName.unitlessNumber.format(1.23), '1.230');
+    assert.equal(Unit.byName.unitlessNumber.format(-1.23), '-1.230');
+    assert.equal(Unit.byName.unitlessNumber.format(0), '0.000');
+  });
+
+  test('unitlessWholeNumber', function() {
+    assert.equal(Unit.byName.unitlessWholeNumber.format(1), '1');
+    assert.equal(Unit.byName.unitlessWholeNumber.format(1.23), '1');
+    assert.equal(Unit.byName.unitlessWholeNumber.format(-1.23), '-1');
+    assert.equal(Unit.byName.unitlessWholeNumber.format(0), '0');
+  });
 });
 </script>

@@ -39,8 +39,8 @@ tr.b.unittest.testSuite(function() {
   var checkNumericFields = tr.ui.analysis.checkNumericFields;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
-  var unitlessNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+  var unitlessWholeNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessWholeNumber_smallerIsBetter;
 
   function createHeapDumps(withCount) {
     var model = new tr.Model();
@@ -231,7 +231,7 @@ tr.b.unittest.testSuite(function() {
       assert.lengthOf(expectedAverageSizes, expectedSizes.length);
 
       checkNumericFields(row, columns[2], expectedCounts,
-          unitlessNumber_smallerIsBetter);
+          unitlessWholeNumber_smallerIsBetter);
       checkSizeNumericFields(row, columns[3], expectedAverageSizes);
     } else {
       // Test sanity check.

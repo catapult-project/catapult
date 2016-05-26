@@ -256,6 +256,17 @@ tr.exportTo('tr.v', function() {
     }
   });
 
+  // TODO(mariakhomenko): merge with the unitlessNumber above once it can accept
+  // a formatting context.
+  Unit.define({
+    baseUnitName: 'unitlessWholeNumber',
+    baseJsonName: 'unitlessWhole',
+    formatValue: function(value) {
+      return value.toLocaleString(
+          undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+  });
+
   return {
     ImprovementDirection: ImprovementDirection,
     Unit: Unit
