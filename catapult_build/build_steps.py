@@ -141,8 +141,6 @@ _CATAPULT_TESTS = [
             '--channel=canary'
         ],
         'outputs_presentation_json': True,
-        # https://github.com/catapult-project/catapult/issues/2372
-        'disabled': ['linux', 'mac', 'win'],
     },
     {
         'name': 'Tracing Dev Server Tests Stable',
