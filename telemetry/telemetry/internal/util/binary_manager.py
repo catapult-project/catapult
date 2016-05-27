@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import os
 
 from catapult_base import binary_manager
@@ -12,7 +13,6 @@ from devil import devil_env
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.core import platform as platform_module
-from telemetry.internal.util import exception_formatter
 
 
 TELEMETRY_PROJECT_CONFIG = os.path.join(
@@ -117,8 +117,9 @@ def FetchBinaryDepdencies(platform, client_configs,
         list(dependency_manager.BaseConfig(c) for c in client_configs))
     try:
       manager.PrefetchPaths(target_platform)
-    except Exception:
-      exception_formatter.PrintFormattedException()
+    except dependency_manager.NoPathFoundError as e:
+      logging.error('Error when trying to prefetch paths for %s: %s',
+                    target_platform, e.message)
 
 
 def _FetchReferenceBrowserBinary(platform):
