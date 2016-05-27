@@ -43,7 +43,7 @@ property 'group' sets to the header item name.
     ]
 -->
 
-<link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/components/paper-input/paper-input.html">
 <link rel="import" href="/components/paper-item/paper-item.html">
 <link rel="import" href="/components/paper-material/paper-material.html">
@@ -53,7 +53,7 @@ property 'group' sets to the header item name.
 
 <dom-module id="autocomplete-box">
   <template>
-    <style>
+    <style include="iron-flex">
       #container * {
         margin-right: 3px;
       }

@@ -5,9 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
-<link rel="import" href="/components/core-selector/core-selector.html">
-<link rel="import" href="/components/core-tooltip/core-tooltip.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/components/iron-selector/iron-selector.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-material/paper-material.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
@@ -15,7 +14,7 @@ found in the LICENSE file.
 
 <dom-module id="chart-legend">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       .row {
         margin-bottom: 2px;
         opacity: 1;
@@ -215,7 +214,7 @@ found in the LICENSE file.
                             on-dragstart="onSeriesDragStart"
                             on-dragend="onSeriesDragEnd">
 
-              <div class="horizontal layout">
+              <div class="layout horizontal">
                 <input type="checkbox"
                        on-change="onCheckAllCheckboxClicked"
                        checked="{{computeSelectionIsAll(seriesGroup)}}"
@@ -232,7 +231,7 @@ found in the LICENSE file.
                   <div class="row" id="{{test.index}}"
                        loading$="{{computeIsUndefined(test.index)}}"
                        hidden$="{{test.hidden}}">
-                    <label class="horizontal layout center">
+                    <label class="layout horizontal center">
                       <input type="checkbox"
                              checked="{{test.selected}}"
                              on-change="onCheckboxClicked"
@@ -246,7 +245,7 @@ found in the LICENSE file.
                         <iron-icon icon="info-outline" class="info"></iron-icon>
                         <paper-tooltip>
                           <iron-icon icon="info-outline" class="info"></iron-icon>
-                          <div tip layout vertical class="tooltip-content">
+                          <div tip class="layout vertical tooltip-content">
                             <span>{{test.direction}} is better</span>
                             <span>Units: {{test.units}}</span>
                             <span>{{test.description}}</span>
@@ -264,7 +263,7 @@ found in the LICENSE file.
 
               </iron-selector>
 
-              <div class="horizontal end-justified layout">
+              <div class="layout horizontal end-justified">
                 <template is="dom-if" if="{{computeIsPositive(seriesGroup.numHidden)}}">
                   <a href="javascript:void(0);" class="expand-link"
                      on-click="onExpandSeriesClicked">{{seriesGroup.numHidden}} more</a>

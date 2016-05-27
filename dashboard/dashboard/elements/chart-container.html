@@ -11,7 +11,7 @@ chart, a revision range selecting mini-chart at the bottom, and all of the alert
 triaging functionality in the chart.
 -->
 
-<link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/components/iron-icon/iron-icon.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 
@@ -28,7 +28,7 @@ triaging functionality in the chart.
 <dom-module name="chart-container">
 
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment iron-flex-factors">
     #container {
       width: 100%;
       display: flex;
@@ -143,12 +143,12 @@ triaging functionality in the chart.
     </style>
 
     <div id="container" compact$="{{showCompact}}">
-      <div id="top-bar" class="horizontal layout">
-        <div class="flex horizontal center-justified layout">
+      <div id="top-bar" class="layout horizontal">
+        <div class="layout horizontal center-justified flex">
           <chart-title id="title" series-group-list="{{seriesGroupList}}"
                        test-suites="{{testSuites}}"></chart-title>
         </div>
-        <div class="horizontal layout center">
+        <div class="layout horizontal center">
           <paper-button id="close-chart" on-click="closeChartClicked">
             Close
           </paper-button>

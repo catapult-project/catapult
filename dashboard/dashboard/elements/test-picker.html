@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-progress/paper-progress.html">
@@ -16,7 +16,7 @@ found in the LICENSE file.
 
 <dom-module id="test-picker">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       #container * {
         margin-right: 3px;
       }
@@ -67,7 +67,7 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="container" class="horizontal layout center wrap">
+    <div id="container" class="layout horizontal center wrap">
       <template is="dom-repeat" items="{{selectionModels}}">
         <autocomplete-box datalist={{item.datalist}}
                           placeholder="{{item.placeholder}}"
