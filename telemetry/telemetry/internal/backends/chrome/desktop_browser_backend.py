@@ -332,9 +332,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       crashpad_database_util = binary_manager.FetchPath(
           'crashpad_database_util', arch_name, os_name)
       if not crashpad_database_util:
+        logging.warning('No crashpad_database_util found')
         return None
     except dependency_manager.NoPathFoundError:
+      logging.warning('No path to crashpad_database_util found')
       return None
+
+    logging.info('Found crashpad_database_util')
 
     report_output = subprocess.check_output([
         crashpad_database_util, '--database=' + self._tmp_minidump_dir,
@@ -392,9 +396,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     # Typical breakpad format is simply dump files in a folder.
     if not most_recent_dump:
+      logging.info('No minidump found via crashpad_database_util')
       dumps = glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
       if dumps:
         most_recent_dump = heapq.nlargest(1, dumps, os.path.getmtime)[0]
+        if most_recent_dump:
+          logging.info('Found minidump via globbing in minidump dir')
 
     # As a sanity check, make sure the crash dump is recent.
     if (most_recent_dump and
