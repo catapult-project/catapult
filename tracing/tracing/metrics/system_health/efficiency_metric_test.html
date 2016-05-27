@@ -40,7 +40,7 @@ tr.b.unittest.testSuite(function() {
     var exp = model.userModel.expectations[0];
     tr.b.getOnlyElement(exp.associatedEvents).cpuSelfTime = 10;
     var values = new tr.metrics.ValueSet();
-    tr.metrics.sh.EfficiencyMetric(values, model);
+    tr.metrics.sh.efficiencyMetric(values, model);
     assert.equal(1, values.valueDicts[0].numeric.value);
   });
 
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
     var exp = model.userModel.expectations[0];
     tr.b.getOnlyElement(exp.associatedEvents).cpuSelfTime = 100;
     var values = new tr.metrics.ValueSet();
-    tr.metrics.sh.EfficiencyMetric(values, model);
+    tr.metrics.sh.efficiencyMetric(values, model);
     assert.equal(0, values.valueDicts[0].numeric.value);
   });
 });

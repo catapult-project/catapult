@@ -21,7 +21,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   var DESCRIPTION = 'Normalized CPU budget consumption';
 
-  function EfficiencyMetric(values, model) {
+  function efficiencyMetric(values, model) {
     var scores = [];
 
     model.userModel.expectations.forEach(function(ue) {
@@ -79,10 +79,10 @@ tr.exportTo('tr.metrics.sh', function() {
         options, groupingKeys));
   }
 
-  tr.metrics.MetricRegistry.register(EfficiencyMetric);
+  tr.metrics.MetricRegistry.register(efficiencyMetric);
 
   return {
-    EfficiencyMetric: EfficiencyMetric
+    efficiencyMetric: efficiencyMetric
   };
 });
 </script>

@@ -6,6 +6,7 @@
 import argparse
 import json
 import os
+import string
 import sys
 
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
@@ -26,8 +27,15 @@ def Main():
            'tracing/tracing/metrics/all_metrics.html' %
            ', '.join(unregistered_metrics))
     return 1
-  else:
-    return 0
+  uppercased_metrics = []
+  for m in all_possible_metrics:
+    if str.isupper(m[0]):
+      uppercased_metrics.append(m)
+  if uppercased_metrics:
+    print ('These metrics must be renamed to start with a lower-case: %s' %
+           uppercased_metrics)
+    return 1
+  return 0
 
 if __name__ == '__main__':
   sys.exit(Main())

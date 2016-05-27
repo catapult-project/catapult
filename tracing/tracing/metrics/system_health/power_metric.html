@@ -39,16 +39,16 @@ tr.exportTo('tr.metrics.sh', function() {
         {}));
   }
 
-  function PowerMetric(valueList, model) {
+  function powerMetric(valueList, model) {
     if (!model.device.powerSeries)
       return;
     energyPerFrame(valueList, model);
   }
 
-  tr.metrics.MetricRegistry.register(PowerMetric);
+  tr.metrics.MetricRegistry.register(powerMetric);
 
   return {
-    PowerMetric: PowerMetric
+    powerMetric: powerMetric
   };
 });
 </script>
