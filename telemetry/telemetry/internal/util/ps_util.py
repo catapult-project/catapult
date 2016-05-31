@@ -85,7 +85,7 @@ def EnableListingStrayProcessesUponExitHook():
         except Exception as e:
           logging.warning(str(e))
         leak_processes_info.append(process_info)
-      logging.error('Telemetry leaks these processes: %s',
-                    ', '.join(leak_processes_info))
+      logging.warning('Telemetry leaks these processes: %s',
+                      ', '.join(leak_processes_info))
 
   atexit_with_log.Register(_ListAllSubprocesses)
