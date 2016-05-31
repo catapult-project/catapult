@@ -37,6 +37,19 @@ tr.exportTo('tr.b', function() {
     return firstIteration.value;
   }
 
+  /**
+   * Returns the first element in the iterable. If the iterable is empty, an
+   * error is thrown.
+   */
+  function getFirstElement(iterable) {
+    var iterator = iterable[Symbol.iterator]();
+    var result = iterator.next();
+    if (result.done)
+      throw new Error('getFirstElement was passed an empty iterable.');
+
+    return result.value;
+  }
+
   function compareArrays(x, y, elementCmp) {
     var minLength = Math.min(x.length, y.length);
     for (var i = 0; i < minLength; i++) {
@@ -395,6 +408,7 @@ tr.exportTo('tr.b', function() {
     dictionaryValues: dictionaryValues,
     dictionaryContainsValue: dictionaryContainsValue,
     getOnlyElement: getOnlyElement,
+    getFirstElement: getFirstElement,
     group: group,
     iterItems: iterItems,
     mapItems: mapItems,
