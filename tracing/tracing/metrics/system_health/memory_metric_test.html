@@ -36,7 +36,6 @@ tr.b.unittest.testSuite(function() {
     test(name, function() {
       // Create a model and a fake value list.
       var model = tr.c.TestUtils.newModel(modelCallback);
-      model.canonicalUrl = 'memory://metric.test.com';
       var valueNameToValues = {};
       var fakeValueList = {
         addValue: function(value) {
@@ -71,8 +70,6 @@ tr.b.unittest.testSuite(function() {
             'Multiple \'' + valueName + '\' values');
         var actualValue = actualValues[0];
         assert.instanceOf(actualValue, tr.v.NumericValue);
-        assert.strictEqual(actualValue.canonicalUrl,
-            'memory://metric.test.com');
 
         var actualNumeric = actualValue.numeric;
         var expectedNumeric = expectedNumerics[valueName];

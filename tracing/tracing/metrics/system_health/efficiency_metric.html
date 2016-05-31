@@ -28,11 +28,6 @@ tr.exportTo('tr.metrics.sh', function() {
       var options = {};
       options.description = DESCRIPTION;
 
-      var groupingKeys = {};
-      groupingKeys.userExpectationStableId = ue.stableId;
-      groupingKeys.userExpectationStageTitle = ue.stageTitle;
-      groupingKeys.userExpectationInitiatorTitle = ue.initiatorTitle;
-
       var score = undefined;
 
       if ((ue.totalCpuMs === undefined) ||
@@ -57,9 +52,7 @@ tr.exportTo('tr.metrics.sh', function() {
       scores.push(score);
 
       values.addValue(new tr.v.NumericValue(
-          model.canonicalUrl, 'efficiency',
-          new tr.v.ScalarNumeric(UNIT, score),
-          options, groupingKeys));
+          'efficiency', new tr.v.ScalarNumeric(UNIT, score), options));
     });
 
     // Manually reduce scores.
@@ -67,16 +60,13 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var options = {};
     options.description = DESCRIPTION;
-    var groupingKeys = {};
     var overallScore = tr.b.Statistics.weightedMean(
         scores, tr.metrics.sh.perceptualBlend);
     if (overallScore === undefined)
       return;
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'efficiency',
-        new tr.v.ScalarNumeric(UNIT, overallScore),
-        options, groupingKeys));
+        'efficiency', new tr.v.ScalarNumeric(UNIT, overallScore), options));
   }
 
   tr.metrics.MetricRegistry.register(efficiencyMetric);

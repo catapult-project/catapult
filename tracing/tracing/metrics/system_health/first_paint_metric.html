@@ -200,7 +200,7 @@ tr.exportTo('tr.metrics.sh', function() {
         histogram.add(timeToEvent, {url: url});
       }, this);
       values.addValue(new tr.v.NumericValue(
-          model.canonicalUrl, metric.valueName, histogram,
+          metric.valueName, histogram,
           { description: metric.description }));
     }, this);
   }

@@ -103,8 +103,7 @@ tr.exportTo('tr.metrics.v8', function() {
         events.forEach(function(event) {
           cpuDuration.add(event.cpuDuration);
         });
-        values.addValue(
-          new tr.v.NumericValue(model.canonicalUrl,
+        values.addValue(new tr.v.NumericValue(
             stageTitle + '-' + name, cpuDuration));
       }
     );
@@ -123,8 +122,7 @@ tr.exportTo('tr.metrics.v8', function() {
         events.forEach(function(event) {
           cpuDuration.add(event.cpuDuration);
         });
-        values.addValue(
-          new tr.v.NumericValue(model.canonicalUrl,
+        values.addValue(new tr.v.NumericValue(
             stageTitle + '-' + name, cpuDuration));
       }
     );
@@ -143,8 +141,7 @@ tr.exportTo('tr.metrics.v8', function() {
         events.forEach(function(event) {
           cpuDuration.add(event.cpuDuration);
         });
-        values.addValue(
-          new tr.v.NumericValue(model.canonicalUrl,
+        values.addValue(new tr.v.NumericValue(
             stageTitle + '-' + name, cpuDuration));
       }
     );
@@ -211,17 +208,14 @@ tr.exportTo('tr.metrics.v8', function() {
       outsideIdle.add(event.cpuDuration - inside);
       idleDeadlineOverrun.add(overrun);
     });
-    values.addValue(
-      new tr.v.NumericValue(model.canonicalUrl,
+    values.addValue(new tr.v.NumericValue(
         stageTitle + '-' + name + '_idle_deadline_overrun',
         idleDeadlineOverrun));
-    values.addValue(
-      new tr.v.NumericValue(model.canonicalUrl,
+    values.addValue(new tr.v.NumericValue(
         stageTitle + '-' + name + '_outside_idle', outsideIdle));
     var percentage = createPercentage(insideIdle.sum,
                                       cpuDuration.sum);
-    values.addValue(
-      new tr.v.NumericValue(model.canonicalUrl,
+    values.addValue(new tr.v.NumericValue(
         stageTitle + '-' + name + '_percentage_idle', percentage));
   }
 
@@ -251,14 +245,14 @@ tr.exportTo('tr.metrics.v8', function() {
           [0.90, 0.95, 0.99].forEach(function(percent) {
             var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
                 mutatorUtilization.percentile(1.0 - percent) * 100);
-            values.addValue(new tr.v.NumericValue(model.canonicalUrl,
+            values.addValue(new tr.v.NumericValue(
                 stageTitle + '-v8-execute-mutator-utilization_pct_0' +
                 percent * 100,
                 value));
           });
           var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
               mutatorUtilization.min);
-          values.addValue(new tr.v.NumericValue(model.canonicalUrl,
+          values.addValue(new tr.v.NumericValue(
               stageTitle + '-v8-execute-mutator-utilization_min', value));
         }
     );

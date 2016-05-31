@@ -24,7 +24,7 @@ def TranslateScalarValue(scalar_value, page):
   if value is None:
     scalar_value['none_value_reason'] = 'Common scalar contained None'
 
-  name = scalar_value['grouping_keys']['name']
+  name = scalar_value['name']
 
   unit_parts = scalar_value['numeric']['unit'].split('_')
   if len(unit_parts) != 2:
@@ -42,7 +42,6 @@ def TranslateScalarValue(scalar_value, page):
 
   scalar_value['page_id'] = page.id
   scalar_value['name'] = name
-  del scalar_value['grouping_keys']['name']
   return scalar.ScalarValue.FromDict(scalar_value, {page.id: page})
 
 

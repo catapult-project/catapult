@@ -32,11 +32,8 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrl,
-        'power_energy',
-        frameEnergyConsumed,
-        {description: 'Energy consumption in joules'},
-        {}));
+        'power_energy', frameEnergyConsumed,
+        {description: 'Energy consumption in joules'}));
   }
 
   function powerMetric(valueList, model) {

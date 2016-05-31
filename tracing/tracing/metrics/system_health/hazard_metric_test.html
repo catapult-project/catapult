@@ -41,10 +41,6 @@ tr.b.unittest.testSuite(function() {
     });
     assert.notEqual(0, value.numeric.value);
     assert.closeTo(value.numeric.value, 0, 1e-5);
-    assert.equal(1, value.diagnostics.values.length);
-    assert.equal(1, value.diagnostics.values[0].diagnostics.values.length);
-    assert.equal(duration,
-        value.diagnostics.values[0].diagnostics.values[0].numeric.value);
   });
 
   test('maximalHazard', function() {
@@ -60,10 +56,6 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     assert.equal(value.numeric.value, 1);
-    assert.equal(1, value.diagnostics.values.length);
-    assert.equal(1, value.diagnostics.values[0].diagnostics.values.length);
-    assert.equal(2200,
-        value.diagnostics.values[0].diagnostics.values[0].numeric.value);
   });
 
   test('blendedHazards', function() {
@@ -100,18 +92,6 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     assert.closeTo(0.5454, value.numeric.value, 1e-3);
-    assert.equal(2, value.diagnostics.values.length);
-    assert.closeTo(0.279, value.diagnostics.values[0].numeric.value, 1e-3);
-    assert.closeTo(0.717, value.diagnostics.values[1].numeric.value, 1e-3);
-    assert.equal(2, value.diagnostics.values[0].diagnostics.values.length);
-    assert.equal(100,
-        value.diagnostics.values[0].diagnostics.values[0].numeric.value);
-    assert.equal(200,
-        value.diagnostics.values[0].diagnostics.values[1].numeric.value);
-    assert.equal(300,
-        value.diagnostics.values[1].diagnostics.values[0].numeric.value);
-    assert.equal(400,
-        value.diagnostics.values[1].diagnostics.values[1].numeric.value);
   });
 });
 </script>

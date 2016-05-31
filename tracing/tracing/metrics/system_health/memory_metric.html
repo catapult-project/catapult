@@ -424,7 +424,6 @@ tr.exportTo('tr.metrics.sh', function() {
               'to the trace'
             ].join(' ');
             values.addValue(new tr.v.NumericValue(
-                model.canonicalUrl,
                 ['memory', browserName, ALL_PROCESS_NAMES, 'dump_count',
                     levelOfDetailName].join(':'),
                 new ScalarNumeric(
@@ -643,7 +642,6 @@ tr.exportTo('tr.metrics.sh', function() {
                   browserUserFriendlyName
                 ].join(' ');
                 values.addValue(new tr.v.NumericValue(
-                    model.canonicalUrl,
                     ['memory', browserName, processName, valueName].join(':'),
                     buildMemoryNumeric(timeToSum, valueSpec.unit),
                     { description: description }));

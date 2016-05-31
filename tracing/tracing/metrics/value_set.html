@@ -14,10 +14,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
-  function ValueSet(values) {
+  function ValueSet(opt_values) {
     this.values_ = {};
-    if (values !== undefined)
-      values.forEach(this.addValue, this);
+
+    if (opt_values !== undefined)
+      opt_values.forEach(this.addValue, this);
   }
 
   ValueSet.prototype = {
@@ -27,15 +28,39 @@ tr.exportTo('tr.metrics', function() {
       });
     },
 
+    lookup: function(guid) {
+      return this.values_[guid];
+    },
+
     map: function(cb, opt_this) {
       return tr.b.dictionaryValues(this.values_).map(cb, opt_this);
     },
 
-    addValueDicts: function(dicts) {
+    /**
+     * Convert Values from dicts and add them.
+     * Resolve RelatedValueSet references.
+     *
+     * @param {Array.<Object>} dicts
+     */
+    addValuesFromDicts: function(dicts) {
       dicts.forEach(function(dict) {
         var value = tr.v.Value.fromDict(dict);
         this.addValue(value);
-        // TODO(TBMv2.1): Patch up RelatedValueSets here.
+      }, this);
+
+      // Now resolve the RelatedValueSet references between values.
+      // This resolution process must wait until all new values are added in
+      // case a value refers to another that comes after it in dicts.
+      // Iterate over all values, old and new, in case an old value contained a
+      // reference to a new value. Don't worry, resolve() is idempotent.
+      // The expected running time is this: for each value (hundreds to
+      // thousands?), for each diagnostic that is a RelatedValueSet (0-5?), for
+      // each ValueRef (0-10?), do a hash lookup (constant time?).
+      tr.b.iterItems(this.values_, function(guid, value) {
+        value.diagnostics.forEach(function(name, diagnostic) {
+          if (diagnostic instanceof tr.v.d.RelatedValueSet)
+            diagnostic.resolve(this);
+        }, this);
       }, this);
     },
 
@@ -76,7 +101,7 @@ tr.exportTo('tr.metrics', function() {
     return value.numeric.getSummarizedScalarNumericsWithNames().map(
         function(stat) {
           return new tr.v.NumericValue(
-              value.canonicalUrl, value.name + '_' + stat.name, stat.scalar,
+              value.name + '_' + stat.name, stat.scalar,
               { description: value.description });
         });
   };

@@ -46,9 +46,7 @@ class TranslateCommonValuesTest(unittest.TestCase):
             'unit': 'timeInMs_smallerIsBetter',
             'value': 42
         },
-        'grouping_keys': {
-            'name': 'foo'
-        },
+        'name': 'foo',
         'options': {
             'description': 'desc'
         }
@@ -75,9 +73,7 @@ class TranslateCommonValuesTest(unittest.TestCase):
             'unit': 'timeInMs_smallerIsBetter',
             'value': None
         },
-        'grouping_keys': {
-            'name': 'foo'
-        }
+        'name': 'foo'
     }
 
     v = common_value_helpers.TranslateScalarValue(scalar_value, p)

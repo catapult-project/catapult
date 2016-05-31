@@ -48,7 +48,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.v8.gcMetric(values, model);
     var result = {};
     values.valueDicts.forEach(function(value) {
-      result[value['grouping_keys'].name] = value.numeric.value;
+      result[value.name] = value.numeric.value;
     });
     return result;
   }

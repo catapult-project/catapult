@@ -114,26 +114,14 @@ tr.exportTo('tr.metrics.sh', function() {
   // end point (the first contentful paint) while many parts of the page are
   // still loading. (There may not necessarily be an Idle after a Load in
   // real-world traces, but there almost always is in telemetry.)
-  function computeLongIdleTaskHazard(hazardScores, values, ue) {
+  function computeLongIdleTaskHazard(hazardScores, ue) {
     var longTaskScores = [];
-    var durationValues = new tr.metrics.ValueSet();
 
     findLongTasks(ue).forEach(function(longTask) {
       longTaskScores.push(computeResponsivenessRisk(longTask.duration));
-      durationValues.addValue(new tr.v.NumericValue(
-          ue.parentModel.canonicalUrlThatCreatedThisTrace,
-          'long idle task duration',
-          new tr.v.ScalarNumeric(
-              timeDurationInMs_smallerIsBetter, longTask.duration),
-          {description: 'Duration of a long idle task'}));
     });
 
     var options = {description: 'Risk of impacting responsiveness'};
-    var groupingKeys = {};
-    groupingKeys.userExpectationStableId = ue.stableId;
-    groupingKeys.userExpectationStageTitle = ue.stageTitle;
-    groupingKeys.userExpectationInitiatorTitle = ue.initiatorTitle;
-    var diagnostics = {values: durationValues.valueDicts};
 
     var hazardScore = tr.b.Statistics.weightedMean(
         longTaskScores, perceptualBlendSmallerIsBetter);
@@ -142,30 +130,20 @@ tr.exportTo('tr.metrics.sh', function() {
       hazardScore = 0;
 
     hazardScores.push(hazardScore);
-
-    values.addValue(new tr.v.NumericValue(
-        ue.parentModel.canonicalUrlThatCreatedThisTrace,
-        'long idle tasks hazard',
-        new tr.v.ScalarNumeric(
-            normalizedPercentage_smallerIsBetter, hazardScore),
-        options, groupingKeys, diagnostics));
   }
 
   function hazardMetric(values, model) {
     var hazardScores = [];
-    var hazardValues = new tr.metrics.ValueSet();
 
     model.userModel.expectations.forEach(function(ue) {
       // Add normalized metrics to diagnostics.values.
       // TODO(memory): Add memory here.
 
       if (ue instanceof tr.model.um.IdleExpectation)
-        computeLongIdleTaskHazard(hazardScores, hazardValues, ue);
+        computeLongIdleTaskHazard(hazardScores, ue);
     });
 
     var options = {description: 'Risk of impacting responsiveness'};
-    var groupingKeys = {};
-    var diagnostics = {values: hazardValues.valueDicts};
 
     var overallHazard = tr.b.Statistics.weightedMean(
         hazardScores, perceptualBlendSmallerIsBetter);
@@ -174,10 +152,9 @@ tr.exportTo('tr.metrics.sh', function() {
       overallHazard = 0;
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace, 'hazard',
-        new tr.v.ScalarNumeric(
+        'hazard', new tr.v.ScalarNumeric(
             normalizedPercentage_smallerIsBetter, overallHazard),
-        options, groupingKeys, diagnostics));
+        options));
   }
 
   tr.metrics.MetricRegistry.register(hazardMetric);

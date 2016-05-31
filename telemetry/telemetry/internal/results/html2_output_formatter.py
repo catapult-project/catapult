@@ -45,7 +45,8 @@ class Html2OutputFormatter(output_formatter.OutputFormatter):
       f.write('\n'.join([
           '',
           '<script>',
-          'values.addValueDicts(%s);' % json.dumps(page_test_results.value_set),
+          'values.addValuesFromDicts(%s);' % json.dumps(
+              page_test_results.value_set),
           '</script>',
           '']))
 

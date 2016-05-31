@@ -32,16 +32,16 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_execution_cpu_total', cpuTotalExecution,
+        'v8_execution_cpu_total', cpuTotalExecution,
         { description: 'cpu total time spent in script execution' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_execution_wall_total', wallTotalExecution,
+        'v8_execution_wall_total', wallTotalExecution,
         { description: 'wall total time spent in script execution' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_execution_cpu_self', cpuSelfExecution,
+        'v8_execution_cpu_self', cpuSelfExecution,
         { description: 'cpu self time spent in script execution' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_execution_wall_self', wallSelfExecution,
+        'v8_execution_wall_self', wallSelfExecution,
         { description: 'wall self time spent in script execution' }));
   }
 
@@ -59,10 +59,10 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_parse_lazy_cpu_self', cpuSelfParseLazy,
+        'v8_parse_lazy_cpu_self', cpuSelfParseLazy,
         { description: 'cpu self time spent performing lazy parsing' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_parse_lazy_wall_self', wallSelfParseLazy,
+        'v8_parse_lazy_wall_self', wallSelfParseLazy,
         { description: 'wall self time spent performing lazy parsing' }));
   }
 
@@ -76,11 +76,11 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_compile_full_code_cpu_self',
+        'v8_compile_full_code_cpu_self',
         cpuSelfCompileFullCode,
         { description: 'cpu self time spent performing compiling full code' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_compile_full_code_wall_self',
+        'v8_compile_full_code_wall_self',
         wallSelfCompileFullCode, {
           description: 'wall self time spent performing compiling full code'
         }));
@@ -96,11 +96,11 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_compile_ignition_cpu_self',
+        'v8_compile_ignition_cpu_self',
         cpuSelfCompileIgnition,
         { description: 'cpu self time spent in compile ignition' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_compile_ignition_wall_self',
+        'v8_compile_ignition_wall_self',
         wallSelfCompileIgnition, {
           description: 'wall self time spent in compile ignition'
         }));
@@ -124,11 +124,11 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_recompile_synchronous_cpu_total',
+        'v8_recompile_synchronous_cpu_total',
         cpuTotalRecompileSynchronous,
         { description: 'cpu total time spent in synchronous recompilation' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_recompile_synchronous_wall_total',
+        'v8_recompile_synchronous_wall_total',
         wallTotalRecompileSynchronous,
         { description: 'wall total time spent in synchronous recompilation' }));
 
@@ -141,21 +141,21 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_recompile_concurrent_cpu_total',
+        'v8_recompile_concurrent_cpu_total',
         cpuTotalRecompileConcurrent,
         { description: 'cpu total time spent in concurrent recompilation' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_recompile_concurrent_wall_total',
+        'v8_recompile_concurrent_wall_total',
         wallTotalRecompileConcurrent,
         { description: 'wall total time spent in concurrent recompilation' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_recompile_overall_cpu_total',
+        'v8_recompile_overall_cpu_total',
         cpuTotalRecompileOverall, {
           description:
               'cpu total time spent in synchronous or concurrent recompilation'
         }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_recompile_overall_wall_total',
+        'v8_recompile_overall_wall_total',
         wallTotalRecompileOverall, {
           description:
               'wall total time spent in synchronous or concurrent recompilation'
@@ -172,11 +172,11 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_optimize_code_cpu_total',
+        'v8_optimize_code_cpu_total',
         cpuTotalOptimizeCode,
         { description: 'cpu total time spent in code optimization' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_optimize_code_wall_total',
+        'v8_optimize_code_wall_total',
         wallTotalOptimizeCode,
         { description: 'wall total time spent in code optimization' }));
   }
@@ -191,11 +191,11 @@ tr.exportTo('tr.metrics.v8', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_deoptimize_code_cpu_total',
+        'v8_deoptimize_code_cpu_total',
         cpuTotalDeoptimizeCode,
         { description: 'cpu total time spent in code deoptimization' }));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'v8_deoptimize_code_wall_total',
+        'v8_deoptimize_code_wall_total',
         wallTotalDeoptimizeCode,
         { description: 'wall total time spent in code deoptimization' }));
   }

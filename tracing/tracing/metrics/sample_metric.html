@@ -24,9 +24,9 @@ tr.exportTo('tr.metrics', function() {
     var n2 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 2);
     var n3 = SIZE_NUMERIC_BUILDER.build();
     n3.add(1);
-    values.addValue(new tr.v.NumericValue(model.canonicalUrl, 'foo', n1));
-    values.addValue(new tr.v.NumericValue(model.canonicalUrl, 'bar', n2));
-    values.addValue(new tr.v.NumericValue(model.canonicalUrl, 'baz', n3));
+    values.addValue(new tr.v.NumericValue('foo', n1));
+    values.addValue(new tr.v.NumericValue('bar', n2));
+    values.addValue(new tr.v.NumericValue('baz', n3));
   }
 
   tr.metrics.MetricRegistry.register(sampleMetric);

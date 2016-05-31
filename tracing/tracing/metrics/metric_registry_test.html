@@ -21,8 +21,7 @@ tr.b.unittest.testSuite(function() {
     function sampleMetricA(values, model) {
       var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
       var n1 = new tr.v.ScalarNumeric(unit, 1);
-      values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'foo', n1));
+      values.addValue(new tr.v.NumericValue('foo', n1));
     }
     tr.metrics.MetricRegistry.register(sampleMetricA);
 
@@ -30,10 +29,8 @@ tr.b.unittest.testSuite(function() {
       var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
       var n1 = new tr.v.ScalarNumeric(unit, 1);
       var n2 = new tr.v.ScalarNumeric(unit, 2);
-      values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'foo', n1));
-      values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'bar', n2));
+      values.addValue(new tr.v.NumericValue('foo', n1));
+      values.addValue(new tr.v.NumericValue('bar', n2));
     }
     tr.metrics.MetricRegistry.register(sampleMetricB);
 
@@ -42,12 +39,9 @@ tr.b.unittest.testSuite(function() {
       var n1 = new tr.v.ScalarNumeric(unit, 1);
       var n2 = new tr.v.ScalarNumeric(unit, 2);
       var n3 = new tr.v.ScalarNumeric(unit, 3);
-      values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'foo', n1));
-      values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'bar', n2));
-      values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'baz', n3));
+      values.addValue(new tr.v.NumericValue('foo', n1));
+      values.addValue(new tr.v.NumericValue('bar', n2));
+      values.addValue(new tr.v.NumericValue('baz', n3));
     }
     tr.metrics.MetricRegistry.register(sampleMetricC);
 

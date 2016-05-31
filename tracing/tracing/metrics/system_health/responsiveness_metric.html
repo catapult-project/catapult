@@ -127,14 +127,14 @@ tr.exportTo('tr.metrics.sh', function() {
     });
 
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'response latency', responseNumeric));
+        'response latency', responseNumeric));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'animation throughput', throughputNumeric));
+        'animation throughput', throughputNumeric));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'animation frameTimeDiscrepancy',
+        'animation frameTimeDiscrepancy',
         frameTimeDiscrepancyNumeric));
     values.addValue(new tr.v.NumericValue(
-        model.canonicalUrl, 'animation latency', latencyNumeric));
+        'animation latency', latencyNumeric));
   }
 
   tr.metrics.MetricRegistry.register(responsivenessMetric);
