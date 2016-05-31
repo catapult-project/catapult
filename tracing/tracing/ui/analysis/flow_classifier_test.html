@@ -44,9 +44,9 @@ tr.b.unittest.testSuite(function() {
       return events;
     }
 
-    assert.deepEqual(asSortedArray(fc.inFlowEvents), [a]);
-    assert.deepEqual(asSortedArray(fc.outFlowEvents), [d]);
-    assert.deepEqual(asSortedArray(fc.internalFlowEvents), [b, c]);
+    assert.deepEqual(tr.b.asArray(fc.inFlowEvents), [a]);
+    assert.deepEqual(tr.b.asArray(fc.outFlowEvents), [d]);
+    assert.deepEqual(tr.b.asArray(fc.internalFlowEvents), [b, c]);
   });
 
 });

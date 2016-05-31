@@ -30,11 +30,11 @@ tr.b.unittest.testSuite(function() {
     var threadSlice = newSliceEx({title: 'a', start: 0, end: 4,
                                   type: tr.model.ThreadSlice});
     threadSlice.parentContainer = model;
-    var samples = threadSlice.overlappingSamples;
-    assert.equal(samples.length, 3);
-    assert.equal(samples[0].title, 'a_1');
-    assert.equal(samples[1].title, 'a_2');
-    assert.equal(samples[2].title, 'a_3');
+    var samplesIter = threadSlice.overlappingSamples[Symbol.iterator]();
+    assert.equal(samplesIter.next().value.title, 'a_1');
+    assert.equal(samplesIter.next().value.title, 'a_2');
+    assert.equal(samplesIter.next().value.title, 'a_3');
+    assert.equal(samplesIter.next().done, true);
   });
 });
 </script>
