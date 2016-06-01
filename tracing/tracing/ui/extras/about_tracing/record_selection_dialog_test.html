@@ -5,36 +5,37 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/extras/about_tracing/record_selection_dialog.html">
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/ui/extras/about_tracing/record_selection_dialog.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantitate', function() {
-    var categories = [];
-    for (var i = 0; i < 30; i++)
-      categories.push('cat-' + i);
-    for (var i = 0; i < 20; i++)
-      categories.push('disabled-by-default-cat-' + i);
-    categories.push('really-really-really-really-really-really-very-loong-cat');
-    categories.push('first,second,third');
-    categories.push('cc,disabled-by-default-cc.debug');
-
-    var dlg = new tr.ui.e.about_tracing.RecordSelectionDialog();
-    dlg.categories = categories;
-    dlg.settings_key = 'key';
-    dlg.currentlyChosenPreset = [];
-
     var showButton = document.createElement('button');
     showButton.textContent = 'Show record selection dialog';
-    showButton.addEventListener('click', function(e) {
-      dlg.visible = true;
-      e.stopPropagation();
-    });
     this.addHTMLOutput(showButton);
+
+    showButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+
+      var categories = [];
+      for (var i = 0; i < 30; i++)
+        categories.push('cat-' + i);
+      for (var i = 0; i < 20; i++)
+        categories.push('disabled-by-default-cat-' + i);
+      categories.push(
+          'really-really-really-really-really-really-very-loong-cat');
+      categories.push('first,second,third');
+      categories.push('cc,disabled-by-default-cc.debug');
+
+      var dlg = new tr.ui.e.about_tracing.RecordSelectionDialog();
+      dlg.categories = categories;
+      dlg.settings_key = 'key';
+      dlg.visible = true;
+    });
   });
 
   test('recordSelectionDialog_splitCategories', function() {
@@ -223,6 +224,49 @@ tr.b.unittest.testSuite(function() {
     assert.equal(checkboxes[2].id, 'disabled-by-default-one');
     assert.equal(checkboxes[2].value, 'disabled-by-default-one');
     assert.isFalse(checkboxes[2].checked);
+  });
+
+  test('recordSelectionDialog_editPreset', function() {
+    function createDialog() {
+      var dlg = new tr.ui.e.about_tracing.RecordSelectionDialog();
+      dlg.categories = ['one', 'two', 'disabled-by-default-three'];
+      dlg.settings_key = 'categories';
+      // Note: currentlyChosenPreset is not set here, so the default is used.
+      dlg.updateForm_();
+      return dlg;
+    }
+
+    // After the dialog is created, it should be using the default preset.
+    var dlg = createDialog();
+    assert.strictEqual(dlg.categoryFilter(), '-one,-two');
+    assert.isTrue(dlg.usingPreset_());
+    assert.isFalse(
+        dlg.querySelector('#category-preset-Manually-select-settings').checked);
+
+    // After clicking on "Edit Categories", the default preset should still be
+    // used.
+    dlg.onClickEditCategories();
+    assert.strictEqual(dlg.categoryFilter(), '-one,-two');
+    assert.isTrue(dlg.usingPreset_());
+    assert.isFalse(
+        dlg.querySelector('#category-preset-Manually-select-settings').checked);
+
+    // After clicking on category checkbox(es), the mode should be changed to
+    // "Manually select settings".
+    Array.prototype.forEach.call(dlg.querySelectorAll('.categories input'),
+        checkbox => checkbox.click());
+    assert.strictEqual(dlg.categoryFilter(), 'disabled-by-default-three');
+    assert.isFalse(dlg.usingPreset_());
+    assert.isTrue(
+        dlg.querySelector('#category-preset-Manually-select-settings').checked);
+
+    // After the dialog is opened again, it should be using the default preset.
+    // More importantly, the default preset should NOT be modified.
+    dlg = createDialog();
+    assert.strictEqual(dlg.categoryFilter(), '-one,-two');
+    assert.isTrue(dlg.usingPreset_());
+    assert.isFalse(
+        dlg.querySelector('#category-preset-Manually-select-settings').checked);
   });
 
   test('recordSelectionDialog_changePresets', function() {
