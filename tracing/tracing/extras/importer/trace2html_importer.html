@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/importer/simple_line_reader.html">
-<link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -36,7 +36,7 @@ tr.exportTo('tr.e.importer', function() {
 
       r.beginSavingLines();
       if (!r.advanceToLineMatching(/^<\/\s*script>$/))
-        return failure;
+        return;
 
       var raw_events = r.endSavingLinesAndGetResult();
 
