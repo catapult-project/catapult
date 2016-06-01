@@ -176,7 +176,7 @@ tr.exportTo('tr.ui.analysis', function() {
       columnConstructor: tr.ui.analysis.NumericMemoryColumn
     },
     {
-      condition: 'Average size',
+      condition: 'Average size per allocation',
       importance: 1,
       columnConstructor: tr.ui.analysis.NumericMemoryColumn
     },
@@ -352,8 +352,8 @@ tr.exportTo('tr.ui.analysis', function() {
           var count = countValue.total;
           row['Count'] = new ScalarNumeric(unitlessWholeNumber_smallerIsBetter,
               count);
-          row['Average size'] = new ScalarNumeric(sizeInBytes_smallerIsBetter,
-              count === 0 ? 0 : size / count);
+          row['Average size per allocation'] = new ScalarNumeric(
+              sizeInBytes_smallerIsBetter, count === 0 ? 0 : size / count);
         }
         return row;
       }, this);
