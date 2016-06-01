@@ -24,8 +24,8 @@ tr.exportTo('pi', function() {
                                          traceHandle, cb, opt_this) {
     try {
       cb.call(opt_this);
-    } catch (err) {
-      var err = tr.b.normalizeException(err);
+    } catch (e) {
+      var err = tr.b.normalizeException(e);
       // TODO(eakuefner): Set job once reduction is implemented.
       result.addFailure(new Failure(
           job, job.mapFunctionHandle.asUserFriendlyString(),

@@ -16,8 +16,8 @@ tr.exportTo('pi.mre', function() {
                                          traceHandle, cb, opt_this) {
     try {
       cb.call(opt_this);
-    } catch (err) {
-      var err = tr.b.normalizeException(err);
+    } catch (e) {
+      var err = tr.b.normalizeException(e);
       results.addFailure(new pi.mre.Failure(
           job, functionHandle, traceHandle, err.typeName,
           err.message, err.stack));
