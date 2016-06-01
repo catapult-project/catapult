@@ -647,7 +647,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
             slices.push(new tr.model.ThreadTimeSlice(
-                thread, SCHEDULING_STATE.ZOMBIE, '', ioWaitId,
+                thread, SCHEDULING_STATE.ZOMBIE, '',
                 prevSlice.end, {}, midDuration));
           } else if (prevSlice.args.stateWhenDescheduled == 'X') {
             slices.push(new tr.model.ThreadTimeSlice(
