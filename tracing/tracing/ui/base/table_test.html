@@ -15,6 +15,7 @@ tr.b.unittest.testSuite(function() {
   var THIS_DOC = document._currentScript.ownerDocument;
   var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
   var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
   function isSelected(element) {
     if (!element.hasAttribute('selected'))
@@ -1164,17 +1165,17 @@ tr.b.unittest.testSuite(function() {
     assert.equal(secondColumnHeader.cellTitle.textContent, 'Second Column');
   });
 
-  test('textAlign', function() {
+  test('align', function() {
     var columns = [
       {
         title: 'a',
-        textAlign: 'right',
+        align: ColumnAlignment.RIGHT,
         value: function(row) {
           return row.a;
         }
       }
     ];
-    var rows = [{a: 1}];
+    var rows = [{a: 1}, {a: 'long-row-so-that-alignment-would-be-visible'}];
 
     var table = document.createElement('tr-ui-b-table');
     table.tableColumns = columns;
@@ -1183,7 +1184,8 @@ tr.b.unittest.testSuite(function() {
 
     this.addHTMLOutput(table);
 
-    assert.equal('right', table.$.body.children[0].children[0].style.textAlign);
+    assert.strictEqual(
+        table.$.body.children[0].children[0].style.textAlign, 'right');
   });
 
   test('subRowsPropertyName', function() {

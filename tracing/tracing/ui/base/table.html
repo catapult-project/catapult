@@ -46,6 +46,11 @@ tr.exportTo('tr.ui.b', function() {
     DARK: 3
   };
 
+  TableFormat.ColumnAlignment = {
+    LEFT: 0 /* default */,
+    RIGHT: 1
+  };
+
   return {
     TableFormat: TableFormat
   };
@@ -195,6 +200,7 @@ tr.exportTo('tr.ui.b', function() {
 
     var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
     var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+    var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
     Polymer({
       created: function() {
@@ -296,7 +302,8 @@ tr.exportTo('tr.ui.b', function() {
        * Data objects should have the following fields:
        *   mandatory: title, value
        *   optional: width {string}, cmp {function}, colSpan {number},
-       *             showExpandButtons {boolean}, textAlign {string}
+       *             showExpandButtons {boolean},
+       *             align {tr.ui.b.TableFormat.ColumnAlignment}
        *
        * @param {Array} columns An array of data objects.
        */
@@ -462,11 +469,8 @@ tr.exportTo('tr.ui.b', function() {
           var td = this.appendNewElement_(tr, 'td');
 
           var headerCell = document.createElement('tr-ui-b-table-header-cell');
-
-          if (this.showHeader)
-            headerCell.cellTitle = this.tableColumns_[i].title;
-          else
-            headerCell.cellTitle = '';
+          headerCell.cellTitle = this.tableColumns_[i].title;
+          headerCell.align = this.tableColumns_[i].align;
 
           // If the table can be sorted by this column, attach a tap callback
           // to the column.
@@ -641,8 +645,19 @@ tr.exportTo('tr.ui.b', function() {
           var value = column.value(rowInfo.userRow);
           var colSpan = column.colSpan ? column.colSpan : 1;
           td.style.colSpan = colSpan;
-          if (column.textAlign) {
-            td.style.textAlign = column.textAlign;
+
+          switch (column.align) {
+            case undefined:
+            case ColumnAlignment.LEFT:
+              break;
+
+            case ColumnAlignment.RIGHT:
+              td.style.textAlign = 'right';
+              break;
+
+            default:
+              throw new Error('Invalid alignment of column at index=' + i +
+                  ': ' + column.align);
           }
 
           if (this.doesColumnIndexSupportSelection(i))
@@ -1363,7 +1378,7 @@ tr.exportTo('tr.ui.b', function() {
 
     side-element {
       -webkit-user-select: none;
-      flex: 1 0 auto;
+      flex: 0 0 auto;
       padding-left: 4px;
       vertical-align: top;
       font-size: 15px;
@@ -1379,10 +1394,13 @@ tr.exportTo('tr.ui.b', function() {
   <script>
   'use strict';
 
+  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+
   Polymer({
     created: function() {
       this.tapCallback_ = undefined;
       this.cellTitle_ = '';
+      this.align_ = undefined;
     },
 
     set cellTitle(value) {
@@ -1397,6 +1415,28 @@ tr.exportTo('tr.ui.b', function() {
 
     get cellTitle() {
       return this.cellTitle_;
+    },
+
+    set align(align) {
+      switch (align) {
+        case undefined:
+        case ColumnAlignment.LEFT:
+          this.style.justifyContent = '';
+          break;
+
+        case ColumnAlignment.RIGHT:
+          this.style.justifyContent = 'flex-end';
+          break;
+
+        default:
+          throw new Error('Invalid alignment of column (title=\'' +
+              this.cellTitle_ + '\'): ' + align);
+      }
+      this.align_ = align;
+    },
+
+    get align() {
+      return this.align_;
     },
 
     clearSideContent: function() {

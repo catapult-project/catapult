@@ -57,7 +57,7 @@ tr.exportTo('tr.ui', function() {
         },
         {
           title: 'Value',
-          textAlign: 'right',
+          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
           value: function(value) {
             if (value.unit) {
               return tr.v.ui.createScalarSpan(
