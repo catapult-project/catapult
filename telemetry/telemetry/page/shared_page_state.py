@@ -190,32 +190,6 @@ class SharedPageState(story.SharedState):
     if self._first_browser:
       self._first_browser = False
       self.browser.credentials.WarnIfMissingCredentials(page)
-      logging.info('OS: %s %s',
-                   self.platform.GetOSName(),
-                   self.platform.GetOSVersionName())
-      if self.browser.supports_system_info:
-        system_info = self.browser.GetSystemInfo()
-        if system_info.model_name:
-          logging.info('Model: %s', system_info.model_name)
-        if system_info.gpu:
-          for i, device in enumerate(system_info.gpu.devices):
-            logging.info('GPU device %d: %s', i, device)
-          if system_info.gpu.aux_attributes:
-            logging.info('GPU Attributes:')
-            for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
-              logging.info('  %-20s: %s', k, v)
-          if system_info.gpu.feature_status:
-            logging.info('Feature Status:')
-            for k, v in sorted(system_info.gpu.feature_status.iteritems()):
-              logging.info('  %-20s: %s', k, v)
-          if system_info.gpu.driver_bug_workarounds:
-            logging.info('Driver Bug Workarounds:')
-            for workaround in system_info.gpu.driver_bug_workarounds:
-              logging.info('  %s', workaround)
-        else:
-          logging.info('No GPU devices')
-      else:
-        logging.warning('System info not supported')
 
   def WillRunStory(self, page):
     if not self.platform.tracing_controller.is_tracing_running:

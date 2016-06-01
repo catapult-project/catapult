@@ -53,6 +53,7 @@ class Browser(app.App):
 
       self._browser_backend.SetBrowser(self)
       self._browser_backend.Start()
+      self._LogBrowserInfo()
       self._platform_backend.DidStartBrowser(self, self._browser_backend)
       self._profiling_controller = profiling_controller.ProfilingController(
           self._browser_backend.profiling_controller_backend)
@@ -105,6 +106,34 @@ class Browser(app.App):
       raise browser_backend.ExtensionsNotSupportedException(
           'Extensions not supported')
     return extension_dict.ExtensionDict(self._browser_backend.extension_backend)
+
+  def _LogBrowserInfo(self):
+    logging.info('OS: %s %s',
+                 self._platform_backend.platform.GetOSName(),
+                 self._platform_backend.platform.GetOSVersionName())
+    if self.supports_system_info:
+      system_info = self.GetSystemInfo()
+      if system_info.model_name:
+        logging.info('Model: %s', system_info.model_name)
+      if system_info.gpu:
+        for i, device in enumerate(system_info.gpu.devices):
+          logging.info('GPU device %d: %s', i, device)
+        if system_info.gpu.aux_attributes:
+          logging.info('GPU Attributes:')
+          for k, v in sorted(system_info.gpu.aux_attributes.iteritems()):
+            logging.info('  %-20s: %s', k, v)
+        if system_info.gpu.feature_status:
+          logging.info('Feature Status:')
+          for k, v in sorted(system_info.gpu.feature_status.iteritems()):
+            logging.info('  %-20s: %s', k, v)
+        if system_info.gpu.driver_bug_workarounds:
+          logging.info('Driver Bug Workarounds:')
+          for workaround in system_info.gpu.driver_bug_workarounds:
+            logging.info('  %s', workaround)
+      else:
+        logging.info('No GPU devices')
+    else:
+      logging.warning('System info not supported')
 
   def _GetStatsCommon(self, pid_stats_function):
     browser_pid = self._browser_backend.pid
