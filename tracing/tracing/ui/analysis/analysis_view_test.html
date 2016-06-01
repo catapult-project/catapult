@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
     analysisView.brushingStateController = controller;
 
     function checkSelectedTab(expectedSelectedTab, expectedRelatedEvents) {
-      assert.strictEqual(tabView.selectedTab, expectedSelectedTab);
+      assert.strictEqual(tabView.selectedSubView, expectedSelectedTab);
       assertEventSet(controller.currentBrushingState.analysisViewRelatedEvents,
           expectedRelatedEvents);
     }
@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
     checkSelectedTab(sampleTab2, []);
 
     // 3. Tab selection: single thread slice tab.
-    tabView.selectedTab = singleThreadSliceTab2;
+    tabView.selectedSubView = singleThreadSliceTab2;
     checkSelectedTab(singleThreadSliceTab2, []);
 
     // 4. Event selection: one sample, two thread slices, and one
@@ -111,8 +111,6 @@ tr.b.unittest.testSuite(function() {
     checkTab(sampleTab4,
         'tr-ui-a-counter-sample-sub-view',
         [sample3]);
-    // Reuse tab (same event type and sub-view tag name).
-    assert.strictEqual(sampleTab4, sampleTab2);
     var singleRecordTab4 = tabView.tabs[2];
     checkTab(singleRecordTab4,
         'tr-ui-a-single-user-expectation-sub-view',
@@ -125,7 +123,7 @@ tr.b.unittest.testSuite(function() {
     checkSelectedTab(multiThreadSliceTab4, []);
 
     // 5. Tab selection: single user expectation tab.
-    tabView.selectedTab = singleRecordTab4;
+    tabView.selectedSubView = singleRecordTab4;
     checkSelectedTab(singleRecordTab4, [sample1, slice1]);
 
     // 6. Event selection: one user expectation.
@@ -136,8 +134,6 @@ tr.b.unittest.testSuite(function() {
     checkTab(singleRecordTab6,
         'tr-ui-a-single-user-expectation-sub-view',
         [record2]);
-    // Reuse tab (same event type and sub-view tag name).
-    assert.strictEqual(singleRecordTab6, singleRecordTab4);
     // Remember selected tab.
     checkSelectedTab(singleRecordTab6, [sample2, sample3, slice1]);
   });
