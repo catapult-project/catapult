@@ -176,14 +176,6 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.code_map_.addStaticCode(address, code_entry);
     },
 
-    findCodeKind_: function(kind) {
-      for (name in CodeKinds) {
-        if (CodeKinds[name].kinds.indexOf(kind) >= 0) {
-          return CodeKinds[name];
-        }
-      }
-    },
-
     processTickEvent_: function(pc, start, is_external_callback,
                                 tos_or_external_callback, vmstate, stack) {
       start /= 1000;
@@ -275,16 +267,15 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processDistortion_: function(distortion_in_picoseconds) {
-      distortion_per_entry = distortion_in_picoseconds / 1000000;
+      // Do nothing.
     },
 
     processPlotRange_: function(start, end) {
-      xrange_start_override = start;
-      xrange_end_override = end;
+      // Do nothing.
     },
 
     processV8Version_: function(major, minor, build, patch, candidate) {
-      // do nothing.
+      // Do nothing.
     },
 
     /**
