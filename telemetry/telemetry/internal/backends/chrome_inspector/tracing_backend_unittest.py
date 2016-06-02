@@ -2,6 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from functools import wraps
+import logging
+import sys
 import timeit
 import unittest
 
@@ -13,6 +16,28 @@ from telemetry.testing import tab_test_case
 from telemetry.timeline import model as model_module
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
+
+
+def PrintBrowserStandardOutputOnFailure(test):
+  @wraps(test)
+  def WrappedTest(self):
+    try:  # pylint: disable=broad-except
+      test(self)
+    except Exception:
+      exc_info = sys.exc_info()
+
+      logging.info('========== BEGIN BROWSER STANDARD OUTPUT ==========')
+      try:  # pylint: disable=broad-except
+        logging.info(self._browser.GetStandardOutput())
+      except Exception:
+        logging.exception('Failed to get browser standard output:')
+      logging.info('========== END BROWSER STANDARD OUTPUT ==========')
+
+      # Re-raise the original exception. Note that we can't just use 'raise'
+      # without any arguments because an exception might have been thrown when
+      # the browser standard output was retrieved.
+      raise exc_info[0], exc_info[1], exc_info[2]
+  return WrappedTest
 
 
 class TracingBackendTest(tab_test_case.TabTestCase):
@@ -39,6 +64,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     if not self._browser.supports_memory_dumping:
       self.skipTest('Browser does not support memory dumping, skipping test.')
 
+  @PrintBrowserStandardOutputOnFailure
   def testDumpMemorySuccess(self):
     # Check that dumping memory before tracing starts raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
@@ -81,6 +107,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     actual_dump_ids = [d.dump_id for d in model.IterGlobalMemoryDumps()]
     self.assertEqual(actual_dump_ids, expected_dump_ids)
 
+  @PrintBrowserStandardOutputOnFailure
   def testDumpMemoryFailure(self):
     # Check that dumping memory before tracing starts raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
