@@ -363,7 +363,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function firstPaintMetric(values, model) {
     firstContentfulPaintMetric(values, model);
-    firstMeaningfulPaintMetric(values, model);
+    // TODO(ksakamoto@): Reenable firstMeaninfulPaintMetric
+    // https://github.com/catapult-project/catapult/issues/2383
+    //firstMeaningfulPaintMetric(values, model);
   }
 
   tr.metrics.MetricRegistry.register(firstPaintMetric);

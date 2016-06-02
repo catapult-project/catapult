@@ -107,7 +107,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(400, numeric.running.mean);
   });
 
-  test('firstMeaningfulPaint', function() {
+  // TODO(ksakamoto@): Reenable firstMeaninfulPaintMetric
+  // https://github.com/catapult-project/catapult/issues/2383
+  flakyTest('firstMeaningfulPaint', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
