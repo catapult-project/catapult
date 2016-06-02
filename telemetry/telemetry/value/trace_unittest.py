@@ -71,6 +71,16 @@ class ValueTest(TestBase):
 
     self.assertEquals('TraceValue(http://www.bar.com/, trace)', str(v))
 
+  def testTraceSerializationContainStoryName(self):
+    tempdir = tempfile.mkdtemp()
+    try:
+      v = trace.TraceValue(self.pages[0], trace_data.TraceData({'test': 1}))
+      fh = v.Serialize(tempdir)
+      self.assertTrue(os.path.basename(fh.GetAbsPath()).startswith(
+          'http___www_bar_com'))
+    finally:
+      shutil.rmtree(tempdir)
+
   def testAsDictWhenTraceSerializedAndUploaded(self):
     tempdir = tempfile.mkdtemp()
     try:
