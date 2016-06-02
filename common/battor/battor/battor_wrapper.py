@@ -21,6 +21,8 @@ from serial.tools import list_ports
 def IsBattOrConnected(test_platform, android_device=None,
                       android_device_map=None, android_device_file=None):
   """Returns True if BattOr is detected."""
+  # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
+  print 'Test platform:', test_platform
   if test_platform == 'android':
     if not android_device:
       raise ValueError('Must pass android device serial when determining '
@@ -44,6 +46,8 @@ def IsBattOrConnected(test_platform, android_device=None,
     return str(android_device) in android_device_map
 
   elif test_platform == 'win':
+    # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
+    print serial.tools.list_ports.comports()
     for (_, desc, _) in serial.tools.list_ports.comports():
       if 'USB Serial Port' in desc:
         return True
