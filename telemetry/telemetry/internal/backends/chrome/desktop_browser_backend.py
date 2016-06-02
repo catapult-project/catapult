@@ -67,7 +67,8 @@ def GetSymbolBinaries(minidump, arch_name, os_name):
       # Filter out other binary file types which have no symbols.
       if (binary_path.endswith('.pak') or
           binary_path.endswith('.bin') or
-          binary_path.endswith('.dat')):
+          binary_path.endswith('.dat') or
+          binary_path.endswith('.ttf')):
         continue
 
       symbol_binaries.append(binary_path)
