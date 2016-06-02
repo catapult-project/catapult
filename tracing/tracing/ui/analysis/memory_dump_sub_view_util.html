@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
@@ -329,6 +330,7 @@ tr.exportTo('tr.ui.analysis', function() {
       var fieldEl = document.createElement('span');
       fieldEl.style.display = 'flex';
       fieldEl.style.alignItems = 'center';
+      fieldEl.style.justifyContent = 'flex-end';
       fieldEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedFields));
 
       // Add info icons with tooltips.
@@ -654,6 +656,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
   NumericMemoryColumn.prototype = {
     __proto__: MemoryColumn.prototype,
+
+    align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
 
     aggregateCells: function(row, subRows) {
       var subRowCells = subRows.map(this.cell, this);
