@@ -48,8 +48,11 @@ def _ElfSectionMd5Sum(elf_file, section):
 def _FindMatchingUnstrippedLibraryOnHost(device, lib):
   lib_base = os.path.basename(lib)
 
-  device_md5 = device.RunShellCommand('md5 "%s"' % lib, as_root=True)[0]
-  device_md5 = device_md5.split(' ', 1)[0]
+  device_md5sums = md5sum.CalculateDeviceMd5Sums([lib], device)
+  if lib not in device_md5sums:
+    return None
+
+  device_md5 = device_md5sums[lib]
 
   def FindMatchingStrippedLibrary(out_path):
     # First find a matching stripped library on the host. This avoids the need
