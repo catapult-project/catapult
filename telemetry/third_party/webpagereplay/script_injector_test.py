@@ -13,91 +13,116 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import httparchive
 import script_injector
 import unittest
 
 
-LONG_COMMENT = '<!--%s-->' % ('comment,' * 200)
+LONG_COMMENT = '<!--' + 'comment,' * 200 + '-->'
+COMMENT_OR_NOT = ('', LONG_COMMENT)
 SCRIPT_TO_INJECT = 'var flag = 0;'
-EXPECTED_SCRIPT = '<script>%s</script>' % SCRIPT_TO_INJECT
+EXPECTED_SCRIPT = '<script>' + SCRIPT_TO_INJECT + '</script>'
 TEXT_HTML = 'text/html'
 TEXT_CSS = 'text/css'
 APPLICATION = 'application/javascript'
+SEPARATOR = httparchive.ArchivedHttpResponse.CHUNK_EDIT_SEPARATOR
+SEPARATORS_OR_NOT = ('', SEPARATOR, SEPARATOR*3)
 
-TEMPLATE_HEAD = '<!doctype html><html><head>%s</head><body></body></html>'
-TEMPLATE_HTML = '<!doctype html><html>%s<body></body></html>'
-TEMPLATE_DOCTYPE = '<!doctype html>%s<body></body>'
-TEMPLATE_RAW = '%s<body></body>'
-TEMPLATE_COMMENT = '%s<!doctype html>%s<html>%s<head>%s</head></html>'
+TEMPLATE_HEAD = """\
+{boundary_at_start}\
+<!doc{boundary_in_doctype}type html>{boundary_after_doctype}\
+<ht{boundary_in_html}ml>{boundary_after_html}\
+<he{boundary_in_head}ad>{injection}{boundary_after_head}\
+</head></html>\
+"""
+TEMPLATE_HTML = """\
+{boundary_at_start}\
+<!doc{boundary_in_doctype}type html>{boundary_after_doctype}\
+<ht{boundary_in_html}ml>{injection}{boundary_after_html}\
+</html>\
+"""
+TEMPLATE_DOCTYPE = """\
+{boundary_at_start}\
+<!doc{boundary_in_doctype}type html>{injection}{boundary_after_doctype}\
+<body></body>\
+"""
+TEMPLATE_RAW = """\
+{boundary_at_start}\
+{injection}<body></body>\
+"""
+NORMAL_TEMPLATES = (TEMPLATE_HEAD, TEMPLATE_HTML,
+                    TEMPLATE_DOCTYPE, TEMPLATE_RAW)
+TEMPLATE_COMMENT = """\
+{comment_before_doctype}<!doctype html>{comment_after_doctype}\
+<html>{comment_after_html}<head>{injection}</head></html>\
+"""
+
+
+def _wrap_inject_script(source, application, script_to_inject):
+  text_chunks = source.split(SEPARATOR)
+  text_chunks, just_injected = script_injector.InjectScript(
+      text_chunks, application, script_to_inject)
+  result = SEPARATOR.join(text_chunks)
+  return result, just_injected
 
 
 class ScriptInjectorTest(unittest.TestCase):
 
-  def test_unsupported_content_type(self):
-    source = 'abc'
-    # CSS.
-    new_source, already_injected = script_injector.InjectScript(
-        source, TEXT_CSS, SCRIPT_TO_INJECT)
+  def _assert_no_injection(self, source, application):
+    new_source, just_injected = _wrap_inject_script(
+        source, application, SCRIPT_TO_INJECT)
     self.assertEqual(new_source, source)
-    self.assertFalse(already_injected)
-    # Javascript.
-    new_source, already_injected = script_injector.InjectScript(
-        source, APPLICATION, SCRIPT_TO_INJECT)
-    self.assertEqual(new_source, source)
-    self.assertFalse(already_injected)
-
-  def test_empty_content_as_already_injected(self):
-    source, already_injected = script_injector.InjectScript(
-        '', TEXT_HTML, SCRIPT_TO_INJECT)
-    self.assertEqual(source, '')
-    self.assertTrue(already_injected)
-
-  def test_already_injected(self):
-    source, already_injected = script_injector.InjectScript(
-        TEMPLATE_HEAD % EXPECTED_SCRIPT, TEXT_HTML, SCRIPT_TO_INJECT)
-    self.assertEqual(source, TEMPLATE_HEAD % EXPECTED_SCRIPT)
-    self.assertTrue(already_injected)
+    self.assertFalse(just_injected)
 
   def _assert_successful_injection(self, template):
-    source, already_injected = script_injector.InjectScript(
-        template % '', TEXT_HTML, SCRIPT_TO_INJECT)
-    self.assertEqual(source, template % EXPECTED_SCRIPT)
-    self.assertFalse(already_injected)
+    source, just_injected = _wrap_inject_script(
+        template.format(injection=''), TEXT_HTML, SCRIPT_TO_INJECT)
+    self.assertEqual(source, template.format(injection=EXPECTED_SCRIPT))
+    self.assertTrue(just_injected)
+
+  def test_unsupported_content_type(self):
+    self._assert_no_injection('abc', TEXT_CSS)
+    self._assert_no_injection('abc', APPLICATION)
+
+  def test_empty_content_as_already_injected(self):
+    self._assert_no_injection('', TEXT_HTML)
+
+  def test_non_html_content_with_html_content_type(self):
+    self._assert_no_injection('{"test": 1"}', TEXT_HTML)
+
+  def test_already_injected(self):
+    parameters = {'injection': SCRIPT_TO_INJECT}
+    for template in NORMAL_TEMPLATES:
+      for parameters['boundary_at_start'] in SEPARATORS_OR_NOT:
+        for parameters['boundary_in_doctype'] in SEPARATORS_OR_NOT:
+          for parameters['boundary_after_doctype'] in SEPARATORS_OR_NOT:
+            for parameters['boundary_in_html'] in SEPARATORS_OR_NOT:
+              for parameters['boundary_after_html'] in SEPARATORS_OR_NOT:
+                for parameters['boundary_in_head'] in SEPARATORS_OR_NOT:
+                  for parameters['boundary_after_head'] in SEPARATORS_OR_NOT:
+                    source = template.format(**parameters)
+                    self._assert_no_injection(source, TEXT_HTML)
 
   def test_normal(self):
-    self._assert_successful_injection(TEMPLATE_HEAD)
+    parameters = {'injection': '{injection}'}
+    for template in NORMAL_TEMPLATES:
+      for parameters['boundary_at_start'] in SEPARATORS_OR_NOT:
+        for parameters['boundary_in_doctype'] in SEPARATORS_OR_NOT:
+          for parameters['boundary_after_doctype'] in SEPARATORS_OR_NOT:
+            for parameters['boundary_in_html'] in SEPARATORS_OR_NOT:
+              for parameters['boundary_after_html'] in SEPARATORS_OR_NOT:
+                for parameters['boundary_in_head'] in SEPARATORS_OR_NOT:
+                  for parameters['boundary_after_head'] in SEPARATORS_OR_NOT:
+                    template = template.format(**parameters)
+                    self._assert_successful_injection(template)
 
-  def test_no_head_tag(self):
-    self._assert_successful_injection(TEMPLATE_HTML)
-
-  def test_no_head_and_html_tag(self):
-    self._assert_successful_injection(TEMPLATE_DOCTYPE)
-
-  def test_no_head_html_and_doctype_tag(self):
-    self._assert_successful_injection(TEMPLATE_RAW)
-
-  def _assert_successful_injection_with_comment(self, before_doctype,
-                                                after_doctype, after_html):
-    source, already_injected = script_injector.InjectScript(
-        TEMPLATE_COMMENT % (before_doctype, after_doctype, after_html, ''),
-        TEXT_HTML, SCRIPT_TO_INJECT)
-    expected_source = TEMPLATE_COMMENT % (before_doctype, after_doctype,
-                                          after_html, EXPECTED_SCRIPT)
-    self.assertEqual(source, expected_source)
-    self.assertFalse(already_injected)
-
-  def test_comment_before_doctype(self):
-    self._assert_successful_injection_with_comment(LONG_COMMENT, '', '')
-
-  def test_comment_after_doctype(self):
-    self._assert_successful_injection_with_comment('', LONG_COMMENT, '')
-
-  def test_comment_after_html(self):
-    self._assert_successful_injection_with_comment('', '', LONG_COMMENT)
-
-  def test_all_comments(self):
-    self._assert_successful_injection_with_comment(
-        LONG_COMMENT, LONG_COMMENT, LONG_COMMENT)
+  def test_comments(self):
+    parameters = {'injection': '{injection}'}
+    for parameters['comment_before_doctype'] in COMMENT_OR_NOT:
+      for parameters['comment_after_doctype'] in COMMENT_OR_NOT:
+        for parameters['comment_after_html'] in COMMENT_OR_NOT:
+          template = TEMPLATE_COMMENT.format(**parameters)
+          self._assert_successful_injection(template)
 
 
 if __name__ == '__main__':

@@ -897,10 +897,10 @@ class ArchivedHttpResponse(object):
   def is_chunked(self):
     return self.get_header('transfer-encoding') == 'chunked'
 
-  def get_data_as_text(self):
-    """Return content as a single string.
+  def get_data_as_chunks(self):
+    """Return content as a list of strings, each corresponding to a chunk.
 
-    Uncompresses and concatenates chunks with CHUNK_EDIT_SEPARATOR.
+    Uncompresses the chunks, if needed.
     """
     content_type = self.get_header('content-type')
     if (not content_type or
@@ -909,11 +909,16 @@ class ArchivedHttpResponse(object):
              content_type.startswith('application/json'))):
       return None
     if self.is_compressed():
-      uncompressed_chunks = httpzlib.uncompress_chunks(
-          self.response_data, self.is_gzip())
+      return httpzlib.uncompress_chunks(self.response_data, self.is_gzip())
     else:
-      uncompressed_chunks = self.response_data
-    return self.CHUNK_EDIT_SEPARATOR.join(uncompressed_chunks)
+      return self.response_data
+
+  def get_data_as_text(self):
+    """Return content as a single string.
+
+    Uncompresses and concatenates chunks with CHUNK_EDIT_SEPARATOR.
+    """
+    return self.CHUNK_EDIT_SEPARATOR.join(self.get_data_as_chunks())
 
   def get_delays_as_text(self):
     """Return delays as editable text."""
@@ -932,12 +937,11 @@ class ArchivedHttpResponse(object):
     delays = self.get_delays_as_text()
     return self.DELAY_EDIT_SEPARATOR.join((delays, data))
 
-  def set_data(self, text):
-    """Inverse of get_data_as_text().
+  def set_data_from_chunks(self, text_chunks):
+    """Inverse of get_data_as_chunks().
 
-    Split on CHUNK_EDIT_SEPARATOR and compress if needed.
+    Compress, if needed.
     """
-    text_chunks = text.split(self.CHUNK_EDIT_SEPARATOR)
     if self.is_compressed():
       self.response_data = httpzlib.compress_chunks(text_chunks, self.is_gzip())
     else:
@@ -945,6 +949,13 @@ class ArchivedHttpResponse(object):
     if not self.is_chunked():
       content_length = sum(len(c) for c in self.response_data)
       self.set_header('content-length', str(content_length))
+
+  def set_data(self, text):
+    """Inverse of get_data_as_text().
+
+    Split on CHUNK_EDIT_SEPARATOR and compress if needed.
+    """
+    self.set_data_from_chunks(text.split(self.CHUNK_EDIT_SEPARATOR))
 
   def set_delays(self, delays_text):
     """Inverse of get_delays_as_text().

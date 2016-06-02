@@ -134,22 +134,26 @@ def AddWebProxy(server_manager, options, host, real_dns_lookup, http_archive):
       scramble_images=options.scramble_images)
   server_manager.AppendRecordCallback(archive_fetch.SetRecordMode)
   server_manager.AppendReplayCallback(archive_fetch.SetReplayMode)
+  allow_generate_304 = not options.record
   server_manager.Append(
       httpproxy.HttpProxyServer,
       archive_fetch, custom_handlers, rules,
       host=host, port=options.port, use_delays=options.use_server_delay,
+      allow_generate_304=allow_generate_304,
       **options.shaping_http)
   if options.ssl:
     if options.should_generate_certs:
       server_manager.Append(
           httpproxy.HttpsProxyServer, archive_fetch, custom_handlers, rules,
           options.https_root_ca_cert_path, host=host, port=options.ssl_port,
+          allow_generate_304=allow_generate_304,
           use_delays=options.use_server_delay, **options.shaping_http)
     else:
       server_manager.Append(
           httpproxy.SingleCertHttpsProxyServer, archive_fetch,
           custom_handlers, rules, options.https_root_ca_cert_path, host=host,
           port=options.ssl_port, use_delays=options.use_server_delay,
+          allow_generate_304=allow_generate_304,
           **options.shaping_http)
   if options.http_to_https_port:
     server_manager.Append(
@@ -157,6 +161,7 @@ def AddWebProxy(server_manager, options, host, real_dns_lookup, http_archive):
         archive_fetch, custom_handlers, rules,
         host=host, port=options.http_to_https_port,
         use_delays=options.use_server_delay,
+        allow_generate_304=allow_generate_304,
         **options.shaping_http)
 
 

@@ -57,12 +57,12 @@ def _InjectScripts(response, inject_script):
     logging.warn('tuple response: %s', response)
   content_type = response.get_header('content-type')
   if content_type and content_type.startswith('text/html'):
-    text = response.get_data_as_text()
-    text, already_injected = script_injector.InjectScript(
-        text, 'text/html', inject_script)
-    if not already_injected:
+    text_chunks = response.get_data_as_chunks()
+    text_chunks, just_injected = script_injector.InjectScript(
+        text_chunks, 'text/html', inject_script)
+    if just_injected:
       response = copy.deepcopy(response)
-      response.set_data(text)
+      response.set_data_from_chunks(text_chunks)
   return response
 
 

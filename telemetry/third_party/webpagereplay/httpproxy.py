@@ -241,6 +241,14 @@ class HttpArchiveHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         response = self.server.custom_handlers.handle(request)
         if not response:
           response = self.server.http_archive_fetch(request)
+          if (response and response.status == 200 and
+              self.server.allow_generate_304 and
+              request.command in set(['GET', 'HEAD']) and
+              (request.headers.get('if-modified-since', None) or
+               request.headers.get('if-none-match', None))):
+            # The WPR archive never get modified since it is not being recorded.
+            response = httparchive.create_response(
+                status=304, headers=response.headers)
         if response:
           self.send_archived_http_response(response)
         else:
@@ -291,7 +299,7 @@ class HttpProxyServer(SocketServer.ThreadingMixIn,
 
   def __init__(self, http_archive_fetch, custom_handlers, rules,
                host='localhost', port=80, use_delays=False, is_ssl=False,
-               protocol='HTTP',
+               protocol='HTTP', allow_generate_304=False,
                down_bandwidth='0', up_bandwidth='0', delay_ms='0'):
     """Start HTTP server.
 
@@ -337,6 +345,7 @@ class HttpProxyServer(SocketServer.ThreadingMixIn,
     self.num_active_connections = 0
     self.total_request_time = 0
     self.protocol = protocol
+    self.allow_generate_304 = allow_generate_304
     self.log_url = rules.Find('log_url')
 
     # Note: This message may be scraped. Do not change it.

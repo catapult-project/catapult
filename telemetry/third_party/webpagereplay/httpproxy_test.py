@@ -37,11 +37,18 @@ class MockCustomResponseHandler(object):
 
 
 class MockHttpArchiveFetch(object):
-  def __init__(self):
+  def __init__(self, response):
+    """
+    Args:
+      response: An instance of ArchivedHttpResponse that is returned for each
+      request.
+    """
     self.is_record_mode = False
+    self._response = response
 
   def __call__(self, request):
-    return None
+    del request # unused
+    return self._response
 
 
 class MockHttpArchiveHandler(httpproxy.HttpArchiveHandler):
@@ -59,6 +66,8 @@ class HttpProxyTest(unittest.TestCase):
   def setUp(self):
     self.has_proxy_server_bound_port = False
     self.has_proxy_server_started = False
+    self.allow_generate_304 = False
+    self.serve_response_by_http_archive = False
 
   def set_up_proxy_server(self, response):
     """
@@ -69,20 +78,26 @@ class HttpProxyTest(unittest.TestCase):
     HttpProxyTest.HANDLED_REQUEST_COUNT = 0
     self.host = 'localhost'
     self.port = 8889
-    custom_handlers = MockCustomResponseHandler(response)
+    custom_handlers = MockCustomResponseHandler(
+        response if not self.serve_response_by_http_archive else None)
     rules = MockRules()
-    http_archive_fetch = MockHttpArchiveFetch()
+    http_archive_fetch = MockHttpArchiveFetch(
+        response if self.serve_response_by_http_archive else None)
     self.proxy_server = httpproxy.HttpProxyServer(
         http_archive_fetch, custom_handlers, rules,
-        host=self.host, port=self.port)
+        host=self.host, port=self.port,
+        allow_generate_304=self.allow_generate_304)
     self.proxy_server.RequestHandlerClass = MockHttpArchiveHandler
     self.has_proxy_server_bound_port = True
 
-  def tearDown(self):
+  def tear_down_proxy_server(self):
     if self.has_proxy_server_started:
       self.proxy_server.shutdown()
     if self.has_proxy_server_bound_port:
       self.proxy_server.server_close()
+
+  def tearDown(self):
+    self.tear_down_proxy_server()
 
   def serve_requests_forever(self):
     self.has_proxy_server_started = True
@@ -184,6 +199,45 @@ class HttpProxyTest(unittest.TestCase):
 
     for conn in connections:
       conn.close()
+
+  # Tests that conditional requests return 304.
+  def test_generate_304(self):
+    REQUEST_HEADERS = [
+        {},
+        {'If-Modified-Since': 'whatever'},
+        {'If-None-Match': 'whatever yet again'}]
+    RESPONSE_STATUSES = [200, 204, 304, 404]
+    for allow_generate_304 in [False, True]:
+      self.allow_generate_304 = allow_generate_304
+      for serve_response_by_http_archive in [False, True]:
+        self.serve_response_by_http_archive = serve_response_by_http_archive
+        for response_status in RESPONSE_STATUSES:
+          response = None
+          if response_status != 404:
+            response = httparchive.ArchivedHttpResponse(
+                version=11, status=response_status, reason="OK", headers=[],
+                response_data=["some content"])
+          self.set_up_proxy_server(response)
+          t = threading.Thread(
+              target=HttpProxyTest.serve_requests_forever, args=(self,))
+          t.start()
+          for method in ['GET', 'HEAD', 'POST']:
+            for headers in REQUEST_HEADERS:
+              connection = httplib.HTTPConnection('localhost', 8889, timeout=10)
+              connection.request(method, "/index.html", headers=headers)
+              response = connection.getresponse()
+              connection.close()
+              if (allow_generate_304 and
+                  serve_response_by_http_archive and
+                  method in ['GET', 'HEAD'] and
+                  headers and
+                  response_status == 200):
+                self.assertEqual(304, response.status)
+                self.assertEqual('', response.read())
+              else:
+                self.assertEqual(response_status, response.status)
+          self.tear_down_proxy_server()
+
 
 if __name__ == '__main__':
   unittest.main()
