@@ -50,7 +50,6 @@ from dashboard import send_stoppage_alert_emails
 from dashboard import set_warning_message
 from dashboard import short_uri
 from dashboard import start_try_job
-from dashboard import stats
 from dashboard import test_buildbucket
 from dashboard import update_bug_with_results
 from dashboard import update_test_suites
@@ -102,9 +101,6 @@ _URL_MAPPING = [
     ('/set_warning_message', set_warning_message.SetWarningMessageHandler),
     ('/short_uri', short_uri.ShortUriHandler),
     ('/start_try_job', start_try_job.StartBisectHandler),
-    ('/stats_around_revision', stats.StatsAroundRevisionHandler),
-    ('/stats_for_alerts', stats.StatsForAlertsHandler),
-    ('/stats', stats.StatsHandler),
     ('/test_buildbucket', test_buildbucket.TestBuildbucketHandler),
     ('/update_bug_with_results',
      update_bug_with_results.UpdateBugWithResultsHandler),
