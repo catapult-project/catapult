@@ -30,7 +30,8 @@ if __name__ == '__main__':
     print _MISSING_DEPENDENCIES
     sys.exit(1)
 
-  path_to_base = os.path.join(os.path.dirname(__file__), '..')
+  path_to_base = os.path.join(
+      os.path.dirname(__file__), '..', 'visualize_traces')
   sys.path.append(path_to_base)
 
   from visualize_traces import visualize_traces
