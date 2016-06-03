@@ -107,7 +107,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(400, numeric.running.mean);
   });
 
-  test('firstMeaningfulPaint', function() {
+  // TODO(ksakamoto@): Reenable firstMeaninfulPaintMetric
+  // https://github.com/catapult-project/catapult/issues/2383
+  flakyTest('firstMeaningfulPaint', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
@@ -174,50 +176,6 @@ tr.b.unittest.testSuite(function() {
     var numeric = fmpEntries[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
-  });
-
-  test('firstMeaningfulPaintWithEmptyLayoutCounters', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing',
-        title: 'navigationStart',
-        start: 200,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
-
-      // FrameView::performLayout trace event does not have frame ID
-      // if blink.debug.layout category is not enabled.
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 500,
-        duration: 10.0,
-        args: {
-          counters: {},
-          contentsHeightBeforeLayout: 0
-        }
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline',
-        title: 'Paint',
-        start: 600,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
-      }));
-    });
-    var values = new tr.metrics.ValueSet();
-    tr.metrics.sh.firstPaintMetric(values, model);
-    var fmpEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'firstMeaningfulPaint');
-    var numeric = fmpEntries[0].numeric;
-    assert.equal(0, numeric.running.count);
   });
 });
 </script>
