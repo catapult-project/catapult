@@ -202,12 +202,12 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     # lose data if there is a stale client.
     devtools_clients = (chrome_tracing_devtools_manager
         .GetDevToolsClients(self._platform_backend))
-    raised_execption_messages = []
+    raised_exception_messages = []
     for client in devtools_clients:
       try:
         client.StopChromeTracing(trace_data_builder)
       except Exception:
-        raised_execption_messages.append(
+        raised_exception_messages.append(
           'Error when trying to stop Chrome tracing on devtools at port %s:\n%s'
           % (client.remote_port,
              ''.join(traceback.format_exception(*sys.exc_info()))))
@@ -217,10 +217,10 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       self._platform_backend.SetGraphicsMemoryTrackingEnabled(False)
 
     self._trace_config = None
-    if raised_execption_messages:
+    if raised_exception_messages:
       raise ChromeTracingStoppedError(
           'Exceptions raised when trying to stop Chrome devtool tracing:\n' +
-          '\n'.join(raised_execption_messages))
+          '\n'.join(raised_exception_messages))
 
   def _CreateTraceConfigFileString(self, config):
     # See src/components/tracing/trace_config_file.h for the format
