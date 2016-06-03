@@ -177,6 +177,8 @@ tr.exportTo('tr.metrics.sh', function() {
           if (isTelemetryInternalEvent(ev))
             return;
           var frameIdRef = ev.args.counters['frame'];
+          if (frameIdRef === undefined)
+            return;
           var list = layoutsForFrameId[frameIdRef];
           if (list === undefined)
             layoutsForFrameId[frameIdRef] = list = [];
@@ -363,9 +365,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function firstPaintMetric(values, model) {
     firstContentfulPaintMetric(values, model);
-    // TODO(ksakamoto@): Reenable firstMeaninfulPaintMetric
-    // https://github.com/catapult-project/catapult/issues/2383
-    //firstMeaningfulPaintMetric(values, model);
+    firstMeaningfulPaintMetric(values, model);
   }
 
   tr.metrics.MetricRegistry.register(firstPaintMetric);
