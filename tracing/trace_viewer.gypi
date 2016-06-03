@@ -173,6 +173,7 @@
       'tracing/metrics/system_health/responsiveness_metric.html',
       'tracing/metrics/system_health/system_health_metrics.html',
       'tracing/metrics/system_health/utils.html',
+      'tracing/metrics/system_health/webview_startup_metric.html',
       'tracing/metrics/tracing_metric.html',
       'tracing/metrics/v8/execution_metric.html',
       'tracing/metrics/v8/gc_metric.html',

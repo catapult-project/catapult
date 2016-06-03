@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/webview_startup_metric.html">
+<link rel="import" href="/tracing/metrics/value_set.html">
+
+<script>
+'use strict';
+
+function makeTestModel() {
+  return tr.c.TestUtils.newModel(function(model) {
+    var mainThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'webview',
+      title: 'WebViewStartupInterval',
+      start: 200,
+      duration: 42.0,
+    }));
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'webview',
+      title: 'WebViewBlankUrlLoadInterval',
+      start: 250,
+      duration: 27.0,
+    }));
+  });
+}
+
+tr.b.unittest.testSuite(function() {
+  test('webviewStartupMetric_bothIntervals', function() {
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
+    assert.lengthOf(values.valueDicts, 2);
+  });
+
+  test('webviewStartupMetric_startupInterval', function() {
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
+    assert.equal(values.valueDicts[0].numeric.value, 42);
+  });
+
+  test('webviewStartupMetric_urlLoadInterval', function() {
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
+    assert.equal(values.valueDicts[1].numeric.value, 27);
+  });
+});
+</script>
