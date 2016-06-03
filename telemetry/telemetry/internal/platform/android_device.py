@@ -1,10 +1,9 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
 import logging
 import os
-import re
-import subprocess
 
 from telemetry.core import util
 from telemetry.internal.platform import cros_device
@@ -155,23 +154,6 @@ def CanDiscoverDevices():
     return False
 
   try:
-    with open(os.devnull, 'w') as devnull:
-      adb_process = subprocess.Popen(
-          ['adb', 'devices'], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-          stdin=devnull)
-      stdout = adb_process.communicate()[0]
-    if re.search(re.escape('????????????\tno permissions'), stdout) != None:
-      logging.warn('adb devices gave a permissions error. '
-                   'Consider running adb as root:')
-      logging.warn('  adb kill-server')
-      logging.warn('  sudo `which adb` devices\n\n')
-    return True
-  except OSError:
-    pass
-  try:
-    adb_path = adb_wrapper.AdbWrapper.GetAdbPath()
-    os.environ['PATH'] = os.pathsep.join(
-        [os.path.dirname(adb_path), os.environ['PATH']])
     device_utils.DeviceUtils.HealthyDevices(None)
     return True
   except (device_errors.CommandFailedError, device_errors.CommandTimeoutError,
