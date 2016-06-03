@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/metrics/system_health/efficiency_metric.html">
 <link rel="import" href="/tracing/metrics/system_health/hazard_metric.html">
+<link rel="import" href="/tracing/metrics/system_health/long_tasks_metric.html">
 <link rel="import" href="/tracing/metrics/system_health/power_metric.html"
 <link rel="import"
       href="/tracing/metrics/system_health/responsiveness_metric.html">
@@ -18,6 +19,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function systemHealthMetrics(values, model) {
     tr.metrics.sh.responsivenessMetric(values, model);
     tr.metrics.sh.efficiencyMetric(values, model);
+    tr.metrics.sh.longTasksMetric(values, model);
     tr.metrics.sh.hazardMetric(values, model);
     tr.metrics.sh.powerMetric(values, model);
   }

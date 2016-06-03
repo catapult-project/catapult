@@ -705,6 +705,33 @@ tr.exportTo('tr.b', function() {
     }
   };
 
+  /**
+   * Instead of describing a LogNormalDistribution in terms of its "location"
+   * and "shape", it can also be described in terms of its median
+   * and the point at which its complementary cumulative distribution
+   * function bends between the linear-ish region in the middle and the
+   * exponential-ish region. When the distribution is used to compute
+   * percentiles for log-normal random processes such as latency, as the latency
+   * improves, it hits a point of diminishing returns, when it becomes
+   * relatively difficult to improve the score further. This point of
+   * diminishing returns is the first x-intercept of the third derivative of the
+   * CDF, which is the second derivative of the PDF.
+   *
+   * https://www.desmos.com/calculator/cg5rnftabn
+   *
+   * @param {number} median The median of the distribution.
+   * @param {number} diminishingReturns The point of diminishing returns.
+   * @return {LogNormalDistribution}
+   */
+  Statistics.LogNormalDistribution.fromMedianAndDiminishingReturns =
+    function(median, diminishingReturns) {
+      diminishingReturns = Math.log(diminishingReturns / median);
+      var shape = Math.sqrt(1 - 3 * diminishingReturns -
+          Math.sqrt(Math.pow(diminishingReturns - 3, 2) - 8)) / 2;
+      var location = Math.log(median);
+      return new Statistics.LogNormalDistribution(location, shape);
+  };
+
   return {
     Statistics: Statistics
   };

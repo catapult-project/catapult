@@ -165,6 +165,7 @@
       'tracing/metrics/system_health/efficiency_metric.html',
       'tracing/metrics/system_health/first_paint_metric.html',
       'tracing/metrics/system_health/hazard_metric.html',
+      'tracing/metrics/system_health/long_tasks_metric.html',
       'tracing/metrics/system_health/memory_metric.html',
       'tracing/metrics/system_health/power_metric.html',
       'tracing/metrics/system_health/responsiveness_metric.html',
