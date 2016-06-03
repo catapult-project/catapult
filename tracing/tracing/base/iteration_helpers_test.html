@@ -11,8 +11,22 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var comparePossiblyUndefinedValues = tr.b.comparePossiblyUndefinedValues;
   var compareArrays = tr.b.compareArrays;
+  var asArray = tr.b.asArray;
   var getOnlyElement = tr.b.getOnlyElement;
   var getFirstElement = tr.b.getFirstElement;
+
+  test('asArray_indexed', function() {
+    assert.deepEqual(asArray({'0': 2, '1': 4, '2': 6, 'length': 3}), [2, 4, 6]);
+  });
+
+  test('asArray_iterable', function() {
+    function *iterfunc() {
+      yield 2;
+      yield 4;
+      yield 6;
+    }
+    assert.deepEqual(asArray({[Symbol.iterator]: iterfunc}), [2, 4, 6]);
+  });
 
   test('comparePossiblyUndefinedValues', function() {
     function cmp(x, y) {

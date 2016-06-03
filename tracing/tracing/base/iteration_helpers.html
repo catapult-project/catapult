@@ -11,10 +11,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  function asArray(arrayish) {
+  /**
+   * Converts any object which is either (a) an iterable, or (b) an
+   * "array-ish" obect (has length property and can be indexed into)
+   * into an array.
+   */
+  function asArray(x) {
     var values = [];
-    for (var i = 0; i < arrayish.length; i++)
-      values.push(arrayish[i]);
+    if (x[Symbol.iterator])
+      for (var value of x)
+        values.push(value);
+    else
+      for (var i = 0; i < x.length; i++)
+        values.push(x[i]);
     return values;
   }
 
