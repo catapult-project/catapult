@@ -301,6 +301,13 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     }
   }
   """
+  # TODO(nednguyen): remove this once crbug.com/616832 is fixed.
+  only_run_subset_of_benchmarks = False
+  print 'Environment variables: ', os.environ
+  if (os.environ.get('BUILDBOT_BUILDERNAME') ==
+      'Win Power Perf (DELL)'):
+    only_run_subset_of_benchmarks = True
+
   output = {
     'version': 1,
     'steps': {
@@ -311,6 +318,11 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
       continue
 
     base_name = benchmark_class.Name()
+    # Only run benchmarks start with 'b' or 'B' to reduce the cycle time of
+    # 'Win Power Perf (DELL)' bot.
+    # TODO(nednguyen): remove this once crbug.com/616832 is fixed.
+    if only_run_subset_of_benchmarks and not base_name[0] in ('b', 'B'):
+      continue
     base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
                 '-v', '--output-format=chartjson', '--upload-results',
                 base_name]
