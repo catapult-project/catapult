@@ -62,9 +62,11 @@ tr.exportTo('tr.metrics.sh', function() {
   NavigationStartFinder.prototype = {
     findNavigationStartEventForFrameBeforeTimestamp: function(frameIdRef, ts) {
       var list = this.navigationStartsForFrameId_[frameIdRef];
-      if (list === undefined)
-        throw new Error('No navigationStartEvent found for frame id "' +
+      if (list === undefined) {
+        console.warn('No navigationStartEvent found for frame id "' +
             frameIdRef + '"');
+        return undefined;
+      }
 
       var eventBeforeTimestamp;
       list.forEach(function(ev) {
@@ -74,8 +76,10 @@ tr.exportTo('tr.metrics.sh', function() {
         if (eventBeforeTimestamp === undefined)
           eventBeforeTimestamp = ev;
       }, this);
-      if (eventBeforeTimestamp === undefined)
-        throw new Error('Failed to find navigationStartEvent.');
+      if (eventBeforeTimestamp === undefined) {
+        console.warn('Failed to find navigationStartEvent.');
+        return undefined;
+      }
       return eventBeforeTimestamp;
     }
   };
@@ -263,6 +267,10 @@ tr.exportTo('tr.metrics.sh', function() {
           return;
         var navigationStartEvent = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ev.start);
+        // Ignore layout w/o preceding navigationStart, as they are not
+        // attributed to any time-to-X metric.
+        if (navigationStartEvent === undefined)
+          return;
 
         var timeToEvent = ev.start - navigationStartEvent.start;
         histogram.add(timeToEvent, {url: url});
@@ -359,6 +367,10 @@ tr.exportTo('tr.metrics.sh', function() {
       layoutsForFrameId[frameIdRef].forEach(function(ev) {
         var navigationStartForThisLayout = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ev.start);
+        // Ignore layout w/o preceding navigationStart, as they are not
+        // attributed to any TTFMP.
+        if (navigationStartForThisLayout === undefined)
+          return;
 
         if (navigationStart !== navigationStartForThisLayout) {
           // New navigation is found. Compute TTFMP for current navigation, and
