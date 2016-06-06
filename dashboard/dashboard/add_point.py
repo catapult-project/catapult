@@ -19,7 +19,7 @@ from dashboard import math_utils
 from dashboard import post_data_handler
 from dashboard.models import graph_data
 
-_TASK_QUEUE_NAME = 'add-point-queue'
+_TASK_QUEUE_NAME = 'new-points-queue'
 
 # Number of rows to process per task queue task. This limits the task size
 # and execution time (Limits: 100KB object size and 10 minutes execution time).
