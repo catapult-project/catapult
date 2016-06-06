@@ -172,6 +172,27 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(secondSet, [expectedContext]);
     assert(!Object.is(firstSet, secondSet));
     assert(!Object.is(firstSet[0], secondSet[0]));
+    assert(!Object.is(firstSet[0].snapshot, secondSet[0].snapshot));
+  });
+
+  test('cacheInvalidationOfAnActiveContext', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+
+    processor.enterContext('type', id);
+    var firstSet = processor.activeContexts;
+
+    processor.invalidateContextCacheForSnapshot(id);
+
+    var secondSet = processor.activeContexts;
+    processor.leaveContext('type', id);
+
+    assert.deepEqual(firstSet, [expectedContext]);
+    assert.deepEqual(secondSet, [expectedContext]);
+    assert(!Object.is(firstSet, secondSet));
+    assert(!Object.is(firstSet[0], secondSet[0]));
+    assert(!Object.is(firstSet[0].snapshot, secondSet[0].snapshot));
   });
 
   test('cacheInvalidationForUnrelatedSnapshot', function() {
@@ -193,7 +214,6 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(firstSet, [expectedContext]);
     assert.deepEqual(secondSet, [expectedContext]);
     assert(Object.is(firstSet, secondSet));
-    assert(Object.is(firstSet[0], secondSet[0]));
   });
 });
 </script>

@@ -154,7 +154,20 @@ tr.exportTo('tr.importer', function() {
       this.contextCache_ = {};
       this.contextSetCache_ = {};
       this.cachedEntryForActiveContexts_ = undefined;
-      this.activeContexts_ = this.activeContexts_.slice();
+      this.activeContexts_ = this.activeContexts_.map(function(context) {
+        // Do not alter unrelated contexts.
+        if (context.snapshot.scope !== scopedId.scope ||
+            context.snapshot.idRef !== scopedId.id)
+          return context;
+        // Replace the invalidated context by a deep copy.
+        return {
+          type: context.type,
+          snapshot: {
+            scope: context.snapshot.scope,
+            idRef: context.snapshot.idRef
+          }
+        };
+      });
       this.seenSnapshots_ = {};
     },
   };
