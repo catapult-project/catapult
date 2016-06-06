@@ -47,8 +47,10 @@ def IsBattOrConnected(test_platform, android_device=None,
 
   elif test_platform == 'win':
     # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
-    print serial.tools.list_ports.comports()
-    for (_, desc, _) in serial.tools.list_ports.comports():
+    print list(serial.tools.list_ports.comports())
+    for (_1, desc, _2) in serial.tools.list_ports.comports():
+      # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
+      print 'Port info:', (_1, desc, _2)
       if 'USB Serial Port' in desc:
         return True
     return False
