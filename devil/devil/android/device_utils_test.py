@@ -13,6 +13,7 @@ Unit tests for the contents of device_utils.py (mostly DeviceUtils).
 import json
 import logging
 import os
+import stat
 import unittest
 
 from devil import devil_env
@@ -1816,6 +1817,125 @@ class DeviceUtilsWriteFileTest(DeviceUtilsTest):
         (self.call.adb.Shell(expected_cmd),
          '')):
       self.device.WriteFile('/test/file', 'contents', as_root=True)
+
+
+class DeviceUtilsStatDirectoryTest(DeviceUtilsTest):
+  # Note: Also tests ListDirectory in testStatDirectory_fileList.
+
+  EXAMPLE_LS_OUTPUT = [
+    'total 12345',
+    'drwxr-xr-x  19 root   root          0 1970-04-06 18:03 .',
+    'drwxr-xr-x  19 root   root          0 1970-04-06 18:03 ..',
+    'drwxr-xr-x   6 root   root            1970-01-01 00:00 some_dir',
+    '-rw-r--r--   1 root   root        723 1971-01-01 07:04 some_file',
+    '-rw-r-----   1 root   root        327 2009-02-13 23:30 My Music File',
+    # Older Android versions do not print st_nlink
+    'lrwxrwxrwx root     root              1970-01-01 00:00 lnk -> /some/path',
+    'srwxrwx--- system   system            2016-05-31 17:25 a_socket1',
+    'drwxrwxrwt system   misc              1970-11-23 02:25 tmp',
+    'drwxr-s--- system   shell             1970-11-23 02:24 my_cmd',
+    'cr--r----- root     system    10, 183 1971-01-01 07:04 random',
+    'brw------- root     root       7,   0 1971-01-01 07:04 block_dev',
+    '-rwS------ root     shell      157404 2015-04-13 15:44 silly',
+  ]
+
+  FILENAMES = [
+    'some_dir', 'some_file', 'My Music File', 'lnk', 'a_socket1',
+    'tmp', 'my_cmd', 'random', 'block_dev', 'silly']
+
+  def getStatEntries(self, path_given='/', path_listed='/'):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['ls', '-a', '-l', path_listed],
+            check_return=True, as_root=False, env={'TZ': 'utc'}),
+        self.EXAMPLE_LS_OUTPUT):
+      entries = self.device.StatDirectory(path_given)
+    return {f['filename']: f for f in entries}
+
+  def getListEntries(self):
+    with self.assertCall(
+        self.call.device.RunShellCommand(
+            ['ls', '-a', '-l', '/'],
+            check_return=True, as_root=False, env={'TZ': 'utc'}),
+        self.EXAMPLE_LS_OUTPUT):
+      return self.device.ListDirectory('/')
+
+  def testStatDirectory_forceTrailingSlash(self):
+    self.getStatEntries(path_given='/foo/bar/', path_listed='/foo/bar/')
+    self.getStatEntries(path_given='/foo/bar', path_listed='/foo/bar/')
+
+  def testStatDirectory_fileList(self):
+    self.assertItemsEqual(self.getStatEntries().keys(), self.FILENAMES)
+    self.assertItemsEqual(self.getListEntries(), self.FILENAMES)
+
+  def testStatDirectory_fileModes(self):
+    expected_modes = (
+      ('some_dir', stat.S_ISDIR),
+      ('some_file', stat.S_ISREG),
+      ('lnk', stat.S_ISLNK),
+      ('a_socket1', stat.S_ISSOCK),
+      ('block_dev', stat.S_ISBLK),
+      ('random', stat.S_ISCHR),
+    )
+    entries = self.getStatEntries()
+    for filename, check in expected_modes:
+      self.assertTrue(check(entries[filename]['st_mode']))
+
+  def testStatDirectory_filePermissions(self):
+    should_have = (
+      ('some_file', stat.S_IWUSR),  # Owner can write.
+      ('tmp', stat.S_IXOTH),  # Others can execute.
+      ('tmp', stat.S_ISVTX),  # Has sticky bit.
+      ('my_cmd', stat.S_ISGID),  # Has set-group-ID bit.
+      ('silly', stat.S_ISUID),  # Has set UID bit.
+    )
+    should_not_have = (
+      ('some_file', stat.S_IWOTH),  # Others can't write.
+      ('block_dev', stat.S_IRGRP),  # Group can't read.
+      ('silly', stat.S_IXUSR),  # Owner can't execute.
+    )
+    entries = self.getStatEntries()
+    for filename, bit in should_have:
+      self.assertTrue(entries[filename]['st_mode'] & bit)
+    for filename, bit in should_not_have:
+      self.assertFalse(entries[filename]['st_mode'] & bit)
+
+  def testStatDirectory_numHardLinks(self):
+    entries = self.getStatEntries()
+    self.assertEqual(entries['some_dir']['st_nlink'], 6)
+    self.assertEqual(entries['some_file']['st_nlink'], 1)
+    self.assertFalse('st_nlink' in entries['tmp'])
+
+  def testStatDirectory_fileOwners(self):
+    entries = self.getStatEntries()
+    self.assertEqual(entries['some_dir']['st_owner'], 'root')
+    self.assertEqual(entries['my_cmd']['st_owner'], 'system')
+    self.assertEqual(entries['my_cmd']['st_group'], 'shell')
+    self.assertEqual(entries['tmp']['st_group'], 'misc')
+
+  def testStatDirectory_fileSize(self):
+    entries = self.getStatEntries()
+    self.assertEqual(entries['some_file']['st_size'], 723)
+    self.assertEqual(entries['My Music File']['st_size'], 327)
+    # Sizes are sometimes not reported for non-regular files, don't try to
+    # guess the size in those cases.
+    self.assertFalse('st_size' in entries['some_dir'])
+
+  def testStatDirectory_fileDateTime(self):
+    entries = self.getStatEntries()
+    self.assertEqual(entries['some_dir']['st_mtime'], 0)  # Epoch!
+    self.assertEqual(entries['My Music File']['st_mtime'], 1234567800)
+
+  def testStatDirectory_deviceType(self):
+    entries = self.getStatEntries()
+    self.assertEqual(entries['random']['st_rdev_pair'], (10, 183))
+    self.assertEqual(entries['block_dev']['st_rdev_pair'], (7, 0))
+
+  def testStatDirectory_symbolicLinks(self):
+    entries = self.getStatEntries()
+    self.assertEqual(entries['lnk']['symbolic_link_to'], '/some/path')
+    for d in entries.itervalues():
+      self.assertEqual('symbolic_link_to' in d, stat.S_ISLNK(d['st_mode']))
 
 
 class DeviceUtilsLsTest(DeviceUtilsTest):
