@@ -136,7 +136,7 @@ def _AddAlertToGroup(alert_entity, group):
     _AddLogForBugAssociate(alert_entity, group.bug_id)
   alert_entity.group = group.key
   logging.debug('Auto triage: Associated anomaly on %s with %s.',
-                utils.TestPath(alert_entity.test),
+                utils.TestPath(alert_entity.GetTestMetadataKey()),
                 group.key.urlsafe())
 
 
@@ -148,14 +148,14 @@ def _IsOverlapping(alert_entity, start, end):
 
 def _AddLogForBugAssociate(anomaly_entity, bug_id):
   """Adds a log for associating alert with a bug."""
-  sheriff = anomaly_entity.test.get().sheriff
+  sheriff = anomaly_entity.GetTestMetadataKey().get().sheriff
   if not sheriff:
     return
   # TODO(qyearsley): Add test coverage. See catapult:#1346.
   sheriff = sheriff.string_id()
   bug_url = ('https://chromeperf.appspot.com/group_report?bug_id=' +
              str(bug_id))
-  test_path = utils.TestPath(anomaly_entity.test)
+  test_path = utils.TestPath(anomaly_entity.GetTestMetadataKey())
   html_str = ('Associated alert on %s with bug <a href="%s">%s</a>.' %
               (test_path, bug_url, bug_id))
   formatter = quick_logger.Formatter()

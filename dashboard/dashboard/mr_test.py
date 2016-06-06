@@ -94,7 +94,7 @@ class MrTest(testing_common.TestCase):
   def testDeprecateTestsMapper_AllSubtestsDeprecated_UpdatesSuite(self):
     (trace_a, trace_b, suite) = self._AddMockDataForDeprecatedTests()
     last_b = graph_data.Row.query(
-        graph_data.Row.parent_test == trace_b.key,
+        graph_data.Row.parent_test == utils.OldStyleTestKey(trace_b.key),
         graph_data.Row.revision == 4).get()
     last_b.timestamp = datetime.datetime.now() - datetime.timedelta(days=20)
     last_b.put()
@@ -109,7 +109,7 @@ class MrTest(testing_common.TestCase):
     self.assertTrue(suite.deprecated)
 
   def _AddTestRowSheriff(self, row_age_days, stoppage_alert_delay):
-    """Adds a Test, Row and Sheriff and returns their keys."""
+    """Adds a TestMetadata, Row and Sheriff and returns their keys."""
     sheriff_key = sheriff.Sheriff(
         id='X', email='x@google.com',
         patterns=['ChromiumPerf/*/*/*/trace_a'],

@@ -33,7 +33,7 @@ class GraphRevisionsHandler(request_handler.RequestHandler):
     """Fetches a list of revisions and values for a given test.
 
     Request parameters:
-      test_path: Full test path (including master/bot) for one Test entity.
+      test_path: Full test path for a TestMetadata entity.
 
     Outputs:
       A JSON list of 3-item lists [revision, value, timestamp].
@@ -72,7 +72,7 @@ def _UpdateCache(test_key):
   """Queries Rows for a test then updates the cache.
 
   Args:
-    test_key: ndb.Key for a Test entity.
+    test_key: ndb.Key for a TestMetadata entity.
 
   Returns:
     The list of triplets that was just fetched and set in the cache.
@@ -86,7 +86,8 @@ def _UpdateCache(test_key):
   # A projection query queries just for the values of particular properties;
   # this is faster than querying for whole entities.
   query = graph_data.Row.query(projection=['revision', 'value', 'timestamp'])
-  query = query.filter(graph_data.Row.parent_test == test_key)
+  query = query.filter(
+      graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
 
   # Using a large batch_size speeds up queries with > 1000 Rows.
   rows = map(_MakeTriplet, query.iter(batch_size=1000))

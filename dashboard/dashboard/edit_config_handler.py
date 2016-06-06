@@ -163,9 +163,9 @@ def _ChangeTestPatterns(old_patterns, new_patterns):
   series). Any tests that are different between these two sets need to be
   updated.
 
-  Some properties of Test entities are updated when they are put in the
-  |_pre_put_hook| method of Test, so any Test entity that might need to
-  be updated should be re-put.
+  Some properties of TestMetadata entities are updated when they are put in the
+  |_pre_put_hook| method of TestMetadata, so any TestMetadata entity that might
+  need to be updated should be re-put.
 
   Args:
     old_patterns: An iterable of test path pattern strings.
@@ -214,8 +214,8 @@ def _AllTestPathsMatchingPatterns(patterns_list):
 def _AddTestsToPutToTaskQueue(test_paths):
   """Adds tests that we want to re-put in the datastore to a queue.
 
-  We need to re-put the tests so that Test._pre_put_hook is run, so that
-  the sheriff or alert threshold config of the Test is updated.
+  We need to re-put the tests so that TestMetadata._pre_put_hook is run, so that
+  the sheriff or alert threshold config of the TestMetadata is updated.
 
   Args:
     test_paths: List of test paths of tests to be re-put.

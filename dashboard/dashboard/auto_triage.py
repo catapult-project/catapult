@@ -196,10 +196,10 @@ def _IsAnomalyRecovered(anomaly_entity):
   Returns:
     True if the Anomaly should be marked as recovered, False otherwise.
   """
-  test = anomaly_entity.test.get()
+  test = anomaly_entity.GetTestMetadataKey().get()
   if not test:
-    logging.error('Test %s not found for Anomaly %s, deleting test.',
-                  utils.TestPath(anomaly_entity.test),
+    logging.error('TestMetadata %s not found for Anomaly %s, deleting test.',
+                  utils.TestPath(anomaly_entity.GetTestMetadataKey()),
                   anomaly_entity)
     anomaly_entity.key.delete()
     return False
@@ -235,13 +235,13 @@ def _AddLogForRecoveredAnomaly(anomaly_entity):
   """Adds a quick log entry for an anomaly that has recovered."""
   logging.info('_AddLogForRecoveredAnomaly %s', anomaly_entity.key.id())
   formatter = quick_logger.Formatter()
-  sheriff_key = anomaly_entity.test.get().sheriff
+  sheriff_key = anomaly_entity.GetTestMetadataKey().get().sheriff
   if not sheriff_key:
     return
   sheriff_name = sheriff_key.string_id()
   logger = quick_logger.QuickLogger('auto_triage', sheriff_name, formatter)
   message = ('Alert on %s has recovered. See <a href="%s">graph</a>.%s' %
-             (utils.TestPath(anomaly_entity.test),
+             (utils.TestPath(anomaly_entity.GetTestMetadataKey()),
               ('https://chromeperf.appspot.com/group_report?keys=' +
                anomaly_entity.key.urlsafe()),
               _BugLink(anomaly_entity)))

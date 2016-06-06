@@ -51,7 +51,7 @@ class DeleteTestDataTest(testing_common.TestCase):
     delete_test_data._ROWS_TO_DELETE_AT_ONCE = 30
 
   def _AddMockData(self):
-    """Adds sample Test and Row entities."""
+    """Adds sample TestMetadata and Row entities."""
     testing_common.AddTests(*_MOCK_DATA)
 
     # Add 50 Row entities to some of the tests.
@@ -63,7 +63,8 @@ class DeleteTestDataTest(testing_common.TestCase):
       test_key = utils.TestKey(test_path)
       if test_path in _TESTS_WITH_ROWS:
         num_rows = graph_data.Row.query(
-            graph_data.Row.parent_test == test_key).count()
+            graph_data.Row.parent_test == utils.OldStyleTestKey(test_key)
+            ).count()
         self.assertEqual(50, num_rows)
       self.assertIsNotNone(test_key.get())
 
@@ -71,7 +72,7 @@ class DeleteTestDataTest(testing_common.TestCase):
     for test_path in test_paths:
       test_key = utils.TestKey(test_path)
       num_rows = graph_data.Row.query(
-          graph_data.Row.parent_test == test_key).count()
+          graph_data.Row.parent_test == utils.OldStyleTestKey(test_key)).count()
       self.assertEqual(0, num_rows)
       self.assertIsNone(test_key.get())
 

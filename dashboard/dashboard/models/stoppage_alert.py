@@ -16,10 +16,11 @@ _MAX_GROUP_SIZE = 20
 
 
 class StoppageAlert(alert.Alert):
-  """A stoppage alert is an alert for a Test no longer receiving new points.
+  """A stoppage alert is an alert for a test no longer receiving new points.
 
-  Each StoppageAlert is associated with one Test, so if a test suite gets
-  deprecated or renamed, there may be a set of related StoppageAlerts created.
+  Each StoppageAlert is associated with one TestMetadata, so if a test suite
+  gets deprecated or renamed, there may be a set of related StoppageAlerts
+  created.
 
   The key for a StoppageAlert is of the form:
     [("StoppageAlertParent", <test_path>), ("StoppageAlert", <revision>)].
@@ -47,7 +48,7 @@ class StoppageAlert(alert.Alert):
 
   @ndb.ComputedProperty
   def row(self):
-    test_container = utils.GetTestContainerKey(self.test)
+    test_container = utils.GetTestContainerKey(self.GetTestMetadataKey())
     return ndb.Key('Row', self.revision, parent=test_container)
 
   @ndb.ComputedProperty
@@ -71,7 +72,8 @@ def GetStoppageAlert(test_path, revision):
   """Gets a StoppageAlert entity if it already exists.
 
   Args:
-    test_path: The test path string of the Test associated with the alert.
+    test_path: The test path string of the TestMetadata associated with the
+               alert.
     revision: The ID of the last point before the stoppage.
 
   Returns:
@@ -85,7 +87,7 @@ def CreateStoppageAlert(test, row):
   """Creates a new StoppageAlert entity.
 
   Args:
-    test: A Test entity.
+    test: A TestMetadata entity.
     row: A Row entity; the last Row that was put before the stoppage.
 
   Returns:

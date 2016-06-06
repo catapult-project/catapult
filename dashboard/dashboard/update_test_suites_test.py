@@ -100,10 +100,10 @@ class ListTestSuitesTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org')
     self._AddSampleData()
     master_key = ndb.Key('Master', 'Chromium')
-    bot_key = graph_data.Bot(id='internal_mac', parent=master_key,
-                             internal_only=True).put()
-    graph_data.Test(id='internal_test', parent=bot_key,
-                    internal_only=True).put()
+    graph_data.Bot(
+        id='internal_mac', parent=master_key, internal_only=True).put()
+    graph_data.TestMetadata(
+        id='Chromium/internal_mac/internal_test', internal_only=True).put()
 
     self.testapp.post('/update_test_suites?internal_only=true')
 

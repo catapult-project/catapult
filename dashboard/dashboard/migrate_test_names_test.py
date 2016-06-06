@@ -7,8 +7,6 @@ import unittest
 import webapp2
 import webtest
 
-from google.appengine.ext import ndb
-
 from dashboard import migrate_test_names
 from dashboard import testing_common
 from dashboard import utils
@@ -48,7 +46,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
     migrate_test_names._MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 30
 
   def _AddMockData(self):
-    """Adds sample Test, Row, and Anomaly entities."""
+    """Adds sample TestMetadata, Row, and Anomaly entities."""
     testing_common.AddTests(*_MOCK_DATA)
 
     # Add 50 Row entities to one of the tests.
@@ -74,8 +72,8 @@ class MigrateTestNamesTest(testing_common.TestCase):
       test_path: Test path of the test to get rows for.
       multiplier: Number to multiply with revision to get expected value.
     """
-    test_key = utils.TestKey(test_path)
-    rows = graph_data.Row.query(graph_data.Row.parent_test == test_key).fetch()
+    rows = graph_data.Row.query(
+        graph_data.Row.parent_test == utils.OldStyleTestKey(test_path)).fetch()
     self.assertEqual(50, len(rows))
     self.assertEqual(15000, rows[0].revision)
     self.assertEqual(15000 * multiplier, rows[0].value)
@@ -86,7 +84,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
     """Checks whether the anomalies match the ones added in _AddMockData.
 
     Args:
-      test_path: The test path for the Test which the Anomalies are on.
+      test_path: The test path for the TestMetadata which the Anomalies are on.
       r1: Expected end revision of first Anomaly.
       r2: Expected end revision of second Anomaly.
     """
@@ -98,7 +96,7 @@ class MigrateTestNamesTest(testing_common.TestCase):
     self.assertEqual(r2, anomalies[1].end_revision)
 
   def _CheckTests(self, expected_tests):
-    """Checks whether the current Test entities match the expected list.
+    """Checks whether the current TestMetadata entities match the expected list.
 
     Args:
       expected_tests: List of test paths without the master/bot part.
@@ -106,8 +104,10 @@ class MigrateTestNamesTest(testing_common.TestCase):
     for master in _MOCK_DATA[0]:
       for bot in _MOCK_DATA[1]:
         expected = ['%s/%s/%s' % (master, bot, t) for t in expected_tests]
-        bot_key = ndb.Key('Master', master, 'Bot', bot)
-        tests = graph_data.Test.query(ancestor=bot_key).fetch()
+        tests = graph_data.TestMetadata.query(
+            graph_data.TestMetadata.master_name == master,
+            graph_data.TestMetadata.bot_name == bot
+        ).fetch()
         actual = [t.test_path for t in tests]
         self.assertEqual(expected, actual)
 

@@ -58,7 +58,7 @@ class NewPointsHandler(request_handler.RequestHandler):
       num_originally_matching_tests = len(test_paths)
       if num_originally_matching_tests > max_tests:
         test_paths = test_paths[:max_tests]
-      test_keys = map(utils.TestKey, test_paths)
+      test_keys = map(utils.OldStyleTestKey, test_paths)
       query = query.filter(graph_data.Row.parent_test.IN(test_keys))
 
     # If a valid number of points was given, use it. Otherwise use the default.

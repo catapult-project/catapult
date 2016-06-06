@@ -29,7 +29,7 @@ class NewPointsTest(testing_common.TestCase):
 
   def _AddSampleData(self):
     """Adds some normal test data from two different tests."""
-    # Add Test entities.
+    # Add TestMetadata entities.
     tests = {'foo': {'mytest': {}, 'other': {}}}
     testing_common.AddTests(['ChromiumPerf'], ['win7'], tests)
     mytest_key = utils.TestKey('ChromiumPerf/win7/foo/mytest')
@@ -60,8 +60,9 @@ class NewPointsTest(testing_common.TestCase):
   def _AddInternalSampleData(self):
     """Adds some internal-only test data."""
     master = graph_data.Master(id='XMaster').put()
-    bot = graph_data.Bot(id='x-bot', parent=master, internal_only=True).put()
-    test = graph_data.Test(id='xtest', parent=bot, internal_only=True).put()
+    graph_data.Bot(id='x-bot', parent=master, internal_only=True).put()
+    test = graph_data.TestMetadata(
+        id='XMaster/x-bot/xtest', internal_only=True).put()
     test_container_key = utils.GetTestContainerKey(test)
     for i in range(50):
       graph_data.Row(parent=test_container_key, id=i + 1000, value=i + 1000,
@@ -112,9 +113,9 @@ class NewPointsTest(testing_common.TestCase):
 
   def testGet_WithMaxTestsParam(self):
     master = graph_data.Master(id='XMaster').put()
-    bot = graph_data.Bot(id='x-bot', parent=master).put()
+    graph_data.Bot(id='x-bot', parent=master).put()
     for i in range(20):
-      test = graph_data.Test(id='xtest-%d' % i, parent=bot).put()
+      test = graph_data.TestMetadata(id='XMaster/x-bot/xtest-%d' % i).put()
       test_container_key = utils.GetTestContainerKey(test)
       graph_data.Row(parent=test_container_key, id=1, value=1).put()
 

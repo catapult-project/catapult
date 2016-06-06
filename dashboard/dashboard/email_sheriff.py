@@ -16,7 +16,7 @@ def EmailSheriff(sheriff, test, anomaly):
 
   Args:
     sheriff: sheriff.Sheriff entity.
-    test: The graph_data.Test entity associated with the anomaly.
+    test: The graph_data.TestMetadata entity associated with the anomaly.
     anomaly: The anomaly.Anomaly entity.
   """
   receivers = email_template.GetSheriffEmails(sheriff)

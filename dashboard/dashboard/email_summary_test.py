@@ -29,11 +29,11 @@ class EmailSummaryTest(testing_common.TestCase):
       self, rev_range_start, rev_range_end, median_before_anomaly,
       median_after_anomaly, sheriff_key, anomaly_time=None):
     first_paint = ndb.Key(
-        'Master', 'ChromiumGPU', 'Bot', 'linux-release',
-        'Test', 'scrolling-benchmark', 'Test', 'first_paint')
+        'TestMetadata',
+        'ChromiumGPU/linux-release/scrolling-benchmark/first_paint')
     mean_frame_time = ndb.Key(
-        'Master', 'ChromiumGPU', 'Bot', 'linux-release',
-        'Test', 'scrolling-benchmark', 'Test', 'mean_frame_time')
+        'TestMetadata',
+        'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time')
     if not anomaly_time:
       anomaly_time = datetime.datetime.now()
     for end_rev in range(rev_range_start, rev_range_end, 10):

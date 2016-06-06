@@ -31,17 +31,17 @@ class DumpGraphJsonTest(testing_common.TestCase):
     testing_common.AddTests('M', 'b', {'foo': {}})
 
     # When a request is made for this one test, three entities should
-    # be returned: the Master, Bot and Test entities.
+    # be returned: the Master, Bot and TestMetadata entities.
     response = self.testapp.get('/dump_graph_json', {'test_path': 'M/b/foo'})
     protobuf_strings = json.loads(response.body)
     entities = map(dump_graph_json.BinaryProtobufToEntity, protobuf_strings)
     self.assertEqual(3, len(entities))
     masters = _EntitiesOfKind(entities, 'Master')
     bots = _EntitiesOfKind(entities, 'Bot')
-    tests = _EntitiesOfKind(entities, 'Test')
+    tests = _EntitiesOfKind(entities, 'TestMetadata')
     self.assertEqual('M', masters[0].key.string_id())
     self.assertEqual('b', bots[0].key.string_id())
-    self.assertEqual('foo', tests[0].key.string_id())
+    self.assertEqual('M/b/foo', tests[0].key.string_id())
 
   def testGet_DumpJson_WithRows(self):
     # Insert a test with rows.
@@ -140,7 +140,7 @@ class DumpGraphJsonTest(testing_common.TestCase):
       rows.append(row)
     ndb.put_multi(rows)
 
-    # Anomaly entities, Row entities, Test, and Sheriff entities for
+    # Anomaly entities, Row entities, TestMetadata, and Sheriff entities for
     # parameter 'sheriff' should be returned.
     response = self.testapp.get(
         '/dump_graph_json',

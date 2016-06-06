@@ -34,13 +34,17 @@ class EditSheriffsTest(testing_common.TestCase):
   def _AddSampleTestData(self):
     """Adds some sample data used in the tests below."""
     master = graph_data.Master(id='TheMaster').put()
-    bot = graph_data.Bot(id='TheBot', parent=master).put()
-    suite1 = graph_data.Test(id='Suite1', parent=bot).put()
-    suite2 = graph_data.Test(id='Suite2', parent=bot).put()
-    graph_data.Test(id='aaa', parent=suite1, has_rows=True).put()
-    graph_data.Test(id='bbb', parent=suite1, has_rows=True).put()
-    graph_data.Test(id='ccc', parent=suite2, has_rows=True).put()
-    graph_data.Test(id='ddd', parent=suite2, has_rows=True).put()
+    graph_data.Bot(id='TheBot', parent=master).put()
+    graph_data.TestMetadata(id='TheMaster/TheBot/Suite1').put()
+    graph_data.TestMetadata(id='TheMaster/TheBot/Suite2').put()
+    graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/aaa', has_rows=True).put()
+    graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/bbb', has_rows=True).put()
+    graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite2/ccc', has_rows=True).put()
+    graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite2/ddd', has_rows=True).put()
 
   def _AddSheriff(self, name, email=None, url=None,
                   internal_only=False, summarize=False, patterns=None,
@@ -87,7 +91,8 @@ class EditSheriffsTest(testing_common.TestCase):
     self.assertEqual(['*/*/Suite1/*'], sheriff_entity.patterns)
     self.assertTrue(sheriff_entity.summarize)
 
-    # After the tasks get executed, the Test entities should also be updated.
+    # After the tasks get executed, the TestMetadata entities should also be
+    # updated.
     self.ExecuteTaskQueueTasks(
         '/put_entities_task', edit_config_handler._TASK_QUEUE_NAME)
     aaa = utils.TestKey('TheMaster/TheBot/Suite1/aaa').get()
@@ -111,7 +116,8 @@ class EditSheriffsTest(testing_common.TestCase):
     sheriff_entity = sheriff.Sheriff.query().fetch()[0]
     self.assertEqual(['*/*/*/ccc', '*/*/*/ddd'], sheriff_entity.patterns)
 
-    # After the tasks get executed, the Test entities should also be updated.
+    # After the tasks get executed, the TestMetadata entities should also be
+    # updated.
     self.ExecuteTaskQueueTasks(
         '/put_entities_task', edit_config_handler._TASK_QUEUE_NAME)
     aaa = utils.TestKey('TheMaster/TheBot/Suite1/aaa').get()

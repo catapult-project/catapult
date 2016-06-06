@@ -241,7 +241,7 @@ def _FetchLatestRows(test, num_points):
   """Does a query for the latest Row entities in the given test.
 
   Args:
-    test: A Test entity to fetch Row entities for.
+    test: A TestMetadata entity to fetch Row entities for.
     num_points: Number of points to fetch.
 
   Returns:
@@ -250,18 +250,15 @@ def _FetchLatestRows(test, num_points):
   """
   assert utils.IsInternalUser() or not test.internal_only
   datastore_hooks.SetSinglePrivilegedRequest()
-  q = graph_data.Row.query(projection=['revision', 'value'])
-  q = q.filter(graph_data.Row.parent_test == test.key)
-  q = q.order(-graph_data.Row.revision)
-  rows = list(reversed(q.fetch(limit=num_points)))
-  return rows
+  return list(reversed(
+      graph_data.GetLatestRowsForTest(test.key, num_points, privileged=True)))
 
 
 def _FetchRowsAroundRev(test, revision, num_before, num_after):
   """Fetches Row entities before and after a given revision.
 
   Args:
-    test: A Test entity.
+    test: A TestMetadata entity.
     revision: A Row ID.
     num_before: Maximum number of Rows before |revision| to fetch.
     num_after: Max number of Rows starting from |revision| to fetch.
@@ -272,26 +269,13 @@ def _FetchRowsAroundRev(test, revision, num_before, num_after):
     to their use in this module.
   """
   assert utils.IsInternalUser() or not test.internal_only
-  query = graph_data.Row.query(projection=['revision', 'value'])
-  query = query.filter(graph_data.Row.parent_test == test.key)
-
-  before_query = query.filter(graph_data.Row.revision < revision)
-  before_query = before_query.order(-graph_data.Row.revision)
-  datastore_hooks.SetSinglePrivilegedRequest()
-  rows_before = list(reversed(before_query.fetch(limit=num_before)))
-
-  after_query = query.filter(graph_data.Row.revision >= revision)
-  after_query = after_query.order(graph_data.Row.revision)
-  datastore_hooks.SetSinglePrivilegedRequest()
-  rows_at_and_after = after_query.fetch(num_after)
-
-  return rows_before + rows_at_and_after
+  return graph_data.GetRowsForTestBeforeAfterRev(
+      test.key, revision, num_before, num_after, privileged=True)
 
 
 def _FetchStoredAnomalies(test, revisions):
   """Makes a list of data about Anomaly entities for a Test."""
-  stored_anomalies = anomaly.Anomaly.query().filter(
-      anomaly.Anomaly.test == test.key).fetch()
+  stored_anomalies = anomaly.Anomaly.GetAlertsForTest(test.key)
 
   stored_anomaly_dicts = []
   for a in stored_anomalies:

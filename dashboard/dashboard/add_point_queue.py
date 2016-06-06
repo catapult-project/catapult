@@ -41,7 +41,7 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     Request parameters:
       data: JSON encoding of a list of dictionaries. Each dictionary represents
           one point to add. For each dict, one Row entity will be added, and
-          any required Test or Master or Bot entities will be created.
+          any required TestMetadata or Master or Bot entities will be created.
     """
     datastore_hooks.SetPrivilegedRequest()
 
@@ -101,13 +101,13 @@ def _PrewarmGets(data):
   bot_keys = {ndb.Key('Master', r['master'], 'Bot', r['bot']) for r in data}
   test_keys = set()
   for row in data:
-    start = ['Master', row['master'], 'Bot', row['bot']]
+    start = '%s/%s' % (row['master'], row['bot'])
     test_parts = row['test'].split('/')
     for part in test_parts:
       if not part:
         break
-      start += ['Test', part]
-      test_keys.add(ndb.Key(*start))
+      start += '/%s' % part
+      test_keys.add(ndb.Key('TestMetadata', start))
 
   ndb.get_multi_async(list(master_keys) + list(bot_keys) + list(test_keys))
 
@@ -167,10 +167,10 @@ def _GetParentTest(row_dict, bot_whitelist):
     bot_whitelist: A list of whitelisted bot names.
 
   Returns:
-    A Test entity.
+    A TestMetadata entity.
 
   Raises:
-    RuntimeError: Something went wrong when trying to get the parent Test.
+    RuntimeError: Something went wrong when trying to get the parent test.
   """
   master_name = row_dict.get('master')
   bot_name = row_dict.get('bot')
@@ -214,19 +214,19 @@ def _BotInternalOnly(bot_name, bot_whitelist):
 def _GetOrCreateAncestors(
     master_name, bot_name, test_name, units=None,
     improvement_direction=None, internal_only=True, benchmark_description=''):
-  """Gets or creates all necessary Master, Bot and Test entities for a Row."""
+  """Gets or creates all parent Master, Bot, TestMetadata entities for a Row."""
 
   master_entity = _GetOrCreateMaster(master_name)
-  bot_entity = _GetOrCreateBot(
-      bot_name, master_entity.key, internal_only)
+  _GetOrCreateBot(bot_name, master_entity.key, internal_only)
 
   # Add all ancestor tests to the datastore in order.
   ancestor_test_parts = test_name.split('/')
 
-  parent = bot_entity
+  test_path = '%s/%s' % (master_name, bot_name)
   suite = None
   for index, ancestor_test_name in enumerate(ancestor_test_parts):
-    # Certain properties should only be updated if the Test is a leaf test.
+    # Certain properties should only be updated if the TestMetadata is for a
+    # leaf test.
     is_leaf_test = (index == len(ancestor_test_parts) - 1)
     test_properties = {
         'units': units if is_leaf_test else None,
@@ -235,13 +235,13 @@ def _GetOrCreateAncestors(
         'internal_only': internal_only,
     }
     ancestor_test = _GetOrCreateTest(
-        ancestor_test_name, parent.key, test_properties)
+        ancestor_test_name, test_path, test_properties)
     if index == 0:
       suite = ancestor_test
-    parent = ancestor_test
+    test_path = ancestor_test.test_path
   if benchmark_description and suite.description != benchmark_description:
     suite.description = benchmark_description
-  return parent
+  return ancestor_test
 
 
 def _GetOrCreateMaster(name):
@@ -256,30 +256,34 @@ def _GetOrCreateMaster(name):
 
 def _GetOrCreateBot(name, parent_key, internal_only):
   """Gets or creates a new Bot under the given Master."""
-  existing = graph_data.Bot.get_by_id(name)
+  existing = graph_data.Bot.get_by_id(name, parent=parent_key)
   if existing:
+    if existing.internal_only != internal_only:
+      existing.internal_only = internal_only
+      existing.put()
     return existing
+  logging.info('Adding bot %s/%s', parent_key.id(), name)
   new_entity = graph_data.Bot(
       id=name, parent=parent_key, internal_only=internal_only)
   new_entity.put()
   return new_entity
 
 
-def _GetOrCreateTest(name, parent_key, properties):
+def _GetOrCreateTest(name, parent_test_path, properties):
   """Either gets an entity if it already exists, or creates one.
 
   If the entity already exists but the properties are different than the ones
   specified, then the properties will be updated first. This implies that a
-  new point is being added for an existing Test, so if the Test has been
-  previously marked as deprecated or associated with a stoppage alert, then it
-  can be updated and marked as non-deprecated.
+  new point is being added for an existing TestMetadata, so if the TestMetadata
+  has been previously marked as deprecated or associated with a stoppage alert,
+  then it can be updated and marked as non-deprecated.
 
   If the entity doesn't yet exist, a new one will be created with the given
   properties.
 
   Args:
     name: The string ID of the Test to get or create.
-    parent_key: The key of the parent entity.
+    parent_test_path: The test_path of the parent entity.
     properties: A dictionary of properties that should be set.
 
   Returns:
@@ -288,7 +292,8 @@ def _GetOrCreateTest(name, parent_key, properties):
   Raises:
     datastore_errors.BadRequestError: Something went wrong getting the entity.
   """
-  existing = graph_data.Test.get_by_id(name, parent_key)
+  test_path = '%s/%s' % (parent_test_path, name)
+  existing = graph_data.TestMetadata.get_by_id(test_path)
 
   if not existing:
     # Add improvement direction if this is a new test.
@@ -296,8 +301,10 @@ def _GetOrCreateTest(name, parent_key, properties):
       units = properties['units']
       direction = units_to_direction.GetImprovementDirection(units)
       properties['improvement_direction'] = direction
-    new_entity = graph_data.Test(id=name, parent=parent_key, **properties)
+    new_entity = graph_data.TestMetadata(id=test_path, **properties)
     new_entity.put()
+    # TODO(sullivan): Consider putting back Test entity in a scoped down
+    # form so we can check if it exists here.
     return new_entity
 
   # Flag indicating whether we want to re-put the entity before returning.
@@ -317,9 +324,9 @@ def _GetOrCreateTest(name, parent_key, properties):
     existing.stoppage_alert = None
     properties_changed = True
 
-  # Special case to update improvement direction from units for Test entities
-  # when units are being updated. If an improvement direction is explicitly
-  # provided in the properties, then it will be updated again below.
+  # Special case to update improvement direction from units for TestMetadata
+  # entities when units are being updated. If an improvement direction is
+  # explicitly provided in the properties, then it will be updated again below.
   units = properties.get('units')
   if units:
     direction = units_to_direction.GetImprovementDirection(units)
@@ -340,6 +347,6 @@ def _GetOrCreateTest(name, parent_key, properties):
 
 
 def _IsRefBuild(test_key):
-  """Checks whether a Test is for a reference build test run."""
-  key_path = test_key.flat()
-  return key_path[-1] == 'ref' or key_path[-1].endswith('_ref')
+  """Checks whether a TestMetadata is for a reference build test run."""
+  test_parts = test_key.id().split('/')
+  return test_parts[-1] == 'ref' or test_parts[-1].endswith('_ref')

@@ -25,7 +25,7 @@ class EmailSummaryTest(testing_common.TestCase):
     self.testapp = webtest.TestApp(app)
 
   def _AddSampleData(self):
-    """Puts a Test and Row in the datastore and returns the entities."""
+    """Puts a TestMetadata and Row in the datastore and returns the entities."""
     testing_common.AddTests(
         ['M'], ['b'], {'suite': {'foo': {}, 'bar': {}, 'baz': {}}})
     sheriff.Sheriff(
@@ -39,7 +39,8 @@ class EmailSummaryTest(testing_common.TestCase):
     self._AddSampleData()
     for name in ('foo', 'bar', 'baz'):
       test = utils.TestKey('M/b/suite/%s' % name).get()
-      row = graph_data.Row.query(graph_data.Row.parent_test == test.key).get()
+      row = graph_data.Row.query(
+          graph_data.Row.parent_test == utils.OldStyleTestKey(test.key)).get()
       stoppage_alert.CreateStoppageAlert(test, row).put()
     self.testapp.get('/send_stoppage_alert_emails')
     messages = self.mail_stub.get_sent_messages()

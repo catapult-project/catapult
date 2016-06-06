@@ -2,18 +2,19 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Task queue task which migrates a Test and its Rows to a new name.
+"""Task queue task which migrates a TestMetadata and its Rows to a new name.
 
-A rename consists of listing all Test entities which match the old_name,
+A rename consists of listing all TestMetadata entities which match the old_name,
 and then, for each, completing these steps:
-  * Create a new Test entity with the new name.
-  * Re-parent all Test and Row entities from the old Test to the new Test.
-  * Update alerts to reference the new Test.
-  * Delete the old Test.
+  * Create a new TestMetadata entity with the new name.
+  * Re-parent all TestMetadata and Row entities from the old TestMetadata to
+  * the new TestMetadata.
+  * Update alerts to reference the new TestMetadata.
+  * Delete the old TestMetadata.
 
-For any rename, there could be hundreds of Tests and many thousands of Rows.
-Datastore operations often time out after a few hundred puts(), so this task
-is split up using the task queue.
+For any rename, there could be hundreds of TestMetadatas and many thousands of
+Rows. Datastore operations often time out after a few hundred puts(), so this
+task is split up using the task queue.
 """
 
 import re
@@ -33,7 +34,8 @@ from dashboard.models import stoppage_alert
 
 _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL = 50
 
-# Properties of Test that should not be copied when a Test is being copied.
+# Properties of TestMetadata that should not be copied when a TestMetadata is
+# being copied.
 _TEST_COMPUTED_PROPERTIES = [
     'bot',
     'parent_test',
@@ -91,14 +93,14 @@ class MigrateTestNamesHandler(request_handler.RequestHandler):
     self.RenderHtml('migrate_test_names.html', {})
 
   def post(self):
-    """Starts migration of old Test entity names to new ones.
+    """Starts migration of old TestMetadata entity names to new ones.
 
     The form that's used to kick off migrations will give the parameters
     old_pattern and new_pattern, which are both test path pattern strings.
 
     When this handler is called from the task queue, however, it will be given
     the parameters old_test_key and new_test_key, which should both be keys
-    of Test entities in urlsafe form.
+    of TestMetadata entities in urlsafe form.
     """
     datastore_hooks.SetPrivilegedRequest()
 
@@ -141,23 +143,19 @@ def _AddTasksForPattern(old_pattern, new_pattern):
 
 
 def _AddTaskForTest(test, new_pattern):
-  """Adds a task to the task queue to migrate a Test and its descendants.
+  """Adds a task to the task queue to migrate a TestMetadata entity
+     and its descendants.
 
   Args:
-    test: A Test entity.
+    test: A TestMetadata entity.
     new_pattern: A test path pattern which determines the new name.
   """
   old_path = utils.TestPath(test.key)
   new_path = _GetNewTestPath(old_path, new_pattern)
-  new_path_parts = new_path.split('/')
-
-  new_path_leaf_name = new_path_parts[-1]
-  new_path_parent = '/'.join(new_path_parts[:-1])
 
   # Copy the new test from the old test. The new parent should exist.
   new_test_key = _CreateRenamedEntityIfNotExists(
-      graph_data.Test, test, new_path_leaf_name,
-      utils.TestKey(new_path_parent), _TEST_EXCLUDE).put()
+      graph_data.TestMetadata, test, new_path, None, _TEST_EXCLUDE).put()
   task_params = {
       'old_test_key': test.key.urlsafe(),
       'new_test_key': new_test_key.urlsafe(),
@@ -249,15 +247,15 @@ def _RemoveBracketedSubstring(old_part, new_part):
 
 
 def _MigrateOldTest(old_test_key_urlsafe, new_test_key_urlsafe):
-  """Migrates Rows for one Test.
+  """Migrates Rows for one test.
 
   This migrates up to _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL Rows at once
   for one level of descendant tests of old_test_key. Adds tasks to the task
   queue so that it will be called again until there is nothing to migrate.
 
   Args:
-    old_test_key_urlsafe: Key of old Test entity in urlsafe form.
-    new_test_key_urlsafe: Key of new Test entity in urlsafe form.
+    old_test_key_urlsafe: Key of old TestMetadata entity in urlsafe form.
+    new_test_key_urlsafe: Key of new TestMetadata entity in urlsafe form.
   """
   old_test_key = ndb.Key(urlsafe=old_test_key_urlsafe)
   new_test_key = ndb.Key(urlsafe=new_test_key_urlsafe)
@@ -281,8 +279,8 @@ def _MigrateTestToNewKey(old_test_key, new_test_key):
   chunk of work at one time.
 
   Args:
-    old_test_key: The key of the Test to migrate data from.
-    new_test_key: The key of the Test to migrate data to.
+    old_test_key: The key of the TestMetadata to migrate data from.
+    new_test_key: The key of the TestMetadata to migrate data to.
 
   Returns:
     True if finished or False if there is more work.
@@ -322,19 +320,19 @@ def _ReparentChildTests(old_parent_key, new_parent_key):
   the children are moved.
 
   Args:
-    old_parent_key: Test entity key of the test to move from.
-    new_parent_key: Test entity key of the test to move to.
+    old_parent_key: TestMetadata entity key of the test to move from.
+    new_parent_key: TestMetadata entity key of the test to move to.
 
   Returns:
     True if finished, False otherwise.
   """
-  tests_to_reparent = graph_data.Test.query(
-      graph_data.Test.parent_test == old_parent_key).fetch(
+  tests_to_reparent = graph_data.TestMetadata.query(
+      graph_data.TestMetadata.parent_test == old_parent_key).fetch(
           limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   for test in tests_to_reparent:
+    new_test_path = '%s/%s' % (utils.TestPath(new_parent_key), test.test_name)
     new_subtest_key = _CreateRenamedEntityIfNotExists(
-        graph_data.Test, test, test.key.string_id(), new_parent_key,
-        _TEST_EXCLUDE).put()
+        graph_data.TestMetadata, test, new_test_path, None, _TEST_EXCLUDE).put()
     finished = _MigrateTestToNewKey(test.key, new_subtest_key)
     if not finished:
       return False
@@ -345,8 +343,8 @@ def _MigrateTestRows(old_parent_key, new_parent_key):
   """Copies Row entities from one parent to another, deleting old ones.
 
   Args:
-    old_parent_key: Test entity key of the test to move from.
-    new_parent_key: Test entity key of the test to move to.
+    old_parent_key: TestMetadata entity key of the test to move from.
+    new_parent_key: TestMetadata entity key of the test to move to.
 
   Returns:
     A dictionary with the following keys:
@@ -360,8 +358,8 @@ def _MigrateTestRows(old_parent_key, new_parent_key):
   rows_to_delete = []
 
   # Add some Row entities to the lists of entities to put and delete.
-  query = graph_data.Row.query(graph_data.Row.parent_test == old_parent_key)
-  rows = query.fetch(limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
+  rows = graph_data.GetLatestRowsForTest(
+      old_parent_key, _MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   for row in rows:
     rows_to_put.append(_CreateRenamedEntityIfNotExists(
         graph_data.Row, row, row.key.id(), new_parent_key, _ROW_EXCLUDE))
@@ -385,15 +383,14 @@ def _MigrateAnomalies(old_parent_key, new_parent_key):
   """Copies the Anomaly entities from one test to another.
 
   Args:
-    old_parent_key: Source Test entity key.
-    new_parent_key: Destination Test entity key.
+    old_parent_key: Source TestMetadata entity key.
+    new_parent_key: Destination TestMetadata entity key.
 
   Returns:
     A list of Future objects for Anomaly entities to update.
   """
-  anomalies_to_update = anomaly.Anomaly.query(
-      anomaly.Anomaly.test == old_parent_key).fetch(
-          limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
+  anomalies_to_update = anomaly.Anomaly.GetAlertsForTest(
+      old_parent_key, limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   if not anomalies_to_update:
     return []
   for anomaly_entity in anomalies_to_update:
@@ -405,15 +402,14 @@ def _MigrateStoppageAlerts(old_parent_key, new_parent_key):
   """Copies the StoppageAlert entities from one test to another.
 
   Args:
-    old_parent_key: Source Test entity key.
-    new_parent_key: Destination Test entity key.
+    old_parent_key: Source TestMetadata entity key.
+    new_parent_key: Destination TestMetadata entity key.
 
   Returns:
     A list of Future objects for StoppageAlert puts and deletes.
   """
-  query = stoppage_alert.StoppageAlert.query(
-      stoppage_alert.StoppageAlert.test == old_parent_key)
-  alerts_to_update = query.fetch(limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
+  alerts_to_update = stoppage_alert.StoppageAlert.GetAlertsForTest(
+      old_parent_key, limit=_MAX_DATASTORE_PUTS_PER_PUT_MULTI_CALL)
   if not alerts_to_update:
     return []
   futures = []
@@ -436,8 +432,8 @@ def _SendNotificationEmail(old_test_key, new_test_key):
   delete the old test.
 
   Args:
-    old_test_key: Test key of the test that's about to be deleted.
-    new_test_key: Test key of the test that's replacing the old one.
+    old_test_key: TestMetadata key of the test that's about to be deleted.
+    new_test_key: TestMetadata key of the test that's replacing the old one.
   """
   old_entity = old_test_key.get()
   if not old_entity or not old_entity.sheriff:
@@ -458,14 +454,14 @@ def _CreateRenamedEntityIfNotExists(
   """Create an entity with the desired name if one does not exist.
 
   Args:
-    cls: The class of the entity to create, either Row or Test.
+    cls: The class of the entity to create, either Row or TestMetadata.
     old_entity: The old entity to copy.
     new_name: The string id of the new entity.
     parent_key: The ndb.Key for the parent test of the new entity.
     exclude: Properties to not copy from the old entity.
 
   Returns:
-    The new Row or Test entity (or the existing one, if one already exists).
+    The new Row or TestMetadata entity (or the existing one).
   """
   new_entity = cls.get_by_id(new_name, parent=parent_key)
   if new_entity:

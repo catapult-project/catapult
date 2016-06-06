@@ -64,7 +64,7 @@ class ListTestsTest(testing_common.TestCase):
   def testGetSubTests_FetchAndCacheBehavior(self):
     self._AddSampleData()
 
-    # Set the has_rows flag to true on two of the Test entities.
+    # Set the has_rows flag to true on two of the TestMetadata entities.
     for test_path in [
         'Chromium/win7/really/nested/very/deeply/subtest',
         'Chromium/win7/really/nested/very_very']:
@@ -185,13 +185,14 @@ class ListTestsTest(testing_common.TestCase):
     bot = ndb.Key('Master', 'Chromium', 'Bot', 'win7').get()
     bot.internal_only = True
     bot.put()
-    test = graph_data.Test.get_by_id('dromaeo', parent=bot.key)
+    test = graph_data.TestMetadata.get_by_id('Chromium/win7/dromaeo')
     test.internal_only = True
     test.put()
 
     # Set internal_only and has_rows to true on two subtests.
     for name in ['dom', 'jslib']:
-      subtest = graph_data.Test.get_by_id(name, parent=test.key)
+      subtest = graph_data.TestMetadata.get_by_id(
+          'Chromium/win7/dromaeo/%s' % name)
       subtest.internal_only = True
       subtest.has_rows = True
       subtest.put()
@@ -333,8 +334,8 @@ class ListTestsTest(testing_common.TestCase):
     """Tests GetTestsMatchingPattern with the parameter only_with_rows set."""
     self._AddSampleData()
 
-    # When no Test entities have has_rows set, filtering with the parameter
-    # 'has_rows' set to '1' results in no rows being returned.
+    # When no TestMetadata entities have has_rows set, filtering with the
+    # parameter 'has_rows' set to '1' results in no rows being returned.
     response = self.testapp.post('/list_tests', {
         'type': 'pattern',
         'has_rows': '1',
@@ -353,6 +354,27 @@ class ListTestsTest(testing_common.TestCase):
         'has_rows': '1',
         'p': '*/mac/dromaeo/*'})
     self.assertEqual(['Chromium/mac/dromaeo/dom'], json.loads(response.body))
+
+
+  def testGetDescendants(self):
+    self._AddSampleData()
+    self.assertEqual(
+        list_tests.GetTestDescendants(
+            ndb.Key('TestMetadata', 'Chromium/mac/dromaeo')), [
+                ndb.Key('TestMetadata', 'Chromium/mac/dromaeo'),
+                ndb.Key('TestMetadata', 'Chromium/mac/dromaeo/dom'),
+                ndb.Key('TestMetadata', 'Chromium/mac/dromaeo/jslib'),])
+    self.assertEqual(
+        list_tests.GetTestDescendants(
+            ndb.Key('TestMetadata', 'Chromium/win7/really/nested')), [
+                ndb.Key('TestMetadata', 'Chromium/win7/really/nested'),
+                ndb.Key('TestMetadata', 'Chromium/win7/really/nested/very'),
+                ndb.Key('TestMetadata',
+                        'Chromium/win7/really/nested/very/deeply'),
+                ndb.Key('TestMetadata',
+                        'Chromium/win7/really/nested/very/deeply/subtest'),
+                ndb.Key('TestMetadata',
+                        'Chromium/win7/really/nested/very_very'),])
 
 
 if __name__ == '__main__':

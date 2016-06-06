@@ -80,28 +80,28 @@ class UtilsTest(testing_common.TestCase):
   def _PutEntitiesAllExternal(self):
     """Puts entities (none internal-only) and returns the keys."""
     master = graph_data.Master(id='M').put()
-    bot = graph_data.Bot(parent=master, id='b').put()
+    graph_data.Bot(parent=master, id='b').put()
     keys = [
-        graph_data.Test(id='a', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='b', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='c', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='d', parent=bot, internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/a', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/b', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/c', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/d', internal_only=False).put(),
     ]
     return keys
 
   def _PutEntitiesHalfInternal(self):
     """Puts entities (half internal-only) and returns the keys."""
     master = graph_data.Master(id='M').put()
-    bot = graph_data.Bot(parent=master, id='b').put()
+    graph_data.Bot(parent=master, id='b').put()
     keys = [
-        graph_data.Test(id='ax', parent=bot, internal_only=True).put(),
-        graph_data.Test(id='a', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='b', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='bx', parent=bot, internal_only=True).put(),
-        graph_data.Test(id='c', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='cx', parent=bot, internal_only=True).put(),
-        graph_data.Test(id='d', parent=bot, internal_only=False).put(),
-        graph_data.Test(id='dx', parent=bot, internal_only=True).put(),
+        graph_data.TestMetadata(id='M/b/ax', internal_only=True).put(),
+        graph_data.TestMetadata(id='M/b/a', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/b', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/bx', internal_only=True).put(),
+        graph_data.TestMetadata(id='M/b/c', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/cx', internal_only=True).put(),
+        graph_data.TestMetadata(id='M/b/d', internal_only=False).put(),
+        graph_data.TestMetadata(id='M/b/dx', internal_only=True).put(),
     ]
     return keys
 
@@ -120,13 +120,69 @@ class UtilsTest(testing_common.TestCase):
     self.SetCurrentUser('internal@chromium.org')
     self.assertEqual(len(keys), len(utils.GetMulti(keys)))
 
+  def testTestPath_Test(self):
+    key = ndb.Key('Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test', 'metric')
+    self.assertEqual('m/b/suite/metric', utils.TestPath(key))
+
+  def testTestPath_TestMetadata(self):
+    key = ndb.Key('TestMetadata', 'm/b/suite/metric')
+    self.assertEqual('m/b/suite/metric', utils.TestPath(key))
+
+  def testTestPath_Container(self):
+    key = ndb.Key('TestContainer', 'm/b/suite/metric')
+    self.assertEqual('m/b/suite/metric', utils.TestPath(key))
+
+  def testTestMetadataKey_None(self):
+    key = utils.TestMetadataKey(None)
+    self.assertIsNone(key)
+
+  def testTestMetadataKey_Test(self):
+    key = utils.TestMetadataKey(
+        ndb.Key('Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test', 'metric'))
+    self.assertEqual('TestMetadata', key.kind())
+    self.assertEqual('m/b/suite/metric', key.id())
+    self.assertEqual(('TestMetadata', 'm/b/suite/metric'), key.flat())
+
+  def testTestMetadataKey_TestMetadata(self):
+    original_key = ndb.Key('TestMetadata', 'm/b/suite/metric')
+    key = utils.TestMetadataKey(original_key)
+    self.assertEqual(original_key, key)
+
+  def testTestMetadataKey_String(self):
+    key = utils.TestMetadataKey('m/b/suite/metric/page')
+    self.assertEqual('TestMetadata', key.kind())
+    self.assertEqual('m/b/suite/metric/page', key.id())
+    self.assertEqual(('TestMetadata', 'm/b/suite/metric/page'), key.flat())
+
+  def testOldStyleTestKey_None(self):
+    key = utils.OldStyleTestKey(None)
+    self.assertIsNone(key)
+
+  def testOldStyleTestKey_Test(self):
+    original_key = ndb.Key(
+        'Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test', 'metric')
+    key = utils.OldStyleTestKey(original_key)
+    self.assertEqual(original_key, key)
+
+  def testOldStyleTestKey_TestMetadata(self):
+    key = utils.OldStyleTestKey(ndb.Key('TestMetadata', 'm/b/suite/metric'))
+    self.assertEqual('Test', key.kind())
+    self.assertEqual('metric', key.id())
+    self.assertEqual(
+        ('Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test', 'metric'),
+        key.flat())
+
+  def testOldStyleTestKey_String(self):
+    key = utils.OldStyleTestKey('m/b/suite/metric')
+    self.assertEqual('Test', key.kind())
+    self.assertEqual('metric', key.id())
+    self.assertEqual(
+        ('Master', 'm', 'Bot', 'b', 'Test', 'suite', 'Test', 'metric'),
+        key.flat())
+
   def testTestSuiteName_Basic(self):
     key = utils.TestKey('Master/bot/suite-foo/sub/x/y/z')
     self.assertEqual('suite-foo', utils.TestSuiteName(key))
-
-  def testTestSuiteName_KeyNotLongEnough_ReturnsNone(self):
-    key = ndb.Key('Master', 'M', 'Bot', 'b')
-    self.assertIsNone(utils.TestSuiteName(key))
 
   def testMinimumRange_Empty_ReturnsNone(self):
     self.assertIsNone(utils.MinimumRange([]))

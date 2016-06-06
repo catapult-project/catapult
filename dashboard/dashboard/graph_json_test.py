@@ -51,12 +51,13 @@ class GraphJsonTest(testing_common.TestCase):
       bot = graph_data.Bot(id=name, parent=master.key)
       bot.put()
       bots.append(bot)
-      test = graph_data.Test(id='dromaeo', parent=bot.key)
+      test = graph_data.TestMetadata(id='ChromiumGPU/%s/dromaeo' % name)
       test.put()
       for sub_name in ['dom', 'jslib']:
-        sub_test = graph_data.Test(id=sub_name, parent=test.key,
-                                   improvement_direction=anomaly.UP,
-                                   has_rows=True).put()
+        sub_test = graph_data.TestMetadata(
+            id='%s/%s' % (test.key.id(), sub_name),
+            improvement_direction=anomaly.UP,
+            has_rows=True).put()
         test_container_key = utils.GetTestContainerKey(sub_test)
         for i in range(start_rev, end_rev, step):
           # Add Rows for one bot with revision numbers that aren't lined up
@@ -83,14 +84,16 @@ class GraphJsonTest(testing_common.TestCase):
     master.put()
     bot = graph_data.Bot(id='bot', parent=master.key)
     bot.put()
-    test = graph_data.Test(id='suite', parent=bot.key)
+    test = graph_data.TestMetadata(id='master/bot/suite')
     test.put()
 
     rows = []
+    path = 'master/bot/suite'
     for sub_name in ['sub1', 'sub2', 'sub3', 'sub4', 'sub5']:
-      test = graph_data.Test(id=sub_name, parent=test.key,
-                             improvement_direction=anomaly.UP,
-                             has_rows=True)
+      path = '%s/%s' % (path, sub_name)
+      test = graph_data.TestMetadata(id=path,
+                                     improvement_direction=anomaly.UP,
+                                     has_rows=True)
       test.put()
       test_container_key = utils.GetTestContainerKey(test.key)
       for i in range(start_rev, end_rev, step):
@@ -279,8 +282,7 @@ class GraphJsonTest(testing_common.TestCase):
 
     rows = graph_data.Row.query(
         graph_data.Row.parent_test == ndb.Key(
-            'Master', 'ChromiumGPU', 'Bot', 'win7',
-            'Test', 'dromaeo', 'Test', 'dom')).fetch()
+            'TestMetadata', 'ChromiumGPU/win7/dromaeo/dom'))
     for row in rows:
       row.error = 1 + ((row.revision - 15000) * 0.25)
     ndb.put_multi(rows)
@@ -507,6 +509,19 @@ class GraphJsonTest(testing_common.TestCase):
     anomaly2.SetIsImprovement()
     key2 = anomaly2.put()
 
+    old_style_test_key = ndb.Key(
+        'Master', 'ChromiumGPU',
+        'Bot', 'win7',
+        'Test', 'dromaeo',
+        'Test', 'dom')
+    anomaly3 = anomaly.Anomaly(
+        start_revision=15008, end_revision=15009,
+        test=old_style_test_key,
+        median_before_anomaly=100,
+        median_after_anomaly=200
+    )
+    key3 = anomaly3.put()
+
     test = utils.TestKey('ChromiumGPU/win7/dromaeo/dom').get()
     test.description = 'About this test'
     test.units = 'ms'
@@ -532,7 +547,7 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(key1.urlsafe(), anomaly_one_annotation['key'])
     self.assertTrue(anomaly_one_annotation['improvement'])
 
-    # Verify key fields of the annotation dictionary for th second anomaly.
+    # Verify key fields of the annotation dictionary for the second anomaly.
     anomaly_two_annotation = annotations['0']['2']['g_anomaly']
     self.assertEqual(15004, anomaly_two_annotation['start_revision'])
     self.assertEqual(15006, anomaly_two_annotation['end_revision'])
@@ -540,6 +555,10 @@ class GraphJsonTest(testing_common.TestCase):
     self.assertEqual(12345, anomaly_two_annotation['bug_id'])
     self.assertEqual(key2.urlsafe(), anomaly_two_annotation['key'])
     self.assertFalse(anomaly_two_annotation['improvement'])
+
+    # Verify the key for the third anomaly.
+    anomaly_three_annotation = annotations['0']['3']['g_anomaly']
+    self.assertEqual(key3.urlsafe(), anomaly_three_annotation['key'])
 
     # Verify the tracing link annotations
     self.assertEqual('http://trace/15000',
@@ -592,7 +611,7 @@ class GraphJsonTest(testing_common.TestCase):
   def testGetGraphJson_WithSelectedTrace(self):
     self._AddTestColumns(start_rev=15000, end_rev=15050)
     rows = graph_data.Row.query(
-        graph_data.Row.parent_test == utils.TestKey(
+        graph_data.Row.parent_test == utils.OldStyleTestKey(
             'ChromiumGPU/win7/dromaeo/jslib')).fetch()
     for row in rows:
       row.error = 1 + ((row.revision - 15000) * 0.25)
@@ -614,9 +633,7 @@ class GraphJsonTest(testing_common.TestCase):
 
   def testGetGraphJson_UnSelectedTrace(self):
     self._AddTestColumns(start_rev=15000, end_rev=15050)
-    test_key = ndb.Key(
-        'Master', 'ChromiumGPU', 'Bot', 'win7',
-        'Test', 'dromaeo', 'Test', 'jslib')
+    test_key = ndb.Key('TestMetadata', 'ChromiumGPU/win7/dromaeo/jslib')
     rows = graph_data.Row.query(graph_data.Row.parent_test == test_key).fetch()
     for row in rows:
       row.error = 1 + ((row.revision - 15000) * 0.25)
@@ -627,9 +644,9 @@ class GraphJsonTest(testing_common.TestCase):
     start_rev = 15000
     end_rev = 15050
     for name in ['sub_test_a', 'sub_test_b']:
-      sub_test = graph_data.Test(id=name, parent=test_key,
-                                 improvement_direction=anomaly.UP,
-                                 has_rows=True).put()
+      sub_test = graph_data.TestMetadata(id='%s/%s' % (test_key.id(), name),
+                                         improvement_direction=anomaly.UP,
+                                         has_rows=True).put()
       sub_test_container_key = utils.GetTestContainerKey(sub_test)
       for i in range(start_rev, end_rev, 3):
         # Add Rows for one bot with revision numbers that aren't lined up

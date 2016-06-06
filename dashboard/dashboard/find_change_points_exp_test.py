@@ -4,8 +4,6 @@
 
 import unittest
 
-from google.appengine.ext import ndb
-
 from dashboard import find_change_points
 from dashboard import find_change_points_exp
 from dashboard import testing_common
@@ -15,9 +13,8 @@ from dashboard.models import graph_data
 class FindChangePointsExpTest(testing_common.TestCase):
 
   def _MakeSampleTest(self):
-    """Makes a Test entity to be used in the tests below."""
-    parent_key = ndb.Key('Master', 'm', 'Bot', 'b', 'Test', 'suite')
-    return graph_data.Test(parent=parent_key, id='foo')
+    """Makes a TestMetadata entity to be used in the tests below."""
+    return graph_data.TestMetadata(id='m/b/suite/foo')
 
   def testGetLastWindow_EmptyList_ReturnsEmptyList(self):
     self.assertEqual([], find_change_points_exp._GetLastWindow([], 50))
@@ -41,7 +38,7 @@ class FindChangePointsExpTest(testing_common.TestCase):
     test = self._MakeSampleTest()
     self.assertEqual(
         [], find_change_points_exp._RemoveKnownAnomalies(test, []))
-    # The Test entity is never put().
+    # The TestMetadata entity is never put().
     self.assertIsNone(test.key.get())
     test.put()
     self.assertIsNotNone(test.key.get())
@@ -55,9 +52,9 @@ class FindChangePointsExpTest(testing_common.TestCase):
     filtered = find_change_points_exp._RemoveKnownAnomalies(test, change_points)
     # Only entries for after the last_alerted_revision are kept.
     self.assertEqual(change_points[2:], filtered)
-    # The last_alerted_revision property of the Test is updated.
+    # The last_alerted_revision property of the TestMetadata is updated.
     self.assertEqual(4, test.last_alerted_revision)
-    # The Test entity is never put().
+    # The TestMetadata entity is never put().
     self.assertIsNone(test.key.get())
 
 

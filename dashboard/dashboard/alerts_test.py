@@ -44,8 +44,8 @@ class AlertsTest(testing_common.TestCase):
     mean_frame_time = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time')
 
-    # By default, all Test entities have an improvement_direction of UNKNOWN,
-    # meaning that neither direction is considered an improvement.
+    # By default, all TestMetadata entities have an improvement_direction of
+    # UNKNOWN, meaning that neither direction is considered an improvement.
     # Here we set the improvement direction so that some anomalies are
     # considered improvements.
     for test_key in [first_paint, mean_frame_time]:

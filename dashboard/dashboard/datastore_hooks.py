@@ -21,7 +21,7 @@ from dashboard import utils
 # here in order to be restricted to internal users.
 _INTERNAL_ONLY_KINDS = [
     'Bot',
-    'Test',
+    'TestMetadata',
     'Row',
     'Sheriff',
     'Anomaly',

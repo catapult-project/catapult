@@ -75,8 +75,8 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
       else:
         self.assertFalse(bot.internal_only)
 
-    # Verify that Test entities were changed.
-    tests = graph_data.Test.query().fetch()
+    # Verify that TestMetadata entities were changed.
+    tests = graph_data.TestMetadata.query().fetch()
     for test in tests:
       if (test.test_path.startswith('ChromiumPerf/win7') or
           test.test_path.startswith('ChromiumGPU/mac')):
@@ -129,7 +129,7 @@ class ChangeInternalOnlyTest(testing_common.TestCase):
     bots = graph_data.Bot.query().fetch()
     for bot in bots:
       self.assertFalse(bot.internal_only)
-    tests = graph_data.Test.query().fetch()
+    tests = graph_data.TestMetadata.query().fetch()
     for test in tests:
       self.assertFalse(test.internal_only)
     rows = graph_data.Row.query().fetch()

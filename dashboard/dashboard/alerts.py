@@ -181,7 +181,7 @@ def _GetStoppageAlertDict(stoppage_alert_entity):
 
 def _AlertDict(alert_entity):
   """Returns a base dictionary with properties common to all alerts."""
-  test_path = utils.TestPath(alert_entity.test)
+  test_path = utils.TestPath(alert_entity.GetTestMetadataKey())
   test_path_parts = test_path.split('/')
   dashboard_link = email_template.GetReportPageLink(
       test_path, rev=alert_entity.end_revision, add_protocol_and_host=False)

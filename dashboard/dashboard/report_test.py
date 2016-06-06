@@ -51,7 +51,7 @@ class ReportTest(testing_common.TestCase):
     for m in masters:
       for b in bots:
         for t in tests:
-          t = ndb.Key('Master', m, 'Bot', b, 'Test', t).get()
+          t = ndb.Key('TestMetadata', '%s/%s/%s' % (m, b, t)).get()
           t.description = 'This should show up'
           t.put()
 

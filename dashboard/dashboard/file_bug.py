@@ -190,7 +190,7 @@ def _FetchLabelsAndComponents(alert_keys):
     # more general (maybe there should be a list in datastore of bug
     # labels to add for internal bugs).
     labels.add('Restrict-View-Google')
-  for test in {a.test for a in alerts}:
+  for test in {a.GetTestMetadataKey() for a in alerts}:
     labels_components = bug_label_patterns.GetBugLabelsForTest(test)
     for item in labels_components:
       if item.startswith('Cr-'):

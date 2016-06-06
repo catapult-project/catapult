@@ -31,8 +31,8 @@ class ListMonitoredTestsHandler(request_handler.RequestHandler):
 def _ListMonitoredTests(sheriff_name):
   """Outputs a sorted list of test paths for Tests sheriffed by a user."""
   sheriff = ndb.Key('Sheriff', sheriff_name)
-  sheriffed_query = graph_data.Test.query(
-      graph_data.Test.sheriff == sheriff,
-      graph_data.Test.has_rows == True)
+  sheriffed_query = graph_data.TestMetadata.query(
+      graph_data.TestMetadata.sheriff == sheriff,
+      graph_data.TestMetadata.has_rows == True)
   sheriffed = sorted(t.test_path for t in sheriffed_query.fetch())
   return sheriffed

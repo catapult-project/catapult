@@ -70,19 +70,17 @@ def GetSubTests(suite_name, bot_names):
   Returns:
     A dict mapping test names to dicts to entries which have the keys
     "has_rows" (boolean) and "sub_tests", which is another sub-tests dict.
-    This forms a tree structure which matches the tree structure of the
-    Test entities in the datastore.
+    This forms a tree structure.
   """
   # For some bots, there may be cached data; First collect and combine this.
   combined = {}
   for bot_name in bot_names:
     master, bot = bot_name.split('/')
-    suite_key = ndb.Key('Master', master, 'Bot', bot, 'Test', suite_name)
+    suite_key = ndb.Key('TestMetadata', '%s/%s/%s' % (master, bot, suite_name))
     cached = layered_cache.Get(_ListSubTestCacheKey(suite_key))
     if cached:
       combined = _MergeSubTestsDict(combined, cached)
     else:
-      # Faster to fetch by keys than by projections.
       sub_test_paths = _FetchSubTestPaths(suite_key, False)
       deprecated_sub_test_paths = _FetchSubTestPaths(suite_key, True)
       sub_tests = _MergeSubTestsDict(
@@ -97,17 +95,14 @@ def _FetchSubTestPaths(test_key, deprecated):
   """Makes a list of partial test paths for descendants of a test suite.
 
   Args:
-    test_key: A ndb.Key object for a Test entity.
+    test_key: A ndb.Key object for a TestMetadata entity.
     deprecated: Whether or not to fetch deprecated tests.
 
   Returns:
-    A list of test paths for all descendant Test entities that have associated
-    Row entities. These test paths omit the Master/bot/suite part.
+    A list of test paths for all descendant TestMetadata entities that have
+    associated Row entities. These test paths omit the Master/bot/suite part.
   """
-  query = graph_data.Test.query(ancestor=test_key)
-  query = query.filter(graph_data.Test.has_rows == True,
-                       graph_data.Test.deprecated == deprecated)
-  keys = query.fetch(keys_only=True)
+  keys = GetTestDescendants(test_key, has_rows=True, deprecated=deprecated)
   return map(_SubTestPath, keys)
 
 
@@ -125,7 +120,7 @@ def _SubTestsDict(paths, deprecated):
   Args:
     paths: An iterable of test paths for which there are points. Each test
         path is of the form "Master/bot/benchmark/chart/...". Each test path
-        corresponds to a Test entity for which has_rows is set to True.
+        corresponds to a TestMetadata entity for which has_rows is set to True.
     deprecated: Whether test are deprecated.
 
   Returns:
@@ -192,7 +187,7 @@ def _MergeSubTestsDictEntry(a, b):
 
 
 def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
-  """Gets the Test entities or keys which match |pattern|.
+  """Gets the TestMetadata entities or keys which match |pattern|.
 
   For this function, it's assumed that a test path should only have up to seven
   parts. In theory, tests can be arbitrarily nested, but in practice, tests
@@ -200,8 +195,9 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   seven parts.
 
   Args:
-    pattern: /-separated string of '*' wildcard and Test string_ids.
-    only_with_rows: If True, only return Test entities which have data points.
+    pattern: /-separated string of '*' wildcard and TestMetadata string_ids.
+    only_with_rows: If True, only return TestMetadata entities which have data
+                    points.
     list_entities: If True, return entities. If false, return keys (faster).
 
   Returns:
@@ -226,14 +222,15 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
 
   # Query tests based on the above filters. Pattern parts with * won't be
   # filtered here; the set of tests queried is a superset of the matching tests.
-  query = graph_data.Test.query()
+  query = graph_data.TestMetadata.query()
   for f in query_filters:
     query = query.filter(
-        graph_data.Test._properties[f[0]] == f[1])  # pylint: disable=protected-access
-  query = query.order(graph_data.Test.key)
+        # pylint: disable=protected-access
+        graph_data.TestMetadata._properties[f[0]] == f[1])
+  query = query.order(graph_data.TestMetadata.key)
   if only_with_rows:
     query = query.filter(
-        graph_data.Test.has_rows == True)
+        graph_data.TestMetadata.has_rows == True)
   test_keys = query.fetch(keys_only=True)
 
   # Filter to include only tests that match the pattern.
@@ -242,3 +239,34 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   if list_entities:
     return ndb.get_multi(test_keys)
   return [utils.TestPath(k) for k in test_keys]
+
+
+def GetTestDescendants(
+    test_key, has_rows=None, deprecated=None, keys_only=True):
+  """Returns all the tests which are subtests of the test with the given key.
+
+  Args:
+    test_key: The key of the TestMetadata entity to get descendants of.
+    has_rows: If set, filter the query for this value of has_rows.
+    deprecated: If set, filter the query for this value of deprecated.
+
+  Returns:
+    A list of keys of all descendants of the given test.
+  """
+  test_parts = utils.TestPath(test_key).split('/')
+  query_parts = [
+      ('master_name', test_parts[0]),
+      ('bot_name', test_parts[1]),
+      ('suite_name', test_parts[2]),
+  ]
+  for index, part in enumerate(test_parts[3:]):
+    query_parts.append(('test_part%d_name' % (index + 1), part))
+  query = graph_data.TestMetadata.query()
+  for part in query_parts:
+    query = query.filter(ndb.GenericProperty(part[0]) == part[1])
+  if has_rows is not None:
+    query = query.filter(graph_data.TestMetadata.has_rows == has_rows)
+  if deprecated is not None:
+    query = query.filter(graph_data.TestMetadata.deprecated == deprecated)
+  descendants = query.fetch(keys_only=keys_only)
+  return descendants

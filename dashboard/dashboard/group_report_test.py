@@ -40,7 +40,7 @@ class GroupReportTest(testing_common.TestCase):
     return urlsafe_keys
 
   def _AddTests(self):
-    """Adds sample Test entities and returns their keys."""
+    """Adds sample TestMetadata entities and returns their keys."""
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -53,8 +53,8 @@ class GroupReportTest(testing_common.TestCase):
         utils.TestKey(
             'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time'),
     ]
-    # By default, all Test entities have an improvement_direction of UNKNOWN,
-    # meaning that neither direction is considered an improvement.
+    # By default, all TestMetadata entities have an improvement_direction of
+    # UNKNOWN, meaning that neither direction is considered an improvement.
     # Here we set the improvement direction so that some anomalies are
     # considered improvements.
     for test_key in keys:

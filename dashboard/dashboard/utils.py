@@ -72,7 +72,7 @@ def TickMonitoringCustomMetric(metric_name):
 
 
 def TestPath(key):
-  """Returns the test path for a Test from an ndb.Key.
+  """Returns the test path for a TestMetadata from an ndb.Key.
 
   A "test path" is just a convenient string representation of an ndb.Key.
   Each test path corresponds to one ndb.Key, which can be used to get an
@@ -84,15 +84,19 @@ def TestPath(key):
   Returns:
     A test path string.
   """
-  return '/'.join(key.flat()[1::2])
+  if key.kind() == 'Test':
+    # The Test key looks like ('Master', 'name', 'Bot', 'name', 'Test' 'name'..)
+    # Pull out every other entry and join with '/' to form the path.
+    return '/'.join(key.flat()[1::2])
+  assert key.kind() == 'TestMetadata' or key.kind() == 'TestContainer'
+  return key.id()
 
 
 def TestSuiteName(test_key):
-  """Returns the test suite name for a given Test key."""
-  pairs = test_key.pairs()
-  if len(pairs) < 3:
-    return None
-  return pairs[2][1]
+  """Returns the test suite name for a given TestMetadata key."""
+  assert test_key.kind() == 'TestMetadata'
+  parts = test_key.id().split('/')
+  return parts[2]
 
 
 def TestKey(test_path):
@@ -102,19 +106,68 @@ def TestKey(test_path):
   path_parts = test_path.split('/')
   if path_parts is None:
     return None
-  key_list = [('Master', path_parts[0])]
-  if len(path_parts) > 1:
-    key_list += [('Bot', path_parts[1])]
-  if len(path_parts) > 2:
-    key_list += [('Test', x) for x in path_parts[2:]]
-  return ndb.Key(pairs=key_list)
+  if len(path_parts) < 3:
+    key_list = [('Master', path_parts[0])]
+    if len(path_parts) > 1:
+      key_list += [('Bot', path_parts[1])]
+    return ndb.Key(pairs=key_list)
+  return ndb.Key('TestMetadata', test_path)
+
+
+def TestMetadataKey(key_or_string):
+  """Convert the given (Test or TestMetadata) key or test_path string to a
+     TestMetadata key.
+
+  We are in the process of converting from Test entities to TestMetadata.
+  Unfortunately, we haver trillions of Row entities which have a parent_test
+  property set to a Test, and it's not possible to migrate them all. So we
+  use the Test key in Row queries, and convert between the old and new format.
+
+  Note that the Test entities which the keys refer to may be deleted; the
+  queries over keys still work.
+  """
+  if key_or_string is None:
+    return None
+  if isinstance(key_or_string, basestring):
+    return ndb.Key('TestMetadata', key_or_string)
+  if key_or_string.kind() == 'TestMetadata':
+    return key_or_string
+  if key_or_string.kind() == 'Test':
+    return ndb.Key('TestMetadata', TestPath(key_or_string))
+
+
+def OldStyleTestKey(key_or_string):
+  """Get the key for the old style Test entity corresponding to this key or
+     test_path.
+
+  We are in the process of converting from Test entities to TestMetadata.
+  Unfortunately, we haver trillions of Row entities which have a parent_test
+  property set to a Test, and it's not possible to migrate them all. So we
+  use the Test key in Row queries, and convert between the old and new format.
+
+  Note that the Test entities which the keys refer to may be deleted; the
+  queries over keys still work.
+  """
+  if key_or_string is None:
+    return None
+  elif isinstance(key_or_string, ndb.Key) and key_or_string.kind() == 'Test':
+    return key_or_string
+  if (isinstance(key_or_string, ndb.Key) and
+      key_or_string.kind() == 'TestMetadata'):
+    key_or_string = key_or_string.id()
+  assert isinstance(key_or_string, basestring)
+  path_parts = key_or_string.split('/')
+  key_parts = ['Master', path_parts[0], 'Bot', path_parts[1]]
+  for part in path_parts[2:]:
+    key_parts += ['Test', part]
+  return ndb.Key(*key_parts)
 
 
 def TestMatchesPattern(test, pattern):
   """Checks whether a test matches a test path pattern.
 
   Args:
-    test: A Test entity or a Test key.
+    test: A TestMetadata entity or a TestMetadata key.
     pattern: A test path which can include wildcard characters (*).
 
   Returns:
@@ -164,10 +217,10 @@ def TimestampMilliseconds(datetime):
 
 
 def GetTestContainerKey(test):
-  """Gets the TestContainer key for the given Test.
+  """Gets the TestContainer key for the given TestMetadata.
 
   Args:
-    test: Either a Test entity or its ndb.Key.
+    test: Either a TestMetadata entity or its ndb.Key.
 
   Returns:
     ndb.Key('TestContainer', test path)

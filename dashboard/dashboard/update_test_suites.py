@@ -13,7 +13,7 @@ from dashboard import request_handler
 from dashboard import stored_object
 from dashboard.models import graph_data
 
-# Test suite cache key.
+# TestMetadata suite cache key.
 _LIST_SUITES_CACHE_KEY = 'list_tests_get_test_suites'
 
 
@@ -71,8 +71,8 @@ def _CreateTestSuiteDict():
   for the report page. This variable is used to initially populate the select
   menus.
 
-  Note that there will be multiple top level Test entities for each suite name,
-  since each suite name appears under multiple bots.
+  Note that there will be multiple top level TestMetadata entities for each
+  suite name, since each suite name appears under multiple bots.
 
   Returns:
     A dictionary of the form:
@@ -109,7 +109,8 @@ def _CreateTestSuiteDict():
 
 def _FetchSuites():
   """Fetches Tests with deprecated and description projections."""
-  suite_query = graph_data.Test.query(graph_data.Test.parent_test == None)
+  suite_query = graph_data.TestMetadata.query(
+      graph_data.TestMetadata.parent_test == None)
   suites = []
   cursor = None
   more = True
@@ -128,7 +129,7 @@ def _CreateSuiteMastersDict(suites):
   """Returns an initial suite dict with names mapped to masters.
 
   Args:
-    suites: A list of entities for top-level Test entities.
+    suites: A list of entities for top-level TestMetadata entities.
 
   Returns:
     A dictionary mapping the test-suite names to dicts which just have
@@ -137,7 +138,7 @@ def _CreateSuiteMastersDict(suites):
   """
   name_to_suites = {}
   for suite in suites:
-    name = suite.key.string_id()
+    name = suite.test_name
     if name not in name_to_suites:
       name_to_suites[name] = []
     name_to_suites[name].append(suite)
@@ -152,24 +153,18 @@ def _MasterToBotsToDeprecatedDict(suites):
   """Makes a dictionary listing masters, bots and deprecated for tests.
 
   Args:
-    suites: A collection of test suite Test entities. All of the keys in
+    suites: A collection of test suite TestMetadata entities. All of the keys in
         this set should have the same test suite name.
 
   Returns:
     A dictionary mapping master names to bot names to deprecated.
   """
-  def MasterName(key):
-    return key.pairs()[0][1]
-
-  def BotName(key):
-    return key.pairs()[1][1]
-
   result = {}
-  for master in {MasterName(s.key) for s in suites}:
+  for master in {s.master_name for s in suites}:
     bot = {}
     for suite in suites:
-      if MasterName(suite.key) == master:
-        bot[BotName(suite.key)] = suite.deprecated
+      if suite.master_name == master:
+        bot[suite.bot_name] = suite.deprecated
     result[master] = bot
   return result
 
@@ -179,7 +174,7 @@ def _CreateSuiteMonitoredDict():
   suites = _FetchSuitesWithMonitoredProperty()
   result = {}
   for suite in suites:
-    name = suite.key.string_id()
+    name = suite.test_name
     if name not in result:
       result[name] = set()
     result[name].update(map(_GetTestSubPath, suite.monitored))
@@ -192,7 +187,8 @@ def _FetchSuitesWithMonitoredProperty():
   Empty repeated properties are not indexed, so we have to make this
   query separate.
   """
-  suite_query = graph_data.Test.query(graph_data.Test.parent_test == None)
+  suite_query = graph_data.TestMetadata.query(
+      graph_data.TestMetadata.parent_test == None)
   # Request only a certain number of entities at a time. This is meant to
   # decrease the time taken per datastore operation, to prevent timeouts,
   # but it would not decrease the total time taken.
@@ -219,17 +215,17 @@ def _GetTestSubPath(key):
   this should return 'foo/bar'.
 
   Args:
-    key: The key of the Test entity.
+    key: The key of the TestMetadata entity.
 
   Returns:
     Slash-separated test path part after master/bot/suite.
   """
-  return '/'.join(p[1] for p in key.pairs()[3:])
+  return '/'.join(p for p in key.string_id().split('/')[3:])
 
 
 def _CreateSuiteNondeprecatedSet(suites):
   """Makes a set of test suites where all are nondeprecated."""
-  return {s.key.string_id() for s in suites if not s.deprecated}
+  return {s.test_name for s in suites if not s.deprecated}
 
 
 def _CreateSuiteDescriptionDict(suites):
@@ -239,7 +235,7 @@ def _CreateSuiteDescriptionDict(suites):
   # description from one entity for each test suite name.
   results = {}
   for suite in suites:
-    name = suite.key.string_id()
+    name = suite.test_name
     if name in results:
       continue
     if suite.description:

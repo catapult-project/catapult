@@ -99,7 +99,7 @@ def _EmailBody(anomalies):
 
   anomaly_info = {}
   for anomaly_entity in anomalies:
-    test = anomaly_entity.test.get()
+    test = anomaly_entity.GetTestMetadataKey().get()
     anomaly_info = email_template.GetAlertInfo(anomaly_entity, test)
     html_body.append(anomaly_info['email_html'])
     text_body.append(anomaly_info['email_text'])

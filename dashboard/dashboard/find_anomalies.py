@@ -5,7 +5,7 @@
 """Processes tests and creates new Anomaly entities.
 
 This module contains the ProcessTest function, which searches the recent
-points in a Test for potential regressions or improvements, and creates
+points in a test for potential regressions or improvements, and creates
 new Anomaly entities.
 """
 
@@ -30,7 +30,7 @@ def ProcessTest(test_key):
   """Processes a test to find new anomalies.
 
   Args:
-    test_key: The ndb.Key for a Test.
+    test_key: The ndb.Key for a TestMetadata.
   """
   test = test_key.get()
   config = anomaly_config.GetAnomalyConfigDict(test)
@@ -89,7 +89,7 @@ def GetRowsToAnalyze(test, max_num_rows):
   """Gets the Row entities that we want to analyze.
 
   Args:
-    test: The Test entity to get data for.
+    test: The TestMetadata entity to get data for.
     max_num_rows: The maximum number of points to get.
 
   Returns:
@@ -98,7 +98,8 @@ def GetRowsToAnalyze(test, max_num_rows):
     have the revision and value properties.
   """
   query = graph_data.Row.query(projection=['revision', 'value'])
-  query = query.filter(graph_data.Row.parent_test == test.key)
+  query = query.filter(
+      graph_data.Row.parent_test == utils.OldStyleTestKey(test.key))
 
   # The query is ordered in descending order by revision because we want
   # to get the newest points.
@@ -110,8 +111,9 @@ def GetRowsToAnalyze(test, max_num_rows):
 
 
 def _HighestRevision(test_key):
-  """Gets the revision number of the Row with the highest ID for a Test."""
-  query = graph_data.Row.query(graph_data.Row.parent_test == test_key)
+  """Gets the revision number of the Row with the highest ID for a test."""
+  query = graph_data.Row.query(
+      graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
   query = query.order(-graph_data.Row.revision)
   highest_row_key = query.get(keys_only=True)
   if highest_row_key:
@@ -132,8 +134,8 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
 
   Args:
     change_points: ChangePoint objects returned by FindChangePoints.
-    test_key: ndb.Key of monitored Test.
-    num_rows: Number of Rows that were analyzed from the Test. When fetching
+    test_key: ndb.Key of monitored TestMetadata.
+    num_rows: Number of Rows that were analyzed from the test. When fetching
         the ref build Rows, we need not fetch more than |num_rows| rows.
 
   Returns:
@@ -168,7 +170,7 @@ def _FilterAnomaliesFoundInRef(change_points, test_key, num_rows):
 
 
 def _CorrespondingRefTest(test_key):
-  """Returns the Test for the corresponding ref build trace, or None."""
+  """Returns the TestMetadata for the corresponding ref build trace, or None."""
   test_path = utils.TestPath(test_key)
   possible_ref_test_paths = [test_path + '_ref', test_path + '/ref']
   for path in possible_ref_test_paths:
@@ -225,7 +227,7 @@ def _MakeAnomalyEntity(change_point, test, rows):
 
   Args:
     change_point: A find_change_points.ChangePoint object.
-    test: The Test entity that the anomalies were found on.
+    test: The TestMetadata entity that the anomalies were found on.
     rows: List of Row entities that the anomalies were found on.
 
   Returns:
@@ -271,7 +273,7 @@ def _IsImprovement(test, median_before, median_after):
   """Returns whether the alert is an improvement for the given test.
 
   Args:
-    test: Test to get the improvement direction for.
+    test: TestMetadata to get the improvement direction for.
     median_before: The median of the segment immediately before the anomaly.
     median_after: The median of the segment immediately after the anomaly.
 

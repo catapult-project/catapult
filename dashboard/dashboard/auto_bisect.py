@@ -209,8 +209,8 @@ def _IsBisectJobDueForRestart(bisect_job):
 def _ChooseTest(anomalies, index=0):
   """Chooses a test to use for a bisect job.
 
-  The particular Test chosen determines the command and metric name that is
-  chosen. The test to choose could depend on which of the anomalies has the
+  The particular TestMetadata chosen determines the command and metric name that
+  is chosen. The test to choose could depend on which of the anomalies has the
   largest regression size.
 
   Ideally, the choice of bisect bot to use should be based on bisect bot queue
@@ -230,20 +230,22 @@ def _ChooseTest(anomalies, index=0):
         the same list of alerts.
 
   Returns:
-    A Test entity, or None if no valid Test could be chosen.
+    A TestMetadata entity, or None if no valid TestMetadata could be chosen.
   """
   if not anomalies:
     return None
   index %= len(anomalies)
   anomalies.sort(cmp=_CompareAnomalyBisectability)
   for anomaly_entity in anomalies[index:]:
-    if can_bisect.IsValidTestForBisect(utils.TestPath(anomaly_entity.test)):
-      return anomaly_entity.test.get()
+    if can_bisect.IsValidTestForBisect(
+        utils.TestPath(anomaly_entity.GetTestMetadataKey())):
+      return anomaly_entity.GetTestMetadataKey().get()
   return None
 
 
 def _CompareAnomalyBisectability(a1, a2):
-  """Compares two Anomalies to decide which Anomaly's Test is better to use.
+  """Compares two Anomalies to decide which Anomaly's TestMetadata is better to
+     use.
 
   TODO(qyearsley): Take other factors into account:
    - Consider bisect bot queue length. Note: If there's a simple API to fetch
@@ -292,8 +294,10 @@ def _ChooseRevisionRange(anomalies):
   Raises:
     NotBisectableError: A valid revision range could not be returned.
   """
-  good_rev, good_test = max((a.start_revision - 1, a.test) for a in anomalies)
-  bad_rev, bad_test = min((a.end_revision, a.test) for a in anomalies)
+  good_rev, good_test = max(
+      (a.start_revision - 1, a.GetTestMetadataKey()) for a in anomalies)
+  bad_rev, bad_test = min(
+      (a.end_revision, a.GetTestMetadataKey()) for a in anomalies)
   if good_rev < bad_rev:
     good_rev = _GetRevisionForBisect(good_rev, good_test)
     bad_rev = _GetRevisionForBisect(bad_rev, bad_test)
@@ -310,7 +314,7 @@ def _GetRevisionForBisect(revision, test_key):
 
   Args:
     revision: The ID of a Row, not necessarily an actual revision number.
-    test_key: The ndb.Key for a Test.
+    test_key: The ndb.Key for a TestMetadata.
 
   Returns:
     An int or string value which can be used when bisecting.

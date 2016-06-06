@@ -19,7 +19,7 @@ UP, DOWN, UNKNOWN = (0, 1, 4)
 
 
 class Anomaly(alert.Alert):
-  """Represents a change-point or step found in the data series for a Test.
+  """Represents a change-point or step found in the data series for a test.
 
   An Anomaly can be an upward or downward change, and can represent an
   improvement or a regression.
@@ -80,7 +80,7 @@ class Anomaly(alert.Alert):
   def SetIsImprovement(self, test=None):
     """Sets whether the alert is an improvement for the given test."""
     if not test:
-      test = self.test.get()
+      test = self.GetTestMetadataKey().get()
     # |self.direction| is never equal to |UNKNOWN| (see the definition above)
     # so when the test improvement direction is |UNKNOWN|, |self.is_improvement|
     # will be False.

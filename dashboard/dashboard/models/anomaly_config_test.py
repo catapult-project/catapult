@@ -23,7 +23,7 @@ class AnomalyConfigTest(testing_common.TestCase):
     self.assertEqual({}, anomaly_config.GetAnomalyConfigDict(test))
 
     # Override the config for the test added above.
-    # The overridden config is set in the pre-put hook of the Test.
+    # The overridden config is set in the pre-put hook of the TestMetadata.
     my_config = {
         '_comment': 'Very particular segment sizes.',
         'max_window_size': 721,

@@ -6,32 +6,33 @@
 
 The Chromium project uses Buildbot to run its performance tests, and the
 structure of the data for the Performance Dashboard reflects this. Metadata
-about tests are structured in a hierarchy of Master, Bot, and Test entities.
-Master and Bot entities represent Buildbot masters and builders respectively,
-and Test entities represent groups of results, or individual data series.
+about tests are structured in Master, Bot, and TestMetadata entities. Master and
+Bot entities represent Buildbot masters and builders respectively, and
+TestMetadata entities represent groups of results, or individual data series,
+keyed by a full path to the test separated by '/' characters.
 
 For example, entities might be structured as follows:
 
   Master: ChromiumPerf
-    Bot: win7
-      Test: page_cycler.moz
-        Test: times
-          Test: page_load_time
-          Test: page_load_time_ref
-          Test: www.amazon.com
-          Test: www.bing.com
-        Test: commit_charge
-          Test: ref
-          Test: www.amazon.com
-          Test: www.bing.com
+  Bot: win7
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/times
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/times/page_load_time
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/times/page_load_time_ref
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/times/www.amazon.com
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/times/www.bing.com
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/commit_charge
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/commit_charge/ref
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/commit_charge/www.amazon.com
+  TestMetadata: ChromiumPerf/win7/page_cycler.moz/commit_charge/www.bing.com
 
 The graph data points are represented by Row entities. Each Row entity contains
 a revision and value, which are its X and Y values on a graph, and any other
 metadata associated with an individual performance test result.
 
 The keys of the Row entities for a particular data series are start with a
-TestContainer key, instead of a Test key. This way, the Row entities for each
-data series are in a different "entity group". This allows a faster rate of
+TestContainer key, instead of a TestMetadata key. This way, the Row entities for
+each data series are in a different "entity group". This allows a faster rate of
 putting data in the datastore for many series at once.
 
 For example, Row entities are organized like this:
@@ -59,6 +60,7 @@ import logging
 
 from google.appengine.ext import ndb
 
+from dashboard import datastore_hooks
 from dashboard import layered_cache
 from dashboard import utils
 from dashboard.models import anomaly
@@ -91,28 +93,30 @@ class Bot(internal_only_model.InternalOnlyModel):
 
   Bots are keyed by name, e.g. 'xp-release-dual-core'. A Bot entity contains
   information about whether the tests are only viewable to internal users, and
-  each bot has a parent that is a Master entity. A Bot is be the ancestor of
-  the Test entities that run on it.
+  each bot has a parent that is a Master entity. To query the tests that run on
+  a Bot, check the bot_name and master_name properties of the TestMetadata.
   """
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
 
-class Test(internal_only_model.CreateHookInternalOnlyModel):
-  """A Test entity is a node in a hierarchy of tests.
+class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
+  """A TestMetadata entity is a node in a hierarchy of tests.
 
-  A Test entity can represent a specific series of results which will be
+  A TestMetadata entity can represent a specific series of results which will be
   plotted on a graph, or it can represent a group of such series of results, or
-  both. A Test entity that the property has_rows set to True corresponds to a
-  trace on a graph, and the parent Test for a group of such tests corresponds to
-  a graph with several traces. A parent Test for that test would correspond to a
-  group of related graphs. Top-level Tests (also known as test suites) are
-  parented by a Bot.
+  both. A TestMetadata entity that the property has_rows set to True corresponds
+  to a timeseries on a graph, and the TestMetadata for a group of such tests
+  has a path one level less deep, which corresponds to a graph with several
+  timeseries. A TestMetadata one level less deep for that test would correspond
+  to a group of related graphs. Top-level TestMetadata (also known as test
+  suites) are keyed master/bot/test.
 
-  Tests are keyed by name, and they also contain other metadata such as
+  TestMetadata are keyed by the full path to the test (for example
+  master/bot/test/metric/page), and they also contain other metadata such as
   description and units.
 
-  NOTE: If you remove any properties from Test, they should be added to the
-  TEST_EXCLUDE_PROPERTIES list in migrate_test_names.py.
+  NOTE: If you remove any properties from TestMetadata, they should be added to
+  the TEST_EXCLUDE_PROPERTIES list in migrate_test_names.py.
   """
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
@@ -137,7 +141,7 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
       indexed=False
   )
 
-  # Units of the child Rows of this Test, or None if there are no child Rows.
+  # Units of the child Rows of this test, or None if there are no child Rows.
   units = ndb.StringProperty(indexed=False)
 
   # The last alerted revision is used to avoid duplicate alerts.
@@ -175,18 +179,25 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
   @ndb.ComputedProperty
   def bot(self):  # pylint: disable=invalid-name
     """Immediate parent Bot entity, or None if this is not a test suite."""
-    parent = self.key.parent()
-    if parent.kind() == 'Bot':
-      return parent
-    return None
+    parts = self.key.id().split('/')
+    if len(parts) != 3:
+      # This is not a test suite.
+      return None
+    return ndb.Key('Master', parts[0], 'Bot', parts[1])
 
   @ndb.ComputedProperty
   def parent_test(self):  # pylint: disable=invalid-name
-    """Immediate parent Test entity, or None if this is a test suite."""
-    parent = self.key.parent()
-    if parent.kind() == 'Test':
-      return parent
-    return None
+    """Immediate parent TestMetadata entity, or None if this is a test suite."""
+    parts = self.key.id().split('/')
+    if len(parts) < 4:
+      # This is a test suite
+      return None
+    return ndb.Key('TestMetadata', '/'.join(parts[:-1]))
+
+  @property
+  def test_name(self):
+    """The name of this specific test, without the test_path preceding."""
+    return self.key.id().split('/')[-1]
 
   @property
   def test_path(self):
@@ -195,55 +206,49 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
 
   @ndb.ComputedProperty
   def master_name(self):
-    return self.key.pairs()[0][1]
+    return self.key.id().split('/')[0]
 
   @ndb.ComputedProperty
   def bot_name(self):
-    return self.key.pairs()[1][1]
+    return self.key.id().split('/')[1]
 
   @ndb.ComputedProperty
   def suite_name(self):
-    return self.key.pairs()[2][1]
+    return self.key.id().split('/')[2]
 
   @ndb.ComputedProperty
   def test_part1_name(self):
-    pairs = self.key.pairs()
-    if len(pairs) < 4:
+    parts = self.key.id().split('/')
+    if len(parts) < 4:
       return ''
-    return self.key.pairs()[3][1]
+    return parts[3]
 
   @ndb.ComputedProperty
   def test_part2_name(self):
-    pairs = self.key.pairs()
-    if len(pairs) < 5:
+    parts = self.key.id().split('/')
+    if len(parts) < 5:
       return ''
-    return self.key.pairs()[4][1]
+    return parts[4]
 
   @ndb.ComputedProperty
   def test_part3_name(self):
-    pairs = self.key.pairs()
-    if len(pairs) < 6:
+    parts = self.key.id().split('/')
+    if len(parts) < 6:
       return ''
-    return self.key.pairs()[5][1]
+    return parts[5]
 
   @ndb.ComputedProperty
   def test_part4_name(self):
-    pairs = self.key.pairs()
-    if len(pairs) < 7:
+    parts = self.key.id().split('/')
+    if len(parts) < 7:
       return ''
-    return self.key.pairs()[6][0]
+    return parts[6]
 
   @classmethod
   def _GetMasterBotSuite(cls, key):
-    while key and key.parent():
-      if key.parent().kind() == 'Bot':
-        if not key.parent().parent():
-          return None
-        return (key.parent().parent().string_id(),
-                key.parent().string_id(),
-                key.string_id())
-      key = key.parent()
-    return None
+    if not key:
+      return None
+    return tuple(key.id().split('/')[:3])
 
   def __init__(self, *args, **kwargs):
     # Indexed StringProperty has a maximum length. If this length is exceeded,
@@ -251,14 +256,22 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
     # Truncate the "description" property if necessary.
     description = kwargs.get('description') or ''
     kwargs['description'] = description[:_MAX_STRING_LENGTH]
-    super(Test, self).__init__(*args, **kwargs)
+    super(TestMetadata, self).__init__(*args, **kwargs)
 
   def _pre_put_hook(self):
-    """This method is called before a Test is put into the datastore.
+    """This method is called before a TestMetadata is put into the datastore.
 
-    Here, we check the sheriffs and anomaly configs to make sure they are
-    current. We also update the monitored list of the test suite.
+    Here, we check the key to make sure it is valid and check the sheriffs and
+    anomaly configs to make sure they are current. We also update the monitored
+    list of the test suite.
     """
+    # Check to make sure the key is valid.
+    # TestMetadata should not be an ancestor, so key.pairs() should have length
+    # of 1. The id should have at least 3 slashes to represent master/bot/suite.
+    assert len(self.key.pairs()) == 1
+    path_parts = self.key.id().split('/')
+    assert len(path_parts) >= 3
+
     # Set the sheriff to the first sheriff (alphabetically by sheriff name)
     # that has a test pattern that matches this test.
     self.sheriff = None
@@ -269,10 +282,10 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
       if self.sheriff:
         break
 
-    # If this Test is monitored, add it to the monitored list of its test suite.
+    # If this test is monitored, add it to the monitored list of its test suite.
     # A test is be monitored iff it has a sheriff, and monitored tests are
-    # tracked in the monitored list of a test suite Test entity.
-    test_suite = ndb.Key(*self.key.flat()[:6]).get()
+    # tracked in the monitored list of a test suite TestMetadata entity.
+    test_suite = ndb.Key('TestMetadata', '/'.join(path_parts[:3])).get()
     if self.sheriff:
       if test_suite and self.key not in test_suite.monitored:
         test_suite.monitored.append(self.key)
@@ -297,24 +310,28 @@ class Test(internal_only_model.CreateHookInternalOnlyModel):
 
   def CreateCallback(self):
     """Called when the entity is first saved."""
-    if self.key.parent().kind() != 'Bot':
+    if len(self.key.id().split('/')) > 3:
+      # Since this is not a test suite, the menu cache for the suite must
+      # be updated.
       layered_cache.Delete(
           LIST_TESTS_SUBTEST_CACHE_KEY % self._GetMasterBotSuite(self.key))
 
   @classmethod
   # pylint: disable=unused-argument
   def _pre_delete_hook(cls, key):
-    if key.parent() and key.parent().kind() != 'Bot':
+    if len(key.id().split('/')) > 3:
+      # Since this is not a test suite, the menu cache for the suite must
+      # be updated.
       layered_cache.Delete(
-          LIST_TESTS_SUBTEST_CACHE_KEY % Test._GetMasterBotSuite(key))
+          LIST_TESTS_SUBTEST_CACHE_KEY % TestMetadata._GetMasterBotSuite(key))
 
 
 class LastAddedRevision(ndb.Model):
   """Represents the last added revision for a test path.
 
-  The reason this property is separated from Test entity is to avoid contention
-  issues (Frequent update of entity within the same group).  This property is
-  updated very frequent in /add_point.
+  The reason this property is separated from TestMetadata entity is to avoid
+  contention issues (Frequent update of entity within the same group).  This
+  property is updated very frequent in /add_point.
   """
   revision = ndb.IntegerProperty(indexed=False)
 
@@ -323,8 +340,8 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
   """A Row represents one data point.
 
   A Row has a revision and a value, which are the X and Y values, respectively.
-  Each Row belongs to one Test, along with all of the other Row entities that
-  it is plotted with. Rows are keyed by revision.
+  Each Row belongs to one TestMetadata, along with all of the other Row entities
+  that it is plotted with. Rows are keyed by revision.
 
   In addition to the properties defined below, Row entities may also have other
   properties which specify additional supplemental data. These are called
@@ -338,13 +355,17 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
   _default_indexed = False
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
-  # The parent_test is the key of the Test entity that this Row belongs to.
+  # The parent_test is the key of the TestMetadata entity that this Row belongs
+  # to.
   @ndb.ComputedProperty
   def parent_test(self):  # pylint: disable=invalid-name
-    # The Test entity that a Row belongs to isn't actually its parent in the
-    # datastore. Rather, the parent key of each Row contains a test path, which
-    # contains the information necessary to get the actual Test key.
-    return utils.TestKey(self.key.parent().string_id())
+    # The Test entity that a Row belongs to isn't actually its parent in
+    # the datastore. Rather, the parent key of each Row contains a test path,
+    # which contains the information necessary to get the actual Test
+    # key. The Test key will need to be converted back to a new style
+    # TestMetadata key to get information back out. This is because we have
+    # over 3 trillion Rows in the datastore and cannot convert them all :(
+    return utils.OldStyleTestKey(utils.TestKey(self.key.parent().string_id()))
 
   # Points in each graph are sorted by "revision". This is usually a Chromium
   # SVN version number, but it might also be any other integer, as long as
@@ -371,15 +392,71 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
     in the same transaction. But in practice it shouldn't be an issue because
     the parent test will get more points as the test runs.
     """
-    parent_test = self.parent_test.get()
+    parent_test = utils.TestMetadataKey(self.key.parent().id()).get()
 
-    # If the Test pointed to by parent_test is not valid, that indicates
-    # that a Test entity was not properly created in add_point.
+    # If the TestMetadata pointed to by parent_test is not valid, that indicates
+    # that a TestMetadata entity was not properly created in add_point.
     if not parent_test:
       parent_key = self.key.parent()
-      logging.warning('Row put without valid Test. Parent key: %s', parent_key)
+      logging.warning(
+          'Row put without valid TestMetadata. Parent key: %s', parent_key)
       return
 
     if not parent_test.has_rows:
       parent_test.has_rows = True
       parent_test.put()
+
+
+def GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
+  """Gets all the Row entities for a test between a given start and end."""
+  test_key = utils.OldStyleTestKey(test_key)
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
+  query = Row.query(
+      Row.parent_test == test_key,
+      Row.revision >= start_rev,
+      Row.revision <= end_rev)
+  return query.fetch(batch_size=100)
+
+
+def GetRowsForTestAroundRev(test_key, rev, num_points, privileged=False):
+  """Gets up to |num_points| Row entities for a test centered on a revision."""
+  test_key = utils.OldStyleTestKey(test_key)
+  num_rows_before = int(num_points / 2) + 1
+  num_rows_after = int(num_points / 2)
+
+  return GetRowsForTestBeforeAfterRev(
+      test_key, rev, num_rows_before, num_rows_after, privileged)
+
+
+def GetRowsForTestBeforeAfterRev(
+    test_key, rev, num_rows_before, num_rows_after, privileged=False):
+  """Gets up to |num_points| Row entities for a test centered on a revision."""
+  test_key = utils.OldStyleTestKey(test_key)
+
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
+  query_up_to_rev = Row.query(Row.parent_test == test_key, Row.revision <= rev)
+  query_up_to_rev = query_up_to_rev.order(-Row.revision)
+  rows_up_to_rev = list(reversed(
+      query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)))
+
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
+  query_after_rev = Row.query(Row.parent_test == test_key, Row.revision > rev)
+  query_after_rev = query_after_rev.order(Row.revision)
+  rows_after_rev = query_after_rev.fetch(limit=num_rows_after, batch_size=100)
+
+  return rows_up_to_rev + rows_after_rev
+
+
+def GetLatestRowsForTest(
+    test_key, num_points, keys_only=False, privileged=False):
+  """Gets the latest num_points Row entities for a test."""
+  test_key = utils.OldStyleTestKey(test_key)
+  if privileged:
+    datastore_hooks.SetSinglePrivilegedRequest()
+  query = Row.query(Row.parent_test == test_key)
+  query = query.order(-Row.revision)
+
+  return query.fetch(limit=num_points, batch_size=100, keys_only=keys_only)

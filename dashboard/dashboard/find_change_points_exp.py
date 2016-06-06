@@ -14,14 +14,14 @@ def RunFindChangePoints(
   """Runs an change-point-finding function on part of a data series.
 
   This function will be repeatedly called by SimulateAlertProcessingPipeline
-  in the bench_find_change_points module with the same Test entity but with more
-  and more points added to the end.
+  in the bench_find_change_points module with the same TestMetadata entity but
+  with more and more points added to the end.
 
   This is meant to imitate the current behavior of FindChangePoints on the perf
   dashboard.
 
   Args:
-    test: A graph_data.Test entity.
+    test: A graph_data.TestMetadata entity.
     series: A list of ordered (x, y) pairs.
     find_change_points_func: A function that has the same interface as
         find_change_points.FindChangePoints.
@@ -35,7 +35,7 @@ def RunFindChangePoints(
   config = anomaly_config.GetAnomalyConfigDict(test)
   config.update(kwargs)
 
-  # |series| contains all data so far in the Test, but typically when
+  # |series| contains all data so far in the TestMetadata, but typically when
   # a test is processed (in find_anomalies.ProcessTest) only the last "window"
   # of points is looked at. This window size depends on the test. To get the
   # same behavior as the current default, we take only the last window.
@@ -57,10 +57,10 @@ def _GetLastWindow(series, window_size):
 
 
 def _RemoveKnownAnomalies(test, change_points):
-  """Removes some anomalies and updates the given Test entity.
+  """Removes some anomalies and updates the given TestMetadata entity.
 
   Args:
-    test: A Test entity, which has a property last_alerted_revision.
+    test: A TestMetadata entity, which has a property last_alerted_revision.
         This property will be updated when this function is called.
     change_points: A list of find_change_points.ChangePoint objects. It is
         assumed that this list is sorted by the x_value property.
@@ -74,8 +74,8 @@ def _RemoveKnownAnomalies(test, change_points):
                      if c.x_value > test.last_alerted_revision]
 
   if change_points:
-    # No need to call put(). The given Test entity will be re-used and we don't
-    # want to modify Test entity in the datastore.
+    # No need to call put(). The given TestMetadata entity will be re-used and
+    # we don't want to modify TestMetadata entity in the datastore.
     test.last_alerted_revision = change_points[-1].x_value
 
   return change_points

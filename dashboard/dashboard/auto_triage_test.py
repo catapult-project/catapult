@@ -29,7 +29,7 @@ class AutoTriageTest(testing_common.TestCase):
 
   def _AddTestData(self, series, sheriff_key,
                    improvement_direction=anomaly.UP):
-    """Adds one sample Test and associated data.
+    """Adds one sample TestMetadata and associated data.
 
     Args:
       series: Either a list of values, or a list of (x, y) pairs.
@@ -37,7 +37,7 @@ class AutoTriageTest(testing_common.TestCase):
       improvement_direction: One of {anomaly.UP, anomaly.DOWN, anomaly.UNKNOWN}.
 
     Returns:
-      The Test entity key of the Test that was added.
+      The key of the TestMetadata entity that was added.
     """
     testing_common.AddTests(['M'], ['b'], {'benchmark': {'t': {}}})
     test_path = 'M/b/benchmark/t'

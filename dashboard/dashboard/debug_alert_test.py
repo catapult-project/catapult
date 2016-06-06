@@ -33,7 +33,7 @@ class DebugAlertTest(testing_common.TestCase):
     self.PatchDatastoreHooksRequest()
 
   def _AddSampleData(self):
-    """Adds a Test and Row entities, and returns the Test key."""
+    """Adds TestMetadata and Row entities, and returns the TestMetadata key."""
     testing_common.AddTests(['M'], ['b'], {'suite': {'foo': {}}})
     test_path = 'M/b/suite/foo'
     rows_dict = {x: {'value': y} for x, y in _SAMPLE_SERIES}
@@ -71,7 +71,7 @@ class DebugAlertTest(testing_common.TestCase):
         '/debug_alert?test_path=%s&rev=%s&num_before=%s&num_after=%s' %
         (test_path, 305, 10, 5))
     self.assertEqual(
-        [300, 301, 302, 303, 304, 305, 306, 307, 308, 309],
+        [300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310],
         self.GetEmbeddedVariable(response, 'LOOKUP'))
 
   def testGet_InvalidNumBeforeParameter_ShowsFormAndError(self):
@@ -157,7 +157,7 @@ class DebugAlertTest(testing_common.TestCase):
     rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 5, 8)
     revisions = [r.revision for r in rows]
     self.assertEqual(
-        [305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317],
+        [306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318],
         revisions)
 
   def testFetchRowsAroundRev_NotAllRowsAvailable(self):
@@ -171,8 +171,8 @@ class DebugAlertTest(testing_common.TestCase):
     rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 5, 5)
     # The indexes used in the chart series should match those in the lookup.
     self.assertEqual(
-        [(0, 60.65), (1, 55.61), (2, 61.88), (3, 61.51), (4, 59.58),
-         (5, 71.79), (6, 71.97), (7, 71.63), (8, 67.16), (9, 70.91)],
+        [(0, 55.61), (1, 61.88), (2, 61.51), (3, 59.58), (4, 71.79),
+         (5, 71.97), (6, 71.63), (7, 67.16), (8, 70.91), (9, 73.4)],
         debug_alert._ChartSeries(rows))
 
   def testRevisionList(self):
@@ -180,7 +180,7 @@ class DebugAlertTest(testing_common.TestCase):
     rows = debug_alert._FetchRowsAroundRev(test_key.get(), 310, 5, 5)
     # The lookup dict maps indexes to x-values in the input series.
     self.assertEqual(
-        [305, 306, 307, 308, 309, 310, 311, 312, 313, 314],
+        [306, 307, 308, 309, 310, 311, 312, 313, 314, 315],
         debug_alert._RevisionList(rows))
 
   def testCsvUrl_RowsGiven_AllParamsSpecified(self):

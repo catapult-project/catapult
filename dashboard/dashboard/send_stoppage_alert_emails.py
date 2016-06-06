@@ -139,7 +139,7 @@ def _TextBody(alert_dicts, test_owners):
 
 def _AlertRowDict(alert):
   """Returns a dict with information to print about one stoppage alert."""
-  test_path = utils.TestPath(alert.test)
+  test_path = utils.TestPath(alert.GetTestMetadataKey())
   return {
       'rev': alert.revision,
       'test_path': test_path,
@@ -157,7 +157,7 @@ def _StdioLink(alert):
 def _TestOwners(stoppage_alerts):
   """Returns a list of test owners for the given alerts."""
   def SuitePath(alert):
-    path_parts = utils.TestPath(alert.test).split('/')
+    path_parts = utils.TestPath(alert.GetTestMetadataKey()).split('/')
     return '%s/%s' % (path_parts[0], path_parts[2])
   test_owners = test_owner.GetOwners([SuitePath(a) for a in stoppage_alerts])
   return ','.join(test_owners)

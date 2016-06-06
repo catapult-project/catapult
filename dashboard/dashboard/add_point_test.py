@@ -186,7 +186,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual(2, len(rows))
 
     # Verify all properties of the first Row.
-    self.assertEqual('dom', rows[0].parent_test.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/dromaeo/dom', utils.TestPath(rows[0].parent_test))
     self.assertEqual('Test', rows[0].parent_test.kind())
     self.assertEqual(12345, rows[0].key.id())
     self.assertEqual(12345, rows[0].revision)
@@ -202,28 +203,30 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual(12345, rows[1].revision)
     self.assertEqual(44.3, rows[1].value)
     self.assertTrue(rows[1].internal_only)
-    self.assertEqual('jslib', rows[1].parent_test.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/dromaeo/jslib', utils.TestPath(rows[1].parent_test))
     self.assertEqual('Test', rows[1].parent_test.kind())
 
-    # There were three Test entities inserted -- the parent Test,
-    # and the two child Test entities in the order given.
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    # There were three TestMetadata entities inserted -- the parent test,
+    # and the two child test entities in the order given.
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(3, len(tests))
 
     # Nothing was specified for units, so they have their default
     # values. Same for other the tests below.
-    self.assertEqual('dromaeo', tests[0].key.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo', tests[0].key.id())
     self.assertEqual('win7', tests[0].bot.id())
     self.assertIsNone(tests[0].parent_test)
     self.assertFalse(tests[0].has_rows)
     self.assertEqual('ChromiumPerf/win7/dromaeo', tests[0].test_path)
     self.assertTrue(tests[0].internal_only)
     self.assertEqual(1, len(tests[0].monitored))
-    self.assertEqual('dom', tests[0].monitored[0].string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/dromaeo/dom', tests[0].monitored[0].string_id())
     self.assertIsNone(tests[0].units)
 
-    self.assertEqual('dom', tests[1].key.id())
-    self.assertEqual('dromaeo', tests[1].parent_test.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo/dom', tests[1].key.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo', tests[1].parent_test.id())
     self.assertEqual('my_sheriff1', tests[1].sheriff.string_id())
     self.assertIsNone(tests[1].bot)
     self.assertTrue(tests[1].has_rows)
@@ -231,8 +234,8 @@ class AddPointTest(testing_common.TestCase):
     self.assertTrue(tests[1].internal_only)
     self.assertIsNone(tests[1].units)
 
-    self.assertEqual('jslib', tests[2].key.id())
-    self.assertEqual('dromaeo', tests[2].parent_test.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo/jslib', tests[2].key.id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo', tests[2].parent_test.id())
     self.assertIsNone(tests[2].sheriff)
     self.assertIsNone(tests[2].bot)
     self.assertTrue(tests[2].has_rows)
@@ -304,7 +307,7 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])}, status=400,
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(0, len(tests))
 
   def testPost_TrailingSlash_Ignored(self):
@@ -314,11 +317,13 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
-    self.assertEqual('mach_ports_parent', tests[0].key.id())
-    self.assertEqual('mach_ports', tests[1].key.id())
-    self.assertEqual('mach_ports_parent', tests[1].parent_test.id())
+    self.assertEqual('ChromiumPerf/win7/mach_ports_parent', tests[0].key.id())
+    self.assertEqual(
+        'ChromiumPerf/win7/mach_ports_parent/mach_ports', tests[1].key.id())
+    self.assertEqual(
+        'ChromiumPerf/win7/mach_ports_parent', tests[1].parent_test.id())
 
   def testPost_LeadingSlash_Ignored(self):
     point = copy.deepcopy(_SAMPLE_POINT)
@@ -327,11 +332,12 @@ class AddPointTest(testing_common.TestCase):
         '/add_point', {'data': json.dumps([point])},
         extra_environ={'REMOTE_ADDR': _WHITELISTED_IP})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
-    self.assertEqual('boot_time', tests[0].key.id())
-    self.assertEqual('pre_plugin_time', tests[1].key.id())
-    self.assertEqual('boot_time', tests[1].parent_test.id())
+    self.assertEqual('ChromiumPerf/win7/boot_time', tests[0].key.id())
+    self.assertEqual(
+        'ChromiumPerf/win7/boot_time/pre_plugin_time', tests[1].key.id())
+    self.assertEqual('ChromiumPerf/win7/boot_time', tests[1].parent_test.id())
 
   def testPost_BadJson_DataRejected(self):
     """Tests that an error is returned when the given data is not valid JSON."""
@@ -424,7 +430,8 @@ class AddPointTest(testing_common.TestCase):
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(
         id='suddenly_secret', parent=parent, internal_only=False).put()
-    graph_data.Test(id='dromaeo', parent=parent, internal_only=False).put()
+    graph_data.TestMetadata(
+        id='ChromiumPerf/suddenly_secret/dromaeo', internal_only=False).put()
 
     data_param = json.dumps([
         {
@@ -464,22 +471,26 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('win7', bots[2].key.string_id())
     self.assertFalse(bots[2].internal_only)
 
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(6, len(tests))
-    self.assertEqual('dromaeo', tests[0].key.string_id())
-    self.assertEqual('suddenly_secret', tests[0].key.parent().string_id())
+    self.assertEqual(
+        'ChromiumPerf/suddenly_secret/dromaeo', tests[0].key.string_id())
+    self.assertEqual('suddenly_secret', tests[0].bot.string_id())
     self.assertTrue(tests[0].internal_only)
-    self.assertEqual('dom', tests[1].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/suddenly_secret/dromaeo/dom', tests[1].key.string_id())
     self.assertTrue(tests[1].internal_only)
-    self.assertEqual('dromaeo', tests[2].key.string_id())
-    self.assertEqual('very_secret', tests[2].key.parent().string_id())
+    self.assertEqual(
+        'ChromiumPerf/very_secret/dromaeo', tests[2].key.string_id())
+    self.assertEqual('very_secret', tests[2].bot.string_id())
     self.assertTrue(tests[2].internal_only)
-    self.assertEqual('dom', tests[3].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/very_secret/dromaeo/dom', tests[3].key.string_id())
     self.assertTrue(tests[3].internal_only)
-    self.assertEqual('dromaeo', tests[4].key.string_id())
-    self.assertEqual('win7', tests[4].key.parent().string_id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo', tests[4].key.string_id())
+    self.assertEqual('win7', tests[4].bot.string_id())
     self.assertFalse(tests[4].internal_only)
-    self.assertEqual('dom', tests[5].key.string_id())
+    self.assertEqual('ChromiumPerf/win7/dromaeo/dom', tests[5].key.string_id())
     self.assertFalse(tests[5].internal_only)
 
     rows = graph_data.Row.query().fetch(limit=_FETCH_LIMIT)
@@ -529,32 +540,31 @@ class AddPointTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
     sheriff1_test = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7',
-        'Test', 'dromaeo', 'Test', 'jslib').get()
+        'TestMetadata', 'ChromiumPerf/win7/dromaeo/jslib').get()
     self.assertEqual(sheriff1, sheriff1_test.sheriff)
 
     sheriff2_test = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7',
-        'Test', 'scrolling_benchmark',
-        'Test', 'mean_frame_time').get()
+        'TestMetadata',
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time').get()
     self.assertEqual(sheriff2, sheriff2_test.sheriff)
 
     no_sheriff_test = ndb.Key(
-        'Master', 'ChromiumWebkit', 'Bot', 'win7',
-        'Test', 'dromaeo', 'Test', 'jslib').get()
+        'TestMetadata', 'ChromiumWebkit/win7/dromaeo/jslib').get()
     self.assertIsNone(no_sheriff_test.sheriff)
 
     test_suite = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7',
-        'Test', 'scrolling_benchmark').get()
+        'TestMetadata', 'ChromiumPerf/win7/scrolling_benchmark').get()
     self.assertEqual(1, len(test_suite.monitored))
-    self.assertEqual('mean_frame_time', test_suite.monitored[0].string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        test_suite.monitored[0].string_id())
 
   def testPost_NewTest_AnomalyConfigPropertyIsAdded(self):
-    """Tests that AnomalyConfig keys are added to Tests upon creation.
+    """Tests that AnomalyConfig keys are added to TestMetadata upon creation.
 
-    Like with sheriffs, AnomalyConfig keys are to Test when the Test is put
-    if the Test matches the pattern of the AnomalyConfig.
+    Like with sheriffs, AnomalyConfig keys are to added to TestMetadata when the
+    TestMetadata is put if the test path matches the pattern of the
+    AnomalyConfig.
     """
     anomaly_config1 = anomaly_config.AnomalyConfig(
         id='anomaly_config1', config='',
@@ -593,24 +603,22 @@ class AddPointTest(testing_common.TestCase):
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
     anomaly_config1_test = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7',
-        'Test', 'dromaeo', 'Test', 'jslib').get()
+        'TestMetadata', 'ChromiumPerf/win7/dromaeo/jslib').get()
     self.assertEqual(
         anomaly_config1, anomaly_config1_test.overridden_anomaly_config)
 
     anomaly_config2_test = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test',
-        'scrolling_benchmark', 'Test', 'mean_frame_time').get()
+        'TestMetadata',
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time').get()
     self.assertEqual(
         anomaly_config2, anomaly_config2_test.overridden_anomaly_config)
 
     no_config_test = ndb.Key(
-        'Master', 'ChromiumWebkit', 'Bot', 'win7',
-        'Test', 'dromaeo', 'Test', 'jslib').get()
+        'TestMetadata', 'ChromiumWebkit/win7/dromaeo/jslib').get()
     self.assertIsNone(no_config_test.overridden_anomaly_config)
 
   def testPost_NewTest_AddsUnits(self):
-    """Tests that units and improvement direction are added for new Tests."""
+    """Checks units and improvement direction are added for new TestMetadata."""
     data_param = json.dumps([
         {
             'master': 'ChromiumPerf',
@@ -627,21 +635,26 @@ class AddPointTest(testing_common.TestCase):
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
-    self.assertEqual('scrolling_benchmark', tests[0].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark', tests[0].key.string_id())
     self.assertIsNone(tests[0].units)
     self.assertEqual(anomaly.UNKNOWN, tests[0].improvement_direction)
-    self.assertEqual('mean_frame_time', tests[1].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        tests[1].key.string_id())
     self.assertEqual('ms', tests[1].units)
     self.assertEqual(anomaly.DOWN, tests[1].improvement_direction)
 
   def testPost_NewPointWithNewUnits_TestUnitsAreUpdated(self):
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
-    parent = graph_data.Test(id='scrolling_benchmark', parent=parent).put()
-    graph_data.Test(
-        id='mean_frame_time', parent=parent, units='ms',
+    parent = graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark').put()
+    graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        units='ms',
         improvement_direction=anomaly.DOWN).put()
 
     data_param = json.dumps([
@@ -660,22 +673,26 @@ class AddPointTest(testing_common.TestCase):
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
-    self.assertEqual('scrolling_benchmark', tests[0].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark', tests[0].key.string_id())
     self.assertIsNone(tests[0].units)
     self.assertEqual(anomaly.UNKNOWN, tests[0].improvement_direction)
-    self.assertEqual('mean_frame_time', tests[1].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        tests[1].key.string_id())
     self.assertEqual('fps', tests[1].units)
     self.assertEqual(anomaly.UP, tests[1].improvement_direction)
 
   def testPost_NewPoint_UpdatesImprovementDirection(self):
-    """Tests that adding a point updates units for an existing Test."""
+    """Tests that adding a point updates units for an existing TestMetadata."""
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
-    parent = graph_data.Test(id='scrolling_benchmark', parent=parent).put()
-    frame_time_key = graph_data.Test(
-        id='frame_time', parent=parent, units='ms',
+    parent = graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark').put()
+    frame_time_key = graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark/frame_time', units='ms',
         improvement_direction=anomaly.DOWN).put()
     # Before sending the new data point, the improvement direction is down.
     test = frame_time_key.get()
@@ -704,13 +721,13 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual(anomaly.UP, test.improvement_direction)
 
   def testPost_DirectionUpdatesWithUnitMap(self):
-    """Tests that adding a point updates units for an existing Test."""
+    """Tests that adding a point updates units for an existing TestMetadata."""
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
-    parent = graph_data.Test(id='scrolling_benchmark', parent=parent).put()
-    graph_data.Test(
-        id='mean_frame_time',
-        parent=parent,
+    parent = graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark').put()
+    graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
         units='ms',
         improvement_direction=anomaly.UNKNOWN).put()
     point = {
@@ -725,12 +742,15 @@ class AddPointTest(testing_common.TestCase):
                       {'data': json.dumps([point])},
                       extra_environ={'REMOTE_ADDR': '123.45.67.89'})
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
-    self.assertEqual('scrolling_benchmark', tests[0].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark', tests[0].key.string_id())
     self.assertIsNone(tests[0].units)
     self.assertEqual(anomaly.UNKNOWN, tests[0].improvement_direction)
-    self.assertEqual('mean_frame_time', tests[1].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        tests[1].key.string_id())
     self.assertEqual('ms', tests[1].units)
     self.assertEqual(anomaly.DOWN, tests[1].improvement_direction)
 
@@ -738,9 +758,11 @@ class AddPointTest(testing_common.TestCase):
     """Tests that adding a point sets the test to be non-deprecated."""
     parent = graph_data.Master(id='ChromiumPerf').put()
     parent = graph_data.Bot(id='win7', parent=parent).put()
-    suite = graph_data.Test(
-        id='scrolling_benchmark', parent=parent, deprecated=True).put()
-    graph_data.Test(id='mean_frame_time', parent=suite, deprecated=True).put()
+    graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark', deprecated=True).put()
+    graph_data.TestMetadata(
+        id='ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        deprecated=True).put()
 
     point = {
         'master': 'ChromiumPerf',
@@ -755,12 +777,15 @@ class AddPointTest(testing_common.TestCase):
 
     self.ExecuteTaskQueueTasks('/add_point_queue', add_point._TASK_QUEUE_NAME)
 
-    tests = graph_data.Test.query().fetch(limit=_FETCH_LIMIT)
+    tests = graph_data.TestMetadata.query().fetch(limit=_FETCH_LIMIT)
     self.assertEqual(2, len(tests))
     # Note that the parent test is also marked as non-deprecated.
-    self.assertEqual('scrolling_benchmark', tests[0].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark', tests[0].key.string_id())
     self.assertFalse(tests[0].deprecated)
-    self.assertEqual('mean_frame_time', tests[1].key.string_id())
+    self.assertEqual(
+        'ChromiumPerf/win7/scrolling_benchmark/mean_frame_time',
+        tests[1].key.string_id())
     self.assertFalse(tests[1].deprecated)
 
   def testPost_GitHashSupplementalRevision_Accepted(self):
@@ -786,8 +811,9 @@ class AddPointTest(testing_common.TestCase):
 
   def testPost_NewSuite_CachedSubTestsDeleted(self):
     """Tests that cached test lists are cleared as new test suites are added."""
-    # Set the cached test lists. Note that no actual Test entities are added
-    # here, so when a new point is added, it will still count as a new Test.
+    # Set the cached test lists. Note that no actual TestMetadata entities are
+    # added here, so when a new point is added, it will still count as a new
+    # TestMetadata.
     layered_cache.Set(
         graph_data.LIST_TESTS_SUBTEST_CACHE_KEY % (
             'ChromiumPerf', 'win7', 'scrolling_benchmark'),
@@ -1029,7 +1055,7 @@ class AddPointTest(testing_common.TestCase):
     self.assertEqual('mavericks', rows[0].a_os)
     self.assertEqual('intel', rows[0].a_gpu_oem)
     test_suite = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'win7', 'Test', 'my_test_suite').get()
+        'TestMetadata', 'ChromiumPerf/win7/my_test_suite').get()
     self.assertEqual('foo', test_suite.description)
 
   def testPost_NoTestSuiteName_BenchmarkNameUsed(self):

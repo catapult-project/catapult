@@ -14,7 +14,7 @@ from dashboard.models import stoppage_alert
 class StoppageAlertTest(testing_common.TestCase):
 
   def _AddSampleData(self):
-    """Puts a Test and Row in the datastore and returns the entities."""
+    """Puts a TestMetadata and Row in the datastore and returns the entities."""
     testing_common.AddTests(['M'], ['b'], {'suite': {'foo': {}}})
     sheriff.Sheriff(id='Foo', patterns=['*/*/*/*']).put()
     test_path = 'M/b/suite/foo'

@@ -17,6 +17,7 @@ from google.appengine.api import app_identity
 from dashboard import buildbucket_job
 from dashboard import buildbucket_service
 from dashboard import can_bisect
+from dashboard import list_tests
 from dashboard import namespaced_stored_object
 from dashboard import quick_logger
 from dashboard import request_handler
@@ -217,7 +218,7 @@ def _PrefillInfo(test_path):
   graph_path = '/'.join(test_path.split('/')[:4])
   graph_key = utils.TestKey(graph_path)
 
-  info = {'suite': suite.key.string_id()}
+  info = {'suite': suite.test_name}
   info['master'] = suite.master_name
   info['internal_only'] = suite.internal_only
   info['use_archive'] = _CanDownloadBuilds(suite.master_name)
@@ -236,9 +237,7 @@ def _PrefillInfo(test_path):
   info['email'] = user.email()
 
   info['all_metrics'] = []
-  metric_keys_query = graph_data.Test.query(
-      graph_data.Test.has_rows == True, ancestor=graph_key)
-  metric_keys = metric_keys_query.fetch(keys_only=True)
+  metric_keys = list_tests.GetTestDescendants(graph_key, has_rows=True)
   for metric_key in metric_keys:
     metric_path = utils.TestPath(metric_key)
     if metric_path.endswith('/ref') or metric_path.endswith('_ref'):
@@ -520,7 +519,7 @@ def GuessMetric(test_path):
     # whether this is a story-level test or interaction-level test with
     # story-level children.
     # TODO(qyearsley): When a more reliable way of telling is available
-    # (e.g. a property on the Test entity), use that instead.
+    # (e.g. a property on the TestMetadata entity), use that instead.
     chart = '%s-%s' % (parts[4], parts[3])
   elif len(parts) == 5:
     # master/bot/benchmark/chart/trace
@@ -540,7 +539,8 @@ def GuessMetric(test_path):
 
 def _HasChildTest(test_path):
   key = utils.TestKey(test_path)
-  child = graph_data.Test.query(graph_data.Test.parent_test == key).get()
+  child = graph_data.TestMetadata.query(
+      graph_data.TestMetadata.parent_test == key).get()
   return bool(child)
 
 
@@ -875,4 +875,3 @@ def _GetTryServerBucket(bisect_job):
         'Could not get bucket to be used by buildbucket, using default.')
     return default
   return master_bucket_map.get(bisect_job.master_name, default)
-

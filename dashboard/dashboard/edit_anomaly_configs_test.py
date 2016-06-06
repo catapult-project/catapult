@@ -82,13 +82,17 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
     """Tests changing the patterns list of an existing AnomalyConfig."""
     self.SetCurrentUser('sullivan@chromium.org', is_admin=True)
     master = graph_data.Master(id='TheMaster').put()
-    bot = graph_data.Bot(id='TheBot', parent=master).put()
-    suite1 = graph_data.Test(id='Suite1', parent=bot).put()
-    suite2 = graph_data.Test(id='Suite2', parent=bot).put()
-    test_aaa = graph_data.Test(id='aaa', parent=suite1, has_rows=True).put()
-    test_bbb = graph_data.Test(id='bbb', parent=suite1, has_rows=True).put()
-    test_ccc = graph_data.Test(id='ccc', parent=suite1, has_rows=True).put()
-    test_ddd = graph_data.Test(id='ddd', parent=suite2, has_rows=True).put()
+    graph_data.Bot(id='TheBot', parent=master).put()
+    suite1 = graph_data.TestMetadata(id='TheMaster/TheBot/Suite1').put()
+    suite2 = graph_data.TestMetadata(id='TheMaster/TheBot/Suite2').put()
+    test_aaa = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/aaa', has_rows=True).put()
+    test_bbb = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/bbb', has_rows=True).put()
+    test_ccc = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite1/ccc', has_rows=True).put()
+    test_ddd = graph_data.TestMetadata(
+        id='TheMaster/TheBot/Suite2/ddd', has_rows=True).put()
     anomaly_config.AnomalyConfig(id='1-Suite1-specific', config={'a': 10}).put()
     anomaly_config.AnomalyConfig(id='2-Suite1-general', config={'b': 20}).put()
 
@@ -145,12 +149,12 @@ class EditAnomalyConfigsTest(testing_common.TestCase):
         id='Test Config', config={'a': 10},
         patterns=['*/*/one', '*/*/two']).put()
     master = graph_data.Master(id='TheMaster').put()
-    bot = graph_data.Bot(id='TheBot', parent=master).put()
-    test_one = graph_data.Test(
-        id='one', parent=bot, overridden_anomaly_config=anomaly_config_key,
+    graph_data.Bot(id='TheBot', parent=master).put()
+    test_one = graph_data.TestMetadata(
+        id='TheMaster/TheBot/one', overridden_anomaly_config=anomaly_config_key,
         has_rows=True).put()
-    test_two = graph_data.Test(
-        id='two', parent=bot, overridden_anomaly_config=anomaly_config_key,
+    test_two = graph_data.TestMetadata(
+        id='TheMaster/TheBot/two', overridden_anomaly_config=anomaly_config_key,
         has_rows=True).put()
 
     # Verify the state of the data before making the request.

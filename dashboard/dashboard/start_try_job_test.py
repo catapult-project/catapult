@@ -403,9 +403,9 @@ class StartBisectTest(testing_common.TestCase):
                 'Animation_balls': {}
             }
         })
-    tests = graph_data.Test.query().fetch()
+    tests = graph_data.TestMetadata.query().fetch()
     for test in tests:
-      name = test.key.string_id()
+      name = test.test_name
       if name in ('times', 'page_cycler.morejs', 'blink_perf'):
         continue
       test.has_rows = True

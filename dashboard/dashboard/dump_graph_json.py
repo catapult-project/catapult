@@ -48,12 +48,16 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     Outputs:
       JSON array of encoded protobuf messages, which encode all of
       the datastore entities relating to one test (including Master, Bot,
-      Test, Row, Anomaly and Sheriff entities).
+      TestMetadata, Row, Anomaly and Sheriff entities).
     """
     test_path = self.request.get('test_path')
     num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
     end_rev = self.request.get('end_rev')
     test_key = utils.TestKey(test_path)
+    if not test_key or test_key.kind() != 'TestMetadata':
+      # Bad test_path passed in.
+      self.response.out.write(json.dumps([]))
+      return
 
     # List of datastore entities that will be dumped.
     entities = []
@@ -62,15 +66,15 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
 
     # Get the Row entities.
     q = graph_data.Row.query()
-    q = q.filter(graph_data.Row.parent_test == test_key)
+    print test_key
+    q = q.filter(graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
     if end_rev:
       q = q.filter(graph_data.Row.revision <= int(end_rev))
     q = q.order(-graph_data.Row.revision)
     entities += q.fetch(limit=num_points)
 
     # Get the Anomaly and Sheriff entities.
-    alerts = anomaly.Anomaly.query().filter(
-        anomaly.Anomaly.test == test_key).fetch()
+    alerts = anomaly.Anomaly.GetAlertsForTest(test_key)
     sheriff_keys = {alert.sheriff for alert in alerts}
     sheriffs = [sheriff.get() for sheriff in sheriff_keys]
     entities += alerts
@@ -91,7 +95,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     Outputs:
       JSON array of encoded protobuf messages, which encode all of
       the datastore entities relating to one test (including Master, Bot,
-      Test, Row, Anomaly and Sheriff entities).
+      TestMetadata, Row, Anomaly and Sheriff entities).
     """
     sheriff_name = self.request.get('sheriff')
     num_points = int(self.request.get('num_points', _DEFAULT_MAX_POINTS))
@@ -102,7 +106,7 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
       return
 
     anomalies = self._FetchAnomalies(sheriff, num_anomalies)
-    test_keys = [a.test for a in anomalies]
+    test_keys = [a.GetTestMetadataKey() for a in anomalies]
 
     # List of datastore entities that will be dumped.
     entities = []
@@ -121,19 +125,25 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     self.response.out.write(json.dumps(protobuf_strings))
 
   def _GetTestAncestors(self, test_keys):
-    """Gets the Test, Bot, and Master entities that are ancestors of test."""
+    """Gets the TestMetadata, Bot, and Master entities preceding in path."""
     entities = []
     added_parents = set()
     for test_key in test_keys:
-      parent = test_key.get()
-      while parent:
-        if parent.key not in added_parents:
-          entities.append(parent)
-          added_parents.add(parent.key)
-        parent = parent.key.parent()
-        if parent:
-          parent = parent.get()
-    return entities
+      if test_key.kind() != 'TestMetadata':
+        continue
+      parts = utils.TestPath(test_key).split('/')
+      for index, _, in enumerate(parts):
+        test_path = '/'.join(parts[:index + 1])
+        if test_path in added_parents:
+          continue
+        added_parents.add(test_path)
+        if index == 0:
+          entities.append(ndb.Key('Master', parts[0]).get())
+        elif index == 1:
+          entities.append(ndb.Key('Master', parts[0], 'Bot', parts[1]).get())
+        else:
+          entities.append(ndb.Key('TestMetadata', test_path).get())
+    return [e for e in entities if e is not None]
 
   def _FetchRowsAsync(self, test_keys, num_points):
     """Fetches recent Row asynchronously across all 'test_keys'."""
@@ -141,7 +151,8 @@ class DumpGraphJsonHandler(request_handler.RequestHandler):
     futures = []
     for test_key in test_keys:
       q = graph_data.Row.query()
-      q = q.filter(graph_data.Row.parent_test == test_key)
+      q = q.filter(
+          graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
       q = q.order(-graph_data.Row.revision)
       futures.append(q.fetch_async(limit=num_points))
     ndb.Future.wait_all(futures)

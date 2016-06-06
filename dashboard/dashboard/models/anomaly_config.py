@@ -31,8 +31,9 @@ class AnomalyConfig(ndb.Model):
 
   # A list of test path patterns. Each pattern is a string which can match parts
   # of the test path either exactly, or use * as a wildcard.
-  # Note: Test entities contain a key property called overridden_anomaly_config,
-  # which is set in the pre-put hook for Test in graph_data.py.
+  # Note: TestMetadata entities contain a key property called
+  # overridden_anomaly_config, which is set in the pre-put hook for TestMetadata
+  # in graph_data.py.
   patterns = ndb.StringProperty(repeated=True, indexed=False)
 
 
@@ -51,7 +52,7 @@ def GetAnomalyConfigDict(test):
   """Gets the anomaly threshold config for the given test.
 
   Args:
-    test: Test entity to get the config for.
+    test: TestMetadata entity to get the config for.
 
   Returns:
     A dictionary with threshold parameters for the given test.
@@ -63,7 +64,7 @@ def GetAnomalyConfigDict(test):
     logging.warning('No AnomalyConfig fetched from key %s for test %s',
                     test.overridden_anomaly_config, test.test_path)
     # The the overridden_anomaly_config property should be reset
-    # in the pre-put hook of the Test entity.
+    # in the pre-put hook of the TestMetadata entity.
     test.put()
     return {}
   return CleanConfigDict(anomaly_config.config)

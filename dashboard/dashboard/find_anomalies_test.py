@@ -134,13 +134,16 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     expected_calls = [
         mock.call(ModelMatcher('sheriff'),
-                  ModelMatcher('ref'),
+                  ModelMatcher(
+                      'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10011)),
         mock.call(ModelMatcher('sheriff'),
-                  ModelMatcher('ref'),
+                  ModelMatcher(
+                      'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10041)),
         mock.call(ModelMatcher('sheriff'),
-                  ModelMatcher('ref'),
+                  ModelMatcher(
+                      'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10061))]
     self.assertEqual(expected_calls, mock_email_sheriff.call_args_list)
 
@@ -229,7 +232,9 @@ class ProcessAlertsTest(testing_common.TestCase):
     test.put()
     find_anomalies.ProcessTest(test.key)
     mock_email_sheriff.assert_called_once_with(
-        ModelMatcher('sheriff'), ModelMatcher('ref'), EndRevisionMatcher(10041))
+        ModelMatcher('sheriff'),
+        ModelMatcher('ChromiumGPU/linux-release/scrolling_benchmark/ref'),
+        EndRevisionMatcher(10041))
 
   @mock.patch.object(
       find_anomalies.find_change_points, 'FindChangePoints',
@@ -249,7 +254,8 @@ class ProcessAlertsTest(testing_common.TestCase):
     find_anomalies.ProcessTest(test.key)
     expected_calls = [
         mock.call(ModelMatcher('sheriff'),
-                  ModelMatcher('ref'),
+                  ModelMatcher(
+                      'ChromiumGPU/linux-release/scrolling_benchmark/ref'),
                   EndRevisionMatcher(10011))]
     self.assertEqual(expected_calls, mock_email_sheriff.call_args_list)
 
@@ -337,7 +343,7 @@ class ProcessAlertsTest(testing_common.TestCase):
   @mock.patch('logging.error')
   def testProcessTest_LastAlertedRevisionTooHigh_PropertyReset(
       self, mock_logging_error):
-    # If the last_alerted_revision property of the Test is too high,
+    # If the last_alerted_revision property of the TestMetadata is too high,
     # then the property should be reset and an error should be logged.
     self._AddDataForTests()
     test = utils.TestKey(

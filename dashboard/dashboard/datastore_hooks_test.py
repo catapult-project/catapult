@@ -35,10 +35,10 @@ class DatastoreHooksTest(testing_common.TestCase):
 
   def _AddDataToDatastore(self):
     """Puts a set of entities; some internal-only, some not."""
-    # Need to be privileged to add Test and Row objects to the datastore because
-    # there is a get() for the parent_test in the pre_put_hook. This should work
-    # correctly in production because Rows and Tests should only be added by
-    # /add_point, which is privileged.
+    # Need to be privileged to add TestMetadata and Row objects to the datastore
+    # because there is a get() for the parent_test in the pre_put_hook. This
+    # should work correctly in production because Rows and TestMetadata should
+    # only be added by /add_point, which is privileged.
     self.SetCurrentUser('internal@chromium.org')
     testing_common.AddTests(
         ['ChromiumPerf'],
@@ -47,30 +47,32 @@ class DatastoreHooksTest(testing_common.TestCase):
             'TestExternal': {'SubTestExternal': {}},
         })
     internal_key = ['Master', 'ChromiumPerf', 'Bot', 'FooInternal']
-    internal_test_key = ['Test', 'TestInternal']
-    internal_sub_test_key = ['Test', 'SubTestInternal']
-    external_key = ['Master', 'ChromiumPerf', 'Bot', 'Win7External']
     internal_bot = ndb.Key(*internal_key).get()
     internal_bot.internal_only = True
     internal_bot.put()
-    internal_test = ndb.Key(*(external_key + internal_test_key)).get()
+    internal_test = ndb.Key(
+        'TestMetadata', 'ChromiumPerf/Win7External/TestInternal').get()
     internal_test.internal_only = True
     internal_test.put()
-    internal_test = ndb.Key(*(internal_key + internal_test_key)).get()
+    internal_test = ndb.Key(
+        'TestMetadata', 'ChromiumPerf/FooInternal/TestInternal').get()
     internal_test.internal_only = True
     internal_test.put()
-    internal_sub_test = ndb.Key(*(
-        external_key + internal_test_key + internal_sub_test_key)).get()
+    internal_sub_test = ndb.Key(
+        'TestMetadata',
+        'ChromiumPerf/Win7External/TestInternal/SubTestInternal').get()
     internal_sub_test.internal_only = True
     internal_sub_test.put()
-    internal_sub_test = ndb.Key(*(
-        internal_key + internal_test_key + internal_sub_test_key)).get()
+    internal_sub_test = ndb.Key(
+        'TestMetadata',
+        'ChromiumPerf/FooInternal/TestInternal/SubTestInternal').get()
     internal_sub_test.internal_only = True
     internal_sub_test.put()
 
     internal_key = internal_sub_test.key
     external_key = ndb.Key(
-        *(external_key + ['Test', 'TestExternal', 'Test', 'SubTestExternal']))
+        'TestMetadata',
+        'ChromiumPerf/Win7External/TestExternal/SubTestExternal')
 
     internal_test_container_key = utils.GetTestContainerKey(internal_key)
     external_test_container_key = utils.GetTestContainerKey(external_key)
@@ -104,26 +106,45 @@ class DatastoreHooksTest(testing_common.TestCase):
       self.assertEqual(1, len(bots))
       self.assertEqual('Win7External', bots[0].key.string_id())
 
-    tests = graph_data.Test.query().fetch()
+    tests = graph_data.TestMetadata.query().fetch()
     if include_internal:
       self.assertEqual(8, len(tests))
-      self.assertEqual('TestExternal', tests[0].key.string_id())
-      self.assertEqual('SubTestExternal', tests[1].key.string_id())
-      self.assertEqual('TestInternal', tests[2].key.string_id())
-      self.assertEqual('SubTestInternal', tests[3].key.string_id())
-      self.assertEqual('TestExternal', tests[4].key.string_id())
-      self.assertEqual('SubTestExternal', tests[5].key.string_id())
-      self.assertEqual('TestInternal', tests[6].key.string_id())
-      self.assertEqual('SubTestInternal', tests[7].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/FooInternal/TestExternal', tests[0].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/FooInternal/TestExternal/SubTestExternal',
+          tests[1].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/FooInternal/TestInternal', tests[2].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/FooInternal/TestInternal/SubTestInternal',
+          tests[3].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/Win7External/TestExternal', tests[4].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/Win7External/TestExternal/SubTestExternal',
+          tests[5].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/Win7External/TestInternal', tests[6].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/Win7External/TestInternal/SubTestInternal',
+          tests[7].key.string_id())
     else:
       self.assertEqual(4, len(tests))
-      self.assertEqual('TestExternal', tests[0].key.string_id())
-      self.assertEqual('SubTestExternal', tests[1].key.string_id())
-      self.assertEqual('TestExternal', tests[2].key.string_id())
-      self.assertEqual('SubTestExternal', tests[3].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/FooInternal/TestExternal', tests[0].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/FooInternal/TestExternal/SubTestExternal',
+          tests[1].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/Win7External/TestExternal', tests[2].key.string_id())
+      self.assertEqual(
+          'ChromiumPerf/Win7External/TestExternal/SubTestExternal',
+          tests[3].key.string_id())
 
-    tests = graph_data.Test.query(ancestor=ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'FooInternal')).fetch()
+    tests = graph_data.TestMetadata.query(
+        graph_data.TestMetadata.master_name == 'ChromiumPerf',
+        graph_data.TestMetadata.bot_name == 'FooInternal').fetch()
     if include_internal:
       self.assertEqual(4, len(tests))
     else:
@@ -192,9 +213,11 @@ class DatastoreHooksTest(testing_common.TestCase):
     external_bot_2 = graph_data.Bot.get_by_id('Win7External', parent=m.key)
     self.assertEqual(external_bot_2.key.string_id(), 'Win7External')
     external_test = ndb.Key(
-        'Master', 'ChromiumPerf', 'Bot', 'Win7External', 'Test', 'TestExternal',
-        'Test', 'SubTestExternal').get()
-    self.assertEqual('SubTestExternal', external_test.key.string_id())
+        'TestMetadata',
+        'ChromiumPerf/Win7External/TestExternal/SubTestExternal').get()
+    self.assertEqual(
+        'ChromiumPerf/Win7External/TestExternal/SubTestExternal',
+        external_test.key.string_id())
     if include_internal:
       internal_bot = ndb.Key(
           'Master', 'ChromiumPerf', 'Bot', 'FooInternal').get()

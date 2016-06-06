@@ -6,6 +6,7 @@
 
 from google.appengine.ext import ndb
 
+from dashboard import utils
 from dashboard.models import internal_only_model
 from dashboard.models import sheriff as sheriff_module
 
@@ -123,6 +124,22 @@ class Alert(internal_only_model.InternalOnlyModel):
     # Update minimum revision range for group.
     group.UpdateRevisionRange(grouped_alerts)
 
+  def GetTestMetadataKey(self):
+    """Get the key for the TestMetadata entity of this alert.
+
+    We are in the process of converting from Test entities to TestMetadata.
+    Until this is done, it's possible that an alert may store either Test
+    or TestMetadata in the 'test' KeyProperty. This gets the TestMetadata key
+    regardless of what's stored.
+    """
+    return utils.TestMetadataKey(self.test)
+
+  @classmethod
+  def GetAlertsForTest(cls, test_key, limit=None):
+    return cls.query(cls.test.IN([
+        utils.TestMetadataKey(test_key),
+        utils.OldStyleTestKey(test_key)])).fetch(limit=limit)
+
 
 def _GetTestSuiteFromKey(test_key):
   """Gets test suite from |test_key|, None if not found."""
@@ -134,6 +151,6 @@ def _GetTestSuiteFromKey(test_key):
 
 def GetBotNamesFromAlerts(alerts):
   """Gets a set with the names of the bots related to some alerts."""
-  # a.test is a ndb.Key object, and a.test.flat() should return a list like
-  # ['Master', master name, 'Bot', bot name, 'Test', test suite name, ...]
-  return {a.test.flat()[3] for a in alerts}
+  # a.test is the key of a TestMetadata entity, and the TestPath is a path like
+  # master_name/bot_name/test_suite_name/metric...
+  return {utils.TestPath(a.test).split('/')[1] for a in alerts}

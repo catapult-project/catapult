@@ -12,10 +12,10 @@ class GraphDataTest(testing_common.TestCase):
 
   def testPutTestTruncatesDescription(self):
     master = graph_data.Master(id='M').put()
-    bot = graph_data.Bot(parent=master, id='b').put()
+    graph_data.Bot(parent=master, id='b').put()
     long_string = 500 * 'x'
     too_long = long_string + 'y'
-    key = graph_data.Test(id='a', parent=bot, description=too_long).put()
+    key = graph_data.TestMetadata(id='M/b/a', description=too_long).put()
     self.assertEqual(long_string, key.get().description)
 
 

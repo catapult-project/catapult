@@ -29,10 +29,10 @@ class GraphRevisionsTest(testing_common.TestCase):
     """Adds mock data to the datastore, not updating stored_object."""
     master_key = graph_data.Master(id='ChromiumPerf').put()
     for bot_name in ['win7', 'mac']:
-      bot_key = graph_data.Bot(id=bot_name, parent=master_key).put()
-      test_key = graph_data.Test(id='dromaeo', parent=bot_key).put()
-      subtest_key = graph_data.Test(
-          id='dom', parent=test_key, has_rows=True).put()
+      graph_data.Bot(id=bot_name, parent=master_key).put()
+      graph_data.TestMetadata(id='ChromiumPerf/%s/dromaeo' % bot_name).put()
+      subtest_key = graph_data.TestMetadata(
+          id='ChromiumPerf/%s/dromaeo/dom' % bot_name, has_rows=True).put()
       test_container_key = utils.GetTestContainerKey(subtest_key)
       for rev in range(15000, 16000, 5):
         row = graph_data.Row(parent=test_container_key,

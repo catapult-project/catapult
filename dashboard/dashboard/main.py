@@ -77,8 +77,8 @@ def _GetRecentAnomalies(days, sheriff):
 
 
 def _GetKeyToTestDict(anomalies):
-  """Returns a map of Test keys to entities for the given anomalies."""
-  test_keys = {a.test for a in anomalies}
+  """Returns a map of TestMetadata keys to entities for the given anomalies."""
+  test_keys = {a.GetTestMetadataKey() for a in anomalies}
   tests = utils.GetMulti(test_keys)
   return {t.key: t for t in tests}
 
@@ -103,7 +103,7 @@ def _AnomalyInfoDicts(anomalies, tests):
 
   Args:
     anomalies: A list of anomalies.
-    tests: A dictionary mapping Test keys to Test entities.
+    tests: A dictionary mapping TestMetadata keys to TestMetadata entities.
 
   Returns:
     A list of dictionaries with information about the given anomalies.
@@ -111,9 +111,11 @@ def _AnomalyInfoDicts(anomalies, tests):
   anomaly_list = []
   for anomaly_entity in anomalies:
     # TODO(qyearsley): Add test coverage. See catapult:#1346.
-    test = tests.get(anomaly_entity.test)
+    test = tests.get(anomaly_entity.GetTestMetadataKey())
     if not test:
-      logging.warning('No Test entity for key: %s.', anomaly_entity.test)
+      logging.warning(
+          'No TestMetadata entity for key: %s.',
+          anomaly_entity.GetTestMetadataKey())
       continue
     subtest_path = '/'.join(test.test_path.split('/')[3:])
     graph_link = email_template.GetGroupReportPageLink(anomaly_entity)

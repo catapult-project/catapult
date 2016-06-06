@@ -12,13 +12,14 @@ from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
 from dashboard import request_handler
+from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 
 # Number of Row entities to process at once.
 _MAX_ROWS_TO_PUT = 25
 
-# Number of Test entities to process at once.
+# Number of TestMetadata entities to process at once.
 _MAX_TESTS_TO_PUT = 25
 
 # Which queue to use for tasks started by this handler. Must be in queue.yaml.
@@ -26,7 +27,7 @@ _QUEUE_NAME = 'migrate-queue'
 
 
 class ChangeInternalOnlyHandler(request_handler.RequestHandler):
-  """Changes internal_only property of Bot, Test, and Row."""
+  """Changes internal_only property of Bot, TestMetadata, and Row."""
 
   def get(self):
     """Renders the UI for selecting bots."""
@@ -57,9 +58,9 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
       internal_only: "true" if turning on internal_only, else "false".
       bots: Bots to update. Multiple bots parameters are possible; the value
           of each should be a string like "MasterName/platform-name".
-      test: An urlsafe Key for a Test entity.
+      test: An urlsafe Key for a TestMetadata entity.
       cursor: An urlsafe Cursor; this parameter is only given if we're part-way
-          through processing a Bot or a Test.
+          through processing a Bot or a TestMetadata.
 
     Outputs:
       A message to the user if this request was started by the web form,
@@ -119,11 +120,13 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
     else:
       cursor = datastore_query.Cursor(urlsafe=cursor)
 
-    # Fetch a certain number of Test entities starting from cursor. See:
+    # Fetch a certain number of TestMetadata entities starting from cursor. See:
     # https://developers.google.com/appengine/docs/python/ndb/queryclass
 
-    # Start update tasks for each existing subordinate Test.
-    test_query = graph_data.Test.query(ancestor=bot_key)
+    # Start update tasks for each existing subordinate TestMetadata.
+    test_query = graph_data.TestMetadata.query(
+        graph_data.TestMetadata.master_name == master,
+        graph_data.TestMetadata.bot_name == bot)
     test_keys, next_cursor, more = test_query.fetch_page(
         _MAX_TESTS_TO_PUT, start_cursor=cursor, keys_only=True)
 
@@ -147,10 +150,10 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
           queue_name=_QUEUE_NAME)
 
   def _UpdateTest(self, test_key_urlsafe, internal_only, cursor=None):
-    """Updates the given Test and associated Row entities."""
+    """Updates the given TestMetadata and associated Row entities."""
     test_key = ndb.Key(urlsafe=test_key_urlsafe)
     if not cursor:
-      # First time updating for this Test.
+      # First time updating for this TestMetadata.
       test_entity = test_key.get()
       if test_entity.internal_only != internal_only:
         test_entity.internal_only = internal_only
@@ -159,8 +162,7 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
       # Update all of the Anomaly entities for this test.
       # Assuming that this should be fast enough to do in one request
       # for any one test.
-      query = anomaly.Anomaly.query(anomaly.Anomaly.test == test_key)
-      anomalies = query.fetch()
+      anomalies = anomaly.Anomaly.GetAlertsForTest(test_key)
       for anomaly_entity in anomalies:
         if anomaly_entity.internal_only != internal_only:
           anomaly_entity.internal_only = internal_only
@@ -169,7 +171,8 @@ class ChangeInternalOnlyHandler(request_handler.RequestHandler):
       cursor = datastore_query.Cursor(urlsafe=cursor)
 
     # Fetch a certain number of Row entities starting from cursor.
-    rows_query = graph_data.Row.query(graph_data.Row.parent_test == test_key)
+    rows_query = graph_data.Row.query(
+        graph_data.Row.parent_test == utils.OldStyleTestKey(test_key))
     rows, next_cursor, more = rows_query.fetch_page(
         _MAX_ROWS_TO_PUT, start_cursor=cursor)
 

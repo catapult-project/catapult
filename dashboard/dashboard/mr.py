@@ -27,7 +27,9 @@ from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
 from dashboard import layered_cache
+from dashboard import list_tests
 from dashboard import request_handler
+from dashboard import utils
 from dashboard.models import graph_data
 from dashboard.models import stoppage_alert
 
@@ -63,7 +65,7 @@ class MRDeprecateTestsHandler(request_handler.RequestHandler):
     handler = ('dashboard.mr.DeprecateTestsMapper')
     reader = 'mapreduce.input_readers.DatastoreInputReader'
     mapper_parameters = {
-        'entity_kind': ('dashboard.models.graph_data.Test'),
+        'entity_kind': ('dashboard.models.graph_data.TestMetadata'),
         'filters': [('has_rows', '=', True),
                     ('deprecated', '=', False)],
     }
@@ -71,7 +73,7 @@ class MRDeprecateTestsHandler(request_handler.RequestHandler):
 
 
 def DeprecateTestsMapper(entity):
-  """Marks a Test entity as deprecated if the last row is too old.
+  """Marks a TestMetadata entity as deprecated if the last row is too old.
 
   What is considered "too old" is defined by _OLDEST_REVISION_DELTA. Also,
   if all of the subtests in a test have been marked as deprecated, then that
@@ -81,13 +83,15 @@ def DeprecateTestsMapper(entity):
   happens in add_point.py.
 
   Args:
-    entity: The Test entity to check.
+    entity: The TestMetadata entity to check.
 
   Yields:
     Zero or more datastore mutation operations.
   """
-  # Make sure that we have a non-deprecated Test with Rows.
-  if entity.key.kind() != 'Test' or not entity.has_rows or entity.deprecated:
+  # Make sure that we have a non-deprecated TestMetadata with Rows.
+  if (entity.key.kind() != 'TestMetadata' or
+      not entity.has_rows or
+      entity.deprecated):
     # TODO(qyearsley): Add test coverage. See catapult:#1346.
     logging.error(
         'Got bad entity in mapreduce! Kind: %s, has_rows: %s, deprecated: %s',
@@ -96,7 +100,8 @@ def DeprecateTestsMapper(entity):
 
   # Fetch the last row.
   datastore_hooks.SetPrivilegedRequest()
-  query = graph_data.Row.query(graph_data.Row.parent_test == entity.key)
+  query = graph_data.Row.query(
+      graph_data.Row.parent_test == utils.OldStyleTestKey(entity.key))
   query = query.order(-graph_data.Row.timestamp)
   last_row = query.get()
   if not last_row:
@@ -123,7 +128,7 @@ def _CreateStoppageAlerts(test, last_row):
   pass before an alert is created.
 
   Args:
-    test: A Test entity.
+    test: A TestMetadata entity.
     last_row: The Row entity that was last added.
 
   Yields:
@@ -149,7 +154,7 @@ def _CreateStoppageAlerts(test, last_row):
 
 
 def _MarkDeprecated(test):
-  """Marks a Test as deprecated and yields Put operations."""
+  """Marks a TestMetadata as deprecated and yields Put operations."""
   test.deprecated = True
   yield op.db.Put(test)
 
@@ -161,7 +166,9 @@ def _MarkDeprecated(test):
 
   # Check whether the test suite now contains only deprecated tests, and
   # if so, deprecate it too.
-  suite = ndb.Key(flat=test.key.flat()[:6]).get()
+  suite = ndb.Key(
+      'TestMetadata', '%s/%s/%s' % (
+          test.master_name, test.bot_name, test.suite_name)).get()
   if suite and not suite.deprecated and _AllSubtestsDeprecated(suite):
     suite.deprecated = True
     yield op.db.Put(suite)
@@ -169,8 +176,6 @@ def _MarkDeprecated(test):
 
 def _AllSubtestsDeprecated(test):
   """Checks whether all descendant tests are marked as deprecated."""
-  query = graph_data.Test.query(ancestor=test.key)
-  query = query.filter(
-      graph_data.Test.has_rows == True)
-  descendant_tests = query.fetch()
+  descendant_tests = list_tests.GetTestDescendants(
+      test.key, has_rows=True, keys_only=False)
   return all(t.deprecated for t in descendant_tests)

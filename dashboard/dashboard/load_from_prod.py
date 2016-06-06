@@ -73,7 +73,7 @@ class LoadFromProdHandler(request_handler.RequestHandler):
       return
     protos = json.loads(response.content)
 
-    kinds = ['Master', 'Bot', 'Test', 'Row', 'Sheriff', 'Anomaly']
+    kinds = ['Master', 'Bot', 'TestMetadata', 'Row', 'Sheriff', 'Anomaly']
     entities = {k: [] for k in kinds}
     for proto in protos:
       pb = model.entity_pb.EntityProto(base64.b64decode(proto))
