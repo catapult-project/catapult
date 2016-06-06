@@ -281,12 +281,32 @@ tr.exportTo('tr.metrics.sh', function() {
     return newObjects / ((ratioBefore + ratioAfter) / 2);
   }
 
+  /**
+   * If there are loading fonts when layout happened, the layout change
+   * accounting is postponed until the font is displayed. However, icon fonts
+   * shouldn't block first meaningful paint. We use a threshold that only web
+   * fonts that laid out more than 200 characters should block first meaningful
+   * paint.
+   */
   function hasTooManyBlankCharactersToBeMeaningful(event) {
     var BLOCK_FIRST_MEANINGFUL_PAINT_IF_BLANK_CHARACTERS_MORE_THAN = 200;
     return event.args['counters']['approximateBlankCharacterCount'] >
         BLOCK_FIRST_MEANINGFUL_PAINT_IF_BLANK_CHARACTERS_MORE_THAN;
   }
 
+  /**
+   * Computes Time to first meaningful paint (TTFMP) from |model| and add it to
+   * |value|.
+   *
+   * TTFMP is computed from three types of events: NavigationStart, Layout, and
+   * Paint. Each Layout event has associated "significance" value, indicating
+   * how the layout was visually significant.
+   *
+   * TTFMP is the time between NavigationStart and Paint that follows the Layout
+   * with biggest significance value.
+   *
+   * Design doc: https://goo.gl/vpaxv6
+   */
   function firstMeaningfulPaintMetric(values, model) {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -324,11 +344,15 @@ tr.exportTo('tr.metrics.sh', function() {
       var maxSignificanceSoFar = 0;
       var accumulatedSignificanceWhileHavingBlankText = 0;
 
+      // Iterate over the layout events, remembering one with largest
+      // significance.
       layoutsForFrameId[frameIdRef].forEach(function(ev) {
         var navigationStartForThisLayout =
           findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ev.start);
 
         if (navigationStart !== navigationStartForThisLayout) {
+          // New navigation is found. Compute TTFMP for current navigation, and
+          // reset the state variables.
           if (navigationStart !== undefined &&
               mostSignificantLayout !== undefined)
             addFirstMeaningfulPaintSampleToHistogram(
@@ -339,6 +363,9 @@ tr.exportTo('tr.metrics.sh', function() {
           accumulatedSignificanceWhileHavingBlankText = 0;
         }
 
+        // Check if |ev| has the largest significance. If the page has many
+        // blank characters, the significance value is accumulated until
+        // the text become visible.
         var significance = layoutSignificance(ev);
         if (hasTooManyBlankCharactersToBeMeaningful(ev)) {
           accumulatedSignificanceWhileHavingBlankText += significance;
@@ -351,6 +378,8 @@ tr.exportTo('tr.metrics.sh', function() {
           }
         }
       }, this);
+
+      // Emit TTFMP for the last navigation.
       if (mostSignificantLayout !== undefined)
         addFirstMeaningfulPaintSampleToHistogram(
             frameIdRef, navigationStart, mostSignificantLayout);
