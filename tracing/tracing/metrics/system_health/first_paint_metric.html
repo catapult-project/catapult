@@ -192,6 +192,11 @@ tr.exportTo('tr.metrics.sh', function() {
             return;
           if (isTelemetryInternalEvent(ev))
             return;
+          if (ev.args.counters === undefined) {
+            console.warn('Ignoring FrameView::performLayout event with no ' +
+                'counters arg (END event is missing).');
+            return;
+          }
           var frameIdRef = ev.args.counters['frame'];
           if (frameIdRef === undefined)
             return;

@@ -176,7 +176,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(800, numeric.running.mean);
   });
 
-  test('firstMeaningfulPaintWithEmptyLayoutCounters', function() {
+  test('firstMeaningfulPaintWithInvalidLayoutCounters', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
@@ -204,6 +204,18 @@ tr.b.unittest.testSuite(function() {
           contentsHeightBeforeLayout: 0
         }
       }));
+
+      // Incomplete slice: counters argument is missing.
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink,benchmark,disabled-by-default-blink.debug.layout',
+        title: 'FrameView::performLayout',
+        start: 550,
+        duration: 10.0,
+        args: {
+          contentsHeightBeforeLayout: 0
+        }
+      }));
+
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
         cat: 'devtools.timeline',
         title: 'Paint',
