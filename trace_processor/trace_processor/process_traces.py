@@ -93,6 +93,9 @@ def Main():
 
   traces = _GetListFromFileOrDir(args.trace_file_or_dir)
 
+  if args.output_file:
+    args.output_file = os.path.abspath(args.output_file)
+
   if args.metric_name:
     # Didn't put in choices because the commandline help is super ugly and
     # repetitive.
@@ -100,9 +103,7 @@ def Main():
       parser.error('Invalid metric specified.')
 
     return _ProcessTracesWithMetric(
-        args.metric_name, traces,
-        os.path.abspath(args.output_file))
+        args.metric_name, traces, args.output_file)
   elif args.mapper_handle:
     return _ProcessTracesWithMapper(
-        args.mapper_handle, traces,
-        os.path.abspath(args.output_file))
+        args.mapper_handle, traces, args.output_file)
