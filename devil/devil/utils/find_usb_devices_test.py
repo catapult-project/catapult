@@ -304,16 +304,19 @@ class USBScriptTest(unittest.TestCase):
     self.assertEquals(a3, '/dev/ttyUSB3')
 
   def testBattorDictFromFileMapping(self):
-    map_dict = {'Phone1':'Battor1', 'Phone2':'Battor2', 'Phone3':'Battor3'}
-    curr_dir = os.path.dirname(os.path.realpath(__file__))
-    filename = os.path.join(curr_dir, 'test', 'data', 'test_write_map.json')
-    battor_device_mapping.WriteSerialMapFile(filename, map_dict)
-    a1 = battor_device_mapping.GetBattorPathFromPhoneSerial(
-             'Phone1', serial_map_file=filename)
-    a2 = battor_device_mapping.GetBattorPathFromPhoneSerial(
-             'Phone2', serial_map_file=filename)
-    a3 = battor_device_mapping.GetBattorPathFromPhoneSerial(
-             'Phone3', serial_map_file=filename)
+    try:
+      map_dict = {'Phone1':'Battor1', 'Phone2':'Battor2', 'Phone3':'Battor3'}
+      curr_dir = os.path.dirname(os.path.realpath(__file__))
+      filename = os.path.join(curr_dir, 'test', 'data', 'test_write_map.json')
+      battor_device_mapping.WriteSerialMapFile(filename, map_dict)
+      a1 = battor_device_mapping.GetBattorPathFromPhoneSerial(
+               'Phone1', serial_map_file=filename)
+      a2 = battor_device_mapping.GetBattorPathFromPhoneSerial(
+               'Phone2', serial_map_file=filename)
+      a3 = battor_device_mapping.GetBattorPathFromPhoneSerial(
+               'Phone3', serial_map_file=filename)
+    finally:
+      os.remove(filename)
     self.assertEquals(a1, '/dev/ttyUSB1')
     self.assertEquals(a2, '/dev/ttyUSB2')
     self.assertEquals(a3, '/dev/ttyUSB3')
