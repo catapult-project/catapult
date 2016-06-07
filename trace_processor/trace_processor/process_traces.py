@@ -30,7 +30,7 @@ def _DumpToOutputJson(results, output_file):
     with open(output_file, 'w') as f:
       json.dump(results, f, indent=2)
   else:
-    print results
+    print json.dumps(results, indent=2)
 
 
 def _GetExitCodeForResults(results):
