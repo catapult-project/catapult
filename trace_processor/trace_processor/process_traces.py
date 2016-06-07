@@ -91,7 +91,7 @@ def Main():
   if not args.metric_name and not args.mapper_handle:
     parser.error('Specify either metric or mapper handle.')
 
-  traces = _GetListFromFileOrDir(args.trace_file_or_dir)
+  traces = _GetListFromFileOrDir(os.path.abspath(args.trace_file_or_dir))
 
   if args.output_file:
     args.output_file = os.path.abspath(args.output_file)
