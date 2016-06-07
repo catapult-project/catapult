@@ -390,6 +390,7 @@
       'tracing/ui/extras/highlighter/vsync_highlighter.html',
       'tracing/ui/extras/lean_config.html',
       'tracing/ui/extras/side_panel/alerts_side_panel.html',
+      'tracing/ui/extras/side_panel/frame_data_side_panel.html',
       'tracing/ui/extras/side_panel/input_latency_side_panel.html',
       'tracing/ui/extras/side_panel/time_summary_side_panel.html',
       'tracing/ui/extras/system_stats/system_stats.html',

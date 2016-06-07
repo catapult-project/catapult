@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/extras/chrome/blame_context/frame_tree_node.html">
+<link rel="import" href="/tracing/extras/chrome/blame_context/render_frame.html">
+<link rel="import" href="/tracing/extras/chrome/blame_context/top_level.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
+
+<polymer-element name='tr-ui-e-s-frame-data-side-panel'
+   extends='tr-ui-side-panel'>
+  <template>
+    <style>
+    :host {
+      display: flex;
+      width: 600px;
+      flex-direction: column;
+    }
+    table-container {
+      display: flex;
+      overflow: auto;
+    }
+    </style>
+    <table-container>
+      <tr-ui-b-table id="table"></tr-ui-b-table>
+    </table-container>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+tr.exportTo('tr.ui.e.s', function() {
+  var BlameContextSnapshot = tr.e.chrome.BlameContextSnapshot;
+  var FrameTreeNodeSnapshot = tr.e.chrome.FrameTreeNodeSnapshot;
+  var RenderFrameSnapshot = tr.e.chrome.RenderFrameSnapshot;
+  var TopLevelSnapshot = tr.e.chrome.TopLevelSnapshot;
+
+  var BlameContextInstance = tr.e.chrome.BlameContextInstance;
+  var FrameTreeNodeInstance = tr.e.chrome.FrameTreeNodeInstance;
+  var RenderFrameInstance = tr.e.chrome.RenderFrameInstance;
+  var TopLevelInstance = tr.e.chrome.TopLevelInstance;
+
+  /**
+   * @constructor
+   */
+  function Row(context) {
+    this.type = context.objectInstance.blameContextType;
+
+    this.contexts = [context];
+    this.renderer = undefined;
+    if (context instanceof FrameTreeNodeSnapshot) {
+      if (context.renderFrame) {
+        this.contexts.push(context.renderFrame);
+        this.renderer = context.renderFrame.objectInstance.parent.pid;
+      }
+    } else if (context instanceof RenderFrameSnapshot) {
+      if (context.frameTreeNode)
+        this.contexts.push(context.frameTreeNode);
+      this.renderer = context.objectInstance.parent.pid;
+    } else if (context instanceof TopLevelSnapshot) {
+      this.renderer = context.objectInstance.parent.pid;
+    } else {
+      throw new Error('Unknown context type');
+    }
+
+    // TODO(xiaochengh): Handle the case where a subframe has a trivial url
+    // (e.g., about:blank), but inherits the origin of its parent. This is not
+    // needed now, but will be required if we want to group rows by origin.
+    this.url = context.url;
+
+    // To be computed in batch later for efficiency.
+    this.eventsOfInterest = new tr.model.EventSet(this.contexts);
+    this.time = 0;
+  }
+
+  Polymer('tr-ui-e-s-frame-data-side-panel', {
+    ready: function() {
+      this.model_ = undefined;
+      this.rangeOfInterest_ = new tr.b.Range();
+
+      // TODO(xiaochengh): Design proper grouping of the rows (by renderer
+      // pid, frame tree topology, site, ...) in a follow-up patch.
+      this.$.table.showHeader = true;
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.table.tableColumns = this.createFrameDataTableColumns_();
+
+      this.$.table.addEventListener('selection-changed', function(e) {
+        this.selectEventSet_(this.$.table.selectedTableRow.eventsOfInterest);
+      }.bind(this));
+    },
+
+    selectEventSet_: function(eventSet) {
+      var event = new tr.model.RequestSelectionChangeEvent();
+      event.selection = eventSet;
+      this.dispatchEvent(event);
+    },
+
+    createFrameDataTableColumns_: function() {
+      return [
+        {
+          title: 'Renderer',
+          value: row => row.renderer,
+          cmp: (a, b) => a.renderer - b.renderer
+        },
+        {
+          title: 'Type',
+          value: row => row.type
+        },
+        // TODO(xiaochengh): Decide what details to show in the table:
+        // - URL seems necessary, but we may also want origin instead/both.
+        // - Distinguish between browser time and renderer time?
+        // - Distinguish between CPU time and wall clock time?
+        // - Memory? Network? ...
+        {
+          title: 'Time',
+          value: row => tr.v.ui.createScalarSpan(row.time, {
+            unit: tr.v.Unit.byName.timeStampInMs,
+            ownerDocument: this.ownerDocument
+          }),
+          cmp: (a, b) => a.time - b.time
+        },
+        {
+          title: 'URL',
+          value: row => row.url,
+          cmp: (a, b) => (a.url || '').localeCompare(b.url || '')
+        }
+      ];
+    },
+
+    createFrameDataTableRows_: function() {
+      if (!this.model_)
+        return [];
+
+      // Gather contexts into skeletons of rows.
+      var rows = [];
+      var rowMap = {};
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
+        process.objects.iterObjectInstances(function(objectInstance) {
+          if (!objectInstance instanceof BlameContextInstance)
+            return;
+          objectInstance.snapshots.forEach(function(snapshot) {
+            if (rowMap[snapshot.guid])
+              return;
+            var row = new Row(snapshot);
+            row.contexts.forEach(context => rowMap[context.guid] = row);
+            rows.push(row);
+          }, this);
+        }, this);
+      }, this);
+
+      // Find slices attributed to each row.
+      // TODO(xiaochengh): We should implement a getter
+      // BlameContextSnapshot.attributedEvents, instead of process the model in
+      // a UI component.
+      tr.b.iterItems(this.model_.processes, function(pid, process) {
+        tr.b.iterItems(process.threads, function(tid, thread) {
+          thread.sliceGroup.iterSlicesInTimeRange(function(topLevelSlice) {
+            topLevelSlice.contexts.forEach(function(context) {
+              if (!context.snapshot.guid || !rowMap[context.snapshot.guid])
+                return;
+              var row = rowMap[context.snapshot.guid];
+              row.eventsOfInterest.push(topLevelSlice);
+              row.time += topLevelSlice.selfTime || 0;
+            });
+          }, this.currentRangeOfInterest.min, this.currentRangeOfInterest.max);
+        }, this);
+      }, this);
+
+      return rows;
+    },
+
+    updateContents_: function() {
+      this.$.table.tableRows = this.createFrameDataTableRows_();
+      this.$.table.rebuild();
+    },
+
+    supportsModel: function(m) {
+      if (!m) {
+        return {
+          supported: false,
+          reason: 'No model available.'
+        };
+      }
+
+      var ans = {supported: false};
+      tr.b.iterItems(m.processes, function(pid, process) {
+        process.objects.iterObjectInstances(function(instance) {
+          if (instance instanceof BlameContextInstance)
+            ans.supported = true;
+        });
+      }, this);
+
+      if (!ans.supported)
+        ans.reason = 'No frame data available';
+      return ans;
+    },
+
+    get currentRangeOfInterest() {
+      if (this.rangeOfInterest_.isEmpty)
+        return this.model_.bounds;
+      else
+        return this.rangeOfInterest_;
+    },
+
+    get rangeOfInterest() {
+      return this.rangeOfInterest_;
+    },
+
+    set rangeOfInterest(rangeOfInterest) {
+      this.rangeOfInterest_ = rangeOfInterest;
+      this.updateContents_();
+    },
+
+    get selection() {
+      // Not applicable.
+    },
+
+    set selection(_) {
+      // Not applicable.
+    },
+
+    get textLabel() {
+      return 'Frame Data';
+    },
+
+    get model() {
+      return this.model_;
+    },
+
+    set model(model) {
+      this.model_ = model;
+      this.updateContents_();
+    }
+  });
+});
+</script>
