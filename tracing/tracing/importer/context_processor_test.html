@@ -215,5 +215,59 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(secondSet, [expectedContext]);
     assert(Object.is(firstSet, secondSet));
   });
+
+  test('destroyBasic', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+    processor.enterContext('type', id);
+    assert.deepEqual(processor.activeContexts, [expectedContext]);
+    processor.destroyContext(id);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('destroyActiveContextWithNonEmptyStack', function() {
+    var processor = new ContextProcessor();
+    var idA = new tr.model.ScopedId('ptr', 123);
+    var idB = new tr.model.ScopedId('idx', 456);
+    var expectedContext = {type: 'type', snapshot: {scope: 'ptr', idRef: 123}};
+    processor.enterContext('type', idA);
+    processor.enterContext('type', idB);
+    processor.destroyContext(idB);
+    assert.deepEqual(processor.activeContexts, [expectedContext]);
+    processor.leaveContext('type', idA);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('destroyInactiveContextInStack', function() {
+    var processor = new ContextProcessor();
+    var idA = new tr.model.ScopedId('ptr', 123);
+    var idB = new tr.model.ScopedId('idx', 456);
+    var expectedContext = {type: 'type', snapshot: {scope: 'idx', idRef: 456}};
+    processor.enterContext('type', idA);
+    processor.enterContext('type', idB);
+    processor.destroyContext(idA);
+    assert.deepEqual(processor.activeContexts, [expectedContext]);
+    processor.leaveContext('type', idB);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('destroyContextEnteredWithMultipleTypes', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    processor.enterContext('A', id);
+    processor.enterContext('B', id);
+    processor.destroyContext(id);
+    assert.deepEqual(processor.activeContexts, []);
+  });
+
+  test('destroyReenteredContext', function() {
+    var processor = new ContextProcessor();
+    var id = new tr.model.ScopedId('ptr', 123);
+    processor.enterContext('type', id);
+    processor.enterContext('type', id);
+    processor.destroyContext(id);
+    assert.deepEqual(processor.activeContexts, []);
+  });
 });
 </script>

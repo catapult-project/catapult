@@ -48,27 +48,44 @@ tr.exportTo('tr.importer', function() {
     },
 
     leaveContext: function(contextType, scopedId) {
+      this.leaveContextImpl_(context =>
+          context.type === contextType &&
+          context.snapshot.scope === scopedId.scope &&
+          context.snapshot.idRef === scopedId.id);
+    },
+
+    destroyContext: function(scopedId) {
+      // Remove all matching contexts from stacks.
+      tr.b.iterItems(this.stackPerType_, function(contextType, stack) {
+        // Perform in-place filtering instead of Array.prototype.filter to
+        // prevent creating a new array.
+        var newLength = 0;
+        for (var i = 0; i < stack.length; ++i) {
+          if (stack[i].snapshot.scope !== scopedId.scope ||
+              stack[i].snapshot.idRef !== scopedId.id) {
+            stack[newLength++] = stack[i];
+          }
+        }
+        stack.length = newLength;
+      });
+
+      // Remove all matching contexts from active context set.
+      this.leaveContextImpl_(context =>
+          context.snapshot.scope === scopedId.scope &&
+          context.snapshot.idRef === scopedId.id);
+    },
+
+    leaveContextImpl_: function(predicate) {
       var newActiveContexts = [];
       for (var oldContext of this.activeContexts_) {
-        if (oldContext.type === contextType &&
-            oldContext.snapshot.scope === scopedId.scope &&
-            oldContext.snapshot.idRef === scopedId.id) {
+        if (predicate(oldContext)) {
           // If we left this context, remove it from the active set and
           // restore any previous context of the same type.
-          var previousContext = this.popContext_(contextType);
+          var previousContext = this.popContext_(oldContext.type);
           if (previousContext)
             newActiveContexts.push(previousContext);
-        } else if (oldContext.type !== contextType) {
-          // If a previous context is of a different type, it is still
-          // active.
-          newActiveContexts.push(oldContext);
         } else {
-          // Should never find two active contexts of the same type.
-          this.model_.importWarning({
-            type: 'context_event_parse_error',
-            message: 'Multiple contexts of the same type active: ' +
-                contextType + '.'
-          });
+          newActiveContexts.push(oldContext);
         }
       }
       this.activeContexts_ = newActiveContexts;

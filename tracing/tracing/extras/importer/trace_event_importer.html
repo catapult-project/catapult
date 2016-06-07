@@ -368,15 +368,17 @@ tr.exportTo('tr.e.importer', function() {
         sequenceNumber: this.allObjectEvents_.length,
         event: event,
         thread: thread});
-      // The context processor maintains a cache of unique context objects and
-      // active context sets to reduce memory usage. If an object is modified,
-      // we should invalidate this cache, because otherwise context sets from
-      // before and after the modification may erroneously point to the same
-      // context snapshot (as both are the same set/object instances).
       if (thread.guid in this.contextProcessorPerThread) {
+        var processor = this.contextProcessorPerThread[thread.guid];
         var scopedId = this.scopedIdForEvent_(event);
-        this.contextProcessorPerThread[thread.guid].
-            invalidateContextCacheForSnapshot(scopedId);
+        if (event.ph === 'D')
+          processor.destroyContext(scopedId);
+        // The context processor maintains a cache of unique context objects and
+        // active context sets to reduce memory usage. If an object is modified,
+        // we should invalidate this cache, because otherwise context sets from
+        // before and after the modification may erroneously point to the same
+        // context snapshot (as both are the same set/object instances).
+        processor.invalidateContextCacheForSnapshot(scopedId);
       }
     },
 
