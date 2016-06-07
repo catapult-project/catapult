@@ -4,6 +4,8 @@
 
 """A module to keep track of devices across builds."""
 
+import json
+import logging
 import os
 
 LAST_DEVICES_FILENAME = '.last_devices'
@@ -18,6 +20,23 @@ def GetPersistentDeviceList(file_name):
 
   Returns: List of device serial numbers that were on the bot.
   """
+  if not os.path.isfile(file_name):
+    logging.warning('Device file %s doesn\'t exist.', file_name)
+    return []
+
+  try:
+    with open(file_name) as f:
+      devices = json.load(f)
+    if not isinstance(devices, list) or not all(isinstance(d, basestring)
+                                                for d in devices):
+      logging.warning('Unrecognized device file format: %s', devices)
+      return []
+    return [d for d in devices if d != '(error)']
+  except ValueError:
+    logging.exception(
+        'Error reading device file %s. Falling back to old format.', file_name)
+
+  # TODO(bpastene) Remove support for old unstructured file format.
   with open(file_name) as f:
     return [d for d in f.read().splitlines() if d != '(error)']
 
@@ -31,4 +50,4 @@ def WritePersistentDeviceList(file_name, device_list):
   if not os.path.exists(path):
     os.makedirs(path)
   with open(file_name, 'w') as f:
-    f.write('\n'.join(set(device_list)))
+    json.dump(device_list, f)
