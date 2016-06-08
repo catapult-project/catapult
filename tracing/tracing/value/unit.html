@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/event_target.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/time_display_mode.html">
 
 <script>
@@ -14,8 +15,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v', function() {
   var TimeDisplayModes = tr.v.TimeDisplayModes;
-
-  var BINARY_PREFIXES = ['', 'Ki', 'Mi', 'Gi', 'Ti'];
 
   var PLUS_MINUS_SIGN = String.fromCharCode(177);
 
@@ -45,13 +44,30 @@ tr.exportTo('tr.v', function() {
     this.correspondingDeltaUnit = undefined;
   }
 
+  // See https://en.wikipedia.org/wiki/Binary_prefix.
+  Unit.BinaryPrefix = {
+    NONE: { value: Math.pow(1024, 0), symbol: '' },
+    KIBI: { value: Math.pow(1024, 1), symbol: 'Ki' },
+    MEBI: { value: Math.pow(1024, 2), symbol: 'Mi' },
+    GIBI: { value: Math.pow(1024, 3), symbol: 'Gi' },
+    TEBI: { value: Math.pow(1024, 4), symbol: 'Ti' }
+  };
+
+  // Binary prefixes sorted from the smallest (none) to the largest (tebi-).
+  // If a prefix is not specified for a size unit, the prefix that results in
+  // the absolute formatted value being as close to the [1, 1024) interval as
+  // possible is used. Example: 1023 and 1024 bytes are displayed as
+  // "1,023.0 B" and "1.0 KiB", respectively.
+  Unit.BinaryPrefix.candidateOrder = tr.b.dictionaryValues(Unit.BinaryPrefix);
+  Unit.BinaryPrefix.candidateOrder.sort((a, b) => a.value - b.value);
+
   Unit.prototype = {
     asJSON: function() {
       return this.jsonName;
     },
 
-    format: function(value) {
-      var formattedValue = this.formatValue_(value);
+    format: function(value, opt_context) {
+      var formattedValue = this.formatValue_(value, opt_context);
       if (!this.isDelta || value < 0 /* already contains negative sign */)
         return formattedValue;
       if (value === 0)
@@ -212,20 +228,40 @@ tr.exportTo('tr.v', function() {
   Unit.define({
     baseUnitName: 'sizeInBytes',
     baseJsonName: 'sizeInBytes',
-    formatValue: function(value) {
+    formatValue: function(value, opt_context) {
       var signPrefix = '';
       if (value < 0) {
         signPrefix = '-';
         value = -value;
       }
 
-      var i = 0;
-      while (value >= 1024 && i < BINARY_PREFIXES.length - 1) {
-        value /= 1024;
-        i++;
+      // TODO(petrcermak): Generalize this to other units as well.
+      var unitPrefix;
+      if (opt_context !== undefined && opt_context.unitPrefix !== undefined) {
+        // Use unit prefix supplied by the context.
+        unitPrefix = opt_context.unitPrefix;
+      } else {
+        // Automatically determine unit prefix.
+        var candidatePrefixes = Unit.BinaryPrefix.candidateOrder;
+        var i = 0;
+        while (i < candidatePrefixes.length - 1 &&
+               value / candidatePrefixes[i + 1].value >= 1) {
+          i++;
+        }
+        unitPrefix = candidatePrefixes[i];
       }
 
-      return signPrefix + value.toFixed(1) + ' ' + BINARY_PREFIXES[i] + 'B';
+      var fractionDigits;
+      if (opt_context !== undefined && opt_context.fractionDigits !== undefined)
+        fractionDigits = opt_context.fractionDigits;
+      else
+        fractionDigits = 1;
+
+      var numberString = (value / unitPrefix.value).toLocaleString(undefined, {
+        minimumFractionDigits: fractionDigits,
+        maximumFractionDigits: fractionDigits
+      });
+      return signPrefix + numberString + ' ' + unitPrefix.symbol + 'B';
     }
   });
 
@@ -256,7 +292,7 @@ tr.exportTo('tr.v', function() {
     }
   });
 
-  // TODO(mariakhomenko): merge with the unitlessNumber above once it can accept
+  // TODO(petrcermak): merge with the unitlessNumber above once it can accept
   // a formatting context.
   Unit.define({
     baseUnitName: 'unitlessWholeNumber',
