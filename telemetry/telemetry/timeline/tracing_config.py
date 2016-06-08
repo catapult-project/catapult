@@ -24,7 +24,6 @@ RECORD_MODE_MAP = {
   ECHO_TO_CONSOLE: 'trace-to-console'
 }
 
-
 def ConvertStringToCamelCase(string):
   """Convert an underscore/hyphen-case string to its camel-case counterpart.
 
@@ -51,44 +50,18 @@ def ConvertDictKeysToCamelCaseRecursively(data):
     return data
 
 
-class MemoryDumpConfig(object):
-  """Stores the triggers for memory dumps in tracing config."""
-  def __init__(self):
-    self._triggers = []
-
-  def AddTrigger(self, mode, periodic_interval_ms):
-    """Adds a new trigger to config.
-
-    Args:
-      periodic_interval_ms: Dump time period in milliseconds.
-      level_of_detail: Memory dump level of detail string.
-          Valid arguments are "light" and "detailed".
-    """
-    assert mode in ['light', 'detailed']
-    assert periodic_interval_ms > 0
-    self._triggers.append({'mode': mode,
-                           'periodic_interval_ms': periodic_interval_ms})
-
-  def GetDictForChromeTracing(self):
-    """Returns the dump config as dictionary for chrome tracing."""
-    # An empty trigger list would mean no periodic memory dumps.
-    return {'memory_dump_config': {'triggers': self._triggers}}
-
-
 class TracingConfig(object):
-  """Tracing config is the configuration for Chrome tracing.
+  """Tracing config is the configuration for tracing in Telemetry.
 
-  This produces the trace config JSON string for Chrome tracing. For the details
-  about the JSON string format, see base/trace_event/trace_config.h.
-
-  Contains tracing options:
-  Tracing options control which core tracing systems should be enabled.
-
-  This simply turns on those systems. If those systems have additional options,
-  e.g. what to trace, then they are typically configured by adding
-  categories to the TracingCategoryFilter.
+  TracingConfig configures tracing in Telemetry. It contains tracing options
+  that control which core tracing system should be enabled. If a tracing
+  system requires additional configuration, e.g., what to trace, then it is
+  typically configured in its own config class. TracingConfig provides
+  interfaces to access the configuration for those tracing systems.
 
   Options:
+      enable_atrace_trace: a boolean that specifies whether to enable
+          atrace tracing.
       enable_chrome_trace: a boolean that specifies whether to enable
           chrome tracing.
       enable_platform_display_trace: a boolean that specifies whether to
@@ -98,20 +71,150 @@ class TracingConfig(object):
           Android (see goo.gl/4Y30p9). Doesn't have any effects on other OSs.
       enable_battor_trace: a boolean that specifies whether to enable BattOr
           tracing.
-
-      The following ones are specific to chrome tracing. See
-      base/trace_event/trace_config.h for more information.
-          record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
-                       record modes in chrome.
-          enable_systrace: a boolean that specifies whether to enable systrace.
+      atrace_config: Stores configuration options specific to Atrace.
+      chrome_trace_config: Stores configuration options specific to
+          Chrome trace.
   """
 
   def __init__(self):
-    # Trace options.
-    self.enable_chrome_trace = False
-    self.enable_platform_display_trace = False
-    self.enable_android_graphics_memtrack = False
-    self.enable_battor_trace = False
+    self._enable_atrace_trace = False
+    self._enable_platform_display_trace = False
+    self._enable_android_graphics_memtrack = False
+    self._enable_battor_trace = False
+    self._enable_chrome_trace = False
+    self._atrace_config = AtraceConfig()
+    self._chrome_trace_config = ChromeTraceConfig()
+
+  @property
+  def tracing_category_filter(self):
+    return self._chrome_trace_config.tracing_category_filter
+
+  def SetNoOverheadFilter(self):
+    self._chrome_trace_config.SetNoOverheadFilter()
+
+  def SetMinimalOverheadFilter(self):
+    self._chrome_trace_config.SetMinimalOverheadFilter()
+
+  def SetDebugOverheadFilter(self):
+    self._chrome_trace_config.SetDebugOverheadFilter()
+
+  def SetTracingCategoryFilter(self, cf):
+    self._chrome_trace_config.SetTracingCategoryFilter(cf)
+
+  def SetMemoryDumpConfig(self, dump_config):
+    self._chrome_trace_config.SetMemoryDumpConfig(dump_config)
+
+  @property
+  def atrace_config(self):
+    return self._atrace_config
+
+  @property
+  def enable_atrace_trace(self):
+    return self._enable_atrace_trace
+
+  @enable_atrace_trace.setter
+  def enable_atrace_trace(self, value):
+    if value:
+      assert not self._chrome_trace_config.enable_systrace, (
+          "Cannot enable atrace while Chrome systrace is already enabled.")
+    self._enable_atrace_trace = value
+
+  @property
+  def enable_platform_display_trace(self):
+    return self._enable_platform_display_trace
+
+  @enable_platform_display_trace.setter
+  def enable_platform_display_trace(self, value):
+    self._enable_platform_display_trace = value
+
+  @property
+  def enable_android_graphics_memtrack(self):
+    return self._enable_android_graphics_memtrack
+
+  @enable_android_graphics_memtrack.setter
+  def enable_android_graphics_memtrack(self, value):
+    self._enable_android_graphics_memtrack = value
+
+  @property
+  def enable_battor_trace(self):
+    return self._enable_battor_trace
+
+  @enable_battor_trace.setter
+  def enable_battor_trace(self, value):
+    self._enable_battor_trace = value
+
+  @property
+  def enable_chrome_trace(self):
+    return self._enable_chrome_trace
+
+  @enable_chrome_trace.setter
+  def enable_chrome_trace(self, value):
+    self._enable_chrome_trace = value
+
+  # Chrome Trace Options
+  @property
+  def record_mode(self):
+    return self._chrome_trace_config.record_mode
+
+  @record_mode.setter
+  def record_mode(self, value):
+    self._chrome_trace_config.record_mode = value
+
+  @property
+  def enable_systrace(self):
+    return self._chrome_trace_config.enable_systrace
+
+  @enable_systrace.setter
+  def enable_systrace(self, value):
+    if value:
+      assert not self._enable_atrace_trace, (
+        "Cannot enable Chrome systrace while atrace is already enabled.")
+    self._chrome_trace_config.enable_systrace = value
+
+  def GetChromeTraceConfigForStartupTracing(self):
+    return self._chrome_trace_config.GetChromeTraceConfigForStartupTracing()
+
+  @property
+  def requires_modern_devtools_tracing_start_api(self):
+    return self._chrome_trace_config.requires_modern_devtools_tracing_start_api
+
+  def GetChromeTraceConfigForDevTools(self):
+    return self._chrome_trace_config.GetChromeTraceConfigForDevTools()
+
+  def GetChromeTraceCategoriesAndOptionsForDevTools(self):
+    return (self._chrome_trace_config.
+        GetChromeTraceCategoriesAndOptionsForDevTools())
+
+
+class AtraceConfig(object):
+  """Stores configuration options specific to Atrace.
+
+    categories: List that specifies the Atrace categories to trace.
+        Example: ['sched', 'webview']
+    app_name: String or list that specifies the application name (or names)
+        on which to run application level tracing.
+        Example: 'org.chromium.webview_shell'
+  """
+  def __init__(self):
+    self.categories = None
+    self.app_name = None
+
+
+class ChromeTraceConfig(object):
+  """Stores configuration options specific to the Chrome tracing agent.
+
+    This produces the trace config JSON string for tracing in Chrome.
+
+    record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
+        record modes in chrome.
+    enable_systrace: a boolean that specifies whether to enable systrace.
+    tracing_category_filter: Object that specifies which tracing
+        categories to trace.
+    memory_dump_config: Stores the triggers for memory dumps.
+
+  """
+
+  def __init__(self):
     self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
     self._enable_systrace = False
     self._tracing_category_filter = (
@@ -148,7 +251,6 @@ class TracingConfig(object):
       raise TypeError(
           'Must pass SetMemoryDumpConfig a MemoryDumpConfig instance')
 
-  # Trace Options
   @property
   def record_mode(self):
     return self._record_mode
@@ -210,9 +312,7 @@ class TracingConfig(object):
     All keys in the returned dictionary use camel-case (e.g. 'enableSystrace').
     In addition, the 'recordMode' value also uses camel-case (e.g.
     'recordUntilFull'). This is to invert the camel-case ->
-    underscore/hyphen-case mapping performed in Chromium's
-    TracingHandler::GetTraceConfigFromDevToolsConfig method in
-    src/content/browser/devtools/protocol/tracing_handler.cc.
+    underscore/hyphen-delimited mapping performed in Chromium devtools.
     """
     result = self.GetChromeTraceConfigForStartupTracing()
     if result[RECORD_MODE_PARAM]:
@@ -228,3 +328,27 @@ class TracingConfig(object):
       options_parts.append(ENABLE_SYSTRACE)
     return (self._tracing_category_filter.stable_filter_string,
             ','.join(options_parts))
+
+
+class MemoryDumpConfig(object):
+  """Stores the triggers for memory dumps in ChromeTraceConfig."""
+  def __init__(self):
+    self._triggers = []
+
+  def AddTrigger(self, mode, periodic_interval_ms):
+    """Adds a new trigger to config.
+
+    Args:
+      periodic_interval_ms: Dump time period in milliseconds.
+      level_of_detail: Memory dump level of detail string.
+          Valid arguments are "light" and "detailed".
+    """
+    assert mode in ['light', 'detailed']
+    assert periodic_interval_ms > 0
+    self._triggers.append({'mode': mode,
+                           'periodic_interval_ms': periodic_interval_ms})
+
+  def GetDictForChromeTracing(self):
+    """Returns the dump config as dictionary for chrome tracing."""
+    # An empty trigger list would mean no periodic memory dumps.
+    return {'memory_dump_config': {'triggers': self._triggers}}

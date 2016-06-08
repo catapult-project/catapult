@@ -100,6 +100,7 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(catapult_dir, 'catapult_base'),
       input_api.os_path.join(catapult_dir, 'dependency_manager'),
       input_api.os_path.join(catapult_dir, 'devil'),
+      input_api.os_path.join(catapult_dir, 'systrace'),
       input_api.os_path.join(catapult_dir, 'tracing'),
       input_api.os_path.join(catapult_dir, 'common', 'battor'),
       input_api.os_path.join(catapult_dir, 'common', 'py_trace_event'),

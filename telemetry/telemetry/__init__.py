@@ -33,6 +33,7 @@ _CATAPULT_DIR = os.path.join(
 _AddDirToPythonPath(_CATAPULT_DIR, 'catapult_base')
 _AddDirToPythonPath(_CATAPULT_DIR, 'dependency_manager')
 _AddDirToPythonPath(_CATAPULT_DIR, 'devil')
+_AddDirToPythonPath(_CATAPULT_DIR, 'systrace')
 _AddDirToPythonPath(_CATAPULT_DIR, 'tracing')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
