@@ -4,7 +4,6 @@
 
 import logging
 import os
-import posixpath
 import re
 import subprocess
 import tempfile
@@ -90,8 +89,12 @@ class AndroidPlatformBackend(
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._raw_display_frame_rate_measurements = []
-    self._can_access_protected_file_contents = (
-        self._device.HasRoot() or self._device.NeedsSU())
+    try:
+      self._can_access_protected_file_contents = (
+          self._device.HasRoot() or self._device.NeedsSU())
+    except Exception:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     self._device_copy_script = None
     self._power_monitor = (
       android_power_monitor_controller.AndroidPowerMonitorController([
@@ -229,9 +232,13 @@ class AndroidPlatformBackend(
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'memtrack_helper'):
       raise Exception('Error installing memtrack_helper.')
-    self._device.RunShellCommand([
-      android_prebuilt_profiler_helper.GetDevicePath('memtrack_helper'),
-      '-d'], as_root=True, check_return=True)
+    try:
+      cmd = android_prebuilt_profiler_helper.GetDevicePath('memtrack_helper')
+      cmd += ' -d'
+      self._device.RunShellCommand(cmd, as_root=True, check_return=True)
+    except Exception:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
 
   def PurgeUnpinnedMemory(self):
     """Purges the unpinned ashmem memory for the whole system.
@@ -245,8 +252,12 @@ class AndroidPlatformBackend(
     if not android_prebuilt_profiler_helper.InstallOnDevice(
         self._device, 'purge_ashmem'):
       raise Exception('Error installing purge_ashmem.')
-    output = self._device.RunShellCommand([
-      android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem')])
+    try:
+      output = self._device.RunShellCommand(
+          android_prebuilt_profiler_helper.GetDevicePath('purge_ashmem'))
+    except Exception:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     for l in output:
       logging.info(l)
 
@@ -303,8 +314,7 @@ class AndroidPlatformBackend(
     raise NotImplementedError()
 
   def FlushDnsCache(self):
-    self._device.RunShellCommand(
-        ['ndc', 'resolver', 'flushdefaultif'], as_root=True)
+    self._device.RunShellCommand('ndc resolver flushdefaultif', as_root=True)
 
   def StopApplication(self, application):
     """Stop the given |application|.
@@ -336,11 +346,10 @@ class AndroidPlatformBackend(
     """
     if elevate_privilege:
       raise NotImplementedError("elevate_privilege isn't supported on android.")
-    cmd = ['am', 'start']
-    if parameters:
-      cmd.extend(parameters)
-    cmd.append(application)
-    result_lines = self._device.RunShellCommand(cmd)
+    if not parameters:
+      parameters = ''
+    result_lines = self._device.RunShellCommand('am start %s %s' %
+                                                (parameters, application))
     for line in result_lines:
       if line.startswith('Error: '):
         raise ValueError('Failed to start "%s" with error\n  %s' %
@@ -352,7 +361,7 @@ class AndroidPlatformBackend(
   def CanLaunchApplication(self, application):
     if not self._installed_applications:
       self._installed_applications = self._device.RunShellCommand(
-          ['pm', 'list', 'packages'])
+          'pm list packages')
     return 'package:' + application in self._installed_applications
 
   def InstallApplication(self, application):
@@ -413,17 +422,17 @@ class AndroidPlatformBackend(
 
   def GetFileContents(self, fname):
     if not self._can_access_protected_file_contents:
-      logging.warning('%s cannot be retrieved on non-rooted device.', fname)
+      logging.warning('%s cannot be retrieved on non-rooted device.' % fname)
       return ''
     return self._device.ReadFile(fname, as_root=True)
 
   def GetPsOutput(self, columns, pid=None):
     assert columns == ['pid', 'name'] or columns == ['pid'], \
         'Only know how to return pid and name. Requested: ' + columns
-    cmd = ['ps']
+    command = 'ps'
     if pid:
-      cmd.extend('-p', str(pid))
-    ps = self._device.RunShellCommand(cmd, large_output=True)[1:]
+      command += ' -p %d' % pid
+    ps = self._device.RunShellCommand(command, large_output=True)[1:]
     output = []
     for line in ps:
       data = line.split()
@@ -553,15 +562,21 @@ class AndroidPlatformBackend(
     self._device.PushChangedFiles([(new_profile_dir, saved_profile_location)])
 
     profile_dir = self._GetProfileDir(package)
-    self._EfficientDeviceDirectoryCopy(
-        saved_profile_location, profile_dir)
-    dumpsys = self._device.RunShellCommand(['dumpsys', 'package', package])
+    try:
+      self._EfficientDeviceDirectoryCopy(
+          saved_profile_location, profile_dir)
+    except Exception:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
+    dumpsys = self._device.RunShellCommand('dumpsys package %s' % package)
     id_line = next(line for line in dumpsys if 'userId=' in line)
     uid = re.search(r'\d+', id_line).group()
-    files = self._device.ListDirectory(profile_dir, as_root=True)
-    paths = [posixpath.join(profile_dir, f) for f in files if f != 'lib']
+    files = self._device.RunShellCommand(
+        'ls "%s"' % profile_dir, as_root=True)
+    assert isinstance(files, list)
+    files.remove('lib')  # pylint: disable=no-member
+    paths = ['%s%s' % (profile_dir, f) for f in files]
     for path in paths:
-      # Note: need to pass command as a string for the shell to expand the *'s.
       extended_path = '%s %s/* %s/*/* %s/*/*/*' % (path, path, path, path)
       self._device.RunShellCommand(
           'chown %s.%s %s' % (uid, uid, extended_path))
@@ -584,17 +599,11 @@ class AndroidPlatformBackend(
       ignore_list: List of files to keep.
     """
     profile_dir = self._GetProfileDir(package)
-    if not self._device.PathExists(profile_dir):
-      return
-    files = [
-      posixpath.join(profile_dir, f)
-      for f in self._device.ListDirectory(profile_dir, as_root=True)
-      if f not in ignore_list]
-    if not files:
-      return
-    cmd = ['rm', '-r']
-    cmd.extend(files)
-    self._device.RunShellCommand(cmd, as_root=True, check_return=True)
+    files = self._device.RunShellCommand(
+        'ls "%s"' % profile_dir, as_root=True)
+    paths = ['"%s%s"' % (profile_dir, f) for f in files
+             if f not in ignore_list]
+    self._device.RunShellCommand('rm -r %s' % ' '.join(paths), as_root=True)
 
   def PullProfile(self, package, output_profile_path):
     """Copy application profile from device to host machine.
@@ -611,11 +620,15 @@ class AndroidPlatformBackend(
     # pulled down is really needed e.g. .pak files.
     if not os.path.exists(output_profile_path):
       os.makedirs(output_profile_path)
-    files = self._device.ListDirectory(profile_dir, as_root=True)
+    try:
+      files = self._device.RunShellCommand(['ls', profile_dir])
+    except Exception:
+      logging.exception('New exception caused by DeviceUtils conversion')
+      raise
     for f in files:
       # Don't pull lib, since it is created by the installer.
       if f != 'lib':
-        source = posixpath.join(profile_dir, f)
+        source = '%s%s' % (profile_dir, f)
         dest = os.path.join(output_profile_path, f)
         try:
           self._device.PullFile(source, dest, timeout=240)
@@ -639,8 +652,7 @@ class AndroidPlatformBackend(
     """
     if self._device.IsUserBuild():
       logging.debug('User build device, setting debug app')
-      self._device.RunShellCommand(
-          ['am', 'set-debug-app', '--persistent', package])
+      self._device.RunShellCommand('am set-debug-app --persistent %s' % package)
 
   def GetLogCat(self, number_of_lines=500):
     """Returns most recent lines of logcat dump.
@@ -649,7 +661,7 @@ class AndroidPlatformBackend(
       number_of_lines: Number of lines of log to return.
     """
     return '\n'.join(self._device.RunShellCommand(
-        ['logcat', '-d', '-t', str(number_of_lines)]))
+        'logcat -d -t %d' % number_of_lines))
 
   def GetStandardOutput(self):
     return None
@@ -718,7 +730,7 @@ class AndroidPlatformBackend(
 
   def IsScreenLocked(self):
     """Determines if device screen is locked."""
-    input_methods = self._device.RunShellCommand(['dumpsys', 'input_method'],
+    input_methods = self._device.RunShellCommand('dumpsys input_method',
                                                  check_return=True)
     return self._IsScreenLocked(input_methods)
 
