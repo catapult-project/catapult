@@ -26,7 +26,7 @@ tr.exportTo('tr.v.d', function() {
   Generic.prototype = {
     __proto__: tr.v.d.Diagnostic.prototype,
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       d.value = this.value;
     }
   };

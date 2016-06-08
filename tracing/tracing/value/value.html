@@ -95,13 +95,13 @@ tr.exportTo('tr.v', function() {
         diagnostics: this.diagnostics.asDict()
       };
 
-      this._asDictInto(d);
+      this.asDictInto_(d);
       if (d.type === undefined)
-        throw new Error('_asDictInto must set type field');
+        throw new Error('asDictInto_ must set type field');
       return d;
     },
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       throw new Error('Not implemented');
     }
   };
@@ -126,7 +126,7 @@ tr.exportTo('tr.v', function() {
   NumericValue.prototype = {
     __proto__: Value.prototype,
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       d.type = 'numeric';
       d.numeric = this.numeric.asDict();
     }
@@ -150,7 +150,7 @@ tr.exportTo('tr.v', function() {
   DictValue.prototype = {
     __proto__: Value.prototype,
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       d.type = 'dict';
       d.value = this.value;
     }
@@ -195,7 +195,7 @@ tr.exportTo('tr.v', function() {
   FailureValue.prototype = {
     __proto__: Value.prototype,
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       d.type = 'failure';
       d.stack_str = this.stack;
     }
@@ -215,7 +215,7 @@ tr.exportTo('tr.v', function() {
   SkipValue.prototype = {
     __proto__: Value.prototype,
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       d.type = 'skip';
     }
   };

@@ -18,11 +18,11 @@ tr.exportTo('tr.v.d', function() {
   Diagnostic.prototype = {
     asDict: function() {
       var result = {type: this.constructor.name};
-      this._asDictInto(result);
+      this.asDictInto_(result);
       return result;
     },
 
-    _asDictInto: function(d) {
+    asDictInto_: function(d) {
       throw new Error('Abstract virtual method');
     }
   };
