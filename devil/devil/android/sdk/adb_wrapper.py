@@ -534,8 +534,8 @@ class AdbWrapper(object):
       timeout = timeout if timeout is not None else _DEFAULT_TIMEOUT
       return self._RunDeviceAdbCmd(cmd, timeout, retries).splitlines()
 
-  def Forward(self, local, remote, timeout=_DEFAULT_TIMEOUT,
-              retries=_DEFAULT_RETRIES):
+  def Forward(self, local, remote, allow_rebind=False,
+              timeout=_DEFAULT_TIMEOUT, retries=_DEFAULT_RETRIES):
     """Forward socket connections from the local socket to the remote socket.
 
     Sockets are specified by one of:
@@ -549,11 +549,17 @@ class AdbWrapper(object):
     Args:
       local: The host socket.
       remote: The device socket.
+      allow_rebind: A boolean indicating whether adb may rebind a local socket;
+        otherwise, the default, an exception is raised if the local socket is
+        already being forwarded.
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
     """
-    self._RunDeviceAdbCmd(['forward', str(local), str(remote)], timeout,
-                          retries)
+    cmd = ['forward']
+    if not allow_rebind:
+      cmd.append('--no-rebind')
+    cmd.extend([str(local), str(remote)])
+    self._RunDeviceAdbCmd(cmd, timeout, retries)
 
   def ForwardRemove(self, local, timeout=_DEFAULT_TIMEOUT,
                     retries=_DEFAULT_RETRIES):
