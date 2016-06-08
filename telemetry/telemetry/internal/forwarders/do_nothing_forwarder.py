@@ -42,7 +42,10 @@ class DoNothingForwarder(forwarders.Forwarder):
   """
 
   def __init__(self, port_pairs):
-    super(DoNothingForwarder, self).__init__(port_pairs)
+    super(DoNothingForwarder, self).__init__(
+        forwarders.PortPairs(*[
+            forwarders.PortPair(p.local_port, p.remote_port or p.local_port)
+            if p else None for p in port_pairs]))
     self._CheckPortPairs()
 
   def _CheckPortPairs(self):

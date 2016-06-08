@@ -51,9 +51,7 @@ class Forwarder(object):
 
   def __init__(self, port_pairs):
     assert port_pairs.http, 'HTTP port mapping is required.'
-    self._port_pairs = PortPairs(*[
-        PortPair(p.local_port, p.remote_port or p.local_port)
-        if p else None for p in port_pairs])
+    self._port_pairs = port_pairs
     self._forwarding = True
 
   @property
