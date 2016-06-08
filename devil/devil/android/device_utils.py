@@ -344,7 +344,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     try:
-      self.RunShellCommand('ls /root', check_return=True)
+      self.RunShellCommand(['ls', '/root'], check_return=True)
       return True
     except device_errors.AdbCommandFailedError:
       return False
@@ -1497,10 +1497,6 @@ class DeviceUtils(object):
       if os.path.exists(d):
         shutil.rmtree(d)
 
-  _LS_RE = re.compile(
-      r'(?P<perms>\S+) (?:(?P<inodes>\d+) +)?(?P<owner>\S+) +(?P<group>\S+) +'
-      r'(?:(?P<size>\d+) +)?(?P<date>\S+) +(?P<time>\S+) +(?P<name>.+)$')
-
   @decorators.WithTimeoutAndRetriesFromInstance()
   def ReadFile(self, device_path, as_root=False, force_pull=False,
                timeout=None, retries=None):
@@ -1528,17 +1524,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     def get_size(path):
-      # TODO(jbudorick): Implement a generic version of Stat() that handles
-      # as_root=True, then switch this implementation to use that.
-      ls_out = self.RunShellCommand(['ls', '-l', device_path], as_root=as_root,
-                                    check_return=True)
-      file_name = posixpath.basename(device_path)
-      for line in ls_out:
-        m = self._LS_RE.match(line)
-        if m and file_name == posixpath.basename(m.group('name')):
-          return int(m.group('size'))
-      logging.warning('Could not determine size of %s.', device_path)
-      return None
+      return self.FileSize(path, as_root=as_root)
 
     if (not force_pull
         and 0 < get_size(device_path) <= self._MAX_ADB_OUTPUT_LENGTH):
@@ -1710,32 +1696,61 @@ class DeviceUtils(object):
     # TODO(perezju): Migrate clients to ListDirectory and remove this method.
     return self.adb.Ls(device_path)
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def Stat(self, device_path, timeout=None, retries=None):
+  def StatPath(self, device_path, as_root=False, **kwargs):
     """Get the stat attributes of a file or directory on the device.
 
     Args:
-      device_path: A string containing the path of from which to get attributes
-                   on the device.
+      device_path: A string containing the path of a file or directory from
+                   which to get attributes.
+      as_root: A boolean indicating whether the to use root privileges to
+               access the file information.
       timeout: timeout in seconds
       retries: number of retries
 
     Returns:
-      A stat object with the properties: st_mode, st_size, and st_time
+      A dictionary with the stat info collected; see StatDirectory for details.
 
     Raises:
       CommandFailedError if device_path cannot be found on the device.
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    # TODO(perezju): Re-implement using StatDirectory and allow to pass the
-    # as_root option.
-    dirname, target = device_path.rsplit('/', 1)
-    for filename, st_info in self.adb.Ls(dirname):
-      if filename == target:
-        return st_info
+    dirname, filename = posixpath.split(posixpath.normpath(device_path))
+    for entry in self.StatDirectory(dirname, as_root=as_root, **kwargs):
+      if entry['filename'] == filename:
+        return entry
     raise device_errors.CommandFailedError(
         'Cannot find file or directory: %r' % device_path, str(self))
+
+  def FileSize(self, device_path, as_root=False, **kwargs):
+    """Get the size of a file on the device.
+
+    Note: This is implemented by parsing the output of the 'ls' command on
+    the device. On some Android versions, when passing a directory or special
+    file, the size is *not* reported and this function will throw an exception.
+
+    Args:
+      device_path: A string containing the path of a file on the device.
+      as_root: A boolean indicating whether the to use root privileges to
+               access the file information.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      The size of the file in bytes.
+
+    Raises:
+      CommandFailedError if device_path cannot be found on the device, or
+        its size cannot be determited for some reason.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    entry = self.StatPath(device_path, as_root=as_root, **kwargs)
+    try:
+      return entry['st_size']
+    except KeyError:
+      raise device_errors.CommandFailedError(
+          'Could not determine the size of: %s' % device_path, str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetJavaAsserts(self, enabled, timeout=None, retries=None):

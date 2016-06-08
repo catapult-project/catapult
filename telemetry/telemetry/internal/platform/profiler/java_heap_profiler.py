@@ -92,6 +92,6 @@ class JavaHeapProfiler(profiler.Profiler):
 
   def _FileSize(self, file_name):
     try:
-      return self._browser_backend.device.Stat(file_name).st_size
+      return self._browser_backend.device.FileSize(file_name)
     except device_errors.CommandFailedError:
       return 0
