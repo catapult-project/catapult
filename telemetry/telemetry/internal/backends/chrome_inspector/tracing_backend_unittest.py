@@ -47,6 +47,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):
+    options.enable_logging = True
     options.AppendExtraBrowserArgs([
         # Memory maps currently cannot be retrieved on sandboxed processes.
         # See crbug.com/461788.
