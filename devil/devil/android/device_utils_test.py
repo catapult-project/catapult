@@ -1650,10 +1650,7 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
 
   def testReadFile_exists(self):
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['ls', '-l', '/read/this/test/file'],
-            as_root=False, check_return=True),
-         ['-rw-rw---- root foo 256 1970-01-01 00:00 file']),
+        (self.call.device.FileSize('/read/this/test/file', as_root=False), 256),
         (self.call.device.RunShellCommand(
             ['cat', '/read/this/test/file'],
             as_root=False, check_return=True),
@@ -1664,10 +1661,7 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
   def testReadFile_exists2(self):
     # Same as testReadFile_exists, but uses Android N ls output.
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['ls', '-l', '/read/this/test/file'],
-            as_root=False, check_return=True),
-         ['-rw-rw-rw- 1 root root 256 2016-03-15 03:27 /read/this/test/file']),
+        (self.call.device.FileSize('/read/this/test/file', as_root=False), 256),
         (self.call.device.RunShellCommand(
             ['cat', '/read/this/test/file'],
             as_root=False, check_return=True),
@@ -1677,19 +1671,15 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
 
   def testReadFile_doesNotExist(self):
     with self.assertCall(
-        self.call.device.RunShellCommand(
-            ['ls', '-l', '/this/file/does.not.exist'],
-            as_root=False, check_return=True),
+        self.call.device.FileSize('/this/file/does.not.exist', as_root=False),
         self.CommandError('File does not exist')):
       with self.assertRaises(device_errors.CommandFailedError):
         self.device.ReadFile('/this/file/does.not.exist')
 
   def testReadFile_zeroSize(self):
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['ls', '-l', '/this/file/has/zero/size'],
-            as_root=False, check_return=True),
-         ['-r--r--r-- root foo 0 1970-01-01 00:00 zero_size_file']),
+        (self.call.device.FileSize('/this/file/has/zero/size', as_root=False),
+         0),
         (self.call.device._ReadFileWithPull('/this/file/has/zero/size'),
          'but it has contents\n')):
       self.assertEqual('but it has contents\n',
@@ -1697,10 +1687,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
 
   def testReadFile_withSU(self):
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['ls', '-l', '/this/file/can.be.read.with.su'],
-            as_root=True, check_return=True),
-         ['-rw------- root root 256 1970-01-01 00:00 can.be.read.with.su']),
+        (self.call.device.FileSize(
+            '/this/file/can.be.read.with.su', as_root=True), 256),
         (self.call.device.RunShellCommand(
             ['cat', '/this/file/can.be.read.with.su'],
             as_root=True, check_return=True),
@@ -1713,10 +1701,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
   def testReadFile_withPull(self):
     contents = 'a' * 123456
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['ls', '-l', '/read/this/big/test/file'],
-            as_root=False, check_return=True),
-         ['-rw-rw---- root foo 123456 1970-01-01 00:00 file']),
+        (self.call.device.FileSize('/read/this/big/test/file', as_root=False),
+         123456),
         (self.call.device._ReadFileWithPull('/read/this/big/test/file'),
          contents)):
       self.assertEqual(
@@ -1725,10 +1711,8 @@ class DeviceUtilsReadFileTest(DeviceUtilsTest):
   def testReadFile_withPullAndSU(self):
     contents = 'b' * 123456
     with self.assertCalls(
-        (self.call.device.RunShellCommand(
-            ['ls', '-l', '/this/big/file/can.be.read.with.su'],
-            as_root=True, check_return=True),
-         ['-rw------- root root 123456 1970-01-01 00:00 can.be.read.with.su']),
+        (self.call.device.FileSize(
+            '/this/big/file/can.be.read.with.su', as_root=True), 123456),
         (self.call.device.NeedsSU(), True),
         (mock.call.devil.android.device_temp_file.DeviceTempFile(self.adb),
          MockTempFile('/sdcard/tmp/on.device')),
@@ -1956,34 +1940,70 @@ class DeviceUtilsLsTest(DeviceUtilsTest):
                         self.device.Ls('/data/local/tmp/testfile.txt'))
 
 
-class DeviceUtilsStatTest(DeviceUtilsTest):
+class DeviceUtilsStatPathTest(DeviceUtilsTest):
 
-  def testStat_file(self):
-    result = [('.', adb_wrapper.DeviceStat(16889, 4096, 1417436123)),
-              ('..', adb_wrapper.DeviceStat(16873, 4096, 12382237)),
-              ('testfile.txt', adb_wrapper.DeviceStat(33206, 3, 1417436122))]
-    with self.assertCalls(
-        (self.call.adb.Ls('/data/local/tmp'), result)):
-      self.assertEquals(adb_wrapper.DeviceStat(33206, 3, 1417436122),
-                        self.device.Stat('/data/local/tmp/testfile.txt'))
+  EXAMPLE_DIRECTORY = [
+    {'filename': 'foo.txt', 'st_size': 123, 'st_time': 456},
+    {'filename': 'some_dir', 'st_time': 0}
+  ]
+  INDEX = {e['filename']: e for e in EXAMPLE_DIRECTORY}
 
-  def testStat_directory(self):
-    result = [('.', adb_wrapper.DeviceStat(16873, 4096, 12382237)),
-              ('..', adb_wrapper.DeviceStat(16873, 4096, 12382237)),
-              ('tmp', adb_wrapper.DeviceStat(16889, 4096, 1417436123))]
-    with self.assertCalls(
-        (self.call.adb.Ls('/data/local'), result)):
-      self.assertEquals(adb_wrapper.DeviceStat(16889, 4096, 1417436123),
-                        self.device.Stat('/data/local/tmp'))
+  def testStatPath_file(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
+      self.assertEquals(self.INDEX['foo.txt'],
+                        self.device.StatPath('/data/local/tmp/foo.txt'))
 
-  def testStat_doesNotExist(self):
-    result = [('.', adb_wrapper.DeviceStat(16889, 4096, 1417436123)),
-              ('..', adb_wrapper.DeviceStat(16873, 4096, 12382237)),
-              ('testfile.txt', adb_wrapper.DeviceStat(33206, 3, 1417436122))]
-    with self.assertCalls(
-        (self.call.adb.Ls('/data/local/tmp'), result)):
+  def testStatPath_directory(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
+      self.assertEquals(self.INDEX['some_dir'],
+                        self.device.StatPath('/data/local/tmp/some_dir'))
+
+  def testStatPath_directoryWithTrailingSlash(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
+      self.assertEquals(self.INDEX['some_dir'],
+                        self.device.StatPath('/data/local/tmp/some_dir/'))
+
+  def testStatPath_doesNotExist(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
       with self.assertRaises(device_errors.CommandFailedError):
-        self.device.Stat('/data/local/tmp/does.not.exist.txt')
+        self.device.StatPath('/data/local/tmp/does.not.exist.txt')
+
+
+class DeviceUtilsFileSizeTest(DeviceUtilsTest):
+
+  EXAMPLE_DIRECTORY = [
+    {'filename': 'foo.txt', 'st_size': 123, 'st_mtime': 456},
+    {'filename': 'some_dir', 'st_mtime': 0}
+  ]
+
+  def testFileSize_file(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
+      self.assertEquals(123,
+                        self.device.FileSize('/data/local/tmp/foo.txt'))
+
+  def testFileSize_doesNotExist(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.FileSize('/data/local/tmp/does.not.exist.txt')
+
+  def testFileSize_directoryWithNoSize(self):
+    with self.assertCall(
+        self.call.device.StatDirectory('/data/local/tmp', as_root=False),
+        self.EXAMPLE_DIRECTORY):
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.FileSize('/data/local/tmp/some_dir')
 
 
 class DeviceUtilsSetJavaAssertsTest(DeviceUtilsTest):
