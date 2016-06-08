@@ -114,7 +114,6 @@ class TracingConfig(object):
     self.enable_battor_trace = False
     self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
     self._enable_systrace = False
-    # Tracing category filter.
     self._tracing_category_filter = (
         tracing_category_filter.TracingCategoryFilter())
     self._memory_dump_config = None
@@ -124,34 +123,16 @@ class TracingConfig(object):
     return self._tracing_category_filter
 
   def SetNoOverheadFilter(self):
-    """Sets a filter with the least overhead possible.
-
-    This contains no sub-traces of thread tasks, so it's only useful for
-    capturing the cpu-time spent on threads (as well as needed benchmark
-    traces).
-
-    FIXME: Remove webkit.console when blink.console lands in chromium and
-    the ref builds are updated. crbug.com/386847
-    """
-    categories = [
-      "toplevel",
-      "benchmark",
-      "webkit.console",
-      "blink.console",
-      "trace_event_overhead"
-    ]
     self._tracing_category_filter = (
-        tracing_category_filter.TracingCategoryFilter(
-            filter_string=','.join(categories)))
+        tracing_category_filter.CreateNoOverheadFilter())
 
   def SetMinimalOverheadFilter(self):
     self._tracing_category_filter = (
-        tracing_category_filter.TracingCategoryFilter(filter_string=''))
+        tracing_category_filter.CreateMinimalOverheadFilter())
 
   def SetDebugOverheadFilter(self):
     self._tracing_category_filter = (
-        tracing_category_filter.TracingCategoryFilter(
-            filter_string='*,disabled-by-default-cc.debug'))
+        tracing_category_filter.CreateDebugOverheadFilter())
 
   def SetTracingCategoryFilter(self, cf):
     if isinstance(cf, tracing_category_filter.TracingCategoryFilter):
