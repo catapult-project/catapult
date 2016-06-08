@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import os
+import logging
 import platform
 import subprocess
 import sys
@@ -21,8 +22,6 @@ from serial.tools import list_ports
 def IsBattOrConnected(test_platform, android_device=None,
                       android_device_map=None, android_device_file=None):
   """Returns True if BattOr is detected."""
-  # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
-  print 'Test platform:', test_platform
   if test_platform == 'android':
     if not android_device:
       raise ValueError('Must pass android device serial when determining '
@@ -46,13 +45,11 @@ def IsBattOrConnected(test_platform, android_device=None,
     return str(android_device) in android_device_map
 
   elif test_platform == 'win':
-    # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
-    print list(serial.tools.list_ports.comports())
     for (_1, desc, _2) in serial.tools.list_ports.comports():
-      # TODO(nednguyen): Remove this printing once crbug.com/616832 is fixed.
-      print 'Port info:', (_1, desc, _2)
       if 'USB Serial Port' in desc:
         return True
+    logging.info('No usb serial port discovered. Available ones are: %s' %
+                 list(serial.tools.list_ports.comports()))
     return False
 
   elif test_platform == 'mac':
