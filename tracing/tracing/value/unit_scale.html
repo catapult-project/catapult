@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v', function() {
+
+  var UnitScale = {};
+
+  function defineUnitScale(name, prefixes) {
+    if (UnitScale[name] !== undefined)
+      throw new Error('Unit scale \'' + name + '\' already exists');
+    if (prefixes.AUTO !== undefined) {
+      throw new Error('\'AUTO\' unit prefix will be added automatically ' +
+          'for unit scale \'' + name + '\'');
+    }
+
+    // If the 'AUTO' unit prefix is used, the prefix that results in
+    // the absolute formatted value being as close to the [1, 1024) interval as
+    // possible is used. Example: 1023 and 1024 bytes are displayed as
+    // "1,023.0 B" and "1.0 KiB", respectively.
+    prefixes.AUTO = tr.b.dictionaryValues(prefixes);
+    prefixes.AUTO.sort((a, b) => a.value - b.value);
+
+    UnitScale[name] = prefixes;
+  }
+
+  // See https://en.wikipedia.org/wiki/Binary_prefix.
+  defineUnitScale('Binary', {
+    NONE: { value: Math.pow(1024, 0), symbol: '' },
+    KIBI: { value: Math.pow(1024, 1), symbol: 'Ki' },
+    MEBI: { value: Math.pow(1024, 2), symbol: 'Mi' },
+    GIBI: { value: Math.pow(1024, 3), symbol: 'Gi' },
+    TEBI: { value: Math.pow(1024, 4), symbol: 'Ti' }
+  });
+
+  // See https://en.wikipedia.org/wiki/Metric_prefix.
+  // The base time unit used in the whole repository is ms (milliseconds), so
+  // all values are multiplied by 1000.
+  defineUnitScale('MetricTime', {
+    NANO: { value: 1e-6, symbol: 'n' },
+    MILLI: { value: 1, symbol: 'm' }
+  });
+
+  return {
+    UnitScale: UnitScale
+  };
+});
+</script>

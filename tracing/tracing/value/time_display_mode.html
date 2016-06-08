@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
@@ -21,9 +21,10 @@ tr.exportTo('tr.v', function() {
     roundedLess: function(a, b) {
       return Math.round(a * 1000) < Math.round(b * 1000);
     },
-    format: function(ts) {
-      return new Number(ts)
-          .toLocaleString(undefined, { minimumFractionDigits: 3 }) + ' ms';
+    formatSpec: {
+      unit: 's',
+      unitPrefix: tr.v.UnitScale.MetricTime.MILLI,
+      minimumFractionDigits: 3,
     }
   };
 
@@ -34,9 +35,10 @@ tr.exportTo('tr.v', function() {
     roundedLess: function(a, b) {
       return Math.round(a * 1000000) < Math.round(b * 1000000);
     },
-    format: function(ts) {
-      return new Number(ts * 1000000)
-          .toLocaleString(undefined, { maximumFractionDigits: 0 }) + ' ns';
+    formatSpec: {
+      unit: 's',
+      unitPrefix: tr.v.UnitScale.MetricTime.NANO,
+      maximumFractionDigits: 0
     }
   };
 

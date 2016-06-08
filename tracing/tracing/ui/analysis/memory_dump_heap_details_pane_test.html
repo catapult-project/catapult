@@ -32,6 +32,7 @@ tr.b.unittest.testSuite(function() {
   var OBJECT_TYPE = RowDimension.OBJECT_TYPE;
   var TitleColumn = tr.ui.analysis.TitleColumn;
   var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
+  var AllocationCountColumn = tr.ui.analysis.AllocationCountColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
   var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
@@ -39,8 +40,8 @@ tr.b.unittest.testSuite(function() {
   var checkNumericFields = tr.ui.analysis.checkNumericFields;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var isElementDisplayed = tr.ui.analysis.isElementDisplayed;
-  var unitlessWholeNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessWholeNumber_smallerIsBetter;
+  var unitlessNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
 
   function createHeapDumps(withCount) {
     var model = new tr.Model();
@@ -198,7 +199,7 @@ tr.b.unittest.testSuite(function() {
   ];
 
   var EXPECTED_COLUMNS_WITH_COUNT = EXPECTED_COLUMNS_WITHOUT_COUNT.concat([
-    { title: 'Count', type: NumericMemoryColumn },
+    { title: 'Count', type: AllocationCountColumn },
     { title: 'Average size per allocation', type: NumericMemoryColumn }
   ]);
 
@@ -231,7 +232,7 @@ tr.b.unittest.testSuite(function() {
       assert.lengthOf(expectedAverageSizes, expectedSizes.length);
 
       checkNumericFields(row, columns[2], expectedCounts,
-          unitlessWholeNumber_smallerIsBetter);
+          unitlessNumber_smallerIsBetter);
       checkSizeNumericFields(row, columns[3], expectedAverageSizes);
     } else {
       // Test sanity check.

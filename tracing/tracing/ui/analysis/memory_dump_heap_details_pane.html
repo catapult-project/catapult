@@ -92,8 +92,8 @@ tr.exportTo('tr.ui.analysis', function() {
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
-  var unitlessWholeNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessWholeNumber_smallerIsBetter;
+  var unitlessNumber_smallerIsBetter =
+      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
   var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
   var TotalState = tr.b.MultiDimensionalViewNode.TotalState;
 
@@ -164,6 +164,18 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   };
 
+  /** @constructor */
+  function AllocationCountColumn(name, cellPath, aggregationMode) {
+    tr.ui.analysis.NumericMemoryColumn.call(
+        this, name, cellPath, aggregationMode);
+  }
+
+  AllocationCountColumn.prototype = {
+    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
+
+    formattingContext: { minimumFractionDigits: 0 }
+  };
+
   var COLUMN_RULES = [
     {
       condition: 'Size',
@@ -173,7 +185,7 @@ tr.exportTo('tr.ui.analysis', function() {
     {
       condition: 'Count',
       importance: 2,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: AllocationCountColumn
     },
     {
       condition: 'Average size per allocation',
@@ -350,7 +362,7 @@ tr.exportTo('tr.ui.analysis', function() {
         var countValue = node.values[1];
         if (countValue.totalState >= this.minDisplayedTotalState_) {
           var count = countValue.total;
-          row['Count'] = new ScalarNumeric(unitlessWholeNumber_smallerIsBetter,
+          row['Count'] = new ScalarNumeric(unitlessNumber_smallerIsBetter,
               count);
           row['Average size per allocation'] = new ScalarNumeric(
               sizeInBytes_smallerIsBetter, count === 0 ? 0 : size / count);
@@ -466,7 +478,9 @@ tr.exportTo('tr.ui.analysis', function() {
   });
 
   return {
-    RowDimension: RowDimension  // Exported for testing.
+    // Exported for testing.
+    RowDimension: RowDimension,
+    AllocationCountColumn: AllocationCountColumn
   };
 });
 </script>

@@ -7,13 +7,14 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Unit = tr.v.Unit;
-  var BinaryPrefix = Unit.BinaryPrefix;
+  var UnitScale = tr.v.UnitScale;
   var ImprovementDirection = tr.v.ImprovementDirection;
 
   test('Unit.display-mode-changed', function() {
@@ -100,7 +101,7 @@ tr.b.unittest.testSuite(function() {
           expectation.correspondingDeltaUnit);
       assert.strictEqual(unit.improvementDirection,
           expectation.improvementDirection);
-      assert.deepEqual(SOURCE_VALUES.map(unit.format.bind(unit)),
+      assert.deepEqual(SOURCE_VALUES.map(v => unit.format(v)),
           expectation.formattedValues);
     }
 
@@ -157,33 +158,38 @@ tr.b.unittest.testSuite(function() {
     });
   });
 
-  test('sizeInBytes_context', function() {
-    assert.strictEqual(Unit.byName.sizeInBytes.format(0, {}), '0.0 B');
-    assert.strictEqual(Unit.byName.sizeInBytesDelta.format(0,
-        { unitPrefix: BinaryPrefix.NONE }), '\u00B10.0 B');
-    assert.strictEqual(Unit.byName.sizeInBytes_smallerIsBetter.format(0,
-        { unitPrefix: BinaryPrefix.KIBI, fractionDigits: 3 }), '0.000 KiB');
-
-    assert.strictEqual(Unit.byName.sizeInBytesDelta_biggerIsBetter.format(
-        49.75 * 1024 * 1024 * 1024, { fractionDigits: 2 }), '+49.75 GiB');
+  test('context', function() {
+    assert.strictEqual(Unit.byName.timeStampInMs.format(0, {}), '0.000 ms');
+    assert.strictEqual(Unit.byName.normalizedPercentageDelta.format(1.23456,
+        { maximumFractionDigits: 2 }), '+123.46%');
+    assert.strictEqual(Unit.byName.sizeInBytes.format(999.9,
+        { minimumFractionDigits: 2 }), '999.90 B');
+    assert.strictEqual(Unit.byName.powerInWatts_biggerIsBetter.format(8.88,
+        { minimumFractionDigits: 1 }), '8.88 W');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(0.00789,
+        { maximumFractionDigits: 6 }), '0.00789');
+    assert.strictEqual(Unit.byName.unitlessNumber.format(41.9,
+        { maximumFractionDigits: 0 }), '42');
     assert.strictEqual(
-        Unit.byName.sizeInBytes.format(
-            49.5 * 1024 * 1024 * 1024,
-            { unitPrefix: BinaryPrefix.KIBI, fractionDigits: 4 }),
-        '51,904,512.0000 KiB');
+        Unit.byName.energyInJoules.format(0.4444,
+            { minimumFractionDigits: 2, maximumFractionDigits: 3 }),
+        '0.444 J');
     assert.strictEqual(
-        Unit.byName.sizeInBytesDelta.format(
-            49.5 * 1024 * 1024 * 1024, { unitPrefix: BinaryPrefix.TEBI }),
-        '+0.0 TiB');
-
-    assert.strictEqual(Unit.byName.sizeInBytesDelta_biggerIsBetter.format(
-        -512 * 1024, {}), '-512.0 KiB');
-    assert.strictEqual(Unit.byName.sizeInBytesDelta_smallerIsBetter.format(
-        -512 * 1024, { unitPrefix: BinaryPrefix.NONE }), '-524,288.0 B');
-    assert.strictEqual(Unit.byName.sizeInBytes.format(-512 * 1024,
-        { unitPrefix: BinaryPrefix.MEBI }), '-0.5 MiB');
-    assert.strictEqual(Unit.byName.sizeInBytesDelta.format(-512 * 1024,
-        { unitPrefix: BinaryPrefix.GIBI, fractionDigits: 0 }), '-0 GiB');
+        Unit.byName.energyInJoules.format(0.6,
+            { minimumFractionDigits: 2, maximumFractionDigits: 3 }),
+        '0.60 J');
+    assert.strictEqual(
+        Unit.byName.sizeInBytesDelta_smallerIsBetter.format(0,
+            { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
+        '\u00B10.0 B');
+    assert.strictEqual(
+        Unit.byName.sizeInBytes.format(25600000000,
+            { unitPrefix: UnitScale.Binary.KIBI }),
+        '25,000,000.0 KiB');
+    assert.strictEqual(
+        Unit.byName.sizeInBytes.format(5243,
+            { unitPrefix: UnitScale.Binary.MEBI, minimumFractionDigits: 2 }),
+        '0.01 MiB');
   });
 
   test('energyInJoules', function() {
@@ -206,13 +212,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Unit.byName.unitlessNumber.format(1.23), '1.230');
     assert.equal(Unit.byName.unitlessNumber.format(-1.23), '-1.230');
     assert.equal(Unit.byName.unitlessNumber.format(0), '0.000');
-  });
-
-  test('unitlessWholeNumber', function() {
-    assert.equal(Unit.byName.unitlessWholeNumber.format(1), '1');
-    assert.equal(Unit.byName.unitlessWholeNumber.format(1.23), '1');
-    assert.equal(Unit.byName.unitlessWholeNumber.format(-1.23), '-1');
-    assert.equal(Unit.byName.unitlessWholeNumber.format(0), '0');
   });
 });
 </script>

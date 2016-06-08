@@ -167,13 +167,15 @@ tr.b.unittest.testSuite(function() {
     test.addHTMLOutput(value);
   }
 
-  function sizeSpanMatcher(expectedValue, opt_expectedIsDelta) {
+  function sizeSpanMatcher(
+      expectedValue, opt_expectedIsDelta, opt_expectedContext) {
     return function(element) {
       assert.strictEqual(element.tagName, 'TR-V-UI-SCALAR-SPAN');
       assert.strictEqual(element.value, expectedValue);
       assert.strictEqual(element.unit, opt_expectedIsDelta ?
           tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter :
           tr.v.Unit.byName.sizeInBytes_smallerIsBetter);
+      assert.deepEqual(element.context, opt_expectedContext);
     };
   }
 
@@ -763,6 +765,13 @@ tr.b.unittest.testSuite(function() {
     };
     checkCellValue(this, c.value(row),
         sizeSpanMatcher(-3.2985348e13, true /* opt_expectedIsDelta */),
+        'rgb(0, 153, 153)', infos1);
+
+    // With custom formatting context.
+    c.formattingContext = { minimumFractionDigits: 2 };
+    checkCellValue(this, c.value(row),
+        sizeSpanMatcher(-3.2985348e13, true /* opt_expectedIsDelta */,
+            { minimumFractionDigits: 2 }),
         'rgb(0, 153, 153)', infos1);
   });
 

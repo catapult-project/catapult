@@ -466,6 +466,7 @@
       'tracing/value/ui/preferred_display_unit.html',
       'tracing/value/ui/scalar_span.html',
       'tracing/value/unit.html',
+      'tracing/value/unit_scale.html',
       'tracing/value/value.html',
     ],
     'tracing_img_files': [

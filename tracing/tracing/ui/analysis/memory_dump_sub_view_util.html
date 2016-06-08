@@ -659,6 +659,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
     align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
 
+    formattingContext: undefined,
+
     aggregateCells: function(row, subRows) {
       var subRowCells = subRows.map(this.cell, this);
 
@@ -725,7 +727,10 @@ tr.exportTo('tr.ui.analysis', function() {
     formatSingleField: function(numeric) {
       if (numeric === undefined)
         return '';
-      return tr.v.ui.createScalarSpan(numeric);
+      var formattingContext = this.formattingContext;
+      var config = formattingContext !== undefined ?
+          { context: formattingContext } : undefined;
+      return tr.v.ui.createScalarSpan(numeric, config);
     },
 
     formatMultipleFieldsDiff: function(firstNumeric, lastNumeric) {
