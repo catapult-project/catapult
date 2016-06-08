@@ -178,6 +178,28 @@ tr.b.unittest.testSuite(function() {
     assert.equal(undefined, Statistics.weightedMean(data, getWeight, getValue));
   });
 
+  test('weightedMean_positionDependent', function() {
+    function getWeight(element, idx) {
+      return idx;
+    }
+    // 3 has weight of 0, 6 has weight of 1, 9 has weight of 2
+    assert.equal(8, Statistics.weightedMean([3, 6, 9], getWeight));
+  });
+
+  test('max_positionDependent', function() {
+    function getValue(element, idx) {
+      return element * idx;
+    }
+    assert.equal(6, Statistics.max([1, 2, 3], getValue));
+  });
+
+  test('min_positionDependent', function() {
+    function getValue(element, idx) {
+      return element * idx;
+    }
+    assert.equal(-6, Statistics.min([1, 2, -3], getValue));
+  });
+
   test('varianceBasic', function() {
     // In [2, 4, 4, 2], all items have a deviation of 1.0 from the mean so the
     // population variance is 4.0 / 4 = 1.0, but the sample variance is 4.0 / 3.
@@ -236,6 +258,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Statistics.percentile(ary, .5, func, ctx), 4);
     assert.equal(Statistics.percentile(ary, .75, func, ctx), 6);
     assert.equal(Statistics.percentile(ary, 1, func, ctx), 9);
+  });
+
+  test('percentile_positionDependent', function() {
+    var ctx = {};
+    var ary = [{x: 0},
+               {x: 1},
+               {x: 2},
+               {x: 3},
+               {x: 4},
+               {x: 5},
+               {x: 6},
+               {x: 7},
+               {x: 8},
+               {x: 9}];
+    function func(d, i) {
+      assert.equal(ctx, this);
+      assert.equal(d.x, i);
+      return d.x * i;
+    }
+    assert.equal(Statistics.percentile(ary, 0, func, ctx), 0);
+    assert.equal(Statistics.percentile(ary, .5, func, ctx), 16);
+    assert.equal(Statistics.percentile(ary, .75, func, ctx), 36);
+    assert.equal(Statistics.percentile(ary, 1, func, ctx), 81);
   });
 
   test('normalizeSamples', function() {
