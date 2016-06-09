@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/unit.html">
+
+<polymer-element name='tr-ui-value-set-table'>
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    table-container {
+      display: flex;
+      min-height: 0px;
+      overflow-y: auto;
+    }
+    div#error {
+      color: red;
+    }
+    </style>
+
+    <div id="error"></div>
+    <table-container>
+      <tr-ui-b-table id="table"></tr-ui-b-table>
+    </table-container>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+tr.exportTo('tr.ui', function() {
+  Polymer('tr-ui-value-set-table', {
+    /**
+     * Return true if this view supports this ValueSet.
+     * Value-set-table supports all possible metrics, so it always returns true.
+     *
+     * @param {!tr.metrics.ValueSet} values
+     * @return {boolean}
+     */
+    supportsValueSet: function(values) {
+      return true;
+    },
+
+    /**
+     * This can optionally depend on the ValueSet.
+     *
+     * @return {string}
+     */
+    get tabLabel() {
+      return 'Table';
+    },
+
+    ready: function() {
+      this.$.table.sortDescending = true;
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.table.tableColumns = [
+        {
+          title: 'Name',
+          value: function(value) {
+            var nameEl = document.createElement('span');
+            nameEl.textContent = value.name;
+            nameEl.title = value.description;
+            nameEl.style.textOverflow = 'ellipsis';
+            return nameEl;
+          },
+          cmp: function(a, b) {
+            return a.name.localeCompare(b.name);
+          },
+        },
+        {
+          title: 'Value',
+          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+          value: function(value) {
+            if (value.unit) {
+              return tr.v.ui.createScalarSpan(
+                  value.value, {unit: value.unit});
+            }
+            return value.value;
+          },
+          cmp: function(a, b) {
+            return a.value - b.value;
+          },
+        }
+      ];
+      this.$.table.sortColumnIndex = 1;
+    },
+
+    /**
+     * @param {!tr.metrics.ValueSet} values
+     */
+    set values(values) {
+      this.style.width = '';
+      this.$.table.style.display = '';
+      this.$.error.textContent = '';
+
+      values.map(function(value) {
+        if (value instanceof tr.v.FailureValue) {
+          this.$.error.textContent = value.description;
+          this.$.table.style.display = 'none';
+          this.style.width = '10em';
+        }
+      }, this);
+      if (this.$.error.textContent)
+        return;
+
+      this.$.table.tableRows = values.map(function(value) {
+        var row = {
+          name: value.name,
+          value: '',
+          unit: undefined,
+          description: value.description,
+        };
+
+        if (value.numeric) {
+          row.unit = value.numeric.unit;
+          if (value.numeric.value !== undefined) {
+            row.value = value.numeric.value;
+          } else if (value.numeric.average !== undefined) {
+            row.value = value.numeric.average;
+          }
+        }
+
+        return row;
+      });
+
+      this.$.table.rebuild();
+
+      tr.b.requestAnimationFrame(function() {
+        this.style.width = this.$.table.getBoundingClientRect().width;
+      }, this);
+    }
+  });
+
+  tr.ui.registerValueSetView('tr-ui-value-set-table');
+
+  return {};
+});
+</script>

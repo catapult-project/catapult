@@ -5,113 +5,82 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/ui/base/polymer_utils.html">
+<link rel="import" href="/tracing/ui/base/tab_view.html">
 
 <polymer-element name='tr-ui-value-set-view'>
   <template>
-    <style>
-    :host {
-      display: flex;
-      flex-direction: column;
-    }
-    table-container {
-      display: flex;
-      min-height: 0px;
-      overflow-y: auto;
-    }
-    div#error {
-      color: red;
-    }
-    </style>
-
-    <div id="error"></div>
-    <table-container>
-      <tr-ui-b-table id="table"></tr-ui-b-table>
-    </table-container>
+    <tr-ui-a-tab-view id="container"></tr-ui-a-tab-view>
   </template>
 </polymer-element>
 
 <script>
 'use strict';
 tr.exportTo('tr.ui', function() {
+  var VALUE_SET_VIEW_ELEMENT_NAMES = [];
+
+  var SELECTED_TAB_SETTINGS_KEY = 'tr-ui-value-set-view-element-name';
+
   Polymer('tr-ui-value-set-view', {
     ready: function() {
-      this.$.table.sortDescending = true;
-      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-      this.$.table.tableColumns = [
-        {
-          title: 'Name',
-          value: function(value) {
-            var nameEl = document.createElement('span');
-            nameEl.textContent = value.name;
-            nameEl.title = value.description;
-            nameEl.style.textOverflow = 'ellipsis';
-            return nameEl;
-          },
-          cmp: function(a, b) {
-            return a.name.localeCompare(b.name);
-          },
-        },
-        {
-          title: 'Value',
-          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-          value: function(value) {
-            if (value.unit) {
-              return tr.v.ui.createScalarSpan(
-                  value.value, {unit: value.unit});
-            }
-            return value.value;
-          },
-          cmp: function(a, b) {
-            return a.value - b.value;
-          },
-        }
-      ];
-      this.$.table.sortColumnIndex = 1;
+      this.$.container.addEventListener(
+        'selected-tab-change', this.onSelectedTabChange_.bind(this));
     },
 
-    set error(err) {
-      this.$.error.textContent = err;
-      this.$.table.style.display = 'none';
-      this.style.width = '10em';
+    onSelectedTabChange_: function() {
+      console.debug(this.$.container.selectedTab);
+      if (!this.$.container.selectedTab)
+        return;
+
+      tr.b.Settings.set(
+          SELECTED_TAB_SETTINGS_KEY,
+          this.$.container.selectedTab.tagName);
     },
 
+    /**
+     * @param {!tr.metrics.ValueSet} values
+     */
     set values(values) {
-      this.style.width = '';
-      this.$.table.style.display = '';
-      this.$.error.textContent = '';
+      this.$.container.textContent = '';
 
-      this.$.table.tableRows = values.map(function(value) {
-        var row = {
-          name: value.name,
-          value: '',
-          unit: undefined,
-          description: value.description,
-        };
+      var initialTabElementName = tr.b.Settings.get(
+          SELECTED_TAB_SETTINGS_KEY, undefined);
 
-        if (value.numeric) {
-          row.unit = value.numeric.unit;
-          if (value.numeric.value !== undefined) {
-            row.value = value.numeric.value;
-          } else if (value.numeric.average !== undefined) {
-            row.value = value.numeric.average;
-          }
-        }
+      VALUE_SET_VIEW_ELEMENT_NAMES.forEach(function(elementName, index) {
+        var view = document.createElement(elementName);
+        if (!view.supportsValueSet(values))
+          return;
 
-        return row;
-      });
+        view.values = values;
 
-      this.$.table.rebuild();
+        if ((elementName === initialTabElementName) ||
+            (index === 0))
+          view.setAttribute('selected', true);
 
-      tr.b.requestAnimationFrame(function() {
-        this.style.width = this.$.table.getBoundingClientRect().width;
+        view.setAttribute('tab-label', view.tabLabel);
+
+        this.$.container.appendChild(view);
       }, this);
+
+      if (this.$.container.children.length === 1)
+        this.$.container.tabsHidden = true;
     }
   });
 
-  return {};
+  /**
+   * Register the name of a polymer element that supports displaying ValueSets.
+   *
+   * @param {string} elementName
+   */
+  function registerValueSetView(elementName) {
+    if (!tr.ui.b.getPolymerElementNamed(elementName))
+      throw new Error('Element not registered: ' + elementName);
+
+    VALUE_SET_VIEW_ELEMENT_NAMES.push(elementName);
+  }
+
+  return {
+    registerValueSetView: registerValueSetView
+  };
 });
 </script>

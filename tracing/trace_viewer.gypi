@@ -451,6 +451,7 @@
       'tracing/ui/tracks/stacked_bars_track.html',
       'tracing/ui/tracks/thread_track.html',
       'tracing/ui/tracks/track.html',
+      'tracing/ui/value_set_table.html',
       'tracing/ui/value_set_view.html',
       'tracing/ui/view_specific_brushing_state.html',
       'tracing/value/diagnostics/composition.html',
