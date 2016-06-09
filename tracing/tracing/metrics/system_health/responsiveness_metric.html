@@ -69,7 +69,12 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
       tr.b.Range.fromExplicitRange(0, 300), 60);
 
-  function responsivenessMetric(values, model) {
+  /**
+   * @param {!tr.metrics.ValueSet} values
+   * @param {!tr.model.Model} model
+   * @param {!Object=} opt_options
+   */
+  function responsivenessMetric(values, model, opt_options) {
     // TODO(benjhayden): Add categories to benchmark to support:
     // tr.metrics.sh.firstPaintMetric(values, model);
 
@@ -79,6 +84,11 @@ tr.exportTo('tr.metrics.sh', function() {
     var latencyNumeric = LATENCY_NUMERIC_BUILDER.build();
 
     model.userModel.expectations.forEach(function(ue) {
+      if (opt_options && opt_options.rangeOfInterest &&
+          !opt_options.rangeOfInterest.intersectsExplicitRangeExclusive(
+            ue.start, ue.end))
+        return;
+
       var sourceInfo = {userExpectationId: ue.stableId};
 
       // Responsiveness is not defined for Idle.

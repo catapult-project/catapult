@@ -38,6 +38,8 @@ tr.exportTo('tr.ui', function() {
     ready: function() {
       this.model_ = undefined;
 
+      this.rangeOfInterest_ = undefined;
+
       this.metrics_ = [];
       tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(
           function(m) {
@@ -91,12 +93,23 @@ tr.exportTo('tr.ui', function() {
       // Not applicable to metrics.
     },
 
-    set selection(selection) {
+    set selection(_) {
       // Not applicable to metrics.
     },
 
-    set rangeOfInterest(_) {
-      // Not applicable to metrics.
+    /**
+     * @return {undefined|!tr.b.Range}
+     */
+    get rangeOfInterest() {
+      return this.rangeOfInterest_;
+    },
+
+    /**
+     * @param {!tr.b.Range} range
+     */
+    set rangeOfInterest(range) {
+      this.rangeOfInterest_ = range;
+      this.updateContents_();
     },
 
     updateContents_: function() {
@@ -115,7 +128,9 @@ tr.exportTo('tr.ui', function() {
           this.currentMetricName_);
       var values = new tr.metrics.ValueSet();
       try {
-        metric.constructor(values, this.model_);
+        metric.constructor(values, this.model_, {
+          rangeOfInterest: this.rangeOfInterest
+        });
       } catch (err) {
         this.$.results.error = err;
         return;

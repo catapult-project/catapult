@@ -72,12 +72,17 @@ tr.exportTo('tr.metrics.sh', function() {
   /**
    * This metric directly measures long tasks on renderer main threads.
    * This metric requires only the 'toplevel' tracing category.
+   *
+   * @param {!tr.metrics.ValueSet} values
+   * @param {!tr.model.Model} model
+   * @param {!Object=} opt_options
    */
-  function longTasksMetric(values, model) {
+  function longTasksMetric(values, model, opt_options) {
+    var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
     var longTaskNumeric = LONG_TASK_NUMERIC_BUILDER.build();
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
-          thread, undefined, function(task) {
+          thread, rangeOfInterest, function(task) {
             longTaskNumeric.add(task.duration, task.stableId);
           });
     });
