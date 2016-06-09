@@ -1396,5 +1396,66 @@ tr.b.unittest.testSuite(function() {
     });
     assert.isDefined(cRow);
   });
+
+  test('sortExpanded', function() {
+    var columns = [
+      {
+        title: 'Name',
+        value: function(row) { return row.name; }
+      },
+      {
+        title: 'Value',
+        value: function(row) { return row.value; },
+        cmp: function(x, y) { return x.value - y.value; }
+      }
+    ];
+
+    var rows = [
+      {
+        name: 'A',
+        value: 10,
+        subRows: [
+          {
+            name: 'B',
+            value: 8
+          },
+          {
+            name: 'C',
+            value: 4
+          },
+        ]
+      }
+    ];
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    function isB(row) {
+      return row.textContent === 'B';
+    }
+
+    // Check that 'A' row is not expanded.
+    assert.isUndefined(tr.b.findDeepElementMatchingPredicate(table, isB));
+
+    // Expand 'A' row.
+    table.setExpandedForTableRow(rows[0], true);
+
+    // Check that 'A' is expanded.
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(table, isB));
+
+    // Sort by value.
+    table.sortColumnIndex = 1;
+
+    // Rebuild the table synchronously instead of waiting for scheduleRebuild_'s
+    // setTimeout(0).
+    table.rebuild();
+
+    // Check that 'A' is still expanded.
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(table, isB));
+  });
 });
 </script>

@@ -858,11 +858,15 @@ tr.exportTo('tr.ui.b', function() {
           return true;
         if (userRow.isExpanded === false)
           return false;
+
+        var rowInfo = this.tableRowsInfo_.get(userRow);
+        if (rowInfo && rowInfo.isExpanded)
+          return true;
+
         if (this.defaultExpansionStateCallback_ === undefined)
           return false;
 
         var parentUserRow = undefined;
-        var rowInfo = this.tableRowsInfo_.get(userRow);
         if (rowInfo && rowInfo.parentRowInfo)
           parentUserRow = rowInfo.parentRowInfo.userRow;
 
