@@ -140,6 +140,8 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
     args = []
   if not kwargs:
     kwargs = {}
+  if not desc:
+    desc = func.__name__
 
   num_try = 1
   while True:
@@ -154,7 +156,7 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
         thread_group.JoinAll(watcher=thread_group.GetWatcher(), timeout=60,
                              error_log_func=error_log_func)
         if thread_group.IsAlive():
-          logging.info('Still working on %s', desc if desc else func.__name__)
+          logging.info('Still working on %s', desc)
         else:
           return thread_group.GetAllReturnValues()[0]
     except reraiser_thread.TimeoutError as e:
@@ -166,6 +168,6 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
       if num_try > retries or not retry_if_func(e):
         raise
       error_log_func(
-          'Exception on thread %s (attempt %d of %d): %r',
-          thread_name, num_try, retries + 1, e)
+          '(%s) Exception on %s, attempt %d of %d: %r',
+          thread_name, desc, num_try, retries + 1, e)
     num_try += 1
