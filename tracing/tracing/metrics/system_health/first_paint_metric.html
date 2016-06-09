@@ -232,7 +232,11 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
-  var URL_BLACKLIST = ['about:blank'];
+  var URL_BLACKLIST = [
+    'about:blank',
+    // Chrome on Android creates main frames with the below URL for plugins.
+    'data:text/html,pluginplaceholderdata'
+  ];
   function shouldIgnoreURL(url) {
     return URL_BLACKLIST.indexOf(url) >= 0;
   }
