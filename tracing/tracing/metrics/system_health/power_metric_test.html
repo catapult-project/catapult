@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     model.device.powerSeries.addPowerSample('70', '.5');
     tr.metrics.sh.powerMetric(valueSet, model);
     var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name === 'power_energy');
+        (dict) => dict.name === 'energy_consumed_per_frame');
     var powerEntry = tr.b.getOnlyElement(powerEntries);
     assert.equal(powerEntry.numeric.centralBins[0].count, 5);
     assert.closeTo(powerEntry.numeric.running.sum, 0.0172, 1e-4);
@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
     model.device.powerSeries.addPowerSample('6', '.5');
     tr.metrics.sh.powerMetric(valueSet, model);
     var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name === 'power_energy');
+        (dict) => dict.name === 'energy_consumed_per_frame');
     var powerEntry = tr.b.getOnlyElement(powerEntries);
     assert.equal(powerEntry.numeric.centralBins[0].count, 1);
     assert.closeTo(powerEntry.numeric.running.sum, 0.0011, 1e-4);
@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.metrics.ValueSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name === 'power_energy');
+        (dict) => dict.name === 'energy_consumed_per_frame');
     assert.lengthOf(powerEntries, 0);
   });
 });

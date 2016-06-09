@@ -18,7 +18,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var IDEAL_FRAME_RATE = 60;
   var IDEAL_FRAME_DURATION = 1000 / IDEAL_FRAME_RATE;
 
-  function energyPerFrame(valueList, model) {
+  function energyConsumedPerFrame(valueList, model) {
     var frameEnergyConsumed = tr.v.NumericBuilder.createLinear(
         tr.v.Unit.byName.energyInJoules_smallerIsBetter,
         tr.b.Range.fromExplicitRange(0, .5), 20).build();
@@ -32,14 +32,14 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     valueList.addValue(new tr.v.NumericValue(
-        'power_energy', frameEnergyConsumed,
-        {description: 'Energy consumption in joules'}));
+        'energy_consumed_per_frame', frameEnergyConsumed,
+        {description: 'Energy consumption per frame in joules'}));
   }
 
   function powerMetric(valueList, model) {
     if (!model.device.powerSeries)
       return;
-    energyPerFrame(valueList, model);
+    energyConsumedPerFrame(valueList, model);
   }
 
   tr.metrics.MetricRegistry.register(powerMetric);
