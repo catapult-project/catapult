@@ -8,7 +8,6 @@
 import logging
 import threading
 import time
-import traceback
 
 from devil.utils import reraiser_thread
 from devil.utils import watchdog_timer
@@ -114,17 +113,6 @@ def WaitFor(condition, wait_period=5, max_tries=None):
   return None
 
 
-def _LogLastException(thread_name, attempt, max_attempts, log_func):
-  log_func('*' * 80)
-  log_func('Exception on thread %s (attempt %d of %d)', thread_name,
-                   attempt, max_attempts)
-  log_func('*' * 80)
-  fmt_exc = ''.join(traceback.format_exc())
-  for line in fmt_exc.splitlines():
-    log_func(line.rstrip())
-  log_func('*' * 80)
-
-
 def AlwaysRetry(_exception):
   return True
 
@@ -177,5 +165,7 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
     except Exception as e:  # pylint: disable=broad-except
       if num_try > retries or not retry_if_func(e):
         raise
-      _LogLastException(thread_name, num_try, retries + 1, error_log_func)
+      error_log_func(
+          'Exception on thread %s (attempt %d of %d): %r',
+          thread_name, num_try, retries + 1, e)
     num_try += 1
