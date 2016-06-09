@@ -165,9 +165,11 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # TODO(crbug.com/601052): The following waits for any UI node for the
     # package launched to appear on the screen. When the referenced bug is
     # fixed, remove this workaround and just switch blocking above to True.
+    browser_ui = app_ui.AppUi(self.device, package)
     try:
-      app_ui.AppUi(self.device, package).WaitForUiNode(package=package)
+      browser_ui.WaitForUiNode(package=package)
     except Exception:
+      browser_ui.LogScreenDump()
       raise exceptions.BrowserGoneException(self.browser,
           'Timed out waiting for browser to come back foreground.')
 
