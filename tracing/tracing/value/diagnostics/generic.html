@@ -35,7 +35,9 @@ tr.exportTo('tr.v.d', function() {
     return new Generic(d.value);
   };
 
-  tr.v.d.Diagnostic.register(Generic);
+  tr.v.d.Diagnostic.register(Generic, {
+    elementName: 'tr-v-ui-generic-diagnostic-span'
+  });
 
   return {
     Generic: Generic

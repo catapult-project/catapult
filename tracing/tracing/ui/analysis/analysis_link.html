@@ -45,12 +45,32 @@ found in the LICENSE file.
       this.controller_ = undefined;
     },
 
+    /**
+     * @return {*|function():*}
+     */
     get selection() {
       return this.selection_;
     },
 
+    /**
+     * |selection| can be anything except a function, or else a function that
+     * can return anything.
+     *
+     * In the context of trace_viewer, |selection| is typically an EventSet,
+     * whose events will be highlighted by trace_viewer when this link is
+     * clicked or mouse-entered.
+     *
+     * If |selection| is not a function, then it will be dispatched to this
+     * link's embedder via a RequestSelectionChangeEvent when this link is
+     * clicked or mouse-entered.
+     *
+     * If |selection| is a function, then it will be called when this link is
+     * clicked or mouse-entered, and its result will be dispatched to this
+     * link's embedder via a RequestSelectionChangeEvent.
+     *
+     * @param {*|function():*} selection
+     */
     set selection(selection) {
-      // Selection can be either an EventSet or a function.
       this.selection_ = selection;
       this.textContent = selection.userFriendlyName;
     },
@@ -61,6 +81,12 @@ found in the LICENSE file.
         this.textContent = opt_textContent;
     },
 
+    /**
+     * If |selection| is a function, call it and return the result.
+     * Otherwise return |selection| directly.
+     *
+     * @return {*}
+     */
     getCurrentSelection_: function() {
       // Gets the current selection, invoking the selection function if needed.
       if (typeof this.selection_ === 'function')

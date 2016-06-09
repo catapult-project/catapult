@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
+
+<polymer-element name="tr-v-ui-generic-diagnostic-span">
+  <template>
+    <tr-ui-a-generic-object-view id="generic"></tr-ui-a-generic-object-view>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.diagnostic_ = undefined;
+    },
+
+    get diagnostic() {
+      return this.diagnostic_;
+    },
+
+    set diagnostic(d) {
+      this.diagnostic_ = d;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      if (this.diagnostic === undefined) {
+        this.$.generic.object = undefined;
+        return;
+      }
+
+      this.$.generic.object = this.diagnostic.value;
+    }
+  });
+  </script>
+</polymer-element>

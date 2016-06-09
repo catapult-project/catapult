@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/diagnostics/composition.html">
+<link rel="import" href="/tracing/value/diagnostics/related_value_set.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate_RelatedValueSet', function() {
+    var aValue = new tr.v.SkipValue('a');
+    var bValue = new tr.v.SkipValue('b');
+    var diagnostic = new tr.v.d.RelatedValueSet([aValue, bValue]);
+    var span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-RELATED-VALUE-SET-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+
+  test('instantiate_Composition', function() {
+    var aValue = new tr.v.SkipValue('a');
+    var bValue = new tr.v.SkipValue('b');
+    var diagnostic = new tr.v.d.Composition([aValue, bValue]);
+    var span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-RELATED-VALUE-SET-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+});
+</script>

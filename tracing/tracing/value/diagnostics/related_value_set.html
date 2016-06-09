@@ -82,7 +82,9 @@ tr.exportTo('tr.v.d', function() {
     return new RelatedValueSet(d.guids.map(guid => new ValueRef(guid)));
   };
 
-  tr.v.d.Diagnostic.register(RelatedValueSet);
+  tr.v.d.Diagnostic.register(RelatedValueSet, {
+    elementName: 'tr-v-ui-related-value-set-span'
+  });
 
   return {
     RelatedValueSet: RelatedValueSet,
