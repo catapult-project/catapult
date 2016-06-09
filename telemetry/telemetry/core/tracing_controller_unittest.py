@@ -17,37 +17,6 @@ from telemetry.timeline import trace_data as trace_data_module
 class TracingControllerTest(tab_test_case.TabTestCase):
 
   @decorators.Isolated
-  def testModifiedConsoleTime(self):
-    tracing_controller = self._tab.browser.platform.tracing_controller
-    config = tracing_config.TracingConfig()
-    config.enable_chrome_trace = True
-    tracing_controller.StartTracing(config)
-    self.Navigate('blank.html')
-    self.assertEquals(
-        self._tab.EvaluateJavaScript('document.location.pathname;'),
-        '/blank.html')
-
-    self._tab.EvaluateJavaScript("""
-        window.__console_time = console.time;
-        console.time = function() { };
-        """)
-    with self.assertRaisesRegexp(Exception, 'Page stomped on console.time'):
-      tracing_controller.StopTracing()
-
-    # Restore console.time
-    self._tab.EvaluateJavaScript("""
-        console.time = window.__console_time;
-        delete window.__console_time;
-        """)
-
-    # Check that subsequent tests will be able to use tracing normally.
-    self.assertFalse(tracing_controller.is_tracing_running)
-    tracing_controller.StartTracing(config)
-    self.assertTrue(tracing_controller.is_tracing_running)
-    tracing_controller.StopTracing()
-    self.assertFalse(tracing_controller.is_tracing_running)
-
-  @decorators.Isolated
   def testExceptionRaisedInStopTracing(self):
     tracing_controller = self._tab.browser.platform.tracing_controller
     config = tracing_config.TracingConfig()
@@ -55,15 +24,19 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tracing_controller.StartTracing(config)
 
     self.Navigate('blank.html')
-    self._tab.EvaluateJavaScript("""
-        window.__console_time = console.time;
-        console.time = function() { };
-        """)
-    with self.assertRaisesRegexp(Exception, 'Page stomped on console.time'):
+
+    def _FakeStopChromeTracing(*args):
+      del args  # Unused
+      raise Exception('Intentional Tracing Exception')
+
+    self._tab._inspector_backend._devtools_client.StopChromeTracing = (
+      _FakeStopChromeTracing)
+    with self.assertRaisesRegexp(Exception, 'Intentional Tracing Exception'):
       tracing_controller.StopTracing()
 
     # Tracing is stopped even if there is exception.
     self.assertFalse(tracing_controller.is_tracing_running)
+
 
   @decorators.Isolated
   def testGotTrace(self):

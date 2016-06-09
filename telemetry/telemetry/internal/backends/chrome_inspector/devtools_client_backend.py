@@ -347,12 +347,10 @@ class DevToolsClientBackend(object):
           continue
         context_id = context['id']
         backend = context_map.GetInspectorBackend(context_id)
-        success = backend.EvaluateJavaScript(
+        backend.EvaluateJavaScript(
             "console.time('" + backend.id + "');" +
             "console.timeEnd('" + backend.id + "');" +
             "console.time.toString().indexOf('[native code]') != -1;")
-        if not success:
-          raise Exception('Page stomped on console.time')
         trace_data_builder.AddEventsTo(
             trace_data_module.TAB_ID_PART, [backend.id])
     finally:
