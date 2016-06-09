@@ -41,7 +41,7 @@ class OOMKillerProfiler(profiler.Profiler):
       self._browser_backend.device.GoHome()
       self._platform_backend.LaunchApplication(
           'org.chromium.memconsumer/.MemConsumer',
-          '--ei memory 20')
+          ['--ei', 'memory', '20'])
       # Bring the browser to the foreground after launching the mem consumer
       self._browser_backend.device.StartActivity(
           intent.Intent(package=browser_backend.package,
