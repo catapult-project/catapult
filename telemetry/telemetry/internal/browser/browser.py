@@ -272,6 +272,9 @@ class Browser(app.App):
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()
 
+  def GetLogFileContents(self):
+    return self._browser_backend.GetLogFileContents()
+
   def GetStackTrace(self):
     return self._browser_backend.GetStackTrace()
 

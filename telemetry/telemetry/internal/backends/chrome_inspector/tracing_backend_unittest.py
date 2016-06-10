@@ -18,7 +18,7 @@ from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 
 
-def PrintBrowserStandardOutputOnFailure(test):
+def PrintBrowserStandardOutputAndLogOnFailure(test):
   @wraps(test)
   def WrappedTest(self):
     try:  # pylint: disable=broad-except
@@ -32,6 +32,13 @@ def PrintBrowserStandardOutputOnFailure(test):
       except Exception:
         logging.exception('Failed to get browser standard output:')
       logging.info('========== END BROWSER STANDARD OUTPUT ==========')
+
+      logging.info('========== BEGIN BROWSER LOG ==========')
+      try:  # pylint: disable=broad-except
+        logging.info(self._browser.GetLogFileContents())
+      except Exception:
+        logging.exception('Failed to get browser log:')
+      logging.info('========== END BROWSER LOG ==========')
 
       # Re-raise the original exception. Note that we can't just use 'raise'
       # without any arguments because an exception might have been thrown when
@@ -65,7 +72,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     if not self._browser.supports_memory_dumping:
       self.skipTest('Browser does not support memory dumping, skipping test.')
 
-  @PrintBrowserStandardOutputOnFailure
+  @PrintBrowserStandardOutputAndLogOnFailure
   def testDumpMemorySuccess(self):
     # Check that dumping memory before tracing starts raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
@@ -108,7 +115,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     actual_dump_ids = [d.dump_id for d in model.IterGlobalMemoryDumps()]
     self.assertEqual(actual_dump_ids, expected_dump_ids)
 
-  @PrintBrowserStandardOutputOnFailure
+  @PrintBrowserStandardOutputAndLogOnFailure
   def testDumpMemoryFailure(self):
     # Check that dumping memory before tracing starts raises an exception.
     self.assertRaises(Exception, self._browser.DumpMemory)
