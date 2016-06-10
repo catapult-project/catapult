@@ -37,7 +37,7 @@ class BuildStepsTest(unittest.TestCase):
             % (test['disabled'], test['name'])
         ))
         for platform in test['disabled']:
-          self.assertIn(platform, ['win', 'mac', 'linux'], msg=(
+          self.assertIn(platform, ['win', 'mac', 'linux', 'android'], msg=(
               'Bad platform %s in build_steps._CATAPULT_TESTS for %s;'
               'should be one of "linux", "win", "mac"' % (
                   platform, test['name'])
