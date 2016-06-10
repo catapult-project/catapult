@@ -48,6 +48,7 @@ _RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8'})
 def GetPreferredTryMasters(project, change):
   return {
       'tryserver.client.catapult': {
+          'Catapult Android Tryserver': {'defaulttests'},
           'Catapult Linux Tryserver': {'defaulttests'},
           'Catapult Mac Tryserver': {'defaulttests'},
           'Catapult Windows Tryserver': {'defaulttests'},
