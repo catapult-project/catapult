@@ -662,9 +662,13 @@ class AndroidPlatformBackend(
     """
     def Decorate(title, content):
       return "%s\n%s\n%s\n" % (title, content, '*' * 80)
+
+    # Get the UI nodes that can be found on the screen
+    ret = Decorate('UI dump', '\n'.join(self.GetSystemUi().ScreenDump()))
+
     # Get the last lines of logcat (large enough to contain stacktrace)
     logcat = self.GetLogCat()
-    ret = Decorate('Logcat', logcat)
+    ret += Decorate('Logcat', logcat)
     stack = os.path.join(util.GetChromiumSrcDir(), 'third_party',
                          'android_platform', 'development', 'scripts', 'stack')
     # Try to symbolize logcat.
