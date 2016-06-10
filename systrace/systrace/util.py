@@ -27,12 +27,33 @@ class OptionParserIgnoreErrors(optparse.OptionParser):
 
 
 def add_adb_serial(adb_command, device_serial):
+  """Add serial number to ADB shell command.
+
+  ADB shell command is given as list, e.g.
+  ['adb','shell','some_command','some_args'].
+  This replaces it with:
+  ['adb','shell',-s',device_serial,'some_command','some_args']
+
+  Args:
+     adb_command: ADB command list.
+     device_serial: Device serial number.
+
+  Returns:
+     ADB command list with serial number added.
+  """
   if device_serial is not None:
     adb_command.insert(1, device_serial)
     adb_command.insert(1, '-s')
 
 
 def construct_adb_shell_command(shell_args, device_serial):
+  """Construct an ADB shell command with given device serial and arguments.
+
+  Args:
+     shell_args: array of arguments to pass to adb shell.
+     device_serial: if not empty, will add the appropriate command-line
+        parameters so that adb targets the given device.
+  """
   adb_command = ['adb', 'shell', ' '.join(shell_args)]
   add_adb_serial(adb_command, device_serial)
   return adb_command
