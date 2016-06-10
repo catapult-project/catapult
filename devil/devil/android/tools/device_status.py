@@ -232,8 +232,7 @@ def GetExpectedDevices(known_devices_files):
   return expected_devices
 
 
-def main():
-  parser = argparse.ArgumentParser()
+def AddArguments(parser):
   parser.add_argument('--json-output',
                       help='Output JSON information into a specified file.')
   parser.add_argument('--adb-path',
@@ -252,6 +251,9 @@ def main():
                       help='If set, overwrites known devices files wiht new '
                            'values.')
 
+def main():
+  parser = argparse.ArgumentParser()
+  AddArguments(parser)
   args = parser.parse_args()
 
   run_tests_helper.SetLogLevel(args.verbose)
