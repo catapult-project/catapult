@@ -41,7 +41,6 @@ _CATAPULT_TESTS = [
     {
         'name': 'Catapult Base Tests',
         'path': 'catapult_base/bin/run_tests',
-        'disabled': ['android'],
     },
     {
         'name': 'Dashboard Dev Server Tests Canary',
@@ -75,7 +74,6 @@ _CATAPULT_TESTS = [
     {
         'name': 'Dependency Manager Tests',
         'path': 'dependency_manager/bin/run_tests',
-        'disabled': ['android'],
     },
     {
         'name': 'Devil Python Tests',
@@ -135,7 +133,6 @@ _CATAPULT_TESTS = [
             '--start-xvfb'
         ],
         'uses_sandbox_env': True,
-        'disabled': ['android'],
     },
     {
         'name': 'Telemetry Integration Tests with Stable Browser',
@@ -209,9 +206,28 @@ def main(args=None):
       'name': 'Remove Stale PYC files',
       'cmd': ['python',
               os.path.join(args.api_path_checkout,
-                           'catapult_build/remove_stale_pyc_files.py'),
+                           'catapult_build', 'remove_stale_pyc_files.py'),
               args.api_path_checkout]
   }]
+  if args.platform == 'android':
+    # On Android, we need to prepare the devices a bit before using them in
+    # tests. These steps are not listed as tests above because they aren't
+    # tests and because they must precede all tests.
+    steps.extend([
+        {
+            'name': 'Android: Recover Devices',
+            'cmd': ['python',
+                    os.path.join(args.api_path_checkout, 'devil', 'devil',
+                                 'android', 'tools', 'device_recovery.py')],
+        },
+        {
+            'name': 'Android: Device Status',
+            'cmd': ['python',
+                    os.path.join(args.api_path_checkout, 'devil', 'devil',
+                                 'android', 'tools', 'device_status.py')],
+        },
+    ])
+
   for test in _CATAPULT_TESTS:
     if args.platform in test.get('disabled', []):
       continue
