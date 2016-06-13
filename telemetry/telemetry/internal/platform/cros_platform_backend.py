@@ -120,6 +120,9 @@ class CrosPlatformBackend(
       sample_stats[cpu] = cstates
     return sample_stats
 
+  def GetDeviceTypeName(self):
+    return 'Laptop'
+
   @decorators.Cache
   def GetArchName(self):
     return self._cri.GetArchName()
