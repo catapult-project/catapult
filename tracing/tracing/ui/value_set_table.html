@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -32,6 +33,7 @@ found in the LICENSE file.
     <table-container>
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </table-container>
+    <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
   </template>
 </polymer-element>
 
@@ -92,6 +94,18 @@ tr.exportTo('tr.ui', function() {
         }
       ];
       this.$.table.sortColumnIndex = 1;
+      this.$.table.addEventListener('selection-changed',
+          this.onRowSelected_.bind(this));
+    },
+
+    onRowSelected_: function() {
+      var row = this.$.table.selectedTableRow;
+      if (row && row.numeric) {
+        this.$.histogram.style.display = '';
+        this.$.histogram.histogram = row.numeric;
+      } else {
+        this.$.histogram.style.display = 'none';
+      }
     },
 
     /**
@@ -125,6 +139,7 @@ tr.exportTo('tr.ui', function() {
           if (value.numeric.value !== undefined) {
             row.value = value.numeric.value;
           } else if (value.numeric.average !== undefined) {
+            row.numeric = value.numeric;
             row.value = value.numeric.average;
           }
         }
@@ -133,6 +148,7 @@ tr.exportTo('tr.ui', function() {
       });
 
       this.$.table.rebuild();
+      this.onRowSelected_();
 
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
