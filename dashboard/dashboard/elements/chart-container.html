@@ -1604,7 +1604,7 @@ triaging functionality in the chart.
                   this.$['alert-icon-container']).appendChild(alertIcon);
               alertIcon.setPosition(top, left);
 
-              alertIcon.onmouseover = this.showTooltip.bind(
+              alertIcon.onmouseover = this.onAlertMouseOver.bind(
                   this, flotIndex, dataIndex);
               alertIcon.onclick = this.onAlertClick.bind(
                   this, flotIndex, dataIndex);
@@ -1825,6 +1825,16 @@ triaging functionality in the chart.
           this.showTooltip(flotSeriesIndex, dataIndex, alerts, triaged);
         },
 
+        /**
+         * Brings up the tooltip when an alert circle is moused over.
+         * @param {number} flotSeriesIndex Index into the flot data series
+         *     array `this.chart.getData()`.
+         * @param {number} dataIndex Index into an array of points.
+         * @param {Event} The click event.
+         */
+        onAlertMouseOver: function(flotSeriesIndex, dataIndex, event) {
+          this.showTooltip(flotSeriesIndex, dataIndex);
+        },
         /**
          * Updates the interface when a bug is triaged.
          * This is the event handler for a 'triaged' event on the
