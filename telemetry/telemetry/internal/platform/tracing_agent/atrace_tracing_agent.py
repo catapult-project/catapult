@@ -67,6 +67,4 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
     raw_data = self._atrace_agent.GetResults(timeout).raw_data
-    with open('TestOut.txt', 'w') as outfile:
-      outfile.write(raw_data)
     trace_data_builder.SetTraceFor(trace_data.ATRACE_PART, raw_data)
