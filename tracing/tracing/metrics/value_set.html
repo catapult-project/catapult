@@ -58,7 +58,8 @@ tr.exportTo('tr.metrics', function() {
       // each ValueRef (0-10?), do a hash lookup (constant time?).
       tr.b.iterItems(this.values_, function(guid, value) {
         value.diagnostics.forEach(function(name, diagnostic) {
-          if (diagnostic instanceof tr.v.d.RelatedValueSet)
+          if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
+              (diagnostic instanceof tr.v.d.RelatedValueMap))
             diagnostic.resolve(this);
         }, this);
       }, this);

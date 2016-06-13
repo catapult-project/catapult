@@ -64,29 +64,31 @@ tr.b.unittest.testSuite(function() {
     values2.addValuesFromDicts(values.valueDicts);
 
     var a2 = values2.getValuesWithName('a');
-    assert.strictEqual(1, a2.length);
+    assert.lengthOf(a2, 1);
     a2 = a2[0];
-    assert.strictEqual(a.guid, a2.guid);
-    assert.notStrictEqual(a, a2);
+    assert.strictEqual(a2.guid, a.guid);
+    assert.instanceOf(a2, tr.v.Value);
+    assert.notStrictEqual(a2, a);
 
     var b2 = values2.getValuesWithName('b');
-    assert.strictEqual(1, b2.length);
+    assert.lengthOf(b2, 1);
     b2 = b2[0];
-    assert.strictEqual(b.guid, b2.guid);
-    assert.notStrictEqual(b, b2);
+    assert.strictEqual(b2.guid, b.guid);
+    assert.instanceOf(b2, tr.v.Value);
+    assert.notStrictEqual(b2, b);
 
     var rvs2 = a2.diagnostics.get('rvs');
     assert.instanceOf(rvs2, tr.v.d.RelatedValueSet);
-    assert.strictEqual(2, rvs2.values.length);
+    assert.lengthOf(rvs2.values, 2);
 
     // Assert that b and c are in a2's RelatedValueSet.
     var rvs2vs = rvs2.values;
     var rvs2guids = rvs2vs.map(v => v.guid);
     var b2i = rvs2guids.indexOf(b.guid);
-    assert.strictEqual(b2, rvs2vs[b2i]);
+    assert.strictEqual(rvs2vs[b2i], b2);
 
     var c2i = rvs2guids.indexOf(c.guid);
-    assert.strictEqual(c.guid, rvs2vs[c2i].guid);
+    assert.strictEqual(rvs2vs[c2i].guid, c.guid);
     assert.instanceOf(rvs2vs[c2i], tr.v.d.ValueRef);
 
     // Now serialize c and add it to values2.
@@ -95,10 +97,10 @@ tr.b.unittest.testSuite(function() {
     values2.addValuesFromDicts([c.asDict()]);
 
     var c2 = values2.getValuesWithName('c');
-    assert.strictEqual(1, c2.length);
+    assert.lengthOf(c2, 1);
     c2 = c2[0];
-    assert.strictEqual(c.guid, c2.guid);
-    assert.notStrictEqual(c, c2);
+    assert.strictEqual(c2.guid, c.guid);
+    assert.notStrictEqual(c2, c);
 
     // Now a real c2 Value should be in a2's RelatedValueSet.
     rvs2vs = rvs2.values;
@@ -107,6 +109,64 @@ tr.b.unittest.testSuite(function() {
     c2i = rvs2guids.indexOf(c.guid);
     assert.strictEqual(b2, rvs2vs[b2i]);
     assert.strictEqual(c2, rvs2vs[c2i]);
+  });
+
+  test('relatedValueMapDiagnostic', function() {
+    var unit = tr.v.Unit.byName.unitlessNumber;
+    var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 0));
+    var b = new tr.v.NumericValue('b', new tr.v.ScalarNumeric(unit, 1));
+    var c = new tr.v.NumericValue('c', new tr.v.ScalarNumeric(unit, 2));
+    var rvm = new tr.v.d.RelatedValueMap();
+    rvm.set('y', b);
+    rvm.set('z', c);
+    a.diagnostics.add('rvm', rvm);
+
+    // Don't serialize c just yet.
+    var values = new tr.metrics.ValueSet([a, b]);
+
+    var values2 = new tr.metrics.ValueSet();
+    values2.addValuesFromDicts(values.valueDicts);
+
+    var a2 = values2.getValuesWithName('a');
+    assert.lengthOf(a2, 1);
+    a2 = a2[0];
+    assert.strictEqual(a2.guid, a.guid);
+    assert.instanceOf(a2, tr.v.Value);
+    assert.notStrictEqual(a2, a);
+
+    var b2 = values2.getValuesWithName('b');
+    assert.lengthOf(b2, 1);
+    b2 = b2[0];
+    assert.strictEqual(b2.guid, b.guid);
+    assert.instanceOf(b2, tr.v.Value);
+    assert.notStrictEqual(b2, b);
+
+    var rvm2 = a2.diagnostics.get('rvm');
+    assert.instanceOf(rvm2, tr.v.d.RelatedValueMap);
+    assert.lengthOf(rvm2.values, 2);
+
+    // Assert that b and c are in a2's RelatedValueMap.
+    // |c| should still be a ValueRef since it wasn't in values2.
+    assert.strictEqual(rvm2.get('y'), b2);
+    assert.instanceOf(rvm2.get('z'), tr.v.d.ValueRef);
+
+    // Now serialize c and add it to values2.
+    // Related value resolution is idempotent.
+    // Old values can refer to new values.
+    values2.addValuesFromDicts([c.asDict()]);
+
+    var c2 = values2.getValuesWithName('c');
+    assert.lengthOf(c2, 1);
+    c2 = c2[0];
+    assert.strictEqual(c2.guid, c.guid);
+    assert.instanceOf(c2, tr.v.Value);
+    assert.notStrictEqual(c2, c);
+
+    // b2 should still be in a2's RelatedValueMap.
+    assert.strictEqual(rvm2.get('y'), b2);
+
+    // Now a real c2 Value should be in a2's RelatedValueMap.
+    assert.strictEqual(rvm2.get('z'), c2);
   });
 });
 </script>

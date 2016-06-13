@@ -19,7 +19,7 @@ tr.exportTo('tr.v.d', function() {
 
   /** @constructor */
   function RelatedValueSet(opt_values) {
-    this.values_ = {};
+    this.valuesByGuid_ = {};
 
     if (opt_values)
       opt_values.forEach(this.add, this);
@@ -31,50 +31,52 @@ tr.exportTo('tr.v.d', function() {
     /**
      * Add a Value to this set.
      *
-     * @param {!ValueRef|tr.v.Value} v
+     * @param {!(ValueRef|tr.v.Value)} v
      */
-    add: function(v) {
-      if (!(v instanceof tr.v.Value) &&
-          !(v instanceof ValueRef))
-        throw new Error('Must be instanceof Value or ValueRef: ' + v);
+    add: function(value) {
+      if (!(value instanceof tr.v.Value) &&
+          !(value instanceof ValueRef))
+        throw new Error('Must be instanceof Value or ValueRef: ' + value);
 
-      if (this.values_[v.guid])
+      if (this.valuesByGuid_[value.guid])
         throw new Error('Tried to add same value twice');
 
-      this.values_[v.guid] = v;
+      this.valuesByGuid_[value.guid] = value;
     },
 
     /**
-     * @return {Array.<ValueRef|tr.v.Value>}
+     * @return {Array.<(ValueRef|tr.v.Value)>}
      */
     get values() {
-      return tr.b.dictionaryValues(this.values_);
+      return tr.b.dictionaryValues(this.valuesByGuid_);
     },
 
     /**
-     * Resolve all ValueRefs into Values by looking up their guids in valueSet.
-     * If a value cannot be found and opt_required is true, then throw an Error.
-     * If a value cannot be found and opt_required is false, then the ValueRef
+     * Resolve all ValueRefs into Values by looking up their guids in
+     * |valueSet|.
+     * If a value cannot be found and |opt_required| is true, then throw an
+     * Error.
+     * If a value cannot be found and |opt_required| is false, then the ValueRef
      * will remain a ValueRef.
      *
      * @param {!tr.metrics.ValueSet} valueSet
      * @param {boolean=} opt_required
      */
     resolve: function(valueSet, opt_required) {
-      tr.b.iterItems(this.values_, function(guid, value) {
+      tr.b.iterItems(this.valuesByGuid_, function(guid, value) {
         if (!(value instanceof ValueRef))
           return;
 
         value = valueSet.lookup(guid);
         if (value instanceof tr.v.Value)
-          this.values_[guid] = value;
+          this.valuesByGuid_[guid] = value;
         else if (opt_required)
           throw new Error('Unable to find Value ' + guid);
       }, this);
     },
 
     asDictInto_: function(d) {
-      d.guids = tr.b.dictionaryKeys(this.values_);
+      d.guids = tr.b.dictionaryKeys(this.valuesByGuid_);
     }
   };
 

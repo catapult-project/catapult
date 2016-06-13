@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/value/diagnostics/related_value_set.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  /** @constructor */
+  function RelatedValueMap() {
+    this.valuesByName_ = {};
+  }
+
+  RelatedValueMap.prototype = {
+    __proto__: tr.v.d.Diagnostic.prototype,
+
+    /**
+     * Add a named Value to this map.
+     *
+     * @param {string} name
+     * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
+     */
+    set: function(name, value) {
+      if (!(value instanceof tr.v.Value) &&
+          !(value instanceof tr.v.d.ValueRef))
+        throw new Error('Must be instanceof Value or ValueRef: ' + value);
+
+      this.valuesByName_[name] = value;
+    },
+
+    /**
+     * Iterate over the named Values.
+     *
+     * @param {!function(string, !(tr.v.d.ValueRef|tr.v.Value))} callback
+     * @param {*=} opt_this
+     */
+    iterItems: function(callback, opt_this) {
+      tr.b.iterItems(this.valuesByName_, callback, opt_this || this);
+    },
+
+    /**
+     * @return {!Array.<!(tr.v.d.ValueRef|tr.v.Value)>}
+     */
+    get values() {
+      return tr.b.dictionaryValues(this.valuesByName_);
+    },
+
+    /**
+     * Lookup a Value by name. Returns undefined if |name| is not found.
+     *
+     * @param {string} name
+     * @return {!tr.v.d.ValueRef|!tr.v.Value|undefined}
+     */
+    get: function(name) {
+      return this.valuesByName_[name];
+    },
+
+    /**
+     * Resolve all ValueRefs into Values by looking up their guids in
+     * |valueSet|.
+     * If a value cannot be found and |opt_required| is true, then throw an
+     * Error.
+     * If a value cannot be found and |opt_required| is false, then the ValueRef
+     * will remain a ValueRef.
+     *
+     * @param {!tr.metrics.ValueSet} valueSet
+     * @param {boolean=} opt_required
+     */
+    resolve: function(valueSet, opt_required) {
+      this.iterItems(function(name, value) {
+        if (!(value instanceof tr.v.d.ValueRef))
+          return;
+
+        value = valueSet.lookup(value.guid);
+        if (value instanceof tr.v.Value)
+          this.valuesByName_[name] = value;
+        else if (opt_required)
+          throw new Error('Unable to find Value ' + guid);
+      }, this);
+    },
+
+    asDictInto_: function(d) {
+      d.values = tr.b.mapItems(this.valuesByName_, (name, value) => value.guid);
+    }
+  };
+
+  RelatedValueMap.fromDict = function(d) {
+    var map = new RelatedValueMap();
+    tr.b.iterItems(d.values, function(name, guid) {
+      map.set(name, new tr.v.d.ValueRef(guid));
+    });
+    return map;
+  };
+
+  tr.v.d.Diagnostic.register(RelatedValueMap);
+
+  return {
+    RelatedValueMap: RelatedValueMap
+  };
+});
+</script>
