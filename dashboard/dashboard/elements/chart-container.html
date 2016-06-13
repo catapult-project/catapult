@@ -1973,7 +1973,11 @@ triaging functionality in the chart.
           }
 
           // Set the alert-related properties of the tooltip.
+          if (opt_alerts === undefined)
+            opt_alerts = null;
           this.$.tooltip.alerts = opt_alerts;
+          if (opt_triaged === undefined)
+            opt_triaged = null;
           this.$.tooltip.triagedAlerts = opt_triaged;
           if (annotation['g_anomaly']) {
             if (annotation.g_anomaly['bug_id']) {
