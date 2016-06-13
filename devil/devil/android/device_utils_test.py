@@ -1922,24 +1922,6 @@ class DeviceUtilsStatDirectoryTest(DeviceUtilsTest):
       self.assertEqual('symbolic_link_to' in d, stat.S_ISLNK(d['st_mode']))
 
 
-class DeviceUtilsLsTest(DeviceUtilsTest):
-
-  def testLs_directory(self):
-    result = [('.', adb_wrapper.DeviceStat(16889, 4096, 1417436123)),
-              ('..', adb_wrapper.DeviceStat(16873, 4096, 12382237)),
-              ('testfile.txt', adb_wrapper.DeviceStat(33206, 3, 1417436122))]
-    with self.assertCalls(
-        (self.call.adb.Ls('/data/local/tmp'), result)):
-      self.assertEquals(result,
-                        self.device.Ls('/data/local/tmp'))
-
-  def testLs_nothing(self):
-    with self.assertCalls(
-        (self.call.adb.Ls('/data/local/tmp/testfile.txt'), [])):
-      self.assertEquals([],
-                        self.device.Ls('/data/local/tmp/testfile.txt'))
-
-
 class DeviceUtilsStatPathTest(DeviceUtilsTest):
 
   EXAMPLE_DIRECTORY = [

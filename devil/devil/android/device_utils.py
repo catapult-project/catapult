@@ -1690,12 +1690,6 @@ class DeviceUtils(object):
         d['st_rdev_pair'] = (d.pop('st_rdev_major'), d.pop('st_rdev_minor'))
     return entries
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def Ls(self, device_path, timeout=None, retries=None):
-    """This method is being deprecated. Use ListDirectory instead."""
-    # TODO(perezju): Migrate clients to ListDirectory and remove this method.
-    return self.adb.Ls(device_path)
-
   def StatPath(self, device_path, as_root=False, **kwargs):
     """Get the stat attributes of a file or directory on the device.
 
