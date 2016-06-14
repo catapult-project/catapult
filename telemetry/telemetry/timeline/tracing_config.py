@@ -341,9 +341,9 @@ class MemoryDumpConfig(object):
     Args:
       periodic_interval_ms: Dump time period in milliseconds.
       level_of_detail: Memory dump level of detail string.
-          Valid arguments are "light" and "detailed".
+          Valid arguments are "background", "light" and "detailed".
     """
-    assert mode in ['light', 'detailed']
+    assert mode in ['background', 'light', 'detailed']
     assert periodic_interval_ms > 0
     self._triggers.append({'mode': mode,
                            'periodic_interval_ms': periodic_interval_ms})

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/value.html">
@@ -13,6 +14,69 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
+  var MEMORY_INFRA_TRACING_CATEGORY = 'disabled-by-default-memory-infra';
+
+  function addTimeDurationValue(valueName, duration, allValues) {
+    var scalarNumericValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, duration);
+    var numericValue = new tr.v.NumericValue(valueName, scalarNumericValue);
+    allValues.addValue(numericValue);
+  }
+
+  // Adds values specific to memory-infra dumps.
+  function addMemoryInfraValues(values, model, categoryNamesToTotalEventSizes) {
+    var memoryDumpCount = model.globalMemoryDumps.length;
+    if (memoryDumpCount === 0)
+      return;
+
+    var totalOverhead = 0;
+    var nonMemoryInfraThreadOverhead = 0;
+    var overheadByProvider = {};
+    tr.b.iterItems(model.processes, function(pid, process) {
+      tr.b.iterItems(process.threads, function(tid, thread) {
+        tr.b.iterItems(thread.sliceGroup.slices, function(slice_id, slice) {
+          if (slice.category !== MEMORY_INFRA_TRACING_CATEGORY)
+            return;
+          totalOverhead += slice.duration;
+          if (thread.name !== 'MemoryInfra')
+            nonMemoryInfraThreadOverhead += slice.duration;
+          if (slice.args && slice.args['dump_provider.name']) {
+            var providerName = slice.args['dump_provider.name'];
+            overheadByProvider[providerName] =
+                (overheadByProvider[providerName] || 0) + slice.duration;
+          }
+        });
+      });
+    });
+
+    addTimeDurationValue(
+        'Average CPU overhead on all threads per memory-infra dump',
+        totalOverhead / memoryDumpCount, values);
+    addTimeDurationValue(
+        'Average CPU overhead on non-memory-infra threads per memory-infra ' +
+            'dump',
+        nonMemoryInfraThreadOverhead / memoryDumpCount, values);
+    tr.b.iterItems(overheadByProvider, function(providerName, overhead) {
+      addTimeDurationValue(
+          'Average CPU overhead of ' + providerName + ' per memory-infra dump',
+          overhead / memoryDumpCount, values);
+    });
+
+    var memoryInfraEventsSize =
+        categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
+    var memoryInfraTraceBytesValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, memoryInfraEventsSize);
+    values.addValue(new tr.v.NumericValue(
+        'Total trace size of memory-infra dumps in bytes',
+        memoryInfraTraceBytesValue));
+
+    var traceBytesPerDumpValue = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter,
+        memoryInfraEventsSize / memoryDumpCount);
+    values.addValue(new tr.v.NumericValue(
+        'Average trace size of memory-infra dumps in bytes',
+        traceBytesPerDumpValue));
+  }
 
   function tracingMetric(values, model) {
     if (!model.stats.hasEventSizesinBytes) {
@@ -110,12 +174,16 @@ tr.exportTo('tr.metrics', function() {
     peakBytes.diagnostics.add(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
     values.addValue(peakBytes);
+
+    addMemoryInfraValues(values, model, categoryNamesToTotalEventSizes);
   }
 
   tr.metrics.MetricRegistry.register(tracingMetric);
 
   return {
-    tracingMetric: tracingMetric
+    tracingMetric: tracingMetric,
+    // For testing only:
+    MEMORY_INFRA_TRACING_CATEGORY: MEMORY_INFRA_TRACING_CATEGORY
   };
 });
 </script>
