@@ -545,7 +545,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
      }
     }"""
     self.assertFalse(update_bug_with_results._ValidateBuildbucketResponse(
-        json.loads(buildbucket_response_scheduled), job))
+        json.loads(buildbucket_response_scheduled)))
 
   def testValidateBuildbucketResponse_Started(self):
     job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
@@ -557,7 +557,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
      }
     }"""
     self.assertFalse(update_bug_with_results._ValidateBuildbucketResponse(
-        json.loads(buildbucket_response_started), job))
+        json.loads(buildbucket_response_started)))
 
   def testValidateBuildbucketResponse_Success(self):
     buildbucket_response_success = r"""{
@@ -571,9 +571,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
     job.put()
     self.assertTrue(update_bug_with_results._ValidateBuildbucketResponse(
-        json.loads(buildbucket_response_success), job))
-    self.assertEqual(job.results_data.get('buildbot_log_url'),
-                     'http://build.chromium.org/linux_perf_bisector/builds/47')
+        json.loads(buildbucket_response_success)))
 
   def testValidateBuildbucketResponse_Failed(self):
     buildbucket_response_failed = r"""{
@@ -592,9 +590,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         update_bug_with_results.BisectJobFailure,
         update_bug_with_results._BUILD_FAILURE_REASON['BUILD_FAILURE']):
       update_bug_with_results._ValidateBuildbucketResponse(
-          json.loads(buildbucket_response_failed), job)
-    self.assertEqual(job.results_data.get('buildbot_log_url'),
-                     'http://build.chromium.org/linux_perf_bisector/builds/41')
+          json.loads(buildbucket_response_failed))
 
   def testValidateBuildbucketResponse_Canceled(self):
     buildbucket_response_canceled = r"""{
@@ -611,9 +607,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         update_bug_with_results.BisectJobFailure,
         update_bug_with_results._BUILD_FAILURE_REASON['CANCELED_EXPLICITLY']):
       update_bug_with_results._ValidateBuildbucketResponse(
-          json.loads(buildbucket_response_canceled), job)
-    self.assertEqual(job.results_data.get('buildbot_log_url'),
-                     'None')
+          json.loads(buildbucket_response_canceled))
 
   def testValidateBuildbucketResponse_Timeout(self):
     buildbucket_response_canceled = r"""{
@@ -630,9 +624,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         update_bug_with_results.BisectJobFailure,
         update_bug_with_results._BUILD_FAILURE_REASON['TIMEOUT']):
       update_bug_with_results._ValidateBuildbucketResponse(
-          json.loads(buildbucket_response_canceled), job)
-    self.assertEqual(job.results_data.get('buildbot_log_url'),
-                     'None')
+          json.loads(buildbucket_response_canceled))
 
   def testValidateBuildbucketResponse_InvalidConfig(self):
     buildbucket_response_failed = r"""{
@@ -651,9 +643,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         update_bug_with_results._BUILD_FAILURE_REASON[
             'INVALID_BUILD_DEFINITION']):
       update_bug_with_results._ValidateBuildbucketResponse(
-          json.loads(buildbucket_response_failed), job)
-    self.assertEqual(job.results_data.get('buildbot_log_url'),
-                     'http://build.chromium.org/linux_perf_bisector/builds/41')
+          json.loads(buildbucket_response_failed))
 
 
 if __name__ == '__main__':
