@@ -9,8 +9,13 @@ The test will invoke real devices
 """
 
 import os
+import sys
 import tempfile
 import unittest
+
+if __name__ == '__main__':
+  sys.path.append(
+      os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', )))
 
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper

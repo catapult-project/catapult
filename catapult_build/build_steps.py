@@ -76,6 +76,11 @@ _CATAPULT_TESTS = [
         'path': 'dependency_manager/bin/run_tests',
     },
     {
+        'name': 'Devil Device Tests',
+        'path': 'devil/devil/android/device_utils_devicetest.py',
+        'disabled': ['win', 'mac', 'linux']
+    },
+    {
         'name': 'Devil Python Tests',
         'path': 'devil/bin/run_py_tests',
         'disabled': ['mac', 'win'],
