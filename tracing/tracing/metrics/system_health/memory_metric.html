@@ -94,13 +94,13 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     // 2. If any global memory dump does not have any associated browser
-    // process for some reason, associate it with an 'unknown' browser so that
-    // we don't lose the data.
+    // process for some reason, associate it with an 'unknown_browser' browser
+    // so that we don't lose the data.
     var unclassifiedGlobalDumps =
         model.globalMemoryDumps.filter(g => !globalDumpToBrowserHelper.has(g));
     if (unclassifiedGlobalDumps.length > 0) {
       makeKeyUniqueAndSet(
-          browserNameToGlobalDumps, 'unknown', unclassifiedGlobalDumps);
+          browserNameToGlobalDumps, 'unknown_browser', unclassifiedGlobalDumps);
     }
 
     return browserNameToGlobalDumps;
@@ -113,7 +113,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var USER_FRIENDLY_BROWSER_NAMES = {
     'chrome': 'Chrome',
     'webview': 'WebView',
-    'unknown': 'an unknown browser'
+    'unknown_browser': 'an unknown browser'
   };
 
   /**
@@ -124,7 +124,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    *   CANONICAL BROWSER NAME -> USER-FRIENDLY NAME
    *   chrome                 -> Chrome
-   *   unknown                -> an unknown browser
+   *   unknown_browser        -> an unknown browser
    *   webview2               -> WebView(2)
    *   unexpected             -> 'unexpected' browser
    */
@@ -143,6 +143,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function canonicalizeProcessName(rawProcessName) {
+    if (!rawProcessName)
+      return 'unknown_processes';
     var baseCanonicalName = canonicalizeName(rawProcessName);
     switch (baseCanonicalName) {
       case 'renderer':
@@ -171,6 +173,8 @@ tr.exportTo('tr.metrics.sh', function() {
         return opt_requirePlural ? 'PPAPI processes' : 'the PPAPI process';
       case 'all_processes':
         return 'all processes';
+      case 'unknown_processes':
+        return 'unknown processes';
       default:
         return '\'' + processName + '\' processes';
     }
@@ -849,7 +853,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function extractDataFromProcessDump(processDump, sourceToPropertyToData,
       dumpIndex, dumpCount, customProcessDumpValueExtractor) {
     // Process name is typically 'browser', 'renderer', etc.
-    var rawProcessName = processDump.process.name || 'unknown';
+    var rawProcessName = processDump.process.name;
     var processNamePath = [canonicalizeProcessName(rawProcessName)];
 
     customProcessDumpValueExtractor(
