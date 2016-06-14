@@ -100,13 +100,6 @@ tr.exportTo('tr.metrics', function() {
     },
 
     addValue: function(v) {
-      if (!(v instanceof tr.v.NumericValue)) {
-        var err = new Error('Tried to add value ' + v +
-                            ' which is non-Numeric');
-        err.name = 'ValueError';
-        throw err;
-      }
-
       if (this.values_[v.guid]) {
         var err = new Error('Tried to add same value twice');
         err.name = 'ValueError';

@@ -120,7 +120,8 @@ tr.exportTo('tr.ui', function() {
       if (!this.model_) {
         this.$.results.values = new tr.metrics.ValueSet([
             new tr.v.FailureValue('missing', {
-              description: 'Missing model'
+              description: 'Missing model',
+              stack: ''
             })
         ]);
         return;
@@ -129,10 +130,12 @@ tr.exportTo('tr.ui', function() {
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(
           this.currentMetricName_);
       var values = new tr.metrics.ValueSet();
+      var options = {};
+      if (this.rangeOfInterest && !this.rangeOfInterest.isEmpty)
+        options.rangeOfInterest = this.rangeOfInterest;
+
       try {
-        metric.constructor(values, this.model_, {
-          rangeOfInterest: this.rangeOfInterest
-        });
+        metric.constructor(values, this.model_, options);
       } catch (err) {
         this.$.results.values = new tr.metrics.ValueSet([
             new tr.v.FailureValue('error', {
