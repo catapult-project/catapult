@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+
+<polymer-element name="tr-v-ui-diagnostic-map-table">
+  <template>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+  <script>
+  'use strict';
+
+  Polymer({
+    ready: function() {
+      this.titledDiagnosticMaps_ = undefined;
+    },
+
+    /**
+     * The |title| will be used as the heading for the column containing
+     * diagnostic-spans for |diagnosticMap|'s Diagnostics.
+     *
+     * @param {!Array.<!Object>} maps
+     * @param {!string} maps[].title
+     * @param {!tr.v.d.DiagnosticMap} maps[].diagnosticMap
+     */
+    set titledDiagnosticMaps(maps) {
+      this.titledDiagnosticMaps_ = maps;
+      this.updateContent_();
+    },
+
+    updateContent_: function() {
+      if (this.titledDiagnosticMaps_ === undefined ||
+          this.titledDiagnosticMaps_.length === 0) {
+        this.$.table.tableRows = [];
+        this.$.table.tableColumns = [];
+        return;
+      }
+
+      var columns = [{
+        title: 'Name',
+
+        value: function(row) {
+          return row.name;
+        },
+
+        cmp: function(a, b) {
+          return a.name.localeCompare(b.name);
+        }
+      }];
+
+      var rowNames = {};
+      var rows = [];
+
+      this.titledDiagnosticMaps_.forEach(function(titledMap) {
+        var title = titledMap.title;
+        var diagnosticMap = titledMap.diagnosticMap;
+
+        columns.push({
+          title: title,
+
+          value: function(row) {
+            var diagnostic = diagnosticMap.get(row.name);
+            if (diagnostic === undefined)
+              return '';
+
+            return tr.v.ui.createDiagnosticSpan(diagnostic);
+          }
+        });
+
+        diagnosticMap.forEach(function(name, diagnostic) {
+          if (rowNames[name] !== true) {
+            rowNames[name] = true;
+            rows.push({name: name});
+          }
+        });
+      }, this);
+
+      rows.sort(columns[0].cmp);
+      this.$.table.tableColumns = columns;
+      this.$.table.tableRows = rows;
+      this.$.table.rebuild();
+    }
+  });
+  </script>
+</polymer-element>
