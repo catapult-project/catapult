@@ -8,6 +8,7 @@ import sys
 import timeit
 import unittest
 
+from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import tracing_backend
 from telemetry.internal.backends.chrome_inspector.tracing_backend import _DevToolsStreamReader
 from telemetry.testing import fakes
@@ -72,6 +73,8 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     if not self._browser.supports_memory_dumping:
       self.skipTest('Browser does not support memory dumping, skipping test.')
 
+  # See https://github.com/catapult-project/catapult/issues/2409.
+  @decorators.Disabled('win-reference')
   @PrintBrowserStandardOutputAndLogOnFailure
   def testDumpMemorySuccess(self):
     # Check that dumping memory before tracing starts raises an exception.
