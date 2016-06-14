@@ -148,16 +148,22 @@ tr.b.unittest.testSuite(function() {
 
   test('jsonTableValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
-    view.object = [{col0: 'object', col1: 0}, {col0: 'Object', col1: 1}];
+    view.object = [
+      {col0: 'object', col1: 0, col2: 'foo'},
+      {col0: 'Object', col1: 1, col2: 42}
+    ];
     this.addHTMLOutput(view);
-    var table = tr.b.findDeepElementMatching(
-        view.$.content, 'tr-ui-b-table');
+
+    var table = tr.b.findDeepElementMatching(view.$.content, 'tr-ui-b-table');
     assert.equal('col0', table.tableColumns[0].title);
     assert.equal('col1', table.tableColumns[1].title);
     assert.equal('object', table.tableColumns[0].value(table.tableRows[0]));
     assert.equal('Object', table.tableColumns[0].value(table.tableRows[1]));
     assert.equal(0, table.tableColumns[1].value(table.tableRows[0]));
     assert.equal(1, table.tableColumns[1].value(table.tableRows[1]));
+    assert.isDefined(table.tableColumns[0].cmp);
+    assert.isDefined(table.tableColumns[1].cmp);
+    assert.isUndefined(table.tableColumns[2].cmp);
   });
 
   test('instantiate_objectValue', function() {

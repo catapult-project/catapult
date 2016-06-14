@@ -192,9 +192,34 @@ found in the LICENSE file.
         var table = document.createElement('tr-ui-b-table');
         var columns = [];
         tr.b.iterItems(object[0], function(colName) {
-          columns.push({title: colName, value: function(row) {
+          var allStrings = true;
+          var allNumbers = true;
+          for (var i = 0; i < object.length; ++i) {
+            if (typeof(object[i][colName]) !== 'string')
+              allStrings = false;
+
+            if (typeof(object[i][colName]) !== 'number')
+              allNumbers = false;
+
+            if (!allStrings && !allNumbers)
+              break;
+          }
+
+          var column = {title: colName};
+          column.value = function(row) {
             return row[colName];
-          }});
+          };
+
+          if (allStrings) {
+            column.cmp = function(x, y) {
+              return x[colName].localeCompare(y[colName]);
+            };
+          } else if (allNumbers) {
+            column.cmp = function(x, y) {
+              return x[colName] - y[colName];
+            };
+          }
+          columns.push(column);
         });
         table.tableColumns = columns;
         table.tableRows = object;
