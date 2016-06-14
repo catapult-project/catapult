@@ -152,7 +152,7 @@ class CrOSInterfaceTest(unittest.TestCase):
     with self._GetCRI() as cri:
       build_num = cri.LsbReleaseValue('CHROMEOS_RELEASE_BUILD_NUMBER', None)
       self.assertTrue(build_num.isdigit())
-      device_type = cri.LsbReleaseValue('DEVICETYPE', None)
+      device_type = cri.GetDeviceTypeName()
       self.assertTrue(device_type.isalpha())
 
   # TODO(tengs): It would be best if we can filter this test and other tests
