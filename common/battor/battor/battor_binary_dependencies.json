@@ -19,25 +19,25 @@
             "../bin/mac/x86_64/battor_agent"
           ]
         },
-        "win_AMD64": {
-          "cloud_storage_hash": "312ee7ddc98c9557d67587fc33020765c8850910",
-          "download_path": "../bin/win/AMD64/battor_agent.exe",
-          "local_paths": [
-            "../bin/win/AMD64/battor_agent.exe"
-          ]
-        },
         "win32_AMD64": {
-          "cloud_storage_hash": "8de8edc555f2d66fd53dde2c42351d08e7f4f6f2",
+          "cloud_storage_hash": "4efded5660f3559f2dc834a3fd3d886c8e145811",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/win/AMD64/battor_agent.exe"
           ]
         },
         "win32_x86": {
-          "cloud_storage_hash": "8de8edc555f2d66fd53dde2c42351d08e7f4f6f2",
+          "cloud_storage_hash": "4efded5660f3559f2dc834a3fd3d886c8e145811",
           "download_path": "../bin/win/x86_64/battor_agent.exe",
           "local_paths": [
             "../bin/win/x86_64/battor_agent.exe"
+          ]
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "4efded5660f3559f2dc834a3fd3d886c8e145811",
+          "download_path": "../bin/win/AMD64/battor_agent.exe",
+          "local_paths": [
+            "../bin/win/AMD64/battor_agent.exe"
           ]
         }
       }
