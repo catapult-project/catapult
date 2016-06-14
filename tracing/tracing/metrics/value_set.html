@@ -32,8 +32,13 @@ tr.exportTo('tr.metrics', function() {
       return this.values_[guid];
     },
 
-    map: function(cb, opt_this) {
-      return tr.b.dictionaryValues(this.values_).map(cb, opt_this);
+    /**
+     * @param {!function(!tr.v.Value):*} callback
+     * @param {*=} opt_this
+     */
+    map: function(callback, opt_this) {
+      return tr.b.dictionaryValues(this.values_).map(
+          callback, opt_this || this);
     },
 
     /**
@@ -63,6 +68,29 @@ tr.exportTo('tr.metrics', function() {
             diagnostic.resolve(this);
         }, this);
       }, this);
+    },
+
+    /**
+     * Find the Values that are not contained in any other Values'
+     * RelatedValueSet or RelatedValueMap diagnostics.
+     *
+     * @return {!Array.<!tr.v.Value>}
+     */
+    get sourceValues() {
+      var sourceValues = tr.b.cloneDictionary(this.values_);
+      // If a Value is in a RelatedValueSet or RelatedValueMap, then it is not a
+      // source Value.
+      this.map(function(value) {
+        value.diagnostics.forEach(function(name, diagnostic) {
+          if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
+              (diagnostic instanceof tr.v.d.RelatedValueMap)) {
+            diagnostic.values.forEach(function(relatedValue) {
+              delete sourceValues[relatedValue.guid];
+            });
+          }
+        }, this);
+      }, this);
+      return tr.b.dictionaryValues(sourceValues);
     },
 
     getValuesWithName: function(name) {

@@ -60,6 +60,10 @@ tr.b.unittest.testSuite(function() {
     // Don't serialize c just yet.
     var values = new tr.metrics.ValueSet([a, b]);
 
+    var sourceValues = values.sourceValues;
+    assert.lengthOf(sourceValues, 1);
+    assert.strictEqual(sourceValues[0], a);
+
     var values2 = new tr.metrics.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
 
@@ -123,6 +127,10 @@ tr.b.unittest.testSuite(function() {
 
     // Don't serialize c just yet.
     var values = new tr.metrics.ValueSet([a, b]);
+
+    var sourceValues = values.sourceValues;
+    assert.lengthOf(sourceValues, 1);
+    assert.strictEqual(sourceValues[0], a);
 
     var values2 = new tr.metrics.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
