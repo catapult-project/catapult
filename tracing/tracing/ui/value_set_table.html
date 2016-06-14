@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -70,7 +71,8 @@ tr.exportTo('tr.ui', function() {
           value: function(value) {
             var nameEl = document.createElement('span');
             nameEl.textContent = value.name;
-            nameEl.title = value.description;
+            if (value.description)
+              nameEl.title = value.description;
             nameEl.style.textOverflow = 'ellipsis';
             return nameEl;
           },
@@ -82,6 +84,10 @@ tr.exportTo('tr.ui', function() {
           title: 'Value',
           align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
           value: function(value) {
+            if (value.diagnostic instanceof tr.v.d.Diagnostic) {
+              return tr.v.ui.createDiagnosticSpan(value.diagnostic);
+            }
+
             if (value.unit) {
               return tr.v.ui.createScalarSpan(
                   value.value, {unit: value.unit});
@@ -132,6 +138,7 @@ tr.exportTo('tr.ui', function() {
           value: '',
           unit: undefined,
           description: value.description,
+          subRows: []
         };
 
         if (value.numeric) {
@@ -143,6 +150,13 @@ tr.exportTo('tr.ui', function() {
             row.value = value.numeric.average;
           }
         }
+
+        value.diagnostics.forEach(function(name, diagnostic) {
+          row.subRows.push({
+            name: name,
+            diagnostic: diagnostic
+          });
+        });
 
         return row;
       });
