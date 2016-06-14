@@ -41,6 +41,12 @@ tr.exportTo('tr.v', function() {
     this.isDelta = isDelta;
     this.improvementDirection = improvementDirection;
     this.formatSpec_ = formatSpec;
+
+    // Example: powerInWattsDelta_biggerIsBetter -> powerInWatts.
+    this.baseUnit = undefined;
+
+    // Example: energyInJoules_smallerIsBetter ->
+    // energyInJoulesDelta_smallerIsBetter.
     this.correspondingDeltaUnit = undefined;
   }
 
@@ -199,6 +205,8 @@ tr.exportTo('tr.v', function() {
    * for deltas).
    */
   Unit.define = function(params) {
+    var definedUnits = [];
+
     tr.b.iterItems(ImprovementDirection, function(_, improvementDirection) {
       var regularUnit =
           Unit.defineUnitVariant_(params, false, improvementDirection);
@@ -207,7 +215,11 @@ tr.exportTo('tr.v', function() {
 
       regularUnit.correspondingDeltaUnit = deltaUnit;
       deltaUnit.correspondingDeltaUnit = deltaUnit;
+      definedUnits.push(regularUnit, deltaUnit);
     });
+
+    var baseUnit = Unit.byName[params.baseUnitName];
+    definedUnits.forEach(u => u.baseUnit = baseUnit);
   };
 
   Unit.defineUnitVariant_ = function(params, isDelta, improvementDirection) {

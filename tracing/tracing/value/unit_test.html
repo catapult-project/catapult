@@ -97,6 +97,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(unit.unitName, expectation.unitName);
       assert.strictEqual(unit.asJSON(), expectation.asJSON);
       assert.strictEqual(unit.isDelta, expectation.isDelta);
+      assert.strictEqual(unit.baseUnit, expectation.baseUnit);
       assert.strictEqual(unit.correspondingDeltaUnit,
           expectation.correspondingDeltaUnit);
       assert.strictEqual(unit.improvementDirection,
@@ -110,6 +111,7 @@ tr.b.unittest.testSuite(function() {
       unitName: 'sizeInBytes',
       asJSON: 'sizeInBytes',
       isDelta: false,
+      baseUnit: Unit.byName.sizeInBytes,
       correspondingDeltaUnit: Unit.byName.sizeInBytesDelta,
       improvementDirection: ImprovementDirection.DONT_CARE,
       formattedValues: EXPECTED_REGULAR_FORMATTED_VALUES
@@ -118,6 +120,7 @@ tr.b.unittest.testSuite(function() {
       unitName: 'sizeInBytes_smallerIsBetter',
       asJSON: 'sizeInBytes_smallerIsBetter',
       isDelta: false,
+      baseUnit: Unit.byName.sizeInBytes,
       correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       improvementDirection: ImprovementDirection.SMALLER_IS_BETTER,
       formattedValues: EXPECTED_REGULAR_FORMATTED_VALUES
@@ -126,6 +129,7 @@ tr.b.unittest.testSuite(function() {
       unitName: 'sizeInBytes_biggerIsBetter',
       asJSON: 'sizeInBytes_biggerIsBetter',
       isDelta: false,
+      baseUnit: Unit.byName.sizeInBytes,
       correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       improvementDirection: ImprovementDirection.BIGGER_IS_BETTER,
       formattedValues: EXPECTED_REGULAR_FORMATTED_VALUES
@@ -136,6 +140,7 @@ tr.b.unittest.testSuite(function() {
       unitName: 'sizeInBytesDelta',
       asJSON: 'sizeInBytesDelta',
       isDelta: true,
+      baseUnit: Unit.byName.sizeInBytes,
       correspondingDeltaUnit: Unit.byName.sizeInBytesDelta,
       improvementDirection: ImprovementDirection.DONT_CARE,
       formattedValues: EXPECTED_DELTA_FORMATTED_VALUES
@@ -144,6 +149,7 @@ tr.b.unittest.testSuite(function() {
       unitName: 'sizeInBytesDelta_smallerIsBetter',
       asJSON: 'sizeInBytesDelta_smallerIsBetter',
       isDelta: true,
+      baseUnit: Unit.byName.sizeInBytes,
       correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
       improvementDirection: ImprovementDirection.SMALLER_IS_BETTER,
       formattedValues: EXPECTED_DELTA_FORMATTED_VALUES
@@ -152,6 +158,7 @@ tr.b.unittest.testSuite(function() {
       unitName: 'sizeInBytesDelta_biggerIsBetter',
       asJSON: 'sizeInBytesDelta_biggerIsBetter',
       isDelta: true,
+      baseUnit: Unit.byName.sizeInBytes,
       correspondingDeltaUnit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
       improvementDirection: ImprovementDirection.BIGGER_IS_BETTER,
       formattedValues: EXPECTED_DELTA_FORMATTED_VALUES
