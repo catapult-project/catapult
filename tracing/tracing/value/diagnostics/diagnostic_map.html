@@ -5,8 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<!--
+  Include all Diagnostic subclasses here so that DiagnosticMap.addDicts() and
+  DiagnosticMap.fromDict() always have access to all subclasses in the
+  Diagnostic registry.
+-->
 <link rel="import" href="/tracing/value/diagnostics/composition.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
+<link rel="import" href="/tracing/value/diagnostics/related_event_set.html">
 <link rel="import" href="/tracing/value/diagnostics/related_value_map.html">
 <link rel="import" href="/tracing/value/diagnostics/related_value_set.html">
 

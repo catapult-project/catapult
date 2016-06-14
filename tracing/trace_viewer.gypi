@@ -459,6 +459,7 @@
       'tracing/value/diagnostics/diagnostic.html',
       'tracing/value/diagnostics/diagnostic_map.html',
       'tracing/value/diagnostics/generic.html',
+      'tracing/value/diagnostics/related_event_set.html',
       'tracing/value/diagnostics/related_value_map.html',
       'tracing/value/diagnostics/related_value_set.html',
       'tracing/value/generic_table.html',

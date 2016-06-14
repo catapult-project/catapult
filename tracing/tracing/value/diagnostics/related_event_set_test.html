@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/value/diagnostics/related_event_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('eventSet', function() {
+    var slice = undefined;
+    var model = tr.c.TestUtils.newModel(function(model) {
+      slice = tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        title: 'foo',
+        start: 0,
+        duration: 10
+      });
+      var thread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      thread.sliceGroup.pushSlice(slice);
+    });
+
+    var d = new tr.v.d.RelatedEventSet(slice);
+    assert.lengthOf(d.events, 1);
+    assert.strictEqual(d.events[0], slice);
+
+    d = new tr.v.d.RelatedEventSet([slice]);
+    assert.lengthOf(d.events, 1);
+    assert.strictEqual(d.events[0], slice);
+
+    d = new tr.v.d.RelatedEventSet(new tr.model.EventSet([slice]));
+    assert.lengthOf(d.events, 1);
+    assert.strictEqual(d.events[0], slice);
+
+    var d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
+    assert.instanceOf(d2, tr.v.d.RelatedEventSet);
+    assert.lengthOf(d2.events, 1);
+
+    // Can't use assert.instanceOf() because EventRef is private.
+    assert.isFalse(d2.events[0] instanceof tr.model.Event);
+
+    d2.resolve(model, true);
+
+    assert.strictEqual(d2.events[0], slice);
+  });
+});
+</script>

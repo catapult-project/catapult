@@ -110,10 +110,21 @@ tr.exportTo('tr', function() {
 
     this.doesHelperGUIDSupportThisModel_ = {};
     this.helpersByConstructorGUID_ = {};
+    this.eventsByStableId_ = undefined;
   }
 
   Model.prototype = {
     __proto__: tr.model.EventContainer.prototype,
+
+    getEventByStableId: function(stableId) {
+      if (this.eventsByStableId_ === undefined) {
+        this.eventsByStableId_ = {};
+        this.iterateAllEvents(function(event) {
+          this.eventsByStableId_[event.stableId] = event;
+        }, this);
+      }
+      return this.eventsByStableId_[stableId];
+    },
 
     getOrCreateHelper: function(constructor) {
       if (!constructor.guid)

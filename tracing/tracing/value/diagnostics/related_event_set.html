@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  /**
+   * Similar to ValueRef, this is a placeholder in case the referenced Event
+   * isn't available in memory to point to directly.
+   *
+   * @constructor
+   * @param {!Object} event
+   * @param {string} event.stableId
+   * @param {string} event.title
+   * @param {number} event.start
+   * @param {number} event.duration
+   */
+  function EventRef(event) {
+    this.stableId = event.stableId;
+    this.title = event.title;
+    this.start = event.start;
+    this.duration = event.duration;
+    this.end = this.start + this.duration;
+
+    // tr.v.d.RelatedEventSet identifies events using stableId, but
+    // tr.model.EventSet uses guid.
+    this.guid = tr.b.GUID.allocateSimple();
+  }
+
+  /**
+   * A RelatedEventSet diagnostic contains references to Events
+   *
+   * @constructor
+   * @param {(!tr.model.EventSet|Array.<!(EventRef|tr.model.Event)>|!EventRef|!tr.model.Event)=} opt_events
+   */
+  function RelatedEventSet(opt_events) {
+    this.eventsByStableId_ = {};
+
+    if (opt_events) {
+      if (opt_events instanceof tr.model.EventSet ||
+          opt_events instanceof Array)
+        opt_events.forEach(this.push.bind(this));
+      else
+        this.push(opt_events);
+    }
+  }
+
+  RelatedEventSet.prototype = {
+    __proto__: tr.v.d.Diagnostic.prototype,
+
+    /**
+     * Add an event to this set.
+     *
+     * @param {!(EventRef|tr.model.Event)} event
+     */
+    push: function(event) {
+      this.eventsByStableId_[event.stableId] = event;
+    },
+
+    /**
+     * @return {!Array.<!(EventRef|tr.model.Event)>}
+     */
+    get events() {
+      return tr.b.dictionaryValues(this.eventsByStableId_);
+    },
+
+    /**
+     * Resolve all EventRefs into Events by finding their stableIds in |model|.
+     * If a stableId cannot be found and |opt_required| is true, then throw an
+     * Error.
+     * If a stableId cannot be found and |opt_required| is false, then the
+     * EventRef will remain an EventRef.
+     *
+     * @param {!tr.model.Model} model
+     * @param {boolean=} opt_required
+     */
+    resolve: function(model, opt_required) {
+      tr.b.iterItems(this.eventsByStableId_, function(stableId, event) {
+        if (!(event instanceof EventRef))
+          return;
+
+        event = model.getEventByStableId(stableId);
+        if (event instanceof tr.model.Event)
+          this.eventsByStableId_[stableId] = event;
+        else if (opt_required)
+          throw new Error('Unable to find Event ' + ref.stableId);
+      }, this);
+    },
+
+    asDictInto_: function(d) {
+      d.events = this.events.map(function eventAsDict(event) {
+        return {
+          stableId: event.stableId,
+          title: event.title,
+          start: event.start,
+          duration: event.duration
+        };
+      });
+    }
+  };
+
+  RelatedEventSet.fromDict = function(d) {
+    return new RelatedEventSet(d.events.map(event => new EventRef(event)));
+  };
+
+  tr.v.d.Diagnostic.register(RelatedEventSet);
+
+  return {
+    RelatedEventSet: RelatedEventSet
+  };
+});
+</script>
