@@ -4,6 +4,7 @@
 
 import atexit
 import logging
+import re
 
 from devil.android import device_errors
 
@@ -12,12 +13,14 @@ class PerfControl(object):
   """Provides methods for setting the performance mode of a device."""
   _CPU_PATH = '/sys/devices/system/cpu'
   _KERNEL_MAX = '/sys/devices/system/cpu/kernel_max'
+  _CPU_FILE_PATTERN = re.compile(r'^cpu\d+$')
 
   def __init__(self, device):
     self._device = device
-    # this will raise an AdbCommandFailedError if no CPU files are found
-    self._cpu_files = self._device.RunShellCommand(
-        'ls -d cpu[0-9]*', cwd=self._CPU_PATH, check_return=True, as_root=True)
+    self._cpu_files = [
+        filename
+        for filename in self._device.ListDirectory(self._CPU_PATH, as_root=True)
+        if self._CPU_FILE_PATTERN.match(filename)]
     assert self._cpu_files, 'Failed to detect CPUs.'
     self._cpu_file_list = ' '.join(self._cpu_files)
     logging.info('CPUs found: %s', self._cpu_file_list)
@@ -146,8 +149,8 @@ class PerfControl(object):
 
     """
     if self._have_mpdecision:
-      script = 'stop mpdecision' if force_online else 'start mpdecision'
-      self._device.RunShellCommand(script, check_return=True, as_root=True)
+      cmd = ['stop', 'mpdecision'] if force_online else ['start', 'mpdecision']
+      self._device.RunShellCommand(cmd, check_return=True, as_root=True)
 
     if not self._have_mpdecision and not self._AllCpusAreOnline():
       logging.warning('Unexpected cpu hot plugging detected.')
