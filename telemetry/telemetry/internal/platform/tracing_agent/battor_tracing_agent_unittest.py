@@ -156,7 +156,8 @@ class BattOrTracingAgentTest(unittest.TestCase):
     def throw_battor_error():
       raise battor_error.BattorError('Forced Exception')
     self.android_agent._battor.StartTracing = throw_battor_error
-    self.assertFalse(self.android_agent.StartAgentTracing(self._config, 0))
+    with self.assertRaises(battor_error.BattorError):
+      self.android_agent.StartAgentTracing(self._config, 0)
 
   def testStopAgentTracing(self):
     self.android_agent.StopAgentTracing()

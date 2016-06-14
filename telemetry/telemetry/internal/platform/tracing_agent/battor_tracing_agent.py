@@ -73,14 +73,15 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     except battor_error.BattorError:
       if self._battery:
         self._battery.SetCharging(True)
-      logging.exception('Failure in starting tracing on BattOr.')
-      return False
+      raise
 
   def StopAgentTracing(self):
     """Stops tracing on the BattOr."""
-    self._battor.StopTracing()
-    if self._battery:
-      self._battery.SetCharging(True)
+    try:
+      self._battor.StopTracing()
+    finally:
+      if self._battery:
+        self._battery.SetCharging(True)
 
   def SupportsExplicitClockSync(self):
     return self._battor.SupportsExplicitClockSync()
