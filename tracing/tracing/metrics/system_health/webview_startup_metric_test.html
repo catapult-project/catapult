@@ -20,33 +20,49 @@ function makeTestModel() {
       title: 'WebViewStartupInterval',
       start: 200,
       duration: 42.0,
+      cpuStart: 150,
+      cpuDuration: 32.0
     }));
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'webview',
       title: 'WebViewBlankUrlLoadInterval',
       start: 250,
       duration: 27.0,
+      cpuStart: 190,
+      cpuDuration: 17.0
     }));
   });
 }
 
 tr.b.unittest.testSuite(function() {
-  test('webviewStartupMetric_bothIntervals', function() {
+  test('webviewStartupMetric_allIntervals', function() {
     var values = new tr.metrics.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.lengthOf(values.valueDicts, 2);
+    assert.lengthOf(values.valueDicts, 4);
   });
 
-  test('webviewStartupMetric_startupInterval', function() {
+  test('webviewStartupMetric_startupWallInterval', function() {
     var values = new tr.metrics.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.equal(values.valueDicts[0].numeric.value, 42);
   });
 
-  test('webviewStartupMetric_urlLoadInterval', function() {
+  test('webviewStartupMetric_startupCpuInterval', function() {
     var values = new tr.metrics.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.equal(values.valueDicts[1].numeric.value, 27);
+    assert.equal(values.valueDicts[1].numeric.value, 32);
+  });
+
+  test('webviewStartupMetric_urlLoadWallInterval', function() {
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
+    assert.equal(values.valueDicts[2].numeric.value, 27);
+  });
+
+  test('webviewStartupMetric_urlLoadCpuInterval', function() {
+    var values = new tr.metrics.ValueSet();
+    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
+    assert.equal(values.valueDicts[3].numeric.value, 17);
   });
 });
 </script>

@@ -23,22 +23,34 @@ tr.exportTo('tr.metrics.sh', function() {
         return;
       if (slice.title === 'WebViewStartupInterval') {
         values.addValue(new tr.v.NumericValue(
-            'webview_startup_time',
+            'webview_startup_wall_time',
             new tr.v.ScalarNumeric(
                 tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
                 slice.duration),
-            { description: 'WebView startup time' }));
+            { description: 'WebView startup wall time' }));
+        values.addValue(new tr.v.NumericValue(
+            'webview_startup_cpu_time',
+            new tr.v.ScalarNumeric(
+                tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+                slice.cpuDuration),
+            { description: 'WebView startup CPU time' }));
       }
       // WebViewBlankUrlLoadInterval is the title of the section of code
       // that is entered (via android.os.Trace.beginSection) when WebView
       // is started up. This value is defined in TelemetryActivity.java.
       if (slice.title === 'WebViewBlankUrlLoadInterval') {
         values.addValue(new tr.v.NumericValue(
-            'webview_url_load_time',
+            'webview_url_load_wall_time',
             new tr.v.ScalarNumeric(
                 tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
                 slice.duration),
-            { description: 'WebView blank URL load time' }));
+            { description: 'WebView blank URL load wall time' }));
+        values.addValue(new tr.v.NumericValue(
+            'webview_url_load_cpu_time',
+            new tr.v.ScalarNumeric(
+                tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+                slice.cpuDuration),
+            { description: 'WebView blank URL load CPU time' }));
       }
     });
   };
