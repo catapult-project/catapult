@@ -226,5 +226,12 @@ class BattorWrapper(object):
     return status
 
   def _StartShellImpl(self, battor_cmd):
-    return subprocess.Popen(
+    status = subprocess.Popen(
         battor_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, shell=False)
+
+    # TODO(aschulman) We need to sleep to wait for battor_agent threads to
+    # start until https://bugs.chromium.org/p/chromium/issues/detail?id=620010
+    # is resolved. More details are captured in catapult:#2381.
+    time.sleep(1)
+
+    return status
