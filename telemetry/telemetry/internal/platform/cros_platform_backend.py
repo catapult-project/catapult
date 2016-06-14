@@ -121,7 +121,7 @@ class CrosPlatformBackend(
     return sample_stats
 
   def GetDeviceTypeName(self):
-    return 'Laptop'
+    return self._cri.GetDeviceTypeName()
 
   @decorators.Cache
   def GetArchName(self):
