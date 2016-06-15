@@ -137,6 +137,7 @@ tr.exportTo('tr.ui', function() {
       try {
         metric.constructor(values, this.model_, options);
       } catch (err) {
+        console.error(err.stack);
         this.$.results.values = new tr.metrics.ValueSet([
             new tr.v.FailureValue('error', {
               description: err.message,
