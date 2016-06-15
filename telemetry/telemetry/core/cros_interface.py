@@ -4,6 +4,7 @@
 """A wrapper around ssh for common operations on a CrOS-based device"""
 import logging
 import os
+import platform # pylint: disable=relative-import
 import re
 import shutil
 import stat
@@ -500,11 +501,8 @@ class CrOSInterface(object):
   def GetArchName(self):
     return self.RunCmdOnDevice(['uname', '-m'])[0]
 
-  def SysVendor(self):
-    return self.GetFileContents('/sys/class/dmi/id/sys_vendor').rstrip()
-
-  def IsRunningOnVM(self):
-    return self.SysVendor() == 'QEMU'
+  def IsRunningInVM(self):
+    return 'QEMU' in platform.processor()
 
   def LsbReleaseValue(self, key, default):
     """/etc/lsb-release is a file with key=value pairs."""
