@@ -76,36 +76,61 @@ tr.exportTo('tr.model', function() {
      */
     iterateAllEventsInThisContainer: function(eventTypePredicate,
                                               callback, opt_this) {
-      throw new Error('Not implemented');
+      // TODO(alexandermont): We need this.childEvents() to take an
+      // eventTypePredicate because it doesn't look possible to directly get the
+      // type object from an object, so we have to do the filtering before
+      // the iteration. Probably it would be better if we find a workaround
+      // for this.
+      for (var event of this.childEvents(eventTypePredicate, opt_this))
+        callback.call(opt_this, event);
     },
 
     /**
      * Iterates over all child containers.
      */
     iterateAllChildEventContainers: function(callback, opt_this) {
-      throw new Error('Not implemented');
+      for (var container of this.childEventContainers())
+        callback.call(opt_this, container);
     },
 
     /**
-     * Iterates over all ancestor events.
+     * Iterates over all events in this container and in descendant
+     * event containers.
      */
     iterateAllEvents: function(callback, opt_this) {
-      this.iterateAllEventContainers(function(ec) {
-        ec.iterateAllEventsInThisContainer(
-            function(eventType) { return true; },
-            callback, opt_this);
-      });
+      // If new-style iteration has been implemented for this container, use
+      // it for iterateAllEvents.
+      if (this.childEvents && this.childEventContainers) {
+        for (var event of this.childEvents(x => true, opt_this))
+          callback.call(opt_this, event);
+        for (var container of this.childEventContainers())
+          container.iterateAllEvents(callback, opt_this);
+      } else {
+        // Otherwise, just do it the old way.
+        this.iterateAllEventContainers(function(ec) {
+          ec.iterateAllEventsInThisContainer(x => true, callback, opt_this);
+        });
+      }
     },
 
     /**
-     * Iterates over this container and all ancestor containers.
+     * Iterates over this container and all descendant containers.
      */
     iterateAllEventContainers: function(callback, opt_this) {
-      function visit(ec) {
-        callback.call(opt_this, ec);
-        ec.iterateAllChildEventContainers(visit);
+      // If new-style iteration has been implemented for this container, use
+      // it for iterateAllEventContainers.
+      if (this.childEvents && this.childEventContainers) {
+        callback.call(opt_this, this);
+        for (var container of this.childEventContainers())
+          container.iterateAllEventContainers(callback, opt_this);
+      } else {
+        // Otherwise, just do it the old way.
+        function visit(ec) {
+          callback.call(opt_this, ec);
+          ec.iterateAllChildEventContainers(visit);
+        }
+        visit(this);
       }
-      visit(this);
     },
 
     /**

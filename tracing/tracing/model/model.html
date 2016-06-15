@@ -150,30 +150,28 @@ tr.exportTo('tr', function() {
                                                opt_this) {
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
       if (eventTypePredicate.call(opt_this, GlobalMemoryDump))
-        this.globalMemoryDumps.forEach(callback, opt_this);
+        yield * this.globalMemoryDumps;
 
       if (eventTypePredicate.call(opt_this, GlobalInstantEvent))
-        this.instantEvents.forEach(callback, opt_this);
+        yield * this.instantEvents;
 
       if (eventTypePredicate.call(opt_this, FlowEvent))
-        this.flowEvents.forEach(callback, opt_this);
+        yield * this.flowEvents;
 
       if (eventTypePredicate.call(opt_this, Alert))
-        this.alerts.forEach(callback, opt_this);
+        yield * this.alerts;
 
       if (eventTypePredicate.call(opt_this, Sample))
-        this.samples.forEach(callback, opt_this);
+        yield * this.samples;
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      callback.call(opt_this, this.userModel);
-      callback.call(opt_this, this.device);
-      callback.call(opt_this, this.kernel);
-      for (var pid in this.processes)
-        callback.call(opt_this, this.processes[pid]);
+    childEventContainers: function*() {
+      yield this.userModel;
+      yield this.device;
+      yield this.kernel;
+      yield * tr.b.dictionaryValues(this.processes);
     },
 
     /**
