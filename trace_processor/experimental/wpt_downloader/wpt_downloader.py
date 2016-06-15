@@ -41,6 +41,8 @@ def DownloadFromWPT(wpt_job, output_path):
 
   for k,v in job_data['data']['runs'].iteritems():
     for a,b in v.iteritems():
+      if not 'trace' in b['rawData']:
+        continue
       trace_url = b['rawData']['trace']
       parsed_url = urlparse.urlparse(trace_url)
       query = urlparse.parse_qsl(parsed_url.query)
