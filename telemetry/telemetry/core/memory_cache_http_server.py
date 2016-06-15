@@ -268,7 +268,10 @@ class MemoryCacheHTTPServer(local_server.LocalServer):
     return self.forwarder.url
 
   def UrlOf(self, path):
-    relative_path = os.path.relpath(path, self._base_dir)
+    if os.path.isabs(path):
+      relative_path = os.path.relpath(path, self._base_dir)
+    else:
+      relative_path = path
     # Preserve trailing slash or backslash.
     # It doesn't matter in a file path, but it does matter in a URL.
     if path.endswith(os.sep) or (os.altsep and path.endswith(os.altsep)):
