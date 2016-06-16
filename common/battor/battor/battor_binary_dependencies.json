@@ -6,7 +6,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "b07350155f6a30ca79afa344ec5f9c0dc071eedc",
+          "cloud_storage_hash": "136ed6d947e7edcf82e212f6a0cdddffbbe9a8d5",
           "download_path": "../bin/linux2/x86_64/battor_agent",
           "local_paths": [
             "../bin/linux2/x86_64/battor_agent"
