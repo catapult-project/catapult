@@ -109,6 +109,10 @@ class TracingConfig(object):
     return self._atrace_config
 
   @property
+  def chrome_trace_config(self):
+    return self._chrome_trace_config
+
+  @property
   def enable_atrace_trace(self):
     return self._enable_atrace_trace
 
