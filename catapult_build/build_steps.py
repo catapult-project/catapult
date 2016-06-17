@@ -184,7 +184,7 @@ _CATAPULT_TESTS = [
     },
     {
         'name': 'Vinn Tests',
-        'path': 'third_party/vinn/run_test',
+        'path': 'third_party/vinn/bin/run_tests',
         'disabled': ['android'],
     },
 ]

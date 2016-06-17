@@ -573,7 +573,7 @@ class VinnV8ArgsTest(unittest.TestCase):
     return os.path.join(self.test_data_dir, file_name)
 
   def setUp(self):
-    self.patcher = mock.patch('_vinn.subprocess.Popen')
+    self.patcher = mock.patch('vinn._vinn.subprocess.Popen')
     self.mock_popen = self.patcher.start()
     mock_rv = mock.Mock()
     mock_rv.returncode = 0

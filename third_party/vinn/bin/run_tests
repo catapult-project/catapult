@@ -30,7 +30,7 @@ def main(args):
     return options.test_name in test.id()
 
   suite = unittest.TestSuite()
-  vinn_dir = os.path.join(os.path.dirname(__file__), 'vinn')
+  vinn_dir = os.path.join(os.path.abspath(__file__), '..', '..')
   discover_tests = unittest.TestLoader().discover(
     start_dir=vinn_dir, pattern='*test.py')
   for t in _IterateTestCase(discover_tests):
