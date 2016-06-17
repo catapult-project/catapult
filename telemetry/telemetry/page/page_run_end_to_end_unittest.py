@@ -19,7 +19,7 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import user_agent
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
-from telemetry.internal.testing.page_sets import example_domain
+from telemetry.internal.testing.test_page_sets import example_domain
 from telemetry.internal.util import exception_formatter
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
