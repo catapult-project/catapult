@@ -38,6 +38,7 @@ _AddDirToPythonPath(_CATAPULT_DIR, 'tracing')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
 _AddDirToPythonPath(_CATAPULT_DIR, 'tracing', 'tracing_build')
+_AddDirToPythonPath(_CATAPULT_DIR, 'third_party', 'py_vulcanize')
 
 
 from telemetry.core import util

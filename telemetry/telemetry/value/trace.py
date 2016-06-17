@@ -3,11 +3,12 @@
 # found in the LICENSE file.
 
 import datetime
+import json
 import logging
 import os
 import random
 import shutil
-import StringIO
+import subprocess
 import sys
 import tempfile
 
@@ -17,7 +18,8 @@ from telemetry.internal.util import file_handle
 from telemetry.timeline import trace_data as trace_data_module
 from telemetry import value as value_module
 
-from tracing_build import trace2html
+_TRACE2HTML_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..',
+                                'tracing', 'bin', 'trace2html')
 
 
 class TraceValue(value_module.Value):
@@ -41,19 +43,38 @@ class TraceValue(value_module.Value):
             for p in trace_data_module.ALL_TRACE_PARTS
             if trace_data.HasTraceFor(p)]
 
-  def _GetTempFileHandle(self, trace_data):
-    if self.page:
-      title = self.page.display_name
-    else:
-      title = ''
-    content = StringIO.StringIO()
+  @staticmethod
+  def _DumpTraceToFile(trace, path):
+    with open(path, 'w') as fp:
+      if isinstance(trace, basestring):
+        fp.write(trace)
+      elif isinstance(trace, dict) or isinstance(trace, list):
+        json.dump(trace, fp)
+      else:
+        raise TypeError('Trace is of unknown type.')
 
-    trace2html.WriteHTMLForTraceDataToFile(self._GetTraceParts(trace_data),
-                                           title, content)
-    tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
-    tf.write(content.getvalue().encode('utf-8'))
-    tf.close()
-    return file_handle.FromTempFile(tf)
+  def _GetTempFileHandle(self, trace_data):
+    temp_dir = tempfile.mkdtemp()
+    trace_files = []
+    counter = 0
+    try:
+      for trace in self._GetTraceParts(trace_data):
+        file_path = os.path.join(temp_dir, '%s.trace' % counter)
+        self._DumpTraceToFile(trace, file_path)
+        logging.info('Trace of size %d bytes saved.',
+                     os.path.getsize(file_path))
+        trace_files.append(file_path)
+        counter += 1
+      tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
+      tf.close()
+      if trace_files:
+        cmd = ['python', _TRACE2HTML_PATH] + trace_files + ['--output', tf.name]
+        subprocess.check_call(cmd)
+      else:
+        logging.warning('No traces to convert to html.')
+      return file_handle.FromTempFile(tf)
+    finally:
+      shutil.rmtree(temp_dir)
 
   def __repr__(self):
     if self.page:
