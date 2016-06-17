@@ -10,7 +10,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 -->
 
 <link rel="import" href="/components/paper-button/paper-button.html">
-<link rel="import" href="/components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/components/paper-card/paper-card.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
@@ -20,11 +20,13 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       #container {
         position: relative;
         margin: 0 0 10px 0;
+        max-height: 200px;
+        overflow-y: auto;
       }
     </style>
 
-    <paper-dialog id="container" alwaysOnTop>
-      <!-- Styling for paper-dialog's children. -->
+    <paper-card id="container" alwaysOnTop elevation=4>
+      <!-- Styling for paper-card's children. -->
       <style>
         #loading {
           background-color: white;
@@ -62,35 +64,39 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         }
       </style>
 
-      <form>
-        <fieldset name="Triage">
-          <legend>Triage</legend>
-          <paper-button class="submit-button" raised affirmative
-                        on-click="fileNewBug">New bug</paper-button>
-          <paper-button class="submit-button" raised affirmative
-                        on-click="associateWithBug">Existing bug</paper-button>
-          <paper-button class="submit-button" raised affirmative
-                        on-click="markIgnored">Ignore valid alert</paper-button>
-        </fieldset>
-        <fieldset name="Fix-up alert">
-          <legend>Fix-up</legend>
-          <select class="kennedy-button" id="nudgeSelect" hidden$="{{!nudgeList}}" on-change="nudgeAlert">
-            <option template is="dom-repeat" items="{{nudgeList}}" value="{{item.endRevision}}" selected$="{{item.selected}}">
-              Nudge {{item.amount}} {{item.displayEndRevision}} ({{item.value}})
-            </option>
-          </select>
-          <paper-button raised on-click="markInvalid">Report invalid alert</paper-button>
-        </fieldset>
-      </form>
+      <div class="card-content">
+        <form>
+          <fieldset name="Triage">
+            <legend>Triage</legend>
+            <paper-button class="submit-button" raised affirmative
+                          on-click="fileNewBug">New bug</paper-button>
+            <paper-button class="submit-button" raised affirmative
+                          on-click="associateWithBug">Existing bug</paper-button>
+            <paper-button class="submit-button" raised affirmative
+                          on-click="markIgnored">Ignore</paper-button>
+          </fieldset>
+          <fieldset name="Fix-up alert">
+            <legend>Fix-up</legend>
+            <select class="kennedy-button" id="nudgeSelect" hidden$="{{!nudgeList}}" on-change="nudgeAlert">
+              <option template is="dom-repeat" items="{{nudgeList}}" value="{{item.endRevision}}" selected$="{{item.selected}}">
+                Nudge {{item.amount}} {{item.displayEndRevision}} ({{item.value}})
+              </option>
+            </select>
+            <paper-button raised on-click="markInvalid">Invalid</paper-button>
+          </fieldset>
+        </form>
+      </div>
 
-      <paper-button dismissive raised>Close</paper-button>
+      <div class="card-actions">
+        <paper-button dismissive raised>Close</paper-button>
 
-      <template is="dom-if" if="{{loading}}">
-        <div id="loading">
-          <paper-spinner active></paper-spinner>
-        </div>
-      </template>
-    </paper-dialog>
+        <template is="dom-if" if="{{loading}}">
+          <div id="loading">
+            <paper-spinner active></paper-spinner>
+          </div>
+        </template>
+      </div>
+    </paper-card>
 
     <div id="toasts" hidden>
       <div id="jobsubmitted">
@@ -151,11 +157,6 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
        * Called when the triage-dialog element is ready.
        */
       ready: function() {
-        // This allows tooltip to show beyond the current window size.
-        // See chart-tooltip.html for more details.
-        this.$.container.sizingTarget = Polymer.dom(document).querySelector(
-            'html /deep/ paper-dialog::shadow #scroller');
-
         this.bugWindow = null;
         this.close();
         // Event listener for the message event.
@@ -445,11 +446,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       },
 
       open: function() {
-        this.$.container.open();
+        this.$.container.hidden = false;
       },
 
       close: function() {
-        this.$.container.close();
+        this.$.container.hidden = true;
       }
     });
   </script>
