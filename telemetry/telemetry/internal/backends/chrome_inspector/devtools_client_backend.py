@@ -332,7 +332,8 @@ class DevToolsClientBackend(object):
     """
     assert trace_config and trace_config.enable_chrome_trace
     self._CreateTracingBackendIfNeeded()
-    return self._tracing_backend.StartTracing(trace_config, timeout)
+    return self._tracing_backend.StartTracing(
+        trace_config.chrome_trace_config, timeout)
 
   def RecordChromeClockSyncMarker(self, sync_id):
     assert self.is_tracing_running, 'Tracing must be running to clock sync.'
