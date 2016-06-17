@@ -174,7 +174,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     for client in devtools_clients:
       version = client.GetChromeBranchNumber()
       break
-    if int(version) >= 2661:
+    if version and int(version) >= 2661:
       self._RecordClockSyncMarkerDevTools(
           sync_id, record_controller_clock_sync_marker_callback,
           devtools_clients)
