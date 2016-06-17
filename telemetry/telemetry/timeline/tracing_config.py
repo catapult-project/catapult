@@ -71,8 +71,6 @@ class TracingConfig(object):
           Android (see goo.gl/4Y30p9). Doesn't have any effects on other OSs.
       enable_battor_trace: a boolean that specifies whether to enable BattOr
           tracing.
-
-  Detailed configurations:
       atrace_config: Stores configuration options specific to Atrace.
       chrome_trace_config: Stores configuration options specific to
           Chrome trace.
@@ -84,9 +82,35 @@ class TracingConfig(object):
     self._enable_android_graphics_memtrack = False
     self._enable_battor_trace = False
     self._enable_chrome_trace = False
-
     self._atrace_config = AtraceConfig()
     self._chrome_trace_config = ChromeTraceConfig()
+
+  @property
+  def tracing_category_filter(self):
+    return self._chrome_trace_config.tracing_category_filter
+
+  def SetNoOverheadFilter(self):
+    self._chrome_trace_config.SetNoOverheadFilter()
+
+  def SetMinimalOverheadFilter(self):
+    self._chrome_trace_config.SetMinimalOverheadFilter()
+
+  def SetDebugOverheadFilter(self):
+    self._chrome_trace_config.SetDebugOverheadFilter()
+
+  def SetTracingCategoryFilter(self, cf):
+    self._chrome_trace_config.SetTracingCategoryFilter(cf)
+
+  def SetMemoryDumpConfig(self, dump_config):
+    self._chrome_trace_config.SetMemoryDumpConfig(dump_config)
+
+  @property
+  def atrace_config(self):
+    return self._atrace_config
+
+  @property
+  def chrome_trace_config(self):
+    return self._chrome_trace_config
 
   @property
   def enable_atrace_trace(self):
@@ -131,13 +155,39 @@ class TracingConfig(object):
   def enable_chrome_trace(self, value):
     self._enable_chrome_trace = value
 
+  # Chrome Trace Options
   @property
-  def atrace_config(self):
-    return self._atrace_config
+  def record_mode(self):
+    return self._chrome_trace_config.record_mode
+
+  @record_mode.setter
+  def record_mode(self, value):
+    self._chrome_trace_config.record_mode = value
 
   @property
-  def chrome_trace_config(self):
-    return self._chrome_trace_config
+  def enable_systrace(self):
+    return self._chrome_trace_config.enable_systrace
+
+  @enable_systrace.setter
+  def enable_systrace(self, value):
+    if value:
+      assert not self._enable_atrace_trace, (
+        "Cannot enable Chrome systrace while atrace is already enabled.")
+    self._chrome_trace_config.enable_systrace = value
+
+  def GetChromeTraceConfigForStartupTracing(self):
+    return self._chrome_trace_config.GetChromeTraceConfigForStartupTracing()
+
+  @property
+  def requires_modern_devtools_tracing_start_api(self):
+    return self._chrome_trace_config.requires_modern_devtools_tracing_start_api
+
+  def GetChromeTraceConfigForDevTools(self):
+    return self._chrome_trace_config.GetChromeTraceConfigForDevTools()
+
+  def GetChromeTraceCategoriesAndOptionsForDevTools(self):
+    return (self._chrome_trace_config.
+        GetChromeTraceCategoriesAndOptionsForDevTools())
 
 
 class AtraceConfig(object):

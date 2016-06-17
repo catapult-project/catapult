@@ -49,7 +49,7 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
     # Start tracing with memory dumps enabled.
     config = tracing_config.TracingConfig()
-    config.chrome_trace_config.tracing_category_filter.AddDisabledByDefault(
+    config.tracing_category_filter.AddDisabledByDefault(
         'disabled-by-default-memory-infra')
     config.enable_chrome_trace = True
     self._tracing_controller.StartTracing(config)
@@ -182,11 +182,10 @@ class TracingBackendUnitTest(unittest.TestCase):
     self._inspector_socket.AddResponseHandler(
         'Tracing.hasCompleted', lambda req: {})
     backend = tracing_backend.TracingBackend(self._inspector_socket)
-    config = tracing_config.TracingConfig()
     self.assertRaisesRegexp(
         tracing_backend.TracingUnexpectedResponseException,
         'Tracing is already started',
-        backend.StartTracing, config.chrome_trace_config)
+        backend.StartTracing, tracing_config.TracingConfig())
 
 
 class DevToolsStreamPerformanceTest(unittest.TestCase):
