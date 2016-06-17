@@ -57,7 +57,7 @@ class Host(object):
     def add_to_path(self, *comps):
         absolute_path = self.abspath(*comps)
         if absolute_path not in sys.path:
-            sys.path.append(absolute_path)
+            sys.path.insert(0, absolute_path)
 
     def basename(self, path):
         return os.path.basename(path)

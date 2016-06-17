@@ -812,7 +812,7 @@ def _run_one_test(child, test_input):
 
     tests = list(suite)
     if len(tests) != 1:
-        err = 'Failed to load %s'
+        err = 'Failed to load %s' % test_name
         if tb_str:  # pragma: untested
             err += (' (traceback follows):\n  %s' %
                     '  \n'.join(tb_str.splitlines()))
