@@ -19,10 +19,11 @@ from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
+from telemetry.internal.results import valueset_output_formatter
 
 # Allowed output formats. The default is the first item in the list.
 _OUTPUT_FORMAT_CHOICES = ('html', 'html2', 'buildbot', 'gtest', 'json',
-    'chartjson', 'csv-pivot-table', 'none')
+    'chartjson', 'csv-pivot-table', 'valueset', 'none')
 
 
 # Filenames to use for given output formats.
@@ -31,7 +32,8 @@ _OUTPUT_FILENAME_LOOKUP = {
     'html2': 'results2.html',
     'json': 'results.json',
     'chartjson': 'results-chart.json',
-    'csv-pivot-table': 'results-pivot-table.csv'
+    'csv-pivot-table': 'results-pivot-table.csv',
+    'valueset': 'results-valueset.json'
 }
 
 
@@ -159,6 +161,10 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
               output_stream, benchmark_metadata))
+    elif output_format == 'valueset':
+      output_formatters.append(
+          valueset_output_formatter.ValueSetOutputFormatter(
+              output_stream))
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
