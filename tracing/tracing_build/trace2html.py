@@ -106,10 +106,6 @@ def WriteHTMLForTracesToFile(trace_filenames, output_file, config_name=None):
   for filename in trace_filenames:
     with open(filename, 'r') as f:
       trace_data = f.read()
-      try:
-        trace_data = json.loads(trace_data)
-      except ValueError:
-        pass
       trace_data_list.append(trace_data)
 
   title = "Trace from %s" % ','.join(trace_filenames)
