@@ -62,7 +62,7 @@ class TraceValue(value_module.Value):
         file_path = os.path.join(temp_dir, '%s.trace' % counter)
         self._DumpTraceToFile(trace, file_path)
         logging.info('Trace (%s) of size %d bytes saved.',
-                     os.path.getsize(file_path), part)
+                     part, os.path.getsize(file_path))
         trace_files.append(file_path)
         counter += 1
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
