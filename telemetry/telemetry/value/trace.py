@@ -68,7 +68,11 @@ class TraceValue(value_module.Value):
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
       tf.close()
       if trace_files:
-        cmd = ['python', _TRACE2HTML_PATH] + trace_files + ['--output', tf.name]
+        title = ''
+        if self.page:
+          title = self.page.display_name
+        cmd = (['python', _TRACE2HTML_PATH] + trace_files +
+               ['--output', tf.name] + ['--title', title])
         subprocess.check_call(cmd)
       else:
         logging.warning('No traces to convert to html.')

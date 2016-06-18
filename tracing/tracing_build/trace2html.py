@@ -32,6 +32,9 @@ def Main(argv):
   parser.add_argument(
       '--quiet', action='store_true',
       help='Dont print the output file name')
+  parser.add_argument(
+      '--title', type=str,
+      help='The title to put in trace viewer top panel.')
   parser.add_argument('trace_files', nargs='+')
   args = parser.parse_args(argv[1:])
 
@@ -44,7 +47,8 @@ def Main(argv):
     output_filename = name_part + '.html'
 
   with codecs.open(output_filename, mode='w', encoding='utf-8') as f:
-    WriteHTMLForTracesToFile(args.trace_files, f, config_name=args.config_name)
+    WriteHTMLForTracesToFile(args.trace_files, f, args.title,
+                             config_name=args.config_name)
 
   if not args.quiet:
     print output_filename
@@ -101,12 +105,13 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
       output_file, load_sequence, title, extra_scripts=scripts)
 
 
-def WriteHTMLForTracesToFile(trace_filenames, output_file, config_name=None):
+def WriteHTMLForTracesToFile(trace_filenames, output_file, title='',
+                             config_name=None):
   trace_data_list = []
   for filename in trace_filenames:
     with open(filename, 'r') as f:
       trace_data = f.read()
       trace_data_list.append(trace_data)
-
-  title = "Trace from %s" % ','.join(trace_filenames)
+  if not title:
+    title = "Trace from %s" % ','.join(trace_filenames)
   WriteHTMLForTraceDataToFile(trace_data_list, title, output_file, config_name)
