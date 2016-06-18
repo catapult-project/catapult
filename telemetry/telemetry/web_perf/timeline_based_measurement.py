@@ -191,7 +191,7 @@ class Options(object):
                       " Given overhead level: %s" % overhead_level)
 
     self._timeline_based_metric = None
-    self._legacy_timeline_based_metrics = []
+    self._legacy_timeline_based_metrics = _GetAllLegacyTimelineBasedMetrics()
 
 
   def ExtendTraceCategoryFilter(self, filters):
@@ -218,12 +218,14 @@ class Options(object):
       metric: A string metric path under //tracing/tracing/metrics.
     """
     assert isinstance(metric, basestring)
+    self._legacy_timeline_based_metrics = None
     self._timeline_based_metric = metric
 
   def GetTimelineBasedMetric(self):
     return self._timeline_based_metric
 
   def SetLegacyTimelineBasedMetrics(self, metrics):
+    assert self._timeline_based_metric == None
     assert isinstance(metrics, collections.Iterable)
     for m in metrics:
       assert isinstance(m, timeline_based_metric.TimelineBasedMetric)
@@ -280,18 +282,10 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
     if self._tbm_options.GetTimelineBasedMetric():
       self._ComputeTimelineBasedMetric(results, trace_value)
-      # Legacy metrics can be computed, but only if explicitly specified.
-      if self._tbm_options.GetLegacyTimelineBasedMetrics():
-        self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
     else:
-      # Run all TBMv1 metrics if no other metric is specified (legacy behavior)
-      if not self._tbm_options.GetLegacyTimelineBasedMetrics():
-        logging.warn('Please specify the TBMv1 metrics you are interested in '
-                     'explicitly. This implicit functionality will be removed '
-                     'on July 17, 2016.')
-        self._tbm_options.SetLegacyTimelineBasedMetrics(
-            _GetAllLegacyTimelineBasedMetrics())
-        self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
+      assert self._tbm_options.GetLegacyTimelineBasedMetrics()
+      self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
+
 
   def DidRunStory(self, platform):
     """Clean up after running the story."""
