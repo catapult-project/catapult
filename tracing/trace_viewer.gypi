@@ -424,6 +424,7 @@
       'tracing/ui/tracks/container_track.html',
       'tracing/ui/tracks/counter_track.html',
       'tracing/ui/tracks/cpu_track.html',
+      'tracing/ui/tracks/cpu_usage_track.html',
       'tracing/ui/tracks/device_track.html',
       'tracing/ui/tracks/drawing_container.html',
       'tracing/ui/tracks/event_to_track_map.html',
