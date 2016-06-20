@@ -230,7 +230,7 @@ tr.exportTo('tr.metrics.v8', function() {
           // Glue together the v8.execute events and adjust the GC pause
           // times accordingly.
           events.forEach(function(topEvent) {
-            topEvent.findTopmostSlicesRelativeToThisSlice(function(e) {
+            topEvent.iterateAllDescendents(function(e) {
               if (tr.metrics.v8.utils.isTopGarbageCollectionEvent(e)) {
                 pauses.push({ start: e.start - topEvent.start + time,
                               end: e.end - topEvent.start + time });
