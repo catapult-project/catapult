@@ -4,6 +4,7 @@
 
 import re
 
+from telemetry import decorators
 from telemetry.timeline import tracing_category_filter
 
 RECORD_MODE_PARAM = 'record_mode'
@@ -89,18 +90,28 @@ class TracingConfig(object):
   def tracing_category_filter(self):
     return self._chrome_trace_config.tracing_category_filter
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def SetNoOverheadFilter(self):
     self._chrome_trace_config.SetNoOverheadFilter()
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def SetMinimalOverheadFilter(self):
     self._chrome_trace_config.SetMinimalOverheadFilter()
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def SetDebugOverheadFilter(self):
     self._chrome_trace_config.SetDebugOverheadFilter()
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def SetTracingCategoryFilter(self, cf):
     self._chrome_trace_config.SetTracingCategoryFilter(cf)
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def SetMemoryDumpConfig(self, dump_config):
     self._chrome_trace_config.SetMemoryDumpConfig(dump_config)
 
@@ -175,6 +186,8 @@ class TracingConfig(object):
         "Cannot enable Chrome systrace while atrace is already enabled.")
     self._chrome_trace_config.enable_systrace = value
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def GetChromeTraceConfigForStartupTracing(self):
     return self._chrome_trace_config.GetChromeTraceConfigForStartupTracing()
 
@@ -182,9 +195,13 @@ class TracingConfig(object):
   def requires_modern_devtools_tracing_start_api(self):
     return self._chrome_trace_config.requires_modern_devtools_tracing_start_api
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def GetChromeTraceConfigForDevTools(self):
     return self._chrome_trace_config.GetChromeTraceConfigForDevTools()
 
+  @decorators.Deprecated(2016, 6, 20, 'Please use this API from '
+                         'TracingConfig.chrome_trace_config.')
   def GetChromeTraceCategoriesAndOptionsForDevTools(self):
     return (self._chrome_trace_config.
         GetChromeTraceCategoriesAndOptionsForDevTools())
