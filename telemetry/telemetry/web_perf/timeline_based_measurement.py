@@ -177,14 +177,14 @@ class Options(object):
 
     if isinstance(overhead_level,
                   tracing_category_filter.TracingCategoryFilter):
-      self._config.chrome_trace_config.SetTracingCategoryFilter(overhead_level)
+      self._config.SetTracingCategoryFilter(overhead_level)
     elif overhead_level in ALL_OVERHEAD_LEVELS:
       if overhead_level == NO_OVERHEAD_LEVEL:
-        self._config.chrome_trace_config.SetNoOverheadFilter()
+        self._config.SetNoOverheadFilter()
       elif overhead_level == MINIMAL_OVERHEAD_LEVEL:
-        self._config.chrome_trace_config.SetMinimalOverheadFilter()
+        self._config.SetMinimalOverheadFilter()
       else:
-        self._config.chrome_trace_config.SetDebugOverheadFilter()
+        self._config.SetDebugOverheadFilter()
     else:
       raise Exception("Overhead level must be a TracingCategoryFilter object"
                       " or valid overhead level string."
@@ -195,9 +195,8 @@ class Options(object):
 
 
   def ExtendTraceCategoryFilter(self, filters):
-    chrome_trace_config = self._config.chrome_trace_config
     for new_category_filter in filters:
-      chrome_trace_config.tracing_category_filter.AddIncludedCategory(
+      self._config.tracing_category_filter.AddIncludedCategory(
           new_category_filter)
 
   @property
