@@ -101,13 +101,12 @@ tr.exportTo('tr.model', function() {
                                                opt_this) {
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
+    childEventContainers: function*() {
       if (this.powerSeries_)
-        callback.call(opt_this, this.powerSeries_);
+        yield this.powerSeries_;
     }
   };
 

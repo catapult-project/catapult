@@ -44,21 +44,18 @@ tr.exportTo('tr.model', function() {
                                                opt_this) {
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
+    childEventContainers: function*() {
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
       var bI = !!eventTypePredicate.call(opt_this, ObjectInstance);
       var bS = !!eventTypePredicate.call(opt_this, ObjectSnapshot);
-      if (bI === false && bS === false)
-        return;
-      this.iterObjectInstances(function(instance) {
+      for (var instance of this.getAllObjectInstances()) {
         if (bI)
-          callback.call(opt_this, instance);
+          yield instance;
         if (bS)
-          instance.snapshots.forEach(callback, opt_this);
-      }, opt_this);
+          yield * instance.snapshots;
+      }
     },
 
     createObjectInstance_: function(

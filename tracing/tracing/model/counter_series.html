@@ -113,14 +113,13 @@ tr.exportTo('tr.model', function() {
                                                opt_this) {
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.CounterSample)) {
-        this.samples_.forEach(callback, opt_this);
+        yield * this.samples_;
       }
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
+    childEventContainers: function*() {
     }
   };
 

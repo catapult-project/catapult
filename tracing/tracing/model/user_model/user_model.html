@@ -48,13 +48,12 @@ tr.exportTo('tr.model.um', function() {
                                                opt_this) {
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.um.UserExpectation))
-        this.expectations.forEach(callback, opt_this);
+        yield * this.expectations;
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
+    childEventContainers: function*() {
     },
 
     updateBounds: function() {
