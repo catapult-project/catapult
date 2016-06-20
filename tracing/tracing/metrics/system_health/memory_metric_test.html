@@ -7,11 +7,11 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
-<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/value.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
@@ -2463,7 +2463,7 @@ tr.b.unittest.testSuite(function() {
       addProcessMemoryDump(gmd, pWebView, 9);
       addProcessMemoryDump(gmd, pChrome, 11);
     });
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
 
     assert.throws(function() {
       tr.metrics.sh.memoryMetric(values, model);

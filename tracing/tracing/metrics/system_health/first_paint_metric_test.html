@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import"
     href="/tracing/metrics/system_health/first_paint_metric.html">
-<link rel="import" href="/tracing/metrics/value_set.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.firstPaintMetric(values, model);
     var numeric = values.valueDicts[0].numeric;
     assert.equal(1, numeric.running.count);
@@ -100,7 +100,7 @@ tr.b.unittest.testSuite(function() {
         args: {frame: '0xdeadbeef'}
       }));
     });
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.firstPaintMetric(values, model);
     var numeric = values.valueDicts[0].numeric;
     assert.equal(1, numeric.running.count);
@@ -167,7 +167,7 @@ tr.b.unittest.testSuite(function() {
         args: {data: {frame: '0xdeadbeef'}}
       }));
     });
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.firstPaintMetric(values, model);
     var fmpEntries = values.valueDicts.filter(
         (dict) => dict.name === 'firstMeaningfulPaint');
@@ -224,7 +224,7 @@ tr.b.unittest.testSuite(function() {
         args: {data: {frame: '0xdeadbeef'}}
       }));
     });
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.firstPaintMetric(values, model);
     var fmpEntries = values.valueDicts.filter(
         (dict) => dict.name === 'firstMeaningfulPaint');

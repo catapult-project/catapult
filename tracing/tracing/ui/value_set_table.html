@@ -46,7 +46,7 @@ tr.exportTo('tr.ui', function() {
      * Return true if this view supports this ValueSet.
      * Value-set-table supports all possible metrics, so it always returns true.
      *
-     * @param {!tr.metrics.ValueSet} values
+     * @param {!tr.v.ValueSet} values
      * @return {boolean}
      */
     supportsValueSet: function(values) {
@@ -115,7 +115,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * @param {!tr.metrics.ValueSet} values
+     * @param {!tr.v.ValueSet} values
      */
     set values(values) {
       this.style.width = '';

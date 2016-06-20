@@ -5,16 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/ui/value_set_table.html">
 <link rel="import" href="/tracing/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <tr-ui-value-set-view id="values"></tr-ui-value-set-view>
 
 <script>
 'use strict';
 
-window.values = new tr.metrics.ValueSet();
+window.values = new tr.v.ValueSet();
 
 document.addEventListener('DOMContentLoaded', function() {
   var valueSetView = document.getElementById('values');

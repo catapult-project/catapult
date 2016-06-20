@@ -179,7 +179,6 @@
       'tracing/metrics/v8/gc_metric.html',
       'tracing/metrics/v8/utils.html',
       'tracing/metrics/v8/v8_metrics.html',
-      'tracing/metrics/value_set.html',
       'tracing/model/activity.html',
       'tracing/model/alert.html',
       'tracing/model/annotation.html',
@@ -477,6 +476,7 @@
       'tracing/value/unit.html',
       'tracing/value/unit_scale.html',
       'tracing/value/value.html',
+      'tracing/value/value_set.html',
     ],
     'tracing_img_files': [
       'tracing/ui/extras/chrome/cc/images/input-event.png',

@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     var results =
-        tr.metrics.ValueSet.computeSummaryValuesForNumericValue(
+        tr.v.ValueSet.computeSummaryValuesForNumericValue(
             new tr.v.NumericValue('abc', n, { description: 'desc' }));
     var values = {};
     results.forEach(function(x) {
@@ -58,13 +58,13 @@ tr.b.unittest.testSuite(function() {
     a.diagnostics.add('rvs', new tr.v.d.RelatedValueSet([b, c]));
 
     // Don't serialize c just yet.
-    var values = new tr.metrics.ValueSet([a, b]);
+    var values = new tr.v.ValueSet([a, b]);
 
     var sourceValues = values.sourceValues;
     assert.lengthOf(sourceValues, 1);
     assert.strictEqual(sourceValues[0], a);
 
-    var values2 = new tr.metrics.ValueSet();
+    var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
 
     var a2 = values2.getValuesWithName('a');
@@ -126,13 +126,13 @@ tr.b.unittest.testSuite(function() {
     a.diagnostics.add('rvm', rvm);
 
     // Don't serialize c just yet.
-    var values = new tr.metrics.ValueSet([a, b]);
+    var values = new tr.v.ValueSet([a, b]);
 
     var sourceValues = values.sourceValues;
     assert.lengthOf(sourceValues, 1);
     assert.strictEqual(sourceValues[0], a);
 
-    var values2 = new tr.metrics.ValueSet();
+    var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
 
     var a2 = values2.getValuesWithName('a');

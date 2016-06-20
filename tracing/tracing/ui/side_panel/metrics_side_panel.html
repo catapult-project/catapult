@@ -7,12 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
-<link rel="import" href="/tracing/metrics/value_set.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/ui/value_set_table.html">
 <link rel="import" href="/tracing/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <polymer-element name='tr-ui-sp-metrics-side-panel'
     extends='tr-ui-side-panel'>
@@ -118,7 +118,7 @@ tr.exportTo('tr.ui', function() {
       }, this);
 
       if (!this.model_) {
-        this.$.results.values = new tr.metrics.ValueSet([
+        this.$.results.values = new tr.v.ValueSet([
             new tr.v.FailureValue('missing', {
               description: 'Missing model',
               stack: ''
@@ -129,7 +129,7 @@ tr.exportTo('tr.ui', function() {
 
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(
           this.currentMetricName_);
-      var values = new tr.metrics.ValueSet();
+      var values = new tr.v.ValueSet();
       var options = {};
       if (this.rangeOfInterest && !this.rangeOfInterest.isEmpty)
         options.rangeOfInterest = this.rangeOfInterest;
@@ -138,7 +138,7 @@ tr.exportTo('tr.ui', function() {
         metric.constructor(values, this.model_, options);
       } catch (err) {
         console.error(err.stack);
-        this.$.results.values = new tr.metrics.ValueSet([
+        this.$.results.values = new tr.v.ValueSet([
             new tr.v.FailureValue('error', {
               description: err.message,
               stack: err.stack

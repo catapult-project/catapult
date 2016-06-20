@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/webview_startup_metric.html">
-<link rel="import" href="/tracing/metrics/value_set.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
@@ -36,31 +36,31 @@ function makeTestModel() {
 
 tr.b.unittest.testSuite(function() {
   test('webviewStartupMetric_allIntervals', function() {
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.lengthOf(values.valueDicts, 4);
   });
 
   test('webviewStartupMetric_startupWallInterval', function() {
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.equal(values.valueDicts[0].numeric.value, 42);
   });
 
   test('webviewStartupMetric_startupCpuInterval', function() {
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.equal(values.valueDicts[1].numeric.value, 32);
   });
 
   test('webviewStartupMetric_urlLoadWallInterval', function() {
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.equal(values.valueDicts[2].numeric.value, 27);
   });
 
   test('webviewStartupMetric_urlLoadCpuInterval', function() {
-    var values = new tr.metrics.ValueSet();
+    var values = new tr.v.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.equal(values.valueDicts[3].numeric.value, 17);
   });

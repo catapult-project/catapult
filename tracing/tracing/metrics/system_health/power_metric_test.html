@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/power_metric.html">
-<link rel="import" href="/tracing/metrics/value_set.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
@@ -15,7 +15,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('powerMetric_multipleFrames', function() {
     var model = new tr.Model();
-    var valueSet = new tr.metrics.ValueSet();
+    var valueSet = new tr.v.ValueSet();
     model.device.powerSeries = new tr.model.PowerSeries(model.device);
     // We want values in different frames, so they must go up by more than 16.66
     // milliseconds.
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
 
   test('powerMetric_oneFrame', function() {
     var model = new tr.Model();
-    var valueSet = new tr.metrics.ValueSet();
+    var valueSet = new tr.v.ValueSet();
     model.device.powerSeries = new tr.model.PowerSeries(model.device);
     // We want values in the same frame, so they must go up by less than 16.66
     // milliseconds.
@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
 
   test('powerMetric_noPowerSeries', function() {
     var model = new tr.Model();
-    var valueSet = new tr.metrics.ValueSet();
+    var valueSet = new tr.v.ValueSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     var powerEntries = valueSet.valueDicts.filter(
         (dict) => dict.name === 'energy_consumed_per_frame');
