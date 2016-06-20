@@ -168,6 +168,8 @@ class RunTestsCommand(command_line.OptparseCommand):
     runner.args.write_full_results_to = args.write_full_results_to
     runner.args.write_trace_to = args.write_trace_to
     runner.args.list_only = args.list_only
+    runner.args.shard_index = args.shard_index
+    runner.args.total_shards = args.total_shards
 
     runner.args.path.append(util.GetUnittestDataDir())
 

@@ -147,6 +147,14 @@ class ArgumentParser(argparse.ArgumentParser):
             self.add_argument('--passthrough', action='store_true',
                               default=False,
                               help='Prints all output while running.')
+            self.add_argument('--total-shards', default=1, type=int,
+                              help=('Total number of shards being used for '
+                                    'this test run. (The user of '
+                                    'this script is responsible for spawning '
+                                    'all of the shards.)'))
+            self.add_argument('--shard-index', default=0, type=int,
+                              help=('Shard index (0..total_shards-1) of this '
+                                    'test run.'))
             self.add_argument('--retry-limit', type=int, default=0,
                               help='Retries each failure up to N times.')
             self.add_argument('--terminal-width', type=int,
@@ -192,6 +200,20 @@ class ArgumentParser(argparse.ArgumentParser):
                 self._print_message('Error: --test-type must be specified '
                                     'along with --test-result-server')
                 self.exit_status = 2
+
+        if rargs.total_shards < 1:
+            self._print_message('Error: --total-shards must be at least 1')
+            self.exit_status = 2
+
+        if rargs.shard_index < 0:
+            self._print_message('Error: --shard-index must be at least 0')
+            self.exit_status = 2
+
+        if rargs.shard_index >= rargs.total_shards:
+            self._print_message('Error: --shard-index must be no more than '
+                                'the number of shards (%i) minus 1' %
+                                rargs.total_shards)
+            self.exit_status = 2
 
         if not rargs.suffixes:
             rargs.suffixes = DEFAULT_SUFFIXES

@@ -159,8 +159,84 @@ def load_tests(_, _2, _3):
     return suite
 """
 
-
 LOAD_TEST_FILES = {'load_test.py': LOAD_TEST_PY}
+
+
+MIXED_TEST_PY = """
+import unittest
+class SampleTest(unittest.TestCase):
+
+  def test_pass_0(self):
+    self.assertEqual(1, 1)
+
+  def test_pass_1(self):
+    self.assertEqual(1, 1)
+
+  def test_fail_0(self):
+    self.assertEqual(1, 2)
+
+  def test_fail_1(self):
+    raise Exception()
+
+  @unittest.skip('Skip for no reason')
+  def test_skip_0(self):
+    pass
+"""
+
+
+LOAD_MANY_TEST_PY = """
+import unittest
+
+def generate_test_case(test_method_name, test_type):
+  class GeneratedTest(unittest.TestCase):
+    pass
+
+  if test_type == 'pass':
+    def test_method(self):
+      self.assertEqual(1, 1)
+  elif test_type == 'fail':
+    def test_method(self):
+      self.assertEqual(1, 2)
+  elif test_type == 'skip':
+    def test_method(self):
+      self.skipTest('Skipped')
+  else:
+    raise Exception
+
+  setattr(GeneratedTest, test_method_name, test_method)
+  return GeneratedTest(test_method_name)
+
+
+def load_tests(loader, standard_tests, pattern):
+  del loader, standard_tests, pattern  # unused
+
+  suite = unittest.TestSuite()
+
+  passed_test_names = [
+    str('test_pass_%s' % i) for i in range(2, 15)]
+
+  failed_test_names = [
+    str('test_fail_%s' % i) for i in range(2, 10)]
+
+  skipped_test_names = [
+    str('test_skip_%s' % i) for i in range(1, 10)]
+
+  for test_method_name in passed_test_names:
+    suite.addTest(generate_test_case(test_method_name, 'pass'))
+
+  for test_method_name in failed_test_names:
+    suite.addTest(generate_test_case(test_method_name, 'fail'))
+
+  for test_method_name in skipped_test_names:
+    suite.addTest(generate_test_case(test_method_name, 'skip'))
+
+  return suite
+"""
+
+
+MANY_TEST_FILES = {
+    'mixed_test.py': MIXED_TEST_PY,         # 2 passes, 2 fails, 1 skip
+    'load_many_test.py': LOAD_MANY_TEST_PY} # 13 passes, 13 fails, 9 skips
 
 
 path_to_main = os.path.join(
@@ -171,6 +247,34 @@ path_to_main = os.path.join(
 class TestCli(test_case.MainTestCase):
     prog = [sys.executable, path_to_main]
     files_to_ignore = ['*.pyc']
+
+    def get_test_results_stat(self, test_output):
+      num_passes = test_output.count(' passed\n')
+      num_fails =  test_output.count(' failed unexpectedly:\n')
+      num_skips = test_output.count(' was skipped\n')
+      return num_passes, num_fails, num_skips
+
+    def run_and_check_test_results(self, num_shards):
+      total_passes, total_fails, total_skips = 0, 0, 0
+      min_num_tests_run = float('inf')
+      max_num_tests_run = 0
+      for shard_index in range(num_shards):
+        _, out, _, _ = self.check(
+            ['--total-shards', str(num_shards), '--shard-index',
+             str(shard_index)], files=MANY_TEST_FILES)
+        passes, fails, skips = self.get_test_results_stat(out)
+        total_passes += passes
+        total_fails += fails
+        total_skips += skips
+        num_tests_run = passes + fails
+        min_num_tests_run = min(min_num_tests_run, num_tests_run)
+        max_num_tests_run = max(max_num_tests_run, num_tests_run)
+      self.assertEqual(total_passes, 15)
+      self.assertEqual(total_fails, 10)
+      self.assertEqual(total_skips, 10)
+
+      # Make sure that we don't distribute the tests too unevenly.
+      self.assertLessEqual(max_num_tests_run - min_num_tests_run, 2)
 
     def test_bad_arg(self):
         self.check(['--bad-arg'], ret=2, out='',
@@ -526,6 +630,19 @@ class TestCli(test_case.MainTestCase):
         # --all does not override explicit calls to skipTest(), only
         # the decorators.
         self.assertIn('sf_test.SkipSetup.test_notrun was skipped', out)
+
+    def test_sharding(self):
+      # Test no sharding.
+      self.run_and_check_test_results(1)
+
+      # A typical with 4 shards.
+      self.run_and_check_test_results(4)
+
+      # Case which number of shards is a prime.
+      self.run_and_check_test_results(7)
+
+      # Case which number of shards is more than number of tests.
+      self.run_and_check_test_results(50)
 
     def test_subdir(self):
         files = {
