@@ -147,7 +147,9 @@ tr.exportTo('tr.metrics.sh', function() {
         'animation latency', latencyNumeric));
   }
 
-  tr.metrics.MetricRegistry.register(responsivenessMetric);
+  tr.metrics.MetricRegistry.register(responsivenessMetric, {
+    supportsRangeOfInterest: true
+  });
 
   return {
     responsivenessMetric: responsivenessMetric,

@@ -90,7 +90,9 @@ tr.exportTo('tr.metrics.sh', function() {
         'long tasks', longTaskNumeric));
   }
 
-  tr.metrics.MetricRegistry.register(longTasksMetric);
+  tr.metrics.MetricRegistry.register(longTasksMetric, {
+    supportsRangeOfInterest: true
+  });
 
   return {
     longTasksMetric: longTasksMetric,

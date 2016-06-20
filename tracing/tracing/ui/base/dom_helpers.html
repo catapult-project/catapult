@@ -271,17 +271,22 @@ tr.exportTo('tr.ui.b', function() {
     return spanEl;
   }
 
-  function createButton(targetEl, targetElProperty, label, opt_changeCb) {
+  /**
+   * @param {!string} label
+   * @param {function()=} opt_callback
+   * @param {*=} opt_this
+   */
+  function createButton(label, opt_callback, opt_this) {
     var buttonEl = document.createElement('input');
     buttonEl.type = 'button';
+    buttonEl.value = label;
 
     function onClick() {
-      if (opt_changeCb)
-        opt_changeCb.call();
+      opt_callback.call(opt_this || buttonEl);
     }
 
-    buttonEl.addEventListener('click', onClick);
-    buttonEl.value = label;
+    if (opt_callback)
+      buttonEl.addEventListener('click', onClick);
 
     return buttonEl;
   }

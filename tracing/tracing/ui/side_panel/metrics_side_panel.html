@@ -37,6 +37,7 @@ tr.exportTo('tr.ui', function() {
       this.model_ = undefined;
 
       this.rangeOfInterest_ = undefined;
+      this.metricLatenciesMs_ = [];
 
       this.metrics_ = [];
       tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(
@@ -58,7 +59,36 @@ tr.exportTo('tr.ui', function() {
           this.metrics_);
       this.$.top_left_controls.appendChild(metricSelector);
       metricSelector.addEventListener('change',
-          this.updateContents_.bind(this));
+          this.onMetricChange_.bind(this));
+      this.currentMetricTypeInfo_ =
+        tr.metrics.MetricRegistry.findTypeInfoWithName(
+            this.currentMetricName_);
+
+      this.recomputeButton_ = tr.ui.b.createButton(
+          'Recompute', this.onRecompute_, this);
+      this.$.top_left_controls.appendChild(this.recomputeButton_);
+    },
+
+    /**
+     * Return an estimate of how many milliseconds it would take to re-run the
+     * metric. If the metric has not been run, return undefined.
+     *
+     * @return {undefined|number}
+     */
+    get metricLatencyMs() {
+      return tr.b.Statistics.mean(this.metricLatenciesMs_);
+    },
+
+    onMetricChange_: function() {
+      this.currentMetricTypeInfo_ =
+        tr.metrics.MetricRegistry.findTypeInfoWithName(
+            this.currentMetricName_);
+      this.metricLatenciesMs_ = [];
+      this.updateContents_();
+    },
+
+    onRecompute_: function() {
+      this.updateContents_();
     },
 
     get textLabel() {
@@ -103,11 +133,25 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
+     * This may be called rapidly as the mouse is moved.
+     * If the metric supportsRangeOfInterest and takes less than 100ms, then it
+     * will be re-run immediately; otherwise, the Recompute button will be
+     * enabled.
+     *
      * @param {!tr.b.Range} range
      */
     set rangeOfInterest(range) {
       this.rangeOfInterest_ = range;
-      this.updateContents_();
+
+      if (this.currentMetricTypeInfo_ &&
+          this.currentMetricTypeInfo_.metadata.supportsRangeOfInterest) {
+        if ((this.metricLatencyMs === undefined) ||
+            (this.metricLatencyMs < 100)) {
+          this.updateContents_();
+        } else {
+          this.recomputeButton_.style.background = 'red';
+        }
+      }
     },
 
     updateContents_: function() {
@@ -127,15 +171,18 @@ tr.exportTo('tr.ui', function() {
         return;
       }
 
-      var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(
-          this.currentMetricName_);
       var values = new tr.v.ValueSet();
       var options = {};
-      if (this.rangeOfInterest && !this.rangeOfInterest.isEmpty)
+
+      if (this.currentMetricTypeInfo_ &&
+          this.currentMetricTypeInfo_.metadata.supportsRangeOfInterest &&
+          this.rangeOfInterest &&
+          !this.rangeOfInterest.isEmpty)
         options.rangeOfInterest = this.rangeOfInterest;
 
+      var startDate = new Date();
       try {
-        metric.constructor(values, this.model_, options);
+        this.currentMetricTypeInfo_.constructor(values, this.model_, options);
       } catch (err) {
         console.error(err.stack);
         this.$.results.values = new tr.v.ValueSet([
@@ -146,6 +193,12 @@ tr.exportTo('tr.ui', function() {
         ]);
         return;
       }
+
+      this.metricLatenciesMs_.push(new Date() - startDate);
+      while (this.metricLatenciesMs_.length > 20)
+        this.metricLatenciesMs_.shift();
+
+      this.recomputeButton_.style.background = '';
       this.$.results.values = values;
     }
   });
