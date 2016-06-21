@@ -111,7 +111,9 @@ tr.exportTo('tr.v.d', function() {
     return new RelatedEventSet(d.events.map(event => new EventRef(event)));
   };
 
-  tr.v.d.Diagnostic.register(RelatedEventSet);
+  tr.v.d.Diagnostic.register(RelatedEventSet, {
+    elementName: 'tr-v-ui-related-event-set-span'
+  });
 
   return {
     RelatedEventSet: RelatedEventSet

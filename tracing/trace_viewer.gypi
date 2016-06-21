@@ -471,6 +471,7 @@
       'tracing/value/ui/generic_table_view.html',
       'tracing/value/ui/histogram_span.html',
       'tracing/value/ui/preferred_display_unit.html',
+      'tracing/value/ui/related_event_set_span.html',
       'tracing/value/ui/related_value_set_span.html',
       'tracing/value/ui/scalar_span.html',
       'tracing/value/unit.html',
