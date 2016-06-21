@@ -13,6 +13,7 @@ tr.b.unittest.testSuite(function() {
   var compareArrays = tr.b.compareArrays;
   var asArray = tr.b.asArray;
   var getOnlyElement = tr.b.getOnlyElement;
+  var every = tr.b.every;
   var getFirstElement = tr.b.getFirstElement;
 
   test('asArray_indexed', function() {
@@ -64,6 +65,18 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(compareArrays([], [], cmp), 0);
     assert.equal(compareArrays([1], [1], cmp), 0);
+  });
+
+  test('every_empty', function() {
+    assert.isTrue(every([], x => false));
+  });
+
+  test('every_true', function() {
+    assert.isTrue(every([2, 4, 6], x => x % 2 === 0));
+  });
+
+  test('every_false', function() {
+    assert.isTrue(!every([2, 3, 4], x => x % 2 === 0));
   });
 
   test('getOnlyElement_throwsIfEmpty', function() {

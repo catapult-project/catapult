@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/power_series.html">
@@ -34,7 +35,8 @@ tr.b.unittest.testSuite(function() {
     var eventSet = new tr.model.EventSet(series.samples);
     view.selection = eventSet;
 
-    assert.deepEqual(view.$.samplesTable.sample, series.samples[0]);
+    assert.deepEqual(view.$.samplesTable.sample,
+        tr.b.getOnlyElement(series.samples));
   });
 });
 </script>

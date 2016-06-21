@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -120,7 +121,8 @@ found in the LICENSE file.
         return 'N/A';
 
       var bounds = this.samples.bounds;
-      return this.samples[0].series.getEnergyConsumed(bounds.min, bounds.max);
+      var series = tr.b.getFirstElement(this.samples).series;
+      return series.getEnergyConsumed(bounds.min, bounds.max);
     }
   });
   </script>

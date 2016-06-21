@@ -161,6 +161,16 @@ tr.exportTo('tr.b', function() {
   }
 
   /**
+   * Returns true if all the elements of the iterable pass the predicate.
+   */
+  function every(iterable, predicate) {
+    for (var x of iterable)
+      if (!predicate(x))
+        return false;
+    return true;
+  }
+
+  /**
    * Returns a new dictionary with items grouped by the return value of the
    * specified function being called on each item.
    * @param {!Array.<Object>} ary The array being iterated through
@@ -416,6 +426,7 @@ tr.exportTo('tr.b', function() {
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     dictionaryContainsValue: dictionaryContainsValue,
+    every: every,
     getOnlyElement: getOnlyElement,
     getFirstElement: getFirstElement,
     group: group,
