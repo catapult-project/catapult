@@ -209,9 +209,9 @@ def Run(test, story_set, finder_options, results, max_failures=None,
   for group in story_groups:
     state = None
     try:
-      for _ in xrange(finder_options.pageset_repeat):
+      for storyset_repeat_counter in xrange(finder_options.pageset_repeat):
         for story in group.stories:
-          for _ in xrange(finder_options.page_repeat):
+          for story_repeat_counter in xrange(finder_options.page_repeat):
             if not state:
               # Construct shared state by using a copy of finder_options. Shared
               # state may update the finder_options. If we tear down the shared
@@ -219,7 +219,8 @@ def Run(test, story_set, finder_options, results, max_failures=None,
               # state for the next story from the original finder_options.
               state = group.shared_state_class(
                   test, finder_options.Copy(), story_set)
-            results.WillRunPage(story)
+            results.WillRunPage(
+                story, storyset_repeat_counter, story_repeat_counter)
             try:
               _WaitForThermalThrottlingIfNeeded(state.platform)
               _RunStoryAndProcessErrorIfNeeded(story, results, state, test)

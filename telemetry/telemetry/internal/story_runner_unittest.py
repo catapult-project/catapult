@@ -111,6 +111,11 @@ class DummyLocalStory(story_module.Story):
   def is_local(self):
     return True
 
+  @property
+  def url(self):
+    return 'data:,'
+
+
 class MixedStateStorySet(story_module.StorySet):
   @property
   def allow_mixed_story_states(self):
@@ -688,6 +693,10 @@ class StoryRunnerTest(unittest.TestCase):
       def Run(self, shared_state):
         self.was_run = True
         raise legacy_page_test.Failure
+
+      @property
+      def url(self):
+        return 'data:,'
 
     self.SuppressExceptionFormatting()
 

@@ -14,17 +14,34 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
+  /**
+   * @param {!pi.mre.MreResult} result
+   * @param {!tr.model.Model} model
+   * @param {!Object} options
+   */
   function metricMapFunction(result, model, options) {
     if (options === undefined)
       throw new Error('Expected an options dict.');
+
     var metricName = options.metric;
     if (metricName === undefined)
       throw new Error('A metric name should be specified.');
+
     var values = new tr.v.ValueSet();
+
     var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
     if (metric === undefined)
       throw new Error('"' + metricName + '" is not a registered metric.');
     metric.constructor(values, model);
+
+    // Values can be separated from their ValueSet and mixed into ValueSets with
+    // Values from other iterations, so add IterationInfo to each Value.
+    if (options.iterInfo) {
+      var iterInfo = new tr.v.d.IterationInfo(options.iterInfo);
+      values.map(function(value) {
+        value.diagnostics.add('iterInfo', iterInfo);
+      });
+    }
 
     result.addPair('values', values.valueDicts);
   }

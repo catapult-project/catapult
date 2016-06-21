@@ -6,6 +6,7 @@ import codecs
 import optparse
 import os
 import sys
+import time
 
 from catapult_base import cloud_storage  # pylint: disable=import-error
 
@@ -177,7 +178,15 @@ def CreateResults(benchmark_metadata, options,
 
   reporter = _GetProgressReporter(output_skipped_tests_summary,
                                   options.suppress_gtest_report)
-  return page_test_results.PageTestResults(
+
+  results = page_test_results.PageTestResults(
       output_formatters=output_formatters, progress_reporter=reporter,
       output_dir=options.output_dir,
       value_can_be_added_predicate=value_can_be_added_predicate)
+
+  results.iteration_info.benchmark_name = benchmark_metadata.name
+  results.iteration_info.benchmark_start_ms = time.time() * 1000.0
+  if options.results_label:
+    results.iteration_info.label = options.results_label
+
+  return results

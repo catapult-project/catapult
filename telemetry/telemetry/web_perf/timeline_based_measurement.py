@@ -305,7 +305,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     }
 
     mre_result = metric_runner.RunMetric(
-        trace_value.filename, metric, extra_import_options)
+        trace_value.filename, metric, results.iteration_info.AsDict(),
+        extra_import_options)
     page = results.current_page
 
     failure_dicts = mre_result.failures

@@ -21,6 +21,92 @@ from telemetry.value import skip
 from telemetry.value import trace
 
 
+class IterationInfo(object):
+  def __init__(self):
+    self._benchmark_name = None
+    self._benchmark_start_ms = None
+    self._label = None
+    self._story_display_name = ''
+    self._story_grouping_keys = {}
+    self._story_repeat_counter = 0
+    self._story_url = ''
+    self._storyset_repeat_counter = 0
+
+  @property
+  def benchmark_name(self):
+    return self._benchmark_name
+
+  @benchmark_name.setter
+  def benchmark_name(self, benchmark_name):
+    assert self.benchmark_name is None, (
+      'benchmark_name must be set exactly once')
+    self._benchmark_name = benchmark_name
+
+  @property
+  def benchmark_start_ms(self):
+    return self._benchmark_start_ms
+
+  @benchmark_start_ms.setter
+  def benchmark_start_ms(self, benchmark_start_ms):
+    assert self.benchmark_start_ms is None, (
+      'benchmark_start_ms must be set exactly once')
+    self._benchmark_start_ms = benchmark_start_ms
+
+  @property
+  def label(self):
+    return self._label
+
+  @label.setter
+  def label(self, label):
+    assert self.label is None, 'label cannot be set more than once'
+    self._label = label
+
+  @property
+  def story_display_name(self):
+    return self._story_display_name
+
+  @property
+  def story_url(self):
+    return self._story_url
+
+  @property
+  def story_grouping_keys(self):
+    return self._story_grouping_keys
+
+  @property
+  def storyset_repeat_counter(self):
+    return self._storyset_repeat_counter
+
+  @property
+  def story_repeat_counter(self):
+    return self._story_repeat_counter
+
+  def WillRunStory(self, story, storyset_repeat_counter, story_repeat_counter):
+    self._story_display_name = story.display_name
+    self._story_url = story.url
+    if story.grouping_keys:
+      self._story_grouping_keys = story.grouping_keys
+    self._storyset_repeat_counter = storyset_repeat_counter
+    self._story_repeat_counter = story_repeat_counter
+
+  def AsDict(self):
+    assert self.benchmark_name is not None, (
+        'benchmark_name must be set exactly once')
+    assert self.benchmark_start_ms is not None, (
+        'benchmark_start_ms must be set exactly once')
+    d = {}
+    d['benchmarkName'] = self.benchmark_name
+    d['benchmarkStartMs'] = self.benchmark_start_ms
+    if self.label:
+      d['label'] = self.label
+    d['storyDisplayName'] = self.story_display_name
+    d['storyGroupingKeys'] = self.story_grouping_keys
+    d['storyRepeatCounter'] = self.story_repeat_counter
+    d['storyUrl'] = self.story_url
+    d['storysetRepeatCounter'] = self.storyset_repeat_counter
+    return d
+
+
 class PageTestResults(object):
   def __init__(self, output_formatters=None,
                progress_reporter=None, trace_tag='', output_dir=None,
@@ -67,6 +153,12 @@ class PageTestResults(object):
     # unhashable. We could wrap Values with custom __eq/hash__, but we don't
     # actually need set-ness in python.
     self._value_set = []
+
+    self._iteration_info = IterationInfo()
+
+  @property
+  def iteration_info(self):
+    return self._iteration_info
 
   @property
   def value_set(self):
@@ -163,10 +255,13 @@ class PageTestResults(object):
   def __exit__(self, _, __, ___):
     self.CleanUp()
 
-  def WillRunPage(self, page):
+  def WillRunPage(self, page, storyset_repeat_counter=0,
+                  story_repeat_counter=0):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = story_run.StoryRun(page)
     self._progress_reporter.WillRunPage(self)
+    self.iteration_info.WillRunStory(
+        page, storyset_repeat_counter, story_repeat_counter)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
     """

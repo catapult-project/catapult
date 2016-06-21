@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.v.d', function() {
+  /**
+   * @constructor
+   * @param {!Object} info
+   * @param {string} info.benchmarkName
+   * @param {undefined|string} info.label
+   * @param {undefined|!Object} info.storyGroupingKeys
+   * @param {undefined|string} info.storyDisplayName
+   * @param {string} info.storyUrl
+   * @param {number} info.storyRepeatCounter
+   * @param {number} info.storysetRepeatCounter
+   * @param {number} info.benchmarkStartMs Milliseconds since Unix epoch.
+   */
+  function IterationInfo(info) {
+    this.benchmarkName_ = info.benchmarkName;
+    this.benchmarkStart_ = new Date(info.benchmarkStartMs);
+    this.label_ = info.label;
+    this.storyDisplayName_ = info.storyDisplayName;
+    this.storyGroupingKeys_ = info.storyGroupingKeys;
+    this.storyRepeatCounter_ = info.storyRepeatCounter;
+    this.storyUrl_ = info.storyUrl;
+    this.storysetRepeatCounter_ = info.storysetRepeatCounter;
+  }
+
+  IterationInfo.prototype = {
+    __proto__: tr.v.d.Diagnostic.prototype,
+
+    asDictInto_: function(d) {
+      d.benchmarkName = this.benchmarkName;
+      d.benchmarkStartMs = this.benchmarkStart.getTime();
+      d.label = this.label;
+      d.storyDisplayName = this.storyDisplayName;
+      d.storyGroupingKeys = this.storyGroupingKeys;
+      d.storyRepeatCounter = this.storyRepeatCounter;
+      d.storyUrl = this.storyUrl;
+      d.storysetRepeatCounter = this.storysetRepeatCounter;
+    },
+
+    get displayLabel() {
+      if (this.label)
+        return this.label;
+      return this.benchmarkName + ' ' + this.benchmarkStartMs;
+    },
+
+    get benchmarkName() {
+      return this.benchmarkName_;
+    },
+
+    get label() {
+      return this.label_;
+    },
+
+    get storyGroupingKeys() {
+      return this.storyGroupingKeys_;
+    },
+
+    get storyDisplayName() {
+      return this.storyDisplayName_;
+    },
+
+    get storyUrl() {
+      return this.storyUrl_;
+    },
+
+    get storyRepeatCounter() {
+      return this.storyRepeatCounter_;
+    },
+
+    get storysetRepeatCounter() {
+      return this.storysetRepeatCounter_;
+    },
+
+    get benchmarkStart() {
+      return this.benchmarkStart_;
+    }
+  };
+
+  IterationInfo.fromDict = function(d) {
+    return new IterationInfo(d);
+  };
+
+  tr.v.d.Diagnostic.register(IterationInfo, {
+    elementName: 'tr-v-ui-generic-diagnostic-span'
+  });
+
+  return {
+    IterationInfo: IterationInfo
+  };
+});
+</script>
