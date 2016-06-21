@@ -9,19 +9,23 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/value_set_view.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
-<tr-v-ui-value-set-view id="values"></tr-v-ui-value-set-view>
+<style>
+#value-set-json {
+  display: none;
+}
+</style>
 
 <script>
 'use strict';
-
-window.values = new tr.v.ValueSet();
-
 document.addEventListener('DOMContentLoaded', function() {
-  var valueSetView = document.getElementById('values');
-  valueSetView.values = window.values;
+  var valueSetJson = document.getElementById('value-set-json');
+  var values = new tr.v.ValueSet();
+  values.addValuesFromDicts(JSON.parse(valueSetJson.textContent));
+  valueSetJson.parentNode.removeChild(valueSetJson);
+  document.getElementById('values').values = values;
 });
 </script>
-<!--
-Html2OutputFormatter will append script tags that import ValueSets into
-window.values.
--->
+
+<tr-v-ui-value-set-view id="values"></tr-v-ui-value-set-view>
+
+<div id="value-set-json"></div>

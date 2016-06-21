@@ -6,6 +6,7 @@ import datetime
 import json
 import logging
 import os
+import re
 
 from catapult_base import cloud_storage
 
@@ -17,52 +18,50 @@ from py_vulcanize import generate
 
 
 class Html2OutputFormatter(output_formatter.OutputFormatter):
+  _JSON_TAG = '<div id="value-set-json">%s</div>'
+
   def __init__(self, output_stream, reset_results, upload_results):
     super(Html2OutputFormatter, self).__init__(output_stream)
     self._upload_results = upload_results
+    self._values = [] if reset_results else self._ReadExistingResults()
 
-    # Format() needs to append to output_stream, which is easiest to do by
-    # re-opening in 'a' mode, which requires the filename instead of the file
-    # object handle, and closing the file so that it can be re-opened in
-    # Format().
-    self._output_filename = output_stream.name
+  @property
+  def values(self):
+    return self._values
 
-    # If the results should be reset or is empty, then write the prefix.
-    stat = os.stat(self._output_filename)
-    if reset_results or stat.st_size == 0:
-      output_stream.write(self._GetHtmlPrefix())
-    output_stream.close()
-
-  def _GetHtmlPrefix(self):
-    project = tracing_project.TracingProject()
-    vulcanizer = project.CreateVulcanizer()
-    modules = ['tracing.results2_template']
-    load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(modules)
-    return generate.GenerateStandaloneHTMLAsString(load_sequence)
+  def _ReadExistingResults(self):
+    results_html = self._output_stream.read()
+    if not results_html:
+      return []
+    m = re.search(self._JSON_TAG % '(.*?)', results_html,
+                  re.MULTILINE | re.DOTALL)
+    if not m:
+      logging.warn('Failed to extract previous results from HTML output')
+      return []
+    return json.loads(m.group(1))
 
   def Format(self, page_test_results):
-    with file(self._output_filename, 'a') as f:
-      f.write('\n'.join([
-          '',
-          '<script>',
-          'values.addValuesFromDicts(%s);' % json.dumps(
-              page_test_results.value_set),
-          '</script>',
-          '']))
+    self._values.extend(page_test_results.value_set)
+    vulcanizer = tracing_project.TracingProject().CreateVulcanizer()
+    load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(
+        ['tracing.results2_template'])
+    html = generate.GenerateStandaloneHTMLAsString(load_sequence)
+    html = html.replace(self._JSON_TAG % '', self._JSON_TAG % json.dumps(
+        self._values, separators=(',', ':')))
+    self._output_stream.seek(0)
+    self._output_stream.write(html)
+    self._output_stream.truncate()
 
+    file_path = os.path.abspath(self._output_stream.name)
     if self._upload_results:
-      file_path = os.path.abspath(self._output_stream.name)
-      file_name = 'html-results/results-%s' % datetime.datetime.now().strftime(
-          '%Y-%m-%d_%H-%M-%S')
+      remote_path = ('html-results/results-%s' %
+                     datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
       try:
-        cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET, file_name, file_path)
-        print
-        print ('View online at '
-               'http://storage.googleapis.com/chromium-telemetry/%s'
-               % file_name)
+        cloud_storage.Insert(
+            cloud_storage.PUBLIC_BUCKET, remote_path, file_path)
+        print 'View online at',
+        print 'http://storage.googleapis.com/chromium-telemetry/' + remote_path
       except cloud_storage.PermissionError as e:
-        logging.error('Cannot upload profiling files to cloud storage due to '
-                      ' permission error: %s' % e.message)
-    print
-    print 'View result at file://%s' % os.path.abspath(
-        self._output_stream.name)
+        logging.error('Cannot upload profiling files to cloud storage due ' +
+                      'to permission error: ' + e.message)
+    print 'View result at file://' + file_path
