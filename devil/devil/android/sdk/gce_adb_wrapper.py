@@ -19,16 +19,27 @@ from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
 
 
-# SSH key file for accessing the instances. The keys are created at
-# startup and removed & revoked at teardown.
-_SSH_KEY_FILE = '/tmp/ssh_android_gce_instance'
-
-
 class GceAdbWrapper(adb_wrapper.AdbWrapper):
 
   def __init__(self, device_serial):
     super(GceAdbWrapper, self).__init__(device_serial)
-    self._instance_ip = self.Shell('getprop net.gce.ip_address').strip()
+    self._Connect()
+    self.Root()
+    self._instance_ip = self.Shell('getprop net.gce.ip').strip()
+
+  def _Connect(self, timeout=adb_wrapper.DEFAULT_TIMEOUT,
+               retries=adb_wrapper.DEFAULT_RETRIES):
+    """Connects ADB to the android gce instance."""
+    cmd = ['connect', self._device_serial]
+    output = self._RunAdbCmd(cmd, timeout=timeout, retries=retries)
+    if 'unable to connect' in output:
+      raise device_errors.AdbCommandFailedError(cmd, output)
+    self.WaitForDevice()
+
+  # override
+  def Root(self, **kwargs):
+    super(GceAdbWrapper, self).Root()
+    self._Connect()
 
   # override
   def Push(self, local, remote, **kwargs):
@@ -38,7 +49,6 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
       local: Path on the host filesystem.
       remote: Path on the instance filesystem.
     """
-    adb_wrapper.VerifyLocalFileExists(_SSH_KEY_FILE)
     adb_wrapper.VerifyLocalFileExists(local)
     if os.path.isdir(local):
       self.Shell('mkdir -p %s' % cmd_helper.SingleQuote(remote))
@@ -66,7 +76,6 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
     cmd = [
         'scp',
         '-r',
-        '-i', _SSH_KEY_FILE,
         '-o', 'UserKnownHostsFile=/dev/null',
         '-o', 'StrictHostKeyChecking=no',
         local,
@@ -86,12 +95,10 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
       remote: Path on the instance filesystem.
       local: Path on the host filesystem.
     """
-    adb_wrapper.VerifyLocalFileExists(_SSH_KEY_FILE)
     cmd = [
         'scp',
         '-p',
         '-r',
-        '-i', _SSH_KEY_FILE,
         '-o', 'UserKnownHostsFile=/dev/null',
         '-o', 'StrictHostKeyChecking=no',
         'root@%s:%s' % (self._instance_ip, remote),
@@ -122,7 +129,6 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
       reinstall: (optional) If set reinstalls the app, keeping its data.
       sd_card: (optional) If set installs on the SD card.
     """
-    adb_wrapper.VerifyLocalFileExists(_SSH_KEY_FILE)
     adb_wrapper.VerifyLocalFileExists(apk_path)
     cmd = ['install']
     if forward_lock:
