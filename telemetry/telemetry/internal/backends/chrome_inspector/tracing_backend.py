@@ -101,7 +101,7 @@ class TracingBackend(object):
   def is_tracing_running(self):
     return self._is_tracing_running
 
-  def StartTracing(self, trace_options, timeout=10):
+  def StartTracing(self, chrome_trace_config, timeout=10):
     """When first called, starts tracing, and returns True.
 
     If called during tracing, tracing is unchanged, and it returns False.
@@ -117,14 +117,15 @@ class TracingBackend(object):
 
     params = {'transferMode': 'ReturnAsStream'}
     if self._support_modern_devtools_tracing_start_api:
-      params['traceConfig'] = trace_options.GetChromeTraceConfigForDevTools()
+      params['traceConfig'] = (
+          chrome_trace_config.GetChromeTraceConfigForDevTools())
     else:
-      if trace_options.requires_modern_devtools_tracing_start_api:
+      if chrome_trace_config.requires_modern_devtools_tracing_start_api:
         raise TracingUnsupportedException(
             'Trace options require modern Tracing.start DevTools API, '
             'which is NOT supported by the browser')
       params['categories'], params['options'] = (
-          trace_options.GetChromeTraceCategoriesAndOptionsForDevTools())
+          chrome_trace_config.GetChromeTraceCategoriesAndOptionsForDevTools())
 
     req = {'method': 'Tracing.start', 'params': params}
     logging.info('Start Tracing Request: %r', req)
