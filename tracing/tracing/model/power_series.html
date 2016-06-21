@@ -64,7 +64,15 @@ tr.exportTo('tr.model', function() {
       var measurementRange = tr.b.Range.fromExplicitRange(start, end);
 
       var energyConsumed = 0;
-      for (var i = 0; i < this.samples.length; i++) {
+      var startIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, start) - 1;
+      var endIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, end);
+
+      if (startIndex < 0)
+        startIndex = 0;
+
+      for (var i = startIndex; i < endIndex; i++) {
         var sample = this.samples[i];
         var nextSample = this.samples[i + 1];
 
