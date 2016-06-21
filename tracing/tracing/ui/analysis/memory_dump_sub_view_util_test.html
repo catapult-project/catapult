@@ -768,7 +768,11 @@ tr.b.unittest.testSuite(function() {
         'rgb(0, 153, 153)', infos1);
 
     // With custom formatting context.
-    c.formattingContext = { minimumFractionDigits: 2 };
+    c.getFormattingContext = function(unit) {
+      assert.strictEqual(unit,
+          tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter);
+      return { minimumFractionDigits: 2 };
+    };
     checkCellValue(this, c.value(row),
         sizeSpanMatcher(-3.2985348e13, true /* opt_expectedIsDelta */,
             { minimumFractionDigits: 2 }),

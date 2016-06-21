@@ -80,7 +80,7 @@ tr.exportTo('tr.ui.analysis', function() {
     {
       condition: 'Virtual size',
       importance: 7,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Protection flags',
@@ -90,32 +90,32 @@ tr.exportTo('tr.ui.analysis', function() {
     {
       condition: 'PSS',
       importance: 5,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Private dirty',
       importance: 4,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Private clean',
       importance: 3,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Shared dirty',
       importance: 2,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Shared clean',
       importance: 1,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Swapped',
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     }
   ];
 

@@ -20,6 +20,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/view_specific_brushing_state.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <polymer-element name="tr-ui-a-memory-dump-overview-pane"
     extends="tr-ui-a-stacked-pane">
@@ -146,6 +147,10 @@ tr.exportTo('tr.ui.analysis', function() {
         textContent: this.name,
         color: UsedMemoryColumn.COLOR
       });
+    },
+
+    getFormattingContext: function(unit) {
+      return { unitPrefix: tr.v.UnitScale.Binary.MEBI };
     },
 
     color: function(numerics, processMemoryDumps) {
@@ -333,6 +338,10 @@ tr.exportTo('tr.ui.analysis', function() {
       var titleEl = document.createElement('tr-ui-b-color-legend');
       titleEl.label = this.name;
       return titleEl;
+    },
+
+    getFormattingContext: function(unit) {
+      return { unitPrefix: tr.v.UnitScale.Binary.MEBI };
     },
 
     addInfos: function(numerics, processMemoryDumps, infos) {

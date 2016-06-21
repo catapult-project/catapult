@@ -225,12 +225,12 @@ tr.exportTo('tr.ui.analysis', function() {
 
   /** @constructor */
   function EffectiveSizeColumn(name, cellPath, aggregationMode) {
-    tr.ui.analysis.NumericMemoryColumn.call(
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
         this, name, cellPath, aggregationMode);
   }
 
   EffectiveSizeColumn.prototype = {
-    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined)
@@ -350,12 +350,12 @@ tr.exportTo('tr.ui.analysis', function() {
 
   /** @constructor */
   function SizeColumn(name, cellPath, aggregationMode) {
-    tr.ui.analysis.NumericMemoryColumn.call(
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
         this, name, cellPath, aggregationMode);
   }
 
   SizeColumn.prototype = {
-    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined)
@@ -471,17 +471,17 @@ tr.exportTo('tr.ui.analysis', function() {
     {
       condition: 'page_size',
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: /size/,
       importance: 5,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       // All other columns.
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     }
   ];
 

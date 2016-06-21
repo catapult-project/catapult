@@ -166,21 +166,23 @@ tr.exportTo('tr.ui.analysis', function() {
 
   /** @constructor */
   function AllocationCountColumn(name, cellPath, aggregationMode) {
-    tr.ui.analysis.NumericMemoryColumn.call(
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
         this, name, cellPath, aggregationMode);
   }
 
   AllocationCountColumn.prototype = {
-    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
-    formattingContext: { minimumFractionDigits: 0 }
+    getFormattingContext: function(unit) {
+      return { minimumFractionDigits: 0 };
+    }
   };
 
   var COLUMN_RULES = [
     {
       condition: 'Size',
       importance: 3,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: 'Count',
@@ -190,11 +192,11 @@ tr.exportTo('tr.ui.analysis', function() {
     {
       condition: 'Average size per allocation',
       importance: 1,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     }
   ];
 
