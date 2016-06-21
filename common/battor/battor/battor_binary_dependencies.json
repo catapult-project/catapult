@@ -9,35 +9,35 @@
           "cloud_storage_hash": "136ed6d947e7edcf82e212f6a0cdddffbbe9a8d5",
           "download_path": "../bin/linux2/x86_64/battor_agent",
           "local_paths": [
-            "../bin/linux2/x86_64/battor_agent"
+            "../bin/override/battor_agent"
           ]
         },
         "mac_x86_64": {
           "cloud_storage_hash": "b8d590745daf2448609a81bd30d864fe98c68ec7",
           "download_path": "../bin/mac/x86_64/battor_agent",
           "local_paths": [
-            "../bin/mac/x86_64/battor_agent"
+            "../bin/override/battor_agent"
           ]
         },
         "win32_AMD64": {
           "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
-            "../bin/win/AMD64/battor_agent.exe"
+            "../bin/override/battor_agent.exe"
           ]
         },
         "win32_x86": {
           "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
           "download_path": "../bin/win/x86_64/battor_agent.exe",
           "local_paths": [
-            "../bin/win/x86_64/battor_agent.exe"
+            "../bin/override/battor_agent.exe"
           ]
         },
         "win_AMD64": {
           "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
-            "../bin/win/AMD64/battor_agent.exe"
+            "../bin/override/battor_agent.exe"
           ]
         }
       }
