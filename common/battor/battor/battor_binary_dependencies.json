@@ -20,7 +20,7 @@
           ]
         },
         "win32_AMD64": {
-          "cloud_storage_hash": "4efded5660f3559f2dc834a3fd3d886c8e145811",
+          "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/win/AMD64/battor_agent.exe"
