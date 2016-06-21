@@ -98,7 +98,10 @@ tr.exportTo('tr.v.d', function() {
     return map;
   };
 
-  tr.v.d.Diagnostic.register(RelatedValueMap);
+  tr.v.d.Diagnostic.register(RelatedValueMap, {
+    elementName: 'tr-v-ui-related-value-map-span'
+  });
+
 
   return {
     RelatedValueMap: RelatedValueMap

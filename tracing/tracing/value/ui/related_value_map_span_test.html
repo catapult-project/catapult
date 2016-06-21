@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/diagnostics/related_value_map.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('instantiate_RelatedValueMap', function() {
+    var aValue = new tr.v.SkipValue('a');
+    var bValue = new tr.v.SkipValue('b');
+    var diagnostic = new tr.v.d.RelatedValueMap();
+    diagnostic.set('foo', aValue);
+    diagnostic.set('bar', bValue);
+    var span = tr.v.ui.createDiagnosticSpan(diagnostic);
+    assert.strictEqual('TR-V-UI-RELATED-VALUE-MAP-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+        span, function(element) {
+      return element.textContent === 'foo';
+    }));
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+        span, function(element) {
+      return element.textContent === 'bar';
+    }));
+  });
+});
+</script>

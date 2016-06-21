@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+
+<polymer-element name="tr-v-ui-related-value-map-span">
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.diagnostic_ = undefined;
+    },
+
+    get diagnostic() {
+      return this.diagnostic_;
+    },
+
+    set diagnostic(d) {
+      this.diagnostic_ = d;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      this.textContent = '';
+      this.diagnostic.iterItems(function(name, value) {
+        var link = document.createElement('tr-ui-a-analysis-link');
+        link.setSelectionAndContent(value, name);
+        this.appendChild(link);
+        this.appendChild(document.createElement('br'));
+      }, this);
+    }
+  });
+  </script>
+</polymer-element>
