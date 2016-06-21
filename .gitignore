@@ -5,6 +5,8 @@
 *~
 .project
 .settings
+.tags
+tags
 
 # A script some of us use to download Deep Report traces. It must live in that
 # directory but should not be committed for privacy reasons. This prevents
