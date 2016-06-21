@@ -10,6 +10,8 @@ from telemetry.testing import page_test_test_case
 from telemetry.timeline import tracing_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
+from telemetry.web_perf.metrics import gpu_timeline
+from telemetry.web_perf.metrics import smoothness
 
 class TestTimelinebasedMeasurementPage(page_module.Page):
 
@@ -55,7 +57,9 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_animation=True))
 
-    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
+    options = tbm_module.Options()
+    options.SetLegacyTimelineBasedMetrics([smoothness.SmoothnessMetric()])
+    tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
@@ -77,6 +81,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     cat_filter = tracing_category_filter.TracingCategoryFilter(
         'disabled-by-default-gpu.service')
     tbm_option = tbm_module.Options(overhead_level=cat_filter)
+    tbm_option.SetLegacyTimelineBasedMetrics([gpu_timeline.GPUTimelineMetric()])
     tbm = tbm_module.TimelineBasedMeasurement(tbm_option)
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
@@ -98,7 +103,9 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_scroll_gesture=True))
 
-    tbm = tbm_module.TimelineBasedMeasurement(tbm_module.Options())
+    options = tbm_module.Options()
+    options.SetLegacyTimelineBasedMetrics([smoothness.SmoothnessMetric()])
+    tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, options=self._options)
 
     self.assertEquals(0, len(results.failures))
