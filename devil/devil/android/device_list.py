@@ -8,9 +8,6 @@ import json
 import logging
 import os
 
-LAST_DEVICES_FILENAME = '.last_devices'
-LAST_MISSING_DEVICES_FILENAME = '.last_missing'
-
 
 def GetPersistentDeviceList(file_name):
   """Returns a list of devices.
