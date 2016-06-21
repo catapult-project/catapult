@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/cpu_slice.html">
+<link rel="import" href="/tracing/model/process_base.html">
 <link rel="import" href="/tracing/model/thread_time_slice.html">
 
 <script>
@@ -34,7 +35,7 @@ tr.exportTo('tr.model', function() {
     this.cpuNumber = number;
     this.slices = [];
     this.counters = {};
-    this.bounds = new tr.b.Range();
+    this.bounds_ = new tr.b.Range();
     this.samples_ = undefined; // Set during createSubSlices
 
     // Start timestamp of the last active thread.
@@ -50,6 +51,8 @@ tr.exportTo('tr.model', function() {
   };
 
   Cpu.prototype = {
+    __proto__: tr.model.ProcessBase.prototype,
+
     get samples() {
       return this.samples_;
     },
@@ -67,20 +70,18 @@ tr.exportTo('tr.model', function() {
       });
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
       if (eventTypePredicate.call(opt_this, tr.model.CpuSlice))
-        this.slices.forEach(callback, opt_this);
+        yield * this.slices;
 
       if (this.samples_) {
         if (eventTypePredicate.call(opt_this, tr.model.Sample))
-          this.samples_.forEach(callback, opt_this);
+          yield * this.samples_;
       }
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      for (var id in this.counters)
-        callback.call(opt_this, this.counters[id]);
+    childEventContainers: function*() {
+      yield * tr.b.dictionaryValues(this.counters);
     },
 
     /**
@@ -120,18 +121,18 @@ tr.exportTo('tr.model', function() {
      * Updates the range based on the current slices attached to the cpu.
      */
     updateBounds: function() {
-      this.bounds.reset();
+      this.bounds_.reset();
       if (this.slices.length) {
-        this.bounds.addValue(this.slices[0].start);
-        this.bounds.addValue(this.slices[this.slices.length - 1].end);
+        this.bounds_.addValue(this.slices[0].start);
+        this.bounds_.addValue(this.slices[this.slices.length - 1].end);
       }
       for (var id in this.counters) {
         this.counters[id].updateBounds();
-        this.bounds.addRange(this.counters[id].bounds);
+        this.bounds_.addRange(this.counters[id].bounds);
       }
       if (this.samples_ && this.samples_.length) {
-        this.bounds.addValue(this.samples_[0].start);
-        this.bounds.addValue(
+        this.bounds_.addValue(this.samples_[0].start);
+        this.bounds_.addValue(
             this.samples_[this.samples_.length - 1].end);
       }
     },

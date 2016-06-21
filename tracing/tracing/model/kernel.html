@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/cpu.html">
 <link rel="import" href="/tracing/model/process_base.html">
-<link rel="import" href="/tracing/base/iteration_helpers.html">
 
 <script>
 'use strict';
@@ -121,17 +121,14 @@ tr.exportTo('tr.model', function() {
       return 'kernel';
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      ProcessBase.prototype.iterateAllChildEventContainers.call(
-          this, callback, opt_this);
-      for (var cpuId in this.cpus)
-        callback.call(opt_this, this.cpus[cpuId]);
+    childEventContainers: function*() {
+      yield * ProcessBase.prototype.childEventContainers.call(this);
+      yield * tr.b.dictionaryValues(this.cpus);
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
-      ProcessBase.prototype.iterateAllEventsInThisContainer.call(
-          this, eventTypePredicate, callback, opt_this);
+    childEvents: function*(eventTypePredicate, opt_this) {
+      yield * ProcessBase.prototype.childEvents.call(
+          this, eventTypePredicate, opt_this);
     }
   };
 

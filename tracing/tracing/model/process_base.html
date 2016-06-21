@@ -56,16 +56,13 @@ tr.exportTo('tr.model', function() {
                                                opt_this) {
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      for (var tid in this.threads)
-        callback.call(opt_this, this.threads[tid]);
-      for (var id in this.counters)
-        callback.call(opt_this, this.counters[id]);
-      callback.call(opt_this, this.objects);
+    childEventContainers: function*() {
+      yield * tr.b.dictionaryValues(this.threads);
+      yield * tr.b.dictionaryValues(this.counters);
+      yield this.objects;
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*(eventTypePredicate, opt_this) {
     },
 
     iterateAllPersistableObjects: function(cb) {
