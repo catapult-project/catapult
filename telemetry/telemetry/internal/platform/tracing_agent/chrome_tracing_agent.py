@@ -224,7 +224,10 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
 
   def _CreateTraceConfigFileString(self, config):
     # See src/components/tracing/trace_config_file.h for the format
-    result = {'trace_config': config.GetChromeTraceConfigForStartupTracing()}
+    result = {
+      'trace_config':
+        config.chrome_trace_config.GetChromeTraceConfigForStartupTracing()
+    }
     return json.dumps(result, sort_keys=True)
 
   def _CreateTraceConfigFile(self, config):
