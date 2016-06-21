@@ -253,6 +253,9 @@ class _FakeBrowser(object):
   def tabs(self):
     return self._tabs
 
+  def DumpStateUponFailure(self):
+    pass
+
 
 class _FakeCredentials(object):
   def WarnIfMissingCredentials(self, _):

@@ -69,8 +69,9 @@ def ProcessCommandLineArgs(parser, args):
 
 
 def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
-  def ProcessError():
-    results.AddValue(failure.FailureValue(story, sys.exc_info()))
+  def ProcessError(description=None):
+    state.DumpStateUponFailure(story, results)
+    results.AddValue(failure.FailureValue(story, sys.exc_info(), description))
   try:
     if isinstance(test, story_test.StoryTest):
       test.WillRunStory(state.platform)
@@ -94,9 +95,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     results.AddValue(
         skip.SkipValue(story, 'Unsupported page action: %s' % e))
   except Exception:
-    results.AddValue(
-        failure.FailureValue(
-            story, sys.exc_info(), 'Unhandlable exception raised.'))
+    ProcessError(description='Unhandlable exception raised.')
     raise
   finally:
     has_existing_exception = (sys.exc_info() != (None, None, None))
@@ -110,6 +109,7 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
         test.DidRunPage(state.platform)
     except Exception:
       if not has_existing_exception:
+        state.DumpStateUponFailure(story, results)
         raise
       # Print current exception and propagate existing exception.
       exception_formatter.PrintFormattedException(

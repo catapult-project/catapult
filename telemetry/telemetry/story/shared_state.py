@@ -66,3 +66,11 @@ class SharedState(object):
     This method is styled on unittest.TestCase.tearDownClass.
     """
     raise NotImplementedError()
+
+  def DumpStateUponFailure(self, story, results):
+    """ Dump the state upon failure.
+    This method tries to dump as much information about the application under
+    test as possible (output, log, screenshot, etc.) to simplify triaging the
+    failure.
+    """
+    raise NotImplementedError()

@@ -130,6 +130,19 @@ class SharedPageState(story.SharedState):
       sys.exit(0)
     return possible_browser
 
+  def DumpStateUponFailure(self, page, results):
+    # Dump browser standard output and log.
+    if self._browser:
+      self._browser.DumpStateUponFailure()
+    else:
+      logging.warning('Cannot dump browser state: No browser.')
+
+    # Capture a screenshot
+    if self._finder_options.browser_options.take_screenshot_for_failed_page:
+      self._TryCaptureScreenShot(page, self._current_tab, results)
+    else:
+      logging.warning('Taking screenshots upon failures disabled.')
+
   def _TryCaptureScreenShot(self, page, tab, results):
     try:
       # TODO(nednguyen): once all platforms support taking screenshot,
@@ -307,19 +320,11 @@ class SharedPageState(story.SharedState):
       self._test.ValidateAndMeasurePage(
           self._current_page, self._current_tab, results)
     except exceptions.Error:
-      if self._finder_options.browser_options.take_screenshot_for_failed_page:
-        self._TryCaptureScreenShot(self._current_page, self._current_tab,
-                                   results)
       if self._test.is_multi_tab_test:
         # Avoid trying to recover from an unknown multi-tab state.
         exception_formatter.PrintFormattedException(
             msg='Telemetry Error during multi tab test:')
         raise legacy_page_test.MultiTabTestAppCrashError
-      raise
-    except Exception:
-      if self._finder_options.browser_options.take_screenshot_for_failed_page:
-        self._TryCaptureScreenShot(self._current_page, self._current_tab,
-                                   results)
       raise
 
   def TearDownState(self):

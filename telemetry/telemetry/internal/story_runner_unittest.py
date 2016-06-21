@@ -13,6 +13,8 @@ from telemetry import benchmark
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal.actions import page_action
+from telemetry.internal.results import page_test_results
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
 from telemetry.internal.util import exception_formatter as ex_formatter_module
@@ -22,9 +24,11 @@ from telemetry import story as story_module
 from telemetry.testing import options_for_unittests
 from telemetry.testing import system_stub
 import mock
+from telemetry.value import failure
 from telemetry.value import improvement_direction
 from telemetry.value import list_of_scalar_values
 from telemetry.value import scalar
+from telemetry.value import skip
 from telemetry.value import summary as summary_module
 from telemetry.web_perf import story_test
 from telemetry.web_perf import timeline_based_measurement
@@ -70,6 +74,9 @@ class TestSharedState(story_module.SharedState):
     pass
 
   def TearDownState(self):
+    pass
+
+  def DumpStateUponFailure(self, story, results):
     pass
 
 
@@ -154,6 +161,22 @@ def GetNumberOfSuccessfulPageRuns(results):
 
 class TestOnlyException(Exception):
   pass
+
+
+class FailureValueMatcher(object):
+
+  def __init__(self, expected_exception_message):
+    self._expected_exception_message = expected_exception_message
+
+  def __eq__(self, other):
+    return (isinstance(other, failure.FailureValue) and
+            other.exc_info[1].message == self._expected_exception_message)
+
+
+class SkipValueMatcher(object):
+
+  def __eq__(self, other):
+    return isinstance(other, skip.SkipValue)
 
 
 class StoryRunnerTest(unittest.TestCase):
@@ -512,6 +535,9 @@ class StoryRunnerTest(unittest.TestCase):
         unit_test_events.append('tear-down-state')
         raise DidRunTestError
 
+      def DumpStateUponFailure(self, story, results):
+        unit_test_events.append('dump-state')
+
 
     class Test(legacy_page_test.LegacyPageTest):
       def __init__(self, *args):
@@ -535,7 +561,8 @@ class StoryRunnerTest(unittest.TestCase):
     with self.assertRaises(DidRunTestError):
       story_runner.Run(
           test, story_set, self.options, self.results)
-    self.assertEqual(['app-crash', 'tear-down-state'], unit_test_events)
+    self.assertEqual(['app-crash', 'dump-state', 'tear-down-state'],
+                     unit_test_events)
     # The AppCrashException gets added as a failure.
     self.assertEquals(1, len(self.results.failures))
 
@@ -683,6 +710,9 @@ class StoryRunnerTest(unittest.TestCase):
       def TearDownState(self):
         pass
 
+      def DumpStateUponFailure(self, story, results):
+        pass
+
     class FailingStory(story_module.Story):
       def __init__(self):
         super(FailingStory, self).__init__(
@@ -739,3 +769,221 @@ class StoryRunnerTest(unittest.TestCase):
     self._testMaxFailuresOptionIsRespectedAndOverridable(
         num_failing_stories=5, runner_max_failures=3,
         options_max_failures=1, expected_num_failures=2)
+
+  def _CreateErrorProcessingMock(self, method_exceptions=None,
+                                 legacy_test=False):
+    if legacy_test:
+      test_class = legacy_page_test.LegacyPageTest
+    else:
+      test_class = story_test.StoryTest
+
+    root_mock = mock.NonCallableMock(
+        story=mock.NonCallableMagicMock(story_module.Story),
+        results=mock.NonCallableMagicMock(page_test_results.PageTestResults),
+        test=mock.NonCallableMagicMock(test_class),
+        state=mock.NonCallableMagicMock(
+            story_module.SharedState,
+            CanRunStory=mock.Mock(return_value=True)))
+
+    if method_exceptions:
+      root_mock.configure_mock(**{
+          path + '.side_effect': exception
+          for path, exception in method_exceptions.iteritems()})
+
+    return root_mock
+
+  def testRunStoryAndProcessErrorIfNeeded_success(self):
+    root_mock = self._CreateErrorProcessingMock()
+
+    story_runner._RunStoryAndProcessErrorIfNeeded(
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.RunStory(root_mock.results),
+      mock.call.test.Measure(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_successLegacy(self):
+    root_mock = self._CreateErrorProcessingMock(legacy_test=True)
+
+    story_runner._RunStoryAndProcessErrorIfNeeded(
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.RunStory(root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunPage(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryTimeout(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'state.WillRunStory': exceptions.TimeoutException('foo')
+    })
+
+    story_runner._RunStoryAndProcessErrorIfNeeded(
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
+      mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryError(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'state.CanRunStory': exceptions.Error('foo')
+    })
+
+    with self.assertRaisesRegexp(exceptions.Error, 'foo'):
+      story_runner._RunStoryAndProcessErrorIfNeeded(
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
+      mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryUnsupportedAction(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'state.RunStory': page_action.PageActionNotSupported('foo')
+    })
+
+    story_runner._RunStoryAndProcessErrorIfNeeded(
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.RunStory(root_mock.results),
+      mock.call.results.AddValue(SkipValueMatcher()),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryUnhandlable(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'test.WillRunStory': Exception('foo')
+    })
+
+    with self.assertRaisesRegexp(Exception, 'foo'):
+      story_runner._RunStoryAndProcessErrorIfNeeded(
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
+      mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_finallyException(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'state.DidRunStory': Exception('bar')
+    })
+
+    with self.assertRaisesRegexp(Exception, 'bar'):
+      story_runner._RunStoryAndProcessErrorIfNeeded(
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.RunStory(root_mock.results),
+      mock.call.test.Measure(root_mock.state.platform, root_mock.results),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryTimeout_finallyException(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'state.RunStory': exceptions.TimeoutException('foo'),
+      'state.DidRunStory': Exception('bar')
+    })
+
+    story_runner._RunStoryAndProcessErrorIfNeeded(
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.RunStory(root_mock.results),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
+      mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.state.DidRunStory(root_mock.results)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryError_finallyException(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'state.WillRunStory': exceptions.Error('foo'),
+      'test.DidRunStory': Exception('bar')
+    })
+
+    with self.assertRaisesRegexp(exceptions.Error, 'foo'):
+      story_runner._RunStoryAndProcessErrorIfNeeded(
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
+      mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryUnsupportedAction_finallyException(
+      self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'test.WillRunStory': page_action.PageActionNotSupported('foo'),
+      'state.DidRunStory': Exception('bar')
+    })
+
+    story_runner._RunStoryAndProcessErrorIfNeeded(
+        root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.results.AddValue(SkipValueMatcher()),
+      mock.call.state.DidRunStory(root_mock.results)
+    ])
+
+  def testRunStoryAndProcessErrorIfNeeded_tryUnhandlable_finallyException(self):
+    root_mock = self._CreateErrorProcessingMock(method_exceptions={
+      'test.Measure': Exception('foo'),
+      'test.DidRunStory': Exception('bar')
+    })
+
+    with self.assertRaisesRegexp(Exception, 'foo'):
+      story_runner._RunStoryAndProcessErrorIfNeeded(
+          root_mock.story, root_mock.results, root_mock.state, root_mock.test)
+
+    self.assertEquals(root_mock.method_calls, [
+      mock.call.test.WillRunStory(root_mock.state.platform),
+      mock.call.state.WillRunStory(root_mock.story),
+      mock.call.state.CanRunStory(root_mock.story),
+      mock.call.state.RunStory(root_mock.results),
+      mock.call.test.Measure(root_mock.state.platform, root_mock.results),
+      mock.call.state.DumpStateUponFailure(root_mock.story, root_mock.results),
+      mock.call.results.AddValue(FailureValueMatcher('foo')),
+      mock.call.state.DidRunStory(root_mock.results),
+      mock.call.test.DidRunStory(root_mock.state.platform)
+    ])

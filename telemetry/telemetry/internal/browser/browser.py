@@ -321,3 +321,18 @@ class Browser(app.App):
   @property
   def supports_power_metrics(self):
     return self._browser_backend.supports_power_metrics
+
+  def DumpStateUponFailure(self):
+    logging.info('*************** BROWSER STANDARD OUTPUT ***************')
+    try:  # pylint: disable=broad-except
+      logging.info(self.GetStandardOutput())
+    except Exception:
+      logging.exception('Failed to get browser standard output:')
+    logging.info('*********** END OF BROWSER STANDARD OUTPUT ************')
+
+    logging.info('********************* BROWSER LOG *********************')
+    try:  # pylint: disable=broad-except
+      logging.info(self.GetLogFileContents())
+    except Exception:
+      logging.exception('Failed to get browser log:')
+    logging.info('***************** END OF BROWSER LOG ******************')

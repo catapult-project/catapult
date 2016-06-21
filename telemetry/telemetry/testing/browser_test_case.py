@@ -42,23 +42,14 @@ class _MetaBrowserTestCase(type):
       except Exception:
         exc_info = sys.exc_info()
 
-        logging.info('*************** BROWSER STANDARD OUTPUT ***************')
-        try:  # pylint: disable=broad-except
-          logging.info(self._browser.GetStandardOutput())
-        except Exception:
-          logging.exception('Failed to get browser standard output:')
-        logging.info('*********** END OF BROWSER STANDARD OUTPUT ************')
-
-        logging.info('********************* BROWSER LOG *********************')
-        try:  # pylint: disable=broad-except
-          logging.info(self._browser.GetLogFileContents())
-        except Exception:
-          logging.exception('Failed to get browser log:')
-        logging.info('***************** END OF BROWSER LOG ******************')
+        if self._browser:
+          self._browser.DumpStateUponFailure()
+        else:
+          logging.warning('Cannot dump browser state: No browser.')
 
         # Re-raise the original exception. Note that we can't just use 'raise'
         # without any arguments because an exception might have been thrown when
-        # the browser standard output was retrieved.
+        # dumping the state of the browser.
         raise exc_info[0], exc_info[1], exc_info[2]
     return WrappedMethod
 
