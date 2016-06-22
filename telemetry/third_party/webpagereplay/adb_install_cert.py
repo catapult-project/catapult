@@ -42,23 +42,24 @@ _ANDROID_M_BUILD_VERSION = 23
 class AndroidCertInstaller(object):
   """Certificate installer for phones with KitKat."""
 
-  def __init__(self, device_id, cert_name, cert_path):
+  def __init__(self, device_id, cert_name, cert_path, adb_path=None):
     if not os.path.exists(cert_path):
       raise ValueError('Not a valid certificate path')
-    self.device_id = device_id
+    self.adb_path = adb_path or 'adb'
+    self.android_cacerts_path = None
     self.cert_name = cert_name
     self.cert_path = cert_path
+    self.device_id = device_id
     self.file_name = os.path.basename(self.cert_path)
     self.reformatted_cert_fname = None
     self.reformatted_cert_path = None
-    self.android_cacerts_path = None
 
   @staticmethod
   def _run_cmd(cmd, dirname=None):
     return subprocess.check_output(cmd, cwd=dirname)
 
   def _get_adb_cmd(self, *args):
-    cmd = ['adb']
+    cmd = [self.adb_path]
     if self.device_id:
       cmd.extend(['-s', self.device_id])
     cmd.extend(args)
@@ -254,6 +255,8 @@ def parse_args():
   parser.add_argument(
       '--device-id', help='device serial number')
   parser.add_argument(
+      '--adb-path', help='adb binary path')
+  parser.add_argument(
       'cert_path', help='Certificate file path')
   return parser.parse_args()
 
@@ -261,7 +264,7 @@ def parse_args():
 def main():
   args = parse_args()
   cert_installer = AndroidCertInstaller(args.device_id, args.cert_name,
-                                        args.cert_path)
+                                        args.cert_path, adb_path=args.adb_path)
   if args.remove:
     cert_installer.remove_cert()
   else:
