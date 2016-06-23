@@ -25,10 +25,10 @@ def create_catapult_rev_str_(revision):
   return '<!--' + CATAPULT_REV_ + '=' + str(revision) + '-->'
 
 
-def get_catapult_rev_in_file_():
-  assert os.path.exists(SYSTRACE_TRACE_VIEWER_HTML_FILE_)
+def get_catapult_rev_in_file_(html_file):
+  assert os.path.exists(html_file)
   rev = ''
-  with open(SYSTRACE_TRACE_VIEWER_HTML_FILE_, 'r') as f:
+  with open(html_file, 'r') as f:
     lines = f.readlines()
     for line in lines[::-1]:
       if CATAPULT_REV_ in line:
@@ -47,7 +47,7 @@ def get_catapult_rev_in_git_():
     return ''
 
 
-def update(no_auto_update=False, no_min=False):
+def update(script_dir, no_auto_update=False, no_min=False):
   """Update the systrace trace viewer html file.
 
   When the html file exists, do not update the file if
@@ -68,21 +68,22 @@ def update(no_auto_update=False, no_min=False):
     if not new_rev:
       return
 
-    if os.path.exists(SYSTRACE_TRACE_VIEWER_HTML_FILE_):
-      rev_in_file = get_catapult_rev_in_file_()
+    html_file = os.path.join(script_dir, SYSTRACE_TRACE_VIEWER_HTML_FILE_)
+    if os.path.exists(html_file):
+      rev_in_file = get_catapult_rev_in_file_(html_file)
       if rev_in_file == NO_AUTO_UPDATE_ or rev_in_file == new_rev:
         return
 
+  print 'Generating %s with revision %s.' % (html_file, new_rev)
+
   # Generate the vulcanized result.
-  output_html_file = SYSTRACE_TRACE_VIEWER_HTML_FILE_
-  with codecs.open(output_html_file, encoding='utf-8', mode='w') as f:
+  with codecs.open(html_file, encoding='utf-8', mode='w') as f:
     vulcanize_trace_viewer.WriteTraceViewer(
         f,
         config_name='systrace',
         minify=(not no_min),
         output_html_head_and_body=False)
     f.write(create_catapult_rev_str_(new_rev))
-  print 'Generated %s with revision %s.' % (output_html_file, new_rev)
 
 
 def main():

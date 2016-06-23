@@ -49,7 +49,7 @@ class SystraceRunner(object):
     except ImportError:
       pass
     else:
-      update_systrace_trace_viewer.update()
+      update_systrace_trace_viewer.update(self._script_dir)
 
     # Set up tracing controller.
     self._tracing_controller = tracing_controller.TracingController(options,
