@@ -164,6 +164,7 @@
       'tracing/metrics/all_metrics.html',
       'tracing/metrics/metric_registry.html',
       'tracing/metrics/sample_metric.html',
+      'tracing/metrics/system_health/clock_sync_latency_metric.html',
       'tracing/metrics/system_health/efficiency_metric.html',
       'tracing/metrics/system_health/first_paint_metric.html',
       'tracing/metrics/system_health/hazard_metric.html',

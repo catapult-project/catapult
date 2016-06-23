@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('clockSyncLatencyMetric', function() {
+    var model = new tr.Model();
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.TELEMETRY, 'ID01', 1.0, 4.0);
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.TELEMETRY, 'ID02', 2.0, 8.0);
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.BATTOR, 'ID01', 2.5);
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.WIN_QPC, 'ID02', 5.0);
+
+    var battorName = 'clock_sync_latency_' + tr.model.ClockDomainId.BATTOR;
+    var winQpcName = 'clock_sync_latency_' + tr.model.ClockDomainId.WIN_QPC;
+
+    var valueSet = new tr.v.ValueSet();
+    tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
+
+    var battorEntry = tr.b.getOnlyElement(
+        valueSet.valueDicts.filter(
+            (dict) => dict.name === battorName));
+
+    var winQpcEntry = tr.b.getOnlyElement(
+        valueSet.valueDicts.filter(
+            (dict) => dict.name === winQpcName));
+
+    assert.equal(battorEntry.numeric.value, 3.0);
+    assert.equal(winQpcEntry.numeric.value, 6.0);
+  });
+
+  test('clockSyncLatencyMetric_noTelemetry', function() {
+    var model = new tr.Model();
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.TELEMETRY, 'ID01', 1.0, 4.0);
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.BATTOR, 'ID02', 2.5);
+    model.clockSyncManager.addClockSyncMarker(
+        tr.model.ClockDomainId.WIN_QPC, 'ID02', 5.0);
+
+    var valueSet = new tr.v.ValueSet();
+    tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
+
+    assert.lengthOf(valueSet.valueDicts, 0);
+  });
+});
+</script>

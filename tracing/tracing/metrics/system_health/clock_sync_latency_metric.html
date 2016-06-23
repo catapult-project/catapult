@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/system_health/utils.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+
+  function syncIsComplete(markers) {
+    return markers.length === 2;
+  }
+
+  function syncInvolvesTelemetry(markers) {
+    for (var marker of markers)
+      if (marker.domainId === tr.model.ClockDomainId.TELEMETRY)
+        return true;
+
+    return false;
+  }
+
+  function clockSyncLatencyMetric(values, model) {
+    for (var markers of model.clockSyncManager.markersBySyncId.values()) {
+      var latency = undefined;
+      var targetDomain = undefined;
+      if (!syncIsComplete(markers) || !syncInvolvesTelemetry(markers))
+        continue;
+      for (var marker of markers) {
+        var domain = marker.domainId;
+        if (domain === tr.model.ClockDomainId.TELEMETRY)
+          latency = (marker.endTs - marker.startTs);
+        else
+          targetDomain = domain;
+      }
+      values.addValue(new tr.v.NumericValue(
+          'clock_sync_latency_' + targetDomain,
+          new tr.v.ScalarNumeric(
+              tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+              latency),
+          { description: 'Clock sync latency for domain ' + targetDomain }));
+    }
+  };
+
+  tr.metrics.MetricRegistry.register(clockSyncLatencyMetric);
+
+  return {
+    clockSyncLatencyMetric: clockSyncLatencyMetric
+  };
+});
+</script>

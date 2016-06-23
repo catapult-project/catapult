@@ -183,6 +183,10 @@ tr.exportTo('tr.model', function() {
           createTransformer(marker, markers[0]);
     },
 
+    get markersBySyncId() {
+      return this.markersBySyncId_;
+    },
+
     /**
      * Returns a function that, given a timestamp in the domain with |domainId|,
      * returns a timestamp in the model's clock domain.
