@@ -34,12 +34,15 @@ tr.exportTo('tr.metrics', function() {
       throw new Error('"' + metricName + '" is not a registered metric.');
     metric.constructor(values, model);
 
-    // Values can be separated from their ValueSet and mixed into ValueSets with
-    // Values from other iterations, so add IterationInfo to each Value.
-    if (options.iterInfo) {
-      var iterInfo = new tr.v.d.IterationInfo(options.iterInfo);
+    for (var metadata of model.metadata) {
+      if (!metadata.value || !metadata.value['iteration-info'])
+        continue;
+      var iteration = new tr.v.d.IterationInfo(
+          metadata.value['iteration-info']);
+      // Values can be separated from their ValueSet and mixed into ValueSets
+      // with Values from other iterations, so add IterationInfo to each Value.
       values.map(function(value) {
-        value.diagnostics.add('iterInfo', iterInfo);
+        value.diagnostics.add('iteration', iteration);
       });
     }
 

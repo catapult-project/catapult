@@ -274,6 +274,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
 
   def Measure(self, platform, results):
     """Collect all possible metrics and added them to results."""
+    platform.tracing_controller.iteration_info = results.iteration_info
     trace_result = platform.tracing_controller.StopTracing()
     trace_value = trace.TraceValue(results.current_page, trace_result)
     results.AddValue(trace_value)
@@ -305,8 +306,7 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     }
 
     mre_result = metric_runner.RunMetric(
-        trace_value.filename, metric, results.iteration_info.AsDict(),
-        extra_import_options)
+        trace_value.filename, metric, extra_import_options)
     page = results.current_page
 
     failure_dicts = mre_result.failures

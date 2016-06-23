@@ -127,6 +127,18 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertEquals(0, len(results.failures))
+    self.assertEquals(9, len(results.value_set))
+    self.assertEquals(1, len(results.value_set[0]['diagnostics']))
+    iter_info = results.value_set[0]['diagnostics']['iteration']
+    self.assertEqual('IterationInfo', iter_info['type'])
+    self.assertEqual('', iter_info['benchmarkName'])
+    self.assertEqual('interaction_enabled_page.html',
+                     iter_info['storyDisplayName'])
+    self.assertEqual({}, iter_info['storyGroupingKeys'])
+    self.assertEqual(0, iter_info['storyRepeatCounter'])
+    self.assertEqual(0, iter_info['storysetRepeatCounter'])
+    self.assertEqual('file://interaction_enabled_page.html',
+                     iter_info['storyUrl'])
     v_foo = results.FindAllPageSpecificValuesNamed('foo')
     v_bar = results.FindAllPageSpecificValuesNamed('bar')
     v_baz_avg = results.FindAllPageSpecificValuesNamed('baz_avg')
