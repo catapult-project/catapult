@@ -4,12 +4,12 @@
 import argparse
 import sys
 
-from perf_insights import corpus_driver_cmdline
-from perf_insights import corpus_query
-from perf_insights import map_runner
-from perf_insights import function_handle
+from perf_insights.mre import corpus_driver_cmdline
+from perf_insights.mre import corpus_query
+from perf_insights.mre import map_runner
+from perf_insights.mre import function_handle
 from perf_insights.mre import job as job_module
-from perf_insights.results import json_output_formatter
+from perf_insights.mre import json_output_formatter
 
 
 _CORPUS_QUERY_HELP = """

@@ -8,11 +8,11 @@ import os
 import shutil
 import tempfile
 
-from perf_insights import cloud_storage
-from perf_insights import map_runner
-from perf_insights import function_handle
+from perf_insights.mre import cloud_storage
+from perf_insights.mre import map_runner
+from perf_insights.mre import function_handle
 from perf_insights.mre import file_handle as file_handle_module
-from perf_insights.results import json_output_formatter
+from perf_insights.mre import json_output_formatter
 
 
 _DEFAULT_PARALLEL_DOWNLOADS = 16

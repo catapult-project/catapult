@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import os
 
-from perf_insights import corpus_driver
+from perf_insights.mre import corpus_driver
 from perf_insights.mre import file_handle
 
 

@@ -6,7 +6,7 @@ import os
 import urllib
 import urllib2
 
-from perf_insights import corpus_driver
+from perf_insights.mre import corpus_driver
 from perf_insights.mre import file_handle
 
 

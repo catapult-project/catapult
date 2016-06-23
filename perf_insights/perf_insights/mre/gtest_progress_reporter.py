@@ -4,7 +4,7 @@
 
 import time
 
-from perf_insights import progress_reporter
+from perf_insights.mre import progress_reporter
 
 
 class GTestRunReporter(progress_reporter.RunReporter):

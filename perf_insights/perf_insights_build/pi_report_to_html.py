@@ -7,11 +7,11 @@ import os
 import sys
 import json
 
-from perf_insights import corpus_driver_cmdline
-from perf_insights import corpus_query
-from perf_insights import function_handle
-from perf_insights import map_runner
-from perf_insights import progress_reporter as progress_reporter_module
+from perf_insights.mre import corpus_driver_cmdline
+from perf_insights.mre import corpus_query
+from perf_insights.mre import function_handle
+from perf_insights.mre import map_runner
+from perf_insights.mre import progress_reporter as progress_reporter_module
 from perf_insights.mre import job as job_module
 from py_vulcanize import generate
 import perf_insights_project

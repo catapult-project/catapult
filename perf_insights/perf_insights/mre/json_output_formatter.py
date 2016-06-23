@@ -3,7 +3,7 @@
 # found in the LICENSE file.
 import json
 
-from perf_insights.results import output_formatter
+from perf_insights.mre import output_formatter
 
 
 class JSONOutputFormatter(output_formatter.OutputFormatter):

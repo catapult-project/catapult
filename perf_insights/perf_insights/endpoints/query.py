@@ -6,7 +6,7 @@ import os
 import webapp2
 
 from perf_insights import cloud_config
-from perf_insights import corpus_query
+from perf_insights.mre import corpus_query
 from perf_insights import trace_info
 
 from google.appengine.api import app_identity

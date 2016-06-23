@@ -6,7 +6,7 @@ import contextlib
 import os
 import tempfile
 
-from perf_insights import cloud_storage
+from perf_insights.mre import cloud_storage
 
 
 class FilePreparationError(Exception):

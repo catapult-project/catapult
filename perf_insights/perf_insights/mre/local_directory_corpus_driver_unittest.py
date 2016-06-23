@@ -4,7 +4,7 @@
 import os
 import unittest
 
-from perf_insights import local_directory_corpus_driver
+from perf_insights.mre import local_directory_corpus_driver
 
 
 class LocalDirectoryCorpusDriverTests(unittest.TestCase):

@@ -15,7 +15,7 @@ from perf_insights.mre import failure
 from perf_insights.mre import mre_result
 
 _MAP_SINGLE_TRACE_CMDLINE_PATH = os.path.join(
-    perf_insights_project.PerfInsightsProject.perf_insights_src_path,
+    perf_insights_project.PerfInsightsProject.perf_insights_src_path, 'mre',
     'map_single_trace_cmdline.html')
 
 class TemporaryMapScript(object):

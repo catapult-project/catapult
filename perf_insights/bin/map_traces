@@ -10,5 +10,5 @@ if __name__ == '__main__':
   perf_insights_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                                     '..'))
   sys.path.append(perf_insights_path)
-  from perf_insights import map_traces
+  from perf_insights.mre import map_traces
   sys.exit(map_traces.Main(sys.argv))

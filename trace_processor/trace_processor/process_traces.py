@@ -7,9 +7,9 @@ import os
 import subprocess
 import sys
 
-from perf_insights import function_handle
-from perf_insights import map_runner
-from perf_insights import progress_reporter
+from perf_insights.mre import function_handle
+from perf_insights.mre import map_runner
+from perf_insights.mre import progress_reporter
 from perf_insights.mre import file_handle
 from perf_insights.mre import job as job_module
 from tracing.metrics import discover

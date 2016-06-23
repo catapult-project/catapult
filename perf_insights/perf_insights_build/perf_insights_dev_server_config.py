@@ -15,12 +15,12 @@ import perf_insights_project
 import webapp2
 from webapp2 import Route
 
-from perf_insights import cloud_storage
-from perf_insights import local_directory_corpus_driver
-from perf_insights import corpus_query
-from perf_insights import map_runner
+from perf_insights.mre import cloud_storage
+from perf_insights.mre import local_directory_corpus_driver
+from perf_insights.mre import corpus_query
+from perf_insights.mre import map_runner
 from perf_insights.mre import job as job_module
-from perf_insights.results import json_output_formatter
+from perf_insights.mre import json_output_formatter
 
 MAX_TRACES = 10000
 

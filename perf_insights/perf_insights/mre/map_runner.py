@@ -4,9 +4,9 @@
 import multiprocessing
 import sys
 
-from perf_insights import map_single_trace
+from perf_insights.mre import map_single_trace
 from perf_insights.mre import threaded_work_queue
-from perf_insights.results import gtest_progress_reporter
+from perf_insights.mre import gtest_progress_reporter
 
 AUTO_JOB_COUNT = -1
 

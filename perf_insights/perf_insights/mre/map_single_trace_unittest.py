@@ -4,8 +4,8 @@
 import json
 import unittest
 
-from perf_insights import function_handle
-from perf_insights import map_single_trace
+from perf_insights.mre import function_handle
+from perf_insights.mre import map_single_trace
 from perf_insights.mre import file_handle
 from perf_insights.mre import failure
 from perf_insights.mre import job as job_module

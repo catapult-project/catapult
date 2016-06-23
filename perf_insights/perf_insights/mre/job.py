@@ -5,7 +5,7 @@ import uuid
 
 # pylint: disable=unused-import
 import perf_insights_project
-from perf_insights import function_handle
+from perf_insights.mre import function_handle
 
 
 class Job(object):

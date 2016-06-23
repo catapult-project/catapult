@@ -5,7 +5,7 @@ import datetime
 import operator
 import unittest
 
-from perf_insights import corpus_query
+from perf_insights.mre import corpus_query
 
 
 class FilterTests(unittest.TestCase):
