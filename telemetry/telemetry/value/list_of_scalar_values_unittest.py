@@ -105,8 +105,8 @@ class ValueTest(TestBase):
     self.assertEquals(value.CONCATENATE, vM.same_page_merge_policy)
     self.assertEquals(True, vM.important)
     self.assertEquals([10, 9, 9, 7, 300, 302, 303, 304], vM.values)
-    # SQRT((19/12 * 3 + 35/12 * 3)/6) = 1.5
-    self.assertAlmostEqual(1.5, vM.std)
+    # Values from the same page use regular standard deviation.
+    self.assertAlmostEqual(156.88849, vM.std, places=4)
     self.assertEquals('list-based metric', vM.description)
     self.assertEquals(improvement_direction.DOWN, vM.improvement_direction)
 
@@ -137,11 +137,11 @@ class ValueTest(TestBase):
     page1 = self.pages[1]
     v0 = list_of_scalar_values.ListOfScalarValues(
         page0, 'x', 'unit',
-        [1, 2], same_page_merge_policy=value.CONCATENATE,
+        [10, 9, 9, 7], same_page_merge_policy=value.CONCATENATE,
         improvement_direction=improvement_direction.DOWN)
     v1 = list_of_scalar_values.ListOfScalarValues(
         page1, 'x', 'unit',
-        [3, 4], same_page_merge_policy=value.CONCATENATE,
+        [300, 302, 303, 304], same_page_merge_policy=value.CONCATENATE,
         improvement_direction=improvement_direction.DOWN)
     self.assertTrue(v1.IsMergableWith(v0))
 
@@ -152,7 +152,10 @@ class ValueTest(TestBase):
     self.assertEquals('unit', vM.units)
     self.assertEquals(value.CONCATENATE, vM.same_page_merge_policy)
     self.assertEquals(True, vM.important)
-    self.assertEquals([1, 2, 3, 4], vM.values)
+    self.assertEquals([10, 9, 9, 7, 300, 302, 303, 304], vM.values)
+    # Values from different pages use pooled standard deviation.
+    # SQRT((19/12 * 3 + 35/12 * 3)/6) = 1.5
+    self.assertAlmostEqual(1.5, vM.std)
     self.assertEquals(improvement_direction.DOWN, vM.improvement_direction)
 
   def testListWithNoneValueMerging(self):
@@ -215,8 +218,8 @@ class ValueTest(TestBase):
           MergeLikeValuesFromSamePage([v0, v1]))
     d = vM.AsDict()
     self.assertEquals(d['values'], [10, 9, 9, 7, 300, 302, 303, 304])
-    # SQRT((19/12 * 3 + 35/12 * 3)/6)
-    self.assertAlmostEqual(d['std'], 1.5)
+    # Values from the same page use regular standard deviation.
+    self.assertAlmostEqual(d['std'], 156.88849, places=4)
 
 
   def testNoneValueAsDict(self):

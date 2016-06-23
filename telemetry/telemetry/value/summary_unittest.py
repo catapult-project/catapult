@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import math
 import os
 import unittest
 
@@ -60,8 +61,9 @@ class SummaryTest(TestBase):
     v1_list = list_of_scalar_values.ListOfScalarValues(
         page1, 'a', 'seconds', [7],
         improvement_direction=improvement_direction.UP)
+    # Std is 0 because we only have one measurement per page.
     merged_value = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [3, 7],
+        None, 'a', 'seconds', [3, 7], std=0.0,
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))
@@ -143,12 +145,12 @@ class SummaryTest(TestBase):
     v4_list = list_of_scalar_values.ListOfScalarValues(
         page2, 'a', 'seconds', [7],
         improvement_direction=improvement_direction.UP)
-
+    # Std is 0 because we only have one measurement per page.
     a_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [3, 3, 7],
+        None, 'a', 'seconds', [3, 3, 7], std=0.0,
         improvement_direction=improvement_direction.UP)
     b_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'b', 'seconds', [10, 10],
+        None, 'b', 'seconds', [10, 10], std=0.0,
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(7, len(values))
@@ -278,8 +280,9 @@ class SummaryTest(TestBase):
     page1_aggregated = list_of_scalar_values.ListOfScalarValues(
         page1, 'a', 'seconds', [7, 8],
         improvement_direction=improvement_direction.UP)
+    # Std is computed using pooled standard deviation.
     a_summary = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [3, 4, 7, 8],
+        None, 'a', 'seconds', [3, 4, 7, 8], std=math.sqrt(0.5),
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))
@@ -415,8 +418,9 @@ class SummaryTest(TestBase):
     v2_list = list_of_scalar_values.ListOfScalarValues(
         page1, 'a', 'seconds', [20, 42],
         improvement_direction=improvement_direction.UP)
+    # Std is computed using pooled standard deviation.
     merged_value = list_of_scalar_values.ListOfScalarValues(
-        None, 'a', 'seconds', [20, 42, 20, 42],
+        None, 'a', 'seconds', [20, 42, 20, 42], std=math.sqrt(242.0),
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(3, len(values))

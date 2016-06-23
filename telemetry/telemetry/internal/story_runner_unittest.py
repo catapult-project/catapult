@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import math
 import os
 import StringIO
 import sys
@@ -603,7 +604,8 @@ class StoryRunnerTest(unittest.TestCase):
         green_story, 'metric', 'unit', [2, 4],
         improvement_direction=improvement_direction.UP)
     merged_value = list_of_scalar_values.ListOfScalarValues(
-        None, 'metric', 'unit', [1, 2, 3, 4],
+        None, 'metric', 'unit',
+        [1, 3, 2, 4], std=math.sqrt(2),  # Pooled standard deviation.
         improvement_direction=improvement_direction.UP)
 
     self.assertEquals(4, GetNumberOfSuccessfulPageRuns(results))

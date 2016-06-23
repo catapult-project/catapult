@@ -78,7 +78,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
           "metrics": {
             "a": {
               "current": [3, 7],
-              "std": 2.8284271247461903,
+              "std": 0.0,  # Only one sample per page.
               "units": "seconds",
               "important": True
             },
@@ -134,7 +134,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
               "a": {
                 "current": [3, 7],
                 "units": "seconds",
-                "std": 2.8284271247461903,
+                "std": 0.0,  # Only one sample per page.
                 "important": True
               },
               "telemetry_page_measurement_results.num_failed": {
@@ -167,7 +167,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
             "metrics": {
               "a": {
                 "current": [4, 8],
-                'std': 2.8284271247461903,
+                'std': 0.0,  # Only one sample per page.
                 "units": "seconds",
                 "important": True
               },
@@ -224,7 +224,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
           "metrics": {
             "a": {
               "current": [5, 9],
-              'std': 2.8284271247461903,
+              'std': 0.0,  # Only one sample per page.
               "units": "seconds",
               "important": True
             },

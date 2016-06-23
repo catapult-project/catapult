@@ -111,7 +111,7 @@ class Summary(object):
     merged_pages_value_by_key = {}
     if not self.had_failures:
       for value in merge_values.MergeLikeValuesFromDifferentPages(
-          all_successful_page_values, self._key_func):
+          merged_page_values, self._key_func):
         value_key = self._key_func(value)
         assert value_key not in merged_pages_value_by_key
         merged_pages_value_by_key[value_key] = value

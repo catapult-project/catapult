@@ -18,7 +18,7 @@ def Variance(sample):
   """
   k = len(sample) - 1  # Bessel correction
   if k <= 0:
-    return 0
+    return 0.0
   m = _Mean(sample)
   return sum((x - m)**2 for x in sample)/k
 
@@ -54,8 +54,9 @@ def PooledStandardDeviation(list_of_samples, list_of_variances=None):
     pooled_variance += k * variance
     total_degrees_of_freedom += k
   if total_degrees_of_freedom:
-    return (pooled_variance/total_degrees_of_freedom) ** 0.5
-  return 0
+    return (pooled_variance / total_degrees_of_freedom) ** 0.5
+  else:
+    return 0.0
 
 
 def _Mean(values):
@@ -213,7 +214,10 @@ class ListOfScalarValues(summarizable.SummarizableValue):
         break
       merged_values.extend(v.values)
       list_of_samples.append(v.values)
-    if merged_values:
+    if merged_values and page is None:
+      # Pooled standard deviation is only used when merging values comming from
+      # different pages. Otherwise, fall back to the default computation done
+      # in the cosntructor of ListOfScalarValues.
       pooled_std = PooledStandardDeviation(
           list_of_samples, list_of_variances=[v.variance for v in values])
     return ListOfScalarValues(
