@@ -283,7 +283,8 @@ def GetBusNumberToDeviceTreeMap(fast=True):
       # create the new device
       new_device = USBDeviceNode(bus_num=bus_num,
                                  device_num=device_num,
-                                 info=info_map[(bus_num, device_num)])
+                                 info=info_map.get((bus_num, device_num),
+                                                   {'desc': 'NOT AVAILABLE'}))
 
       # add device to bus
       if parent_num != 0:
