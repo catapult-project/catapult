@@ -196,7 +196,7 @@ class ReplayServer(object):
       ReplayNotStartedError: if Replay start-up fails.
     """
     is_posix = sys.platform.startswith('linux') or sys.platform == 'darwin'
-    logging.debug('Starting Web-Page-Replay: %s', self._cmd_line)
+    logging.info('Starting Web-Page-Replay: %s', self._cmd_line)
     self._CreateTempLogFilePath()
     with self._OpenLogFile() as log_fh:
       self.replay_process = subprocess.Popen(
