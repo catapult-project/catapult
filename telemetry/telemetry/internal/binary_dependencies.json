@@ -157,16 +157,6 @@
         }
       }
     },
-    "ippet": {
-      "cloud_storage_base_folder": "binary_dependencies",
-      "cloud_storage_bucket": "chromium-telemetry",
-      "file_info": {
-        "win_AMD64": {
-          "cloud_storage_hash": "3022bd478f6a29b7a0f8335b9d8747c00e61977b",
-          "download_path": "bin/win/AMD64/ippet.zip"
-        }
-      }
-    },
     "md5sum_bin": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",
