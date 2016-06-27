@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/value_set_table.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
+      20);
+
+  test('instantiate', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+    assert.isTrue(table.supportsValueSet(values));
+
+    var numeric0a = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric0a.add(Math.random() * 1000);
+    }
+    var fooA = new tr.v.NumericValue('foo', numeric0a, {
+      description: 'they should have sent a poet'
+    });
+    values.addValue(fooA);
+    fooA.diagnostics.add(
+        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
+          label: 'iteration A',
+          benchmarkStartMs: new Date().getTime(),
+    }));
+
+    var numeric1a = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric1a.add(Math.random() * 1000);
+    }
+    var barA = new tr.v.NumericValue('bar', numeric1a, {
+      description: 'indescribable'
+    });
+    values.addValue(barA);
+    barA.diagnostics.add(
+        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
+          label: 'iteration A',
+          benchmarkStartMs: new Date().getTime(),
+    }));
+
+    var numeric0b = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric0b.add(Math.random() * 1000);
+    }
+    var fooB = new tr.v.NumericValue('foo', numeric0b, {
+      description: 'they should have sent a poet'
+    });
+    values.addValue(fooB);
+    fooB.diagnostics.add(
+        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
+          label: 'iteration B',
+          benchmarkStartMs: new Date().getTime(),
+    }));
+
+    var numeric1b = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric1b.add(Math.random() * 1000);
+    }
+    var barB = new tr.v.NumericValue('bar', numeric1b, {
+      description: 'indescribable'
+    });
+    values.addValue(barB);
+    barB.diagnostics.add(
+        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
+          label: 'iteration B',
+          benchmarkStartMs: new Date().getTime(),
+    }));
+
+    table.values = values;
+    this.addHTMLOutput(table);
+    // XXX test multi-col
+    // XXX test selection
+    // XXX test sorting by name, valueA, valueB
+  });
+});
+</script>

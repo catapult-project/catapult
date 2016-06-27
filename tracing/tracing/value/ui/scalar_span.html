@@ -13,6 +13,11 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
+  /**
+   * @param {undefined|tr.v.NumericValue|tr.v.Numeric} value
+   * @param {Object=} opt_config
+   * @return {string|Element}
+   */
   function createScalarSpan(value, opt_config) {
     if (value === undefined)
       return '';
@@ -22,10 +27,18 @@ tr.exportTo('tr.v.ui', function() {
 
     var span = ownerDocument.createElement('tr-v-ui-scalar-span');
 
+    if (value instanceof tr.v.NumericValue) {
+      value = value.numeric;
+      config.unit = value.unit;
+    }
+
     var numericValue;
     if (value instanceof tr.v.ScalarNumeric) {
       span.value = value;
       numericValue = value.value;
+    } else if (value instanceof tr.v.Numeric) {
+      numericValue = value.average;
+      span.setValueAndUnit(numericValue, value.unit);
     } else {
       var unit = config.unit;
       if (unit === undefined) {

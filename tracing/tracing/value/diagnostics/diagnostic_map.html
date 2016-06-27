@@ -69,11 +69,11 @@ tr.exportTo('tr.v.d', function() {
     /**
      * Iterate over this map's key-value-pairs.
      *
-     * @param {function(string, tr.v.d.Diagnostic)} cb
+     * @param {function(string, tr.v.d.Diagnostic)} callback
      * @param {Object=} opt_this
      */
-    forEach: function(cb, opt_this) {
-      tr.b.iterItems(this.diagnosticsByName_, cb, opt_this || this);
+    forEach: function(callback, opt_this) {
+      tr.b.iterItems(this.diagnosticsByName_, callback, opt_this || this);
     },
 
     asDict: function() {

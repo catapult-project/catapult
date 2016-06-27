@@ -28,6 +28,9 @@ found in the LICENSE file.
     div#error {
       color: red;
     }
+    #histogram {
+      display: none;
+    }
     </style>
 
     <div id="error"></div>
@@ -63,109 +66,244 @@ tr.exportTo('tr.ui', function() {
     },
 
     ready: function() {
-      this.$.table.sortDescending = true;
-      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-      this.$.table.tableColumns = [
-        {
-          title: 'Name',
-          value: function(value) {
-            var nameEl = document.createElement('span');
-            nameEl.textContent = value.name;
-            if (value.description)
-              nameEl.title = value.description;
-            nameEl.style.textOverflow = 'ellipsis';
-            return nameEl;
-          },
-          cmp: function(a, b) {
-            return a.name.localeCompare(b.name);
-          },
-        },
-        {
-          title: 'Value',
-          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-          value: function(value) {
-            if (value.diagnostic instanceof tr.v.d.Diagnostic) {
-              return tr.v.ui.createDiagnosticSpan(value.diagnostic);
-            }
-
-            if (value.unit) {
-              return tr.v.ui.createScalarSpan(
-                  value.value, {unit: value.unit});
-            }
-            return value.value;
-          },
-          cmp: function(a, b) {
-            return a.value - b.value;
-          },
-        }
-      ];
-      this.$.table.sortColumnIndex = 1;
+      this.values_ = undefined;
+      this.summaryValues_ = {};
+      this.columns_ = undefined;
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
-          this.onRowSelected_.bind(this));
+          this.onSelectionChanged_.bind(this));
     },
 
-    onRowSelected_: function() {
+    onSelectionChanged_: function() {
       var row = this.$.table.selectedTableRow;
-      if (row && row.numeric) {
-        this.$.histogram.style.display = '';
-        this.$.histogram.histogram = row.numeric;
+      var col = this.$.table.selectedColumnIndex;
+      var cell = undefined;
+      if (row && col && this.columns_)
+        cell = row[this.columns_[col].title];
+
+      if ((cell instanceof tr.v.NumericValue) &&
+          (cell.numeric instanceof tr.v.Numeric)) {
+        this.$.histogram.style.display = 'block';
+        this.$.histogram.histogram = cell.numeric;
       } else {
         this.$.histogram.style.display = 'none';
       }
     },
 
-    /**
-     * @param {!tr.v.ValueSet} values
-     */
-    set values(values) {
-      this.style.width = '';
-      this.$.table.style.display = '';
-      this.$.error.textContent = '';
-
-      values.map(function(value) {
+    handleFailureValues_: function() {
+      this.values.map(function(value) {
         if (value instanceof tr.v.FailureValue) {
           this.$.error.textContent = value.description;
           this.$.table.style.display = 'none';
           this.style.width = '10em';
         }
       }, this);
-      if (this.$.error.textContent)
-        return;
+    },
 
-      this.$.table.tableRows = values.map(function(value) {
-        var row = {
-          name: value.name,
-          value: '',
-          unit: undefined,
-          description: value.description,
-          subRows: []
-        };
+    addDiagnosticSubRows_: function(value, row, column) {
+      value.diagnostics.forEach(function(name, diagnostic) {
+        if (name === tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME)
+          return;
 
-        if (value.numeric) {
-          row.unit = value.numeric.unit;
-          if (value.numeric.value !== undefined) {
-            row.value = value.numeric.value;
-          } else if (value.numeric.average !== undefined) {
-            row.numeric = value.numeric;
-            row.value = value.numeric.average;
+        // If a previous |value| had a diagnostic with the same name, then
+        // there is already a subRow that should contain this diagnostic.
+        for (var subRow of row.subRows) {
+          if (subRow.name === name) {
+            subRow[column] = diagnostic;
+            return;
           }
         }
 
-        value.diagnostics.forEach(function(name, diagnostic) {
-          row.subRows.push({
-            name: name,
-            diagnostic: diagnostic
-          });
-        });
-
-        return row;
+        // This is the first time that a diagnostic with this name has been
+        // seen for Values whose name is |value.name|, so create a new subRow.
+        var subRow = {name: name};
+        subRow[column] = diagnostic;
+        row.subRows.push(subRow);
       });
+    },
 
+    get values() {
+      return this.values_;
+    },
+
+    findSummaryValues_: function() {
+      this.summaryValues_ = {};
+      this.values.map(function(value) {
+        var summaryValueMap = value.diagnostics.get(
+            tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME);
+        if (!(summaryValueMap instanceof tr.v.d.RelatedValueMap))
+          return;
+
+        summaryValueMap.values.forEach(function(summaryValue) {
+          this.summaryValues_[summaryValue.guid] = summaryValue;
+        }, this);
+      }, this);
+    },
+
+    /**
+     * @param {!tr.v.ValueSet} values
+     */
+    set values(values) {
+      this.values_ = values;
+      this.style.width = '';
+      this.$.table.style.display = '';
+      this.$.error.textContent = '';
+
+      this.handleFailureValues_();
+      if (this.$.error.textContent)
+        return;
+
+      this.findSummaryValues_();
+
+      /* rows will look something like [
+           {name: 'long tasks',
+            displayLabelA: Value,
+            displayLabelB: Value,
+            subRows: [
+              {name: 'iteration',
+               displayLabelA: Diagnostic,
+               displayLabelB: Diagnostic,
+              }
+            ]
+           }
+         ]
+         TODO(benjhayden): After Values are summarized and merged, there will be
+         more row tiers: value name > benchmark name > story name > benchmark
+         start > storyset repeat > story repeat > diagnostics.
+       */
+      var rows = [];
+
+      // This will be used to sort the columns by start time.
+      var startTimesForDisplayLabels = {};
+
+      tr.b.iterItems(values.organizedByName, function(name, vals) {
+        var row = {name: name, subRows: []};
+        var isEmptyRow = true;
+
+        vals.forEach(function(val) {
+          if (this.summaryValues_[val.guid])
+            return;
+
+          if (!row.description && val.description)
+            row.description = val.description;
+
+          var displayLabel = 'Value';
+          var startMs = 0;
+          var iteration = val.diagnostics.get(
+              tr.v.ITERATION_INFO_DIAGNOSTIC_NAME);
+          if (iteration instanceof tr.v.d.IterationInfo) {
+            displayLabel = iteration.displayLabel;
+            startMs = iteration.benchmarkStart.getTime();
+          }
+
+          this.addDiagnosticSubRows_(val, row, displayLabel);
+
+          startTimesForDisplayLabels[displayLabel] = Math.min(
+              startTimesForDisplayLabels[displayLabel] || 0,
+              startMs);
+
+          if (row[displayLabel] !== undefined) {
+            console.warn('Multiple Values with same name and displayLabel:',
+                name, displayLabel, row[displayLabel], val,
+                'Sorry, only one will be displayed until summarization and ' +
+                'merging are implemented.');
+          }
+          row[displayLabel] = val;
+          isEmptyRow = false;
+        }, this);
+
+        if (isEmptyRow)
+          return;
+
+        rows.push(row);
+      }, this);
+
+      if (rows.length === 0) {
+        this.$.error.textContent = 'zero values';
+        this.$.table.style.display = 'none';
+        this.style.width = '10em';
+        return;
+      }
+
+      this.buildColumns_(startTimesForDisplayLabels);
+
+      this.$.table.tableColumns = this.columns_;
+      this.$.table.tableRows = rows;
+      this.$.table.sortColumnIndex = 0;
       this.$.table.rebuild();
-      this.onRowSelected_();
+      this.$.table.selectedTableRow = rows[0];
+      this.$.table.selectedColumnIndex = 1;
 
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
+      }, this);
+    },
+
+    buildColumns_: function(startTimesForDisplayLabels) {
+      var displayLabels = Object.keys(startTimesForDisplayLabels);
+      displayLabels.sort(function(a, b) {
+        return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];
+      });
+
+      this.columns_ = [
+        {
+          title: 'Name',
+          align: tr.ui.b.TableFormat.ColumnAlignment.LEFT,
+
+          value: function(row) {
+            var nameEl = document.createElement('span');
+            nameEl.textContent = row.name;
+            if (row.description)
+              nameEl.title = row.description;
+            nameEl.style.textOverflow = 'ellipsis';
+            return nameEl;
+          },
+
+          cmp: function(rowA, rowB) {
+            rowA = rowA ? rowA.name : '';
+            rowB = rowB ? rowB.name : '';
+            return rowA.localeCompare(rowB);
+          },
+        }
+      ];
+
+      displayLabels.forEach(function(displayLabel) {
+        this.columns_.push({
+          title: displayLabel,
+          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+          supportsCellSelection: true,
+
+          value: function(row) {
+            var cell = row[displayLabel];
+            if (cell instanceof tr.v.d.Diagnostic) {
+              return tr.v.ui.createDiagnosticSpan(cell);
+            } else if (cell instanceof tr.v.NumericValue) {
+              return tr.v.ui.createScalarSpan(cell);
+            } else if (cell === undefined) {
+              return '';
+            } else {
+              throw new Error('Invalid cell', cell);
+            }
+          },
+
+          cmp: function(rowA, rowB) {
+            var cellA = rowA[displayLabel];
+            var cellB = rowB[displayLabel];
+            if (!(cellA instanceof tr.v.NumericValue) ||
+                !(cellB instanceof tr.v.NumericValue))
+              return undefined;
+
+            var numericA = cellA.numeric;
+            var numericB = cellB.numeric;
+
+            var valueA = (numericA instanceof tr.v.ScalarNumeric) ?
+              numericA.value : numericA.average;
+            var valueB = (numericB instanceof tr.v.ScalarNumeric) ?
+              numericB.value : numericB.average;
+
+            return valueA - valueB;
+          }
+        });
       }, this);
     }
   });
