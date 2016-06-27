@@ -4,7 +4,8 @@
 
 import re
 
-from telemetry.timeline import tracing_category_filter
+from telemetry import decorators
+from telemetry.timeline import chrome_trace_category_filter
 
 
 RECORD_MODE_PARAM = 'record_mode'
@@ -60,7 +61,7 @@ class ChromeTraceConfig(object):
     record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
         record modes in chrome.
     enable_systrace: a boolean that specifies whether to enable systrace.
-    tracing_category_filter: Object that specifies which tracing
+    chrome_trace_category_filter: Object that specifies which tracing
         categories to trace.
     memory_dump_config: Stores the triggers for memory dumps.
 
@@ -69,32 +70,41 @@ class ChromeTraceConfig(object):
   def __init__(self):
     self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
     self._enable_systrace = False
-    self._tracing_category_filter = (
-        tracing_category_filter.TracingCategoryFilter())
+    self._category_filter = (
+        chrome_trace_category_filter.ChromeTraceCategoryFilter())
     self._memory_dump_config = None
+
+  def SetNoOverheadFilter(self):
+    self._category_filter = (
+        chrome_trace_category_filter.CreateNoOverheadFilter())
+
+  def SetMinimalOverheadFilter(self):
+    self._category_filter = (
+        chrome_trace_category_filter.CreateMinimalOverheadFilter())
+
+  def SetDebugOverheadFilter(self):
+    self._category_filter = (
+        chrome_trace_category_filter.CreateDebugOverheadFilter())
 
   @property
   def tracing_category_filter(self):
-    return self._tracing_category_filter
+    return self._category_filter
 
-  def SetNoOverheadFilter(self):
-    self._tracing_category_filter = (
-        tracing_category_filter.CreateNoOverheadFilter())
+  @property
+  def category_filter(self):
+    return self._category_filter
 
-  def SetMinimalOverheadFilter(self):
-    self._tracing_category_filter = (
-        tracing_category_filter.CreateMinimalOverheadFilter())
-
-  def SetDebugOverheadFilter(self):
-    self._tracing_category_filter = (
-        tracing_category_filter.CreateDebugOverheadFilter())
-
+  @decorators.Deprecated(2016, 6, 27, 'This function is deprecated. Please use '
+                         'SetCategoryFilter.')
   def SetTracingCategoryFilter(self, cf):
-    if isinstance(cf, tracing_category_filter.TracingCategoryFilter):
-      self._tracing_category_filter = cf
+    self.SetCategoryFilter(cf)
+
+  def SetCategoryFilter(self, cf):
+    if isinstance(cf, chrome_trace_category_filter.ChromeTraceCategoryFilter):
+      self._category_filter = cf
     else:
       raise TypeError(
-          'Must pass SetTracingCategoryFilter a TracingCategoryFilter instance')
+          'Must pass SetCategoryFilter a ChromeTraceCategoryFilter instance')
 
   def SetMemoryDumpConfig(self, dump_config):
     if isinstance(dump_config, MemoryDumpConfig):
@@ -131,7 +141,7 @@ class ChromeTraceConfig(object):
         RECORD_MODE_PARAM: RECORD_MODE_MAP[self._record_mode],
         ENABLE_SYSTRACE_PARAM: self._enable_systrace
     }
-    result.update(self._tracing_category_filter.GetDictForChromeTracing())
+    result.update(self._category_filter.GetDictForChromeTracing())
     if self._memory_dump_config:
       result.update(self._memory_dump_config.GetDictForChromeTracing())
     return result
@@ -178,7 +188,7 @@ class ChromeTraceConfig(object):
     options_parts = [RECORD_MODE_MAP[self._record_mode]]
     if self._enable_systrace:
       options_parts.append(ENABLE_SYSTRACE)
-    return (self._tracing_category_filter.stable_filter_string,
+    return (self._category_filter.stable_filter_string,
             ','.join(options_parts))
 
 

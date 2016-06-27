@@ -7,7 +7,7 @@ from telemetry.page import page as page_module
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 from telemetry.testing import page_test_test_case
-from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import chrome_trace_category_filter
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement as tbm_module
 from telemetry.web_perf.metrics import gpu_timeline
@@ -78,7 +78,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     ps.AddStory(TestTimelinebasedMeasurementPage(
         ps, ps.base_dir, trigger_animation=True))
 
-    cat_filter = tracing_category_filter.TracingCategoryFilter(
+    cat_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         'disabled-by-default-gpu.service')
     tbm_option = tbm_module.Options(overhead_level=cat_filter)
     tbm_option.SetLegacyTimelineBasedMetrics([gpu_timeline.GPUTimelineMetric()])
@@ -160,7 +160,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
 
-    cat_filter = tracing_category_filter.TracingCategoryFilter(
+    cat_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         filter_string='*,blink.console,navigation,blink.user_timing,loading,' +
         'devtools.timeline,disabled-by-default-blink.debug.layout')
 

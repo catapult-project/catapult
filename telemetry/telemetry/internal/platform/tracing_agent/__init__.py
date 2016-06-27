@@ -36,7 +36,7 @@ class TracingAgent(object):
         trace_options: an instance of tracing_options.TracingOptions that
           control which core tracing systems should be enabled.
         category_filter: an instance of
-          tracing_category_filter.TracingCategoryFilter
+          chrome_trace_category_filter.ChromeTraceCategoryFilter
       timeout: number of seconds that this tracing agent should try to start
         tracing until time out.
 

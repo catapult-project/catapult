@@ -4,7 +4,7 @@
 
 import unittest
 
-from telemetry.timeline import tracing_category_filter
+from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import chrome_trace_config
 
 
@@ -31,10 +31,10 @@ class ChromeTraceConfigTests(unittest.TestCase):
         config.GetChromeTraceCategoriesAndOptionsForDevTools())
 
   def testBasic(self):
-    category_filter = tracing_category_filter.TracingCategoryFilter(
+    category_filter = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         'x,-y,disabled-by-default-z,DELAY(7;foo)')
     config = chrome_trace_config.ChromeTraceConfig()
-    config.SetTracingCategoryFilter(category_filter)
+    config.SetCategoryFilter(category_filter)
     config.enable_systrace = True
     config.record_mode = chrome_trace_config.RECORD_UNTIL_FULL
 

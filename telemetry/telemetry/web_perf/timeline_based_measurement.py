@@ -7,8 +7,8 @@ from collections import defaultdict
 
 from tracing.metrics import metric_runner
 
+from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model as model_module
-from telemetry.timeline import tracing_category_filter
 from telemetry.timeline import tracing_config
 from telemetry.value import trace
 from telemetry.value import common_value_helpers
@@ -167,7 +167,7 @@ class Options(object):
     The user of the measurement chooses the overhead level that is appropriate,
     and the tracing is filtered accordingly.
 
-    overhead_level: Can either be a custom TracingCategoryFilter object or
+    overhead_level: Can either be a custom ChromeTraceCategoryFilter object or
         one of NO_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL or
         DEBUG_OVERHEAD_LEVEL.
     """
@@ -176,8 +176,8 @@ class Options(object):
     self._config.enable_platform_display_trace = False
 
     if isinstance(overhead_level,
-                  tracing_category_filter.TracingCategoryFilter):
-      self._config.chrome_trace_config.SetTracingCategoryFilter(overhead_level)
+                  chrome_trace_category_filter.ChromeTraceCategoryFilter):
+      self._config.chrome_trace_config.SetCategoryFilter(overhead_level)
     elif overhead_level in ALL_OVERHEAD_LEVELS:
       if overhead_level == NO_OVERHEAD_LEVEL:
         self._config.chrome_trace_config.SetNoOverheadFilter()
@@ -186,22 +186,22 @@ class Options(object):
       else:
         self._config.chrome_trace_config.SetDebugOverheadFilter()
     else:
-      raise Exception("Overhead level must be a TracingCategoryFilter object"
-                      " or valid overhead level string."
-                      " Given overhead level: %s" % overhead_level)
+      raise Exception("Overhead level must be a ChromeTraceCategoryFilter "
+                      "object or valid overhead level string. Given overhead "
+                      "level: %s" % overhead_level)
 
     self._timeline_based_metric = None
     self._legacy_timeline_based_metrics = []
 
 
   def ExtendTraceCategoryFilter(self, filters):
-    category_filter = self._config.chrome_trace_config.tracing_category_filter
+    category_filter = self._config.chrome_trace_config.category_filter
     for new_category_filter in filters:
       category_filter.AddIncludedCategory(new_category_filter)
 
   @property
   def category_filter(self):
-    return self._config.chrome_trace_config.tracing_category_filter
+    return self._config.chrome_trace_config.category_filter
 
   @property
   def config(self):
