@@ -2,7 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry import decorators
 from telemetry.timeline import atrace_config
 from telemetry.timeline import chrome_trace_config
 
@@ -95,17 +94,3 @@ class TracingConfig(object):
   @property
   def chrome_trace_config(self):
     return self._chrome_trace_config
-
-
-@decorators.Deprecated(2016, 6, 24, 'This class is deprecated. Please use '
-                       'atrace_config.AtraceConfig.')
-class AtraceConfig(atrace_config.AtraceConfig):
-  def __init__(self):
-    super(AtraceConfig, self).__init__()
-
-
-@decorators.Deprecated(2016, 6, 24, 'This class is deprecated. Please use '
-                       'chrome_trace_config.MemoryDumpConfig.')
-class MemoryDumpConfig(chrome_trace_config.MemoryDumpConfig):
-  def __init__(self):
-    super(MemoryDumpConfig, self).__init__()
