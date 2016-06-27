@@ -470,6 +470,7 @@
       'tracing/value/ui/generic_diagnostic_span.html',
       'tracing/value/ui/generic_table_view.html',
       'tracing/value/ui/histogram_span.html',
+      'tracing/value/ui/iteration_info_span.html',
       'tracing/value/ui/preferred_display_unit.html',
       'tracing/value/ui/related_event_set_span.html',
       'tracing/value/ui/related_value_map_span.html',

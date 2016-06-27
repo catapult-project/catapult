@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/table.html">
+
+<polymer-element name="tr-v-ui-iteration-info-span">
+  <template>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.diagnostic_ = undefined;
+      this.$.table.showHeader = false;
+      this.$.table.tableColumns = [
+        {
+          value: function(row) {
+            return row[0];
+          },
+        },
+        {
+          value: function(row) {
+            return row[1];
+          }
+        }
+      ];
+    },
+
+    get diagnostic() {
+      return this.diagnostic_;
+    },
+
+    set diagnostic(d) {
+      this.diagnostic_ = d;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      if (this.diagnostic === undefined) {
+        this.$.table.tableRows = [];
+        return;
+      }
+
+      var rows = [
+        ['benchmark name', this.diagnostic.benchmarkName],
+        ['benchmark start', this.diagnostic.benchmarkStart],
+        ['url', this.diagnostic.storyUrl],
+        ['story', this.diagnostic.storyDisplayName],
+        ['storyset repeat', this.diagnostic.storysetRepeatCounter],
+        ['story repeat', this.diagnostic.storyRepeatCounter],
+      ];
+
+      if (this.diagnostic.label)
+        rows.push(['label', this.diagnostic.label]);
+
+      if (Object.keys(this.diagnostic.storyGroupingKeys).length > 0) {
+        var gov = document.createElement('tr-ui-a-generic-object-view');
+        gov.object = this.diagnostic.storyGroupingKeys;
+        rows.push(['grouping keys', gov]);
+      }
+
+      rows.sort((x, y) => x[0].localeCompare(y[0]));
+      this.$.table.tableRows = rows;
+    }
+  });
+  </script>
+</polymer-element>
