@@ -363,7 +363,7 @@ class StoryRunnerTest(unittest.TestCase):
     calls_in_order = GetCallsInOrder() # pylint: disable=no-value-for-parameter
     self.assertEquals(EXPECTED_CALLS_IN_ORDER, calls_in_order)
 
-  def testTearDownStateAfterEachStoryRun(self):
+  def testTearDownStateAfterEachStoryOrStorySetRun(self):
     class TestSharedStateForTearDown(TestSharedState):
       num_of_tear_downs = 0
 
@@ -384,8 +384,14 @@ class StoryRunnerTest(unittest.TestCase):
 
     TestSharedStateForTearDown.num_of_tear_downs = 0
     story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
-                     should_tear_down_state_after_each_story_run=True)
+                     tear_down_after_story=True)
     self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 3)
+
+    self.options.pageset_repeat = 5
+    TestSharedStateForTearDown.num_of_tear_downs = 0
+    story_runner.Run(mock.MagicMock(), story_set, self.options, self.results,
+                     tear_down_after_story_set=True)
+    self.assertEquals(TestSharedStateForTearDown.num_of_tear_downs, 5)
 
   def testTearDownIsCalledOnceForEachStoryGroupWithPageSetRepeat(self):
     self.options.pageset_repeat = 3

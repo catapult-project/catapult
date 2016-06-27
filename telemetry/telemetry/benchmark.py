@@ -100,7 +100,7 @@ class Benchmark(command_line.Command):
 
   @classmethod
   def ShouldTearDownStateAfterEachStoryRun(cls):
-    """Override this method to tear down state after each story run.
+    """Override to specify whether to tear down state after each story run.
 
     Tearing down all states after each story run, e.g., clearing profiles,
     stopping the browser, stopping local server, etc. So the browser will not be
@@ -110,6 +110,25 @@ class Benchmark(command_line.Command):
     This should only be used by TimelineBasedMeasurement (TBM) benchmarks, but
     not by PageTest based benchmarks.
     """
+    return False
+
+  @classmethod
+  def ShouldTearDownStateAfterEachStorySetRun(cls):
+    """Override to specify whether to tear down state after each story set run.
+
+    Defaults to True in order to reset the state and make individual story set
+    repeats more independent of each other. The intended effect is to average
+    out noise in measurements between repeats.
+
+    Long running benchmarks willing to stess test the browser and have it run
+    for long periods of time may switch this value to False.
+
+    This should only be used by TimelineBasedMeasurement (TBM) benchmarks, but
+    not by PageTest based benchmarks.
+    """
+    # TODO(perezju): Switch default value after any benchmarks requiring the
+    # old behaviour are updated accordingly.
+    # https://github.com/catapult-project/catapult/issues/2294#issuecomment-228306977
     return False
 
   @classmethod
