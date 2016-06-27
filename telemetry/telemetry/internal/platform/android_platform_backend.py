@@ -515,7 +515,8 @@ class AndroidPlatformBackend(
       logging.warning('Test certificate authority is already installed.')
       return
     self._device_cert_util = adb_install_cert.AndroidCertInstaller(
-        self._device.adb.GetDeviceSerial(), None, ca_cert_path)
+        self._device.adb.GetDeviceSerial(), None, ca_cert_path,
+        adb_path=self._device.adb.GetAdbPath())
     self._device_cert_util.install_cert(overwrite_cert=True)
 
   def RemoveTestCa(self):

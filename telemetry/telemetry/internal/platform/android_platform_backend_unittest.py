@@ -41,7 +41,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
     self.battery_patcher.stop()
     self.device_patcher.stop()
 
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsSvelte(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='svelte'):
@@ -49,7 +49,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
           android_device.AndroidDevice('12345'))
       self.assertTrue(backend.IsSvelte())
 
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsNotSvelte(self):
     with mock.patch('devil.android.device_utils.DeviceUtils.GetProp',
                     return_value='foo'):
@@ -57,7 +57,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
           android_device.AndroidDevice('12345'))
       self.assertFalse(backend.IsSvelte())
 
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testGetCpuStats(self):
     proc_stat_content = (
         '7702 (.android.chrome) S 167 167 0 0 -1 1077936448 '
@@ -72,7 +72,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals(cpu_stats, {'CpuProcessTime': 0.05})
 
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testGetCpuStatsInvalidPID(self):
     # Mock an empty /proc/pid/stat.
     with mock.patch('devil.android.device_utils.DeviceUtils.ReadFile',
@@ -82,6 +82,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       cpu_stats = backend.GetCpuStats('7702')
       self.assertEquals(cpu_stats, {})
 
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testAndroidParseCpuStates(self):
     cstate = {
       'cpu0': 'C0\nC1\n103203424\n5342040\n300\n500\n1403232500',
@@ -105,6 +106,7 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       for state in result[cpu]:
         self.assertAlmostEqual(result[cpu][state], expected_cstate[cpu][state])
 
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testInstallTestCaSuccess(self):
     backend = android_platform_backend.AndroidPlatformBackend(
         android_device.AndroidDevice('success'))
@@ -115,12 +117,14 @@ class AndroidPlatformBackendTest(unittest.TestCase):
       backend.RemoveTestCa()
       self.assertIsNone(backend._device_cert_util)
 
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsScreenLockedTrue(self):
     test_input = ['a=b', 'mHasBeenInactive=true']
     backend = android_platform_backend.AndroidPlatformBackend(
         android_device.AndroidDevice('success'))
     self.assertTrue(backend._IsScreenLocked(test_input))
 
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testIsScreenLockedFalse(self):
     test_input = ['a=b', 'mHasBeenInactive=false']
     backend = android_platform_backend.AndroidPlatformBackend(
@@ -183,7 +187,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
     self.battery_patcher.stop()
     self.device_patcher.stop()
 
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testPsutil1(self):
     psutil = self.psutil_1_0()
     android_platform_backend.psutil = psutil
@@ -197,7 +201,7 @@ class AndroidPlatformBackendPsutilTest(unittest.TestCase):
       self.assertEquals({}, cpu_stats)
       self.assertEquals([[0]], psutil.set_cpu_affinity_args)
 
-  @decorators.Disabled('chromeos')
+  @decorators.Disabled('chromeos', 'mac', 'win')
   def testPsutil2(self):
     psutil = self.psutil_2_0()
     android_platform_backend.psutil = psutil
