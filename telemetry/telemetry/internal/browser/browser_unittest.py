@@ -154,7 +154,7 @@ class DirtyProfileBrowserTest(browser_test_case.BrowserTestCase):
 class BrowserLoggingTest(browser_test_case.BrowserTestCase):
   @classmethod
   def CustomizeBrowserOptions(cls, options):
-    options.enable_logging = True
+    options.logging_verbosity = options.VERBOSE_LOGGING
 
   @decorators.Disabled('chromeos', 'android')
   def testLogFileExist(self):

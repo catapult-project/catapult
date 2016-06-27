@@ -116,9 +116,13 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     if self.browser_options.disable_default_apps:
       args.append('--disable-default-apps')
 
-    if self.browser_options.enable_logging:
-      args.append('--enable-logging')
-      args.append('--v=1')
+    if (self.browser_options.logging_verbosity ==
+        self.browser_options.NON_VERBOSE_LOGGING):
+      args.extend(['--enable-logging', '--v=0'])
+    elif (self.browser_options.logging_verbosity ==
+          self.browser_options.VERBOSE_LOGGING):
+      args.extend(['--enable-logging', '--v=1'])
+
     return args
 
   def GetReplayBrowserStartupArgs(self):

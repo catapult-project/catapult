@@ -230,6 +230,15 @@ class BrowserFinderOptions(optparse.Values):
 
 class BrowserOptions(object):
   """Options to be used for launching a browser."""
+
+  # Levels of browser logging.
+  NO_LOGGING = 'none'
+  NON_VERBOSE_LOGGING = 'non-verbose'
+  VERBOSE_LOGGING = 'verbose'
+
+  _LOGGING_LEVELS = (NO_LOGGING, NON_VERBOSE_LOGGING, VERBOSE_LOGGING)
+  _DEFAULT_LOGGING_LEVEL = NO_LOGGING
+
   def __init__(self):
     self.browser_type = None
     self.show_stdout = False
@@ -266,7 +275,8 @@ class BrowserOptions(object):
     # Disable default apps.
     self.disable_default_apps = True
 
-    self.enable_logging = False
+    self.logging_verbosity = self._DEFAULT_LOGGING_LEVEL
+
     # The cloud storage bucket & path for uploading logs data produced by the
     # browser to.
     # If logs_cloud_remote_path is None, a random remote path is generated every
@@ -324,12 +334,20 @@ class BrowserOptions(object):
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')
+
+    group.add_option('--browser-logging-verbosity',
+        dest='logging_verbosity',
+        type='choice',
+        choices=cls._LOGGING_LEVELS,
+        help=('Browser logging verbosity. The log file is saved in temp '
+              "directory. Note that logging affects the browser's "
+              'performance. Supported values: %s. Defaults to %s.' % (
+                  ', '.join(cls._LOGGING_LEVELS), cls._DEFAULT_LOGGING_LEVEL)))
     group.add_option('--enable-browser-logging',
         dest='enable_logging',
         action='store_true',
-        help=('Enable browser logging. The log file is saved in temp directory.'
-              "Note that enabling this flag affects the browser's "
-              'performance'))
+        help=('This flag is deprecated. Please use --browser-logging-verbosity '
+              'instead.'))
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')
@@ -342,7 +360,6 @@ class BrowserOptions(object):
     browser_options_list = [
         'extra_browser_args_as_string',
         'extra_wpr_args_as_string',
-        'enable_logging',
         'profile_dir',
         'profile_type',
         'show_stdout',
@@ -385,9 +402,42 @@ class BrowserOptions(object):
     if not self.profile_dir:
       self.profile_dir = profile_types.GetProfileDir(self.profile_type)
 
+    if getattr(finder_options, 'enable_logging'):
+      if getattr(finder_options, 'logging_verbosity'):
+        # Both --enable-browser-logging and --browser-logging-verbosity were
+        # provided (fail).
+        logging.critical("It's illegal to provide both --enable-browser-logging"
+                         ' and --browser-logging-verbosity.')
+        sys.exit(1)
+      # Only --enable-browser-logging was provided.
+      self.logging_verbosity = self.VERBOSE_LOGGING
+      delattr(finder_options, 'enable_logging')
+    elif getattr(finder_options, 'logging_verbosity'):
+      # Only --browser-logging-verbosity was provided (verbose logging).
+      self.logging_verbosity = finder_options.logging_verbosity
+      delattr(finder_options, 'logging_verbosity')
+
     # This deferred import is necessary because browser_options is imported in
     # telemetry/telemetry/__init__.py.
     finder_options.browser_options = CreateChromeBrowserOptions(self)
+
+  # Deprecated: Please use |logging_verbosity| instead.
+  @property
+  def enable_logging(self):
+    logging.warning('enable_logging is deprecated. Please use '
+                    'logging_verbosity instead.')
+    return self.logging_verbosity in [self.NON_VERBOSE_LOGGING,
+                                      self.VERBOSE_LOGGING]
+
+  # Deprecated: Please use |logging_verbosity| instead.
+  @enable_logging.setter
+  def enable_logging(self, value):
+    logging.warning('enable_logging is deprecated. Please use '
+                    'logging_verbosity instead.')
+    if value:
+      self.logging_verbosity = self.NON_VERBOSE_LOGGING
+    else:
+      self.logging_verbosity = self.NO_LOGGING
 
   @property
   def finder_options(self):

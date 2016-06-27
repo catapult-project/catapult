@@ -30,7 +30,8 @@ class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
           return temp_file_name
 
       options = options_for_unittests.GetCopy()
-      options.browser_options.enable_logging = True
+      options.browser_options.logging_verbosity = (
+          options.browser_options.VERBOSE_LOGGING)
       options.browser_options.logs_cloud_bucket = 'ABC'
       options.browser_options.logs_cloud_remote_path = 'def'
 

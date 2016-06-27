@@ -133,12 +133,18 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._browser_directory = browser_directory
     self._port = None
     self._tmp_minidump_dir = tempfile.mkdtemp()
-    if self.browser_options.enable_logging:
+    if self.is_logging_enabled:
       self._log_file_path = os.path.join(tempfile.mkdtemp(), 'chrome.log')
     else:
       self._log_file_path = None
 
     self._SetupProfile()
+
+  @property
+  def is_logging_enabled(self):
+    return self.browser_options.logging_verbosity in [
+        self.browser_options.NON_VERBOSE_LOGGING,
+        self.browser_options.VERBOSE_LOGGING]
 
   @property
   def log_file_path(self):
@@ -268,7 +274,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     env = os.environ.copy()
     env['CHROME_HEADLESS'] = '1'  # Don't upload minidumps.
     env['BREAKPAD_DUMP_LOCATION'] = self._tmp_minidump_dir
-    if self.browser_options.enable_logging:
+    if self.is_logging_enabled:
       sys.stderr.write(
         'Chrome log file will be saved in %s\n' % self.log_file_path)
       env['CHROME_LOG_FILE'] = self.log_file_path
