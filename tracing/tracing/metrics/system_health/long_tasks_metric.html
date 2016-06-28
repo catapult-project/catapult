@@ -83,8 +83,7 @@ tr.exportTo('tr.metrics.sh', function() {
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
-            longTaskNumeric.add(task.duration,
-                new tr.v.d.RelatedEventSet([task]));
+            longTaskNumeric.add(task.duration, task.stableId);
           });
     });
     var options = {description: 'durations of long tasks'};

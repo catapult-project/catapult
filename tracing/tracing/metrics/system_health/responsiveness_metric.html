@@ -89,7 +89,7 @@ tr.exportTo('tr.metrics.sh', function() {
             ue.start, ue.end))
         return;
 
-      var sampleDiagnostic = new tr.v.d.RelatedEventSet([ue]);
+      var sourceInfo = {userExpectationId: ue.stableId};
 
       // Responsiveness is not defined for Idle.
       if (ue instanceof tr.model.um.IdleExpectation) {
@@ -97,27 +97,27 @@ tr.exportTo('tr.metrics.sh', function() {
       } else if (ue instanceof tr.model.um.LoadExpectation) {
         // This is already covered by firstPaintMetric.
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
-        responseNumeric.add(ue.duration, sampleDiagnostic);
+        responseNumeric.add(ue.duration, sourceInfo);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
         var throughput = computeAnimationThroughput(ue);
         if (throughput === undefined)
           throw new Error('Missing throughput for ' +
                           ue.stableId);
 
-        throughputNumeric.add(throughput, sampleDiagnostic);
+        throughputNumeric.add(throughput, sourceInfo);
 
         var frameTimeDiscrepancy = computeAnimationframeTimeDiscrepancy(ue);
         if (frameTimeDiscrepancy === undefined)
           throw new Error('Missing frameTimeDiscrepancy for ' +
                           ue.stableId);
 
-        frameTimeDiscrepancyNumeric.add(frameTimeDiscrepancy, sampleDiagnostic);
+        frameTimeDiscrepancyNumeric.add(frameTimeDiscrepancy, sourceInfo);
 
         ue.associatedEvents.forEach(function(event) {
           if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice))
             return;
 
-          latencyNumeric.add(event.duration, sampleDiagnostic);
+          latencyNumeric.add(event.duration, sourceInfo);
         });
       } else {
         throw new Error('Unrecognized stage for ' + ue.stableId);

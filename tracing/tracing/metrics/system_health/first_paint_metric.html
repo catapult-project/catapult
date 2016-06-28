@@ -284,7 +284,7 @@ tr.exportTo('tr.metrics.sh', function() {
           return;
 
         var timeToEvent = ev.start - navigationStartEvent.start;
-        histogram.add(timeToEvent, new tr.v.d.Generic({url: url}));
+        histogram.add(timeToEvent, {url: url});
       }, this);
       values.addValue(new tr.v.NumericValue(
           metric.valueName, histogram,
@@ -362,8 +362,7 @@ tr.exportTo('tr.metrics.sh', function() {
         return;
       }
       var timeToFirstMeaningfulPaint = paintEvent.start - navigationStart.start;
-      firstMeaningfulPaintHistogram.add(timeToFirstMeaningfulPaint,
-          new tr.v.d.Generic({url: url}));
+      firstMeaningfulPaintHistogram.add(timeToFirstMeaningfulPaint, {url: url});
     }
 
     var layoutsForFrameId = findAllLayoutEvents(rendererHelper);
