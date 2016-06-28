@@ -441,8 +441,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if not cdb:
         logging.warning('cdb.exe not found.')
         return None
-      output = subprocess.check_output([cdb, '-y', self._browser_directory,
-                                        '-c', '.ecxr;k30;q', '-z', minidump])
+      output = subprocess.check_output(
+          [cdb, '-y', self._browser_directory,
+           '-c', '.ecxr;!uniqstack;q', '-z', minidump])
       # cdb output can start the stack with "ChildEBP", "Child-SP", and possibly
       # other things we haven't seen yet. If we can't find the start of the
       # stack, include output from the beginning.
