@@ -122,6 +122,11 @@ class WprArchiveInfoTest(unittest.TestCase):
       archive_file_contents = json.load(f)
       self.assertEquals(expected_archive_file_contents, archive_file_contents)
 
+    # Nit: Ensure the saved json does not contian trailing spaces.
+    with open(self.story_set_archive_info_file, 'rU') as f:
+      for line in f:
+        self.assertFalse(line.rstrip('\n').endswith(' '))
+
   def testModifications(self):
     recording1_path = os.path.join(self.tmp_dir, recording1)
     recording2_path = os.path.join(self.tmp_dir, recording2)

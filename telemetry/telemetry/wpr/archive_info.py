@@ -181,7 +181,7 @@ class WprArchiveInfo(object):
       del metadata['archives'][wpr_file]
 
     with open(self._file_path, 'w') as f:
-      json.dump(metadata, f, indent=4)
+      json.dump(metadata, f, indent=4, sort_keys=True, separators=(',', ': '))
       f.flush()
 
   def _WprFileNameToPath(self, wpr_file):
