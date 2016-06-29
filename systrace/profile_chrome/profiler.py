@@ -46,10 +46,6 @@ def GetSupportedBrowsers():
     'build': chrome.PACKAGE_INFO['chrome'],
   }
   supported_browsers.update(chrome.PACKAGE_INFO)
-  unsupported_browsers = ['content_browsertests', 'gtest', 'legacy_browser']
-  for browser in unsupported_browsers:
-    if browser in supported_browsers:
-      del supported_browsers[browser]
   return supported_browsers
 
 
