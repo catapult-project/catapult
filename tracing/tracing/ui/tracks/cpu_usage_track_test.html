@@ -120,6 +120,18 @@ tr.b.unittest.testSuite(function() {
     assertArrayValuesCloseTo(actualValue, expectedValue);
   });
 
+  test('computeCpuUsage_tooManyIntervals', function() {
+    var sliceA = new tr.model.ThreadSlice('', title, 0, 5, {}, 50);
+    sliceA.cpuDuration = 25;
+    var sliceB = new tr.model.ThreadSlice(
+        '', title, 0, 50000010, {}, 50000030);
+    sliceB.cpuDuration = 15;
+
+    var model = buildModel([[sliceA, sliceB]]);
+
+    assert.throws(() => createCpuUsageTrack.call(this, model, 5));
+  });
+
   test('computeCpuUsage_floatAndComplexIntervals', function() {
     // First thread.
     // 0    5    10   15   20   25   30   35   40   45   50   55
