@@ -33,7 +33,7 @@ tr.exportTo('tr.ui', function() {
 
       tr.b.Settings.set(
           SELECTED_TAB_SETTINGS_KEY,
-          this.$.container.selectedTab.tagName);
+          this.$.container.selectedTab.tagName.toLowerCase());
     },
 
     /**
@@ -52,8 +52,7 @@ tr.exportTo('tr.ui', function() {
 
         view.values = values;
 
-        if ((elementName === initialTabElementName) ||
-            (index === 0))
+        if (elementName.toLowerCase() === initialTabElementName)
           view.setAttribute('selected', true);
 
         view.setAttribute('tab-label', view.tabLabel);
@@ -61,8 +60,11 @@ tr.exportTo('tr.ui', function() {
         this.$.container.appendChild(view);
       }, this);
 
-      if (this.$.container.children.length === 1)
+      if (this.$.container.children.length === 1) {
         this.$.container.tabsHidden = true;
+      } else if (this.$.container.selectedTab === undefined) {
+        this.$.container.children[0].setAttribute('selected', true);
+      }
     }
   });
 
