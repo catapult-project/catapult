@@ -121,7 +121,7 @@ class TabTest(tab_test_case.TabTestCase):
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetNoOverheadFilter()
+    config.chrome_trace_config.SetLowOverheadFilter()
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
     self._tab.Highlight(rgba_color.WEB_PAGE_TEST_ORANGE)
@@ -152,7 +152,7 @@ class TabTest(tab_test_case.TabTestCase):
     third_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
     third_tab.Close()
     config = tracing_config.TracingConfig()
-    config.chrome_trace_config.SetNoOverheadFilter()
+    config.chrome_trace_config.SetLowOverheadFilter()
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
     first_tab.ExecuteJavaScript('console.time("first-tab-marker");')

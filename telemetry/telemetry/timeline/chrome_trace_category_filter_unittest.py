@@ -7,8 +7,8 @@ import unittest
 from telemetry.timeline import chrome_trace_category_filter
 
 
-class ChromeTraceCategoryFilterTests(unittest.TestCase):
-  def CheckCategoryFilters(self, cf):
+class ChromeTraceCategoryFilterTest(unittest.TestCase):
+  def CheckBasicCategoryFilters(self, cf):
     self.assertEquals(set(['x']), set(cf.included_categories))
     self.assertEquals(set(['y']), set(cf.excluded_categories))
     self.assertEquals(set(['disabled-by-default-z']),
@@ -23,15 +23,26 @@ class ChromeTraceCategoryFilterTests(unittest.TestCase):
   def testBasic(self):
     cf = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         'x,-y,disabled-by-default-z,DELAY(7;foo)')
-    self.CheckCategoryFilters(cf)
+    self.CheckBasicCategoryFilters(cf)
 
   def testBasicWithSpace(self):
     cf = chrome_trace_category_filter.ChromeTraceCategoryFilter(
         ' x ,\n-y\t,disabled-by-default-z ,DELAY(7;foo)')
-    self.CheckCategoryFilters(cf)
+    self.CheckBasicCategoryFilters(cf)
 
+  def testNoneAndEmptyCategory(self):
+    a = chrome_trace_category_filter.ChromeTraceCategoryFilter()
+    self.assertEquals(a.stable_filter_string, '')
+    self.assertEquals(a.filter_string, '')
+    self.assertEquals(str(a.GetDictForChromeTracing()), '{}')
 
-class CategoryFilterTest(unittest.TestCase):
+    # Initializing chrome trace category filter with empty string is the same
+    # as initialization with None.
+    b = chrome_trace_category_filter.ChromeTraceCategoryFilter(filter_string='')
+    self.assertEquals(b.stable_filter_string, '')
+    self.assertEquals(b.filter_string, '')
+    self.assertEquals(str(b.GetDictForChromeTracing()), '{}')
+
   def testAddIncludedCategory(self):
     a = chrome_trace_category_filter.ChromeTraceCategoryFilter()
     a.AddIncludedCategory('foo')

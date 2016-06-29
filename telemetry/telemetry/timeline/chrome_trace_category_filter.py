@@ -4,8 +4,15 @@
 
 import re
 
+from telemetry import decorators
 
+
+@decorators.Deprecated(2016, 6, 27, 'Please use CreateLowOverheadFilter.')
 def CreateNoOverheadFilter():
+  return CreateLowOverheadFilter()
+
+
+def CreateLowOverheadFilter():
   """Returns a filter with the least overhead possible.
 
   This contains no sub-traces of thread tasks, so it's only useful for
@@ -25,7 +32,12 @@ def CreateNoOverheadFilter():
   return ChromeTraceCategoryFilter(filter_string=','.join(categories))
 
 
+@decorators.Deprecated(2016, 6, 27, 'Please use CreateDefaultOverheadFilter.')
 def CreateMinimalOverheadFilter():
+  return CreateDefaultOverheadFilter()
+
+
+def CreateDefaultOverheadFilter():
   """Returns a filter with the best-effort amount of overhead."""
   return ChromeTraceCategoryFilter(filter_string='')
 

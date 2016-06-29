@@ -70,13 +70,21 @@ class ChromeTraceConfig(object):
         chrome_trace_category_filter.ChromeTraceCategoryFilter())
     self._memory_dump_config = None
 
+  @decorators.Deprecated(2016, 6, 27, 'Please use SetLowOverheadFilter.')
   def SetNoOverheadFilter(self):
-    self._category_filter = (
-        chrome_trace_category_filter.CreateNoOverheadFilter())
+    self.SetLowOverheadFilter()
 
-  def SetMinimalOverheadFilter(self):
+  def SetLowOverheadFilter(self):
     self._category_filter = (
-        chrome_trace_category_filter.CreateMinimalOverheadFilter())
+        chrome_trace_category_filter.CreateLowOverheadFilter())
+
+  @decorators.Deprecated(2016, 6, 27, 'Please use SetDefaultOverheadFilter.')
+  def SetMinimalOverheadFilter(self):
+    self.SetDefaultOverheadFilter()
+
+  def SetDefaultOverheadFilter(self):
+    self._category_filter = (
+        chrome_trace_category_filter.CreateDefaultOverheadFilter())
 
   def SetDebugOverheadFilter(self):
     self._category_filter = (

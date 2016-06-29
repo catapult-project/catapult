@@ -30,14 +30,21 @@ from telemetry.web_perf import timeline_interaction_record as tir_module
 # timeline. But, depending on the amount of instrumentation that is enabled,
 # overhead increases. The user of the measurement must therefore chose between
 # a few levels of instrumentation.
+LOW_OVERHEAD_LEVEL = 'low-overhead'
+DEFAULT_OVERHEAD_LEVEL = 'default-overhead'
+DEBUG_OVERHEAD_LEVEL = 'debug-overhead'
+# TODO(zhenw): The following two are deprecated. Remove them after chrome side
+# is updated.
 NO_OVERHEAD_LEVEL = 'no-overhead'
 MINIMAL_OVERHEAD_LEVEL = 'minimal-overhead'
-DEBUG_OVERHEAD_LEVEL = 'debug-overhead'
 
 ALL_OVERHEAD_LEVELS = [
+  LOW_OVERHEAD_LEVEL,
+  DEFAULT_OVERHEAD_LEVEL,
+  DEBUG_OVERHEAD_LEVEL,
+  # The following two are deprecated.
   NO_OVERHEAD_LEVEL,
-  MINIMAL_OVERHEAD_LEVEL,
-  DEBUG_OVERHEAD_LEVEL
+  MINIMAL_OVERHEAD_LEVEL
 ]
 
 
@@ -162,13 +169,13 @@ class Options(object):
   To customize your metric needs, use SetTimelineBasedMetric().
   """
 
-  def __init__(self, overhead_level=NO_OVERHEAD_LEVEL):
+  def __init__(self, overhead_level=LOW_OVERHEAD_LEVEL):
     """As the amount of instrumentation increases, so does the overhead.
     The user of the measurement chooses the overhead level that is appropriate,
     and the tracing is filtered accordingly.
 
     overhead_level: Can either be a custom ChromeTraceCategoryFilter object or
-        one of NO_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL or
+        one of LOW_OVERHEAD_LEVEL, DEFAULT_OVERHEAD_LEVEL or
         DEBUG_OVERHEAD_LEVEL.
     """
     self._config = tracing_config.TracingConfig()
@@ -179,10 +186,10 @@ class Options(object):
                   chrome_trace_category_filter.ChromeTraceCategoryFilter):
       self._config.chrome_trace_config.SetCategoryFilter(overhead_level)
     elif overhead_level in ALL_OVERHEAD_LEVELS:
-      if overhead_level == NO_OVERHEAD_LEVEL:
-        self._config.chrome_trace_config.SetNoOverheadFilter()
-      elif overhead_level == MINIMAL_OVERHEAD_LEVEL:
-        self._config.chrome_trace_config.SetMinimalOverheadFilter()
+      if overhead_level in [LOW_OVERHEAD_LEVEL, NO_OVERHEAD_LEVEL]:
+        self._config.chrome_trace_config.SetLowOverheadFilter()
+      elif overhead_level in [DEFAULT_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL]:
+        self._config.chrome_trace_config.SetDefaultOverheadFilter()
       else:
         self._config.chrome_trace_config.SetDebugOverheadFilter()
     else:
