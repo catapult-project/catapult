@@ -149,6 +149,7 @@ class ReplayServer(object):
               (self._use_dns_server and 'dns' not in self._started_ports))
     if HasIncompleteStartedPorts():
       self._started_ports = self._ParseLogFilePorts(self._LogLines())
+      logging.info('WPR ports: %s' % self._started_ports)
     if HasIncompleteStartedPorts():
       return False
     try:
