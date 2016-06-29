@@ -9,6 +9,14 @@ from telemetry.testing import options_for_unittests
 
 
 class SeriallyBrowserTestCase(unittest.TestCase):
+  def __init__(self, methodName):
+    super(SeriallyBrowserTestCase, self).__init__(methodName)
+    self._private_methodname = methodName
+
+  def shortName(self):
+    """Returns the method name this test runs, without the package prefix."""
+    return self._private_methodname
+
   @classmethod
   def Name(cls):
     return cls.__name__
