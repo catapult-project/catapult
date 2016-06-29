@@ -104,6 +104,7 @@ class _AndroidCommandLineBackend(object):
       return None
 
   def _WriteFile(self, contents):
+    logging.info('Android app/browser startup args: %s', contents)
     self._device.WriteFile(self.command_line_file, contents, as_root=True)
 
   def _RemoveFile(self):
