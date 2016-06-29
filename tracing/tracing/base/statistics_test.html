@@ -477,5 +477,65 @@ tr.b.unittest.testSuite(function() {
     Statistics.mergeSampledStreams(samples, 2, ['F', 'G', 'H', 'I', 'J'], 7, 5);
     assert.equal(samples.length, 5);
   });
+
+  test('mannWhitneyUTestSmokeTest', function() {
+   // x < 0.01
+    var sampleA = [1, 2, 2.1, 2.2, 2, 1];
+    var sampleB = [12, 13, 13.1, 13.2, 13, 12];
+    var results = Statistics.mwu.test(sampleA, sampleB);
+    assert.isBelow(results.p, 0.1);
+
+    // 0.01 < x < 0.1
+    sampleA = [1, 2, 2.1, 2.2, 2, 1];
+    sampleB = [2, 3, 3.1, 3.2, 3, 2];
+    results = Statistics.mwu.test(sampleA, sampleB);
+    assert.isBelow(results.p, 0.1);
+    assert.isAbove(results.p, 0.01);
+
+    // 0.1 < x
+    sampleA = [1, 2, 2.1, 2.2, 2, 1];
+    sampleB = [1, 2, 2.1, 2.2, 2, 1];
+    results = Statistics.mwu.test(sampleA, sampleB);
+    assert.isAbove(results.p, 0.1);
+  });
+
+  test('mannWhitneyUEdgeCases', function() {
+    var longRepeatingSample = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    var emptySample = [];
+    var singleLargeValue = [1000000];
+    // mean 10, std 2
+    var normallyDistributedSample = [
+        8.341540e+0, 7.216640e+0, 8.844310e+0, 9.801980e+0, 1.048760e+1,
+        6.915150e+0, 7.881740e+0, 1.131160e+1, 9.959400e+0, 9.030880e+0
+    ];
+    // Identical samples should not cause the null to be rejected.
+    var results = Statistics.mwu.test(longRepeatingSample, longRepeatingSample);
+    assert.isAbove(results.p, 0.05);
+    results = Statistics.mwu.test(normallyDistributedSample,
+        normallyDistributedSample);
+    assert.isAbove(results.p, 0.05);
+    results = Statistics.mwu.test(singleLargeValue, singleLargeValue);
+
+    // A single value is generally not sufficient to reject the null, no matter
+    // how far off it is.
+    results = Statistics.mwu.test(normallyDistributedSample, singleLargeValue);
+    assert.isAbove(results.p, 0.05);
+
+    // A single value way outside the first sample may be enough to reject,
+    // if the first sample is large enough.
+    results = Statistics.mwu.test(longRepeatingSample, singleLargeValue);
+    assert.isBelow(results.p, 0.005);
+
+    // Empty samples should not be comparable.
+    results = Statistics.mwu.test(emptySample, emptySample);
+    assert(isNaN(results.p));
+
+    // The result of comparing a sample against an empty sample should not be a
+    // valid p value. NOTE: The current implementation returns 0, it is up to
+    // the caller to interpret this.
+    results = Statistics.mwu.test(normallyDistributedSample, emptySample);
+    assert(!results.p);
+  });
+
 });
 </script>

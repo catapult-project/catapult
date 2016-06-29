@@ -37,6 +37,11 @@ handlers:
   upload: tracing/third_party/gl-matrix/dist/gl-matrix-min.js
   secure: always
 
+- url: /mannwhitneyu.js
+  static_files: tracing/third_party/mannwhitneyu/mannwhitneyu.js
+  upload: tracing/third_party/mannwhitneyu/mannwhitneyu.js
+  secure: always
+
 - url: /jszip.min.js
   static_files: tracing/third_party/jszip/jszip.min.js
   upload: tracing/third_party/jszip/jszip.min.js

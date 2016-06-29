@@ -7,6 +7,26 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/math.html">
 <link rel="import" href="/tracing/base/range.html">
+<script src="/mannwhitneyu/mannwhitneyu.js"></script>
+
+<script>
+'use strict';
+// In node, the script-src for mannwhitneyu above brings in mannwhitneyui
+// into a module, instead of into the global scope. Whereas this file
+// assumes that mannwhitneyu is in the global scope. So, in Node only, we
+// require() it in, and then take all its exports and shove them into the
+// global scope by hand.
+(function(global) {
+  if (tr.isNode) {
+    var mwuAbsPath = HTMLImportsLoader.hrefToAbsolutePath(
+        '/mannwhitneyu.js');
+    var mwuModule = require(mwuAbsPath);
+    for (var exportName in mwuModule) {
+      global[exportName] = mwuModule[exportName];
+    }
+  }
+})(this);
+</script>
 
 <script>
 'use strict';
@@ -738,6 +758,8 @@ tr.exportTo('tr.b', function() {
       var location = Math.log(median);
       return new Statistics.LogNormalDistribution(location, shape);
   };
+
+  Statistics.mwu = mannwhitneyu;
 
   return {
     Statistics: Statistics

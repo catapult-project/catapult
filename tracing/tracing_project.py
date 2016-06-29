@@ -73,6 +73,9 @@ class TracingProject(object):
   glmatrix_path = os.path.join(
       tracing_third_party_path, 'gl-matrix', 'dist')
 
+  mannwhitneyu_path = os.path.join(
+      tracing_third_party_path, 'mannwhitneyu')
+
   ui_path = os.path.join(tracing_src_path, 'ui')
   d3_path = os.path.join(tracing_third_party_path, 'd3')
   chai_path = os.path.join(tracing_third_party_path, 'chai')
@@ -100,6 +103,7 @@ class TracingProject(object):
     self.source_paths.append(self.mre_path)
     self.source_paths.append(self.jszip_path)
     self.source_paths.append(self.glmatrix_path)
+    self.source_paths.append(self.mannwhitneyu_path)
     self.source_paths.append(self.d3_path)
     self.source_paths.append(self.chai_path)
     self.source_paths.append(self.mocha_path)
