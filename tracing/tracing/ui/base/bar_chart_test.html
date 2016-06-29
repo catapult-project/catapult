@@ -26,6 +26,22 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
   });
 
+  test('instantiation_stacked', function() {
+    var chart = new tr.ui.b.BarChart();
+    chart.isStacked = true;
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'title';
+    var data = [
+      {x: 10, foo: 10, bar: 5, qux: 7},
+      {x: 20, foo: 11, bar: 6, qux: 3},
+      {x: 30, foo: 10, bar: 4, qux: 8},
+      {x: 40, foo: 5, bar: 1, qux: 2}
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+  });
+
   test('instantiation_singleSeries_yLogScale', function() {
     var chart = new tr.ui.b.BarChart();
     chart.isYLogScale = true;

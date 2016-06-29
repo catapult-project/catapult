@@ -25,6 +25,16 @@ tr.exportTo('tr.ui.b', function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
       this.classList.add('bar-chart');
       this.xCushion_ = 0;
+      this.isStacked_ = false;
+    },
+
+    set isStacked(stacked) {
+      this.isStacked_ = true;
+      this.updateContents_();
+    },
+
+    get isStacked() {
+      return this.isStacked_;
     },
 
     isDatumFieldSeries_: function(fieldName) {
@@ -72,6 +82,66 @@ tr.exportTo('tr.ui.b', function() {
       this.yScale_.domain(this.getYScaleDomain_(yRange.min, yRange.max));
     },
 
+    getYScaleDomain_: function(minValue, maxValue) {
+      if (!this.isStacked) {
+        return ChartBase2DBrushX.prototype.getYScaleDomain_.call(
+            this, minValue, maxValue);
+      }
+
+      var range = new tr.b.Range();
+      range.addValue(0);
+      this.data_.forEach(function(datum, index) {
+        var sum = 0;
+        this.seriesKeys_.forEach(function(key) {
+          if (datum[key] === undefined)
+            return;
+          sum += datum[key];
+        }, this);
+        range.addValue(sum);
+      }, this);
+      return [range.min, range.max];
+    },
+
+    getStackedRectsForDatum_: function(datum, index) {
+      var stacks = [];
+      var bottom = this.yScale_.range()[0];
+      var sum = 0;
+      this.seriesKeys_.forEach(function(key) {
+        if (datum[key] === undefined)
+          return;
+        sum += datum[key];
+        var heightPx = bottom - this.yScale_(sum);
+        bottom -= heightPx;
+        stacks.push({
+          color: getColorOfKey(key),
+          heightPx: heightPx,
+          topPx: bottom
+        });
+      }, this);
+      return stacks;
+    },
+
+    getRectsForDatum_: function(datum, index) {
+      if (this.isStacked)
+        return this.getStackedRectsForDatum_(datum, index);
+
+      var stacks = [];
+      this.seriesKeys_.forEach(function(key) {
+        if (datum[key] === undefined)
+          return;
+        var topPx = this.yScale_(Math.max(datum[key], this.getYScaleMin_()));
+        stacks.push({
+          topPx: topPx,
+          heightPx: this.yScale_.range()[0] - topPx,
+          color: getColorOfKey(key)
+        });
+      }, this);
+      stacks.sort(function(a, b) {
+        return b.topPx - a.topPx;
+      });
+      return stacks;
+    },
+
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
       var rectsSel = dataSel.selectAll('path').data(this.seriesKeys_);
@@ -84,28 +154,17 @@ tr.exportTo('tr.ui.b', function() {
         } else {
           width = this.xCushion_;
         }
-
-        var stacks = [];
-        this.seriesKeys_.forEach(function(key) {
-          if (datum[key] !== undefined)
-            stacks.push({y: datum[key], color: getColorOfKey(key)});
-        });
-        stacks.sort(function(a, b) {
-          return b.y - a.y;
-        });
-
-        stacks.forEach(function(stack) {
-          var left = this.xScale_(currentX);
-          var right = this.xScale_(currentX + width);
-          var widthPx = right - left;
-          var top = this.yScale_(Math.max(stack.y, this.getYScaleMin_()));
+        this.getRectsForDatum_(datum, index).forEach(function(rect) {
+          var leftPx = this.xScale_(currentX);
+          var rightPx = this.xScale_(currentX + width);
+          var widthPx = rightPx - leftPx;
           rectsSel.enter()
               .append('rect')
-              .attr('fill', stack.color)
-              .attr('x', left)
-              .attr('y', top)
+              .attr('fill', rect.color)
+              .attr('x', leftPx)
+              .attr('y', rect.topPx)
               .attr('width', widthPx)
-              .attr('height', this.yScale_.range()[0] - top);
+              .attr('height', rect.heightPx);
         }, this);
       }, this);
       rectsSel.exit().remove();
