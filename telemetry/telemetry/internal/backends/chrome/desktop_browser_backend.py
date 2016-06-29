@@ -441,8 +441,14 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if not cdb:
         logging.warning('cdb.exe not found.')
         return None
+      # Include all the threads' stacks ("~*k30") in addition to the
+      # ostensibly crashed stack associated with the exception context
+      # record (".ecxr;k30"). Note that stack dumps, including that
+      # for the crashed thread, may not be as precise as the one
+      # starting from the exception context record.
       output = subprocess.check_output([cdb, '-y', self._browser_directory,
-                                        '-c', '.ecxr;k30;q', '-z', minidump])
+                                        '-c', '.ecxr;k30;~*k30;q',
+                                        '-z', minidump])
       # cdb output can start the stack with "ChildEBP", "Child-SP", and possibly
       # other things we haven't seen yet. If we can't find the start of the
       # stack, include output from the beginning.
