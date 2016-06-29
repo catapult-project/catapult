@@ -79,6 +79,14 @@ tr.b.unittest.testSuite(function() {
     ], [], [1, 5, 6, 7]);
   });
 
+  test('filterNearDuplicates', function() {
+    testFindVSyncTimestamps([
+        [buildSlice('VSYNC', 1), buildSlice('VSYNC', 1)],
+        [buildSlice('VSYNC', 2), buildSlice('VSYNC', 2.1)],
+        [buildSlice('VSYNC', 3), buildSlice('VSYNC', 4)],
+    ], [], [1, 2, 3, 4]);
+  });
+
   test('findMultipleAndroidVsyncs', function() {
     testFindVSyncTimestamps([
         [buildSlice('MessageLoop::RunTask', 2)],
@@ -113,7 +121,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findBeginFrame', function() {
-    var title = 'Scheduler::BeginFrame';
+    var title = 'DisplayScheduler::BeginFrame';
     testFindVSyncTimestamps([[
       new ThreadSlice('', title, 0, 2, { args: { frame_time_us: 1000 } }),
       new ThreadSlice('', title, 0, 4, { args: { frame_time_us: 3000 } })
@@ -121,7 +129,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('findBeginFrame_noFrameTime', function() {
-    var title = 'Scheduler::BeginFrame';
+    var title = 'DisplayScheduler::BeginFrame';
     testFindVSyncTimestamps([[
       new ThreadSlice('', title, 0, 2, {}),
       new ThreadSlice('', title, 0, 4, { args: {} })
