@@ -14,6 +14,8 @@ Rows. Datastore operations often time out after a few hundred deletes(), so this
 task is split up using the task queue.
 """
 
+import logging
+
 from google.appengine.api import mail
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -133,6 +135,7 @@ def _DeleteTest(test_key_urlsafe):
 
 
 def _DeleteTestData(test_key):
+  logging.info('DELETING TEST DATA FOR %s', utils.TestPath(test_key))
   futures = []
   num_tests_processed = 0
   finished = True

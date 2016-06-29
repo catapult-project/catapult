@@ -5,6 +5,7 @@
 """A cron job which queues old tests for deletion."""
 
 import datetime
+import logging
 
 from google.appengine.api import taskqueue
 from google.appengine.datastore import datastore_query
@@ -26,21 +27,21 @@ _DELETE_TASK_QUEUE_NAME = 'delete-tests-queue'
 class DeleteOldTestsHandler(request_handler.RequestHandler):
   """Finds tests with no new data, and deletes them."""
 
+  def get(self):
+    self.post()
+
   def post(self):
     """Query for tests, and put ones with no new data on the delete queue."""
     datastore_hooks.SetPrivilegedRequest()
+    logging.info('Cursor: %s', self.request.get('cursor'))
     cursor = datastore_query.Cursor(urlsafe=self.request.get('cursor'))
     tests, next_cursor, more = graph_data.TestMetadata.query().fetch_page(
         _TESTS_TO_CHECK_AT_ONCE, keys_only=True, start_cursor=cursor)
-    if more:
-      taskqueue.add(
-          url='/delete_old_tests',
-          params={'cursor': next_cursor.urlsafe()},
-          queue_name=_TASK_QUEUE_NAME)
     for test in tests:
       # Delete this test if:
       # 1) It has no Rows newer than the cutoff
       # 2) It has no descendant tests
+      logging.info('Checking %s', utils.TestPath(test))
       no_new_rows = False
       last_row = graph_data.Row.query(
           graph_data.Row.parent_test == utils.OldStyleTestKey(test)).order(
@@ -51,8 +52,14 @@ class DeleteOldTestsHandler(request_handler.RequestHandler):
       else:
         no_new_rows = True
       descendants = list_tests.GetTestDescendants(test, keys_only=True)
-      descendants.remove(test)
+      if test in descendants:
+        descendants.remove(test)
+      stamp = 'never'
+      if last_row:
+        stamp = last_row.timestamp
       if not descendants and no_new_rows:
+        logging.info('Deleting test %s last timestamp %s',
+                     utils.TestPath(test), stamp)
         taskqueue.add(
             url='/delete_test_data',
             params={
@@ -60,3 +67,12 @@ class DeleteOldTestsHandler(request_handler.RequestHandler):
                 'test_key': test.urlsafe(),
             },
             queue_name=_DELETE_TASK_QUEUE_NAME)
+      else:
+        logging.info('NOT Deleting test %s last timestamp %s',
+                     utils.TestPath(test), stamp)
+
+    if more:
+      taskqueue.add(
+          url='/delete_old_tests',
+          params={'cursor': next_cursor.urlsafe()},
+          queue_name=_TASK_QUEUE_NAME)

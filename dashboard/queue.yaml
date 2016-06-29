@@ -34,7 +34,7 @@ queue:
  - name: delete-old-tests-queue
    rate: 20/s
    retry_parameters:
-     task_retry_limit: 1
+     task_retry_limit: 5
 
  - name: edit-sheriffs-queue
    rate: 10/m
