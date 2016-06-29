@@ -9,10 +9,8 @@ from telemetry.timeline import chrome_trace_category_filter
 
 
 RECORD_MODE_PARAM = 'record_mode'
-ENABLE_SYSTRACE_PARAM = 'enable_systrace'
 
 ECHO_TO_CONSOLE = 'trace-to-console'
-ENABLE_SYSTRACE = 'enable-systrace'
 RECORD_AS_MUCH_AS_POSSIBLE = 'record-as-much-as-possible'
 RECORD_CONTINUOUSLY = 'record-continuously'
 RECORD_UNTIL_FULL = 'record-until-full'
@@ -60,7 +58,6 @@ class ChromeTraceConfig(object):
 
     record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
         record modes in chrome.
-    enable_systrace: a boolean that specifies whether to enable systrace.
     chrome_trace_category_filter: Object that specifies which tracing
         categories to trace.
     memory_dump_config: Stores the triggers for memory dumps.
@@ -69,7 +66,6 @@ class ChromeTraceConfig(object):
 
   def __init__(self):
     self._record_mode = RECORD_AS_MUCH_AS_POSSIBLE
-    self._enable_systrace = False
     self._category_filter = (
         chrome_trace_category_filter.ChromeTraceCategoryFilter())
     self._memory_dump_config = None
@@ -122,24 +118,15 @@ class ChromeTraceConfig(object):
     assert value in RECORD_MODE_MAP
     self._record_mode = value
 
-  @property
-  def enable_systrace(self):
-    return self._enable_systrace
-
-  @enable_systrace.setter
-  def enable_systrace(self, value):
-    self._enable_systrace = value
-
   def GetChromeTraceConfigForStartupTracing(self):
     """Map the config to a JSON string for startup tracing.
 
     All keys in the returned dictionary use underscore-case (e.g.
-    'enable_systrace'). In addition, the 'record_mode' value uses hyphen-case
+    'record_mode'). In addition, the 'record_mode' value uses hyphen-case
     (e.g. 'record-until-full').
     """
     result = {
-        RECORD_MODE_PARAM: RECORD_MODE_MAP[self._record_mode],
-        ENABLE_SYSTRACE_PARAM: self._enable_systrace
+        RECORD_MODE_PARAM: RECORD_MODE_MAP[self._record_mode]
     }
     result.update(self._category_filter.GetDictForChromeTracing())
     if self._memory_dump_config:
@@ -171,7 +158,7 @@ class ChromeTraceConfig(object):
   def GetChromeTraceConfigForDevTools(self):
     """Map the config to a DevTools API config dictionary.
 
-    All keys in the returned dictionary use camel-case (e.g. 'enableSystrace').
+    All keys in the returned dictionary use camel-case (e.g. 'recordMode').
     In addition, the 'recordMode' value also uses camel-case (e.g.
     'recordUntilFull'). This is to invert the camel-case ->
     underscore/hyphen-delimited mapping performed in Chromium devtools.
@@ -186,8 +173,6 @@ class ChromeTraceConfig(object):
     """Map the categories and options to their DevTools API counterparts."""
     assert not self.requires_modern_devtools_tracing_start_api
     options_parts = [RECORD_MODE_MAP[self._record_mode]]
-    if self._enable_systrace:
-      options_parts.append(ENABLE_SYSTRACE)
     return (self._category_filter.stable_filter_string,
             ','.join(options_parts))
 

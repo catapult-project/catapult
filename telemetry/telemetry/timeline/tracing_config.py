@@ -51,9 +51,6 @@ class TracingConfig(object):
 
   @enable_atrace_trace.setter
   def enable_atrace_trace(self, value):
-    if value:
-      assert not self._chrome_trace_config.enable_systrace, (
-          "Cannot enable atrace while Chrome systrace is already enabled.")
     self._enable_atrace_trace = value
 
   @property

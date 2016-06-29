@@ -14,13 +14,11 @@ class ChromeTraceConfigTests(unittest.TestCase):
 
     # Trace config for startup tracing.
     self.assertEquals({
-        'enable_systrace': False,
         'record_mode': 'record-as-much-as-possible'
     }, config.GetChromeTraceConfigForStartupTracing())
 
     # Trace config for DevTools (modern API).
     self.assertEquals({
-        'enableSystrace': False,
         'recordMode': 'recordAsMuchAsPossible'
     }, config.GetChromeTraceConfigForDevTools())
 
@@ -35,12 +33,10 @@ class ChromeTraceConfigTests(unittest.TestCase):
         'x,-y,disabled-by-default-z,DELAY(7;foo)')
     config = chrome_trace_config.ChromeTraceConfig()
     config.SetCategoryFilter(category_filter)
-    config.enable_systrace = True
     config.record_mode = chrome_trace_config.RECORD_UNTIL_FULL
 
     # Trace config for startup tracing.
     self.assertEquals({
-        'enable_systrace': True,
         'excluded_categories': ['y'],
         'included_categories': ['x', 'disabled-by-default-z'],
         'record_mode': 'record-until-full',
@@ -49,7 +45,6 @@ class ChromeTraceConfigTests(unittest.TestCase):
 
     # Trace config for DevTools (modern API).
     self.assertEquals({
-        'enableSystrace': True,
         'excludedCategories': ['y'],
         'includedCategories': ['x', 'disabled-by-default-z'],
         'recordMode': 'recordUntilFull',
@@ -60,7 +55,7 @@ class ChromeTraceConfigTests(unittest.TestCase):
     self.assertFalse(config.requires_modern_devtools_tracing_start_api)
     self.assertEquals(
         ('x,disabled-by-default-z,-y,DELAY(7;foo)',
-         'record-until-full,enable-systrace'),
+         'record-until-full'),
         config.GetChromeTraceCategoriesAndOptionsForDevTools())
 
   def testMemoryDumpConfigFormat(self):
@@ -71,14 +66,12 @@ class ChromeTraceConfigTests(unittest.TestCase):
 
     # Trace config for startup tracing.
     self.assertEquals({
-        'enable_systrace': False,
         'memory_dump_config': {'triggers': []},
         'record_mode': 'trace-to-console'
     }, config.GetChromeTraceConfigForStartupTracing())
 
     # Trace config for DevTools (modern API).
     self.assertEquals({
-        'enableSystrace': False,
         'memoryDumpConfig': {'triggers': []},
         'recordMode': 'traceToConsole'
     }, config.GetChromeTraceConfigForDevTools())
@@ -93,7 +86,6 @@ class ChromeTraceConfigTests(unittest.TestCase):
 
     # Trace config for startup tracing.
     self.assertEquals({
-        'enable_systrace': False,
         'memory_dump_config': {
             'triggers': [
                 {'mode': 'light', 'periodic_interval_ms': 250},
@@ -105,7 +97,6 @@ class ChromeTraceConfigTests(unittest.TestCase):
 
     # Trace config for DevTools (modern API).
     self.assertEquals({
-        'enableSystrace': False,
         'memoryDumpConfig': {
             'triggers': [
                 {'mode': 'light', 'periodicIntervalMs': 250},
