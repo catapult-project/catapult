@@ -133,22 +133,22 @@ tr.exportTo('tr.importer', function() {
     var browserProcess = modelHelper.browserHelper.process;
     var mainThread = browserProcess.findAtMostOneThreadNamed(
         'CrBrowserMain');
-    mainThread.asyncSliceGroup.iterateAllEvents(function(slice) {
+    for (var slice of mainThread.asyncSliceGroup.getDescendantEvents()) {
       if (!slice.isTopLevel)
-        return;
+        continue;
 
       if (!(slice instanceof tr.e.cc.InputLatencyAsyncSlice))
-        return;
+        continue;
 
       // TODO(beaudoin): This should never happen but it does. Investigate
       // the trace linked at in #1567 and remove that when it's fixed.
       if (isNaN(slice.start) ||
           isNaN(slice.duration) ||
           isNaN(slice.end))
-        return;
+        continue;
 
       inputEvents.push(slice);
-    });
+    }
 
     return inputEvents.sort(compareEvents);
   }

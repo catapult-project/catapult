@@ -78,30 +78,22 @@ tr.exportTo('tr.model', function() {
 
     updateBounds: function() {
       this.bounds.reset();
-
-      this.iterateAllChildEventContainers(function(child) {
+      for (var child of this.childEventContainers()) {
         child.updateBounds();
         this.bounds.addRange(child.bounds);
-      }, this);
+      }
     },
 
     shiftTimestampsForward: function(amount) {
-      this.iterateAllChildEventContainers(function(child) {
+      for (var child of this.childEventContainers()) {
         child.shiftTimestampsForward(amount);
-      });
+      }
 
       for (var i = 0; i < this.vSyncTimestamps_.length; i++)
         this.vSyncTimestamps_[i] += amount;
     },
 
     addCategoriesToDict: function(categoriesDict) {
-    },
-
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-    },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
     },
 
     childEventContainers: function*() {

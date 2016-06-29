@@ -20,16 +20,20 @@ tr.exportTo('tr.importer', function() {
 
   function findLoadExpectations(modelHelper) {
     var events = [];
-    modelHelper.model.iterateAllEvents(function(event) {
+    for (var event of modelHelper.model.getDescendantEvents()) {
       if ((event.title === NAVIGATION_START) ||
           (event.title === FIRST_CONTENTFUL_PAINT_TITLE))
         events.push(event);
-    });
+    }
     events.sort(tr.importer.compareEvents);
 
     var loads = [];
     var startEvent = undefined;
-    events.forEach(function(event) {
+    // TODO(alexandermont): What's supposed to happen if there are two
+    // NAVIGATION_STARTs with no FIRST_CONTENTFUL_PAINT_TITLE between
+    // them? Are you supposed to just "lose" the first NAVIGATION_START,
+    // like what's happening now?
+    for (var event of events) {
       if (event.title === NAVIGATION_START) {
         startEvent = event;
       } else if (event.title === FIRST_CONTENTFUL_PAINT_TITLE) {
@@ -40,7 +44,7 @@ tr.exportTo('tr.importer', function() {
           startEvent = undefined;
         }
       }
-    });
+    }
 
     // If the trace ended between navigation start and first contentful paint,
     // then make a LoadExpectation that ends at the end of the trace.

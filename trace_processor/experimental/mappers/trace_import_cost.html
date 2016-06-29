@@ -32,13 +32,13 @@ tr.exportTo('pi.m', function() {
 
   function getTraceImportCostReport(result, model) {
     var top_level_slices = [];
-    model.iterateAllEvents(function(event) {
+    for (var event of model.getDescendantEvents()) {
       if (event instanceof MeasureAsyncSlice &&
           event.viewSubGroupTitle === 'TraceImport' &&
           event.isTopLevel) {
         top_level_slices.push(event);
       }
-    });
+    }
     var traceImportCostInfos = [];
     for (var i = 0; i < top_level_slices.length; ++i) {
       fetchSlicesInfo(top_level_slices[i], traceImportCostInfos);

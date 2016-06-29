@@ -70,10 +70,10 @@ tr.exportTo('tr.ui.tracks', function() {
           // Iterate slices, find all the CPU samples which overlap. For each
           // such CPU sample, increment it of the "average CPU usage" of the
           // slice.
-          process.iterateAllEvents(function(e) {
+          for (var e of process.getDescendantEvents()) {
             if (!(e instanceof tr.model.ThreadSlice) || e.duration === 0 ||
                 e.cpuDuration === undefined) {
-              return;
+              continue;
             }
 
             // This slice contains the most fine-grained CPU usage information
@@ -89,7 +89,7 @@ tr.exportTo('tr.ui.tracks', function() {
             //                    = s.cpuSelfTime / s.selfTime
             if (e.selfTime === 0 || e.selfTime === undefined ||
                 e.cpuSelfTime === undefined) {
-              return;
+              continue;
             }
 
             var cpuSelfTimeRatio = e.cpuSelfTime / e.selfTime;
@@ -109,7 +109,7 @@ tr.exportTo('tr.ui.tracks', function() {
             }, this);
             this.addCPUUsageOverInterval_(cpuUsage, cpuSelfTimeRatio, lastTime,
                 e.end);
-          }, this);
+          }
         }, this);
       }
       return cpuUsage || [];

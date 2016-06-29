@@ -109,14 +109,8 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-    },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, tr.model.CounterSample)) {
-        yield * this.samples_;
-      }
+    childEvents: function*() {
+      yield * this.samples_;
     },
 
     childEventContainers: function*() {

@@ -28,19 +28,15 @@ tr.exportTo('tr.model', function() {
 
   function getUnassociatedEvents(model, associatedEvents) {
     var unassociatedEvents = new tr.model.EventSet();
-    model.getAllProcesses().forEach(function(process) {
-      for (var tid in process.threads) {
-        var thread = process.threads[tid];
-        thread.sliceGroup.iterateAllEvents(function(event) {
-          // The set of unassociated events contains only events that are not in
-          // the set of associated events.
-          // Only add event to the set of unassociated events if it is not in
-          // the set of associated events.
+    // The set of unassociated events contains only events that are not in
+    // the set of associated events.
+    // Only add event to the set of unassociated events if it is not in
+    // the set of associated events.
+    for (var proc of model.getAllProcesses())
+      for (var thread of tr.b.dictionaryValues(proc.threads))
+        for (var event of thread.sliceGroup.getDescendantEvents())
           if (!associatedEvents.contains(event))
             unassociatedEvents.push(event);
-        });
-      }
-    });
     return unassociatedEvents;
   }
 

@@ -48,14 +48,14 @@ tr.exportTo('pie', function() {
       for (var pid in rendererHelpers) {
         var rendererHelper = rendererHelpers[pid];
         var mainThread = rendererHelper.mainThread;
-        mainThread.iterateAllEvents(function(event) {
+        for (var event of mainThread.getDescendantEvents()) {
           // Look for tasks executed by the scheduler. Note that this only
           // includes slices that are *completely* inside the loading phase.
           if (event.title !== 'TaskQueueManager::RunTask' ||
               event.start < loadingEvent.start ||
               event.start + event.duration >
                   loadingEvent.start + loadingEvent.duration) {
-            return;
+            continue;
           }
           totalCost += eventCost(event);
 
@@ -65,7 +65,7 @@ tr.exportTo('pie', function() {
             beginMainFrameCount++;
             beginMainFrameCost += eventCost(beginMainFrame);
           }
-        });
+        }
       }
 
       loadingTotalCost[index] = totalCost;

@@ -232,16 +232,6 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(['categoryA', 'categoryB'], m.categories);
   });
 
-  test('model_iterateAllEvents', function() {
-    var m = createModelWithOneOfEverything();
-    var wasCalled = false;
-    m.iterateAllEvents(function(event) {
-      assert.isTrue(event instanceof tr.model.Event);
-      wasCalled = true;
-    });
-    assert.isTrue(wasCalled);
-  });
-
   test('getEventByStableId', function() {
     var m = new tr.Model();
     var p = m.getOrCreateProcess(0);

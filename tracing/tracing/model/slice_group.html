@@ -275,20 +275,16 @@ tr.exportTo('tr.model', function() {
       return newSlice;
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                              opt_this) {
+    findTopmostSlicesInThisContainer: function*(eventPredicate, opt_this) {
       if (!this.haveTopLevelSlicesBeenBuilt)
         throw new Error('Nope');
 
-      this.topLevelSlices.forEach(function(s) {
-        s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
-                                               opt_this);
-      });
+      for (var s of this.topLevelSlices)
+        yield * s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
     },
 
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, this.sliceConstructor))
-        yield * this.slices;
+    childEvents: function*() {
+      yield * this.slices;
     },
 
     childEventContainers: function*() {

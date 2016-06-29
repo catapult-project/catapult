@@ -50,26 +50,26 @@ tr.exportTo('pie', function() {
     var wakeUps = {};
     var foundWakeUps = false;
     var lastTaskEnd = undefined;
-    thread.iterateAllEvents(function(event) {
+    for (var event of thread.getDescendantEvents()) {
       if (!event.isTopLevel)
-        return;
+        continue;
       var taskEnd = event.start + event.duration;
       if (lastTaskEnd === undefined) {
         lastTaskEnd = taskEnd;
-        return;
+        continue;
       }
       var sleepTime = event.start - lastTaskEnd;
       var isWakeUp = sleepTime >= IDLE_THRESHOLD_MILLISECONDS;
       lastTaskEnd = taskEnd;
       if (!isWakeUp)
-        return;
+        continue;
       var reason = sanitizeReason(findWakeUpReason(event));
       if (wakeUps[reason] === undefined)
         wakeUps[reason] = {frequency: 0, sleepTimes: []};
       wakeUps[reason].frequency++;
       wakeUps[reason].sleepTimes.push(sleepTime);
       foundWakeUps = true;
-    });
+    }
     return foundWakeUps ? wakeUps : undefined;
   }
 

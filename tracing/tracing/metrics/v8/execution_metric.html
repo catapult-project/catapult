@@ -24,12 +24,12 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuSelfExecution = DURATION_NUMERIC_BUILDER.build();
     var wallSelfExecution = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.Execute', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.Execute')) {
       cpuTotalExecution.add(e.cpuDuration);
       wallTotalExecution.add(e.duration);
       cpuSelfExecution.add(e.cpuSelfTime);
       wallSelfExecution.add(e.selfTime);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_execution_cpu_total', cpuTotalExecution,
@@ -49,14 +49,14 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuSelfParseLazy = DURATION_NUMERIC_BUILDER.build();
     var wallSelfParseLazy = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.ParseLazyMicroSeconds', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.ParseLazyMicroSeconds')) {
       cpuSelfParseLazy.add(e.cpuSelfTime);
       wallSelfParseLazy.add(e.selfTime);
-    });
-    model.findTopmostSlicesNamed('V8.ParseLazy', function(e) {
+    }
+    for (var e of model.findTopmostSlicesNamed('V8.ParseLazy')) {
       cpuSelfParseLazy.add(e.cpuSelfTime);
       wallSelfParseLazy.add(e.selfTime);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_parse_lazy_cpu_self', cpuSelfParseLazy,
@@ -70,10 +70,10 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuSelfCompileFullCode = DURATION_NUMERIC_BUILDER.build();
     var wallSelfCompileFullCode = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.CompileFullCode', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.CompileFullCode')) {
       cpuSelfCompileFullCode.add(e.cpuSelfTime);
       wallSelfCompileFullCode.add(e.selfTime);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_compile_full_code_cpu_self',
@@ -90,10 +90,10 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuSelfCompileIgnition = DURATION_NUMERIC_BUILDER.build();
     var wallSelfCompileIgnition = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.CompileIgnition', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.CompileIgnition')) {
       cpuSelfCompileIgnition.add(e.cpuSelfTime);
       wallSelfCompileIgnition.add(e.selfTime);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_compile_ignition_cpu_self',
@@ -116,12 +116,12 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuTotalRecompileOverall = DURATION_NUMERIC_BUILDER.build();
     var wallTotalRecompileOverall = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.RecompileSynchronous', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.RecompileSynchronous')) {
       cpuTotalRecompileSynchronous.add(e.cpuDuration);
       wallTotalRecompileSynchronous.add(e.duration);
       cpuTotalRecompileOverall.add(e.cpuDuration);
       wallTotalRecompileOverall.add(e.duration);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_recompile_synchronous_cpu_total',
@@ -133,12 +133,12 @@ tr.exportTo('tr.metrics.v8', function() {
         { description: 'wall total time spent in synchronous recompilation' }));
 
 
-    model.findTopmostSlicesNamed('V8.RecompileConcurrent', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.RecompileConcurrent')) {
       cpuTotalRecompileConcurrent.add(e.cpuDuration);
       wallTotalRecompileConcurrent.add(e.duration);
       cpuTotalRecompileOverall.add(e.cpuDuration);
       wallTotalRecompileOverall.add(e.duration);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_recompile_concurrent_cpu_total',
@@ -166,10 +166,10 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuTotalOptimizeCode = DURATION_NUMERIC_BUILDER.build();
     var wallTotalOptimizeCode = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.OptimizeCode', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.OptimizeCode')) {
       cpuTotalOptimizeCode.add(e.cpuDuration);
       wallTotalOptimizeCode.add(e.duration);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_optimize_code_cpu_total',
@@ -185,10 +185,10 @@ tr.exportTo('tr.metrics.v8', function() {
     var cpuTotalDeoptimizeCode = DURATION_NUMERIC_BUILDER.build();
     var wallTotalDeoptimizeCode = DURATION_NUMERIC_BUILDER.build();
 
-    model.findTopmostSlicesNamed('V8.DeoptimizeCode', function(e) {
+    for (var e of model.findTopmostSlicesNamed('V8.DeoptimizeCode')) {
       cpuTotalDeoptimizeCode.add(e.cpuDuration);
       wallTotalDeoptimizeCode.add(e.duration);
-    });
+    }
 
     values.addValue(new tr.v.NumericValue(
         'v8_deoptimize_code_cpu_total',

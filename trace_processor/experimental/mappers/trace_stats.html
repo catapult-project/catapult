@@ -26,7 +26,7 @@ tr.exportTo('pi.m', function() {
     var categories = {};
 
     var seconds_counts = {};
-    model.iterateAllEvents(function(event) {
+    for (var event of model.getDescendantEvents()) {
       eventCount += 1;
       if (event.start < firstTime)
         firstTime = event.start;
@@ -45,7 +45,7 @@ tr.exportTo('pi.m', function() {
         seconds_counts[second] = 0;
 
       seconds_counts[second]++;
-    });
+    }
 
     var histogram = COUNT_NUMERIC_BUILDER.build();
 

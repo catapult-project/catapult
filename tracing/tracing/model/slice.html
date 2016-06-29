@@ -135,17 +135,13 @@ tr.exportTo('tr.model', function() {
      * [      D     ]
      *   [C1]  [C2]
      */
-    findTopmostSlicesRelativeToThisSlice: function(eventPredicate, callback,
-                                                   opt_this) {
+    findTopmostSlicesRelativeToThisSlice: function*(eventPredicate) {
       if (eventPredicate(this)) {
-        callback.call(opt_this, this);
+        yield this;
         return;
       }
-
-      this.subSlices.forEach(function(s) {
-        s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
-                                               opt_this);
-      });
+      for (var s of this.subSlices)
+        yield * s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
     },
 
     /**

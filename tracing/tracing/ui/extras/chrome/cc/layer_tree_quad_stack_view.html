@@ -1152,17 +1152,17 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var lthi = this.layerTreeImpl_.layerTreeHostImpl;
       var renderProcess = lthi.objectInstance.parent;
       var tasks = [];
-      renderProcess.iterateAllEvents(function(event) {
+      for (var event of renderProcess.getDescendantEvents()) {
         if (!(event instanceof tr.model.Slice))
-          return;
+          continue;
 
         var tile = tr.e.cc.getTileFromRasterTaskSlice(event);
         if (tile === undefined)
-          return false;
+          continue;
 
         if (tile.containingSnapshot == lthi)
           tasks.push(event);
-      }, this);
+      }
       return tasks;
     },
 

@@ -73,18 +73,11 @@ tr.exportTo('tr.model', function() {
       return Process.compare(this, that);
     },
 
-    childEvents: function*(eventTypePredicate, opt_this) {
-      yield * ProcessBase.prototype.childEvents.call(
-          this, eventTypePredicate, opt_this);
-
-      if (eventTypePredicate.call(opt_this, ProcessInstantEvent))
-        yield * this.instantEvents;
-
-      if (eventTypePredicate.call(opt_this, Frame))
-        yield * this.frames;
-
-      if (eventTypePredicate.call(opt_this, ProcessMemoryDump))
-        yield * this.memoryDumps;
+    childEvents: function*() {
+      yield * ProcessBase.prototype.childEvents.call(this);
+      yield * this.instantEvents;
+      yield * this.frames;
+      yield * this.memoryDumps;
     },
 
     addLabelIfNeeded: function(labelName) {

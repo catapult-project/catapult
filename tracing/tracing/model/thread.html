@@ -73,10 +73,6 @@ tr.exportTo('tr.model', function() {
       return Thread.compare(this, that);
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-    },
-
     childEventContainers: function*() {
       if (this.sliceGroup.length)
         yield this.sliceGroup;
@@ -86,11 +82,9 @@ tr.exportTo('tr.model', function() {
         yield this.asyncSliceGroup;
     },
 
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (this.timeSlices && this.timeSlices.length) {
-        if (eventTypePredicate.call(opt_this, ThreadTimeSlice))
-          yield * this.timeSlices;
-      }
+    childEvents: function*() {
+      if (this.timeSlices)
+        yield * this.timeSlices;
     },
 
     iterateAllPersistableObjects: function(cb) {

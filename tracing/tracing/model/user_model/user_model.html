@@ -44,13 +44,8 @@ tr.exportTo('tr.model.um', function() {
     addCategoriesToDict: function(categoriesDict) {
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-    },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, tr.model.um.UserExpectation))
-        yield * this.expectations;
+    childEvents: function*() {
+      yield * this.expectations;
     },
 
     childEventContainers: function*() {

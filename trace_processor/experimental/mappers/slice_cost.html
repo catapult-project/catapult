@@ -137,16 +137,16 @@ tr.exportTo('pi.m', function() {
       });
     }
 
-    model.iterateAllEvents(function(event) {
+    for (var event of model.descendentEvents()) {
       if (!(event instanceof tr.model.ThreadSlice))
-        return;
+        continue;
       if (filterFunction && !filterFunction(event))
-        return;
+        continue;
 
       var threadSlice = event;
       if (threadSlice.title === 'V8.Execute') {
         generateDomainCosts(threadSlice);
-        return;
+        continue;
       }
 
       var sliceCostInfo = new SliceCostInfo();
@@ -166,7 +166,7 @@ tr.exportTo('pi.m', function() {
                 sliceCostInfo.railTypeName + '/' +
                 sliceCostInfo.title;
       reduce.push(key, sliceCostInfo);
-    });
+    }
 
     var sliceCostInfos = [];
     reduce.finalizeAndIterResults(function(key, sliceCostInfo) {

@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
   function webviewStartupMetric(values, model) {
-    model.iterateAllEvents(function(slice) {
+    for (var slice of model.getDescendantEvents()) {
       // WebViewStartupInterval is the title of the section of code that is
       // entered (via android.os.Trace.beginSection) when WebView is started
       // up. This value is defined in TelemetryActivity.java.
@@ -52,7 +52,7 @@ tr.exportTo('tr.metrics.sh', function() {
                 slice.cpuDuration),
             { description: 'WebView blank URL load CPU time' }));
       }
-    });
+    }
   };
 
   tr.metrics.MetricRegistry.register(webviewStartupMetric);

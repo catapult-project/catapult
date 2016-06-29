@@ -119,12 +119,10 @@ found in the LICENSE file.
       // Based on the brushed range, update the selection of LatencyInfo in
       // the timeline view by sending a selectionChange event.
       var latencySlices = [];
-      this.model_.getAllThreads().forEach(function(thread) {
-        thread.iterateAllEvents(function(event) {
+      for (var thread of this.model_.getAllThreads())
+        for (var event of thread.getDescendantEvents())
           if (event.title.indexOf('InputLatency:') === 0)
             latencySlices.push(event);
-        });
-      });
       latencySlices = tr.model.helpers.getSlicesIntersectingRange(
           r, latencySlices);
 

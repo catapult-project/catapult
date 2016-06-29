@@ -52,17 +52,10 @@ tr.exportTo('tr.model', function() {
       throw new Error('Not implemented');
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-    },
-
     childEventContainers: function*() {
       yield * tr.b.dictionaryValues(this.threads);
       yield * tr.b.dictionaryValues(this.counters);
       yield this.objects;
-    },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
     },
 
     iterateAllPersistableObjects: function(cb) {
@@ -87,9 +80,8 @@ tr.exportTo('tr.model', function() {
      * specified.
      */
     shiftTimestampsForward: function(amount) {
-      this.iterateAllChildEventContainers(function(child) {
+      for (var child of this.childEventContainers())
         child.shiftTimestampsForward(amount);
-      });
     },
 
     /**

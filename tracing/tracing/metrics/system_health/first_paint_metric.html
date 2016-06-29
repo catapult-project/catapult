@@ -43,20 +43,16 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function NavigationStartFinder(rendererHelper) {
     this.navigationStartsForFrameId_ = {};
-    rendererHelper.mainThread.sliceGroup.iterateAllEventsInThisContainer(
-        () => true, function(ev) {
-          if (ev.category !== 'blink.user_timing' ||
-              ev.title !== 'navigationStart')
-            return;
-
-          var frameIdRef = ev.args['frame'];
-          var list = this.navigationStartsForFrameId_[frameIdRef];
-          if (list === undefined) {
-              this.navigationStartsForFrameId_[frameIdRef] = list = [];
-          }
-          list.unshift(ev);
-        },
-        this);
+    for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+      if (ev.category !== 'blink.user_timing' ||
+          ev.title !== 'navigationStart')
+        continue;
+      var frameIdRef = ev.args['frame'];
+      var list = this.navigationStartsForFrameId_[frameIdRef];
+      if (list === undefined)
+        this.navigationStartsForFrameId_[frameIdRef] = list = [];
+      list.unshift(ev);
+    }
   }
 
   NavigationStartFinder.prototype = {
@@ -67,15 +63,13 @@ tr.exportTo('tr.metrics.sh', function() {
             frameIdRef + '"');
         return undefined;
       }
-
       var eventBeforeTimestamp;
-      list.forEach(function(ev) {
+      for (var ev of list) {
         if (ev.start > ts)
-          return;
-
+          continue;
         if (eventBeforeTimestamp === undefined)
           eventBeforeTimestamp = ev;
-      }, this);
+      }
       if (eventBeforeTimestamp === undefined) {
         console.warn('Failed to find navigationStartEvent.');
         return undefined;
@@ -90,18 +84,15 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function PaintFinder(rendererHelper) {
     this.paintsForFrameId_ = {};
-    rendererHelper.mainThread.sliceGroup.iterateAllEventsInThisContainer(
-        () => true, function(ev) {
-          if (ev.category !== 'devtools.timeline' || ev.title !== 'Paint')
-            return;
-
-          var frameIdRef = ev.args['data']['frame'];
-          var list = this.paintsForFrameId_[frameIdRef];
-          if (list === undefined)
-              this.paintsForFrameId_[frameIdRef] = list = [];
-          list.push(ev);
-        },
-        this);
+    for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+      if (ev.category !== 'devtools.timeline' || ev.title !== 'Paint')
+        continue;
+      var frameIdRef = ev.args['data']['frame'];
+      var list = this.paintsForFrameId_[frameIdRef];
+      if (list === undefined)
+          this.paintsForFrameId_[frameIdRef] = list = [];
+      list.push(ev);
+    }
   }
 
   PaintFinder.prototype = {
@@ -111,13 +102,12 @@ tr.exportTo('tr.metrics.sh', function() {
         return undefined;
 
       var eventAfterTimestamp;
-      list.forEach(function(ev) {
+      for (var ev of list) {
         if (ev.start < ts)
-          return;
-
+          continue;
         if (eventAfterTimestamp === undefined)
           eventAfterTimestamp = ev;
-      }, this);
+      }
       return eventAfterTimestamp;
     }
   };
@@ -152,15 +142,16 @@ tr.exportTo('tr.metrics.sh', function() {
           'Chrome.');
       return undefined;
     }
-    frameLoaderInstances.forEach(function(instance) {
+
+    var snapshot;
+    for (var instance of frameLoaderInstances) {
       if (!instance.isAliveAt(ts))
-        return;
+        continue;
       var maybeSnapshot = instance.getSnapshotAt(ts);
       if (frameIdRef !== maybeSnapshot.args['frame']['id_ref'])
-        return;
-
+        continue;
       snapshot = maybeSnapshot;
-    }, this);
+    }
 
     return snapshot;
   }
@@ -168,14 +159,11 @@ tr.exportTo('tr.metrics.sh', function() {
   function findAllUserTimingEvents(rendererHelper, title) {
     var targetEvents = [];
 
-    rendererHelper.process.iterateAllEvents(
-        function(ev) {
-          if (ev.category !== 'blink.user_timing' ||
-              ev.title !== title)
-            return;
-
-          targetEvents.push(ev);
-        }, this);
+    for (var ev of rendererHelper.process.getDescendantEvents()) {
+      if (ev.category !== 'blink.user_timing' || ev.title !== title)
+        continue;
+      targetEvents.push(ev);
+    }
 
     return targetEvents;
   }
@@ -184,27 +172,26 @@ tr.exportTo('tr.metrics.sh', function() {
     var isTelemetryInternalEvent =
         prepareTelemetryInternalEventPredicate(rendererHelper);
     var layoutsForFrameId = {};
-    rendererHelper.process.iterateAllEvents(
-        function(ev) {
-          if (ev.category !==
-              'blink,benchmark,disabled-by-default-blink.debug.layout' ||
-              ev.title !== 'FrameView::performLayout')
-            return;
-          if (isTelemetryInternalEvent(ev))
-            return;
-          if (ev.args.counters === undefined) {
-            console.warn('Ignoring FrameView::performLayout event with no ' +
-                'counters arg (END event is missing).');
-            return;
-          }
-          var frameIdRef = ev.args.counters['frame'];
-          if (frameIdRef === undefined)
-            return;
-          var list = layoutsForFrameId[frameIdRef];
-          if (list === undefined)
-            layoutsForFrameId[frameIdRef] = list = [];
-          list.push(ev);
-        }, this);
+    for (var ev of rendererHelper.process.getDescendantEvents()) {
+      if (ev.category !==
+          'blink,benchmark,disabled-by-default-blink.debug.layout' ||
+          ev.title !== 'FrameView::performLayout')
+        continue;
+      if (isTelemetryInternalEvent(ev))
+        continue;
+      if (ev.args.counters === undefined) {
+        console.warn('Ignoring FrameView::performLayout event with no ' +
+            'counters arg (END event is missing).');
+        continue;
+      }
+      var frameIdRef = ev.args.counters['frame'];
+      if (frameIdRef === undefined)
+        continue;
+      var list = layoutsForFrameId[frameIdRef];
+      if (list === undefined)
+        layoutsForFrameId[frameIdRef] = list = [];
+      list.push(ev);
+    }
     return layoutsForFrameId;
   }
 
@@ -212,8 +199,8 @@ tr.exportTo('tr.metrics.sh', function() {
     var ignoreRegions = [];
 
     var internalRegionStart;
-    rendererHelper.mainThread.asyncSliceGroup.iterateAllEventsInThisContainer(
-        () => true, function(slice) {
+    for (var slice of
+        rendererHelper.mainThread.asyncSliceGroup.getDescendantEvents()) {
           if (!!slice.title.match(/^telemetry\.internal\.[^.]*\.start$/))
             internalRegionStart = slice.start;
           if (!!slice.title.match(/^telemetry\.internal\.[^.]*\.end$/)) {
@@ -221,13 +208,12 @@ tr.exportTo('tr.metrics.sh', function() {
             timedEvent.duration = slice.end - internalRegionStart;
             ignoreRegions.push(timedEvent);
           }
-        }, this);
+        }
 
     return function isTelemetryInternalEvent(slice) {
-      for (var i = 0; i < ignoreRegions.length; ++ i) {
-        if (ignoreRegions[i].bounds(slice))
+      for (var region of ignoreRegions)
+        if (region.bounds(slice))
           return true;
-      }
       return false;
     }
   }
@@ -262,34 +248,34 @@ tr.exportTo('tr.metrics.sh', function() {
         prepareTelemetryInternalEventPredicate(rendererHelper);
     var navigationStartFinder = new NavigationStartFinder(rendererHelper);
 
-    METRICS.forEach(function(metric) {
+    for (var metric of METRICS) {
       var histogram = createHistogram();
       var targetEvents = findAllUserTimingEvents(rendererHelper, metric.title);
-      targetEvents = targetEvents.filter(
-          (ev) => !isTelemetryInternalEvent(ev));
-      targetEvents.forEach(function(ev) {
+     for (var ev of targetEvents) {
+        if (isTelemetryInternalEvent(ev))
+          continue;
         var frameIdRef = ev.args['frame'];
         var snapshot =
           findFrameLoaderSnapshotAt(rendererHelper, frameIdRef, ev.start);
         if (snapshot === undefined || !snapshot.args.isLoadingMainFrame)
-          return;
+          continue;
         var url = snapshot.args.documentLoaderURL;
         if (shouldIgnoreURL(url))
-          return;
+          continue;
         var navigationStartEvent = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ev.start);
         // Ignore layout w/o preceding navigationStart, as they are not
         // attributed to any time-to-X metric.
         if (navigationStartEvent === undefined)
-          return;
+          continue;
 
         var timeToEvent = ev.start - navigationStartEvent.start;
         histogram.add(timeToEvent, {url: url});
-      }, this);
+      }
       values.addValue(new tr.v.NumericValue(
           metric.valueName, histogram,
           { description: metric.description }));
-    }, this);
+    }
   }
 
   /**
@@ -375,13 +361,13 @@ tr.exportTo('tr.metrics.sh', function() {
 
       // Iterate over the layout events, remembering one with largest
       // significance.
-      layoutsForFrameId[frameIdRef].forEach(function(ev) {
+      for (var ev of layoutsForFrameId[frameIdRef]) {
         var navigationStartForThisLayout = navigationStartFinder.
           findNavigationStartEventForFrameBeforeTimestamp(frameIdRef, ev.start);
         // Ignore layout w/o preceding navigationStart, as they are not
         // attributed to any TTFMP.
         if (navigationStartForThisLayout === undefined)
-          return;
+          continue;
 
         if (navigationStart !== navigationStartForThisLayout) {
           // New navigation is found. Compute TTFMP for current navigation, and
@@ -410,7 +396,7 @@ tr.exportTo('tr.metrics.sh', function() {
             mostSignificantLayout = ev;
           }
         }
-      }, this);
+      }
 
       // Emit TTFMP for the last navigation.
       if (mostSignificantLayout !== undefined)

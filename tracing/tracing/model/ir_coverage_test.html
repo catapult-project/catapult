@@ -58,13 +58,13 @@ tr.b.unittest.testSuite(function() {
 
   test('computeCoverage', function() {
     var model = createModel();
-    model.iterateAllEvents(function(event) {
+    for (var event of model.getDescendantEvents()) {
       if (event.title === 's0' || event.title === 's2') {
         event.cpuSelfTime = 0.4;
       } else if (event.title === 's1') {
         event.cpuSelfTime = 0.8;
       }
-    });
+    }
 
     var coverage = tr.model.getIRCoverageFromModel(model);
     assert.equal(3, coverage.associatedEventsCount);

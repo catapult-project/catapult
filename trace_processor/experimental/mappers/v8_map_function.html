@@ -34,12 +34,12 @@ tr.exportTo('pi.m', function() {
 
     var sliceCosts = [];
 
-    model.iterateAllEvents(function(event) {
+    for (var event of model.getDescendantEvents()) {
       if (!(event instanceof tr.model.ThreadSlice))
-        return;
+        continue;
 
       if (!event.title.startsWith('V8.') && !event.title.startsWith('V8Test.'))
-        return;
+        continue;
 
       function _get_parent_data(event) {
         var curSlice = event;
@@ -221,7 +221,7 @@ tr.exportTo('pi.m', function() {
         value: sliceData
       };
       sliceCosts.push(newElement);
-    });
+    }
 
     result.addPair('wr', sliceCosts);
   }
@@ -237,11 +237,11 @@ tr.exportTo('pi.m', function() {
       }, this);
     }, this);
 
-    model.iterateAllEvents(function storeEventToUnassociatedSet(event) {
+    for (var event of model.getDescendantEvents()) {
       if (stageTitleByGUID[event.guid] !== undefined)
         return;
       stageTitleByGUID[event.guid] = 'Unknown';
-    });
+    }
     return stageTitleByGUID;
   }
 

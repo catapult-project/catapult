@@ -166,7 +166,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       var brightenedEvents = this.brightenedEvents_;
-      model.iterateAllEvents(function(e) {
+      for (var e of model.getDescendantEvents()) {
         var score;
         if (brightenedEvents.contains(e)) {
           score = 0;
@@ -183,7 +183,7 @@ tr.exportTo('tr.ui.b', function() {
             score++;
           e.selectionState = SelectionState.getFromDimmingLevel(score);
         }
-      }.bind(this));
+      }
     },
 
     transferModelOwnershipToClone: function(that) {
@@ -201,15 +201,13 @@ tr.exportTo('tr.ui.b', function() {
       this.appliedToModel_ = undefined;
 
       if (!this.causesDimming_) {
-        this.brightenedEvents_.forEach(function(e) {
+        for (var e of this.brightenedEvents_)
           e.selectionState = SelectionState.NONE;
-        });
         return;
       }
 
-      model.iterateAllEvents(function(e) {
+      for (var e of model.getDescendantEvents())
         e.selectionState = SelectionState.NONE;
-      });
     }
   };
 

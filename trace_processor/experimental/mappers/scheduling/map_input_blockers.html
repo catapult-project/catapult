@@ -35,11 +35,11 @@ tr.exportTo('pie', function() {
       var mainThread = rendererHelper.mainThread;
       // Look for events that represent main thread input handling that also
       // have one associated flow event showing where the input came from.
-      mainThread.iterateAllEvents(function(event) {
+      for (var event of mainThread.getDescendantEvents()) {
         if (event.title !== 'LatencyInfo.Flow' ||
             event.args['step'] !== 'HandleInputEventMain' ||
             event.inFlowEvents.length !== 1) {
-          return;
+          continue;
         }
 
         // Now we can derive the queueing interval from the flow event.
@@ -49,19 +49,19 @@ tr.exportTo('pie', function() {
 
         // Find all events that intersect the queueing interval and compute how
         // much they contributed to it.
-        mainThread.iterateAllEvents(function(event) {
+        for (var intersectingEvent of mainThread.getDescendantEvents()) {
           var eventRange =
-              tr.b.Range.fromExplicitRange(event.start,
-                                           event.start + event.duration);
+              tr.b.Range.fromExplicitRange(intersectingEvent.start,
+                  intersectingEvent.start + intersectingEvent.duration);
           var intersection = queueRange.findIntersection(eventRange);
           if (intersection.isEmpty || intersection.duration === 0)
-            return;
-          if (inputBlockers[event.title] === undefined)
-            inputBlockers[event.title] = [];
-          inputBlockers[event.title].push(intersection.duration);
+            continue;
+          if (inputBlockers[intersectingEvent.title] === undefined)
+            inputBlockers[intersectingEvent.title] = [];
+          inputBlockers[intersectingEvent.title].push(intersection.duration);
           foundInputBlockers = true;
-        });
-      });
+        }
+      }
     }
 
     if (!foundInputBlockers) {

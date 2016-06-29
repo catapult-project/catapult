@@ -41,10 +41,9 @@ tr.b.unittest.testSuite(function() {
     tg.autoInitUsingHelpers(m);
 
     var allSlices = new tr.model.EventSet();
-    m.iterateAllEvents(function(e) {
+    for (var e of m.getDescendantEvents())
       if (e instanceof tr.model.Slice)
         allSlices.push(e);
-    });
     var groups = tg.divideEventSetIntoSubGroups(allSlices);
     var numGrouped = 0;
     tr.b.iterItems(groups, function(groupName, eventSet) {

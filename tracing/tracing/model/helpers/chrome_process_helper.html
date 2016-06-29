@@ -45,19 +45,14 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     getFrameEventsInRange: function(frametimeType, range) {
-      var titleToGet;
-      if (frametimeType == MAIN_FRAMETIME_TYPE)
-        titleToGet = MAIN_RENDERING_STATS;
-      else
-        titleToGet = IMPL_RENDERING_STATS;
+      var titleToGet = (frametimeType === MAIN_FRAMETIME_TYPE ?
+        MAIN_RENDERING_STATS : IMPL_RENDERING_STATS);
 
       var frameEvents = [];
-      this.process.iterateAllEvents(function(event) {
-        if (event.title !== titleToGet)
-          return;
-        if (range.intersectsExplicitRangeInclusive(event.start, event.end))
-          frameEvents.push(event);
-      });
+      for (var event of this.process.getDescendantEvents())
+        if (event.title === titleToGet)
+          if (range.intersectsExplicitRangeInclusive(event.start, event.end))
+            frameEvents.push(event);
 
       frameEvents.sort(function(a, b) {return a.start - b.start});
       return frameEvents;

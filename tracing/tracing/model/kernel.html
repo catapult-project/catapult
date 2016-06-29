@@ -125,11 +125,6 @@ tr.exportTo('tr.model', function() {
       yield * ProcessBase.prototype.childEventContainers.call(this);
       yield * tr.b.dictionaryValues(this.cpus);
     },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
-      yield * ProcessBase.prototype.childEvents.call(
-          this, eventTypePredicate, opt_this);
-    }
   };
 
   return {

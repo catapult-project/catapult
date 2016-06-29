@@ -119,9 +119,9 @@ tr.exportTo('tr', function() {
     getEventByStableId: function(stableId) {
       if (this.eventsByStableId_ === undefined) {
         this.eventsByStableId_ = {};
-        this.iterateAllEvents(function(event) {
+        for (var event of this.getDescendantEvents()) {
           this.eventsByStableId_[event.stableId] = event;
-        }, this);
+        }
       }
       return this.eventsByStableId_[stableId];
     },
@@ -146,25 +146,12 @@ tr.exportTo('tr', function() {
       return this.helpersByConstructorGUID_[constructor.guid];
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-    },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, GlobalMemoryDump))
-        yield * this.globalMemoryDumps;
-
-      if (eventTypePredicate.call(opt_this, GlobalInstantEvent))
-        yield * this.instantEvents;
-
-      if (eventTypePredicate.call(opt_this, FlowEvent))
-        yield * this.flowEvents;
-
-      if (eventTypePredicate.call(opt_this, Alert))
-        yield * this.alerts;
-
-      if (eventTypePredicate.call(opt_this, Sample))
-        yield * this.samples;
+    childEvents: function*() {
+      yield * this.globalMemoryDumps;
+      yield * this.instantEvents;
+      yield * this.flowEvents;
+      yield * this.alerts;
+      yield * this.samples;
     },
 
     childEventContainers: function*() {
@@ -188,29 +175,22 @@ tr.exportTo('tr', function() {
     updateBounds: function() {
       this.bounds.reset();
       var bounds = this.bounds;
-
-      this.iterateAllChildEventContainers(function(ec) {
+      for (var ec of this.childEventContainers()) {
         ec.updateBounds();
         bounds.addRange(ec.bounds);
-      });
-      this.iterateAllEventsInThisContainer(
-          function(eventConstructor) { return true; },
-          function(event) {
-            event.addBoundsToRange(bounds);
-          });
+      }
+      for (var event of this.childEvents())
+        event.addBoundsToRange(bounds);
     },
 
     shiftWorldToZero: function() {
       var shiftAmount = -this.bounds.min;
       this.timestampShiftToZeroAmount_ = shiftAmount;
-      this.iterateAllChildEventContainers(function(ec) {
+      for (var ec of this.childEventContainers())
         ec.shiftTimestampsForward(shiftAmount);
-      });
-      this.iterateAllEventsInThisContainer(
-        function(eventConstructor) { return true; },
-        function(event) {
-          event.start += shiftAmount;
-        });
+
+      for (var event of this.childEvents())
+        event.start += shiftAmount;
       this.updateBounds();
     },
 

@@ -51,7 +51,7 @@ tr.exportTo('tr.model', function() {
   };
 
   Cpu.prototype = {
-    __proto__: tr.model.ProcessBase.prototype,
+    __proto__: tr.model.EventContainer.prototype,
 
     get samples() {
       return this.samples_;
@@ -61,23 +61,19 @@ tr.exportTo('tr.model', function() {
       return 'CPU ' + this.cpuNumber;
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
+    findTopmostSlicesInThisContainer: function*(eventPredicate, opt_this) {
       // All CpuSlices are toplevel since CpuSlices do not nest.
-      this.slices.forEach(function(s) {
-        s.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
-                                               opt_this);
-      });
+      for (var s of slices) {
+        yield * s.findTopmostSlicesRelativeToThisSlice(
+            eventPredicate, opt_this);
+      }
     },
 
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, tr.model.CpuSlice))
-        yield * this.slices;
+    childEvents: function*() {
+      yield * this.slices;
 
-      if (this.samples_) {
-        if (eventTypePredicate.call(opt_this, tr.model.Sample))
-          yield * this.samples_;
-      }
+      if (this.samples_)
+        yield * this.samples_;
     },
 
     childEventContainers: function*() {

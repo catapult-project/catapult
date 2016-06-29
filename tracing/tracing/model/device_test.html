@@ -50,26 +50,22 @@ tr.b.unittest.testSuite(function() {
     assert.equal(device.powerSeries.samples[1].start, 202);
   });
 
-  test('iterateAllChildEventContainers', function() {
+  test('childEventContainers_noPowerSeries', function() {
     var device = new Device(new Model());
-
-    // Power series shouldn't be included as a child until one's set.
     var childEventContainers = [];
-    device.iterateAllChildEventContainers(function(eventContainer) {
-      childEventContainers.push(eventContainer);
-    });
-
+    for (var container of device.childEventContainers())
+      childEventContainers.push(container);
     assert.deepEqual(childEventContainers, []);
+  });
 
+  test('childEventContainers_powerSeries', function() {
+    var device = new Device(new Model());
     device.powerSeries = new PowerSeries(device);
-
-    // Verify that the power series is now included as a child.
     var childEventContainers = [];
-    device.iterateAllChildEventContainers(function(eventContainer) {
-      childEventContainers.push(eventContainer);
-    });
-
+    for (var container of device.childEventContainers())
+      childEventContainers.push(container);
     assert.deepEqual(childEventContainers, [device.powerSeries]);
   });
+
 });
 </script>

@@ -53,7 +53,7 @@ tr.exportTo('tr.model', function() {
     },
 
     // TODO(charliea): A default implementation of this method could likely be
-    // provided that uses 'iterateAllEvents'.
+    // provided that iterates throuch getDescendantEvents.
     /**
      * Updates the bounds of the event container. After updating, this.bounds
      * will describe the range of timestamps of all ancestor events.
@@ -63,7 +63,7 @@ tr.exportTo('tr.model', function() {
     },
 
     // TODO(charliea): A default implementation of this method could likely be
-    // provided that uses 'iterateAllEvents'.
+    // provided that iterates through getDescendantEvents.
     /**
      * Shifts the timestamps for ancestor events by 'amount' milliseconds.
      */
@@ -71,75 +71,43 @@ tr.exportTo('tr.model', function() {
       throw new Error('Not implemented');
     },
 
+
     /**
-     * Iterates over all child events.
-     */
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
-      // TODO(alexandermont): We need this.childEvents() to take an
-      // eventTypePredicate because it doesn't look possible to directly get the
-      // type object from an object, so we have to do the filtering before
-      // the iteration. Probably it would be better if we find a workaround
-      // for this.
-      for (var event of this.childEvents(eventTypePredicate, opt_this))
-        callback.call(opt_this, event);
+    * Returns an iterable of all child events.
+    */
+    childEvents: function*() {
     },
 
     /**
-     * Iterates over all child containers.
-     */
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      for (var container of this.childEventContainers())
-        callback.call(opt_this, container);
-    },
-
-    /**
-     * Iterates over all events in this container and in descendant
+     * Returns an iterable of all events in this and descendant
      * event containers.
      */
-    iterateAllEvents: function(callback, opt_this) {
-      // If new-style iteration has been implemented for this container, use
-      // it for iterateAllEvents.
-      if (this.childEvents && this.childEventContainers) {
-        for (var event of this.childEvents(x => true, opt_this))
-          callback.call(opt_this, event);
-        for (var container of this.childEventContainers())
-          container.iterateAllEvents(callback, opt_this);
-      } else {
-        // Otherwise, just do it the old way.
-        this.iterateAllEventContainers(function(ec) {
-          ec.iterateAllEventsInThisContainer(x => true, callback, opt_this);
-        });
-      }
+    getDescendantEvents: function*() {
+      yield * this.childEvents();
+      for (var container of this.childEventContainers())
+        yield * container.getDescendantEvents();
     },
 
     /**
-     * Iterates over this container and all descendant containers.
+     * Returns an iterable of all child event containers.
      */
-    iterateAllEventContainers: function(callback, opt_this) {
-      // If new-style iteration has been implemented for this container, use
-      // it for iterateAllEventContainers.
-      if (this.childEvents && this.childEventContainers) {
-        callback.call(opt_this, this);
-        for (var container of this.childEventContainers())
-          container.iterateAllEventContainers(callback, opt_this);
-      } else {
-        // Otherwise, just do it the old way.
-        function visit(ec) {
-          callback.call(opt_this, ec);
-          ec.iterateAllChildEventContainers(visit);
-        }
-        visit(this);
-      }
+    childEventContainers: function*() {
+    },
+
+    /**
+    * Returns an iterable containing this and all descendant event containers.
+    */
+    getDescendantEventContainers: function*() {
+      yield this;
+      for (var container of this.childEventContainers())
+        yield * container.getDescendantEventContainers();
     },
 
     /**
      * Finds topmost slices in this container (see docstring for
      * findTopmostSlices).
      */
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-      throw new Error('Not implemented.');
+    findTopmostSlicesInThisContainer: function*(eventPredicate, opt_this) {
     },
 
     /**
@@ -156,14 +124,13 @@ tr.exportTo('tr.model', function() {
      * the  left is not the topmost C, and the right one is, even though it is
      * not itself a top-level slice.
      */
-    findTopmostSlices: function(eventPredicate, callback, opt_this) {
-      this.iterateAllEventContainers(function(ec) {
-        ec.findTopmostSlicesInThisContainer(eventPredicate, callback, opt_this);
-      });
+    findTopmostSlices: function*(eventPredicate) {
+      for (var ec of this.getDescendantEventContainers())
+        yield * ec.findTopmostSlicesInThisContainer(eventPredicate);
     },
 
-    findTopmostSlicesNamed: function(name, callback, opt_this) {
-      this.findTopmostSlices(e => e.title === name, callback, opt_this);
+    findTopmostSlicesNamed: function*(name) {
+      yield * this.findTopmostSlices(e => e.title === name);
     }
   };
 

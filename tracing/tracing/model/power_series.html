@@ -114,17 +114,9 @@ tr.exportTo('tr.model', function() {
       this.bounds.addValue(this.samples_[this.samples_.length - 1].start);
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
+    childEvents: function*() {
+      yield * this.samples_;
     },
-
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, PowerSample))
-        yield * this.samples_;
-    },
-
-    childEventContainers: function*(callback, opt_this) {
-    }
   };
 
   return {

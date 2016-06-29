@@ -134,27 +134,24 @@ tr.exportTo('tr.model', function() {
       return this.viewSubGroups_;
     },
 
-    findTopmostSlicesInThisContainer: function(eventPredicate, callback,
-                                               opt_this) {
-      for (var i = 0; i < this.slices.length; i++) {
-        var slice = this.slices[i];
-        if (slice.isTopLevel)
-          slice.findTopmostSlicesRelativeToThisSlice(eventPredicate, callback,
-                                                     opt_this);
+    findTopmostSlicesInThisContainer: function*(eventPredicate, opt_this) {
+      for (var slice of this.slices) {
+        if (slice.isTopLevel) {
+          yield * slice.findTopmostSlicesRelativeToThisSlice(
+              eventPredicate, opt_this);
+        }
       }
     },
 
-    childEvents: function*(eventTypePredicate, opt_this) {
+    childEvents: function*() {
       // Async slices normally don't have sub-slices, and when they do,
       // the sub-slice is specific to the type of async slice. Thus,
       // it is not expected for sub-slices to themselves have sub-sub-slices,
       // which is why we don't recurse into the sub-slices here.
-       if (eventTypePredicate.call(opt_this, tr.model.AsyncSlice)) {
-        for (var slice of this.slices) {
-          yield slice;
-          if (slice.subSlices)
-            yield * slice.subSlices;
-        }
+      for (var slice of this.slices) {
+        yield slice;
+        if (slice.subSlices)
+          yield * slice.subSlices;
       }
     },
 
