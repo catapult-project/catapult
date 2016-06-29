@@ -39,6 +39,7 @@ class TracingConfig(object):
     self._enable_platform_display_trace = False
     self._enable_android_graphics_memtrack = False
     self._enable_battor_trace = False
+    self.enable_cpu_trace = False
     self._enable_chrome_trace = False
 
     self._atrace_config = atrace_config.AtraceConfig()

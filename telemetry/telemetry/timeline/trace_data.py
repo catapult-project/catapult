@@ -40,6 +40,7 @@ class TraceDataPart(object):
 ATRACE_PART = TraceDataPart('systemTraceEvents')
 BATTOR_TRACE_PART = TraceDataPart('powerTraceAsString')
 CHROME_TRACE_PART = TraceDataPart('traceEvents')
+CPU_TRACE_DATA = TraceDataPart('cpuSnapshots')
 INSPECTOR_TRACE_PART = TraceDataPart('inspectorTimelineEvents')
 SURFACE_FLINGER_PART = TraceDataPart('surfaceFlinger')
 TAB_ID_PART = TraceDataPart('tabIds')
@@ -48,6 +49,7 @@ TELEMETRY_PART = TraceDataPart('telemetry')
 ALL_TRACE_PARTS = {ATRACE_PART,
                    BATTOR_TRACE_PART,
                    CHROME_TRACE_PART,
+                   CPU_TRACE_DATA,
                    INSPECTOR_TRACE_PART,
                    SURFACE_FLINGER_PART,
                    TAB_ID_PART,
