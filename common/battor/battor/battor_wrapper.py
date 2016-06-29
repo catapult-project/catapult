@@ -157,7 +157,7 @@ class BattorWrapper(object):
     with open(self._trace_results_path) as results:
       self._trace_results = results.read()
     self._battor_shell = None
-    return self._trace_results.splitlines()
+    return self._trace_results
 
   def SupportsExplicitClockSync(self):
     """Returns if BattOr supports Clock Sync events."""

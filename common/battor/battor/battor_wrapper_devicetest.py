@@ -68,7 +68,7 @@ class BattorWrapperDeviceTest(unittest.TestCase):
       if self._platform == 'win':
         time.sleep(5)
         battor._battor_shell.kill()
-      results = battor.CollectTraceData()
+      results = battor.CollectTraceData().splitlines()
     except:
       if battor._battor_shell is not None:
         battor._battor_shell.kill()

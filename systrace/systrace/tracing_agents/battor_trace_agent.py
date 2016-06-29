@@ -111,5 +111,5 @@ class BattorTraceAgent(tracing_agents.TracingAgent):
     Returns:
       The trace data.
     """
-    return tracing_agents.TraceResult('powerTraceAsString',
-               '\n'.join(self._battor_wrapper.CollectTraceData()))
+    return tracing_agents.TraceResult(
+        'powerTraceAsString', self._battor_wrapper.CollectTraceData())

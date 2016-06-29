@@ -101,5 +101,5 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     record_controller_clock_sync_marker_callback(sync_id, timestamp)
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    data = '\n'.join(self._battor.CollectTraceData(timeout=timeout))
+    data = self._battor.CollectTraceData(timeout=timeout)
     trace_data_builder.SetTraceFor(trace_data.BATTOR_TRACE_PART, data)

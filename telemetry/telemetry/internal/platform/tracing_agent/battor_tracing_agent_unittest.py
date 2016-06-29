@@ -11,7 +11,7 @@ from telemetry.internal.platform.tracing_agent import battor_tracing_agent
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 
-_BATTOR_RETURN = ['fake', 'battor', 'data']
+_BATTOR_RETURN = 'fake\nbattor\ndata'
 
 
 class FakeBatteryUtils(object):
@@ -170,7 +170,7 @@ class BattOrTracingAgentTest(unittest.TestCase):
     builder = builder.AsData()
     self.assertTrue(builder.HasTraceFor(trace_data.BATTOR_TRACE_PART))
     data_from_builder = builder.GetTraceFor(trace_data.BATTOR_TRACE_PART)
-    self.assertEqual('\n'.join(_BATTOR_RETURN), data_from_builder)
+    self.assertEqual(_BATTOR_RETURN, data_from_builder)
 
   def testAndroidCharging(self):
     self.assertTrue(self.android_agent._battery.GetCharging())

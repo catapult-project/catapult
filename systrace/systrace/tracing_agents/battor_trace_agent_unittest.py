@@ -79,7 +79,7 @@ class MockBattorWrapper(object):
     assert self._output
     if self._CollectTraceData_error:
       raise RuntimeError('Simulated error in CollectTraceData')
-    return ['traceout1', 'traceout2']
+    return 'traceout1\ntraceout2'
 
 class MockBatteryUtils(object):
   def __init__(self, _):
