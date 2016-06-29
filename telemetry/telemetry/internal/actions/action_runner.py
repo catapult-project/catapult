@@ -363,7 +363,9 @@ class ActionRunner(object):
                                     y_scroll_distance_ratio=0.5,
                                     repeat_count=0,
                                     repeat_delay_ms=250,
-                                    timeout=60):
+                                    timeout=60,
+                                    prevent_fling=None,
+                                    speed=None):
     """Perform a browser driven repeatable scroll gesture.
 
     The scroll gesture is driven from the browser, this is useful because the
@@ -377,12 +379,15 @@ class ActionRunner(object):
           of the screen height.
       repeat_count: The number of additional times to repeat the gesture.
       repeat_delay_ms: The delay in milliseconds between each scroll gesture.
+      prevent_fling: Prevents a fling gesture.
+      speed: Swipe speed in pixels per second.
     """
     self._RunAction(RepeatableScrollAction(
         x_scroll_distance_ratio=x_scroll_distance_ratio,
         y_scroll_distance_ratio=y_scroll_distance_ratio,
         repeat_count=repeat_count,
-        repeat_delay_ms=repeat_delay_ms, timeout=timeout))
+        repeat_delay_ms=repeat_delay_ms, timeout=timeout,
+        prevent_fling=prevent_fling, speed=speed))
 
   def ScrollElement(self, selector=None, text=None, element_function=None,
                     left_start_ratio=0.5, top_start_ratio=0.5,

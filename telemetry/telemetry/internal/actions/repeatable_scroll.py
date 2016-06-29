@@ -9,7 +9,8 @@ from telemetry.web_perf import timeline_interaction_record
 class RepeatableScrollAction(page_action.PageAction):
 
   def __init__(self, x_scroll_distance_ratio=0.0, y_scroll_distance_ratio=0.5,
-               repeat_count=0, repeat_delay_ms=250, timeout=60):
+               repeat_count=0, repeat_delay_ms=250, timeout=60,
+               prevent_fling=None, speed=None):
     super(RepeatableScrollAction, self).__init__()
     self._x_scroll_distance_ratio = x_scroll_distance_ratio
     self._y_scroll_distance_ratio = y_scroll_distance_ratio
@@ -17,6 +18,8 @@ class RepeatableScrollAction(page_action.PageAction):
     self._repeat_delay_ms = repeat_delay_ms
     self._windowsize = []
     self._timeout = timeout
+    self._prevent_fling = prevent_fling
+    self._speed = speed
 
   def WillRunAction(self, tab):
     # Get the dimensions of the screen.
@@ -33,6 +36,8 @@ class RepeatableScrollAction(page_action.PageAction):
         y=int(self._windowsize[1] / 2),
         xDistance=int(self._x_scroll_distance_ratio * self._windowsize[0]),
         yDistance=int(-self._y_scroll_distance_ratio * self._windowsize[1]),
+        preventFling=self._prevent_fling,
+        speed=self._speed,
         repeatCount=self._repeat_count,
         repeatDelayMs=self._repeat_delay_ms,
         interactionMarkerName=timeline_interaction_record.GetJavaScriptMarker(
