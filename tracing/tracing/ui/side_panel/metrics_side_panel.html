@@ -13,8 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/all_value_set_views.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
-<polymer-element name='tr-ui-sp-metrics-side-panel'
-    extends='tr-ui-side-panel'>
+<dom-module id="tr-ui-sp-metrics-side-panel">
   <template>
     <style>
     :host {
@@ -26,12 +25,15 @@ found in the LICENSE file.
     <top-left-controls id="top_left_controls"></top-left-controls>
     <tr-v-ui-value-set-view id="results"></tr-v-ui-value-set-view>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
 tr.exportTo('tr.ui', function() {
-  Polymer('tr-ui-sp-metrics-side-panel', {
+  Polymer({
+    is: 'tr-ui-sp-metrics-side-panel',
+    behaviors: [Catapult.tr_ui_side_panel],
+
     ready: function() {
       this.model_ = undefined;
 
@@ -56,7 +58,7 @@ tr.exportTo('tr.ui', function() {
           this.settingsKey_,
           this.currentMetricName_,
           this.metrics_);
-      this.$.top_left_controls.appendChild(metricSelector);
+      Polymer.dom(this.$.top_left_controls).appendChild(metricSelector);
       metricSelector.addEventListener('change',
           this.onMetricChange_.bind(this));
       this.currentMetricTypeInfo_ =
@@ -65,7 +67,7 @@ tr.exportTo('tr.ui', function() {
 
       this.recomputeButton_ = tr.ui.b.createButton(
           'Recompute', this.onRecompute_, this);
-      this.$.top_left_controls.appendChild(this.recomputeButton_);
+      Polymer.dom(this.$.top_left_controls).appendChild(this.recomputeButton_);
     },
 
     /**
@@ -203,6 +205,10 @@ tr.exportTo('tr.ui', function() {
       this.recomputeButton_.style.background = '';
       this.$.results.values = values;
     }
+  });
+
+  tr.ui.side_panel.SidePanelRegistry.register(function() {
+    return document.createElement('tr-ui-sp-metrics-side-panel');
   });
 
   return {};
