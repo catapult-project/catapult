@@ -41,12 +41,12 @@ See https://github.com/catapult-project/catapult/issues/1905
         on-click="onTrace">Trace</paper-button>
     <trace-form
         id="trace"
-        xsrfToken="{{xsrfToken}}"
-        earlierRevision="{{traceInfo.goodRev}}"
-        laterRevision="{{traceInfo.badRev}}"
-        testPath="{{traceInfo.testPath}}"
-        rerunInfo="{{traceInfo.traceRerunInfo}}"
-        bugId="{{bugId}}"></trace-form>
+        xsrf-token="{{xsrfToken}}"
+        earlier-revision="{{traceInfo.goodRev}}"
+        later-revision="{{traceInfo.badRev}}"
+        test-path="{{traceInfo.testPath}}"
+        rerun-info="{{traceInfo.traceRerunInfo}}"
+        bug-id="{{bugId}}"></trace-form>
   </template>
   <script>
     'use strict';

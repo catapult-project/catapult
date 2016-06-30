@@ -43,11 +43,11 @@ found in the LICENSE file.
         on-click="onBisect">Bisect</paper-button>
     <bisect-form
         id="bisect"
-        xsrfToken="{{xsrfToken}}"
-        earlierRevision="{{bisectInfo.goodRev}}"
-        laterRevision="{{bisectInfo.badRev}}"
-        testPath="{{bisectInfo.testPath}}"
-        bugId="{{bugId}}"></bisect-form>
+        xsrf-token="{{xsrfToken}}"
+        earlier-revision="{{bisectInfo.goodRev}}"
+        later-revision="{{bisectInfo.badRev}}"
+        test-path="{{bisectInfo.testPath}}"
+        bug-id="{{bugId}}"></bisect-form>
   </template>
   <script>
     'use strict';
