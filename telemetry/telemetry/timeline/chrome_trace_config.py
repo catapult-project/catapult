@@ -58,10 +58,8 @@ class ChromeTraceConfig(object):
 
     record_mode: can be any mode in RECORD_MODE_MAP. This corresponds to
         record modes in chrome.
-    chrome_trace_category_filter: Object that specifies which tracing
-        categories to trace.
+    category_filter: Object that specifies which tracing categories to trace.
     memory_dump_config: Stores the triggers for memory dumps.
-
   """
 
   def __init__(self):
@@ -91,17 +89,8 @@ class ChromeTraceConfig(object):
         chrome_trace_category_filter.CreateDebugOverheadFilter())
 
   @property
-  def tracing_category_filter(self):
-    return self._category_filter
-
-  @property
   def category_filter(self):
     return self._category_filter
-
-  @decorators.Deprecated(2016, 6, 27, 'This function is deprecated. Please use '
-                         'SetCategoryFilter.')
-  def SetTracingCategoryFilter(self, cf):
-    self.SetCategoryFilter(cf)
 
   def SetCategoryFilter(self, cf):
     if isinstance(cf, chrome_trace_category_filter.ChromeTraceCategoryFilter):
