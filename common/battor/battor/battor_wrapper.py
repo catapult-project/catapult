@@ -215,6 +215,7 @@ class BattorWrapper(object):
   def _SendBattorCommandImpl(self, cmd):
     """Sends command to the BattOr."""
     self._battor_shell.stdin.write('%s\n' % cmd)
+    self._battor_shell.stdin.flush()
     return self._battor_shell.stdout.readline()
 
   def _SendBattorCommand(self, cmd, check_return=True):
