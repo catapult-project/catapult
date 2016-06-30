@@ -653,7 +653,7 @@ class AndroidPlatformBackend(
         ['logcat', '-d', '-t', str(number_of_lines)]))
 
   def GetStandardOutput(self):
-    return None
+    return 'Cannot get standard output on Android'
 
   def GetStackTrace(self):
     """Returns stack trace.

@@ -40,6 +40,8 @@ class BrowserBackend(app_backend.AppBackend):
     raise NotImplementedError
 
   def GetLogFileContents(self):
+    if not self.log_file_path:
+      return 'No log file'
     with file(self.log_file_path) as f:
       return f.read()
 
