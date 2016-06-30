@@ -55,7 +55,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         });
 
         test('default opened width', function() {
-          assert.equal(collapse.style.width, 'auto');
+          assert.equal(collapse.style.width, '');
         });
 
         test('set opened to false, then to true', function(done) {
@@ -63,21 +63,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           collapse.addEventListener('transitionend', function() {
             if (collapse.opened) {
               // Check finalSize after animation is done.
-              assert.equal(collapse.style.width, 'auto');
+              assert.equal(collapse.style.width, '');
               done();
             } else {
               // Check if size is still 0px.
-              assert.equal(collapse.style.width, '0px');
+              assert.equal(collapse.style.maxWidth, '0px');
               // Trigger 2nd toggle.
               collapse.opened = true;
               // Size should be immediately set.
-              assert.equal(collapse.style.width, collapseWidth);
+              assert.equal(collapse.style.maxWidth, collapseWidth);
             }
           });
           // Trigger 1st toggle.
           collapse.opened = false;
           // Size should be immediately set.
-          assert.equal(collapse.style.width, '0px');
+          assert.equal(collapse.style.maxWidth, '0px');
         });
       });
 

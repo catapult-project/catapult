@@ -25,7 +25,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </style>
 
   <template>
+    <button id="first">first</button>
     <content></content>
+    <button id="last">last</button>
   </template>
 
 </dom-module>
@@ -40,7 +42,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     behaviors: [
       Polymer.IronOverlayBehavior
-    ]
+    ],
+    
+    get _focusableNodes() {
+      return [this.$.first, this.$.last];
+    }
 
   });
 

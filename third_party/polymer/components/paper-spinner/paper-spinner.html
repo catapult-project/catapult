@@ -53,48 +53,28 @@ Custom property | Description | Default
 -->
 
 <dom-module id="paper-spinner">
-  <template>
+  <template strip-whitespace>
     <style include="paper-spinner-styles"></style>
 
     <div id="spinnerContainer" class-name="[[__computeContainerClasses(active, __coolingDown)]]">
       <div class="spinner-layer layer-1">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
 
       <div class="spinner-layer layer-2">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
 
       <div class="spinner-layer layer-3">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
 
       <div class="spinner-layer layer-4">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
     </div>
   </template>

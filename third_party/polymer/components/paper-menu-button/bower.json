@@ -1,6 +1,6 @@
 {
   "name": "paper-menu-button",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A material design element that composes a trigger and a dropdown menu",
   "authors": [
     "The Polymer Authors"

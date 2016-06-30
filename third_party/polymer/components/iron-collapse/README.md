@@ -36,7 +36,7 @@ toggle: function() {
 }
 ```
 
-`iron-collapse` adjusts the height/width of the collapsible element to show/hide
+`iron-collapse` adjusts the max-height/max-width of the collapsible element to show/hide
 the content.  So avoid putting padding/margin/border on the collapsible directly,
 and instead put a div inside and style that.
 

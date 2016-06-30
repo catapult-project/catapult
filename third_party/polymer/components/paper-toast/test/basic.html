@@ -200,17 +200,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }, 5);
       });
 
-      test('toast is positioned according at the bottom left of its fitInto', function() {
+      test('toast is positioned according at the bottom left of its fitInto', function(done) {
         var f = fixture('contained');
         var toast = f[0];
         var container = f[1];
         toast.fitInto = container;
-        toast.center();
-        var style = getComputedStyle(toast);
-        assert.equal(style.left, '50px', 'left');
-        // Should be 150px from top, (100px of height + 50px of margin-top)
-        // aka window height - 150 from bottom.
-        assert.equal(style.bottom, (window.innerHeight - 150) + 'px', 'bottom');
+        toast.open();
+        // Wait for it to be opened, so it will be sized correctly.
+        toast.addEventListener('iron-overlay-opened', function() {
+          var rect = toast.getBoundingClientRect();
+          assert.equal(rect.left, 50, 'left ok');
+          // 150px from top, (100px of height + 50px of margin-top)
+          assert.equal(rect.bottom, 150, 'bottom');
+          done();
+        });
       });
 
       suite('a11y', function() {

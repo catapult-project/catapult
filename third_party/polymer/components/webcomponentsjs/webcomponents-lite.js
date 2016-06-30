@@ -7,21 +7,17 @@
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-// @version 0.7.22
-(function() {
-  window.WebComponents = window.WebComponents || {
-    flags: {}
-  };
-  var file = "webcomponents-lite.js";
+// @version 0.6.1
+window.WebComponents = window.WebComponents || {};
+
+(function(scope) {
+  var flags = scope.flags || {};
+  var file = "webcomponents.js";
   var script = document.querySelector('script[src*="' + file + '"]');
-  var flags = {};
   if (!flags.noOpts) {
-    location.search.slice(1).split("&").forEach(function(option) {
-      var parts = option.split("=");
-      var match;
-      if (parts[0] && (match = parts[0].match(/wc-(.+)/))) {
-        flags[match[1]] = parts[1] || true;
-      }
+    location.search.slice(1).split("&").forEach(function(o) {
+      o = o.split("=");
+      o[0] && (flags[o[0]] = o[1] || true);
     });
     if (script) {
       for (var i = 0, a; a = script.attributes[i]; i++) {
@@ -40,14 +36,20 @@
       flags.log = {};
     }
   }
+  flags.shadow = flags.shadow || flags.shadowdom || flags.polyfill;
+  if (flags.shadow === "native") {
+    flags.shadow = false;
+  } else {
+    flags.shadow = flags.shadow || !HTMLElement.prototype.createShadowRoot;
+  }
   if (flags.register) {
     window.CustomElements = window.CustomElements || {
       flags: {}
     };
     window.CustomElements.flags.register = flags.register;
   }
-  WebComponents.flags = flags;
-})();
+  scope.flags = flags;
+})(WebComponents);
 
 (function(scope) {
   "use strict";
@@ -159,7 +161,7 @@
 
        case "scheme data":
         if ("?" == c) {
-          this._query = "?";
+          query = "?";
           state = "query";
         } else if ("#" == c) {
           this._fragment = "#";
@@ -199,8 +201,6 @@
           this._port = base._port;
           this._path = base._path.slice();
           this._query = base._query;
-          this._username = base._username;
-          this._password = base._password;
           break loop;
         } else if ("/" == c || "\\" == c) {
           if ("\\" == c) err("\\ is an invalid code point.");
@@ -210,8 +210,6 @@
           this._port = base._port;
           this._path = base._path.slice();
           this._query = "?";
-          this._username = base._username;
-          this._password = base._password;
           state = "query";
         } else if ("#" == c) {
           this._host = base._host;
@@ -219,8 +217,6 @@
           this._path = base._path.slice();
           this._query = base._query;
           this._fragment = "#";
-          this._username = base._username;
-          this._password = base._password;
           state = "fragment";
         } else {
           var nextC = input[cursor + 1];
@@ -228,8 +224,6 @@
           if ("file" != this._scheme || !ALPHA.test(c) || nextC != ":" && nextC != "|" || EOF != nextNextC && "/" != nextNextC && "\\" != nextNextC && "?" != nextNextC && "#" != nextNextC) {
             this._host = base._host;
             this._port = base._port;
-            this._username = base._username;
-            this._password = base._password;
             this._path = base._path.slice();
             this._path.pop();
           }
@@ -252,8 +246,6 @@
           if ("file" != this._scheme) {
             this._host = base._host;
             this._port = base._port;
-            this._username = base._username;
-            this._password = base._password;
           }
           state = "relative path";
           continue;
@@ -569,7 +561,7 @@
     };
   }
   scope.URL = jURL;
-})(self);
+})(this);
 
 if (typeof WeakMap === "undefined") {
   (function() {
@@ -608,9 +600,6 @@ if (typeof WeakMap === "undefined") {
 }
 
 (function(global) {
-  if (global.JsMutationObserver) {
-    return;
-  }
   var registrationsTable = new WeakMap();
   var setImmediate;
   if (/Trident|Edge/.test(navigator.userAgent)) {
@@ -906,254 +895,8 @@ if (typeof WeakMap === "undefined") {
     }
   };
   global.JsMutationObserver = JsMutationObserver;
-  if (!global.MutationObserver) {
-    global.MutationObserver = JsMutationObserver;
-    JsMutationObserver._isPolyfilled = true;
-  }
-})(self);
-
-(function() {
-  var needsTemplate = typeof HTMLTemplateElement === "undefined";
-  if (/Trident/.test(navigator.userAgent)) {
-    (function() {
-      var importNode = document.importNode;
-      document.importNode = function() {
-        var n = importNode.apply(document, arguments);
-        if (n.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-          var f = document.createDocumentFragment();
-          f.appendChild(n);
-          return f;
-        } else {
-          return n;
-        }
-      };
-    })();
-  }
-  var needsCloning = function() {
-    if (!needsTemplate) {
-      var t = document.createElement("template");
-      var t2 = document.createElement("template");
-      t2.content.appendChild(document.createElement("div"));
-      t.content.appendChild(t2);
-      var clone = t.cloneNode(true);
-      return clone.content.childNodes.length === 0 || clone.content.firstChild.content.childNodes.length === 0;
-    }
-  }();
-  var TEMPLATE_TAG = "template";
-  var TemplateImpl = function() {};
-  if (needsTemplate) {
-    var contentDoc = document.implementation.createHTMLDocument("template");
-    var canDecorate = true;
-    var templateStyle = document.createElement("style");
-    templateStyle.textContent = TEMPLATE_TAG + "{display:none;}";
-    var head = document.head;
-    head.insertBefore(templateStyle, head.firstElementChild);
-    TemplateImpl.prototype = Object.create(HTMLElement.prototype);
-    TemplateImpl.decorate = function(template) {
-      if (template.content) {
-        return;
-      }
-      template.content = contentDoc.createDocumentFragment();
-      var child;
-      while (child = template.firstChild) {
-        template.content.appendChild(child);
-      }
-      template.cloneNode = function(deep) {
-        return TemplateImpl.cloneNode(this, deep);
-      };
-      if (canDecorate) {
-        try {
-          Object.defineProperty(template, "innerHTML", {
-            get: function() {
-              var o = "";
-              for (var e = this.content.firstChild; e; e = e.nextSibling) {
-                o += e.outerHTML || escapeData(e.data);
-              }
-              return o;
-            },
-            set: function(text) {
-              contentDoc.body.innerHTML = text;
-              TemplateImpl.bootstrap(contentDoc);
-              while (this.content.firstChild) {
-                this.content.removeChild(this.content.firstChild);
-              }
-              while (contentDoc.body.firstChild) {
-                this.content.appendChild(contentDoc.body.firstChild);
-              }
-            },
-            configurable: true
-          });
-        } catch (err) {
-          canDecorate = false;
-        }
-      }
-      TemplateImpl.bootstrap(template.content);
-    };
-    TemplateImpl.bootstrap = function(doc) {
-      var templates = doc.querySelectorAll(TEMPLATE_TAG);
-      for (var i = 0, l = templates.length, t; i < l && (t = templates[i]); i++) {
-        TemplateImpl.decorate(t);
-      }
-    };
-    document.addEventListener("DOMContentLoaded", function() {
-      TemplateImpl.bootstrap(document);
-    });
-    var createElement = document.createElement;
-    document.createElement = function() {
-      "use strict";
-      var el = createElement.apply(document, arguments);
-      if (el.localName === "template") {
-        TemplateImpl.decorate(el);
-      }
-      return el;
-    };
-    var escapeDataRegExp = /[&\u00A0<>]/g;
-    function escapeReplace(c) {
-      switch (c) {
-       case "&":
-        return "&amp;";
-
-       case "<":
-        return "&lt;";
-
-       case ">":
-        return "&gt;";
-
-       case " ":
-        return "&nbsp;";
-      }
-    }
-    function escapeData(s) {
-      return s.replace(escapeDataRegExp, escapeReplace);
-    }
-  }
-  if (needsTemplate || needsCloning) {
-    var nativeCloneNode = Node.prototype.cloneNode;
-    TemplateImpl.cloneNode = function(template, deep) {
-      var clone = nativeCloneNode.call(template, false);
-      if (this.decorate) {
-        this.decorate(clone);
-      }
-      if (deep) {
-        clone.content.appendChild(nativeCloneNode.call(template.content, true));
-        this.fixClonedDom(clone.content, template.content);
-      }
-      return clone;
-    };
-    TemplateImpl.fixClonedDom = function(clone, source) {
-      if (!source.querySelectorAll) return;
-      var s$ = source.querySelectorAll(TEMPLATE_TAG);
-      var t$ = clone.querySelectorAll(TEMPLATE_TAG);
-      for (var i = 0, l = t$.length, t, s; i < l; i++) {
-        s = s$[i];
-        t = t$[i];
-        if (this.decorate) {
-          this.decorate(s);
-        }
-        t.parentNode.replaceChild(s.cloneNode(true), t);
-      }
-    };
-    var originalImportNode = document.importNode;
-    Node.prototype.cloneNode = function(deep) {
-      var dom = nativeCloneNode.call(this, deep);
-      if (deep) {
-        TemplateImpl.fixClonedDom(dom, this);
-      }
-      return dom;
-    };
-    document.importNode = function(element, deep) {
-      if (element.localName === TEMPLATE_TAG) {
-        return TemplateImpl.cloneNode(element, deep);
-      } else {
-        var dom = originalImportNode.call(document, element, deep);
-        if (deep) {
-          TemplateImpl.fixClonedDom(dom, element);
-        }
-        return dom;
-      }
-    };
-    if (needsCloning) {
-      HTMLTemplateElement.prototype.cloneNode = function(deep) {
-        return TemplateImpl.cloneNode(this, deep);
-      };
-    }
-  }
-  if (needsTemplate) {
-    window.HTMLTemplateElement = TemplateImpl;
-  }
-})();
-
-(function(scope) {
-  "use strict";
-  if (!window.performance) {
-    var start = Date.now();
-    window.performance = {
-      now: function() {
-        return Date.now() - start;
-      }
-    };
-  }
-  if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = function() {
-      var nativeRaf = window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame;
-      return nativeRaf ? function(callback) {
-        return nativeRaf(function() {
-          callback(performance.now());
-        });
-      } : function(callback) {
-        return window.setTimeout(callback, 1e3 / 60);
-      };
-    }();
-  }
-  if (!window.cancelAnimationFrame) {
-    window.cancelAnimationFrame = function() {
-      return window.webkitCancelAnimationFrame || window.mozCancelAnimationFrame || function(id) {
-        clearTimeout(id);
-      };
-    }();
-  }
-  var workingDefaultPrevented = function() {
-    var e = document.createEvent("Event");
-    e.initEvent("foo", true, true);
-    e.preventDefault();
-    return e.defaultPrevented;
-  }();
-  if (!workingDefaultPrevented) {
-    var origPreventDefault = Event.prototype.preventDefault;
-    Event.prototype.preventDefault = function() {
-      if (!this.cancelable) {
-        return;
-      }
-      origPreventDefault.call(this);
-      Object.defineProperty(this, "defaultPrevented", {
-        get: function() {
-          return true;
-        },
-        configurable: true
-      });
-    };
-  }
-  var isIE = /Trident/.test(navigator.userAgent);
-  if (!window.CustomEvent || isIE && typeof window.CustomEvent !== "function") {
-    window.CustomEvent = function(inType, params) {
-      params = params || {};
-      var e = document.createEvent("CustomEvent");
-      e.initCustomEvent(inType, Boolean(params.bubbles), Boolean(params.cancelable), params.detail);
-      return e;
-    };
-    window.CustomEvent.prototype = window.Event.prototype;
-  }
-  if (!window.Event || isIE && typeof window.Event !== "function") {
-    var origEvent = window.Event;
-    window.Event = function(inType, params) {
-      params = params || {};
-      var e = document.createEvent("Event");
-      e.initEvent(inType, Boolean(params.bubbles), Boolean(params.cancelable));
-      return e;
-    };
-    window.Event.prototype = origEvent.prototype;
-  }
-})(window.WebComponents);
+  if (!global.MutationObserver) global.MutationObserver = JsMutationObserver;
+})(this);
 
 window.HTMLImports = window.HTMLImports || {
   flags: {}
@@ -1164,19 +907,19 @@ window.HTMLImports = window.HTMLImports || {
   var useNative = Boolean(IMPORT_LINK_TYPE in document.createElement("link"));
   var hasShadowDOMPolyfill = Boolean(window.ShadowDOMPolyfill);
   var wrap = function(node) {
-    return hasShadowDOMPolyfill ? window.ShadowDOMPolyfill.wrapIfNeeded(node) : node;
+    return hasShadowDOMPolyfill ? ShadowDOMPolyfill.wrapIfNeeded(node) : node;
   };
   var rootDocument = wrap(document);
   var currentScriptDescriptor = {
     get: function() {
-      var script = window.HTMLImports.currentScript || document.currentScript || (document.readyState !== "complete" ? document.scripts[document.scripts.length - 1] : null);
+      var script = HTMLImports.currentScript || document.currentScript || (document.readyState !== "complete" ? document.scripts[document.scripts.length - 1] : null);
       return wrap(script);
     },
     configurable: true
   };
   Object.defineProperty(document, "_currentScript", currentScriptDescriptor);
   Object.defineProperty(rootDocument, "_currentScript", currentScriptDescriptor);
-  var isIE = /Trident/.test(navigator.userAgent);
+  var isIE = /Trident|Edge/.test(navigator.userAgent);
   function whenReady(callback, doc) {
     doc = doc || rootDocument;
     whenDocumentReady(function() {
@@ -1230,7 +973,6 @@ window.HTMLImports = window.HTMLImports || {
     if (importCount) {
       for (var i = 0, imp; i < importCount && (imp = imports[i]); i++) {
         if (isImportLoaded(imp)) {
-          newImports.push(this);
           parsedCount++;
           checkDone();
         } else {
@@ -1286,8 +1028,8 @@ window.HTMLImports = window.HTMLImports || {
     })();
   }
   whenReady(function(detail) {
-    window.HTMLImports.ready = true;
-    window.HTMLImports.readyTime = new Date().getTime();
+    HTMLImports.ready = true;
+    HTMLImports.readyTime = new Date().getTime();
     var evt = rootDocument.createEvent("CustomEvent");
     evt.initCustomEvent("HTMLImportsLoaded", true, true, detail);
     rootDocument.dispatchEvent(evt);
@@ -1297,7 +1039,7 @@ window.HTMLImports = window.HTMLImports || {
   scope.rootDocument = rootDocument;
   scope.whenReady = whenReady;
   scope.isIE = isIE;
-})(window.HTMLImports);
+})(HTMLImports);
 
 (function(scope) {
   var modules = [];
@@ -1311,9 +1053,9 @@ window.HTMLImports = window.HTMLImports || {
   };
   scope.addModule = addModule;
   scope.initializeModules = initializeModules;
-})(window.HTMLImports);
+})(HTMLImports);
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var CSS_URL_REGEXP = /(url\()([^)]*)(\))/g;
   var CSS_IMPORT_REGEXP = /(@import[\s]+(?!url\())([^;]*)(;)/g;
   var path = {
@@ -1343,7 +1085,7 @@ window.HTMLImports.addModule(function(scope) {
   scope.path = path;
 });
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var xhr = {
     async: true,
     ok: function(request) {
@@ -1357,14 +1099,10 @@ window.HTMLImports.addModule(function(scope) {
       request.open("GET", url, xhr.async);
       request.addEventListener("readystatechange", function(e) {
         if (request.readyState === 4) {
+          var locationHeader = request.getResponseHeader("Location");
           var redirectedUrl = null;
-          try {
-            var locationHeader = request.getResponseHeader("Location");
-            if (locationHeader) {
-              redirectedUrl = locationHeader.substr(0, 1) === "/" ? location.origin + locationHeader : locationHeader;
-            }
-          } catch (e) {
-            console.error(e.message);
+          if (locationHeader) {
+            var redirectedUrl = locationHeader.substr(0, 1) === "/" ? location.origin + locationHeader : locationHeader;
           }
           next.call(nextContext, !xhr.ok(request) && request, request.response || request.responseText, redirectedUrl);
         }
@@ -1379,7 +1117,7 @@ window.HTMLImports.addModule(function(scope) {
   scope.xhr = xhr;
 });
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var xhr = scope.xhr;
   var flags = scope.flags;
   var Loader = function(onLoad, onComplete) {
@@ -1472,7 +1210,7 @@ window.HTMLImports.addModule(function(scope) {
   scope.Loader = Loader;
 });
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var Observer = function(addCallback) {
     this.addCallback = addCallback;
     this.mo = new MutationObserver(this.handler.bind(this));
@@ -1505,7 +1243,7 @@ window.HTMLImports.addModule(function(scope) {
   scope.Observer = Observer;
 });
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var path = scope.path;
   var rootDocument = scope.rootDocument;
   var flags = scope.flags;
@@ -1514,7 +1252,7 @@ window.HTMLImports.addModule(function(scope) {
   var IMPORT_SELECTOR = "link[rel=" + IMPORT_LINK_TYPE + "]";
   var importParser = {
     documentSelectors: IMPORT_SELECTOR,
-    importsSelectors: [ IMPORT_SELECTOR, "link[rel=stylesheet]:not([type])", "style:not([type])", "script:not([type])", 'script[type="application/javascript"]', 'script[type="text/javascript"]' ].join(","),
+    importsSelectors: [ IMPORT_SELECTOR, "link[rel=stylesheet]", "style", "script:not([type])", 'script[type="text/javascript"]' ].join(","),
     map: {
       link: "parseLink",
       script: "parseScript",
@@ -1565,9 +1303,8 @@ window.HTMLImports.addModule(function(scope) {
       }
     },
     parseImport: function(elt) {
-      elt.import = elt.__doc;
-      if (window.HTMLImports.__importsParsingHook) {
-        window.HTMLImports.__importsParsingHook(elt);
+      if (HTMLImports.__importsParsingHook) {
+        HTMLImports.__importsParsingHook(elt);
       }
       if (elt.import) {
         elt.import.__importParsed = true;
@@ -1628,8 +1365,6 @@ window.HTMLImports.addModule(function(scope) {
     trackElement: function(elt, callback) {
       var self = this;
       var done = function(e) {
-        elt.removeEventListener("load", done);
-        elt.removeEventListener("error", done);
         if (callback) {
           callback(e);
         }
@@ -1653,11 +1388,9 @@ window.HTMLImports.addModule(function(scope) {
           }
         }
         if (fakeLoad) {
-          setTimeout(function() {
-            elt.dispatchEvent(new CustomEvent("load", {
-              bubbles: false
-            }));
-          });
+          elt.dispatchEvent(new CustomEvent("load", {
+            bubbles: false
+          }));
         }
       }
     },
@@ -1667,9 +1400,7 @@ window.HTMLImports.addModule(function(scope) {
       script.src = scriptElt.src ? scriptElt.src : generateScriptDataUrl(scriptElt);
       scope.currentScript = scriptElt;
       this.trackElement(script, function(e) {
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
+        script.parentNode.removeChild(script);
         scope.currentScript = null;
       });
       this.addElementToDocument(script);
@@ -1682,10 +1413,10 @@ window.HTMLImports.addModule(function(scope) {
       if (doc && this._mayParse.indexOf(doc) < 0) {
         this._mayParse.push(doc);
         var nodes = doc.querySelectorAll(this.parseSelectorsForNode(doc));
-        for (var i = 0, l = nodes.length, n; i < l && (n = nodes[i]); i++) {
+        for (var i = 0, l = nodes.length, p = 0, n; i < l && (n = nodes[i]); i++) {
           if (!this.isParsed(n)) {
             if (this.hasResource(n)) {
-              return nodeIsImport(n) ? this.nextToParseInDoc(n.__doc, n) : n;
+              return nodeIsImport(n) ? this.nextToParseInDoc(n.import, n) : n;
             } else {
               return;
             }
@@ -1708,7 +1439,7 @@ window.HTMLImports.addModule(function(scope) {
       return this.dynamicElements.indexOf(elt) >= 0;
     },
     hasResource: function(node) {
-      if (nodeIsImport(node) && node.__doc === undefined) {
+      if (nodeIsImport(node) && node.import === undefined) {
         return false;
       }
       return true;
@@ -1742,7 +1473,7 @@ window.HTMLImports.addModule(function(scope) {
   scope.IMPORT_SELECTOR = IMPORT_SELECTOR;
 });
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var flags = scope.flags;
   var IMPORT_LINK_TYPE = scope.IMPORT_LINK_TYPE;
   var IMPORT_SELECTOR = scope.IMPORT_SELECTOR;
@@ -1782,7 +1513,7 @@ window.HTMLImports.addModule(function(scope) {
           }
           this.documents[url] = doc;
         }
-        elt.__doc = doc;
+        elt.import = doc;
       }
       parser.parseNext();
     },
@@ -1841,7 +1572,7 @@ window.HTMLImports.addModule(function(scope) {
   scope.importLoader = importLoader;
 });
 
-window.HTMLImports.addModule(function(scope) {
+HTMLImports.addModule(function(scope) {
   var parser = scope.parser;
   var importer = scope.importer;
   var dynamic = {
@@ -1878,17 +1609,26 @@ window.HTMLImports.addModule(function(scope) {
   if (scope.useNative) {
     return;
   }
+  if (isIE && typeof window.CustomEvent !== "function") {
+    window.CustomEvent = function(inType, params) {
+      params = params || {};
+      var e = document.createEvent("CustomEvent");
+      e.initCustomEvent(inType, Boolean(params.bubbles), Boolean(params.cancelable), params.detail);
+      return e;
+    };
+    window.CustomEvent.prototype = window.Event.prototype;
+  }
   initializeModules();
   var rootDocument = scope.rootDocument;
   function bootstrap() {
-    window.HTMLImports.importer.bootDocument(rootDocument);
+    HTMLImports.importer.bootDocument(rootDocument);
   }
   if (document.readyState === "complete" || document.readyState === "interactive" && !window.attachEvent) {
     bootstrap();
   } else {
     document.addEventListener("DOMContentLoaded", bootstrap);
   }
-})(window.HTMLImports);
+})(HTMLImports);
 
 window.CustomElements = window.CustomElements || {
   flags: {}
@@ -1908,12 +1648,11 @@ window.CustomElements = window.CustomElements || {
   scope.addModule = addModule;
   scope.initializeModules = initializeModules;
   scope.hasNative = Boolean(document.registerElement);
-  scope.isIE = /Trident/.test(navigator.userAgent);
-  scope.useNative = !flags.register && scope.hasNative && !window.ShadowDOMPolyfill && (!window.HTMLImports || window.HTMLImports.useNative);
-})(window.CustomElements);
+  scope.useNative = !flags.register && scope.hasNative && !window.ShadowDOMPolyfill && (!window.HTMLImports || HTMLImports.useNative);
+})(CustomElements);
 
-window.CustomElements.addModule(function(scope) {
-  var IMPORT_LINK_TYPE = window.HTMLImports ? window.HTMLImports.IMPORT_LINK_TYPE : "none";
+CustomElements.addModule(function(scope) {
+  var IMPORT_LINK_TYPE = window.HTMLImports ? HTMLImports.IMPORT_LINK_TYPE : "none";
   function forSubtree(node, cb) {
     findAllElements(node, function(e) {
       if (cb(e)) {
@@ -1950,7 +1689,7 @@ window.CustomElements.addModule(function(scope) {
     _forDocumentTree(doc, cb, []);
   }
   function _forDocumentTree(doc, cb, processingDocuments) {
-    doc = window.wrap(doc);
+    doc = wrap(doc);
     if (processingDocuments.indexOf(doc) >= 0) {
       return;
     }
@@ -1967,31 +1706,36 @@ window.CustomElements.addModule(function(scope) {
   scope.forSubtree = forSubtree;
 });
 
-window.CustomElements.addModule(function(scope) {
+CustomElements.addModule(function(scope) {
   var flags = scope.flags;
   var forSubtree = scope.forSubtree;
   var forDocumentTree = scope.forDocumentTree;
-  function addedNode(node, isAttached) {
-    return added(node, isAttached) || addedSubtree(node, isAttached);
+  function addedNode(node) {
+    return added(node) || addedSubtree(node);
   }
-  function added(node, isAttached) {
-    if (scope.upgrade(node, isAttached)) {
+  function added(node) {
+    if (scope.upgrade(node)) {
       return true;
     }
-    if (isAttached) {
-      attached(node);
-    }
+    attached(node);
   }
-  function addedSubtree(node, isAttached) {
+  function addedSubtree(node) {
     forSubtree(node, function(e) {
-      if (added(e, isAttached)) {
+      if (added(e)) {
         return true;
       }
     });
   }
-  var hasThrottledAttached = window.MutationObserver._isPolyfilled && flags["throttle-attached"];
-  scope.hasPolyfillMutations = hasThrottledAttached;
-  scope.hasThrottledAttached = hasThrottledAttached;
+  function attachedNode(node) {
+    attached(node);
+    if (inDocument(node)) {
+      forSubtree(node, function(e) {
+        attached(e);
+      });
+    }
+  }
+  var hasPolyfillMutations = !window.MutationObserver || window.MutationObserver === window.JsMutationObserver;
+  scope.hasPolyfillMutations = hasPolyfillMutations;
   var isPendingMutations = false;
   var pendingMutations = [];
   function deferMutation(fn) {
@@ -2010,7 +1754,7 @@ window.CustomElements.addModule(function(scope) {
     pendingMutations = [];
   }
   function attached(element) {
-    if (hasThrottledAttached) {
+    if (hasPolyfillMutations) {
       deferMutation(function() {
         _attached(element);
       });
@@ -2019,10 +1763,12 @@ window.CustomElements.addModule(function(scope) {
     }
   }
   function _attached(element) {
-    if (element.__upgraded__ && !element.__attached) {
-      element.__attached = true;
-      if (element.attachedCallback) {
-        element.attachedCallback();
+    if (element.__upgraded__ && (element.attachedCallback || element.detachedCallback)) {
+      if (!element.__attached && inDocument(element)) {
+        element.__attached = true;
+        if (element.attachedCallback) {
+          element.attachedCallback();
+        }
       }
     }
   }
@@ -2033,7 +1779,7 @@ window.CustomElements.addModule(function(scope) {
     });
   }
   function detached(element) {
-    if (hasThrottledAttached) {
+    if (hasPolyfillMutations) {
       deferMutation(function() {
         _detached(element);
       });
@@ -2042,16 +1788,18 @@ window.CustomElements.addModule(function(scope) {
     }
   }
   function _detached(element) {
-    if (element.__upgraded__ && element.__attached) {
-      element.__attached = false;
-      if (element.detachedCallback) {
-        element.detachedCallback();
+    if (element.__upgraded__ && (element.attachedCallback || element.detachedCallback)) {
+      if (element.__attached && !inDocument(element)) {
+        element.__attached = false;
+        if (element.detachedCallback) {
+          element.detachedCallback();
+        }
       }
     }
   }
   function inDocument(element) {
     var p = element;
-    var doc = window.wrap(document);
+    var doc = wrap(document);
     while (p) {
       if (p == doc) {
         return true;
@@ -2069,7 +1817,7 @@ window.CustomElements.addModule(function(scope) {
       }
     }
   }
-  function handler(root, mutations) {
+  function handler(mutations) {
     if (flags.dom) {
       var mx = mutations[0];
       if (mx && mx.type === "childList" && mx.addedNodes) {
@@ -2084,14 +1832,13 @@ window.CustomElements.addModule(function(scope) {
       }
       console.group("mutations (%d) [%s]", mutations.length, u || "");
     }
-    var isAttached = inDocument(root);
     mutations.forEach(function(mx) {
       if (mx.type === "childList") {
         forEach(mx.addedNodes, function(n) {
           if (!n.localName) {
             return;
           }
-          addedNode(n, isAttached);
+          addedNode(n);
         });
         forEach(mx.removedNodes, function(n) {
           if (!n.localName) {
@@ -2104,16 +1851,16 @@ window.CustomElements.addModule(function(scope) {
     flags.dom && console.groupEnd();
   }
   function takeRecords(node) {
-    node = window.wrap(node);
+    node = wrap(node);
     if (!node) {
-      node = window.wrap(document);
+      node = wrap(document);
     }
     while (node.parentNode) {
       node = node.parentNode;
     }
     var observer = node.__observer;
     if (observer) {
-      handler(node, observer.takeRecords());
+      handler(observer.takeRecords());
       takeMutations();
     }
   }
@@ -2122,7 +1869,7 @@ window.CustomElements.addModule(function(scope) {
     if (inRoot.__observer) {
       return;
     }
-    var observer = new MutationObserver(handler.bind(this, inRoot));
+    var observer = new MutationObserver(handler);
     observer.observe(inRoot, {
       childList: true,
       subtree: true
@@ -2130,10 +1877,9 @@ window.CustomElements.addModule(function(scope) {
     inRoot.__observer = observer;
   }
   function upgradeDocument(doc) {
-    doc = window.wrap(doc);
+    doc = wrap(doc);
     flags.dom && console.group("upgradeDocument: ", doc.baseURI.split("/").pop());
-    var isMainDocument = doc === window.wrap(document);
-    addedNode(doc, isMainDocument);
+    addedNode(doc);
     observe(doc);
     flags.dom && console.groupEnd();
   }
@@ -2144,38 +1890,34 @@ window.CustomElements.addModule(function(scope) {
   if (originalCreateShadowRoot) {
     Element.prototype.createShadowRoot = function() {
       var root = originalCreateShadowRoot.call(this);
-      window.CustomElements.watchShadow(this);
+      CustomElements.watchShadow(this);
       return root;
     };
   }
   scope.watchShadow = watchShadow;
   scope.upgradeDocumentTree = upgradeDocumentTree;
-  scope.upgradeDocument = upgradeDocument;
   scope.upgradeSubtree = addedSubtree;
   scope.upgradeAll = addedNode;
-  scope.attached = attached;
+  scope.attachedNode = attachedNode;
   scope.takeRecords = takeRecords;
 });
 
-window.CustomElements.addModule(function(scope) {
+CustomElements.addModule(function(scope) {
   var flags = scope.flags;
-  function upgrade(node, isAttached) {
-    if (node.localName === "template") {
-      if (window.HTMLTemplateElement && HTMLTemplateElement.decorate) {
-        HTMLTemplateElement.decorate(node);
-      }
-    }
+  function upgrade(node) {
     if (!node.__upgraded__ && node.nodeType === Node.ELEMENT_NODE) {
       var is = node.getAttribute("is");
-      var definition = scope.getRegisteredDefinition(node.localName) || scope.getRegisteredDefinition(is);
+      var definition = scope.getRegisteredDefinition(is || node.localName);
       if (definition) {
-        if (is && definition.tag == node.localName || !is && !definition.extends) {
-          return upgradeWithDefinition(node, definition, isAttached);
+        if (is && definition.tag == node.localName) {
+          return upgradeWithDefinition(node, definition);
+        } else if (!is && !definition.extends) {
+          return upgradeWithDefinition(node, definition);
         }
       }
     }
   }
-  function upgradeWithDefinition(element, definition, isAttached) {
+  function upgradeWithDefinition(element, definition) {
     flags.upgrade && console.group("upgrade:", element.localName);
     if (definition.is) {
       element.setAttribute("is", definition.is);
@@ -2183,10 +1925,8 @@ window.CustomElements.addModule(function(scope) {
     implementPrototype(element, definition);
     element.__upgraded__ = true;
     created(element);
-    if (isAttached) {
-      scope.attached(element);
-    }
-    scope.upgradeSubtree(element, isAttached);
+    scope.attachedNode(element);
+    scope.upgradeSubtree(element);
     flags.upgrade && console.groupEnd();
     return element;
   }
@@ -2222,8 +1962,8 @@ window.CustomElements.addModule(function(scope) {
   scope.implementPrototype = implementPrototype;
 });
 
-window.CustomElements.addModule(function(scope) {
-  var isIE = scope.isIE;
+CustomElements.addModule(function(scope) {
+  var isIE11OrOlder = scope.isIE11OrOlder;
   var upgradeDocumentTree = scope.upgradeDocumentTree;
   var upgradeAll = scope.upgradeAll;
   var upgradeWithDefinition = scope.upgradeWithDefinition;
@@ -2247,9 +1987,6 @@ window.CustomElements.addModule(function(scope) {
       definition.prototype = Object.create(HTMLElement.prototype);
     }
     definition.__name = name.toLowerCase();
-    if (definition.extends) {
-      definition.extends = definition.extends.toLowerCase();
-    }
     definition.lifecycle = definition.lifecycle || {};
     definition.ancestry = ancestry(definition.extends);
     resolveTagName(definition);
@@ -2317,22 +2054,16 @@ window.CustomElements.addModule(function(scope) {
       var nativePrototype = HTMLElement.prototype;
       if (definition.is) {
         var inst = document.createElement(definition.tag);
-        nativePrototype = Object.getPrototypeOf(inst);
+        var expectedPrototype = Object.getPrototypeOf(inst);
+        if (expectedPrototype === definition.prototype) {
+          nativePrototype = expectedPrototype;
+        }
       }
       var proto = definition.prototype, ancestor;
-      var foundPrototype = false;
-      while (proto) {
-        if (proto == nativePrototype) {
-          foundPrototype = true;
-        }
+      while (proto && proto !== nativePrototype) {
         ancestor = Object.getPrototypeOf(proto);
-        if (ancestor) {
-          proto.__proto__ = ancestor;
-        }
+        proto.__proto__ = ancestor;
         proto = ancestor;
-      }
-      if (!foundPrototype) {
-        console.warn(definition.tag + " prototype not found in prototype chain for " + definition.is);
       }
       definition.native = nativePrototype;
     }
@@ -2363,12 +2094,6 @@ window.CustomElements.addModule(function(scope) {
     }
   }
   function createElement(tag, typeExtension) {
-    if (tag) {
-      tag = tag.toLowerCase();
-    }
-    if (typeExtension) {
-      typeExtension = typeExtension.toLowerCase();
-    }
     var definition = getRegisteredDefinition(typeExtension || tag);
     if (definition) {
       if (tag == definition.tag && typeExtension == definition.is) {
@@ -2395,9 +2120,6 @@ window.CustomElements.addModule(function(scope) {
   var isInstance;
   if (!Object.__proto__ && !useNative) {
     isInstance = function(obj, ctor) {
-      if (obj instanceof ctor) {
-        return true;
-      }
       var p = obj;
       while (p) {
         if (p === ctor.prototype) {
@@ -2422,6 +2144,21 @@ window.CustomElements.addModule(function(scope) {
   }
   wrapDomMethodToForceUpgrade(Node.prototype, "cloneNode");
   wrapDomMethodToForceUpgrade(document, "importNode");
+  if (isIE11OrOlder) {
+    (function() {
+      var importNode = document.importNode;
+      document.importNode = function() {
+        var n = importNode.apply(document, arguments);
+        if (n.nodeType == n.DOCUMENT_FRAGMENT_NODE) {
+          var f = document.createDocumentFragment();
+          f.appendChild(n);
+          return f;
+        } else {
+          return n;
+        }
+      };
+    })();
+  }
   document.registerElement = register;
   document.createElement = createElement;
   document.createElementNS = createElementNS;
@@ -2435,7 +2172,7 @@ window.CustomElements.addModule(function(scope) {
 (function(scope) {
   var useNative = scope.useNative;
   var initializeModules = scope.initializeModules;
-  var isIE = scope.isIE;
+  var isIE11OrOlder = /Trident/.test(navigator.userAgent);
   if (useNative) {
     var nop = function() {};
     scope.watchShadow = nop;
@@ -2451,51 +2188,79 @@ window.CustomElements.addModule(function(scope) {
     initializeModules();
   }
   var upgradeDocumentTree = scope.upgradeDocumentTree;
-  var upgradeDocument = scope.upgradeDocument;
   if (!window.wrap) {
     if (window.ShadowDOMPolyfill) {
-      window.wrap = window.ShadowDOMPolyfill.wrapIfNeeded;
-      window.unwrap = window.ShadowDOMPolyfill.unwrapIfNeeded;
+      window.wrap = ShadowDOMPolyfill.wrapIfNeeded;
+      window.unwrap = ShadowDOMPolyfill.unwrapIfNeeded;
     } else {
       window.wrap = window.unwrap = function(node) {
         return node;
       };
     }
   }
-  if (window.HTMLImports) {
-    window.HTMLImports.__importsParsingHook = function(elt) {
-      if (elt.import) {
-        upgradeDocument(wrap(elt.import));
-      }
-    };
-  }
   function bootstrap() {
-    upgradeDocumentTree(window.wrap(document));
-    window.CustomElements.ready = true;
-    var requestAnimationFrame = window.requestAnimationFrame || function(f) {
-      setTimeout(f, 16);
-    };
-    requestAnimationFrame(function() {
-      setTimeout(function() {
-        window.CustomElements.readyTime = Date.now();
-        if (window.HTMLImports) {
-          window.CustomElements.elapsed = window.CustomElements.readyTime - window.HTMLImports.readyTime;
-        }
-        document.dispatchEvent(new CustomEvent("WebComponentsReady", {
-          bubbles: true
-        }));
-      });
+    upgradeDocumentTree(wrap(document));
+    if (window.HTMLImports) {
+      HTMLImports.__importsParsingHook = function(elt) {
+        upgradeDocumentTree(wrap(elt.import));
+      };
+    }
+    CustomElements.ready = true;
+    setTimeout(function() {
+      CustomElements.readyTime = Date.now();
+      if (window.HTMLImports) {
+        CustomElements.elapsed = CustomElements.readyTime - HTMLImports.readyTime;
+      }
+      document.dispatchEvent(new CustomEvent("WebComponentsReady", {
+        bubbles: true
+      }));
     });
+  }
+  if (isIE11OrOlder && typeof window.CustomEvent !== "function") {
+    window.CustomEvent = function(inType, params) {
+      params = params || {};
+      var e = document.createEvent("CustomEvent");
+      e.initCustomEvent(inType, Boolean(params.bubbles), Boolean(params.cancelable), params.detail);
+      return e;
+    };
+    window.CustomEvent.prototype = window.Event.prototype;
   }
   if (document.readyState === "complete" || scope.flags.eager) {
     bootstrap();
   } else if (document.readyState === "interactive" && !window.attachEvent && (!window.HTMLImports || window.HTMLImports.ready)) {
     bootstrap();
   } else {
-    var loadEvent = window.HTMLImports && !window.HTMLImports.ready ? "HTMLImportsLoaded" : "DOMContentLoaded";
+    var loadEvent = window.HTMLImports && !HTMLImports.ready ? "HTMLImportsLoaded" : "DOMContentLoaded";
     window.addEventListener(loadEvent, bootstrap);
   }
+  scope.isIE11OrOlder = isIE11OrOlder;
 })(window.CustomElements);
+
+if (typeof HTMLTemplateElement === "undefined") {
+  (function() {
+    var TEMPLATE_TAG = "template";
+    HTMLTemplateElement = function() {};
+    HTMLTemplateElement.prototype = Object.create(HTMLElement.prototype);
+    HTMLTemplateElement.decorate = function(template) {
+      if (!template.content) {
+        template.content = template.ownerDocument.createDocumentFragment();
+        var child;
+        while (child = template.firstChild) {
+          template.content.appendChild(child);
+        }
+      }
+    };
+    HTMLTemplateElement.bootstrap = function(doc) {
+      var templates = doc.querySelectorAll(TEMPLATE_TAG);
+      for (var i = 0, l = templates.length, t; i < l && (t = templates[i]); i++) {
+        HTMLTemplateElement.decorate(t);
+      }
+    };
+    addEventListener("DOMContentLoaded", function() {
+      HTMLTemplateElement.bootstrap(document);
+    });
+  })();
+}
 
 (function(scope) {
   var style = document.createElement("style");

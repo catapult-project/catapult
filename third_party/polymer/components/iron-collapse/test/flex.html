@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <html>
   <head>
 
-    <title>iron-collapse-basic</title>
+    <title>iron-collapse-flex</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -20,48 +20,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <script src="../../web-component-tester/browser.js"></script>
     <script src="../../test-fixture/test-fixture-mocha.js"></script>
 
+    <link rel="import" href="../../iron-flex-layout/iron-flex-layout-classes.html">
     <link rel="import" href="../../test-fixture/test-fixture.html">
     <link rel="import" href="../iron-collapse.html">
+
+    <style is="custom-style" include="iron-flex">
+    </style>
 
   </head>
   <body>
 
     <test-fixture id="test">
       <template>
-        <iron-collapse id="collapse" opened>
-          <div style="height:100px;">
-            Lorem ipsum
-          </div>
-        </iron-collapse>
+        <div id="container" class="layout vertical" style="height: 200px">
+          <iron-collapse id="collapse" opened style="flex: 1 0 auto">
+            <div style="height:100px;">
+              Lorem ipsum
+            </div>
+          </iron-collapse>
+        </div>
       </template>
     </test-fixture>
 
     <script>
 
-      suite('basic', function() {
+      suite('flex', function() {
 
+      	var container;
         var collapse;
         var collapseHeight;
 
         setup(function() {
-          collapse = fixture('test');
+          container = fixture('test');
+          collapse = container.querySelector('iron-collapse');
           collapseHeight = getComputedStyle(collapse).height;
         });
 
-        test('opened attribute', function() {
-          assert.equal(collapse.opened, true);
-        });
-
-        test('animated by default', function() {
-          assert.isTrue(!collapse.noAnimation, '`noAnimation` is falsy');
-        });
-
-        test('horizontal attribute', function() {
-          assert.equal(collapse.horizontal, false);
-        });
-
         test('default opened height', function() {
-          assert.equal(collapse.style.maxHeight, '');
+          assert.equal(collapse.style.height, '');
         });
 
         test('set opened to false triggers animation', function(done) {
@@ -89,7 +85,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           collapse.addEventListener('transitionend', function() {
             if (collapse.opened) {
               // Check finalSize after animation is done.
-              assert.equal(collapse.style.height, '');
+              assert.equal(collapse.style.maxHeight, '');
               done();
             } else {
               // Check if size is still 0px.

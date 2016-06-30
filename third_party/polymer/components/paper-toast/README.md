@@ -69,3 +69,4 @@ The following custom properties and mixins are available for styling:
 This element applies the mixin `--paper-font-common-base` but does not import `paper-styles/typography.html`.
 In order to apply the `Roboto` font to this element, make sure you've imported `paper-styles/typography.html`.
 
+

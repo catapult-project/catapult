@@ -89,6 +89,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </div>
           <div tabindex="2" class="focusable2">2</div>
         </test-overlay>
+        <test-overlay2>
+          Overlay with optimized focusableNodes getter
+          <button class="focusable1">1</button>
+        </test-overlay2>
       </template>
     </test-fixture>
 
@@ -116,10 +120,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <test-fixture id="composed">
       <template>
-        <test-menu-button>
-          Composed overlay
-          <button>Button</button>
-        </test-menu-button>
+        <test-menu-button></test-menu-button>
       </template>
     </test-fixture>
 
@@ -127,11 +128,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <input id="focusInput" placeholder="focus input">
 
     <script>
-
-      HTMLImports.whenReady(function() {
-        // Enable document-wide tap recognizer.
-        Polymer.Gestures.add(document, 'tap', null);
-      });
 
       function runAfterOpen(overlay, callback) {
         overlay.addEventListener('iron-overlay-opened', callback);
@@ -161,11 +157,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           var spy = sinon.spy(overlay, '_renderOpened');
           // This triggers _openedChanged.
           overlay.opened = true;
-          // Even if not attached yet, overlay should be the current overlay!
-          assert.equal(overlay, overlay._manager.currentOverlay(), 'currentOverlay ok');
           // Wait long enough for requestAnimationFrame callback.
           overlay.async(function() {
             assert.isFalse(spy.called, '_renderOpened not called');
+            // Because not attached yet, overlay should not be the current overlay!
+            assert.isNotOk(overlay._manager.currentOverlay(), 'currentOverlay not set');
             done();
           }, 100);
         });
@@ -509,15 +505,57 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
+        test('overlay with-backdrop and 1 focusable: prevent TAB and trap the focus', function(done) {
+          overlay.withBackdrop = true;
+          runAfterOpen(overlay, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
+            Polymer.Base.async(function() {
+              // Spy keydown.
+              var tabSpy = sinon.spy();
+              document.addEventListener('keydown', tabSpy);
+              // Simulate TAB.
+              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              assert.equal(Polymer.dom(overlay).querySelector('[autofocus]'), document.activeElement, 'focus stays on button');
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
+              done();
+            }, 1);
+          });
+        });
+
+        test('empty overlay with-backdrop: prevent TAB and trap the focus', function(done) {
+          overlay = fixture('basic');
+          overlay.withBackdrop = true;
+          runAfterOpen(overlay, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
+            Polymer.Base.async(function() {
+              // Spy keydown.
+              var tabSpy = sinon.spy();
+              document.addEventListener('keydown', tabSpy);
+              // Simulate TAB.
+              MockInteractions.pressAndReleaseKeyOn(document, 9);
+              assert.equal(overlay, document.activeElement, 'focus stays on overlay');
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
+              done();
+            }, 1);
+          });
+        });
+
       });
 
       suite('focusable nodes', function() {
-        var overlay, overlayWithTabIndex;
+        var overlay, overlayWithTabIndex, overlayFocusableNodes;
 
         setup(function() {
           var f = fixture('focusables');
           overlay = f[0];
           overlayWithTabIndex = f[1];
+          overlayFocusableNodes = f[2];
         });
 
         test('_focusableNodes returns nodes that are focusable', function() {
@@ -546,13 +584,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(focusableNodes[5], Polymer.dom(overlayWithTabIndex).querySelector('.focusable6'));
         });
 
+        test('_focusableNodes can be overridden', function() {
+          // It has 1 focusable in the light dom, and 2 in the shadow dom.
+          var focusableNodes = overlayFocusableNodes._focusableNodes;
+          assert.equal(focusableNodes.length, 2, 'length ok');
+          assert.equal(focusableNodes[0], overlayFocusableNodes.$.first, 'first ok');
+          assert.equal(focusableNodes[1], overlayFocusableNodes.$.last, 'last ok');
+        });
+
         test('with-backdrop: TAB & Shift+TAB wrap focus', function(done) {
           overlay.withBackdrop = true;
           var focusableNodes = overlay._focusableNodes;
           runAfterOpen(overlay, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
             Polymer.Base.async(function() {
               // Go to last element.
-              MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
+              focusableNodes[focusableNodes.length-1].focus();
               // Spy keydown.
               var tabSpy = sinon.spy();
               document.addEventListener('keydown', tabSpy);
@@ -577,15 +624,57 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           overlayWithTabIndex.withBackdrop = true;
           var focusableNodes = overlayWithTabIndex._focusableNodes;
           runAfterOpen(overlayWithTabIndex, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
             Polymer.Base.async(function() {
               // Go to last element.
-              MockInteractions.focus(focusableNodes[focusableNodes.length-1]);
+              focusableNodes[focusableNodes.length-1].focus();
               // Simulate TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9);
               assert.equal(focusableNodes[0], document.activeElement, 'focus wrapped to first focusable');
               // Simulate Shift+TAB.
               MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
               assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
+              done();
+            }, 1);
+          });
+        });
+
+        test('with-backdrop: Shift+TAB after open wrap focus', function(done) {
+          overlay.withBackdrop = true;
+          var focusableNodes = overlay._focusableNodes;
+          runAfterOpen(overlay, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
+            Polymer.Base.async(function() {
+              // Spy keydown.
+              var tabSpy = sinon.spy();
+              document.addEventListener('keydown', tabSpy);
+              // Simulate Shift+TAB.
+              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              assert.equal(focusableNodes[focusableNodes.length-1], document.activeElement, 'focus wrapped to last focusable');
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
+              done();
+            }, 1);
+          });
+        });
+
+        test('with-backdrop: Shift+TAB wrap focus in shadowDOM', function(done) {
+          overlayFocusableNodes.withBackdrop = true;
+          runAfterOpen(overlayFocusableNodes, function() {
+            // 1ms timeout needed by IE10 to have proper focus switching.
+            Polymer.Base.async(function() {
+              // Spy keydown.
+              var tabSpy = sinon.spy();
+              document.addEventListener('keydown', tabSpy);
+              // Simulate Shift+TAB.
+              MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+              assert.equal(overlayFocusableNodes.$.last, Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to last focusable in the shadowDOM');
+              assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+              assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+              // Cleanup.
+              document.removeEventListener('keydown', tabSpy);
               done();
             }, 1);
           });
@@ -745,11 +834,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           });
         });
 
-        test('manager.getBackdrops() immediately updated on opened changes', function() {
-          overlay.opened = true;
-          assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 1, 'overlay added to manager backdrops');
-          overlay.opened = false;
-          assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
+        test('manager.getBackdrops() updated on opened changes', function(done) {
+          runAfterOpen(overlay, function() {
+            assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 1, 'overlay added to manager backdrops');
+            overlay.close();
+            assert.equal(Polymer.IronOverlayManager.getBackdrops().length, 0, 'overlay removed from manager backdrops');
+            done();
+          });
         });
 
         test('updating with-backdrop to false closes backdrop', function(done) {
@@ -763,21 +854,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('backdrop is removed when toggling overlay opened', function(done) {
           overlay.open();
-          assert.isOk(overlay.backdropElement.parentNode, 'backdrop is immediately inserted in the document');
           runAfterClose(overlay, function() {
             assert.isFalse(overlay.backdropElement.opened, 'backdrop is closed');
             assert.isNotOk(overlay.backdropElement.parentNode, 'backdrop is removed from document');
             done();
-          });
-        });
-
-        test('withBackdrop = true prevents click outside event', function(done) {
-          runAfterOpen(overlay, function() {
-            overlay.addEventListener('iron-overlay-canceled', function(event) {
-              assert.isTrue(event.detail.defaultPrevented, 'click event prevented');
-              done();
-            });
-            MockInteractions.tap(document.body);
           });
         });
 
@@ -854,38 +934,43 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('no duplicates after attached', function(done) {
           overlay1 = document.createElement('test-overlay');
-          overlay1.addEventListener('iron-overlay-opened',function() {
+          runAfterOpen(overlay1, function() {
             assert.equal(overlays.length, 1, 'correct count after open and attached');
             document.body.removeChild(overlay1);
             done();
           });
-          overlay1.opened = true;
-          assert.equal(overlays.length, 1, 'immediately updated');
           document.body.appendChild(overlay1);
         });
 
-        test('open twice handled', function() {
+        test('call open multiple times handled', function(done) {
           overlay1.open();
-          assert.equal(overlays.length, 1, '1 overlay after open');
           overlay1.open();
-          assert.equal(overlays.length, 1, '1 overlay after second open');
+          runAfterOpen(overlay1, function() {
+            assert.equal(overlays.length, 1, '1 overlay after open');
+            done();
+          })
         });
 
-        test('close handled', function() {
-          overlay1.open();
-          overlay1.close();
-          assert.equal(overlays.length, 0, '0 overlays after close');
+        test('close handled', function(done) {
+          runAfterOpen(overlay1, function() {
+            overlay1.close();
+            assert.equal(overlays.length, 0, '0 overlays after close');
+            done();
+          });
         });
 
-        test('open/close brings overlay on top', function() {
+        test('open/close brings overlay on top', function(done) {
           overlay1.open();
-          overlay2.open();
-          assert.equal(overlays.indexOf(overlay1), 0, 'overlay1 at index 0');
-          assert.equal(overlays.indexOf(overlay2), 1, 'overlay2 at index 1');
-          overlay1.close();
-          overlay1.open();
-          assert.equal(overlays.indexOf(overlay1), 1, 'overlay1 moved at index 1');
-          assert.isAbove(parseInt(overlay1.style.zIndex), parseInt(overlay2.style.zIndex), 'overlay1 on top of overlay2');
+          runAfterOpen(overlay2, function() {
+            assert.equal(overlays.indexOf(overlay1), 0, 'overlay1 at index 0');
+            assert.equal(overlays.indexOf(overlay2), 1, 'overlay2 at index 1');
+            overlay1.close();
+            runAfterOpen(overlay1, function() {
+              assert.equal(overlays.indexOf(overlay1), 1, 'overlay1 moved at index 1');
+              assert.isAbove(parseInt(overlay1.style.zIndex), parseInt(overlay2.style.zIndex), 'overlay1 on top of overlay2');
+              done();
+            });
+          });
         });
       });
 
@@ -953,20 +1038,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.isTrue(overlay1.backdropElement === overlay3.backdropElement, 'overlay1 and overlay3 have the same backdrop element');
         });
 
-        test('only one iron-overlay-backdrop in the DOM', function() {
+        test('only one iron-overlay-backdrop in the DOM', function(done) {
           // Open them all.
-          overlay1.opened = overlay2.opened = overlay3.opened = true;
-          assert.lengthOf(document.querySelectorAll('iron-overlay-backdrop'), 1, 'only one backdrop element in the DOM');
+          overlay1.opened = true;
+          overlay2.opened = true;
+          runAfterOpen(overlay3, function() {
+            assert.lengthOf(document.querySelectorAll('iron-overlay-backdrop'), 1, 'only one backdrop element in the DOM');
+            done();
+          });
         });
 
         test('iron-overlay-backdrop is removed from the DOM when all overlays with backdrop are closed', function(done) {
           // Open & close them all.
-          overlay1.opened = overlay2.opened = overlay3.opened = true;
-          overlay1.opened = overlay2.opened = overlay3.opened = false;
-          Polymer.Base.async(function() {
+          overlay1.opened = true;
+          overlay2.opened = true;
+          runAfterOpen(overlay3, function() {
+            overlay1.opened = overlay2.opened = overlay3.opened = false;
+            Polymer.dom.flush();
             assert.lengthOf(document.querySelectorAll('iron-overlay-backdrop'), 0, 'backdrop element removed from the DOM');
             done();
-          }, 100);
+          });
         });
 
         test('newest overlay appear on top', function(done) {
@@ -1013,18 +1104,51 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       });
 
       suite('overlay in composed tree', function() {
-        test('click on overlay content does not close it', function(done) {
-          var composed = fixture('composed');
-          // Opens overlay.
-          MockInteractions.tap(composed.$.trigger);
-          composed.$.dropdown.addEventListener('iron-overlay-opened', function() {
-            // Tap on button inside overlay.
-            MockInteractions.tap(Polymer.dom(composed).querySelector('button'));
-            Polymer.Base.async(function(){
-              assert.isTrue(composed.$.dropdown.opened, 'overlay still opened');
-              done();
-            }, 1);
+        var composed, overlay, trigger;
+        setup(function(done) {
+          composed = fixture('composed');
+          overlay = composed.$.overlay;
+          trigger = composed.$.trigger;
+          overlay.withBackdrop = true;
+          overlay.addEventListener('iron-overlay-opened', function() {
+            done();
           });
+          // Opens the overlay.
+          MockInteractions.tap(trigger);
+        });
+
+        test('click on overlay content does not close it', function(done) {
+          // Tap on button inside overlay.
+          MockInteractions.tap(Polymer.dom(overlay).querySelector('button'));
+          Polymer.Base.async(function(){
+            assert.isTrue(overlay.opened, 'overlay still opened');
+            done();
+          }, 1);
+        });
+
+        test('with-backdrop wraps the focus within the overlay', function(done) {
+          // 1ms timeout needed by IE10 to have proper focus switching.
+          Polymer.Base.async(function(){
+            var buttons = Polymer.dom(overlay).querySelectorAll('button');
+            // Go to last element.
+            buttons[buttons.length-1].focus();
+            // Spy keydown.
+            var tabSpy = sinon.spy();
+            document.addEventListener('keydown', tabSpy);
+            // Simulate TAB.
+            MockInteractions.pressAndReleaseKeyOn(document, 9);
+            assert.equal(buttons[0], Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to first focusable');
+            assert.isTrue(tabSpy.calledOnce, 'keydown spy called');
+            assert.isTrue(tabSpy.getCall(0).args[0].defaultPrevented, 'keydown default prevented');
+            // Simulate Shift+TAB.
+            MockInteractions.pressAndReleaseKeyOn(document, 9, ['shift']);
+            assert.equal(buttons[buttons.length-1], Polymer.IronOverlayManager.deepActiveElement, 'focus wrapped to last focusable');
+            assert.isTrue(tabSpy.calledTwice, 'keydown spy called again');
+            assert.isTrue(tabSpy.getCall(1).args[0].defaultPrevented, 'keydown default prevented again');
+            // Cleanup.
+            document.removeEventListener('keydown', tabSpy);
+            done();
+          }, 1);
         });
 
       });

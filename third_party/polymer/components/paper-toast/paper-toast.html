@@ -77,8 +77,6 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
         box-sizing: border-box;
         box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
         border-radius: 2px;
-        left: 0;
-        bottom: 0;
         margin: 12px;
         font-size: 14px;
         cursor: default;
@@ -125,6 +123,36 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
         ],
 
         properties: {
+          /**
+           * The element to fit `this` into.
+           * Overridden from `Polymer.IronFitBehavior`.
+           */
+          fitInto: {
+            type: Object,
+            value: window,
+            observer: '_onFitIntoChanged'
+          },
+
+          /**
+           * The orientation against which to align the dropdown content
+           * horizontally relative to `positionTarget`.
+           * Overridden from `Polymer.IronFitBehavior`.
+           */
+          horizontalAlign: {
+            type: String,
+            value: 'left'
+          },
+
+          /**
+           * The orientation against which to align the dropdown content
+           * vertically relative to `positionTarget`.
+           * Overridden from `Polymer.IronFitBehavior`.
+           */
+          verticalAlign: {
+            type: String,
+            value: 'bottom'
+          },
+
           /**
            * The duration in milliseconds to show the toast.
            * Set to `0`, a negative number, or `Infinity`, to disable the
@@ -173,7 +201,7 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
          * @deprecated
          */
         get visible() {
-          console.warn('`visible` is deprecated, use `opened` instead');
+          Polymer.Base._warn('`visible` is deprecated, use `opened` instead');
           return this.opened;
         },
 
@@ -201,11 +229,11 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
           }
           for (var property in properties) {
             if (property.indexOf('_') === 0) {
-              console.warn('The property "' + property + '" is private and was not set.');
+              Polymer.Base._warn('The property "' + property + '" is private and was not set.');
             } else if (property in this) {
               this[property] = properties[property];
             } else {
-              console.warn('The property "' + property + '" is not valid.');
+              Polymer.Base._warn('The property "' + property + '" is not valid.');
             }
           }
           this.open();
@@ -216,20 +244,6 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
          */
         hide: function() {
           this.close();
-        },
-
-        /**
-         * Overridden from `IronFitBehavior`.
-         * Positions the toast at the bottom left of fitInto.
-         */
-        center: function () {
-          if (this.fitInto === window) {
-            this.style.bottom = this.style.left = '';
-          } else {
-            var rect = this.fitInto.getBoundingClientRect();
-            this.style.left = rect.left + 'px';
-            this.style.bottom = (window.innerHeight - rect.bottom) + 'px';
-          }
         },
 
         /**
@@ -291,16 +305,10 @@ In order to apply the `Roboto` font to this element, make sure you've imported `
         },
 
         /**
-         * Overridden from `IronOverlayBehavior`.
-         * iron-fit-behavior will set the inline style position: static, which
-         * causes the toast to be rendered incorrectly when opened by default.
+         * @private
          */
-        _onIronResize: function() {
-          Polymer.IronOverlayBehaviorImpl._onIronResize.apply(this, arguments);
-          if (this.opened) {
-            // Make sure there is no inline style for position.
-            this.style.position = '';
-          }
+        _onFitIntoChanged: function(fitInto) {
+          this.positionTarget = fitInto;
         }
 
         /**

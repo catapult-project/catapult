@@ -48,18 +48,13 @@ Custom property | Description | Default
 -->
 
 <dom-module id="paper-spinner-lite">
-  <template>
+  <template strip-whitespace>
     <style include="paper-spinner-styles"></style>
 
     <div id="spinnerContainer" class-name="[[__computeContainerClasses(active, __coolingDown)]]">
       <div class="spinner-layer">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
     </div>
   </template>

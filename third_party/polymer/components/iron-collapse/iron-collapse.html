@@ -27,7 +27,7 @@ will be collapsed.  Use `opened` or `toggle()` to show/hide the content.
       this.$.collapse.toggle();
     }
 
-`iron-collapse` adjusts the height/width of the collapsible element to show/hide
+`iron-collapse` adjusts the max-height/max-width of the collapsible element to show/hide
 the content.  So avoid putting padding/margin/border on the collapsible directly,
 and instead put a div inside and style that.
 
@@ -52,25 +52,23 @@ and instead put a div inside and style that.
 
 <dom-module id="iron-collapse">
 
-  <style>
-
-    :host {
-      display: block;
-      transition-duration: 300ms;
-      overflow: visible;
-    }
-
-    :host(.iron-collapse-closed) {
-      display: none;
-    }
-
-    :host(:not(.iron-collapse-opened)) {
-      overflow: hidden;
-    }
-
-  </style>
-
   <template>
+
+    <style>
+      :host {
+        display: block;
+        transition-duration: 300ms;
+        overflow: visible;
+      }
+
+      :host(.iron-collapse-closed) {
+        display: none;
+      }
+
+      :host(:not(.iron-collapse-opened)) {
+        overflow: hidden;
+      }
+    </style>
 
     <content></content>
 
@@ -128,6 +126,22 @@ and instead put a div inside and style that.
       return this.horizontal ? 'width' : 'height';
     },
 
+    /**
+     * `maxWidth` or `maxHeight`.
+     * @private
+     */    
+    get _dimensionMax() {
+      return this.horizontal ? 'maxWidth' : 'maxHeight';
+    },
+
+    /**
+     * `max-width` or `max-height`.
+     * @private
+     */
+    get _dimensionMaxCss() {
+      return this.horizontal ? 'max-width' : 'max-height';
+    },
+
     hostAttributes: {
       role: 'group',
       'aria-hidden': 'true',
@@ -160,9 +174,15 @@ and instead put a div inside and style that.
       this.opened = false;
     },
 
+    /**
+     * Updates the size of the element.
+     * @param {!String} size The new value for `maxWidth`/`maxHeight` as css property value, usually `auto` or `0px`.
+     * @param {boolean=} animated if `true` updates the size with an animation, otherwise without.
+     */     
     updateSize: function(size, animated) {
       // No change!
-      if (this.style[this.dimension] === size) {
+      var curSize = this.style[this._dimensionMax];
+      if (curSize === size || (size === 'auto' && !curSize)) {
         return;
       }
 
@@ -174,11 +194,11 @@ and instead put a div inside and style that.
         // For `auto` we must calculate what is the final size for the animation.
         // After the transition is done, _transitionEnd will set the size back to `auto`.
         if (size === 'auto') {
-          this.style[this.dimension] = size;
+          this.style[this._dimensionMax] = '';
           size = this._calcSize();
         }
         // Go to startSize without animation.
-        this.style[this.dimension] = startSize;
+        this.style[this._dimensionMax] = startSize;
         // Force layout to ensure transition will go. Set offsetHeight to itself
         // so that compilers won't remove it.
         this.offsetHeight = this.offsetHeight;
@@ -186,7 +206,11 @@ and instead put a div inside and style that.
         this._updateTransition(true);
       }
       // Set the final size.
-      this.style[this.dimension] = size;
+      if (size === 'auto') {
+        this.style[this._dimensionMax] = '';
+      } else {
+        this.style[this._dimensionMax] = size;
+      }
     },
 
     /**
@@ -197,7 +221,7 @@ and instead put a div inside and style that.
      * @deprecated since version 1.0.4
      */
     enableTransition: function(enabled) {
-      console.warn('`enableTransition()` is deprecated, use `noAnimation` instead.');
+      Polymer.Base._warn('`enableTransition()` is deprecated, use `noAnimation` instead.');
       this.noAnimation = !enabled;
     },
 
@@ -206,8 +230,8 @@ and instead put a div inside and style that.
     },
 
     _horizontalChanged: function() {
-      this.style.transitionProperty = this.dimension;
-      var otherDimension = this.dimension === 'width' ? 'height' : 'width';
+      this.style.transitionProperty = this._dimensionMaxCss;
+      var otherDimension = this._dimensionMax === 'maxWidth' ? 'maxHeight' : 'maxWidth';
       this.style[otherDimension] = '';
       this.updateSize(this.opened ? 'auto' : '0px', false);
     },
@@ -231,7 +255,7 @@ and instead put a div inside and style that.
 
     _transitionEnd: function() {
       if (this.opened) {
-        this.style[this.dimension] = 'auto';
+        this.style[this._dimensionMax] = '';
       }
       this.toggleClass('iron-collapse-closed', !this.opened);
       this.toggleClass('iron-collapse-opened', this.opened);

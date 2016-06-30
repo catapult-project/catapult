@@ -38,15 +38,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
     </style>
 
-    <style is="custom-style">
-        iron-overlay-backdrop {
-        /* For quicker tests */
-        --iron-overlay-backdrop: {
-             transition: none;
-         }
-        }
-    </style>
-
 </head>
 
 <body>
@@ -76,13 +67,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         test('backdrop size matches parent size', function(done) {
             runAfterOpen(overlay, function() {
-                Polymer.Base.async(function() {
-                    var backdrop = overlay.backdropElement;
-                    var parent = backdrop.parentElement;
-                    assert.strictEqual(backdrop.offsetWidth, parent.clientWidth, 'backdrop width matches parent width');
-                    assert.strictEqual(backdrop.offsetHeight, parent.clientHeight, 'backdrop height matches parent height');
-                    done();
-                }, 1);
+                // Flush so we are sure backdrop is added in the DOM.
+                Polymer.dom.flush();
+                var backdrop = overlay.backdropElement;
+                var parent = backdrop.parentElement;
+                assert.strictEqual(backdrop.offsetWidth, parent.clientWidth, 'backdrop width matches parent width');
+                assert.strictEqual(backdrop.offsetHeight, parent.clientHeight, 'backdrop height matches parent height');
+                done();
             });
         });
 

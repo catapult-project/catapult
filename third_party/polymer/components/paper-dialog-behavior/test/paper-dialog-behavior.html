@@ -400,16 +400,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(dialog.getAttribute('role'), 'dialog', 'has role="dialog"');
         });
 
-        test('dialog has aria-modal=false', function() {
-          var dialog = fixture('basic');
-          assert.equal(dialog.getAttribute('aria-modal'), 'false', 'has aria-modal="false"');
-        });
-
-        test('modal dialog has aria-modal=true', function() {
-          var dialog = fixture('modal');
-          assert.equal(dialog.getAttribute('aria-modal'), 'true', 'has aria-modal="true"');
-        });
-
       });
     </script>
 

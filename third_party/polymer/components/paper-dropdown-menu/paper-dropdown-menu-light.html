@@ -98,6 +98,10 @@ To style it:
 <dom-module id="paper-dropdown-menu-light">
   <template>
     <style include="paper-dropdown-menu-shared-styles">
+      :host(:focus) {
+        outline: none;
+      }
+
       /**
        * All of these styles below are for styling the fake-input display
        */
@@ -202,7 +206,7 @@ To style it:
        */
       label:after {
         background-color: var(--paper-dropdown-menu-focus-color, --primary-color);
-        bottom: 8px;    /* The container has an 8px bottom padding */
+        bottom: 7px;    /* The container has an 8px bottom padding */
         content: '';
         height: 2px;
         left: 45%;
@@ -219,7 +223,7 @@ To style it:
       }
 
       :host([no-label-float]) label:after {
-        bottom: 8px;    /* The container has a 8px bottom padding */
+        bottom: 7px;    /* The container has a 8px bottom padding */
       }
 
       :host([focused]:not([disabled])) label:after {
@@ -424,6 +428,7 @@ To style it:
         },
 
         hostAttributes: {
+          tabindex: 0,
           role: 'combobox',
           'aria-autocomplete': 'none',
           'aria-haspopup': 'true'
