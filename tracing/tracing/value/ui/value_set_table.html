@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/value_set_view.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name='tr-v-ui-value-set-table'>
+<dom-module id="tr-v-ui-value-set-table">
   <template>
     <style>
     :host {
@@ -49,7 +49,7 @@ found in the LICENSE file.
     </table-container>
     <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
@@ -126,7 +126,9 @@ tr.exportTo('tr.v.ui', function() {
     });
   }
 
-  Polymer('tr-v-ui-value-set-table', {
+  Polymer({
+    is: 'tr-v-ui-value-set-table',
+
     /**
      * Return true if this view supports this ValueSet.
      * Value-set-table supports all possible metrics, so it always returns true.
@@ -359,11 +361,11 @@ tr.exportTo('tr.v.ui', function() {
         return;
       this.style.width = '';
       this.$.table.style.display = '';
-      this.$.error.textContent = '';
+      Polymer.dom(this.$.error).textContent = '';
       this.$.histogram.style.display = 'none';
 
       this.handleFailureValues_();
-      if (this.$.error.textContent)
+      if (Polymer.dom(this.$.error).textContent)
         return;
 
       this.buildRows_();
