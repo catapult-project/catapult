@@ -5,15 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/polymer_utils.html">
 <link rel="import" href="/tracing/ui/base/tab_view.html">
-<link rel="import" href="/tracing/ui/brushing_state_controller.html">
+<link rel="import" href="/tracing/ui/base/utils.html">
 
-<polymer-element name='tr-v-ui-value-set-view'>
+<dom-module id="tr-v-ui-value-set-view">
   <template>
     <tr-ui-a-tab-view id="container"></tr-ui-a-tab-view>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
@@ -182,7 +181,9 @@ tr.exportTo('tr.v.ui', function() {
 
   var SELECTED_TAB_SETTINGS_KEY = 'tr-v-ui-value-set-view-element-name';
 
-  Polymer('tr-v-ui-value-set-view', {
+  Polymer({
+    is: 'tr-v-ui-value-set-view',
+
     ready: function() {
       this.$.container.addEventListener(
         'selected-tab-change', this.onSelectedTabChange_.bind(this));
@@ -219,12 +220,13 @@ tr.exportTo('tr.v.ui', function() {
 
         view.values = values;
 
-        if (elementName.toLowerCase() === initialTabElementName)
-          view.setAttribute('selected', true);
+        if ((elementName === initialTabElementName) ||
+            (index === 0))
+          Polymer.dom(view).setAttribute('selected', true);
 
-        view.setAttribute('tab-label', view.tabLabel);
+        Polymer.dom(view).setAttribute('tab-label', view.tabLabel);
 
-        this.$.container.appendChild(view);
+        Polymer.dom(this.$.container).appendChild(view);
       }, this);
 
       if (this.$.container.children.length === 1) {
@@ -242,7 +244,7 @@ tr.exportTo('tr.v.ui', function() {
    * @param {string} elementName
    */
   function registerValueSetView(elementName) {
-    if (!tr.ui.b.getPolymerElementNamed(elementName))
+    if (tr.ui.b.isUnknownElementName(elementName))
       throw new Error('Element not registered: ' + elementName);
 
     VALUE_SET_VIEW_ELEMENT_NAMES.push(elementName);
