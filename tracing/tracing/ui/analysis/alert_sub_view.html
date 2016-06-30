@@ -123,7 +123,7 @@ Polymer({
     if (alerts.length == 1) {
       var rows = [{
         name: 'Alert',
-        value: alerts[0].title
+        value: tr.b.getOnlyElement(alerts).title
       }];
       var detailRows = this.getRowsForSingleAlert_(alerts[0]);
       rows.push.apply(rows, detailRows);
@@ -155,7 +155,10 @@ Polymer({
   get relatedEventsToHighlight() {
     if (!this.currentSelection_)
       return undefined;
-    return this.currentSelection_[0].associatedEvents;
+    var result = new tr.model.EventSet();
+    for (var event of this.currentSelection_)
+      result.addEventSet(event.associatedEvents);
+    return result;
   }
 });
 </script>

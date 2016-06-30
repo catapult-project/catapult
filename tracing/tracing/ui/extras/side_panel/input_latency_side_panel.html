@@ -314,7 +314,6 @@ Polymer({
     if (frametimeData.length != 0) {
       this.frametimeChart_ = this.createLatencyLineChart(
           frametimeData, 'Frame Times');
-      this.frametimeChart_.style.display = 'block';
       Polymer.dom(resultArea).appendChild(this.frametimeChart_);
     }
   },

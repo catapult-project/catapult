@@ -535,11 +535,12 @@ Polymer({
       return;
 
     var curSelection = this.brushingStateController_.selection;
-    if (!curSelection.length || !curSelection[0].title)
+    if (!curSelection.length || !tr.b.getOnlyElement(curSelection).title)
       return;
 
     var selection = new tr.model.EventSet();
-    var filter = new tr.c.ExactTitleFilter(curSelection[0].title);
+    var filter = new tr.c.ExactTitleFilter(
+        tr.b.getOnlyElement(curSelection).title);
     this.modelTrack_.addAllEventsMatchingFilterToSelection(filter,
                                                             selection);
 
@@ -754,6 +755,16 @@ Polymer({
     this.xNavStringMarker_ =
         new tr.model.XMarkerAnnotation(worldCenter);
     this.model.addAnnotation(this.xNavStringMarker_);
+  },
+
+  selectPowerSamplesInCurrentTimeRange_: function() {
+    var selectionBounds = this.brushingStateController_.selection.bounds;
+    if (this.model.device.powerSeries && !selectionBounds.empty) {
+      var events = this.model.device.powerSeries.getSamplesWithinRange(
+          selectionBounds.min, selectionBounds.max);
+      var selection = new tr.model.EventSet(events);
+      this.brushingStateController_.changeSelectionFromTimeline(selection);
+    }
   },
 
   setCurrentSelectionAsInterestRange_: function() {

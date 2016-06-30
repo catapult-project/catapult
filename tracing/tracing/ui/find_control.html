@@ -157,7 +157,7 @@ Polymer({
   },
 
   updateHitCountEl: function() {
-    if (!this.controller || !this.hasFocus) {
+    if (!this.controller || this.$.filter.value.length === 0) {
       Polymer.dom(this.$.hitCount).textContent = '';
       return;
     }

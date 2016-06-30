@@ -106,6 +106,7 @@ tr.exportTo('tr.metrics.v8', function() {
 
   /**
    * Example output:
+<<<<<<< HEAD
    * - v8-gc-full-mark-compactor.
    */
   function addDurationOfTopEvents(values, model) {
@@ -113,17 +114,32 @@ tr.exportTo('tr.metrics.v8', function() {
       isNotForcedTopGarbageCollectionEvent,
       tr.metrics.v8.utils.topGarbageCollectionEventName,
       function(name, events) {
+=======
+   * - Animation-v8_gc_full_mark_compactor.
+   */
+  function addDurationOfTopEvents(values, model) {
+    groupAndProcessEvents(model,
+      tr.metrics.v8.utils.isTopGarbageCollectionEvent,
+      tr.metrics.v8.utils.topGarbageCollectionEventName,
+      function(stageTitle, name, events) {
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
           cpuDuration.add(event.cpuDuration);
         });
+<<<<<<< HEAD
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
+=======
+        values.addValue(new tr.v.NumericValue(
+            stageTitle + '-' + name, cpuDuration));
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
       }
     );
   }
 
   /**
    * Example output:
+<<<<<<< HEAD
    * - v8-gc-total
    */
   function addTotalDurationOfTopEvents(values, model) {
@@ -131,17 +147,32 @@ tr.exportTo('tr.metrics.v8', function() {
       isNotForcedTopGarbageCollectionEvent,
       event => 'v8-gc-total',
       function(name, events) {
+=======
+   * - Animation:v8_gc_total
+   */
+  function addTotalDurationOfTopEvents(values, model) {
+    groupAndProcessEvents(model,
+      tr.metrics.v8.utils.isTopGarbageCollectionEvent,
+      event => 'v8-gc-total',
+      function(stageTitle, name, events) {
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
           cpuDuration.add(event.cpuDuration);
         });
+<<<<<<< HEAD
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
+=======
+        values.addValue(new tr.v.NumericValue(
+            stageTitle + '-' + name, cpuDuration));
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
       }
     );
   }
 
   /**
    * Example output:
+<<<<<<< HEAD
    * - v8-gc-full-mark-compactor-evacuate.
    */
   function addDurationOfSubEvents(values, model) {
@@ -149,17 +180,32 @@ tr.exportTo('tr.metrics.v8', function() {
       isNotForcedSubGarbageCollectionEvent,
       tr.metrics.v8.utils.subGarbageCollectionEventName,
       function(name, events) {
+=======
+   * - Animation-v8-gc-full-mark-compactor-evacuate.
+   */
+  function addDurationOfSubEvents(values, model) {
+    groupAndProcessEvents(model,
+      tr.metrics.v8.utils.isSubGarbageCollectionEvent,
+      tr.metrics.v8.utils.subGarbageCollectionEventName,
+      function(stageTitle, name, events) {
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
         var cpuDuration = createNumericForSubEventTime();
         events.forEach(function(event) {
           cpuDuration.add(event.cpuDuration);
         });
+<<<<<<< HEAD
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
+=======
+        values.addValue(new tr.v.NumericValue(
+            stageTitle + '-' + name, cpuDuration));
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
       }
     );
   }
 
   /**
    * Example output:
+<<<<<<< HEAD
    * - v8-gc-full-mark-compactor_idle_deadline_overrun,
    * - v8-gc-full-mark-compactor_outside_idle,
    * - v8-gc-full-mark-compactor_percentage_idle.
@@ -170,12 +216,25 @@ tr.exportTo('tr.metrics.v8', function() {
       tr.metrics.v8.utils.topGarbageCollectionEventName,
       function(name, events) {
         addIdleTimes(values, model, name, events);
+=======
+   * - Animation-v8-gc-full-mark-compactor_idle_deadline_overrun,
+   * - Animation-v8-gc-full-mark-compactor_outside_idle,
+   * - Animation-v8-gc-full-mark-compactor_percentage_idle.
+   */
+  function addIdleTimesOfTopEvents(values, model) {
+    groupAndProcessEvents(model,
+      tr.metrics.v8.utils.isTopGarbageCollectionEvent,
+      tr.metrics.v8.utils.topGarbageCollectionEventName,
+      function(stageTitle, name, events) {
+        addIdleTimes(values, model, stageTitle, name, events);
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
       }
     );
   }
 
   /**
    * Example output:
+<<<<<<< HEAD
    * - v8-gc-total_idle_deadline_overrun,
    * - v8-gc-total_outside_idle,
    * - v8-gc-total_percentage_idle.
@@ -186,11 +245,27 @@ tr.exportTo('tr.metrics.v8', function() {
       event => 'v8-gc-total',
       function(name, events) {
         addIdleTimes(values, model, name, events);
+=======
+   * - Animation-v8-gc-total_idle_deadline_overrun,
+   * - Animation-v8-gc-total_outside_idle,
+   * - Animation-v8-gc-total_percentage_idle.
+   */
+  function addTotalIdleTimesOfTopEvents(values, model) {
+    groupAndProcessEvents(model,
+      tr.metrics.v8.utils.isTopGarbageCollectionEvent,
+      event => 'v8-gc-total',
+      function(stageTitle, name, events) {
+        addIdleTimes(values, model, stageTitle, name, events);
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
       }
     );
   }
 
+<<<<<<< HEAD
   function addIdleTimes(values, model, name, events) {
+=======
+  function addIdleTimes(values, model, stageTitle, name, events) {
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
     var cpuDuration = createNumericForIdleTime();
     var insideIdle = createNumericForIdleTime();
     var outsideIdle = createNumericForIdleTime();
@@ -220,6 +295,7 @@ tr.exportTo('tr.metrics.v8', function() {
       idleDeadlineOverrun.add(overrun);
     });
     values.addValue(new tr.v.NumericValue(
+<<<<<<< HEAD
         name + '_idle_deadline_overrun',
         idleDeadlineOverrun));
     values.addValue(new tr.v.NumericValue(
@@ -235,11 +311,29 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.metrics.v8.utils.isTopV8ExecuteEvent,
         event => 'v8-execute',
         function(name, events) {
+=======
+        stageTitle + '-' + name + '_idle_deadline_overrun',
+        idleDeadlineOverrun));
+    values.addValue(new tr.v.NumericValue(
+        stageTitle + '-' + name + '_outside_idle', outsideIdle));
+    var percentage = createPercentage(insideIdle.sum,
+                                      cpuDuration.sum);
+    values.addValue(new tr.v.NumericValue(
+        stageTitle + '-' + name + '_percentage_idle', percentage));
+  }
+
+  function addV8ExecuteMutatorUtilization(values, model) {
+    groupAndProcessEvents(model,
+        tr.metrics.v8.utils.isTopV8ExecuteEvent,
+        event => 'v8-execute',
+        function(stageTitle, name, events) {
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
           events.sort((a, b) => a.start - b.start);
           var time = 0;
           var pauses = [];
           // Glue together the v8.execute events and adjust the GC pause
           // times accordingly.
+<<<<<<< HEAD
           for (var topEvent of events) {
             for (var e of topEvent.enumerateAllDescendents()) {
               if (isNotForcedTopGarbageCollectionEvent(e)) {
@@ -249,6 +343,17 @@ tr.exportTo('tr.metrics.v8', function() {
             }
             time += topEvent.duration;
           }
+=======
+          events.forEach(function(topEvent) {
+            topEvent.iterateAllDescendents(function(e) {
+              if (tr.metrics.v8.utils.isTopGarbageCollectionEvent(e)) {
+                pauses.push({ start: e.start - topEvent.start + time,
+                              end: e.end - topEvent.start + time });
+              }
+            });
+            time += topEvent.duration;
+          });
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
           // Now we have one big v8.execute interval from 0 to |time| and
           // a list of GC pauses.
           var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
@@ -257,15 +362,57 @@ tr.exportTo('tr.metrics.v8', function() {
             var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
                 mutatorUtilization.percentile(1.0 - percent) * 100);
             values.addValue(new tr.v.NumericValue(
+<<<<<<< HEAD
                 'v8-execute-mutator-utilization_pct_0' +
+=======
+                stageTitle + '-v8-execute-mutator-utilization_pct_0' +
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
                 percent * 100,
                 value));
           });
           var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
               mutatorUtilization.min);
           values.addValue(new tr.v.NumericValue(
+<<<<<<< HEAD
               'v8-execute-mutator-utilization_min', value));
         }
+=======
+              stageTitle + '-v8-execute-mutator-utilization_min', value));
+        }
+    );
+  }
+
+  /**
+   * Filters events using the |filterCallback|, then groups events by the user
+   * expectation stage title and the name computed using the |nameCallback|,
+   * and then invokes the |processCallback| with the grouped events.
+   * @param {Function} filterCallback Takes an event and returns a boolean.
+   * @param {Function} nameCallback Takes event and returns a string.
+   * @param {Function} processCallback Takes a stage title, a name, and
+   *                   an array of events.
+   */
+  function groupAndProcessEvents(model, filterCallback,
+                                 nameCallback, processCallback) {
+    // Two level map: stageTitle -> name -> [events].
+    var stageTitleToNameToEvents = {};
+    model.userModel.expectations.forEach(function(ue) {
+      stageTitleToNameToEvents[ue.stageTitle] =
+        stageTitleToNameToEvents[ue.stageTitle] || {};
+      var nameToEvents = stageTitleToNameToEvents[ue.stageTitle];
+      ue.associatedEvents.forEach(function(event) {
+        if (!filterCallback(event)) return;
+        var name = nameCallback(event);
+        nameToEvents[name] = nameToEvents[name] || [];
+        nameToEvents[name].push(event);
+      });
+    });
+    tr.b.iterItems(stageTitleToNameToEvents,
+      function(stageTitle, nameToEvents) {
+        tr.b.iterItems(nameToEvents, function(name, events) {
+          processCallback(stageTitle, name, events);
+        });
+      }
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
     );
   }
 

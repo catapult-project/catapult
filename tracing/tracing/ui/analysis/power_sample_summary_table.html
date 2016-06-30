@@ -119,12 +119,14 @@ Polymer({
     return this.getEnergyConsumed() / durationInSeconds;
   },
 
+
   getEnergyConsumed: function() {
     if (this.samples.length < 2)
       return 'N/A';
 
     var bounds = this.samples.bounds;
-    return this.samples[0].series.getEnergyConsumed(bounds.min, bounds.max);
+    var series = tr.b.getFirstElement(this.samples).series;
+    return series.getEnergyConsumed(bounds.min, bounds.max);
   }
 });
 </script>

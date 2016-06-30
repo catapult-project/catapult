@@ -41,8 +41,6 @@ Polymer({
   },
 
   set selection(selection) {
-    if (selection.length != 1)
-      throw new Error('Only supports single frame!');
     this.currentSelection_ = selection;
     this.$.asv.selection = tr.b.getOnlyElement(selection).associatedAlerts;
   },

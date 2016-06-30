@@ -132,7 +132,7 @@ Polymer({
   },
 
   get activePanel() {
-    if (this.activePanelContainer_.children.length < 2)
+    if (Polymer.dom(this.activePanelContainer_).children.length < 2)
       return undefined;
     return this.activePanelContainer_.children[1];
   },
@@ -158,6 +158,9 @@ Polymer({
     }
 
     Polymer.dom(this.activePanelContainer_).textContent = '';
+
+    if (this.activePanel)
+      Polymer.dom(this.activePanelContainer_).removeChild(this.activePanel);
 
     if (panelType === undefined) {
       Polymer.dom(this).removeAttribute('expanded');
@@ -230,6 +233,8 @@ Polymer({
       this.activePanelType = previouslyActivePanelType;
       Polymer.dom(this).setAttribute('expanded', true);
     } else {
+      if (this.activePanel)
+        Polymer.dom(this.activePanelContainer_).removeChild(this.activePanel);
       Polymer.dom(this.activePanelContainer_).textContent = '';
       Polymer.dom(this).removeAttribute('expanded');
     }

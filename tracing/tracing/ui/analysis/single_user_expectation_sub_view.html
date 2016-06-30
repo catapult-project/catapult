@@ -70,43 +70,6 @@ Polymer({
   onCustomizeRows_: function(event) {
     var ue = tr.b.getOnlyElement(this.selection);
 
-    var valueList = new tr.metrics.ValueList();
-
-    function runMetric(metricInfo) {
-      try {
-        metricInfo.constructor(valueList, ue.parentModel);
-      } catch (failure) {
-        console.error(metricInfo, failure);
-      }
-    }
-
-    tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(runMetric);
-
-    // Metrics may have been computed more than once, so avoid displaying them
-    // more than once by collecting them in a dictionary.
-    // https://github.com/catapult-project/catapult/issues/2154
-    var metricValues = {};
-
-    valueList.valueDicts.forEach(function(value) {
-      if (value.grouping_keys.userExpectationStableId !== ue.stableId)
-        return;
-
-      if ((value.type !== 'numeric') ||
-          (value.numeric.type !== 'scalar'))
-        return;
-
-      metricValues[value.grouping_keys.name] = value.numeric;
-    });
-
-    for (var name in metricValues) {
-      event.rows.push({
-        name: name,
-        value: tr.v.ui.createScalarSpan(metricValues[name].value, {
-          unit: tr.v.Unit.fromJSON(metricValues[name].unit)
-        })
-      });
-    }
-
     if (ue.rawCpuMs) {
       event.rows.push({
         name: 'Total CPU',

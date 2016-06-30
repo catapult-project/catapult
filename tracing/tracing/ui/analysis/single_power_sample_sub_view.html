@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-power-sample-table">
+<dom-module id='tr-ui-a-power-sample-table'>
   <template>
     <style>
     :host {
@@ -20,12 +20,14 @@ found in the LICENSE file.
     </style>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
 
-Polymer('tr-ui-a-power-sample-table', {
+Polymer({
+  is: 'tr-ui-a-power-sample-table',
+
   ready: function() {
     this.$.table.tableColumns = [
       {
@@ -60,7 +62,7 @@ Polymer('tr-ui-a-power-sample-table', {
   },
 
   updateContents_: function() {
-    if (this.sample == undefined)
+    if (this.sample === undefined)
       this.$.table.tableRows = [];
     else
       this.$.table.tableRows = [this.sample];
@@ -101,7 +103,7 @@ Polymer({
   updateContents_: function() {
     if (this.selection.length != 1)
       throw 'Cannot pass multiple samples to sample table.';
-    this.$.samplesTable.sample = this.selection[0];
+    this.$.samplesTable.sample = tr.b.getOnlyElement(this.selection);
   }
 });
 </script>

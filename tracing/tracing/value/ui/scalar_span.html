@@ -181,6 +181,15 @@ Polymer({
     this.updateContent_();
   },
 
+    get context() {
+      return this.context_;
+    },
+
+    set context(context) {
+      this.context_ = context;
+      this.updateContent_();
+    },
+
   get unit() {
     return this.unit_;
   },
@@ -238,7 +247,8 @@ Polymer({
       return;
 
     this.$.content.title = '';
-    this.$.content.textContent = this.unit_.format(this.value, this.context);
+    Polymer.dom(this.$.content).textContent =
+        this.unit_.format(this.value, this.context);
     this.updateDelta_();
   },
 
@@ -261,7 +271,6 @@ Polymer({
         break;
     }
 
-<<<<<<< HEAD
     var better = ((biggerIsBetter && this.value > 0) ||
         (smallerIsBetter && this.value < 0));
     var worse = ((biggerIsBetter && this.value < 0) ||
@@ -281,36 +290,6 @@ Polymer({
       title = 'regression';
     } else {
       title = 'no change';
-=======
-    Polymer.dom(this.$.content).textContent = this.unit_.format(this.value);
-
-    var BIGGER_IS_BETTER = tr.v.ImprovementDirection.BIGGER_IS_BETTER;
-    var SMALLER_IS_BETTER = tr.v.ImprovementDirection.SMALLER_IS_BETTER;
-    var color = '';
-    if (this.unit_.isDelta) {
-      var improvementDirection = this.unit_.improvementDirection;
-      if (this.value > 0) {
-        // Positive delta.
-        switch (improvementDirection) {
-          case BIGGER_IS_BETTER:
-            color = 'green';
-            break;
-          case SMALLER_IS_BETTER:
-            color = 'red';
-            break;
-        }
-      } else if (this.value < 0) {
-        // Negative delta.
-        switch (improvementDirection) {
-          case BIGGER_IS_BETTER:
-            color = 'red';
-            break;
-          case SMALLER_IS_BETTER:
-            color = 'green';
-            break;
-        }
-      }
->>>>>>> f9b5fe7... Migrate querySelector, querySelectorAll and textContent
     }
 
     // Set the content class separately from the significance class so that

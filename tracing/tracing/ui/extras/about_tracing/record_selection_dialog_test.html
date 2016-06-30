@@ -16,7 +16,6 @@ tr.b.unittest.testSuite(function() {
   test('instantitate', function() {
     var showButton = document.createElement('button');
     Polymer.dom(showButton).textContent = 'Show record selection dialog';
-    showButton.textContent = 'Show record selection dialog';
     this.addHTMLOutput(showButton);
 
     showButton.addEventListener('click', function(e) {

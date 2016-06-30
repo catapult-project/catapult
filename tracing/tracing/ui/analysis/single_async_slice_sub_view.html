@@ -63,10 +63,10 @@ Polymer({
     return rows;
   },
 
-    get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
-        return undefined;
-      return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
-    }
-  });
-  </script>
+  get relatedEventsToHighlight() {
+    if (!this.currentSelection_)
+      return undefined;
+    return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
+  }
+});
+</script>

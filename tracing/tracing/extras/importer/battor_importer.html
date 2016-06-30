@@ -132,8 +132,19 @@ tr.exportTo('tr.e.importer.battor', function() {
         var current = parseFloat(groups[3]) / 1000;
         var syncId = groups[4];
 
-        if (syncId)
-          this.syncTimestampsById_.set(syncId, ts);
+        if (voltage < 0 || current < 0) {
+          this.model_.importWarning({
+            type: 'parse_error',
+            message: 'The following line in the BattOr trace has a negative ' +
+                'voltage or current, neither of which are allowed: ' + line +
+                '. A common cause of this is that the device is charging ' +
+                'while the trace is being recorded.'
+          });
+          continue;
+        }
+
+        samples.push(new Sample(ts, voltage, current, syncId));
+      }
 
         if (voltage < 0 || current < 0) {
           this.model_.importWarning({

@@ -1397,7 +1397,7 @@ tr.exportTo('tr.ui.b', function() {
               if (!rowInfo.isExpanded)
                 this.setExpandedForTableRow(rowInfo.userRow, true);
               this.selectedTableRow =
-                htmlNode.nextElementSibling.rowInfo.userRow;
+                Polymer.dom(htmlNode).nextElementSibling.rowInfo.userRow;
               this.focusSelected_();
               return;
 
@@ -1495,8 +1495,12 @@ tr.exportTo('tr.ui.b', function() {
     #side {
       -webkit-user-select: none;
       flex: 0 0 auto;
+<<<<<<< HEAD
       padding-left: 2px;
       padding-right: 2px;
+=======
+      padding-left: 4px;
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
       vertical-align: top;
       font-size: 15px;
       font-family: sans-serif;
@@ -1541,6 +1545,7 @@ Polymer({
     this.tapCallback_ = undefined;
     this.cellTitle_ = '';
     this.align_ = undefined;
+<<<<<<< HEAD
     this.selectable_ = false;
     this.column_ = undefined;
   },
@@ -1588,6 +1593,8 @@ Polymer({
     if (!this.selectable_)
       return false;
     return this.$.button.getAttribute('selected') === 'true';
+=======
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
   },
 
   set cellTitle(value) {
@@ -1609,7 +1616,10 @@ Polymer({
     return this.cellTitle_;
   },
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8881d68... Merge origin/master to the polymer branch.
   set align(align) {
     switch (align) {
       case undefined:
