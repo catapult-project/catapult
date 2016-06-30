@@ -7,10 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 
-<polymer-element name="tr-v-ui-related-value-map-span">
+<dom-module id="tr-v-ui-related-value-map-span">
   <script>
   'use strict';
   Polymer({
+    is: 'tr-v-ui-related-value-map-span',
+
     ready: function() {
       this.diagnostic_ = undefined;
     },
@@ -25,14 +27,14 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      this.textContent = '';
+      Polymer.dom(this).textContent = '';
       this.diagnostic.iterItems(function(name, value) {
         var link = document.createElement('tr-ui-a-analysis-link');
         link.setSelectionAndContent(value, name);
-        this.appendChild(link);
-        this.appendChild(document.createElement('br'));
+        Polymer.dom(this).appendChild(link);
+        Polymer.dom(this).appendChild(document.createElement('br'));
       }, this);
     }
   });
   </script>
-</polymer-element>
+</dom-module>
