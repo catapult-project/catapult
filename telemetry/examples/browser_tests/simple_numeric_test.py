@@ -10,7 +10,8 @@ from telemetry.testing import serially_executed_browser_test_case
 
 _prev_test_name = None
 
-class SimpleTest(serially_executed_browser_test_case.SeriallyBrowserTestCase):
+class SimpleTest(
+    serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   @classmethod
   def AddCommandlineArgs(cls, parser):

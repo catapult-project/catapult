@@ -6,7 +6,7 @@ from telemetry.testing import serially_executed_browser_test_case
 
 
 class SimpleShardingTest(
-    serially_executed_browser_test_case.SeriallyBrowserTestCase):
+    serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   def Test1(self):
     pass

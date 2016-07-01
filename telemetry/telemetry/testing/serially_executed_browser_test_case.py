@@ -4,13 +4,15 @@
 
 import unittest
 
+from catapult_base import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.testing import options_for_unittests
+from telemetry.util import wpr_modes
 
 
-class SeriallyBrowserTestCase(unittest.TestCase):
+class SeriallyExecutedBrowserTestCase(unittest.TestCase):
   def __init__(self, methodName):
-    super(SeriallyBrowserTestCase, self).__init__(methodName)
+    super(SeriallyExecutedBrowserTestCase, self).__init__(methodName)
     self._private_methodname = methodName
 
   def shortName(self):
@@ -28,31 +30,63 @@ class SeriallyBrowserTestCase(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     cls._finder_options = options_for_unittests.GetCopy()
-    cls._platform = None
-    cls._browser = None
     cls.platform = None
     cls.browser = None
+    cls._browser_to_create = None
+    cls._browser_options = None
 
   @classmethod
-  def StartBrowser(cls, options):
-    assert not cls.browser, 'Browser is started. Must close it first'
-    browser_to_create = browser_finder.FindBrowser(options)
-    cls.browser = browser_to_create.Create(options)
-    cls._browser = cls.browser
+  def SetBrowserOptions(cls, browser_options):
+    """Sets the browser option for the browser to create.
+
+    Args:
+      browser_options: Browser options object for the browser we want to test.
+    """
+    cls._browser_options = browser_options
+    cls._browser_to_create = browser_finder.FindBrowser(browser_options)
     if not cls.platform:
-      cls.platform = cls.browser.platform
-      cls._platform = cls.platform
+      cls.platform = cls._browser_to_create.platform
     else:
-      assert cls.platform == cls.browser.platform, (
+      assert cls.platform == cls._browser_to_create.platform, (
           'All browser launches within same test suite must use browsers on '
           'the same platform')
+
+  @classmethod
+  def StartWPRServer(cls, archive_path=None, archive_bucket=None):
+    """Start a webpage replay server.
+
+    Args:
+      archive_path: Path to the WPR file. If there is a corresponding sha1 file,
+          this archive will be automatically downloaded from Google Storage.
+      archive_bucket: The bucket to look for the WPR archive.
+    """
+    assert cls._browser_options, (
+        'Browser options must be set with |SetBrowserOptions| prior to '
+        'starting WPR')
+    assert not cls.browser, 'WPR must be started prior to browser being started'
+
+    cloud_storage.GetIfChanged(archive_path, archive_bucket)
+    cls.platform.network_controller.Open(wpr_modes.WPR_REPLAY, [])
+    cls.platform.network_controller.StartReplay(archive_path=archive_path)
+
+  @classmethod
+  def StopWPRServer(cls):
+    cls.platform.network_controller.StopReplay()
+
+  @classmethod
+  def StartBrowser(cls):
+    assert cls._browser_options, (
+        'Browser options must be set with |SetBrowserOptions| prior to '
+        'starting WPR')
+    assert not cls.browser, 'Browser is started. Must close it first'
+
+    cls.browser = cls._browser_to_create.Create(cls._browser_options)
 
   @classmethod
   def StopBrowser(cls):
     assert cls.browser, 'Browser is not started'
     cls.browser.Close()
     cls.browser = None
-    cls._browser = None
 
   @classmethod
   def tearDownClass(cls):

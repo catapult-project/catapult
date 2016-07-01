@@ -12,7 +12,7 @@ def ConvertPathToTestName(url):
 
 
 class SimpleBrowserTest(
-    serially_executed_browser_test_case.SeriallyBrowserTestCase):
+    serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
 
   @classmethod
   def GenerateTestCases_JavascriptTest(cls, options):
@@ -23,8 +23,9 @@ class SimpleBrowserTest(
   @classmethod
   def setUpClass(cls):
     super(cls, SimpleBrowserTest).setUpClass()
-    cls.StartBrowser(cls._finder_options)
-    cls.action_runner = cls._browser.tabs[0].action_runner
+    cls.SetBrowserOptions(cls._finder_options)
+    cls.StartBrowser()
+    cls.action_runner = cls.browser.tabs[0].action_runner
     cls.SetStaticServerDir(
         os.path.join(os.path.abspath(__file__), '..', 'pages'))
 
@@ -43,18 +44,18 @@ class SimpleBrowserTest(
     self.assertEqual(1997, self.action_runner.EvaluateJavaScript('valueToTest'))
 
   def TestAndroidUI(self):
-    if self._platform.GetOSName() != 'android':
+    if self.platform.GetOSName() != 'android':
       self.skipTest('The test is for android only')
     url = self.UrlOfStaticFilePath('page_with_clickables.html')
     # Nativgate to page_with_clickables.html
     self.action_runner.Navigate(url)
     # Click on history
-    self._platform.system_ui.WaitForUiNode(
+    self.platform.system_ui.WaitForUiNode(
         resource_id='com.google.android.apps.chrome:id/menu_button')
-    self._platform.system_ui.GetUiNode(
+    self.platform.system_ui.GetUiNode(
         resource_id='com.google.android.apps.chrome:id/menu_button').Tap()
-    self._platform.system_ui.WaitForUiNode(content_desc='History')
-    self._platform.system_ui.GetUiNode(content_desc='History').Tap()
+    self.platform.system_ui.WaitForUiNode(content_desc='History')
+    self.platform.system_ui.GetUiNode(content_desc='History').Tap()
     # Click on the first entry of the history (page_with_clickables.html)
     self.action_runner.WaitForElement('#id-0')
     self.action_runner.ClickElement('#id-0')

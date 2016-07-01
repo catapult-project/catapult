@@ -214,7 +214,8 @@ def Run(project_config, test_run_options, args):
   for start_dir in project_config.start_dirs:
     modules_to_classes = discover.DiscoverClasses(
         start_dir, project_config.top_level_dir,
-        base_class=serially_executed_browser_test_case.SeriallyBrowserTestCase)
+        base_class=serially_executed_browser_test_case.
+            SeriallyExecutedBrowserTestCase)
     browser_test_classes = modules_to_classes.values()
 
   _ValidateDistinctNames(browser_test_classes)

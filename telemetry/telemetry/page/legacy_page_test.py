@@ -38,7 +38,7 @@ class LegacyPageTest(object):
   use TimelineBasedMeasurement instead: https://goo.gl/eMvikK
 
   For correctness testing, please use
-  telemetry.testing.serially_executed_browser_test_case.SeriallyBrowserTestCase
+  serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase
   instead. See examples in:
   https://github.com/catapult-project/catapult/tree/master/telemetry/examples/browser_tests
 
