@@ -26,8 +26,25 @@ def CreateLowOverheadFilter():
 
 
 def CreateDefaultOverheadFilter():
-  """Returns a filter with the best-effort amount of overhead."""
-  return ChromeTraceCategoryFilter(filter_string='')
+  """Returns a filter with the best-effort amount of overhead.
+
+  This matches Chrome tracing's default category filter setting, i.e., enable
+  all categories except the disabled-by-default-* ones.
+
+  We should use '*' instead of '' (empty string) here. On the Chrome side, both
+  '*' and '' mean default category filter setting. However, if someone adds
+  additional category filters, the behavior becomes different.
+
+  For example:
+  '*': enable all categories except the disabled-by-default-* ones.
+  '':  enable all categories except the disabled-by-default-* ones.
+
+  Now add an additional category filter 'abc' to '*' and '':
+  '*,abc': enable all categories (including 'abc') except the
+           disabled-by-default-* ones.
+  'abc':   enable only 'abc', and disable all other ones.
+  """
+  return ChromeTraceCategoryFilter(filter_string='*')
 
 
 def CreateDebugOverheadFilter():
