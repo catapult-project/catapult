@@ -18,7 +18,7 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   var Range = tr.b.Range;
 
-  var MAX_SOURCE_INFOS = 16;
+  var MAX_DIAGNOSTICS = 16;
 
   function NumericBase(unit) {
     if (!(unit instanceof tr.v.Unit))
@@ -52,7 +52,7 @@ tr.exportTo('tr.v', function() {
     this.parentNumeric = parentNumeric;
     this.range = opt_range || (new tr.b.Range());
     this.count = 0;
-    this.sourceInfos = [];
+    this.diagnostics = [];
   }
 
   NumericBin.fromDict = function(parentNumeric, d) {
@@ -60,22 +60,29 @@ tr.exportTo('tr.v', function() {
     n.range.min = d.min;
     n.range.max = d.max;
     n.count = d.count;
-    n.sourceInfos = d.sourceInfos;
+    if (d.diagnostics)
+      n.diagnostics = d.diagnostics.map(dd => tr.v.d.Diagnostic.fromDict(dd));
     return n;
   };
 
   NumericBin.prototype = {
-    add: function(value, sourceInfo) {
+    /**
+     * @param {*} value
+     * @param {!tr.v.d.Diagnostic=} opt_diagnostic
+     */
+    add: function(value, opt_diagnostic) {
       this.count += 1;
-      tr.b.Statistics.uniformlySampleStream(this.sourceInfos, this.count,
-          sourceInfo, MAX_SOURCE_INFOS);
+      if (opt_diagnostic) {
+        tr.b.Statistics.uniformlySampleStream(
+            this.diagnostics, this.count, opt_diagnostic, MAX_DIAGNOSTICS);
+      }
     },
 
     addBin: function(other) {
       if (!this.range.equals(other.range))
         throw new Error('Merging incompatible Numeric bins.');
-      tr.b.Statistics.mergeSampledStreams(this.sourceInfos, this.count,
-          other.sourceInfos, other.count, MAX_SOURCE_INFOS);
+      tr.b.Statistics.mergeSampledStreams(this.diagnostics, this.count,
+          other.diagnostics, other.count, MAX_DIAGNOSTICS);
       this.count += other.count;
     },
 
@@ -84,7 +91,7 @@ tr.exportTo('tr.v', function() {
         min: this.range.min,
         max: this.range.max,
         count: this.count,
-        sourceInfos: this.sourceInfos.slice(0)
+        diagnostics: this.diagnostics.map(d => d.asDict())
       };
     },
 
@@ -99,7 +106,7 @@ tr.exportTo('tr.v', function() {
     this.range = range;
 
     this.numNans = 0;
-    this.nanSourceInfos = [];
+    this.nanDiagnostics = [];
 
     this.running = new tr.b.RunningStatistics();
     this.maxCount_ = 0;
@@ -138,7 +145,10 @@ tr.exportTo('tr.v', function() {
     if (d.summaryOptions)
       n.customizeSummaryOptions(d.summaryOptions);
     n.numNans = d.numNans;
-    n.nanSourceInfos = d.nanSourceInfos;
+    if (d.nanDiagnostics) {
+      n.nanDiagnostics = d.nanDiagnostics.map(
+          dd => tr.v.d.Diagnostic.fromDict(dd));
+    }
     return n;
   };
 
@@ -255,16 +265,22 @@ tr.exportTo('tr.v', function() {
       return this.allBins[binIndex] || this.overflowBin;
     },
 
-    add: function(value, sourceInfo) {
+    /**
+     * @param {*} value
+     * @param {!tr.v.d.Diagnostic=} opt_diagnostic
+     */
+    add: function(value, opt_diagnostic) {
       if (typeof(value) !== 'number' || isNaN(value)) {
         this.numNans++;
-        tr.b.Statistics.uniformlySampleStream(this.nanSourceInfos, this.numNans,
-            sourceInfo, MAX_SOURCE_INFOS);
+        if (opt_diagnostic) {
+          tr.b.Statistics.uniformlySampleStream(this.nanDiagnostics,
+              this.numNans, opt_diagnostic, MAX_DIAGNOSTICS);
+        }
         return;
       }
 
       var bin = this.getBinForValue(value);
-      bin.add(value, sourceInfo);
+      bin.add(value, opt_diagnostic);
       this.running.add(value);
       if (bin.count > this.maxCount_)
         this.maxCount_ = bin.count;
@@ -276,8 +292,8 @@ tr.exportTo('tr.v', function() {
           this.allBins.length !== other.allBins.length) {
         throw new Error('Merging incompatible Numerics.');
       }
-      tr.b.Statistics.mergeSampledStreams(this.nanSourceInfos, this.numNans,
-          other.nanSourceInfos, other.numNans, MAX_SOURCE_INFOS);
+      tr.b.Statistics.mergeSampledStreams(this.nanDiagnostics, this.numNans,
+          other.nanDiagnostics, other.numNans, MAX_DIAGNOSTICS);
       this.numNans += other.numNans;
       this.running = this.running.merge(other.running);
       for (var i = 0; i < this.allBins.length; ++i) {
@@ -394,7 +410,7 @@ tr.exportTo('tr.v', function() {
         max: this.range.max,
 
         numNans: this.numNans,
-        nanSourceInfos: this.nanSourceInfos,
+        nanDiagnostics: this.nanDiagnostics.map(d => d.asDict()),
 
         running: this.running.asDict(),
         summaryOptions: this.summaryOptions,
