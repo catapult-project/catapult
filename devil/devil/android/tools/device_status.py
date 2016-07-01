@@ -309,6 +309,8 @@ def main():
                       and not IsBlacklisted(status['serial'], blacklist))]
 
   # If all devices failed, or if there are no devices, it's an infra error.
+  if not live_devices:
+    logging.error('No available devices.')
   return 0 if live_devices else exit_codes.INFRA
 
 
