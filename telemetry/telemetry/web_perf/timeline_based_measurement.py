@@ -33,18 +33,11 @@ from telemetry.web_perf import timeline_interaction_record as tir_module
 LOW_OVERHEAD_LEVEL = 'low-overhead'
 DEFAULT_OVERHEAD_LEVEL = 'default-overhead'
 DEBUG_OVERHEAD_LEVEL = 'debug-overhead'
-# TODO(zhenw): The following two are deprecated. Remove them after chrome side
-# is updated.
-NO_OVERHEAD_LEVEL = 'no-overhead'
-MINIMAL_OVERHEAD_LEVEL = 'minimal-overhead'
 
 ALL_OVERHEAD_LEVELS = [
   LOW_OVERHEAD_LEVEL,
   DEFAULT_OVERHEAD_LEVEL,
   DEBUG_OVERHEAD_LEVEL,
-  # The following two are deprecated.
-  NO_OVERHEAD_LEVEL,
-  MINIMAL_OVERHEAD_LEVEL
 ]
 
 
@@ -186,9 +179,9 @@ class Options(object):
                   chrome_trace_category_filter.ChromeTraceCategoryFilter):
       self._config.chrome_trace_config.SetCategoryFilter(overhead_level)
     elif overhead_level in ALL_OVERHEAD_LEVELS:
-      if overhead_level in [LOW_OVERHEAD_LEVEL, NO_OVERHEAD_LEVEL]:
+      if overhead_level == LOW_OVERHEAD_LEVEL:
         self._config.chrome_trace_config.SetLowOverheadFilter()
-      elif overhead_level in [DEFAULT_OVERHEAD_LEVEL, MINIMAL_OVERHEAD_LEVEL]:
+      elif overhead_level == DEFAULT_OVERHEAD_LEVEL:
         self._config.chrome_trace_config.SetDefaultOverheadFilter()
       else:
         self._config.chrome_trace_config.SetDebugOverheadFilter()

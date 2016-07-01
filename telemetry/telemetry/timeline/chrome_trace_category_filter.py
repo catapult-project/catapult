@@ -4,13 +4,6 @@
 
 import re
 
-from telemetry import decorators
-
-
-@decorators.Deprecated(2016, 6, 27, 'Please use CreateLowOverheadFilter.')
-def CreateNoOverheadFilter():
-  return CreateLowOverheadFilter()
-
 
 def CreateLowOverheadFilter():
   """Returns a filter with the least overhead possible.
@@ -30,11 +23,6 @@ def CreateLowOverheadFilter():
     "trace_event_overhead"
   ]
   return ChromeTraceCategoryFilter(filter_string=','.join(categories))
-
-
-@decorators.Deprecated(2016, 6, 27, 'Please use CreateDefaultOverheadFilter.')
-def CreateMinimalOverheadFilter():
-  return CreateDefaultOverheadFilter()
 
 
 def CreateDefaultOverheadFilter():

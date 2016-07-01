@@ -4,7 +4,6 @@
 
 import re
 
-from telemetry import decorators
 from telemetry.timeline import chrome_trace_category_filter
 
 
@@ -68,17 +67,9 @@ class ChromeTraceConfig(object):
         chrome_trace_category_filter.ChromeTraceCategoryFilter())
     self._memory_dump_config = None
 
-  @decorators.Deprecated(2016, 6, 27, 'Please use SetLowOverheadFilter.')
-  def SetNoOverheadFilter(self):
-    self.SetLowOverheadFilter()
-
   def SetLowOverheadFilter(self):
     self._category_filter = (
         chrome_trace_category_filter.CreateLowOverheadFilter())
-
-  @decorators.Deprecated(2016, 6, 27, 'Please use SetDefaultOverheadFilter.')
-  def SetMinimalOverheadFilter(self):
-    self.SetDefaultOverheadFilter()
 
   def SetDefaultOverheadFilter(self):
     self._category_filter = (
