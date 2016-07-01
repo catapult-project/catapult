@@ -14,8 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name='tr-ui-e-s-frame-data-side-panel'
-   extends='tr-ui-side-panel'>
+<dom-module id='tr-ui-e-s-frame-data-side-panel'>
   <template>
     <style>
     :host {
@@ -39,7 +38,7 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </table-container>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
@@ -95,7 +94,6 @@ tr.exportTo('tr.ui.e.s', function() {
     // needed now, but will be required if we want to group rows by origin.
     this.url = context.url;
   }
-
 
   var groupFunctions = {
     none: rows => rows,
@@ -164,7 +162,10 @@ tr.exportTo('tr.ui.e.s', function() {
     // TODO(xiaochengh): Add grouping by site and probably more...
   };
 
-  Polymer('tr-ui-e-s-frame-data-side-panel', {
+  Polymer({
+    is: 'tr-ui-e-s-frame-data-side-panel',
+    behaviors: [Catapult.tr_ui_side_panel],
+
     ready: function() {
       this.model_ = undefined;
       this.rangeOfInterest_ = new tr.b.Range();
@@ -328,6 +329,10 @@ tr.exportTo('tr.ui.e.s', function() {
       this.model_ = model;
       this.updateContents_();
     }
+  });
+
+  tr.ui.side_panel.SidePanelRegistry.register(function() {
+     return document.createElement('tr-ui-e-s-frame-data-side-panel');
   });
 });
 </script>
