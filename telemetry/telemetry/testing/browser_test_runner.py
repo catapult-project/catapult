@@ -94,7 +94,21 @@ def _TestTime(test, test_times, default_test_time):
   return test_times.get(test.shortName()) or default_test_time
 
 
-def _SplitShardsByTime(test_cases, total_shards, test_times):
+def _DebugShardDistributions(shards, test_times):
+  for i, s in enumerate(shards):
+    num_tests = len(s)
+    if test_times:
+      median = _MedianTestTime(test_times)
+      shard_time = 0.0
+      for t in s:
+        shard_time += _TestTime(t, test_times, median)
+      print 'shard %d: %d seconds (%d tests)' % (i, shard_time, num_tests)
+    else:
+      print 'shard %d: %d tests (unknown duration)' % (i, num_tests)
+
+
+def _SplitShardsByTime(test_cases, total_shards, test_times,
+                       debug_shard_distributions):
   median = _MedianTestTime(test_times)
   shards = []
   for i in xrange(total_shards):
@@ -121,13 +135,18 @@ def _SplitShardsByTime(test_cases, total_shards, test_times):
     shards[min_shard_index]['tests'].append(t)
     shards[min_shard_index]['total_time'] += _TestTime(t, test_times, median)
 
-  return [s['tests'] for s in shards]
+  res = [s['tests'] for s in shards]
+  if debug_shard_distributions:
+    _DebugShardDistributions(res, test_times)
+
+  return res
 
 
 _TEST_GENERATOR_PREFIX = 'GenerateTestCases_'
 
 def _LoadTests(test_class, finder_options, filter_regex_str,
-               total_shards, shard_index, opt_test_times=None):
+               total_shards, shard_index, test_times,
+               debug_shard_distributions):
   test_cases = []
   filter_regex = re.compile(filter_regex_str)
   for name, method in inspect.getmembers(
@@ -153,13 +172,22 @@ def _LoadTests(test_class, finder_options, filter_regex_str,
           setattr(test_class, generated_test_name, _GenerateTestMethod(
               based_method, args))
           test_cases.append(test_class(generated_test_name))
-  if opt_test_times:
+  if test_times:
     # Assign tests to shards.
-    shards = _SplitShardsByTime(test_cases, total_shards, opt_test_times)
+    shards = _SplitShardsByTime(test_cases, total_shards, test_times,
+                                debug_shard_distributions)
     return shards[shard_index]
   else:
     test_cases.sort(key=lambda t: t.shortName())
     test_range = _TestRangeForShard(total_shards, shard_index, len(test_cases))
+    if debug_shard_distributions:
+      tmp_shards = []
+      for i in xrange(total_shards):
+        tmp_range = _TestRangeForShard(total_shards, i, len(test_cases))
+        tmp_shards.append(test_cases[tmp_range[0]:tmp_range[1]])
+      # Can edit the code to get 'test_times' passed in here for
+      # debugging and comparison purposes.
+      _DebugShardDistributions(tmp_shards, None)
     return test_cases[test_range[0]:test_range[1]]
 
 
@@ -209,6 +237,10 @@ def Run(project_config, test_run_options, args):
         'The file format is that written by '
         '--write-abbreviated-json-results-to. This information is used to more '
         'evenly distribute tests among shards.'))
+  parser.add_argument('--debug-shard-distributions',
+      action='store_true', default=False,
+      help='Print debugging information about the shards\' test distributions')
+
   option, extra_args = parser.parse_known_args(args)
 
   for start_dir in project_config.start_dirs:
@@ -243,7 +275,7 @@ def Run(project_config, test_run_options, args):
   suite = unittest.TestSuite()
   for test in _LoadTests(test_class, options, option.test_filter,
                          option.total_shards, option.shard_index,
-                         test_times):
+                         test_times, option.debug_shard_distributions):
     suite.addTest(test)
 
   results = unittest.TextTestRunner(
