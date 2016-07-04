@@ -30,6 +30,9 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   var LOW_MEMORY_EVENT = 'V8.GCLowMemoryNotification';
 
+  var MAJOR_GC_EVENT = 'MajorGC';
+  var MINOR_GC_EVENT = 'MinorGC';
+
   // Maps the top-level GC events in timeline to telemetry friendly names.
   var TOP_GC_EVENTS = {
       'V8.GCCompactor': 'v8-gc-full-mark-compactor',
@@ -38,10 +41,11 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       'V8.GCIncrementalMarking': 'v8-gc-incremental-step',
       'V8.GCIncrementalMarkingFinalize': 'v8-gc-incremental-finalize',
       'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
-      'V8.GCLowMemoryNotification': 'v8-gc-low-memory-mark-compactor',
       'V8.GCPhantomHandleProcessingCallback' : 'v8-gc-phantom-handle-callback',
       'V8.GCScavenger': 'v8-gc-scavenger'
   };
+
+  var LOW_MEMORY_MARK_COMPACTOR = 'v8-gc-low-memory-mark-compactor';
 
   /**
    * Finds the first parent of the |event| for which the |predicate| holds.
@@ -84,9 +88,19 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return event.title in TOP_GC_EVENTS;
   }
 
+  function isForcedGarbageCollectionEvent(event) {
+    return findParent(event, isLowMemoryEvent) !== null;
+  }
+
   function isSubGarbageCollectionEvent(event) {
+    // To reduce number of results, we return only the first level of GC
+    // subevents. Some subevents are nested in MajorGC or MinorGC events, so
+    // we have to check for it explicitly.
     return isGarbageCollectionEvent(event) &&
-           !isTopGarbageCollectionEvent(event);
+           event.parentSlice &&
+           (isTopGarbageCollectionEvent(event.parentSlice) ||
+            event.parentSlice.title === MAJOR_GC_EVENT ||
+            event.parentSlice.title === MINOR_GC_EVENT);
   }
 
   function topGarbageCollectionEventName(event) {
@@ -94,7 +108,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       // Full mark compact events inside a low memory notification
       // are counted as low memory mark compacts.
       if (findParent(event, isLowMemoryEvent)) {
-        return TOP_GC_EVENTS[LOW_MEMORY_EVENT];
+        return LOW_MEMORY_MARK_COMPACTOR;
       }
     }
     return TOP_GC_EVENTS[event.title];
@@ -240,17 +254,18 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   return {
     findParent: findParent,
+    isForcedGarbageCollectionEvent: isForcedGarbageCollectionEvent,
+    isGarbageCollectionEvent: isGarbageCollectionEvent,
     isIdleTask: isIdleTask,
     isLowMemoryEvent: isLowMemoryEvent,
-    isV8ExecuteEvent: isV8ExecuteEvent,
-    isTopV8ExecuteEvent: isTopV8ExecuteEvent,
-    isGarbageCollectionEvent: isGarbageCollectionEvent,
-    isTopGarbageCollectionEvent: isTopGarbageCollectionEvent,
     isSubGarbageCollectionEvent: isSubGarbageCollectionEvent,
-    topGarbageCollectionEventName: topGarbageCollectionEventName,
+    isTopGarbageCollectionEvent: isTopGarbageCollectionEvent,
+    isTopV8ExecuteEvent: isTopV8ExecuteEvent,
+    isV8ExecuteEvent: isV8ExecuteEvent,
+    mutatorUtilization: mutatorUtilization,
     subGarbageCollectionEventName: subGarbageCollectionEventName,
-    unionOfIntervals: unionOfIntervals,
-    mutatorUtilization: mutatorUtilization
+    topGarbageCollectionEventName: topGarbageCollectionEventName,
+    unionOfIntervals: unionOfIntervals
   };
 });
 </script>

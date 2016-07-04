@@ -19,17 +19,13 @@ tr.b.unittest.testSuite(function() {
   function createModel(start, end, slices) {
     var opts = {
       customizeModelCallback: function(model) {
-        var group = new tr.model.SliceGroup(tr.c.TestUtils.newFakeThread());
-        var ue = new tr.model.um.AnimationExpectation(
-            model, 'test', start, end);
+        var process = model.getOrCreateProcess(1);
+        var thread = process.getOrCreateThread(2);
+        var group = thread.sliceGroup;
         slices.forEach(function(slice) {
           group.pushSlice(tr.c.TestUtils.newSliceEx(slice));
         });
         group.createSubSlices();
-        group.slices.forEach(function(slice) {
-          ue.associatedEvents.push(slice);
-        });
-        model.userModel.expectations.push(ue);
       }
     };
     var model = tr.c.TestUtils.newModelWithEvents([], opts);
@@ -37,7 +33,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function constructName(name, suffix) {
-    return 'Animation-' + name + '_' + suffix;
+    return name + '_' + suffix;
   }
 
   function run(slices) {
@@ -241,12 +237,12 @@ tr.b.unittest.testSuite(function() {
         [{start: 50, end: 60}, {start: 110, end: 120}]);
     var actual = run(slices);
     assert.strictEqual(
-        actual['Animation-v8-execute-mutator-utilization_pct_095'],
+        actual['v8-execute-mutator-utilization_pct_095'],
         mutatorUtilization.percentile(1 - 0.95) * 100);
     assert.strictEqual(
-        actual['Animation-v8-execute-mutator-utilization_pct_099'],
+        actual['v8-execute-mutator-utilization_pct_099'],
         mutatorUtilization.percentile(1 - 0.99) * 100);
-  });
+ });
 
 });
 </script>
