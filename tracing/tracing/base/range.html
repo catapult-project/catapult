@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/math.html">
 
 <script>
 'use strict';
@@ -104,8 +105,8 @@ tr.exportTo('tr.b', function() {
         return true;
       if (this.isEmpty != that.isEmpty)
         return false;
-      return this.min === that.min &&
-          this.max === that.max;
+      return (tr.b.approximately(this.min, that.min) &&
+          tr.b.approximately(this.max, that.max));
     },
 
     containsExplicitRangeInclusive: function(min, max) {
