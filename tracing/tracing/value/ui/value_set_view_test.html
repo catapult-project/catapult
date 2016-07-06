@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/value_set_table.html">
+<link rel="import" href="/tracing/value/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<polymer-element name='test-value-set-view'>
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    </style>
+    <content></content>
+  </template>
+</polymer-element>
+
+<script>
+'use strict';
+
+var useTestView = false;
+
+tr.exportTo('tr.v.ui', function() {
+  Polymer('test-value-set-view', {
+    supportsValueSet: function(values) {
+      return useTestView;
+    },
+
+    get tabLabel() {
+      return 'Test';
+    },
+
+    ready: function() {
+      this.values_ = undefined;
+    },
+
+    get values() {
+      return this.values_;
+    },
+
+    /**
+     * @param {!tr.v.ValueSet} values
+     */
+    set values(values) {
+      this.values_ = values;
+    }
+  });
+
+  tr.v.ui.registerValueSetView('test-value-set-view');
+
+  return {};
+});
+
+tr.b.unittest.testSuite(function() {
+  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
+      20);
+
+  test('instantiate0', function() {
+    // Empty setting, single view
+    // Test that the single view is automatically selected,
+    // and that the tab-strip is hidden.
+    tr.b.Settings.set(tr.v.ui.SELECTED_TAB_SETTINGS_KEY, '');
+    useTestView = false;
+    var view = document.createElement('tr-v-ui-value-set-view');
+    var values = new tr.v.ValueSet();
+
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric.add(Math.random() * TEST_NUMERIC_BUILDER.maxBinBoundary);
+    }
+    var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
+    values.addValue(foo);
+
+    view.values = values;
+    this.addHTMLOutput(view);
+
+    var tabView = tr.b.findDeepElementMatchingPredicate(
+        view, function(element) {
+          return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
+        });
+    assert.isTrue(tabView.children[0].selected);
+    assert.isTrue(tabView.tabsHidden);
+  });
+
+  test('instantiate1', function() {
+    // Empty setting, two views
+    // Test that the 0th view is automatically selected,
+    // and that the tab-strip is visible.
+    tr.b.Settings.set(tr.v.ui.SELECTED_TAB_SETTINGS_KEY, '');
+    useTestView = true;
+    var view = document.createElement('tr-v-ui-value-set-view');
+    var values = new tr.v.ValueSet();
+
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric.add(Math.random() * TEST_NUMERIC_BUILDER.maxBinBoundary);
+    }
+    var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
+    values.addValue(foo);
+
+    view.values = values;
+    this.addHTMLOutput(view);
+
+    var tabView = tr.b.findDeepElementMatchingPredicate(
+        view, function(element) {
+          return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
+        });
+    assert.isTrue(tabView.children[0].selected);
+    assert.isFalse(tabView.tabsHidden);
+  });
+
+  test('instantiate2', function() {
+    // Set setting to the test view, two views
+    // Test that the test view is automatically selected,
+    // and that the tab-strip is visible.
+    tr.b.Settings.set(tr.v.ui.SELECTED_TAB_SETTINGS_KEY, 'test-value-set-view');
+    useTestView = true;
+    var view = document.createElement('tr-v-ui-value-set-view');
+    var values = new tr.v.ValueSet();
+
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric.add(Math.random() * TEST_NUMERIC_BUILDER.maxBinBoundary);
+    }
+    var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
+    values.addValue(foo);
+
+    view.values = values;
+    this.addHTMLOutput(view);
+
+    var tabView = tr.b.findDeepElementMatchingPredicate(
+        view, function(element) {
+          return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
+        });
+    assert.isTrue(tabView.children[1].selected);
+    assert.isFalse(tabView.tabsHidden);
+
+    // Test that selecting the Table view changes the setting.
+    tabView.selectedTab = tabView.children[0];
+    return new Promise(function(resolve, reject) {
+      assert.strictEqual(
+          tr.b.Settings.get(tr.v.ui.SELECTED_TAB_SETTINGS_KEY),
+          'tr-v-ui-value-set-table');
+      resolve();
+    });
+  });
+
+  test('instantiate3', function() {
+    // Set setting to the test view, but disable it
+    // Test that the 0th view is automatically selected,
+    // and that the tab-strip is hidden.
+    tr.b.Settings.set(tr.v.ui.SELECTED_TAB_SETTINGS_KEY, 'test-value-set-view');
+    useTestView = false;
+    var view = document.createElement('tr-v-ui-value-set-view');
+    var values = new tr.v.ValueSet();
+
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric.add(Math.random() * TEST_NUMERIC_BUILDER.maxBinBoundary);
+    }
+    var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
+    values.addValue(foo);
+
+    view.values = values;
+    this.addHTMLOutput(view);
+
+    var tabView = tr.b.findDeepElementMatchingPredicate(
+        view, function(element) {
+          return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
+        });
+    assert.isTrue(tabView.children[0].selected);
+    assert.isTrue(tabView.tabsHidden);
+  });
+});
+</script>
