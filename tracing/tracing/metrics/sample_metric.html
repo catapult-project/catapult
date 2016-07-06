@@ -29,10 +29,22 @@ tr.exportTo('tr.metrics', function() {
     values.addValue(new tr.v.NumericValue('baz', n3));
   }
 
+  function sampleMetric2(values, model) {
+    var n1 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 1);
+    var n2 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 2);
+    var n3 = SIZE_NUMERIC_BUILDER.build();
+    n3.add(1);
+    values.addValue(new tr.v.NumericValue('one', n1));
+    values.addValue(new tr.v.NumericValue('two', n2));
+    values.addValue(new tr.v.NumericValue('three', n3));
+  }
+
   tr.metrics.MetricRegistry.register(sampleMetric);
+  tr.metrics.MetricRegistry.register(sampleMetric2);
 
   return {
-    sampleMetric: sampleMetric
+    sampleMetric: sampleMetric,
+    sampleMetric2: sampleMetric2
   };
 });
 </script>

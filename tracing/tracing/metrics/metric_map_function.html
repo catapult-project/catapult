@@ -23,16 +23,18 @@ tr.exportTo('tr.metrics', function() {
     if (options === undefined)
       throw new Error('Expected an options dict.');
 
-    var metricName = options.metric;
-    if (metricName === undefined)
-      throw new Error('A metric name should be specified.');
+    var metricNames = options.metrics;
+    if (!metricNames)
+      throw new Error('Metric names should be specified.');
 
     var values = new tr.v.ValueSet();
 
-    var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
-    if (metric === undefined)
-      throw new Error('"' + metricName + '" is not a registered metric.');
-    metric.constructor(values, model);
+    for (var metricName of metricNames) {
+      var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
+      if (metric === undefined)
+        throw new Error('"' + metricName + '" is not a registered metric.');
+      metric.constructor(values, model);
+    }
 
     for (var metadata of model.metadata) {
       if (!metadata.value || !metadata.value['iteration-info'])

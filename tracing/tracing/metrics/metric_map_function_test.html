@@ -46,16 +46,23 @@ tr.b.unittest.testSuite(function() {
     assert.throw(function() {
       var result = new pi.mre.MreResult();
       tr.metrics.metricMapFunction(result, m, {});
-    }, Error, 'A metric name should be specified.');
+    }, Error, 'Metric names should be specified.');
 
     assert.throw(function() {
       var result = new pi.mre.MreResult();
-      tr.metrics.metricMapFunction(result, m, {'metric': 'wrongMetric'});
+      tr.metrics.metricMapFunction(result, m, {'metrics': ['wrongMetric']});
     }, Error, '"wrongMetric" is not a registered metric.');
 
     var result = new pi.mre.MreResult();
-    tr.metrics.metricMapFunction(result, m, {'metric': 'sampleMetric'});
+    tr.metrics.metricMapFunction(result, m, {'metrics': ['sampleMetric']});
     assert.property(result.pairs, 'values');
+    assert.equal(result.pairs.values.length, 9);
+
+    var result2 = new pi.mre.MreResult();
+    tr.metrics.metricMapFunction(
+        result2, m, {'metrics': ['sampleMetric', 'sampleMetric2']});
+    assert.property(result2.pairs, 'values');
+    console.log(result2.pairs.values.length, 18);
   });
 });
 </script>

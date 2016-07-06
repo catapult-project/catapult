@@ -190,7 +190,7 @@ class Options(object):
                       "object or valid overhead level string. Given overhead "
                       "level: %s" % overhead_level)
 
-    self._timeline_based_metric = None
+    self._timeline_based_metrics = None
     self._legacy_timeline_based_metrics = []
 
 
@@ -208,20 +208,28 @@ class Options(object):
     return self._config
 
   def SetTimelineBasedMetric(self, metric):
-    """Sets the new-style (TBMv2) metric to run.
+    # TODO: delete this convenience method and replace calls to this method
+    # with calls to SetTimelineBasedMetrics
+    self.SetTimelineBasedMetrics([metric])
 
-    Metrics are assumed to live in //tracing/tracing/metrics, so the path
-    should be relative to that. For example, to specify sample_metric.html,
-    you would pass 'sample_metric.html'.
+  def SetTimelineBasedMetrics(self, metrics):
+    """Sets the new-style (TBMv2) metrics to run.
+
+    Metrics are assumed to live in //tracing/tracing/metrics, so the path you
+    pass in should be relative to that. For example, to specify
+    sample_metric.html, you should pass in ['sample_metric.html'].
 
     Args:
-      metric: A string metric path under //tracing/tracing/metrics.
+      metrics: A list of strings giving metric paths under
+          //tracing/tracing/metrics.
     """
-    assert isinstance(metric, basestring)
-    self._timeline_based_metric = metric
+    assert isinstance(metrics, list)
+    for metric in metrics:
+      assert isinstance(metric, basestring)
+    self._timeline_based_metrics = metrics
 
-  def GetTimelineBasedMetric(self):
-    return self._timeline_based_metric
+  def GetTimelineBasedMetrics(self):
+    return self._timeline_based_metrics
 
   def SetLegacyTimelineBasedMetrics(self, metrics):
     assert isinstance(metrics, collections.Iterable)
@@ -279,8 +287,8 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     trace_value = trace.TraceValue(results.current_page, trace_result)
     results.AddValue(trace_value)
 
-    if self._tbm_options.GetTimelineBasedMetric():
-      self._ComputeTimelineBasedMetric(results, trace_value)
+    if self._tbm_options.GetTimelineBasedMetrics():
+      self._ComputeTimelineBasedMetrics(results, trace_value)
       # Legacy metrics can be computed, but only if explicitly specified.
       if self._tbm_options.GetLegacyTimelineBasedMetrics():
         self._ComputeLegacyTimelineBasedMetrics(results, trace_result)
@@ -299,14 +307,14 @@ class TimelineBasedMeasurement(story_test.StoryTest):
     if platform.tracing_controller.is_tracing_running:
       platform.tracing_controller.StopTracing()
 
-  def _ComputeTimelineBasedMetric(self, results, trace_value):
-    metric = self._tbm_options.GetTimelineBasedMetric()
+  def _ComputeTimelineBasedMetrics(self, results, trace_value):
+    metrics = self._tbm_options.GetTimelineBasedMetrics()
     extra_import_options = {
       'trackDetailedModelStats': True
     }
 
     mre_result = metric_runner.RunMetric(
-        trace_value.filename, metric, extra_import_options)
+        trace_value.filename, metrics, extra_import_options)
     page = results.current_page
 
     failure_dicts = mre_result.failures

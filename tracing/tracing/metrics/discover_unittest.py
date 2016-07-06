@@ -12,7 +12,7 @@ class MetricsDiscoverUnittest(unittest.TestCase):
 
   def testMetricsDiscoverNonEmpty(self):
     self.assertEquals(
-        ['sampleMetric'],
+        ['sampleMetric', 'sampleMetric2'],
         discover.DiscoverMetrics(
             ['/tracing/metrics/sample_metric.html']))
 
