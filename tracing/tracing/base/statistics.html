@@ -151,13 +151,6 @@ tr.exportTo('tr.b', function() {
     return tmp[idx];
   };
 
-  /* Clamp a value between some low and high value. */
-  Statistics.clamp = function(value, opt_low, opt_high) {
-    opt_low = opt_low || 0.0;
-    opt_high = opt_high || 1.0;
-    return Math.min(Math.max(value, opt_low), opt_high);
-  };
-
   /**
    * Sorts the samples, and map them linearly to the range [0,1].
    *
@@ -362,8 +355,8 @@ tr.exportTo('tr.b', function() {
       discrepancy /= sample_scale;
     } else {
       // Compute relative discrepancy
-      discrepancy = Statistics.clamp(
-        (discrepancy - inv_sample_count) / (1.0 - inv_sample_count));
+      discrepancy = tr.b.clamp(
+        (discrepancy - inv_sample_count) / (1.0 - inv_sample_count), 0.0, 1.0);
     }
     return discrepancy;
   };
