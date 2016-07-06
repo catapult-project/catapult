@@ -310,7 +310,8 @@ tr.exportTo('tr.model', function() {
         end,
         function(topLevelSlice) {
           callback(topLevelSlice);
-          topLevelSlice.iterateAllDescendents(callback);
+          for (var slice of topLevelSlice.enumerateAllDescendents())
+            callback(slice);
         });
       return ret;
     },

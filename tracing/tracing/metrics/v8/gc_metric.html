@@ -240,15 +240,15 @@ tr.exportTo('tr.metrics.v8', function() {
           var pauses = [];
           // Glue together the v8.execute events and adjust the GC pause
           // times accordingly.
-          events.forEach(function(topEvent) {
-            topEvent.iterateAllDescendents(function(e) {
+          for (var topEvent of events) {
+            for (var e of topEvent.enumerateAllDescendents()) {
               if (isNotForcedTopGarbageCollectionEvent(e)) {
                 pauses.push({ start: e.start - topEvent.start + time,
                               end: e.end - topEvent.start + time });
               }
-            });
+            }
             time += topEvent.duration;
-          });
+          }
           // Now we have one big v8.execute interval from 0 to |time| and
           // a list of GC pauses.
           var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(

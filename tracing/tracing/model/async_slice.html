@@ -125,11 +125,11 @@ tr.exportTo('tr.model', function() {
       return undefined;
     },
 
-    iterateAllDescendents: function(callback, opt_this) {
-      this.subSlices.forEach(callback, opt_this);
-      this.subSlices.forEach(function(subSlice) {
-        subSlice.iterateAllDescendents(callback, opt_this);
-      }, opt_this);
+    enumerateAllDescendents: function*() {
+      for (var slice of this.subSlices)
+        yield slice;
+      for (var slice of this.subSlices)
+        yield * slice.enumerateAllDescendents();
     },
 
     compareTo: function(that) {

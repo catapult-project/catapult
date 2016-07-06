@@ -73,7 +73,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual([sC1, sC2], foundSlices);
   });
 
-  test('iterateAllDescendents', function() {
+  test('enumerateAllDescendents', function() {
     var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
@@ -106,7 +106,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sC.mostTopLevelSlice, sA);
   });
 
-  test('iterateAllAncestors', function() {
+  test('enumerateAllAncestors', function() {
     var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(

@@ -31,6 +31,30 @@ found in the LICENSE file.
   <script>
   'use strict';
 
+  function* getEventInFlowEvents(event) {
+    if (!event.inFlowEvents)
+      return;
+    yield * event.inFlowEvents;
+  }
+
+  function* getEventOutFlowEvents(event) {
+    if (!event.outFlowEvents)
+      return;
+    yield * event.outFlowEvents;
+  }
+
+  function* getEventAncestors(event) {
+    if (!event.enumerateAllAncestors)
+      return;
+    yield * event.enumerateAllAncestors();
+  }
+
+  function* getEventDescendents(event) {
+    if (!event.enumerateAllDescendents)
+      return;
+    yield * event.enumerateAllDescendents();
+  }
+
   Polymer({
     ready: function() {
       this.eventGroups_ = [];
@@ -122,63 +146,82 @@ found in the LICENSE file.
           'Add all events that have led to the selected one(s), connected by ' +
               'flow arrows or by call stack.',
           eventSet,
-          function(event, events) {
-            this.addInFlowEvents_(event, events);
-            this.addAncestors_(event, events);
+          function*(event) {
+            yield * getEventInFlowEvents(event);
+            yield * getEventAncestors(event);
             if (event.startSlice)
-              events.push(event.startSlice);
+              yield event.startSlice;
           }.bind(this)));
       this.cancelFunctions_.push(this.createEventsLinkIfNeeded_(
           'Following events',
           'Add all events that have been caused by the selected one(s), ' +
               'connected by flow arrows or by call stack.',
           eventSet,
-          function(event, events) {
-            this.addOutFlowEvents_(event, events);
-            this.addDescendents_(event, events);
+          function*(event) {
+            yield * getEventOutFlowEvents(event);
+            yield * getEventDescendents(event);
             if (event.endSlice)
-              events.push(event.endSlice);
+              yield event.endSlice;
           }.bind(this)));
       this.cancelFunctions_.push(this.createEventsLinkIfNeeded_(
           'All connected events',
           'Add all events connected to the selected one(s) by flow arrows or ' +
               'by call stack.',
           eventSet,
-          function(event, events) {
-            this.addInFlowEvents_(event, events);
-            this.addOutFlowEvents_(event, events);
-            this.addAncestors_(event, events);
-            this.addDescendents_(event, events);
+          function*(event) {
+            yield * getEventInFlowEvents(event);
+            yield * getEventOutFlowEvents(event);
+            yield * getEventAncestors(event);
+            yield * getEventDescendents(event);
             if (event.startSlice)
-              events.push(event.startSlice);
+              yield event.startSlice;
             if (event.endSlice)
-              events.push(event.endSlice);
+              yield event.endSlice;
           }.bind(this)));
     },
 
-    createEventsLinkIfNeeded_: function(title, tooltip, events, addFunction) {
+    createEventsLinkIfNeeded_: function(title, tooltip, events, connectedFn) {
       events = new tr.model.EventSet(events);
-      var lengthBefore = events.length;
+      var eventsToProcess = new Set(events);
+      // for (var event of events)
+      //  eventsToProcess.add(event);
+      var wasChanged = false;
       var task;
       var isCanceled = false;
-      function addEventsUntilTimeout(startingIndex) {
+      function addEventsUntilTimeout() {
         if (isCanceled)
           return;
-        var startingTime = window.performance.now();
-        while (startingIndex < events.length) {
-          addFunction(events[startingIndex], events);
-          startingIndex++;
-          // Let's grant ourselves a budget of 8ms.
-          if (window.performance.now() - startingTime > 8) {
+        // Let's grant ourselves a budget of 8 ms. If time runs out, then
+        // create another task to do the rest.
+        var timeout = window.performance.now() + 8;
+        // TODO(alexandermont): Don't check window.performance.now
+        // every iteration.
+        while (eventsToProcess.size > 0 &&
+            window.performance.now() <= timeout) {
+          // Get the next event.
+          var nextEvent = tr.b.getFirstElement(eventsToProcess);
+          eventsToProcess.delete(nextEvent);
+
+          // Add the connected events to the list.
+          for (var eventToAdd of connectedFn(nextEvent)) {
+            if (!events.contains(eventToAdd)) {
+              events.push(eventToAdd);
+              eventsToProcess.add(eventToAdd);
+              wasChanged = true;
+            }
+          }
+        }
+        if (eventsToProcess.size > 0) {
+          // There are still events to process, but we ran out of time. Post
+          // more work for later.
             var newTask = new tr.b.Task(
-                addEventsUntilTimeout.bind(this, startingIndex), this);
+                addEventsUntilTimeout.bind(this), this);
             task.after(newTask);
             task = newTask;
             return;
-          }
         }
         // Went through all events, add the link.
-        if (lengthBefore === events.length)
+        if (!wasChanged)
           return;
         this.eventGroups_.push({
           type: title,
@@ -190,57 +233,24 @@ found in the LICENSE file.
       function cancelTask() {
         isCanceled = true;
       }
-      task = new tr.b.Task(addEventsUntilTimeout.bind(this, 0), this);
+      task = new tr.b.Task(addEventsUntilTimeout.bind(this), this);
       tr.b.Task.RunWhenIdle(task);
       return cancelTask;
     },
 
-    addInFlowEvents_: function(event, eventSet) {
-      if (!event.inFlowEvents)
-        return;
-      event.inFlowEvents.forEach(function(e) {
-        eventSet.push(e);
-      });
-    },
-
-    addOutFlowEvents_: function(event, eventSet) {
-      if (!event.outFlowEvents)
-        return;
-      event.outFlowEvents.forEach(function(e) {
-        eventSet.push(e);
-      });
-    },
-
-    addAncestors_: function(event, eventSet) {
-      if (!event.iterateAllAncestors)
-        return;
-      event.iterateAllAncestors(function(e) {
-        eventSet.push(e);
-      });
-    },
-
-    addDescendents_: function(event, eventSet) {
-      if (!event.iterateAllDescendents)
-        return;
-      event.iterateAllDescendents(function(e) {
-        eventSet.push(e);
-      });
-    },
-
     addOverlappingSamples_: function(eventSet) {
       var samples = new tr.model.EventSet;
-      eventSet.forEach(function(slice) {
+      for (var slice of eventSet) {
         if (!slice.parentContainer || !slice.parentContainer.samples)
-          return;
+          continue;
         var candidates = slice.parentContainer.samples;
         var range = tr.b.Range.fromExplicitRange(
             slice.start, slice.start + slice.duration);
         var filteredSamples = range.filterArray(
             candidates, function(value) {return value.start;});
-        filteredSamples.forEach(function(sample) {
+        for (var sample of filteredSamples)
           samples.push(sample);
-        });
-      }.bind(this));
+      }
       if (samples.length > 0) {
         this.eventGroups_.push({
           type: 'Overlapping samples',
