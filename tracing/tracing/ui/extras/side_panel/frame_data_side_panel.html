@@ -28,6 +28,13 @@ found in the LICENSE file.
       overflow: auto;
     }
     </style>
+    <div>
+      Organize by:
+      <select id="select">
+        <option value="none">None</option>
+        <option value="tree">Frame Tree</option>
+      </select>
+    </div>
     <table-container>
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </table-container>
@@ -49,12 +56,24 @@ tr.exportTo('tr.ui.e.s', function() {
 
   /**
    * @constructor
+   * If |context| is provided, creates a row for the given context.
+   * Otherwise, creates an empty Row template which can be used for aggregating
+   * data from a group of subrows.
    */
   function Row(context) {
-    this.type = context.objectInstance.blameContextType;
+    this.subRows = undefined;
+    this.contexts = [];
+    this.type = undefined;
+    this.renderer = 'N/A';
+    this.url = undefined;
+    this.time = 0;
+    this.eventsOfInterest = new tr.model.EventSet();
 
-    this.contexts = [context];
-    this.renderer = undefined;
+    if (context === undefined)
+      return;
+
+    this.type = context.objectInstance.blameContextType;
+    this.contexts.push(context);
     if (context instanceof FrameTreeNodeSnapshot) {
       if (context.renderFrame) {
         this.contexts.push(context.renderFrame);
@@ -69,30 +88,97 @@ tr.exportTo('tr.ui.e.s', function() {
     } else {
       throw new Error('Unknown context type');
     }
+    this.eventsOfInterest.addEventSet(this.contexts);
 
     // TODO(xiaochengh): Handle the case where a subframe has a trivial url
     // (e.g., about:blank), but inherits the origin of its parent. This is not
     // needed now, but will be required if we want to group rows by origin.
     this.url = context.url;
-
-    // To be computed in batch later for efficiency.
-    this.eventsOfInterest = new tr.model.EventSet(this.contexts);
-    this.time = 0;
   }
+
+
+  var groupFunctions = {
+    none: rows => rows,
+
+    // Group the rows according to the frame tree structure.
+    // Example: consider frame tree a(b, c(d)), where each frame has 1ms time
+    // attributed to it. The resulting table should look like:
+    //      Type     | Time | URL
+    // --------------+------+-----
+    // Frame Tree    |   4  |  a
+    // +- Frame      |   1  |  a
+    // +- Subframe   |   1  |  b
+    // +- Frame Tree |   2  |  c
+    //  +- Frame     |   1  |  c
+    //  +- Subframe  |   1  |  d
+    tree: function(rows, rowMap) {
+      // Finds the parent of a specific row. When there is conflict between the
+      // browser's dump of the frame tree and the renderers', use the browser's.
+      var getParentRow = function(row) {
+        var pivot;
+        row.contexts.forEach(function(context) {
+          if (context instanceof tr.e.chrome.FrameTreeNodeSnapshot)
+            pivot = context;
+        });
+        if (pivot && pivot.parentContext)
+          return rowMap[pivot.parentContext.guid];
+        return undefined;
+      };
+
+      var rootRows = [];
+      rows.forEach(function(row) {
+        var parentRow = getParentRow(row);
+        if (parentRow === undefined) {
+          rootRows.push(row);
+          return;
+        }
+        if (parentRow.subRows === undefined)
+          parentRow.subRows = [];
+        parentRow.subRows.push(row);
+      });
+
+      var aggregateAllDescendants = function(row) {
+        if (!row.subRows) {
+          if (getParentRow(row))
+            row.type = 'Subframe';
+          return row;
+        }
+        var result = new Row();
+        result.type = 'Frame Tree';
+        result.renderer = row.renderer;
+        result.url = row.url;
+        result.subRows = [row];
+        row.subRows.forEach(
+            subRow => result.subRows.push(aggregateAllDescendants(subRow)));
+        result.subRows.forEach(function(subRow) {
+          result.time += subRow.time;
+          result.eventsOfInterest.addEventSet(subRow.eventsOfInterest);
+        });
+        row.subRows = undefined;
+        return result;
+      };
+
+      return rootRows.map(rootRow => aggregateAllDescendants(rootRow));
+    }
+
+    // TODO(xiaochengh): Add grouping by site and probably more...
+  };
 
   Polymer('tr-ui-e-s-frame-data-side-panel', {
     ready: function() {
       this.model_ = undefined;
       this.rangeOfInterest_ = new tr.b.Range();
 
-      // TODO(xiaochengh): Design proper grouping of the rows (by renderer
-      // pid, frame tree topology, site, ...) in a follow-up patch.
       this.$.table.showHeader = true;
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.table.tableColumns = this.createFrameDataTableColumns_();
 
       this.$.table.addEventListener('selection-changed', function(e) {
         this.selectEventSet_(this.$.table.selectedTableRow.eventsOfInterest);
+      }.bind(this));
+
+      this.$.select.addEventListener('change', function(e) {
+        this.updateContents_();
       }.bind(this));
     },
 
@@ -173,7 +259,11 @@ tr.exportTo('tr.ui.e.s', function() {
         }, this);
       }, this);
 
-      return rows;
+      // Apply grouping to rows.
+      var select = this.$.select;
+      var groupOption = select.options[select.selectedIndex].value;
+      var groupFunction = groupFunctions[groupOption];
+      return groupFunction(rows, rowMap);
     },
 
     updateContents_: function() {
