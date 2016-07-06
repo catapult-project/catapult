@@ -58,8 +58,9 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     tab.Navigate(self.UrlOfUnittestFile('blank.html'))
     self._browser.tabs[0].WaitForDocumentReadyStateToBeInteractiveOrBetter()
 
+  # Disable bug: https://github.com/catapult-project/catapult/issues/2455
   @decorators.Enabled('has tabs')
-  @decorators.Disabled('win')  # crbug.com/321527
+  @decorators.Disabled('linux', 'mac')
   def testCloseReferencedTab(self):
     self._browser.tabs.New()
     tab = self._browser.tabs[0]
