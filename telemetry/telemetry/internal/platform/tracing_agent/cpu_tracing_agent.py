@@ -137,12 +137,11 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
 
   @classmethod
   def IsSupported(cls, platform_backend):
-    # TODO(ziqi): enable supports on win (https://github.com/catapult-project/catapult/issues/2439)
-    return platform_backend.GetOSName() in ['linux', 'mac']
+    return platform_backend.GetOSName() in ['linux', 'mac', 'win']
 
   def StartAgentTracing(self, config, timeout):
-    assert not self._snapshot_ongoing, \
-           'Agent is already taking snapshots when tracing is startex.'
+    assert not self._snapshot_ongoing, (
+           'Agent is already taking snapshots when tracing is started.')
     if not config.enable_cpu_trace:
       return False
     self._snapshot_ongoing = True
@@ -158,14 +157,13 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     Timer(self.SNAPSHOT_FREQUENCY, self._KeepTakingSnapshots).start()
 
   def StopAgentTracing(self):
-    assert self._snapshot_ongoing, \
-           'Agent is not taking snapshots when tracing is stopped.'
+    assert self._snapshot_ongoing, (
+           'Agent is not taking snapshots when tracing is stopped.')
     self._snapshot_ongoing = False
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    assert self._snapshot_ongoing, \
-           'Agent is not taking snapshots when data is collected.'
-    self._snapshot_ongoing = False
+    assert not self._snapshot_ongoing, (
+           'Agent is still taking snapshots when data is collected.')
     data = json.dumps(self._FormatSnapshotsData())
     trace_data_builder.SetTraceFor(trace_data.CPU_TRACE_DATA, data)
 
