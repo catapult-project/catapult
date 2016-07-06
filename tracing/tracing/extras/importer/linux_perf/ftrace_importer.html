@@ -152,7 +152,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   TestExports.traceEventClockSyncRE = traceEventClockSyncRE;
 
   var realTimeClockSyncRE = /trace_event_clock_sync: realtime_ts=(\d+)/;
-  var genericClockSyncRE = /trace_event_clock_sync: name=(\w+)/;
+  var genericClockSyncRE = /trace_event_clock_sync: name=([\w\-]+)/;
 
   // Some kernel trace events are manually classified in slices and
   // hand-assigned a pseudo PID.
@@ -729,6 +729,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // sync ID and the current time according to the "ftrace global" clock.
       var event = /name=(\w+?)\s(.+)/.exec(eventBase.details);
       if (event) {
+        // TODO(alexandermont): This section of code seems to be broken. It
+        // creates an "args" variable, but doesn't seem to do anything with it.
         var name = event[1];
         var pieces = event[2].split(' ');
         var args = {
@@ -743,6 +745,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
         this.model_.clockSyncManager.addClockSyncMarker(
             tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL, name, ts);
+        return true;
+      }
+
+      // Check to see if we have a "new style" clock sync marker that contains
+      // only a sync ID.
+      var event = /name=([\w\-]+)/.exec(eventBase.details);
+      if (event) {
+        this.model_.clockSyncManager.addClockSyncMarker(
+            tr.model.ClockDomainId.LINUX_FTRACE_GLOBAL, event[1], ts);
         return true;
       }
 

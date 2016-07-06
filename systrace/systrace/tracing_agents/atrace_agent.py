@@ -198,7 +198,8 @@ class AtraceAgent(tracing_agents.TracingAgent):
     Args:
         sync_id: ID string for clock sync marker.
     """
-    cmd = 'echo name=%s > /sys/kernel/debug/tracing/trace_marker' % sync_id
+    cmd = 'echo trace_event_clock_sync: name=%s >' \
+        ' /sys/kernel/debug/tracing/trace_marker' % sync_id
     with self._device_utils.adb.PersistentShell(
         self._device_serial_number) as shell:
       t1 = trace_time.Now()

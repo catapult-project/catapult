@@ -55,10 +55,7 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
     self._atrace_agent.StopAgentTracing()
 
   def SupportsExplicitClockSync(self):
-    # TODO(alexandermont): After bug
-    # https://github.com/catapult-project/catapult/issues/2356 is fixed, change
-    # this to return self._atrace_agent.SupportsExplicitClockSync.
-    return False
+    return self._atrace_agent.SupportsExplicitClockSync()
 
   def RecordClockSyncMarker(self, sync_id,
                             record_controller_clock_sync_marker_callback):
