@@ -71,6 +71,15 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
         previous_page.url == page.url and
         (previous_page.cache_temperature == PCV1_COLD or
             previous_page.cache_temperature == PCV1_WARM)):
+      if '#' in page.url:
+        # Navigate to inexistent URL to avoid in-page hash navigation.
+        # Note: Unlike PCv1, PCv2 iterates the same URL for different cache
+        #       configurations. This may issue blink in-page hash navigations,
+        #       which isn't intended here.
+        with MarkTelemetryInternal(browser, 'avoid_double_hash_navigation'):
+          tab = browser.tabs[0]
+          tab.Navigate("http://does.not.exist")
+          tab.WaitForDocumentReadyStateToBeComplete()
       return
 
     with MarkTelemetryInternal(browser, 'warmCache'):
