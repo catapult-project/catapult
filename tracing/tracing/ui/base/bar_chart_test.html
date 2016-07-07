@@ -26,6 +26,18 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(chart);
   });
 
+  test('instantiation_singleDatum', function() {
+    var chart = new tr.ui.b.BarChart();
+    chart.width = 400;
+    chart.height = 200;
+    chart.chartTitle = 'Chart title';
+    var data = [
+      {x: 0, value: 100},
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+  });
+
   test('instantiation_stacked', function() {
     var chart = new tr.ui.b.BarChart();
     chart.isStacked = true;

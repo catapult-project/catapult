@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/diagnostics/composition.html">
+<link rel="import" href="/tracing/value/ui/composition_span.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1),
+      20);
+
+  test('instantiate_Composition', function() {
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    var scalar = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 42);
+    for (var i = 0; i < 1e2; ++i) {
+      numeric.add(Math.random());
+    }
+    var composition = new tr.v.d.Composition();
+    composition.add(new tr.v.NumericValue('numeric', numeric));
+    composition.add(new tr.v.NumericValue('scalar', scalar));
+    var span = tr.v.ui.createDiagnosticSpan(composition);
+    assert.strictEqual('TR-V-UI-COMPOSITION-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+});
+</script>

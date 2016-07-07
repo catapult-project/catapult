@@ -5,26 +5,54 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/value/diagnostics/related_value_set.html">
+<link rel="import" href="/tracing/value/diagnostics/related_value_map.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
   /** @constructor */
-  function Composition(opt_values) {
-    tr.v.d.RelatedValueSet.call(this, opt_values);
+  function Composition() {
+    tr.v.d.RelatedValueMap.call(this);
   }
 
   Composition.prototype = {
-    __proto__: tr.v.d.RelatedValueSet.prototype
+    __proto__: tr.v.d.RelatedValueMap.prototype,
+
+    /**
+     * Add a Value by an explicit name to this map.
+     *
+     * @param {string} name
+     * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
+     */
+    set: function(name, value) {
+      if (!(value instanceof tr.v.d.ValueRef)) {
+        if (!(value instanceof tr.v.NumericValue))
+          throw new Error('Composition can only contain NumericValues');
+
+        var existingValues = this.values;
+        if ((existingValues.length > 0) &&
+            (value.numeric.unit !== existingValues[0].numeric.unit)) {
+          throw new Error('Units mismatch', existingValues[0].numeric.unit,
+                          value.numeric.unit);
+        }
+      }
+
+      tr.v.d.RelatedValueMap.prototype.set.call(this, name, value);
+    }
   };
 
   Composition.fromDict = function(d) {
-    return new Composition(d.guids.map(guid => new tr.v.d.ValueRef(guid)));
+    var composition = new Composition();
+    tr.b.iterItems(d.values, function(name, guid) {
+      composition.set(name, new tr.v.d.ValueRef(guid));
+    });
+    return composition;
   };
 
-  tr.v.d.Diagnostic.register(Composition);
+  tr.v.d.Diagnostic.register(Composition, {
+    elementName: 'tr-v-ui-composition-span'
+  });
 
   return {
     Composition: Composition

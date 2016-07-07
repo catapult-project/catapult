@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/bar_chart.html">
+
+<polymer-element name="tr-v-ui-composition-span">
+  <template>
+    <content></content>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    created: function() {
+      this.chart_ = new tr.ui.b.BarChart();
+      this.chart_.width = 100;
+      this.chart_.height = 50;
+      this.chart_.isStacked = true;
+    },
+
+    ready: function() {
+      this.diagnostic_ = undefined;
+      this.appendChild(this.chart_);
+    },
+
+    get diagnostic() {
+      return this.diagnostic_;
+    },
+
+    set diagnostic(d) {
+      this.diagnostic_ = d;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      if (!this.diagnostic_) {
+        this.chart_.data = [];
+        return;
+      }
+      var data = {x: 0};
+      var valueCount = 0;
+      this.diagnostic_.iterItems(function(name, value) {
+        ++valueCount;
+        value = value.numeric;
+        if (value instanceof tr.v.ScalarNumeric)
+          data[name] = value.value;
+        else if (value instanceof tr.v.Numeric)
+          data[name] = value.sum;
+      });
+      this.chart_.height = 50 + (50 * valueCount);
+      this.chart_.data = [data];
+    }
+  });
+  </script>
+</polymer-element>

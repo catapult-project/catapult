@@ -24,7 +24,7 @@ tr.exportTo('tr.ui.b', function() {
     decorate: function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
       this.classList.add('bar-chart');
-      this.xCushion_ = 0;
+      this.xCushion_ = 1;
       this.isStacked_ = false;
     },
 
@@ -74,7 +74,8 @@ tr.exportTo('tr.ui.b', function() {
       var width = this.chartAreaSize.width;
       this.xScale_.range([0, width]);
       var domain = d3.extent(this.data_, this.getXForDatum_.bind(this));
-      this.xCushion_ = xDifferences / (this.data_.length - 1);
+      if (this.data_.length > 1)
+        this.xCushion_ = xDifferences / (this.data_.length - 1);
       this.xScale_.domain([domain[0], domain[1] + this.xCushion_]);
 
       // Y.

@@ -21,7 +21,7 @@ tr.exportTo('tr.v.d', function() {
     __proto__: tr.v.d.Diagnostic.prototype,
 
     /**
-     * Add a named Value to this map.
+     * Add a Value by an explicit name to this map.
      *
      * @param {string} name
      * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
@@ -32,6 +32,15 @@ tr.exportTo('tr.v.d', function() {
         throw new Error('Must be instanceof Value or ValueRef: ' + value);
 
       this.valuesByName_[name] = value;
+    },
+
+    /**
+     * Add a Value implicitly by its own name to this map.
+     *
+     * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
+     */
+    add: function(value) {
+      this.set(value.name, value);
     },
 
     /**
