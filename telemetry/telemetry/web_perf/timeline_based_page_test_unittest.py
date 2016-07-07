@@ -121,7 +121,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
     options = tbm_module.Options()
     options.config.enable_chrome_trace = True
-    options.SetTimelineBasedMetric('sampleMetric')
+    options.SetTimelineBasedMetrics(['sampleMetric'])
 
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)
@@ -165,7 +165,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'devtools.timeline,disabled-by-default-blink.debug.layout')
 
     options = tbm_module.Options(overhead_level=cat_filter)
-    options.SetTimelineBasedMetric('firstPaintMetric')
+    options.SetTimelineBasedMetrics(['firstPaintMetric'])
 
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)

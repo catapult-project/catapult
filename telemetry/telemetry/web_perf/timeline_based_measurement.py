@@ -159,7 +159,7 @@ class Options(object):
 
   By default, all the timeline based metrics in telemetry/web_perf/metrics are
   used (see _GetAllLegacyTimelineBasedMetrics above).
-  To customize your metric needs, use SetTimelineBasedMetric().
+  To customize your metric needs, use SetTimelineBasedMetrics().
   """
 
   def __init__(self, overhead_level=LOW_OVERHEAD_LEVEL):
