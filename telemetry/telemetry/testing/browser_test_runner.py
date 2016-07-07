@@ -16,11 +16,14 @@ from telemetry.testing import options_for_unittests
 from telemetry.testing import serially_executed_browser_test_case
 
 
-def ProcessCommandLineOptions(test_class, args):
+def ProcessCommandLineOptions(test_class, project_config, args):
   options = browser_options.BrowserFinderOptions()
   options.browser_type = 'any'
   parser = options.CreateParser(test_class.__doc__)
   test_class.AddCommandlineArgs(parser)
+  # Set the default chrome root variable. This is required for the
+  # Android browser finder to function properly.
+  parser.set_defaults(chrome_root=project_config.default_chrome_root)
   finder_options, positional_args = parser.parse_args(args)
   finder_options.positional_args = positional_args
   options_for_unittests.Push(finder_options)
@@ -264,7 +267,7 @@ def Run(project_config, test_run_options, args):
         cl.Name() for cl in browser_test_classes)
     return 1
 
-  options = ProcessCommandLineOptions(test_class, extra_args)
+  options = ProcessCommandLineOptions(test_class, project_config, extra_args)
 
   test_times = None
   if option.read_abbreviated_json_results_from:
