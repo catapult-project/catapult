@@ -207,11 +207,6 @@ class Options(object):
   def config(self):
     return self._config
 
-  def SetTimelineBasedMetric(self, metric):
-    # TODO: delete this convenience method and replace calls to this method
-    # with calls to SetTimelineBasedMetrics
-    self.SetTimelineBasedMetrics([metric])
-
   def SetTimelineBasedMetrics(self, metrics):
     """Sets the new-style (TBMv2) metrics to run.
 
