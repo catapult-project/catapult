@@ -220,5 +220,11 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Unit.byName.unitlessNumber.format(-1.23), '-1.230');
     assert.equal(Unit.byName.unitlessNumber.format(0), '0.000');
   });
+
+  test('count', function() {
+    assert.equal(Unit.byName.count.format(0), '0');
+    assert.equal(Unit.byName.count.format(1), '1');
+    assert.equal(Unit.byName.count.format(100), '100');
+  });
 });
 </script>

@@ -54,6 +54,7 @@ tr.b.unittest.testSuite(function() {
     var h = DURATION_NUMERIC_BUILDER.build();
     h.add(undefined, 'b');
     h.add(NaN, 'c');
+    h.customizeSummaryOptions({nans: true});
 
     var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;

@@ -323,6 +323,7 @@ tr.exportTo('tr.v', function() {
         std: true,
         min: true,
         max: true,
+        nans: false,
         percentile: []
       };
     },
@@ -381,9 +382,15 @@ tr.exportTo('tr.v', function() {
                 scalar: new tr.v.ScalarNumeric(this.unit, percentile)
             });
           }, this);
+        } else if (stat === 'nans') {
+          results.push({
+            name: 'nans',
+            scalar: new tr.v.ScalarNumeric(
+                tr.v.Unit.byName.count_smallerIsBetter, this.numNans)
+          });
         } else {
           var statUnit = stat === 'count' ?
-              tr.v.Unit.byName.unitlessNumber_smallerIsBetter : this.unit;
+              tr.v.Unit.byName.count_smallerIsBetter : this.unit;
           var key = statNameToKey(stat);
           var statValue = this.running[key];
           if (typeof(statValue) === 'number') {

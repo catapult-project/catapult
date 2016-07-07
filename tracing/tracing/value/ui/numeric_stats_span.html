@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+
+<polymer-element name="tr-v-ui-numeric-stats-span">
+  <template>
+    <tr-ui-b-table id="stats"></tr-ui-b-table>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.numeric_ = undefined;
+
+      this.$.stats.showHeader = false;
+      this.$.stats.tableColumns = [
+        {
+          value: function(row) {
+            return row.name;
+          }
+        },
+        {
+          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+          value: function(row) {
+            return tr.v.ui.createScalarSpan(row.value);
+          }
+        }
+      ];
+    },
+
+    get numeric() {
+      return this.numeric_;
+    },
+
+    set numeric(n) {
+      this.numeric_ = n;
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
+      var rows = [];
+      if (this.numeric_) {
+        var stats = this.numeric_.getSummarizedScalarNumericsWithNames();
+        stats.forEach(function(stat) {
+          rows.push({
+            name: stat.name,
+            value: stat.scalar
+          });
+        });
+      }
+      this.$.stats.tableRows = rows;
+      this.$.stats.rebuild();
+    }
+  });
+  </script>
+</polymer-element>

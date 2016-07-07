@@ -325,6 +325,15 @@ tr.exportTo('tr.v', function() {
     }
   });
 
+  Unit.define({
+    baseUnitName: 'count',
+    baseJsonName: 'count',
+    formatSpec: {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }
+  });
+
   return {
     ImprovementDirection: ImprovementDirection,
     Unit: Unit

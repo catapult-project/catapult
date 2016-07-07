@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/numeric_stats_span.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
+      20);
+
+  test('instantiate', function() {
+    var span = document.createElement('tr-v-ui-numeric-stats-span');
+
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 1e2; ++i) {
+      numeric.add(Math.random() * 1000);
+    }
+
+    numeric.add('foo');
+    numeric.customizeSummaryOptions({nans: true});
+
+    span.numeric = numeric;
+    this.addHTMLOutput(span);
+  });
+});
+</script>
