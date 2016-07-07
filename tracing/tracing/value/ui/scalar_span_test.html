@@ -232,5 +232,15 @@ tr.b.unittest.testSuite(function() {
     addAndCheckScalarSpan(0.95, 'block', 95);
     addAndCheckScalarSpan(1, 'block', 100);
   });
+
+  test('emptyNumeric', function() {
+    assert.strictEqual(tr.v.ui.createScalarSpan(), '');
+
+    var numeric = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
+      10).build();
+    var value = new tr.v.NumericValue('foo', numeric);
+    assert.strictEqual(tr.v.ui.createScalarSpan(value), '');
+  });
 });
 </script>
