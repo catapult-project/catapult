@@ -20,7 +20,7 @@ tr.exportTo('tr.metrics.sh', function() {
       // entered (via android.os.Trace.beginSection) when WebView is started
       // up. This value is defined in TelemetryActivity.java.
       if (!(slice instanceof tr.model.Slice))
-        return;
+        continue;
       if (slice.title === 'WebViewStartupInterval') {
         values.addValue(new tr.v.NumericValue(
             'webview_startup_wall_time',
