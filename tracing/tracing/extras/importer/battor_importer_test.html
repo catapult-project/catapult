@@ -63,6 +63,24 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(m.device.powerSeries.samples[5].start, 10.0);
   });
 
+  test('importExplicitClockSync_syncOnNegativeVoltageLine', function() {
+    // Add a BattOr sample with an explicit clock sync that occurs on a line
+    // with a negative voltage measurement. The sample should be ignored, but
+    // the clock sync should be counted.
+    var battorLinesWithExplicitSync = BATTOR_LINES.slice();
+    battorLinesWithExplicitSync.push(
+      '2.500000 -1.000000 4000.000000 <ABCDEF-01234-5678-0A1B2C3D>');
+
+    var m = tr.c.TestUtils.newModelWithEvents(
+        [CHROMIUM_EVENTS, battorLinesWithExplicitSync.join('\n')]);
+
+    // Check to see if power samples were imported successfully.
+    assert.isDefined(m.device.powerSeries);
+
+    assert.lengthOf(m.device.powerSeries.samples, 5);
+    assert.strictEqual(m.device.powerSeries.samples[0].start, 7.5);
+  });
+
   test('explicitClockSyncWithoutSyncMarkers', function() {
     // Create an empty model.
     var m = new tr.Model();
@@ -78,6 +96,7 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModelWithEvents(
         [battorLinesWithExplicitSync.join('\n')]);
 
+    assert.lengthOf(m.device.powerSeries.samples, 6);
     assert.strictEqual(m.device.powerSeries.samples[0].start, 0);
     assert.strictEqual(m.device.powerSeries.samples[5].start, 2.5);
   });
