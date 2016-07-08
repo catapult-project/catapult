@@ -168,6 +168,12 @@ def GenerateSerialMap(hub_types=None):
   # List of serial numbers in the system that represent BattOrs.
   battor_serials = list(GetBattorSerialNumbers(devtree))
 
+
+  # If there's only one BattOr in the system, then a serial number ma
+  # is not necessary.
+  if len(battor_serials) == 1:
+    return {}
+
   # List of dictionaries, one for each hub, that maps the physical
   # port number to the serial number of that hub. For instance, in a 2
   # hub system, this could return [{1:'ab', 2:'cd'}, {1:'jkl', 2:'xyz'}]
