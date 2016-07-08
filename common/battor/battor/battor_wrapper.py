@@ -201,7 +201,7 @@ class BattorWrapper(object):
         battor_map = battor_device_mapping.GenerateSerialMap()
 
       return battor_device_mapping.GetBattorPathFromPhoneSerial(
-          android_device, serial_map_file=battor_map_file,
+          str(android_device), serial_map_file=battor_map_file,
           serial_map=battor_map)
 
     # Not Android and no explicitly passed BattOr.
