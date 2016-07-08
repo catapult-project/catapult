@@ -11,12 +11,12 @@ from telemetry.internal.platform import linux_based_platform_backend
 import mock
 
 
-class TestBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
+class TestLinuxBackend(linux_based_platform_backend.LinuxBasedPlatformBackend):
 
   # pylint: disable=abstract-method
 
   def __init__(self):
-    super(TestBackend, self).__init__()
+    super(TestLinuxBackend, self).__init__()
     self._mock_files = {}
 
   def SetMockFile(self, filename, output):
@@ -40,7 +40,7 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
       logging.warning('Test not supported')
       return
 
-    backend = TestBackend()
+    backend = TestLinuxBackend()
     self.SetMockFileInBackend(backend, 'proc_meminfo', '/proc/meminfo')
     result = backend.GetSystemCommitCharge()
     # 25252140 == MemTotal - MemFree - Buffers - Cached (in kB)
@@ -51,7 +51,7 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
       logging.warning('Test not supported')
       return
 
-    backend = TestBackend()
+    backend = TestLinuxBackend()
     self.SetMockFileInBackend(backend, 'proc_meminfo', '/proc/meminfo')
     result = backend.GetSystemTotalPhysicalMemory()
     # 67479191552 == MemTotal * 1024
@@ -62,7 +62,7 @@ class LinuxBasedPlatformBackendTest(unittest.TestCase):
       logging.warning('Test not supported')
       return
 
-    backend = TestBackend()
+    backend = TestLinuxBackend()
     self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
     result = backend.GetCpuStats(1)
     self.assertEquals(result, {'CpuProcessTime': 22.0})
@@ -93,7 +93,7 @@ jiffies  a1111
       logging.warning('Test not supported')
       return
 
-    backend = TestBackend()
+    backend = TestLinuxBackend()
     self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
     self.SetMockFileInBackend(backend, 'status', '/proc/1/status')
     self.SetMockFileInBackend(backend, 'smaps', '/proc/1/smaps')
@@ -109,7 +109,7 @@ jiffies  a1111
       logging.warning('Test not supported')
       return
 
-    backend = TestBackend()
+    backend = TestLinuxBackend()
     self.SetMockFileInBackend(backend, 'stat', '/proc/1/stat')
     self.SetMockFileInBackend(backend, 'status_nohwm', '/proc/1/status')
     self.SetMockFileInBackend(backend, 'smaps', '/proc/1/smaps')
