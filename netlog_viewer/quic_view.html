@@ -1,0 +1,64 @@
+<div id=quic-view-tab-content class=content-box>
+  <ul style='margin-top:0'>
+    <li>QUIC Enabled: <span jscontent="!!quic_enabled"></span></li>
+    <li>Origins To Force QUIC On: <span jscontent="origins_to_force_quic_on"></span></li>
+    <li>Connection options: <span jscontent="connection_options"></span></li>
+    <li>Consistent Port Selection Enabled: <span jscontent="!!enable_quic_port_selection"></span></li>
+    <li>Load Server Info Timeout Multiplier: <span jscontent="$this.load_server_info_timeout_srtt_multiplier"></span></li>
+    <li>Enable Connection Racing: <span jscontent="!!enable_connection_racing"></span></li>
+    <li>Disable Disk Cache: <span jscontent="!!disable_disk_cache"></span></li>
+    <li>Prefer AES: <span jscontent="!!prefer_aes"></span></li>
+    <li>Maximum Number Of Lossy Connections: <span jscontent="$this.max_number_of_lossy_connections"></span></li>
+    <li>Packet Loss Threshold: <span jscontent="$this.packet_loss_threshold"></span></li>
+    <li>Delay TCP Race: <span jscontent="!!delay_tcp_race"></span></li>
+    <li>Store Server Configs In Properties File: <span jscontent="!!store_server_configs_in_properties"></span></li>
+    <li>Idle Connection Timeout In Seconds: <span jscontent="$this.idle_connection_timeout_seconds"></span></li>
+    <li>Disable PreConnect If 0RTT: <span jscontent="$this.disable_preconnect_if_0rtt"></span></li>
+    <li>Disable QUIC On Timeout With Open Streams: <span jscontent="$this.disable_quic_on_timeout_with_open_streams"></span></li>
+    <li jsdisplay="$this.disabled_reason && disabled_reason.length > 0">QUIC dynamically disabled: <span jscontent="disabled_reason"></span></li>
+  </ul>
+
+  <h4>QUIC sessions</h4>
+    <!-- Only one of these two are shown -->
+    <div jsdisplay="!($this.sessions && sessions.length > 0)">None</div>
+    <div jsdisplay="$this.sessions && sessions.length > 0">
+      <a href="#events&q=type:QUIC_SESSION%20is:active">View live QUIC sessions</a>
+      <p>
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>Secure</th>
+              <th>Version</th>
+              <th>Peer address</th>
+              <th>Connection UID</th>
+              <th>Active stream count</th>
+              <th>Active streams</th>
+              <th>Total stream count</th>
+              <th>Packets Sent</th>
+              <th>Packets Lost</th>
+              <th>Packets Received</th>
+              <th>Connected</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr jsselect="sessions">
+              <td jscontent="$this.aliases ? $this.aliases.join(' ') : ''"></td>
+              <td jscontent="!!secure"></td>
+              <td jscontent="version"></td>
+              <td jscontent="peer_address"></td>
+              <td><a jsvalues=".href: '#events&q=type:QUIC_SESSION%20' + connection_id" jscontent="connection_id"></a></td>
+              <td jscontent="open_streams"></td>
+              <td jscontent="$this.active_streams && $this.active_streams.length > 0 ? $this.active_streams.join(', ') : 'None'"></td>
+              <td jscontent="total_streams"></td>
+              <td jscontent="packets_sent"></td>
+              <td jscontent="packets_lost"></td>
+              <td jscontent="packets_received"></td>
+              <td jscontent="connected"></td>
+            </tr>
+          </tbody>
+        </table>
+      </p>
+    </div>
+</div>
+
