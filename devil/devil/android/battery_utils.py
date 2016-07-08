@@ -95,6 +95,20 @@ _DEVICE_PROFILES = [
     'current': '/sys/class/power_supply/ds2784-fuelgauge/current_now',
 
   },
+  {
+    'name': 'Nexus 5X',
+    'witness_file': None,
+    'enable_command': (
+        'echo 1 > /sys/class/power_supply/battery/charging_enabled && '
+        'dumpsys battery reset'),
+    'disable_command': (
+        'echo 0 > /sys/class/power_supply/battery/charging_enabled && '
+        'dumpsys battery set ac 0 && dumpsys battery set usb 0'),
+    'charge_counter': (
+        '/sys/class/power_supply/max170xx_battery/charge_counter_ext'),
+    'voltage': None,
+    'current': None,
+  },
 ]
 
 # The list of useful dumpsys columns.
