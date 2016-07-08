@@ -346,8 +346,8 @@ class BrowserOptions(object):
     group.add_option('--enable-browser-logging',
         dest='enable_logging',
         action='store_true',
-        help=('This flag is deprecated. Please use --browser-logging-verbosity '
-              'instead.'))
+        help=('This flag is deprecated and will be removed after August 31, '
+              '2016. Please use --browser-logging-verbosity instead.'))
     parser.add_option_group(group)
 
     group = optparse.OptionGroup(parser, 'Compatibility options')
@@ -424,16 +424,16 @@ class BrowserOptions(object):
   # Deprecated: Please use |logging_verbosity| instead.
   @property
   def enable_logging(self):
-    logging.warning('enable_logging is deprecated. Please use '
-                    'logging_verbosity instead.')
+    logging.warning('enable_logging is deprecated and will be removed after '
+                    'August 31, 2016. Please use logging_verbosity instead.')
     return self.logging_verbosity in [self.NON_VERBOSE_LOGGING,
                                       self.VERBOSE_LOGGING]
 
   # Deprecated: Please use |logging_verbosity| instead.
   @enable_logging.setter
   def enable_logging(self, value):
-    logging.warning('enable_logging is deprecated. Please use '
-                    'logging_verbosity instead.')
+    logging.warning('enable_logging is deprecated and will be removed after '
+                    'August 31, 2016. Please use logging_verbosity instead.')
     if value:
       self.logging_verbosity = self.NON_VERBOSE_LOGGING
     else:
