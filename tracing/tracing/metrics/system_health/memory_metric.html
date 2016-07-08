@@ -48,8 +48,10 @@ tr.exportTo('tr.metrics.sh', function() {
           .addBinBoundary(1024 /* 1 KiB */)
           .addExponentialBins(16 * 1024 * 1024 * 1024 /* 16 GiB */, 4 * 24));
 
-  function memoryMetric(values, model) {
-    var browserNameToGlobalDumps = splitGlobalDumpsByBrowserName(model);
+  function memoryMetric(values, model, opt_options) {
+    var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
+    var browserNameToGlobalDumps =
+        splitGlobalDumpsByBrowserName(model, rangeOfInterest);
     addGeneralMemoryDumpValues(browserNameToGlobalDumps, values);
     addDetailedMemoryDumpValues(browserNameToGlobalDumps, values);
     addMemoryDumpCountValues(browserNameToGlobalDumps, values);
@@ -60,10 +62,12 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    * @param {!tr.Model} model The trace model from which the global dumps
    *     should be extracted.
+   * @param {!tr.b.Range=} opt_rangeOfInterest If proided, global memory dumps
+   *     that do not inclusively intersect the range will be skipped.
    * @return {!Map<string, !Array<!tr.model.GlobalMemoryDump>} A map from
    *     browser names to the associated global memory dumps.
    */
-  function splitGlobalDumpsByBrowserName(model) {
+  function splitGlobalDumpsByBrowserName(model, opt_rangeOfInterest) {
     var chromeModelHelper =
         model.getOrCreateHelper(tr.model.helpers.ChromeModelHelper);
     var browserNameToGlobalDumps = new Map();
@@ -77,8 +81,9 @@ tr.exportTo('tr.metrics.sh', function() {
       chromeModelHelper.browserHelpers.forEach(function(helper) {
         // Retrieve the associated global memory dumps and check that they
         // haven't been classified as belonging to another browser process.
-        var globalDumps = helper.process.memoryDumps.map(
-            d => d.globalMemoryDump);
+        var globalDumps = skipDumpsThatDoNotIntersectRange(
+            helper.process.memoryDumps.map(d => d.globalMemoryDump),
+            opt_rangeOfInterest);
         globalDumps.forEach(function(globalDump) {
           var existingHelper = globalDumpToBrowserHelper.get(globalDump);
           if (existingHelper !== undefined) {
@@ -96,14 +101,22 @@ tr.exportTo('tr.metrics.sh', function() {
     // 2. If any global memory dump does not have any associated browser
     // process for some reason, associate it with an 'unknown_browser' browser
     // so that we don't lose the data.
-    var unclassifiedGlobalDumps =
-        model.globalMemoryDumps.filter(g => !globalDumpToBrowserHelper.has(g));
+    var unclassifiedGlobalDumps = skipDumpsThatDoNotIntersectRange(
+        model.globalMemoryDumps.filter(g => !globalDumpToBrowserHelper.has(g)),
+        opt_rangeOfInterest);
     if (unclassifiedGlobalDumps.length > 0) {
       makeKeyUniqueAndSet(
           browserNameToGlobalDumps, 'unknown_browser', unclassifiedGlobalDumps);
     }
 
     return browserNameToGlobalDumps;
+  }
+
+  function skipDumpsThatDoNotIntersectRange(dumps, opt_range) {
+    if (!opt_range)
+      return dumps;
+    return dumps.filter(d => opt_range.intersectsExplicitRangeInclusive(
+        d.start, d.end));
   }
 
   function canonicalizeName(name) {
@@ -1014,7 +1027,9 @@ tr.exportTo('tr.metrics.sh', function() {
     return numeric;
   }
 
-  tr.metrics.MetricRegistry.register(memoryMetric);
+  tr.metrics.MetricRegistry.register(memoryMetric, {
+    supportsRangeOfInterest: true
+  });
 
   return {
     memoryMetric: memoryMetric

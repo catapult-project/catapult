@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/memory_metric.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
@@ -32,7 +34,8 @@ tr.b.unittest.testSuite(function() {
   var sizeInBytes_smallerIsBetter =
       tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
 
-  function memoryMetricTest(name, modelCallback, expectedNumerics) {
+  function memoryMetricTest(
+      name, modelCallback, opt_options, expectedNumerics) {
     test(name, function() {
       // Create a model and a fake value list.
       var model = tr.c.TestUtils.newModel(modelCallback);
@@ -47,7 +50,7 @@ tr.b.unittest.testSuite(function() {
       };
 
       // Run the memory metric on the model.
-      tr.metrics.sh.memoryMetric(fakeValueList, model);
+      tr.metrics.sh.memoryMetric(fakeValueList, model, opt_options);
 
       // Check that the names of the added values match expectations.
       var actualValueNames = Object.keys(valueNameToValues).sort();
@@ -158,13 +161,13 @@ tr.b.unittest.testSuite(function() {
 
   memoryMetricTest('noDumps_noBrowser', function(model) {
     createProcessWithName(model, 'Non-browser');
-  }, {
+  }, undefined /* opt_options */, {
     /* no values */
   });
 
   memoryMetricTest('noDumps_chrome', function(model) {
     createChromeBrowserProcess(model);
-  }, {
+  }, undefined /* opt_options */, {
     'memory:chrome:all_processes:dump_count:detailed': {
       value: 0,
       unit: unitlessNumber_smallerIsBetter,
@@ -190,7 +193,7 @@ tr.b.unittest.testSuite(function() {
     createWebViewProcess(model);
     createProcessWithName(model, 'Non-browser');
     createChromeBrowserProcess(model);
-  }, {
+  }, undefined /* opt_options */, {
     'memory:chrome2:all_processes:dump_count:detailed': {
       value: 0,
       unit: unitlessNumber_smallerIsBetter,
@@ -251,7 +254,7 @@ tr.b.unittest.testSuite(function() {
     addGlobalMemoryDump(model, 45, DETAILED);
     addGlobalMemoryDump(model, 68, LIGHT);
     addGlobalMemoryDump(model, 89, DETAILED);
-  }, {
+  }, undefined /* opt_options */, {
     'memory:unknown_browser:all_processes:dump_count:detailed': {
       value: 2,
       unit: unitlessNumber_smallerIsBetter,
@@ -276,7 +279,7 @@ tr.b.unittest.testSuite(function() {
     var p = createWebViewProcess(model);
     addProcessMemoryDump(addGlobalMemoryDump(model, 45, LIGHT), p, 45);
     addProcessMemoryDump(addGlobalMemoryDump(model, 68, LIGHT), p, 68);
-  }, {
+  }, undefined /* opt_options */, {
     'memory:webview:all_processes:dump_count:detailed': {
       value: 0,
       unit: unitlessNumber_smallerIsBetter,
@@ -413,7 +416,7 @@ tr.b.unittest.testSuite(function() {
     pmdGpu4.memoryAllocatorDumps = [
       newAllocatorDump(pmdGpu4, 'gpu', { 'memtrack_pss': 666 /* ignored */ })
     ];
-  }, {
+  }, undefined /* opt_options */, {
     'memory:chrome:all_processes:dump_count:detailed': {
       value: 0,
       unit: unitlessNumber_smallerIsBetter,
@@ -732,7 +735,7 @@ tr.b.unittest.testSuite(function() {
         'bytecode_and_metadata_size': 35
       })
     ];
-  }, {
+  }, undefined /* opt_options */, {
     'memory:unknown_browser:all_processes:dump_count:detailed': {
       value: 3,
       unit: unitlessNumber_smallerIsBetter,
@@ -1166,7 +1169,7 @@ tr.b.unittest.testSuite(function() {
       new VMRegion(0xABCD, 1024, 0, '/dev/ashmem/dalvik-non moving space',
           { 'privateDirtyResident': 150 })
     ]);
-  }, {
+  }, {} /* opt_options */, {
     'memory:chrome:all_processes:dump_count:detailed': {
       value: 2,
       unit: unitlessNumber_smallerIsBetter,
@@ -1459,7 +1462,7 @@ tr.b.unittest.testSuite(function() {
       addChildDump(memtrackDump, 'gl', { 'memtrack_pss': 2097152 });
       return [gpuDump];
     })();
-  }, {
+  }, undefined /* opt_options */, {
     // WebView (GMD1, GMD6).
     'memory:webview:all_processes:dump_count:detailed': {
       value: 1,
@@ -2452,6 +2455,247 @@ tr.b.unittest.testSuite(function() {
           description: 'effective size of sqlite in the browser process in ' +
               'an unknown browser'
         }
+  });
+
+  memoryMetricTest('rangeOfInterest', function(model) {
+    var pChrome = createChromeBrowserProcess(model);
+    var pWebView = createWebViewProcess(model);
+
+    // Chrome: only the LIGHT dumps should be kept.
+    addProcessMemoryDump(addGlobalMemoryDump(model, 5, DETAILED, 4), pChrome);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 10, LIGHT, 2), pChrome);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 13, LIGHT, 3), pChrome);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 20, LIGHT, 1), pChrome);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 22, DETAILED, 5), pChrome);
+
+    // WebView: only the DETAILED dumps should be kept.
+    addProcessMemoryDump(addGlobalMemoryDump(model, 4, LIGHT, 1), pWebView);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 5, DETAILED, 5), pWebView);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 10, DETAILED, 0), pWebView);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 11, DETAILED, 7), pWebView);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 19, DETAILED, 2), pWebView);
+    addProcessMemoryDump(addGlobalMemoryDump(model, 21, LIGHT, 5), pWebView);
+
+    // Unknown browser: only the LIGHT dump should be kept.
+    addGlobalMemoryDump(model, 5, DETAILED, 3);
+    addGlobalMemoryDump(model, 9, LIGHT, 12);
+    addGlobalMemoryDump(model, 22, DETAILED, 3);
+  }, {  /* opt_options */
+    rangeOfInterest: tr.b.Range.fromExplicitRange(10, 20)
+  }, {
+    'memory:chrome:all_processes:dump_count': {
+      value: 3,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of all memory dumps added by Chrome to the ' +
+          'trace'
+    },
+    'memory:chrome:all_processes:dump_count:detailed': {
+      value: 0,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of detailed memory dumps added by Chrome to ' +
+          'the trace'
+    },
+    'memory:chrome:all_processes:dump_count:light': {
+      value: 3,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of light memory dumps added by Chrome to ' +
+          'the trace'
+    },
+    'memory:chrome:all_processes:process_count': {
+      value: [1, 1, 1],
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of all processes in Chrome'
+    },
+    'memory:chrome:browser_process:process_count': {
+      value: [1, 1, 1],
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of browser processes in Chrome'
+    },
+
+    'memory:webview:all_processes:dump_count': {
+      value: 4,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of all memory dumps added by WebView to the ' +
+          'trace'
+    },
+    'memory:webview:all_processes:dump_count:detailed': {
+      value: 4,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of detailed memory dumps added by WebView ' +
+          'to the trace'
+    },
+    'memory:webview:all_processes:dump_count:light': {
+      value: 0,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of light memory dumps added by WebView to ' +
+          'the trace'
+    },
+    'memory:webview:all_processes:process_count': {
+      value: [1, 1, 1, 1],
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of all processes in WebView'
+    },
+    'memory:webview:all_processes:reported_by_os:private_dirty_size': {
+      value: [0, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size reported by the OS for all ' +
+          'processes in WebView'
+    },
+    'memory:webview:all_processes:reported_by_os:proportional_resident_size': {
+      value: [0, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total proportional resident size (PSS) reported by the ' +
+          'OS for all processes in WebView'
+    },
+    'memory:webview:all_processes:reported_by_os:system_memory:ashmem:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'private dirty size of ashmem in all processes in ' +
+              'WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:ashmem:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'proportional resident size (PSS) of ashmem in all ' +
+              'processes in WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:java_heap:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'private dirty size of the Java heap in all processes ' +
+              'in WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:java_heap:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'proportional resident size (PSS) of the Java heap in ' +
+              'all processes in WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:native_heap:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'private dirty size of the native heap in all ' +
+              'processes in WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:native_heap:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'proportional resident size (PSS) of the native heap ' +
+              'in all processes in WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total private dirty size of system memory (RAM) used ' +
+              'by all processes in WebView'
+        },
+    'memory:webview:all_processes:reported_by_os:system_memory:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total proportional resident size (PSS) of system ' +
+              'memory (RAM) used by all processes in WebView'
+        },
+    'memory:webview:browser_process:process_count': {
+      value: [1, 1, 1, 1],
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of browser processes in WebView'
+    },
+    'memory:webview:browser_process:reported_by_os:private_dirty_size': {
+      value: [0, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total private dirty size reported by the OS for the ' +
+          'browser process in WebView'
+    },
+    'memory:webview:browser_process:reported_by_os:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total proportional resident size (PSS) reported by ' +
+              'the OS for the browser process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:ashmem:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'private dirty size of ashmem in the browser process ' +
+              'in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:ashmem:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'proportional resident size (PSS) of ashmem in the ' +
+              'browser process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:java_heap:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'private dirty size of the Java heap in the browser ' +
+              'process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:java_heap:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'proportional resident size (PSS) of the Java heap in ' +
+              'the browser process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:native_heap:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'private dirty size of the native heap in the browser ' +
+              'process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:native_heap:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'proportional resident size (PSS) of the native heap ' +
+              'in the browser process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:private_dirty_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total private dirty size of system memory (RAM) used ' +
+              'by the browser process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_os:system_memory:proportional_resident_size':
+        {
+          value: [0, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total proportional resident size (PSS) of system ' +
+              'memory (RAM) used by the browser process in WebView'
+        },
+
+    'memory:unknown_browser:all_processes:dump_count': {
+      value: 1,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of all memory dumps added by an unknown ' +
+          'browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:detailed': {
+      value: 0,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of detailed memory dumps added by an ' +
+          'unknown browser to the trace'
+    },
+    'memory:unknown_browser:all_processes:dump_count:light': {
+      value: 1,
+      unit: unitlessNumber_smallerIsBetter,
+      description: 'total number of light memory dumps added by an unknown ' +
+          'browser to the trace'
+    }
   });
 
   test('dumpIdBrowserClashThrows', function() {

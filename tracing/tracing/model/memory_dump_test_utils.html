@@ -45,16 +45,21 @@ tr.exportTo('tr.model', function() {
   MemoryDumpTestUtils.SIZE_DELTA = 0.0001;
 
   MemoryDumpTestUtils.addGlobalMemoryDump = function(
-      model, timestamp, opt_levelOfDetail) {
+      model, timestamp, opt_levelOfDetail, opt_duration) {
     var gmd = new GlobalMemoryDump(model, timestamp);
     gmd.levelOfDetail = opt_levelOfDetail === undefined ?
         LIGHT : opt_levelOfDetail;
+    if (opt_duration)
+      gmd.duration = opt_duration;
     model.globalMemoryDumps.push(gmd);
     return gmd;
   };
 
-  MemoryDumpTestUtils.addProcessMemoryDump = function(gmd, process, timestamp) {
-    var pmd = new ProcessMemoryDump(gmd, process, timestamp);
+  MemoryDumpTestUtils.addProcessMemoryDump = function(
+      gmd, process, opt_timestamp) {
+    if (opt_timestamp === undefined)
+      opt_timestamp = gmd.start;
+    var pmd = new ProcessMemoryDump(gmd, process, opt_timestamp);
     process.memoryDumps.push(pmd);
     if (process.pid in gmd.processMemoryDumps) {
       // Test sanity check.
