@@ -73,7 +73,7 @@ class TraceValue(value_module.Value):
           title = self.page.display_name
         cmd = (['python', _TRACE2HTML_PATH] + trace_files +
                ['--output', tf.name] + ['--title', title])
-        subprocess.check_call(cmd)
+        subprocess.check_output(cmd)
       else:
         logging.warning('No traces to convert to html.')
       return file_handle.FromTempFile(tf)
