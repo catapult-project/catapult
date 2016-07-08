@@ -148,10 +148,18 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
 _TEST_GENERATOR_PREFIX = 'GenerateTestCases_'
 
 def _LoadTests(test_class, finder_options, filter_regex_str,
+               filter_tests_after_sharding,
                total_shards, shard_index, test_times,
                debug_shard_distributions):
   test_cases = []
-  filter_regex = re.compile(filter_regex_str)
+  real_regex = re.compile(filter_regex_str)
+  noop_regex = re.compile('')
+  if filter_tests_after_sharding:
+    filter_regex = noop_regex
+    post_filter_regex = real_regex
+  else:
+    filter_regex = real_regex
+    post_filter_regex = noop_regex
   for name, method in inspect.getmembers(
       test_class, predicate=inspect.ismethod):
     if name.startswith('test'):
@@ -179,7 +187,8 @@ def _LoadTests(test_class, finder_options, filter_regex_str,
     # Assign tests to shards.
     shards = _SplitShardsByTime(test_cases, total_shards, test_times,
                                 debug_shard_distributions)
-    return shards[shard_index]
+    return [t for t in shards[shard_index]
+            if post_filter_regex.search(t.shortName())]
   else:
     test_cases.sort(key=lambda t: t.shortName())
     test_range = _TestRangeForShard(total_shards, shard_index, len(test_cases))
@@ -191,7 +200,8 @@ def _LoadTests(test_class, finder_options, filter_regex_str,
       # Can edit the code to get 'test_times' passed in here for
       # debugging and comparison purposes.
       _DebugShardDistributions(tmp_shards, None)
-    return test_cases[test_range[0]:test_range[1]]
+    return [t for t in test_cases[test_range[0]:test_range[1]]
+            if post_filter_regex.search(t.shortName())]
 
 
 class TestRunOptions(object):
@@ -233,6 +243,10 @@ def Run(project_config, test_run_options, args):
       'this script is responsible for spawning all of the shards.)')
   parser.add_argument('--shard-index', default=0, type=int,
       help='Shard index (0..total_shards-1) of this test run.')
+  parser.add_argument(
+    '--filter-tests-after-sharding', default=False, action='store_true',
+    help=('Apply the test filter after tests are split for sharding. Useful '
+          'for reproducing bugs related to the order in which tests run.'))
   parser.add_argument(
       '--read-abbreviated-json-results-from', metavar='FILENAME',
       action='store', help=(
@@ -277,6 +291,7 @@ def Run(project_config, test_run_options, args):
 
   suite = unittest.TestSuite()
   for test in _LoadTests(test_class, options, option.test_filter,
+                         option.filter_tests_after_sharding,
                          option.total_shards, option.shard_index,
                          test_times, option.debug_shard_distributions):
     suite.addTest(test)

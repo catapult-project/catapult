@@ -119,7 +119,9 @@ class BrowserTestRunnerTest(unittest.TestCase):
     self.shardingRangeTestHelper(2, 1)
 
   def baseShardingTest(self, total_shards, shard_index, failures, successes,
-                       opt_abbr_input_json_file=None):
+                       opt_abbr_input_json_file=None,
+                       opt_test_filter='',
+                       opt_filter_tests_after_sharding=False):
     options = browser_test_runner.TestRunOptions()
     options.verbosity = 0
     config = project_config.ProjectConfig(
@@ -131,17 +133,22 @@ class BrowserTestRunnerTest(unittest.TestCase):
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     temp_file.close()
     temp_file_name = temp_file.name
-    abbr_input_json_arg = []
+    opt_args = []
     if opt_abbr_input_json_file:
-      abbr_input_json_arg = [
+      opt_args += [
         '--read-abbreviated-json-results-from=%s' % opt_abbr_input_json_file]
+    if opt_test_filter:
+      opt_args += [
+        '--test-filter=%s' % opt_test_filter]
+    if opt_filter_tests_after_sharding:
+      opt_args += ['--filter-tests-after-sharding']
     try:
       browser_test_runner.Run(
           config, options,
           ['SimpleShardingTest',
            '--write-abbreviated-json-results-to=%s' % temp_file_name,
            '--total-shards=%d' % total_shards,
-           '--shard-index=%d' % shard_index] + abbr_input_json_arg)
+           '--shard-index=%d' % shard_index] + opt_args)
       with open(temp_file_name) as f:
         test_result = json.load(f)
       self.assertEquals(test_result['failures'], failures)
@@ -172,8 +179,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
       'passing_test_9',
     ])
 
-  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
-  def testSplittingShardsByTimes(self, _):
+  def writeMockTestResultsFile(self):
     mock_test_results = {
       'passes': [
         'Test1',
@@ -213,28 +219,50 @@ class BrowserTestRunnerTest(unittest.TestCase):
     temp_file_name = temp_file.name
     with open(temp_file_name, 'w') as f:
       json.dump(mock_test_results, f)
+    return temp_file_name
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testSplittingShardsByTimes(self, _):
+    temp_file_name = self.writeMockTestResultsFile()
     # It seems that the sorting order of the first four tests above is:
     #   passing_test_0, Test1, Test2, Test3
     # This is probably because the relative order of the "fixed" tests
     # (starting with "Test") and the generated ones ("passing_") is
     # not well defined, and the sorting is stable afterward.  The
     # expectations have been adjusted for this fact.
-    self.baseShardingTest(
-      4, 0, [],
-      ['passing_test_0', 'passing_test_1', 'passing_test_5', 'passing_test_9'],
-      temp_file_name)
-    self.baseShardingTest(
-      4, 1, [],
-      ['Test1', 'passing_test_2', 'passing_test_6'],
-      temp_file_name)
-    self.baseShardingTest(
-      4, 2, [],
-      ['Test2', 'passing_test_3', 'passing_test_7'],
-      temp_file_name)
-    self.baseShardingTest(
-      4, 3, [],
-      ['Test3', 'passing_test_4', 'passing_test_8'],
-      temp_file_name)
+    try:
+      self.baseShardingTest(
+        4, 0, [],
+        ['passing_test_0', 'passing_test_1',
+         'passing_test_5', 'passing_test_9'],
+        temp_file_name)
+      self.baseShardingTest(
+        4, 1, [],
+        ['Test1', 'passing_test_2', 'passing_test_6'],
+        temp_file_name)
+      self.baseShardingTest(
+        4, 2, [],
+        ['Test2', 'passing_test_3', 'passing_test_7'],
+        temp_file_name)
+      self.baseShardingTest(
+        4, 3, [],
+        ['Test3', 'passing_test_4', 'passing_test_8'],
+        temp_file_name)
+    finally:
+      os.remove(temp_file_name)
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testFilteringAfterSharding(self, _):
+    temp_file_name = self.writeMockTestResultsFile()
+    try:
+      self.baseShardingTest(
+        4, 1, [],
+        ['Test1', 'passing_test_2', 'passing_test_6'],
+        temp_file_name,
+        opt_test_filter='(Test1|passing_test_2|passing_test_6)',
+        opt_filter_tests_after_sharding=True)
+    finally:
+      os.remove(temp_file_name)
 
   @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
   def testMedianComputation(self, _):
