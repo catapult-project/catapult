@@ -174,21 +174,21 @@ tr.exportTo('tr.b', function() {
   /**
    * Returns a new dictionary with items grouped by the return value of the
    * specified function being called on each item.
-   * @param {!Array.<Object>} ary The array being iterated through
-   * @param {!Function} fn The mapping function between the array value and the
-   * map key.
+   * @param {!Array.<!*>} ary The array being iterated through
+   * @param {!function(!*):!*} callback The mapping function between the array
+   * value and the map key.
+   * @param {*=} opt_this
    */
-  function group(ary, fn) {
-    return ary.reduce(function(accumulator, curr) {
-      var key = fn(curr);
-
-      if (key in accumulator)
-        accumulator[key].push(curr);
+  function group(ary, callback, opt_this) {
+    var results = {};
+    for (var element of ary) {
+      var key = callback.call(opt_this, element);
+      if (key in results)
+        results[key].push(element);
       else
-        accumulator[key] = [curr];
-
-      return accumulator;
-    }, {});
+        results[key] = [element];
+    }
+    return results;
   }
 
   function iterItems(dict, fn, opt_this) {

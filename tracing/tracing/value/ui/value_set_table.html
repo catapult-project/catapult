@@ -44,6 +44,28 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
+  /**
+   * @param {!tr.v.Value} value
+   * @return {string}
+   */
+  function getDisplayLabel(value) {
+    var iteration = value.diagnostics.get(tr.v.ITERATION_INFO_DIAGNOSTIC_NAME);
+    if (!(iteration instanceof tr.v.d.IterationInfo))
+      return 'Value';
+    return iteration.displayLabel;
+  }
+
+  /**
+   * @param {!tr.v.Value} value
+   * @return {number}
+   */
+  function getBenchmarkStartMs(value) {
+    var iteration = value.diagnostics.get(tr.v.ITERATION_INFO_DIAGNOSTIC_NAME);
+    if (!(iteration instanceof tr.v.d.IterationInfo))
+      return 0;
+    return iteration.benchmarkStart.getTime();
+  }
+
   Polymer('tr-v-ui-value-set-table', {
     /**
      * Return true if this view supports this ValueSet.
@@ -68,6 +90,7 @@ tr.exportTo('tr.v.ui', function() {
     ready: function() {
       this.values_ = undefined;
       this.summaryValues_ = {};
+      this.rows_ = undefined;
       this.columns_ = undefined;
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
@@ -154,13 +177,36 @@ tr.exportTo('tr.v.ui', function() {
         return;
 
       this.findSummaryValues_();
+      this.buildRows_();
 
-      /* rows will look something like [
-           {name: 'long tasks',
+      if (this.rows_.length === 0) {
+        this.$.error.textContent = 'zero values';
+        this.$.table.style.display = 'none';
+        this.style.width = '10em';
+        return;
+      }
+
+      this.buildColumns_();
+
+      this.$.table.tableColumns = this.columns_;
+      this.$.table.tableRows = this.rows_;
+      this.$.table.sortColumnIndex = 0;
+      this.$.table.rebuild();
+      this.$.table.selectedTableRow = this.rows_[0];
+      this.$.table.selectedColumnIndex = 1;
+
+      tr.b.requestAnimationFrame(function() {
+        this.style.width = this.$.table.getBoundingClientRect().width;
+      }, this);
+    },
+
+    buildRows_: function() {
+      /* this.rows_ will look something like [
+           {name: 'value name',
             displayLabelA: Value,
             displayLabelB: Value,
             subRows: [
-              {name: 'iteration',
+              {name: 'diagnostic map key',
                displayLabelA: Diagnostic,
                displayLabelB: Diagnostic,
               }
@@ -170,13 +216,10 @@ tr.exportTo('tr.v.ui', function() {
          TODO(benjhayden): After Values are summarized and merged, there will be
          more row tiers: value name > benchmark name > story name > benchmark
          start > storyset repeat > story repeat > diagnostics.
-       */
-      var rows = [];
+      */
+      this.rows_ = [];
 
-      // This will be used to sort the columns by start time.
-      var startTimesForDisplayLabels = {};
-
-      tr.b.iterItems(values.organizedByName, function(name, vals) {
+      tr.b.iterItems(this.values.organizedByName, function(name, vals) {
         var row = {name: name, subRows: []};
         var isEmptyRow = true;
 
@@ -187,20 +230,8 @@ tr.exportTo('tr.v.ui', function() {
           if (!row.description && val.description)
             row.description = val.description;
 
-          var displayLabel = 'Value';
-          var startMs = 0;
-          var iteration = val.diagnostics.get(
-              tr.v.ITERATION_INFO_DIAGNOSTIC_NAME);
-          if (iteration instanceof tr.v.d.IterationInfo) {
-            displayLabel = iteration.displayLabel;
-            startMs = iteration.benchmarkStart.getTime();
-          }
-
+          var displayLabel = getDisplayLabel(val);
           this.addDiagnosticSubRows_(val, row, displayLabel);
-
-          startTimesForDisplayLabels[displayLabel] = Math.min(
-              startTimesForDisplayLabels[displayLabel] || 0,
-              startMs);
 
           if (row[displayLabel] !== undefined) {
             console.warn('Multiple Values with same name and displayLabel:',
@@ -215,31 +246,23 @@ tr.exportTo('tr.v.ui', function() {
         if (isEmptyRow)
           return;
 
-        rows.push(row);
-      }, this);
-
-      if (rows.length === 0) {
-        this.$.error.textContent = 'zero values';
-        this.$.table.style.display = 'none';
-        this.style.width = '10em';
-        return;
-      }
-
-      this.buildColumns_(startTimesForDisplayLabels);
-
-      this.$.table.tableColumns = this.columns_;
-      this.$.table.tableRows = rows;
-      this.$.table.sortColumnIndex = 0;
-      this.$.table.rebuild();
-      this.$.table.selectedTableRow = rows[0];
-      this.$.table.selectedColumnIndex = 1;
-
-      tr.b.requestAnimationFrame(function() {
-        this.style.width = this.$.table.getBoundingClientRect().width;
+        this.rows_.push(row);
       }, this);
     },
 
-    buildColumns_: function(startTimesForDisplayLabels) {
+    get startTimesForDisplayLabels() {
+      var startTimesForDisplayLabels = {};
+      this.values.map(function(value) {
+        var displayLabel = getDisplayLabel(value);
+        startTimesForDisplayLabels[displayLabel] = Math.min(
+            startTimesForDisplayLabels[displayLabel] || 0,
+            getBenchmarkStartMs(value));
+      });
+      return startTimesForDisplayLabels;
+    },
+
+    buildColumns_: function() {
+      var startTimesForDisplayLabels = this.startTimesForDisplayLabels;
       var displayLabels = Object.keys(startTimesForDisplayLabels);
       displayLabels.sort(function(a, b) {
         return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];

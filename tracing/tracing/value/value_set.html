@@ -56,16 +56,8 @@ tr.exportTo('tr.v', function() {
      * @return {!Object}
      */
     getValuesOrganizedByCallback: function(callback, opt_this) {
-      var valuesByCallback = {};
-      tr.b.iterItems(this.values_, function(guid, value) {
-        var key = callback.call(opt_this || this, value);
-        if (key === undefined)
-          return;
-        if (valuesByCallback[key] === undefined)
-          valuesByCallback[key] = [];
-        valuesByCallback[key].push(value);
-      });
-      return valuesByCallback;
+      return tr.b.group(tr.b.dictionaryValues(this.values_),
+                        callback, opt_this || this);
     },
 
     /**
