@@ -120,6 +120,18 @@ class BrowserBackend(app_backend.AppBackend):
   def GetStackTrace(self):
     raise NotImplementedError()
 
+  def GetMostRecentMinidumpPath(self):
+    raise NotImplementedError()
+
+  def GetAllMinidumpPaths(self):
+    raise NotImplementedError()
+
+  def GetAllUnsymbolizedMinidumpPaths(self):
+    raise NotImplementedError()
+
+  def SymbolizeMinidump(self, minidump_path):
+    raise NotImplementedError()
+
   def GetSystemInfo(self):
     raise NotImplementedError()
 

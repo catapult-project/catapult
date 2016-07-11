@@ -278,6 +278,26 @@ class Browser(app.App):
   def GetStackTrace(self):
     return self._browser_backend.GetStackTrace()
 
+  def GetMostRecentMinidumpPath(self):
+    """Returns the path to the most recent minidump."""
+    return self._browser_backend.GetMostRecentMinidumpPath()
+
+  def GetAllMinidumpPaths(self):
+    """Returns all minidump paths available in the backend."""
+    return self._browser_backend.GetAllMinidumpPaths()
+
+  def GetAllUnsymbolizedMinidumpPaths(self):
+    """Returns paths to all minidumps that have not already been
+    symbolized."""
+    return self._browser_backend.GetAllUnsymbolizedMinidumpPaths()
+
+  def SymbolizeMinidump(self, minidump_path):
+    """Given a minidump path, this method returns a tuple with the
+    first value being whether or not the minidump was able to be
+    symbolized and the second being that symbolized dump when true
+    and error message when false."""
+    return self._browser_backend.SymbolizeMinidump(minidump_path)
+
   @property
   def supports_system_info(self):
     return self._browser_backend.supports_system_info

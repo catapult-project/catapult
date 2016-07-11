@@ -689,6 +689,9 @@ class AndroidPlatformBackend(
                                        stdout=subprocess.PIPE).communicate()[0])
     return (True, ret)
 
+  def GetMinidumpPath(self):
+    return None
+
   def IsScreenOn(self):
     """Determines if device screen is on."""
     return self._device.IsScreenOn()

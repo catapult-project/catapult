@@ -52,3 +52,6 @@ class AppBackend(object):
 
   def GetStackTrace(self):
     raise NotImplementedError
+
+  def GetMostRecentMinidumpPath(self):
+    raise NotImplementedError

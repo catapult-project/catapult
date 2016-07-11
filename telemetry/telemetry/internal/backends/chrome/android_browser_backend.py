@@ -228,3 +228,15 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetStackTrace(self):
     return self.platform_backend.GetStackTrace()
+
+  def GetMostRecentMinidumpPath(self):
+    return None
+
+  def GetAllMinidumpPaths(self):
+    return None
+
+  def GetAllUnsymbolizedMinidumpPaths(self):
+    return None
+
+  def SymbolizeMinidump(self, minidump_path):
+    return None

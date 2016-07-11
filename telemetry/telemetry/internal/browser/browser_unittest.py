@@ -9,6 +9,7 @@ import tempfile
 import unittest
 
 from telemetry.core import util
+from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.browser import browser as browser_module
 from telemetry.internal.browser import browser_finder
@@ -83,6 +84,16 @@ class BrowserTest(browser_test_case.BrowserTestCase):
     # other tab
     original_tab.Close()
     self.assertEqual(self._browser.foreground_tab, new_tab)
+
+  # This test uses the reference browser and doesn't have access to
+  # helper binaries like crashpad_database_util.
+  @decorators.Enabled('linux')
+  def testGetMinidumpPathOnCrash(self):
+    tab = self._browser.tabs[0]
+    with self.assertRaises(exceptions.AppCrashException):
+      tab.Navigate('chrome://crash', timeout=5)
+    crash_minidump_path = self._browser.GetMostRecentMinidumpPath()
+    self.assertIsNotNone(crash_minidump_path)
 
   def testGetSystemInfo(self):
     if not self._browser.supports_system_info:

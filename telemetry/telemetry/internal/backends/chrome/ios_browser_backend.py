@@ -143,3 +143,15 @@ class IosBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetStackTrace(self):
     raise NotImplementedError()
+
+  def GetMostRecentMinidumpPath(self):
+    return None
+
+  def GetAllMinidumpPaths(self):
+    return None
+
+  def GetAllUnsymbolizedMinidumpPaths(self):
+    return None
+
+  def SymbolizeMinidump(self, minidump_path):
+    return None

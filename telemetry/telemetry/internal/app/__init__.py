@@ -39,3 +39,6 @@ class App(object):
 
   def GetStackTrace(self):
     return self._app_backend.GetStackTrace()
+
+  def GetMostRecentMinidumpPath(self):
+    return self._app_backend.GetMostRecentMinidumpPath()

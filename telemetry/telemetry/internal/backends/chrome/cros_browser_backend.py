@@ -175,6 +175,18 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetStackTrace(self):
     return (False, 'Cannot get stack trace on CrOS')
 
+  def GetMostRecentMinidumpPath(self):
+    return None
+
+  def GetAllMinidumpPaths(self):
+    return None
+
+  def GetAllUnsymbolizedMinidumpPaths(self):
+    return None
+
+  def SymbolizeMinidump(self, minidump_path):
+    return None
+
   @property
   @decorators.Cache
   def misc_web_contents_backend(self):

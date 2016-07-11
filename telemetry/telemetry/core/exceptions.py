@@ -59,10 +59,12 @@ class AppCrashException(Error):
     self._is_valid_dump = False
     self._stack_trace = []
     self._app_stdout = []
+    self._minidump_path = ''
     if app:
       try:
         self._is_valid_dump, trace_output = app.GetStackTrace()
         self._stack_trace = trace_output.splitlines()
+        self._minidump_path = app.GetMostRecentMinidumpPath()
       except Exception as err:
         logging.error('Problem when trying to gather stack trace: %s' % err)
       try:
@@ -73,6 +75,10 @@ class AppCrashException(Error):
   @property
   def stack_trace(self):
     return self._stack_trace
+
+  @property
+  def minidump_path(self):
+    return self._minidump_path
 
   @property
   def is_valid_dump(self):
@@ -92,7 +98,6 @@ class AppCrashException(Error):
     debug_messages.extend(('\t%s' % l) for l in self._app_stdout)
     debug_messages.append(divider)
     return '\n'.join(debug_messages)
-
 
 class DevtoolsTargetCrashException(AppCrashException):
   """Represents a crash of the current devtools target but not the overall app.
