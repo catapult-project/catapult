@@ -17,6 +17,7 @@ from dashboard import namespaced_stored_object
 from dashboard import rietveld_service
 from dashboard import start_try_job
 from dashboard import testing_common
+from dashboard import utils
 from dashboard.models import bug_data
 from dashboard.models import graph_data
 from dashboard.models import try_job
@@ -732,7 +733,11 @@ class StartBisectTest(testing_common.TestCase):
 
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='1234567'))
-  def testPerformBuildbucketBisect(self):
+  @mock.patch.object(
+      utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(
+      start_try_job.issue_tracker_service.IssueTrackerService, 'AddBugComment')
+  def testPerformBuildbucketBisect(self, add_bug_comment_mock):
     self.SetCurrentUser('foo@chromium.org')
 
     bug_data.Bug(id=12345).put()
@@ -757,6 +762,8 @@ class StartBisectTest(testing_common.TestCase):
         try_job.TryJob.buildbucket_job_id == '1234567').fetch()
     self.assertEqual(1, len(job_entities))
     self.assertTrue(job_entities[0].use_buildbucket)
+    add_bug_comment_mock.assert_called_once_with(
+        12345, 'Started bisect job https://None/buildbucket_job_status/1234567')
 
   def testPerformBisect_InvalidConfig_ReturnsError(self):
     bisect_job = try_job.TryJob(

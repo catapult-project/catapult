@@ -17,6 +17,7 @@ from google.appengine.api import app_identity
 from dashboard import buildbucket_job
 from dashboard import buildbucket_service
 from dashboard import can_bisect
+from dashboard import issue_tracker_service
 from dashboard import list_tests
 from dashboard import namespaced_stored_object
 from dashboard import quick_logger
@@ -624,6 +625,15 @@ def PerformBisect(bisect_job):
   if 'error' in result:
     bisect_job.run_count += 1
     bisect_job.SetFailed()
+    comment = 'Bisect job failed to kick off'
+  elif result.get('issue_url'):
+    comment = 'Started bisect job %s' % result['issue_url']
+  else:
+    comment = 'Started bisect job: %s' % result
+  if bisect_job.bug_id:
+    issue_tracker = issue_tracker_service.IssueTrackerService(
+        additional_credentials=utils.ServiceAccountCredentials())
+    issue_tracker.AddBugComment(bisect_job.bug_id, comment)
   return result
 
 

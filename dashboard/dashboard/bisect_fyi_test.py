@@ -9,10 +9,12 @@ import webapp2
 import webtest
 
 from dashboard import bisect_fyi
+from dashboard import issue_tracker_service
 from dashboard import namespaced_stored_object
 from dashboard import start_try_job
 from dashboard import stored_object
 from dashboard import testing_common
+from dashboard import utils
 
 TEST_FYI_CONFIGS = {
     'positive_culprit': {
@@ -86,12 +88,17 @@ class BisectFYITest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
+  @mock.patch.object(
+      utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(bisect_fyi.start_try_job, '_PerformBuildbucketBisect')
-  def testPost_SuccessJobs_BisectFYI(self, mock_perform_bisect):
+  def testPost_SuccessJobs_BisectFYI(self, mock_perform_bisect, mock_comment):
     mock_perform_bisect.return_value = {'issue_id': 'http://fake'}
     self.testapp.post('/bisect_fyi')
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(0, len(messages))
+    mock_comment.assert_called_with(222, mock.ANY)
 
 
 if __name__ == '__main__':
