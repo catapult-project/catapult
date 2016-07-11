@@ -35,9 +35,10 @@ V8_README_PATH = os.path.join(V8_PATH, 'README.chromium')
 
 V8_CHECKOUT_BINARY_PATH = os.path.join(
     '{v8_root}', 'v8', 'out', 'Release', 'd8')
-V8_GENERATE_GYP_CMD = (sys.executable + ' ' + os.path.join('build', 'gyp_v8') +
+V8_GENERATE_GYP_CMD = (sys.executable + ' ' +
+                       os.path.join('gypfiles', 'gyp_v8') +
                        ' -Dtarget_arch={arch}')
-V8_COMPILE_CMD = 'ninja -C {0} d8'.format(os.path.join('out', 'Release'))
+V8_COMPILE_CMD = 'ninja -j 100 -C {0} d8'.format(os.path.join('out', 'Release'))
 V8_STRIP_CMD = 'strip -x {0}'.format(os.path.join('out', 'Release', 'd8'))
 
 VALID_CHANNEL_LIST = ['stable', 'canary', 'beta', 'dev']
@@ -112,7 +113,11 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
   # channel, and build the d8 binary.
   with TempDir() as v8_checkout_path:
     with ChangeDirectory(v8_checkout_path):
-      os.environ['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+      if 'DEPOT_TOOLS_WIN_TOOLCHAIN' not in os.environ:
+        # If the user doesn't specify that they're using the Googler Windows
+        # build toolchain, assume that they're not.
+        os.environ['DEPOT_TOOLS_WIN_TOOLCHAIN'] = '0'
+
       _RunCommand('fetch v8')
       with ChangeDirectory('v8'):
         _RunCommand('git checkout {0}'.format(v8_version))
