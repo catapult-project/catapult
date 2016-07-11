@@ -39,7 +39,7 @@ tr.exportTo('tr.metrics.sh', function() {
         if (domain === tr.model.ClockDomainId.TELEMETRY)
           latency = (marker.endTs - marker.startTs);
         else
-          targetDomain = domain;
+          targetDomain = domain.toLowerCase();
       }
       values.addValue(new tr.v.NumericValue(
           'clock_sync_latency_' + targetDomain,
