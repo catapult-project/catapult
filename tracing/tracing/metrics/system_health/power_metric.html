@@ -42,7 +42,6 @@ tr.exportTo('tr.metrics.sh', function() {
     // in a Telemetry benchmark, separate out this metric from the power
     // metric and have the benchmark use both.
     // (See: https://github.com/catapult-project/catapult/issues/2430.)
-    tr.metrics.sh.clockSyncLatencyMetric(valueList, model);
     if (!model.device.powerSeries)
       return;
     energyConsumedPerFrame(valueList, model);
