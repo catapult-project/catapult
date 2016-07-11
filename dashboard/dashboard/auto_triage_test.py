@@ -11,6 +11,7 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import auto_triage
+from dashboard import issue_tracker_service
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
@@ -137,7 +138,7 @@ class AutoTriageTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(
-      auto_triage.issue_tracker_service.IssueTrackerService, 'AddBugComment')
+      issue_tracker_service.IssueTrackerService, 'AddBugComment')
   def testPost_AllAnomaliesRecovered_AddsComment(self, add_bug_comment_mock):
     sheriff_key = sheriff.Sheriff(email='a@google.com', id='sheriff_key').put()
     values = [

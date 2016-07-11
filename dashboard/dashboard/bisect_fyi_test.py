@@ -81,8 +81,12 @@ class BisectFYITest(testing_common.TestCase):
             }
         })
 
+  @mock.patch.object(
+      utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(bisect_fyi.start_try_job, '_PerformBuildbucketBisect')
-  def testPost_FailedJobs_BisectFYI(self, mock_perform_bisect):
+  def testPost_FailedJobs_BisectFYI(self, mock_perform_bisect, _):
     mock_perform_bisect.return_value = {'error': 'PerformBisect Failed'}
     self.testapp.post('/bisect_fyi')
     messages = self.mail_stub.get_sent_messages()

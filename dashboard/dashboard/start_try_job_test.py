@@ -13,6 +13,7 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import can_bisect
+from dashboard import issue_tracker_service
 from dashboard import namespaced_stored_object
 from dashboard import rietveld_service
 from dashboard import start_try_job
@@ -736,7 +737,7 @@ class StartBisectTest(testing_common.TestCase):
   @mock.patch.object(
       utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(
-      start_try_job.issue_tracker_service.IssueTrackerService, 'AddBugComment')
+      issue_tracker_service.IssueTrackerService, 'AddBugComment')
   def testPerformBuildbucketBisect(self, add_bug_comment_mock):
     self.SetCurrentUser('foo@chromium.org')
 
@@ -777,13 +778,15 @@ class StartBisectTest(testing_common.TestCase):
         {'error': 'No "recipe_tester_name" given.'},
         start_try_job.PerformBisect(bisect_job))
 
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
   @mock.patch.object(
       start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
-  def testPerformBisect(self):
+  def testPerformBisect(self, _):
     self.SetCurrentUser('foo@chromium.org')
 
     # Create bug.
@@ -839,13 +842,15 @@ class StartBisectTest(testing_common.TestCase):
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
 
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFailedFetch))
   @mock.patch.object(
       start_try_job.rietveld_service.RietveldService, 'MakeRequest',
       mock.MagicMock(side_effect=_MockMakeRequest))
-  def testPerformBisectStep_DeleteJobOnFailedBisect(self):
+  def testPerformBisectStep_DeleteJobOnFailedBisect(self, _):
     self.SetCurrentUser('foo@chromium.org')
     query_parameters = {
         'bisect_bot': 'linux_perf_bisect',
@@ -901,7 +906,11 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(return_value='my-dashboard.appspot.com'))
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='1234567'))
-  def testPerformBisectWithArchive(self):
+  @mock.patch.object(
+      utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(
+      issue_tracker_service.IssueTrackerService, 'AddBugComment')
+  def testPerformBisectWithArchive(self, _):
     self.SetCurrentUser('foo@chromium.org')
 
     # Create bug.
