@@ -28,11 +28,14 @@ def parse_options():
                       default='mapping.json', type=str,
                       action='store', help='mapping file name')
   parser.add_argument('-u', '--hub', dest='hub_types',
-                      action='append', choices=['plugable_7port'],
+                      action='append', choices=['plugable_7port',
+                                                'plugable_7port_usb3_part2',
+                                                'plugable_7port_usb3_part3'],
                       help='USB hub types.')
   options = parser.parse_args()
   if not options.hub_types:
-    options.hub_types = ['plugable_7port']
+    options.hub_types = ['plugable_7port', 'plugable_7port_usb3_part2',
+                         'plugable_7port_usb3_part3']
   return options
 
 def main():

@@ -348,6 +348,7 @@ def GetPhysicalPortToBusDeviceMap(hub, hub_type):
 
 def GetPhysicalPortToSerialMap(hub, hub_type):
   """Gets physical-port:serial# mapping for a given hub.
+
   Args:
     hub: [USBNode] Hub to get map for.
     hub_type: [usb_hubs.HubType] Which type of hub it is.
@@ -488,15 +489,17 @@ def TestUSBTopologyScript():
 
   # Display TTY information about devices plugged into hubs.
   print '==== TTY INFORMATION ===='
-  for port_map in GetAllPhysicalPortToTTYMaps([usb_hubs.PLUGABLE_7PORT],
-                                              device_tree_map=device_trees):
+  for port_map in GetAllPhysicalPortToTTYMaps([usb_hubs.PLUGABLE_7PORT,
+      usb_hubs.PLUGABLE_7PORT_USB3_PART2, usb_hubs.PLUGABLE_7PORT_USB3_PART3],
+      device_tree_map=device_trees):
     print port_map
   print
 
   # Display serial number information about devices plugged into hubs.
   print '==== SERIAL NUMBER INFORMATION ===='
-  for port_map in GetAllPhysicalPortToSerialMaps([usb_hubs.PLUGABLE_7PORT],
-                                                 device_tree_map=device_trees):
+  for port_map in GetAllPhysicalPortToSerialMaps([usb_hubs.PLUGABLE_7PORT,
+      usb_hubs.PLUGABLE_7PORT_USB3_PART2, usb_hubs.PLUGABLE_7PORT_USB3_PART3],
+      device_tree_map=device_trees):
     print port_map
 
 

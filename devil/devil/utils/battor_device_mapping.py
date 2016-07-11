@@ -159,15 +159,19 @@ def GenerateSerialMap(hub_types=None):
 
   Args:
       hub_types: List of hub types to check for.
-      Defaults to ['plugable_7port']
+      Defaults to ['plugable_7port',
+                   'plugable_7port_usb3_part2',
+                   'plugable_7port_usb3_part3']
+      (see usb_hubs.py for details)
   """
   hub_types = [usb_hubs.GetHubType(x)
-               for x in hub_types or ['plugable_7port']]
+               for x in hub_types or ['plugable_7port',
+                                      'plugable_7port_usb3_part2',
+                                      'plugable_7port_usb3_part3']]
   devtree = find_usb_devices.GetBusNumberToDeviceTreeMap()
 
   # List of serial numbers in the system that represent BattOrs.
   battor_serials = list(GetBattorSerialNumbers(devtree))
-
 
   # If there's only one BattOr in the system, then a serial number ma
   # is not necessary.
