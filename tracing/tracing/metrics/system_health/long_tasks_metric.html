@@ -36,7 +36,7 @@ tr.exportTo('tr.metrics.sh', function() {
       thread, opt_range, cb, opt_this) {
     thread.sliceGroup.topLevelSlices.forEach(function(slice) {
       if (opt_range &&
-          !opt_range.intersectsExplicitRangeExclusive(slice.start, slice.end))
+          !opt_range.intersectsExplicitRangeInclusive(slice.start, slice.end))
         return;
 
       if (slice.duration < LONG_TASK_MS)
