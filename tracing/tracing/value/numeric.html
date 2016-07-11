@@ -125,6 +125,9 @@ tr.exportTo('tr.v', function() {
         this.maxCount_ = bin.count;
     }, this);
 
+    this.sampleValues_ = [];
+    this.maxNumSampleValues = this.allBins.length * 10;
+
     this.summaryOptions = this.defaultSummaryOptions();
   }
 
@@ -149,6 +152,8 @@ tr.exportTo('tr.v', function() {
       n.nanDiagnostics = d.nanDiagnostics.map(
           dd => tr.v.d.Diagnostic.fromDict(dd));
     }
+    n.maxNumSampleValues = d.maxNumSampleValues;
+    n.sampleValues_ = d.sampleValues;
     return n;
   };
 
@@ -276,14 +281,16 @@ tr.exportTo('tr.v', function() {
           tr.b.Statistics.uniformlySampleStream(this.nanDiagnostics,
               this.numNans, opt_diagnostic, MAX_DIAGNOSTICS);
         }
-        return;
+      } else {
+        var bin = this.getBinForValue(value);
+        bin.add(value, opt_diagnostic);
+        this.running.add(value);
+        if (bin.count > this.maxCount_)
+          this.maxCount_ = bin.count;
       }
 
-      var bin = this.getBinForValue(value);
-      bin.add(value, opt_diagnostic);
-      this.running.add(value);
-      if (bin.count > this.maxCount_)
-        this.maxCount_ = bin.count;
+      tr.b.Statistics.uniformlySampleStream(this.sampleValues_,
+          this.numValues + this.numNans, value, this.maxNumSampleValues);
     },
 
     addNumeric: function(other) {
@@ -294,6 +301,10 @@ tr.exportTo('tr.v', function() {
       }
       tr.b.Statistics.mergeSampledStreams(this.nanDiagnostics, this.numNans,
           other.nanDiagnostics, other.numNans, MAX_DIAGNOSTICS);
+      tr.b.Statistics.mergeSampledStreams(
+          this.sampleValues, this.numValues,
+          other.sampleValues, other.numValues, tr.b.Statistics.mean(
+              [this.maxNumSampleValues, other.maxNumSampleValues]));
       this.numNans += other.numNans;
       this.running = this.running.merge(other.running);
       for (var i = 0; i < this.allBins.length; ++i) {
@@ -404,6 +415,10 @@ tr.exportTo('tr.v', function() {
       return results;
     },
 
+    get sampleValues() {
+      return this.sampleValues_;
+    },
+
     clone: function() {
       return Numeric.fromDict(this.asDict());
     },
@@ -422,6 +437,8 @@ tr.exportTo('tr.v', function() {
         running: this.running.asDict(),
         summaryOptions: this.summaryOptions,
 
+        sampleValues: this.sampleValues,
+        maxNumSampleValues: this.maxNumSampleValues,
         underflowBin: this.underflowBin.asDict(),
         centralBins: this.centralBins.map(function(bin) {
           return bin.asDict();

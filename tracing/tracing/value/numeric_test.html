@@ -428,6 +428,44 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(values.pct_099_5.value, 0);
     assert.strictEqual(values.pct_100.value, 0);
   });
+
+  test('sampleValues', function() {
+    var n0 = TEST_NUMERIC_BUILDER.build();
+    var n1 = TEST_NUMERIC_BUILDER.build();
+    // maxNumSampleValues defaults to numBins * 10, which, including the
+    // underflowBin and overflowBin plus this builder's 10 central bins,
+    // is 12 * 10.
+    assert.strictEqual(n0.maxNumSampleValues, 120);
+    assert.strictEqual(n1.maxNumSampleValues, 120);
+    var values0 = [];
+    var values1 = [];
+    for (var i = 0; i < 10; ++i) {
+      values0.push(i);
+      n0.add(i);
+    }
+    for (var i = 10; i < 20; ++i) {
+      values1.push(i);
+      n1.add(i);
+    }
+    assert.deepEqual(n0.sampleValues, values0);
+    assert.deepEqual(n1.sampleValues, values1);
+    n0.addNumeric(n1);
+    assert.deepEqual(n0.sampleValues, values0.concat(values1));
+    var n2 = n0.clone();
+    assert.deepEqual(n2.sampleValues, values0.concat(values1));
+
+    for (var i = 0; i < 200; ++i) {
+      n0.add(i);
+    }
+    assert.strictEqual(n0.sampleValues.length, n0.maxNumSampleValues);
+
+    var n3 = TEST_NUMERIC_BUILDER.build();
+    n3.maxNumSampleValues = 10;
+    for (var i = 0; i < 100; ++i) {
+      n3.add(i);
+    }
+    assert.strictEqual(n3.sampleValues.length, 10);
+  });
 });
 
 </script>
