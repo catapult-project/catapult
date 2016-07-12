@@ -103,25 +103,25 @@ Polymer({
 
     var thread = cpuSlice.threadThatWasRunning;
 
-    var shadowRoot = Polymer.dom(this.root);
+    var root = Polymer.dom(this.root);
     if (thread) {
-      Polymer.dom(shadowRoot.querySelector('#process-name')).textContent =
+      Polymer.dom(root.querySelector('#process-name')).textContent =
           thread.parent.userFriendlyName;
-      Polymer.dom(shadowRoot.querySelector('#thread-name')).textContent =
+      Polymer.dom(root.querySelector('#thread-name')).textContent =
           thread.userFriendlyName;
     } else {
-      shadowRoot.querySelector('#process-name').parentElement.style.display =
+      root.querySelector('#process-name').parentElement.style.display =
           'none';
-      Polymer.dom(shadowRoot.querySelector('#thread-name')).textContent =
+      Polymer.dom(root.querySelector('#thread-name')).textContent =
           cpuSlice.title;
     }
 
-    shadowRoot.querySelector('#start').setValueAndUnit(
+    root.querySelector('#start').setValueAndUnit(
         cpuSlice.start, tr.v.Unit.byName.timeStampInMs);
-    shadowRoot.querySelector('#duration').setValueAndUnit(
+    root.querySelector('#duration').setValueAndUnit(
         cpuSlice.duration, tr.v.Unit.byName.timeDurationInMs);
 
-    var runningThreadEl = shadowRoot.querySelector('#running-thread');
+    var runningThreadEl = root.querySelector('#running-thread');
 
     var timeSlice = cpuSlice.getAssociatedTimeslice();
     if (!timeSlice) {
@@ -135,8 +135,7 @@ Polymer({
       Polymer.dom(runningThreadEl).appendChild(threadLink);
     }
 
-    shadowRoot.querySelector('#args').object = cpuSlice.args;
-
+    root.querySelector('#args').object = cpuSlice.args;
   }
 });
 </script>

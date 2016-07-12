@@ -114,25 +114,25 @@ Polymer({
 
     var thread = timeSlice.thread;
 
-    var shadowRoot = Polymer.dom(this.root);
-    Polymer.dom(shadowRoot.querySelector('#state')).textContent =
+    var root = Polymer.dom(this.root);
+    Polymer.dom(root.querySelector('#state')).textContent =
         timeSlice.title;
     var stateColor = tr.b.ColorScheme.colorsAsStrings[timeSlice.colorId];
-    shadowRoot.querySelector('#state').style.backgroundColor = stateColor;
+    root.querySelector('#state').style.backgroundColor = stateColor;
 
-    Polymer.dom(shadowRoot.querySelector('#process-name')).textContent =
+    Polymer.dom(root.querySelector('#process-name')).textContent =
         thread.parent.userFriendlyName;
-    Polymer.dom(shadowRoot.querySelector('#thread-name')).textContent =
+    Polymer.dom(root.querySelector('#thread-name')).textContent =
         thread.userFriendlyName;
 
-    shadowRoot.querySelector('#start').setValueAndUnit(
+    root.querySelector('#start').setValueAndUnit(
         timeSlice.start, tr.v.Unit.byName.timeStampInMs);
-    shadowRoot.querySelector('#duration').setValueAndUnit(
+    root.querySelector('#duration').setValueAndUnit(
         timeSlice.duration, tr.v.Unit.byName.timeDurationInMs);
 
-    var onCpuEl = shadowRoot.querySelector('#on-cpu');
+    var onCpuEl = root.querySelector('#on-cpu');
     Polymer.dom(onCpuEl).textContent = '';
-    var runningInsteadEl = shadowRoot.querySelector('#running-instead');
+    var runningInsteadEl = root.querySelector('#running-instead');
     if (timeSlice.cpuOnWhichThreadWasRunning) {
       Polymer.dom(runningInsteadEl.parentElement).removeChild(runningInsteadEl);
 
@@ -161,7 +161,7 @@ Polymer({
       }
     }
 
-    var argsEl = shadowRoot.querySelector('#args');
+    var argsEl = root.querySelector('#args');
     if (tr.b.dictionaryKeys(timeSlice.args).length > 0) {
       var argsView =
           document.createElement('tr-ui-a-generic-object-view');
