@@ -77,11 +77,19 @@ tr.exportTo('tr.b', function() {
    * @param {boolean=} opt_bubbles Whether the event bubbles or not.
    * @param {boolean=} opt_cancelable Whether the default action of the event
    *     can be prevented.
+   * @param {!Object=} opt_fields
+   *
    * @return {boolean} If any of the listeners called {@code preventDefault}
    *     during the dispatch this will return false.
    */
-  function dispatchSimpleEvent(target, type, opt_bubbles, opt_cancelable) {
+  function dispatchSimpleEvent(target, type, opt_bubbles, opt_cancelable,
+      opt_fields) {
     var e = new tr.b.Event(type, opt_bubbles, opt_cancelable);
+    if (opt_fields) {
+      tr.b.iterItems(opt_fields, function(name, value) {
+        e[name] = value;
+      });
+    }
     return target.dispatchEvent(e);
   }
 

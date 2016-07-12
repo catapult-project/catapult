@@ -23,8 +23,10 @@ found in the LICENSE file.
       cursor: pointer;
     }
     </style>
+
     <content></content>
   </template>
+
   <script>
   'use strict';
   Polymer({
@@ -43,6 +45,10 @@ found in the LICENSE file.
       // Reset highlights.
       this.clearHighlight_();
       this.controller_ = undefined;
+    },
+
+    set color(c) {
+      this.style.color = c;
     },
 
     /**

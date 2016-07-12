@@ -6,8 +6,112 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/base/d3.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+
+<polymer-element name="tr-ui-b-chart-legend-key">
+  <template>
+    <style>
+      #checkbox {
+        margin: 0;
+        visibility: hidden;
+        vertical-align: text-top;
+      }
+      #label, #link {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        display: inline-block;
+        width: 50px;
+      }
+    </style>
+
+    <input type=checkbox id="checkbox" checked>
+    <tr-ui-a-analysis-link id="link"></tr-ui-a-analysis-link>
+    <label id="label"></label>
+  </template>
+
+  <script>
+  'use strict';
+  Polymer({
+    ready: function() {
+      this.$.checkbox.addEventListener(
+          'change', this.onCheckboxChange_.bind(this));
+    },
+
+    /**
+     * Dispatch an event when the checkbox is toggled.
+     * The checkbox is visible when optional is set to true.
+     */
+    onCheckboxChange_: function() {
+      tr.b.dispatchSimpleEvent(this, tr.ui.b.DataSeriesEnableChangeEventType,
+          true, false, {key: this.textContent, enabled: this.enabled});
+    },
+
+    set textContent(t) {
+      this.$.label.textContent = t;
+      this.$.link.textContent = t;
+      this.updateContents_();
+    },
+
+    get textContent() {
+      return this.$.label.textContent;
+    },
+
+    /**
+     * When a legend-key is "optional", then its checkbox is visible to allow
+     * the user to enable/disable the data series for the key.
+     * See ChartBase.customizeOptionalSeries().
+     *
+     * @param {boolean} optional
+     */
+    set optional(optional) {
+      this.$.checkbox.style.visibility = optional ? 'visible' : 'hidden';
+    },
+
+    get optional() {
+      return this.$.checkbox.style.visibility === 'visible';
+    },
+
+    set enabled(enabled) {
+      this.$.checkbox.checked = enabled ? 'checked' : '';
+    },
+
+    get enabled() {
+      return this.$.checkbox.checked;
+    },
+
+    set color(c) {
+      this.$.label.style.color = c;
+      this.$.link.color = c;
+    },
+
+    /**
+     * When target is defined, label is hidden and link is shown.
+     * When the link is clicked, then a RequestSelectionChangeEvent is
+     * dispatched containing the target.
+     * When target is undefined, label is shown and link is hidden, so that the
+     * link is not clickable.
+     * See ChartBase.customizeLegendTargets().
+     */
+    set target(target) {
+      this.$.link.setSelectionAndContent(target, this.$.label.textContent);
+      this.updateContents_();
+    },
+
+    get target() {
+      return this.$.link.selection;
+    },
+
+    updateContents_: function() {
+      this.$.link.style.display = this.target ? '' : 'none';
+      this.$.label.style.display = this.target ? 'none' : '';
+      this.$.label.htmlFor = this.optional ? 'checkbox' : '';
+    }
+  });
+  </script>
+</polymer-element>
 
 <style>
   * /deep/ .chart-base #title {
@@ -42,6 +146,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
+  var DataSeriesEnableChangeEventType = 'data-series-enabled-change';
+
   var THIS_DOC = document.currentScript.ownerDocument;
 
   var svgNS = 'http://www.w3.org/2000/svg';
@@ -54,6 +160,47 @@ tr.exportTo('tr.ui.b', function() {
     return ColorScheme.colorsAsStrings[id];
   }
 
+  function DataSeries(key) {
+    this.key_ = key;
+    this.target_ = undefined;
+    this.optional_ = false;
+    this.enabled_ = true;
+  }
+
+  DataSeries.prototype = {
+    get key() {
+      return this.key_;
+    },
+
+    get optional() {
+      return this.optional_;
+    },
+
+    set optional(optional) {
+      this.optional_ = optional;
+    },
+
+    get enabled() {
+      return this.enabled_;
+    },
+
+    set enabled(enabled) {
+      // If the caller is disabling a data series, but it wasn't optional, then
+      // force it to be optional.
+      if (!this.optional && !enabled)
+        this.optional = true;
+      this.enabled_ = enabled;
+    },
+
+    get target() {
+      return this.target_;
+    },
+
+    set target(t) {
+      this.target_ = t;
+    }
+  };
+
   /**
    * A virtual base class for basic charts that provides X and Y axes, if
    * needed, a title, and legend.
@@ -65,10 +212,16 @@ tr.exportTo('tr.ui.b', function() {
   ChartBase.prototype = {
     __proto__: HTMLUnknownElement.prototype,
 
+    getDataSeries: function(key) {
+      if (!this.seriesByKey_.has(key))
+        this.seriesByKey_.set(key, new DataSeries(key));
+      return this.seriesByKey_.get(key);
+    },
+
     decorate: function() {
       this.classList.add('chart-base');
       this.chartTitle_ = undefined;
-      this.seriesKeys_ = undefined;
+      this.seriesByKey_ = new Map();
       this.width_ = 400;
       this.height_ = 300;
 
@@ -102,6 +255,17 @@ tr.exportTo('tr.ui.b', function() {
               this.updateContents_();
             }
           });
+      this.addEventListener(DataSeriesEnableChangeEventType,
+          this.onDataSeriesEnableChange_.bind(this));
+    },
+
+    isSeriesEnabled: function(key) {
+      return this.getDataSeries(key).enabled;
+    },
+
+    onDataSeriesEnableChange_: function(event) {
+      this.getDataSeries(event.key).enabled = event.enabled;
+      this.updateContents_();
     },
 
     get chartTitle() {
@@ -124,7 +288,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getMargin_: function() {
-      var margin = {top: 20, right: 20, bottom: 30, left: 50};
+      var margin = {top: 20, right: 72, bottom: 30, left: 50};
       if (this.chartTitle_)
         margin.top += 20;
       return margin;
@@ -142,8 +306,57 @@ tr.exportTo('tr.ui.b', function() {
       };
     },
 
-    getLegendKeys_: function() {
-      throw new Error('Not implemented');
+    /**
+     * Legend keys can be clickable links instead of plain text.
+     * When a legend key link is clicked, a RequestSelectionChangeEvent is
+     * dispatched containing arbitrary data. ChartBase calls that arbitrary data
+     * the "target" of the legend key link.
+     * In order to turn the legend key for the 'foo' data series into a
+     * clickable link, call customizeLegendTargets({foo: target}). When the user
+     * clicks on the legend key link for 'foo', then a
+     * RequestSelectionChangeEvent will be dispatched, and its |selection| field
+     * will be the |target| value for the 'foo' key in |delta|.
+     *
+     * @param {!Object} delta
+     */
+    customizeLegendTargets: function(delta) {
+      tr.b.iterItems(delta, function(key, value) {
+        this.getDataSeries(key).target = value;
+      }, this);
+    },
+
+    /**
+     * Optional data series can be enabled and disabled using checkboxes.
+     * In order to allow the user to enable/disabled the 'foo' data series,
+     * call customizeOptionalSeries({foo: true}). This will show a checkbox
+     * next to the 'foo' legend key. When the user toggles the checkbox, then a
+     * DataSeriesEnableChangeEvent will be dispatched with its |key| = 'foo'.
+     * ChartBase listens for that event and updates |isSeriesEnabled('foo')| to
+     * reflect the state of that checkbox, and calls updateContents_().
+     * Subclasses are responsible for implementing updateContents_() in order to
+     * hiding disabled data series -- see BarChart.
+     *
+     * @param {!Object} delta
+     */
+    customizeOptionalSeries: function(delta) {
+      tr.b.iterItems(delta, function(key, value) {
+        this.getDataSeries(key).optional = value;
+      }, this);
+    },
+
+    /**
+     * Data series can be enabled and disabled.
+     * See customizeOptionalSeries() in order to allow the user to
+     * enable/disable data series manually. Callers may call
+     * customizeEnabledSeries({foo: false}) in order to automatically
+     * disable the 'foo' data series, for example.
+     *
+     * @param {!Object} delta
+     */
+    customizeEnabledSeries: function(delta) {
+      tr.b.iterItems(delta, function(key, value) {
+        this.getDataSeries(key).enabled = value;
+      }, this);
     },
 
     updateScales_: function() {
@@ -181,45 +394,33 @@ tr.exportTo('tr.ui.b', function() {
           .text(this.chartTitle_);
     },
 
-    // TODO(charliea): We should change updateLegend_ so that it ellipsizes the
-    // series names after a certain point. Otherwise, the series names start
-    // dipping below the x-axis and continue on outside of the viewport.
     updateLegend_: function() {
-      var keys = this.getLegendKeys_();
-      if (keys === undefined)
-        return;
-
       var chartAreaSel = d3.select(this.chartAreaElement);
-      var chartAreaSize = this.chartAreaSize;
+      chartAreaSel.selectAll('.legend').remove();
 
-      var legendEntriesSel = chartAreaSel.selectAll('.legend')
-          .data(keys.slice().reverse());
+      var series = [...this.seriesByKey_.values()].reverse();
+      var legendEntriesSel = chartAreaSel.selectAll('.legend').data(series);
 
       legendEntriesSel.enter()
-          .append('g')
+          .append('foreignObject')
           .attr('class', 'legend')
-          .attr('transform', function(d, i) {
-              return 'translate(0,' + i * 20 + ')';
-            })
-          .append('text').text(function(key) {
-              return key;
-            });
-      legendEntriesSel.exit().remove();
-
-      legendEntriesSel.attr('x', chartAreaSize.width - 18)
-          .attr('width', 18)
+          .attr('x', this.chartAreaSize.width + 2)
+          .attr('width', 70)
           .attr('height', 18)
-          .style('fill', function(key) {
-            var selected = this.currentHighlightedLegendKey === key;
-            return getColorOfKey(key, selected);
-          }.bind(this));
-
-      legendEntriesSel.selectAll('text')
-        .attr('x', chartAreaSize.width - 24)
-        .attr('y', 9)
-        .attr('dy', '.35em')
-        .style('text-anchor', 'end')
-        .text(function(d) { return d; });
+          .attr('transform', function(series, i) {
+              return 'translate(0,' + i * 18 + ')';
+            })
+          .append('xhtml:body')
+          .append('tr-ui-b-chart-legend-key')
+          .property('color', function(series) {
+            var selected = this.currentHighlightedLegendKey === series.key;
+            return getColorOfKey(series.key, selected);
+          }.bind(this))
+          .property('target', function(series) { return series.target; })
+          .property('optional', function(series) { return series.optional; })
+          .property('enabled', function(series) { return series.enabled; })
+          .text(function(series) { return series.key; });
+      legendEntriesSel.exit().remove();
     },
 
     get highlightedLegendKey() {
@@ -270,6 +471,7 @@ tr.exportTo('tr.ui.b', function() {
   };
 
   return {
+    DataSeriesEnableChangeEventType: DataSeriesEnableChangeEventType,
     getColorOfKey: getColorOfKey,
     ChartBase: ChartBase
   };

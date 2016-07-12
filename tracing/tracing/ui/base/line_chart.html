@@ -39,7 +39,8 @@ tr.exportTo('tr.ui.b', function() {
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
       var dataBySeriesKey = this.getDataBySeriesKey_();
-      var pathsSel = dataSel.selectAll('path').data(this.seriesKeys_);
+      var seriesKeys = [...this.seriesByKey_.keys()];
+      var pathsSel = dataSel.selectAll('path').data(seriesKeys);
       pathsSel.enter()
           .append('path')
           .attr('class', 'line')

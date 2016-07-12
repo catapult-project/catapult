@@ -24,7 +24,18 @@ tr.exportTo('tr.ui.b', function() {
     decorate: function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
       this.classList.add('bar-chart');
+
+      // BarChart allows bars to have arbitrary, non-uniform widths. Bars need
+      // not all be the same width. The width of each bar is automatically
+      // computed from the bar's x-coordinate and that of the next bar, which
+      // can not define the width of the last bar. This is the width (in the
+      // xScale's domain (as opposed to the xScale's range (which is measured in
+      // pixels))) of the last bar. When there are at least 2 bars, this is
+      // computed as the average width of the bars. When there is a single bar,
+      // this must default to a non-zero number so that the width of the only
+      // bar will not be zero.
       this.xCushion_ = 1;
+
       this.isStacked_ = false;
     },
 
@@ -60,11 +71,11 @@ tr.exportTo('tr.ui.b', function() {
           xDifferences += currentX - previousX;
         }
 
-        this.seriesKeys_.forEach(function(key) {
+        for (var [key, series] of this.seriesByKey_) {
           // Allow for sparse data
           if (datum[key] !== undefined)
             yRange.addValue(datum[key]);
-        });
+        }
       }, this);
 
       // X.
@@ -93,11 +104,11 @@ tr.exportTo('tr.ui.b', function() {
       range.addValue(0);
       this.data_.forEach(function(datum, index) {
         var sum = 0;
-        this.seriesKeys_.forEach(function(key) {
+        for (var [key, series] of this.seriesByKey_) {
           if (datum[key] === undefined)
-            return;
+            continue;
           sum += datum[key];
-        }, this);
+        }
         range.addValue(sum);
       }, this);
       return [range.min, range.max];
@@ -107,9 +118,9 @@ tr.exportTo('tr.ui.b', function() {
       var stacks = [];
       var bottom = this.yScale_.range()[0];
       var sum = 0;
-      this.seriesKeys_.forEach(function(key) {
-        if (datum[key] === undefined)
-          return;
+      for (var [key, series] of this.seriesByKey_) {
+        if (datum[key] === undefined || !this.isSeriesEnabled(key))
+          continue;
         sum += datum[key];
         var heightPx = bottom - this.yScale_(sum);
         bottom -= heightPx;
@@ -118,7 +129,7 @@ tr.exportTo('tr.ui.b', function() {
           heightPx: heightPx,
           topPx: bottom
         });
-      }, this);
+      }
       return stacks;
     },
 
@@ -127,16 +138,16 @@ tr.exportTo('tr.ui.b', function() {
         return this.getStackedRectsForDatum_(datum, index);
 
       var stacks = [];
-      this.seriesKeys_.forEach(function(key) {
-        if (datum[key] === undefined)
-          return;
+      for (var [key, series] of this.seriesByKey_) {
+        if (datum[key] === undefined || !this.isSeriesEnabled(key))
+          continue;
         var topPx = this.yScale_(Math.max(datum[key], this.getYScaleMin_()));
         stacks.push({
           topPx: topPx,
           heightPx: this.yScale_.range()[0] - topPx,
           color: getColorOfKey(key)
         });
-      }, this);
+      }
       stacks.sort(function(a, b) {
         return b.topPx - a.topPx;
       });
@@ -145,7 +156,8 @@ tr.exportTo('tr.ui.b', function() {
 
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
-      var rectsSel = dataSel.selectAll('path').data(this.seriesKeys_);
+      var rectsSel = dataSel.selectAll('path').data(
+          [...this.seriesByKey_.keys()]);
       this.data_.forEach(function(datum, index) {
         var currentX = this.getXForDatum_(datum, index);
         var width = undefined;

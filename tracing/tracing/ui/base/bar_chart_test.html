@@ -6,11 +6,63 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('chartLegendKey', function() {
+    var key = document.createElement('tr-ui-b-chart-legend-key');
+    key.textContent = 'Lorem ipsum dolor sit amet';
+    key.color = 'red';
+    this.addHTMLOutput(key);
+
+    key = document.createElement('tr-ui-b-chart-legend-key');
+    key.textContent = 'ipsum dolor sit amet';
+    key.target = 'orange ipsum';
+    key.color = 'orange';
+    this.addHTMLOutput(key);
+    key.addEventListener('requestSelectionChange', function(e) {
+      console.debug(e);
+    });
+
+    key = document.createElement('tr-ui-b-chart-legend-key');
+    key.target = 'brown dolor';
+    key.color = 'brown';
+    key.textContent = 'dolor sit amet';
+    this.addHTMLOutput(key);
+    key.addEventListener('requestSelectionChange', function(e) {
+      console.debug(e);
+    });
+  });
+
+  test('instantiation_legendTargets', function() {
+    var chart = new tr.ui.b.BarChart();
+    chart.customizeLegendTargets({
+      lorem_ipsum: 'lorem_ipsumTarget',
+      qux: 'quxTarget'
+    });
+    chart.customizeOptionalSeries({lorem_ipsum: true, bar: true});
+    chart.isStacked = true;
+    chart.hideXAxis = true;
+    chart.width = 140;
+    chart.height = 200;
+    chart.chartTitle = 'title';
+    chart.data = [{x: 0, foo: 3, lorem_ipsum: 5, bar: 1, qux: 2}];
+    this.addHTMLOutput(chart);
+    chart.addEventListener('requestSelectionChange', function(e) {
+      console.debug(e);
+    });
+
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+        chart, function(element) {
+      return element.tagName === 'TR-UI-B-CHART-LEGEND-KEY' &&
+             element.textContent === 'lorem_ipsum' &&
+             element.target === 'lorem_ipsumTarget';
+    }));
+  });
+
   test('instantiation_singleSeries', function() {
     var chart = new tr.ui.b.BarChart();
     chart.width = 400;

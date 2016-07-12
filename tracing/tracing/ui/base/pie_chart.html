@@ -4,10 +4,11 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/d3.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="stylesheet" href="/tracing/ui/base/pie_chart.css">
 
 <script>
@@ -32,7 +33,6 @@ tr.exportTo('tr.ui.b', function() {
       this.classList.add('pie-chart');
 
       this.data_ = undefined;
-      this.seriesKeys_ = undefined;
 
       var chartAreaSel = d3.select(this.chartAreaElement);
       var pieGroupSel = chartAreaSel.append('g')
@@ -64,18 +64,17 @@ tr.exportTo('tr.ui.b', function() {
         // Figure out the label values in the data set. E.g. from
         //   [{label: 'a', ...}, {label: 'b', ...}]
         // we would commpute ['a', 'y']. These become the series keys.
-        var seriesKeys = [];
+        // Don't clear seriesByKey_; the caller might have put state in it using
+        // customizeLegendTargets, customizeOptionalSeries, or
+        // customizeEnabledSeries before setting data.
         var seenSeriesKeys = {};
         data.forEach(function(d) {
           var k = d.label;
           if (seenSeriesKeys[k])
             throw new Error('Label ' + k + ' has been used already');
-          seriesKeys.push(k);
+          this.getDataSeries(k);
           seenSeriesKeys[k] = true;
         }, this);
-        this.seriesKeys_ = seriesKeys;
-      } else {
-        this.seriesKeys_ = undefined;
       }
       this.data_ = data;
       this.updateContents_();
@@ -117,12 +116,6 @@ tr.exportTo('tr.ui.b', function() {
                                         leftTextHeightSum,
                                         rightTextHeightSum) * 1.25
       };
-    },
-
-
-    getLegendKeys_: function() {
-      // This class creates its own legend, instead of using ChartBase.
-      return undefined;
     },
 
     updateScales_: function(width, height) {
@@ -208,6 +201,14 @@ tr.exportTo('tr.ui.b', function() {
           })
         .attr('dy', '.35em')
         .style('text-anchor', 'middle')
+        .on('mouseenter', function(d, i) {
+            var origData = this.data_[i];
+            this.pushTempHighlightedLegendKey(origData.label);
+          }.bind(this))
+        .on('mouseleave', function(d, i) {
+            var origData = this.data_[i];
+            this.popTempHighlightedLegendKey(origData.label);
+          }.bind(this))
         .text(function(d, i) {
             var origData = this.data_[i];
             if (origData.valueText === undefined)
