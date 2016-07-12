@@ -141,8 +141,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     return platform_backend.GetOSName() in ['linux', 'mac']
 
   def StartAgentTracing(self, config, timeout):
-    assert not self._snapshot_ongoing, \
-           'Agent is already taking snapshots when tracing is startex.'
+    assert not self._snapshot_ongoing, (
+           'Agent is already taking snapshots when tracing is started.')
     if not config.enable_cpu_trace:
       return False
     self._snapshot_ongoing = True
@@ -158,13 +158,13 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     Timer(self.SNAPSHOT_FREQUENCY, self._KeepTakingSnapshots).start()
 
   def StopAgentTracing(self):
-    assert self._snapshot_ongoing, \
-           'Agent is not taking snapshots when tracing is stopped.'
+    assert self._snapshot_ongoing, (
+           'Agent is not taking snapshots when tracing is stopped.')
     self._snapshot_ongoing = False
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    assert self._snapshot_ongoing, \
-           'Agent is not taking snapshots when data is collected.'
+    assert not self._snapshot_ongoing, (
+           'Agent is still taking snapshots when data is collected.')
     self._snapshot_ongoing = False
     data = json.dumps(self._FormatSnapshotsData())
     trace_data_builder.SetTraceFor(trace_data.CPU_TRACE_DATA, data)

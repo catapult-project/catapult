@@ -87,14 +87,17 @@ class CpuTracingAgentTest(unittest.TestCase):
     self.assertFalse(self._agent._snapshot_ongoing)
 
   @decorators.Enabled('linux', 'mac')
-  def testCollectAgentTraceDataBeforeStart(self):
+  def testCollectAgentTraceDataBeforeStop(self):
+    self._agent.StartAgentTracing(self._config, 0)
     self.assertRaises(AssertionError, self._agent.CollectAgentTraceData,
-                      trace_data.TraceDataBuilder())
+        trace_data.TraceDataBuilder())
+    self._agent.StopAgentTracing()
 
   @decorators.Enabled('linux', 'mac')
   def testCollectAgentTraceData(self):
     builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
+    self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     self.assertFalse(self._agent._snapshot_ongoing)
     builder = builder.AsData()
@@ -105,6 +108,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     builder = trace_data.TraceDataBuilder()
     self._agent.StartAgentTracing(self._config, 0)
     time.sleep(2)
+    self._agent.StopAgentTracing()
     self._agent.CollectAgentTraceData(builder)
     builder = builder.AsData()
     data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
