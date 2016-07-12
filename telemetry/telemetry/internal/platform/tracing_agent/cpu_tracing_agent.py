@@ -14,9 +14,14 @@ from telemetry.timeline import trace_data
 class ProcessCollector(object):
 
   _SHELL_COMMAND = NotImplemented
-  _START_LINE_NUMBER = NotImplemented
-  _TOKEN_COUNT = NotImplemented
-  _TOKEN_MAP = NotImplemented
+  _START_LINE_NUMBER = 1
+  _TOKEN_COUNT = 4
+  _TOKEN_MAP = {
+    'pCpu': 2,
+    'pid': 0,
+    'pMem': 3,
+    'command': 1
+  }
 
   def __init__(self, process_count, binary_output=False):
     self._process_count = process_count
@@ -83,18 +88,10 @@ class WindowsProcessCollector(ProcessCollector):
 
 class LinuxProcessCollector(ProcessCollector):
   """Class for collecting information about processes in Linux.
-  Example of Linux command output:
-  '1900 root 20 0 671888 56460 6828 S 6.2 0.2 0:33.95 gagentd'"""
+  Example of Linux command output: '31887 com.app.Webkit 3.4 8.0'"""
 
-  _SHELL_COMMAND = ['top', '-n 1', '-b']
-  _START_LINE_NUMBER = 7
-  _TOKEN_COUNT = 12
-  _TOKEN_MAP = {
-    'pCpu': 8,
-    'pid': 0,
-    'pMem': 9,
-    'command': 11
-  }
+  _SHELL_COMMAND = ["ps", "axo", "pid,cmd,pcpu,pmem", "--sort=-pcpu"]
+
 
   def __init__(self, process_count=20):
     super(LinuxProcessCollector, self).__init__(process_count)
@@ -106,14 +103,6 @@ class MacProcessCollector(ProcessCollector):
   '31887 com.app.Webkit 3.4 8.0'"""
 
   _SHELL_COMMAND = ['ps', '-arcwwwxo', 'pid command %cpu %mem']
-  _START_LINE_NUMBER = 1
-  _TOKEN_COUNT = 4
-  _TOKEN_MAP = {
-    'pCpu': 2,
-    'pid': 0,
-    'pMem': 3,
-    'command': 1
-  }
 
   def __init__(self, process_count=20):
     super(MacProcessCollector, self).__init__(process_count, binary_output=True)
@@ -129,11 +118,11 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     self._snapshots = []
     os_name = platform_backend.GetOSName()
     if  os_name == 'win':
-      self._parser = WindowsProcessCollector()
+      self._collector = WindowsProcessCollector()
     elif os_name == 'mac':
-      self._parser = MacProcessCollector()
+      self._collector = MacProcessCollector()
     else:
-      self._parser = LinuxProcessCollector()
+      self._collector = LinuxProcessCollector()
 
   @classmethod
   def IsSupported(cls, platform_backend):
@@ -154,7 +143,7 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     if not self._snapshot_ongoing:
       return
     # Assume CpuTracingAgent shares the same clock domain as telemetry
-    self._snapshots.append((self._parser.GetProcesses(), trace_time.Now()))
+    self._snapshots.append((self._collector.GetProcesses(), trace_time.Now()))
     Timer(self.SNAPSHOT_FREQUENCY, self._KeepTakingSnapshots).start()
 
   def StopAgentTracing(self):

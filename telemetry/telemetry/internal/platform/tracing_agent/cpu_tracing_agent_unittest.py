@@ -15,9 +15,7 @@ from telemetry.internal.platform import win_platform_backend
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 
-SNAPSHOT_KEYS = {'mac': ['pid', 'command', 'pCpu', 'pMem'],
-                'linux': ['pid', 'command', 'pCpu', 'pMem'],
-                'win': ['pid', 'command', 'pCpu']}
+SNAPSHOT_KEYS = ['pid', 'command', 'pCpu', 'pMem']
 TRACE_EVENT_KEYS = ['name', 'tid', 'pid', 'ph', 'args', 'local', 'id', 'ts']
 
 
@@ -117,4 +115,17 @@ class CpuTracingAgentTest(unittest.TestCase):
     self.assertEquals(set(data[0]['args'].keys()), set(['processes']))
     self.assertTrue(data[0]['args']['processes'])
     self.assertEquals(set(data[0]['args']['processes'][0].keys()),
-                      set(SNAPSHOT_KEYS[self._desktop_backend.GetOSName()]))
+                      set(SNAPSHOT_KEYS))
+
+  @decorators.Enabled('linux', 'mac')
+  def testParseLine(self):
+    collector = self._agent._collector
+    invalid_inputs = ['', '1000 chrome', '1000 chrome 1.0 1.0 1.0']
+    for invalid_input in invalid_inputs:
+      self.assertFalse(collector._ParseLine(invalid_input))
+    valid_input = '1000 chrome 20.0 10.0 '
+    output = collector._ParseLine(valid_input)
+    self.assertTrue(output['pCpu'] == '20.0' and
+                    output['pMem'] == '10.0'and
+                    output['pid'] == '1000'and
+                    output['command'] == 'chrome')
