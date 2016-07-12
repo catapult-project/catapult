@@ -104,8 +104,7 @@ _DEVICE_PROFILES = [
     'disable_command': (
         'echo 0 > /sys/class/power_supply/battery/charging_enabled && '
         'dumpsys battery set ac 0 && dumpsys battery set usb 0'),
-    'charge_counter': (
-        '/sys/class/power_supply/max170xx_battery/charge_counter_ext'),
+    'charge_counter': None,
     'voltage': None,
     'current': None,
   },
