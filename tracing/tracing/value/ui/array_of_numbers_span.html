@@ -59,7 +59,7 @@ Polymer({
 
   updateContents_: function() {
     if (this.numbers_ === undefined) {
-      this.shadowRoot.textContent = '-';
+      Polymer.dom(this.root).textContent = '-';
       return;
     }
 
@@ -71,7 +71,7 @@ Polymer({
       value = tr.b.Statistics.sum(this.numbers_);
 
     var valueRounded = Math.round(value * 1000.0) / 1000.0;
-    this.shadowRoot.textContent = valueRounded;
+    Polymer.dom(this.root).textContent = valueRounded;
   }
 });
 </script>

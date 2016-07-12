@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     span.numbers = [1, 2, 3];
     span.summaryMode = tr.v.ui.ArrayOfNumbersSummaryModes.TOTALS_MODE;
     this.addHTMLOutput(span);
-    assert.equal(span.shadowRoot.textContent, '6');
+    assert.equal(Polymer.dom(span.root).textContent, '6');
   });
 });
 </script>
