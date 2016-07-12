@@ -61,6 +61,8 @@ TEST_FYI_CONFIGS = {
 }
 
 
+@mock.patch('apiclient.discovery.build', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
 class BisectFYITest(testing_common.TestCase):
 
   def setUp(self):
@@ -82,8 +84,6 @@ class BisectFYITest(testing_common.TestCase):
         })
 
   @mock.patch.object(
-      utils, 'ServiceAccountCredentials', mock.MagicMock())
-  @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(bisect_fyi.start_try_job, '_PerformBuildbucketBisect')
   def testPost_FailedJobs_BisectFYI(self, mock_perform_bisect, _):
@@ -92,8 +92,6 @@ class BisectFYITest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
-  @mock.patch.object(
-      utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch.object(bisect_fyi.start_try_job, '_PerformBuildbucketBisect')

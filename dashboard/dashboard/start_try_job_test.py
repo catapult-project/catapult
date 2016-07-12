@@ -311,6 +311,8 @@ def _MockMakeRequest(path, *args, **kwargs):  # pylint: disable=unused-argument
   assert False, 'Invalid url %s requested!' % path
 
 
+@mock.patch('apiclient.discovery.build', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
 class StartBisectTest(testing_common.TestCase):
 
   def setUp(self):
@@ -735,8 +737,6 @@ class StartBisectTest(testing_common.TestCase):
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='1234567'))
   @mock.patch.object(
-      utils, 'ServiceAccountCredentials', mock.MagicMock())
-  @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')
   def testPerformBuildbucketBisect(self, add_bug_comment_mock):
     self.SetCurrentUser('foo@chromium.org')
@@ -778,7 +778,6 @@ class StartBisectTest(testing_common.TestCase):
         {'error': 'No "recipe_tester_name" given.'},
         start_try_job.PerformBisect(bisect_job))
 
-  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -842,7 +841,6 @@ class StartBisectTest(testing_common.TestCase):
     response = self.testapp.post('/start_try_job', query_parameters)
     self.assertEqual(json.dumps({'issue_id': '33001'}), response.body)
 
-  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(issue_tracker_service.IssueTrackerService, 'AddBugComment')
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -906,8 +904,6 @@ class StartBisectTest(testing_common.TestCase):
       mock.MagicMock(return_value='my-dashboard.appspot.com'))
   @mock.patch.object(start_try_job.buildbucket_service, 'PutJob',
                      mock.MagicMock(return_value='1234567'))
-  @mock.patch.object(
-      utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')
   def testPerformBisectWithArchive(self, _):

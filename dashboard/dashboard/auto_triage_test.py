@@ -19,6 +19,8 @@ from dashboard.models import bug_data
 from dashboard.models import sheriff
 
 
+@mock.patch('apiclient.discovery.build', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
 @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class AutoTriageTest(testing_common.TestCase):
 
@@ -135,8 +137,6 @@ class AutoTriageTest(testing_common.TestCase):
     self.testapp.post('/auto_triage')
     self.assertFalse(anomaly_key.get().recovered)
 
-  @mock.patch.object(
-      utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')
   def testPost_AllAnomaliesRecovered_AddsComment(self, add_bug_comment_mock):
