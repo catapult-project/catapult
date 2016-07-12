@@ -103,11 +103,6 @@ def GenerateJSToFile(f,
   f.write(js_warning_message)
   f.write('\n')
 
-  loader = load_sequence[0].loader
-
-  polymer_script = loader.LoadRawScript('components/polymer/polymer.min.js')
-  f.write(polymer_script.contents)
-
   if not minify:
     flatten_to_file = f
   else:

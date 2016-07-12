@@ -81,8 +81,11 @@ def WriteHTMLForTraceDataToFile(trace_data_list,
     config_name = project.GetDefaultConfigName()
 
   modules = [
-      'tracing.trace2html',
-      project.GetModuleNameForConfigName(config_name)
+      # Import the config before trace2html. We do this because the UI has some
+      # global initialization (e.g. Polymer, d3) that can be finnicky about the
+      # order in which things happen.
+      project.GetModuleNameForConfigName(config_name),
+      'tracing.trace2html'
   ]
 
   vulcanizer = project.CreateVulcanizer()
