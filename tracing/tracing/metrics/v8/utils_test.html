@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/metrics/v8/utils.html">
+<link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 
 <script>
 'use strict';
@@ -141,5 +142,33 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(expected.percentile(0.9), actual.percentile(0.9), 1e-3);
   });
 
+  function addDumpWithAllocator(model, process, allocator, start) {
+    var gmd = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(model, start);
+    var pmd = tr.model.MemoryDumpTestUtils.addProcessMemoryDump(gmd, process);
+    pmd.memoryAllocatorDumps =
+        [tr.model.MemoryDumpTestUtils.newAllocatorDump(pmd, allocator)];
+  }
+
+  test('rangeForMemoryDumps', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var process = model.getOrCreateProcess(1);
+      addDumpWithAllocator(model, process, 'dummy', 10);
+      addDumpWithAllocator(model, process, 'v8', 20);
+    });
+    var range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
+    assert.isFalse(range.isEmpty);
+    assert.strictEqual(range.min, 20);
+    assert.strictEqual(range.max, Infinity);
+  });
+
+  test('rangeForMemoryDumpsEmpty', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var process = model.getOrCreateProcess(1);
+      addDumpWithAllocator(model, process, 'dummy', 10);
+      addDumpWithAllocator(model, process, 'dummy', 20);
+    });
+    var range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
+    assert.isTrue(range.isEmpty);
+  });
 });
 </script>

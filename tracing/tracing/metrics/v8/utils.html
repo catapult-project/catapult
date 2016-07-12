@@ -252,6 +252,23 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     return mu;
   }
 
+  function hasV8Stats(globalMemoryDump) {
+    var v8stats = undefined;
+    globalMemoryDump.iterateContainerDumps(function(dump) {
+      v8stats = v8stats || dump.getMemoryAllocatorDumpByFullName('v8');
+    });
+    return !!v8stats;
+  }
+
+  function rangeForMemoryDumps(model) {
+    var startOfFirstDumpWithV8 =
+        model.globalMemoryDumps.filter(hasV8Stats).reduce(
+            (start, dump) => Math.min(start, dump.start), Infinity);
+    if (startOfFirstDumpWithV8 === Infinity)
+      return new tr.b.Range(); // Empty range.
+    return tr.b.Range.fromExplicitRange(startOfFirstDumpWithV8, Infinity);
+  }
+
   return {
     findParent: findParent,
     isForcedGarbageCollectionEvent: isForcedGarbageCollectionEvent,
@@ -265,6 +282,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     mutatorUtilization: mutatorUtilization,
     subGarbageCollectionEventName: subGarbageCollectionEventName,
     topGarbageCollectionEventName: topGarbageCollectionEventName,
+    rangeForMemoryDumps: rangeForMemoryDumps,
     unionOfIntervals: unionOfIntervals
   };
 });
