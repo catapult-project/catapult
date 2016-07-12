@@ -210,7 +210,9 @@ class ListOfScalarValues(summarizable.SummarizableValue):
     for v in values:
       if v.values is None:
         merged_values = None
-        none_value_reason = none_values.MERGE_FAILURE_REASON
+        merged_none_values = [v for v in values if v.values is None]
+        none_value_reason = (none_values.MERGE_FAILURE_REASON +
+            ' None values: %s' % repr(merged_none_values))
         break
       merged_values.extend(v.values)
       list_of_samples.append(v.values)

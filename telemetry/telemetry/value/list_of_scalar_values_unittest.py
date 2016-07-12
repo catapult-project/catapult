@@ -173,8 +173,13 @@ class ValueTest(TestBase):
     vM = (list_of_scalar_values.ListOfScalarValues.
           MergeLikeValuesFromSamePage([v0, v1]))
     self.assertEquals(None, vM.values)
-    self.assertEquals(none_values.MERGE_FAILURE_REASON,
-                      vM.none_value_reason)
+    expected_none_value_reason = (
+        'Merging values containing a None value results in a None value. '
+        'None values: [ListOfScalarValues(http://www.bar.com/, x, unit, None, '
+        'important=True, description=None, tir_label=None, std=None,'
+        ' same_page_merge_policy=CONCATENATE, improvement_direction=up, '
+        'grouping_keys={})]')
+    self.assertEquals(expected_none_value_reason, vM.none_value_reason)
     self.assertEquals(improvement_direction.UP, vM.improvement_direction)
 
   def testListWithNoneValueMustHaveNoneReason(self):

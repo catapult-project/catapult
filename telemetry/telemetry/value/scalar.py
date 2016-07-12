@@ -116,7 +116,10 @@ class ScalarValue(summarizable.SummarizableValue):
     none_value_reason = None
     if None in merged_value:
       merged_value = None
-      none_value_reason = none_values.MERGE_FAILURE_REASON
+      merged_none_values = [v for v in values if v.value is None]
+      none_value_reason = (
+          none_values.MERGE_FAILURE_REASON +
+          ' None values: %s' % repr(merged_none_values))
     return list_of_scalar_values.ListOfScalarValues(
         page, name, v0.units, merged_value, important=v0.important,
         description=v0.description,
