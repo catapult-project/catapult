@@ -28,9 +28,9 @@ tr.exportTo('tr.ui.b', function() {
     if (opt_dictionary) {
       if (opt_dictionary.className)
         spanEl.className = opt_dictionary.className;
-      if (Polymer.dom(opt_dictionary).textContent) {
+      if (opt_dictionary.textContent) {
         Polymer.dom(spanEl).textContent =
-            Polymer.dom(opt_dictionary).textContent;
+            opt_dictionary.textContent;
       }
       if (opt_dictionary.tooltip)
         spanEl.title = opt_dictionary.tooltip;
@@ -59,9 +59,9 @@ tr.exportTo('tr.ui.b', function() {
         divEl.className = opt_dictionary.className;
       if (opt_dictionary.parent)
         Polymer.dom(opt_dictionary.parent).appendChild(divEl);
-      if (Polymer.dom(opt_dictionary).textContent)
+      if (opt_dictionary.textContent)
         Polymer.dom(divEl).textContent =
-            Polymer.dom(opt_dictionary).textContent;
+            opt_dictionary.textContent;
       if (opt_dictionary.maxWidth)
         divEl.style.maxWidth = opt_dictionary.maxWidth;
     }
