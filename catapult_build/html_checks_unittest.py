@@ -74,3 +74,21 @@ class HtmlChecksTest(unittest.TestCase):
     f = MockAffectedFile('foo/bar.py', ['#!/usr/bin/python', 'print 10'])
     errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
     self.assertEqual([], errors)
+
+  def testRunChecksShowsErrorForOutOfOrderImports(self):
+    f = MockAffectedFile('foo/x.html', [
+        '<!DOCTYPE html>',
+        '<link rel="import" href="b.html">',
+        '<link rel="import" href="a.html">',
+    ])
+    errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
+    self.assertEqual(1, len(errors))
+
+  def testRunChecksSkipsSuppressedOutOfOrderImports(self):
+    f = MockAffectedFile('foo/x.html', [
+        '<!DOCTYPE html>',
+        '<link rel="import" href="b.html" data-suppress-import-order>',
+        '<link rel="import" href="a.html">',
+    ])
+    errors = html_checks.RunChecks(MockInputApi([f]), MockOutputApi())
+    self.assertEqual([], errors)

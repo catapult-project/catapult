@@ -55,12 +55,18 @@ def _HasHtml5Declaration(soup):
 def CheckImportOrder(path, soup, results, output_api):
   grouped_hrefs = collections.defaultdict(list)  # Link rel -> [link hrefs].
   for link in soup.find_all('link'):
+    if link.get('data-suppress-import-order') is not None:
+      continue
+
     grouped_hrefs[','.join(link.get('rel'))].append(link.get('href'))
 
   for rel, actual_hrefs in grouped_hrefs.iteritems():
     expected_hrefs = list(sorted(set(actual_hrefs)))
     if actual_hrefs != expected_hrefs:
       error_text = (
-          'Invalid "%s" link sort order in %s:\n' % (rel, path) +
-          '  ' + '\n  '.join(difflib.ndiff(actual_hrefs, expected_hrefs)))
+          'Invalid "%s" link sort order in %s:\n' % (rel, path) + ' ' +
+          '\n  '.join(difflib.ndiff(actual_hrefs, expected_hrefs)) +
+          '\nIf this error is invalid, you can suppress it by adding a ' +
+          '"data-suppress-import-order" attribute to the out-of-order <link> ' +
+          'element.')
       results.append(output_api.PresubmitError(error_text))
