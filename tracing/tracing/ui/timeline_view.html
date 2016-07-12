@@ -273,16 +273,18 @@ found in the LICENSE file.
     initHelpButton_: function() {
       var helpButtonEl = this.$.view_help_button;
 
-      function onClick(e) {
-        var dlg = new tr.ui.b.Overlay();
-        dlg.title = 'Chrome Tracing Help';
-        dlg.appendChild(
-            document.createElement('tr-ui-timeline-view-help-overlay'));
-        dlg.visible = true;
+      var dlg = new tr.ui.b.Overlay();
+      dlg.title = 'Chrome Tracing Help';
+      dlg.visible = false;
+      dlg.appendChild(
+          document.createElement('tr-ui-timeline-view-help-overlay'));
 
+      function onClick(e) {
+        dlg.visible = !dlg.visible;
         // Stop event so it doesn't trigger new click listener on document.
         e.stopPropagation();
       }
+
       helpButtonEl.addEventListener('click', onClick.bind(this));
     },
 
