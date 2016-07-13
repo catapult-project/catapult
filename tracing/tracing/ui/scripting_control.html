@@ -79,7 +79,10 @@ found in the LICENSE file.
   Polymer({
     _isEnterKey: function(event) {
       // Check if in IME.
-      return event.keyCode !== 229 && event.keyIdentifier === 'Enter';
+      // Remove keyIdentifier after reference build rolls past M51 when
+      // KeyboardEvent.key was added.
+      return event.keyCode !== 229 &&
+        (event.key === 'Enter' || event.keyIdentifier === 'Enter');
     },
 
     _setFocused: function(focused) {
