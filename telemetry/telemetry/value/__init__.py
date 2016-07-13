@@ -25,12 +25,6 @@ import os
 from telemetry.core import discover
 from telemetry.core import util
 
-# When combining a pair of Values togehter, it is sometimes ambiguous whether
-# the values should be concatenated, or one should be picked as representative.
-# The possible merging policies are listed here.
-CONCATENATE = 'concatenate'
-PICK_FIRST = 'pick-first'
-
 # When converting a Value to its buildbot equivalent, the context in which the
 # value is being interpreted actually affects the conversion. This is insane,
 # but there you have it. There are three contexts in which Values are converted
