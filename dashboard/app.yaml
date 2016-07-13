@@ -104,6 +104,11 @@ handlers:
   login: admin
   secure: always
 
+- url: /delete_old_tests
+  script: dashboard.dispatcher.APP
+  login: admin
+  secure: always
+
 - url: /delete_test_data
   script: dashboard.dispatcher.APP
   login: admin
