@@ -66,6 +66,8 @@ tr.exportTo('tr.v.ui', function() {
     return iteration.benchmarkStart.getTime();
   }
 
+  var SELECTED_VALUE_SETTINGS_KEY = 'tr-v-ui-value-set-table-value';
+
   Polymer('tr-v-ui-value-set-table', {
     /**
      * Return true if this view supports this ValueSet.
@@ -108,6 +110,11 @@ tr.exportTo('tr.v.ui', function() {
           (cell.numeric instanceof tr.v.Numeric)) {
         this.$.histogram.style.display = 'flex';
         this.$.histogram.histogram = cell.numeric;
+
+        tr.b.Settings.set(SELECTED_VALUE_SETTINGS_KEY, JSON.stringify({
+          row: row.name,
+          column: this.columns_[col].title
+        }));
       } else {
         this.$.histogram.style.display = 'none';
       }
@@ -192,12 +199,33 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.tableRows = this.rows_;
       this.$.table.sortColumnIndex = 0;
       this.$.table.rebuild();
-      this.$.table.selectedTableRow = this.rows_[0];
-      this.$.table.selectedColumnIndex = 1;
+      this.selectValue_();
 
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
       }, this);
+    },
+
+    selectValue_: function() {
+      var selectedValue = tr.b.Settings.get(
+          SELECTED_VALUE_SETTINGS_KEY, undefined);
+      if (selectedValue) {
+        selectedValue = JSON.parse(selectedValue);
+        for (var row of this.rows_) {
+          if (row.name === selectedValue.row) {
+            for (var coli = 1; coli < this.columns_.length; ++coli) {
+              var column = this.columns_[coli];
+              if (column.title === selectedValue.column) {
+                this.$.table.selectedTableRow = row;
+                this.$.table.selectedColumnIndex = coli;
+                return;
+              }
+            }
+          }
+        }
+      }
+      this.$.table.selectedTableRow = this.rows_[0];
+      this.$.table.selectedColumnIndex = 1;
     },
 
     buildRows_: function() {
