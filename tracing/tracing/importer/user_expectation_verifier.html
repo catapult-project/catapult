@@ -60,6 +60,9 @@ tr.exportTo('tr.importer', function() {
         }
       } catch (caught) {
         failure = caught;
+        for (var i = 0; i < model.userModel.expectations.length; ++i) {
+          console.debug(i, model.userModel.expectations[i]);
+        }
       }
 
       var debug = !tr.isHeadless && (

@@ -86,7 +86,7 @@ tr.exportTo('tr.e.chrome', function() {
     dict.title = tr.model.helpers.IMPL_RENDERING_STATS;
     dict.type = tr.model.ThreadSlice;
     var slice = tr.c.TestUtils.newSliceEx(dict);
-    model.rendererMain.asyncSliceGroup.push(slice);
+    model.rendererMain.sliceGroup.pushSlice(slice);
     return slice;
   };
 

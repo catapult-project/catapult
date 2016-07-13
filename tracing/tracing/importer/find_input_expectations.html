@@ -73,7 +73,6 @@ tr.exportTo('tr.importer', function() {
 
   var RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
 
-  // TODO(benjhayden) share with rail_ir_finder
   var CSS_ANIMATION_TITLE = 'Animation';
 
   // If there's less than this much time between the end of one event and the
@@ -125,6 +124,15 @@ tr.exportTo('tr.importer', function() {
   function causedFrame(event) {
     return event.associatedEvents.some(
         x => x.title === tr.model.helpers.IMPL_RENDERING_STATS);
+  }
+
+  function getSortedFrameEventsByProcess(modelHelper) {
+    var frameEventsByPid = {};
+    tr.b.iterItems(modelHelper.rendererHelpers, function(pid, rendererHelper) {
+      frameEventsByPid[pid] = rendererHelper.getFrameEventsInRange(
+          tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds);
+    });
+    return frameEventsByPid;
   }
 
   function getSortedInputEvents(modelHelper) {
@@ -724,55 +732,16 @@ tr.exportTo('tr.importer', function() {
                   (event.duration > 0));
     });
 
-    // Memoize the frame events per process.
-    // There may be many Animation events for each process. We can save a
-    // significant amount of processing time by avoiding re-computing them for
-    // each animation.
-    var framesForProcess = {};
-
-    function getFramesForAnimationProcess(animation) {
-      var frames = framesForProcess[animation.parentContainer.parent.guid];
-      if (frames === undefined) {
-        var rendererHelper = new tr.model.helpers.ChromeRendererHelper(
-            modelHelper, animation.parentContainer.parent);
-        // Collect all the frame events in the same renderer process as the css
-        // animation, and memoize them.
-        frames = rendererHelper.getFrameEventsInRange(
-            tr.model.helpers.IMPL_FRAMETIME_TYPE, modelHelper.model.bounds);
-        framesForProcess[animation.parentContainer.parent.guid] = frames;
-      }
-      return frames;
-    }
 
     // Time ranges where animations are actually running will be collected here.
-    // Each element will contain {min, max, animation, frames}.
+    // Each element will contain {min, max, animation}.
     var animationRanges = [];
 
     // This helper function will be called when a time range is found
     // during which the animation is actually running.
-    // This helper function collects the frames that happened during the time
-    // range, and pushes it all to |animationRanges|.
     function pushAnimationRange(start, end, animation) {
       var range = tr.b.Range.fromExplicitRange(start, end);
       range.animation = animation;
-
-      // Collect the frames that happened while the animation was running.
-      // A more general way to find these frames would be to collect all of
-      // the trace events caused by this animation, but that will require
-      // adding flow events to chrome:
-      // https://github.com/catapult-project/catapult/issues/1433
-      range.frames = range.filterArray(
-          getFramesForAnimationProcess(animation),
-          function(frameEvent) { return frameEvent.start; });
-
-      // If a tree falls in a forest...
-      // If there were not actually any frames while the animation was
-      // running, then it wasn't really an animation, now, was it?
-      // Philosophy aside, the system_health Animation metrics fail hard if
-      // there are no frames in an AnimationExpectation.
-      if (range.frames.length === 0)
-        return;
-
       animationRanges.push(range);
     }
 
@@ -816,30 +785,25 @@ tr.exportTo('tr.importer', function() {
     });
 
     // Now we have a set of time ranges when css animations were actually
-    // running, along with their frames.
-    // Now all that's left for this function is to merge over-lapping ranges
-    // into ProtoExpectations.
+    // running.
+    // Leave merging intersecting animations to mergeIntersectingAnimations(),
+    // after findFrameEventsForAnimations removes frame-less animations.
 
-    function merge(ranges) {
+    return animationRanges.map(function(range) {
       var protoExpectation = new ProtoExpectation(
           ProtoExpectation.ANIMATION_TYPE, CSS_IR_NAME);
-      ranges.forEach(function(range) {
-        protoExpectation.start = Math.min(protoExpectation.start, range.min);
-        protoExpectation.end = Math.max(protoExpectation.end, range.max);
-        protoExpectation.associatedEvents.push(range.animation);
-        protoExpectation.associatedEvents.addEventSet(range.frames);
-      });
+      protoExpectation.start = range.min;
+      protoExpectation.end = range.max;
+      protoExpectation.associatedEvents.push(range.animation);
       return protoExpectation;
-    }
-
-    return tr.b.mergeRanges(animationRanges,
-                            ANIMATION_MERGE_THRESHOLD_MS,
-                            merge);
+    });
   }
 
-  function postProcessProtoExpectations(protoExpectations) {
+  function postProcessProtoExpectations(modelHelper, protoExpectations) {
     // protoExpectations is input only. Returns a modified set of
     // ProtoExpectations.  The order is important.
+    protoExpectations = findFrameEventsForAnimations(
+        modelHelper, protoExpectations);
     protoExpectations = mergeIntersectingResponses(protoExpectations);
     protoExpectations = mergeIntersectingAnimations(protoExpectations);
     protoExpectations = fixResponseAnimationStarts(protoExpectations);
@@ -929,8 +893,12 @@ tr.exportTo('tr.importer', function() {
         if (isCSS != otherPE.containsSliceTitle(CSS_ANIMATION_TITLE))
           continue;
 
-        if (!otherPE.intersects(pe))
+        if (isCSS) {
+          if (!pe.isNear(otherPE, ANIMATION_MERGE_THRESHOLD_MS))
+            continue;
+        } else if (!otherPE.intersects(pe)) {
           continue;
+        }
 
         // Don't merge Fling Animations with any other types.
         if (isFling != otherPE.containsTypeNames([INPUT_TYPE.FLING_START]))
@@ -1031,6 +999,42 @@ tr.exportTo('tr.importer', function() {
     return newPEs;
   }
 
+  function findFrameEventsForAnimations(modelHelper, protoExpectations) {
+    var newPEs = [];
+    var frameEventsByPid = getSortedFrameEventsByProcess(modelHelper);
+
+    for (var pe of protoExpectations) {
+      if (pe.irType !== ProtoExpectation.ANIMATION_TYPE) {
+        newPEs.push(pe);
+        continue;
+      }
+
+      var frameEvents = [];
+      // TODO(benjhayden): Use frame blame contexts here.
+      for (var pid of Object.keys(modelHelper.rendererHelpers)) {
+        var range = tr.b.Range.fromExplicitRange(pe.start, pe.end);
+        frameEvents.push.apply(frameEvents,
+            range.filterArray(frameEventsByPid[pid], e => e.start));
+      }
+
+      // If a tree falls in a forest...
+      // If there were not actually any frames while the animation was
+      // running, then it wasn't really an animation, now, was it?
+      // Philosophy aside, the system_health Animation metrics fail hard if
+      // there are no frames in an AnimationExpectation.
+      if (frameEvents.length === 0) {
+        pe.irType = ProtoExpectation.IGNORED_TYPE;
+        newPEs.push(pe);
+        continue;
+      }
+
+      pe.associatedEvents.addEventSet(frameEvents);
+      newPEs.push(pe);
+    }
+
+    return newPEs;
+  }
+
   // Check that none of the handlers accidentally ignored an input event.
   function checkAllInputEventsHandled(sortedInputEvents, protoExpectations) {
     var handledEvents = [];
@@ -1063,7 +1067,8 @@ tr.exportTo('tr.importer', function() {
     var sortedInputEvents = getSortedInputEvents(modelHelper);
     var protoExpectations = findProtoExpectations(
         modelHelper, sortedInputEvents);
-    protoExpectations = postProcessProtoExpectations(protoExpectations);
+    protoExpectations = postProcessProtoExpectations(
+        modelHelper, protoExpectations);
     checkAllInputEventsHandled(sortedInputEvents, protoExpectations);
 
     var irs = [];
