@@ -74,9 +74,8 @@ found in the LICENSE file.
       if (alert.associatedEvents.length) {
         alert.associatedEvents.forEach(function(event, i) {
           var linkEl = document.createElement('tr-ui-a-analysis-link');
-          linkEl.setSelectionAndContent(function() {
-            return event;
-          }, event.title);
+          linkEl.setSelectionAndContent(
+              new tr.model.EventSet(event), event.title);
 
           var valueString = '';
           if (event instanceof tr.model.TimedEvent)
