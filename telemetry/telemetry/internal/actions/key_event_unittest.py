@@ -4,7 +4,6 @@
 
 import time
 
-from telemetry import decorators
 from telemetry.internal.actions import key_event
 from telemetry.testing import tab_test_case
 
@@ -29,7 +28,6 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('blank.html')
 
-  @decorators.Disabled('mac')  #crbug.com/627221.
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
     self._tab.ExecuteJavaScript(
@@ -56,7 +54,6 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
     self.assertEquals(self._scroll_position, 0)
 
-  @decorators.Disabled('mac')  #crbug.com/627221.
   def testTextEntry(self):
     # Add an input box to the page.
     self._tab.ExecuteJavaScript(

@@ -255,7 +255,6 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         '(document.scrollingElement || document.body).scrollLeft') > 75)
 
-  @decorators.Disabled('mac')  #crbug.com/627221.
   def testEnterText(self):
     self.Navigate('blank.html')
     self._tab.ExecuteJavaScript(
