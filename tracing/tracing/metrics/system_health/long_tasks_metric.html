@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import"
+    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/numeric.html">
@@ -69,6 +71,14 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
       tr.b.Range.fromExplicitRange(LONG_TASK_MS, LONGEST_TASK_MS), 50);
 
+  // This range spans several orders of magnitude, and the data is likely to
+  // form an exponential distribution, so use exponential bins in order to
+  // prevent the lowest bin from containing almost all of the samples.
+  // See also most UMA histograms that are exponential for similar reasons.
+  var SLICE_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(0.1, LONGEST_TASK_MS), 50);
+
   /**
    * This metric directly measures long tasks on renderer main threads.
    * This metric requires only the 'toplevel' tracing category.
@@ -80,16 +90,24 @@ tr.exportTo('tr.metrics.sh', function() {
   function longTasksMetric(values, model, opt_options) {
     var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
     var longTaskNumeric = LONG_TASK_NUMERIC_BUILDER.build();
+    var slices = new tr.model.EventSet();
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
             longTaskNumeric.add(task.duration,
                 new tr.v.d.RelatedEventSet([task]));
+            slices.push(task);
+            slices.addEventSet(task.descendentSlices);
           });
     });
     var options = {description: 'durations of long tasks'};
-    values.addValue(new tr.v.NumericValue(
-        'long tasks', longTaskNumeric, options));
+    var longTaskValue = new tr.v.NumericValue(
+        'long tasks', longTaskNumeric, options);
+    values.addValue(longTaskValue);
+    var composition = tr.v.d.Composition.buildFromEvents(
+        values, 'long tasks ', slices, SLICE_NUMERIC_BUILDER,
+        e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'));
+    longTaskValue.diagnostics.add('category', composition);
   }
 
   tr.metrics.MetricRegistry.register(longTasksMetric, {

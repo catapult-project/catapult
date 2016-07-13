@@ -5,8 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/ui/base/d3.html">
+<link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/bar_chart.html">
 
 <script>
@@ -25,7 +24,6 @@ tr.exportTo('tr.ui.b', function() {
       BarChart.prototype.decorate.call(this);
       this.classList.remove('bar-chart');
       this.classList.add('name-bar-chart');
-      this.bottomMargin_ = 40;
     },
 
     isDatumFieldSeries_: function(fieldName) {
@@ -34,12 +32,6 @@ tr.exportTo('tr.ui.b', function() {
 
     getXForDatum_: function(datum, index) {
       return index;
-    },
-
-    getMargin_: function() {
-      var margin = BarChart.prototype.getMargin_.call(this);
-      margin.bottom = this.bottomMargin_;
-      return margin;
     },
 
     updateXAxis_: function(xAxis) {
@@ -68,8 +60,10 @@ tr.exportTo('tr.ui.b', function() {
 
       // If the nameTexts extend past the bottom of the chart, then increase
       // this.bottomMargin_ and re-render.
-      var bottomMargin = this.bottomMargin_;
-      window.requestAnimationFrame(function() {
+      // TODO(benjhayden): Refactor with the code that is very similar to this
+      // in chart_base_2d.
+      var bottomMargin = this.margin.bottom;
+      tr.b.requestAnimationFrame(function() {
         nameTexts[0].forEach(function(t) {
           var box = t.getBBox();
           // When the text is rotated, its height is the hypotenuse
@@ -77,14 +71,15 @@ tr.exportTo('tr.ui.b', function() {
           // triangle W. The bottomMargin must be equal to a side of H plus a
           // side of W.
           var h = Math.cos(Math.PI / 4) * (box.height + box.width);
-          bottomMargin = Math.max(this.bottomMargin_, h);
+          bottomMargin = Math.max(bottomMargin, h);
         }, this);
 
-        if (Math.round(bottomMargin) !== Math.round(this.bottomMargin_)) {
-          this.bottomMargin_ = bottomMargin;
+        bottomMargin = parseInt(Math.ceil(bottomMargin));
+        if (bottomMargin > this.margin.bottom) {
+          this.margin.bottom = bottomMargin;
           this.updateContents_();
         }
-      }.bind(this));
+      }, this);
     }
   };
 

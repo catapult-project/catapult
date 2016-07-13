@@ -641,11 +641,32 @@ tr.exportTo('tr.v', function() {
   /**
    * Create a linearly scaled tr.v.NumericBuilder with |numBins| bins ranging
    * from |range.min| to |range.max|.
+   *
+   * @param {!tr.v.Unit} unit
+   * @param {!tr.b.Range} range
+   * @param {number} numBins
+   * @return {NumericBuilder}
    */
   NumericBuilder.createLinear = function(unit, range, numBins) {
     if (range.isEmpty)
       throw new Error('Range must be non-empty');
     return new NumericBuilder(unit, range.min).addLinearBins(
+        range.max, numBins);
+  };
+
+  /**
+   * Create an exponentially scaled tr.v.NumericBuilder with |numBins| bins
+   * ranging from |range.min| to |range.max|.
+   *
+   * @param {!tr.v.Unit} unit
+   * @param {!tr.b.Range} range
+   * @param {number} numBins
+   * @return {NumericBuilder}
+   */
+  NumericBuilder.createExponential = function(unit, range, numBins) {
+    if (range.isEmpty)
+      throw new Error('Range must be non-empty');
+    return new NumericBuilder(unit, range.min).addExponentialBins(
         range.max, numBins);
   };
 

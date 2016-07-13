@@ -467,6 +467,7 @@
       'tracing/value/time_display_mode.html',
       'tracing/value/ui/all_value_set_views.html',
       'tracing/value/ui/array_of_numbers_span.html',
+      'tracing/value/ui/composition_span.html',
       'tracing/value/ui/diagnostic_span.html',
       'tracing/value/ui/generic_diagnostic_span.html',
       'tracing/value/ui/generic_table_view.html',

@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
@@ -41,7 +42,6 @@ tr.exportTo('tr.ui.b', function() {
       this.hideXAxis_ = false;
       this.hideYAxis_ = false;
       this.data_ = [];
-      this.leftMargin_ = 50;
 
       d3.select(this.chartAreaElement)
           .append('g')
@@ -185,7 +185,7 @@ tr.exportTo('tr.ui.b', function() {
         .call(d3.svg.axis()
               .scale(this.xScale_)
               .orient('bottom'));
-      window.requestAnimationFrame(function() {
+      tr.b.requestAnimationFrame(function() {
         var previousRight = undefined;
         xAxis.selectAll('.tick')[0].forEach(function(tick) {
           var currentLeft = tick.transform.baseVal[0].matrix.e;
@@ -198,13 +198,7 @@ tr.exportTo('tr.ui.b', function() {
           }
         });
         xAxis[0][0].style.opacity = 1;
-      });
-    },
-
-    getMargin_: function() {
-      var margin = ChartBase.prototype.getMargin_.call(this);
-      margin.left = this.leftMargin_;
-      return margin;
+      }, this);
     },
 
     updateDataRange_: function() {
@@ -265,7 +259,7 @@ tr.exportTo('tr.ui.b', function() {
 
       yAxis.call(axisModifier);
 
-      window.requestAnimationFrame(function() {
+      tr.b.requestAnimationFrame(function() {
         var previousTop = undefined;
         var leftMargin = 0;
         yAxis.selectAll('.tick')[0].forEach(function(tick) {
@@ -280,13 +274,15 @@ tr.exportTo('tr.ui.b', function() {
             tick.style.opacity = 0;
           }
         });
-        if (leftMargin > this.leftMargin_) {
-          this.leftMargin_ = leftMargin;
+
+        leftMargin = parseInt(Math.ceil(leftMargin));
+        if (leftMargin > this.margin.left) {
+          this.margin.left = leftMargin;
           this.updateContents_();
         } else {
           yAxis[0][0].style.opacity = 1;
         }
-      }.bind(this));
+      }, this);
     },
 
     updateContents_: function() {
@@ -342,9 +338,8 @@ tr.exportTo('tr.ui.b', function() {
 
     getDataPointAtClientPoint_: function(clientX, clientY) {
       var rect = this.getBoundingClientRect();
-      var margin = this.margin;
-      var x = clientX - rect.left - margin.left;
-      var y = clientY - rect.top - margin.top;
+      var x = clientX - rect.left - this.margin.left;
+      var y = clientY - rect.top - this.margin.top;
       x = this.xScale_.invert(x);
       y = this.yScale_.invert(y);
       x = tr.b.clamp(x, this.xScale_.domain()[0], this.xScale_.domain()[1]);

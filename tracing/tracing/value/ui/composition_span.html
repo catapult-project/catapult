@@ -17,9 +17,11 @@ found in the LICENSE file.
   Polymer({
     created: function() {
       this.chart_ = new tr.ui.b.BarChart();
-      this.chart_.width = 100;
-      this.chart_.height = 50;
+      this.chart_.width = 190;
+      this.chart_.height = 200;
       this.chart_.isStacked = true;
+      this.chart_.hideXAxis = true;
+      this.chart_.margin.right = 120;
     },
 
     ready: function() {
@@ -45,13 +47,16 @@ found in the LICENSE file.
       var valueCount = 0;
       this.diagnostic_.iterItems(function(name, value) {
         ++valueCount;
+        this.chart_.getDataSeries(name).target = value;
+        this.chart_.getDataSeries(name).optional = true;
+
         value = value.numeric;
         if (value instanceof tr.v.ScalarNumeric)
           data[name] = value.value;
         else if (value instanceof tr.v.Numeric)
           data[name] = value.sum;
-      });
-      this.chart_.height = 50 + (50 * valueCount);
+
+      }, this);
       this.chart_.data = [data];
     }
   });

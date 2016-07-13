@@ -106,7 +106,7 @@ tr.exportTo('tr.v.ui', function() {
 
       if ((cell instanceof tr.v.NumericValue) &&
           (cell.numeric instanceof tr.v.Numeric)) {
-        this.$.histogram.style.display = 'block';
+        this.$.histogram.style.display = 'flex';
         this.$.histogram.histogram = cell.numeric;
       } else {
         this.$.histogram.style.display = 'none';
@@ -299,7 +299,9 @@ tr.exportTo('tr.v.ui', function() {
           value: function(row) {
             var cell = row[displayLabel];
             if (cell instanceof tr.v.d.Diagnostic) {
-              return tr.v.ui.createDiagnosticSpan(cell);
+              var span = tr.v.ui.createDiagnosticSpan(cell);
+              span.style.textAlign = 'left';
+              return span;
             } else if (cell instanceof tr.v.NumericValue) {
               return tr.v.ui.createScalarSpan(cell);
             } else if (cell === undefined) {

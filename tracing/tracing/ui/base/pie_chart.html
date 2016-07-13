@@ -30,6 +30,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase.prototype.decorate.call(this);
+      this.margin.top = 0;
       this.classList.add('pie-chart');
 
       this.data_ = undefined;
@@ -54,6 +55,9 @@ tr.exportTo('tr.ui.b', function() {
       return this.data_;
     },
 
+    get titleMarginPx() {
+      return 40;
+    },
 
     /**
      * @param {Array} data Data for the chart, where each element in the array
@@ -78,13 +82,6 @@ tr.exportTo('tr.ui.b', function() {
       }
       this.data_ = data;
       this.updateContents_();
-    },
-
-    get margin() {
-      var margin = {top: 0, right: 0, bottom: 0, left: 0};
-      if (this.chartTitle_)
-        margin.top += 40;
-      return margin;
     },
 
     getMinSize: function() {
