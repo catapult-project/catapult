@@ -236,6 +236,10 @@ class LogcatMonitor(object):
             'Need to call |Close| on the logcat monitor when done!')
         self._record_file.close()
 
+  @property
+  def adb(self):
+    return self._adb
+
 
 class LogcatMonitorCommandError(device_errors.CommandFailedError):
   """Exception for errors with logcat monitor commands."""
