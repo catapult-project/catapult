@@ -764,7 +764,8 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual(1, len(job_entities))
     self.assertTrue(job_entities[0].use_buildbucket)
     add_bug_comment_mock.assert_called_once_with(
-        12345, 'Started bisect job https://None/buildbucket_job_status/1234567')
+        12345, 'Started bisect job https://None/buildbucket_job_status/1234567',
+        send_email=False)
 
   def testPerformBisect_InvalidConfig_ReturnsError(self):
     bisect_job = try_job.TryJob(

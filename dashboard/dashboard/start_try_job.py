@@ -633,7 +633,7 @@ def PerformBisect(bisect_job):
   if bisect_job.bug_id:
     issue_tracker = issue_tracker_service.IssueTrackerService(
         additional_credentials=utils.ServiceAccountCredentials())
-    issue_tracker.AddBugComment(bisect_job.bug_id, comment)
+    issue_tracker.AddBugComment(bisect_job.bug_id, comment, send_email=False)
   return result
 
 

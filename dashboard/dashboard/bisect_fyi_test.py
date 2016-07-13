@@ -100,7 +100,7 @@ class BisectFYITest(testing_common.TestCase):
     self.testapp.post('/bisect_fyi')
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(0, len(messages))
-    mock_comment.assert_called_with(222, mock.ANY)
+    mock_comment.assert_called_with(222, mock.ANY, send_email=False)
 
 
 if __name__ == '__main__':

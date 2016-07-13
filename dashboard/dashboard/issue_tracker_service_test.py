@@ -21,7 +21,7 @@ class IssueTrackerServiceTest(testing_common.TestCase):
     self.assertTrue(service.AddBugComment(12345, 'The comment'))
     self.assertEqual(1, service._MakeCommentRequest.call_count)
     service._MakeCommentRequest.assert_called_with(
-        12345, {'updates': {}, 'content': 'The comment'})
+        12345, {'updates': {}, 'content': 'The comment'}, send_email=True)
 
   def testAddBugComment_WithNoBug_ReturnsFalse(self):
     service = issue_tracker_service.IssueTrackerService()
@@ -45,7 +45,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
                 'labels': ['Foo'],
             },
             'content': 'Some other comment'
-        })
+        },
+        send_email=True)
 
   def testAddBugComment_MergeBug(self):
     service = issue_tracker_service.IssueTrackerService()
@@ -60,7 +61,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
                 'mergedInto': 54321,
             },
             'content': 'Dupe'
-        })
+        },
+        send_email=True)
 
   @mock.patch('logging.error')
   def testAddBugComment_Error(self, mock_logging_error):

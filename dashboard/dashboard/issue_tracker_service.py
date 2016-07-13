@@ -42,7 +42,7 @@ class IssueTrackerService(object):
         http=self._http)
 
   def AddBugComment(self, bug_id, comment, status=None, cc_list=None,
-                    merge_issue=None, labels=None, owner=None):
+                    merge_issue=None, labels=None, owner=None, send_email=True):
     """Adds a comment with the bisect results to the given bug.
 
     Args:
@@ -54,6 +54,7 @@ class IssueTrackerService(object):
           implies that the status should be "Duplicate".
       labels: List of labels for bug.
       owner: Owner of the bug.
+      send_email: True to send email to bug cc list, False otherwise.
 
     Returns:
       True if successful, False otherwise.
@@ -79,20 +80,21 @@ class IssueTrackerService(object):
       updates['owner'] = owner
     body['updates'] = updates
 
-    return self._MakeCommentRequest(bug_id, body)
+    return self._MakeCommentRequest(bug_id, body, send_email=send_email)
 
   def List(self, **kwargs):
     """Makes a request to the issue tracker to list bugs."""
     request = self._service.issues().list(projectId='chromium', **kwargs)
     return self._ExecuteRequest(request)
 
-  def _MakeCommentRequest(self, bug_id, body, retry=True):
+  def _MakeCommentRequest(self, bug_id, body, retry=True, send_email=False):
     """Makes a request to the issue tracker to update a bug.
 
     Args:
       bug_id: Bug ID of the issue.
       body: Dict of comment parameters.
       retry: True to retry on failure, False otherwise.
+      send_email: True to send email to bug cc list, False otherwise.
 
     Returns:
       True if successful posted a comment or issue was deleted.  False if
@@ -101,7 +103,7 @@ class IssueTrackerService(object):
     request = self._service.issues().comments().insert(
         projectId='chromium',
         issueId=bug_id,
-        sendEmail=True,
+        sendEmail=send_email,
         body=body)
     try:
       if self._ExecuteRequest(request, ignore_error=False):
