@@ -108,7 +108,7 @@ tr.exportTo('tr.v.ui', function() {
 
       if ((cell instanceof tr.v.NumericValue) &&
           (cell.numeric instanceof tr.v.Numeric)) {
-        this.$.histogram.style.display = 'flex';
+        this.$.histogram.style.display = 'block';
         this.$.histogram.histogram = cell.numeric;
 
         tr.b.Settings.set(SELECTED_VALUE_SETTINGS_KEY, JSON.stringify({

@@ -13,13 +13,22 @@ found in the LICENSE file.
 <polymer-element name="tr-v-ui-histogram-span">
   <template>
     <style>
-      :host {
+      #container {
         display: flex;
         flex-direction: row;
       }
+      #diagnostics {
+        display: flex;
+        flex-direction: column;
+      }
     </style>
-    <div id="container"></div>
-    <tr-v-ui-numeric-stats-span id="stats"></tr-v-ui-numeric-stats-span>
+
+    <div id="container">
+      <div id="chart"></div>
+      <tr-v-ui-numeric-stats-span id="stats"></tr-v-ui-numeric-stats-span>
+    </div>
+    <div id="diagnostics">
+    </div>
   </template>
   <script>
   'use strict';
@@ -42,7 +51,7 @@ found in the LICENSE file.
     },
 
     ready: function() {
-      this.$.container.appendChild(this.chart_);
+      this.$.chart.appendChild(this.chart_);
     },
 
     get brushedBins() {
@@ -89,6 +98,14 @@ found in the LICENSE file.
 
       this.chart_.brushedRange = r;
 
+      this.$.diagnostics.textContent = '';
+      for (var bin of this.brushedBins) {
+        for (var diagnostic of bin.diagnostics) {
+          this.$.diagnostics.appendChild(
+              tr.v.ui.createDiagnosticSpan(diagnostic));
+        }
+      }
+
       this.dispatchEvent(new tr.b.Event('brushed-bins-changed'));
     },
 
@@ -129,7 +146,7 @@ found in the LICENSE file.
     },
 
     updateContents_: function() {
-      this.$.container.style.display = this.histogram_ ? '' : 'none';
+      this.$.chart.style.display = this.histogram_ ? '' : 'none';
       this.$.stats.numeric = this.histogram_;
       if (!this.histogram_)
         return;
@@ -153,7 +170,7 @@ found in the LICENSE file.
       chartData.sort(function(x, y) {
         return x.x - y.x;
       });
-      this.$.container.style.display = chartData.length ? '' : 'none';
+      this.$.chart.style.display = chartData.length ? '' : 'none';
       this.chart_.data = chartData;
       this.brushedBins_ = [];
       this.chart_.brushedRange = new tr.b.Range();

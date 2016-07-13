@@ -69,7 +69,8 @@ tr.exportTo('tr.v.d', function() {
      * @return {!Array.<!(EventRef|tr.model.Event)>}
      */
     get events() {
-      return tr.b.dictionaryValues(this.eventsByStableId_);
+      return new tr.model.EventSet(
+          tr.b.dictionaryValues(this.eventsByStableId_));
     },
 
     /**
