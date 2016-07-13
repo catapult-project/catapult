@@ -1014,6 +1014,10 @@ tr.b.unittest.testSuite(function() {
 
     table.selectedTableRow = table.tableRows[0];
     assert.equal(table.selectedColumnIndex, 1);
+    var selectedCell = table.selectedCell;
+    assert.strictEqual(selectedCell.row, table.tableRows[0]);
+    assert.strictEqual(selectedCell.column, columns[1]);
+    assert.strictEqual(selectedCell.value, '1');
 
     table.performKeyCommand_('ARROW_DOWN');
     table.performKeyCommand_('ARROW_RIGHT');
@@ -1021,11 +1025,16 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_LEFT');
     assert.equal(table.selectedTableRow, table.tableRows[1]);
     assert.equal(table.selectedColumnIndex, 2);
+    selectedCell = table.selectedCell;
+    assert.strictEqual(selectedCell.row, table.tableRows[1]);
+    assert.strictEqual(selectedCell.column, columns[2]);
+    assert.strictEqual(selectedCell.value, 4);
 
     table.selectedTableRow = undefined;
-    assert.equal(table.selectedTableRow, undefined);
-    assert.equal(table.selectedColumnIndex, undefined);
-    assert.equal(table.selectedColumnIndex, undefined);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+    assert.isUndefined(table.selectedColumnIndex);
+    assert.isUndefined(table.selectedCell);
   });
 
   test('cellSelectionNested', function() {
@@ -1456,6 +1465,50 @@ tr.b.unittest.testSuite(function() {
 
     // Check that 'A' is still expanded.
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(table, isB));
+  });
+
+  test('columnSelection', function() {
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = [
+      {
+        title: 'Name',
+        value: (row) => row.name
+      },
+      {
+        title: 'colA',
+        selectable: true,
+        value: (row) => row.a,
+        cmp: (rowA, rowB) => rowA.a - rowB.a
+      },
+      {
+        title: 'colB',
+        selectable: true,
+        value: (row) => row.b,
+        cmp: (rowA, rowB) => rowA.b - rowB.b
+      }
+    ];
+    table.tableRows = [
+      {name: 'foo', a: 42, b: -42},
+      {name: 'bar', a: 57, b: 133}
+    ];
+    table.rebuild();
+    table.selectionMode = SelectionMode.CELL;
+    this.addHTMLOutput(table);
+
+    var eventCount = 0;
+    table.addEventListener('selected-column-changed', (event) => ++eventCount);
+
+    assert.throws(function() {
+      table.selectedTableColumn = table.tableColumns[0];
+    });
+
+    table.selectedTableColumn = table.tableColumns[1];
+    assert.strictEqual(eventCount, 1);
+    assert.strictEqual(table.tableColumns[1], table.selectedTableColumn);
+
+    table.selectedTableColumn = table.tableColumns[2];
+    assert.strictEqual(eventCount, 2);
+    assert.strictEqual(table.tableColumns[2], table.selectedTableColumn);
   });
 });
 </script>

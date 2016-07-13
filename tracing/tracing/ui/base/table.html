@@ -153,6 +153,10 @@ tr.exportTo('tr.ui.b', function() {
         background-color: rgb(171, 217, 202);  /* semi-light turquoise */
       }
 
+      table > colgroup > col[selected] {
+        background-color: #e6e6e6;  /* grey */
+      }
+
       table > tbody > tr.empty-row > td {
         color: #666;
         font-style: italic;
@@ -181,6 +185,8 @@ tr.exportTo('tr.ui.b', function() {
       }
     </style>
     <table>
+      <colgroup id="cols">
+      </colgroup>
       <thead id="head">
       </thead>
       <tbody id="body">
@@ -469,8 +475,10 @@ tr.exportTo('tr.ui.b', function() {
           var td = this.appendNewElement_(tr, 'td');
 
           var headerCell = document.createElement('tr-ui-b-table-header-cell');
-          headerCell.cellTitle = this.tableColumns_[i].title;
-          headerCell.align = this.tableColumns_[i].align;
+          headerCell.column = this.tableColumns_[i];
+
+          headerCell.addEventListener('selected-column-changed',
+              this.onSelectedColumnChanged_.bind(this));
 
           // If the table can be sorted by this column, attach a tap callback
           // to the column.
@@ -487,6 +495,20 @@ tr.exportTo('tr.ui.b', function() {
 
           td.appendChild(headerCell);
           this.headerCells_.push(headerCell);
+        }
+      },
+
+      onSelectedColumnChanged_: function(event) {
+        // Unselect all other columns.
+        for (var i = 0; i < this.headerCells_.length; ++i) {
+          var colElement = this.$.cols.children[i];
+          var headerCell = this.headerCells_[i];
+          if ((event.column === headerCell.column) && event.selected) {
+            colElement.setAttribute('selected', true);
+          } else {
+            headerCell.selected = false;
+            colElement.removeAttribute('selected');
+          }
         }
       },
 
@@ -549,6 +571,15 @@ tr.exportTo('tr.ui.b', function() {
           else
             this.sortDescending = !this.sortDescending;
         }.bind(this);
+      },
+
+      generateTableColNodes_: function() {
+        for (var i = 0; i < this.headerCells_.length; ++i) {
+          var colElement = document.createElement('col');
+          if (this.headerCells_[i].selected)
+            colElement.setAttribute('selected', true);
+          this.$.cols.appendChild(colElement);
+        }
       },
 
       generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
@@ -798,6 +829,8 @@ tr.exportTo('tr.ui.b', function() {
           this.headerDirty_ = false;
         }
         if (this.bodyDirty_) {
+          this.$.cols.textContent = '';
+          this.generateTableColNodes_();
           this.$.body.textContent = '';
           this.generateTableRowNodes_(
               this.$.body,
@@ -1061,6 +1094,78 @@ tr.exportTo('tr.ui.b', function() {
             if (this.selectedTableRowInfo_ !== rowInfo)
               this.selectedTableRow = rowInfo.userRow;
         }
+      },
+
+      /**
+       * If the selectionMode is CELL and a cell is selected,
+       * return an object containing the row, column, and value of the selected
+       * cell.
+       *
+       * @return {undefined|!Object}
+       */
+      get selectedCell() {
+        var row = this.selectedTableRow;
+        var columnIndex = this.selectedColumnIndex;
+        if (row === undefined || columnIndex === undefined ||
+            this.tableColumns_.length <= columnIndex)
+          return undefined;
+        var column = this.tableColumns_[columnIndex];
+        return {
+          row: row,
+          column: column,
+          value: column.value(row)
+        };
+      },
+
+      /**
+       * If a selectable column is selected, return the object describing the
+       * selected column.
+       *
+       * Columns with |selectable:true| can be selected independently of rows
+       * and cells. So it is possible to select column 0 and cell [0,0], or
+       * column 1 and cell [0,0], for example. See |selectedCell| for how to
+       * access the selected cell when the selectionMode is CELL.
+       *
+       * |selectedTableColumn| is entirely independent of |selectedColumnIndex|.
+       * When the table selectionMode is CELL, use |selectedTableRow| and
+       * |selectedColumnIndex| to find the selected cell.
+       * When one or more columns have |selectable:true|, then use
+       * |selectedTableColumn| to find the selected column, which may be either
+       * the same as or different from |selectedColumnIndex|, if a cell is also
+       * selected.
+       *
+       * @return {undefined|!Object} column
+       */
+      get selectedTableColumn() {
+        for (var i = 0; i < this.headerCells_.length; i++) {
+          if (this.headerCells_[i].selected)
+            return this.tableColumns_[i];
+        }
+        return undefined;
+      },
+
+      /**
+       * See |get selectedTableColumn()|. |column| must be one of the elements
+       * of this.tableColumns.
+       *
+       * @param {!Object} column
+       */
+      set selectedTableColumn(column) {
+        if (column !== undefined) {
+          var index = this.tableColumns.indexOf(column);
+          if (index < 0)
+            throw new Error('Cannot select unknown column', column);
+
+          if (!column.selectable)
+            throw new Error('Cannot select un-selectable column', column);
+
+          var cell = this.headerCells_[index];
+          cell.selected = true;
+        }
+        var e = new tr.b.Event('selected-column-changed');
+        e.column = column;
+        e.selected = column !== undefined;
+        cell.dispatchEvent(e);
       },
 
       get selectedTableRow() {
@@ -1368,7 +1473,8 @@ tr.exportTo('tr.ui.b', function() {
   })();
   </script>
 </polymer-element>
-<polymer-element name="tr-ui-b-table-header-cell" on-tap="onTap_">
+
+<polymer-element name="tr-ui-b-table-header-cell">
   <template>
   <style>
     :host {
@@ -1380,7 +1486,7 @@ tr.exportTo('tr.ui.b', function() {
       flex: 0 1 auto;
     }
 
-    side-element {
+    #side {
       -webkit-user-select: none;
       flex: 0 0 auto;
       padding-left: 4px;
@@ -1390,9 +1496,24 @@ tr.exportTo('tr.ui.b', function() {
       display: inline;
       line-height: 85%;
     }
+
+    #button {
+      font-weight: bold;
+      font-size: 12px;
+    }
+
+    #title:empty, #button:empty, #side:empty {
+      display: none;
+    }
+
+    #button[selected] {
+      background: darkgrey;
+    }
   </style>
 
-    <span id="title"></span><side-element id="side"></side-element>
+    <span id="title"></span>
+    <button id="button"></button>
+    <button id="side"></button>
   </template>
 
   <script>
@@ -1405,6 +1526,55 @@ tr.exportTo('tr.ui.b', function() {
       this.tapCallback_ = undefined;
       this.cellTitle_ = '';
       this.align_ = undefined;
+      this.selectable_ = false;
+      this.column_ = undefined;
+    },
+
+    ready: function() {
+      this.$.button.addEventListener('click', this.onSelect_.bind(this));
+      this.$.side.addEventListener('click', this.onTap_.bind(this));
+    },
+
+    onSelect_: function() {
+      this.selected = this.$.button.getAttribute('selected') !== 'true';
+      var e = new tr.b.Event('selected-column-changed');
+      e.column = this.column;
+      e.selected = this.selected;
+      this.dispatchEvent(e);
+    },
+
+    set column(column) {
+      this.column_ = column;
+      this.selectable = column.selectable;
+      this.align = column.align;
+      this.cellTitle = column.title;
+    },
+
+    get column() {
+      return this.column_;
+    },
+
+    set selectable(selectable) {
+      this.selectable_ = selectable;
+      this.cellTitle = this.$.title.childNodes[0] ||
+          this.$.button.childNodes[0];
+    },
+
+    get selectable() {
+      return this.selectable_;
+    },
+
+    set selected(selected) {
+      if (selected)
+        this.$.button.setAttribute('selected', true);
+      else
+        this.$.button.removeAttribute('selected');
+    },
+
+    get selected() {
+      if (!this.selectable_)
+        return false;
+      return this.$.button.getAttribute('selected') === 'true';
     },
 
     set cellTitle(value) {
@@ -1414,7 +1584,12 @@ tr.exportTo('tr.ui.b', function() {
           this.cellTitle_, this.ownerDocument);
 
       this.$.title.innerText = '';
-      this.$.title.appendChild(titleNode);
+      this.$.button.innerText = '';
+
+      if (this.selectable_)
+        this.$.button.appendChild(titleNode);
+      else
+        this.$.title.appendChild(titleNode);
     },
 
     get cellTitle() {
@@ -1449,6 +1624,7 @@ tr.exportTo('tr.ui.b', function() {
 
     set sideContent(content) {
       this.$.side.textContent = content;
+      this.$.side.style.display = content ? 'inline' : 'none';
     },
 
     get sideContent() {
