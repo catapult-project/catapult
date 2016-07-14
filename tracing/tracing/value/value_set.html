@@ -15,7 +15,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v', function() {
   var SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME = 'summary values';
-  var ITERATION_INFO_DIAGNOSTIC_NAME = 'iteration';
 
   function ValueSet(opt_values) {
     this.values_ = {};
@@ -35,19 +34,25 @@ tr.exportTo('tr.v', function() {
       return this.values_[guid];
     },
 
+    toArray: function() {
+      return tr.b.dictionaryValues(this.values_);
+    },
+
+    *[Symbol.iterator]() {
+      for (var guid in this.values_)
+        yield this.values_[guid];
+    },
+
     /**
      * @param {!function(!tr.v.Value):*} callback
      * @param {*=} opt_this
      */
     map: function(callback, opt_this) {
-      return tr.b.dictionaryValues(this.values_).map(
-          callback, opt_this || this);
+      return this.toArray().map(callback, opt_this || this);
     },
 
     get organizedByName() {
-      return this.getValuesOrganizedByCallback(function(value) {
-        return value.name;
-      });
+      return this.getValuesOrganizedByCallback(v => v.name);
     },
 
     /**
@@ -56,8 +61,7 @@ tr.exportTo('tr.v', function() {
      * @return {!Object}
      */
     getValuesOrganizedByCallback: function(callback, opt_this) {
-      return tr.b.group(tr.b.dictionaryValues(this.values_),
-                        callback, opt_this || this);
+      return tr.b.group(this.toArray(), callback, opt_this || this);
     },
 
     /**
@@ -113,9 +117,7 @@ tr.exportTo('tr.v', function() {
     },
 
     getValuesWithName: function(name) {
-      return tr.b.dictionaryValues(this.values_).filter(function(value) {
-        return value.name.indexOf(name) > -1;
-      });
+      return this.toArray().filter(v => v.name.indexOf(name) > -1);
     },
 
     addValue: function(v) {
@@ -154,7 +156,6 @@ tr.exportTo('tr.v', function() {
 
   return {
     SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME: SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME,
-    ITERATION_INFO_DIAGNOSTIC_NAME: ITERATION_INFO_DIAGNOSTIC_NAME,
     ValueSet: ValueSet
   };
 });

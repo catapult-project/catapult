@@ -116,6 +116,18 @@ tr.exportTo('tr.b', function() {
     return undefined;
   }
 
+  /**
+   * Format date as a string "YYYY-MM-DD HH:mm:ss". The timezone is implicitly
+   * UTC. This format is based on the ISO format, but without milliseconds and
+   * the 'T' is replaced with a space for legibility.
+   *
+   * @param {!Date} date
+   * @return {string}
+   */
+  function formatDate(date) {
+    return date.toISOString().replace('T', ' ').slice(0, 19);
+  }
+
   return {
     addSingletonGetter: addSingletonGetter,
 
@@ -124,6 +136,7 @@ tr.exportTo('tr.b', function() {
     normalizeException: normalizeException,
     stackTrace: stackTrace,
     stackTraceAsString: stackTraceAsString,
+    formatDate: formatDate,
 
     getUsingPath: getUsingPath
   };

@@ -126,6 +126,16 @@ tr.exportTo('tr.v', function() {
   NumericValue.prototype = {
     __proto__: Value.prototype,
 
+    merge: function(other) {
+      if (!(other instanceof NumericValue))
+        throw new Error('Merging non-NumericValues is not supported');
+
+      var numeric = this.numeric.merge(other.numeric);
+      var result = new NumericValue(this.name, numeric);
+      // TODO(eakuefner): merge diagnostics?
+      return result;
+    },
+
     asDictInto_: function(d) {
       d.type = 'numeric';
       d.numeric = this.numeric.asDict();

@@ -43,9 +43,7 @@ tr.exportTo('tr.metrics', function() {
           metadata.value['iteration-info']);
       // Values can be separated from their ValueSet and mixed into ValueSets
       // with Values from other iterations, so add IterationInfo to each Value.
-      values.map(function(value) {
-        value.diagnostics.add(tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, iteration);
-      });
+      values.map(v => iteration.addToValue(v));
     }
 
     result.addPair('values', values.valueDicts);

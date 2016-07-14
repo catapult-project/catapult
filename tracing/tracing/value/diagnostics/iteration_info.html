@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
 
 <script>
@@ -34,8 +35,29 @@ tr.exportTo('tr.v.d', function() {
     this.storysetRepeatCounter_ = info.storysetRepeatCounter;
   }
 
+  // Diagnostics generally do not need a constant name or getFromValue().
+  // IterationInfo is a special kind of Diagnostic that is produced by
+  // telemetry, which shepherds whole flocks of traces at once, and needs a
+  // system to identify and find traces by these attributes.
+
+  // Values produced by telemetry all have a single IterationInfo at this key in
+  // their DiagnosticMap.
+  IterationInfo.NAME = 'iteration';
+
+  /**
+   * @param {!tr.v.Value} value
+   * @return {(undefined|!IterationInfo)}
+   */
+  IterationInfo.getFromValue = function(value) {
+    return value.diagnostics.get(IterationInfo.NAME);
+  };
+
   IterationInfo.prototype = {
     __proto__: tr.v.d.Diagnostic.prototype,
+
+    addToValue: function(value) {
+      value.diagnostics.add(IterationInfo.NAME, this);
+    },
 
     asDictInto_: function(d) {
       d.benchmarkName = this.benchmarkName;
@@ -78,12 +100,24 @@ tr.exportTo('tr.v.d', function() {
       return this.storyRepeatCounter_;
     },
 
+    get storyRepeatCounterLabel() {
+      return 'story repeat ' + this.storyRepeatCounter;
+    },
+
     get storysetRepeatCounter() {
       return this.storysetRepeatCounter_;
     },
 
+    get storysetRepeatCounterLabel() {
+      return 'storyset repeat ' + this.storysetRepeatCounter;
+    },
+
     get benchmarkStart() {
       return this.benchmarkStart_;
+    },
+
+    get benchmarkStartString() {
+      return tr.b.formatDate(this.benchmarkStart);
     }
   };
 

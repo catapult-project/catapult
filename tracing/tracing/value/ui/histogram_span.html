@@ -48,6 +48,8 @@ found in the LICENSE file.
           this.onMouseMove_.bind(this));
       this.chart_.addEventListener('item-mouseup',
           this.onMouseUp_.bind(this));
+      this.chart_.hideLegend = true;
+      this.chart_.margin.right = 0;
     },
 
     ready: function() {

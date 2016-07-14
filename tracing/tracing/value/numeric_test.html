@@ -15,7 +15,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-
   var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
       tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
       10);
@@ -454,17 +453,68 @@ tr.b.unittest.testSuite(function() {
     var n2 = n0.clone();
     assert.deepEqual(n2.sampleValues, values0.concat(values1));
 
-    for (var i = 0; i < 200; ++i) {
+    for (var i = 0; i < 200; ++i)
       n0.add(i);
-    }
     assert.strictEqual(n0.sampleValues.length, n0.maxNumSampleValues);
 
     var n3 = TEST_NUMERIC_BUILDER.build();
     n3.maxNumSampleValues = 10;
-    for (var i = 0; i < 100; ++i) {
+    for (var i = 0; i < 100; ++i)
       n3.add(i);
-    }
     assert.strictEqual(n3.sampleValues.length, 10);
+  });
+
+  test('mergeScalarNumerics', function() {
+    var scalarA = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 10);
+    var scalarB = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 20);
+
+    var numeric = scalarA.merge(scalarB);
+    assert.instanceOf(numeric, tr.v.Numeric);
+    assert.strictEqual(numeric.maxNumSampleValues, 1000);
+    assert.strictEqual(numeric.numValues, 2);
+    assert.strictEqual(numeric.numNans, 0);
+    assert.lengthOf(numeric.sampleValues, 2);
+    assert.lengthOf(numeric.allBins, 4);
+  });
+
+  test('mergeNumericWithScalar', function() {
+    var scalar = new tr.v.ScalarNumeric(
+        tr.v.Unit.byName.timeDurationInMs, 1010);
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 100; ++i)
+      numeric.add(Math.random() * 1000);
+    numeric.add('i am not a number');
+
+    var mergedA = scalar.merge(numeric);
+    var mergedB = numeric.merge(scalar);
+    assert.instanceOf(mergedA, tr.v.Numeric);
+    assert.instanceOf(mergedB, tr.v.Numeric);
+
+    assert.strictEqual(mergedA.maxNumSampleValues, 1000);
+    // numValues does not include non-number samples.
+    assert.strictEqual(mergedA.numValues, 101);
+    assert.strictEqual(mergedA.numNans, 1);
+    assert.strictEqual(mergedA.range.min, numeric.running.min);
+    assert.strictEqual(mergedA.range.max, 1010);
+
+    assert.strictEqual(mergedB.maxNumSampleValues, 1000);
+    // numValues does not include non-number samples.
+    assert.strictEqual(mergedB.numValues, 101);
+    assert.strictEqual(mergedB.numNans, 1);
+    assert.strictEqual(mergedB.range.min, numeric.running.min);
+    assert.strictEqual(mergedB.range.max, 1010);
+
+    // Normalize away some insignificant differences so that deepEqual can test
+    // the significant fields.
+    var mergedAdict = mergedA.asDict();
+    var mergedBdict = mergedB.asDict();
+    mergedAdict.sampleValues.sort();
+    mergedBdict.sampleValues.sort();
+    for (var stat in mergedAdict.running) {
+      mergedAdict.running[stat] = Math.round(mergedAdict.running[stat]);
+      mergedBdict.running[stat] = Math.round(mergedBdict.running[stat]);
+    }
+    assert.deepEqual(mergedAdict, mergedBdict);
   });
 });
 

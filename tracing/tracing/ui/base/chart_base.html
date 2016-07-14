@@ -233,6 +233,7 @@ tr.exportTo('tr.ui.b', function() {
       this.width_ = 400;
       this.height_ = 300;
       this.margin = {top: 20, right: 72, bottom: 30, left: 50};
+      this.hideLegend_ = false;
 
       // This should use tr.ui.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
@@ -266,6 +267,15 @@ tr.exportTo('tr.ui.b', function() {
           });
       this.addEventListener(DataSeriesEnableChangeEventType,
           this.onDataSeriesEnableChange_.bind(this));
+    },
+
+    get hideLegend() {
+      return this.hideLegend_;
+    },
+
+    set hideLegend(h) {
+      this.hideLegend_ = h;
+      this.updateContents_();
     },
 
     isSeriesEnabled: function(key) {
@@ -401,6 +411,8 @@ tr.exportTo('tr.ui.b', function() {
     updateLegend_: function() {
       var chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.legend').remove();
+      if (this.hideLegend)
+        return;
 
       var series = [...this.seriesByKey_.values()].reverse();
       var legendEntriesSel = chartAreaSel.selectAll('.legend').data(series);

@@ -26,5 +26,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ex.typeName, 'MyError');
   });
 
+  test('formatDate', function() {
+    assert.strictEqual(tr.b.formatDate(new Date(0)), '1970-01-01 00:00:00');
+  });
 });
 </script>

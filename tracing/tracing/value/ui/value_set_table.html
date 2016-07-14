@@ -52,27 +52,71 @@ found in the LICENSE file.
 tr.exportTo('tr.v.ui', function() {
   /**
    * @param {!tr.v.Value} value
-   * @return {string}
+   * @param {string} fieldName
+   * @param {*} defaultValue
+   * @return {*}
    */
-  function getDisplayLabel(value) {
-    var iteration = value.diagnostics.get(tr.v.ITERATION_INFO_DIAGNOSTIC_NAME);
+  function getIterationInfoField(value, fieldName, defaultValue) {
+    var iteration = tr.v.d.IterationInfo.getFromValue(value);
     if (!(iteration instanceof tr.v.d.IterationInfo))
-      return 'Value';
-    return iteration.displayLabel;
+      return defaultValue;
+    return iteration[fieldName];
   }
 
   /**
    * @param {!tr.v.Value} value
-   * @return {number}
+   * @param {string} fieldName
+   * @return {string}
    */
-  function getBenchmarkStartMs(value) {
-    var iteration = value.diagnostics.get(tr.v.ITERATION_INFO_DIAGNOSTIC_NAME);
+  function getStoryGroupingKeyLabel(value, storyGroupingKey) {
+    var iteration = tr.v.d.IterationInfo.getFromValue(value);
     if (!(iteration instanceof tr.v.d.IterationInfo))
-      return 0;
-    return iteration.benchmarkStart.getTime();
+      return storyGroupingKey + ': undefined';
+    return storyGroupingKey + ': ' +
+      iteration.storyGroupingKeys[storyGroupingKey];
   }
 
+  /**
+   * @param {!tr.v.Value} value
+   * @return {string}
+   */
+  var getDisplayLabel = v => getIterationInfoField(v, 'displayLabel', 'Value');
+
   var SELECTED_VALUE_SETTINGS_KEY = 'tr-v-ui-value-set-table-value';
+
+  /**
+   * Recursively groups |values|.
+   * TODO(benjhayden): Use ES6 Maps instead of dictionaries?
+   *
+   * @param {!Array.<!tr.v.Value>} values
+   * @param {!Array.<!function(!tr.v.Value):(string|number)>} groupingCallbacks
+   * @return {!(Object|tr.v.Value)}
+   */
+  function organizeValues(values, groupingCallbacks, level) {
+    if (groupingCallbacks.length === level) {
+      // Recursion base case: there should only be a single value when we've
+      // grouped by every possible grouping.
+      if (values.length > 1) {
+        console.warn('Multiple Values with same name, benchmarkName, ' +
+            'storyGroupingKeys, storyName, start, storysetRepeatCounter, ' +
+            'storyRepeatCounter, and displayLabel', values);
+      }
+      return values[0];
+    }
+
+    // Group the values by the current grouping.
+    var groupedValues = tr.b.group(values, groupingCallbacks[level]);
+
+    // Skip this grouping level if it contains only a single group,
+    // but never skip the zeroth grouping level.
+    if (level > 0 && tr.b.dictionaryLength(groupedValues) === 1)
+      return organizeValues(values, groupingCallbacks, level + 1);
+
+    // Recursively group groupedValues.
+    return tr.b.mapItems(groupedValues, function(key, groupValues) {
+      return organizeValues(groupValues, groupingCallbacks, level + 1);
+    });
+  }
 
   Polymer('tr-v-ui-value-set-table', {
     /**
@@ -97,7 +141,7 @@ tr.exportTo('tr.v.ui', function() {
 
     ready: function() {
       this.values_ = undefined;
-      this.summaryValues_ = {};
+      this.summaryValuesByGuid_ = {};
       this.rows_ = undefined;
       this.columns_ = undefined;
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
@@ -158,7 +202,7 @@ tr.exportTo('tr.v.ui', function() {
       var col = this.$.table.selectedColumnIndex;
       var cell = undefined;
       if (row && col && this.columns_)
-        cell = row[this.columns_[col].title];
+        cell = row.columns[this.columns_[col].title];
 
       if ((cell instanceof tr.v.NumericValue) &&
           (cell.numeric instanceof tr.v.Numeric)) {
@@ -193,15 +237,15 @@ tr.exportTo('tr.v.ui', function() {
         // there is already a subRow that should contain this diagnostic.
         for (var subRow of row.subRows) {
           if (subRow.name === name) {
-            subRow[column] = diagnostic;
+            subRow.columns[column] = diagnostic;
             return;
           }
         }
 
         // This is the first time that a diagnostic with this name has been
         // seen for Values whose name is |value.name|, so create a new subRow.
-        var subRow = {name: name};
-        subRow[column] = diagnostic;
+        var subRow = {name: name, columns: {}};
+        subRow.columns[column] = diagnostic;
         row.subRows.push(subRow);
       });
     },
@@ -211,7 +255,7 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     findSummaryValues_: function() {
-      this.summaryValues_ = {};
+      this.summaryValuesByGuid_ = {};
       this.values.map(function(value) {
         var summaryValueMap = value.diagnostics.get(
             tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME);
@@ -219,7 +263,7 @@ tr.exportTo('tr.v.ui', function() {
           return;
 
         summaryValueMap.values.forEach(function(summaryValue) {
-          this.summaryValues_[summaryValue.guid] = summaryValue;
+          this.summaryValuesByGuid_[summaryValue.guid] = summaryValue;
         }, this);
       }, this);
     },
@@ -289,74 +333,251 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.selectedColumnIndex = 1;
     },
 
-    buildRows_: function() {
-      /* this.rows_ will look something like [
-           {name: 'value name',
-            displayLabelA: Value,
-            displayLabelB: Value,
-            subRows: [
-              {name: 'diagnostic map key',
-               displayLabelA: Diagnostic,
-               displayLabelB: Diagnostic,
-              }
-            ]
-           }
-         ]
-         TODO(benjhayden): After Values are summarized and merged, there will be
-         more row tiers: value name > benchmark name > story name > benchmark
-         start > storyset repeat > story repeat > diagnostics.
-      */
-      this.rows_ = [];
+    /**
+     * Build table rows recursively from organized Values. The recursion stack
+     * of subRows is maintained in |hierarchy|.
+     *
+     * @param {!Object} organizedValues
+     * @param {!Array.<!Object>} hierarchy
+     */
+    buildRow_: function(organizedValues, hierarchy) {
+      tr.b.iterItems(organizedValues, function(name, value) {
+        if (value instanceof tr.v.Value) {
+          // This recursion base case corresponds to the recursion base case of
+          // organizeValues(). The last groupingCallback is getDisplayLabel,
+          // which defines the columns of the table.
 
-      tr.b.iterItems(this.values.organizedByName, function(name, vals) {
-        var row = {name: name, subRows: []};
-        var isEmptyRow = true;
+          // Merge Values up the grouping hierarchy.
+          for (var row of hierarchy) {
+            if (row.description === undefined)
+              row.description = value.description;
 
-        vals.forEach(function(val) {
-          if (this.summaryValues_[val.guid])
-            return;
-
-          if (!row.description && val.description)
-            row.description = val.description;
-
-          var displayLabel = getDisplayLabel(val);
-          this.addDiagnosticSubRows_(val, row, displayLabel);
-
-          if (row[displayLabel] !== undefined) {
-            console.warn('Multiple Values with same name and displayLabel:',
-                name, displayLabel, row[displayLabel], val,
-                'Sorry, only one will be displayed until summarization and ' +
-                'merging are implemented.');
+            if (row.columns[name])
+              row.columns[name] = row.columns[name].merge(value);
+            else
+              row.columns[name] = value;
           }
-          row[displayLabel] = val;
-          isEmptyRow = false;
-        }, this);
 
-        if (isEmptyRow)
-          return;
+          var row = hierarchy[hierarchy.length - 1];
+          this.addDiagnosticSubRows_(value, row, name);
+        } else {
+          // |value| is actually a nested organizedValues.
+          var row = {name: name, subRows: [], columns: {}};
+          hierarchy.push(row);
+          this.buildRow_(value, hierarchy);
+          hierarchy.pop();
 
-        this.rows_.push(row);
+          if (hierarchy.length === 0)
+            this.rows_.push(row);
+          else
+            hierarchy[hierarchy.length - 1].subRows.push(row);
+        }
       }, this);
+    },
+
+    get storyGroupingKeys() {
+      var keys = new Set();
+      for (var value of this.values) {
+        var iteration = tr.v.d.IterationInfo.getFromValue(value);
+        if (!(iteration instanceof tr.v.d.IterationInfo) ||
+            !iteration.storyGroupingKeys)
+          continue;
+
+        for (var key in iteration.storyGroupingKeys)
+          keys.add(key);
+      }
+      return [...keys.values()].sort();
+    },
+
+    /**
+     * A ValueSet is a flat set of Values. Value-set-table must present a
+     * hierarchical view. This method recursively groups this.values as an
+     * intermediate step towards building tableRows in buildRow_().
+     * {
+     *   valueA: {
+     *     benchmarkA: {
+     *       storyA: {
+     *         startA: {
+     *           storysetRepeatCounterA: {
+     *             storyRepeatCounterA: {
+     *               displayLabelA: Value,
+     *               displayLabelB: Value
+     *             }
+     *           }
+     *         }
+     *       }
+     *     }
+     *   }
+     * }
+     * @return {!Object}
+     */
+    get organizedValues_() {
+      var values = [];
+      for (var value of this.values)
+        if (this.summaryValuesByGuid_[value.guid] === undefined)
+          values.push(value);
+
+      var groupingCallbacks = [];
+      groupingCallbacks.push(v => v.name);
+      groupingCallbacks.push(
+          v => getIterationInfoField(v, 'benchmarkName', ''));
+      for (var storyGroupingKey of this.storyGroupingKeys) {
+        // Javascript closures are dumb.
+        groupingCallbacks.push((sgk => (
+            v => getStoryGroupingKeyLabel(v, sgk)))(storyGroupingKey));
+      }
+      groupingCallbacks.push(
+          v => getIterationInfoField(v, 'storyDisplayName', ''));
+      groupingCallbacks.push(
+          v => getIterationInfoField(v, 'benchmarkStartString', ''));
+      groupingCallbacks.push(
+          v => getIterationInfoField(v, 'storysetRepeatCounterLabel', 0));
+      groupingCallbacks.push(
+          v => getIterationInfoField(v, 'storyRepeatCounterLabel', 0));
+      groupingCallbacks.push(getDisplayLabel);
+
+      return organizeValues(values, groupingCallbacks, 0);
+    },
+
+    /* this.rows_ will look something like
+     * [
+     *   {
+     *     name: 'value name',
+     *     columns: {
+     *       displayLabelA: Value,
+     *       displayLabelB: Value,
+     *     },
+     *     subRows: [
+     *       {
+     *         name: 'benchmark name if multiple',
+     *         columns: {
+     *           displayLabelA: Value,
+     *           displayLabelB: Value,
+     *         },
+     *         subRows: [
+     *           {
+     *             name: 'story name if multiple',
+     *             columns: {
+     *               displayLabelA: Value,
+     *               displayLabelB: Value,
+     *             },
+     *             subRows: [
+     *               {
+     *                 name: 'benchmark start if multiple',
+     *                 columns: {
+     *                   displayLabelA: Value,
+     *                   displayLabelB: Value,
+     *                 },
+     *                 subRows: [
+     *                   {
+     *                     name: 'storyset repeat counter if multiple',
+     *                     columns: {
+     *                       displayLabelA: Value,
+     *                       displayLabelB: Value,
+     *                     },
+     *                     subRows: [
+     *                       {
+     *                         name: 'story repeat counter if multiple',
+     *                         columns: {
+     *                           displayLabelA: Value,
+     *                           displayLabelB: Value,
+     *                         },
+     *                         subRows: [
+     *                           {
+     *                             name: 'diagnostic map key',
+     *                             columns: {
+     *                               displayLabelA: Diagnostic,
+     *                               displayLabelB: Diagnostic,
+     *                             },
+     *                           }
+     *                         ]
+     *                       }
+     *                     ]
+     *                   }
+     *                 ]
+     *               }
+     *             ]
+     *           }
+     *         ]
+     *       }
+     *     ]
+     *   }
+     * ]
+     *
+     * Any of those layers may be missing except 'value name'.
+     */
+    buildRows_: function() {
+      this.rows_ = [];
+      var hierarchy = [];
+      this.buildRow_(this.organizedValues_, hierarchy);
     },
 
     get startTimesForDisplayLabels() {
       var startTimesForDisplayLabels = {};
-      this.values.map(function(value) {
+      for (var value of this.values) {
+        if (this.summaryValuesByGuid_[value.guid])
+          continue;
+
         var displayLabel = getDisplayLabel(value);
         startTimesForDisplayLabels[displayLabel] = Math.min(
             startTimesForDisplayLabels[displayLabel] || 0,
-            getBenchmarkStartMs(value));
-      });
+            getIterationInfoField(
+                value, 'benchmarkStart', new Date(0)).getTime());
+      }
       return startTimesForDisplayLabels;
     },
 
-    buildColumns_: function() {
+    get displayLabels() {
       var startTimesForDisplayLabels = this.startTimesForDisplayLabels;
       var displayLabels = Object.keys(startTimesForDisplayLabels);
       displayLabels.sort(function(a, b) {
         return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];
       });
+      return displayLabels;
+    },
 
+    buildColumn_: function(displayLabel) {
+      return {
+        title: displayLabel,
+        align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+        supportsCellSelection: true,
+
+        value: function(row) {
+          var cell = row.columns[displayLabel];
+          if (cell === undefined)
+            return '';
+          if (cell instanceof tr.v.NumericValue)
+            return tr.v.ui.createScalarSpan(cell);
+          if (cell instanceof tr.v.d.Diagnostic) {
+            var span = tr.v.ui.createDiagnosticSpan(cell);
+            span.style.textAlign = 'left';
+            return span;
+          }
+          throw new Error('Invalid cell', cell);
+        },
+
+        cmp: function(rowA, rowB) {
+          var cellA = rowA.columns[displayLabel];
+          var cellB = rowB.columns[displayLabel];
+          if (!(cellA instanceof tr.v.NumericValue) ||
+              !(cellB instanceof tr.v.NumericValue)) {
+            return undefined;
+          }
+
+          var numericA = cellA.numeric;
+          var numericB = cellB.numeric;
+
+          var valueA = (numericA instanceof tr.v.ScalarNumeric) ?
+            numericA.value : numericA.average;
+          var valueB = (numericB instanceof tr.v.ScalarNumeric) ?
+            numericB.value : numericB.average;
+
+          return valueA - valueB;
+        }
+      };
+    },
+
+    buildColumns_: function() {
       this.columns_ = [
         {
           title: 'Name',
@@ -372,54 +593,12 @@ tr.exportTo('tr.v.ui', function() {
             return nameEl;
           },
 
-          cmp: function(rowA, rowB) {
-            rowA = rowA ? rowA.name : '';
-            rowB = rowB ? rowB.name : '';
-            return rowA.localeCompare(rowB);
-          },
+          cmp: (a, b) => a.name.localeCompare(b.name)
         }
       ];
 
-      displayLabels.forEach(function(displayLabel) {
-        this.columns_.push({
-          title: displayLabel,
-          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-          supportsCellSelection: true,
-
-          value: function(row) {
-            var cell = row[displayLabel];
-            if (cell instanceof tr.v.d.Diagnostic) {
-              var span = tr.v.ui.createDiagnosticSpan(cell);
-              span.style.textAlign = 'left';
-              return span;
-            } else if (cell instanceof tr.v.NumericValue) {
-              return tr.v.ui.createScalarSpan(cell);
-            } else if (cell === undefined) {
-              return '';
-            } else {
-              throw new Error('Invalid cell', cell);
-            }
-          },
-
-          cmp: function(rowA, rowB) {
-            var cellA = rowA[displayLabel];
-            var cellB = rowB[displayLabel];
-            if (!(cellA instanceof tr.v.NumericValue) ||
-                !(cellB instanceof tr.v.NumericValue))
-              return undefined;
-
-            var numericA = cellA.numeric;
-            var numericB = cellB.numeric;
-
-            var valueA = (numericA instanceof tr.v.ScalarNumeric) ?
-              numericA.value : numericA.average;
-            var valueB = (numericB instanceof tr.v.ScalarNumeric) ?
-              numericB.value : numericB.average;
-
-            return valueA - valueB;
-          }
-        });
-      }, this);
+      for (var displayLabel of this.displayLabels)
+        this.columns_.push(this.buildColumn_(displayLabel));
     }
   });
 

@@ -28,6 +28,32 @@ tr.exportTo('tr.v', function() {
   }
 
   NumericBase.prototype = {
+    merge: function(other) {
+      if (this.unit !== other.unit)
+        throw new Error('Merging Numerics with different units');
+
+      // Two Numerics that were built using the same NumericBuilder
+      // can be merged using addNumeric().
+      if (this instanceof Numeric && other instanceof Numeric &&
+          this.canAddNumeric(other)) {
+        var result = this.clone();
+        result.addNumeric(other.clone());
+        return result;
+      }
+
+      // Either a Scalar and a Numeric, or two Scalars...
+      // or two Numerics that were not built using the same NumericBuilder,
+      // should be built from their raw samples.
+      var samples = [];
+      this.sampleValuesInto(samples);
+      other.sampleValuesInto(samples);
+      return Numeric.buildFromSamples(this.unit, samples);
+    },
+
+    sampleValuesInto: function(samples) {
+      throw new Error('Not implemented');
+    },
+
     asDict: function() {
       var d = {
         unit: this.unit.asJSON()
@@ -155,6 +181,34 @@ tr.exportTo('tr.v', function() {
     n.maxNumSampleValues = d.maxNumSampleValues;
     n.sampleValues_ = d.sampleValues;
     return n;
+  };
+
+  /**
+   * @param {!tr.v.Unit} unit
+   * @param {!Array.<number>} samples
+   * @return {!Numeric}
+   */
+  Numeric.buildFromSamples = function(unit, samples) {
+    var range = new tr.b.Range();
+    // Prevent non-numeric samples from introducing NaNs into the range.
+    for (var sample of samples)
+      if (!isNaN(Math.max(sample)))
+        range.addValue(sample);
+
+    // This optimizes the resolution when samples are uniformly distributed
+    // (which is almost never the case).
+    var numBins = Math.ceil(Math.sqrt(samples.length));
+    var builder = new NumericBuilder(unit, range.min);
+    builder.addLinearBins(range.max, numBins);
+
+    var result = builder.build();
+    result.maxNumSampleValues = 1000;
+
+    // TODO(eakuefner): Propagate diagnostics?
+    for (var sample of samples)
+      result.add(sample);
+
+    return result;
   };
 
   Numeric.prototype = {
@@ -293,12 +347,41 @@ tr.exportTo('tr.v', function() {
           this.numValues + this.numNans, value, this.maxNumSampleValues);
     },
 
+    sampleValuesInto: function(samples) {
+      for (var sampleValue of this.sampleValues)
+        samples.push(sampleValue);
+    },
+
+    /**
+     * Return true if this Numeric can be added to |other|.
+     *
+     * @param {!tr.v.Numeric} other
+     * @return {boolean}
+     */
+    canAddNumeric: function(other) {
+      if (!this.range.equals(other.range))
+        return false;
+      if (this.unit !== other.unit)
+        return false;
+      if (this.allBins.length !== other.allBins.length)
+        return false;
+
+      for (var i = 0; i < this.allBins.length; ++i)
+        if (!this.allBins[i].range.equals(other.allBins[i].range))
+          return false;
+
+      return true;
+    },
+
+    /**
+     * Add |other| to this Numeric in-place if they can be added.
+     *
+     * @param {!tr.v.Numeric} other
+     */
     addNumeric: function(other) {
-      if (!this.range.equals(other.range) ||
-          !this.unit === other.unit ||
-          this.allBins.length !== other.allBins.length) {
+      if (!this.canAddNumeric(other))
         throw new Error('Merging incompatible Numerics.');
-      }
+
       tr.b.Statistics.mergeSampledStreams(this.nanDiagnostics, this.numNans,
           other.nanDiagnostics, other.numNans, MAX_DIAGNOSTICS);
       tr.b.Statistics.mergeSampledStreams(
@@ -645,7 +728,7 @@ tr.exportTo('tr.v', function() {
    * @param {!tr.v.Unit} unit
    * @param {!tr.b.Range} range
    * @param {number} numBins
-   * @return {NumericBuilder}
+   * @return {tr.v.NumericBuilder}
    */
   NumericBuilder.createLinear = function(unit, range, numBins) {
     if (range.isEmpty)
@@ -661,7 +744,7 @@ tr.exportTo('tr.v', function() {
    * @param {!tr.v.Unit} unit
    * @param {!tr.b.Range} range
    * @param {number} numBins
-   * @return {NumericBuilder}
+   * @return {tr.v.NumericBuilder}
    */
   NumericBuilder.createExponential = function(unit, range, numBins) {
     if (range.isEmpty)
@@ -671,6 +754,9 @@ tr.exportTo('tr.v', function() {
   };
 
   function ScalarNumeric(unit, value) {
+    if (!(unit instanceof tr.v.Unit))
+      throw new Error('Expected Unit');
+
     if (!(typeof(value) == 'number'))
       throw new Error('Expected value to be number');
 
@@ -694,6 +780,10 @@ tr.exportTo('tr.v', function() {
         d.value = 'NaN';
       else
         d.value = this.value;
+    },
+
+    sampleValuesInto: function(samples) {
+      samples.push(this.value);
     },
 
     toString: function() {

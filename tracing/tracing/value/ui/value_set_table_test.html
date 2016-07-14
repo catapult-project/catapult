@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/utils.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/ui/value_set_table.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
@@ -15,6 +17,13 @@ tr.b.unittest.testSuite(function() {
   var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
       tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
       20);
+
+  function getTableRowAtPath(table, path) {
+    var row = table.tableRows[0];
+    for (var index of path)
+      row = row.subRows[index];
+    return row;
+  }
 
   test('instantiate', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
@@ -29,11 +38,10 @@ tr.b.unittest.testSuite(function() {
       description: 'they should have sent a poet'
     });
     values.addValue(fooA);
-    fooA.diagnostics.add(
-        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
-          label: 'iteration A',
-          benchmarkStartMs: new Date().getTime(),
-    }));
+    new tr.v.d.IterationInfo({
+      label: 'iteration A',
+      benchmarkStartMs: new Date().getTime(),
+    }).addToValue(fooA);
 
     var numeric1a = TEST_NUMERIC_BUILDER.build();
     for (var i = 0; i < 1e2; ++i) {
@@ -43,11 +51,10 @@ tr.b.unittest.testSuite(function() {
       description: 'indescribable'
     });
     values.addValue(barA);
-    barA.diagnostics.add(
-        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
-          label: 'iteration A',
-          benchmarkStartMs: new Date().getTime(),
-    }));
+    new tr.v.d.IterationInfo({
+      label: 'iteration A',
+      benchmarkStartMs: new Date().getTime(),
+    }).addToValue(barA);
 
     var numeric0b = TEST_NUMERIC_BUILDER.build();
     for (var i = 0; i < 1e2; ++i) {
@@ -57,11 +64,10 @@ tr.b.unittest.testSuite(function() {
       description: 'they should have sent a poet'
     });
     values.addValue(fooB);
-    fooB.diagnostics.add(
-        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
-          label: 'iteration B',
-          benchmarkStartMs: new Date().getTime(),
-    }));
+    new tr.v.d.IterationInfo({
+      label: 'iteration B',
+      benchmarkStartMs: new Date().getTime(),
+    }).addToValue(fooB);
 
     var numeric1b = TEST_NUMERIC_BUILDER.build();
     for (var i = 0; i < 1e2; ++i) {
@@ -71,17 +77,251 @@ tr.b.unittest.testSuite(function() {
       description: 'indescribable'
     });
     values.addValue(barB);
-    barB.diagnostics.add(
-        tr.v.ITERATION_INFO_DIAGNOSTIC_NAME, new tr.v.d.IterationInfo({
-          label: 'iteration B',
-          benchmarkStartMs: new Date().getTime(),
-    }));
+    new tr.v.d.IterationInfo({
+      label: 'iteration B',
+      benchmarkStartMs: new Date().getTime(),
+    }).addToValue(barB);
 
     table.values = values;
     this.addHTMLOutput(table);
-    // XXX test multi-col
-    // XXX test selection
-    // XXX test sorting by name, valueA, valueB
+
+    var baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE');
+
+    assert.lengthOf(baseTable.tableColumns, 3);
+    assert.strictEqual('Name', baseTable.tableColumns[0].title);
+    assert.strictEqual('iteration A', baseTable.tableColumns[1].title);
+    assert.strictEqual('iteration B', baseTable.tableColumns[2].title);
+  });
+
+  test('instantiation_mergeNumerics', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+    // Add 32 NumericValues, all named 'foo', with different IterationInfos.
+    var benchmarkNames = ['bm A', 'bm B'];
+    var storyGroupingKeys0 = ['A', 'B'];
+    var storyGroupingKeys1 = ['C', 'D'];
+    var storyNames = ['story A', 'story B'];
+    var starts = [1439708400000, 1439794800000];
+    var labels = ['label A', 'label B'];
+
+    for (var benchmarkName of benchmarkNames) {
+      for (var storyGroupingKey0 of storyGroupingKeys0) {
+        for (var storyGroupingKey1 of storyGroupingKeys1) {
+          for (var storyName of storyNames) {
+            for (var startMs of starts) {
+              for (var storysetCounter = 0; storysetCounter < 2;
+                  ++storysetCounter) {
+                for (var storyCounter = 0; storyCounter < 2; ++storyCounter) {
+                  for (var label of labels) {
+                    var numeric = TEST_NUMERIC_BUILDER.build();
+                    for (var i = 0; i < 1e2; ++i)
+                      numeric.add(Math.random() * 1000);
+
+                    var value = new tr.v.NumericValue('foo', numeric);
+                    values.addValue(value);
+
+                    new tr.v.d.IterationInfo({
+                      storyGroupingKeys: {
+                        storyGroupingKey0: storyGroupingKey0,
+                        storyGroupingKey1: storyGroupingKey1
+                      },
+                      benchmarkName: benchmarkName,
+                      storyDisplayName: storyName,
+                      benchmarkStartMs: startMs,
+                      storysetRepeatCounter: storysetCounter,
+                      storyRepeatCounter: storyCounter,
+                      label: label,
+                    }).addToValue(value);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    table.values = values;
+    this.addHTMLOutput(table);
+    var baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE');
+
+    assert.lengthOf(baseTable.tableColumns, 3);
+    assert.strictEqual('Name', baseTable.tableColumns[0].title);
+    assert.strictEqual('label A', baseTable.tableColumns[1].title);
+    assert.strictEqual('label B', baseTable.tableColumns[2].title);
+
+    assert.lengthOf(baseTable.tableRows, 1);
+    assert.strictEqual('foo', baseTable.tableRows[0].name);
+    assert.lengthOf(baseTable.tableRows[0].subRows, 2);
+
+    // assertions only report their arguments, which is not enough information
+    // to diagnose problems with nested structures like tableRows -- the path to
+    // the particular row is needed. This code would be a bit simpler if each
+    // row were given a named variable, but the path to each subRow would still
+    // need to be tracked in order to provide for diagnosing.
+    var subRowPath = [];
+    var getSubRow = () => getTableRowAtPath(baseTable, subRowPath);
+
+    for (var i = 0; i < benchmarkNames.length; ++i) {
+      subRowPath.push(i);
+      assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+      assert.strictEqual(benchmarkNames[i], getSubRow().name, subRowPath);
+
+      for (var s = 0; s < storyGroupingKeys0.length; ++s) {
+        subRowPath.push(s);
+        assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+        assert.strictEqual('storyGroupingKey0: ' + storyGroupingKeys0[s],
+            getSubRow().name, subRowPath);
+
+        for (var t = 0; t < storyGroupingKeys1.length; ++t) {
+          subRowPath.push(t);
+          assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+          assert.strictEqual('storyGroupingKey1: ' + storyGroupingKeys1[t],
+              getSubRow().name, subRowPath);
+
+          for (var j = 0; j < storyNames.length; ++j) {
+            subRowPath.push(j);
+            assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+            assert.strictEqual(storyNames[j], getSubRow().name, subRowPath);
+
+            for (var k = 0; k < starts.length; ++k) {
+              subRowPath.push(k);
+              assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+              assert.strictEqual(tr.b.formatDate(new Date(starts[k])),
+                  getSubRow().name, subRowPath);
+
+              for (var l = 0; l < 2; ++l) {
+                subRowPath.push(l);
+                assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+                assert.strictEqual('storyset repeat ' + l, getSubRow().name,
+                    subRowPath);
+
+                for (var m = 0; m < 2; ++m) {
+                  subRowPath.push(m);
+                  assert.lengthOf(getSubRow().subRows, 1, subRowPath);
+                  assert.strictEqual('story repeat ' + m, getSubRow().name,
+                      subRowPath);
+
+                  subRowPath.push(0);
+                  assert.strictEqual('iteration', getSubRow().name, subRowPath);
+                  subRowPath.pop();
+
+                  subRowPath.pop();
+                }
+                subRowPath.pop();
+              }
+              subRowPath.pop();
+            }
+            subRowPath.pop();
+          }
+          subRowPath.pop();
+        }
+        subRowPath.pop();
+      }
+      subRowPath.pop();
+    }
+  });
+
+  test('instantiation_mergeScalarNumerics', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+    // Add 32 NumericValues, all named 'foo', with different IterationInfos.
+    var benchmarkNames = ['bm A', 'bm B'];
+    var storyNames = ['story A', 'story B'];
+    var starts = [1439708400000, 1439794800000];
+    var labels = ['label A', 'label B'];
+
+    for (var benchmarkName of benchmarkNames) {
+      for (var storyName of storyNames) {
+        for (var startMs of starts) {
+          for (var storysetCounter = 0; storysetCounter < 2;
+               ++storysetCounter) {
+            for (var storyCounter = 0; storyCounter < 2; ++storyCounter) {
+              for (var label of labels) {
+                var numeric = new tr.v.ScalarNumeric(
+                    tr.v.Unit.byName.timeDurationInMs, Math.random() * 1000);
+                var value = new tr.v.NumericValue('foo', numeric);
+                values.addValue(value);
+
+                new tr.v.d.IterationInfo({
+                  benchmarkName: benchmarkName,
+                  storyDisplayName: storyName,
+                  benchmarkStartMs: startMs,
+                  storysetRepeatCounter: storysetCounter,
+                  storyRepeatCounter: storyCounter,
+                  label: label,
+                }).addToValue(value);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    table.values = values;
+    this.addHTMLOutput(table);
+    var baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE');
+
+    assert.lengthOf(baseTable.tableColumns, 3);
+    assert.strictEqual('Name', baseTable.tableColumns[0].title);
+    assert.strictEqual('label A', baseTable.tableColumns[1].title);
+    assert.strictEqual('label B', baseTable.tableColumns[2].title);
+
+    assert.lengthOf(baseTable.tableRows, 1);
+    assert.strictEqual('foo', baseTable.tableRows[0].name);
+    assert.lengthOf(baseTable.tableRows[0].subRows, 2);
+
+    // assertions only report their arguments, which is not enough information
+    // to diagnose problems with nested structures like tableRows -- the path to
+    // the particular row is needed. This code would be a bit simpler if each
+    // row were given a named variable, but the path to each subRow would still
+    // need to be tracked in order to provide for diagnosing.
+    var subRowPath = [];
+    var getSubRow = () => getTableRowAtPath(baseTable, subRowPath);
+
+    for (var i = 0; i < benchmarkNames.length; ++i) {
+      subRowPath.push(i);
+      assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+      assert.strictEqual(benchmarkNames[i], getSubRow().name, subRowPath);
+
+      for (var j = 0; j < storyNames.length; ++j) {
+        subRowPath.push(j);
+        assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+        assert.strictEqual(storyNames[j], getSubRow().name, subRowPath);
+
+        for (var k = 0; k < starts.length; ++k) {
+          subRowPath.push(k);
+          assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+          assert.strictEqual(tr.b.formatDate(new Date(starts[k])),
+              getSubRow().name, subRowPath);
+
+          for (var l = 0; l < 2; ++l) {
+            subRowPath.push(l);
+            assert.lengthOf(getSubRow().subRows, 2, subRowPath);
+            assert.strictEqual('storyset repeat ' + l, getSubRow().name,
+                subRowPath);
+
+            for (var m = 0; m < 2; ++m) {
+              subRowPath.push(m);
+              assert.lengthOf(getSubRow().subRows, 1, subRowPath);
+              assert.strictEqual('story repeat ' + m, getSubRow().name,
+                  subRowPath);
+              subRowPath.push(0);
+              assert.strictEqual('iteration', getSubRow().name, subRowPath);
+              subRowPath.pop();
+              subRowPath.pop();
+            }
+            subRowPath.pop();
+          }
+          subRowPath.pop();
+        }
+        subRowPath.pop();
+      }
+      subRowPath.pop();
+    }
   });
 });
 </script>
