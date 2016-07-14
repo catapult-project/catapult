@@ -125,6 +125,8 @@ tr.exportTo('tr.ui.b', function() {
         var heightPx = bottom - this.yScale_(sum);
         bottom -= heightPx;
         stacks.push({
+          key: key,
+          value: datum[key],
           color: getColorOfKey(key),
           heightPx: heightPx,
           topPx: bottom
@@ -143,6 +145,8 @@ tr.exportTo('tr.ui.b', function() {
           continue;
         var topPx = this.yScale_(Math.max(datum[key], this.getYScaleMin_()));
         stacks.push({
+          key: key,
+          value: datum[key],
           topPx: topPx,
           heightPx: this.yScale_.range()[0] - topPx,
           color: getColorOfKey(key)
@@ -156,6 +160,7 @@ tr.exportTo('tr.ui.b', function() {
 
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
+      var chartAreaSel = d3.select(this.chartAreaElement);
       var rectsSel = dataSel.selectAll('path').data(
           [...this.seriesByKey_.keys()]);
       this.data_.forEach(function(datum, index) {
@@ -177,7 +182,35 @@ tr.exportTo('tr.ui.b', function() {
               .attr('x', leftPx)
               .attr('y', rect.topPx)
               .attr('width', widthPx)
-              .attr('height', rect.heightPx);
+              .attr('height', rect.heightPx)
+              .on('mouseenter', function() {
+                chartAreaSel.selectAll('.hover').remove();
+                chartAreaSel
+                  .append('rect')
+                  .attr('class', 'hover')
+                  .attr('fill', 'white')
+                  .attr('x', leftPx + widthPx)
+                  .attr('y', rect.topPx)
+                  .attr('width', this.margin.right)
+                  .attr('height', 30);
+                chartAreaSel
+                  .append('text')
+                  .attr('class', 'hover')
+                  .attr('fill', rect.color)
+                  .attr('x', leftPx + widthPx + 2)
+                  .attr('y', rect.topPx + 10)
+                  .text(rect.key);
+                chartAreaSel
+                  .append('text')
+                  .attr('class', 'hover')
+                  .attr('fill', rect.color)
+                  .attr('x', leftPx + widthPx + 2)
+                  .attr('y', rect.topPx + 25)
+                  .text(rect.value);
+              }.bind(this))
+              .on('mouseleave', function() {
+                chartAreaSel.selectAll('.hover').remove();
+              }.bind(this));
         }, this);
       }, this);
       rectsSel.exit().remove();
