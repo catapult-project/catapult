@@ -103,6 +103,8 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
           this.onSelectionChanged_.bind(this));
+      this.addEventListener('requestSelectionChange',
+          this.onRelatedValueSelected_.bind(this));
       this.$.search.addEventListener('keyup', this.onSearch_.bind(this));
     },
 
@@ -112,6 +114,43 @@ tr.exportTo('tr.v.ui', function() {
 
     rowMatchesSearch_: function(row) {
       return row.name.indexOf(this.$.search.value) >= 0;
+    },
+
+    onRelatedValueSelected_: function(event) {
+      var value = event.selection;
+      if (!(value instanceof tr.v.Value))
+        return;
+
+      event.stopPropagation();
+
+      var displayLabel = getDisplayLabel(value);
+      var columnIndex = -1;
+      for (var i = 0; i < this.columns_.length; ++i) {
+        if (this.columns_[i].title === displayLabel) {
+          columnIndex = i;
+          break;
+        }
+      }
+      if (columnIndex < 0)
+        return;
+
+      var hierarchy = [];
+      function search(row) {
+        if (row[displayLabel] === value) {
+          for (var hirow in hierarchy) {
+            this.$.table.setExpandedForTableRow(hirow, true);
+          }
+          this.$.table.selectedTableRow = row;
+          this.$.table.selectedColumnIndex = columnIndex;
+          return;
+        }
+        if (!row.subRows)
+          return;
+        hierarchy.push(row);
+        row.subRows.forEach(search, this);
+        hierarchy.pop(row);
+      }
+      this.rows_.forEach(search, this);
     },
 
     onSelectionChanged_: function() {
@@ -322,6 +361,7 @@ tr.exportTo('tr.v.ui', function() {
         {
           title: 'Name',
           align: tr.ui.b.TableFormat.ColumnAlignment.LEFT,
+          supportsCellSelection: false,
 
           value: function(row) {
             var nameEl = document.createElement('span');

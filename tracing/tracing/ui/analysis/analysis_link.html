@@ -109,13 +109,14 @@ found in the LICENSE file.
       this.setHighlight_();
     },
 
-    onClicked_: function() {
+    onClicked_: function(clickEvent) {
+      clickEvent.stopPropagation();
       if (!this.selection_)
         return;
 
-      var event = new tr.model.RequestSelectionChangeEvent();
-      event.selection = this.getCurrentSelection_();
-      this.dispatchEvent(event);
+      var selectionChangeEvent = new tr.model.RequestSelectionChangeEvent();
+      selectionChangeEvent.selection = this.getCurrentSelection_();
+      this.dispatchEvent(selectionChangeEvent);
     },
 
     onMouseEnter_: function() {

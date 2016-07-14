@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/polymer_utils.html">
 <link rel="import" href="/tracing/ui/base/tab_view.html">
+<link rel="import" href="/tracing/ui/brushing_state_controller.html">
 
 <polymer-element name='tr-v-ui-value-set-view'>
   <template>
@@ -17,6 +18,166 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
+  function NullBrushingStateController() {
+    this.parentController = undefined;
+  }
+
+  NullBrushingStateController.prototype = {
+    __proto__: tr.c.BrushingStateController.prototype,
+
+    dispatchChangeEvent_: function() {
+      if (this.parentController)
+        this.parentController.dispatchChangeEvent_();
+    },
+
+    get model() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.model;
+    },
+
+    get trackView() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.trackView;
+    },
+
+    get viewport() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.viewport;
+    },
+
+    get historyEnabled() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.historyEnabled;
+    },
+
+    set historyEnabled(historyEnabled) {
+      if (this.parentController)
+        this.parentController.historyEnabled = historyEnabled;
+    },
+
+    modelWillChange: function() {
+      if (this.parentController)
+        this.parentController.modelWillChange();
+    },
+
+    modelDidChange: function() {
+      if (this.parentController)
+        this.parentController.modelDidChange();
+    },
+
+    onUserInitiatedSelectionChange_: function() {
+      if (this.parentController)
+        this.parentController.onUserInitiatedSelectionChange_();
+    },
+
+    onPopState_: function(e) {
+      if (this.parentController)
+        this.parentController.onPopState_(e);
+    },
+
+    get selection() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.selection;
+    },
+
+    get findMatches() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.findMatches;
+    },
+
+    get selectionOfInterest() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.selectionOfInterest;
+    },
+
+    get currentBrushingState() {
+      if (!this.parentController)
+        return undefined;
+      return this.parentController.currentBrushingState;
+    },
+
+    set currentBrushingState(newBrushingState) {
+      if (this.parentController)
+        this.parentController.currentBrushingState = newBrushingState;
+    },
+
+    addAllEventsMatchingFilterToSelectionAsTask: function(filter, selection) {
+      if (this.parentController) {
+        this.parentController.addAllEventsMatchingFilterToSelectionAsTask(
+            filter, selection);
+      }
+    },
+
+    findTextChangedTo: function(allPossibleMatches) {
+      if (this.parentController)
+        this.parentController.findTextChangedTo(allPossibleMatches);
+    },
+
+    findFocusChangedTo: function(currentFocus) {
+      if (this.parentController)
+        this.parentController.findFocusChangedTo(currentFocus);
+    },
+
+    findTextCleared: function() {
+      if (this.parentController)
+        this.parentController.findTextCleared();
+    },
+
+    uiStateFromString: function(string) {
+      if (this.parentController)
+        this.parentController.uiStateFromString(string);
+    },
+
+    navToPosition: function(uiState, showNavLine) {
+      if (this.parentController)
+        this.parentController.navToPosition(uiState, showNavLine);
+    },
+
+    changeSelectionFromTimeline: function(selection) {
+      if (this.parentController)
+        this.parentController.changeSelectionFromTimeline(selection);
+    },
+
+    showScriptControlSelection: function(selection) {
+      if (this.parentController)
+        this.parentController.showScriptControlSelection(selection);
+    },
+
+    changeSelectionFromRequestSelectionChangeEvent: function(selection) {
+      if (this.parentController) {
+        this.parentController.changeSelectionFromRequestSelectionChangeEvent(
+            selection);
+      }
+    },
+
+    changeAnalysisViewRelatedEvents: function(eventSet) {
+      if (this.parentController && (eventSet instanceof tr.model.EventSet))
+        this.parentController.changeAnalysisViewRelatedEvents(eventSet);
+    },
+
+    changeAnalysisLinkHoveredEvents: function(eventSet) {
+      if (this.parentController && (eventSet instanceof tr.model.EventSet))
+        this.parentController.changeAnalysisLinkHoveredEvents(eventSet);
+    },
+
+    getViewSpecificBrushingState: function(viewId) {
+      if (this.parentController)
+        this.parentController.getViewSpecificBrushingState(viewId);
+    },
+
+    changeViewSpecificBrushingState: function(viewId, newState) {
+      if (this.parentController)
+        this.parentController.changeViewSpecificBrushingState(viewId, newState);
+    }
+  };
+
   var VALUE_SET_VIEW_ELEMENT_NAMES = [];
 
   var SELECTED_TAB_SETTINGS_KEY = 'tr-v-ui-value-set-view-element-name';
@@ -25,6 +186,12 @@ tr.exportTo('tr.v.ui', function() {
     ready: function() {
       this.$.container.addEventListener(
         'selected-tab-change', this.onSelectedTabChange_.bind(this));
+      this.brushingStateController = new NullBrushingStateController();
+    },
+
+    attached: function() {
+      this.brushingStateController.parentController =
+        tr.c.BrushingStateController.getControllerForElement(this.parentNode);
     },
 
     onSelectedTabChange_: function() {

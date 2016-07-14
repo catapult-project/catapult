@@ -138,6 +138,7 @@ found in the LICENSE file.
 
     set histogram(histogram) {
       this.histogram_ = histogram;
+      this.$.diagnostics.textContent = '';
       this.updateContents_();
     },
 
