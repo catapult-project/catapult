@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -9,10 +9,10 @@ found in the LICENSE file.
 
 <script>
 'use strict';
-(function() {
 
- /** Catapult.tr_ui_side_panel */
-  var tr_ui_side_panel = {
+tr.exportTo('tr.ui.behaviors', function() {
+
+  var SidePanel = {
 
     get rangeOfInterest() {
       throw new Error('Not implemented');
@@ -43,9 +43,9 @@ found in the LICENSE file.
     }
   };
 
-  if (!window.Catapult)
-    window.Catapult = {};
-  window.Catapult.tr_ui_side_panel = tr_ui_side_panel;
+  return {
+    SidePanel: SidePanel
+  };
 
-})();
+});
 </script>

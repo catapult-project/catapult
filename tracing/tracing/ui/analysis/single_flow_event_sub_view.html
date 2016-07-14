@@ -34,7 +34,7 @@ function createAnalysisLinkTo(event) {
 
 Polymer({
   is: 'tr-ui-a-single-flow-event-sub-view',
-  behaviors: [Catapult.tr_ui_a_sub_view_behavior],
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
 
   listeners: {
     'singleEventSubView.customize-rows': 'onCustomizeRows_'

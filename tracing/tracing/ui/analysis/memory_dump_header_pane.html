@@ -51,7 +51,7 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.analysis', function() {
   Polymer({
     is: 'tr-ui-a-memory-dump-header-pane',
-    behaviors: [Catapult.tr_ui_a_stacked_pane],
+    behaviors: [tr.ui.analysis.behaviors.StackedPane],
 
     created: function() {
       this.containerMemoryDumps_ = undefined;

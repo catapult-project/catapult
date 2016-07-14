@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Copyright 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -13,8 +13,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-(function() {
-  var tr_ui_a_sub_view_behavior = {
+tr.exportTo('tr.ui.analysis.behaviors', function() {
+
+  var AnalysisSubView = {
     set tabLabel(label) {
       this.setAttribute('tab-label', label);
     },
@@ -44,14 +45,14 @@ found in the LICENSE file.
     }
   };
 
-  if (!window.Catapult)
-    window.Catapult = {};
-  window.Catapult.tr_ui_a_sub_view_behavior = tr_ui_a_sub_view_behavior;
+  return {
+    AnalysisSubView: AnalysisSubView
+  };
+});
 
-  // Dummy element for testing
-  Polymer({
-    is: 'tr-ui-a-sub-view',
-    behaviors: [Catapult.tr_ui_a_sub_view_behavior]
-  });
-  }());
+// Dummy element for testing
+Polymer({
+  is: 'tr-ui-a-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView]
+});
 </script>

@@ -124,7 +124,8 @@ Polymer({
   addSubView: function(subView) {
     if (!(subView instanceof HTMLElement) ||
         !subView.behaviors ||
-        subView.behaviors.indexOf(Catapult.tr_ui_a_sub_view_behavior) < 0) {
+        subView.behaviors.indexOf(
+            tr.ui.analysis.behaviors.AnalysisSubView) < 0) {
       throw new Error('Sub-view being added must be a registered Polymer ' +
           'element with the sub-view behavior');
     }
