@@ -4,6 +4,10 @@
 
 import json
 import os
+try:
+  import psutil
+except ImportError:
+  psutil = None
 import subprocess
 from threading import Timer
 
@@ -12,6 +16,14 @@ from telemetry.internal.platform import tracing_agent
 from telemetry.timeline import trace_data
 
 class ProcessCollector(object):
+
+  def __init__(self, process_count):
+    self._process_count = process_count
+
+  def GetProcesses(self):
+    return NotImplemented
+
+class UnixProcessCollector(ProcessCollector):
 
   _SHELL_COMMAND = NotImplemented
   _START_LINE_NUMBER = 1
@@ -24,7 +36,7 @@ class ProcessCollector(object):
   }
 
   def __init__(self, process_count, binary_output=False):
-    self._process_count = process_count
+    super(UnixProcessCollector, self).__init__(process_count)
     self._binary_output = binary_output
 
   def _ParseLine(self, line):
@@ -67,27 +79,34 @@ class ProcessCollector(object):
 
 
 class WindowsProcessCollector(ProcessCollector):
-  """Class for collecting information about processes in Linux.
-  Example of Windows command output:
-  '353 57 263132 252940 597 4.55 4248 chrome'"""
+  """Class for collecting information about processes on Windows.
 
-  _SHELL_COMMAND = [
-    'c:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe',
-    'ps | sort -desc cpu']
-  _START_LINE_NUMBER = 3
-  _TOKEN_COUNT = 8
-  _TOKEN_MAP = {
-    'pCpu': 5,
-    'pid': 6,
-    'command': 7
-  }
+  Windows does not have a fast and simple command to list processes, so psutil
+  package is used instead."""
 
   def __init__(self, process_count=20):
     super(WindowsProcessCollector, self).__init__(process_count)
 
+  def GetProcesses(self):
+    data = []
+    for p in psutil.process_iter():
+      try:
+        data.append({
+          'pCpu': p.get_cpu_percent(interval=0),
+          'pMem': p.get_memory_percent(),
+          'command': p.name,
+          'pid': p.pid
+        })
+      except psutil.Error:
+        pass
+    data = sorted(data, key=lambda d: d['pCpu'],
+                  reverse=True)[0: self._process_count]
+    return data
 
-class LinuxProcessCollector(ProcessCollector):
-  """Class for collecting information about processes in Linux.
+
+class LinuxProcessCollector(UnixProcessCollector):
+  """Class for collecting information about processes on Linux.
+
   Example of Linux command output: '31887 com.app.Webkit 3.4 8.0'"""
 
   _SHELL_COMMAND = ["ps", "axo", "pid,cmd,pcpu,pmem", "--sort=-pcpu"]
@@ -97,8 +116,9 @@ class LinuxProcessCollector(ProcessCollector):
     super(LinuxProcessCollector, self).__init__(process_count)
 
 
-class MacProcessCollector(ProcessCollector):
-  """Class for collecting information about processes in Mac.
+class MacProcessCollector(UnixProcessCollector):
+  """Class for collecting information about processes on Mac.
+
   Example of Mac command output:
   '31887 com.app.Webkit 3.4 8.0'"""
 
@@ -126,8 +146,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
 
   @classmethod
   def IsSupported(cls, platform_backend):
-    # TODO(ziqi): enable supports on win (https://github.com/catapult-project/catapult/issues/2439)
-    return platform_backend.GetOSName() in ['linux', 'mac']
+    os_name = platform_backend.GetOSName()
+    return (os_name in ['mac', 'linux']) or (os_name == 'win' and psutil)
 
   def StartAgentTracing(self, config, timeout):
     assert not self._snapshot_ongoing, (
