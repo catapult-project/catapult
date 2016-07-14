@@ -31,8 +31,14 @@ found in the LICENSE file.
     #histogram {
       display: none;
     }
+    #search {
+      max-width: 20em;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
     </style>
 
+    <input id="search" placeholder="Find Value name">
     <div id="error"></div>
     <table-container>
       <tr-ui-b-table id="table"></tr-ui-b-table>
@@ -97,6 +103,15 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
           this.onSelectionChanged_.bind(this));
+      this.$.search.addEventListener('keyup', this.onSearch_.bind(this));
+    },
+
+    onSearch_: function() {
+      this.updateContents_();
+    },
+
+    rowMatchesSearch_: function(row) {
+      return row.name.indexOf(this.$.search.value) >= 0;
     },
 
     onSelectionChanged_: function() {
@@ -175,16 +190,23 @@ tr.exportTo('tr.v.ui', function() {
      */
     set values(values) {
       this.values_ = values;
+      this.findSummaryValues_();
+      this.updateContents_();
+    },
+
+    updateContents_: function() {
       this.style.width = '';
       this.$.table.style.display = '';
       this.$.error.textContent = '';
+      this.$.histogram.style.display = 'none';
 
       this.handleFailureValues_();
       if (this.$.error.textContent)
         return;
 
-      this.findSummaryValues_();
       this.buildRows_();
+
+      this.rows_ = this.rows_.filter(this.rowMatchesSearch_.bind(this));
 
       if (this.rows_.length === 0) {
         this.$.error.textContent = 'zero values';
