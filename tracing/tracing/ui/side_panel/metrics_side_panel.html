@@ -183,7 +183,10 @@ tr.exportTo('tr.ui', function() {
       try {
         this.currentMetricTypeInfo_.constructor(values, this.model_, options);
       } catch (err) {
-        console.error(err.stack);
+        var metricName = this.currentMetricTypeInfo_.constructor.name;
+        console.warn(
+            metricName + ' could not be computed for the current model:\n' +
+            err.stack);
         this.$.results.values = new tr.v.ValueSet([
             new tr.v.FailureValue('error', {
               description: err.message,
