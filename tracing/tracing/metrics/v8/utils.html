@@ -126,6 +126,29 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   /**
+   * Filters events using the |filterCallback|, then groups events by the user
+   * the name computed using the |nameCallback|, and then invokes
+   * the |processCallback| with the grouped events.
+   * @param {Function} filterCallback Takes an event and returns a boolean.
+   * @param {Function} nameCallback Takes event and returns a string.
+   * @param {Function} processCallback Takes a name, and an array of events.
+   */
+  function groupAndProcessEvents(model, filterCallback,
+                                 nameCallback, processCallback) {
+    // Map: name -> [events].
+    var nameToEvents = {};
+    for (var event of model.getDescendantEvents()) {
+      if (!filterCallback(event)) continue;
+      var name = nameCallback(event);
+      nameToEvents[name] = nameToEvents[name] || [];
+      nameToEvents[name].push(event);
+    }
+    tr.b.iterItems(nameToEvents, function(name, events) {
+      processCallback(name, events);
+    });
+  }
+
+  /**
   * Given a list of intervals, returns a new list with all overalapping
   * intervals merged into a single interval.
   */
@@ -271,6 +294,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
 
   return {
     findParent: findParent,
+    groupAndProcessEvents: groupAndProcessEvents,
     isForcedGarbageCollectionEvent: isForcedGarbageCollectionEvent,
     isGarbageCollectionEvent: isGarbageCollectionEvent,
     isIdleTask: isIdleTask,

@@ -14,23 +14,30 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.metrics.v8', function() {
-  // The time window size for mutator utilization computation.
-  // It is equal to the duration of one frame corresponding to 60 FPS rendering.
-  var TARGET_FPS = 60;
-  var MS_PER_SECOND = 1000;
-  var WINDOW_SIZE_MS = MS_PER_SECOND / TARGET_FPS;
+tr.exportTo('tr.metrics.blink', function() {
+  // Maps the Blink GC events in timeline to telemetry friendly names.
+  var BLINK_GC_EVENTS = {
+    'BlinkGCMarking': 'blink-gc-marking',
+    'ThreadState::completeSweep': 'blink-gc-complete-sweep',
+    'ThreadState::performIdleLazySweep': 'blink-gc-idle-lazy-sweep'
+  };
 
-  function gcMetric(values, model) {
-    addDurationOfTopEvents(values, model);
-    addTotalDurationOfTopEvents(values, model);
-    addDurationOfSubEvents(values, model);
-    addIdleTimesOfTopEvents(values, model);
-    addTotalIdleTimesOfTopEvents(values, model);
-    addV8ExecuteMutatorUtilization(values, model);
+  function isBlinkGarbageCollectionEvent(event) {
+    return event.title in BLINK_GC_EVENTS;
   }
 
-  tr.metrics.MetricRegistry.register(gcMetric);
+  function blinkGarbageCollectionEventName(event) {
+    return BLINK_GC_EVENTS[event.title];
+  }
+
+  function blinkGcMetric(values, model) {
+    addDurationOfTopEvents(values, model);
+    addTotalDurationOfTopEvents(values, model);
+    addIdleTimesOfTopEvents(values, model);
+    addTotalIdleTimesOfTopEvents(values, model);
+  }
+
+  tr.metrics.MetricRegistry.register(blinkGcMetric);
 
   var timeDurationInMs_smallerIsBetter =
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
@@ -57,20 +64,6 @@ tr.exportTo('tr.metrics.v8', function() {
     return n;
   }
 
-  function createNumericForSubEventTime() {
-    var n = numericBuilder.build();
-    n.customizeSummaryOptions({
-        avg: true,
-        count: false,
-        max: true,
-        min: false,
-        std: false,
-        sum: false,
-        percentile: [0.90]
-    });
-    return n;
-  }
-
   function createNumericForIdleTime() {
     var n = numericBuilder.build();
     n.customizeSummaryOptions({
@@ -90,28 +83,14 @@ tr.exportTo('tr.metrics.v8', function() {
     return new tr.v.ScalarNumeric(percentage_biggerIsBetter, percentage);
   }
 
-  function isNotForcedTopGarbageCollectionEvent(event) {
-    // We exclude garbage collection events forced by benchmark runner,
-    // because they cannot happen in real world.
-    return tr.metrics.v8.utils.isTopGarbageCollectionEvent(event) &&
-           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
-  }
-
-  function isNotForcedSubGarbageCollectionEvent(event) {
-    // We exclude garbage collection events forced by benchmark runner,
-    // because they cannot happen in real world.
-    return tr.metrics.v8.utils.isSubGarbageCollectionEvent(event) &&
-           !tr.metrics.v8.utils.isForcedGarbageCollectionEvent(event);
-  }
-
   /**
    * Example output:
-   * - v8-gc-full-mark-compactor.
+   * - blink-gc-marking.
    */
   function addDurationOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      tr.metrics.v8.utils.topGarbageCollectionEventName,
+      isBlinkGarbageCollectionEvent,
+      blinkGarbageCollectionEventName,
       function(name, events) {
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
@@ -124,12 +103,12 @@ tr.exportTo('tr.metrics.v8', function() {
 
   /**
    * Example output:
-   * - v8-gc-total
+   * - blink-gc-total
    */
   function addTotalDurationOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      event => 'v8-gc-total',
+      isBlinkGarbageCollectionEvent,
+      event => 'blink-gc-total',
       function(name, events) {
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
@@ -142,32 +121,14 @@ tr.exportTo('tr.metrics.v8', function() {
 
   /**
    * Example output:
-   * - v8-gc-full-mark-compactor-evacuate.
-   */
-  function addDurationOfSubEvents(values, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedSubGarbageCollectionEvent,
-      tr.metrics.v8.utils.subGarbageCollectionEventName,
-      function(name, events) {
-        var cpuDuration = createNumericForSubEventTime();
-        events.forEach(function(event) {
-          cpuDuration.add(event.cpuDuration);
-        });
-        values.addValue(new tr.v.NumericValue(name, cpuDuration));
-      }
-    );
-  }
-
-  /**
-   * Example output:
-   * - v8-gc-full-mark-compactor_idle_deadline_overrun,
-   * - v8-gc-full-mark-compactor_outside_idle,
-   * - v8-gc-full-mark-compactor_percentage_idle.
+   * - blink-gc-marking_idle_deadline_overrun,
+   * - blink-gc-marking_outside_idle,
+   * - blink-gc-marking_percentage_idle.
    */
   function addIdleTimesOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      tr.metrics.v8.utils.topGarbageCollectionEventName,
+      isBlinkGarbageCollectionEvent,
+      blinkGarbageCollectionEventName,
       function(name, events) {
         addIdleTimes(values, model, name, events);
       }
@@ -176,14 +137,14 @@ tr.exportTo('tr.metrics.v8', function() {
 
   /**
    * Example output:
-   * - v8-gc-total_idle_deadline_overrun,
-   * - v8-gc-total_outside_idle,
-   * - v8-gc-total_percentage_idle.
+   * - blink-gc-total_idle_deadline_overrun,
+   * - blink-gc-total_outside_idle,
+   * - blink-gc-total_percentage_idle.
    */
   function addTotalIdleTimesOfTopEvents(values, model) {
     tr.metrics.v8.utils.groupAndProcessEvents(model,
-      isNotForcedTopGarbageCollectionEvent,
-      event => 'v8-gc-total',
+      isBlinkGarbageCollectionEvent,
+      event => 'blink-gc-total',
       function(name, events) {
         addIdleTimes(values, model, name, events);
       }
@@ -230,48 +191,8 @@ tr.exportTo('tr.metrics.v8', function() {
         name + '_percentage_idle', percentage));
   }
 
-  function addV8ExecuteMutatorUtilization(values, model) {
-    tr.metrics.v8.utils.groupAndProcessEvents(model,
-        tr.metrics.v8.utils.isTopV8ExecuteEvent,
-        event => 'v8-execute',
-        function(name, events) {
-          events.sort((a, b) => a.start - b.start);
-          var time = 0;
-          var pauses = [];
-          // Glue together the v8.execute events and adjust the GC pause
-          // times accordingly.
-          for (var topEvent of events) {
-            for (var e of topEvent.enumerateAllDescendents()) {
-              if (isNotForcedTopGarbageCollectionEvent(e)) {
-                pauses.push({ start: e.start - topEvent.start + time,
-                              end: e.end - topEvent.start + time });
-              }
-            }
-            time += topEvent.duration;
-          }
-          // Now we have one big v8.execute interval from 0 to |time| and
-          // a list of GC pauses.
-          var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
-              0, time, WINDOW_SIZE_MS, pauses);
-          [0.90, 0.95, 0.99].forEach(function(percent) {
-            var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
-                mutatorUtilization.percentile(1.0 - percent) * 100);
-            values.addValue(new tr.v.NumericValue(
-                'v8-execute-mutator-utilization_pct_0' +
-                percent * 100,
-                value));
-          });
-          var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
-              mutatorUtilization.min);
-          values.addValue(new tr.v.NumericValue(
-              'v8-execute-mutator-utilization_min', value));
-        }
-    );
-  }
-
   return {
-    gcMetric: gcMetric,
-    WINDOW_SIZE_MS: WINDOW_SIZE_MS // For testing purposes only.
+    blinkGcMetric: blinkGcMetric
   };
 });
 </script>
