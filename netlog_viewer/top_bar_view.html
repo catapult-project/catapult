@@ -7,7 +7,6 @@ found in the LICENSE file.
 <!-- Status bar at top of screen -->
 
 <style>
-
 #top-bar-view {
   -webkit-align-items: center;
   border-bottom: 1px solid gray;
@@ -19,7 +18,14 @@ found in the LICENSE file.
 
 <div id=top-bar-view>
   <div style="-webkit-flex-grow: 1">
-    <include src="status_view.html">
+    <!-- Status bar at top of screen -->
+    <div id=loaded-status-view>
+      <span id=loaded-status-view-dump-file-name></span>
+
+      <!-- TODO(rayraymond): Add any extra tools here -->
+      <select id=capture-status-view-actions>
+      </select>
+    </div>
   </div>
 </div>
 

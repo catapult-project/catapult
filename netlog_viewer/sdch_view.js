@@ -50,8 +50,9 @@ var SdchView = (function() {
     onSdchInfoChanged: function(sdchInfo) {
       if (!sdchInfo || typeof(sdchInfo.sdch_enabled) === 'undefined')
         return false;
-      var input = new JsEvalContext(sdchInfo);
-      jstProcess(input, $(SdchView.MAIN_BOX_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext(sdchInfo);
+      // jstProcess(input, $(SdchView.MAIN_BOX_ID));
       return true;
     },
   };

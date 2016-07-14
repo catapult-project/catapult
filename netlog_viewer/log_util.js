@@ -161,10 +161,12 @@ log_util = (function() {
     if (typeof(logDump.tabData) != 'object')
       logDump.tabData = {};
 
-    if (logDump.constants.logFormatVersion != Constants.logFormatVersion) {
+    var kSupportedLogFormatVersion = 1;
+
+    if (logDump.constants.logFormatVersion != kSupportedLogFormatVersion) {
       return 'Unable to load different log version.' +
              ' Found ' + logDump.constants.logFormatVersion +
-             ', Expected ' + Constants.logFormatVersion;
+             ', Expected ' + kSupportedLogFormatVersion;
     }
 
     g_browser.receivedConstants(logDump.constants);

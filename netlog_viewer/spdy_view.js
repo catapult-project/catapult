@@ -52,8 +52,9 @@ var SpdyView = (function() {
     onSpdySessionInfoChanged: function(spdySessionInfo) {
       if (!spdySessionInfo)
         return false;
-      var input = new JsEvalContext({ spdySessionInfo: spdySessionInfo });
-      jstProcess(input, $(SpdyView.SESSION_INFO_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext({ spdySessionInfo: spdySessionInfo });
+      // jstProcess(input, $(SpdyView.SESSION_INFO_ID));
       return true;
     },
 
@@ -63,8 +64,9 @@ var SpdyView = (function() {
     onSpdyStatusChanged: function(spdyStatus) {
       if (!spdyStatus)
         return false;
-      var input = new JsEvalContext(spdyStatus);
-      jstProcess(input, $(SpdyView.STATUS_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext(spdyStatus);
+      // jstProcess(input, $(SpdyView.STATUS_ID));
       return true;
     }
   };

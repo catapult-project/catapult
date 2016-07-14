@@ -51,8 +51,9 @@ var AltSvcView = (function() {
     onAltSvcMappingsChanged: function(altSvcMappings) {
       if (!altSvcMappings)
         return false;
-      var input = new JsEvalContext({altSvcMappings: altSvcMappings});
-      jstProcess(input, $(AltSvcView.ALTERNATE_PROTOCOL_MAPPINGS_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext({altSvcMappings: altSvcMappings});
+      // jstProcess(input, $(AltSvcView.ALTERNATE_PROTOCOL_MAPPINGS_ID));
       return true;
     }
   };

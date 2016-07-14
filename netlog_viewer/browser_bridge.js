@@ -99,7 +99,12 @@ var BrowserBridge = (function() {
      * Wraps |chrome.send|.  Doesn't send anything when disabled.
      */
     send: function(value1, value2) {
-      if (!this.disabled_) {
+      if (console && console.warn) {
+        console.warn('TODO: Called deprecated BrowserBridge.send');
+      }
+      return;
+
+      /*if (!this.disabled_) {
         if (arguments.length == 1) {
           chrome.send(value1);
         } else if (arguments.length == 2) {
@@ -107,7 +112,7 @@ var BrowserBridge = (function() {
         } else {
           throw 'Unsupported number of arguments.';
         }
-      }
+      }*/
     },
 
     sendReady: function() {

@@ -45,7 +45,18 @@ var ImportView = (function() {
   ImportView.LOADED_DIV_ID = 'import-view-loaded-div';
   ImportView.LOAD_LOG_FILE_ID = 'import-view-load-log-file';
   ImportView.LOAD_STATUS_TEXT_ID = 'import-view-load-status-text';
-  // Used in tests.
+
+  // IDs for HTML elements pertaining to log dump information.
+  ImportView.LOADED_INFO_NUMERIC_DATE_ID = 'import-view-numericDate';
+  ImportView.LOADED_INFO_NAME_ID = 'import-view-name';
+  ImportView.LOADED_INFO_VERSION_ID = 'import-view-version';
+  ImportView.LOADED_INFO_OFFICIAL_ID = 'import-view-official';
+  ImportView.LOADED_INFO_CL_ID = 'import-view-cl';
+  ImportView.LOADED_INFO_VERSION_MOD_ID = 'import-view-version-mod';
+  ImportView.LOADED_INFO_OS_TYPE_ID = 'import-view-os-type';
+  ImportView.LOADED_INFO_COMMAND_LINE_ID = 'import-view-command-line';
+  ImportView.LOADED_INFO_ACTIVE_FIELD_TRIAL_GROUPS_ID =
+      'import-view-activeFieldTrialGroups';
   ImportView.LOADED_INFO_USER_COMMENTS_ID = 'import-view-user-comments';
 
   cr.addSingletonGetter(ImportView);
@@ -60,8 +71,31 @@ var ImportView = (function() {
      * still be visible.
      */
     onLoadLogFinish: function(polledData, unused, logDump) {
-      var input = new JsEvalContext(logDump);
-      jstProcess(input, $(ImportView.LOADED_DIV_ID));
+      $(ImportView.LOADED_INFO_NUMERIC_DATE_ID).textContent =
+          timeutil.dateToString(new Date(Constants.clientInfo.numericDate));
+      $(ImportView.LOADED_INFO_NAME_ID).textContent =
+          Constants.clientInfo.name;
+      $(ImportView.LOADED_INFO_VERSION_ID).textContent =
+          Constants.clientInfo.version;
+      $(ImportView.LOADED_INFO_OFFICIAL_ID).textContent =
+          Constants.clientInfo.official;
+      $(ImportView.LOADED_INFO_CL_ID).textContent =
+          Constants.clientInfo.cl;
+      $(ImportView.LOADED_INFO_VERSION_MOD_ID).textContent =
+          Constants.clientInfo.version_mod;
+      $(ImportView.LOADED_INFO_OS_TYPE_ID).textContent =
+          Constants.clientInfo.os_type;
+      $(ImportView.LOADED_INFO_COMMAND_LINE_ID).textContent =
+          Constants.clientInfo.command_line;
+      $(ImportView.LOADED_INFO_ACTIVE_FIELD_TRIAL_GROUPS_ID).textContent =
+          Constants.activeFieldTrialGroups;
+
+      if (logDump.userComments != undefined) {
+        $(ImportView.LOADED_INFO_USER_COMMENTS_ID).textContent =
+            logDump.userComments;
+      } else {
+        $(ImportView.LOADED_INFO_USER_COMMENTS_ID).textContent = '';
+      }
 
       setNodeDisplay(this.loadedDiv_, true);
       return true;

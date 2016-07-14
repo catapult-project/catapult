@@ -48,8 +48,9 @@ var QuicView = (function() {
     onQuicInfoChanged: function(quicInfo) {
       if (!quicInfo)
         return false;
-      var input = new JsEvalContext(quicInfo);
-      jstProcess(input, $(QuicView.MAIN_BOX_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext(quicInfo);
+      // jstProcess(input, $(QuicView.MAIN_BOX_ID));
       return true;
     },
   };

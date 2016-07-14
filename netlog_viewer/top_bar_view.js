@@ -23,9 +23,7 @@ var TopBarView = (function() {
     superClass.call(this, TopBarView.BOX_ID);
 
     this.nameToSubView_ = {
-      capture: new CaptureStatusView(),
-      loaded: new LoadedStatusView(),
-      halted: new HaltedStatusView()
+      loaded: new LoadedStatusView()
     };
 
     this.activeSubView_ = null;

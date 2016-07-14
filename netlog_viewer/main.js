@@ -85,9 +85,14 @@ var MainView = (function() {
     // Select the initial view based on the current URL.
     window.onhashchange();
 
-    // Tell the browser that we are ready to start receiving log events.
-    this.topBarView_.switchToSubView('capture');
-    g_browser.sendReady();
+    // No log file loaded yet so set the status bar to that state.
+    this.topBarView_.switchToSubView('loaded').setFileName(
+        'No log to display.');
+
+    // TODO(rayraymond): Follow-up is to completely remove all code from
+    // g_browser that interacts with sending/receiving messages from
+    // browser.
+    g_browser.disable();
   }
 
   cr.addSingletonGetter(MainView);
@@ -126,16 +131,9 @@ var MainView = (function() {
       this.stopCapturing();
       if (opt_fileName != undefined) {
         // If there's a file name, a log file was loaded, so swap out the status
-        // bar to indicate we're no longer capturing events.  Also disable
-        // hiding cookies, so if the log dump has them, they'll be displayed.
+        // bar to indicate we're no longer capturing events.
         this.topBarView_.switchToSubView('loaded').setFileName(opt_fileName);
-        $(ExportView.PRIVACY_STRIPPING_CHECKBOX_ID).checked = false;
         SourceTracker.getInstance().setPrivacyStripping(false);
-      } else {
-        // Otherwise, the "Stop Capturing" button was presumably pressed.
-        // Don't disable hiding cookies, so created log dumps won't have them,
-        // unless the user toggles the option.
-        this.topBarView_.switchToSubView('halted');
       }
     },
 
@@ -180,8 +178,6 @@ var MainView = (function() {
       // Populate the main tabs.  Even tabs that don't contain information for
       // the running OS should be created, so they can load log dumps from other
       // OSes.
-      addTab(CaptureView);
-      addTab(ExportView);
       addTab(ImportView);
       addTab(ProxyView);
       addTab(EventsView);
@@ -193,10 +189,10 @@ var MainView = (function() {
       addTab(QuicView);
       addTab(SdchView);
       addTab(HttpCacheView);
-      addTab(ModulesView);
-      addTab(HSTSView);
-      addTab(BandwidthView);
-      addTab(PrerenderView);
+      // TODO(rayraymond): Re-enable, Modules, Bandwidth, and Prerender tabs.
+      // addTab(ModulesView);
+      // addTab(BandwidthView);
+      // addTab(PrerenderView);
       addTab(CrosView);
 
       this.tabSwitcher_.showTabLink(CrosView.TAB_ID, cr.isChromeOS);
@@ -229,8 +225,8 @@ var MainView = (function() {
         return;
 
       if (!parsed.tabHash) {
-        // Default to the export tab.
-        parsed.tabHash = ExportView.TAB_HASH;
+        // Default to the import tab.
+        parsed.tabHash = ImportView.TAB_HASH;
       }
 
       var tabId = this.hashToTabId_[parsed.tabHash];

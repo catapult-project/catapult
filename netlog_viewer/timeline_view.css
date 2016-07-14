@@ -10,7 +10,7 @@
 
 #timeline-view-selection-toggle {
   background-color: #fff;
-  background-image: url(chrome://resources/images/select.png);
+  background-image: url(select.png);
   border: none;
   height: 8px;
   padding: none;
