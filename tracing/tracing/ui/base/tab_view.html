@@ -59,10 +59,10 @@ and limit users to having one option selected at a time.
       <label id=selection_description>[[label_]]</label>
       <template is=dom-repeat items=[[subViews_]]>
         <tab>
-          <input type=radio name=tabs id$=[[item.tagName]]
+          <input type=radio name=tabs id$=[[computeRadioId_(item)]]
               on-change='onTabChanged_'
               checked$='[[isChecked_(item)]]' />
-          <label for$=[[item.tagName]]>[[item.tabLabel]]</label>
+          <label for$=[[computeRadioId_(item)]]>[[item.tabLabel]]</label>
         </tab>
       </template>
     </div>
@@ -142,6 +142,16 @@ Polymer({
 
   isChecked_: function(subView) {
     return this.selectedSubView_ === subView;
+  },
+
+  computeRadioId_: function(subView) {
+    // We can't just use the tagName as the radio's ID because there are
+    // instances where a single subview type can handle multiple event types,
+    // and thus might be present multiple times in a single tab view. In order
+    // to avoid the case where we might have two tabs with the same ID, we
+    // uniquify this ID by appending the tab's label with all spaces replaced
+    // by dashes (because spaces aren't allowed in HTML IDs).
+    return subView.tagName + '-' + subView.tabLabel.replace(/ /g, '-');
   }
 });
 </script>
