@@ -38,28 +38,57 @@ tr.exportTo('tr.model', function() {
     return value;
   }
 
+  function getOption(opt_options, key, opt_defaultValue) {
+    if (opt_options && (key in opt_options))
+      return opt_options[key];
+    else
+      return opt_defaultValue;
+  }
+
   function MemoryDumpTestUtils() {
     throw new Error('Static class');
   }
 
   MemoryDumpTestUtils.SIZE_DELTA = 0.0001;
 
-  MemoryDumpTestUtils.addGlobalMemoryDump = function(
-      model, timestamp, opt_levelOfDetail, opt_duration) {
+  /**
+   * Create a new global memory dump and add it to a model.
+   *
+   * @param {!tr.Model} model The trace model to which the new global dump
+   *     should be added.
+   * @param {!{
+   *     ts: (number|undefined),
+   *     duration: (number|undefined),
+   *     levelOfDetail: (!tr.model.ContainerMemoryDump.LevelOfDetail|undefined)
+   * }=} opt_options Options for creating the new global dump.
+   * @return {!tr.model.GlobalMemoryDump} The newly created global memory dump.
+   */
+  MemoryDumpTestUtils.addGlobalMemoryDump = function(model, opt_options) {
+    var timestamp = getOption(opt_options, 'ts', 0);
     var gmd = new GlobalMemoryDump(model, timestamp);
-    gmd.levelOfDetail = opt_levelOfDetail === undefined ?
-        LIGHT : opt_levelOfDetail;
-    if (opt_duration)
-      gmd.duration = opt_duration;
+    gmd.levelOfDetail = getOption(opt_options, 'levelOfDetail', LIGHT);
+    gmd.duration = getOption(opt_options, 'duration', 0);
     model.globalMemoryDumps.push(gmd);
     return gmd;
   };
 
-  MemoryDumpTestUtils.addProcessMemoryDump = function(
-      gmd, process, opt_timestamp) {
-    if (opt_timestamp === undefined)
-      opt_timestamp = gmd.start;
-    var pmd = new ProcessMemoryDump(gmd, process, opt_timestamp);
+  /**
+   * Create a new process memory dump and add it to a global memory dump.
+   *
+   * @param {!tr.model.GlobalMemoryDump} gmd The global dump to which the new
+   *     process dump should be added.
+   * @param {!tr.model.Process} pmd The process associated with the process
+   *     dump.
+   * @param {!{
+   *     ts: (number|undefined)
+   * }=} opt_options Options for creating the new process dump.
+   * @return {!tr.model.ProcessMemoryDump} The newly created process memory
+   *     dump.
+   */
+  MemoryDumpTestUtils.addProcessMemoryDump =
+      function(gmd, process, opt_options) {
+    var timestamp = getOption(opt_options, 'ts', gmd.start);
+    var pmd = new ProcessMemoryDump(gmd, process, timestamp);
     process.memoryDumps.push(pmd);
     if (process.pid in gmd.processMemoryDumps) {
       // Test sanity check.
@@ -70,22 +99,52 @@ tr.exportTo('tr.model', function() {
     return pmd;
   };
 
+  /**
+   * Create a new memory allocator dump.
+   *
+   * @param {!tr.model.ContainerMemoryDump} containerDump The container dump
+   *     associated with the new allocator dump.
+   * @param {string} fullName The full name of the new allocator dump
+   *     (including ancestors).
+   * @param {!{
+   *     guid: (number|undefined),
+   *     numerics: (!Object<string, (number|!tr.v.ScalarNumeric)>|undefined)
+   * }=} opt_options Options for creating the new allocator dump.
+   * @return {!tr.model.MemoryAllocatorDump} The newly created memory allocator
+   *     dump.
+   */
   MemoryDumpTestUtils.newAllocatorDump = function(
-      containerDump, fullName, opt_numerics, opt_guid) {
-    var dump = new MemoryAllocatorDump(containerDump, fullName, opt_guid);
-    if (opt_numerics !== undefined) {
-      tr.b.iterItems(opt_numerics, function(numericName, value) {
+      containerDump, fullName, opt_options) {
+    var dump = new MemoryAllocatorDump(containerDump, fullName,
+        getOption(opt_options, 'guid'));
+    var numerics = getOption(opt_options, 'numerics');
+    if (numerics) {
+      tr.b.iterItems(numerics, function(numericName, value) {
         dump.addNumeric(numericName, castToScalarNumeric(value));
       });
     }
     return dump;
   };
 
-  MemoryDumpTestUtils.addChildDump =
-      function(parentDump, name, opt_numerics, opt_guid) {
+  /**
+   * Create a new child memory allocator dump and add it to a parent memory
+   * allocator dump.
+   *
+   * @param {!tr.model.MemoryAllocatorDump} parentDump The parent allocator
+   *     dump.
+   * @param {string} name The name of the child allocator dump (excluding
+   *     ancestors).
+   * @param {!{
+   *     guid: (number|undefined),
+   *     numerics: (!Object<string, (number|!tr.v.ScalarNumeric)>|undefined)
+   * }=} opt_options Options for creating the child allocator dump.
+   * @return {!tr.model.MemoryAllocatorDump} The newly created child memory
+   *     allocator dump.
+   */
+  MemoryDumpTestUtils.addChildDump = function(parentDump, name, opt_options) {
     var childDump = MemoryDumpTestUtils.newAllocatorDump(
         parentDump.containerMemoryDump, parentDump.fullName + '/' + name,
-        opt_numerics, opt_guid);
+        opt_options);
     childDump.parent = parentDump;
     parentDump.children.push(childDump);
     return childDump;

@@ -50,11 +50,11 @@ tr.exportTo('tr.ui.analysis', function() {
       // ======================================================================
       //   First timestamp.
       // ======================================================================
-      var gmd1 = addGlobalMemoryDump(model, 42);
+      var gmd1 = addGlobalMemoryDump(model, {ts: 42});
 
       // Totals and VM regions.
-      var pmd1A = addProcessMemoryDump(gmd1, pA, 41);
-      pmd1A.totals = { residentBytes: 31457280 /* 30 MiB */ };
+      var pmd1A = addProcessMemoryDump(gmd1, pA, {ts: 41});
+      pmd1A.totals = {residentBytes: 31457280 /* 30 MiB */};
       pmd1A.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           startAddress: 1024,
@@ -70,7 +70,7 @@ tr.exportTo('tr.ui.analysis', function() {
       ]);
 
       // Everything.
-      var pmd1B = addProcessMemoryDump(gmd1, pB, 42);
+      var pmd1B = addProcessMemoryDump(gmd1, pB, {ts: 42});
       pmd1B.totals = {
         residentBytes: 20971520, /* 20 MiB */
         peakResidentBytes: 41943040, /* 40 MiB */
@@ -105,27 +105,28 @@ tr.exportTo('tr.ui.analysis', function() {
         })
       ]);
       pmd1B.memoryAllocatorDumps = [
-        newAllocatorDump(pmd1B, 'malloc', { size: 3145728 /* 3 MiB */ }),
-        newAllocatorDump(pmd1B, 'v8', { size: 5242880 /* 5 MiB */ }),
-        newAllocatorDump(pmd1B, 'tracing', {
+        newAllocatorDump(pmd1B, 'malloc',
+            {numerics: {size: 3145728 /* 3 MiB */}}),
+        newAllocatorDump(pmd1B, 'v8', {numerics: {size: 5242880 /* 5 MiB */}}),
+        newAllocatorDump(pmd1B, 'tracing', {numerics: {
           size: 1048576 /* 1 MiB */,
           resident_size: 1572864 /* 1.5 MiB */
-        })
+        }})
       ];
 
       // Allocator dumps only.
-      var pmd1C = addProcessMemoryDump(gmd1, pC, 43);
+      var pmd1C = addProcessMemoryDump(gmd1, pC, {ts: 43});
       pmd1C.memoryAllocatorDumps = (function() {
-        var oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {
+        var oilpanDump = newAllocatorDump(pmd1C, 'oilpan', {numerics: {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
           objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 2015)
-        });
-        var v8Dump = newAllocatorDump(pmd1C, 'v8', {
+        }});
+        var v8Dump = newAllocatorDump(pmd1C, 'v8', {numerics: {
           size: 1073741824 /* 1 GiB */,
           inner_size: 2097152 /* 2 MiB */,
           objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
-        });
+        }});
 
         addOwnershipLink(v8Dump, oilpanDump);
 
@@ -146,11 +147,11 @@ tr.exportTo('tr.ui.analysis', function() {
       // ======================================================================
       //   Second timestamp.
       // ======================================================================
-      var gmd2 = addGlobalMemoryDump(model, 68);
+      var gmd2 = addGlobalMemoryDump(model, {ts: 68});
 
       // Everything.
-      var pmd2A = addProcessMemoryDump(gmd2, pA, 67);
-      pmd2A.totals = { residentBytes: 32505856 /* 31 MiB */ };
+      var pmd2A = addProcessMemoryDump(gmd2, pA, {ts: 67});
+      pmd2A.totals = {residentBytes: 32505856 /* 31 MiB */};
       pmd2A.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           startAddress: 1024,
@@ -176,15 +177,17 @@ tr.exportTo('tr.ui.analysis', function() {
         })
       ]);
       pmd2A.memoryAllocatorDumps = [
-        newAllocatorDump(pmd2A, 'malloc', { size: 9437184 /* 9 MiB */ }),
-        newAllocatorDump(pmd2A, 'tracing', {
+        newAllocatorDump(pmd2A, 'malloc', {numerics: {
+          size: 9437184 /* 9 MiB */
+        }}),
+        newAllocatorDump(pmd2A, 'tracing', {numerics: {
           size: 2097152 /* 2 MiB */,
           resident_size: 2621440 /* 2.5 MiB */
-        })
+        }})
       ];
 
       // Totals and allocator dumps only.
-      var pmd2B = addProcessMemoryDump(gmd2, pB, 69);
+      var pmd2B = addProcessMemoryDump(gmd2, pB, {ts: 69});
       pmd2B.totals = {
         residentBytes: 19922944, /* 19 MiB */
         peakResidentBytes: 41943040, /* 40 MiB */
@@ -194,19 +197,27 @@ tr.exportTo('tr.ui.analysis', function() {
         }
       };
       pmd2B.memoryAllocatorDumps = [
-        newAllocatorDump(pmd2B, 'malloc', { size: 2621440 /* 2.5 MiB */ }),
-        newAllocatorDump(pmd2B, 'v8', { size: 5242880 /* 5 MiB */ }),
-        newAllocatorDump(pmd2B, 'blink', { size: 7340032 /* 7 MiB */ }),
-        newAllocatorDump(pmd2B, 'oilpan', { size: 1 }),
-        newAllocatorDump(pmd2B, 'tracing', {
+        newAllocatorDump(pmd2B, 'malloc', {numerics: {
+          size: 2621440 /* 2.5 MiB */
+        }}),
+        newAllocatorDump(pmd2B, 'v8', {numerics: {
+          size: 5242880 /* 5 MiB */
+        }}),
+        newAllocatorDump(pmd2B, 'blink', {numerics: {
+          size: 7340032 /* 7 MiB */
+        }}),
+        newAllocatorDump(pmd2B, 'oilpan', {numerics: {size: 1}}),
+        newAllocatorDump(pmd2B, 'tracing', {numerics: {
           size: 1572864 /* 1.5 MiB */,
           resident_size: 2097152 /* 2 MiB */
-        }),
-        newAllocatorDump(pmd2B, 'gpu', { memtrack_pss: 524288 /* 512 KiB */ })
+        }}),
+        newAllocatorDump(pmd2B, 'gpu', {numerics: {
+          memtrack_pss: 524288 /* 512 KiB */
+        }})
       ];
 
       // Resettable peak total size only.
-      var pmd2D = addProcessMemoryDump(gmd2, pD, 71);
+      var pmd2D = addProcessMemoryDump(gmd2, pD, {ts: 71});
       pmd2D.totals = {
         peakResidentBytes: 17825792, /* 17 MiB */
         arePeakResidentBytesResettable: true
@@ -215,10 +226,10 @@ tr.exportTo('tr.ui.analysis', function() {
       // ======================================================================
       //   Third timestamp.
       // ======================================================================
-      var gmd3 = addGlobalMemoryDump(model, 100);
+      var gmd3 = addGlobalMemoryDump(model, {ts: 100});
 
       // Everything.
-      var pmd3B = addProcessMemoryDump(gmd3, pB, 102);
+      var pmd3B = addProcessMemoryDump(gmd3, pB, {ts: 102});
       pmd3B.totals = {
         residentBytes: 18874368, /* 18 MiB */
         peakResidentBytes: 44040192, /* 42 MiB */
@@ -242,32 +253,38 @@ tr.exportTo('tr.ui.analysis', function() {
         })
       ]);
       pmd3B.memoryAllocatorDumps = [
-        newAllocatorDump(pmd3B, 'malloc', {size: 2883584 /* 2.75 MiB */ }),
-        newAllocatorDump(pmd3B, 'v8', { size: 5767168 /* 5.5 MiB */ }),
-        newAllocatorDump(pmd3B, 'blink', { size: 6291456 /* 7 MiB */ }),
-        newAllocatorDump(pmd3B, 'tracing', {
+        newAllocatorDump(pmd3B, 'malloc', {numerics: {
+          size: 2883584 /* 2.75 MiB */
+        }}),
+        newAllocatorDump(pmd3B, 'v8', {numerics: {
+          size: 5767168 /* 5.5 MiB */
+        }}),
+        newAllocatorDump(pmd3B, 'blink', {numerics: {
+          size: 6291456 /* 7 MiB */
+        }}),
+        newAllocatorDump(pmd3B, 'tracing', {numerics: {
           size: 2097152 /* 2 MiB */,
           resident_size: 3145728 /* 3 MiB */
-        }),
-        newAllocatorDump(pmd3C, 'gpu', {
+        }}),
+        newAllocatorDump(pmd3C, 'gpu', {numerics: {
           size: 1048576 /* 1 MiB */,
           memtrack_pss: 786432 /* 768 KiB */
-        })
+        }})
       ];
 
       // Allocator dumps only.
-      var pmd3C = addProcessMemoryDump(gmd3, pC, 100);
+      var pmd3C = addProcessMemoryDump(gmd3, pC, {ts: 100});
       pmd3C.memoryAllocatorDumps = (function() {
-        var oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {
+        var oilpanDump = newAllocatorDump(pmd3C, 'oilpan', {numerics: {
           size: 3221225472 /* 3 GiB */,
           inner_size: 5242880 /* 5 MiB */,
           objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 2015)
-        });
-        var v8Dump = newAllocatorDump(pmd3C, 'v8', {
+        }});
+        var v8Dump = newAllocatorDump(pmd3C, 'v8', {numerics: {
           size: 2147483648 /* 2 GiB */,
           inner_size: 2097152 /* 2 MiB */,
           objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 204)
-        });
+        }});
 
         addOwnershipLink(v8Dump, oilpanDump);
 
@@ -291,7 +308,7 @@ tr.exportTo('tr.ui.analysis', function() {
       };
 
       // Resettable peak total size only.
-      var pmd3D = addProcessMemoryDump(gmd3, pD, 99);
+      var pmd3D = addProcessMemoryDump(gmd3, pD, {ts: 99});
       pmd3D.totals = {
         peakResidentBytes: 17825792, /* 17 MiB */
         arePeakResidentBytesResettable: true

@@ -168,9 +168,9 @@ tr.b.unittest.testSuite(function() {
         var process = model.getOrCreateProcess(1);
         fieldAndDumpMask.forEach(function(mask, i) {
           var timestamp = 10 + i;
-          var gmd = addGlobalMemoryDump(model, timestamp);
+          var gmd = addGlobalMemoryDump(model, {ts: timestamp});
           if (mask & DUMP) {
-            var pmd = addProcessMemoryDump(gmd, process, timestamp);
+            var pmd = addProcessMemoryDump(gmd, process, {ts: timestamp});
             dumpCreatedCallback(pmd, mask);
           }
         });

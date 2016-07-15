@@ -96,31 +96,31 @@ tr.b.unittest.testSuite(function() {
     var dump2 = createProcessMemoryDump(2, m);
     dump2.vmRegions = createClassificationNode();
     dump2.memoryAllocatorDumps = [
-      newAllocatorDump(dump2, 'oilpan', {
+      newAllocatorDump(dump2, 'oilpan', {numerics: {
         size: 1024,
         objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
         inner_size: 768
-      }),
-      newAllocatorDump(dump2, 'v8', {
+      }}),
+      newAllocatorDump(dump2, 'v8', {numerics: {
         size: 2048,
         objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 15),
         inner_size: 1999
-      })
+      }})
     ];
 
     // A dump with malloc and V8 allocator dumps.
     var dump3 = createProcessMemoryDump(3, m);
     dump3.memoryAllocatorDumps = [
-      newAllocatorDump(dump3, 'malloc', {
+      newAllocatorDump(dump3, 'malloc', {numerics: {
         size: 1024,
         objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
         inner_size: 768
-      }),
-      newAllocatorDump(dump3, 'v8', {
+      }}),
+      newAllocatorDump(dump3, 'v8', {numerics: {
         size: 2048,
         objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 15),
         inner_size: 1999
-      })
+      }})
     ];
 
     // A dump with VM regions.
@@ -148,8 +148,8 @@ tr.b.unittest.testSuite(function() {
   test('checkDiscountTracingOverhead_undefinedFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'v8', { size: 2048 }),
-        newAllocatorDump(pmd, 'tracing', { size: 1024 })
+        newAllocatorDump(pmd, 'v8', {numerics: {size: 2048}}),
+        newAllocatorDump(pmd, 'tracing', {numerics: {size: 1024}})
       ];
     });
 
@@ -158,31 +158,32 @@ tr.b.unittest.testSuite(function() {
 
     var v8Dump = pmd.getMemoryAllocatorDumpByFullName('v8');
     checkDumpNumericsAndDiagnostics(v8Dump, {
-      'size': 2048,
-      'effective_size': 2048
+      size: 2048,
+      effective_size: 2048
     }, {});
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
-      'size': 1024,
-      'effective_size': 1024
+      size: 1024,
+      effective_size: 1024
     }, {});
   });
 
   test('checkDiscountTracingOverhead_definedFields', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.totals = { residentBytes: 10240 };
+      pmd.totals = {residentBytes: 10240};
       pmd.vmRegions = createClassificationNode(6000, {
         privateDirtyResident: 4096,
         proportionalResident: 5120,
         swapped: 1536
       });
 
-      var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
-      addChildDump(mallocDump, 'allocated_objects', { size: 2560 });
+      var mallocDump = newAllocatorDump(pmd, 'malloc',
+          {numerics: {size: 3072}});
+      addChildDump(mallocDump, 'allocated_objects', {numerics: {size: 2560}});
 
       var tracingDump = newAllocatorDump(
-          pmd, 'tracing', { size: 1024, resident_size: 1000 });
+          pmd, 'tracing', {numerics: {size: 1024, resident_size: 1000}});
 
       pmd.memoryAllocatorDumps = [mallocDump, tracingDump];
     });
@@ -220,8 +221,8 @@ tr.b.unittest.testSuite(function() {
 
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     checkDumpNumericsAndDiagnostics(mallocDump, {
-      'size': 3072,
-      'effective_size': 2048
+      size: 3072,
+      effective_size: 2048
     }, {});
     assert.lengthOf(
         mallocDump.children, 2 /* 'allocated_objects' and '<unspecified>' */);
@@ -229,8 +230,8 @@ tr.b.unittest.testSuite(function() {
     var allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
         'malloc/allocated_objects');
     checkDumpNumericsAndDiagnostics(allocatedObjectsDump, {
-      'size': 2560,
-      'effective_size': 1536
+      size: 2560,
+      effective_size: 1536
     }, {});
     assert.lengthOf(
         allocatedObjectsDump.children,
@@ -241,15 +242,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(discountDump.parent, allocatedObjectsDump);
     assert.include(allocatedObjectsDump.children, discountDump);
     checkDumpNumericsAndDiagnostics(discountDump, {
-      'size': 1024,
-      'effective_size': 0
+      size: 1024,
+      effective_size: 0
     }, {});
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
-      'size': 1024,
-      'effective_size': 1024,
-      'resident_size': 1000
+      size: 1024,
+      effective_size: 1024,
+      resident_size: 1000
     }, {});
     assert.strictEqual(tracingDump.owns.target, discountDump);
   });
@@ -257,8 +258,8 @@ tr.b.unittest.testSuite(function() {
   test('checkDiscountTracingOverhead_winheap', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'tracing', { size: 2048 }),
-        newAllocatorDump(pmd, 'winheap', { size: 5120 })
+        newAllocatorDump(pmd, 'tracing', {numerics: {size: 2048}}),
+        newAllocatorDump(pmd, 'winheap', {numerics: {size: 5120}})
       ];
     });
 
@@ -267,8 +268,8 @@ tr.b.unittest.testSuite(function() {
 
     var winheapDump = pmd.getMemoryAllocatorDumpByFullName('winheap');
     checkDumpNumericsAndDiagnostics(winheapDump, {
-      'size': 5120,
-      'effective_size': 3072
+      size: 5120,
+      effective_size: 3072
     }, {});
     assert.lengthOf(winheapDump.children,
         2 /* 'allocated_objects' and '<unspecified>' */);
@@ -276,8 +277,8 @@ tr.b.unittest.testSuite(function() {
     var allocatedObjectsDump = pmd.getMemoryAllocatorDumpByFullName(
         'winheap/allocated_objects');
     checkDumpNumericsAndDiagnostics(allocatedObjectsDump, {
-      'size': 2048,
-      'effective_size': 0
+      size: 2048,
+      effective_size: 0
     }, {});
     assert.lengthOf(
         allocatedObjectsDump.children, 1 /* 'tracing_overhead' */);
@@ -287,31 +288,32 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(discountDump.parent, allocatedObjectsDump);
     assert.include(allocatedObjectsDump.children, discountDump);
     checkDumpNumericsAndDiagnostics(discountDump, {
-      'size': 2048,
-      'effective_size': 0
+      size: 2048,
+      effective_size: 0
     }, {});
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
-      'size': 2048,
-      'effective_size': 2048
+      size: 2048,
+      effective_size: 2048
     }, {});
     assert.strictEqual(tracingDump.owns.target, discountDump);
   });
 
   test('checkDiscountTracingOverhead_withMostRecentVmRegionsLinks', function() {
     var pmds = createFinalizedProcessMemoryDumps([42, 90], function(pmds) {
-      pmds[0].totals = { residentBytes: 1000, peakResidentBytes: 2000 };
+      pmds[0].totals = {residentBytes: 1000, peakResidentBytes: 2000};
       pmds[0].vmRegions = createClassificationNode(6000, {
         privateDirtyResident: 4096
       });
       pmds[0].memoryAllocatorDumps = [
-        newAllocatorDump(pmds[0], 'tracing', { size: 300, resident_size: 100 })
+        newAllocatorDump(pmds[0], 'tracing',
+            {numerics: {size: 300, resident_size: 100}})
       ];
 
-      pmds[1].totals = { peakResidentBytes: 3000 };
+      pmds[1].totals = {peakResidentBytes: 3000};
       pmds[1].memoryAllocatorDumps = [
-        newAllocatorDump(pmds[0], 'tracing', { resident_size: 200 })
+        newAllocatorDump(pmds[0], 'tracing', {numerics: {resident_size: 200}})
       ];
     });
 
@@ -359,7 +361,8 @@ tr.b.unittest.testSuite(function() {
         swapped: 1536
       });
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+        newAllocatorDump(pmd, 'tracing',
+            {numerics: {size: 1000, resident_size: 1024}})
       ];
     });
 
@@ -398,7 +401,8 @@ tr.b.unittest.testSuite(function() {
         swapped: 1536
       });
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+        newAllocatorDump(pmd, 'tracing',
+            {numerics: {size: 1000, resident_size: 1024}})
       ];
     });
 
@@ -431,7 +435,8 @@ tr.b.unittest.testSuite(function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
       pmd.vmRegions = createClassificationNode(10000);
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+        newAllocatorDump(pmd, 'tracing',
+            {numerics: {size: 1000, resident_size: 1024}})
       ];
     });
 
@@ -456,7 +461,8 @@ tr.b.unittest.testSuite(function() {
         swapped: 1536
       });
       pmd.memoryAllocatorDumps = [
-        newAllocatorDump(pmd, 'tracing', { size: 1000, resident_size: 1024 })
+        newAllocatorDump(pmd, 'tracing',
+            {numerics: {size: 1000, resident_size: 1024}})
       ];
     });
 
@@ -477,7 +483,7 @@ tr.b.unittest.testSuite(function() {
 
   test('checkDiscountTracingOverhead_existingLink', function() {
     var pmd = createFinalizedProcessMemoryDump(42, function(pmd) {
-      pmd.totals = { residentBytes: 10240 };
+      pmd.totals = {residentBytes: 10240};
 
       pmd.vmRegions = createClassificationNode(6000, {
         privateDirtyResident: 4096,
@@ -485,9 +491,10 @@ tr.b.unittest.testSuite(function() {
         proportionalResident: 5120
       });
 
-      var mallocDump = newAllocatorDump(pmd, 'malloc', { size: 3072 });
+      var mallocDump = newAllocatorDump(pmd, 'malloc',
+          {numerics: {size: 3072}});
       var tracingDump = newAllocatorDump(pmd, 'tracing',
-          { size: 1024, resident_size: 1000 });
+          {numerics: {size: 1024, resident_size: 1000}});
       var ownedDump = newAllocatorDump(pmd, 'owned');
 
       // The code for discounting tracing overhead should *not* override an
@@ -529,23 +536,23 @@ tr.b.unittest.testSuite(function() {
 
     var mallocDump = pmd.getMemoryAllocatorDumpByFullName('malloc');
     checkDumpNumericsAndDiagnostics(mallocDump, {
-      'size': 3072,
-      'effective_size': 3072
+      size: 3072,
+      effective_size: 3072
     }, {});
     assert.lengthOf(mallocDump.children, 0);
 
     var ownedDump = pmd.getMemoryAllocatorDumpByFullName('owned');
     checkDumpNumericsAndDiagnostics(ownedDump, {
-      'size': 1024,
-      'effective_size': 0
+      size: 1024,
+      effective_size: 0
     }, {});
     assert.lengthOf(ownedDump.children, 0);
 
     var tracingDump = pmd.getMemoryAllocatorDumpByFullName('tracing');
     checkDumpNumericsAndDiagnostics(tracingDump, {
-      'size': 1024,
-      'effective_size': 1024,
-      'resident_size': 1000
+      size: 1024,
+      effective_size: 1024,
+      resident_size: 1000
     }, {});
     assert.strictEqual(tracingDump.owns.target, ownedDump);
   });

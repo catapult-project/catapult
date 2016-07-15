@@ -671,8 +671,8 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(1);
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
-    var rootDump = newAllocatorDump(pmd, 'root', { size: 100 });
-    addChildDump(rootDump, 'parent', { size: 49 });
+    var rootDump = newAllocatorDump(pmd, 'root', {numerics: {size: 100}});
+    addChildDump(rootDump, 'parent', {numerics: {size: 49}});
     pmd.memoryAllocatorDumps = [rootDump];
 
     assert.throws(function() {
@@ -698,8 +698,9 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(1);
     var gmd = containerDumps[0];
     var pmd = containerDumps[1];
-    var rootDump = newAllocatorDump(pmd, 'root', { effective_size: 99 });
-    addChildDump(rootDump, 'parent', { effective_size: 50 });
+    var rootDump = newAllocatorDump(pmd, 'root',
+        {numerics: {effective_size: 99}});
+    addChildDump(rootDump, 'parent', {numerics: {effective_size: 50}});
     pmd.memoryAllocatorDumps = [rootDump];
 
     assert.throws(function() {
@@ -725,9 +726,7 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     gmd.memoryAllocatorDumps = [
-      newAllocatorDump(gmd, 'v8', {
-        size: 50
-      })
+      newAllocatorDump(gmd, 'v8', {numerics: {size: 50}})
     ];
 
     assert.throws(function() {
@@ -752,7 +751,7 @@ tr.b.unittest.testSuite(function() {
   test('testSanityCheck_checkDumpTrees_invalidInfo', function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
-    var v8Dump = newAllocatorDump(gmd, 'v8', { size: 50 });
+    var v8Dump = newAllocatorDump(gmd, 'v8', {numerics: {size: 50}});
     v8Dump.infos.push({
       type: PROVIDED_SIZE_LESS_THAN_AGGREGATED_CHILDREN,
       providedSize: 40,
@@ -784,7 +783,7 @@ tr.b.unittest.testSuite(function() {
     var containerDumps = createContainerDumps(0);
     var gmd = containerDumps[0];
     var v8Dump = new MemoryAllocatorDump(gmd, 'v8');
-    addChildDump(v8Dump, 'child1', {}, 42 /* guid */);
+    addChildDump(v8Dump, 'child1', {guid: 42});
     addChildDump(v8Dump, 'child2');
     gmd.memoryAllocatorDumps = [v8Dump];
 
@@ -3432,7 +3431,7 @@ tr.b.unittest.testSuite(function() {
     var ownedChildDump = pmd.getMemoryAllocatorDumpByFullName(
         'root/owned_child');
     assertDumpSizes(ownedChildDump, 20, 13, [] /* expectedInfos */,
-        { owner_child: 7 } /* expectedOwnedBySiblingSizes */);
+        {'owner_child': 7} /* expectedOwnedBySiblingSizes */);
   });
 
   // Check that numeric and diagnostics propagation and aggregation are
@@ -3511,39 +3510,39 @@ tr.b.unittest.testSuite(function() {
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('direct_owner'),
         {
-          'size': 10,
-          'effective_size': 3.3333,
-          'summed': 27
+          size: 10,
+          effective_size: 3.3333,
+          summed: 27
         },
         {
-          'url': 'file://not_overriden.html'
+          url: 'file://not_overriden.html'
         });
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('parent_owner/child_owner'),
         {
-          'size': 10,
-          'effective_size': 3.3333,
-          'summed': 27
+          size: 10,
+          effective_size: 3.3333,
+          summed: 27
         },
         {
-          'url': 'https://hello.world.com:42'
+          url: 'https://hello.world.com:42'
         });
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('parent_owner'),
         {
-          'size': 15,
-          'effective_size': 8.3333,
-          'summed': 40
+          size: 15,
+          effective_size: 8.3333,
+          summed: 40
         }, {});
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('precedent_owner'),
         {
-          'size': 10,
-          'effective_size': 3.3333,
-          'summed': 0
+          size: 10,
+          effective_size: 3.3333,
+          summed: 0
         },
         {
-          'url': 'https://hello.world.com:42'
+          url: 'https://hello.world.com:42'
         });
     checkDumpNumericsAndDiagnostics(
         pmd.getMemoryAllocatorDumpByFullName('indirect_owner'), {}, {});
@@ -3610,8 +3609,8 @@ tr.b.unittest.testSuite(function() {
       gmd = new GlobalMemoryDump(model, 10);
       model.globalMemoryDumps.push(gmd);
 
-      rootDump = newAllocatorDump(gmd, 'root', { size: 64 });
-      childDump = addChildDump(rootDump, 'child', { size: 48 });
+      rootDump = newAllocatorDump(gmd, 'root', {numerics: {size: 64}});
+      childDump = addChildDump(rootDump, 'child', {numerics: {size: 48}});
 
       gmd.memoryAllocatorDumps = [rootDump];
 

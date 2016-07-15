@@ -40,8 +40,8 @@ tr.b.unittest.testSuite(function() {
       var process = model.getOrCreateProcess(1);
 
       // First timestamp.
-      var gmd1 = addGlobalMemoryDump(model, 42, DETAILED);
-      var pmd1 = addProcessMemoryDump(gmd1, process, 42);
+      var gmd1 = addGlobalMemoryDump(model, {ts: 42, levelOfDetail: DETAILED});
+      var pmd1 = addProcessMemoryDump(gmd1, process, {ts: 42});
       pmd1.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           mappedFile: '/lib/chrome.so',
@@ -111,12 +111,13 @@ tr.b.unittest.testSuite(function() {
       // This is here so that we could test that tracing is discounted from the
       // 'Native heap' category.
       pmd1.memoryAllocatorDumps = [
-        newAllocatorDump(pmd1, 'tracing', { size: 500, resident_size: 32 })
+        newAllocatorDump(pmd1, 'tracing',
+            {numerics: {size: 500, resident_size: 32}})
       ];
 
       // Second timestamp.
-      var gmd2 = addGlobalMemoryDump(model, 42, DETAILED);
-      var pmd2 = addProcessMemoryDump(gmd2, process, 42);
+      var gmd2 = addGlobalMemoryDump(model, {ts: 42, levelOfDetail: DETAILED});
+      var pmd2 = addProcessMemoryDump(gmd2, process, {ts: 42});
       pmd2.vmRegions = VMRegionClassificationNode.fromRegions([
         VMRegion.fromDict({
           mappedFile: '/lib/chrome.so',

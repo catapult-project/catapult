@@ -42,48 +42,50 @@ tr.b.unittest.testSuite(function() {
   test('memoryAllocatorDumps_aggregateNumericsRecursively', function() {
     var md = new ContainerMemoryDump(42);
 
-    var oilpanDump = newAllocatorDump(md, 'oilpan', {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 7)
-    });
+    var oilpanDump = newAllocatorDump(md, 'oilpan', {numerics: {
+      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7)
+    }});
 
-    addChildDump(oilpanDump, 'bucket1', {
+    addChildDump(oilpanDump, 'bucket1', {numerics: {
       size: 512,
       objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 3),
       inner_size: 256,
       outer_size: 1024
-    });
+    }});
 
     var oilpanBucket2Dump = addChildDump(oilpanDump, 'bucket2');
 
     var oilpanBucket2StringsDump = addChildDump(oilpanBucket2Dump, 'strings', {
-      size: 512,
-      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
-      inner_size: 512,
-      outer_size: 2048
+      numerics: {
+        size: 512,
+        objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+        inner_size: 512,
+        outer_size: 2048
+      }
     });
 
     oilpanDump.aggregateNumericsRecursively();
 
     // oilpan has *some* numerics aggregated.
     checkDumpNumericsAndDiagnostics(oilpanDump, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
-      'inner_size': 768,
-      'outer_size': 3072
+      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 7),
+      inner_size: 768,
+      outer_size: 3072
     }, {});
 
     // oilpan/bucket2 has *all* numerics aggregated (except for size).
     checkDumpNumericsAndDiagnostics(oilpanBucket2Dump, {
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
-      'inner_size': 512,
-      'outer_size': 2048
+      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+      inner_size: 512,
+      outer_size: 2048
     }, {});
 
     // oilpan/bucket2/strings has *no* numerics aggregated.
     checkDumpNumericsAndDiagnostics(oilpanBucket2StringsDump, {
-      'size': 512,
-      'objects_count': new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
-      'inner_size': 512,
-      'outer_size': 2048
+      size: 512,
+      objects_count: new ScalarNumeric(unitlessNumber_smallerIsBetter, 4),
+      inner_size: 512,
+      outer_size: 2048
     }, {});
   });
 

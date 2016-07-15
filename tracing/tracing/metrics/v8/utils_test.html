@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 
@@ -143,7 +144,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   function addDumpWithAllocator(model, process, allocator, start) {
-    var gmd = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(model, start);
+    var gmd = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(
+        model, {ts: start});
     var pmd = tr.model.MemoryDumpTestUtils.addProcessMemoryDump(gmd, process);
     pmd.memoryAllocatorDumps =
         [tr.model.MemoryDumpTestUtils.newAllocatorDump(pmd, allocator)];

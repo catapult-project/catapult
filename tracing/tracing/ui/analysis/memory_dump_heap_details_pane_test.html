@@ -55,8 +55,8 @@ tr.b.unittest.testSuite(function() {
     }
 
     // First timestamp.
-    var gmd1 = addGlobalMemoryDump(model, -10);
-    var pmd1 = addProcessMemoryDump(gmd1, process, -11);
+    var gmd1 = addGlobalMemoryDump(model, {ts: -10});
+    var pmd1 = addProcessMemoryDump(gmd1, process, {ts: -11});
     var hd1 = new HeapDump(pmd1, 'partition_alloc');
 
     addHeapEntry(hd1, undefined /* sum over all traces */,
@@ -124,8 +124,8 @@ tr.b.unittest.testSuite(function() {
         undefined /* sum over all types */, 307200 /* 300 KiB */, 300);
 
     // Second timestamp.
-    var gmd2 = addGlobalMemoryDump(model, 10);
-    var pmd2 = addProcessMemoryDump(gmd2, process, 11);
+    var gmd2 = addGlobalMemoryDump(model, {ts: 10});
+    var pmd2 = addProcessMemoryDump(gmd2, process, {ts: 11});
     var hd2 = new HeapDump(pmd2, 'partition_alloc');
 
     addHeapEntry(hd2, undefined /* sum over all traces */,

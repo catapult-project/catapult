@@ -54,7 +54,8 @@ tr.exportTo('tr.ui.tracks', function() {
     var allocatorDumps = tr.b.mapItems(dumpData, function(allocatorName, data) {
       var size = data.size;
       assert.typeOf(size, 'number');  // Sanity check.
-      return newAllocatorDump(memoryDump, allocatorName, { size: size });
+      return newAllocatorDump(memoryDump, allocatorName,
+          {numerics: {size: size}});
     });
 
     // Add ownership links between them.
@@ -76,7 +77,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
   function addProcessMemoryDumpWithFields(globalMemoryDump, process, start,
       opt_pssValues, opt_dumpData) {
-    var pmd = addProcessMemoryDump(globalMemoryDump, process, start);
+    var pmd = addProcessMemoryDump(globalMemoryDump, process, {ts: start});
     if (opt_pssValues !== undefined)
       pmd.vmRegions = createVMRegions(opt_pssValues);
     if (opt_dumpData !== undefined)
@@ -96,12 +97,12 @@ tr.exportTo('tr.ui.tracks', function() {
       var pb = model.getOrCreateProcess(6);
       var pc = model.getOrCreateProcess(9);
 
-      var gmd1 = addGlobalMemoryDump(model, 0, LIGHT);
+      var gmd1 = addGlobalMemoryDump(model, {ts: 0, levelOfDetail: LIGHT});
       addProcessMemoryDumpWithFields(gmd1, pa, 0, maybePssValues([111]));
       addProcessMemoryDumpWithFields(gmd1, pb, 0.2, undefined,
           maybeDumpData({oilpan: {size: 1024}}));
 
-      var gmd2 = addGlobalMemoryDump(model, 5, DETAILED);
+      var gmd2 = addGlobalMemoryDump(model, {ts: 5, levelOfDetail: DETAILED});
       addProcessMemoryDumpWithFields(gmd2, pa, 0);
       addProcessMemoryDumpWithFields(gmd2, pb, 4.99, maybePssValues([100, 50]),
           maybeDumpData({v8: {size: 512}}));
@@ -109,13 +110,13 @@ tr.exportTo('tr.ui.tracks', function() {
           maybeDumpData({oilpan: {size: 128, owns: 'v8'},
               v8: {size: 384, owns: 'tracing'}, tracing: {size: 65920}}));
 
-      var gmd3 = addGlobalMemoryDump(model, 15, DETAILED);
+      var gmd3 = addGlobalMemoryDump(model, {ts: 15, levelOfDetail: DETAILED});
       addProcessMemoryDumpWithFields(gmd3, pa, 15.5, maybePssValues([]),
           maybeDumpData({v8: {size: 768}}));
       addProcessMemoryDumpWithFields(gmd3, pc, 14.5,
           maybePssValues([70, 70, 70]), maybeDumpData({oilpan: {size: 512}}));
 
-      var gmd4 = addGlobalMemoryDump(model, 18, LIGHT);
+      var gmd4 = addGlobalMemoryDump(model, {ts: 18, levelOfDetail: LIGHT});
     });
   }
 
