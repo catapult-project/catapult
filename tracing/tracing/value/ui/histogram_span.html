@@ -77,11 +77,11 @@ found in the LICENSE file.
             (this.brushedBins_.indexOf(bin) < 0))
           this.brushedBins_.push(bin);
       }, this);
-      if ((this.histogram_.underflowBin.max > r.min) &&
+      if ((this.histogram_.underflowBin.range.max > r.min) &&
           (this.brushedBins_.indexOf(this.histogram_.underflowBin) < 0)) {
         this.brushedBins_.push(this.histogram_.underflowBin);
       }
-      if ((this.histogram_.overflowBin.min < r.max) &&
+      if ((this.histogram_.overflowBin.range.min < r.max) &&
           (this.brushedBins_.indexOf(this.histogram_.overflowBin) < 0)) {
         this.brushedBins_.push(this.histogram_.overflowBin);
       }
