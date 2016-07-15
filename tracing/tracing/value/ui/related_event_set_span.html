@@ -28,8 +28,12 @@ found in the LICENSE file.
       this.textContent = '';
       var events = this.diagnostic.events;
       var link = document.createElement('tr-ui-a-analysis-link');
-      var label = (events.length === 1) ? 'event' : 'events';
-      link.setSelectionAndContent(events, events.length + ' ' + label);
+      var label = events.length + ' events';
+      if (events.length === 1) {
+        label = events[0].title + ' ';
+        label += tr.v.Unit.byName.timeDurationInMs.format(events[0].duration);
+      }
+      link.setSelectionAndContent(events, label);
       this.appendChild(link);
     }
   });
