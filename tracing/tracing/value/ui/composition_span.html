@@ -6,27 +6,45 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/drag_handle.html">
 
 <polymer-element name="tr-v-ui-composition-span">
   <template>
-    <content></content>
+    <div id="container"></div>
+    <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
   </template>
 
   <script>
   'use strict';
   Polymer({
     created: function() {
+      this.diagnostic_ = undefined;
       this.chart_ = new tr.ui.b.BarChart();
       this.chart_.width = 190;
       this.chart_.height = 200;
       this.chart_.isStacked = true;
       this.chart_.hideXAxis = true;
+      this.chart_.margin.top = 10;
+      this.chart_.margin.bottom = 10;
       this.chart_.margin.right = 120;
+      this.minHeightPx_ = 40;
     },
 
     ready: function() {
-      this.diagnostic_ = undefined;
-      this.appendChild(this.chart_);
+      this.$.container.appendChild(this.chart_);
+      this.$.drag_handle.target = this.$.container;
+      this.$.drag_handle.addEventListener(
+          'drag-handle-resize', this.onResize_.bind(this));
+    },
+
+    onResize_: function(event) {
+      event.stopPropagation();
+      var heightPx = parseInt(this.$.container.style.height);
+      if (heightPx < this.minHeightPx_) {
+        heightPx = this.minHeightPx_;
+        this.$.container.style.height = this.minHeightPx_ + 'px';
+      }
+      this.chart_.height = heightPx;
     },
 
     get diagnostic() {
@@ -44,11 +62,11 @@ found in the LICENSE file.
         return;
       }
       var data = {x: 0};
-      var valueCount = 0;
+      this.minHeightPx_ = 20;
       this.diagnostic_.iterItems(function(name, value) {
-        ++valueCount;
         this.chart_.getDataSeries(name).target = value;
         this.chart_.getDataSeries(name).optional = true;
+        this.minHeightPx_ += 20;
 
         value = value.numeric;
         if (value instanceof tr.v.ScalarNumeric)
