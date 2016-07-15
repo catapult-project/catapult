@@ -1,0 +1,80 @@
+<style>
+#import-view-command-line,
+#import-view-user-comments {
+  /* Wrap long lines inside of PREs */
+  white-space: pre-wrap;
+}
+
+#import-view-load-status-text {
+  /* Wrap long lines inside of PREs */
+  white-space: pre-wrap;
+}
+
+.import-view-pending-log {
+  color: blue;
+  font-weight: bold;
+}
+
+.import-view-success-log {
+  color: green;
+  font-weight: bold;
+}
+
+.import-view-error-log {
+  color: #e00;
+  padding: 5px;
+  border: 1px solid #e00;
+}
+
+.import-view-warning-log {
+  color: #e00;
+}
+
+</style>
+
+<div id=import-view-tab-content class=content-box>
+  <div>
+    <div style='margin-bottom:20px'><b>TIP</b>: Drag-and-drop files into this window.</div>
+      <input type=file value="Load log from file" id=import-view-load-log-file></input>
+      <pre id=import-view-load-status-text></pre>
+  </div>
+      
+  <div id=import-view-loaded-div style="display: none">
+    <h2>Data Loaded</h2>
+    <table class=styled-table>
+    <tr>
+      <th>Export date</th>
+      <td id=import-view-numericDate></td>
+    </tr>
+    <tr>
+      <th>Build</th>
+      <td><span id=import-view-name></span>
+        <span id=import-view-version></span>
+        (<span id=import-view-official></span>
+          <span id=import-view-cl></span>)
+        <span id=import-view-version-mod>
+      </td>
+    </tr>
+    <tr>
+      <th>OS info</th>
+      <td id=import-view-os-type></td>
+    </tr>
+    <tr>
+      <th>Command line</th>
+      <td><pre id=import-view-command-line></pre></td>
+    </tr>
+    <tr>
+      <th>Active Field Trial Groups</th>
+      <td>
+        <span id=import-view-activeFieldTrialGroups></span>
+      </td>
+    </tr>
+    <tr>
+      <th>User comments</th>
+      <td>
+        <pre id=import-view-user-comments></pre>
+      </td>
+    </tr>
+    </table>
+  </div>
+</div>
