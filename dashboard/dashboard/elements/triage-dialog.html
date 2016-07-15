@@ -19,14 +19,17 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
     <style>
       #container {
         position: relative;
-        margin: 0 0 10px 0;
-        max-height: 200px;
+        margin: 10px;
+        max-height: 300px;
+        width: 300px;
+      }
+
+      #container .card-content {
         overflow-y: auto;
       }
     </style>
 
     <paper-card id="container" alwaysOnTop elevation=4>
-      <!-- Styling for paper-card's children. -->
       <style>
         #loading {
           background-color: white;

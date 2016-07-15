@@ -2015,8 +2015,7 @@ triaging functionality in the chart.
           var top = flotData[flotSeriesIndex].yaxis.p2c(yValue);
           var left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
               this.chartOptions.yaxis.labelWidth;
-          this.$.tooltip.setPosition(top, left);
-          this.$.tooltip.open();
+          this.$.tooltip.openAtPosition(top, left);
         },
 
         /**
