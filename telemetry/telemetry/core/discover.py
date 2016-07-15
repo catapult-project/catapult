@@ -62,6 +62,15 @@ def DiscoverModules(start_dir, top_level_dir, pattern='*'):
   return modules
 
 
+def AssertNoKeyConflicts(classes_by_key_1, classes_by_key_2):
+  for k in classes_by_key_1:
+    if k in classes_by_key_2:
+      assert classes_by_key_1[k] is classes_by_key_2[k], (
+          'Found conflicting classes for the same key: '
+          'key=%s, class_1=%s, class_2=%s' % (
+              k, classes_by_key_1[k], classes_by_key_2[k]))
+
+
 # TODO(dtu): Normalize all discoverable classes to have corresponding module
 # and class names, then always index by class name.
 def DiscoverClasses(start_dir,
@@ -92,10 +101,20 @@ def DiscoverClasses(start_dir,
   for module in modules:
     new_classes = DiscoverClassesInModule(
         module, base_class, index_by_class_name, directly_constructable)
+    # TODO(nednguyen): we should remove index_by_class_name once
+    # benchmark_smoke_unittest in chromium/src/tools/perf no longer relied
+    # naming collisions to reduce the number of smoked benchmark tests.
+    # crbug.com/548652
+    if index_by_class_name:
+      AssertNoKeyConflicts(classes, new_classes)
     classes = dict(classes.items() + new_classes.items())
   return classes
 
 
+# TODO(nednguyen): we should remove index_by_class_name once
+# benchmark_smoke_unittest in chromium/src/tools/perf no longer relied
+# naming collisions to reduce the number of smoked benchmark tests.
+# crbug.com/548652
 def DiscoverClassesInModule(module,
                             base_class,
                             index_by_class_name=False,
@@ -138,7 +157,12 @@ def DiscoverClassesInModule(module,
       key_name = module.__name__.split('.')[-1]
     if (not directly_constructable or
         classes_module.IsDirectlyConstructable(obj)):
-      classes[key_name] = obj
+      if key_name in classes and index_by_class_name:
+        assert classes[key_name] is obj, (
+          'Duplicate key_name with different objs detected: '
+          'key=%s, obj1=%s, obj2=%s' % (key_name, classes[key_name], obj))
+      else:
+        classes[key_name] = obj
 
   return classes
 
