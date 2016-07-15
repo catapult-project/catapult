@@ -32,24 +32,24 @@ class MockOptions(dict):
 class OptionsWrapperTest(unittest.TestCase):
 
   def testNoTrafficShapingByDefault(self):
-    parser = replay.GetOptionParser()
-    options, args = parser.parse_args([])
+    parser = replay.GetParser()
+    options = parser.parse_args([])
     options = replay.OptionsWrapper(options, parser)
     self.assertEqual({}, options.shaping_dns)
     self.assertEqual({}, options.shaping_http)
     self.assertEqual({}, options.shaping_dummynet)
 
   def testShapingProxyWithoutOptionsGivesEmptySettings(self):
-    parser = replay.GetOptionParser()
-    options, args = parser.parse_args(['--shaping=proxy'])
+    parser = replay.GetParser()
+    options = parser.parse_args(['--shaping=proxy'])
     options = replay.OptionsWrapper(options, parser)
     self.assertEqual({}, options.shaping_dns)
     self.assertEqual({}, options.shaping_http)
     self.assertEqual({}, options.shaping_dummynet)
 
   def testShapingProxyWithNetOption(self):
-    parser = replay.GetOptionParser()
-    options, args = parser.parse_args(['--shaping=proxy', '--net=cable'])
+    parser = replay.GetParser()
+    options = parser.parse_args(['--shaping=proxy', '--net=cable'])
     options = replay.OptionsWrapper(options, parser)
     expected_http = {
         'down_bandwidth': '5Mbit/s', 'delay_ms': '28', 'up_bandwidth': '1Mbit/s'
@@ -59,8 +59,8 @@ class OptionsWrapperTest(unittest.TestCase):
     self.assertEqual({}, options.shaping_dummynet)
 
   def testNetOptionUsesDummynetByDefault(self):
-    parser = replay.GetOptionParser()
-    options, args = parser.parse_args(['--net=cable'])
+    parser = replay.GetParser()
+    options = parser.parse_args(['--net=cable'])
     options = replay.OptionsWrapper(options, parser)
     expected_dummynet = {
         'down_bandwidth': '5Mbit/s', 'delay_ms': '28', 'up_bandwidth': '1Mbit/s'
@@ -70,14 +70,14 @@ class OptionsWrapperTest(unittest.TestCase):
     self.assertEqual(expected_dummynet, options.shaping_dummynet)
 
   def testPacketLossForDummynet(self):
-    parser = replay.GetOptionParser()
-    options, args = parser.parse_args(['--packet_loss_rate=12'])
+    parser = replay.GetParser()
+    options = parser.parse_args(['--packet_loss_rate=12'])
     options = replay.OptionsWrapper(options, parser)
     self.assertEqual({'packet_loss_rate': '12'}, options.shaping_dummynet)
 
   def testIgnoredProxyShapingOptions(self):
-    parser = replay.GetOptionParser()
-    options, args = parser.parse_args(
+    parser = replay.GetParser()
+    options = parser.parse_args(
         ['--packet_loss_rate=12', '--init_cwnd=10', '--shaping=proxy'])
     options = replay.OptionsWrapper(options, parser)
     self.assertEqual({}, options.shaping_dns)

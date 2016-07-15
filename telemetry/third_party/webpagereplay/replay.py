@@ -39,9 +39,9 @@ Network simulation examples:
   $ sudo ./replay.py --packet_loss_rate=0.01 archive.wpr
 """
 
+import argparse
 import json
 import logging
-import optparse
 import os
 import socket
 import sys
@@ -177,8 +177,8 @@ class OptionsWrapper(object):
   """Add checks, updates, and methods to option values.
 
   Example:
-    options, args = option_parser.parse_args()
-    options = OptionsWrapper(options, option_parser)  # run checks and updates
+    options, args = arg_parser.parse_args()
+    options = OptionsWrapper(options, arg_parser)  # run checks and updates
     if options.record and options.HasTrafficShaping():
        [...]
   """
@@ -197,8 +197,8 @@ class OptionsWrapper(object):
     self._options = options
     self._parser = parser
     self._nondefaults = set([
-        name for name, value in parser.defaults.items()
-        if getattr(options, name) != value])
+        action.dest for action in parser._optionals._actions
+        if getattr(options, action.dest, action.default) is not action.default])
     self._CheckConflicts()
     self._CheckValidIp('host')
     self._CheckFeatureSupport()
@@ -373,188 +373,182 @@ def replay(options, replay_filename):
   return exit_status
 
 
-def GetOptionParser():
-  class PlainHelpFormatter(optparse.IndentedHelpFormatter):
-    def format_description(self, description):
-      if description:
-        return description + '\n'
-      else:
-        return ''
-  option_parser = optparse.OptionParser(
-      usage='%prog [options] replay_file',
-      formatter=PlainHelpFormatter(),
+def GetParser():
+  arg_parser = argparse.ArgumentParser(
+      usage='%(prog)s [options] replay_file',
       description=__doc__,
+      formatter_class=argparse.RawDescriptionHelpFormatter,
       epilog='http://code.google.com/p/web-page-replay/')
 
-  option_parser.add_option('-r', '--record', default=False,
+  arg_parser.add_argument('replay_filename', type=str, help='Replay file',
+                          nargs='?')
+
+  arg_parser.add_argument('-r', '--record', default=False,
       action='store_true',
       help='Download real responses and record them to replay_file')
-  option_parser.add_option('--append', default=False,
+  arg_parser.add_argument('--append', default=False,
       action='store_true',
       help='Append responses to replay_file.')
-  option_parser.add_option('-l', '--log_level', default='debug',
+  arg_parser.add_argument('-l', '--log_level', default='debug',
       action='store',
-      type='choice',
+      type=str,
       choices=('debug', 'info', 'warning', 'error', 'critical'),
       help='Minimum verbosity level to log')
-  option_parser.add_option('-f', '--log_file', default=None,
+  arg_parser.add_argument('-f', '--log_file', default=None,
       action='store',
-      type='string',
+      type=str,
       help='Log file to use in addition to writting logs to stderr.')
 
-  network_group = optparse.OptionGroup(option_parser,
-      'Network Simulation Options',
-      'These options configure the network simulation in replay mode')
-  network_group.add_option('-u', '--up', default='0',
+  network_group = arg_parser.add_argument_group(
+      title='Network Simulation Options',
+      description=('These options configure the network simulation in '
+                   'replay mode'))
+  network_group.add_argument('-u', '--up', default='0',
       action='store',
-      type='string',
+      type=str,
       help='Upload Bandwidth in [K|M]{bit/s|Byte/s}. Zero means unlimited.')
-  network_group.add_option('-d', '--down', default='0',
+  network_group.add_argument('-d', '--down', default='0',
       action='store',
-      type='string',
+      type=str,
       help='Download Bandwidth in [K|M]{bit/s|Byte/s}. Zero means unlimited.')
-  network_group.add_option('-m', '--delay_ms', default='0',
+  network_group.add_argument('-m', '--delay_ms', default='0',
       action='store',
-      type='string',
+      type=str,
       help='Propagation delay (latency) in milliseconds. Zero means no delay.')
-  network_group.add_option('-p', '--packet_loss_rate', default='0',
+  network_group.add_argument('-p', '--packet_loss_rate', default='0',
       action='store',
-      type='string',
+      type=str,
       help='Packet loss rate in range [0..1]. Zero means no loss.')
-  network_group.add_option('-w', '--init_cwnd', default='0',
+  network_group.add_argument('-w', '--init_cwnd', default='0',
       action='store',
-      type='string',
+      type=str,
       help='Set initial cwnd (linux only, requires kernel patch)')
-  network_group.add_option('--net', default=None,
+  network_group.add_argument('--net', default=None,
       action='store',
-      type='choice',
+      type=str,
       choices=net_configs.NET_CONFIG_NAMES,
       help='Select a set of network options: %s.' % ', '.join(
           net_configs.NET_CONFIG_NAMES))
-  network_group.add_option('--shaping_type', default='dummynet',
+  network_group.add_argument('--shaping_type', default='dummynet',
       action='store',
       choices=('dummynet', 'proxy'),
       help='When shaping is configured (i.e. --up, --down, etc.) decides '
            'whether to use |dummynet| (default), or |proxy| servers.')
-  option_parser.add_option_group(network_group)
 
-  harness_group = optparse.OptionGroup(option_parser,
-      'Replay Harness Options',
-      'These advanced options configure various aspects of the replay harness')
-  harness_group.add_option('-S', '--server', default=None,
+  harness_group = arg_parser.add_argument_group(
+      title='Replay Harness Options',
+      description=('These advanced options configure various aspects '
+                   'of the replay harness'))
+  harness_group.add_argument('-S', '--server', default=None,
       action='store',
-      type='string',
+      type=str,
       help='IP address of host running "replay.py --server_mode". '
            'This only changes the primary DNS nameserver to use the given IP.')
-  harness_group.add_option('-M', '--server_mode', default=False,
+  harness_group.add_argument('-M', '--server_mode', default=False,
       action='store_true',
       help='Run replay DNS & http proxies, and trafficshaping on --port '
            'without changing the primary DNS nameserver. '
            'Other hosts may connect to this using "replay.py --server" '
            'or by pointing their DNS to this server.')
-  harness_group.add_option('-i', '--inject_scripts', default='deterministic.js',
+  harness_group.add_argument('-i', '--inject_scripts', default='deterministic.js',
       action='store',
       dest='inject_scripts',
       help='A comma separated list of JavaScript sources to inject in all '
            'pages. By default a script is injected that eliminates sources '
            'of entropy such as Date() and Math.random() deterministic. '
            'CAUTION: Without deterministic.js, many pages will not replay.')
-  harness_group.add_option('-D', '--no-diff_unknown_requests', default=True,
+  harness_group.add_argument('-D', '--no-diff_unknown_requests', default=True,
       action='store_false',
       dest='diff_unknown_requests',
       help='During replay, do not show a diff of unknown requests against '
            'their nearest match in the archive.')
-  harness_group.add_option('-C', '--use_closest_match', default=False,
+  harness_group.add_argument('-C', '--use_closest_match', default=False,
       action='store_true',
       dest='use_closest_match',
       help='During replay, if a request is not found, serve the closest match'
            'in the archive instead of giving a 404.')
-  harness_group.add_option('-U', '--use_server_delay', default=False,
+  harness_group.add_argument('-U', '--use_server_delay', default=False,
       action='store_true',
       dest='use_server_delay',
       help='During replay, simulate server delay by delaying response time to'
            'requests.')
-  harness_group.add_option('-I', '--screenshot_dir', default=None,
+  harness_group.add_argument('-I', '--screenshot_dir', default=None,
       action='store',
-      type='string',
+      type=str,
       help='Save PNG images of the loaded page in the given directory.')
-  harness_group.add_option('-P', '--no-dns_private_passthrough', default=True,
+  harness_group.add_argument('-P', '--no-dns_private_passthrough', default=True,
       action='store_false',
       dest='dns_private_passthrough',
       help='Don\'t forward DNS requests that resolve to private network '
            'addresses. CAUTION: With this option important services like '
            'Kerberos will resolve to the HTTP proxy address.')
-  harness_group.add_option('-x', '--no-dns_forwarding', default=True,
+  harness_group.add_argument('-x', '--no-dns_forwarding', default=True,
       action='store_false',
       dest='dns_forwarding',
       help='Don\'t forward DNS requests to the local replay server. '
            'CAUTION: With this option an external mechanism must be used to '
            'forward traffic to the replay server.')
-  harness_group.add_option('--host', default=None,
+  harness_group.add_argument('--host', default=None,
       action='store',
-      type='str',
+      type=str,
       help='The IP address to bind all servers to. Defaults to 0.0.0.0 or '
            '127.0.0.1, depending on --server_mode and platform.')
-  harness_group.add_option('-o', '--port', default=80,
+  harness_group.add_argument('-o', '--port', default=80,
       action='store',
-      type='int',
+      type=int,
       help='Port number to listen on.')
-  harness_group.add_option('--ssl_port', default=443,
+  harness_group.add_argument('--ssl_port', default=443,
       action='store',
-      type='int',
+      type=int,
       help='SSL port number to listen on.')
-  harness_group.add_option('--http_to_https_port', default=None,
+  harness_group.add_argument('--http_to_https_port', default=None,
       action='store',
-      type='int',
+      type=int,
       help='Port on which WPR will listen for HTTP requests that it will send '
            'along as HTTPS requests.')
-  harness_group.add_option('--dns_port', default=53,
+  harness_group.add_argument('--dns_port', default=53,
       action='store',
-      type='int',
+      type=int,
       help='DNS port number to listen on.')
-  harness_group.add_option('-c', '--https_root_ca_cert_path', default=None,
+  harness_group.add_argument('-c', '--https_root_ca_cert_path', default=None,
       action='store',
-      type='string',
+      type=str,
       help='Certificate file to use with SSL (gets auto-generated if needed).')
-  harness_group.add_option('--no-ssl', default=True,
+  harness_group.add_argument('--no-ssl', default=True,
       action='store_false',
       dest='ssl',
       help='Do not setup an SSL proxy.')
-  option_parser.add_option_group(harness_group)
-  harness_group.add_option('--should_generate_certs', default=False,
+  harness_group.add_argument('--should_generate_certs', default=False,
       action='store_true',
       help='Use OpenSSL to generate certificate files for requested hosts.')
-  harness_group.add_option('--no-admin-check', default=True,
+  harness_group.add_argument('--no-admin-check', default=True,
       action='store_false',
       dest='admin_check',
       help='Do not check if administrator access is needed.')
-  harness_group.add_option('--scramble_images', default=False,
+  harness_group.add_argument('--scramble_images', default=False,
       action='store_true',
       dest='scramble_images',
       help='Scramble image responses.')
-  harness_group.add_option('--rules_path', default=None,
+  harness_group.add_argument('--rules_path', default=None,
       action='store',
       help='Path of file containing Python rules.')
-  harness_group.add_option('--allowed_rule_imports', default='rules',
+  harness_group.add_argument('--allowed_rule_imports', default='rules',
       action='store',
       help='A comma-separate list of allowed rule imports, or \'*\' to allow'
-           ' all packages.  Defaults to \'%default\'.')
-  return option_parser
+           ' all packages.  Defaults to %(default)s.')
+  return arg_parser
 
 
 def main():
-  option_parser = GetOptionParser()
-  options, args = option_parser.parse_args()
-  options = OptionsWrapper(options, option_parser)
+  arg_parser = GetParser()
+  options = arg_parser.parse_args()
+  options = OptionsWrapper(options, arg_parser)
 
   if options.server:
-    replay_filename = None
-  elif len(args) != 1:
-    option_parser.error('Must specify a replay_file')
-  else:
-    replay_filename = args[0]
-
-  return replay(options, replay_filename)
+    options.replay_filename = None
+  elif options.replay_filename is None:
+    arg_parser.error('Must specify a replay_file')
+  return replay(options, options.replay_filename)
 
 
 if __name__ == '__main__':
