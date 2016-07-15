@@ -47,6 +47,10 @@ except Exception:
   surface_stats_collector = None
 
 
+_ARCH_TO_STACK_TOOL_ARCH = {
+  'armeabi-v7a': 'arm',
+  'arm64-v8a': 'arm64',
+}
 _DEVICE_COPY_SCRIPT_FILE = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 'efficient_android_directory_copy.sh'))
 _DEVICE_COPY_SCRIPT_LOCATION = (
@@ -676,7 +680,9 @@ class AndroidPlatformBackend(
     # Try to symbolize logcat.
     if os.path.exists(stack):
       cmd = [stack]
-      cmd.append('--arch=%s' % self.GetArchName())
+      arch = self.GetArchName()
+      arch = _ARCH_TO_STACK_TOOL_ARCH.get(arch, arch)
+      cmd.append('--arch=%s' % arch)
       p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
       ret += Decorate('Stack from Logcat', p.communicate(input=logcat)[0])
 
