@@ -306,7 +306,7 @@ found in the LICENSE file.
             <a class="kd-button counter"
                expanded$="{{item.expanded}}"
                on-click="onExpandGroupButtonClicked"
-               hidden$="{{!computeIsPlural(item.size)}}">{{item.size}}</a>
+               hidden$="{{!computeIsPlural(alertList.*, item.size)}}">{{item.size}}</a>
           </td>
           <td>
             <input type="checkbox"
@@ -437,7 +437,7 @@ found in the LICENSE file.
 
       computeAbsentOrExpanded: (prop, exanded) => !prop || expanded,
 
-      computeIsPlural: n => n > 1,
+      computeIsPlural: (unused, n) => n > 1,
 
       computeExtraColumnValue: function(change, index, key) {
         // Unused 'change' argument is used to clarify that this has a
@@ -480,16 +480,19 @@ found in the LICENSE file.
             if (alert.group in groupMap) {
               this.setAlertList(i, 'rowType', 'group-member');
               this.setAlertList(i, 'hideRow', true);
+              this.setAlertList(i, 'size', 0);
               groupMap[alert.group].push(alert);
               groupMap[alert.group][0].size += 1;
             } else {
               this.setAlertList(i, 'rowType', 'group-header');
+              this.setAlertList(i, 'hideRow', false);
               this.setAlertList(i, 'size', 1);
               groupMap[alert.group] = [alert];
               alertOrder.push(alert.group);
             }
           } else {
             this.setAlertList(i, 'rowType', 'group-header');
+              this.setAlertList(i, 'hideRow', false);
             this.setAlertList(i, 'size', 1);
             groupMap[i] = [alert];
             alertOrder.push(i);
