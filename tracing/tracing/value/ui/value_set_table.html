@@ -108,9 +108,12 @@ tr.exportTo('tr.v.ui', function() {
     var groupedValues = tr.b.group(values, groupingCallbacks[level]);
 
     // Skip this grouping level if it contains only a single group,
-    // but never skip the zeroth grouping level.
-    if (level > 0 && tr.b.dictionaryLength(groupedValues) === 1)
+    // but never skip the zeroth grouping level (value name) nor the last
+    // (displayLabel).
+    if (level > 0 && level < (groupingCallbacks.length - 1) &&
+        tr.b.dictionaryLength(groupedValues) === 1) {
       return organizeValues(values, groupingCallbacks, level + 1);
+    }
 
     // Recursively group groupedValues.
     return tr.b.mapItems(groupedValues, function(key, groupValues) {
@@ -180,7 +183,7 @@ tr.exportTo('tr.v.ui', function() {
 
       var hierarchy = [];
       function search(row) {
-        if (row[displayLabel] === value) {
+        if (row.columns[displayLabel] === value) {
           for (var hirow in hierarchy) {
             this.$.table.setExpandedForTableRow(hirow, true);
           }

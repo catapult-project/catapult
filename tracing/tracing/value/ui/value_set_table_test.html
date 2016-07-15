@@ -25,15 +25,32 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
-  test('instantiate', function() {
+  test('instantiate_1x1', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+    assert.isTrue(table.supportsValueSet(values));
+    var numeric = TEST_NUMERIC_BUILDER.build();
+    for (var i = 0; i < 100; ++i)
+      numeric.add(Math.random() * 1000);
+    values.addValue(new tr.v.NumericValue('foo', numeric));
+    table.values = values;
+    this.addHTMLOutput(table);
+    var baseTable = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE');
+    assert.strictEqual(baseTable.tableRows.length, 1);
+  });
+
+  // TODO(benjhayden): Test requestSelectionChange.
+  // TODO(benjhayden): Test search keyup.
+
+  test('instantiate_2x2', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
     var values = new tr.v.ValueSet();
     assert.isTrue(table.supportsValueSet(values));
 
     var numeric0a = TEST_NUMERIC_BUILDER.build();
-    for (var i = 0; i < 1e2; ++i) {
+    for (var i = 0; i < 100; ++i)
       numeric0a.add(Math.random() * 1000);
-    }
     var fooA = new tr.v.NumericValue('foo', numeric0a, {
       description: 'they should have sent a poet'
     });
@@ -44,9 +61,8 @@ tr.b.unittest.testSuite(function() {
     }).addToValue(fooA);
 
     var numeric1a = TEST_NUMERIC_BUILDER.build();
-    for (var i = 0; i < 1e2; ++i) {
+    for (var i = 0; i < 100; ++i)
       numeric1a.add(Math.random() * 1000);
-    }
     var barA = new tr.v.NumericValue('bar', numeric1a, {
       description: 'indescribable'
     });
@@ -57,9 +73,8 @@ tr.b.unittest.testSuite(function() {
     }).addToValue(barA);
 
     var numeric0b = TEST_NUMERIC_BUILDER.build();
-    for (var i = 0; i < 1e2; ++i) {
+    for (var i = 0; i < 100; ++i)
       numeric0b.add(Math.random() * 1000);
-    }
     var fooB = new tr.v.NumericValue('foo', numeric0b, {
       description: 'they should have sent a poet'
     });
@@ -70,9 +85,8 @@ tr.b.unittest.testSuite(function() {
     }).addToValue(fooB);
 
     var numeric1b = TEST_NUMERIC_BUILDER.build();
-    for (var i = 0; i < 1e2; ++i) {
+    for (var i = 0; i < 100; ++i)
       numeric1b.add(Math.random() * 1000);
-    }
     var barB = new tr.v.NumericValue('bar', numeric1b, {
       description: 'indescribable'
     });
@@ -115,7 +129,7 @@ tr.b.unittest.testSuite(function() {
                 for (var storyCounter = 0; storyCounter < 2; ++storyCounter) {
                   for (var label of labels) {
                     var numeric = TEST_NUMERIC_BUILDER.build();
-                    for (var i = 0; i < 1e2; ++i)
+                    for (var i = 0; i < 100; ++i)
                       numeric.add(Math.random() * 1000);
 
                     var value = new tr.v.NumericValue('foo', numeric);
