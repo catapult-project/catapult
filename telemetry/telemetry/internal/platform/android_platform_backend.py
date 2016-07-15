@@ -650,7 +650,8 @@ class AndroidPlatformBackend(
       number_of_lines: Number of lines of log to return.
     """
     return '\n'.join(self._device.RunShellCommand(
-        ['logcat', '-d', '-t', str(number_of_lines)]))
+        ['logcat', '-d', '-t', str(number_of_lines)],
+        check_return=True, large_output=True))
 
   def GetStandardOutput(self):
     return 'Cannot get standard output on Android'
