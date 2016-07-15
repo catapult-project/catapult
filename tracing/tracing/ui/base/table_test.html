@@ -1496,7 +1496,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     var eventCount = 0;
-    table.addEventListener('selected-column-changed', (event) => ++eventCount);
+    table.addEventListener('selected-column-changed', event => ++eventCount);
 
     assert.throws(function() {
       table.selectedTableColumn = table.tableColumns[0];
@@ -1509,6 +1509,10 @@ tr.b.unittest.testSuite(function() {
     table.selectedTableColumn = table.tableColumns[2];
     assert.strictEqual(eventCount, 2);
     assert.strictEqual(table.tableColumns[2], table.selectedTableColumn);
+
+    table.selectedTableColumn = undefined;
+    assert.strictEqual(eventCount, 3);
+    assert.isUndefined(table.selectedTableColumn);
   });
 });
 </script>

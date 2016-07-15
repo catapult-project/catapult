@@ -15,8 +15,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
-      20);
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(0, 1000), 20);
 
   function getTableRowAtPath(table, path) {
     var row = table.tableRows[0];
@@ -255,7 +255,8 @@ tr.b.unittest.testSuite(function() {
             for (var storyCounter = 0; storyCounter < 2; ++storyCounter) {
               for (var label of labels) {
                 var numeric = new tr.v.ScalarNumeric(
-                    tr.v.Unit.byName.timeDurationInMs, Math.random() * 1000);
+                    tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+                    Math.random() * 1000);
                 var value = new tr.v.NumericValue('foo', numeric);
                 values.addValue(value);
 

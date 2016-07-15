@@ -1162,10 +1162,10 @@ tr.exportTo('tr.ui.b', function() {
           var cell = this.headerCells_[index];
           cell.selected = true;
         }
-        var e = new tr.b.Event('selected-column-changed');
-        e.column = column;
-        e.selected = column !== undefined;
-        cell.dispatchEvent(e);
+        var event = {column: column, selected: column !== undefined};
+        this.onSelectedColumnChanged_(event);
+        tr.b.dispatchSimpleEvent(this, 'selected-column-changed', true, false,
+            event);
       },
 
       get selectedTableRow() {
@@ -1539,10 +1539,8 @@ tr.exportTo('tr.ui.b', function() {
 
     onSelect_: function() {
       this.selected = this.$.button.getAttribute('selected') !== 'true';
-      var e = new tr.b.Event('selected-column-changed');
-      e.column = this.column;
-      e.selected = this.selected;
-      this.dispatchEvent(e);
+      tr.b.dispatchSimpleEvent(this, 'selected-column-changed', true, false,
+          {column: this.column, selected: this.selected});
     },
 
     set column(column) {

@@ -164,6 +164,8 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
           this.onSelectionChanged_.bind(this));
+      this.$.table.addEventListener('selected-column-changed',
+          this.onSelectedColumnChanged_.bind(this));
       this.addEventListener('requestSelectionChange',
           this.onRelatedValueSelected_.bind(this));
       this.$.search.addEventListener('keyup', this.onSearch_.bind(this));
@@ -175,6 +177,35 @@ tr.exportTo('tr.v.ui', function() {
     onShowAllChange_: function() {
       tr.b.Settings.set(SHOW_ALL_SETTINGS_KEY, this.$.show_all.checked);
       this.updateContents_();
+    },
+
+    onSelectedColumnChanged_: function() {
+      // Force the table to rebuild the cell values without forgetting which
+      // rows were expanded.
+      var expansionStates = this.getExpansionStates_(this.rows_);
+      this.$.table.tableRows = this.rows_;
+      this.setExpansionStates_(expansionStates, this.rows_);
+    },
+
+    getExpansionStates_: function(rows) {
+      var states = {};
+      for (var i = 0; i < rows.length; ++i) {
+        var row = rows[i];
+        if (row.subRows && row.subRows.length &&
+            this.$.table.getExpandedForTableRow(row)) {
+          states[i] = this.getExpansionStates_(row.subRows);
+        }
+      }
+      return states;
+    },
+
+    setExpansionStates_: function(states, rows) {
+      for (var i = 0; i < rows.length; ++i) {
+        if (states[i]) {
+          this.$.table.setExpandedForTableRow(rows[i], true);
+          this.setExpansionStates_(states[i], rows[i].subRows);
+        }
+      }
     },
 
     onSearch_: function() {
@@ -586,24 +617,42 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     buildColumn_: function(displayLabel) {
+      function getValueForValue(value) {
+        return value.numeric instanceof tr.v.Numeric ? value.numeric.average :
+          value.numeric.value;
+      }
+
       return {
         title: displayLabel,
         align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
         supportsCellSelection: true,
+        selectable: true,
 
         value: function(row) {
           var cell = row.columns[displayLabel];
           if (cell === undefined)
             return '';
-          if (cell instanceof tr.v.NumericValue)
+          if (cell instanceof tr.v.NumericValue) {
+            if (this.$.table.selectedTableColumn &&
+                this.$.table.selectedTableColumn.title !== displayLabel) {
+              var referenceCell = row.columns[
+                this.$.table.selectedTableColumn.title];
+              if (referenceCell instanceof tr.v.NumericValue &&
+                  cell.numeric.unit === referenceCell.numeric.unit) {
+                return tr.v.ui.createScalarSpan(
+                    getValueForValue(cell) - getValueForValue(referenceCell),
+                    {unit: cell.numeric.unit.correspondingDeltaUnit});
+              }
+            }
             return tr.v.ui.createScalarSpan(cell);
+          }
           if (cell instanceof tr.v.d.Diagnostic) {
             var span = tr.v.ui.createDiagnosticSpan(cell);
             span.style.textAlign = 'left';
             return span;
           }
           throw new Error('Invalid cell', cell);
-        },
+        }.bind(this),
 
         cmp: function(rowA, rowB) {
           var cellA = rowA.columns[displayLabel];
@@ -613,16 +662,27 @@ tr.exportTo('tr.v.ui', function() {
             return undefined;
           }
 
-          var numericA = cellA.numeric;
-          var numericB = cellB.numeric;
+          var valueA = getValueForValue(cellA);
+          var valueB = getValueForValue(cellB);
 
-          var valueA = (numericA instanceof tr.v.ScalarNumeric) ?
-            numericA.value : numericA.average;
-          var valueB = (numericB instanceof tr.v.ScalarNumeric) ?
-            numericB.value : numericB.average;
+          // If a reference column is selected, compare the *differences*
+          // between the two cells and their references.
+          if (this.$.table.selectedTableColumn &&
+              this.$.table.selectedTableColumn.title !== displayLabel) {
+            var referenceColumn = this.$.table.selectedTableColumn.title;
+            var referenceCellA = rowA.columns[referenceColumn];
+            var referenceCellB = rowB.columns[referenceColumn];
+            if (referenceCellA instanceof tr.v.NumericValue &&
+                referenceCellB instanceof tr.v.NumericValue &&
+                cellA.numeric.unit === referenceCellA.numeric.unit &&
+                cellB.numeric.unit === referenceCellB.numeric.unit) {
+              valueA -= getValueForValue(referenceCellA);
+              valueB -= getValueForValue(referenceCellB);
+            }
+          }
 
           return valueA - valueB;
-        }
+        }.bind(this)
       };
     },
 
