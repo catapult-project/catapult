@@ -73,7 +73,7 @@ tr.exportTo('tr.v', function() {
     addValuesFromDicts: function(dicts) {
       dicts.forEach(function(dict) {
         var value = tr.v.Value.fromDict(dict);
-        this.addValue(value);
+        this.addValueInternal_(value);
       }, this);
 
       // Now resolve the RelatedValueSet references between values.
@@ -120,14 +120,14 @@ tr.exportTo('tr.v', function() {
       return this.toArray().filter(v => v.name.indexOf(name) > -1);
     },
 
-    addValue: function(v) {
-      if (this.values_[v.guid]) {
-        var err = new Error('Tried to add same value twice');
-        err.name = 'ValueError';
-        throw err;
-      }
-
+    addValueInternal_: function(v) {
+      if (this.values_[v.guid])
+        throw new Error('Tried to add same value twice');
       this.values_[v.guid] = v;
+    },
+
+    addValue: function(v) {
+      this.addValueInternal_(v);
 
       if (v.numeric instanceof tr.v.Numeric) {
         ValueSet.computeSummaryValuesForNumericValue(v).forEach(function(s) {

@@ -14,6 +14,26 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('addValuesFromDicts', function() {
+    var n = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+        100).build();
+    n.add(10);
+    n.customizeSummaryOptions({
+      count: true,
+      min: false,
+      max: false,
+      sum: false,
+      avg: false,
+      std: false
+    });
+
+    var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
+    var values2 = new tr.v.ValueSet();
+    values2.addValuesFromDicts(values.valueDicts);
+    assert.lengthOf(values2.getValuesWithName('foo_count'), 1);
+  });
+
   test('computeSummaryValuesForNumericValue', function() {
     var n = tr.v.NumericBuilder.createLinear(
         tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
