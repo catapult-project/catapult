@@ -200,7 +200,9 @@ class RealHttpFetch(object):
     """Initialize RealHttpFetch.
 
     Args:
-      real_dns_lookup: a function that resolves a host to an IP.
+      real_dns_lookup: a function that resolves a host to an IP. RealHttpFetch
+        will resolve host name to the IP before making fetching request if this
+        is not None.
     """
     self._real_dns_lookup = real_dns_lookup
 
@@ -295,17 +297,20 @@ class RealHttpFetch(object):
       connection_port = system_proxy.port
 
     # Use an IP address because WPR may override DNS settings.
-    connection_ip = self._real_dns_lookup(connection_host)
-    if not connection_ip:
-      logging.critical('Unable to find host ip for name: %s', connection_host)
-      return None
+    if self._real_dns_lookup:
+      connection_ip = self._real_dns_lookup(connection_host)
+      if not connection_ip:
+        logging.critical(
+            'Unable to find IP for host name: %s', connection_host)
+        return None
+      connection_host = connection_ip
 
     if is_ssl:
-      connection = DetailedHTTPSConnection(connection_ip, connection_port)
+      connection = DetailedHTTPSConnection(connection_host, connection_port)
       if system_proxy:
         connection.set_tunnel(request_host, request_port)
     else:
-      connection = DetailedHTTPConnection(connection_ip, connection_port)
+      connection = DetailedHTTPConnection(connection_host, connection_port)
     return connection
 
   def __call__(self, request):
@@ -361,16 +366,18 @@ class RealHttpFetch(object):
 class RecordHttpArchiveFetch(object):
   """Make real HTTP fetches and save responses in the given HttpArchive."""
 
-  def __init__(self, http_archive, real_dns_lookup, inject_script):
+  def __init__(self, http_archive, inject_script):
     """Initialize RecordHttpArchiveFetch.
 
     Args:
       http_archive: an instance of a HttpArchive
-      real_dns_lookup: a function that resolves a host to an IP.
       inject_script: script string to inject in all pages
     """
     self.http_archive = http_archive
-    self.real_http_fetch = RealHttpFetch(real_dns_lookup)
+    # Do not resolve host name to IP when recording to avoid SSL3 handshake
+    # failure.
+    # See https://github.com/chromium/web-page-replay/issues/73 for details.
+    self.real_http_fetch = RealHttpFetch(real_dns_lookup=None)
     self.inject_script = inject_script
 
   def __call__(self, request):
@@ -478,8 +485,7 @@ class ControllableHttpArchiveFetch(object):
         in the archive instead of giving a 404.
     """
     self.http_archive = http_archive
-    self.record_fetch = RecordHttpArchiveFetch(
-        http_archive, real_dns_lookup, inject_script)
+    self.record_fetch = RecordHttpArchiveFetch(http_archive, inject_script)
     self.replay_fetch = ReplayHttpArchiveFetch(
         http_archive, real_dns_lookup, inject_script,
         use_diff_on_unknown_requests, use_closest_match, scramble_images)
