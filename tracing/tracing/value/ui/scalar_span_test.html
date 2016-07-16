@@ -19,13 +19,196 @@ tr.b.unittest.testSuite(function() {
   var Unit = tr.v.Unit;
   var THIS_DOC = document._currentScript.ownerDocument;
 
-  function checkScalarSpan(
-      test, value, unit, expectedTextContent, opt_expectedColor) {
-    var span = tr.v.ui.createScalarSpan(new tr.v.ScalarNumeric(unit, value));
-    assert.strictEqual(span.$.content.textContent, expectedTextContent);
-    assert.strictEqual(span.$.content.style.color, opt_expectedColor || '');
+  function checkScalarSpan(test, value, unit, expectedContent, opt_options) {
+    var options = opt_options || {};
+    var span = tr.v.ui.createScalarSpan(new tr.v.ScalarNumeric(unit, value),
+        {significance: options.significance});
+
     test.addHTMLOutput(span);
+    assert.strictEqual(span.$.content.textContent, expectedContent);
+    assert.strictEqual(window.getComputedStyle(span.$.content).color,
+        options.expectedColor || 'rgb(0, 0, 0)');
+
+    if (options.expectedTitle)
+      assert.strictEqual(span.$.content.title, options.expectedTitle);
+
+    if (options.significance !== undefined) {
+      assert.strictEqual(span.$.significance.textContent,
+          options.expectedEmoji);
+      assert.strictEqual(window.getComputedStyle(span.$.significance).color,
+          options.expectedEmojiColor || 'rgb(0, 0, 0)');
+      if (options.expectedTitle)
+        assert.strictEqual(span.$.significance.title, options.expectedTitle);
+    }
   }
+
+  test('instantiate_significance', function() {
+    var countD = Unit.byName.count.correspondingDeltaUnit;
+    var countSIBD = Unit.byName.count_smallerIsBetter.correspondingDeltaUnit;
+    var countBIBD = Unit.byName.count_biggerIsBetter.correspondingDeltaUnit;
+
+    var zero = String.fromCharCode(177) + '0';
+
+    checkScalarSpan(this, 0, countSIBD, zero, {
+      significance: tr.v.Significance.DONT_CARE,
+      expectedTitle: 'no change',
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, 0, countSIBD, zero, {
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmojiColor: 'rgb(0, 0, 0)',
+      expectedTitle: 'no change'
+    });
+
+    assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
+      {significance: tr.v.Significance.SIGNIFICANT}));
+
+    checkScalarSpan(this, 0, countBIBD, zero, {
+      significance: tr.v.Significance.DONT_CARE,
+      expectedTitle: 'no change',
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, 0, countBIBD, zero, {
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmojiColor: 'rgb(0, 0, 0)',
+      expectedTitle: 'no change'
+    });
+
+    assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
+      {significance: tr.v.Significance.SIGNIFICANT}));
+
+    checkScalarSpan(this, 1, countSIBD, '+1', {
+      significance: tr.v.Significance.DONT_CARE,
+      expectedColor: 'rgb(255, 0, 0)',
+      expectedTitle: 'regression',
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, 1, countSIBD, '+1', {
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedColor: 'rgb(255, 0, 0)',
+      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmojiColor: 'rgb(0, 0, 0)',
+      expectedTitle: 'insignificant regression'
+    });
+
+    checkScalarSpan(this, 1, countSIBD, '+1', {
+      significance: tr.v.Significance.SIGNIFICANT,
+      expectedColor: 'rgb(255, 0, 0)',
+      expectedEmoji: tr.v.ui.Emoji.CONFOUNDED_FACE,
+      expectedEmojiColor: 'rgb(255, 0, 0)',
+      expectedTitle: 'significant regression'
+    });
+
+    checkScalarSpan(this, 1, countBIBD, '+1', {
+      significance: tr.v.Significance.DONT_CARE,
+      expectedColor: 'rgb(0, 128, 0)',
+      expectedTitle: 'improvement',
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, 1, countBIBD, '+1', {
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedColor: 'rgb(0, 128, 0)',
+      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmojiColor: 'rgb(0, 0, 0)',
+      expectedTitle: 'insignificant improvement'
+    });
+
+    checkScalarSpan(this, 1, countBIBD, '+1', {
+      significance: tr.v.Significance.SIGNIFICANT,
+      expectedColor: 'rgb(0, 128, 0)',
+      expectedEmoji: tr.v.ui.Emoji.GRINNING_FACE,
+      expectedEmojiColor: 'rgb(0, 128, 0)',
+      expectedTitle: 'significant improvement'
+    });
+
+    checkScalarSpan(this, -1, countSIBD, '-1', {
+      significance: tr.v.Significance.DONT_CARE,
+      expectedColor: 'rgb(0, 128, 0)',
+      expectedEmoji: '',
+      expectedEmojiColor: '',
+      expectedTitle: 'improvement'
+    });
+
+    checkScalarSpan(this, -1, countSIBD, '-1', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmojiColor: 'rgb(0, 0, 0)',
+      expectedTitle: 'insignificant improvement'
+    });
+
+    checkScalarSpan(this, -1, countSIBD, '-1', {
+      expectedColor: 'rgb(0, 128, 0)',
+      significance: tr.v.Significance.SIGNIFICANT,
+      expectedEmoji: tr.v.ui.Emoji.GRINNING_FACE,
+      expectedEmojiColor: 'rgb(0, 128, 0)',
+      expectedTitle: 'significant improvement'
+    });
+
+    checkScalarSpan(this, -1, countBIBD, '-1', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.v.Significance.DONT_CARE,
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, -1, countBIBD, '-1', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmojiColor: 'rgb(0, 0, 0)',
+      expectedTitle: 'insignificant regression'
+    });
+
+    checkScalarSpan(this, -1, countBIBD, '-1', {
+      expectedColor: 'rgb(255, 0, 0)',
+      significance: tr.v.Significance.SIGNIFICANT,
+      expectedEmoji: tr.v.ui.Emoji.CONFOUNDED_FACE,
+      expectedEmojiColor: 'rgb(255, 0, 0)',
+      expectedTitle: 'significant regression'
+    });
+
+    checkScalarSpan(this, 1, countD, '+1', {
+      expectedColor: 'rgb(0, 0, 0)',
+      significance: tr.v.Significance.DONT_CARE,
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, 1, countD, '+1', {
+      expectedColor: 'rgb(0, 0, 0)',
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, 1, countD, '+1', {
+      expectedColor: 'rgb(0, 0, 0)',
+      significance: tr.v.Significance.SIGNIFICANT,
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, -1, countD, '-1', {
+      expectedColor: 'rgb(0, 0, 0)',
+      significance: tr.v.Significance.DONT_CARE,
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, -1, countD, '-1', {
+      expectedColor: 'rgb(0, 0, 0)',
+      significance: tr.v.Significance.INSIGNIFICANT,
+      expectedEmoji: ''
+    });
+
+    checkScalarSpan(this, -1, countD, '-1', {
+      expectedColor: 'rgb(0, 0, 0)',
+      significance: tr.v.Significance.SIGNIFICANT,
+      expectedEmoji: ''
+    });
+  });
 
   test('instantiate', function() {
     checkScalarSpan(this, 123.456789, Unit.byName.timeDurationInMs,
@@ -63,20 +246,23 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_delta_smallerIsBetter', function() {
     checkScalarSpan(this, 45097156608,
-        Unit.byName.sizeInBytesDelta_smallerIsBetter, '+42.0 GiB', 'red');
+        Unit.byName.sizeInBytesDelta_smallerIsBetter, '+42.0 GiB',
+        {expectedColor: 'rgb(255, 0, 0)'});
     checkScalarSpan(this, 0, Unit.byName.energyInJoulesDelta_smallerIsBetter,
         '\u00B10.000 J');
     checkScalarSpan(this, -0.25,
-        Unit.byName.unitlessNumberDelta_smallerIsBetter, '-0.250', 'green');
+        Unit.byName.unitlessNumberDelta_smallerIsBetter, '-0.250',
+        {expectedColor: 'rgb(0, 128, 0)'});
   });
 
   test('instantiate_delta_biggerIsBetter', function() {
     checkScalarSpan(this, 0.07, Unit.byName.powerInWattsDelta_biggerIsBetter,
-        '+0.070 W', 'green');
+        '+0.070 W', {expectedColor: 'rgb(0, 128, 0)'});
     checkScalarSpan(this, 0, Unit.byName.timeStampInMsDelta_biggerIsBetter,
         '\u00B10.000 ms');
     checkScalarSpan(this, -0.00003,
-        Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-0.003%', 'red');
+        Unit.byName.normalizedPercentageDelta_biggerIsBetter, '-0.003%',
+        {expectedColor: 'rgb(255, 0, 0)'});
   });
 
   test('createScalarSpan', function() {

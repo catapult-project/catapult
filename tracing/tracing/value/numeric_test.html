@@ -42,6 +42,30 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
+  test('significance', function() {
+    assert.strictEqual(TEST_NUMERIC_BUILDER.build().getDifferenceSignificance(
+        TEST_NUMERIC_BUILDER.build()), tr.v.Significance.DONT_CARE);
+
+    var builder = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.unitlessNumber_smallerIsBetter,
+        tr.b.Range.fromExplicitRange(0, 100), 10);
+    var numericA = builder.build();
+    var numericB = builder.build();
+    for (var i = 0; i < 100; ++i) {
+      numericA.add(i);
+      numericB.add(i * 0.85);
+    }
+
+    assert.strictEqual(numericA.getDifferenceSignificance(numericB),
+        tr.v.Significance.INSIGNIFICANT);
+    assert.strictEqual(numericB.getDifferenceSignificance(numericA),
+        tr.v.Significance.INSIGNIFICANT);
+    assert.strictEqual(numericA.getDifferenceSignificance(numericB, 0.1),
+        tr.v.Significance.SIGNIFICANT);
+    assert.strictEqual(numericB.getDifferenceSignificance(numericA, 0.1),
+        tr.v.Significance.SIGNIFICANT);
+  });
+
   test('nonUnitThrows', function() {
     assert.throws(function() { new tr.v.NumericBase('foo', -273.15); });
   });

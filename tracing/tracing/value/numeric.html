@@ -20,6 +20,16 @@ tr.exportTo('tr.v', function() {
 
   var MAX_DIAGNOSTICS = 16;
 
+  // p-values less than this indicate statistical significance.
+  var DEFAULT_ALPHA = 0.05;
+
+  /** @enum */
+  var Significance = {
+    DONT_CARE: -1,
+    INSIGNIFICANT: 0,
+    SIGNIFICANT: 1
+  };
+
   function NumericBase(unit) {
     if (!(unit instanceof tr.v.Unit))
       throw new Error('Expected provided unit to be instance of Unit');
@@ -230,6 +240,35 @@ tr.exportTo('tr.v', function() {
 
     get maxCount() {
       return this.maxCount_;
+    },
+
+    /**
+     * Requires that units agree.
+     * Returns DONT_CARE if that is the units' improvementDirection.
+     * Returns SIGNIFICANT if the Mann-Whitney U test returns a
+     * p-value less than opt_alpha or DEFAULT_ALPHA. Returns INSIGNIFICANT if
+     * the p-value is greater than alpha.
+     *
+     * @param {!tr.v.Numeric} other
+     * @param {number=} opt_alpha
+     * @return {!tr.v.Significance}
+     */
+    getDifferenceSignificance: function(other, opt_alpha) {
+      if (this.unit !== other.unit)
+        throw new Error('Cannot compare Numerics with different units');
+
+      if (this.unit.improvementDirection ===
+          tr.v.ImprovementDirection.DONT_CARE) {
+        return tr.v.Significance.DONT_CARE;
+      }
+
+      if (!(other instanceof Numeric))
+        throw new Error('Unable to compute a p-value');
+
+      var mwu = tr.b.Statistics.mwu.test(this.sampleValues, other.sampleValues);
+      if (mwu.p < (opt_alpha || DEFAULT_ALPHA))
+        return tr.v.Significance.SIGNIFICANT;
+      return tr.v.Significance.INSIGNIFICANT;
     },
 
     /*
@@ -808,6 +847,7 @@ tr.exportTo('tr.v', function() {
   };
 
   return {
+    Significance: Significance,
     NumericBase: NumericBase,
     NumericBin: NumericBin,
     Numeric: Numeric,

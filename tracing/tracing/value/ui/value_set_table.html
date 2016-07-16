@@ -632,18 +632,30 @@ tr.exportTo('tr.v.ui', function() {
           var cell = row.columns[displayLabel];
           if (cell === undefined)
             return '';
+
           if (cell instanceof tr.v.NumericValue) {
             if (this.$.table.selectedTableColumn &&
                 this.$.table.selectedTableColumn.title !== displayLabel) {
               var referenceCell = row.columns[
                 this.$.table.selectedTableColumn.title];
+
               if (referenceCell instanceof tr.v.NumericValue &&
                   cell.numeric.unit === referenceCell.numeric.unit) {
+                var significance = tr.v.Significance.DONT_CARE;
+
+                if (cell.numeric instanceof tr.v.Numeric &&
+                    referenceCell.numeric instanceof tr.v.Numeric) {
+                  significance = cell.numeric.getDifferenceSignificance(
+                      referenceCell.numeric);
+                }
+
                 return tr.v.ui.createScalarSpan(
                     getValueForValue(cell) - getValueForValue(referenceCell),
-                    {unit: cell.numeric.unit.correspondingDeltaUnit});
+                    {unit: cell.numeric.unit.correspondingDeltaUnit,
+                     significance: significance});
               }
             }
+
             return tr.v.ui.createScalarSpan(cell);
           }
           if (cell instanceof tr.v.d.Diagnostic) {

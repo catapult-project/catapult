@@ -14,9 +14,20 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
+  var emojiPrefix = String.fromCharCode(55357);
+  var Emoji = {
+    GRINNING_FACE: emojiPrefix + String.fromCharCode(56835),
+    NEUTRAL_FACE: emojiPrefix + String.fromCharCode(56848),
+    CONFOUNDED_FACE: emojiPrefix + String.fromCharCode(56854)
+  };
+
   /**
    * @param {undefined|tr.v.NumericValue|tr.v.Numeric} value
    * @param {Object=} opt_config
+   * @param {number=} opt_config.total
+   * @param {boolean=} opt_config.rightAlign
+   * @param {!tr.v.Unit=} opt_config.unit
+   * @param {tr.v.Significance=} opt_config.significance
    * @return {string|Element}
    */
   function createScalarSpan(value, opt_config) {
@@ -61,6 +72,9 @@ tr.exportTo('tr.v.ui', function() {
     if (config.rightAlign)
       span.rightAlign = true;
 
+    if (config.significance !== undefined)
+      span.significance = config.significance;
+
     return span;
   }
 
@@ -85,6 +99,7 @@ tr.exportTo('tr.v.ui', function() {
   });
 
   return {
+    Emoji: Emoji,
     createScalarSpan: createScalarSpan
   };
 });
@@ -102,6 +117,12 @@ tr.exportTo('tr.v.ui', function() {
       position: relative;
       display: block;
     }
+    #significance.better, #content.better {
+      color: green;
+    }
+    #significance.worse, #content.worse {
+      color: red;
+    }
     #sparkline {
       width: 0%;
       position: absolute;
@@ -117,8 +138,13 @@ tr.exportTo('tr.v.ui', function() {
       margin-left: 4px;
       font-size: 66%;
     }
+    #significance {
+      font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", Times, Symbola, Aegyptus, Code2000, Code2001, Code2002, Musica, serif, LastResort;
+      font-size: 13pt;
+    }
     </style>
     <span id="sparkline"></span>
+    <span id="significance"></span>
     <span id="content"></span>
     <span id="warning" style="display:none">&#9888;</span>
   </template>
@@ -126,13 +152,23 @@ tr.exportTo('tr.v.ui', function() {
   'use strict';
 
   Polymer({
-    ready: function() {
+    created: function() {
       this.value_ = undefined;
       this.unit_ = undefined;
       this.context_ = undefined;
 
       this.warning_ = undefined;
       this.percentage_ = undefined;
+      this.significance_ = tr.v.Significance.DONT_CARE;
+    },
+
+    get significance() {
+      return this.significance_;
+    },
+
+    set significance(s) {
+      this.significance_ = s;
+      this.updateContent_();
     },
 
     set contentTextDecoration(deco) {
@@ -208,42 +244,92 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     updateContent_: function() {
-      if (this.unit_ === undefined) {
-        this.$.content.textContent = '';
-        this.$.content.style.color = '';
+      this.$.significance.textContent = '';
+      this.$.content.textContent = '';
+      this.$.content.classList.remove('better');
+      this.$.content.classList.remove('worse');
+      this.$.significance.classList.remove('better');
+      this.$.significance.classList.remove('worse');
+
+      if (this.unit_ === undefined)
         return;
-      }
 
+      this.$.content.title = '';
       this.$.content.textContent = this.unit_.format(this.value, this.context);
+      this.updateDelta_();
+    },
 
-      var BIGGER_IS_BETTER = tr.v.ImprovementDirection.BIGGER_IS_BETTER;
-      var SMALLER_IS_BETTER = tr.v.ImprovementDirection.SMALLER_IS_BETTER;
-      var color = '';
-      if (this.unit_.isDelta) {
-        var improvementDirection = this.unit_.improvementDirection;
-        if (this.value > 0) {
-          // Positive delta.
-          switch (improvementDirection) {
-            case BIGGER_IS_BETTER:
-              color = 'green';
-              break;
-            case SMALLER_IS_BETTER:
-              color = 'red';
-              break;
-          }
-        } else if (this.value < 0) {
-          // Negative delta.
-          switch (improvementDirection) {
-            case BIGGER_IS_BETTER:
-              color = 'red';
-              break;
-            case SMALLER_IS_BETTER:
-              color = 'green';
-              break;
-          }
-        }
+    updateDelta_: function() {
+      if (!this.unit_.isDelta)
+        return;
+
+      var biggerIsBetter = false;
+      var smallerIsBetter = false;
+      switch (this.unit_.improvementDirection) {
+        case tr.v.ImprovementDirection.DONT_CARE:
+          return;
+
+        case tr.v.ImprovementDirection.BIGGER_IS_BETTER:
+          biggerIsBetter = true;
+          break;
+
+        case tr.v.ImprovementDirection.SMALLER_IS_BETTER:
+          smallerIsBetter = true;
+          break;
       }
-      this.$.content.style.color = color;
+
+      var better = ((biggerIsBetter && this.value > 0) ||
+          (smallerIsBetter && this.value < 0));
+      var worse = ((biggerIsBetter && this.value < 0) ||
+          (smallerIsBetter && this.value > 0));
+
+      var changeClass = '';
+      var emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
+      var title = '';
+
+      if (better) {
+        changeClass = 'better';
+        emoji = tr.v.ui.Emoji.GRINNING_FACE;
+        title = 'improvement';
+      } else if (worse) {
+        changeClass = 'worse';
+        emoji = tr.v.ui.Emoji.CONFOUNDED_FACE;
+        title = 'regression';
+      } else {
+        title = 'no change';
+      }
+
+      // Set the content class separately from the significance class so that
+      // NEUTRAL_FACE is always a neutral color.
+      if (changeClass)
+        this.$.content.classList.add(changeClass);
+
+      switch (this.significance) {
+        case tr.v.Significance.DONT_CARE:
+          emoji = '';
+          changeClass = '';
+          break;
+
+        case tr.v.Significance.INSIGNIFICANT:
+          changeClass = '';
+          emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
+          if (better || worse)
+            title = 'insignificant ' + title;
+          break;
+
+        case tr.v.Significance.SIGNIFICANT:
+          if (!better && !worse)
+            throw new Error('How can no change be significant?');
+
+          title = 'significant ' + title;
+          break;
+      }
+
+      this.$.significance.textContent = emoji;
+      this.$.significance.title = title;
+      this.$.content.title = title;
+      if (changeClass)
+        this.$.significance.classList.add(changeClass);
     },
 
     get warning() {
