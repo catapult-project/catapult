@@ -117,6 +117,20 @@ class CpuTracingAgentTest(unittest.TestCase):
     self.assertEquals(set(data[0]['args']['processes'][0].keys()),
                       set(SNAPSHOT_KEYS))
 
+  @decorators.Enabled('linux', 'mac', 'win')
+  def testMinimumCpuThreshold(self):
+    builder = trace_data.TraceDataBuilder()
+    self._agent.StartAgentTracing(self._config, 0)
+    time.sleep(2)
+    self._agent.StopAgentTracing()
+    self._agent.CollectAgentTraceData(builder)
+    builder = builder.AsData()
+    data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
+    self.assertTrue(data)
+    for snapshot in data:
+      for process in snapshot['args']['processes']:
+        self.assertTrue(process['pCpu'] >= cpu_tracing_agent.DEFAULT_MIN_PCPU)
+
   @decorators.Enabled('linux', 'mac')
   def testParseLine(self):
     collector = self._agent._collector
