@@ -481,7 +481,7 @@ triaging functionality in the chart.
           // Whether or not the chart can currently be drawn.
           drawable: {
             type: Boolean,
-            value: true
+            value: false
           },
 
           // The Flot Plot object, returned by $.plot.
@@ -900,6 +900,9 @@ triaging functionality in the chart.
          */
         updateForNewSeries: function(series, isSelected) {
           if (!this.drawable) {
+            // Cache the new series until the chart is drawable.
+            this.newDrawableSeries = this.newDrawableSeries || [];
+            this.newDrawableSeries.push([series, isSelected]);
             return;
           }
 
@@ -1136,9 +1139,20 @@ triaging functionality in the chart.
          * element is removed from the DOM.
          * See: http://www.polymer-project.org/polymer.html#lifecyclemethods
          */
-        leftView: function() {
+        detached: function() {
           this.drawable = false;
           window.removeEventListener('resize', this.resizeHandler);
+        },
+
+        attached: function() {
+          this.drawable = true;
+          // This likely only happens in the unit test, but if series have
+          // been added before the element became drawable, update now.
+          if (this.newDrawableSeries) {
+            for (var drawableSeries of this.newDrawableSeries) {
+              this.updateForNewSeries(drawableSeries[0], drawableSeries[1]);
+            }
+          }
         },
 
         /**

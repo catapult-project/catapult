@@ -168,11 +168,11 @@ found in the LICENSE file.
         this.enableAddSeries = false;
         this.selectedSuite = null;
         this.suiteDescription = null;
-        this.selectionModels[0].datalist = this.getSuiteItems();
+        this.set('selectionModels.0.datalist', this.getSuiteItems());
       },
 
       testSuitesChanged: function() {
-        this.selectionModels[0].datalist = this.getSuiteItems();
+        this.set('selectionModels.0.datalist', this.getSuiteItems());
         this.getSelectionMenu(0).setDataList(this.selectionModels[0].datalist);
       },
 
@@ -294,7 +294,7 @@ found in the LICENSE file.
           this.sendSubtestRequest();
         } else {
           // Clear all subtest menus.
-          this.selectionModels.splice(2);
+          this.splice('selectionModels', 2);
         }
         this.updateAddButtonState();
       },
@@ -353,7 +353,7 @@ found in the LICENSE file.
         for (var i = startIndex; i < this.selectionModels.length; i++) {
           // Remove the rest of the menu if no subtestDict.
           if (!subtestDict || Object.keys(subtestDict).length == 0) {
-            this.selectionModels.splice(i);
+            this.splice('selectionModels', i);
             this.updateAddButtonState();
             return;
           }
@@ -372,7 +372,7 @@ found in the LICENSE file.
         // Check if we still need to add a subtest menu.
         if (subtestDict && Object.keys(subtestDict).length > 0) {
           var subtestItems = this.getSubtestItems(subtestDict);
-          this.selectionModels.push({
+          this.push('selectionModels', {
             placeholder: this.SUBTEST_LABEL,
             datalist: subtestItems
           });

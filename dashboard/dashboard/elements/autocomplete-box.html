@@ -424,7 +424,7 @@ property 'group' sets to the header item name.
         }
         this.$.dropdown.selected = [];
 
-        this.dataList = this.autocomplete.search(currentValue);
+        this.set('dataList', this.autocomplete.search(currentValue));
 
         if (this.multi) {
           this.updateDropdownWithSelectedItems();
