@@ -18,7 +18,7 @@ from telemetry.testing import browser_test_runner
 class BrowserTestRunnerTest(unittest.TestCase):
 
   def baseTest(self, mockInitDependencyManager, test_filter,
-               failures, successes):
+               failures, successes, test_name='SimpleTest'):
     options = browser_test_runner.TestRunOptions()
     options.verbosity = 0
     config = project_config.ProjectConfig(
@@ -33,7 +33,7 @@ class BrowserTestRunnerTest(unittest.TestCase):
     try:
       browser_test_runner.Run(
           config, options,
-          ['SimpleTest',
+          [test_name,
            '--write-abbreviated-json-results-to=%s' % temp_file_name,
            '--test-filter=%s' % test_filter])
       mockInitDependencyManager.assert_called_with(['a', 'b', 'c'])
@@ -57,12 +57,25 @@ class BrowserTestRunnerTest(unittest.TestCase):
        'multiplier_simple_3'])
 
   @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputWhenSetupClassFailed(self, mockInitDependencyManager):
+    self.baseTest(
+      mockInitDependencyManager, '.*',
+      ['setUpClass (browser_tests.failed_tests.SetUpClassFailedTest)'],
+      [], test_name='SetUpClassFailedTest')
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
+  def testJsonOutputWhenTearDownClassFailed(self, mockInitDependencyManager):
+    self.baseTest(
+      mockInitDependencyManager, '.*',
+      ['tearDownClass (browser_tests.failed_tests.TearDownClassFailedTest)'],
+      sorted(['dummy_test_%i' %i for i in xrange(0, 100)]),
+      test_name='TearDownClassFailedTest')
+
+  @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
   def testJsonOutputFormatPositiveFilter(self, mockInitDependencyManager):
     self.baseTest(
       mockInitDependencyManager, '(TestSimple|TestException).*',
-      ['TestException',
-       'TestSimple'],
-      [])
+      ['TestException', 'TestSimple'], [])
 
   @mock.patch('telemetry.internal.util.binary_manager.InitDependencyManager')
   def testExecutingTestsInSortedOrder(self, mockInitDependencyManager):

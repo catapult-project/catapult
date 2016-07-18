@@ -308,11 +308,19 @@ def Run(project_config, test_run_options, args):
       # Python's unittest APIs; errors are those which abort the test
       # case early with an execption.
       failures = []
-      failures.extend(results.failures)
-      failures.extend(results.errors)
-      failures.sort(key=lambda entry: entry[0].shortName())
-      for (failed_test_case, _) in failures:
-        json_results['failures'].append(failed_test_case.shortName())
+      for fail, _ in results.failures + results.errors:
+        # When errors in thrown in individual test method or setUp or tearDown,
+        # fail would be an instance of unittest.TestCase.
+        if isinstance(fail, unittest.TestCase):
+          failures.append(fail.shortName())
+        else:
+          # When errors in thrown in setupClass or tearDownClass, an instance of
+          # _ErrorHolder is is placed in results.errors list. We use the id()
+          # as failure name in this case since shortName() is not available.
+          failures.append(fail.id())
+      failures = sorted(list(failures))
+      for failure_id in failures:
+        json_results['failures'].append(failure_id)
       for passed_test_case in results.successes:
         json_results['successes'].append(passed_test_case.shortName())
       json_results['times'].update(results.times)
