@@ -2,22 +2,31 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-
 from telemetry.internal.actions import scroll
+from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
 
 class ScrollActionTest(tab_test_case.TabTestCase):
-  def testScrollAction(self):
+  def _MakePageVerticallyScrollable(self):
+    # Make page taller than window so it's scrollable vertically.
+    self._tab.ExecuteJavaScript('document.body.style.height ='
+        '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
+
+  def _MakePageHorizontallyScrollable(self):
+    # Make page wider than window so it's scrollable horizontally.
+    self._tab.ExecuteJavaScript('document.body.style.width ='
+        '(3 * __GestureCommon_GetWindowWidth() + 1) + "px";')
+
+  def setUp(self):
+    tab_test_case.TabTestCase.setUp(self)
     self.Navigate('blank.html')
+    utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
-    # Make page bigger than window so it's scrollable.
-    self._tab.ExecuteJavaScript("""document.body.style.height =
-                              (2 * window.innerHeight + 1) + 'px';""")
+  def testScrollAction(self):
 
+    self._MakePageVerticallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript("""document.documentElement.scrollTop
-                                   || document.body.scrollTop"""), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
 
     i = scroll.ScrollAction()
     i.WillRunAction(self._tab)
@@ -35,7 +44,7 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     self.assertTrue(self._tab.EvaluateJavaScript('window.__didEndMeasuring'))
 
     scroll_position = self._tab.EvaluateJavaScript(
-        '(document.documentElement.scrollTop || document.body.scrollTop)')
+        'document.scrollingElement.scrollTop')
     self.assertTrue(scroll_position != 0,
                     msg='scroll_position=%d;' % (scroll_position))
 
@@ -47,20 +56,13 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     if branch_num < 2332:
       return
 
-    self.Navigate('blank.html')
-
-    # Make page bigger than window so it's scrollable.
-    self._tab.ExecuteJavaScript("""document.body.style.height =
-                              (2 * window.innerHeight + 1) + 'px';""")
-    self._tab.ExecuteJavaScript("""document.body.style.width =
-                              (2 * window.innerWidth + 1) + 'px';""")
-
+    self._MakePageVerticallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript("""document.documentElement.scrollTop
-                                   || document.body.scrollTop"""), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
+
+    self._MakePageHorizontallyScrollable()
     self.assertEquals(
-        self._tab.EvaluateJavaScript("""document.documentElement.scrollLeft
-                                   || document.body.scrollLeft"""), 0)
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'), 0)
 
     i = scroll.ScrollAction(direction='downright')
     i.WillRunAction(self._tab)
@@ -68,21 +70,14 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     i.RunAction(self._tab)
 
     viewport_top = self._tab.EvaluateJavaScript(
-        '(document.documentElement.scrollTop || document.body.scrollTop)')
+        'document.scrollingElement.scrollTop')
     self.assertTrue(viewport_top != 0, msg='viewport_top=%d;' % viewport_top)
 
     viewport_left = self._tab.EvaluateJavaScript(
-        '(document.documentElement.scrollLeft || document.body.scrollLeft)')
+        'document.scrollingElement.scrollLeft')
     self.assertTrue(viewport_left != 0, msg='viewport_left=%d;' % viewport_left)
 
   def testBoundingClientRect(self):
-    self.Navigate('blank.html')
-
-    with open(os.path.join(os.path.dirname(__file__),
-                           'gesture_common.js')) as f:
-      js = f.read()
-      self._tab.ExecuteJavaScript(js)
-
     # Verify that the rect returned by getBoundingVisibleRect() in scroll.js is
     # completely contained within the viewport. Scroll events dispatched by the
     # scrolling API use the center of this rect as their location, and this
@@ -91,12 +86,17 @@ class ScrollActionTest(tab_test_case.TabTestCase):
     # not clipped to the viewport bounds, then the instance used here (the
     # scrollable area being more than twice as tall as the viewport) would
     # result in a scroll location outside of the viewport bounds.
-    self._tab.ExecuteJavaScript("""document.body.style.height =
-                           (3 * window.innerHeight + 1) + 'px';""")
-    self._tab.ExecuteJavaScript("""document.body.style.width =
-                           (3 * window.innerWidth + 1) + 'px';""")
-    self._tab.ExecuteJavaScript(
-        "window.scrollTo(window.innerWidth, window.innerHeight);")
+    self._MakePageVerticallyScrollable()
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollTop'), 0)
+
+    self._MakePageHorizontallyScrollable()
+    self.assertEquals(
+        self._tab.EvaluateJavaScript('document.scrollingElement.scrollLeft'), 0)
+
+    self._tab.ExecuteJavaScript("""
+        window.scrollTo(__GestureCommon_GetWindowWidth(),
+                        __GestureCommon_GetWindowHeight());""")
 
     rect_top = int(self._tab.EvaluateJavaScript(
         '__GestureCommon_GetBoundingVisibleRect(document.body).top'))
@@ -110,8 +110,10 @@ class ScrollActionTest(tab_test_case.TabTestCase):
         '__GestureCommon_GetBoundingVisibleRect(document.body).width'))
     rect_right = rect_left + rect_width
 
-    viewport_height = int(self._tab.EvaluateJavaScript('window.innerHeight'))
-    viewport_width = int(self._tab.EvaluateJavaScript('window.innerWidth'))
+    viewport_height = int(self._tab.EvaluateJavaScript(
+        '__GestureCommon_GetWindowHeight()'))
+    viewport_width = int(self._tab.EvaluateJavaScript(
+        '__GestureCommon_GetWindowWidth()'))
 
     self.assertTrue(rect_top >= 0,
         msg='%s >= %s' % (rect_top, 0))

@@ -15,6 +15,7 @@ Action parameters are:
 from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class LoopAction(media_action.MediaAction):
@@ -28,7 +29,7 @@ class LoopAction(media_action.MediaAction):
   def WillRunAction(self, tab):
     """Load the media metrics JS code prior to running the action."""
     super(LoopAction, self).WillRunAction(tab)
-    self.LoadJS(tab, 'loop.js')
+    utils.InjectJavaScript(tab, 'loop.js')
 
   def RunAction(self, tab):
     try:

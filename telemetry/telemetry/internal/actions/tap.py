@@ -2,9 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class TapAction(page_action.PageAction):
@@ -23,10 +22,8 @@ class TapAction(page_action.PageAction):
                                       synthetic_gesture_source)
 
   def WillRunAction(self, tab):
-    for js_file in ['gesture_common.js', 'tap.js']:
-      with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
-        js = f.read()
-        tab.ExecuteJavaScript(js)
+    utils.InjectJavaScript(tab, 'gesture_common.js')
+    utils.InjectJavaScript(tab, 'tap.js')
 
     # Fail if browser doesn't support synthetic tap gestures.
     if not tab.EvaluateJavaScript('window.__TapAction_SupportedByBrowser()'):

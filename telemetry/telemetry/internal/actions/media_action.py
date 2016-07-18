@@ -5,25 +5,19 @@
 """Common media action functions."""
 
 import logging
-import os
 
 from telemetry.core import util
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class MediaAction(page_action.PageAction):
   def WillRunAction(self, tab):
     """Loads the common media action JS code prior to running the action."""
-    self.LoadJS(tab, 'media_action.js')
+    utils.InjectJavaScript(tab, 'media_action.js')
 
   def RunAction(self, tab):
     super(MediaAction, self).RunAction(tab)
-
-  def LoadJS(self, tab, js_file_name):
-    """Loads and executes a JS file in the tab."""
-    with open(os.path.join(os.path.dirname(__file__), js_file_name)) as f:
-      js = f.read()
-      tab.ExecuteJavaScript(js)
 
   def WaitForEvent(self, tab, selector, event_name, timeout_in_seconds):
     """Halts media action until the selector's event is fired.

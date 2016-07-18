@@ -16,6 +16,7 @@ playing and ended events get fired respectively.
 from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class PlayAction(media_action.MediaAction):
@@ -30,7 +31,7 @@ class PlayAction(media_action.MediaAction):
   def WillRunAction(self, tab):
     """Load the media metrics JS code prior to running the action."""
     super(PlayAction, self).WillRunAction(tab)
-    self.LoadJS(tab, 'play.js')
+    utils.InjectJavaScript(tab, 'play.js')
 
   def RunAction(self, tab):
     try:

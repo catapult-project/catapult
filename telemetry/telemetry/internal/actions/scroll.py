@@ -1,9 +1,9 @@
 # Copyright 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class ScrollAction(page_action.PageAction):
@@ -48,10 +48,8 @@ class ScrollAction(page_action.PageAction):
         raise ValueError('Diagonal scrolling requires Chrome branch number'
                          ' 2332 or later. Found branch number %d' %
                          branch_num)
-    for js_file in ['gesture_common.js', 'scroll.js']:
-      with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
-        js = f.read()
-        tab.ExecuteJavaScript(js)
+    utils.InjectJavaScript(tab, 'gesture_common.js')
+    utils.InjectJavaScript(tab, 'scroll.js')
 
     # Fail if browser doesn't support synthetic scroll gestures.
     if not tab.EvaluateJavaScript('window.__ScrollAction_SupportedByBrowser()'):

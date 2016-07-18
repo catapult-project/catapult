@@ -2,7 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import numbers
+
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 from telemetry.web_perf import timeline_interaction_record
 
 
@@ -22,11 +25,13 @@ class RepeatableScrollAction(page_action.PageAction):
     self._speed = speed
 
   def WillRunAction(self, tab):
+    utils.InjectJavaScript(tab, 'gesture_common.js')
     # Get the dimensions of the screen.
-    window_info_js = 'window.innerWidth + "," + window.innerHeight'
-    js_result = tab.EvaluateJavaScript(window_info_js).split(',')
-
-    self._windowsize = [int(js_result[0]), int(js_result[1])]
+    self._windowsize = tab.EvaluateJavaScript(
+        '[__GestureCommon_GetWindowWidth(),'
+        ' __GestureCommon_GetWindowHeight()]')
+    assert len(self._windowsize) == 2
+    assert all(isinstance(d, numbers.Number) for d in self._windowsize)
 
   def RunAction(self, tab):
     # Set up a browser driven repeating scroll. The delay between the scrolls

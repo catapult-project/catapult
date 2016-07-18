@@ -1,9 +1,9 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-import os
 
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class ScrollBounceAction(page_action.PageAction):
@@ -41,10 +41,8 @@ class ScrollBounceAction(page_action.PageAction):
       self._element_function = '(document.scrollingElement || document.body)'
 
   def WillRunAction(self, tab):
-    for js_file in ['gesture_common.js', 'scroll_bounce.js']:
-      with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
-        js = f.read()
-        tab.ExecuteJavaScript(js)
+    utils.InjectJavaScript(tab, 'gesture_common.js')
+    utils.InjectJavaScript(tab, 'scroll_bounce.js')
 
     # Fail if browser doesn't support synthetic scroll bounce gestures.
     if not tab.EvaluateJavaScript(

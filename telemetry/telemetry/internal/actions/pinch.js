@@ -29,7 +29,9 @@
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
-              chrome.gpuBenchmarking.pinchBy);
+              chrome.gpuBenchmarking.pinchBy &&
+              chrome.gpuBenchmarking.visualViewportHeight &&
+              chrome.gpuBenchmarking.visualViewportWidth);
   }
 
   // This class zooms into or out of a page, given a number of pixels for
@@ -37,8 +39,8 @@
   function PinchAction(opt_callback) {
     var self = this;
 
-    this.beginMeasuringHook = function() {}
-    this.endMeasuringHook = function() {}
+    this.beginMeasuringHook = function() {};
+    this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
   };

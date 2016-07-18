@@ -26,15 +26,17 @@
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
-              chrome.gpuBenchmarking.swipe);
+              chrome.gpuBenchmarking.swipe &&
+              chrome.gpuBenchmarking.visualViewportHeight &&
+              chrome.gpuBenchmarking.visualViewportWidth);
   }
 
   // This class swipes a page for a specified distance.
   function SwipeAction(opt_callback) {
     var self = this;
 
-    this.beginMeasuringHook = function() {}
-    this.endMeasuringHook = function() {}
+    this.beginMeasuringHook = function() {};
+    this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
   }

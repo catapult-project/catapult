@@ -8,14 +8,16 @@
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
-              chrome.gpuBenchmarking.scrollBounce);
+              chrome.gpuBenchmarking.scrollBounce &&
+              chrome.gpuBenchmarking.visualViewportHeight &&
+              chrome.gpuBenchmarking.visualViewportWidth);
   }
 
   function ScrollBounceAction(opt_callback) {
     var self = this;
 
-    this.beginMeasuringHook = function() {}
-    this.endMeasuringHook = function() {}
+    this.beginMeasuringHook = function() {};
+    this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
   }

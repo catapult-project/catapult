@@ -10,26 +10,28 @@
 
 (function() {
   function DragGestureOptions(opt_options) {
-      this.element_ = opt_options.element;
-      this.left_start_ratio_ = opt_options.left_start_ratio;
-      this.top_start_ratio_ = opt_options.top_start_ratio;
-      this.left_end_ratio_ = opt_options.left_end_ratio;
-      this.top_end_ratio_ = opt_options.top_end_ratio;
-      this.speed_ = opt_options.speed;
-      this.gesture_source_type_ = opt_options.gesture_source_type;
+    this.element_ = opt_options.element;
+    this.left_start_ratio_ = opt_options.left_start_ratio;
+    this.top_start_ratio_ = opt_options.top_start_ratio;
+    this.left_end_ratio_ = opt_options.left_end_ratio;
+    this.top_end_ratio_ = opt_options.top_end_ratio;
+    this.speed_ = opt_options.speed;
+    this.gesture_source_type_ = opt_options.gesture_source_type;
   }
 
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
-              chrome.gpuBenchmarking.smoothDrag);
+              chrome.gpuBenchmarking.smoothDrag &&
+              chrome.gpuBenchmarking.visualViewportHeight &&
+              chrome.gpuBenchmarking.visualViewportWidth);
   }
 
   // This class performs drag action using given start and end positions,
   // by a single drag gesture.
   function DragAction(opt_callback) {
-    this.beginMeasuringHook = function() {}
-    this.endMeasuringHook = function() {}
+    this.beginMeasuringHook = function() {};
+    this.endMeasuringHook = function() {};
 
     this.callback_ = opt_callback;
   }

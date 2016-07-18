@@ -25,7 +25,9 @@
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
-              chrome.gpuBenchmarking.tap);
+              chrome.gpuBenchmarking.tap &&
+              chrome.gpuBenchmarking.visualViewportHeight &&
+              chrome.gpuBenchmarking.visualViewportWidth);
   }
 
   function TapAction(opt_callback) {
@@ -50,8 +52,10 @@
         rect.left + rect.width * this.options_.left_position_percentage_;
     var position_top =
         rect.top + rect.height * this.options_.top_position_percentage_;
-    if (position_left < 0 || position_left >= window.innerWidth ||
-        position_top < 0 || position_top >= window.innerHeight) {
+    if (position_left < 0 ||
+        position_left >= __GestureCommon_GetWindowWidth() ||
+        position_top < 0 ||
+        position_top >= __GestureCommon_GetWindowHeight()) {
       throw new Error('Tap position is off-screen');
     }
     chrome.gpuBenchmarking.tap(position_left, position_top,

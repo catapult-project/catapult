@@ -5,6 +5,7 @@
 import time
 
 from telemetry.internal.actions import key_event
+from telemetry.internal.actions import utils
 from telemetry.testing import tab_test_case
 
 
@@ -17,7 +18,7 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
 
   @property
   def _window_height(self):
-    return self._tab.EvaluateJavaScript('window.innerHeight')
+    return self._tab.EvaluateJavaScript('__GestureCommon_GetWindowHeight()')
 
   def _PressKey(self, key):
     action = key_event.KeyPressAction(key)
@@ -27,11 +28,12 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
   def setUp(self):
     tab_test_case.TabTestCase.setUp(self)
     self.Navigate('blank.html')
+    utils.InjectJavaScript(self._tab, 'gesture_common.js')
 
   def testPressEndAndHome(self):
     # Make page taller than the window so it's scrollable.
-    self._tab.ExecuteJavaScript(
-        'document.body.style.height = (3 * window.innerHeight + 1) + "px";')
+    self._tab.ExecuteJavaScript('document.body.style.height ='
+        '(3 * __GestureCommon_GetWindowHeight() + 1) + "px";')
 
     # Check that the browser is currently showing the top of the page and that
     # the page has non-trivial height.

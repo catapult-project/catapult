@@ -18,9 +18,8 @@ Action parameters are:
 - use_touch: boolean value to specify if gesture should use touch input or not.
 """
 
-import os
-
 from telemetry.internal.actions import page_action
+from telemetry.internal.actions import utils
 
 
 class DragAction(page_action.PageAction):
@@ -44,10 +43,8 @@ class DragAction(page_action.PageAction):
                                       synthetic_gesture_source)
 
   def WillRunAction(self, tab):
-    for js_file in ['gesture_common.js', 'drag.js']:
-      with open(os.path.join(os.path.dirname(__file__), js_file)) as f:
-        js = f.read()
-        tab.ExecuteJavaScript(js)
+    utils.InjectJavaScript(tab, 'gesture_common.js')
+    utils.InjectJavaScript(tab, 'drag.js')
 
     # Fail if browser doesn't support synthetic drag gestures.
     if not tab.EvaluateJavaScript('window.__DragAction_SupportedByBrowser()'):

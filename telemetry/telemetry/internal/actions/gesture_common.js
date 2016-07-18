@@ -7,6 +7,10 @@
 
 (function() {
 
+  // Make sure functions are injected only once.
+  if (window.__GestureCommon_GetBoundingVisibleRect)
+    return;
+
   // Returns the bounding rectangle wrt to the top-most document.
   function getBoundingRect(el) {
     var client_rect = el.getBoundingClientRect();
@@ -28,6 +32,24 @@
     return bound;
   }
 
+  // TODO(ulan): Remove this function once
+  // chrome.gpuBenchmarking.pageScaleFactor is available in reference builds.
+  function getPageScaleFactor() {
+    if (chrome.gpuBenchmarking.pageScaleFactor)
+      return chrome.gpuBenchmarking.pageScaleFactor();
+    return 1;
+  }
+
+  // Zoom-independent window height. See crbug.com/627123 for more details.
+  function getWindowHeight() {
+    return getPageScaleFactor() * chrome.gpuBenchmarking.visualViewportHeight();
+  }
+
+  // Zoom-independent window width. See crbug.com/627123 for more details.
+  function getWindowWidth() {
+    return getPageScaleFactor() * chrome.gpuBenchmarking.visualViewportWidth();
+  }
+
   function getBoundingVisibleRect(el) {
     var rect = getBoundingRect(el);
     if (rect.top < 0) {
@@ -39,18 +61,10 @@
       rect.left = 0;
     }
 
-    // TODO(ymalik): Remove the fallback path once the visualViewportHeight and
-    // visualViewportWidth properties roll into stable.
-    var visualViewportHeight = window.innerHeight;
-    var visualViewportWidth = window.innerWidth;
-    if (chrome.gpuBenchmarking.visualViewportHeight) {
-      visualViewportHeight = chrome.gpuBenchmarking.visualViewportHeight();
-    }
-    if (chrome.gpuBenchmarking.visualViewportWidth) {
-      visualViewportWidth = chrome.gpuBenchmarking.visualViewportWidth();
-    }
-    var outsideHeight = (rect.top + rect.height) - visualViewportHeight;
-    var outsideWidth = (rect.left + rect.width) - visualViewportWidth;
+    var windowHeight = getWindowHeight();
+    var windowWidth = getWindowWidth();
+    var outsideHeight = (rect.top + rect.height) - windowHeight;
+    var outsideWidth = (rect.left + rect.width) - windowWidth;
 
     if (outsideHeight > 0) {
       rect.height -= outsideHeight;
@@ -62,4 +76,6 @@
   };
 
   window.__GestureCommon_GetBoundingVisibleRect = getBoundingVisibleRect;
+  window.__GestureCommon_GetWindowHeight = getWindowHeight;
+  window.__GestureCommon_GetWindowWidth = getWindowWidth;
 })();

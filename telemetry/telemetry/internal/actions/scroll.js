@@ -32,7 +32,9 @@
   function supportedByBrowser() {
     return !!(window.chrome &&
               chrome.gpuBenchmarking &&
-              chrome.gpuBenchmarking.smoothScrollBy);
+              chrome.gpuBenchmarking.smoothScrollBy &&
+              chrome.gpuBenchmarking.visualViewportHeight &&
+              chrome.gpuBenchmarking.visualViewportWidth);
   }
 
   // This class scrolls a page from the top to the bottom once.
@@ -52,7 +54,7 @@
     var clientHeight;
     // clientHeight is "special" for the body element.
     if (this.element_ == document.body)
-      clientHeight = window.innerHeight;
+      clientHeight = __GestureCommon_GetWindowHeight();
     else
       clientHeight = this.element_.clientHeight;
 
@@ -69,7 +71,7 @@
     var clientWidth;
     // clientWidth is "special" for the body element.
     if (this.element_ == document.body)
-      clientWidth = window.innerWidth;
+      clientWidth = __GestureCommon_GetWindowWidth();
     else
       clientWidth = this.element_.clientWidth;
 
