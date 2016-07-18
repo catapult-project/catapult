@@ -98,7 +98,16 @@ class StorySet(object):
 
   def AddStory(self, story):
     assert isinstance(story, story_module.Story)
+    assert self._IsUnique(story), ('Tried to add story with duplicate display '
+                                   'name %s. Story display names should be '
+                                   'unique.' % story.display_name)
     self.stories.append(story)
+
+  def _IsUnique(self, story):
+    return not any((story.display_name == other.display_name) and
+                   sorted(story.grouping_keys.iteritems()) ==
+                       sorted(other.grouping_keys.iteritems())
+                   for other in self.stories)
 
   def RemoveStory(self, story):
     """Removes a Story.

@@ -14,9 +14,9 @@ class SharedStateBar(story.SharedState):
 
 
 class StoryFoo(story.Story):
-  def __init__(self, name='', labels=None):
+  def __init__(self, name='', labels=None, grouping_keys=None):
     super(StoryFoo, self).__init__(
-        SharedStateBar, name, labels)
+        SharedStateBar, name, labels, grouping_keys=grouping_keys)
 
 
 class StorySetFoo(story.StorySet):
@@ -78,3 +78,34 @@ class StorySetTest(unittest.TestCase):
 
     story_set.RemoveStory(foo_story)
     self.assertEqual([], story_set.stories)
+
+  def testAddDuplicateDisplayNameWithoutGroupingKeysRaises(self):
+    story_set = story.StorySet()
+    foo_story = StoryFoo(name='foo')
+
+    story_set.AddStory(foo_story)
+
+    with self.assertRaises(AssertionError):
+      story_set.AddStory(foo_story)
+
+  def testAddDuplicateDisplayNameWithDifferentGroupingKeys(self):
+    story_set = story.StorySet()
+    foo_story0 = StoryFoo(name='foo', grouping_keys={
+        'bar': 3, 'baz': 4})
+    foo_story1 = StoryFoo(name='foo', grouping_keys={
+        'bar': 7, 'baz': 8})
+
+    story_set.AddStory(foo_story0)
+    story_set.AddStory(foo_story1)
+
+  def testAddDuplicateDisplayNameWithSameGroupingKeysRaises(self):
+    story_set = story.StorySet()
+    foo_story0 = StoryFoo(name='foo', grouping_keys={
+        'bar': 3, 'baz': 4})
+    foo_story1 = StoryFoo(name='foo', grouping_keys={
+        'bar': 3, 'baz': 4})
+
+    story_set.AddStory(foo_story0)
+
+    with self.assertRaises(AssertionError):
+      story_set.AddStory(foo_story1)

@@ -134,8 +134,9 @@ def SetupStorySet(allow_multiple_story_states, story_state_list):
     story_set = MixedStateStorySet()
   else:
     story_set = story_module.StorySet()
-  for story_state in story_state_list:
-    story_set.AddStory(DummyLocalStory(story_state))
+  for i, story_state in enumerate(story_state_list):
+    story_set.AddStory(DummyLocalStory(story_state,
+                                       name='story%d' % i))
   return story_set
 
 def _GetOptionForUnittest():
@@ -296,9 +297,9 @@ class StoryRunnerTest(unittest.TestCase):
     manager.attach_mock(test.DidRunStory, TEST_DID_RUN_STORY)
 
     story_set = story_module.StorySet()
-    story_set.AddStory(DummyLocalStory(TestSharedTbmState))
-    story_set.AddStory(DummyLocalStory(TestSharedTbmState))
-    story_set.AddStory(DummyLocalStory(TestSharedTbmState))
+    story_set.AddStory(DummyLocalStory(TestSharedTbmState, name='foo'))
+    story_set.AddStory(DummyLocalStory(TestSharedTbmState, name='bar'))
+    story_set.AddStory(DummyLocalStory(TestSharedTbmState, name='baz'))
     story_runner.Run(
         test, story_set, self.options, self.results)
     self.assertEquals(0, len(self.results.failures))
@@ -374,9 +375,9 @@ class StoryRunnerTest(unittest.TestCase):
         TestSharedStateForTearDown.num_of_tear_downs += 1
 
     story_set = story_module.StorySet()
-    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown))
-    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown))
-    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown))
+    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='foo'))
+    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='bar'))
+    story_set.AddStory(DummyLocalStory(TestSharedStateForTearDown, name='baz'))
 
     TestSharedStateForTearDown.num_of_tear_downs = 0
     story_runner.Run(mock.MagicMock(), story_set, self.options, self.results)
@@ -489,8 +490,8 @@ class StoryRunnerTest(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
-    s1 = DummyLocalStory(TestSharedPageState)
-    s2 = DummyLocalStory(TestSharedPageState)
+    s1 = DummyLocalStory(TestSharedPageState, name='foo')
+    s2 = DummyLocalStory(TestSharedPageState, name='bar')
     story_set.AddStory(s1)
     story_set.AddStory(s2)
     test = Test()
@@ -520,8 +521,8 @@ class StoryRunnerTest(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
-    story_set.AddStory(DummyLocalStory(TestSharedPageState))
-    story_set.AddStory(DummyLocalStory(TestSharedPageState))
+    story_set.AddStory(DummyLocalStory(TestSharedPageState, name='foo'))
+    story_set.AddStory(DummyLocalStory(TestSharedPageState, name='bar'))
     test = Test()
     story_runner.Run(
         test, story_set, self.options, self.results)
@@ -561,8 +562,8 @@ class StoryRunnerTest(unittest.TestCase):
       def ValidateAndMeasurePage(self, page, tab, results):
         pass
 
-    story_set.AddStory(DummyLocalStory(TestTearDownSharedState))
-    story_set.AddStory(DummyLocalStory(TestTearDownSharedState))
+    story_set.AddStory(DummyLocalStory(TestTearDownSharedState, name='foo'))
+    story_set.AddStory(DummyLocalStory(TestTearDownSharedState, name='bar'))
     test = Test()
 
     with self.assertRaises(DidRunTestError):
@@ -722,10 +723,10 @@ class StoryRunnerTest(unittest.TestCase):
         pass
 
     class FailingStory(story_module.Story):
-      def __init__(self):
+      def __init__(self, name):
         super(FailingStory, self).__init__(
             shared_state_class=SimpleSharedState,
-            is_local=True)
+            is_local=True, name=name)
         self.was_run = False
 
       def Run(self, shared_state):
@@ -739,8 +740,8 @@ class StoryRunnerTest(unittest.TestCase):
     self.SuppressExceptionFormatting()
 
     story_set = story_module.StorySet()
-    for _ in range(num_failing_stories):
-      story_set.AddStory(FailingStory())
+    for i in range(num_failing_stories):
+      story_set.AddStory(FailingStory(name='failing%d' % i))
 
     options = _GetOptionForUnittest()
     options.output_formats = ['none']
