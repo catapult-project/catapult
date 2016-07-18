@@ -205,6 +205,12 @@ tr.exportTo('tr.v', function() {
       if (!isNaN(Math.max(sample)))
         range.addValue(sample);
 
+    // NumericBuilder.addLinearBins() requires this.
+    if (range.isEmpty)
+      range.addValue(1);
+    if (range.min === range.max)
+      range.addValue(range.min - 1);
+
     // This optimizes the resolution when samples are uniformly distributed
     // (which is almost never the case).
     var numBins = Math.ceil(Math.sqrt(samples.length));
@@ -670,8 +676,8 @@ tr.exportTo('tr.v', function() {
 
       var curMaxBinBoundary = this.maxBinBoundary;
       if (curMaxBinBoundary >= nextMaxBinBoundary) {
-        throw new Error('The last added max boundary must be greater than ' +
-            'the current max boundary boundary');
+        throw new Error('The new max bin boundary must be greater than ' +
+            'the previous max bin boundary');
       }
 
       var binWidth = (nextMaxBinBoundary - curMaxBinBoundary) / binCount;

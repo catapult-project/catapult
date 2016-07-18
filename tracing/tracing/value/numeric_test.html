@@ -494,11 +494,36 @@ tr.b.unittest.testSuite(function() {
 
     var numeric = scalarA.merge(scalarB);
     assert.instanceOf(numeric, tr.v.Numeric);
+    assert.strictEqual(numeric.range.min, 10);
+    assert.strictEqual(numeric.range.max, 20);
     assert.strictEqual(numeric.maxNumSampleValues, 1000);
     assert.strictEqual(numeric.numValues, 2);
     assert.strictEqual(numeric.numNans, 0);
     assert.lengthOf(numeric.sampleValues, 2);
     assert.lengthOf(numeric.allBins, 4);
+
+    scalarB.value = scalarA.value;
+    numeric = scalarA.merge(scalarB);
+    assert.instanceOf(numeric, tr.v.Numeric);
+    assert.strictEqual(numeric.maxNumSampleValues, 1000);
+    assert.strictEqual(numeric.numValues, 2);
+    assert.strictEqual(numeric.numNans, 0);
+    assert.lengthOf(numeric.sampleValues, 2);
+    assert.lengthOf(numeric.allBins, 4);
+    assert.strictEqual(numeric.range.min, 9);
+    assert.strictEqual(numeric.range.max, 10);
+
+    scalarA.value = 'i am not a number';
+    scalarB.value = 'i am also not a number';
+    numeric = scalarA.merge(scalarB);
+    assert.instanceOf(numeric, tr.v.Numeric);
+    assert.strictEqual(numeric.maxNumSampleValues, 1000);
+    assert.strictEqual(numeric.numValues, 0);
+    assert.strictEqual(numeric.numNans, 2);
+    assert.lengthOf(numeric.sampleValues, 2);
+    assert.lengthOf(numeric.allBins, 4);
+    assert.strictEqual(numeric.range.min, 0);
+    assert.strictEqual(numeric.range.max, 1);
   });
 
   test('mergeNumericWithScalar', function() {
