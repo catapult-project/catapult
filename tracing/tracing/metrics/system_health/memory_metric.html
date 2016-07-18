@@ -259,16 +259,45 @@ tr.exportTo('tr.metrics.sh', function() {
           if (processDump.memoryAllocatorDumps === undefined)
             return;
           processDump.memoryAllocatorDumps.forEach(function(rootAllocatorDump) {
-            CHROME_VALUE_PROPERTIES.forEach(function(spec) {
+            tr.b.iterItems(CHROME_VALUE_PROPERTIES,
+                function(propertyName, descriptionPrefixBuilder) {
+                  addProcessScalar({
+                    source: 'reported_by_chrome',
+                    component: [rootAllocatorDump.name],
+                    property: propertyName,
+                    value: rootAllocatorDump.numerics[propertyName],
+                    descriptionPrefixBuilder: descriptionPrefixBuilder
+                  });
+                });
+          });
+          // Add memory:<browser-name>:<process-name>:reported_by_chrome:v8:
+          // allocated_by_malloc:effective_size when available.
+          var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
+          if (v8Dump !== undefined) {
+            var allocatedByMalloc = 0;
+            var hasMallocDump = false;
+            v8Dump.children.forEach(function(isolateDump) {
+              var mallocDump =
+                  isolateDump.getDescendantDumpByFullName('malloc');
+              if (mallocDump === undefined ||
+                  mallocDump.numerics['effective_size'] === undefined) {
+                return;
+              }
+              allocatedByMalloc += mallocDump.numerics['effective_size'].value;
+              hasMallocDump = true;
+            });
+            if (hasMallocDump) {
               addProcessScalar({
                 source: 'reported_by_chrome',
-                component: [rootAllocatorDump.name],
-                property: spec.propertyName,
-                value: rootAllocatorDump.numerics[spec.propertyName],
-                descriptionPrefixBuilder: spec.descriptionPrefixBuilder
+                component: ['v8', 'allocated_by_malloc'],
+                property: 'effective_size',
+                value: allocatedByMalloc,
+                unit: sizeInBytes_smallerIsBetter,
+                descriptionPrefixBuilder:
+                    CHROME_VALUE_PROPERTIES['effective_size']
               });
-            });
-          });
+            }
+          }
         },
         function(componentTree) {
           // Subtract memory:<browser-name>:<process-name>:reported_by_chrome:
@@ -345,7 +374,13 @@ tr.exportTo('tr.metrics.sh', function() {
           nameParts.push(formatSpec.userFriendlyPropertyNamePrefix);
         nameParts.push(formatSpec.userFriendlyPropertyName);
         nameParts.push(formatSpec.componentPreposition);
-        nameParts.push(componentPath.join(':'));
+        if (componentPath[componentPath.length - 1] === 'allocated_by_malloc') {
+          nameParts.push('objects allocated by malloc for');
+          nameParts.push(
+              componentPath.slice(0, componentPath.length - 1).join(':'));
+        } else {
+          nameParts.push(componentPath.join(':'));
+        }
       }
       nameParts.push('in');
     }
@@ -354,33 +389,22 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   // Specifications of properties reported by Chrome.
-  var CHROME_VALUE_PROPERTIES = [
-    {
-      propertyName: 'effective_size',
-      descriptionPrefixBuilder: buildChromeValueDescriptionPrefix.bind(
-          undefined, {
-            userFriendlyPropertyName: 'effective size',
-            componentPreposition: 'of'
-          })
-    },
-    {
-      propertyName: 'allocated_objects_size',
-      descriptionPrefixBuilder: buildChromeValueDescriptionPrefix.bind(
-          undefined, {
-            userFriendlyPropertyName: 'size of all objects allocated',
-            totalUserFriendlyPropertyName: 'size of all allocated objects',
-            componentPreposition: 'by'
-          })
-    },
-    {
-      propertyName: 'locked_size',
-      descriptionPrefixBuilder: buildChromeValueDescriptionPrefix.bind(
-          undefined, {
-            userFriendlyPropertyName: 'locked (pinned) size',
-            componentPreposition: 'of'
-          })
-    }
-  ];
+  var CHROME_VALUE_PROPERTIES = {
+    'effective_size': buildChromeValueDescriptionPrefix.bind(undefined, {
+      userFriendlyPropertyName: 'effective size',
+      componentPreposition: 'of'
+    }),
+    'allocated_objects_size': buildChromeValueDescriptionPrefix.bind(
+        undefined, {
+          userFriendlyPropertyName: 'size of all objects allocated',
+          totalUserFriendlyPropertyName: 'size of all allocated objects',
+          componentPreposition: 'by'
+        }),
+    'locked_size': buildChromeValueDescriptionPrefix.bind(undefined, {
+      userFriendlyPropertyName: 'locked (pinned) size',
+      componentPreposition: 'of'
+    })
+  };
 
   /**
    * Add heavy memory dump values calculated from heavy global memory dumps to

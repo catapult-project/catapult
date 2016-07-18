@@ -370,6 +370,10 @@ tr.b.unittest.testSuite(function() {
               {numerics: {size: 240}}));
       var v8Dump = newAllocatorDump(pmdRendererA2, 'v8',
           {numerics: {size: 650}});
+      var isolateDumpA = addChildDump(v8Dump, 'isolate_A');
+      addChildDump(isolateDumpA, 'malloc', {numerics: {size: 1 }});
+      var isolateDumpB = addChildDump(v8Dump, 'isolate_B');
+      addChildDump(isolateDumpB, 'malloc', {numerics: {size: 10 }});
       return [partitionAllocDump, v8Dump];
     })();
     var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 40});
@@ -495,6 +499,13 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of tracing in all processes in Chrome'
     },
+    'memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
+        {
+          value: [0, 1 + 10, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of objects allocated by malloc for v8 ' +
+              'in all processes in Chrome'
+        },
     'memory:chrome:all_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 650 + 970 + 111, 0, 4e5],
       unit: sizeInBytes_smallerIsBetter,
@@ -608,6 +619,13 @@ tr.b.unittest.testSuite(function() {
           unit: sizeInBytes_smallerIsBetter,
           description: 'effective size of partition_alloc in renderer ' +
               'processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
+        {
+          value: [0, 1 + 10, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of objects allocated by malloc for v8 ' +
+              'in renderer processes in Chrome'
         },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 650 + 970, 0, 4e5],
@@ -1436,14 +1454,18 @@ tr.b.unittest.testSuite(function() {
     // Timestamp 6 (WebView).
     var gmd6 = addGlobalMemoryDump(model, {ts: 50, levelOfDetail: DETAILED});
     var pmdBrowser6 = addProcessMemoryDump(gmd6, pWebView, {ts: 50});
-    pmdBrowser6.memoryAllocatorDumps = [
-      newAllocatorDump(pmdBrowser6, 'malloc', {numerics: {size: 16384}}),
-      newAllocatorDump(pmdBrowser6, 'v8', {numerics: {
+    pmdBrowser6.memoryAllocatorDumps = (function() {
+      var mallocDump = newAllocatorDump(pmdBrowser6, 'malloc',
+          {numerics: {size: 16384}});
+      var v8Dump = newAllocatorDump(pmdBrowser6, 'v8', {numerics: {
         allocated_objects_size: 32768,
         code_and_metadata_size: 33554432,
         size: 67108864
-      }})
-    ];
+      }});
+      var isolateDump = addChildDump(v8Dump, 'isolate');
+      addChildDump(isolateDump, 'malloc', {numerics: {size: 1 }});
+      return [mallocDump, v8Dump];
+    })();
     pmdBrowser6.vmRegions = VMRegionClassificationNode.fromRegions([
       new VMRegion(0xABCD, 99999, 0, '/dev/ashmem/dalvik-non moving space',
           {privateDirtyResident: 65536})
@@ -1516,6 +1538,13 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in all processes in WebView'
     },
+    'memory:webview:all_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
+        {
+          value: [0, 1],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of objects allocated by malloc for v8 ' +
+              'in all processes in WebView'
+        },
     'memory:webview:all_processes:reported_by_chrome:v8:effective_size': {
       value: [4, 67108864],
       unit: sizeInBytes_smallerIsBetter,
@@ -1633,6 +1662,13 @@ tr.b.unittest.testSuite(function() {
       unit: sizeInBytes_smallerIsBetter,
       description: 'effective size of malloc in the browser process in WebView'
     },
+    'memory:webview:browser_process:reported_by_chrome:v8:allocated_by_malloc:effective_size':
+        {
+          value: [0, 1],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of objects allocated by malloc for v8 ' +
+              'in the browser process in WebView'
+        },
     'memory:webview:browser_process:reported_by_chrome:v8:effective_size': {
       value: [4, 67108864],
       unit: sizeInBytes_smallerIsBetter,
