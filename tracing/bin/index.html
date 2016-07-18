@@ -6,6 +6,8 @@ found in the LICENSE file.
 -->
 <head>
 <script>
+'use strict';
+
 function onTraceViewerImportFail() {
   document.addEventListener('DOMContentLoaded', function() {
     document.body.textContent =
@@ -35,6 +37,8 @@ function onTraceViewerImportFail() {
   }
 </style>
 <script>
+'use strict';
+
 (function() {
   var viewer;
   var url;
@@ -94,11 +98,11 @@ function onTraceViewerImportFail() {
 
     viewer = document.createElement('tr-ui-timeline-view');
     viewer.track_view_container = container;
-    viewer.appendChild(container);
+    Polymer.dom(viewer).appendChild(container);
 
     viewer.id = 'trace-viewer';
     viewer.globalMode = true;
-    document.body.appendChild(viewer);
+    Polymer.dom(document.body).appendChild(viewer);
 
     url = '../test_data/big_trace.json';
     load();

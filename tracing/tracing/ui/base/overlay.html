@@ -329,7 +329,7 @@ tr.exportTo('tr.ui.b', function() {
       Polymer.dom(stackDiv).textContent = e.stack;
       stackDiv.style.paddingLeft = '8px';
       stackDiv.style.margin = 0;
-      o.appendChild(stackDiv);
+      Polymer.dom(o).appendChild(stackDiv);
     }
     var b = document.createElement('button');
     Polymer.dom(b).textContent = 'OK';

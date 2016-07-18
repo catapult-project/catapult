@@ -53,7 +53,8 @@ tr.exportTo('tr.ui.annotations', function() {
         this.textArea_.value = this.annotation_.text;
         // Set the z-index so that this is shown on top of canvas.
         this.textArea_.style.zIndex = 1;
-        Polymer.dom(ctx.canvas.parentNode).appendChild(this.textArea_);
+        Polymer.dom(Polymer.dom(ctx.canvas).parentNode)
+            .appendChild(this.textArea_);
       }
 
       this.textArea_.style.width = this.styleWidth + 'px';

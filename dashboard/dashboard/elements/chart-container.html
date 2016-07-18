@@ -1613,7 +1613,7 @@ triaging functionality in the chart.
         },
 
         clearAlertIcons: function() {
-          this.$['alert-icon-container'].innerHTML = '';
+          Polymer.dom(this.$['alert-icon-container']).innerHTML = '';
         },
 
         /**

@@ -67,7 +67,7 @@ tr.b.unittest.testSuite(function() {
     var c1 = createChild();
     var container = new SimpleContainer();
     Polymer.dom(container).appendChild(c1);
-    container.insertBefore(c0, c1);
+    Polymer.dom(container).insertBefore(c0, c1);
     assert.isTrue(c0.decorated);
     assert.isTrue(c1.decorated);
   });
@@ -78,7 +78,7 @@ tr.b.unittest.testSuite(function() {
     var container = new SimpleContainer();
     Polymer.dom(container).appendChild(c1);
     Polymer.dom(container).appendChild(c0);
-    container.insertBefore(c0, c1);
+    Polymer.dom(container).insertBefore(c0, c1);
     assert.isTrue(c0.decorated);
     assert.isTrue(c1.decorated);
   });
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
     var c1 = createChild();
     var container = new SimpleContainer();
     Polymer.dom(container).appendChild(c0);
-    container.replaceChild(c1, c0);
+    Polymer.dom(container).replaceChild(c1, c0);
     assert.isFalse(c0.decorated);
     assert.isTrue(c1.decorated);
   });

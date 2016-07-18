@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     var el = createDragHandle();
 
     var styleEl = document.createElement('style');
-    styleEl.textContent =
+    Polymer.dom(styleEl).textContent =
         '.mode-a { height: 100px; } .mode-b { height: 50px; }';
     Polymer.dom(document.head).appendChild(styleEl);
 

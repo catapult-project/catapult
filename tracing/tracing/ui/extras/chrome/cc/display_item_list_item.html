@@ -91,10 +91,10 @@ An element displaying basic information about a display item in a list view.
     created: function() {
       // TODO(charliea): Why is setAttribute necessary here but not below? We
       // should reach out to the Polymer team to figure out.
-      this.setAttribute('name', '');
-      this.setAttribute('rawDetails', '');
-      this.setAttribute('richDetails', undefined);
-      this.setAttribute('data_', undefined);
+      Polymer.dom(this).setAttribute('name', '');
+      Polymer.dom(this).setAttribute('rawDetails', '');
+      Polymer.dom(this).setAttribute('richDetails', undefined);
+      Polymer.dom(this).setAttribute('data_', undefined);
     },
 
     get data() {

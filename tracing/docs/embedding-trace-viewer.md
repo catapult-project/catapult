@@ -21,11 +21,11 @@ In your code, `<link rel="import" href="trace_viewer_full.html">`. Then, to get 
 
     viewer = document.createElement('tr-ui-timeline-view');
     viewer.track_view_container = container;
-    viewer.appendChild(container);
+    Polymer.dom(viewer).appendChild(container);
 
     viewer.id = 'trace-viewer';
     viewer.globalMode = true;
-    document.body.appendChild(viewer);
+    Polymer.dom(document.body).appendChild(viewer);
 ```
 
 With the viewer created, you need to then make a TraceModel:

@@ -57,7 +57,7 @@ found in the LICENSE file.
       // this chart is meant to draw attention to, we want to distinguish
       // this alert from any others on the chart.
       if (alertKey == key) {
-         this.$.icon.classList.add('highlighted');
+        Polymer.dom(this.$.icon).classList.add('highlighted');
       }
     },
 

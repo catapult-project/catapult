@@ -84,7 +84,7 @@ var testing_common = (function() {
 
   function clearFixture() {
     if (fixture) {
-      fixture.innerHTML = '';
+      Polymer.dom(fixture).innerHTML = '';
     }
   };
 

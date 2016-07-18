@@ -17,11 +17,11 @@ tr.exportTo('tr.ui.analysis.behaviors', function() {
 
   var AnalysisSubView = {
     set tabLabel(label) {
-      this.setAttribute('tab-label', label);
+      Polymer.dom(this).setAttribute('tab-label', label);
     },
 
     get tabLabel() {
-      return this.getAttribute('tab-label');
+      return Polymer.dom(this).getAttribute('tab-label');
     },
 
     get requiresTallView() {

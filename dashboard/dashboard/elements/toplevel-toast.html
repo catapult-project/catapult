@@ -46,9 +46,9 @@ found in the LICENSE file.
             content.appendChild(detail.content.cloneNode(true));
           }
           if (detail.error) {
-            this.$.toast.classList.add('error');
+            Polymer.dom(this.$.toast).classList.add('error');
           } else {
-            this.$.toast.classList.remove('error');
+            Polymer.dom(this.$.toast).classList.remove('error');
           }
           this.$.toast.show();
         }.bind(this));

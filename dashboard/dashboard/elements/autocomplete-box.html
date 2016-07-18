@@ -474,7 +474,7 @@ property 'group' sets to the header item name.
           return;
         }
         // A hack for auto-resizing input box.
-        this.$['size-check'].innerHTML = values[0];
+        Polymer.dom(this.$['size-check']).innerHTML = values[0];
         var newWidth = this.$['size-check'].offsetWidth + 5;
         this.$.textbox.style.width = ((newWidth > this.TEXTBOX_MIN_WIDTH) ?
                                       newWidth : this.TEXTBOX_MIN_WIDTH);

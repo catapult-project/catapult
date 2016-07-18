@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/ui/base/elided_cache.html">
+<link rel="import" href="/tracing/ui/base/event_presenter.html">
 
 <script>
 'use strict';
@@ -246,7 +246,7 @@ tr.exportTo('tr.ui.b', function() {
         rect.setYandH(0, height);
       }
     }
-    rect.flush();
+    Polymer.dom(rect).flush();
 
     if (async && hadTopLevel) {
       // Draw a top border over async slices in order to visually separate
@@ -271,7 +271,7 @@ tr.exportTo('tr.ui.b', function() {
 
         rect.fillRect(x, w, blackColorId, 0.7);
       }
-      rect.flush();
+      Polymer.dom(rect).flush();
     }
 
     ctx.restore();

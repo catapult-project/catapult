@@ -424,7 +424,7 @@ found in the LICENSE file.
        */
       clear: function() {
         this.logList = [];
-        this.$.logs.innerHTML = '';
+        Polymer.dom(this.$.logs).innerHTML = '';
       },
 
       /**
