@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+
 <!--
 @fileoverview A series of tabs for the analysis view that controls which
 analysis sub-view is being displayed.
@@ -55,7 +57,7 @@ and limit users to having one option selected at a time.
         border-bottom: 1px solid white;
       }
     </style>
-    <div id='tabs'>
+    <div id='tabs' hidden="[[tabsHidden]]">
       <label id=selection_description>[[label_]]</label>
       <template is=dom-repeat items=[[subViews_]]>
         <tab>
@@ -82,11 +84,15 @@ Polymer({
       type: String,
       value: () => ''
     },
+    selectedSubView_: Object,
     subViews_: {
       type: Array,
       value: () => []
     },
-    selectedSubView_: Object
+    tabsHidden: {
+      type: Boolean,
+      value: false
+    }
   },
 
   set label(newLabel) {
@@ -122,14 +128,6 @@ Polymer({
   },
 
   addSubView: function(subView) {
-    if (!(subView instanceof HTMLElement) ||
-        !subView.behaviors ||
-        subView.behaviors.indexOf(
-            tr.ui.analysis.behaviors.AnalysisSubView) < 0) {
-      throw new Error('Sub-view being added must be a registered Polymer ' +
-          'element with the sub-view behavior');
-    }
-
     if (!this.selectedSubView_)
       this.selectedSubView = subView;
 

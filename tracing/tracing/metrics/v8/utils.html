@@ -41,10 +41,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       'V8.GCIncrementalMarking': 'v8-gc-incremental-step',
       'V8.GCIncrementalMarkingFinalize': 'v8-gc-incremental-finalize',
       'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
-<<<<<<< HEAD
-=======
-      'V8.GCLowMemoryNotification': 'v8-gc-low-memory-mark-compactor',
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
       'V8.GCPhantomHandleProcessingCallback' : 'v8-gc-phantom-handle-callback',
       'V8.GCScavenger': 'v8-gc-scavenger'
   };
@@ -130,7 +126,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   /**
-<<<<<<< HEAD
    * Filters events using the |filterCallback|, then groups events by the user
    * the name computed using the |nameCallback|, and then invokes
    * the |processCallback| with the grouped events.
@@ -154,8 +149,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
   }
 
   /**
-=======
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
   * Given a list of intervals, returns a new list with all overalapping
   * intervals merged into a single interval.
   */
@@ -280,7 +273,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
       }
     }
     return mu;
-<<<<<<< HEAD
   }
 
   function hasV8Stats(globalMemoryDump) {
@@ -298,8 +290,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     if (startOfFirstDumpWithV8 === Infinity)
       return new tr.b.Range(); // Empty range.
     return tr.b.Range.fromExplicitRange(startOfFirstDumpWithV8, Infinity);
-=======
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
   }
 
   return {
@@ -309,13 +299,6 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     isGarbageCollectionEvent: isGarbageCollectionEvent,
     isIdleTask: isIdleTask,
     isLowMemoryEvent: isLowMemoryEvent,
-<<<<<<< HEAD
-=======
-    isV8ExecuteEvent: isV8ExecuteEvent,
-    isTopV8ExecuteEvent: isTopV8ExecuteEvent,
-    isGarbageCollectionEvent: isGarbageCollectionEvent,
-    isTopGarbageCollectionEvent: isTopGarbageCollectionEvent,
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
     isSubGarbageCollectionEvent: isSubGarbageCollectionEvent,
     isTopGarbageCollectionEvent: isTopGarbageCollectionEvent,
     isTopV8ExecuteEvent: isTopV8ExecuteEvent,
@@ -323,14 +306,8 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     mutatorUtilization: mutatorUtilization,
     subGarbageCollectionEventName: subGarbageCollectionEventName,
     topGarbageCollectionEventName: topGarbageCollectionEventName,
-<<<<<<< HEAD
     rangeForMemoryDumps: rangeForMemoryDumps,
     unionOfIntervals: unionOfIntervals
-=======
-    subGarbageCollectionEventName: subGarbageCollectionEventName,
-    unionOfIntervals: unionOfIntervals,
-    mutatorUtilization: mutatorUtilization
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
   };
 });
 </script>

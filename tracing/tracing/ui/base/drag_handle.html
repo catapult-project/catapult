@@ -51,8 +51,6 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-ui-b-drag-handle',
 
-  __proto__: HTMLDivElement.prototype,
-
   created: function() {
     this.lastMousePos_ = 0;
     this.onMouseMove_ = this.onMouseMove_.bind(this);

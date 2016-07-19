@@ -199,6 +199,14 @@ tr.exportTo('tr.ui.tracks', function() {
       this.appendChild(track);
     },
 
+    appendCpuUsageTrack_: function() {
+      var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
+      track.initialize(this.model);
+      if (!track.hasVisibleContent)
+        return;
+      this.appendChild(track);
+    },
+
     drawTrack: function(type) {
       var ctx = this.context();
       if (!this.model_)

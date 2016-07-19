@@ -7,68 +7,69 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/table.html">
 
-<polymer-element name="tr-v-ui-iteration-info-span">
+<dom-module id="tr-v-ui-iteration-info-span">
   <template>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-v-ui-iteration-info-span',
 
-  <script>
-  'use strict';
-  Polymer({
-    ready: function() {
-      this.diagnostic_ = undefined;
-      this.$.table.showHeader = false;
-      this.$.table.tableColumns = [
-        {
-          value: function(row) {
-            return row[0];
-          },
+  ready: function() {
+    this.diagnostic_ = undefined;
+    this.$.table.showHeader = false;
+    this.$.table.tableColumns = [
+      {
+        value: function(row) {
+          return row[0];
         },
-        {
-          value: function(row) {
-            return row[1];
-          }
+      },
+      {
+        value: function(row) {
+          return row[1];
         }
-      ];
-    },
-
-    get diagnostic() {
-      return this.diagnostic_;
-    },
-
-    set diagnostic(d) {
-      this.diagnostic_ = d;
-      this.updateContents_();
-    },
-
-    updateContents_: function() {
-      if (this.diagnostic === undefined) {
-        this.$.table.tableRows = [];
-        return;
       }
+    ];
+  },
 
-      var rows = [
-        ['benchmark name', this.diagnostic.benchmarkName],
-        ['benchmark start', this.diagnostic.benchmarkStartString],
-        ['url', this.diagnostic.storyUrl],
-        ['story', this.diagnostic.storyDisplayName],
-        ['storyset repeat', this.diagnostic.storysetRepeatCounter],
-        ['story repeat', this.diagnostic.storyRepeatCounter],
-      ];
+  get diagnostic() {
+    return this.diagnostic_;
+  },
 
-      if (this.diagnostic.label)
-        rows.push(['label', this.diagnostic.label]);
+  set diagnostic(d) {
+    this.diagnostic_ = d;
+    this.updateContents_();
+  },
 
-      if (this.diagnostic.storyGroupingKeys &&
-          (tr.b.dictionaryLength(this.diagnostic.storyGroupingKeys) > 0)) {
-        var gov = document.createElement('tr-ui-a-generic-object-view');
-        gov.object = this.diagnostic.storyGroupingKeys;
-        rows.push(['grouping keys', gov]);
-      }
-
-      rows.sort((x, y) => x[0].localeCompare(y[0]));
-      this.$.table.tableRows = rows;
+  updateContents_: function() {
+    if (this.diagnostic === undefined) {
+      this.$.table.tableRows = [];
+      return;
     }
-  });
-  </script>
-</polymer-element>
+
+    var rows = [
+      ['benchmark name', this.diagnostic.benchmarkName],
+      ['benchmark start', this.diagnostic.benchmarkStartString],
+      ['url', this.diagnostic.storyUrl],
+      ['story', this.diagnostic.storyDisplayName],
+      ['storyset repeat', this.diagnostic.storysetRepeatCounter],
+      ['story repeat', this.diagnostic.storyRepeatCounter],
+    ];
+
+    if (this.diagnostic.label)
+      rows.push(['label', this.diagnostic.label]);
+
+    if (this.diagnostic.storyGroupingKeys &&
+        (tr.b.dictionaryLength(this.diagnostic.storyGroupingKeys) > 0)) {
+      var gov = document.createElement('tr-ui-a-generic-object-view');
+      gov.object = this.diagnostic.storyGroupingKeys;
+      rows.push(['grouping keys', gov]);
+    }
+
+    rows.sort((x, y) => x[0].localeCompare(y[0]));
+    this.$.table.tableRows = rows;
+  }
+});
+</script>

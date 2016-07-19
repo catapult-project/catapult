@@ -153,26 +153,6 @@ tr.exportTo('tr', function() {
       yield * this.samples;
     },
 
-<<<<<<< HEAD
-=======
-    childEvents: function*(eventTypePredicate, opt_this) {
-      if (eventTypePredicate.call(opt_this, GlobalMemoryDump))
-        yield * this.globalMemoryDumps;
-
-      if (eventTypePredicate.call(opt_this, GlobalInstantEvent))
-        yield * this.instantEvents;
-
-      if (eventTypePredicate.call(opt_this, FlowEvent))
-        yield * this.flowEvents;
-
-      if (eventTypePredicate.call(opt_this, Alert))
-        yield * this.alerts;
-
-      if (eventTypePredicate.call(opt_this, Sample))
-        yield * this.samples;
-    },
-
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
     childEventContainers: function*() {
       yield this.userModel;
       yield this.device;

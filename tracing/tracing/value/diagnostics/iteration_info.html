@@ -73,11 +73,7 @@ tr.exportTo('tr.v.d', function() {
     get displayLabel() {
       if (this.label)
         return this.label;
-<<<<<<< HEAD
       return this.benchmarkName + ' ' + this.benchmarkStartString;
-=======
-      return this.benchmarkName + ' ' + this.benchmarkStartMs;
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
     },
 
     get benchmarkName() {
@@ -104,18 +100,14 @@ tr.exportTo('tr.v.d', function() {
       return this.storyRepeatCounter_;
     },
 
-<<<<<<< HEAD
     get storyRepeatCounterLabel() {
       return 'story repeat ' + this.storyRepeatCounter;
     },
 
-=======
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
     get storysetRepeatCounter() {
       return this.storysetRepeatCounter_;
     },
 
-<<<<<<< HEAD
     get storysetRepeatCounterLabel() {
       return 'storyset repeat ' + this.storysetRepeatCounter;
     },
@@ -126,10 +118,6 @@ tr.exportTo('tr.v.d', function() {
 
     get benchmarkStartString() {
       return tr.b.formatDate(this.benchmarkStart);
-=======
-    get benchmarkStart() {
-      return this.benchmarkStart_;
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
     }
   };
 
@@ -138,11 +126,7 @@ tr.exportTo('tr.v.d', function() {
   };
 
   tr.v.d.Diagnostic.register(IterationInfo, {
-<<<<<<< HEAD
     elementName: 'tr-v-ui-iteration-info-span'
-=======
-    elementName: 'tr-v-ui-generic-diagnostic-span'
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
   });
 
   return {

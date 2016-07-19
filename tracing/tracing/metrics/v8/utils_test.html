@@ -5,13 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<<<<<<< HEAD
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
-=======
-<link rel="import" href="/tracing/metrics/v8/utils.html">
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
 
 <script>
 'use strict';
@@ -147,7 +143,6 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(expected.percentile(0.9), actual.percentile(0.9), 1e-3);
   });
 
-<<<<<<< HEAD
   function addDumpWithAllocator(model, process, allocator, start) {
     var gmd = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(
         model, {ts: start});
@@ -177,7 +172,5 @@ tr.b.unittest.testSuite(function() {
     var range = tr.metrics.v8.utils.rangeForMemoryDumps(model);
     assert.isTrue(range.isEmpty);
   });
-=======
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
 });
 </script>

@@ -44,18 +44,6 @@ _CATAPULT_BUG_ID_RE = re.compile(r'#[1-9]\d*')
 _RIETVELD_BUG_ID_RE = re.compile(r'[1-9]\d*')
 _RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8'})
 
-
-def GetPreferredTryMasters(project, change):
-  return {
-      'tryserver.client.catapult': {
-          'Catapult Android Tryserver': {'defaulttests'},
-          'Catapult Linux Tryserver': {'defaulttests'},
-          'Catapult Mac Tryserver': {'defaulttests'},
-          'Catapult Windows Tryserver': {'defaulttests'},
-      }
-  }
-
-
 def CheckChangeLogBug(input_api, output_api):
   # Show a presubmit message if there is no BUG= line.
   if input_api.change.BUG is None:

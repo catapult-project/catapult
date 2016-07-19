@@ -51,7 +51,7 @@ tr.exportTo('tr.model', function() {
   };
 
   Cpu.prototype = {
-    __proto__: tr.model.ProcessBase.prototype,
+    __proto__: tr.model.EventContainer.prototype,
 
     get samples() {
       return this.samples_;

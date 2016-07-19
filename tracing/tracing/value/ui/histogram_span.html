@@ -103,10 +103,10 @@ Polymer({
 
     this.chart_.brushedRange = r;
 
-    this.$.diagnostics.textContent = '';
+    Polymer.dom(this.$.diagnostics).textContent = '';
     for (var bin of this.brushedBins) {
       for (var diagnostic of bin.diagnostics) {
-        this.$.diagnostics.appendChild(
+        Polymer.dom(this.$.diagnostics).appendChild(
             tr.v.ui.createDiagnosticSpan(diagnostic));
       }
     }
@@ -143,7 +143,7 @@ Polymer({
 
   set histogram(histogram) {
     this.histogram_ = histogram;
-    this.$.diagnostics.textContent = '';
+    Polymer.dom(this.$.diagnostics).textContent = '';
     this.updateContents_();
   },
 
@@ -170,8 +170,7 @@ Polymer({
           return;
         x = bin.range.max - binWidth;
       }
-      chartData.push({x: x,
-                      y: bin.count});
+      chartData.push({x: x, y: bin.count});
     });
     chartData.sort(function(x, y) {
       return x.x - y.x;

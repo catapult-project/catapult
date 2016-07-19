@@ -138,10 +138,14 @@ tr.b.unittest.testSuite(function() {
 
     var model = makeModel(JSON.stringify(events), true);
 <<<<<<< HEAD
+<<<<<<< HEAD
     tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(model, {ts: 550});
 =======
     tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(model, 550);
 >>>>>>> 8881d68... Merge origin/master to the polymer branch.
+=======
+    tr.model.MemoryDumpTestUtils.addGlobalMemoryDump(model, {ts: 550});
+>>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     tr.metrics.tracingMetric(allValues, model);
 
     var memoryCategorySize = events.filter(

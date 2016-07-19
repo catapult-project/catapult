@@ -321,11 +321,11 @@ tr.b.unittest.testSuite(function() {
     var rows = tableEl.tableRows;
     var col = tableEl.tableColumns[0];
 
-    assert.equal(Polymer.dom(column.value(rows[0])).textContent,
+    assert.equal(Polymer.dom(col.value(rows[0])).textContent,
         '2 memory dumps in Process 1');
-    assert.equal(Polymer.dom(column.value(rows[1])).textContent,
+    assert.equal(Polymer.dom(col.value(rows[1])).textContent,
         '3 memory dumps in Process 2');
-    assert.equal(Polymer.dom(column.value(rows[2])).textContent,
+    assert.equal(Polymer.dom(col.value(rows[2])).textContent,
         '1 memory dump in Process 4');
 
     // Check that the analysis link is associated with the right dumps.

@@ -237,21 +237,12 @@ tr.b.unittest.testSuite(function() {
         [{start: 50, end: 60}, {start: 110, end: 120}]);
     var actual = run(slices);
     assert.strictEqual(
-<<<<<<< HEAD
         actual['v8-execute-mutator-utilization_pct_095'],
         mutatorUtilization.percentile(1 - 0.95) * 100);
     assert.strictEqual(
         actual['v8-execute-mutator-utilization_pct_099'],
         mutatorUtilization.percentile(1 - 0.99) * 100);
  });
-=======
-        actual['Animation-v8-execute-mutator-utilization_pct_095'],
-        mutatorUtilization.percentile(1 - 0.95) * 100);
-    assert.strictEqual(
-        actual['Animation-v8-execute-mutator-utilization_pct_099'],
-        mutatorUtilization.percentile(1 - 0.99) * 100);
-  });
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
 
 });
 </script>

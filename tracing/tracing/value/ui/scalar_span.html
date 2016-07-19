@@ -134,7 +134,7 @@ tr.exportTo('tr.v.ui', function() {
 Polymer({
   is: 'tr-v-ui-scalar-span',
 
-  ready: function() {
+  created: function() {
     this.value_ = undefined;
     this.unit_ = undefined;
     this.context_ = undefined;
@@ -151,16 +151,6 @@ Polymer({
   set significance(s) {
     this.significance_ = s;
     this.updateContent_();
-  },
-
-  attached: function() {
-    tr.v.Unit.addEventListener(
-        'display-mode-changed', this.updateContent_.bind(this));
-  },
-
-  detached: function() {
-    tr.v.Unit.removeEventListener(
-        'display-mode-changed', this.updateContent_.bind(this));
   },
 
   set contentTextDecoration(deco) {
@@ -181,14 +171,24 @@ Polymer({
     this.updateContent_();
   },
 
-    get context() {
-      return this.context_;
-    },
+  attached: function() {
+    tr.v.Unit.addEventListener(
+        'display-mode-changed', this.updateContent_.bind(this));
+  },
 
-    set context(context) {
-      this.context_ = context;
-      this.updateContent_();
-    },
+  detached: function() {
+    tr.v.Unit.removeEventListener(
+        'display-mode-changed', this.updateContent_.bind(this));
+  },
+
+  get context() {
+    return this.context_;
+  },
+
+  set context(context) {
+    this.context_ = context;
+    this.updateContent_();
+  },
 
   get unit() {
     return this.unit_;
@@ -243,7 +243,7 @@ Polymer({
     Polymer.dom(this.$.significance).classList.remove('better');
     Polymer.dom(this.$.significance).classList.remove('worse');
 
-    if (this.unit_ === undefined) {
+    if (this.unit_ === undefined)
       return;
 
     this.$.content.title = '';

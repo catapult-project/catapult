@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/tab_view.html">
-<link rel="import" href="/tracing/ui/base/utils.html">
+<link rel="import" href="/tracing/ui/brushing_state_controller.html">
 
 <dom-module id="tr-v-ui-value-set-view">
   <template>
-    <tr-ui-a-tab-view id="container"></tr-ui-a-tab-view>
+    <tr-ui-a-tab-view id="tabView"></tr-ui-a-tab-view>
   </template>
 </dom-module>
 
@@ -152,7 +152,11 @@ tr.exportTo('tr.v.ui', function() {
     changeSelectionFromRequestSelectionChangeEvent: function(selection) {
       if (this.parentController) {
         this.parentController.changeSelectionFromRequestSelectionChangeEvent(
+<<<<<<< HEAD
             selection);
+=======
+          selection);
+>>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
       }
     },
 
@@ -184,31 +188,46 @@ tr.exportTo('tr.v.ui', function() {
   Polymer({
     is: 'tr-v-ui-value-set-view',
 
+    listeners: {
+      'tabView.selected-tab-change': 'onSelectedTabChange_'
+    },
+
     ready: function() {
+<<<<<<< HEAD
       this.$.container.addEventListener(
         'selected-tab-change', this.onSelectedTabChange_.bind(this));
+=======
+>>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
       this.brushingStateController = new NullBrushingStateController();
     },
 
     attached: function() {
       this.brushingStateController.parentController =
+<<<<<<< HEAD
         tr.c.BrushingStateController.getControllerForElement(this.parentNode);
+=======
+          tr.c.BrushingStateController.getControllerForElement(this.parentNode);
+>>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     },
 
     onSelectedTabChange_: function() {
-      if (!this.$.container.selectedTab)
+      if (!this.$.tabView.selectedSubView)
         return;
 
       tr.b.Settings.set(
           SELECTED_TAB_SETTINGS_KEY,
+<<<<<<< HEAD
           this.$.container.selectedTab.tagName.toLowerCase());
+=======
+          this.$.tabView.selectedSubView.tagName.toLowerCase());
+>>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     },
 
     /**
      * @param {!tr.v.ValueSet} values
      */
     set values(values) {
-      this.$.container.textContent = '';
+      this.$.tabView.clearSubViews();
 
       var initialTabElementName = tr.b.Settings.get(
           SELECTED_TAB_SETTINGS_KEY, undefined);
@@ -220,21 +239,24 @@ tr.exportTo('tr.v.ui', function() {
 
         view.values = values;
 
-        if ((elementName === initialTabElementName) ||
-            (index === 0))
-          Polymer.dom(view).setAttribute('selected', true);
+        this.$.tabView.addSubView(view);
 
-        Polymer.dom(view).setAttribute('tab-label', view.tabLabel);
-
-        Polymer.dom(this.$.container).appendChild(view);
+        if (elementName.toLowerCase() === initialTabElementName)
+          this.$.tabView.selectedSubView = view;
       }, this);
 
+<<<<<<< HEAD
       if (this.$.container.children.length === 1) {
         this.$.container.tabsHidden = true;
       }
       if (this.$.container.selectedTab === undefined) {
         this.$.container.children[0].setAttribute('selected', true);
       }
+=======
+      // TODO(charliea): If TabView were structured correctly, this could almost
+      // certainly be done with attribute binding in the HTML template.
+      this.$.tabView.set('tabsHidden', this$.tabView.tabs.length === 1);
+>>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     }
   });
 
