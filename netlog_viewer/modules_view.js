@@ -58,15 +58,19 @@ var ModulesView = (function() {
     },
 
     onExtensionInfoChanged: function(extensionInfo) {
-      var input = new JsEvalContext({extensionInfo: extensionInfo});
-      jstProcess(input, $(ModulesView.EXTENSION_INFO_ID));
-      return !!extensionInfo;
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext({extensionInfo: extensionInfo});
+      // jstProcess(input, $(ModulesView.EXTENSION_INFO_ID));
+      // return !!extensionInfo;
+      return true;
     },
 
     onServiceProvidersChanged: function(serviceProviders) {
-      var input = new JsEvalContext(serviceProviders);
-      jstProcess(input, $(ModulesView.WINDOWS_SERVICE_PROVIDERS_ID));
-      return !!serviceProviders;
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext(serviceProviders);
+      // jstProcess(input, $(ModulesView.WINDOWS_SERVICE_PROVIDERS_ID));
+      //return !!serviceProviders;
+      return true;
     },
   };
 

@@ -6,17 +6,7 @@
 </style>
 
 <div id=sockets-view-tab-content class=content-box>
-  <ul style='margin-top:0'>
-    <li class="hide-when-not-capturing">
-      <input type=button value="Close idle sockets" id=sockets-view-close-idle-button>
-    </li>
-    <li class="hide-when-not-capturing">
-      <input type=button value="Flush socket pools" id=sockets-view-flush-button>
-      <span class=warning-text>May break pages with active connections</span>
-    </li>
-    <li><a href='#events&q=type:SOCKET%20is:active'>View live sockets</a>
-    </li>
-  </ul>
+  <a href='#events&q=type:SOCKET%20is:active'>View live sockets</a>
   <p>
     <div id=sockets-view-pool-div>
     </div>

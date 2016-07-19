@@ -47,8 +47,9 @@ var PrerenderView = (function() {
     onPrerenderInfoChanged: function(prerenderInfo) {
       if (!prerenderInfo)
         return false;
-      var input = new JsEvalContext(prerenderInfo);
-      jstProcess(input, $(PrerenderView.MAIN_BOX_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext(prerenderInfo);
+      // jstProcess(input, $(PrerenderView.MAIN_BOX_ID));
       return true;
     }
   };

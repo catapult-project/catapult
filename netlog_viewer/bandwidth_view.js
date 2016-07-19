@@ -188,8 +188,9 @@ var BandwidthView = (function() {
                                             historicReceived)
       });
 
-      var input = new JsEvalContext({rows: rows});
-      jstProcess(input, $(BandwidthView.STATS_BOX_ID));
+      // TODO(rayraymond): Update DOM without use of jstemplate.
+      // var input = new JsEvalContext({rows: rows});
+      // jstProcess(input, $(BandwidthView.STATS_BOX_ID));
       return true;
     },
 

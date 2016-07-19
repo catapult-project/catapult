@@ -31,9 +31,6 @@ var DnsView = (function() {
     // Call superclass's constructor.
     superClass.call(this, DnsView.MAIN_BOX_ID);
 
-    $(DnsView.CLEAR_CACHE_BUTTON_ID).onclick =
-        g_browser.sendClearHostResolverCache.bind(g_browser);
-
     // Register to receive changes to the host resolver info.
     g_browser.addHostResolverInfoObserver(this, false);
   }
@@ -50,7 +47,6 @@ var DnsView = (function() {
       'dns-view-internal-dns-invalid-config';
   DnsView.INTERNAL_DNS_CONFIG_TBODY_ID = 'dns-view-internal-dns-config-tbody';
 
-  DnsView.CLEAR_CACHE_BUTTON_ID = 'dns-view-clear-cache';
   DnsView.CAPACITY_SPAN_ID = 'dns-view-cache-capacity';
 
   DnsView.ACTIVE_SPAN_ID = 'dns-view-cache-active';
