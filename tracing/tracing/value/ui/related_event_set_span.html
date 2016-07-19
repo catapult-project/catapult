@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id="tr-v-ui-related-event-set-span">
   <script>
@@ -36,7 +37,7 @@ found in the LICENSE file.
         label += tr.v.Unit.byName.timeDurationInMs.format(events[0].duration);
       }
       link.setSelectionAndContent(events, label);
-      this.appendChild(link);
+      Polymer.dom(this).appendChild(link);
     }
   });
   </script>
