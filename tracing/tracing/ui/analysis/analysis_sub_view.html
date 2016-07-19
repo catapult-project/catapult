@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.analysis.behaviors', function() {
     },
 
     get tabLabel() {
-      return Polymer.dom(this).getAttribute('tab-label');
+      return this.getAttribute('tab-label');
     },
 
     get requiresTallView() {
