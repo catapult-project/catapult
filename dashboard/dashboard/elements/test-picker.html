@@ -376,6 +376,9 @@ found in the LICENSE file.
             placeholder: this.SUBTEST_LABEL,
             datalist: subtestItems
           });
+          Polymer.dom.flush();
+          var menu = this.getSelectionMenu(this.selectionModels.length - 1);
+          menu.setDataList(subtestItems);
         }
 
         this.updateAddButtonState();
