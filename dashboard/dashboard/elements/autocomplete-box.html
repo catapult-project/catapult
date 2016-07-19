@@ -161,9 +161,17 @@ property 'group' sets to the header item name.
         }
       },
 
+      clearSelection: function() {
+        if (this.multi) {
+          this.$.dropdown.selected = [];
+        } else {
+          this.$.dropdown.selected = null;
+        }
+      },
+
       ready: function() {
         this.value = '';
-        this.$.dropdown.selected = [];
+        this.clearSelection();
         this.hasVisibleItems = true;
         this.initAutocomplete();
       },
@@ -199,7 +207,7 @@ property 'group' sets to the header item name.
         if (key == 8 || key == 46) {  // Backspace and Delete.
           if (this.value.length == 0) {
             this.set('selectedItems', []);
-            this.$.dropdown.selected = [];
+            this.clearSelection();
             this.fire('dropdownselect');
           }
         }
@@ -328,7 +336,7 @@ property 'group' sets to the header item name.
        * changes.
        */
       updateCurrentSelection: function() {
-        this.$.dropdown.selected = [];
+        this.clearSelection();
         var matchedItems = [];
         for (var i = 0; i < this.selectedItems.length; i++) {
           for (var j = 0; j < this.dataList.length; j++) {
@@ -367,7 +375,7 @@ property 'group' sets to the header item name.
        */
       setDropdownSelection: function(index, isSelected) {
         if (!this.multi) {
-          this.$.dropdown.selected = [];
+          this.clearSelection();
         }
         var foundIndex = this.$.dropdown.selected.indexOf(index);
         if (isSelected) {
@@ -422,7 +430,7 @@ property 'group' sets to the header item name.
         } else {
           currentValue = this.value;
         }
-        this.$.dropdown.selected = [];
+        this.clearSelection();
 
         this.set('dataList', this.autocomplete.search(currentValue));
 
