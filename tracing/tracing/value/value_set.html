@@ -120,6 +120,10 @@ tr.exportTo('tr.v', function() {
       return this.toArray().filter(v => v.name.indexOf(name) > -1);
     },
 
+    getValuesNamed: function(name) {
+      return this.toArray().filter(v => v.name == name);
+    },
+
     addValueInternal_: function(v) {
       if (this.values_[v.guid])
         throw new Error('Tried to add same value twice');
