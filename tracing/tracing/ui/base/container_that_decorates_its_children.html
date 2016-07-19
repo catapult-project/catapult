@@ -35,22 +35,22 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     appendChild: function(x) {
-      Polymer.dom(HTMLDivElement.prototype).appendChild.call(this, x);
+      HTMLDivElement.prototype.appendChild.call(this, x);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     insertBefore: function(x, y) {
-      Polymer.dom(HTMLDivElement.prototype).insertBefore.call(this, x, y);
+      HTMLDivElement.prototype.insertBefore.call(this, x, y);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     removeChild: function(x) {
-      Polymer.dom(HTMLDivElement.prototype).removeChild.call(this, x);
+      HTMLDivElement.prototype.removeChild.call(this, x);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     replaceChild: function(x, y) {
-      Polymer.dom(HTMLDivElement.prototype).replaceChild.call(this, x, y);
+      HTMLDivElement.prototype.replaceChild.call(this, x, y);
       this.didMutate_(this.observer_.takeRecords());
     },
 
@@ -62,7 +62,7 @@ tr.exportTo('tr.ui.b', function() {
 
     clear: function() {
       while (Polymer.dom(this).lastChild)
-        Polymer.dom(HTMLDivElement.prototype).removeChild.call(
+        HTMLDivElement.prototype.removeChild.call(
             this, Polymer.dom(this).lastChild);
       this.didMutate_(this.observer_.takeRecords());
     },
