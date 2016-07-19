@@ -86,34 +86,6 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(tabView);
   });
 
-  test('addSubView_throwsWithNonHtmlElement', function() {
-    var tabView = document.createElement('tr-ui-a-tab-view');
-
-    assert.throws(function() {
-      tabView.addSubView(1);
-    }, 'Sub-view being added must be a registered Polymer element with the ' +
-        'sub-view behavior');
-  });
-
-  test('addSubView_throwsWithNonPolymerHtmlElement', function() {
-    var tabView = document.createElement('tr-ui-a-tab-view');
-
-    assert.throws(function() {
-      tabView.addSubView(document.createElement('p'));
-    }, 'Sub-view being added must be a registered Polymer element with the ' +
-        'sub-view behavior');
-  });
-
-  test('addSubView_throwsWithNonAnalysisViewPolymerElement', function() {
-    var tabView = document.createElement('tr-ui-a-tab-view');
-
-    assert.throws(function() {
-      tabView.addSubView(
-          document.createElement('tr-ui-b-tab-view-test-non-sub-view'));
-    }, 'Sub-view being added must be a registered Polymer element with the ' +
-        'sub-view behavior');
-  });
-
   test('clearSubViews_selectedSubViewNullAfter', function() {
     var tabView = document.createElement('tr-ui-a-tab-view');
     tabView.label = '3 items selected.';
