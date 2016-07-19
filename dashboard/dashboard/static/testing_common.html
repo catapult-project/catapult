@@ -111,12 +111,35 @@ var testing_common = (function() {
     return path + query;
   };
 
+  function mockChartJson(mockData, mockSelectedData) {
+    var selectedParams = {
+      'test_path_dict': mockData.testPathDict,
+      'is_selected': true
+    };
+    var unselectedParams = {
+      'test_path_dict': mockData.testPathDict
+    };
+    var selectedGraphQuery = ('/graph_json?graphs=' +
+        encodeURIComponent(JSON.stringify(selectedParams)));
+    addXhrMock(selectedGraphQuery, JSON.stringify(
+        mockSelectedData || mockData.graphSelectedJson));
+    var unselectedGraphQuery = ('/graph_json?graphs=' +
+        encodeURIComponent(JSON.stringify(unselectedParams)));
+    addXhrMock(
+        unselectedGraphQuery, JSON.stringify(mockData.graphUnselectedJson));
+    var revisionQuery = ('/graph_revisions?test_path=' +
+        encodeURIComponent(mockData.testPath));
+    addXhrMock(
+        revisionQuery, JSON.stringify(mockData.graphRevisionJson));
+  }
+
   return {
     addXhrMock: addXhrMock,
     clearXhrMock: clearXhrMock,
     deepCopy: deepCopy,
     addToFixture: addToFixture,
     clearFixture: clearFixture,
+    mockChartJson: mockChartJson,
     paramString: paramString,
     sortQueryPart: sortQueryPart
   };
