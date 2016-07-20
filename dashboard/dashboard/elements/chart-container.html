@@ -1748,20 +1748,15 @@ triaging functionality in the chart.
                   (this.$.plot.offsetWidth - 120) + 'px';
             }
             this.lastSelectedDelta = null;
-          } else if (item) {
-            // Click on a data point; show revision history and sticky tooltip.
-            if (this.stickyTooltip && item.dataIndex == this.currentItem) {
-              // hide the tooltip if the user clicks the same point again
-              this.stickyTooltip = false;
-              this.hideTooltip();
-            } else {
-              // show the tooltip if the user clicked on a new one
-              this.stickyTooltip = true;
-              this.currentItem = item.dataIndex;
-              this.showTooltip(item.seriesIndex, item.dataIndex);
-            }
+          } else if (item && item.dataIndex != this.currentItem) {
+            // Clicked on a new data point.
+            // Show revision history and sticky tooltip.
+            this.stickyTooltip = true;
+            this.currentItem = item.dataIndex;
+            this.showTooltip(item.seriesIndex, item.dataIndex);
           } else {
-            // clicked an empty place on the graph
+            // Hide the tooltip if the user clicked the same point again
+            // or clicked an empty place on the graph.
             this.hideTooltipEvenIfSticky();
           }
         },
