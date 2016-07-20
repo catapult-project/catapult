@@ -1842,7 +1842,8 @@ triaging functionality in the chart.
          * @param {Event} The click event.
          */
         onAlertMouseOver: function(flotSeriesIndex, dataIndex, event) {
-          this.showTooltip(flotSeriesIndex, dataIndex);
+          if (!this.stickyTooltip)
+            this.showTooltip(flotSeriesIndex, dataIndex);
         },
         /**
          * Updates the interface when a bug is triaged.
