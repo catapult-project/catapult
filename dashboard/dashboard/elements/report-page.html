@@ -47,9 +47,17 @@ found in the LICENSE file.
 
       is: 'report-page',
       properties: {
-        charts: { notify: true },
+        charts: {
+          type: Array,
+          value: () => [],
+          notify: true
+        },
         hasChart: { notify: true },
         onRevisionRange: { observer: 'onRevisionRangeChanged' },
+        graphParams: {
+          type: Object,
+          value: () => ({})
+        },
         isInternalUser: {
           type: Boolean,
           value: false
@@ -103,12 +111,6 @@ found in the LICENSE file.
           function(error) {
 
           }.bind(this));
-        this.charts = [];
-        this.graphParams = {};
-
-        window.addEventListener('uriload', this.onUriLoad.bind(this));
-        this.uriController = new uri.Controller(this.getPageState.bind(this));
-        this.uriController.load();
 
         window.addEventListener('pagestaterequest',
                                 this.onPageStateRequest.bind(this));
@@ -116,6 +118,10 @@ found in the LICENSE file.
         this.testPicker = this.$['test-picker'];
         this.testPicker.addEventListener(
             'add', this.onAddChartButtonClicked.bind(this));
+
+        window.addEventListener('uriload', this.onUriLoad.bind(this));
+        this.uriController = new uri.Controller(this.getPageState.bind(this));
+        this.uriController.load();
       },
 
       /**
