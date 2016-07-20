@@ -19,7 +19,7 @@ def Main(argv):
       description='Runs metrics on local traces')
   parser.add_argument('trace_file_or_dir',
                       help='A trace file, or a dir containing trace files')
-  parser.add_argument('metrics', nargs=argparse.REMAINDER,
+  parser.add_argument('metrics', nargs='+',
                       help=('Function names of registered metrics '
                             '(not filenames.) '
                             'Available metrics are: %s' %
@@ -35,7 +35,7 @@ def Main(argv):
   else:
     traces = [trace_file_or_dir]
 
-  results = {k: v.AsDict() for k, v in 
+  results = {k: v.AsDict() for k, v in
              metric_runner.RunMetricOnTraces(traces, args.metrics).iteritems()}
 
   failures = []
