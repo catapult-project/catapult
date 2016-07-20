@@ -82,18 +82,14 @@ found in the LICENSE file.
     },
 
     open: function() {
-      if (!this.opened) {
-        this.opened = true;
-        this.style.visibility = 'visible';
-        this.playAnimation('show');
-      }
+      this.opened = true;
+      this.style.visibility = 'visible';
+      this.playAnimation('show');
     },
 
     close: function() {
-      if (this.opened) {
-        this.opened = false;
-        this.playAnimation('hide');
-      }
+      this.opened = false;
+      this.playAnimation('hide');
     },
   });
 </script>

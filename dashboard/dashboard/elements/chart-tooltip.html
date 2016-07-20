@@ -215,12 +215,15 @@ was just clicked.
       },
 
       close: function() {
-        this.$.container.close();
+        if (this.$.container.opened)
+          this.$.container.close();
       },
 
       openAtPosition: function(top, left) {
         this.$.container.updatePositionFromCoords(top, left);
-        this.$.container.open();
+        if (!this.$.container.opened) {
+          this.$.container.open();
+        }
       },
 
       bugNotInvalid: function(bugId) {
