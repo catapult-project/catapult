@@ -255,8 +255,6 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         '(document.scrollingElement || document.body).scrollLeft') > 75)
 
-
-  @decorators.Disabled('chromeos')  # crbug.com/630017.
   def testEnterText(self):
     self.Navigate('blank.html')
     self._tab.ExecuteJavaScript(
@@ -277,6 +275,10 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.PressKey('ArrowLeft', repeat_count=3)  # This is bor|ing.
     action_runner.PressKey('Backspace', repeat_count=3)  # This is |ing.
     action_runner.EnterText('interest')  # This is interest|ing.
+
+    # Wait for a second to make sure that all keystrokes have been handled by
+    # the browser (crbug.com/630017).
+    action_runner.Wait(1)
 
     self.assertEqual('This is interesting',
                      self._tab.EvaluateJavaScript(
