@@ -112,8 +112,10 @@ Polymer({
       return;
 
     var r = new tr.b.Range();
-    if (this.mouseDownIndex_ === undefined)
+    if (this.mouseDownIndex_ === undefined) {
       this.latencyChart_.brushedRange = r;
+      return;
+    }
 
     // Based on the brushed range, update the selection of LatencyInfo in
     // the timeline view by sending a selectionChange event.
