@@ -21,17 +21,12 @@ def Main(argv):
       description='Runs metrics on local traces')
   parser.add_argument('trace_file_or_dir',
                       help='A trace file, or a dir containing trace files')
-<<<<<<< HEAD
   parser.add_argument('metrics', nargs='+',
-=======
-  parser.add_argument('metrics', nargs=argparse.REMAINDER,
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
                       help=('Function names of registered metrics '
                             '(not filenames.) '
                             'Available metrics are: %s' %
                             ', '.join(all_metrics)),
                       choices=all_metrics, metavar='metricName')
-<<<<<<< HEAD
   parser.add_argument('--filename', default='results', type=str,
                       help='Output file name (no extension)')
   parser.add_argument('--reset', action='store_true',
@@ -40,8 +35,6 @@ def Main(argv):
   parser.add_argument('--also-output-json', action='store_true',
                       help=('Also output json file containing values. Note that'
                             'this only contains the results of current run'))
-=======
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
 
   args = parser.parse_args(argv[1:])
   trace_file_or_dir = os.path.abspath(args.trace_file_or_dir)
