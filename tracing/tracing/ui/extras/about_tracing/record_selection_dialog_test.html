@@ -15,7 +15,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantitate', function() {
     var showButton = document.createElement('button');
-    showButton.textContent = 'Show record selection dialog';
+    Polymer.dom(showButton).textContent = 'Show record selection dialog';
     this.addHTMLOutput(showButton);
 
     showButton.addEventListener('click', function(e) {
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
     var expected =
         ['"cc"', '"cc.debug"', '"disabled-by-default-one"', '"three"', '"two"'];
 
-    var labels = dlg.querySelectorAll('.categories input');
+    var labels = Polymer.dom(dlg).querySelectorAll('.categories input');
     var results = [];
     for (var i = 0; i < labels.length; i++) {
       results.push('"' + labels[i].value + '"');
@@ -66,7 +66,7 @@ tr.b.unittest.testSuite(function() {
     dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
-    var checkboxes = dlg.querySelectorAll('.categories input');
+    var checkboxes = Polymer.dom(dlg).querySelectorAll('.categories input');
     assert.equal(checkboxes.length, 3);
     assert.equal(checkboxes[0].id, 'three');
     assert.equal(checkboxes[0].value, 'three');
@@ -80,11 +80,11 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(dlg.categoryFilter(), '');
 
-    var labels = dlg.querySelectorAll('.categories label');
+    var labels = Polymer.dom(dlg).querySelectorAll('.categories label');
     assert.equal(labels.length, 3);
-    assert.equal(labels[0].textContent, 'three');
-    assert.equal(labels[1].textContent, 'two');
-    assert.equal(labels[2].textContent, 'one');
+    assert.equal(Polymer.dom(labels[0]).textContent, 'three');
+    assert.equal(Polymer.dom(labels[1]).textContent, 'two');
+    assert.equal(Polymer.dom(labels[2]).textContent, 'one');
   });
 
   test('recordSelectionDialog_UpdateForm_Settings', function() {
@@ -97,7 +97,7 @@ tr.b.unittest.testSuite(function() {
     dlg.currentlyChosenPreset = [];
     dlg.updateForm_();
 
-    var checkboxes = dlg.querySelectorAll('.categories input');
+    var checkboxes = Polymer.dom(dlg).querySelectorAll('.categories input');
     assert.equal(checkboxes.length, 3);
     assert.equal(checkboxes[0].id, 'three');
     assert.equal(checkboxes[0].value, 'three');
@@ -111,11 +111,11 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(dlg.categoryFilter(), '-three');
 
-    var labels = dlg.querySelectorAll('.categories label');
+    var labels = Polymer.dom(dlg).querySelectorAll('.categories label');
     assert.equal(labels.length, 3);
-    assert.equal(labels[0].textContent, 'three');
-    assert.equal(labels[1].textContent, 'two');
-    assert.equal(labels[2].textContent, 'one');
+    assert.equal(Polymer.dom(labels[0]).textContent, 'three');
+    assert.equal(Polymer.dom(labels[1]).textContent, 'two');
+    assert.equal(Polymer.dom(labels[2]).textContent, 'one');
   });
 
   test('recordSelectionDialog_UpdateForm_DisabledByDefault', function() {
@@ -128,7 +128,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(dlg.categoryFilter(), '');
 
     var inputs =
-        dlg.querySelector('input#disabled-by-default-bar').click();
+        Polymer.dom(dlg).querySelector('input#disabled-by-default-bar').click();
 
     assert.equal(dlg.categoryFilter(), 'disabled-by-default-bar');
 
@@ -158,27 +158,32 @@ tr.b.unittest.testSuite(function() {
     dlg.updateForm_();
 
     // Enables the three option, two already enabled.
-    dlg.querySelector('.default-enabled-categories .all-btn').click();
+    Polymer.dom(dlg).querySelector('.default-enabled-categories .all-btn')
+        .click();
     assert.equal(dlg.categoryFilter(), '');
     assert.isTrue(tr.b.Settings.get('three', false, 'categories'));
 
     // Disables three and two.
-    dlg.querySelector('.default-enabled-categories .none-btn').click();
+    Polymer.dom(dlg).querySelector('.default-enabled-categories .none-btn')
+        .click();
     assert.equal(dlg.categoryFilter(), '-three,-two');
     assert.isFalse(tr.b.Settings.get('two', false, 'categories'));
     assert.isFalse(tr.b.Settings.get('three', false, 'categories'));
 
     // Turn categories back on so they can be ignored.
-    dlg.querySelector('.default-enabled-categories .all-btn').click();
+    Polymer.dom(dlg).querySelector('.default-enabled-categories .all-btn')
+        .click();
 
     // Enables disabled category.
-    dlg.querySelector('.default-disabled-categories .all-btn').click();
+    Polymer.dom(dlg).querySelector('.default-disabled-categories .all-btn')
+        .click();
     assert.equal(dlg.categoryFilter(), 'disabled-by-default-one');
     assert.isTrue(
         tr.b.Settings.get('disabled-by-default-one', false, 'categories'));
 
     // Turn disabled by default back off.
-    dlg.querySelector('.default-disabled-categories .none-btn').click();
+    Polymer.dom(dlg).querySelector('.default-disabled-categories .none-btn')
+        .click();
     assert.equal(dlg.categoryFilter(), '');
     assert.isFalse(
         tr.b.Settings.get('disabled-by-default-one', false, 'categories'));
@@ -209,11 +214,11 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
-    var classList = dlg.categoriesView_.classList;
+    var classList = Polymer.dom(dlg.categoriesView_).classList;
     assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Verify manual settings do not modify the checkboxes.
-    var checkboxes = dlg.querySelectorAll('.categories input');
+    var checkboxes = Polymer.dom(dlg).querySelectorAll('.categories input');
     assert.equal(checkboxes.length, 3);
     assert.equal(checkboxes[0].id, 'three');
     assert.equal(checkboxes[0].value, 'three');
@@ -297,7 +302,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
-    var classList = dlg.categoriesView_.classList;
+    var classList = Polymer.dom(dlg.categoriesView_).classList;
     assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Switch to manual settings and verify the default values are not returned.
@@ -346,7 +351,7 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(dlg.useSampling);
 
     // Make sure the manual settings are not visible.
-    var classList = dlg.categoriesView_.classList;
+    var classList = Polymer.dom(dlg.categoriesView_).classList;
     assert.isTrue(classList.contains('categories-column-view-hidden'));
 
     // Switch to manual settings and verify the default values are not returned.

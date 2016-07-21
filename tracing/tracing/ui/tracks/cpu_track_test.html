@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/ui/timeline_track_view.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/timeline_track_view.html">
 
 <script>
 'use strict';
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
 
     var track = new CpuTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
@@ -86,7 +86,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
 
     var track = new CpuTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     track.heading = 'CPU ' + cpu.cpuNumber;
     track.cpu = cpu;
@@ -96,4 +96,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

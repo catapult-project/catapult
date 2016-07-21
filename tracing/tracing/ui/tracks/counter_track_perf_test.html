@@ -56,11 +56,11 @@ tr.b.unittest.testSuite(function() {
       viewport.modelTrackContainer = drawingContainer;
 
       var modelTrack = new tr.ui.tracks.ModelTrack(viewport);
-      drawingContainer.appendChild(modelTrack);
+      Polymer.dom(drawingContainer).appendChild(modelTrack);
 
       modelTrack.model = model;
 
-      viewportDiv.appendChild(drawingContainer);
+      Polymer.dom(viewportDiv).appendChild(drawingContainer);
 
       this.addHTMLOutput(viewportDiv);
 

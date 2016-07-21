@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/ui/timeline_viewport.html">
 <link rel="import" href="/tracing/ui/tracks/drawing_container.html">
-<link rel="import" href="/tracing/ui/tracks/process_memory_dump_track.html">
 <link rel="import" href="/tracing/ui/tracks/memory_dump_track_test_utils.html">
+<link rel="import" href="/tracing/ui/tracks/process_memory_dump_track.html">
 
 <script>
 'use strict';
@@ -26,10 +26,10 @@ tr.b.unittest.testSuite(function() {
     var div = document.createElement('div');
     var viewport = new Viewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = new ProcessMemoryDumpTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     drawingContainer.invalidate();
 
     track.memoryDumps = dumps;

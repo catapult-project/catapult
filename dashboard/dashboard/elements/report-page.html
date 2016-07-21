@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="report-page" attributes="hasChart charts">
+<dom-module id="report-page">
   <template>
     <style>
       #nav-container {
@@ -19,20 +19,20 @@ found in the LICENSE file.
       }
     </style>
 
-    <login-warning id="login-warning" loginLink="{{loginUrl}}"
-                   hidden?="{{isInternalUser}}">
+    <login-warning id="login-warning" login-link="{{loginUrl}}"
+                   hidden$="{{isInternalUser}}">
     </login-warning>
 
     <div id="nav-container">
-      <test-picker id="test-picker" xsrfToken="{{xsrfToken}}"
-                   testSuites="{{testSuites}}"></test-picker>
+      <test-picker id="test-picker" xsrf-token="{{xsrfToken}}"
+                   test-suites="{{testSuites}}"></test-picker>
     </div>
     <section id="charts-container"></section>
 
     <div id="toasts" hidden>
       <div id="warningtoast">
         {{warningMessage}}
-        <template if="{{warningBug}}">
+        <template is="dom-if" if="{{!!warningBug}}">
           <a href="https://github.com/catapult-project/catapult/issues/{{warningBug}}">See
             bug #{{warningBug}}.</a>
         </template>
@@ -43,7 +43,50 @@ found in the LICENSE file.
 
   <script>
     'use strict';
-    Polymer('report-page', {
+    Polymer({
+
+      is: 'report-page',
+      properties: {
+        charts: {
+          type: Array,
+          value: () => [],
+          notify: true
+        },
+        hasChart: { notify: true },
+        onRevisionRange: { observer: 'onRevisionRangeChanged' },
+        graphParams: {
+          type: Object,
+          value: () => ({})
+        },
+        isInternalUser: {
+          type: Boolean,
+          value: false
+        },
+        loginUrl: {
+          type: String,
+          value: ''
+        },
+        revisionInfo: {
+          type: Object,
+          value: () => ({})
+        },
+        warningBug: {
+          type: Number,
+          value: 0
+        },
+        warningMessage: {
+          type: String,
+          value: ''
+        },
+        xsrfToken: {
+          type: String,
+          value: ''
+        },
+        testSuites: {
+          type: Object,
+          value: () => ({})
+        }
+      },
 
       ready: function() {
         simple_xhr.send('/report', uri.getAllParameters(),
@@ -68,12 +111,6 @@ found in the LICENSE file.
           function(error) {
 
           }.bind(this));
-        this.charts = [];
-        this.graphParams = {};
-
-        window.addEventListener('uriload', this.onUriLoad.bind(this));
-        this.uriController = new uri.Controller(this.getPageState.bind(this));
-        this.uriController.load();
 
         window.addEventListener('pagestaterequest',
                                 this.onPageStateRequest.bind(this));
@@ -81,6 +118,10 @@ found in the LICENSE file.
         this.testPicker = this.$['test-picker'];
         this.testPicker.addEventListener(
             'add', this.onAddChartButtonClicked.bind(this));
+
+        window.addEventListener('uriload', this.onUriLoad.bind(this));
+        this.uriController = new uri.Controller(this.getPageState.bind(this));
+        this.uriController.load();
       },
 
       /**
@@ -130,12 +171,13 @@ found in the LICENSE file.
         // JavaScript-built DOM!!
         var container = this.$['charts-container'];
         var chart = document.createElement('chart-container');
-        if (isPrepend) {
+        if (isPrepend && Polymer.dom(container).children.length > 0) {
           this.charts.unshift(chart);
-          container.insertBefore(chart, container.firstChild);
+          Polymer.dom(container).insertBefore(chart,
+              Polymer.dom(container).children[0]);
         } else {
           this.charts.push(chart);
-          container.appendChild(chart);
+          Polymer.dom(container).appendChild(chart);
         }
 
         chart.addEventListener(
@@ -189,7 +231,7 @@ found in the LICENSE file.
        * When the revision range changes for one graph, update the rest of
        * the graphs and the URI.
        */
-      onRevisionRangeChanged: function(event) {
+      onRevisionRangeChanged: function(_, event) {
         for (var i = 0; i < this.charts.length; i++) {
           var chart = this.charts[i];
           if (chart == event.target) {
@@ -247,4 +289,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

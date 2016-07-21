@@ -16,8 +16,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-memory-dump-allocator-details-pane"
-    extends="tr-ui-a-stacked-pane">
+
+<dom-module id='tr-ui-a-memory-dump-allocator-details-pane'>
   <template>
     <style>
       :host {
@@ -62,7 +62,7 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -492,7 +492,10 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  Polymer('tr-ui-a-memory-dump-allocator-details-pane', {
+  Polymer({
+    is: 'tr-ui-a-memory-dump-allocator-details-pane',
+    behaviors: [tr.ui.analysis.behaviors.StackedPane],
+
     created: function() {
       this.memoryAllocatorDumps_ = undefined;
       this.heapDumps_ = undefined;

@@ -11,8 +11,8 @@ chart, a revision range selecting mini-chart at the bottom, and all of the alert
 triaging functionality in the chart.
 -->
 
-<link rel="import" href="/components/core-collapse/core-collapse.html">
-<link rel="import" href="/components/core-icon/core-icon.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/components/iron-icon/iron-icon.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
 
 <link rel="import" href="/dashboard/elements/alert-icon.html">
@@ -25,15 +25,10 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="chart-container"
-                 attributes="graphParams revisionInfo xsrfToken alertKey
-                             showCompact collapseLegend testSuites
-                             isInternalUser"
-                 on-drop="{{onDrop}}"
-                 on-dragover="{{allowDrop}}">
+<dom-module name="chart-container">
 
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment iron-flex-factors">
     #container {
       width: 100%;
       display: flex;
@@ -138,7 +133,7 @@ triaging functionality in the chart.
       color: #e91e63;
     }
 
-    #close-chart > core-icon {
+    #close-chart > iron-icon {
       margin-right: 4px;
     }
 
@@ -147,14 +142,14 @@ triaging functionality in the chart.
     }
     </style>
 
-    <div id="container" compact?="{{showCompact}}">
-      <div id="top-bar" horizontal layout>
-        <div flex horizontal center-justified layout>
-          <chart-title id="title" seriesGroupList="{{seriesGroupList}}"
-                       testSuites="{{testSuites}}"></chart-title>
+    <div id="container" compact$="{{showCompact}}">
+      <div id="top-bar" class="layout horizontal">
+        <div class="layout horizontal center-justified flex">
+          <chart-title id="title" series-group-list="{{seriesGroupList}}"
+                       test-suites="{{testSuites}}"></chart-title>
         </div>
-        <div horizontal layout center>
-          <paper-button id="close-chart" on-click="{{closeChartClicked}}">
+        <div class="layout horizontal center">
+          <paper-button id="close-chart" on-click="closeChartClicked">
             Close
           </paper-button>
         </div>
@@ -165,36 +160,36 @@ triaging functionality in the chart.
         </div>
         <div id="alert-icon-container"></div>
         <chart-tooltip id="tooltip"
-                       xsrfToken="{{xsrfToken}}"></chart-tooltip>
+                       xsrf-token="{{xsrfToken}}"></chart-tooltip>
 
-        <div id="plots-container" on-mouseleave="{{onMouseLeave}}">
+        <div id="plots-container" on-mouseleave="onMouseLeave">
           <div id="plot">
             <div id="loading-div">
               <img src="//www.google.com/images/loading.gif">
             </div>
           </div>
-          <chart-slider id="slider" on-revisionrange="{{onRevisionRange}}"></chart-slider>
+          <chart-slider id="slider" on-revisionrange="onRevisionRange"></chart-slider>
         </div>
 
         <div id="warning">
-          <template repeat="{{item in warnings}}">
+          <template is="dom-repeat" items="{{warnings}}">
             <span>{{item}}</span><br>
           </template>
         </div>
 
         <a hidden id="original"
-           on-click="{{onViewOriginal}}"
+           on-click="onViewOriginal"
            href="javascript:void(0);">View original graph</a>
 
         <chart-legend id="legend"
-                      seriesGroupList={{seriesGroupList}}
-                      indicesToGraph={{indicesToGraph}}
-                      collapseLegend={{collapseLegend}}
-                      on-dragstart={{legendSeriesDragStart}}
-                      on-dragend={{legendSeriesDragEnd}}
-                      deltaAbsolute={{deltaAbsolute}}
-                      deltaPercent={{deltaPercent}}
-                      showDelta={{showDelta}}>
+                      series-group-list="{{seriesGroupList}}"
+                      indices-to-graph="{{indicesToGraph}}"
+                      collapse-legend="{{collapseLegend}}"
+                      on-dragstart="legendSeriesDragStart"
+                      on-dragend="legendSeriesDragEnd"
+                      delta-absolute="{{deltaAbsolute}}"
+                      delta-percent="{{deltaPercent}}"
+                      show-delta="{{showDelta}}">
       </div>
 
     </div>
@@ -206,6 +201,9 @@ triaging functionality in the chart.
       // Minimum multiple standard deviation for a value to be considered
       // an outlier.
       var MULTIPLE_OF_STD_DEV = 5;
+
+      // Regex for links in series annotation which are shown in tooltip.
+      var TOOLTIP_LINK_REGEX = /\[(.+?)\]\((.+?)\)/g;
 
       /**
        * Gets the mean for list of numbers.
@@ -355,52 +353,54 @@ triaging functionality in the chart.
         return Object.keys(dict);
       };
 
-      Polymer('chart-container', {
+      Polymer({
 
-        SERIES_SELECTION_OPTIONS: ['important', 'all', 'none'],
+        is: 'chart-container',
+        properties: {
+          SERIES_SELECTION_OPTIONS: {
+            type: Array,
+            value: () => ['important', 'all', 'none']
+          },
 
-        // Regex for links in series annotation which are shown in tooltip.
-        TOOLTIP_LINK_REGEX: /\[(.+?)\]\((.+?)\)/g,
+          // Default values for reverting series highlighting.
+          DEFAULT_SERIES_PROPERTIES: {
+            type: Object,
+            value: () => ({
+              lineWidth: 2,
+              opacity: 1,
+              fill: 0.2,
+              shadowSize: 3
+            })
+          },
 
-        // Default values for reverting series highlighting.
-        DEFAULT_SERIES_PROPERTIES: {
-            lineWidth: 2,
-            opacity: 1,
-            fill: 0.2,
-            shadowSize: 3
-        },
+          DEFAULT_JSON_PROPERTIES: {
+            type: Object,
+            value: () => ({
+              annotations: {
+                series: {}
+              },
+              data: {},
+              error_bars: {},
+              warning: null
+            })
+          },
 
-        DEFAULT_JSON_PROPERTIES: {
-            annotations: {
-              series: {}
-            },
-            data: {},
-            error_bars: {},
-            warning: null
-        },
+          // Amount of time before a warning is shown for tests with no new
+          // data.
+          STALE_DATA_DELTA_MS: {
+            type: Number,
+            value: 7 * 86400000
+          },
 
-        // Amount of time before a warning is shown for tests with no new data.
-        STALE_DATA_DELTA_MS: 7 * 86400000,
-
-        created: function() {
-          // List of indices of series which are selected and will be plotted.
-          // We declare this here to avoid changed event on load.
-          this.indicesToGraph = [];
-        },
-
-        /**
-         * Initializes the chart-container element and all of its properties.
-         *
-         * This is a custom element lifecycle callback that's called when an
-         * instance of the element is ready.
-         * http://www.polymer-project.org/polymer.html#lifecyclemethods
-         *
-         * We use 'ready' instead of 'created' to know when the element has its
-         * bindings, Shadow DOM has been created, and its on-* handlers and
-         * property observers have been set up.
-         * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
-         */
-        ready: function() {
+          alertKey: { notify: true },
+          collapseLegend: {
+            notify: true,
+            observer: 'collapseLegendChanged'
+          },
+          indicesToGraph: {
+            type: Array,
+            value: () => [],
+          },
           // TODO(chrisphan): Make seriesGroupList a class.
           // A list of series group dictionary. A series group contains test
           // path and list of test information. This is displayed in
@@ -416,96 +416,175 @@ triaging functionality in the chart.
           //              etc.
           //         }]
           //   }]
-          this.seriesGroupList = [],
+          seriesGroupList: {
+            notify: true,
+            type: Array,
+            value: () => [],
+          },
 
           // Data series index of the point that was most recently clicked.
-          this.currentItem = null;
+          currentItem: {
+            value: null
+          },
 
           // Meta-data about tests, which will be displayed in the legend.
-          this.legendTests = [];
+          legendTests: {
+            type: Array,
+            value: () => []
+          },
 
           // Text to display next to the y-axis.
-          this.chartYAxisLabel = '';
+          chartYAxisLabel: {
+            value: '',
+            type: String
+          },
 
           // Y-axis delta of current zoom selection, as an absolute number
           // and as a percentage of the original selection.
-          this.deltaAbsolute = 0;
-          this.deltaPercent = 0;
+          deltaAbsolute: {
+            value: 0,
+            type: Number
+          },
+          deltaPercent: {
+            value: 0,
+            type: Number
+          },
 
           // Information about the last selection range.
-          this.lastSelectedDelta = null;
+          lastSelectedDelta: { value: null },
 
           // Whether or not the user is currently selecting a range.
-          this.selecting = false;
+          selecting: {
+            type: Boolean,
+            value: false
+          },
 
           // Y-axis start value in the last selection range.
-          this.firstSelectedValue = 0;
+          firstSelectedValue: {
+            type: Number,
+            value: 0
+          },
 
           // Whether or not the tooltip is "sticky". Sticky means that it will
           // stay visible when the user is no longer hovering over the point.
-          this.stickyTooltip = false;
+          stickyTooltip: {
+            type: Boolean,
+            value: false
+          },
 
           // Map of series indexes to arrays with revision information.
-          this.revisionMap = null;
-
-          // Warning text to be shown over the chart, if any.
-          this.warnings = [];
+          revisionMap: {
+            type: Object,
+            value: null
+          },
 
           // Whether or not the chart can currently be drawn.
-          this.drawable = true;
+          drawable: {
+            type: Boolean,
+            value: false
+          },
 
           // The Flot Plot object, returned by $.plot.
-          this.chart = null;
+          chart: {
+            value: null
+          },
+
+          // Timeout ID of the timer used by this.resizeHandler.
+          resizeTimer: { value: null },
+
+          // Maintain the next series index as new graph json comes in.
+          nextSeriesIndex: { value: null },
+
+          // Whether this chart-container allows a series group to be dropped
+          // on-to it.
+          droppable: {
+            type: Boolean,
+            value: true
+          },
+
+          // Whether to show delta in chart-legend.
+          showDelta: {
+            type: Boolean,
+            value: false
+          },
+
+          // Chart options to be given when initializing the Flot chart.
+          // See: https://github.com/flot/flot/blob/master/API.md#plot-options
+          chartOptions: {
+            type: Object,
+            value: () => ({
+              grid: {
+                hoverable: true,
+                clickable: true,
+                borderWidth: 1,
+                borderColor: 'rgba(0, 0, 0, 0.5)'
+              },
+              crosshair: {
+                mode: 'xy',
+                color: 'rgba(34, 34, 34, 0.3)',
+                lineWidth: 0.3
+              },
+              xaxis: {},
+              yaxis: {
+                labelWidth: 60
+              },
+              selection: {
+                mode: 'y'
+              }
+            })
+          },
+
+          // Warning text to be shown over the chart, if any.
+          warnings: {
+            type: Array,
+            value: () => [],
+            observer: 'warningsChanged'
+          },
+
+          graphParams: {
+            type: Object,
+            value: () => ({})
+          },
+
+          // List of XMLHttpRequests sent for graph json.
+          graphJsonRequests: {
+            type: Array,
+            value: () => []
+          },
+
+          isInternalUser: { notify: true },
+          onUri: { observer: 'onUriChanged' },
+          revisionInfo: { notify: true },
+          showCompact: { notify: true },
+          testSuites: { notify: true },
+          xsrfToken: { notify: true }
+        },
+        observers: [
+          'indicesToGraphChanged(indicesToGraph.splices)'
+        ],
+
+        /**
+         * Initializes the chart-container element and all of its properties.
+         *
+         * This is a custom element lifecycle callback that's called when an
+         * instance of the element is ready.
+         * http://www.polymer-project.org/polymer.html#lifecyclemethods
+         *
+         * We use 'ready' instead of 'created' to know when the element has its
+         * bindings, Shadow DOM has been created, and its on-* handlers and
+         * property observers have been set up.
+         * See https://github.com/Polymer/polymer/releases/tag/v0.0.20131025
+         */
+        ready: function() {
 
           // Handler for the 'resize' event.
           this.resizeHandler = this.onResize.bind(this);
 
-          // Timeout ID of the timer used by this.resizeHandler.
-          this.resizeTimer = null;
-
-          // Maintain the next series index as new graph json comes in.
-          this.nextSeriesIndex = null;
-
-          // Whether this chart-container allows a series group to be dropped
-          // on-to it.
-          this.droppable = true;
-
-          // Whether to show delta in chart-legend.
-          this.showDelta = false;
-
           // The data fetched from the graph_json handler for this chart.
           this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
 
-          // Chart options to be given when initializing the Flot chart.
-          // See: https://github.com/flot/flot/blob/master/API.md#plot-options
-          this.chartOptions = {
-            grid: {
-              hoverable: true,
-              clickable: true,
-              borderWidth: 1,
-              borderColor: 'rgba(0, 0, 0, 0.5)'
-            },
-            crosshair: {
-              mode: 'xy',
-              color: 'rgba(34, 34, 34, 0.3)',
-              lineWidth: 0.3
-            },
-            xaxis: {
-              tickFormatter: this.formatXAxis.bind(this)
-            },
-            yaxis: {
-              labelWidth: 90,
-              tickFormatter: this.formatYAxis.bind(this)
-            },
-            selection: {
-              mode: 'y'
-            }
-          };
-
-          this.graphParams = {};
-
-          // List of XMLHttpRequests sent for graph json.
-          this.graphJsonRequests = [];
+          this.chartOptions.xaxis.tickFormatter = this.formatXAxis.bind(this);
+          this.chartOptions.yaxis.tickFormatter = this.formatYAxis.bind(this);
 
           this.$.legend.addEventListener(
               'seriesmouseover', this.seriesMouseover.bind(this), true);
@@ -604,7 +683,7 @@ triaging functionality in the chart.
             } else {
               unSelectedTestPathDict[testPath] = [];
             }
-            this.seriesGroupList.push(seriesGroup);
+            this.push('seriesGroupList', seriesGroup);
           }
           if (Object.keys(selectedTestPathDict).length > 0) {
             this.sendGraphJsonRequest(selectedTestPathDict, true);
@@ -821,6 +900,9 @@ triaging functionality in the chart.
          */
         updateForNewSeries: function(series, isSelected) {
           if (!this.drawable) {
+            // Cache the new series until the chart is drawable.
+            this.newDrawableSeries = this.newDrawableSeries || [];
+            this.newDrawableSeries.push([series, isSelected]);
             return;
           }
 
@@ -955,7 +1037,7 @@ triaging functionality in the chart.
           this.hideTooltipEvenIfSticky();
           this.clearAlertIcons();
           this.$['loading-div'].style.display = '';
-          this.indicesToGraph = [];
+          this.set('indicesToGraph', []);
           this.json.warnings = [];
           this.warnings = [];
 
@@ -1011,12 +1093,12 @@ triaging functionality in the chart.
          * Updates the list of indices of traces to plot with seriesGroupList.
          */
         updateIndicesToGraph: function() {
-          this.indicesToGraph = [];
+          this.set('indicesToGraph', []);
           for (var i = 0; i < this.seriesGroupList.length; i++) {
             var tests = this.seriesGroupList[i].tests;
             for (var j = 0; j < tests.length; j++) {
               if (tests[j].selected && tests[j].index != undefined) {
-                this.indicesToGraph.push(tests[j].index);
+                this.push('indicesToGraph', tests[j].index);
               }
             }
           }
@@ -1057,16 +1139,27 @@ triaging functionality in the chart.
          * element is removed from the DOM.
          * See: http://www.polymer-project.org/polymer.html#lifecyclemethods
          */
-        leftView: function() {
+        detached: function() {
           this.drawable = false;
           window.removeEventListener('resize', this.resizeHandler);
+        },
+
+        attached: function() {
+          this.drawable = true;
+          // This likely only happens in the unit test, but if series have
+          // been added before the element became drawable, update now.
+          if (this.newDrawableSeries) {
+            for (var drawableSeries of this.newDrawableSeries) {
+              this.updateForNewSeries(drawableSeries[0], drawableSeries[1]);
+            }
+          }
         },
 
         /**
          * Handler for the click event of X button on the top-right corner.
          */
         closeChartClicked: function() {
-          this.parentNode.removeChild(this);
+          Polymer.dom(Polymer.dom(this).parentNode).removeChild(this);
           this.fire('chartclosed', {
             target: this,
             stateName: 'chartclosed',
@@ -1088,9 +1181,8 @@ triaging functionality in the chart.
          * @param {Object} detail The detail object given when firing the
          *     event. This is set in graph.js and it contains 'start_rev' and
          *     'end_rev'.
-         * @param {Object} sender Object that invoked the event.
          */
-        onRevisionRange: function(event, detail, sender) {
+        onRevisionRange: function(event, detail) {
           var newGraphParams = deepCopy(this.graphParams);
           newGraphParams['rev'] = null;
           newGraphParams['num_points'] = null;
@@ -1522,10 +1614,11 @@ triaging functionality in the chart.
               alertIcon.initialize(
                 annotations[jsonSeriesIndex][dataIndex]['g_anomaly'],
                 this.alertKey);
-              this.$['alert-icon-container'].appendChild(alertIcon);
+              Polymer.dom(
+                  this.$['alert-icon-container']).appendChild(alertIcon);
               alertIcon.setPosition(top, left);
 
-              alertIcon.onmouseover = this.showTooltip.bind(
+              alertIcon.onmouseover = this.onAlertMouseOver.bind(
                   this, flotIndex, dataIndex);
               alertIcon.onclick = this.onAlertClick.bind(
                   this, flotIndex, dataIndex);
@@ -1534,7 +1627,7 @@ triaging functionality in the chart.
         },
 
         clearAlertIcons: function() {
-          this.$['alert-icon-container'].innerHTML = '';
+          Polymer.dom(this.$['alert-icon-container']).innerHTML = '';
         },
 
         /**
@@ -1552,7 +1645,7 @@ triaging functionality in the chart.
             delete this.json.annotations[indexToRemove];
             delete this.json['error_bars'][indexToRemove];
             if (this.indicesToGraph.indexOf(indexToRemove) != -1) {
-              this.indicesToGraph.splice(
+              this.splice('indicesToGraph',
                   this.indicesToGraph.indexOf(indexToRemove), 1);
             }
           }
@@ -1569,13 +1662,13 @@ triaging functionality in the chart.
          * series group from the test path created from clicked title
          * parts.
          */
-        onTitleClicked: function(event, detail, sender) {
+        onTitleClicked: function(event, detail) {
           var titleParts = event.detail.titleParts;
           var partIndex = event.detail.partIndex;
           var testPath = titleParts.slice(0, partIndex + 1).join('/');
           this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
-          this.seriesGroupList = [];
-          this.indicesToGraph = [];
+          this.set('seriesGroupList', []);
+          this.set('indicesToGraph', []);
           this.addSeriesGroup([[testPath, []]], true);
           this.fireChartStateChangedEvent(this.seriesGroupList);
         },
@@ -1655,20 +1748,15 @@ triaging functionality in the chart.
                   (this.$.plot.offsetWidth - 120) + 'px';
             }
             this.lastSelectedDelta = null;
-          } else if (item) {
-            // Click on a data point; show revision history and sticky tooltip.
-            if (this.stickyTooltip && item.dataIndex == this.currentItem) {
-              // hide the tooltip if the user clicks the same point again
-              this.stickyTooltip = false;
-              this.hideTooltip();
-            } else {
-              // show the tooltip if the user clicked on a new one
-              this.stickyTooltip = true;
-              this.currentItem = item.dataIndex;
-              this.showTooltip(item.seriesIndex, item.dataIndex);
-            }
+          } else if (item && item.dataIndex != this.currentItem) {
+            // Clicked on a new data point.
+            // Show revision history and sticky tooltip.
+            this.stickyTooltip = true;
+            this.currentItem = item.dataIndex;
+            this.showTooltip(item.seriesIndex, item.dataIndex);
           } else {
-            // clicked an empty place on the graph
+            // Hide the tooltip if the user clicked the same point again
+            // or clicked an empty place on the graph.
             this.hideTooltipEvenIfSticky();
           }
         },
@@ -1746,6 +1834,17 @@ triaging functionality in the chart.
           this.showTooltip(flotSeriesIndex, dataIndex, alerts, triaged);
         },
 
+        /**
+         * Brings up the tooltip when an alert circle is moused over.
+         * @param {number} flotSeriesIndex Index into the flot data series
+         *     array `this.chart.getData()`.
+         * @param {number} dataIndex Index into an array of points.
+         * @param {Event} The click event.
+         */
+        onAlertMouseOver: function(flotSeriesIndex, dataIndex, event) {
+          if (!this.stickyTooltip)
+            this.showTooltip(flotSeriesIndex, dataIndex);
+        },
         /**
          * Updates the interface when a bug is triaged.
          * This is the event handler for a 'triaged' event on the
@@ -1884,7 +1983,11 @@ triaging functionality in the chart.
           }
 
           // Set the alert-related properties of the tooltip.
+          if (opt_alerts === undefined)
+            opt_alerts = null;
           this.$.tooltip.alerts = opt_alerts;
+          if (opt_triaged === undefined)
+            opt_triaged = null;
           this.$.tooltip.triagedAlerts = opt_triaged;
           if (annotation['g_anomaly']) {
             if (annotation.g_anomaly['bug_id']) {
@@ -1922,8 +2025,7 @@ triaging functionality in the chart.
           var top = flotData[flotSeriesIndex].yaxis.p2c(yValue);
           var left = flotData[flotSeriesIndex].xaxis.p2c(xValue) +
               this.chartOptions.yaxis.labelWidth;
-          this.$.tooltip.setPosition(top, left);
-          this.$.tooltip.open();
+          this.$.tooltip.openAtPosition(top, left);
         },
 
         /**
@@ -2013,7 +2115,7 @@ triaging functionality in the chart.
                   'url': annotation['a_tracing_uri']
               });
             } else if (key.indexOf('a_') === 0) {
-              var match = this.TOOLTIP_LINK_REGEX.exec(annotation[key]);
+              var match = TOOLTIP_LINK_REGEX.exec(annotation[key]);
               if (match) {
                 links.push({
                     'text': match[1],
@@ -2371,7 +2473,7 @@ triaging functionality in the chart.
               detail.id == this.$.legend.getAttribute('uniqueid'));
           var shouldReload = false;
           if (isSameTarget) {
-            this.seriesGroupList = detail.state;
+            this.set('seriesGroupList', detail.state);
             shouldReload = true;
           }
 
@@ -2413,8 +2515,13 @@ triaging functionality in the chart.
             state.push([seriesGroup.path, selected]);
           });
           return state;
+        },
+
+        listeners: {
+          drop: 'onDrop',
+          dragover: 'allowDrop'
         }
       });
     })();
   </script>
-</polymer-element>
+</dom-module>

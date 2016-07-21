@@ -30,8 +30,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase.prototype.decorate.call(this);
-      this.margin.top = 0;
-      this.classList.add('pie-chart');
+      Polymer.dom(this).classList.add('pie-chart');
 
       this.data_ = undefined;
 
@@ -101,7 +100,7 @@ tr.exportTo('tr.ui.b', function() {
         }
       });
 
-      var titleWidth = this.querySelector(
+      var titleWidth = Polymer.dom(this).querySelector(
           '#title').getBoundingClientRect().width;
       var margin = this.margin;
       var marginWidth = margin.left + margin.right;

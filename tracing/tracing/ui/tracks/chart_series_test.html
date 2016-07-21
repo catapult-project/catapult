@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
   function drawSeriesWithDetails(test, series, highDetails) {
     var div = document.createElement('div');
     var canvas = document.createElement('canvas');
-    div.appendChild(canvas);
+    Polymer.dom(div).appendChild(canvas);
 
     var pixelRatio = window.devicePixelRatio || 1;
 

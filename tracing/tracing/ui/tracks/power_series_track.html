@@ -39,7 +39,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       ChartTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('power-series-track');
+      Polymer.dom(this).classList.add('power-series-track');
       this.heading = 'Power';
       this.powerSeries_ = undefined;
     },

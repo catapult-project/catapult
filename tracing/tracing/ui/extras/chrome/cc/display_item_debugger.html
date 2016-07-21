@@ -134,66 +134,73 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       'tr-ui-e-chrome-cc-display-item-debugger');
 
   DisplayItemDebugger.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-display-item-debugger-template', THIS_DOC);
 
-      this.appendChild(node);
+      Polymer.dom(this).appendChild(node);
 
       this.pictureAsImageData_ = undefined;
       this.zoomScaleValue_ = 1;
 
-      this.sizeInfo_ = this.querySelector('.size');
-      this.rasterArea_ = this.querySelector('raster-area');
-      this.rasterCanvas_ = this.rasterArea_.querySelector('canvas');
+      this.sizeInfo_ = Polymer.dom(this).querySelector('.size');
+      this.rasterArea_ = Polymer.dom(this).querySelector('raster-area');
+      this.rasterCanvas_ =
+          Polymer.dom(this.rasterArea_).querySelector('canvas');
       this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
 
       this.trackMouse_();
 
-      this.displayItemInfo_ = this.querySelector('display-item-info');
+      this.displayItemInfo_ =
+          Polymer.dom(this).querySelector('display-item-info');
       this.displayItemInfo_.addEventListener(
           'click', this.onDisplayItemInfoClick_.bind(this), false);
 
       this.displayItemListView_ = new tr.ui.b.ListView();
       this.displayItemListView_.addEventListener('selection-changed',
           this.onDisplayItemListSelection_.bind(this));
-      this.displayItemInfo_.appendChild(this.displayItemListView_);
+      Polymer.dom(this.displayItemInfo_).appendChild(this.displayItemListView_);
 
-      this.displayListFilename_ = this.querySelector('.dlfilename');
-      this.displayListExportButton_ = this.querySelector('.dlexport');
+      this.displayListFilename_ =
+          Polymer.dom(this).querySelector('.dlfilename');
+      this.displayListExportButton_ =
+          Polymer.dom(this).querySelector('.dlexport');
       this.displayListExportButton_.addEventListener(
           'click', this.onExportDisplayListClicked_.bind(this));
 
-      this.skpFilename_ = this.querySelector('.skpfilename');
-      this.skpExportButton_ = this.querySelector('.skpexport');
+      this.skpFilename_ = Polymer.dom(this).querySelector('.skpfilename');
+      this.skpExportButton_ = Polymer.dom(this).querySelector('.skpexport');
       this.skpExportButton_.addEventListener(
           'click', this.onExportSkPictureClicked_.bind(this));
 
-      var leftPanel = this.querySelector('left-panel');
+      var leftPanel = Polymer.dom(this).querySelector('left-panel');
 
       var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
-      var rightPanel = this.querySelector('right-panel');
+      var rightPanel = Polymer.dom(this).querySelector('right-panel');
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
-      this.rasterArea_.insertBefore(this.infoBar_, this.rasterCanvas_);
+      Polymer.dom(this.rasterArea_).insertBefore(
+          this.infoBar_, this.rasterCanvas_);
 
-      this.insertBefore(middleDragHandle, rightPanel);
+      Polymer.dom(this).insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
       this.pictureOpsListView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
-      rightPanel.insertBefore(this.pictureOpsListView_, this.rasterArea_);
+      Polymer.dom(rightPanel).insertBefore(
+          this.pictureOpsListView_, this.rasterArea_);
 
       this.pictureOpsListDragHandle_ =
           document.createElement('tr-ui-b-drag-handle');
       this.pictureOpsListDragHandle_.horizontal = false;
       this.pictureOpsListDragHandle_.target = this.pictureOpsListView_;
-      rightPanel.insertBefore(this.pictureOpsListDragHandle_, this.rasterArea_);
+      Polymer.dom(rightPanel).insertBefore(
+          this.pictureOpsListDragHandle_, this.rasterArea_);
     },
 
     get picture() {
@@ -209,7 +216,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var listItem = document.createElement(
             'tr-ui-e-chrome-cc-display-item-list-item');
         listItem.data = item;
-        this.displayItemListView_.appendChild(listItem);
+        Polymer.dom(this.displayItemListView_).appendChild(listItem);
       }.bind(this));
     },
 
@@ -266,7 +273,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateContentsPending_ = false;
 
       if (this.picture_) {
-        this.sizeInfo_.textContent = '(' +
+        Polymer.dom(this.sizeInfo_).textContent = '(' +
             this.picture_.layerRect.width + ' x ' +
             this.picture_.layerRect.height + ')';
       }
@@ -281,7 +288,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
           var overlay = new tr.ui.b.Overlay();
-          overlay.textContent = this.pictureAsImageData_.error;
+          Polymer.dom(overlay).textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
           return false;
@@ -355,12 +362,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (showOpsList) {
         this.pictureOpsListView_.picture = this.picture_;
         if (this.pictureOpsListView_.numOps > 0) {
-          this.pictureOpsListView_.classList.add('hasPictureOps');
-          this.pictureOpsListDragHandle_.classList.add('hasPictureOps');
+          Polymer.dom(this.pictureOpsListView_).classList.add('hasPictureOps');
+          Polymer.dom(this.pictureOpsListDragHandle_).classList.add(
+              'hasPictureOps');
         }
       } else {
-        this.pictureOpsListView_.classList.remove('hasPictureOps');
-        this.pictureOpsListDragHandle_.classList.remove('hasPictureOps');
+        Polymer.dom(this.pictureOpsListView_).classList.remove('hasPictureOps');
+        Polymer.dom(this.pictureOpsListDragHandle_).classList.remove(
+            'hasPictureOps');
       }
     },
 
@@ -368,7 +377,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.rasterArea_;
-      this.rasterArea_.appendChild(this.mouseModeSelector_);
+      Polymer.dom(this.rasterArea_).appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
           tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;

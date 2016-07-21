@@ -37,15 +37,16 @@ tr.b.unittest.testSuite(function() {
     t1.sliceGroup.pushSlice(new ThreadSlice('', 'b', 0, 5.1, {}, 4));
 
     var testEl = document.createElement('div');
-    testEl.appendChild(tr.ui.b.createScopedStyle('heading { width: 100px; }'));
+    Polymer.dom(testEl).appendChild(
+        tr.ui.b.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
     var viewport = new Viewport(testEl);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    testEl.appendChild(drawingContainer);
+    Polymer.dom(testEl).appendChild(drawingContainer);
 
     var track = new ThreadTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     drawingContainer.updateCanvasSizeIfNeeded_();
     track.thread = t1;
 

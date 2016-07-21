@@ -28,14 +28,14 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('async-slice-group-track');
+      Polymer.dom(this).classList.add('async-slice-group-track');
       this.group_ = undefined;
     },
 
     addSubTrack_: function(slices) {
       var track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       track.asyncStyle = true;
       return track;
     },

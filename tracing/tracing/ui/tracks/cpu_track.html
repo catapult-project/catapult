@@ -28,7 +28,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('cpu-track');
+      Polymer.dom(this).classList.add('cpu-track');
       this.detailedMode_ = true;
     },
 
@@ -81,7 +81,7 @@ tr.exportTo('tr.ui.tracks', function() {
         var track = new tr.ui.tracks.SliceTrack(this.viewport);
         track.slices = slices;
         track.heading = this.cpu_.userFriendlyName + ':';
-        this.appendChild(track);
+        Polymer.dom(this).appendChild(track);
       }
 
       if (this.detailedMode_) {
@@ -93,7 +93,7 @@ tr.exportTo('tr.ui.tracks', function() {
           track.heading = this.cpu_.userFriendlyName + ' ' +
               counter.name + ':';
           track.counter = counter;
-          this.appendChild(track);
+          Polymer.dom(this).appendChild(track);
         }
       }
     },
@@ -127,7 +127,7 @@ tr.exportTo('tr.ui.tracks', function() {
           }
           return selection;
         };
-        this.appendChild(samplesTrack);
+        Polymer.dom(this).appendChild(samplesTrack);
       }, this);
     }
   };

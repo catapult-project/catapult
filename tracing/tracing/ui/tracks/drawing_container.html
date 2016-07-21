@@ -8,9 +8,9 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/tracing/ui/tracks/drawing_container.css">
 
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/ui/tracks/track.html">
 <link rel="import" href="/tracing/ui/base/constants.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/tracks/track.html">
 
 <script>
 'use strict';
@@ -35,12 +35,12 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('drawing-container');
+      Polymer.dom(this).classList.add('drawing-container');
 
       this.canvas_ = document.createElement('canvas');
       this.canvas_.className = 'drawing-container-canvas';
       this.canvas_.style.left = tr.ui.b.constants.HEADING_WIDTH + 'px';
-      this.appendChild(this.canvas_);
+      Polymer.dom(this).appendChild(this.canvas_);
 
       this.ctx_ = this.canvas_.getContext('2d');
 

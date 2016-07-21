@@ -30,8 +30,8 @@ var g_timelineViewEl;
     '  outline: none;',
     '}'
   ];
-  styleEl.textContent = lines.join('\n');
-  document.head.appendChild(styleEl);
+  Polymer.dom(styleEl).textContent = lines.join('\n');
+  Polymer.dom(document.head).appendChild(styleEl);
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -39,14 +39,15 @@ document.addEventListener('DOMContentLoaded', function() {
   container.id = 'track_view_container';
 
   g_timelineViewEl = document.createElement('tr-ui-timeline-view');
-  g_timelineViewEl.appendChild(container);
+  Polymer.dom(g_timelineViewEl).appendChild(container);
 
-  document.body.appendChild(g_timelineViewEl);
+  Polymer.dom(document.body).appendChild(g_timelineViewEl);
 
   var traces = [];
-  var viewerDataScripts = document.querySelectorAll('#viewer-data');
+  var viewerDataScripts = Polymer.dom(document).querySelectorAll(
+      '#viewer-data');
   for (var i = 0; i < viewerDataScripts.length; i++) {
-    var text = viewerDataScripts[i].textContent;
+    var text = Polymer.dom(viewerDataScripts[i]).textContent;
     // Trim leading newlines off the text. They happen during writing.
     while (text[0] == '\n')
       text = text.substring(1);
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       function(err) {
         var overlay = new tr.ui.b.Overlay();
-        overlay.textContent = tr.b.normalizeException(err).message;
+        Polymer.dom(overlay).textContent = tr.b.normalizeException(err).message;
         overlay.title = 'Import error';
         overlay.visible = true;
       });

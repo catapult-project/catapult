@@ -19,10 +19,10 @@ tr.b.unittest.testSuite(function() {
 
     var viewport = new tr.ui.TimelineViewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = tr.ui.tracks.RulerTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(div);
 
     drawingContainer.invalidate();

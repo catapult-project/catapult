@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
   var ContainerThatDecoratesItsChildren = tr.ui.b.define('div');
 
   ContainerThatDecoratesItsChildren.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.observer_ = new WebKitMutationObserver(this.didMutate_.bind(this));
@@ -35,22 +35,22 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     appendChild: function(x) {
-      HTMLUnknownElement.prototype.appendChild.call(this, x);
+      HTMLDivElement.prototype.appendChild.call(this, x);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     insertBefore: function(x, y) {
-      HTMLUnknownElement.prototype.insertBefore.call(this, x, y);
+      HTMLDivElement.prototype.insertBefore.call(this, x, y);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     removeChild: function(x) {
-      HTMLUnknownElement.prototype.removeChild.call(this, x);
+      HTMLDivElement.prototype.removeChild.call(this, x);
       this.didMutate_(this.observer_.takeRecords());
     },
 
     replaceChild: function(x, y) {
-      HTMLUnknownElement.prototype.replaceChild.call(this, x, y);
+      HTMLDivElement.prototype.replaceChild.call(this, x, y);
       this.didMutate_(this.observer_.takeRecords());
     },
 
@@ -61,8 +61,9 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     clear: function() {
-      while (this.lastChild)
-        HTMLUnknownElement.prototype.removeChild.call(this, this.lastChild);
+      while (Polymer.dom(this).lastChild)
+        HTMLDivElement.prototype.removeChild.call(
+            this, Polymer.dom(this).lastChild);
       this.didMutate_(this.observer_.takeRecords());
     },
 

@@ -7,14 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/tracing/ui/analysis/selection_summary_table.html">
-<link rel="import" href="/tracing/ui/analysis/multi_event_summary_table.html">
 <link rel="import" href="/tracing/ui/analysis/multi_event_details_table.html">
-<link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/analysis/multi_event_summary_table.html">
+<link rel="import" href="/tracing/ui/analysis/selection_summary_table.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name="tr-ui-a-multi-event-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-multi-event-sub-view'>
   <template>
     <style>
     :host {
@@ -46,83 +45,86 @@ found in the LICENSE file.
     </style>
     <div id="content"></div>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    created: function() {
-      this.currentSelection_ = undefined;
-      this.eventsHaveDuration_ = true;
-      this.eventsHaveSubRows_ = true;
-    },
+Polymer({
+  is: 'tr-ui-a-multi-event-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
 
-    set selection(selection) {
-      if (selection.length <= 1)
-        throw new Error('Only supports multiple items');
-      this.setSelectionWithoutErrorChecks(selection);
-    },
+  created: function() {
+    this.currentSelection_ = undefined;
+    this.eventsHaveDuration_ = true;
+    this.eventsHaveSubRows_ = true;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  set selection(selection) {
+    if (selection.length <= 1)
+      throw new Error('Only supports multiple items');
+    this.setSelectionWithoutErrorChecks(selection);
+  },
 
-    setSelectionWithoutErrorChecks: function(selection) {
-      this.currentSelection_ = selection;
-      this.updateContents_();
-    },
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get eventsHaveDuration() {
-      return this.eventsHaveDuration_;
-    },
+  setSelectionWithoutErrorChecks: function(selection) {
+    this.currentSelection_ = selection;
+    this.updateContents_();
+  },
 
-    set eventsHaveDuration(eventsHaveDuration) {
-      this.eventsHaveDuration_ = eventsHaveDuration;
-      this.updateContents_();
-    },
+  get eventsHaveDuration() {
+    return this.eventsHaveDuration_;
+  },
 
-    get eventsHaveSubRows() {
-      return this.eventsHaveSubRows_;
-    },
+  set eventsHaveDuration(eventsHaveDuration) {
+    this.eventsHaveDuration_ = eventsHaveDuration;
+    this.updateContents_();
+  },
 
-    set eventsHaveSubRows(eventsHaveSubRows) {
-      this.eventsHaveSubRows_ = eventsHaveSubRows;
-      this.updateContents_();
-    },
+  get eventsHaveSubRows() {
+    return this.eventsHaveSubRows_;
+  },
 
-    updateContents_: function() {
-      var selection = this.currentSelection_;
+  set eventsHaveSubRows(eventsHaveSubRows) {
+    this.eventsHaveSubRows_ = eventsHaveSubRows;
+    this.updateContents_();
+  },
 
-      this.$.content.textContent = '';
-      if (!selection)
-        return;
+  updateContents_: function() {
+    var selection = this.currentSelection_;
 
-      var eventsByTitle = selection.getEventsOrganizedByTitle();
-      var numTitles = tr.b.dictionaryLength(eventsByTitle);
+    Polymer.dom(this.$.content).textContent = '';
+    if (!selection)
+      return;
 
-      var summaryTableEl = document.createElement(
-          'tr-ui-a-multi-event-summary-table');
-      summaryTableEl.configure({
-        showTotals: numTitles > 1,
-        eventsByTitle: eventsByTitle,
-        eventsHaveDuration: this.eventsHaveDuration_,
-        eventsHaveSubRows: this.eventsHaveSubRows_
-      });
-      this.$.content.appendChild(summaryTableEl);
+    var eventsByTitle = selection.getEventsOrganizedByTitle();
+    var numTitles = tr.b.dictionaryLength(eventsByTitle);
 
-      var selectionSummaryTableEl = document.createElement(
-          'tr-ui-a-selection-summary-table');
-      selectionSummaryTableEl.selection = this.currentSelection_;
-      this.$.content.appendChild(selectionSummaryTableEl);
+    var summaryTableEl = document.createElement(
+        'tr-ui-a-multi-event-summary-table');
+    summaryTableEl.configure({
+      showTotals: numTitles > 1,
+      eventsByTitle: eventsByTitle,
+      eventsHaveDuration: this.eventsHaveDuration_,
+      eventsHaveSubRows: this.eventsHaveSubRows_
+    });
+    Polymer.dom(this.$.content).appendChild(summaryTableEl);
 
-      if (numTitles === 1) {
-        var detailsTableEl = document.createElement(
-            'tr-ui-a-multi-event-details-table');
-        detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
-        detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
-        detailsTableEl.selection = selection;
-        this.$.content.appendChild(detailsTableEl);
-      }
+    var selectionSummaryTableEl = document.createElement(
+        'tr-ui-a-selection-summary-table');
+    selectionSummaryTableEl.selection = this.currentSelection_;
+    Polymer.dom(this.$.content).appendChild(selectionSummaryTableEl);
+
+    if (numTitles === 1) {
+      var detailsTableEl = document.createElement(
+          'tr-ui-a-multi-event-details-table');
+      detailsTableEl.eventsHaveDuration = this.eventsHaveDuration_;
+      detailsTableEl.eventsHaveSubRows = this.eventsHaveSubRows_;
+      detailsTableEl.selection = selection;
+      Polymer.dom(this.$.content).appendChild(detailsTableEl);
     }
-  });
-  </script>
-</polymer-element>
+  }
+});
+</script>

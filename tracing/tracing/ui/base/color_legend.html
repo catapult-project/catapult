@@ -15,7 +15,7 @@ found in the LICENSE file.
 The colored square is typically filled with the color associated with
 that label, using the getColorId* methods from base/color_scheme.
 -->
-<polymer-element name="tr-ui-b-color-legend">
+<dom-module id='tr-ui-b-color-legend'>
   <template>
     <style>
     :host {
@@ -30,50 +30,52 @@ that label, using the getColorId* methods from base/color_scheme.
     <span id="square"></span>
     <span id="label"></span>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      var blackSquareCharCode = 9632;
-      this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
-      this.label_ = undefined;
+Polymer({
+  is: 'tr-ui-b-color-legend',
 
-      this.compoundEventSelectionState_ =
-          tr.model.CompoundEventSelectionState.NOT_SELECTED;
-    },
+  ready: function() {
+    var blackSquareCharCode = 9632;
+    this.$.square.innerText = String.fromCharCode(blackSquareCharCode);
+    this.label_ = undefined;
 
-    set compoundEventSelectionState(compoundEventSelectionState) {
-      this.compoundEventSelectionState_ = compoundEventSelectionState;
-      // TODO(nduca): Adjust appearance based on associated state.
-    },
+    this.compoundEventSelectionState_ =
+        tr.model.CompoundEventSelectionState.NOT_SELECTED;
+  },
 
-    get label() {
-      return this.label_;
-    },
+  set compoundEventSelectionState(compoundEventSelectionState) {
+    this.compoundEventSelectionState_ = compoundEventSelectionState;
+    // TODO(nduca): Adjust appearance based on associated state.
+  },
 
-    set label(label) {
-      if (label === undefined) {
-        this.setLabelAndColorId(undefined, undefined);
-        return;
-      }
+  get label() {
+    return this.label_;
+  },
 
-      var colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
-          label);
-      this.setLabelAndColorId(label, colorId);
-    },
-
-    setLabelAndColorId: function(label, colorId) {
-      this.label_ = label;
-
-      this.$.label.textContent = '';
-      this.$.label.appendChild(tr.ui.b.asHTMLOrTextNode(label));
-
-      if (colorId === undefined)
-        this.$.square.style.color = 'initial';
-      else
-        this.$.square.style.color = tr.b.ColorScheme.colorsAsStrings[colorId];
+  set label(label) {
+    if (label === undefined) {
+      this.setLabelAndColorId(undefined, undefined);
+      return;
     }
-  });
-  </script>
-</polymer-element>
+
+    var colorId = tr.b.ColorScheme.getColorIdForGeneralPurposeString(
+        label);
+    this.setLabelAndColorId(label, colorId);
+  },
+
+  setLabelAndColorId: function(label, colorId) {
+    this.label_ = label;
+
+    Polymer.dom(this.$.label).textContent = '';
+    Polymer.dom(this.$.label).appendChild(tr.ui.b.asHTMLOrTextNode(label));
+
+    if (colorId === undefined)
+      this.$.square.style.color = 'initial';
+    else
+      this.$.square.style.color = tr.b.ColorScheme.colorsAsStrings[colorId];
+  }
+});
+</script>

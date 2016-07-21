@@ -5,46 +5,71 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/event_set.html">
-<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
+<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-flow-event-sub-view"
-    extends="tr-ui-a-single-event-sub-view">
-  <script>
-  'use strict';
-
-  Polymer({
-    getEventRows_: function(event) {
-      // TODO(nduca): Figure out if there is a cleaner way to do this.
-      var rows = this.__proto__.__proto__.getEventRows_(event);
-
-      // Put the ID up top.
-      rows.splice(0, 0, {
-        name: 'ID',
-        value: event.id
-      });
-
-      function createLinkTo(slice) {
-        var linkEl = document.createElement('tr-ui-a-analysis-link');
-        linkEl.setSelectionAndContent(function() {
-            return new tr.model.EventSet(slice);
-        });
-        linkEl.textContent = slice.userFriendlyName;
-        return linkEl;
-      }
-
-      rows.push({
-        name: 'From',
-        value: createLinkTo(event.startSlice)
-      });
-      rows.push({
-        name: 'To',
-        value: createLinkTo(event.endSlice)
-      });
-      return rows;
+<dom-module id="tr-ui-a-single-flow-event-sub-view">
+  <template>
+    <style>
+    :host {
+      display: block;
     }
-  });
-  </script>
-</polymer-element>
+    </style>
+    <tr-ui-a-single-event-sub-view id="singleEventSubView">
+    </tr-ui-a-single-event-sub-view>
+  </template>
+</dom-module>
+<script>
+'use strict';
+
+function createAnalysisLinkTo(event) {
+  var linkEl = document.createElement('tr-ui-a-analysis-link');
+  linkEl.setSelectionAndContent(
+      new tr.model.EventSet(event), event.userFriendlyName);
+  return linkEl;
+}
+
+Polymer({
+  is: 'tr-ui-a-single-flow-event-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
+
+  listeners: {
+    'singleEventSubView.customize-rows': 'onCustomizeRows_'
+  },
+
+  set selection(selection) {
+    this.currentSelection_ = selection;
+    this.$.singleEventSubView.setSelectionWithoutErrorChecks(selection);
+  },
+
+  get selection() {
+    return this.currentSelection_;
+  },
+
+  /**
+   * Event handler for an event that's fired after the single event sub view has
+   * finished row construction. This hook gives us the opportunity to customize
+   * the rows present in the sub view.
+   */
+  onCustomizeRows_: function(e) {
+    var event = tr.b.getOnlyElement(this.currentSelection_);
+    var rows = e.rows;
+
+    rows.unshift({
+      name: 'ID',
+      value: event.id
+    });
+    rows.push({
+      name: 'From',
+      value: createAnalysisLinkTo(event.startSlice)
+    });
+    rows.push({
+      name: 'To',
+      value: createAnalysisLinkTo(event.endSlice)
+    });
+  }
+});
+</script>

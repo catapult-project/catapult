@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   var LayerView = tr.ui.b.define('tr-ui-e-chrome-cc-layer-view');
 
   LayerView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.layerTreeQuadStackView_ =
@@ -44,9 +44,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       this.dragBar_.target = this.analysisEl_;
 
-      this.appendChild(this.layerTreeQuadStackView_);
-      this.appendChild(this.dragBar_);
-      this.appendChild(this.analysisEl_);
+      Polymer.dom(this).appendChild(this.layerTreeQuadStackView_);
+      Polymer.dom(this).appendChild(this.dragBar_);
+      Polymer.dom(this).appendChild(this.analysisEl_);
 
       this.layerTreeQuadStackView_.addEventListener('selection-change',
           function() {
@@ -84,22 +84,22 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (selection) {
         this.dragBar_.style.display = '';
         this.analysisEl_.style.display = '';
-        this.analysisEl_.textContent = '';
+        Polymer.dom(this.analysisEl_).textContent = '';
 
         var layer = selection.layer;
         if (layer && layer.args && layer.args.pictures) {
-          this.analysisEl_.appendChild(
+          Polymer.dom(this.analysisEl_).appendChild(
               this.createPictureBtn_(layer.args.pictures));
         }
 
         var analysis = selection.createAnalysis();
-        this.analysisEl_.appendChild(analysis);
+        Polymer.dom(this.analysisEl_).appendChild(analysis);
       } else {
         this.dragBar_.style.display = 'none';
         this.analysisEl_.style.display = 'none';
-        var analysis = this.analysisEl_.firstChild;
+        var analysis = Polymer.dom(this.analysisEl_).firstChild;
         if (analysis)
-          this.analysisEl_.removeChild(analysis);
+          Polymer.dom(this.analysisEl_).removeChild(analysis);
         this.layerTreeQuadStackView_.style.height =
             window.getComputedStyle(this).height;
       }
@@ -120,7 +120,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         selection.push(snapshot);
         return selection;
       };
-      link.textContent = 'View in Picture Debugger';
+      Polymer.dom(link).textContent = 'View in Picture Debugger';
       return link;
     },
 

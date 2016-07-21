@@ -17,11 +17,11 @@ frame.
 This chart aims to help users understand the shape of the power consumption
 curve over the course of a frame or set of frames.
 -->
-<polymer-element name="tr-ui-a-frame-power-usage-chart">
+<dom-module id='tr-ui-a-frame-power-usage-chart'>
   <template>
     <div id="content"></div>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
@@ -32,7 +32,9 @@ var CHART_TITLE = 'Power (W) by ms since vertical sync';
 // TODO(charliea): Find out how to make this specifiable via CSS.
 var CHART_WIDTH_FRACTION_OF_BODY = 0.5;
 
-Polymer('tr-ui-a-frame-power-usage-chart', {
+Polymer({
+  is: 'tr-ui-a-frame-power-usage-chart',
+
   ready: function() {
     this.chart_ = undefined;
     this.samples_ = new EventSet();
@@ -71,7 +73,7 @@ Polymer('tr-ui-a-frame-power-usage-chart', {
       return;
 
     this.chart_ = this.createChart_(data);
-    this.$.content.appendChild(this.chart_);
+    Polymer.dom(this.$.content).appendChild(this.chart_);
   },
 
   createChart_: function(data) {
@@ -86,8 +88,8 @@ Polymer('tr-ui-a-frame-power-usage-chart', {
 
   clearChart_: function() {
     var content = this.$.content;
-    while (content.firstChild)
-      content.removeChild(content.firstChild);
+    while (Polymer.dom(content).firstChild)
+      Polymer.dom(content).removeChild(Polymer.dom(content).firstChild);
 
     this.chart_ = undefined;
   },

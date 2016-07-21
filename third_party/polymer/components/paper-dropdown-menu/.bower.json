@@ -1,27 +1,57 @@
 {
   "name": "paper-dropdown-menu",
-  "private": false,
-  "dependencies": {
-    "polymer": "Polymer/polymer#^0.5",
-    "core-a11y-keys": "Polymer/core-a11y-keys#^0.5",
-    "core-collapse": "Polymer/core-collapse#^0.5",
-    "core-focusable": "Polymer/core-focusable#^0.5",
-    "core-icon": "Polymer/core-icon#^0.5",
-    "core-icons": "Polymer/core-icons#^0.5",
-    "core-menu": "Polymer/core-menu#^0.5",
-    "paper-dropdown": "Polymer/paper-dropdown#^0.5",
-    "paper-item": "Polymer/paper-item#^0.5",
-    "paper-shadow": "Polymer/paper-shadow#^0.5"
+  "version": "1.2.2",
+  "description": "An element that works similarly to a native browser select",
+  "authors": [
+    "The Polymer Authors"
+  ],
+  "keywords": [
+    "web-components",
+    "web-component",
+    "polymer",
+    "dropdown",
+    "select"
+  ],
+  "main": "paper-dropdown-menu.html",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/PolymerElements/paper-dropdown-menu.git"
   },
-  "version": "0.5.5",
-  "homepage": "https://github.com/Polymer/paper-dropdown-menu",
-  "_release": "0.5.5",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/PolymerElements/paper-dropdown-menu",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.1.0",
+    "iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.0.0",
+    "iron-form-element-behavior": "PolymerElements/iron-form-element-behavior#^1.0.0",
+    "iron-icon": "PolymerElements/iron-icon#^1.0.0",
+    "iron-iconset-svg": "polymerelements/iron-iconset-svg#^1.0.0",
+    "iron-validatable-behavior": "PolymerElements/iron-validatable-behavior#^1.0.0",
+    "paper-behaviors": "PolymerElements/paper-behaviors#^1.0.0",
+    "paper-input": "PolymerElements/paper-input#^1.0.9",
+    "paper-menu-button": "PolymerElements/paper-menu-button#^1.0.0",
+    "paper-ripple": "PolymerElements/paper-ripple#^1.0.0",
+    "paper-styles": "PolymerElements/paper-styles#^1.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "iron-test-helpers": "PolymerElements/iron-test-helpers#^1.0.0",
+    "paper-item": "PolymerElements/paper-item#^1.0.0",
+    "paper-listbox": "PolymerElements/paper-listbox#^1.0.0",
+    "paper-tabs": "PolymerElements/paper-tabs#^1.0.0",
+    "test-fixture": "PolymerElements/test-fixture#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  },
+  "ignore": [],
+  "_release": "1.2.2",
   "_resolution": {
     "type": "version",
-    "tag": "0.5.5",
-    "commit": "462ab4796e3db8a052e47ee6a7f9718c052de2a2"
+    "tag": "v1.2.2",
+    "commit": "2e990c4b2a27529dead9d9ebcc5830f74379c63e"
   },
-  "_source": "git://github.com/Polymer/paper-dropdown-menu.git",
-  "_target": "0.5.5",
-  "_originalSource": "Polymer/paper-dropdown-menu"
+  "_source": "git://github.com/PolymerElements/paper-dropdown-menu.git",
+  "_target": "^1.0.0",
+  "_originalSource": "PolymerElements/paper-dropdown-menu"
 }

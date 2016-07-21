@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/tracks/container_track.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/model/model_settings.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/tracks/container_track.html">
 
 <script>
 'use strict';
@@ -178,10 +178,10 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateHeadingAndTooltip_: function() {
-      if (!this.firstChild)
+      if (!Polymer.dom(this).firstChild)
         return;
-      this.firstChild.heading = this.heading_;
-      this.firstChild.tooltip = this.tooltip_;
+      Polymer.dom(this).firstChild.heading = this.heading_;
+      Polymer.dom(this).firstChild.tooltip = this.tooltip_;
     },
 
     /**

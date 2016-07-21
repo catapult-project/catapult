@@ -7,14 +7,16 @@ found in the LICENSE file.
 
 <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
 <link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/components/paper-item/paper-item.html">
+<link rel="import" href="/components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/components/polymer/polymer.html">
 <link rel="import" href="/dashboard/elements/alerts-table.html">
 <link rel="import" href="/dashboard/elements/quick-log.html">
-<link rel="import" href="/dashboard/elements/select-menu.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
-<polymer-element name="alerts-page">
+<dom-module id="alerts-page">
   <template>
     <style>
     .error {
@@ -65,85 +67,150 @@ found in the LICENSE file.
       justify-content: center;
     }
     </style>
-    <template if="{{loading}}">
+
+    <template is="dom-if" if="{{loading}}">
       <div id="loading-spinner"><img src="//www.google.com/images/loading.gif"></div>
     </template>
-    <template if="{{error}}">
-      <div class="error">{{error}}</div>
-    </template>
-    <template if="{{!(loading || error)}}">
-      <div id="content">
-        <div id="action-bar">
-          <select-menu id="sheriff-select"
-                       menuItems="{{sheriffList}}"
-                       on-core-activate="{{onSheriffChange}}"></select-menu>
-          <paper-button raised noink id="improvements-toggle"
-                        class="alert-togglebutton"
-                        on-click="{{onToggleImprovements}}">Show improvements</paper-button>
-          <paper-button raised noink id="triaged-toggle"
-                        class="alert-togglebutton"
-                        on-click="{{onToggleTriaged}}">Show triaged</paper-button>
+    <template is="dom-if" if="{{!loading}}">
+      <template is="dom-if" if="{{error}}">
+        <div class="error">{{error}}</div>
+      </template>
+      <template is="dom-if" if="{{!error}}">
+        <div id="content">
+          <div id="action-bar">
+            <paper-dropdown-menu id="sheriff-select"
+                                 label="Sheriff"
+                                 on-iron-select="onSheriffChange">
+              <paper-listbox class="dropdown-content" selected="{{selectedSheriffIndex}}">
+                <template is="dom-repeat" items="{{sheriffList}}">
+                  <paper-item label="{{item}}">{{item}}</paper-item>
+                </template>
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <paper-button raised noink id="improvements-toggle"
+                          class="alert-togglebutton"
+                          active$="{{showingImprovements}}"
+                          on-click="onToggleImprovements">Show improvements</paper-button>
+            <paper-button raised noink id="triaged-toggle"
+                          class="alert-togglebutton"
+                          active$="{{showingTriaged}}"
+                          on-click="onToggleTriaged">Show triaged</paper-button>
+          </div>
+          <template is="dom-if" if="{{anomalies.length}}">
+            <h2>Performance alerts</h2>
+            <p id='num-alerts'>
+              {{anomalies.length}} alert<span hidden$="{{computeIsSingular(anomalies)}}">s</span>.
+            </p>
+            <alerts-table id="anomaly-table"
+                          xsrf-token="{{xsrfToken}}"
+                          alert-list="{{anomalies}}"
+                          extra-columns="{{extraAnomaliesColumns}}"
+                          on-sortby="onPushHistoryState"
+                          on-sortdirection="onPushHistoryState"
+                          sort-by="{{sortBy}}"
+                          sort-direction="{{sortDirection}}">
+            </alerts-table>
+          </template>
+          <template is="dom-if" if="{{stoppageAlerts.length}}">
+            <h2>Data stoppage alerts</h2>
+            <alerts-table id="stoppage-alert-table"
+                          xsrf-token="{{xsrfToken}}"
+                          alert-list="{{stoppageAlerts}}"
+                          extra-columns="{{extraStoppageAlertsColumns}}">
+            </alerts-table>
+          </template>
+          <template is="dom-if" if="{{!anomalies.length}}">
+            <template is="dom-if" if="{{stoppageAlerts.length}}">
+              <h2 class="center">All alerts triaged!</h2>
+              <img class="center" src="http://thecatapi.com/api/images/get?api_key=MjUzMDQ&amp;category=space&amp;size=small">
+            </template>
+          </template>
+          <quick-log id="auto-triage-log" xsrf-token="{{xsrfToken}}"
+                     style="width:100%; display:block;"></quick-log>
         </div>
-        <template if="{{anomalies.length > 0}}">
-          <h2>Performance alerts</h2>
-          <p id='num-alerts'>
-            <template if="{{anomalies.length == 1}}">1 alert.</template>
-            <template if="{{anomalies.length != 1}}">{{anomalies.length}} alerts.</template>
-          </p>
-          <alerts-table id="anomaly-table"
-                        xsrfToken="{{xsrfToken}}"
-                        alertList="{{anomalies}}"
-                        extraColumns="{{extraAnomaliesColumns}}"
-                        on-sortby="{{onPushHistoryState}}"
-                        on-sortdirection="{{onPushHistoryState}}">
-          </alerts-table>
-        </template>
-        <template if="{{stoppageAlerts.length > 0}}">
-          <h2>Data stoppage alerts</h2>
-          <alerts-table id="stoppage-alert-table"
-                        xsrfToken="{{xsrfToken}}"
-                        alertList="{{stoppageAlerts}}"
-                        extraColumns="{{extraStoppageAlertsColumns}}">
-          </alerts-table>
-        </template>
-        <template if="{{anomalies.length == 0 && stoppageAlerts.length == 0 && !error}}">
-          <h2 class="center">All alerts triaged!</h2>
-          <img class="center" src="http://thecatapi.com/api/images/get?api_key=MjUzMDQ&amp;category=space&amp;size=small">
-        </template>
-        <quick-log id="auto-triage-log" xsrfToken="{{xsrfToken}}"
-                   style="width:100%; display:block;"></quick-log>
-      </div>
+      </template>
     </template>
   </template>
   <script>
     'use strict';
-    Polymer('alerts-page', {
-      loading: true,
+    Polymer({
 
-      get anomaliesTable() {
-        return this.$['anomaly-table'];
+      is: 'alerts-page',
+      properties: {
+        anomalies: {
+          type: Array,
+          value: () => []
+        },
+        stoppageAlerts: {
+          type: Array,
+          value: () => []
+        },
+        loading: {
+          type: Boolean,
+          value: true,
+          notify: true
+        },
+        error: {
+          type: String,
+          value: '',
+          notify: true
+        },
+
+        extraAnomaliesColumns: {
+          type: Array,
+          notify: true,
+          value: () => ([{
+            'key': 'percent_changed',
+            'label': 'Delta %'
+          }])
+        },
+
+        extraStoppageAlertsColumns: {
+          type: Array,
+          notify: true,
+          value: () => ([{
+            'key': 'last_row_date',
+            'label': 'Date'
+          }])
+        },
+        selectedSheriffIndex: {
+          type: Number,
+          value: -1
+        },
+        showingImprovements: {
+          type: Boolean,
+          value: false
+        },
+        showingTriaged: {
+          type: Boolean,
+          value: false
+        },
+        sortBy: {
+          type: String,
+          value: 'end_revision'
+        },
+        sortDirection: {
+          type: String,
+          value: 'down'
+        },
+        xsrfToken: {
+          type: String,
+          value: ''
+        }
       },
 
-      get stoppageAlertsTable() {
-        return this.$['stoppage-alert-table'];
-      },
-
-      extraAnomaliesColumns: [{
-        'key': 'percent_changed',
-        'label': 'Delta %'
-      }],
-
-      extraStoppageAlertsColumns: [{
-        'key': 'last_row_date',
-        'label': 'Date'
-      }],
+      computeIsSingular: array => array.length === 1,
 
       onSheriffChange: function(e) {
-        var sheriff = e.detail.item.getAttribute('label');
+        var sheriff = e.detail.item.label;
         if (!sheriff) {
           return;
         }
         var params = uri.getAllParameters();
+        var oldSheriff = params['sheriff'] || 'Chromium Perf Sheriff';
+        if (oldSheriff === sheriff) {
+          return;
+        }
         params['sheriff'] = sheriff;
         // TODO(sullivan): changing the param should automatically update
         // everything without needing to reload.
@@ -182,7 +249,8 @@ found in the LICENSE file.
         }
       },
 
-      onPushHistoryState: function(event, detail, sender) {
+      onPushHistoryState: function(event, detail) {
+        var sender = event.currentTarget;
         if (!sender) {
           return;
         }
@@ -194,27 +262,16 @@ found in the LICENSE file.
       },
 
       updateFromURIParameters: function() {
-        this.anomaliesTable.sortBy = uri.getParameter('sortby', 'end_revision');
-        this.anomaliesTable.sortDirection = uri.getParameter(
-            'sortdirection', 'down');
-        var sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
-        this.$['sheriff-select'].select(sheriff);
-        // The show improvements and show triaged toggles are initially "off";
-        // set them to on if the corresponding query parameter is set.
-        // The buttons are displayed differently if they have the "active"
-        // attribute.
-        if (uri.getParameter('improvements')) {
-          this.$['improvements-toggle'].setAttribute('active', '');
-        }
-        if (uri.getParameter('triaged')) {
-          this.$['triaged-toggle'].setAttribute('active', '');
-        }
+        this.sortBy = uri.getParameter('sortby', 'end_revision');
+        this.sortDirection = uri.getParameter('sortdirection', 'down');
+        this.selectedSheriffIndex = this.sheriffList.indexOf(
+            uri.getParameter('sheriff', 'Chromium Perf Sheriff'));
+        this.showingImprovements = uri.getParameter('improvements', false);
+        this.showingTriaged = uri.getParameter('triaged', false);
       },
 
       ready: function() {
         this.sheriff = uri.getParameter('sheriff', 'Chromium Perf Sheriff');
-        this.sortBy = uri.getParameter('sortby', 'end_revision');
-        this.sortDirection = uri.getParameter('sortdirection', 'down');
         this.showImprovements = uri.getParameter('improvements', false);
         this.showTriaged = uri.getParameter('triaged', false);
         var params = {
@@ -233,6 +290,7 @@ found in the LICENSE file.
             this.sheriffList = response['sheriff_list'];
             this.xsrfToken = response['xsrf_token'];
             this.loading = false;
+            this.updateFromURIParameters();
           }.bind(this),
           function(msg) {
             this.error = msg;
@@ -241,4 +299,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

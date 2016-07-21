@@ -191,18 +191,18 @@ tr.b.unittest.testSuite(function() {
     var svgNS = 'http://www.w3.org/2000/svg';
     var cls = tr.ui.b.define('svg', undefined, svgNS);
     cls.prototype = {
-      __proto__: HTMLUnknownElement.prototype,
+      __proto__: HTMLDivElement.prototype,
 
       decorate: function() {
-        this.setAttribute('width', 200);
-        this.setAttribute('height', 200);
-        this.setAttribute('viewPort', '0 0 200 200');
+        Polymer.dom(this).setAttribute('width', 200);
+        Polymer.dom(this).setAttribute('height', 200);
+        Polymer.dom(this).setAttribute('viewPort', '0 0 200 200');
         var rectEl = document.createElementNS(svgNS, 'rect');
-        rectEl.setAttribute('x', 10);
-        rectEl.setAttribute('y', 10);
-        rectEl.setAttribute('width', 180);
-        rectEl.setAttribute('height', 180);
-        this.appendChild(rectEl);
+        Polymer.dom(rectEl).setAttribute('x', 10);
+        Polymer.dom(rectEl).setAttribute('y', 10);
+        Polymer.dom(rectEl).setAttribute('width', 180);
+        Polymer.dom(rectEl).setAttribute('height', 180);
+        Polymer.dom(this).appendChild(rectEl);
       }
     };
     var el = new cls();
@@ -215,18 +215,18 @@ tr.b.unittest.testSuite(function() {
     var svgNS = 'http://www.w3.org/2000/svg';
     var cls = tr.ui.b.define('svg', undefined, svgNS);
     cls.prototype = {
-      __proto__: HTMLUnknownElement.prototype,
+      __proto__: HTMLDivElement.prototype,
 
       decorate: function() {
-        this.setAttribute('width', 200);
-        this.setAttribute('height', 200);
-        this.setAttribute('viewPort', '0 0 200 200');
+        Polymer.dom(this).setAttribute('width', 200);
+        Polymer.dom(this).setAttribute('height', 200);
+        Polymer.dom(this).setAttribute('viewPort', '0 0 200 200');
         var rectEl = document.createElementNS(svgNS, 'rect');
-        rectEl.setAttribute('x', 10);
-        rectEl.setAttribute('y', 10);
-        rectEl.setAttribute('width', 180);
-        rectEl.setAttribute('height', 180);
-        this.appendChild(rectEl);
+        Polymer.dom(rectEl).setAttribute('x', 10);
+        Polymer.dom(rectEl).setAttribute('y', 10);
+        Polymer.dom(rectEl).setAttribute('width', 180);
+        Polymer.dom(rectEl).setAttribute('height', 180);
+        Polymer.dom(this).appendChild(rectEl);
       }
     };
 

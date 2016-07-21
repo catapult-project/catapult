@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/ui/base/dropdown.html">
 
-<polymer-element name="tr-ui-b-grouping-table-groupby-picker">
+<dom-module id='tr-ui-b-grouping-table-groupby-picker'>
   <template>
     <style>
     :host {
@@ -55,7 +55,7 @@ found in the LICENSE file.
     </groups>
     <tr-ui-b-dropdown id="add-group"></tr-ui-b-dropdown>
   </template>
-</polymer-element>
+</dom-module>
 
 <template id="tr-ui-b-grouping-table-groupby-picker-group-template">
   <span id="key"></span>
@@ -68,7 +68,9 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   var THIS_DOC = document._currentScript.ownerDocument;
 
-  Polymer('tr-ui-b-grouping-table-groupby-picker', {
+  Polymer({
+    is: 'tr-ui-b-grouping-table-groupby-picker',
+
     created: function() {
       this.needsInit_ = true;
       this.defaultGroupKeys_ = undefined;
@@ -126,8 +128,8 @@ tr.exportTo('tr.ui.b', function() {
 
       this.needsInit_ = false;
 
-      var addGroupEl = this.shadowRoot.querySelector('#add-group');
-      addGroupEl.iconElement.textContent = 'Add another...';
+      var addGroupEl = Polymer.dom(this.root).querySelector('#add-group');
+      Polymer.dom(addGroupEl.iconElement).textContent = 'Add another...';
 
       this.currentGroupKeys = tr.b.Settings.get(
         this.settingsKey_, this.defaultGroupKeys_);
@@ -165,11 +167,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     updateGroups_: function() {
-      var groupsEl = this.shadowRoot.querySelector('groups');
-      var addGroupEl = this.shadowRoot.querySelector('#add-group');
+      var groupsEl = Polymer.dom(this.root).querySelector('groups');
+      var addGroupEl = Polymer.dom(this.root).querySelector('#add-group');
 
-      groupsEl.textContent = '';
-      addGroupEl.textContent = '';
+      Polymer.dom(groupsEl).textContent = '';
+      Polymer.dom(addGroupEl).textContent = '';
 
       var unusedGroups = {};
       var groupsByKey = {};
@@ -183,15 +185,17 @@ tr.exportTo('tr.ui.b', function() {
       });
 
       // Create groups.
-      var groupTemplateEl = THIS_DOC.querySelector(
+      var groupTemplateEl = Polymer.dom(THIS_DOC).querySelector(
           '#tr-ui-b-grouping-table-groupby-picker-group-template');
       this.currentGroupKeys_.forEach(function(key, index) {
         var group = groupsByKey[key];
         var groupEl = document.createElement('group');
         groupEl.groupKey = key;
-        groupEl.appendChild(document.importNode(groupTemplateEl.content, true));
-        groupEl.querySelector('#key').textContent = group.label;
-        groupsEl.appendChild(groupEl);
+        Polymer.dom(groupEl).appendChild(
+            document.importNode(groupTemplateEl.content, true));
+        Polymer.dom(Polymer.dom(groupEl).querySelector('#key')).textContent =
+            group.label;
+        Polymer.dom(groupsEl).appendChild(groupEl);
 
         this.configureRemoveButtonForGroup_(groupEl);
         this.configureDragAndDropForGroup_(groupEl);
@@ -200,14 +204,14 @@ tr.exportTo('tr.ui.b', function() {
       // Adjust dropdown.
       tr.b.iterItems(unusedGroups, function(key, group) {
         var groupEl = document.createElement('possible-group');
-        groupEl.textContent = group.label;
+        Polymer.dom(groupEl).textContent = group.label;
         groupEl.addEventListener('click', function() {
           var newKeys = this.currentGroupKeys.slice();
           newKeys.push(key);
           this.currentGroupKeys = newKeys;
           addGroupEl.close();
         }.bind(this));
-        addGroupEl.appendChild(groupEl);
+        Polymer.dom(addGroupEl).appendChild(groupEl);
       }, this);
 
       // Hide dropdown if needed.
@@ -219,7 +223,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     configureRemoveButtonForGroup_: function(groupEl) {
-      var removeEl = groupEl.querySelector('#remove');
+      var removeEl = Polymer.dom(groupEl).querySelector('#remove');
       removeEl.addEventListener('click', function() {
         var newKeys = this.currentGroupKeys.slice();
         var i = newKeys.indexOf(groupEl.groupKey);
@@ -228,30 +232,31 @@ tr.exportTo('tr.ui.b', function() {
       }.bind(this));
 
       groupEl.addEventListener('mouseenter', function() {
-        removeEl.setAttribute('hovered', true);
+        Polymer.dom(removeEl).setAttribute('hovered', true);
       });
       groupEl.addEventListener('mouseleave', function() {
-        removeEl.removeAttribute('hovered');
+        Polymer.dom(removeEl).removeAttribute('hovered');
       });
     },
 
     configureDragAndDropForGroup_: function(groupEl) {
       var groupsEl = groupEl.parentElement;
 
-      groupEl.setAttribute('draggable', true);
+      Polymer.dom(groupEl).setAttribute('draggable', true);
 
       groupEl.addEventListener('dragstart', function(e) {
         e.dataTransfer.setData('groupKey', groupEl.groupKey);
-        groupEl.querySelector('#remove').removeAttribute('hovered');
-        groupEl.classList.add('dragging');
+        Polymer.dom(Polymer.dom(groupEl).querySelector(
+            '#remove')).removeAttribute('hovered');
+        Polymer.dom(groupEl).classList.add('dragging');
         this.dragging_ = true;
       }.bind(this));
 
       groupEl.addEventListener('dragend', function(e) {
         console.log(e.type, groupEl.groupKey);
         for (var i = 0; i < groupsEl.children.length; i++)
-          groupsEl.children[i].classList.remove('drop-targeted');
-        groupEl.classList.remove('dragging');
+          Polymer.dom(groupsEl.children[i]).classList.remove('drop-targeted');
+        Polymer.dom(groupEl).classList.remove('dragging');
         this.dragging_ = false;
       }.bind(this));
 
@@ -259,7 +264,7 @@ tr.exportTo('tr.ui.b', function() {
       groupEl.addEventListener('dragenter', function(e) {
         if (!this.dragging_)
           return;
-        groupEl.classList.add('drop-targeted');
+        Polymer.dom(groupEl).classList.add('drop-targeted');
         if (this.dragging_)
           e.preventDefault();
       }.bind(this));
@@ -267,7 +272,7 @@ tr.exportTo('tr.ui.b', function() {
       groupEl.addEventListener('dragleave', function(e) {
         if (!this.dragging_)
           return;
-        groupEl.classList.remove('drop-targeted');
+        Polymer.dom(groupEl).classList.remove('drop-targeted');
         e.preventDefault();
       }.bind(this));
 
@@ -277,7 +282,7 @@ tr.exportTo('tr.ui.b', function() {
         if (!this.dragging_)
           return;
         e.preventDefault();
-        groupEl.classList.add('drop-targeted');
+        Polymer.dom(groupEl).classList.add('drop-targeted');
       }.bind(this));
 
       groupEl.addEventListener('drop', function(e) {

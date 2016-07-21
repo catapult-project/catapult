@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel='import' href='/tracing/ui/base/constants.html'>
 
-<polymer-element name='tr-ui-heading'>
+<dom-module id='tr-ui-heading'>
   <template>
     <style>
     :host {
@@ -39,104 +39,105 @@ found in the LICENSE file.
       display: none;
     }
     </style>
-    <heading id='heading' on-click='{{onHeadingDivClicked_}}'>
+    <heading id='heading' on-click='onHeadingDivClicked_'>
       <span id='arrow'></span>
       <span id='heading_content'></span>
       <tr-ui-a-analysis-link id='link'></tr-ui-a-analysis-link>
     </heading>
   </template>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-ui-heading',
 
-  <script>
-  'use strict';
-  Polymer({
-    DOWN_ARROW: String.fromCharCode(0x25BE),
-    RIGHT_ARROW: String.fromCharCode(0x25B8),
+  DOWN_ARROW: String.fromCharCode(0x25BE),
+  RIGHT_ARROW: String.fromCharCode(0x25B8),
 
-    ready: function(viewport) {
-      // Minus 6 == 1px border + 5px padding right.
-      this.style.width = (tr.ui.b.constants.HEADING_WIDTH - 6) + 'px';
+  ready: function(viewport) {
+    // Minus 6 == 1px border + 5px padding right.
+    this.style.width = (tr.ui.b.constants.HEADING_WIDTH - 6) + 'px';
 
-      this.heading_ = '';
-      this.expanded_ = true;
-      this.arrowVisible_ = false;
-      this.selectionGenerator_ = undefined;
+    this.heading_ = '';
+    this.expanded_ = true;
+    this.arrowVisible_ = false;
+    this.selectionGenerator_ = undefined;
 
-      this.updateContents_();
-    },
+    this.updateContents_();
+  },
 
-    get heading() {
-      return this.heading_;
-    },
+  get heading() {
+    return this.heading_;
+  },
 
-    set heading(text) {
-      if (this.heading_ === text)
-        return;
+  set heading(text) {
+    if (this.heading_ === text)
+      return;
 
-      this.heading_ = text;
-      this.updateContents_();
-    },
+    this.heading_ = text;
+    this.updateContents_();
+  },
 
-    set arrowVisible(val) {
-      if (this.arrowVisible_ === val)
-        return;
+  set arrowVisible(val) {
+    if (this.arrowVisible_ === val)
+      return;
 
-      this.arrowVisible_ = !!val;
-      this.updateContents_();
-    },
+    this.arrowVisible_ = !!val;
+    this.updateContents_();
+  },
 
-    set tooltip(text) {
-      this.$.heading.title = text;
-    },
+  set tooltip(text) {
+    this.$.heading.title = text;
+  },
 
-    set selectionGenerator(generator) {
-      if (this.selectionGenerator_ === generator)
-        return;
+  set selectionGenerator(generator) {
+    if (this.selectionGenerator_ === generator)
+      return;
 
-      this.selectionGenerator_ = generator;
-      this.updateContents_();
-    },
+    this.selectionGenerator_ = generator;
+    this.updateContents_();
+  },
 
-    get expanded() {
-      return this.expanded_;
-    },
+  get expanded() {
+    return this.expanded_;
+  },
 
-    set expanded(expanded) {
-      if (this.expanded_ === expanded)
-        return;
+  set expanded(expanded) {
+    if (this.expanded_ === expanded)
+      return;
 
-      this.expanded_ = !!expanded;
-      this.updateContents_();
-    },
+    this.expanded_ = !!expanded;
+    this.updateContents_();
+  },
 
-    onHeadingDivClicked_: function() {
-      this.dispatchEvent(new tr.b.Event('heading-clicked', {'bubbles': true}));
-    },
+  onHeadingDivClicked_: function() {
+    this.dispatchEvent(new tr.b.Event('heading-clicked', {'bubbles': true}));
+  },
 
-    updateContents_: function() {
-      if (this.arrowVisible_) {
-        this.$.arrow.style.display = '';
-      } else {
-        this.$.arrow.style.display = 'none';
-        this.$.heading.style.display = this.expanded_ ? '' : 'none';
-      }
-
-      if (this.arrowVisible_) {
-        this.$.arrow.textContent =
-            this.expanded_ ? this.DOWN_ARROW : this.RIGHT_ARROW;
-      }
-
-      this.$.link.style.display = 'none';
-      this.$.heading_content.style.display = 'none';
-
-      if (this.selectionGenerator_) {
-        this.$.link.style.display = 'inline-block';
-        this.$.link.selection = this.selectionGenerator_;
-        this.$.link.textContent = this.heading_;
-      } else {
-        this.$.heading_content.style.display = 'inline-block';
-        this.$.heading_content.textContent = this.heading_;
-      }
+  updateContents_: function() {
+    if (this.arrowVisible_) {
+      this.$.arrow.style.display = '';
+    } else {
+      this.$.arrow.style.display = 'none';
+      this.$.heading.style.display = this.expanded_ ? '' : 'none';
     }
-  });
-  </script>
-</polymer-element>
+
+    if (this.arrowVisible_) {
+      Polymer.dom(this.$.arrow).textContent =
+          this.expanded_ ? this.DOWN_ARROW : this.RIGHT_ARROW;
+    }
+
+    this.$.link.style.display = 'none';
+    this.$.heading_content.style.display = 'none';
+
+    if (this.selectionGenerator_) {
+      this.$.link.style.display = 'inline-block';
+      this.$.link.selection = this.selectionGenerator_;
+      Polymer.dom(this.$.link).textContent = this.heading_;
+    } else {
+      this.$.heading_content.style.display = 'inline-block';
+      Polymer.dom(this.$.heading_content).textContent = this.heading_;
+    }
+  }
+});
+</script>

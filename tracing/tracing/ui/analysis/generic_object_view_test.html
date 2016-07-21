@@ -18,19 +18,19 @@ tr.b.unittest.testSuite(function() {
   test('undefinedValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = undefined;
-    assert.equal(view.$.content.textContent, 'undefined');
+    assert.equal(Polymer.dom(view.$.content).textContent, 'undefined');
   });
 
   test('nullValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = null;
-    assert.equal(view.$.content.textContent, 'null');
+    assert.equal(Polymer.dom(view.$.content).textContent, 'null');
   });
 
   test('stringValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 'string value';
-    assert.equal(view.$.content.textContent, '"string value"');
+    assert.equal(Polymer.dom(view.$.content).textContent, '"string value"');
   });
 
   test('multiLineStringValue', function() {
@@ -65,13 +65,13 @@ tr.b.unittest.testSuite(function() {
   test('booleanValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = false;
-    assert.equal(view.$.content.textContent, 'false');
+    assert.equal(Polymer.dom(view.$.content).textContent, 'false');
   });
 
   test('numberValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = 3.14159;
-    assert.equal(view.$.content.textContent, '3.14159');
+    assert.equal(Polymer.dom(view.$.content).textContent, '3.14159');
   });
 
   test('objectSnapshotValue', function() {

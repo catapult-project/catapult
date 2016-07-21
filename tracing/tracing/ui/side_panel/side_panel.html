@@ -1,25 +1,18 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright 2013 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name='tr-ui-side-panel'>
-  <template>
-    <style>
-    :host {
-      overflow: auto;
-    }
-    </style>
-  </template>
-  <script>
-  'use strict';
-  Polymer({
-    ready: function() {
-    },
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.behaviors', function() {
+
+  var SidePanel = {
 
     get rangeOfInterest() {
       throw new Error('Not implemented');
@@ -48,6 +41,11 @@ found in the LICENSE file.
     supportsModel: function(m) {
       throw new Error('Not implemented');
     }
-  });
-  </script>
-</polymer-element>
+  };
+
+  return {
+    SidePanel: SidePanel
+  };
+
+});
+</script>

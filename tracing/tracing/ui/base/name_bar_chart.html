@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/d3.html">
 
 <script>
 'use strict';
@@ -22,8 +23,8 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       BarChart.prototype.decorate.call(this);
-      this.classList.remove('bar-chart');
-      this.classList.add('name-bar-chart');
+      Polymer.dom(this).classList.remove('bar-chart');
+      Polymer.dom(this).classList.add('name-bar-chart');
     },
 
     isDatumFieldSeries_: function(fieldName) {

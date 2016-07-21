@@ -10,11 +10,11 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
 <link rel="import" href="/tracing/extras/chrome/cc/layer_tree_host_impl.html">
 <link rel="import" href="/tracing/extras/chrome/cc/util.html">
-<link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/model/event.html">
+<link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/list_view.html">
-<link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/extras/chrome/cc/selection.html">
 
 <script>
@@ -41,14 +41,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
 
       this.itemList_ = new tr.ui.b.ListView();
-      this.appendChild(this.controls_);
+      Polymer.dom(this).appendChild(this.controls_);
 
-      this.appendChild(this.itemList_);
+      Polymer.dom(this).appendChild(this.itemList_);
 
       this.itemList_.addEventListener(
           'selection-changed', this.onItemSelectionChanged_.bind(this));
 
-      this.controls_.appendChild(tr.ui.b.createSelector(
+      Polymer.dom(this.controls_).appendChild(tr.ui.b.createSelector(
           this, 'whichTree',
           'layerPicker.whichTree', constants.ACTIVE_TREE,
           [{label: 'Active tree', value: constants.ACTIVE_TREE},
@@ -60,10 +60,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           this, 'showPureTransformLayers',
           'layerPicker.showPureTransformLayers', false,
           'Transform layers');
-      showPureTransformLayers.classList.add('show-transform-layers');
+      Polymer.dom(showPureTransformLayers).classList.add(
+          'show-transform-layers');
       showPureTransformLayers.title =
           'When checked, pure transform layers are shown';
-      this.controls_.appendChild(showPureTransformLayers);
+      Polymer.dom(this.controls_).appendChild(showPureTransformLayers);
     },
 
     get lthiSnapshot() {
@@ -197,12 +198,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var id = renderPassInfo.id;
 
         var item = this.createElementWithDepth_(renderPassInfo.depth);
-        var labelEl = item.appendChild(tr.ui.b.createSpan());
+        var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
-        labelEl.textContent = renderPassInfo.name + ' ' + id;
+        Polymer.dom(labelEl).textContent = renderPassInfo.name + ' ' + id;
         item.renderPass = renderPass;
         item.renderPassId = id;
-        this.itemList_.appendChild(item);
+        Polymer.dom(this.itemList_).appendChild(item);
 
         if (id == selectedRenderPassId) {
           renderPass.selectionState =
@@ -226,24 +227,24 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var id = layer.layerId;
 
           var item = this.createElementWithDepth_(layerInfo.depth);
-          var labelEl = item.appendChild(tr.ui.b.createSpan());
+          var labelEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
 
-          labelEl.textContent = layerInfo.name + ' ' + id;
+          Polymer.dom(labelEl).textContent = layerInfo.name + ' ' + id;
 
-          var notesEl = item.appendChild(tr.ui.b.createSpan());
+          var notesEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
           if (layerInfo.isMaskLayer)
-            notesEl.textContent += '(mask)';
+            Polymer.dom(notesEl).textContent += '(mask)';
           if (layerInfo.isReplicaLayer)
-            notesEl.textContent += '(replica)';
+            Polymer.dom(notesEl).textContent += '(replica)';
 
           if (layer.gpuMemoryUsageInBytes !== undefined) {
             var rounded = bytesToRoundedMegabytes(layer.gpuMemoryUsageInBytes);
             if (rounded !== 0)
-              notesEl.textContent += ' (' + rounded + ' MB)';
+              Polymer.dom(notesEl).textContent += ' (' + rounded + ' MB)';
           }
 
           item.layer = layer;
-          this.itemList_.appendChild(item);
+          Polymer.dom(this.itemList_).appendChild(item);
 
           if (layer.layerId == selectedLayerId) {
             layer.selectionState = tr.model.SelectionState.SELECTED;
@@ -258,10 +259,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     createElementWithDepth_: function(depth) {
       var item = document.createElement('div');
 
-      var indentEl = item.appendChild(tr.ui.b.createSpan());
+      var indentEl = Polymer.dom(item).appendChild(tr.ui.b.createSpan());
       indentEl.style.whiteSpace = 'pre';
-      for (var i = 0; i < depth; i++)
-        indentEl.textContent = indentEl.textContent + ' ';
+      for (var i = 0; i < depth; i++) {
+        Polymer.dom(indentEl).textContent =
+            Polymer.dom(indentEl).textContent + ' ';
+      }
       return item;
     },
 

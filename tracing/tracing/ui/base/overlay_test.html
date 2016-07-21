@@ -4,15 +4,15 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/ui/base/overlay.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/overlay.html">
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   function addShowButtonForDialog(dlg) {
     var btn = document.createElement('button');
-    btn.textContent = 'Launch Overlay';
+    Polymer.dom(btn).textContent = 'Launch Overlay';
     btn.addEventListener('click', function(e) {
       dlg.visible = true;
       e.stopPropagation();
@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
 
   function makeButton(title) {
     var btn = document.createElement('button');
-    btn.textContent = title;
+    Polymer.dom(btn).textContent = title;
     return btn;
   }
 
@@ -37,31 +37,31 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var dlg = new tr.ui.b.Overlay();
-    dlg.classList.add('example-overlay');
+    Polymer.dom(dlg).classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
-    dlg.innerHTML = 'hello';
-    dlg.buttons.appendChild(makeButton('i am a button'));
-    dlg.buttons.appendChild(makeCloseButton(dlg));
-    dlg.buttons.appendChild(tr.ui.b.createSpan(
+    Polymer.dom(dlg).innerHTML = 'hello';
+    Polymer.dom(dlg.buttons).appendChild(makeButton('i am a button'));
+    Polymer.dom(dlg.buttons).appendChild(makeCloseButton(dlg));
+    Polymer.dom(dlg.buttons).appendChild(tr.ui.b.createSpan(
         {textContent: 'i am a span'}));
     addShowButtonForDialog.call(this, dlg);
   });
 
   test('instantiate_noButtons', function() {
     var dlg = new tr.ui.b.Overlay();
-    dlg.classList.add('example-overlay');
+    Polymer.dom(dlg).classList.add('example-overlay');
     dlg.title = 'ExampleOverlay';
-    dlg.innerHTML = 'hello';
+    Polymer.dom(dlg).innerHTML = 'hello';
     addShowButtonForDialog.call(this, dlg);
   });
 
   test('instantiate_disableUserClose', function() {
     var dlg = new tr.ui.b.Overlay();
-    dlg.classList.add('example-overlay');
+    Polymer.dom(dlg).classList.add('example-overlay');
     dlg.userCanClose = false;
     dlg.title = 'Unclosable';
-    dlg.innerHTML = 'This has no close X button.';
-    dlg.buttons.appendChild(makeCloseButton(dlg));
+    Polymer.dom(dlg).innerHTML = 'This has no close X button.';
+    Polymer.dom(dlg.buttons).appendChild(makeCloseButton(dlg));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -70,16 +70,16 @@ tr.b.unittest.testSuite(function() {
     dlg.title = 'TallContent';
     var contentEl = document.createElement('div');
     contentEl.style.overflowY = 'auto';
-    dlg.appendChild(contentEl);
+    Polymer.dom(dlg).appendChild(contentEl);
 
     for (var i = 0; i < 1000; i++) {
       var el = document.createElement('div');
-      el.textContent = 'line ' + i;
-      contentEl.appendChild(el);
+      Polymer.dom(el).textContent = 'line ' + i;
+      Polymer.dom(contentEl).appendChild(el);
     }
 
 
-    dlg.buttons.appendChild(makeButton('i am a button'));
+    Polymer.dom(dlg.buttons).appendChild(makeButton('i am a button'));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -89,11 +89,11 @@ tr.b.unittest.testSuite(function() {
     for (var i = 0; i < 100; i++) {
       var el = document.createElement('div');
       el.style.webkitFlex = '1 0 auto';
-      el.textContent = 'line ' + i;
-      dlg.appendChild(el);
+      Polymer.dom(el).textContent = 'line ' + i;
+      Polymer.dom(dlg).appendChild(el);
     }
 
-    dlg.buttons.appendChild(makeButton('i am a button'));
+    Polymer.dom(dlg.buttons).appendChild(makeButton('i am a button'));
     addShowButtonForDialog.call(this, dlg);
   });
 
@@ -101,7 +101,7 @@ tr.b.unittest.testSuite(function() {
     var dlg = new tr.ui.b.Overlay();
     dlg.title = 'Test closeclick event';
     var closeBtn = makeCloseButton(dlg);
-    dlg.buttons.appendChild(closeBtn);
+    Polymer.dom(dlg.buttons).appendChild(closeBtn);
 
     var closeClicked = false;
     dlg.addEventListener('closeclick', function() {

@@ -5,7 +5,13 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/extras/lean_config.html">
+<!--
+TODO(charliea): Make all UI files depend on tracing/ui/base/base.html in the same way that
+all non-UI files depend on tracing/base/base.html. Enforce this dependency with a presubmit.
+-->
+<link rel="import" href="/tracing/ui/base/base.html" data-suppress-import-order>
+
+<link rel="import" href="/tracing/extras/lean_config.html" data-suppress-import-order>
 
 <!--
 The lean config is just enough to import uncompressed, trace-event-formatted

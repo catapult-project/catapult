@@ -27,9 +27,9 @@ tr.b.unittest.testSuite(function() {
     var dragHandle = document.createElement('tr-ui-b-drag-handle');
     dragHandle.target = lowerEl;
 
-    el.appendChild(upperEl);
-    el.appendChild(dragHandle);
-    el.appendChild(lowerEl);
+    Polymer.dom(el).appendChild(upperEl);
+    Polymer.dom(el).appendChild(dragHandle);
+    Polymer.dom(el).appendChild(lowerEl);
     el.upperEl = upperEl;
     el.dragHandle = dragHandle;
     el.lowerEl = lowerEl;
@@ -58,9 +58,9 @@ tr.b.unittest.testSuite(function() {
     var el = createDragHandle();
 
     var styleEl = document.createElement('style');
-    styleEl.textContent =
+    Polymer.dom(styleEl).textContent =
         '.mode-a { height: 100px; } .mode-b { height: 50px; }';
-    document.head.appendChild(styleEl);
+    Polymer.dom(document.head).appendChild(styleEl);
 
     this.addHTMLOutput(el);
 
@@ -87,7 +87,7 @@ tr.b.unittest.testSuite(function() {
       dragHandle.forceMutationObserverFlush_();
       assert.equal(el.getLowerElHeight(), 110);
     } finally {
-      document.head.removeChild(styleEl);
+      Polymer.dom(document.head).removeChild(styleEl);
     }
   });
 });

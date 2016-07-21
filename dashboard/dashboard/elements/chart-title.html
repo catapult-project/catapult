@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<polymer-element name="chart-title" attributes="seriesGroupList">
+<dom-module id="chart-title">
   <template>
     <style>
       .title {
@@ -26,17 +26,17 @@ found in the LICENSE file.
     </style>
 
     <h3>
-      <template repeat="{{part, partIndex in titleParts}}">
+      <template is="dom-repeat" items="{{titleParts}}">
         <a class="title disabled" href="javascript:void(0);"
-           on-click="{{onClicked}}" disabled?="{{partIndex == currentIndex}}"
+           on-click="onClicked" disabled$="{{computeStrictEqual(index, currentIndex)}}"
            class="title">
-          {{part}}
+          {{item}}
         </a>
-        <span hidden?="{{partIndex == titleParts.length - 1}}">/</span>
+        <span hidden$="{{computeIsLast(index, titleParts)}}">/</span>
       </template>
     </h3>
     <div>
-      <template repeat="{{info in suiteDescriptions}}">
+      <template is="dom-repeat" items="{{suiteDescriptions}}" as="info">
         <div><b>{{info.suite}}</b>: {{info.description}}</div>
       </template>
     </div>
@@ -44,7 +44,33 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
-    Polymer('chart-title', {
+    Polymer({
+
+      is: 'chart-title',
+      properties: {
+        seriesGroupList: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
+        titleParts: {
+          type: Array,
+          value: () => []
+        },
+        suiteDescriptions: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
+        testSuites: {
+          type: Object,
+          notify: true,
+          value: () => {}
+        }
+      },
+
+      computeIsLast: (idx, arr) => idx === arr.length - 1,
+      computeStrictEqual: (a, b) => a === b,
 
       /**
        * Sets the title of the chart based on the current state of the chart.
@@ -72,16 +98,16 @@ found in the LICENSE file.
       },
 
       onClicked: function(event) {
-        var model = event.target.templateInstance.model;
-        if (model.partIndex == this.currentIndex) {
+        var index = event.model.index;
+        if (index == this.currentIndex) {
           return;
         }
         this.fire('titleclicked', {
             titleParts: this.titleParts,
-            partIndex: model.partIndex
+            partIndex: index
         });
 
-        this.currentIndex = model.partIndex;
+        this.currentIndex = index;
       },
 
       /**
@@ -187,4 +213,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

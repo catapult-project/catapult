@@ -12,7 +12,7 @@ an alert from an issue on the issue tracker.
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="alert-remove-box" attributes="xsrfToken key">
+<dom-module id="alert-remove-box">
   <template>
     <style>
       .close-icon {
@@ -31,18 +31,24 @@ an alert from an issue on the issue tracker.
         display: none;
       }
     </style>
-    <div class="close-icon" hidden?="{{loading}}" on-click="{{onRemoveBug}}">
+    <div class="close-icon" hidden$="{{loading}}" on-click="onRemoveBug">
       ❌ <!-- cross mark U+274C -->
     </div>
-    <paper-spinner class="spinner" active?="{{loading}}"></paper-spinner>
+    <paper-spinner class="spinner" active$="{{loading}}"></paper-spinner>
   </template>
   <script>
     'use strict';
-    Polymer('alert-remove-box', {
+    Polymer({
+
+      is: 'alert-remove-box',
+      properties: {
+        key: { notify: true },
+        xsrfToken: { notify: true }
+      },
       /**
        * Sends a request to /edit_anomalies to reset the bug ID of this alert.
        */
-      onRemoveBug: function(event, detail, sender) {
+      onRemoveBug: function(event, detail) {
         event.preventDefault();
         this.loading = true;
         var params = {
@@ -63,4 +69,4 @@ an alert from an issue on the issue tracker.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

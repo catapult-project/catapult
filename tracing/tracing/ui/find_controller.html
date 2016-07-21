@@ -82,7 +82,7 @@ tr.exportTo('tr.ui', function() {
       } catch (e) {
         this.enqueueOperation_(function() {
           var overlay = new tr.ui.b.Overlay();
-          overlay.textContent = e.message;
+          Polymer.dom(overlay).textContent = e.message;
           overlay.title = 'UI State Navigation Error';
           overlay.visible = true;
         });

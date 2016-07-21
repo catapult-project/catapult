@@ -5,13 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="quick-log"
-                 attributes="logLabel logNamespace logName logFilter
-                             loadOnReady expandOnReady xsrfToken">
+<dom-module id="quick-log">
   <template>
     <style>
       /**
@@ -149,26 +147,26 @@ found in the LICENSE file.
     <div id="container">
 
       <div class="label-container">
-        <core-icon-button id="log-label" icon="expand-more" on-click="{{toggleView}}">
+        <paper-icon-button id="log-label" icon="expand-more" on-click="toggleView">
           {{logLabel}}
-        </core-icon-button>
+        </paper-icon-button>
       </div>
 
       <div id="content" style="display:none">
         <div id="inner-content">
           <div class="content-bar">
-            <core-icon-button id="refresh-btn" icon="refresh" on-click="{{refresh}}">
-            </core-icon-button>
+            <paper-icon-button id="refresh-btn" icon="refresh" on-click="refresh">
+            </paper-icon-button>
           </div>
           <div id="wrapper">
             <table id="logs"></table>
-            <template bind if="{{stepLoading}}">
+            <template is="dom-if" if="{{stepLoading}}">
               <img class="loading-img"
                    height="25"
                    width="25"
                    src="//www.google.com/images/loading.gif">
             </template>
-            <template bind if="{{errorMessage}}">
+            <template is="dom-if" if="{{errorMessage}}">
               <div class="error">{{errorMessage}}</div>
             </template>
           </div>
@@ -178,9 +176,21 @@ found in the LICENSE file.
   </template>
   <script>
     'use strict';
-    Polymer('quick-log', {
-
-      MAX_LOG_REQUEST_SIZE: 100,
+    Polymer({
+      is: 'quick-log',
+      properties: {
+        MAX_LOG_REQUEST_SIZE: {
+          type: Number,
+          value: 100
+        },
+        expandOnReady: { notify: true },
+        loadOnReady: { notify: true },
+        logFilter: { notify: true },
+        logLabel: { notify: true },
+        logName: { notify: true },
+        logNamespace: { notify: true },
+        xsrfToken: { notify: true }
+      },
 
       /**
        * Custom element lifecycle callback, called once this element is ready.
@@ -281,6 +291,7 @@ found in the LICENSE file.
 
       /**
        * Inserts a log into HTML table.
+       * TODO(sullivan): This should use polymer templates, not dom APIs.
        * @param {Object} table Table HTML element.
        * @param {Object} log A log object.
        * @param {boolean} insertBefore true to prepend, false to append.
@@ -293,19 +304,19 @@ found in the LICENSE file.
         }
         var row = document.createElement('tr');
         var expandTd = document.createElement('td');
-        row.appendChild(expandTd);
+        Polymer.dom(row).appendChild(expandTd);
         var span = document.createElement('span');
         span.className = 'toggle-arrow arrow-right';
-        expandTd.appendChild(span);
+        Polymer.dom(expandTd).appendChild(span);
 
         var td = document.createElement('td');
         var messageDiv = document.createElement('div');
         messageDiv.className = 'message';
-        row.appendChild(td);
-        td.appendChild(messageDiv);
-        messageDiv.innerHTML = '<pre>' + log.message + '</pre>';
+        Polymer.dom(row).appendChild(td);
+        Polymer.dom(td).appendChild(messageDiv);
+        Polymer.dom(messageDiv).innerHTML = '<pre>' + log.message + '</pre>';
         span.onclick = this.onLogToggleClick.bind(this, messageDiv);
-        table.insertBefore(row, table.childNodes[0]);
+        Polymer.dom(table).insertBefore(row, Polymer.dom(table).childNodes[0]);
       },
 
       /**
@@ -413,7 +424,7 @@ found in the LICENSE file.
        */
       clear: function() {
         this.logList = [];
-        this.$.logs.innerHTML = '';
+        Polymer.dom(this.$.logs).innerHTML = '';
       },
 
       /**
@@ -426,4 +437,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

@@ -5,18 +5,16 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
-<link rel="import" href="/components/core-selector/core-selector.html">
-<link rel="import" href="/components/core-tooltip/core-tooltip.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/components/iron-selector/iron-selector.html">
 <link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/components/paper-material/paper-material.html">
 <link rel="import" href="/components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/components/paper-tooltip/paper-tooltip.html">
 
-<polymer-element name="chart-legend"
-                 attributes="seriesGroupList indicesToGraph showCompact
-                             collapseLegend deltaAbsolute deltaPercent showDelta">
+<dom-module id="chart-legend">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       .row {
         margin-bottom: 2px;
         opacity: 1;
@@ -39,7 +37,7 @@ found in the LICENSE file.
         width: 293px;
       }
 
-      core-icon.info {
+      iron-icon.info {
         height: 15px;
         width: 15px;
         opacity: .75;
@@ -177,17 +175,17 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="rhs" compact?="{{showCompact}}" collapse-legend?="{{collapseLegend}}">
+    <div id="rhs" compact$="{{showCompact}}" collapse-legend$="{{collapseLegend}}">
       <paper-icon-button id="expand-legend-btn" icon="arrow-drop-down"
                          title="legend" role="button"
-                         on-click="{{toggleLegend}}"></paper-icon-button>
+                         on-click="toggleLegend"></paper-icon-button>
 
-      <core-collapse id="collapsible-legend" opened?="{{!collapseLegend}}">
+      <iron-collapse id="collapsible-legend" opened$="{{!collapseLegend}}">
 
-        <template bind if="{{!showDelta}}">
+        <template is="dom-if" if="{{!showDelta}}">
           <div id="delta-off">Click and drag graph to measure or zoom.</div>
         </template>
-        <template bind if="{{showDelta}}">
+        <template is="dom-if" if="{{showDelta}}">
           Delta: {{deltaAbsolute}} or {{deltaPercent}}%.<br>
           Click selected range to zoom.
         </template>
@@ -195,59 +193,59 @@ found in the LICENSE file.
         <div id="traces">Traces:
           <a href="javascript:void(0);"
              class="trace-link"
-             on-click="{{onSelectAll}}">select all</a>
+             on-click="onSelectAll">select all</a>
           &#124;
           <a href="javascript:void(0);"
              class="trace-link"
-             on-click="{{onDeselectAll}}">deselect all</a>
+             on-click="onDeselectAll">deselect all</a>
           &#124;
           <a href="javascript:void(0);"
              class="trace-link"
-             on-click="{{onSelectCore}}">core only</a>
+             on-click="onSelectCore">core only</a>
         </div>
 
         <!-- List of series group boxes starts here. -->
         <div id="sg-container">
-          <template repeat="{{seriesGroup, groupIndex in seriesGroupList}}">
+          <template is="dom-repeat" items="{{seriesGroupList}}" as="seriesGroup" index-as="groupIndex" id="grouplist">
 
-            <paper-shadow z="1"
-                          class="series-set"
-                          draggable="true"
-                          on-dragstart="{{onSeriesDragStart}}"
-                          on-dragend="{{onSeriesDragEnd}}">
+            <paper-material elevation="1"
+                            class="series-set"
+                            draggable="true"
+                            on-dragstart="onSeriesDragStart"
+                            on-dragend="onSeriesDragEnd">
 
-              <div horizontal layout>
+              <div class="layout horizontal">
                 <input type="checkbox"
-                       on-change="{{onCheckAllCheckboxClicked}}"
-                       checked="{{seriesGroup.selection == 'all'}}"
-                       hidden?="{{seriesGroup.tests.length == 0}}">
+                       on-change="onCheckAllCheckboxClicked"
+                       checked="{{computeSelectionIsAll(seriesGroup)}}"
+                       hidden?="{{!seriesGroup.tests.length}}">
                 <span flex four></span>
-                <div class="close-icon" on-click="{{onCloseSeriesGroupClicked}}">
+                <div class="close-icon" on-click="onCloseSeriesGroupClicked">
                   ❌ <!-- cross mark U+274C -->
                 </div>
               </div>
 
-              <core-selector class="list" selected="{{multiSelected}}" multi>
+              <iron-selector class="list" selected="{{multiSelected}}" multi>
 
-                <template repeat="{{test, testIndex in seriesGroup.tests}}">
+                <template is="dom-repeat" items="{{seriesGroup.tests}}" as="test">
                   <div class="row" id="{{test.index}}"
-                       loading?="{{test.index == undefined}}"
-                       hidden?="{{test.hidden}}">
-
-                    <label horizontal layout center>
+                       loading$="{{computeIsUndefined(test.index)}}"
+                       hidden$="{{test.hidden}}">
+                    <label class="layout horizontal center">
                       <input type="checkbox"
                              checked="{{test.selected}}"
-                             on-change="{{onCheckboxClicked}}"
-                             disabled?="{{test.index == undefined}}">
+                             on-change="onCheckboxClicked"
+                             disabled$="{{computeIsUndefined(test.index)}}">
                       <span class="test-name"
-                            important?="{{test.important}}"
+                            important$="{{test.important}}"
                             style="color:{{test.color}};"
-                            on-mouseover='{{seriesMouseover}}'
-                            on-mouseout='{{seriesMouseout}}'>
-                          {{test.name}}
-                        <core-tooltip>
-                          <core-icon icon="info-outline" class="info"></core-icon>
-                          <div tip layout vertical class="tooltip-content">
+                            on-mouseover="seriesMouseover"
+                            on-mouseout="seriesMouseout">
+                        {{test.name}}
+                        <iron-icon icon="info-outline" class="info"></iron-icon>
+                        <paper-tooltip>
+                          <iron-icon icon="info-outline" class="info"></iron-icon>
+                          <div tip class="layout vertical tooltip-content">
                             <span>{{test.direction}} is better</span>
                             <span>Units: {{test.units}}</span>
                             <span>{{test.description}}</span>
@@ -255,7 +253,7 @@ found in the LICENSE file.
                             <span><a href="/graph_csv?test_path={{test.path}}">Download as CSV</a></span>
                             <span><a href="/debug_alert?test_path={{test.path}}">Debug alert page</a></span>
                           </div>
-                        </core-tooltip>
+                        </paper-tooltip>
                       </span>
                     </label>
 
@@ -263,45 +261,66 @@ found in the LICENSE file.
 
                 </template>
 
-              </core-selector>
+              </iron-selector>
 
-              <div horizontal end-justified layout>
-                <template if="{{seriesGroup.numHidden > 0}}">
+              <div class="layout horizontal end-justified">
+                <template is="dom-if" if="{{computeIsPositive(seriesGroup.numHidden)}}">
                   <a href="javascript:void(0);" class="expand-link"
-                     on-click="{{onExpandSeriesClicked}}">{{seriesGroup.numHidden}} more</a>
+                     on-click="onExpandSeriesClicked">{{seriesGroup.numHidden}} more</a>
                 </template>
-                <template if="{{seriesGroup.numHidden == 0}}">
+                <template is="dom-if" if="{{!seriesGroup.numHidden}}">
                   <a href="javascript:void(0);" class="expand-link"
-                     on-click="{{onExpandSeriesClicked}}">less</a>
+                     on-click="onExpandSeriesClicked">less</a>
                 </template>
               </div>
 
-              <template if="{{seriesGroup.numPendingRequests > 0}}">
+              <template is="dom-if" if="{{computeIsPositive(seriesGroup.numPendingRequests)}}">
                 <div class="sg-loading">
                   <paper-spinner active></paper-spinner>
                 </div>
               </template>
-            </paper-shadow>
+            </paper-material>
           </template>
         </div>
 
 
-      </core-collapse>
+      </iron-collapse>
     </div>
 
   </template>
   <script>
     'use strict';
-    Polymer('chart-legend', {
+    Polymer({
+
+      is: 'chart-legend',
+      properties: {
+        collapseLegend: { notify: true },
+        deltaAbsolute: { notify: true },
+        deltaPercent: { notify: true },
+        indicesToGraph: { notify: true },
+        seriesGroupList: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
+        showCompact: { notify: true },
+        showDelta: { notify: true }
+      },
+
+      computeIsPositive: n => n > 0,
+      computeIsUndefined: x => x === undefined,
+      computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 
       /**
        * Event handler for the change event of any of the checkboxes.
        */
-      onCheckboxClicked: function(event, detail, sender) {
-        var model = event.target.templateInstance.model;
-        this.updateIndicesToGraph(model.test.index, sender.checked);
-        this.updateSeriesGroupCheckedState(model.seriesGroup);
-        this.updateNumHidden(model.seriesGroup);
+      onCheckboxClicked: function(event, detail) {
+        var test = event.model.test;
+        var seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
+        this.updateIndicesToGraph(
+            test.index, event.currentTarget.checked);
+        this.updateSeriesGroupCheckedState(seriesGroupIndex);
+        this.updateNumHidden(seriesGroupIndex);
         this.fireChartStateChangedEvent();
       },
 
@@ -325,25 +344,31 @@ found in the LICENSE file.
        *
        * @param {Object} seriesGroup A group of series.
        */
-      updateSeriesGroupCheckedState: function(seriesGroup) {
+      updateSeriesGroupCheckedState: function(seriesGroupIndex) {
         var allSelected = [];
         var allUnselected = [];
+        var seriesGroup = this.seriesGroupList[seriesGroupIndex];
         seriesGroup.tests.forEach(function(test) {
           if (test.selected) {
             allSelected.push(test);
           } else {
             allUnselected.push(test);
           }
-        });
+        }.bind(this));
 
         if (this.importantSelected(seriesGroup.tests)) {
-          seriesGroup.selection = 'important';
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.selection',
+              'important');
         } else if (allSelected.length == seriesGroup.tests.length) {
-          seriesGroup.selection = 'all';
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.selection', 'all');
         } else if (allUnselected.length == seriesGroup.tests.length) {
-          seriesGroup.selection = 'none';
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.selection', 'none');
         } else {
-          seriesGroup.selection = null;
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.selection', null);
         }
       },
 
@@ -370,9 +395,10 @@ found in the LICENSE file.
        * Updates numHidden properties for a seriesGroup.  This is to show the
        * number of hidden series link.
        */
-      updateNumHidden: function(seriesGroup) {
+      updateNumHidden: function(seriesGroupIndex) {
         var numHidden = 0;
         var numCanHide = 0;
+        var seriesGroup = this.seriesGroupList[seriesGroupIndex];
         seriesGroup.tests.forEach(function(test) {
           if (test.hidden) {
             numHidden++;
@@ -383,27 +409,33 @@ found in the LICENSE file.
 
         // Don't show more/less link if the only series shown are the important.
         if (numHidden > 0) {
-          seriesGroup.numHidden = numHidden;
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.numHidden', numHidden);
         } else if (numCanHide > 0) {
-          seriesGroup.numHidden = 0;
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.numHidden', 0);
         } else {
-          seriesGroup.numHidden = null;
+          this.set(
+              'seriesGroupList.' + seriesGroupIndex + '.numHidden', null);
         }
       },
 
       /**
        * Event handler for the change event of check all checkboxes.
        */
-      onCheckAllCheckboxClicked: function(event, detail, sender) {
-        var model = event.target.templateInstance.model;
-        var groupIndex = model.groupIndex;
+      onCheckAllCheckboxClicked: function(event, detail) {
+        var sender = event.currentTarget;
+        var groupIndex = event.model.groupIndex;
 
-        this.seriesGroupList[groupIndex].selection = (
-            sender.checked ? 'all' : 'none');
+        this.set(
+            'seriesGroupList.' + groupIndex + '.selection', (
+            sender.checked ? 'all' : 'none'));
         var tests = this.seriesGroupList[groupIndex].tests;
         for (var i = 0; i < tests.length; i++) {
           if (tests[i].index != undefined) {
-            tests[i].selected = sender.checked;
+            this.set(
+                'seriesGroupList.' + groupIndex + '.tests.' + i + '.selected',
+                sender.checked);
             this.updateIndicesToGraph(tests[i].index, sender.checked);
           }
         }
@@ -414,36 +446,44 @@ found in the LICENSE file.
       /**
        * Event handler for series group close button clicked.
        */
-      onCloseSeriesGroupClicked: function(event, detail, sender) {
-        var model = event.target.templateInstance.model;
+      onCloseSeriesGroupClicked: function(event, detail) {
+        var model = event.model;
         this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
       },
 
       /**
        * Event handler for click event of expand link.
        */
-      onExpandSeriesClicked: function(event, detail, sender) {
-        var groupIndex = event.target.templateInstance.model.groupIndex;
-        var isCollapse = sender.text == 'less' ? true : false;
+      onExpandSeriesClicked: function(event, detail) {
+        var groupIndex = this.$.grouplist.modelForElement(
+            event.target).groupIndex;
+        var isCollapse = event.currentTarget.text == 'less' ? true : false;
         var seriesGroup = this.seriesGroupList[groupIndex];
-        seriesGroup.tests.forEach(function(test) {
+        seriesGroup.tests.forEach(function(test, index) {
           if (isCollapse) {
             if (!test.selected && !test.important) {
-              test.hidden = true;
+              this.set(
+                  'seriesGroupList.' + groupIndex + '.tests.' + index +
+                  '.hidden',
+                  true);
             }
           } else {
-            test.hidden = false;
+              this.set(
+                  'seriesGroupList.' + groupIndex + '.tests.' + index +
+                  '.hidden',
+                  false);
           }
-        });
-        this.updateNumHidden(seriesGroup);
+        }.bind(this));
+        this.updateNumHidden(groupIndex);
       },
 
       /**
        * On series group box drag-start, set data to be transferred to on
        * drop event.
        */
-      onSeriesDragStart: function(event, detail, sender) {
-        var groupIndex = event.target.templateInstance.model.groupIndex;
+      onSeriesDragStart: function(event, detail) {
+        var groupIndex = this.$.grouplist.modelForElement(
+            event.target).groupIndex;
         var testPath = this.seriesGroupList[groupIndex].path;
         var selectedTests = [];
         var tests = this.seriesGroupList[groupIndex].tests;
@@ -463,12 +503,13 @@ found in the LICENSE file.
        * On series group box drag-end, checks if drop target is valid,
        * and remove series group.
        */
-      onSeriesDragEnd: function(event, detail, sender) {
+      onSeriesDragEnd: function(event, detail) {
         // Successful drop.
         if (event.dataTransfer.dropEffect == 'copy') {
-          var model = event.target.templateInstance.model;
+          var groupIndex = this.$.grouplist.modelForElement(
+              event.target).groupIndex;
           // Let chart-container handle removing this group series.
-          this.fire('seriesgroupclosed', {'groupIndex': model.groupIndex});
+          this.fire('seriesgroupclosed', {'groupIndex': groupIndex});
         }
       },
 
@@ -486,15 +527,16 @@ found in the LICENSE file.
        * @param {Event=} opt_noEvent The click event, not used.
        */
       onSelectAll: function(opt_noEvent) {
-        this.indicesToGraph = [];
+        this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
-          for (var i = 0; i < group.tests.length; i++) {
-            group.tests[i].selected = true;
-            this.indicesToGraph.push(group.tests[i].index);
+          for (var j = 0; j < group.tests.length; j++) {
+            this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
+                true);
+            this.push('indicesToGraph', group.tests[j].index);
           }
-          this.updateSeriesGroupCheckedState(group);
-          this.updateNumHidden(group);
+          this.updateSeriesGroupCheckedState(i);
+          this.updateNumHidden(i);
         }
         this.fireChartStateChangedEvent();
       },
@@ -504,14 +546,14 @@ found in the LICENSE file.
        * @param {Event=} opt_noEvent The click event, not used.
        */
       onDeselectAll: function(opt_noEvent) {
-        this.indicesToGraph = [];
+        this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
           for (var i = 0; i < group.tests.length; i++) {
             group.tests[i].selected = false;
           }
-          this.updateSeriesGroupCheckedState(group);
-          this.updateNumHidden(group);
+          this.updateSeriesGroupCheckedState(i);
+          this.updateNumHidden(i);
         }
         this.fireChartStateChangedEvent();
       },
@@ -523,31 +565,31 @@ found in the LICENSE file.
        * @param {Event=} opt_event The click event, not used.
        */
       onSelectCore: function(opt_noEvent) {
-        this.indicesToGraph = [];
+        this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
-          for (var i = 0; i < group.tests.length; i++) {
-            var test = group.tests[i];
+          for (var j = 0; j < group.tests.length; j++) {
+            var test = group.tests[j];
+            this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
+                test.important);
             test.selected = test.important;
             this.updateIndicesToGraph(test.index, test.selected);
           }
-          this.updateSeriesGroupCheckedState(group);
-          this.updateNumHidden(group);
+          this.updateSeriesGroupCheckedState(i);
+          this.updateNumHidden(i);
         }
         this.fireChartStateChangedEvent();
       },
 
-      seriesMouseover: function(event, detail, sender) {
-        var model = event.target.templateInstance.model;
+      seriesMouseover: function(event, detail) {
         this.fire('seriesmouseover', {
-          'index': model.test.index
+          'index': event.model.index
         });
       },
 
-      seriesMouseout: function(event, detail, sender) {
-        var model = event.target.templateInstance.model;
+      seriesMouseout: function(event, detail) {
         this.fire('seriesmouseout', {
-          'index': model.test.index
+          'index': event.model.index
         });
       },
 
@@ -559,11 +601,12 @@ found in the LICENSE file.
       updateIndicesToGraph: function(index, selected) {
         if (selected) {
           if (this.indicesToGraph.indexOf(index) == -1) {
-            this.indicesToGraph.push(index);
+            this.push('indicesToGraph', index);
           }
         } else {
           if (this.indicesToGraph.indexOf(index) != -1) {
-            this.indicesToGraph.splice(this.indicesToGraph.indexOf(index), 1);
+            this.splice('indicesToGraph',
+                this.indicesToGraph.indexOf(index), 1);
           }
         }
       },
@@ -577,4 +620,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

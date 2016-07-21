@@ -10,8 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/related_events.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-async-slice-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-single-async-slice-sub-view'>
   <template>
     <style>
     :host {
@@ -28,44 +27,46 @@ found in the LICENSE file.
       <tr-ui-a-related-events id="relatedEvents"></tr-ui-a-related-events>
     </div>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+Polymer({
+  is: 'tr-ui-a-single-async-slice-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
 
-  Polymer({
-    get selection() {
-      return this.$.content.selection;
-    },
+  get selection() {
+    return this.$.content.selection;
+  },
 
-    set selection(selection) {
-      if (selection.length !== 1)
-        throw new Error('Only supports single slices');
-      this.$.content.setSelectionWithoutErrorChecks(selection);
-      this.$.relatedEvents.setRelatedEvents(selection);
-      if (this.$.relatedEvents.hasRelatedEvents()) {
-        this.$.relatedEvents.style.display = '';
-      } else {
-        this.$.relatedEvents.style.display = 'none';
-      }
-    },
-
-    getEventRows_: function(event) {
-      // TODO(nduca): Figure out if there is a cleaner way to do this.
-      var rows = this.__proto__.__proto__.getEventRows_(event);
-
-      // Put the ID up top.
-      rows.splice(0, 0, {
-        name: 'ID',
-        value: event.id
-      });
-      return rows;
-    },
-
-    get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
-        return undefined;
-      return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
+  set selection(selection) {
+    if (selection.length !== 1)
+      throw new Error('Only supports single slices');
+    this.$.content.setSelectionWithoutErrorChecks(selection);
+    this.$.relatedEvents.setRelatedEvents(selection);
+    if (this.$.relatedEvents.hasRelatedEvents()) {
+      this.$.relatedEvents.style.display = '';
+    } else {
+      this.$.relatedEvents.style.display = 'none';
     }
-  });
-  </script>
-</polymer-element>
+  },
+
+  getEventRows_: function(event) {
+    // TODO(nduca): Figure out if there is a cleaner way to do this.
+    var rows = this.__proto__.__proto__.getEventRows_(event);
+
+    // Put the ID up top.
+    rows.splice(0, 0, {
+      name: 'ID',
+      value: event.id
+    });
+    return rows;
+  },
+
+  get relatedEventsToHighlight() {
+    if (!this.currentSelection_)
+      return undefined;
+    return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
+  }
+});
+</script>

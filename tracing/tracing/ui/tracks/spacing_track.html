@@ -27,10 +27,10 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('spacing-track');
+      Polymer.dom(this).classList.add('spacing-track');
 
       this.heading_ = document.createElement('tr-ui-heading');
-      this.appendChild(this.heading_);
+      Polymer.dom(this).appendChild(this.heading_);
     },
 
     addAllEventsMatchingFilterToSelection: function(filter, selection) {

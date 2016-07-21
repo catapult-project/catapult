@@ -5,17 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/components/paper-button/paper-button.html">
+<link rel="import" href="/components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/components/paper-progress/paper-progress.html">
 
 <link rel="import" href="/dashboard/elements/autocomplete-box.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 <link rel="import" href="/dashboard/static/testselection.html">
 
-<polymer-element name="test-picker" attributes="hasChart xsrfToken testSuites">
+<dom-module id="test-picker">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       #container * {
         margin-right: 3px;
       }
@@ -42,7 +43,7 @@ found in the LICENSE file.
         color: #fff;
       }
 
-      core-icon {
+      iron-icon {
         height: 25px;
       }
 
@@ -66,34 +67,34 @@ found in the LICENSE file.
       }
     </style>
 
-    <div id="container" horizontal layout center wrap>
-      <template repeat="{{box, index in selectionModels}}">
-        <autocomplete-box datalist={{box.datalist}}
-                          placeholder="{{box.placeholder}}"
-                          disabled={{box.disabled}}
-                          multi={{box.multi}}
-                          on-dropdownselect="{{onDropdownSelect}}"
+    <div id="container" class="layout horizontal center wrap">
+      <template is="dom-repeat" items="{{selectionModels}}">
+        <autocomplete-box datalist={{item.datalist}}
+                          placeholder="{{item.placeholder}}"
+                          disabled={{item.disabled}}
+                          multi={{item.multi}}
+                          on-dropdownselect="onDropdownSelect"
                           id="selection-{{index}}"></autocomplete-box>
       </template>
 
-      <template if="{{loading}}">
+      <template is="dom-if" if="{{loading}}">
         <div id="loading">
           <paper-progress indeterminate></paper-progress>
         </div>
       </template>
 
-      <core-icon-button id="dnd-btn"
-                        icon="open-with"
-                        disabled?="{{!enableAddSeries || !hasChart}}"
-                        draggable="{{enableAddSeries && hasChart}}"
-                        on-dragstart="{{onSeriesButtonDragStart}}">
+      <paper-icon-button id="dnd-btn"
+                         icon="open-with"
+                         disabled$="{{!computeAnd(enableAddSeries, hasChart)}}"
+                         draggable="{{computeAnd(enableAddSeries, hasChart)}}"
+                         on-dragstart="onSeriesButtonDragStart">
         Drag me
-      </core-icon-button>
+      </paper-icon-button>
 
       <paper-button raised
                     id="add-graph-btn"
-                    on-click="{{onAddButtonClicked}}"
-                    disabled?="{{!enableAddSeries}}">Add</paper-button>
+                    on-click="onAddButtonClicked"
+                    disabled$="{{!enableAddSeries}}">Add</paper-button>
     </div>
 
     <div id="suite-description"></div>
@@ -102,13 +103,64 @@ found in the LICENSE file.
   <script>
     'use strict';
 
-    Polymer('test-picker', {
+    Polymer({
 
-      TESTSUITE_LABEL: 'Test suite',
-      BOT_LABEL: 'Bot',
-      SUBTEST_LABEL: 'Subtest',
-      DEPRECATED_TAG: 'no new data',
-      UNMONITORED_TAG: 'unmonitored',
+      is: 'test-picker',
+      properties: {
+        SUBTEST_LABEL: {
+          type: String,
+          value: 'Subtest',
+        },
+        DEPRECATED_TAG: {
+          type: String,
+          value: 'no new data',
+        },
+        UNMONITORED_TAG: {
+          type: String,
+          value: 'unmonitored',
+        },
+        hasChart: { notify: true },
+        testSuites: {
+          notify: true,
+          observer: 'testSuitesChanged'
+        },
+
+        pageStateLoading: {
+          type: Boolean,
+          value: true
+        },
+
+        hasChart: {
+          type: Boolean,
+          value: false
+        },
+
+        enableAddSeries: {
+          type: Boolean,
+          value: false
+        },
+
+        selectionModels: {
+          type: Array,
+          value: () => ([
+            {
+              datalist: undefined,
+              placeholder: 'Test suite',
+            },
+            {
+              datalist: undefined,
+              placeholder: 'Bot',
+              disabled: true,
+              multi: true
+            }
+          ])
+        },
+
+        xsrfToken: { notify: true }
+
+      },
+
+      computeAnd: (x, y) => x && y,
 
       ready: function() {
         this.pageStateLoading = true;
@@ -116,21 +168,11 @@ found in the LICENSE file.
         this.enableAddSeries = false;
         this.selectedSuite = null;
         this.suiteDescription = null;
-        this.selectionModels = [
-          {
-            placeholder: this.TESTSUITE_LABEL,
-            datalist: this.getSuiteItems()
-          },
-          {
-            placeholder: this.BOT_LABEL,
-            disabled: true,
-            multi: true
-          }
-        ];
+        this.set('selectionModels.0.datalist', this.getSuiteItems());
       },
 
       testSuitesChanged: function() {
-        this.selectionModels[0].datalist = this.getSuiteItems();
+        this.set('selectionModels.0.datalist', this.getSuiteItems());
         this.getSelectionMenu(0).setDataList(this.selectionModels[0].datalist);
       },
 
@@ -206,7 +248,7 @@ found in the LICENSE file.
        * Handles dropdown menu select; updates the subsequent menu accordingly.
        */
       onDropdownSelect: function(event) {
-        var model = event.target.templateInstance.model;
+        var model = event.model;
         var boxIndex = model.index;
         if (boxIndex == 0) {
           this.updateTestSuiteDescription();
@@ -224,7 +266,7 @@ found in the LICENSE file.
         var descriptionElement = this.$['suite-description'];
         var suite = this.getSelectionMenu(0).value;
         if (!suite || !this.testSuites[suite]) {
-          descriptionElement.innerHTML = '';
+          Polymer.dom(descriptionElement).innerHTML = '';
           return;
         }
 
@@ -232,9 +274,9 @@ found in the LICENSE file.
         if (description) {
           var descriptionHTML = '<b>' + suite + '</b>: ';
           descriptionHTML += this.convertMarkdownLinks(description);
-          descriptionElement.innerHTML = descriptionHTML;
+          Polymer.dom(descriptionElement).innerHTML = descriptionHTML;
         } else {
-          descriptionElement.innerHTML = '';
+          Polymer.dom(descriptionElement).innerHTML = '';
         }
       },
 
@@ -252,7 +294,7 @@ found in the LICENSE file.
           this.sendSubtestRequest();
         } else {
           // Clear all subtest menus.
-          this.selectionModels.splice(2);
+          this.splice('selectionModels', 2);
         }
         this.updateAddButtonState();
       },
@@ -311,7 +353,7 @@ found in the LICENSE file.
         for (var i = startIndex; i < this.selectionModels.length; i++) {
           // Remove the rest of the menu if no subtestDict.
           if (!subtestDict || Object.keys(subtestDict).length == 0) {
-            this.selectionModels.splice(i);
+            this.splice('selectionModels', i);
             this.updateAddButtonState();
             return;
           }
@@ -330,10 +372,13 @@ found in the LICENSE file.
         // Check if we still need to add a subtest menu.
         if (subtestDict && Object.keys(subtestDict).length > 0) {
           var subtestItems = this.getSubtestItems(subtestDict);
-          this.selectionModels.push({
+          this.push('selectionModels', {
             placeholder: this.SUBTEST_LABEL,
             datalist: subtestItems
           });
+          Polymer.dom.flush();
+          var menu = this.getSelectionMenu(this.selectionModels.length - 1);
+          menu.setDataList(subtestItems);
         }
 
         this.updateAddButtonState();
@@ -386,13 +431,14 @@ found in the LICENSE file.
       },
 
       getSelectionMenu: function(index) {
-        return this.$.container.querySelector('#selection-' + index);
+        Polymer.dom.flush();
+        return Polymer.dom(this.$.container).children[index];
       },
 
       /**
        * Handler for drag start event for series drag button.
        */
-      onSeriesButtonDragStart: function(event, detail, sender) {
+      onSeriesButtonDragStart: function(event, detail) {
         var selection = this.getCurrentSelection();
         var testPathAndSelected = selection.getTestPathAndSelectedSeries();
         event.dataTransfer.setData('type', 'seriesdnd');
@@ -404,7 +450,7 @@ found in the LICENSE file.
       /**
        * Fires add event on 'Add' button clicked.
        */
-      onAddButtonClicked: function(event, detail, sender) {
+      onAddButtonClicked: function(event, detail) {
         this.fire('add');
       },
 
@@ -519,4 +565,4 @@ found in the LICENSE file.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

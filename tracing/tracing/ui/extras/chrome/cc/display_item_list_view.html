@@ -28,9 +28,10 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('tr-ui-e-chrome-cc-display-item-list-view');
+      Polymer.dom(this).classList.add(
+          'tr-ui-e-chrome-cc-display-item-list-view');
       this.displayItemDebugger_ = new tr.ui.e.chrome.cc.DisplayItemDebugger();
-      this.appendChild(this.displayItemDebugger_);
+      Polymer.dom(this).appendChild(this.displayItemDebugger_);
     },
 
     updateContents: function() {

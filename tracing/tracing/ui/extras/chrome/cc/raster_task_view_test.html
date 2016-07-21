@@ -58,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     analysisEl.brushingStateController = brushingStateController;
     brushingStateController.changeSelectionFromTimeline(selection);
 
-    assert.isDefined(analysisEl.querySelector(
+    assert.isDefined(Polymer.dom(analysisEl).querySelector(
         'tr-ui-e-chrome-cc-raster-task-view'));
 
     var sv = tr.b.findDeepElementMatching(

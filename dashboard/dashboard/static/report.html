@@ -7,6 +7,7 @@ found in the LICENSE file.
 <html>
 <head>
   <link type="text/css" rel="stylesheet" href="/dashboard/static/base.css">
+  <script src="/components/webcomponentsjs/webcomponents-lite.min.js"></script>
 
   <script src="/jquery/jquery-2.1.4.min.js"></script>
   <script src="/flot/jquery.flot.min.js"></script>
@@ -22,24 +23,6 @@ found in the LICENSE file.
   <link rel="import" href="/dashboard/elements/toplevel-toast.html">
 
   <title>Chrome Performance Dashboard</title>
-
-  <script>
-    'use strict';
-    // Workaround for document.contains returning false for elements in the
-    // shadow DOM. jQuery mouse events need it to return true for scrolling
-    // to be properly accounted for. For background, see
-    // https://github.com/Polymer/polymer/issues/162 and
-    // https://www.w3.org/Bugs/Public/show_bug.cgi?id=22141
-    jQuery.contains = function(doc, elem) {
-      var charts = document.getElementsByTagName('report-page')[0].charts;
-      for (var i = 0; i < charts.length; i++) {
-        if (charts[i].shadowRoot.contains(elem)) {
-          return true;
-        }
-      }
-      return doc.contains(elem);
-    };
-  </script>
 </head>
 <body>
   <nav-bar></nav-bar>

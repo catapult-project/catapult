@@ -44,7 +44,6 @@ _CATAPULT_BUG_ID_RE = re.compile(r'#[1-9]\d*')
 _RIETVELD_BUG_ID_RE = re.compile(r'[1-9]\d*')
 _RIETVELD_REPOSITORY_NAMES = frozenset({'chromium', 'v8'})
 
-
 def CheckChangeLogBug(input_api, output_api):
   # Show a presubmit message if there is no BUG= line.
   if input_api.change.BUG is None:

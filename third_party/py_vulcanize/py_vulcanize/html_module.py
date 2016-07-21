@@ -56,10 +56,7 @@ class HTMLModule(module.Module):
                                                    use_include_tags_for_scripts,
                                                    dir_for_include_tag_root)
     for inline_script in self._parser_results.inline_scripts:
-      if not HasPolymerCall(inline_script.stripped_contents):
-        js = inline_script.contents
-      else:
-        js = GetInlineScriptContentWithPolymerizingApplied(inline_script)
+      js = inline_script.contents
 
       js = js_utils.EscapeJSIfNeeded(js)
 
@@ -89,53 +86,6 @@ class HTMLModule(module.Module):
       ss = style_sheet.ParsedStyleSheet(
           self.loader, module_dirname, contents)
       ss.AppendDirectlyDependentFilenamesTo(dependent_filenames)
-
-
-def GetInlineScriptContentWithPolymerizingApplied(inline_script):
-  polymer_element_name = GetPolymerElementNameFromOpenTags(
-      inline_script.open_tags)
-  if polymer_element_name is None:
-    raise module.DepsException(
-        'Tagless Polymer() call must be made inside a <polymer-element> tag')
-
-  return UpdatePolymerCallsGivenElementName(
-      inline_script.stripped_contents, polymer_element_name)
-
-
-def GetPolymerElementNameFromOpenTags(open_tags):
-  found_tag = None
-  for tag in reversed(open_tags):
-    if tag.tag == 'polymer-element':
-      found_tag = tag
-      break
-
-  if not found_tag:
-    return None
-
-  return found_tag.attrs.get('name', None)
-
-_POLYMER_RE_1 = 'Polymer(\s*?)\((\s*?)\{'
-_POLYMER_RE_2 = 'Polymer(\s*?)\((\s*?)\)'
-
-
-def HasPolymerCall(js):
-  if re.search(_POLYMER_RE_1, js) is not None:
-    return True
-  if re.search(_POLYMER_RE_2, js) is not None:
-    return True
-  return False
-
-
-def UpdatePolymerCallsGivenElementName(js, polymer_element_name):
-  if re.search(_POLYMER_RE_1, js) is not None:
-    return re.sub(_POLYMER_RE_1,
-                  'Polymer\g<1>(\g<2>\'%s\', {' % polymer_element_name,
-                  js, 0, re.DOTALL)
-  if re.search(_POLYMER_RE_2, js) is not None:
-    return re.sub(_POLYMER_RE_2,
-                  'Polymer\g<1>(\g<2>\'%s\')' % polymer_element_name,
-                  js, 0, re.DOTALL)
-  assert False, 'This should never be reached'
 
 
 def _HRefToResource(

@@ -8,8 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-instant-event-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-single-instant-event-sub-view'>
   <template>
     <style>
     :host {
@@ -18,28 +17,30 @@ found in the LICENSE file.
     </style>
     <div id='content'></div>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+Polymer({
+  is: 'tr-ui-a-single-instant-event-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
 
-  Polymer({
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    set selection(selection) {
-      this.$.content.textContent = '';
-      var realView = document.createElement('tr-ui-a-single-event-sub-view');
-      realView.setSelectionWithoutErrorChecks(selection);
+  set selection(selection) {
+    Polymer.dom(this.$.content).textContent = '';
+    var realView = document.createElement('tr-ui-a-single-event-sub-view');
+    realView.setSelectionWithoutErrorChecks(selection);
 
-      this.$.content.appendChild(realView);
+    Polymer.dom(this.$.content).appendChild(realView);
 
-      this.currentSelection_ = selection;
-    },
+    this.currentSelection_ = selection;
+  },
 
-    get selection() {
-      return this.currentSelection_;
-    }
-  });
-  </script>
-</polymer-element>
+  get selection() {
+    return this.currentSelection_;
+  }
+});
+</script>

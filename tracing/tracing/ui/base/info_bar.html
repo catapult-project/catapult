@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name='tr-ui-b-info-bar' is='HTMLDivElement'>
+<dom-module id='tr-ui-b-info-bar'>
   <template>
     <style>
     :host {
@@ -34,49 +34,50 @@ found in the LICENSE file.
     <span id='message'></span>
     <span id='buttons'></span>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+Polymer({
+  is: 'tr-ui-b-info-bar',
 
-  Polymer({
-    ready: function() {
-      this.messageEl_ = this.$.message;
-      this.buttonsEl_ = this.$.buttons;
+  ready: function() {
+    this.messageEl_ = this.$.message;
+    this.buttonsEl_ = this.$.buttons;
 
-      this.message = '';
-      this.visible = false;
-    },
+    this.message = '';
+    this.visible = false;
+  },
 
-    get message() {
-      return this.messageEl_.textContent;
-    },
+  get message() {
+    return Polymer.dom(this.messageEl_).textContent;
+  },
 
-    set message(message) {
-      this.messageEl_.textContent = message;
-    },
+  set message(message) {
+    Polymer.dom(this.messageEl_).textContent = message;
+  },
 
-    get visible() {
-      return !this.classList.contains('info-bar-hidden');
-    },
+  get visible() {
+    return !Polymer.dom(this).classList.contains('info-bar-hidden');
+  },
 
-    set visible(visible) {
-      if (visible)
-        this.classList.remove('info-bar-hidden');
-      else
-        this.classList.add('info-bar-hidden');
-    },
+  set visible(visible) {
+    if (visible)
+      Polymer.dom(this).classList.remove('info-bar-hidden');
+    else
+      Polymer.dom(this).classList.add('info-bar-hidden');
+  },
 
-    removeAllButtons: function() {
-      this.buttonsEl_.textContent = '';
-    },
+  removeAllButtons: function() {
+    Polymer.dom(this.buttonsEl_).textContent = '';
+  },
 
-    addButton: function(text, clickCallback) {
-      var button = document.createElement('button');
-      button.textContent = text;
-      button.addEventListener('click', clickCallback);
-      this.buttonsEl_.appendChild(button);
-      return button;
-    }
-  });
-  </script>
-</polymer-element>
+  addButton: function(text, clickCallback) {
+    var button = document.createElement('button');
+    Polymer.dom(button).textContent = text;
+    button.addEventListener('click', clickCallback);
+    Polymer.dom(this.buttonsEl_).appendChild(button);
+    return button;
+  }
+});
+</script>

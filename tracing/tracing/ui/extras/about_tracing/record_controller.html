@@ -72,18 +72,18 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     var bufferPercentFullDiv;
     function startTracing() {
       progressDlg = new tr.ui.b.Overlay();
-      progressDlg.textContent = 'Recording...';
+      Polymer.dom(progressDlg).textContent = 'Recording...';
       progressDlg.userCanClose = false;
 
       bufferPercentFullDiv = document.createElement('div');
-      progressDlg.appendChild(bufferPercentFullDiv);
+      Polymer.dom(progressDlg).appendChild(bufferPercentFullDiv);
 
       var stopButton = document.createElement('button');
-      stopButton.textContent = 'Stop';
+      Polymer.dom(stopButton).textContent = 'Stop';
       progressDlg.clickStopButton = function() {
         stopButton.click();
       };
-      progressDlg.appendChild(stopButton);
+      Polymer.dom(progressDlg).appendChild(stopButton);
 
       var recordingOptions = {
         categoryFilter: selectionDlg.categoryFilter(),
@@ -147,8 +147,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
 
       percent_full = Math.round(100 * parseFloat(percent_full));
       var newText = 'Buffer usage: ' + percent_full + '%';
-      if (bufferPercentFullDiv.textContent != newText)
-        bufferPercentFullDiv.textContent = newText;
+      if (Polymer.dom(bufferPercentFullDiv).textContent != newText)
+        Polymer.dom(bufferPercentFullDiv).textContent = newText;
 
       window.setTimeout(getBufferPercentFull, 500);
     }

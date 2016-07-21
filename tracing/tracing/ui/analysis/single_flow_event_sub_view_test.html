@@ -44,7 +44,8 @@ tr.b.unittest.testSuite(function() {
     selection.push(model.fe);
     assert.equal(selection.length, 1);
 
-    var subView = document.createElement('tr-ui-a-single-flow-event-sub-view');
+    var subView = document.createElement('tr-ui-a-single-event-sub-view');
+    subView.isFlow = true;
     subView.selection = selection;
     this.addHTMLOutput(subView);
   });

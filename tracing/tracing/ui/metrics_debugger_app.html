@@ -14,33 +14,33 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/file.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name="tracing-ui-metrics-debugger-app">
-  <template>
-    <style>
-      pre {
-        overflow: auto;
-      }
-      #bar {
-        display: flex;
-        flex-direction: row;
-        padding: 1px 6px;
-      }
-    </style>
+<dom-module id='tracing-ui-metrics-debugger-app'>
+  <style>
+    pre {
+      overflow: auto;
+    }
+    #bar {
+      display: flex;
+      flex-direction: row;
+      padding: 1px 6px;
+    }
+  </style>
 
-    <top-left-controls id="top_left_controls"></top-left-controls>
-    <input id="load_trace" type="file"/>
-    <button id="run_metric">Run metric</button>
-    <div id="trace_info"></div>
-    <pre id="map_results">
-    </pre>
+  <top-left-controls id="top_left_controls"></top-left-controls>
+  <input id="load_trace" type="file"/>
+  <button id="run_metric">Run metric</button>
+  <div id="trace_info"></div>
+  <pre id="map_results">
+  </pre>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui', function() {
-  Polymer('tracing-ui-metrics-debugger-app', {
+  Polymer({
+    is: 'tracing-ui-metrics-debugger-app',
     created: function() {
       this.metrics_ = [];
       tr.metrics.MetricRegistry.getAllRegisteredTypeInfos().forEach(
@@ -62,7 +62,8 @@ tr.exportTo('tr.ui', function() {
           this.settingsKey_,
           this.metrics_[0].value,
           this.metrics_);
-      this.$.top_left_controls.appendChild(metricSelector);
+      Polymer.dom(this.$.top_left_controls).appendChild(
+          metricSelector);
 
       this.$.load_trace.addEventListener('change', function(event) {
         var file = event.target.files[0];
@@ -85,8 +86,9 @@ tr.exportTo('tr.ui', function() {
       var options = {metric: this.currentMetricName_};
       try {
         tr.metrics.metricMapFunction(result, model, options);
-        this.$.map_results.textContent = 'Metric result:\n' +
-            JSON.stringify(result.asDict(), undefined, 2);
+        this.set(
+            '$.map_results.textContent',
+            'Metric result:\n' + JSON.stringify(result.asDict(), undefined, 2));
       } catch (err) {
         tr.ui.b.Overlay.showError('Error running metric:\n' + err.stack);
         console.error(err);
@@ -117,8 +119,8 @@ tr.exportTo('tr.ui', function() {
               filename: filename,
               model: model,
             };
-            this.$.trace_info.textContent = 'Trace file ' + filename +
-                ' is loaded.';
+            Polymer.dom(this.$.trace_info).textContent = 'Trace file ' +
+                filename + ' is loaded.';
           }.bind(this),
           function(err) {
             tr.ui.b.Overlay.showError('Trace import error: ' + err);

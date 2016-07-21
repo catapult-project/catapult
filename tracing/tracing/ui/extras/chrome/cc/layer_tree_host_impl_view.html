@@ -9,11 +9,11 @@ found in the LICENSE file.
       href="/tracing/ui/extras/chrome/cc/layer_tree_host_impl_view.css">
 
 <link rel="import" href="/tracing/extras/chrome/cc/layer_tree_host_impl.html">
-<link rel="import" href="/tracing/ui/extras/chrome/cc/layer_picker.html">
-<link rel="import" href="/tracing/ui/extras/chrome/cc/layer_view.html">
 <link rel="import" href="/tracing/extras/chrome/cc/tile.html">
 <link rel="import" href="/tracing/ui/analysis/object_snapshot_view.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
+<link rel="import" href="/tracing/ui/extras/chrome/cc/layer_picker.html">
+<link rel="import" href="/tracing/ui/extras/chrome/cc/layer_view.html">
 
 <script>
 'use strict';
@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('tr-ui-e-chrome-cc-lthi-s-view');
+      Polymer.dom(this).classList.add('tr-ui-e-chrome-cc-lthi-s-view');
 
       this.selection_ = undefined;
 
@@ -48,9 +48,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.dragHandle_.horizontal = false;
       this.dragHandle_.target = this.layerView_;
 
-      this.appendChild(this.layerPicker_);
-      this.appendChild(this.dragHandle_);
-      this.appendChild(this.layerView_);
+      Polymer.dom(this).appendChild(this.layerPicker_);
+      Polymer.dom(this).appendChild(this.dragHandle_);
+      Polymer.dom(this).appendChild(this.layerView_);
 
       // Make sure we have the current values from layerView_ and layerPicker_,
       // since those might have been created before we added the listener.

@@ -21,7 +21,7 @@ tr.exportTo('tr.ui.b', function() {
   function decorate(source, constr) {
     var elements;
     if (typeof source == 'string')
-      elements = tr.doc.querySelectorAll(source);
+      elements = Polymer.dom(tr.doc).querySelectorAll(source);
     else
       elements = [source];
 
@@ -152,10 +152,10 @@ tr.exportTo('tr.ui.b', function() {
       return false;
 
     var cur = el;
-    while (cur.parentNode) {
+    while (Polymer.dom(cur).parentNode) {
       if (cur == potentialParent)
         return true;
-      cur = cur.parentNode;
+      cur = Polymer.dom(cur).parentNode;
     }
     return false;
   };

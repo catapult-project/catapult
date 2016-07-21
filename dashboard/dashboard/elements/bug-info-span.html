@@ -11,27 +11,51 @@ TODO(qyearsley): Expand this element and use it in chart-tooltip.
 
 <link rel="import" href="/dashboard/elements/alert-remove-box.html">
 
-<polymer-element name="bug-info-span">
+<dom-module id="bug-info-span">
   <template>
     <a href="/group_report?bug_id={{bugId}}"
-       hidden?="{{!(bugId > 0)}}">{{bugId}}</a>
-    <span hidden?="{{bugId != -1}}">Invalid</span>
-    <span hidden?="{{bugId != -2}}">Ignored</span>
-    <span hidden?="{{!recovered}}">Recovered</span>
-    <alert-remove-box hidden?="{{!bugId}}"
+       hidden$="{{!computeIsPositive(bugId)}}">{{bugId}}</a>
+     <span hidden$="{{computeIsPositive(bugId)}}">{{statusString()}}</span>
+    <alert-remove-box hidden$="{{!bugId}}"
                       key="{{key}}"
-                      xsrfToken="{{xsrfToken}}">
+                      xsrf-token="{{xsrfToken}}">
     </alert-remove-box>
   </template>
   <script>
     'use strict';
-    Polymer('bug-info-span', {
-      publish: {
-        bugId: null,
-        xsrfToken: null,
-        recovered: false,
-        key: null
+    Polymer({
+      is: 'bug-info-span',
+      properties: {
+        bugId: {
+          type: Number,
+          value: 0
+        },
+        xsrfToken: {
+          value: null,
+          notify: true
+        },
+        recovered: {
+          type: Boolean,
+          value: false
+        },
+        key: {
+          value: null,
+          notify: true
+        }
+      },
+
+      computeIsPositive: n => n > 0,
+
+      statusString: function() {
+        if (this.bugId == -1)
+          return 'Invalid';
+        else if (this.bugId == -2)
+          return 'Ignored';
+        else if (this.recovered)
+          return 'Recovered';
+        else
+          return '';
       }
     });
   </script>
-</polymer-element>
+</dom-module>

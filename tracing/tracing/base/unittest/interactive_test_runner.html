@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/unittest.html">
+<link rel="import" href="/tracing/base/unittest/html_test_results.html">
 <link rel="import" href="/tracing/base/unittest/suite_loader.html">
 <link rel="import" href="/tracing/base/unittest/test_runner.html">
-<link rel="import" href="/tracing/base/unittest/html_test_results.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 
 <style>
@@ -162,7 +162,7 @@ tr.exportTo('tr.b.unittest', function() {
   var InteractiveTestRunner = tr.ui.b.define('x-base-interactive-test-runner');
 
   InteractiveTestRunner.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.allTests_ = undefined;
@@ -184,12 +184,12 @@ tr.exportTo('tr.b.unittest', function() {
       this.onTestFlaky_ = this.onTestFlaky_.bind(this);
       this.onTestPassed_ = this.onTestPassed_.bind(this);
 
-      this.appendChild(tr.ui.b.instantiateTemplate(
+      Polymer.dom(this).appendChild(tr.ui.b.instantiateTemplate(
           '#x-base-interactive-test-runner-template', THIS_DOC));
 
-      this.querySelector(
+      Polymer.dom(this).querySelector(
           'input[name=test-type-to-run][value=unit]').checked = true;
-      var testTypeToRunEls = tr.b.asArray(this.querySelectorAll(
+      var testTypeToRunEls = tr.b.asArray(Polymer.dom(this).querySelectorAll(
           'input[name=test-type-to-run]'));
 
       testTypeToRunEls.forEach(
@@ -198,7 +198,7 @@ tr.exportTo('tr.b.unittest', function() {
                 'click', this.onTestTypeToRunClick_.bind(this));
           }, this);
 
-      var shortFormatEl = this.querySelector('#short-format');
+      var shortFormatEl = Polymer.dom(this).querySelector('#short-format');
       shortFormatEl.checked = this.shortFormat_;
       shortFormatEl.addEventListener(
           'click', this.onShortFormatClick_.bind(this));
@@ -209,7 +209,8 @@ tr.exportTo('tr.b.unittest', function() {
       this.__defineSetter__(
           'title',
           function(title) {
-            this.querySelector('#title').textContent = title;
+            Polymer.dom(Polymer.dom(this).querySelector('#title')).textContent =
+                title;
           });
     },
 
@@ -227,17 +228,17 @@ tr.exportTo('tr.b.unittest', function() {
     },
     set testLinks(testLinks) {
       this.testLinks_ = testLinks;
-      var linksEl = this.querySelector('#links');
-      linksEl.textContent = '';
+      var linksEl = Polymer.dom(this).querySelector('#links');
+      Polymer.dom(linksEl).textContent = '';
       this.testLinks_.forEach(function(l) {
         var link = document.createElement('a');
         link.href = l.linkPath;
-        link.textContent = l.title;
+        Polymer.dom(link).textContent = l.title;
 
         var li = document.createElement('li');
-        li.appendChild(link);
+        Polymer.dom(li).appendChild(link);
 
-        linksEl.appendChild(li);
+        Polymer.dom(linksEl).appendChild(li);
       }, this);
     },
 
@@ -258,7 +259,7 @@ tr.exportTo('tr.b.unittest', function() {
 
     set shortFormat(shortFormat) {
       this.shortFormat_ = shortFormat;
-      this.querySelector('#short-format').checked = shortFormat;
+      Polymer.dom(this).querySelector('#short-format').checked = shortFormat;
       if (this.results_)
         this.results_.shortFormat = shortFormat;
       if (!this.suppressStateChange_)
@@ -266,7 +267,8 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onShortFormatClick_: function(e) {
-      this.shortFormat_ = this.querySelector('#short-format').checked;
+      this.shortFormat_ =
+          Polymer.dom(this).querySelector('#short-format').checked;
       this.updateShortFormResultsDisplay_();
       this.updateResultsGivenShortFormat_();
       if (!this.suppressStateChange_)
@@ -275,7 +277,8 @@ tr.exportTo('tr.b.unittest', function() {
 
     updateShortFormResultsDisplay_: function() {
       var display = this.shortFormat_ ? '' : 'none';
-      this.querySelector('#shortform-results').style.display = display;
+      Polymer.dom(this).querySelector('#shortform-results').style.display =
+          display;
     },
 
     updateResultsGivenShortFormat_: function() {
@@ -309,7 +312,7 @@ tr.exportTo('tr.b.unittest', function() {
         default:
           throw new Error('Invalid test type to run: ' + testTypeToRun);
       }
-      this.querySelector(sel).checked = true;
+      Polymer.dom(this).querySelector(sel).checked = true;
       this.scheduleRerun_();
       if (!this.suppressStateChange_)
         tr.b.dispatchSimpleEvent(this, 'statechange');
@@ -336,31 +339,33 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     onTestPassed_: function() {
-      this.querySelector('#shortform-results').
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results')).
           appendChild(document.createTextNode('.'));
     },
 
     onTestFailed_: function() {
       var span = document.createElement('span');
-      span.classList.add('fail');
-      span.appendChild(document.createTextNode('F'));
-      this.querySelector('#shortform-results').appendChild(span);
+      Polymer.dom(span).classList.add('fail');
+      Polymer.dom(span).appendChild(document.createTextNode('F'));
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
+          .appendChild(span);
     },
 
     onTestFlaky_: function() {
       var span = document.createElement('span');
-      span.classList.add('flaky');
-      span.appendChild(document.createTextNode('~'));
-      this.querySelector('#shortform-results').appendChild(span);
+      Polymer.dom(span).classList.add('flaky');
+      Polymer.dom(span).appendChild(document.createTextNode('~'));
+      Polymer.dom(Polymer.dom(this).querySelector('#shortform-results'))
+          .appendChild(span);
     },
 
     onResultsStatsChanged_: function() {
-      var statsEl = this.querySelector('#stats');
+      var statsEl = Polymer.dom(this).querySelector('#stats');
       var stats = this.results_.getStats();
       var numTestsOverall = this.runner_.testCases.length;
       var numTestsThatRan = stats.numTestsThatPassed +
           stats.numTestsThatFailed + stats.numFlakyTests;
-      statsEl.innerHTML =
+      Polymer.dom(statsEl).innerHTML =
           '<span>' + numTestsThatRan + '/' + numTestsOverall +
           '</span> tests run, ' +
           '<span class="unittest-failed">' + stats.numTestsThatFailed +
@@ -388,7 +393,8 @@ tr.exportTo('tr.b.unittest', function() {
     },
 
     beginRunning_: function() {
-      var resultsContainer = this.querySelector('#results-container');
+      var resultsContainer =
+          Polymer.dom(this).querySelector('#results-container');
       if (this.results_) {
         this.results_.removeEventListener('testpassed', this.onTestPassed_);
         this.results_.removeEventListener('testfailed', this.onTestFailed_);
@@ -396,7 +402,7 @@ tr.exportTo('tr.b.unittest', function() {
         this.results_.removeEventListener('statschange',
                                           this.onResultsStatsChanged_);
         delete this.results_.getHRefForTestCase;
-        resultsContainer.removeChild(this.results_);
+        Polymer.dom(resultsContainer).removeChild(this.results_);
       }
 
       this.results_ = new tr.b.unittest.HTMLTestResults();
@@ -410,7 +416,7 @@ tr.exportTo('tr.b.unittest', function() {
       this.results_.addEventListener('testflaky', this.onTestFlaky_);
       this.results_.addEventListener('statschange',
                                      this.onResultsStatsChanged_);
-      resultsContainer.appendChild(this.results_);
+      Polymer.dom(resultsContainer).appendChild(this.results_);
 
       var tests = this.allTests_.filter(function(test) {
         var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
@@ -570,9 +576,14 @@ tr.exportTo('tr.b.unittest', function() {
       p = p.then(
         function() {
           hideLoadingOverlay();
-          Polymer.whenReady(function() {
+          // FIXME
+          window.addEventListener('WebComponentsReady', function() {
             runTests(loader, state);
           });
+          runTests(loader, state);
+          // Polymer.whenReady(function() {
+          //   runTests(loader, state);
+          // });
         },
         function(err) {
           hideLoadingOverlay();
@@ -600,14 +611,15 @@ tr.exportTo('tr.b.unittest', function() {
       var element = document.createElement('div');
       element.style.flex = '1 1 auto';
       element.style.overflow = 'auto';
-      overlay.appendChild(element);
+      Polymer.dom(overlay).appendChild(element);
 
-      element.textContent = 'Loading tests...';
-      document.body.appendChild(overlay);
+      Polymer.dom(element).textContent = 'Loading tests...';
+      Polymer.dom(document.body).appendChild(overlay);
     }
     function hideLoadingOverlay() {
-      var overlay = document.body.querySelector('#tests-loading-overlay');
-      document.body.removeChild(overlay);
+      var overlay = Polymer.dom(document.body).querySelector(
+          '#tests-loading-overlay');
+      Polymer.dom(document.body).removeChild(overlay);
     }
 
     function updateTitle(state) {
@@ -628,7 +640,8 @@ tr.exportTo('tr.b.unittest', function() {
       if (state.shortFormat)
         title += '(s)';
       document.title = title;
-      var runner = document.querySelector('x-base-interactive-test-runner');
+      var runner = Polymer.dom(document).querySelector(
+          'x-base-interactive-test-runner');
       if (runner)
         runner.title = title;
     }
@@ -639,7 +652,7 @@ tr.exportTo('tr.b.unittest', function() {
       runner.style.height = '100%';
       runner.testLinks = runnerConfig.testLinks;
       runner.allTests = loader.getAllTests();
-      document.body.appendChild(runner);
+      Polymer.dom(document.body).appendChild(runner);
 
       runner.setState(state);
       updateTitle(state);

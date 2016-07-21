@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<polymer-element name="tr-ui-e-drive-comment-element" attributes="comment">
+<dom-module id='tr-ui-e-drive-comment-element'>
   <template>
     <style>
     :host {
@@ -56,16 +56,29 @@ found in the LICENSE file.
           <div id="comment-date">{{ createdDate }}</div>
         </div>
       </div>
-      <div id="comment-content">{{ comment.anchor ? '&#9875;&nbsp;' : '' }}
+      <div id="comment-content">{{_computeCommentContentPrefix( comment)}}
           {{ comment.content }}</div>
     </div>
   </template>
-  <script>
-  'use strict';
-  Polymer({
-    commentChanged: function() {
-      this.createdDate = new Date(this.comment.createdDate).toLocaleString();
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-ui-e-drive-comment-element',
+
+  properties: {
+    comment: {
+      type: String,
+      observer: '_commentChanged'
     }
-  });
-  </script>
-</polymer-element>
+  },
+
+  _commentChanged: function() {
+    this.createdDate = new Date(this.comment.createdDate).toLocaleString();
+  },
+
+  _computeCommentContentPrefix: function(comment) {
+    return comment.anchor ? '&#9875;&nbsp;' : '';
+  }
+});
+</script>

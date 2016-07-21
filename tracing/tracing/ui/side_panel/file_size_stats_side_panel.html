@@ -10,12 +10,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name='tr-ui-sp-file-size-stats-side-panel'
-    extends='tr-ui-side-panel'>
+<dom-module id='tr-ui-sp-file-size-stats-side-panel'>
   <template>
     <style>
     :host {
@@ -49,13 +49,16 @@ found in the LICENSE file.
       <tr-ui-b-grouping-table id="table"></tr-ui-b-grouping-table>
     </table-container>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
 (function() {
 
-  Polymer('tr-ui-sp-file-size-stats-side-panel', {
+  Polymer({
+    is: 'tr-ui-sp-file-size-stats-side-panel',
+    behaviors: [tr.ui.behaviors.SidePanel],
+
     ready: function() {
       this.model_ = undefined;
       this.selection_ = new tr.model.EventSet();
@@ -133,7 +136,7 @@ found in the LICENSE file.
           title: 'Title',
           value: function(row) {
             var titleEl = document.createElement('span');
-            titleEl.textContent = row.title;
+            Polymer.dom(titleEl).textContent = row.title;
             titleEl.style.textOverflow = 'ellipsis';
             return titleEl;
           },
@@ -207,6 +210,10 @@ found in the LICENSE file.
       }
       this.$.table.rebuild();
     }
+  });
+
+  tr.ui.side_panel.SidePanelRegistry.register(function() {
+    return document.createElement('tr-ui-sp-file-size-stats-side-panel');
   });
 })();
 </script>

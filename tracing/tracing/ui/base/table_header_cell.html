@@ -8,8 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 
-<polymer-element name="tr-ui-b-table-header-cell"
-    on-tap="onTap_">
+<dom-module id='tr-ui-b-table-header-cell'>
   <template>
   <style>
     :host {
@@ -35,11 +34,17 @@ found in the LICENSE file.
 
     <span id="title"></span><side-element id="side"></side-element>
   </template>
-
+</dom-module>
   <script>
   'use strict';
 
   Polymer({
+    is: 'tr-ui-b-table-header-cell',
+
+    listeners: {
+      'tap': 'onTap_'
+    },
+
     created: function() {
       this.tapCallback_ = undefined;
       this.cellTitle_ = '';
@@ -52,7 +57,7 @@ found in the LICENSE file.
           tr.ui.b.asHTMLOrTextNode(this.cellTitle_, this.ownerDocument);
 
       this.$.title.innerText = '';
-      this.$.title.appendChild(titleNode);
+      Polymer.dom(this.$.title).appendChild(titleNode);
     },
 
     get cellTitle() {
@@ -60,15 +65,15 @@ found in the LICENSE file.
     },
 
     clearSideContent: function() {
-      this.$.side.textContent = '';
+      Polymer.dom(this.$.side).textContent = '';
     },
 
     set sideContent(content) {
-      this.$.side.textContent = content;
+      Polymer.dom(this.$.side).textContent = content;
     },
 
     get sideContent() {
-      return this.$.side.textContent;
+      return Polymer.dom(this.$.side).textContent;
     },
 
     set tapCallback(callback) {
@@ -86,4 +91,3 @@ found in the LICENSE file.
     }
   });
 </script>
-</polymer-element>

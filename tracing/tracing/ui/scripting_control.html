@@ -7,8 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/extras/tquery/tquery.html">
 
-<polymer-element
-    name="tr-ui-scripting-control">
+<dom-module id='tr-ui-scripting-control'>
   <template>
     <style>
       :host {
@@ -64,128 +63,130 @@ found in the LICENSE file.
     </style>
 
     <div id="root" class="root hidden" tabindex="0"
-         on-focus="{{ onConsoleFocus }}">
+         on-focus="onConsoleFocus">
       <div id='history'></div>
       <div id='prompt'
-           on-keypress="{{ promptKeyPress }}"
-           on-keydown="{{ promptKeyDown }}"
-           on-blur="{{ onConsoleBlur }}"></div>
+           on-keypress="promptKeyPress"
+           on-keydown="promptKeyDown"
+           on-blur="onConsoleBlur"></div>
     </div>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+Polymer({
+  is: 'tr-ui-scripting-control',
 
-  Polymer({
-    _isEnterKey: function(event) {
-      // Check if in IME.
-      // Remove keyIdentifier after reference build rolls past M51 when
-      // KeyboardEvent.key was added.
-      return event.keyCode !== 229 &&
-        (event.key === 'Enter' || event.keyIdentifier === 'Enter');
-    },
+  _isEnterKey: function(event) {
+    // Check if in IME.
+    // Remove keyIdentifier after reference build rolls past M51 when
+    // KeyboardEvent.key was added.
+    return event.keyCode !== 229 &&
+      (event.key === 'Enter' || event.keyIdentifier === 'Enter');
+  },
 
-    _setFocused: function(focused) {
-      var promptEl = this.$.prompt;
-      if (focused) {
-        promptEl.focus();
-        this.$.root.classList.add('focused');
-        // Move cursor to the end of any existing text.
-        if (promptEl.innerText.length > 0) {
-          var sel = window.getSelection();
-          sel.collapse(promptEl.firstChild, promptEl.innerText.length);
-        }
-      } else {
-        promptEl.blur();
-        this.$.root.classList.remove('focused');
-        // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
-        // keyboard focus.
-        var parent = promptEl.parentElement;
-        var nextEl = promptEl.nextSibling;
-        promptEl.remove();
-        parent.insertBefore(promptEl, nextEl);
+  _setFocused: function(focused) {
+    var promptEl = this.$.prompt;
+    if (focused) {
+      promptEl.focus();
+      Polymer.dom(this.$.root).classList.add('focused');
+      // Move cursor to the end of any existing text.
+      if (promptEl.innerText.length > 0) {
+        var sel = window.getSelection();
+        sel.collapse(
+            Polymer.dom(promptEl).firstChild, promptEl.innerText.length);
       }
-    },
-
-    onConsoleFocus: function(e) {
-      e.stopPropagation();
-      this._setFocused(true);
-    },
-
-    onConsoleBlur: function(e) {
-      e.stopPropagation();
-      this._setFocused(false);
-    },
-
-    promptKeyDown: function(e) {
-      e.stopPropagation();
-      if (!this._isEnterKey(e))
-        return;
-      e.preventDefault();
-      var promptEl = this.$.prompt;
-      var command = promptEl.innerText;
-      if (command.length === 0)
-        return;
-      promptEl.innerText = '';
-      this.addLine_(String.fromCharCode(187) + ' ' + command);
-
-      try {
-        var result = this.controller_.executeCommand(command);
-      } catch (e) {
-        result = e.stack || e.stackTrace;
-      }
-
-      if (result instanceof tr.e.tquery.TQuery) {
-        // TODO(skyostil): Show a cool spinner.
-        result.ready().then(function(selection) {
-          this.addLine_(selection.length + ' matches');
-          this.controller_.brushingStateController.
-              showScriptControlSelection(selection);
-        }.bind(this));
-      } else {
-        this.addLine_(result);
-      }
-      promptEl.scrollIntoView();
-    },
-
-    addLine_: function(line) {
-      var historyEl = this.$.history;
-      if (historyEl.innerText.length !== 0)
-        historyEl.innerText += '\n';
-      historyEl.innerText += line;
-    },
-
-    promptKeyPress: function(e) {
-      e.stopPropagation();
-    },
-
-    toggleVisibility: function() {
-      var root = this.$.root;
-      if (!this.visible) {
-        root.classList.remove('hidden');
-        this._setFocused(true);
-      } else {
-        root.classList.add('hidden');
-        this._setFocused(false);
-      }
-    },
-
-    get hasFocus() {
-      return this === document.activeElement;
-    },
-
-    get visible() {
-      var root = this.$.root;
-      return !root.classList.contains('hidden');
-    },
-
-    get controller() {
-      return this.controller_;
-    },
-
-    set controller(c) {
-      this.controller_ = c;
+    } else {
+      promptEl.blur();
+      Polymer.dom(this.$.root).classList.remove('focused');
+      // Workaround for crbug.com/89026 to ensure the prompt doesn't retain
+      // keyboard focus.
+      var parent = promptEl.parentElement;
+      var nextEl = Polymer.dom(promptEl).nextSibling;
+      promptEl.remove();
+      Polymer.dom(parent).insertBefore(promptEl, nextEl);
     }
-  });
-  </script>
-</polymer-element>
+  },
+
+  onConsoleFocus: function(e) {
+    e.stopPropagation();
+    this._setFocused(true);
+  },
+
+  onConsoleBlur: function(e) {
+    e.stopPropagation();
+    this._setFocused(false);
+  },
+
+  promptKeyDown: function(e) {
+    e.stopPropagation();
+    if (!this._isEnterKey(e))
+      return;
+    e.preventDefault();
+    var promptEl = this.$.prompt;
+    var command = promptEl.innerText;
+    if (command.length === 0)
+      return;
+    promptEl.innerText = '';
+    this.addLine_(String.fromCharCode(187) + ' ' + command);
+
+    try {
+      var result = this.controller_.executeCommand(command);
+    } catch (e) {
+      result = e.stack || e.stackTrace;
+    }
+
+    if (result instanceof tr.e.tquery.TQuery) {
+      // TODO(skyostil): Show a cool spinner.
+      result.ready().then(function(selection) {
+        this.addLine_(selection.length + ' matches');
+        this.controller_.brushingStateController.
+            showScriptControlSelection(selection);
+      }.bind(this));
+    } else {
+      this.addLine_(result);
+    }
+    promptEl.scrollIntoView();
+  },
+
+  addLine_: function(line) {
+    var historyEl = this.$.history;
+    if (historyEl.innerText.length !== 0)
+      historyEl.innerText += '\n';
+    historyEl.innerText += line;
+  },
+
+  promptKeyPress: function(e) {
+    e.stopPropagation();
+  },
+
+  toggleVisibility: function() {
+    var root = this.$.root;
+    if (!this.visible) {
+      Polymer.dom(root).classList.remove('hidden');
+      this._setFocused(true);
+    } else {
+      Polymer.dom(root).classList.add('hidden');
+      this._setFocused(false);
+    }
+  },
+
+  get hasFocus() {
+    return this === document.activeElement;
+  },
+
+  get visible() {
+    var root = this.$.root;
+    return !Polymer.dom(root).classList.contains('hidden');
+  },
+
+  get controller() {
+    return this.controller_;
+  },
+
+  set controller(c) {
+    this.controller_ = c;
+  }
+});
+</script>

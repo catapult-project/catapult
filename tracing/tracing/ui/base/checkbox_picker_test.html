@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
       ];
     cp.selectCheckbox('Toyota');
     cp.selectCheckbox('Tesla');
-    container1.appendChild(cp);
+    Polymer.dom(container1).appendChild(cp);
     this.addHTMLOutput(container1);
     cp.unselectCheckbox('Tesla');
     assert.deepEqual(cp.checkedKeys, ['Toyota']);
@@ -93,7 +93,7 @@ tr.b.unittest.testSuite(function() {
         {key: 'Honda', label: 'I want to drive Honda'},
         {key: 'Tesla', label: 'I want to drive electric car'},
       ];
-    container2.appendChild(cp2);
+    Polymer.dom(container2).appendChild(cp2);
     this.addHTMLOutput(container2);
     assert.deepEqual(cp2.checkedKeys, ['Toyota']);
   });
@@ -110,7 +110,7 @@ tr.b.unittest.testSuite(function() {
     cp.settingsKey = 'checkbox-picker-test-one';
     cp.selectCheckbox('Toyota');
     cp.selectCheckbox('Tesla');
-    container1.appendChild(cp);
+    Polymer.dom(container1).appendChild(cp);
     this.addHTMLOutput(container1);
     assert.deepEqual(cp.checkedKeys.sort(), ['Tesla', 'Toyota']);
 
@@ -126,7 +126,7 @@ tr.b.unittest.testSuite(function() {
         {key: 'Honda', label: 'I want to drive Honda'},
         {key: 'Tesla', label: 'I want to drive electric car'},
       ];
-    container2.appendChild(cp2);
+    Polymer.dom(container2).appendChild(cp2);
     this.addHTMLOutput(container2);
     cp2.settingsKey = 'checkbox-picker-test-one';
     assert.deepEqual(cp2.checkedKeys.sort(), ['Tesla', 'Toyota']);

@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 
-<polymer-element name="tr-ui-b-dropdown">
+<dom-module id='tr-ui-b-dropdown'>
   <template>
     <style>
     :host {
@@ -57,102 +57,104 @@ found in the LICENSE file.
     }
     </style>
     <tr-ui-b-toolbar-button id="outer"
-        on-keydown="{{ onOuterKeyDown_ }}"
-        on-click="{{ onOuterClick_ }}">
+        on-keydown="onOuterKeyDown_"
+        on-click="onOuterClick_">
       <div id="icon">&#9881;</div>
       <div id="state">&#9662;</div>
     </tr-ui-b-toolbar-button>
     <dialog id="dialog"
-        on-click="{{ onDialogClick_ }}"
-        on-cancel="{{ onDialogCancel_ }}">
+        on-click="onDialogClick_"
+        on-cancel="onDialogCancel_">
       <div id="dialog-frame">
         <content></content>
       </div>
     </dialog>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.$.outer.tabIndex = 0;
-    },
+Polymer({
+  is: 'tr-ui-b-dropdown',
 
-    get iconElement() {
-      return this.$.icon;
-    },
+  ready: function() {
+    this.$.outer.tabIndex = 0;
+  },
 
-    onOuterKeyDown_: function(e) {
-      if (e.keyCode === ' '.charCodeAt(0)) {
-        this.toggle_();
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    },
+  get iconElement() {
+    return this.$.icon;
+  },
 
-    onOuterClick_: function(e) {
-      var or = this.$.outer.getBoundingClientRect();
-      var inside = true;
-      inside &= e.clientX >= or.left;
-      inside &= e.clientX < or.right;
-      inside &= e.clientY >= or.top;
-      inside &= e.clientY < or.bottom;
-      if (!inside)
-        return;
-
-      e.preventDefault();
+  onOuterKeyDown_: function(e) {
+    if (e.keyCode === ' '.charCodeAt(0)) {
       this.toggle_();
-    },
-
-    toggle_: function() {
-      if (!this.isOpen)
-        this.show();
-      else
-        this.close();
-    },
-
-    show: function() {
-      if (this.isOpen)
-        return;
-
-      this.$.outer.classList.add('open');
-
-      var ddr = this.$.outer.getBoundingClientRect();
-      var rW = Math.max(ddr.width, 150);
-      this.$.dialog.style.minWidth = rW + 'px';
-      this.$.dialog.showModal();
-
-      var ddw = this.$.outer.getBoundingClientRect().width;
-      var w = this.$.dialog.getBoundingClientRect().width;
-      this.$.dialog.style.top = ddr.bottom - 1 + 'px';
-      this.$.dialog.style.left = ddr.left + 'px';
-    },
-
-    onDialogClick_: function(e) {
-      if (!this.isOpen)
-        return;
-      if (e.srcElement !== this.$.dialog)
-        return;
       e.preventDefault();
-      this.close();
-    },
-
-    onDialogCancel_: function(e) {
-      e.preventDefault();
-      this.close();
-    },
-
-    close: function() {
-      if (!this.isOpen)
-        return;
-      this.$.dialog.close();
-      this.$.outer.classList.remove('open');
-      this.$.outer.focus();
-    },
-
-    get isOpen() {
-      return this.$.dialog.hasAttribute('open');
+      e.stopPropagation();
     }
-  });
-  </script>
-</polymer-element>
+  },
+
+  onOuterClick_: function(e) {
+    var or = this.$.outer.getBoundingClientRect();
+    var inside = true;
+    inside &= e.clientX >= or.left;
+    inside &= e.clientX < or.right;
+    inside &= e.clientY >= or.top;
+    inside &= e.clientY < or.bottom;
+    if (!inside)
+      return;
+
+    e.preventDefault();
+    this.toggle_();
+  },
+
+  toggle_: function() {
+    if (!this.isOpen)
+      this.show();
+    else
+      this.close();
+  },
+
+  show: function() {
+    if (this.isOpen)
+      return;
+
+    Polymer.dom(this.$.outer).classList.add('open');
+
+    var ddr = this.$.outer.getBoundingClientRect();
+    var rW = Math.max(ddr.width, 150);
+    this.$.dialog.style.minWidth = rW + 'px';
+    this.$.dialog.showModal();
+
+    var ddw = this.$.outer.getBoundingClientRect().width;
+    var w = this.$.dialog.getBoundingClientRect().width;
+    this.$.dialog.style.top = ddr.bottom - 1 + 'px';
+    this.$.dialog.style.left = ddr.left + 'px';
+  },
+
+  onDialogClick_: function(e) {
+    if (!this.isOpen)
+      return;
+    if (e.srcElement !== this.$.dialog)
+      return;
+    e.preventDefault();
+    this.close();
+  },
+
+  onDialogCancel_: function(e) {
+    e.preventDefault();
+    this.close();
+  },
+
+  close: function() {
+    if (!this.isOpen)
+      return;
+    this.$.dialog.close();
+    Polymer.dom(this.$.outer).classList.remove('open');
+    this.$.outer.focus();
+  },
+
+  get isOpen() {
+    return this.$.dialog.hasAttribute('open');
+  }
+});
+</script>

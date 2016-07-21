@@ -27,10 +27,10 @@ tr.b.unittest.testSuite(function() {
 
     var viewport = new Viewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = RectTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
@@ -53,10 +53,10 @@ tr.b.unittest.testSuite(function() {
 
     var viewport = new Viewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = RectTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
@@ -79,10 +79,10 @@ tr.b.unittest.testSuite(function() {
 
     var viewport = new Viewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     var track = RectTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
@@ -114,14 +114,14 @@ tr.b.unittest.testSuite(function() {
       var dict = optDicts[dictIndex];
 
       var div = document.createElement('div');
-      div.appendChild(document.createTextNode(dict.trackName));
+      Polymer.dom(div).appendChild(document.createTextNode(dict.trackName));
 
       var viewport = new Viewport(div);
       var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-      div.appendChild(drawingContainer);
+      Polymer.dom(div).appendChild(drawingContainer);
 
       var track = new RectTrack(viewport);
-      drawingContainer.appendChild(track);
+      Polymer.dom(drawingContainer).appendChild(track);
 
       this.addHTMLOutput(div);
       drawingContainer.invalidate();
@@ -160,15 +160,16 @@ tr.b.unittest.testSuite(function() {
 
   test('selectionHitTesting', function() {
     var testEl = document.createElement('div');
-    testEl.appendChild(tr.ui.b.createScopedStyle('heading { width: 100px; }'));
+    Polymer.dom(testEl).appendChild(
+        tr.ui.b.createScopedStyle('heading { width: 100px; }'));
     testEl.style.width = '600px';
 
     var viewport = new Viewport(testEl);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    testEl.appendChild(drawingContainer);
+    Polymer.dom(testEl).appendChild(drawingContainer);
 
     var track = new RectTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(testEl);
 
     drawingContainer.updateCanvasSizeIfNeeded_();
@@ -217,10 +218,10 @@ tr.b.unittest.testSuite(function() {
 
     var viewport = new Viewport(testEl);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    testEl.appendChild(drawingContainer);
+    Polymer.dom(testEl).appendChild(drawingContainer);
 
     var track = new RectTrack(viewport);
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
     this.addHTMLOutput(testEl);
 
     drawingContainer.updateCanvasSizeIfNeeded_();

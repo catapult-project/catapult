@@ -16,7 +16,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   document.addEventListener('DOMContentLoaded', function() {
     window.profilingView = new tr.ui.e.about_tracing.ProfilingView();
     profilingView.timelineView.globalMode = true;
-    document.body.appendChild(profilingView);
+    Polymer.dom(document.body).appendChild(profilingView);
   });
 
   return {};

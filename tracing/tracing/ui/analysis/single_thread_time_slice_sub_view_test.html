@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
       assert.isTrue(e.selection.equals(new tr.model.EventSet(binderSlice)));
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    Polymer.dom(view.root).querySelector('tr-ui-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 
@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
       assert.isTrue(e.selection.equals(new tr.model.EventSet(launcherSlice)));
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    Polymer.dom(view.root).querySelector('tr-ui-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 });

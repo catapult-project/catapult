@@ -63,6 +63,7 @@ class TracingProject(object):
   ui_extras_path = os.path.join(tracing_src_path, 'ui', 'extras')
 
   catapult_third_party_path = os.path.join(catapult_path, 'third_party')
+  polymer_path = os.path.join(catapult_third_party_path, 'polymer')
 
   tracing_third_party_path = os.path.join(tracing_root_path, 'third_party')
   py_vulcanize_path = os.path.join(catapult_third_party_path, 'py_vulcanize')
@@ -99,6 +100,7 @@ class TracingProject(object):
   def __init__(self):
     self.source_paths = []
     self.source_paths.append(self.tracing_root_path)
+    self.source_paths.append(self.polymer_path)
     self.source_paths.append(self.tracing_third_party_path)
     self.source_paths.append(self.mre_path)
     self.source_paths.append(self.jszip_path)

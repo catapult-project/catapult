@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
           new tr.model.EventSet(thread.timeSlices[0])));
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    Polymer.dom(view.root).querySelector('tr-ui-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 

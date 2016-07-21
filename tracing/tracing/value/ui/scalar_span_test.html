@@ -25,7 +25,8 @@ tr.b.unittest.testSuite(function() {
         {significance: options.significance});
 
     test.addHTMLOutput(span);
-    assert.strictEqual(span.$.content.textContent, expectedContent);
+    assert.strictEqual(
+        Polymer.dom(span.$.content).textContent, expectedContent);
     assert.strictEqual(window.getComputedStyle(span.$.content).color,
         options.expectedColor || 'rgb(0, 0, 0)');
 
@@ -33,7 +34,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(span.$.content.title, options.expectedTitle);
 
     if (options.significance !== undefined) {
-      assert.strictEqual(span.$.significance.textContent,
+      assert.strictEqual(Polymer.dom(span.$.significance).textContent,
           options.expectedEmoji);
       assert.strictEqual(window.getComputedStyle(span.$.significance).color,
           options.expectedEmojiColor || 'rgb(0, 0, 0)');
@@ -269,7 +270,7 @@ tr.b.unittest.testSuite(function() {
     // No config.
     var span = tr.v.ui.createScalarSpan(
         new ScalarNumeric(Unit.byName.powerInWatts, 3.14));
-    assert.strictEqual(span.$.content.textContent, '3.140 W');
+    assert.strictEqual(Polymer.dom(span.$.content).textContent, '3.140 W');
     assert.strictEqual(span.ownerDocument, document);
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(span.value, 3.14);
@@ -284,7 +285,7 @@ tr.b.unittest.testSuite(function() {
     var span = tr.v.ui.createScalarSpan(
         new ScalarNumeric(Unit.byName.energyInJoules, 2.72),
         { ownerDocument: THIS_DOC, rightAlign: true });
-    assert.strictEqual(span.$.content.textContent, '2.720 J');
+    assert.strictEqual(Polymer.dom(span.$.content).textContent, '2.720 J');
     assert.strictEqual(span.ownerDocument, THIS_DOC);
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(span.value, 2.72);
@@ -298,7 +299,7 @@ tr.b.unittest.testSuite(function() {
     // Unit and sparkline set via config.
     var span = tr.v.ui.createScalarSpan(1.62,
         { unit: Unit.byName.timeStampInMs, total: 3.24 });
-    assert.strictEqual(span.$.content.textContent, '1.620 ms');
+    assert.strictEqual(Polymer.dom(span.$.content).textContent, '1.620 ms');
     assert.strictEqual(span.ownerDocument, document);
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(span.value, 1.62);
@@ -316,7 +317,8 @@ tr.b.unittest.testSuite(function() {
               unitPrefix: tr.v.UnitScale.Binary.KIBI,
               minimumFractionDigits: 2
             } });
-    assert.strictEqual(span.$.content.textContent, '+262,144.00 KiB');
+    assert.strictEqual(
+        Polymer.dom(span.$.content).textContent, '+262,144.00 KiB');
     assert.strictEqual(span.ownerDocument, document);
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(span.value, 256 * 1024 * 1024);
@@ -356,7 +358,7 @@ tr.b.unittest.testSuite(function() {
     span.value = new ScalarNumeric(
         Unit.byName.unitlessNumberDelta_smallerIsBetter, 42);
     span.context = { maximumFractionDigits: 2 };
-    assert.strictEqual(span.$.content.textContent, '+42.00');
+    assert.strictEqual(Polymer.dom(span.$.content).textContent, '+42.00');
     this.addHTMLOutput(span);
   });
 
@@ -370,9 +372,9 @@ tr.b.unittest.testSuite(function() {
 
     var overall = document.createElement('div');
     overall.style.display = 'flex';
-    overall.appendChild(spanA);
+    Polymer.dom(overall).appendChild(spanA);
     spanB.style.marginLeft = '4px';
-    overall.appendChild(spanB);
+    Polymer.dom(overall).appendChild(spanB);
     this.addHTMLOutput(overall);
   });
 
@@ -384,9 +386,9 @@ tr.b.unittest.testSuite(function() {
       span.setValueAndUnit(73, Unit.byName.timeStampInMs);
       this.addHTMLOutput(span);
 
-      assert.isTrue(span.$.content.textContent.indexOf('ns') > 0);
+      assert.isTrue(Polymer.dom(span.$.content).textContent.indexOf('ns') > 0);
       Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ms;
-      assert.isTrue(span.$.content.textContent.indexOf('ms') > 0);
+      assert.isTrue(Polymer.dom(span.$.content).textContent.indexOf('ms') > 0);
     } finally {
       Unit.reset();
     }
@@ -403,7 +405,7 @@ tr.b.unittest.testSuite(function() {
       if (percentage !== null)
         span.percentage = percentage;
 
-      div.appendChild(span);
+      Polymer.dom(div).appendChild(span);
 
       var computedStyle = getComputedStyle(span.$.sparkline);
       assert.equal(computedStyle.display, expectedDisplay);

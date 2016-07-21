@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     var viewEl = document.createElement(
         'tr-ui-a-container-memory-dump-sub-view');
     if (opt_parentElement)
-      opt_parentElement.appendChild(viewEl);
+      Polymer.dom(opt_parentElement).appendChild(viewEl);
     if (selection === undefined) {
       viewEl.selection = undefined;
     } else {
@@ -281,7 +281,7 @@ tr.b.unittest.testSuite(function() {
         }, containerEl);
 
     // Destroy the first container memory view.
-    containerEl.textContent = '';
+    Polymer.dom(containerEl).textContent = '';
 
     // Create the second container memory view.
     createAndCheckContainerMemoryDumpView(this,
@@ -321,11 +321,11 @@ tr.b.unittest.testSuite(function() {
     var rows = tableEl.tableRows;
     var col = tableEl.tableColumns[0];
 
-    assert.equal(col.value(rows[0]).textContent,
+    assert.equal(Polymer.dom(col.value(rows[0])).textContent,
         '2 memory dumps in Process 1');
-    assert.equal(col.value(rows[1]).textContent,
+    assert.equal(Polymer.dom(col.value(rows[1])).textContent,
         '3 memory dumps in Process 2');
-    assert.equal(col.value(rows[2]).textContent,
+    assert.equal(Polymer.dom(col.value(rows[2])).textContent,
         '1 memory dump in Process 4');
 
     // Check that the analysis link is associated with the right dumps.

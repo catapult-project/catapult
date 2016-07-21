@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/find_controller.html">
 <link rel="import" href="/tracing/ui/timeline_track_view.html">
 
-<polymer-element name="tr-ui-find-control">
+<dom-module id='tr-ui-find-control'>
   <template>
     <style>
       :host {
@@ -64,110 +64,111 @@ found in the LICENSE file.
     </style>
 
     <input type='text' id='filter'
-        on-input="{{ filterTextChanged }}"
-        on-keydown="{{ filterKeyDown }}"
-        on-blur="{{ filterBlur }}"
-        on-focus="{{ filterFocus }}"
-        on-mouseup="{{ filterMouseUp }}" />
+        on-input="filterTextChanged"
+        on-keydown="filterKeyDown"
+        on-blur="filterBlur"
+        on-focus="filterFocus"
+        on-mouseup="filterMouseUp" />
     <div id="spinner"></div>
-    <tr-ui-b-toolbar-button on-click="{{ findPrevious }}">
+    <tr-ui-b-toolbar-button on-click="findPrevious">
       &larr;
     </tr-ui-b-toolbar-button>
-    <tr-ui-b-toolbar-button on-click="{{ findNext }}">
+    <tr-ui-b-toolbar-button on-click="findNext">
       &rarr;
     </tr-ui-b-toolbar-button>
     <div id="hitCount">0 of 0</div>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+Polymer({
+  is: 'tr-ui-find-control',
 
-  Polymer({
-    filterKeyDown: function(e) {
-      if (e.keyCode === 27) {
-        var hkc = tr.b.getHotkeyControllerForElement(this);
-        if (hkc) {
-          hkc.childRequestsBlur(this);
-        } else {
-          this.blur();
-        }
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      } else if (e.keyCode === 13) {
-        if (e.shiftKey)
-          this.findPrevious();
-        else
-          this.findNext();
+  filterKeyDown: function(e) {
+    if (e.keyCode === 27) {
+      var hkc = tr.b.getHotkeyControllerForElement(this);
+      if (hkc) {
+        hkc.childRequestsBlur(this);
+      } else {
+        this.blur();
       }
-    },
-
-    filterBlur: function(e) {
-      this.updateHitCountEl();
-    },
-
-    filterFocus: function(e) {
-      this.$.filter.select();
-    },
-
-    // Prevent that the input text is deselected after focusing the find
-    // control with the mouse.
-    filterMouseUp: function(e) {
       e.preventDefault();
-    },
-
-    get controller() {
-      return this.controller_;
-    },
-
-    set controller(c) {
-      this.controller_ = c;
-      this.updateHitCountEl();
-    },
-
-    focus: function() {
-      this.$.filter.focus();
-    },
-
-    get hasFocus() {
-      return this === document.activeElement;
-    },
-
-    filterTextChanged: function() {
-      this.$.hitCount.textContent = '';
-      this.$.spinner.style.visibility = 'visible';
-      this.controller.startFiltering(this.$.filter.value).then(function() {
-        this.$.spinner.style.visibility = 'hidden';
-        this.updateHitCountEl();
-      }.bind(this));
-    },
-
-    findNext: function() {
-      if (this.controller)
-        this.controller.findNext();
-      this.updateHitCountEl();
-    },
-
-    findPrevious: function() {
-      if (this.controller)
-        this.controller.findPrevious();
-      this.updateHitCountEl();
-    },
-
-    updateHitCountEl: function() {
-      if (!this.controller || this.$.filter.value.length === 0) {
-        this.$.hitCount.textContent = '';
-        return;
-      }
-
-      var n = this.controller.filterHits.length;
-      var i = n === 0 ? -1 : this.controller.currentHitIndex;
-      this.$.hitCount.textContent = (i + 1) + ' of ' + n;
-    },
-
-    setText: function(string) {
-      this.$.filter.value = string;
+      e.stopPropagation();
+      return;
+    } else if (e.keyCode === 13) {
+      if (e.shiftKey)
+        this.findPrevious();
+      else
+        this.findNext();
     }
-  });
-  </script>
-</polymer-element>
+  },
+
+  filterBlur: function(e) {
+    this.updateHitCountEl();
+  },
+
+  filterFocus: function(e) {
+    this.$.filter.select();
+  },
+
+  // Prevent that the input text is deselected after focusing the find
+  // control with the mouse.
+  filterMouseUp: function(e) {
+    e.preventDefault();
+  },
+
+  get controller() {
+    return this.controller_;
+  },
+
+  set controller(c) {
+    this.controller_ = c;
+    this.updateHitCountEl();
+  },
+
+  focus: function() {
+    this.$.filter.focus();
+  },
+
+  get hasFocus() {
+    return this === document.activeElement;
+  },
+
+  filterTextChanged: function() {
+    Polymer.dom(this.$.hitCount).textContent = '';
+    this.$.spinner.style.visibility = 'visible';
+    this.controller.startFiltering(this.$.filter.value).then(function() {
+      this.$.spinner.style.visibility = 'hidden';
+      this.updateHitCountEl();
+    }.bind(this));
+  },
+
+  findNext: function() {
+    if (this.controller)
+      this.controller.findNext();
+    this.updateHitCountEl();
+  },
+
+  findPrevious: function() {
+    if (this.controller)
+      this.controller.findPrevious();
+    this.updateHitCountEl();
+  },
+
+  updateHitCountEl: function() {
+    if (!this.controller || this.$.filter.value.length === 0) {
+      Polymer.dom(this.$.hitCount).textContent = '';
+      return;
+    }
+
+    var n = this.controller.filterHits.length;
+    var i = n === 0 ? -1 : this.controller.currentHitIndex;
+    Polymer.dom(this.$.hitCount).textContent = (i + 1) + ' of ' + n;
+  },
+
+  setText: function(string) {
+    this.$.filter.value = string;
+  }
+});
+</script>

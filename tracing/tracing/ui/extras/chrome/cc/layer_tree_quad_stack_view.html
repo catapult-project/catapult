@@ -121,21 +121,21 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-layer-tree-quad-stack-view-template', THIS_DOC);
-      this.appendChild(node);
-      this.appendChild(this.controls_);
-      this.appendChild(this.infoBar_);
-      this.appendChild(this.quadStackView_);
+      Polymer.dom(this).appendChild(node);
+      Polymer.dom(this).appendChild(this.controls_);
+      Polymer.dom(this).appendChild(this.infoBar_);
+      Polymer.dom(this).appendChild(this.quadStackView_);
 
       this.tileRectsSelector_ = tr.ui.b.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           createTileRectsSelectorBaseOptions());
-      this.controls_.appendChild(this.tileRectsSelector_);
+      Polymer.dom(this.controls_).appendChild(this.tileRectsSelector_);
 
       var tileHeatmapText = tr.ui.b.createSpan({
         textContent: 'Tile heatmap:'
       });
-      this.controls_.appendChild(tileHeatmapText);
+      Polymer.dom(this.controls_).appendChild(tileHeatmapText);
 
       var tileHeatmapSelector = tr.ui.b.createSelector(
           this, 'tileHeatmapType',
@@ -147,7 +147,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
            {label: 'Is using GPU memory',
             value: TILE_HEATMAP_TYPE.USING_GPU_MEMORY}
           ]);
-      this.controls_.appendChild(tileHeatmapSelector);
+      Polymer.dom(this.controls_).appendChild(tileHeatmapSelector);
 
       var showOtherLayersCheckbox = tr.ui.b.createCheckBox(
           this, 'showOtherLayers',
@@ -155,7 +155,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Other layers/passes');
       showOtherLayersCheckbox.title =
           'When checked, show all layers, selected or not.';
-      this.controls_.appendChild(showOtherLayersCheckbox);
+      Polymer.dom(this.controls_).appendChild(showOtherLayersCheckbox);
 
       var showInvalidationsCheckbox = tr.ui.b.createCheckBox(
           this, 'showInvalidations',
@@ -163,7 +163,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Invalidations');
       showInvalidationsCheckbox.title =
           'When checked, compositing invalidations are highlighted in red';
-      this.controls_.appendChild(showInvalidationsCheckbox);
+      Polymer.dom(this.controls_).appendChild(showInvalidationsCheckbox);
 
       var showUnrecordedRegionCheckbox = tr.ui.b.createCheckBox(
           this, 'showUnrecordedRegion',
@@ -171,7 +171,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Unrecorded area');
       showUnrecordedRegionCheckbox.title =
           'When checked, unrecorded areas are highlighted in yellow';
-      this.controls_.appendChild(showUnrecordedRegionCheckbox);
+      Polymer.dom(this.controls_).appendChild(showUnrecordedRegionCheckbox);
 
       var showBottlenecksCheckbox = tr.ui.b.createCheckBox(
           this, 'showBottlenecks',
@@ -179,7 +179,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Bottlenecks');
       showBottlenecksCheckbox.title =
           'When checked, scroll bottlenecks are highlighted';
-      this.controls_.appendChild(showBottlenecksCheckbox);
+      Polymer.dom(this.controls_).appendChild(showBottlenecksCheckbox);
 
       var showLayoutRectsCheckbox = tr.ui.b.createCheckBox(
           this, 'showLayoutRects',
@@ -187,7 +187,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Layout rects');
       showLayoutRectsCheckbox.title =
           'When checked, shows rects for regions where layout happened';
-      this.controls_.appendChild(showLayoutRectsCheckbox);
+      Polymer.dom(this.controls_).appendChild(showLayoutRectsCheckbox);
 
       var showContentsCheckbox = tr.ui.b.createCheckBox(
           this, 'showContents',
@@ -195,7 +195,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Contents');
       showContentsCheckbox.title =
           'When checked, show the rendered contents inside the layer outlines';
-      this.controls_.appendChild(showContentsCheckbox);
+      Polymer.dom(this.controls_).appendChild(showContentsCheckbox);
 
       var showAnimationBoundsCheckbox = tr.ui.b.createCheckBox(
           this, 'showAnimationBounds',
@@ -203,7 +203,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Animation Bounds');
       showAnimationBoundsCheckbox.title = 'When checked, show a border around' +
           ' a layer showing the extent of its animation.';
-      this.controls_.appendChild(showAnimationBoundsCheckbox);
+      Polymer.dom(this.controls_).appendChild(showAnimationBoundsCheckbox);
 
       var showInputEventsCheckbox = tr.ui.b.createCheckBox(
           this, 'showInputEvents',
@@ -211,14 +211,14 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'Input events');
       showInputEventsCheckbox.title = 'When checked, input events are ' +
           'displayed as circles.';
-      this.controls_.appendChild(showInputEventsCheckbox);
+      Polymer.dom(this.controls_).appendChild(showInputEventsCheckbox);
 
       this.whatRasterizedLink_ = document.createElement('a');
-      this.whatRasterizedLink_.classList.add('what-rasterized');
-      this.whatRasterizedLink_.textContent = 'What rasterized?';
+      Polymer.dom(this.whatRasterizedLink_).classList.add('what-rasterized');
+      Polymer.dom(this.whatRasterizedLink_).textContent = 'What rasterized?';
       this.whatRasterizedLink_.addEventListener(
           'click', this.onWhatRasterizedLinkClicked_.bind(this));
-      this.appendChild(this.whatRasterizedLink_);
+      Polymer.dom(this).appendChild(this.whatRasterizedLink_);
     },
 
     get layerTreeImpl() {
@@ -614,7 +614,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
       if (this.showInputEvents && this.layerTreeImpl.tracedInputLatencies &&
           this.inputEventImageData_ === undefined) {
-        var image = this.querySelector('#input-event');
+        var image = Polymer.dom(this).querySelector('#input-event');
         if (!image.src) {
           this.loadDataForImageElement_(image, function(imageData) {
             this.inputEventImageData_ = imageData;
@@ -1124,16 +1124,16 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.infoBar_.message = 'Some problems were encountered...';
         this.infoBar_.addButton('More info...', function(e) {
           var overlay = new tr.ui.b.Overlay();
-          overlay.textContent = '';
+          Polymer.dom(overlay).textContent = '';
           infoBarMessages.forEach(function(message) {
             var title = document.createElement('h3');
-            title.textContent = message.header;
+            Polymer.dom(title).textContent = message.header;
 
             var details = document.createElement('div');
-            details.textContent = message.details;
+            Polymer.dom(details).textContent = message.details;
 
-            overlay.appendChild(title);
-            overlay.appendChild(details);
+            Polymer.dom(overlay).appendChild(title);
+            Polymer.dom(overlay).appendChild(details);
           });
           overlay.visible = true;
 
@@ -1169,10 +1169,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     updateWhatRasterizedLinkState_: function() {
       var tasks = this.getWhatRasterized_();
       if (tasks.length) {
-        this.whatRasterizedLink_.textContent = tasks.length + ' raster tasks';
+        Polymer.dom(this.whatRasterizedLink_).textContent =
+            tasks.length + ' raster tasks';
         this.whatRasterizedLink_.style.display = '';
       } else {
-        this.whatRasterizedLink_.textContent = '';
+        Polymer.dom(this.whatRasterizedLink_).textContent = '';
         this.whatRasterizedLink_.style.display = 'none';
       }
     },

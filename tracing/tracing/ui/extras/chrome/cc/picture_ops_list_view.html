@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="stylesheet" href="/tracing/ui/extras/chrome/cc/picture_ops_list_view.css">
 
 <link rel="import" href="/tracing/extras/chrome/cc/constants.html">
-<link rel="import" href="/tracing/ui/base/list_view.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/list_view.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
 <link rel="import" href="/tracing/ui/extras/chrome/cc/selection.html">
 
@@ -34,11 +34,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       tr.ui.b.define('tr-ui-e-chrome-cc-picture-ops-list-view');
 
   PictureOpsListView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       this.opsList_ = new tr.ui.b.ListView();
-      this.appendChild(this.opsList_);
+      Polymer.dom(this).appendChild(this.opsList_);
 
       this.selectedOp_ = undefined;
       this.selectedOpIndex_ = undefined;
@@ -75,21 +75,21 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var op = ops[i];
         var item = document.createElement('div');
         item.opIndex = op.opIndex;
-        item.textContent = i + ') ' + op.cmd_string;
+        Polymer.dom(item).textContent = i + ') ' + op.cmd_string;
 
         // Display the element info associated with the op, if available.
         if (op.elementInfo.tag || op.elementInfo.id || op.elementInfo.class) {
           var elementInfo = document.createElement('span');
-          elementInfo.classList.add('elementInfo');
+          Polymer.dom(elementInfo).classList.add('elementInfo');
           var tag = op.elementInfo.tag ? op.elementInfo.tag : 'unknown';
           var id = op.elementInfo.id ? 'id=' + op.elementInfo.id : undefined;
           var className = op.elementInfo.class ? 'class=' +
               op.elementInfo.class : undefined;
-          elementInfo.textContent =
+          Polymer.dom(elementInfo).textContent =
               '<' + tag + (id ? ' ' : '') +
               (id ? id : '') + (className ? ' ' : '') +
               (className ? className : '') + '>';
-          item.appendChild(elementInfo);
+          Polymer.dom(item).appendChild(elementInfo);
         }
 
         // Display the Skia params.
@@ -97,20 +97,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // (https://github.com/google/trace-viewer/issues/782)
         if (op.info.length > 0) {
           var infoItem = document.createElement('div');
-          infoItem.textContent = JSON.stringify(op.info);
-          item.appendChild(infoItem);
+          Polymer.dom(infoItem).textContent = JSON.stringify(op.info);
+          Polymer.dom(item).appendChild(infoItem);
         }
 
         // Display the op timing, if available.
         if (op.cmd_time && op.cmd_time >= 0.0001) {
           var time = document.createElement('span');
-          time.classList.add('time');
+          Polymer.dom(time).classList.add('time');
           var rounded = op.cmd_time.toFixed(4);
-          time.textContent = '(' + rounded + 'ms)';
-          item.appendChild(time);
+          Polymer.dom(time).textContent = '(' + rounded + 'ms)';
+          Polymer.dom(item).appendChild(time);
         }
 
-        this.opsList_.appendChild(item);
+        Polymer.dom(this.opsList_).appendChild(item);
       }
     },
 
@@ -134,9 +134,9 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           beforeSelectedOp = false;
           this.selectedOpIndex_ = op.opIndex;
         } else if (beforeSelectedOp) {
-          op.setAttribute('beforeSelection', 'beforeSelection');
+          Polymer.dom(op).setAttribute('beforeSelection', 'beforeSelection');
         } else {
-          op.removeAttribute('beforeSelection');
+          Polymer.dom(op).removeAttribute('beforeSelection');
         }
       }
 

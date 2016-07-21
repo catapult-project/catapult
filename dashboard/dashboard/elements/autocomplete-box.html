@@ -43,18 +43,17 @@ property 'group' sets to the header item name.
     ]
 -->
 
-<link rel="import" href="/components/core-icon-button/core-icon-button.html">
-<link rel="import" href="/components/core-item/core-item.html">
-<link rel="import" href="/components/core-menu/core-menu.html">
-<link rel="import" href="/components/paper-input/paper-input-decorator.html">
-<link rel="import" href="/components/paper-shadow/paper-shadow.html">
+<link rel="import" href="/components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/components/paper-input/paper-input.html">
+<link rel="import" href="/components/paper-item/paper-item.html">
+<link rel="import" href="/components/paper-material/paper-material.html">
+<link rel="import" href="/components/paper-menu/paper-menu.html">
 
 <link rel="import" href="/dashboard/static/autocomplete.html">
 
-<polymer-element name="autocomplete-box"
-                 attributes="placeholder dataList disabled multi value">
+<dom-module id="autocomplete-box">
   <template>
-    <style>
+    <style include="iron-flex">
       #container * {
         margin-right: 3px;
       }
@@ -74,13 +73,13 @@ property 'group' sets to the header item name.
         padding-right: 8px;
       }
 
-      #dropdown > core-item {
+      #dropdown paper-item {
         min-height: 25px;
         color: #616161;
         text-indent: 10px;
       }
 
-      #dropdown > core-item[head] {
+      #dropdown paper-item[head] {
         color: darkblue;
         text-indent: 0;
       }
@@ -95,54 +94,84 @@ property 'group' sets to the header item name.
         color: gray;
         font-size: 90%;
         padding-left: 5px;
-        margin-left: auto;
-        margin-right: auto;
-        text-align: right;
       }
     </style>
 
     <div id="container">
-
-        <paper-input-decorator label="{{placeholder}}" floatinglabel="" layout vertical
-                               id="textbox-container">
-          <input is="core-input"
-                 on-click="{{showHideDropdown}}"
-                 on-keyup="{{onTextboxKeyup}}"
-                 on-keydown="{{onTextboxKeydown}}"
-                 placeholder="{{placeholder}}"
-                 disabled?="{{disabled}}"
-                 id="textbox"
-                 value="{{value}}">
-        </paper-input-decorator>
-
-        <paper-shadow id="dropdown-container" hidden="true">
-          <div class="dropdown-scroller" layered>
-            <core-menu id="dropdown"
-                       on-core-activate="{{onDropdownSelect}}"
-                       multi?="{{multi}}">
-              <template repeat="{{dataList}}">
-                <core-item label="{{name}}" head?="{{head}}"
-                           hidden?="{{hidden}}">
-                  <div class="{{{tag: tag} | tokenList}}">{{tag}}</div>
-                </core-item>
-              </template>
-            </core-menu>
-          </div>
-        </paper-shadow>
+      <div id="textbox-container" class="layout vertical">
+        <paper-input label="{{placeholder}}"
+                     on-click="showHideDropdown"
+                     on-keyup="onTextboxKeyup"
+                     on-keydown="onTextboxKeydown"
+                     disabled$="{{disabled}}"
+                     id="textbox"
+                     value="{{value::input}}"></paper-input>
+      </div>
+      <paper-material id="dropdown-container" hidden>
+        <div class="dropdown-scroller" layered>
+          <paper-menu id="dropdown"
+                      on-iron-select="onDropdownSelect"
+                      on-iron-deselect="onDropdownSelect"
+                      multi$="{{multi}}">
+            <template is="dom-repeat" items="{{dataList}}">
+              <paper-item head$="{{item.head}}"
+                          hidden$="{{hidden}}"
+                          class="layout horizontal">
+                <div class="flex">{{item.name}}</div>
+                <div class="tag">{{item.tag}}</div>
+              </paper-item>
+            </template>
+          </paper-menu>
+        </div>
+      </paper-material>
     </div>
     <span id="size-check">{{value}}</span>
 
   </template>
   <script>
     'use strict';
-    Polymer('autocomplete-box', {
+    Polymer({
+      id: 'autocomplete-box',
+      properties: {
+        TEXTBOX_MIN_WIDTH: {
+          type: Number,
+          value: 152
+        },
+        dataList: {
+          notify: true,
+          type: Array,
+          value: () => []
+        },
+        disabled: {
+          notify: true,
+          type: Boolean,
+          disabled: false
+        },
+        multi: { notify: true },
+        placeholder: { notify: true },
+        selectedItems: {
+          type: Array,
+          notify: true,
+          value: () => []
+        },
+        value: {
+          notify: true,
+          observer: 'valueChanged',
+          type: String
+        }
+      },
 
-      TEXTBOX_MIN_WIDTH: 152,
+      clearSelection: function() {
+        if (this.multi) {
+          this.$.dropdown.selected = [];
+        } else {
+          this.$.dropdown.selected = null;
+        }
+      },
 
       ready: function() {
         this.value = '';
-        this.$.dropdown.selected = [];
-        this.selectedItems = [];
+        this.clearSelection();
         this.hasVisibleItems = true;
         this.initAutocomplete();
       },
@@ -164,7 +193,7 @@ property 'group' sets to the header item name.
        * @param {Array} dataList List of drop-down items.
        */
       setDataList: function(dataList) {
-        this.dataList = dataList;
+        this.set('dataList', dataList);
         this.updateCurrentSelection();
         this.initAutocomplete();
       },
@@ -177,8 +206,8 @@ property 'group' sets to the header item name.
         var key = event.keyCode || event.charCode;
         if (key == 8 || key == 46) {  // Backspace and Delete.
           if (this.value.length == 0) {
-            this.selectedItems = [];
-            this.$.dropdown.selected = [];
+            this.set('selectedItems', []);
+            this.clearSelection();
             this.fire('dropdownselect');
           }
         }
@@ -211,10 +240,12 @@ property 'group' sets to the header item name.
       /**
        * Handles item selected on drop-down menu.
        */
-      onDropdownSelect: function(event, detail, sender) {
+      onDropdownSelect: function(event, detail) {
         this.$.textbox.focus();
-        var item = detail.item.templateInstance.model;
-        var isSelected = detail.item.classList.contains('core-selected');
+        var index = this.$.dropdown.indexOf(detail.item);
+        var item = this.dataList[index];
+        var isSelected = Polymer.dom(detail.item).classList.contains(
+            'iron-selected');
         if (this.multi) {
           if (item.head) {
             this.onHeadItemSelected(item.name, isSelected);
@@ -305,7 +336,7 @@ property 'group' sets to the header item name.
        * changes.
        */
       updateCurrentSelection: function() {
-        this.$.dropdown.selected = [];
+        this.clearSelection();
         var matchedItems = [];
         for (var i = 0; i < this.selectedItems.length; i++) {
           for (var j = 0; j < this.dataList.length; j++) {
@@ -316,7 +347,7 @@ property 'group' sets to the header item name.
             }
           }
         }
-        this.selectedItems = matchedItems;
+        this.set('selectedItems', matchedItems);
         this.value = this.getSelectedValues().join(',');
       },
 
@@ -344,7 +375,7 @@ property 'group' sets to the header item name.
        */
       setDropdownSelection: function(index, isSelected) {
         if (!this.multi) {
-          this.$.dropdown.selected = [];
+          this.clearSelection();
         }
         var foundIndex = this.$.dropdown.selected.indexOf(index);
         if (isSelected) {
@@ -361,15 +392,15 @@ property 'group' sets to the header item name.
        */
       setItemSelection: function(item, isSelected) {
         if (!this.multi) {
-          this.selectedItems = [];
+          this.set('selectedItems', []);
         }
         var itemIndex = this.getItemIndex(item);
         if (isSelected) {
           if (itemIndex == -1) {
-            this.selectedItems.push(item);
+            this.push('selectedItems', item);
           }
         } else if (itemIndex > -1) {
-          this.selectedItems.splice(itemIndex, 1);
+          this.splice('selectedItems', itemIndex, 1);
         }
       },
 
@@ -394,14 +425,14 @@ property 'group' sets to the header item name.
           // Remove only the last selected item.
           var lastItem = this.selectedItems[this.selectedItems.length - 1];
           if (this.selectedItems.length == currentParts.length) {
-            this.selectedItems.pop();
+            this.pop('selectedItems');
           }
         } else {
           currentValue = this.value;
         }
-        this.$.dropdown.selected = [];
+        this.clearSelection();
 
-        this.dataList = this.autocomplete.search(currentValue);
+        this.set('dataList', this.autocomplete.search(currentValue));
 
         if (this.multi) {
           this.updateDropdownWithSelectedItems();
@@ -451,13 +482,13 @@ property 'group' sets to the header item name.
           return;
         }
         // A hack for auto-resizing input box.
-        this.$['size-check'].innerHTML = values[0];
+        Polymer.dom(this.$['size-check']).innerHTML = values[0];
         var newWidth = this.$['size-check'].offsetWidth + 5;
         this.$.textbox.style.width = ((newWidth > this.TEXTBOX_MIN_WIDTH) ?
                                       newWidth : this.TEXTBOX_MIN_WIDTH);
       },
 
-      valueChanged: function(oldValue, newValue) {
+      valueChanged: function(newValue, oldValue) {
         // Ignore empty changes.
         if (!oldValue && !newValue) {
           return;
@@ -474,7 +505,7 @@ property 'group' sets to the header item name.
       },
 
       showDropdown: function() {
-        var textContainer = this.$['textbox-container'];
+        var textContainer = this.$['textbox'];
         this.$['dropdown-container'].style.top = textContainer.offsetTop +
             textContainer.offsetHeight + 'px';
         this.$['dropdown-container'].style.left = textContainer.offsetLeft +
@@ -490,4 +521,4 @@ property 'group' sets to the header item name.
       }
     });
   </script>
-</polymer-element>
+</dom-module>

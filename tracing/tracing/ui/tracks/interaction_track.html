@@ -56,7 +56,7 @@ tr.exportTo('tr.ui.tracks', function() {
     addSubTrack_: function(slices) {
       var track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       return track;
     }
   };

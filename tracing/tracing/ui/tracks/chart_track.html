@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/tracks/chart_transform.html">
-<link rel="import" href="/tracing/ui/tracks/track.html">
 <link rel="import" href="/tracing/ui/base/heading.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/tracks/chart_transform.html">
+<link rel="import" href="/tracing/ui/tracks/track.html">
 
 <style>
 .chart-track {
@@ -36,7 +36,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      this.classList.add('chart-track');
+      Polymer.dom(this).classList.add('chart-track');
       this.series_ = undefined;
 
       // GUID -> {axis: ChartAxis, series: [ChartSeries]}.
@@ -47,7 +47,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.bottomPadding_ = undefined;
 
       this.heading_ = document.createElement('tr-ui-heading');
-      this.appendChild(this.heading_);
+      Polymer.dom(this).appendChild(this.heading_);
     },
 
     set heading(heading) {

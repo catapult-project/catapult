@@ -5,15 +5,14 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/base/polymer_utils.html">
 <link rel="import" href="/tracing/ui/base/tab_view.html">
 <link rel="import" href="/tracing/ui/brushing_state_controller.html">
 
-<polymer-element name='tr-v-ui-value-set-view'>
+<dom-module id="tr-v-ui-value-set-view">
   <template>
-    <tr-ui-a-tab-view id="container"></tr-ui-a-tab-view>
+    <tr-ui-a-tab-view id="tabView"></tr-ui-a-tab-view>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
@@ -182,32 +181,36 @@ tr.exportTo('tr.v.ui', function() {
 
   var SELECTED_TAB_SETTINGS_KEY = 'tr-v-ui-value-set-view-element-name';
 
-  Polymer('tr-v-ui-value-set-view', {
+  Polymer({
+    is: 'tr-v-ui-value-set-view',
+
+    listeners: {
+      'tabView.selected-tab-change': 'onSelectedTabChange_'
+    },
+
     ready: function() {
-      this.$.container.addEventListener(
-        'selected-tab-change', this.onSelectedTabChange_.bind(this));
       this.brushingStateController = new NullBrushingStateController();
     },
 
     attached: function() {
       this.brushingStateController.parentController =
-        tr.c.BrushingStateController.getControllerForElement(this.parentNode);
+          tr.c.BrushingStateController.getControllerForElement(this.parentNode);
     },
 
     onSelectedTabChange_: function() {
-      if (!this.$.container.selectedTab)
+      if (!this.$.tabView.selectedSubView)
         return;
 
       tr.b.Settings.set(
           SELECTED_TAB_SETTINGS_KEY,
-          this.$.container.selectedTab.tagName.toLowerCase());
+          this.$.tabView.selectedSubView.tagName.toLowerCase());
     },
 
     /**
      * @param {!tr.v.ValueSet} values
      */
     set values(values) {
-      this.$.container.textContent = '';
+      this.$.tabView.clearSubViews();
 
       var initialTabElementName = tr.b.Settings.get(
           SELECTED_TAB_SETTINGS_KEY, undefined);
@@ -219,20 +222,15 @@ tr.exportTo('tr.v.ui', function() {
 
         view.values = values;
 
+        this.$.tabView.addSubView(view);
+
         if (elementName.toLowerCase() === initialTabElementName)
-          view.setAttribute('selected', true);
-
-        view.setAttribute('tab-label', view.tabLabel);
-
-        this.$.container.appendChild(view);
+          this.$.tabView.selectedSubView = view;
       }, this);
 
-      if (this.$.container.children.length === 1) {
-        this.$.container.tabsHidden = true;
-      }
-      if (this.$.container.selectedTab === undefined) {
-        this.$.container.children[0].setAttribute('selected', true);
-      }
+      // TODO(charliea): If TabView were structured correctly, this could almost
+      // certainly be done with attribute binding in the HTML template.
+      this.$.tabView.set('tabsHidden', this.$.tabView.tabs.length === 1);
     }
   });
 
@@ -242,7 +240,7 @@ tr.exportTo('tr.v.ui', function() {
    * @param {string} elementName
    */
   function registerValueSetView(elementName) {
-    if (!tr.ui.b.getPolymerElementNamed(elementName))
+    if (tr.ui.b.isUnknownElementName(elementName))
       throw new Error('Element not registered: ' + elementName);
 
     VALUE_SET_VIEW_ELEMENT_NAMES.push(elementName);

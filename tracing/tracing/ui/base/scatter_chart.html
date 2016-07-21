@@ -31,7 +31,7 @@ tr.exportTo('tr.ui.b', function() {
 
     decorate: function() {
       ChartBase2D.prototype.decorate.call(this);
-      this.classList.add('scatter-chart');
+      Polymer.dom(this).classList.add('scatter-chart');
 
       this.brushedXRange_ = new tr.b.Range();
       this.brushedYRange_ = new tr.b.Range();

@@ -45,18 +45,12 @@ def Main(argv):
   else:
     traces = [trace_file_or_dir]
 
-  extra_import_options = {
-      'trackDetailedModelStats': True
-  }
-  results = metric_runner.RunMetricOnTraces(traces, args.metrics,
-                                            extra_import_options)
-  values = []
-  for trace_path, mre_result in results.iteritems():
-    values.extend(mre_result.pairs.get('values', []))
+  results = {k: v.AsDict() for k, v in
+             metric_runner.RunMetricOnTraces(traces, args.metrics).iteritems()}
 
   failures = []
   for trace in traces:
-    failures.extend(results[trace].pairs.get('failures', []))
+    failures.extend(results[trace].get('failures', []))
   if failures:
     print 'Running metric failed:'
     for failure in failures:

@@ -1,6 +1,7 @@
 <!doctype html>
 <!--
-Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
@@ -13,53 +14,76 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <title>paper-icon-button a11y tests</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 
-  <script src="../../webcomponentsjs/webcomponents.js"></script>
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
 
-  <link href="../../core-icons/core-icons.html" rel="import">
-  <link href="../paper-icon-button.html" rel="import">
+  <link rel="import" href="../../iron-icons/iron-icons.html">
+  <link rel="import" href="../paper-icon-button.html">
 
 </head>
 <body>
 
-  <paper-icon-button id="fab1" icon="add"></paper-icon-button>
-
-  <paper-icon-button id="fab2" icon="add" disabled></paper-icon-button>
-
-  <paper-icon-button id="fab3" icon="add" aria-label="custom"></paper-icon-button>
+  <test-fixture id="A11yIconButtons">
+    <template>
+      <paper-icon-button id="iconButton1" icon="add"></paper-icon-button>
+      <paper-icon-button id="iconButton2" icon="add" disabled></paper-icon-button>
+      <paper-icon-button id="iconButton3" icon="add" aria-label="custom"></paper-icon-button>
+      <paper-icon-button id="iconButton4" icon="add" alt="alt text"></paper-icon-button>
+      <paper-icon-button id="iconButton5" icon="add" aria-label="custom" alt="alt text" ></paper-icon-button>
+    </template>
+  </test-fixture>
 
   <script>
 
-    var f1 = document.getElementById('fab1');
-    var f2 = document.getElementById('fab2');
-    var f3 = document.getElementById('fab3');
+    var b1;
+    var b2;
+    var b3;
+    var b4;
+    var b5;
+
+    setup(function() {
+      var iconButtons = fixture('A11yIconButtons');
+
+      b1 = iconButtons[0];
+      b2 = iconButtons[1];
+      b3 = iconButtons[2];
+      b4 = iconButtons[3];
+      b5 = iconButtons[4];
+    });
 
     test('aria role is a button', function() {
-      assert.strictEqual(f1.getAttribute('role'), 'button');
+      assert.strictEqual(b1.getAttribute('role'), 'button');
     });
 
-    test('aria-disabled is set', function(done) {
-      assert.ok(f2.hasAttribute('aria-disabled'));
-      flush(function() {
-        f2.removeAttribute('disabled');
-        flush(function() {
-          assert.ok(!f2.hasAttribute('aria-disabled'));
-          done();
-        });
-      });
+    test('aria-disabled is set', function() {
+      assert.strictEqual(b2.getAttribute('aria-disabled'), 'true');
+      b2.removeAttribute('disabled');
+      assert.strictEqual(b2.getAttribute('aria-disabled'), 'false');
     });
 
-    test('aria-label is set', function() {
-      assert.strictEqual(f1.getAttribute('aria-label'), 'add');
+    test('user-defined aria-label is preserved', function() {
+      assert.strictEqual(b3.getAttribute('aria-label'), 'custom');
+      b3.icon = 'arrow-forward';
+      assert.strictEqual(b3.getAttribute('aria-label'), 'custom');
     });
 
-    test('user-defined aria-label is preserved', function(done) {
-      assert.strictEqual(f3.getAttribute('aria-label'), 'custom');
-      f3.icon = 'arrow-forward';
-      flush(function() {
-        assert.strictEqual(f3.getAttribute('aria-label'), 'custom');
-        done();
-      });
+    test('alt attribute is used for the aria-label', function() {
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt text');
+      b4.icon = 'arrow-forward';
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt text');
+    });
+
+    test('aria-label wins over alt attribute', function() {
+      assert.strictEqual(b5.getAttribute('aria-label'), 'custom');
+      b5.icon = 'arrow-forward';
+      b5.alt = 'other alt'
+      assert.strictEqual(b5.getAttribute('aria-label'), 'custom');
+    });
+
+    test('alt attribute can be updated', function() {
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt text');
+      b4.alt = 'alt again';
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt again');
     });
 
   </script>

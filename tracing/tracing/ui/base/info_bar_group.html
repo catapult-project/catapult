@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 <link rel='import' href='/tracing/ui/base/info_bar.html'>
 
-<polymer-element name='tr-ui-b-info-bar-group' is='HTMLUnknownElement'>
+<dom-module id='tr-ui-b-info-bar-group'>
   <template>
     <style>
     :host {
@@ -17,49 +17,50 @@ found in the LICENSE file.
     </style>
     <div id='messages'></div>
   </template>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-ui-b-info-bar-group',
 
-  <script>
-  'use strict';
-  Polymer({
-    ready: function() {
-      this.messages_ = [];
-    },
+  ready: function() {
+    this.messages_ = [];
+  },
 
-    clearMessages: function() {
-      this.messages_ = [];
-      this.updateContents_();
-    },
+  clearMessages: function() {
+    this.messages_ = [];
+    this.updateContents_();
+  },
 
-    addMessage: function(text, opt_buttons) {
-      opt_buttons = opt_buttons || [];
-      for (var i = 0; i < opt_buttons.length; i++) {
-        if (opt_buttons[i].buttonText === undefined)
-          throw new Error('buttonText must be provided');
-        if (opt_buttons[i].onClick === undefined)
-          throw new Error('onClick must be provided');
-      }
-
-      this.messages_.push({
-        text: text,
-        buttons: opt_buttons || []
-      });
-      this.updateContents_();
-    },
-
-    updateContents_: function() {
-      this.$.messages.textContent = '';
-      this.messages_.forEach(function(message) {
-        var bar = document.createElement('tr-ui-b-info-bar');
-        bar.message = message.text;
-        bar.visible = true;
-
-        message.buttons.forEach(function(button) {
-          bar.addButton(button.buttonText, button.onClick);
-        }, this);
-
-        this.$.messages.appendChild(bar);
-      }, this);
+  addMessage: function(text, opt_buttons) {
+    opt_buttons = opt_buttons || [];
+    for (var i = 0; i < opt_buttons.length; i++) {
+      if (opt_buttons[i].buttonText === undefined)
+        throw new Error('buttonText must be provided');
+      if (opt_buttons[i].onClick === undefined)
+        throw new Error('onClick must be provided');
     }
-  });
-  </script>
-</polymer-element>
+
+    this.messages_.push({
+      text: text,
+      buttons: opt_buttons || []
+    });
+    this.updateContents_();
+  },
+
+  updateContents_: function() {
+    Polymer.dom(this.$.messages).textContent = '';
+    this.messages_.forEach(function(message) {
+      var bar = document.createElement('tr-ui-b-info-bar');
+      bar.message = message.text;
+      bar.visible = true;
+
+      message.buttons.forEach(function(button) {
+        bar.addButton(button.buttonText, button.onClick);
+      }, this);
+
+      Polymer.dom(this.$.messages).appendChild(bar);
+    }, this);
+  }
+});
+</script>

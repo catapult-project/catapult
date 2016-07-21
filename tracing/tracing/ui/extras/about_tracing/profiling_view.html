@@ -69,31 +69,33 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
   /**
    * ProfilingView
    * @constructor
-   * @extends {HTMLUnknownElement}
+   * @extends {HTMLDivElement}
    */
   var ProfilingView = tr.ui.b.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
 
   ProfilingView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      this.appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
-          THIS_DOC));
+      Polymer.dom(this).appendChild(
+          tr.ui.b.instantiateTemplate('#profiling-view-template', THIS_DOC));
 
-      this.timelineView_ = this.querySelector('tr-ui-timeline-view');
-      this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
+      this.timelineView_ =
+          Polymer.dom(this).querySelector('tr-ui-timeline-view');
+      this.infoBarGroup_ =
+          Polymer.dom(this).querySelector('tr-ui-b-info-bar-group');
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make timeline-view have a content select="x-buttons"
       // that pulls in any buttons.
-      this.recordButton_ = this.querySelector('#record-button');
-      this.loadButton_ = this.querySelector('#load-button');
-      this.saveButton_ = this.querySelector('#save-button');
+      this.recordButton_ = Polymer.dom(this).querySelector('#record-button');
+      this.loadButton_ = Polymer.dom(this).querySelector('#load-button');
+      this.saveButton_ = Polymer.dom(this).querySelector('#save-button');
 
-      var buttons = this.querySelector('x-timeline-view-buttons');
-      buttons.parentElement.removeChild(buttons);
-      this.timelineView_.leftControls.appendChild(buttons);
+      var buttons = Polymer.dom(this).querySelector('x-timeline-view-buttons');
+      Polymer.dom(buttons.parentElement).removeChild(buttons);
+      Polymer.dom(this.timelineView_.leftControls).appendChild(buttons);
       this.initButtons_();
 
       this.timelineView_.hotkeyController.addHotKey(new tr.ui.b.HotKey({

@@ -10,21 +10,26 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
 -->
 
 <link rel="import" href="/components/paper-button/paper-button.html">
-<link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/components/paper-card/paper-card.html">
 
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="triage-dialog" attributes="xsrfToken alerts">
+<dom-module id="triage-dialog">
   <template>
     <style>
       #container {
         position: relative;
-        margin: 0 0 10px 0;
+        margin: 10px;
+        max-height: 300px;
+        width: 330px;
+      }
+
+      #container .card-content {
+        overflow-y: auto;
       }
     </style>
 
-    <paper-action-dialog id="container" layered="false">
-      <!-- Styling for paper-action-dialog's children. -->
+    <paper-card id="container" alwaysOnTop elevation=4>
       <style>
         #loading {
           background-color: white;
@@ -62,45 +67,49 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         }
       </style>
 
-      <form>
-        <fieldset name="Triage">
-          <legend>Triage</legend>
-          <paper-button class="submit-button" raised affirmative
-                        on-click="{{fileNewBug}}">New bug</paper-button>
-          <paper-button class="submit-button" raised affirmative
-                        on-click="{{associateWithBug}}">Existing bug</paper-button>
-          <paper-button class="submit-button" raised affirmative
-                        on-click="{{markIgnored}}">Ignore valid alert</paper-button>
-        </fieldset>
-        <fieldset name="Fix-up alert">
-          <legend>Fix-up</legend>
-          <select class="kennedy-button" id="nudgeSelect" hidden?="{{!nudgeList}}" on-change="{{nudgeAlert}}">
-            <option template repeat="{{nudgeList}}" value="{{endRevision}}" selected?="{{selected}}">
-              Nudge {{amount}} {{displayEndRevision}} ({{value}})
-            </option>
-          </select>
-          <paper-button raised on-click="{{markInvalid}}">Report invalid alert</paper-button>
-        </fieldset>
-      </form>
+      <div class="card-content">
+        <form>
+          <fieldset name="Triage">
+            <legend>Triage</legend>
+            <paper-button class="submit-button" raised affirmative
+                          on-click="fileNewBug">New bug</paper-button>
+            <paper-button class="submit-button" raised affirmative
+                          on-click="associateWithBug">Existing bug</paper-button>
+            <paper-button class="submit-button" raised affirmative
+                          on-click="markIgnored">Ignore</paper-button>
+          </fieldset>
+          <fieldset name="Fix-up alert">
+            <legend>Fix-up</legend>
+            <select class="kennedy-button" id="nudgeSelect" hidden$="{{!nudgeList}}" on-change="nudgeAlert">
+              <option template is="dom-repeat" items="{{nudgeList}}" value="{{item.endRevision}}" selected$="{{item.selected}}">
+                Nudge {{item.amount}} {{item.displayEndRevision}} ({{item.value}})
+              </option>
+            </select>
+            <paper-button raised on-click="markInvalid">Invalid</paper-button>
+          </fieldset>
+        </form>
+      </div>
 
-      <paper-button dismissive raised>Close</paper-button>
+      <div class="card-actions">
+        <paper-button dismissive raised>Close</paper-button>
 
-      <template if="{{loading}}">
-        <div id="loading">
-          <paper-spinner active></paper-spinner>
-        </div>
-      </template>
-    </paper-action-dialog>
+        <template is="dom-if" if="{{loading}}">
+          <div id="loading">
+            <paper-spinner active></paper-spinner>
+          </div>
+        </template>
+      </div>
+    </paper-card>
 
     <div id="toasts" hidden>
       <div id="jobsubmitted">
         Bug <a href="http://crbug.com/{{lastSubmittedBugId}}"
                target="_blank">{{lastSubmittedBugId}}</a> created/updated.
-        <template if="{{lastSubmittedTryJobId}}">
+        <template is="dom-if" if="{{!!lastSubmittedTryJobId}}">
           Bisect job <a href="{{lastSubmittedTryJobUrl}}"
                         target="_blank">{{lastSubmittedTryJobId}}</a> started.
         </template>
-        <template if="{{lastSubmittedTryJobError}}">
+        <template is="dom-if" if="{{lastSubmittedTryJobError}}">
           <span class="error">No bisect automatically started.
                               {{lastSubmittedTryJobError}}</span>
         </template>
@@ -110,20 +119,47 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
   </template>
   <script>
     'use strict';
-    Polymer('triage-dialog', {
-      // A string describing the magnitude of change from zero to non-zero.
-      FREAKIN_HUGE: 'zero-to-nonzero',
+    Polymer({
+
+      is: 'triage-dialog',
+      properties: {
+        // A string describing the magnitude of change from zero to non-zero.
+        FREAKIN_HUGE: {
+          type: String,
+          value: 'zero-to-nonzero',
+        },
+        alerts: {
+          notify: true,
+          observer: 'alertsChanged'
+        },
+        lastSubmittedBugId: {
+          type: Number,
+          value: 0
+        },
+        lastSubmittedTryJobId: {
+          type: Number,
+          value: 0
+        },
+        lastSubmittedTryJobUrl: {
+          type: String,
+          value: ''
+        },
+        lastSubmittedTryJobError: {
+          type: String,
+          value: ''
+        },
+        nudgeList: {
+          type: Array,
+          value: () => []
+        },
+        xsrfToken: { notify: true }
+      },
 
       /**
        * Custom element lifecycle callback.
        * Called when the triage-dialog element is ready.
        */
       ready: function() {
-        // This allows tooltip to show beyond the current window size.
-        // See chart-tooltip.html for more details.
-        this.$.container.sizingTarget = document.querySelector(
-            'html /deep/ paper-action-dialog::shadow #scroller');
-
         this.bugWindow = null;
         this.close();
         // Event listener for the message event.
@@ -172,8 +208,6 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       show: function() {
         if (this.alerts && this.alerts.length && this.alerts[0].nudgeList) {
           this.nudgeList = this.alerts[0].nudgeList;
-        } else {
-          this.nudgeList = null;
         }
         this.open();
         this.bugid = null;
@@ -405,22 +439,22 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
             input.name = data[i].name;
             input.value = (typeof data[i].value === 'object' ?
                 JSON.stringify(data[i].value) : data[i].value);
-            form.appendChild(input);
+            Polymer.dom(form).appendChild(input);
           }
         }
         form.style.display = 'none';
-        document.body.appendChild(form);
+        Polymer.dom(document.body).appendChild(form);
         form.submit();
         return popup;
       },
 
       open: function() {
-        this.$.container.open();
+        this.$.container.hidden = false;
       },
 
       close: function() {
-        this.$.container.close();
+        this.$.container.hidden = true;
       }
     });
   </script>
-</polymer-element>
+</dom-module>

@@ -57,7 +57,7 @@ tr.exportTo('tr.ui.b', function() {
 });
 </script>
 
-<polymer-element name="tr-ui-b-table">
+<dom-module id="tr-ui-b-table">
   <template>
     <style>
       :host {
@@ -195,1286 +195,1295 @@ tr.exportTo('tr.ui.b', function() {
       </tfoot>
     </table>
   </template>
-  <script>
-  'use strict';
-  (function() {
-    var RIGHT_ARROW = String.fromCharCode(0x25b6);
-    var UNSORTED_ARROW = String.fromCharCode(0x25BF);
-    var ASCENDING_ARROW = String.fromCharCode(0x25B4);
-    var DESCENDING_ARROW = String.fromCharCode(0x25BE);
-    var BASIC_INDENTATION = 8;
+</dom-module>
+<script>
+'use strict';
+(function() {
+  var RIGHT_ARROW = String.fromCharCode(0x25b6);
+  var UNSORTED_ARROW = String.fromCharCode(0x25BF);
+  var ASCENDING_ARROW = String.fromCharCode(0x25B4);
+  var DESCENDING_ARROW = String.fromCharCode(0x25BE);
+  var BASIC_INDENTATION = 8;
 
-    var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
-    var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
-    var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+  var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
+  var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
+  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
-    Polymer({
-      created: function() {
-        this.selectionMode_ = SelectionMode.NONE;
-        this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
-        this.cellHighlightStyle_ = HighlightStyle.DEFAULT;
-        this.selectedTableRowInfo_ = undefined;
-        this.selectedColumnIndex_ = undefined;
+  Polymer({
+    is: 'tr-ui-b-table',
 
-        this.tableColumns_ = [];
-        this.tableRows_ = [];
-        this.tableRowsInfo_ = new WeakMap();
-        this.tableFooterRows_ = [];
-        this.tableFooterRowsInfo_ = new WeakMap();
-        this.sortColumnIndex_ = undefined;
-        this.sortDescending_ = false;
-        this.columnsWithExpandButtons_ = [];
-        this.headerCells_ = [];
-        this.showHeader_ = true;
-        this.emptyValue_ = undefined;
-        this.subRowsPropertyName_ = 'subRows';
-        this.customizeTableRowCallback_ = undefined;
-      },
+    created: function() {
+      this.selectionMode_ = SelectionMode.NONE;
+      this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
+      this.cellHighlightStyle_ = HighlightStyle.DEFAULT;
+      this.selectedTableRowInfo_ = undefined;
+      this.selectedColumnIndex_ = undefined;
 
-      ready: function() {
-        this.$.body.addEventListener(
-            'keydown', this.onKeyDown_.bind(this), true);
-      },
+      this.tableColumns_ = [];
+      this.tableRows_ = [];
+      this.tableRowsInfo_ = new WeakMap();
+      this.tableFooterRows_ = [];
+      this.tableFooterRowsInfo_ = new WeakMap();
+      this.sortColumnIndex_ = undefined;
+      this.sortDescending_ = false;
+      this.columnsWithExpandButtons_ = [];
+      this.headerCells_ = [];
+      this.showHeader_ = true;
+      this.emptyValue_ = undefined;
+      this.subRowsPropertyName_ = 'subRows';
+      this.customizeTableRowCallback_ = undefined;
+    },
 
-      clear: function() {
-        this.selectionMode_ = SelectionMode.NONE;
-        this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
-        this.cellHighlightStyle_ = HighlightStyle.DEFAULT;
-        this.selectedTableRowInfo_ = undefined;
-        this.selectedColumnIndex_ = undefined;
+    ready: function() {
+      this.$.body.addEventListener(
+          'keydown', this.onKeyDown_.bind(this), true);
+    },
 
-        this.textContent = '';
-        this.tableColumns_ = [];
-        this.tableRows_ = [];
-        this.tableRowsInfo_ = new WeakMap();
-        this.tableFooterRows_ = [];
-        this.tableFooterRowsInfo_ = new WeakMap();
-        this.sortColumnIndex_ = undefined;
-        this.sortDescending_ = false;
-        this.columnsWithExpandButtons_ = [];
-        this.headerCells_ = [];
-        this.subRowsPropertyName_ = 'subRows';
-        this.defaultExpansionStateCallback_ = undefined;
-      },
+    clear: function() {
+      this.selectionMode_ = SelectionMode.NONE;
+      this.rowHighlightStyle_ = HighlightStyle.DEFAULT;
+      this.cellHighlightStyle_ = HighlightStyle.DEFAULT;
+      this.selectedTableRowInfo_ = undefined;
+      this.selectedColumnIndex_ = undefined;
 
-      get showHeader() {
-        return this.showHeader_;
-      },
+      Polymer.dom(this).textContent = '';
+      this.tableColumns_ = [];
+      this.tableRows_ = [];
+      this.tableRowsInfo_ = new WeakMap();
+      this.tableFooterRows_ = [];
+      this.tableFooterRowsInfo_ = new WeakMap();
+      this.sortColumnIndex_ = undefined;
+      this.sortDescending_ = false;
+      this.columnsWithExpandButtons_ = [];
+      this.headerCells_ = [];
+      this.subRowsPropertyName_ = 'subRows';
+      this.defaultExpansionStateCallback_ = undefined;
+    },
 
-      set showHeader(showHeader) {
-        this.showHeader_ = showHeader;
-        this.scheduleRebuildHeaders_();
-      },
+    get showHeader() {
+      return this.showHeader_;
+    },
 
-      set subRowsPropertyName(name) {
-        this.subRowsPropertyName_ = name;
-      },
+    set showHeader(showHeader) {
+      this.showHeader_ = showHeader;
+      this.scheduleRebuildHeaders_();
+    },
 
-      /**
-       * This callback will be called whenever a body row is built
-       * for a userRow that has subRows and does not have an explicit
-       * isExpanded field.
-       * The callback should return true if the row should be expanded,
-       * or false if the row should be collapsed.
-       * @param {function(userRow, parentUserRow): boolean} cb The callback.
-       */
-      set defaultExpansionStateCallback(cb) {
-        this.defaultExpansionStateCallback_ = cb;
+    set subRowsPropertyName(name) {
+      this.subRowsPropertyName_ = name;
+    },
+
+    /**
+     * This callback will be called whenever a body row is built
+     * for a userRow that has subRows and does not have an explicit
+     * isExpanded field.
+     * The callback should return true if the row should be expanded,
+     * or false if the row should be collapsed.
+     * @param {function(userRow, parentUserRow): boolean} cb The callback.
+     */
+    set defaultExpansionStateCallback(cb) {
+      this.defaultExpansionStateCallback_ = cb;
+      this.scheduleRebuildBody_();
+    },
+
+    /**
+     * This callback will be called whenever a body row is built.
+     * The callback's return value is ignored.
+     * @param {function(userRow, trElement)} cb The callback.
+     */
+    set customizeTableRowCallback(cb) {
+      this.customizeTableRowCallback_ = cb;
+      this.scheduleRebuildBody_();
+    },
+
+    get emptyValue() {
+      return this.emptyValue_;
+    },
+
+    set emptyValue(emptyValue) {
+      var previousEmptyValue = this.emptyValue_;
+      this.emptyValue_ = emptyValue;
+      if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue)
         this.scheduleRebuildBody_();
-      },
+    },
 
-      /**
-       * This callback will be called whenever a body row is built.
-       * The callback's return value is ignored.
-       * @param {function(userRow, trElement)} cb The callback.
-       */
-      set customizeTableRowCallback(cb) {
-        this.customizeTableRowCallback_ = cb;
-        this.scheduleRebuildBody_();
-      },
+    /**
+     * Data objects should have the following fields:
+     *   mandatory: title, value
+     *   optional: width {string}, cmp {function}, colSpan {number},
+     *             showExpandButtons {boolean},
+     *             align {tr.ui.b.TableFormat.ColumnAlignment}
+     *
+     * @param {Array} columns An array of data objects.
+     */
+    set tableColumns(columns) {
+      // Figure out the columns with expand buttons...
+      var columnsWithExpandButtons = [];
+      for (var i = 0; i < columns.length; i++) {
+        if (columns[i].showExpandButtons)
+          columnsWithExpandButtons.push(i);
+      }
+      if (columnsWithExpandButtons.length === 0) {
+        // First column if none have specified.
+        columnsWithExpandButtons = [0];
+      }
 
-      get emptyValue() {
-        return this.emptyValue_;
-      },
+      // Sanity check columns.
+      for (var i = 0; i < columns.length; i++) {
+        var colInfo = columns[i];
+        if (colInfo.width === undefined)
+          continue;
 
-      set emptyValue(emptyValue) {
-        var previousEmptyValue = this.emptyValue_;
-        this.emptyValue_ = emptyValue;
-        if (this.tableRows_.length === 0 && emptyValue !== previousEmptyValue)
-          this.scheduleRebuildBody_();
-      },
+        var hasExpandButton = columnsWithExpandButtons.indexOf(i) !== -1;
 
-      /**
-       * Data objects should have the following fields:
-       *   mandatory: title, value
-       *   optional: width {string}, cmp {function}, colSpan {number},
-       *             showExpandButtons {boolean},
-       *             align {tr.ui.b.TableFormat.ColumnAlignment}
-       *
-       * @param {Array} columns An array of data objects.
-       */
-      set tableColumns(columns) {
-        // Figure out the columns with expand buttons...
-        var columnsWithExpandButtons = [];
-        for (var i = 0; i < columns.length; i++) {
-          if (columns[i].showExpandButtons)
-            columnsWithExpandButtons.push(i);
-        }
-        if (columnsWithExpandButtons.length === 0) {
-          // First column if none have specified.
-          columnsWithExpandButtons = [0];
-        }
-
-        // Sanity check columns.
-        for (var i = 0; i < columns.length; i++) {
-          var colInfo = columns[i];
-          if (colInfo.width === undefined)
+        var w = colInfo.width;
+        if (w) {
+          if (/\d+px/.test(w)) {
             continue;
-
-          var hasExpandButton = columnsWithExpandButtons.indexOf(i) !== -1;
-
-          var w = colInfo.width;
-          if (w) {
-            if (/\d+px/.test(w)) {
-              continue;
-            } else if (/\d+%/.test(w)) {
-              if (hasExpandButton) {
-                throw new Error('Columns cannot be %-sized and host ' +
-                                ' an expand button');
-              }
-            } else {
-              throw new Error('Unrecognized width string');
+          } else if (/\d+%/.test(w)) {
+            if (hasExpandButton) {
+              throw new Error('Columns cannot be %-sized and host ' +
+                              ' an expand button');
             }
+          } else {
+            throw new Error('Unrecognized width string');
           }
         }
+      }
 
-        // Commit the change.
-        this.tableColumns_ = columns;
-        this.headerCells_ = [];
-        this.columnsWithExpandButtons_ = columnsWithExpandButtons;
-        this.sortColumnIndex = undefined;
-        this.scheduleRebuildHeaders_();
+      // Commit the change.
+      this.tableColumns_ = columns;
+      this.headerCells_ = [];
+      this.columnsWithExpandButtons_ = columnsWithExpandButtons;
+      this.sortColumnIndex = undefined;
+      this.scheduleRebuildHeaders_();
 
-        // Blow away the table rows, too.
-        this.tableRows = this.tableRows_;
-      },
+      // Blow away the table rows, too.
+      this.tableRows = this.tableRows_;
+    },
 
-      get tableColumns() {
-        return this.tableColumns_;
-      },
+    get tableColumns() {
+      return this.tableColumns_;
+    },
 
-      /**
-       * @param {Array} rows An array of 'row' objects with the following
-       * fields:
-       *   optional: subRows An array of objects that have the same 'row'
-       *                     structure. Set subRowsPropertyName to use an
-       *                     alternative field name.
-       */
-      set tableRows(rows) {
-        this.selectedTableRowInfo_ = undefined;
-        this.selectedColumnIndex_ = undefined;
-        this.maybeUpdateSelectedRow_();
-        this.tableRows_ = rows;
-        this.tableRowsInfo_ = new WeakMap();
-        this.scheduleRebuildBody_();
-      },
+    /**
+     * @param {Array} rows An array of 'row' objects with the following
+     * fields:
+     *   optional: subRows An array of objects that have the same 'row'
+     *                     structure. Set subRowsPropertyName to use an
+     *                     alternative field name.
+     */
+    set tableRows(rows) {
+      this.selectedTableRowInfo_ = undefined;
+      this.selectedColumnIndex_ = undefined;
+      this.maybeUpdateSelectedRow_();
+      this.tableRows_ = rows;
+      this.tableRowsInfo_ = new WeakMap();
+      this.scheduleRebuildBody_();
+    },
 
-      get tableRows() {
-        return this.tableRows_;
-      },
+    get tableRows() {
+      return this.tableRows_;
+    },
 
-      set footerRows(rows) {
-        this.tableFooterRows_ = rows;
-        this.tableFooterRowsInfo_ = new WeakMap();
-        this.scheduleRebuildFooter_();
-      },
+    set footerRows(rows) {
+      this.tableFooterRows_ = rows;
+      this.tableFooterRowsInfo_ = new WeakMap();
+      this.scheduleRebuildFooter_();
+    },
 
-      get footerRows() {
-        return this.tableFooterRows_;
-      },
+    get footerRows() {
+      return this.tableFooterRows_;
+    },
 
-      set sortColumnIndex(number) {
-        if (number === this.sortColumnIndex_)
-          return;
+    set sortColumnIndex(number) {
+      if (number === this.sortColumnIndex_)
+        return;
 
-        if (number === undefined) {
-          this.sortColumnIndex_ = undefined;
-          this.updateHeaderArrows_();
-          this.dispatchSortingChangedEvent_();
-          return;
-        }
+      if (number === undefined) {
+        this.sortColumnIndex_ = undefined;
+        this.updateHeaderArrows_();
+        this.dispatchSortingChangedEvent_();
+        return;
+      }
 
-        if (this.tableColumns_.length <= number)
-          throw new Error('Column number ' + number + ' is out of bounds.');
-        if (!this.tableColumns_[number].cmp)
-          throw new Error('Column ' + number + ' does not have a comparator.');
+      if (this.tableColumns_.length <= number)
+        throw new Error('Column number ' + number + ' is out of bounds.');
+      if (!this.tableColumns_[number].cmp)
+        throw new Error('Column ' + number + ' does not have a comparator.');
 
-        this.sortColumnIndex_ = number;
+      this.sortColumnIndex_ = number;
+      this.updateHeaderArrows_();
+      this.scheduleRebuildBody_();
+      this.dispatchSortingChangedEvent_();
+    },
+
+    get sortColumnIndex() {
+      return this.sortColumnIndex_;
+    },
+
+    set sortDescending(value) {
+      var newValue = !!value;
+
+      if (newValue !== this.sortDescending_) {
+        this.sortDescending_ = newValue;
         this.updateHeaderArrows_();
         this.scheduleRebuildBody_();
         this.dispatchSortingChangedEvent_();
-      },
+      }
+    },
 
-      get sortColumnIndex() {
-        return this.sortColumnIndex_;
-      },
+    get sortDescending() {
+      return this.sortDescending_;
+    },
 
-      set sortDescending(value) {
-        var newValue = !!value;
-
-        if (newValue !== this.sortDescending_) {
-          this.sortDescending_ = newValue;
-          this.updateHeaderArrows_();
-          this.scheduleRebuildBody_();
-          this.dispatchSortingChangedEvent_();
+    updateHeaderArrows_: function() {
+      for (var i = 0; i < this.headerCells_.length; i++) {
+        if (!this.tableColumns_[i].cmp) {
+          this.headerCells_[i].sideContent = '';
+          continue;
         }
-      },
-
-      get sortDescending() {
-        return this.sortDescending_;
-      },
-
-      updateHeaderArrows_: function() {
-        for (var i = 0; i < this.headerCells_.length; i++) {
-          if (!this.tableColumns_[i].cmp) {
-            this.headerCells_[i].sideContent = '';
-            continue;
-          }
-          if (i !== this.sortColumnIndex_) {
-            this.headerCells_[i].sideContent = UNSORTED_ARROW;
-            continue;
-          }
-          this.headerCells_[i].sideContent = this.sortDescending_ ?
-            DESCENDING_ARROW : ASCENDING_ARROW;
+        if (i !== this.sortColumnIndex_) {
+          this.headerCells_[i].sideContent = UNSORTED_ARROW;
+          continue;
         }
-      },
+        this.headerCells_[i].sideContent = this.sortDescending_ ?
+          DESCENDING_ARROW : ASCENDING_ARROW;
+      }
+    },
 
-      sortRows_: function(rows) {
-        rows.sort(function(rowA, rowB) {
-          if (this.sortDescending_)
-            return this.tableColumns_[this.sortColumnIndex_].cmp(
-                rowB.userRow, rowA.userRow);
+    sortRows_: function(rows) {
+      rows.sort(function(rowA, rowB) {
+        if (this.sortDescending_)
           return this.tableColumns_[this.sortColumnIndex_].cmp(
-                rowA.userRow, rowB.userRow);
+              rowB.userRow, rowA.userRow);
+        return this.tableColumns_[this.sortColumnIndex_].cmp(
+              rowA.userRow, rowB.userRow);
+      }.bind(this));
+      // Sort expanded sub rows recursively.
+      for (var i = 0; i < rows.length; i++) {
+        if (this.getExpandedForUserRow_(rows[i]))
+          this.sortRows_(rows[i][this.subRowsPropertyName_]);
+      }
+    },
+
+    generateHeaderColumns_: function() {
+      this.headerCells_ = [];
+      Polymer.dom(this.$.head).textContent = '';
+      if (!this.showHeader_)
+        return;
+
+      var tr = this.appendNewElement_(this.$.head, 'tr');
+      for (var i = 0; i < this.tableColumns_.length; i++) {
+        var td = this.appendNewElement_(tr, 'td');
+
+        var headerCell = document.createElement('tr-ui-b-table-header-cell');
+        headerCell.column = this.tableColumns_[i];
+
+        headerCell.addEventListener('selected-column-changed',
+            this.onSelectedColumnChanged_.bind(this));
+
+        // If the table can be sorted by this column, attach a tap callback
+        // to the column.
+        if (this.tableColumns_[i].cmp) {
+          Polymer.dom(td).classList.add('sensitive');
+          headerCell.tapCallback = this.createSortCallback_(i);
+          // Set arrow position, depending on the sortColumnIndex.
+          if (this.sortColumnIndex_ === i)
+            headerCell.sideContent = this.sortDescending_ ?
+              DESCENDING_ARROW : ASCENDING_ARROW;
+          else
+            headerCell.sideContent = UNSORTED_ARROW;
+        }
+
+        Polymer.dom(td).appendChild(headerCell);
+        this.headerCells_.push(headerCell);
+      }
+    },
+
+    onSelectedColumnChanged_: function(event) {
+      // Unselect all other columns.
+      for (var i = 0; i < this.headerCells_.length; ++i) {
+        var colElement = Polymer.dom(this.$.cols).children[i];
+        var headerCell = this.headerCells_[i];
+        if ((event.column === headerCell.column) && event.selected) {
+          Polymer.dom(colElement).setAttribute('selected', true);
+        } else {
+          headerCell.selected = false;
+          Polymer.dom(colElement).removeAttribute('selected');
+        }
+      }
+    },
+
+    applySizes_: function() {
+      if (this.tableRows_.length === 0 && !this.showHeader)
+        return;
+      var rowToRemoveSizing;
+      var rowToSize;
+      if (this.showHeader) {
+        rowToSize = Polymer.dom(this.$.head).children[0];
+        rowToRemoveSizing = Polymer.dom(this.$.body).children[0];
+      } else {
+        rowToSize = Polymer.dom(this.$.body).children[0];
+        rowToRemoveSizing = Polymer.dom(this.$.head).children[0];
+      }
+      for (var i = 0; i < this.tableColumns_.length; i++) {
+        if (rowToRemoveSizing && Polymer.dom(rowToRemoveSizing).children[i]) {
+          var tdToRemoveSizing = Polymer.dom(rowToRemoveSizing).children[i];
+          tdToRemoveSizing.style.minWidth = '';
+          tdToRemoveSizing.style.width = '';
+        }
+
+        // Apply sizing.
+        var td = Polymer.dom(rowToSize).children[i];
+
+        var delta;
+        if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
+          td.style.paddingLeft = BASIC_INDENTATION + 'px';
+          delta = BASIC_INDENTATION + 'px';
+        } else {
+          delta = undefined;
+        }
+
+        function calc(base, delta) {
+          if (delta)
+            return 'calc(' + base + ' - ' + delta + ')';
+          else
+            return base;
+        }
+
+        var w = this.tableColumns_[i].width;
+        if (w) {
+          if (/\d+px/.test(w)) {
+            td.style.minWidth = calc(w, delta);
+          } else if (/\d+%/.test(w)) {
+            td.style.width = w;
+          } else {
+            throw new Error('Unrecognized width string: ' + w);
+          }
+        }
+      }
+    },
+
+    createSortCallback_: function(columnNumber) {
+      return function() {
+        var previousIndex = this.sortColumnIndex;
+        this.sortColumnIndex = columnNumber;
+        if (previousIndex !== columnNumber)
+          this.sortDescending = false;
+        else
+          this.sortDescending = !this.sortDescending;
+      }.bind(this);
+    },
+
+    generateTableColNodes_: function() {
+      for (var i = 0; i < this.headerCells_.length; ++i) {
+        var colElement = document.createElement('col');
+        if (this.headerCells_[i].selected)
+          Polymer.dom(colElement).setAttribute('selected', true);
+        Polymer.dom(this.$.cols).appendChild(colElement);
+      }
+    },
+
+    generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
+                                     indentation, lastAddedRow,
+                                     parentRowInfo) {
+      if (this.sortColumnIndex_ !== undefined &&
+          tableSection === this.$.body) {
+        userRows = userRows.slice(); // Don't mess with the input data.
+        userRows.sort(function(rowA, rowB) {
+          var c = this.tableColumns_[this.sortColumnIndex_].cmp(
+                rowA, rowB);
+          if (this.sortDescending_)
+            c = -c;
+          return c;
         }.bind(this));
-        // Sort expanded sub rows recursively.
-        for (var i = 0; i < rows.length; i++) {
-          if (this.getExpandedForUserRow_(rows[i]))
-            this.sortRows_(rows[i][this.subRowsPropertyName_]);
-        }
-      },
+      }
 
-      generateHeaderColumns_: function() {
-        this.headerCells_ = [];
-        this.$.head.textContent = '';
-        if (!this.showHeader_)
-          return;
+      for (var i = 0; i < userRows.length; i++) {
+        var userRow = userRows[i];
+        var rowInfo = this.getOrCreateRowInfoFor_(rowInfoMap, userRow,
+                                                  parentRowInfo);
+        var htmlNode = this.getHTMLNodeForRowInfo_(
+            tableSection, rowInfo, rowInfoMap, indentation);
 
-        var tr = this.appendNewElement_(this.$.head, 'tr');
-        for (var i = 0; i < this.tableColumns_.length; i++) {
-          var td = this.appendNewElement_(tr, 'td');
-
-          var headerCell = document.createElement('tr-ui-b-table-header-cell');
-          headerCell.column = this.tableColumns_[i];
-
-          headerCell.addEventListener('selected-column-changed',
-              this.onSelectedColumnChanged_.bind(this));
-
-          // If the table can be sorted by this column, attach a tap callback
-          // to the column.
-          if (this.tableColumns_[i].cmp) {
-            td.classList.add('sensitive');
-            headerCell.tapCallback = this.createSortCallback_(i);
-            // Set arrow position, depending on the sortColumnIndex.
-            if (this.sortColumnIndex_ === i)
-              headerCell.sideContent = this.sortDescending_ ?
-                DESCENDING_ARROW : ASCENDING_ARROW;
-            else
-              headerCell.sideContent = UNSORTED_ARROW;
-          }
-
-          td.appendChild(headerCell);
-          this.headerCells_.push(headerCell);
-        }
-      },
-
-      onSelectedColumnChanged_: function(event) {
-        // Unselect all other columns.
-        for (var i = 0; i < this.headerCells_.length; ++i) {
-          var colElement = this.$.cols.children[i];
-          var headerCell = this.headerCells_[i];
-          if ((event.column === headerCell.column) && event.selected) {
-            colElement.setAttribute('selected', true);
-          } else {
-            headerCell.selected = false;
-            colElement.removeAttribute('selected');
-          }
-        }
-      },
-
-      applySizes_: function() {
-        if (this.tableRows_.length === 0 && !this.showHeader)
-          return;
-        var rowToRemoveSizing;
-        var rowToSize;
-        if (this.showHeader) {
-          rowToSize = this.$.head.children[0];
-          rowToRemoveSizing = this.$.body.children[0];
+        if (lastAddedRow === undefined) {
+          // Put first into the table.
+          Polymer.dom(tableSection).insertBefore(
+              htmlNode, Polymer.dom(tableSection).firstChild);
         } else {
-          rowToSize = this.$.body.children[0];
-          rowToRemoveSizing = this.$.head.children[0];
+          // This is shorthand for insertAfter(htmlNode, lastAdded).
+          var nextSiblingOfLastAdded = Polymer.dom(lastAddedRow).nextSibling;
+          Polymer.dom(tableSection).insertBefore(
+              htmlNode, nextSiblingOfLastAdded);
         }
-        for (var i = 0; i < this.tableColumns_.length; i++) {
-          if (rowToRemoveSizing && rowToRemoveSizing.children[i]) {
-            var tdToRemoveSizing = rowToRemoveSizing.children[i];
-            tdToRemoveSizing.style.minWidth = '';
-            tdToRemoveSizing.style.width = '';
-          }
-
-          // Apply sizing.
-          var td = rowToSize.children[i];
-
-          var delta;
-          if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
-            td.style.paddingLeft = BASIC_INDENTATION + 'px';
-            delta = BASIC_INDENTATION + 'px';
-          } else {
-            delta = undefined;
-          }
-
-          function calc(base, delta) {
-            if (delta)
-              return 'calc(' + base + ' - ' + delta + ')';
-            else
-              return base;
-          }
-
-          var w = this.tableColumns_[i].width;
-          if (w) {
-            if (/\d+px/.test(w)) {
-              td.style.minWidth = calc(w, delta);
-            } else if (/\d+%/.test(w)) {
-              td.style.width = w;
-            } else {
-              throw new Error('Unrecognized width string: ' + w);
-            }
-          }
-        }
-      },
-
-      createSortCallback_: function(columnNumber) {
-        return function() {
-          var previousIndex = this.sortColumnIndex;
-          this.sortColumnIndex = columnNumber;
-          if (previousIndex !== columnNumber)
-            this.sortDescending = false;
-          else
-            this.sortDescending = !this.sortDescending;
-        }.bind(this);
-      },
-
-      generateTableColNodes_: function() {
-        for (var i = 0; i < this.headerCells_.length; ++i) {
-          var colElement = document.createElement('col');
-          if (this.headerCells_[i].selected)
-            colElement.setAttribute('selected', true);
-          this.$.cols.appendChild(colElement);
-        }
-      },
-
-      generateTableRowNodes_: function(tableSection, userRows, rowInfoMap,
-                                       indentation, lastAddedRow,
-                                       parentRowInfo) {
-        if (this.sortColumnIndex_ !== undefined &&
-            tableSection === this.$.body) {
-          userRows = userRows.slice(); // Don't mess with the input data.
-          userRows.sort(function(rowA, rowB) {
-            var c = this.tableColumns_[this.sortColumnIndex_].cmp(
-                  rowA, rowB);
-            if (this.sortDescending_)
-              c = -c;
-            return c;
-          }.bind(this));
-        }
-
-        for (var i = 0; i < userRows.length; i++) {
-          var userRow = userRows[i];
-          var rowInfo = this.getOrCreateRowInfoFor_(rowInfoMap, userRow,
-                                                    parentRowInfo);
-          var htmlNode = this.getHTMLNodeForRowInfo_(
-              tableSection, rowInfo, rowInfoMap, indentation);
-
-          if (lastAddedRow === undefined) {
-            // Put first into the table.
-            tableSection.insertBefore(htmlNode, tableSection.firstChild);
-          } else {
-            // This is shorthand for insertAfter(htmlNode, lastAdded).
-            var nextSiblingOfLastAdded = lastAddedRow.nextSibling;
-            tableSection.insertBefore(htmlNode, nextSiblingOfLastAdded);
-          }
-          this.updateTabIndexForTableRowNode_(htmlNode);
-
-          lastAddedRow = htmlNode;
-          if (!rowInfo.isExpanded)
-            continue;
-
-          // Append subrows now.
-          lastAddedRow = this.generateTableRowNodes_(
-              tableSection, userRow[this.subRowsPropertyName_], rowInfoMap,
-              indentation + 1, lastAddedRow, rowInfo);
-        }
-        return lastAddedRow;
-      },
-
-      getOrCreateRowInfoFor_: function(rowInfoMap, userRow, parentRowInfo) {
-        var rowInfo = undefined;
-
-        if (rowInfoMap.has(userRow)) {
-          rowInfo = rowInfoMap.get(userRow);
-        } else {
-          rowInfo = {
-            userRow: userRow,
-            htmlNode: undefined,
-            parentRowInfo: parentRowInfo
-          };
-          rowInfoMap.set(userRow, rowInfo);
-        }
-
-        // Recompute isExpanded in case defaultExpansionStateCallback_ has
-        // changed.
-        rowInfo.isExpanded = this.getExpandedForUserRow_(userRow);
-
-        return rowInfo;
-      },
-
-      customizeTableRow_: function(userRow, trElement) {
-        if (!this.customizeTableRowCallback_)
-          return;
-        this.customizeTableRowCallback_(userRow, trElement);
-      },
-
-      getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
-                                       rowInfoMap, indentation) {
-        if (rowInfo.htmlNode) {
-          this.customizeTableRow_(rowInfo.userRow, rowInfo.htmlNode);
-          return rowInfo.htmlNode;
-        }
-
-        var INDENT_SPACE = indentation * 16;
-        var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
-        var trElement = this.ownerDocument.createElement('tr');
-        rowInfo.htmlNode = trElement;
-        rowInfo.indentation = indentation;
-        trElement.rowInfo = rowInfo;
-        this.customizeTableRow_(rowInfo.userRow, trElement);
-
-        for (var i = 0; i < this.tableColumns_.length;) {
-          var td = this.appendNewElement_(trElement, 'td');
-          td.columnIndex = i;
-
-          var column = this.tableColumns_[i];
-          var value = column.value(rowInfo.userRow);
-          var colSpan = column.colSpan ? column.colSpan : 1;
-          td.style.colSpan = colSpan;
-
-          switch (column.align) {
-            case undefined:
-            case ColumnAlignment.LEFT:
-              break;
-
-            case ColumnAlignment.RIGHT:
-              td.style.textAlign = 'right';
-              break;
-
-            default:
-              throw new Error('Invalid alignment of column at index=' + i +
-                  ': ' + column.align);
-          }
-
-          if (this.doesColumnIndexSupportSelection(i))
-            td.classList.add('supports-selection');
-
-          if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
-            if (rowInfo.userRow[this.subRowsPropertyName_] &&
-                rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
-              td.style.paddingLeft = INDENT_SPACE + 'px';
-              var expandButton = this.appendNewElement_(td,
-                  'expand-button');
-              expandButton.textContent = RIGHT_ARROW;
-              if (rowInfo.isExpanded)
-                expandButton.classList.add('button-expanded');
-            } else {
-              td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
-            }
-          }
-
-          if (value !== undefined)
-            td.appendChild(tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
-
-          i += colSpan;
-        }
-
-        var isSelectable = tableSection === this.$.body;
-        var isExpandable = rowInfo.userRow[this.subRowsPropertyName_] &&
-            rowInfo.userRow[this.subRowsPropertyName_].length;
-
-        if (isSelectable || isExpandable) {
-          trElement.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (e.target.tagName == 'EXPAND-BUTTON') {
-              this.setExpandedForUserRow_(
-                  tableSection, rowInfoMap,
-                  rowInfo.userRow, !rowInfo.isExpanded);
-              return;
-            }
-
-            function getTD(cur) {
-              if (cur === trElement)
-                throw new Error('woah');
-              if (cur.parentElement === trElement)
-                return cur;
-              return getTD(cur.parentElement);
-            }
-
-            // If the row/cell can be selected and it's not selected yet,
-            // select it.
-            if (isSelectable && this.selectionMode_ !== SelectionMode.NONE) {
-              var shouldSelect = false;
-              var columnIndex = getTD(e.target).columnIndex;
-              switch (this.selectionMode_) {
-                case SelectionMode.ROW:
-                  shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
-                  break;
-
-                case SelectionMode.CELL:
-                  if (this.doesColumnIndexSupportSelection(columnIndex)) {
-                    shouldSelect = this.selectedTableRowInfo_ !== rowInfo ||
-                        this.selectedColumnIndex_ !== columnIndex;
-                  }
-                  break;
-
-                default:
-                  throw new Error('Invalid selection mode ' +
-                      this.selectionMode_);
-              }
-              if (shouldSelect) {
-                this.didTableRowInfoGetClicked_(rowInfo, columnIndex);
-                return;
-              }
-            }
-
-            // Otherwise, if the row is expandable, expand/collapse it.
-            if (isExpandable) {
-              this.setExpandedForUserRow_(tableSection, rowInfoMap,
-                  rowInfo.userRow, !rowInfo.isExpanded);
-            }
-          }.bind(this));
-        }
-
-        return rowInfo.htmlNode;
-      },
-
-      removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
-        if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
-          return;
-        for (var i = 0;
-             i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
-          var subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
-          var subRowInfo = rowInfoMap.get(subRow);
-          if (!subRowInfo)
-            continue;
-
-          var subNode = subRowInfo.htmlNode;
-          if (subNode && subNode.parentNode === tableSection) {
-            tableSection.removeChild(subNode);
-            this.removeSubNodes_(tableSection, subRowInfo, rowInfoMap);
-          }
-        }
-      },
-
-      scheduleRebuildHeaders_: function() {
-        this.headerDirty_ = true;
-        this.scheduleRebuild_();
-      },
-
-      scheduleRebuildBody_: function() {
-        this.bodyDirty_ = true;
-        this.scheduleRebuild_();
-      },
-
-      scheduleRebuildFooter_: function() {
-        this.footerDirty_ = true;
-        this.scheduleRebuild_();
-      },
-
-      scheduleRebuild_: function() {
-        if (this.rebuildPending_)
-          return;
-        this.rebuildPending_ = true;
-        setTimeout(function() {
-          this.rebuildPending_ = false;
-          this.rebuild();
-        }.bind(this), 0);
-      },
-
-      rebuildIfNeeded_: function() {
-        this.rebuild();
-      },
-
-      rebuild: function() {
-        var wasBodyOrHeaderDirty = this.headerDirty_ || this.bodyDirty_;
-
-        if (this.headerDirty_) {
-          this.generateHeaderColumns_();
-          this.headerDirty_ = false;
-        }
-        if (this.bodyDirty_) {
-          this.$.cols.textContent = '';
-          this.generateTableColNodes_();
-          this.$.body.textContent = '';
-          this.generateTableRowNodes_(
-              this.$.body,
-              this.tableRows_, this.tableRowsInfo_, 0,
-              undefined, undefined);
-          if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
-            var trElement = this.ownerDocument.createElement('tr');
-            this.$.body.appendChild(trElement);
-            trElement.classList.add('empty-row');
-            var td = this.ownerDocument.createElement('td');
-            trElement.appendChild(td);
-            td.colSpan = this.tableColumns_.length;
-            var emptyValue = this.emptyValue_;
-            td.appendChild(
-                tr.ui.b.asHTMLOrTextNode(emptyValue, this.ownerDocument));
-          }
-          this.bodyDirty_ = false;
-        }
-
-        if (wasBodyOrHeaderDirty)
-          this.applySizes_();
-
-        if (this.footerDirty_) {
-          this.$.foot.textContent = '';
-          this.generateTableRowNodes_(
-              this.$.foot,
-              this.tableFooterRows_, this.tableFooterRowsInfo_, 0,
-              undefined, undefined);
-          if (this.tableFooterRowsInfo_.length) {
-            this.$.body.classList.add('has-footer');
-          } else {
-            this.$.body.classList.remove('has-footer');
-          }
-          this.footerDirty_ = false;
-        }
-      },
-
-      appendNewElement_: function(parent, tagName) {
-        var element = parent.ownerDocument.createElement(tagName);
-        parent.appendChild(element);
-        return element;
-      },
-
-      getExpandedForTableRow: function(userRow) {
-        this.rebuildIfNeeded_();
-        var rowInfo = this.tableRowsInfo_.get(userRow);
-        if (rowInfo === undefined)
-          throw new Error('Row has not been seen, must expand its parents');
-        return rowInfo.isExpanded;
-      },
-
-      getExpandedForUserRow_: function(userRow) {
-        if (userRow[this.subRowsPropertyName_] === undefined)
-          return false;
-        if (userRow[this.subRowsPropertyName_].length === 0)
-          return false;
-        if (userRow.isExpanded)
-          return true;
-        if (userRow.isExpanded === false)
-          return false;
-
-        var rowInfo = this.tableRowsInfo_.get(userRow);
-        if (rowInfo && rowInfo.isExpanded)
-          return true;
-
-        if (this.defaultExpansionStateCallback_ === undefined)
-          return false;
-
-        var parentUserRow = undefined;
-        if (rowInfo && rowInfo.parentRowInfo)
-          parentUserRow = rowInfo.parentRowInfo.userRow;
-
-        return this.defaultExpansionStateCallback_(
-            userRow, parentUserRow);
-      },
-
-      setExpandedForTableRow: function(userRow, expanded) {
-        this.rebuildIfNeeded_();
-        var rowInfo = this.tableRowsInfo_.get(userRow);
-        if (rowInfo === undefined)
-          throw new Error('Row has not been seen, must expand its parents');
-        return this.setExpandedForUserRow_(this.$.body, this.tableRowsInfo_,
-                                           userRow, expanded);
-      },
-
-      setExpandedForUserRow_: function(tableSection, rowInfoMap,
-                                       userRow, expanded) {
-        this.rebuildIfNeeded_();
-
-        var rowInfo = rowInfoMap.get(userRow);
-        if (rowInfo === undefined)
-          throw new Error('Row has not been seen, must expand its parents');
-
-        rowInfo.isExpanded = !!expanded;
-        // If no node, then nothing further needs doing.
-        if (rowInfo.htmlNode === undefined)
-          return;
-
-        // If its detached, then nothing needs doing.
-        if (rowInfo.htmlNode.parentElement !== tableSection)
-          return;
-
-        // Otherwise, rebuild.
-        var expandButton = rowInfo.htmlNode.querySelector('expand-button');
-        if (rowInfo.isExpanded) {
-          expandButton.classList.add('button-expanded');
-          var lastAddedRow = rowInfo.htmlNode;
-          if (rowInfo.userRow[this.subRowsPropertyName_]) {
-            this.generateTableRowNodes_(
-                tableSection,
-                rowInfo.userRow[this.subRowsPropertyName_], rowInfoMap,
-                rowInfo.indentation + 1,
-                lastAddedRow, rowInfo);
-          }
-        } else {
-          expandButton.classList.remove('button-expanded');
-          this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
-        }
-
-        this.maybeUpdateSelectedRow_();
-      },
-
-      get selectionMode() {
-        return this.selectionMode_;
-      },
-
-      set selectionMode(selectionMode) {
-        if (!tr.b.dictionaryContainsValue(SelectionMode, selectionMode))
-          throw new Error('Invalid selection mode ' + selectionMode);
-        this.rebuildIfNeeded_();
-        this.selectionMode_ = selectionMode;
-        this.didSelectionStateChange_();
-      },
-
-      get rowHighlightStyle() {
-        return this.rowHighlightStyle_;
-      },
-
-      set rowHighlightStyle(rowHighlightStyle) {
-        if (!tr.b.dictionaryContainsValue(HighlightStyle, rowHighlightStyle))
-          throw new Error('Invalid row highlight style ' + rowHighlightStyle);
-        this.rebuildIfNeeded_();
-        this.rowHighlightStyle_ = rowHighlightStyle;
-        this.didSelectionStateChange_();
-      },
-
-      get resolvedRowHighlightStyle() {
-        if (this.rowHighlightStyle_ !== HighlightStyle.DEFAULT)
-          return this.rowHighlightStyle_;
-        switch (this.selectionMode_) {
-          case SelectionMode.NONE:
-            return HighlightStyle.NONE;
-          case SelectionMode.ROW:
-            return HighlightStyle.DARK;
-          case SelectionMode.CELL:
-            return HighlightStyle.LIGHT;
-          default:
-            throw new Error('Invalid selection mode ' + selectionMode);
-        }
-      },
-
-      get cellHighlightStyle() {
-        return this.cellHighlightStyle_;
-      },
-
-      set cellHighlightStyle(cellHighlightStyle) {
-        if (!tr.b.dictionaryContainsValue(HighlightStyle, cellHighlightStyle))
-          throw new Error('Invalid cell highlight style ' + cellHighlightStyle);
-        this.rebuildIfNeeded_();
-        this.cellHighlightStyle_ = cellHighlightStyle;
-        this.didSelectionStateChange_();
-      },
-
-      get resolvedCellHighlightStyle() {
-        if (this.cellHighlightStyle_ !== HighlightStyle.DEFAULT)
-          return this.cellHighlightStyle_;
-        switch (this.selectionMode_) {
-          case SelectionMode.NONE:
-          case SelectionMode.ROW:
-            return HighlightStyle.NONE;
-          case SelectionMode.CELL:
-            return HighlightStyle.DARK;
-          default:
-            throw new Error('Invalid selection mode ' + selectionMode);
-        }
-      },
-
-      setHighlightStyle_: function(highlightAttribute, resolvedHighlightStyle) {
-        switch (resolvedHighlightStyle) {
-          case HighlightStyle.NONE:
-            this.$.body.removeAttribute(highlightAttribute);
-            break;
-          case HighlightStyle.LIGHT:
-            this.$.body.setAttribute(highlightAttribute, 'light');
-            break;
-          case HighlightStyle.DARK:
-            this.$.body.setAttribute(highlightAttribute, 'dark');
-            break;
-          default:
-            throw new Error('Invalid resolved highlight style ' +
-                resolvedHighlightStyle);
-        }
-      },
-
-      didSelectionStateChange_: function() {
-        this.setHighlightStyle_('row-highlight-style',
-            this.resolvedRowHighlightStyle);
-        this.setHighlightStyle_('cell-highlight-style',
-            this.resolvedCellHighlightStyle);
-
-        for (var i = 0; i < this.$.body.children.length; i++)
-          this.updateTabIndexForTableRowNode_(this.$.body.children[i]);
-        this.maybeUpdateSelectedRow_();
-      },
-
-      maybeUpdateSelectedRow_: function() {
-        if (this.selectedTableRowInfo_ === undefined)
-          return;
-
-        // Selection may be off.
-        if (this.selectionMode_ === SelectionMode.NONE) {
-          this.removeSelectedState_();
-          this.selectedTableRowInfo_ = undefined;
-          return;
-        }
-
-        // selectedUserRow may not be visible
-        function isVisible(rowInfo) {
-          if (!rowInfo.htmlNode)
-            return false;
-          return !!rowInfo.htmlNode.parentElement;
-        }
-        if (isVisible(this.selectedTableRowInfo_)) {
-          this.updateSelectedState_();
-          return;
-        }
-
-        this.removeSelectedState_();
-        var curRowInfo = this.selectedTableRowInfo_;
-        while (curRowInfo && !isVisible(curRowInfo))
-          curRowInfo = curRowInfo.parentRowInfo;
-
-        this.selectedTableRowInfo_ = curRowInfo;
-        if (this.selectedTableRowInfo_)
-          this.updateSelectedState_();
-      },
-
-      didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
-        switch (this.selectionMode_) {
-          case SelectionMode.NONE:
-            return;
-
-          case SelectionMode.CELL:
-            if (!this.doesColumnIndexSupportSelection(columnIndex))
-              return;
-            if (this.selectedColumnIndex !== columnIndex)
-              this.selectedColumnIndex = columnIndex;
-            // Fall through.
-
-          case SelectionMode.ROW:
-            if (this.selectedTableRowInfo_ !== rowInfo)
-              this.selectedTableRow = rowInfo.userRow;
-        }
-      },
-
-      /**
-       * If the selectionMode is CELL and a cell is selected,
-       * return an object containing the row, column, and value of the selected
-       * cell.
-       *
-       * @return {undefined|!Object}
-       */
-      get selectedCell() {
-        var row = this.selectedTableRow;
-        var columnIndex = this.selectedColumnIndex;
-        if (row === undefined || columnIndex === undefined ||
-            this.tableColumns_.length <= columnIndex)
-          return undefined;
-        var column = this.tableColumns_[columnIndex];
-        return {
-          row: row,
-          column: column,
-          value: column.value(row)
+        this.updateTabIndexForTableRowNode_(htmlNode);
+
+        lastAddedRow = htmlNode;
+        if (!rowInfo.isExpanded)
+          continue;
+
+        // Append subrows now.
+        lastAddedRow = this.generateTableRowNodes_(
+            tableSection, userRow[this.subRowsPropertyName_], rowInfoMap,
+            indentation + 1, lastAddedRow, rowInfo);
+      }
+      return lastAddedRow;
+    },
+
+    getOrCreateRowInfoFor_: function(rowInfoMap, userRow, parentRowInfo) {
+      var rowInfo = undefined;
+
+      if (rowInfoMap.has(userRow)) {
+        rowInfo = rowInfoMap.get(userRow);
+      } else {
+        rowInfo = {
+          userRow: userRow,
+          htmlNode: undefined,
+          parentRowInfo: parentRowInfo
         };
-      },
+        rowInfoMap.set(userRow, rowInfo);
+      }
 
-      /**
-       * If a selectable column is selected, return the object describing the
-       * selected column.
-       *
-       * Columns with |selectable:true| can be selected independently of rows
-       * and cells. So it is possible to select column 0 and cell [0,0], or
-       * column 1 and cell [0,0], for example. See |selectedCell| for how to
-       * access the selected cell when the selectionMode is CELL.
-       *
-       * |selectedTableColumn| is entirely independent of |selectedColumnIndex|.
-       * When the table selectionMode is CELL, use |selectedTableRow| and
-       * |selectedColumnIndex| to find the selected cell.
-       * When one or more columns have |selectable:true|, then use
-       * |selectedTableColumn| to find the selected column, which may be either
-       * the same as or different from |selectedColumnIndex|, if a cell is also
-       * selected.
-       *
-       * @return {undefined|!Object} column
-       */
-      get selectedTableColumn() {
-        for (var i = 0; i < this.headerCells_.length; i++) {
-          if (this.headerCells_[i].selected)
-            return this.tableColumns_[i];
-        }
-        return undefined;
-      },
+      // Recompute isExpanded in case defaultExpansionStateCallback_ has
+      // changed.
+      rowInfo.isExpanded = this.getExpandedForUserRow_(userRow);
 
-      /**
-       * See |get selectedTableColumn()|. |column| must be one of the elements
-       * of this.tableColumns.
-       *
-       * @param {!Object} column
-       */
-      set selectedTableColumn(column) {
-        if (column !== undefined) {
-          var index = this.tableColumns.indexOf(column);
-          if (index < 0)
-            throw new Error('Cannot select unknown column', column);
+      return rowInfo;
+    },
 
-          if (!column.selectable)
-            throw new Error('Cannot select un-selectable column', column);
+    customizeTableRow_: function(userRow, trElement) {
+      if (!this.customizeTableRowCallback_)
+        return;
+      this.customizeTableRowCallback_(userRow, trElement);
+    },
 
-          var cell = this.headerCells_[index];
-          cell.selected = true;
-        }
-        var event = {column: column, selected: column !== undefined};
-        this.onSelectedColumnChanged_(event);
-        tr.b.dispatchSimpleEvent(this, 'selected-column-changed', true, false,
-            event);
-      },
+    getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
+                                     rowInfoMap, indentation) {
+      if (rowInfo.htmlNode) {
+        this.customizeTableRow_(rowInfo.userRow, rowInfo.htmlNode);
+        return rowInfo.htmlNode;
+      }
 
-      get selectedTableRow() {
-        if (!this.selectedTableRowInfo_)
-          return undefined;
-        return this.selectedTableRowInfo_.userRow;
-      },
+      var INDENT_SPACE = indentation * 16;
+      var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
+      var trElement = this.ownerDocument.createElement('tr');
+      rowInfo.htmlNode = trElement;
+      rowInfo.indentation = indentation;
+      trElement.rowInfo = rowInfo;
+      this.customizeTableRow_(rowInfo.userRow, trElement);
 
-      set selectedTableRow(userRow) {
-        this.rebuildIfNeeded_();
-        if (this.selectionMode_ === SelectionMode.NONE)
-          throw new Error('Selection is off.');
+      for (var i = 0; i < this.tableColumns_.length;) {
+        var td = this.appendNewElement_(trElement, 'td');
+        td.columnIndex = i;
 
-        var rowInfo;
-        if (userRow === undefined) {
-          rowInfo = undefined;
-        } else {
-          rowInfo = this.tableRowsInfo_.get(userRow);
-          if (!rowInfo)
-            throw new Error('Row has not been seen, must expand its parents.');
+        var column = this.tableColumns_[i];
+        var value = column.value(rowInfo.userRow);
+        var colSpan = column.colSpan ? column.colSpan : 1;
+        td.style.colSpan = colSpan;
+
+        switch (column.align) {
+          case undefined:
+          case ColumnAlignment.LEFT:
+            break;
+
+          case ColumnAlignment.RIGHT:
+            td.style.textAlign = 'right';
+            break;
+
+          default:
+            throw new Error('Invalid alignment of column at index=' + i +
+                ': ' + column.align);
         }
 
-        var e = this.prepareToChangeSelection_();
-        this.selectedTableRowInfo_ = rowInfo;
+        if (this.doesColumnIndexSupportSelection(i))
+          Polymer.dom(td).classList.add('supports-selection');
 
-        if (this.selectedTableRowInfo_ === undefined) {
-          this.selectedColumnIndex_ = undefined;
-          this.removeSelectedState_();
-        } else {
-          switch (this.selectionMode_) {
-            case SelectionMode.ROW:
-              this.selectedColumnIndex_ = undefined;
-              break;
-
-            case SelectionMode.CELL:
-              if (this.selectedColumnIndex_ === undefined) {
-                var i = this.getFirstSelectableColumnIndex_();
-                if (i == -1)
-                  throw new Error('Cannot find a selectable column.');
-                this.selectedColumnIndex_ = i;
-              }
-              break;
-
-            default:
-              throw new Error('Invalid selection mode ' + this.selectionMode_);
+        if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
+          if (rowInfo.userRow[this.subRowsPropertyName_] &&
+              rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
+            td.style.paddingLeft = INDENT_SPACE + 'px';
+            var expandButton = this.appendNewElement_(td,
+                'expand-button');
+            Polymer.dom(expandButton).textContent = RIGHT_ARROW;
+            if (rowInfo.isExpanded)
+              Polymer.dom(expandButton).classList.add('button-expanded');
+          } else {
+            td.style.paddingLeft = INDENT_SPACE_NO_BUTTON + 'px';
           }
-          this.updateSelectedState_();
         }
 
-        this.dispatchEvent(e);
-      },
-
-      updateTabIndexForTableRowNode_: function(row) {
-        if (this.selectionMode_ === SelectionMode.ROW)
-          row.tabIndex = 0;
-        else
-          row.removeAttribute('tabIndex');
-
-        var enableCellTab = this.selectionMode_ === SelectionMode.CELL;
-        for (var i = 0; i < this.tableColumns_.length; i++) {
-          var cell = row.children[i];
-          if (enableCellTab && this.doesColumnIndexSupportSelection(i))
-            cell.tabIndex = 0;
-          else
-            cell.removeAttribute('tabIndex');
+        if (value !== undefined) {
+          Polymer.dom(td).appendChild(
+              tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
         }
-      },
 
-      prepareToChangeSelection_: function() {
-        var e = new tr.b.Event('selection-changed');
-        var previousSelectedRowInfo = this.selectedTableRowInfo_;
-        if (previousSelectedRowInfo)
-          e.previousSelectedTableRow = previousSelectedRowInfo.userRow;
-        else
-          e.previousSelectedTableRow = undefined;
+        i += colSpan;
+      }
 
-        this.removeSelectedState_();
+      var isSelectable = tableSection === this.$.body;
+      var isExpandable = rowInfo.userRow[this.subRowsPropertyName_] &&
+          rowInfo.userRow[this.subRowsPropertyName_].length;
 
-        return e;
-      },
+      if (isSelectable || isExpandable) {
+        trElement.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (e.target.tagName == 'EXPAND-BUTTON') {
+            this.setExpandedForUserRow_(
+                tableSection, rowInfoMap,
+                rowInfo.userRow, !rowInfo.isExpanded);
+            return;
+          }
 
-      removeSelectedState_: function() {
-        this.setSelectedState_(false);
-      },
+          function getTD(cur) {
+            if (cur === trElement)
+              throw new Error('woah');
+            if (cur.parentElement === trElement)
+              return cur;
+            return getTD(cur.parentElement);
+          }
 
-      updateSelectedState_: function() {
-        this.setSelectedState_(true);
-      },
+          // If the row/cell can be selected and it's not selected yet,
+          // select it.
+          if (isSelectable && this.selectionMode_ !== SelectionMode.NONE) {
+            var shouldSelect = false;
+            var columnIndex = getTD(e.target).columnIndex;
+            switch (this.selectionMode_) {
+              case SelectionMode.ROW:
+                shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
+                break;
 
-      setSelectedState_: function(select) {
-        if (this.selectedTableRowInfo_ === undefined)
-          return;
+              case SelectionMode.CELL:
+                if (this.doesColumnIndexSupportSelection(columnIndex)) {
+                  shouldSelect = this.selectedTableRowInfo_ !== rowInfo ||
+                      this.selectedColumnIndex_ !== columnIndex;
+                }
+                break;
 
-        // Row selection.
-        var rowNode = this.selectedTableRowInfo_.htmlNode;
-        if (select)
-          rowNode.setAttribute('selected', true);
-        else
-          rowNode.removeAttribute('selected');
+              default:
+                throw new Error('Invalid selection mode ' +
+                    this.selectionMode_);
+            }
+            if (shouldSelect) {
+              this.didTableRowInfoGetClicked_(rowInfo, columnIndex);
+              return;
+            }
+          }
 
-        // Cell selection (if applicable).
-        var cellNode = rowNode.children[this.selectedColumnIndex_];
-        if (!cellNode)
-          return;
-        if (select)
-          cellNode.setAttribute('selected', true);
-        else
-          cellNode.removeAttribute('selected');
-      },
+          // Otherwise, if the row is expandable, expand/collapse it.
+          if (isExpandable) {
+            this.setExpandedForUserRow_(tableSection, rowInfoMap,
+                rowInfo.userRow, !rowInfo.isExpanded);
+          }
+        }.bind(this));
+      }
 
-      doesColumnIndexSupportSelection: function(columnIndex) {
-        var columnInfo = this.tableColumns_[columnIndex];
-        var scs = columnInfo.supportsCellSelection;
-        if (scs === false)
-          return false;
+      return rowInfo.htmlNode;
+    },
+
+    removeSubNodes_: function(tableSection, rowInfo, rowInfoMap) {
+      if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+        return;
+      for (var i = 0;
+           i < rowInfo.userRow[this.subRowsPropertyName_].length; i++) {
+        var subRow = rowInfo.userRow[this.subRowsPropertyName_][i];
+        var subRowInfo = rowInfoMap.get(subRow);
+        if (!subRowInfo)
+          continue;
+
+        var subNode = subRowInfo.htmlNode;
+        if (subNode && Polymer.dom(subNode).parentNode === tableSection) {
+          Polymer.dom(tableSection).removeChild(subNode);
+          this.removeSubNodes_(tableSection, subRowInfo, rowInfoMap);
+        }
+      }
+    },
+
+    scheduleRebuildHeaders_: function() {
+      this.headerDirty_ = true;
+      this.scheduleRebuild_();
+    },
+
+    scheduleRebuildBody_: function() {
+      this.bodyDirty_ = true;
+      this.scheduleRebuild_();
+    },
+
+    scheduleRebuildFooter_: function() {
+      this.footerDirty_ = true;
+      this.scheduleRebuild_();
+    },
+
+    scheduleRebuild_: function() {
+      if (this.rebuildPending_)
+        return;
+      this.rebuildPending_ = true;
+      setTimeout(function() {
+        this.rebuildPending_ = false;
+        this.rebuild();
+      }.bind(this), 0);
+    },
+
+    rebuildIfNeeded_: function() {
+      this.rebuild();
+    },
+
+    rebuild: function() {
+      var wasBodyOrHeaderDirty = this.headerDirty_ || this.bodyDirty_;
+
+      if (this.headerDirty_) {
+        this.generateHeaderColumns_();
+        this.headerDirty_ = false;
+      }
+      if (this.bodyDirty_) {
+        Polymer.dom(this.$.cols).textContent = '';
+        this.generateTableColNodes_();
+        Polymer.dom(this.$.body).textContent = '';
+        this.generateTableRowNodes_(
+            this.$.body,
+            this.tableRows_, this.tableRowsInfo_, 0,
+            undefined, undefined);
+        if (this.tableRows_.length === 0 && this.emptyValue_ !== undefined) {
+          var trElement = this.ownerDocument.createElement('tr');
+          Polymer.dom(this.$.body).appendChild(trElement);
+          Polymer.dom(trElement).classList.add('empty-row');
+          var td = this.ownerDocument.createElement('td');
+          Polymer.dom(trElement).appendChild(td);
+          td.colSpan = this.tableColumns_.length;
+          var emptyValue = this.emptyValue_;
+          Polymer.dom(td).appendChild(
+              tr.ui.b.asHTMLOrTextNode(emptyValue, this.ownerDocument));
+        }
+        this.bodyDirty_ = false;
+      }
+
+      if (wasBodyOrHeaderDirty)
+        this.applySizes_();
+
+      if (this.footerDirty_) {
+        Polymer.dom(this.$.foot).textContent = '';
+        this.generateTableRowNodes_(
+            this.$.foot,
+            this.tableFooterRows_, this.tableFooterRowsInfo_, 0,
+            undefined, undefined);
+        if (this.tableFooterRowsInfo_.length) {
+          Polymer.dom(this.$.body).classList.add('has-footer');
+        } else {
+          Polymer.dom(this.$.body).classList.remove('has-footer');
+        }
+        this.footerDirty_ = false;
+      }
+    },
+
+    appendNewElement_: function(parent, tagName) {
+      var element = parent.ownerDocument.createElement(tagName);
+      Polymer.dom(parent).appendChild(element);
+      return element;
+    },
+
+    getExpandedForTableRow: function(userRow) {
+      this.rebuildIfNeeded_();
+      var rowInfo = this.tableRowsInfo_.get(userRow);
+      if (rowInfo === undefined)
+        throw new Error('Row has not been seen, must expand its parents');
+      return rowInfo.isExpanded;
+    },
+
+    getExpandedForUserRow_: function(userRow) {
+      if (userRow[this.subRowsPropertyName_] === undefined)
+        return false;
+      if (userRow[this.subRowsPropertyName_].length === 0)
+        return false;
+      if (userRow.isExpanded)
         return true;
-      },
+      if (userRow.isExpanded === false)
+        return false;
 
-      getFirstSelectableColumnIndex_: function() {
-        for (var i = 0; i < this.tableColumns_.length; i++) {
-          if (this.doesColumnIndexSupportSelection(i))
-            return i;
+      var rowInfo = this.tableRowsInfo_.get(userRow);
+      if (rowInfo && rowInfo.isExpanded)
+        return true;
+
+      if (this.defaultExpansionStateCallback_ === undefined)
+        return false;
+
+      var parentUserRow = undefined;
+      if (rowInfo && rowInfo.parentRowInfo)
+        parentUserRow = rowInfo.parentRowInfo.userRow;
+
+      return this.defaultExpansionStateCallback_(
+          userRow, parentUserRow);
+    },
+
+    setExpandedForTableRow: function(userRow, expanded) {
+      this.rebuildIfNeeded_();
+      var rowInfo = this.tableRowsInfo_.get(userRow);
+      if (rowInfo === undefined)
+        throw new Error('Row has not been seen, must expand its parents');
+      return this.setExpandedForUserRow_(this.$.body, this.tableRowsInfo_,
+                                         userRow, expanded);
+    },
+
+    setExpandedForUserRow_: function(tableSection, rowInfoMap,
+                                     userRow, expanded) {
+      this.rebuildIfNeeded_();
+
+      var rowInfo = rowInfoMap.get(userRow);
+      if (rowInfo === undefined)
+        throw new Error('Row has not been seen, must expand its parents');
+
+      rowInfo.isExpanded = !!expanded;
+      // If no node, then nothing further needs doing.
+      if (rowInfo.htmlNode === undefined)
+        return;
+
+      // If its detached, then nothing needs doing.
+      if (rowInfo.htmlNode.parentElement !== tableSection)
+        return;
+
+      // Otherwise, rebuild.
+      var expandButton =
+          Polymer.dom(rowInfo.htmlNode).querySelector('expand-button');
+      if (rowInfo.isExpanded) {
+        Polymer.dom(expandButton).classList.add('button-expanded');
+        var lastAddedRow = rowInfo.htmlNode;
+        if (rowInfo.userRow[this.subRowsPropertyName_]) {
+          this.generateTableRowNodes_(
+              tableSection,
+              rowInfo.userRow[this.subRowsPropertyName_], rowInfoMap,
+              rowInfo.indentation + 1,
+              lastAddedRow, rowInfo);
         }
-        return -1;
-      },
+      } else {
+        Polymer.dom(expandButton).classList.remove('button-expanded');
+        this.removeSubNodes_(tableSection, rowInfo, rowInfoMap);
+      }
 
-      getSelectableNodeGivenTableRowNode_: function(htmlNode) {
+      this.maybeUpdateSelectedRow_();
+    },
+
+    get selectionMode() {
+      return this.selectionMode_;
+    },
+
+    set selectionMode(selectionMode) {
+      if (!tr.b.dictionaryContainsValue(SelectionMode, selectionMode))
+        throw new Error('Invalid selection mode ' + selectionMode);
+      this.rebuildIfNeeded_();
+      this.selectionMode_ = selectionMode;
+      this.didSelectionStateChange_();
+    },
+
+    get rowHighlightStyle() {
+      return this.rowHighlightStyle_;
+    },
+
+    set rowHighlightStyle(rowHighlightStyle) {
+      if (!tr.b.dictionaryContainsValue(HighlightStyle, rowHighlightStyle))
+        throw new Error('Invalid row highlight style ' + rowHighlightStyle);
+      this.rebuildIfNeeded_();
+      this.rowHighlightStyle_ = rowHighlightStyle;
+      this.didSelectionStateChange_();
+    },
+
+    get resolvedRowHighlightStyle() {
+      if (this.rowHighlightStyle_ !== HighlightStyle.DEFAULT)
+        return this.rowHighlightStyle_;
+      switch (this.selectionMode_) {
+        case SelectionMode.NONE:
+          return HighlightStyle.NONE;
+        case SelectionMode.ROW:
+          return HighlightStyle.DARK;
+        case SelectionMode.CELL:
+          return HighlightStyle.LIGHT;
+        default:
+          throw new Error('Invalid selection mode ' + selectionMode);
+      }
+    },
+
+    get cellHighlightStyle() {
+      return this.cellHighlightStyle_;
+    },
+
+    set cellHighlightStyle(cellHighlightStyle) {
+      if (!tr.b.dictionaryContainsValue(HighlightStyle, cellHighlightStyle))
+        throw new Error('Invalid cell highlight style ' + cellHighlightStyle);
+      this.rebuildIfNeeded_();
+      this.cellHighlightStyle_ = cellHighlightStyle;
+      this.didSelectionStateChange_();
+    },
+
+    get resolvedCellHighlightStyle() {
+      if (this.cellHighlightStyle_ !== HighlightStyle.DEFAULT)
+        return this.cellHighlightStyle_;
+      switch (this.selectionMode_) {
+        case SelectionMode.NONE:
+        case SelectionMode.ROW:
+          return HighlightStyle.NONE;
+        case SelectionMode.CELL:
+          return HighlightStyle.DARK;
+        default:
+          throw new Error('Invalid selection mode ' + selectionMode);
+      }
+    },
+
+    setHighlightStyle_: function(highlightAttribute, resolvedHighlightStyle) {
+      switch (resolvedHighlightStyle) {
+        case HighlightStyle.NONE:
+          Polymer.dom(this.$.body).removeAttribute(highlightAttribute);
+          break;
+        case HighlightStyle.LIGHT:
+          Polymer.dom(this.$.body).setAttribute(highlightAttribute, 'light');
+          break;
+        case HighlightStyle.DARK:
+          Polymer.dom(this.$.body).setAttribute(highlightAttribute, 'dark');
+          break;
+        default:
+          throw new Error('Invalid resolved highlight style ' +
+              resolvedHighlightStyle);
+      }
+    },
+
+    didSelectionStateChange_: function() {
+      this.setHighlightStyle_('row-highlight-style',
+          this.resolvedRowHighlightStyle);
+      this.setHighlightStyle_('cell-highlight-style',
+          this.resolvedCellHighlightStyle);
+
+      for (var i = 0; i < Polymer.dom(this.$.body).children.length; i++) {
+        this.updateTabIndexForTableRowNode_(
+            Polymer.dom(this.$.body).children[i]);
+      }
+      this.maybeUpdateSelectedRow_();
+    },
+
+    maybeUpdateSelectedRow_: function() {
+      if (this.selectedTableRowInfo_ === undefined)
+        return;
+
+      // Selection may be off.
+      if (this.selectionMode_ === SelectionMode.NONE) {
+        this.removeSelectedState_();
+        this.selectedTableRowInfo_ = undefined;
+        return;
+      }
+
+      // selectedUserRow may not be visible
+      function isVisible(rowInfo) {
+        if (!rowInfo.htmlNode)
+          return false;
+        return !!rowInfo.htmlNode.parentElement;
+      }
+      if (isVisible(this.selectedTableRowInfo_)) {
+        this.updateSelectedState_();
+        return;
+      }
+
+      this.removeSelectedState_();
+      var curRowInfo = this.selectedTableRowInfo_;
+      while (curRowInfo && !isVisible(curRowInfo))
+        curRowInfo = curRowInfo.parentRowInfo;
+
+      this.selectedTableRowInfo_ = curRowInfo;
+      if (this.selectedTableRowInfo_)
+        this.updateSelectedState_();
+    },
+
+    didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
+      switch (this.selectionMode_) {
+        case SelectionMode.NONE:
+          return;
+
+        case SelectionMode.CELL:
+          if (!this.doesColumnIndexSupportSelection(columnIndex))
+            return;
+          if (this.selectedColumnIndex !== columnIndex)
+            this.selectedColumnIndex = columnIndex;
+          // Fall through.
+
+        case SelectionMode.ROW:
+          if (this.selectedTableRowInfo_ !== rowInfo)
+            this.selectedTableRow = rowInfo.userRow;
+      }
+    },
+
+    /**
+     * If the selectionMode is CELL and a cell is selected,
+     * return an object containing the row, column, and value of the selected
+     * cell.
+     *
+     * @return {undefined|!Object}
+     */
+    get selectedCell() {
+      var row = this.selectedTableRow;
+      var columnIndex = this.selectedColumnIndex;
+      if (row === undefined || columnIndex === undefined ||
+          this.tableColumns_.length <= columnIndex)
+        return undefined;
+      var column = this.tableColumns_[columnIndex];
+      return {
+        row: row,
+        column: column,
+        value: column.value(row)
+      };
+    },
+
+    /**
+     * If a selectable column is selected, return the object describing the
+     * selected column.
+     *
+     * Columns with |selectable:true| can be selected independently of rows
+     * and cells. So it is possible to select column 0 and cell [0,0], or
+     * column 1 and cell [0,0], for example. See |selectedCell| for how to
+     * access the selected cell when the selectionMode is CELL.
+     *
+     * |selectedTableColumn| is entirely independent of |selectedColumnIndex|.
+     * When the table selectionMode is CELL, use |selectedTableRow| and
+     * |selectedColumnIndex| to find the selected cell.
+     * When one or more columns have |selectable:true|, then use
+     * |selectedTableColumn| to find the selected column, which may be either
+     * the same as or different from |selectedColumnIndex|, if a cell is also
+     * selected.
+     *
+     * @return {undefined|!Object} column
+     */
+    get selectedTableColumn() {
+      for (var i = 0; i < this.headerCells_.length; i++) {
+        if (this.headerCells_[i].selected)
+          return this.tableColumns_[i];
+      }
+      return undefined;
+    },
+
+    /**
+     * See |get selectedTableColumn()|. |column| must be one of the elements
+     * of this.tableColumns.
+     *
+     * @param {!Object} column
+     */
+    set selectedTableColumn(column) {
+      if (column !== undefined) {
+        var index = this.tableColumns.indexOf(column);
+        if (index < 0)
+          throw new Error('Cannot select unknown column', column);
+
+        if (!column.selectable)
+          throw new Error('Cannot select un-selectable column', column);
+
+        var cell = this.headerCells_[index];
+        cell.selected = true;
+      }
+      var event = {column: column, selected: column !== undefined};
+      this.onSelectedColumnChanged_(event);
+      tr.b.dispatchSimpleEvent(
+          this, 'selected-column-changed', true, false, event);
+    },
+
+    get selectedTableRow() {
+      if (!this.selectedTableRowInfo_)
+        return undefined;
+      return this.selectedTableRowInfo_.userRow;
+    },
+
+    set selectedTableRow(userRow) {
+      this.rebuildIfNeeded_();
+      if (this.selectionMode_ === SelectionMode.NONE)
+        throw new Error('Selection is off.');
+
+      var rowInfo;
+      if (userRow === undefined) {
+        rowInfo = undefined;
+      } else {
+        rowInfo = this.tableRowsInfo_.get(userRow);
+        if (!rowInfo)
+          throw new Error('Row has not been seen, must expand its parents.');
+      }
+
+      var e = this.prepareToChangeSelection_();
+      this.selectedTableRowInfo_ = rowInfo;
+
+      if (this.selectedTableRowInfo_ === undefined) {
+        this.selectedColumnIndex_ = undefined;
+        this.removeSelectedState_();
+      } else {
         switch (this.selectionMode_) {
           case SelectionMode.ROW:
-            return htmlNode;
+            this.selectedColumnIndex_ = undefined;
+            break;
 
           case SelectionMode.CELL:
-            return htmlNode.children[this.selectedColumnIndex_];
+            if (this.selectedColumnIndex_ === undefined) {
+              var i = this.getFirstSelectableColumnIndex_();
+              if (i == -1)
+                throw new Error('Cannot find a selectable column.');
+              this.selectedColumnIndex_ = i;
+            }
+            break;
 
           default:
             throw new Error('Invalid selection mode ' + this.selectionMode_);
         }
-      },
-
-      get selectedColumnIndex() {
-        if (this.selectionMode_ !== SelectionMode.CELL)
-          return undefined;
-        return this.selectedColumnIndex_;
-      },
-
-      set selectedColumnIndex(selectedColumnIndex) {
-        this.rebuildIfNeeded_();
-        if (this.selectionMode_ === SelectionMode.NONE)
-          throw new Error('Selection is off.');
-        if (selectedColumnIndex < 0 ||
-            selectedColumnIndex >= this.tableColumns_.length)
-          throw new Error('Invalid index');
-        if (!this.doesColumnIndexSupportSelection(selectedColumnIndex))
-          throw new Error('Selection is not supported on this column');
-
-        var e = this.prepareToChangeSelection_();
-        this.selectedColumnIndex_ = selectedColumnIndex;
-        if (this.selectedColumnIndex_ === undefined)
-          this.selectedTableRowInfo_ = undefined;
         this.updateSelectedState_();
+      }
 
-        this.dispatchEvent(e);
-      },
+      this.dispatchEvent(e);
+    },
 
-      onKeyDown_: function(e) {
-        if (this.selectionMode_ === SelectionMode.NONE)
-          return;
-        if (this.selectedTableRowInfo_ === undefined)
-          return;
+    updateTabIndexForTableRowNode_: function(row) {
+      if (this.selectionMode_ === SelectionMode.ROW)
+        row.tabIndex = 0;
+      else
+        Polymer.dom(row).removeAttribute('tabIndex');
 
-        var code_to_command_names = {
-          13: 'ENTER',
-          37: 'ARROW_LEFT',
-          38: 'ARROW_UP',
-          39: 'ARROW_RIGHT',
-          40: 'ARROW_DOWN'
-        };
-        var cmdName = code_to_command_names[e.keyCode];
-        if (cmdName === undefined)
-          return;
+      var enableCellTab = this.selectionMode_ === SelectionMode.CELL;
+      for (var i = 0; i < this.tableColumns_.length; i++) {
+        var cell = Polymer.dom(row).children[i];
+        if (enableCellTab && this.doesColumnIndexSupportSelection(i))
+          cell.tabIndex = 0;
+        else
+          Polymer.dom(cell).removeAttribute('tabIndex');
+      }
+    },
 
-        e.stopPropagation();
-        e.preventDefault();
-        this.performKeyCommand_(cmdName);
-      },
+    prepareToChangeSelection_: function() {
+      var e = new tr.b.Event('selection-changed');
+      var previousSelectedRowInfo = this.selectedTableRowInfo_;
+      if (previousSelectedRowInfo)
+        e.previousSelectedTableRow = previousSelectedRowInfo.userRow;
+      else
+        e.previousSelectedTableRow = undefined;
 
-      performKeyCommand_: function(cmdName) {
-        this.rebuildIfNeeded_();
+      this.removeSelectedState_();
 
-        var rowInfo = this.selectedTableRowInfo_;
-        var htmlNode = rowInfo.htmlNode;
-        if (cmdName === 'ARROW_UP') {
-          var prev = htmlNode.previousElementSibling;
-          if (prev) {
-            tr.ui.b.scrollIntoViewIfNeeded(prev);
-            this.selectedTableRow = prev.rowInfo.userRow;
-            this.focusSelected_();
-            return;
-          }
-          return;
-        }
+      return e;
+    },
 
-        if (cmdName === 'ARROW_DOWN') {
-          var next = htmlNode.nextElementSibling;
-          if (next) {
-            tr.ui.b.scrollIntoViewIfNeeded(next);
-            this.selectedTableRow = next.rowInfo.userRow;
-            this.focusSelected_();
-            return;
-          }
-          return;
-        }
+    removeSelectedState_: function() {
+      this.setSelectedState_(false);
+    },
 
-        if (cmdName === 'ARROW_RIGHT') {
-          switch (this.selectionMode_) {
-            case SelectionMode.ROW:
-              if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
-                return;
-              if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
-                return;
+    updateSelectedState_: function() {
+      this.setSelectedState_(true);
+    },
 
-              if (!rowInfo.isExpanded)
-                this.setExpandedForTableRow(rowInfo.userRow, true);
-              this.selectedTableRow =
-                htmlNode.nextElementSibling.rowInfo.userRow;
-              this.focusSelected_();
-              return;
+    setSelectedState_: function(select) {
+      if (this.selectedTableRowInfo_ === undefined)
+        return;
 
-            case SelectionMode.CELL:
-              var newIndex = this.selectedColumnIndex_ + 1;
-              if (newIndex >= this.tableColumns_.length)
-                return;
-              if (!this.doesColumnIndexSupportSelection(newIndex))
-                return;
-              this.selectedColumnIndex = newIndex;
-              this.focusSelected_();
-              return;
+      // Row selection.
+      var rowNode = this.selectedTableRowInfo_.htmlNode;
+      if (select)
+        Polymer.dom(rowNode).setAttribute('selected', true);
+      else
+        Polymer.dom(rowNode).removeAttribute('selected');
 
-            default:
-              throw new Error('Invalid selection mode ' + this.selectionMode_);
-          }
-        }
+      // Cell selection (if applicable).
+      var cellNode = Polymer.dom(rowNode).children[this.selectedColumnIndex_];
+      if (!cellNode)
+        return;
+      if (select)
+        Polymer.dom(cellNode).setAttribute('selected', true);
+      else
+        Polymer.dom(cellNode).removeAttribute('selected');
+    },
 
-        if (cmdName === 'ARROW_LEFT') {
-          switch (this.selectionMode_) {
-            case SelectionMode.ROW:
-              if (rowInfo.isExpanded) {
-                this.setExpandedForTableRow(rowInfo.userRow, false);
-                this.focusSelected_();
-                return;
-              }
+    doesColumnIndexSupportSelection: function(columnIndex) {
+      var columnInfo = this.tableColumns_[columnIndex];
+      var scs = columnInfo.supportsCellSelection;
+      if (scs === false)
+        return false;
+      return true;
+    },
 
-              // Not expanded. Select parent...
-              var parentRowInfo = rowInfo.parentRowInfo;
-              if (parentRowInfo) {
-                this.selectedTableRow = parentRowInfo.userRow;
-                this.focusSelected_();
-                return;
-              }
-              return;
+    getFirstSelectableColumnIndex_: function() {
+      for (var i = 0; i < this.tableColumns_.length; i++) {
+        if (this.doesColumnIndexSupportSelection(i))
+          return i;
+      }
+      return -1;
+    },
 
-            case SelectionMode.CELL:
-              var newIndex = this.selectedColumnIndex_ - 1;
-              if (newIndex < 0)
-                return;
-              if (!this.doesColumnIndexSupportSelection(newIndex))
-                return;
-              this.selectedColumnIndex = newIndex;
-              this.focusSelected_();
-              return;
+    getSelectableNodeGivenTableRowNode_: function(htmlNode) {
+      switch (this.selectionMode_) {
+        case SelectionMode.ROW:
+          return htmlNode;
 
-            default:
-              throw new Error('Invalid selection mode ' + this.selectionMode_);
-          }
-        }
+        case SelectionMode.CELL:
+          return Polymer.dom(htmlNode).children[this.selectedColumnIndex_];
 
-        if (cmdName === 'ENTER') {
-          if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
-            return;
-          if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
-            return;
-          this.setExpandedForTableRow(rowInfo.userRow, !rowInfo.isExpanded);
+        default:
+          throw new Error('Invalid selection mode ' + this.selectionMode_);
+      }
+    },
+
+    get selectedColumnIndex() {
+      if (this.selectionMode_ !== SelectionMode.CELL)
+        return undefined;
+      return this.selectedColumnIndex_;
+    },
+
+    set selectedColumnIndex(selectedColumnIndex) {
+      this.rebuildIfNeeded_();
+      if (this.selectionMode_ === SelectionMode.NONE)
+        throw new Error('Selection is off.');
+      if (selectedColumnIndex < 0 ||
+          selectedColumnIndex >= this.tableColumns_.length)
+        throw new Error('Invalid index');
+      if (!this.doesColumnIndexSupportSelection(selectedColumnIndex))
+        throw new Error('Selection is not supported on this column');
+
+      var e = this.prepareToChangeSelection_();
+      this.selectedColumnIndex_ = selectedColumnIndex;
+      if (this.selectedColumnIndex_ === undefined)
+        this.selectedTableRowInfo_ = undefined;
+      this.updateSelectedState_();
+
+      this.dispatchEvent(e);
+    },
+
+    onKeyDown_: function(e) {
+      if (this.selectionMode_ === SelectionMode.NONE)
+        return;
+      if (this.selectedTableRowInfo_ === undefined)
+        return;
+
+      var code_to_command_names = {
+        13: 'ENTER',
+        37: 'ARROW_LEFT',
+        38: 'ARROW_UP',
+        39: 'ARROW_RIGHT',
+        40: 'ARROW_DOWN'
+      };
+      var cmdName = code_to_command_names[e.keyCode];
+      if (cmdName === undefined)
+        return;
+
+      e.stopPropagation();
+      e.preventDefault();
+      this.performKeyCommand_(cmdName);
+    },
+
+    performKeyCommand_: function(cmdName) {
+      this.rebuildIfNeeded_();
+
+      var rowInfo = this.selectedTableRowInfo_;
+      var htmlNode = rowInfo.htmlNode;
+      if (cmdName === 'ARROW_UP') {
+        var prev = htmlNode.previousElementSibling;
+        if (prev) {
+          tr.ui.b.scrollIntoViewIfNeeded(prev);
+          this.selectedTableRow = prev.rowInfo.userRow;
           this.focusSelected_();
           return;
         }
-
-        throw new Error('Unrecognized command ' + cmdName);
-      },
-
-      focusSelected_: function() {
-        if (!this.selectedTableRowInfo_)
-          return;
-        var node = this.getSelectableNodeGivenTableRowNode_(
-            this.selectedTableRowInfo_.htmlNode);
-        node.focus();
-      },
-
-      dispatchSortingChangedEvent_: function() {
-        var e = new tr.b.Event('sort-column-changed');
-        e.sortColumnIndex = this.sortColumnIndex_;
-        e.sortDescending = this.sortDescending_;
-        this.dispatchEvent(e);
+        return;
       }
-    });
-  })();
-  </script>
-</polymer-element>
 
-<polymer-element name="tr-ui-b-table-header-cell">
+      if (cmdName === 'ARROW_DOWN') {
+        var next = htmlNode.nextElementSibling;
+        if (next) {
+          tr.ui.b.scrollIntoViewIfNeeded(next);
+          this.selectedTableRow = next.rowInfo.userRow;
+          this.focusSelected_();
+          return;
+        }
+        return;
+      }
+
+      if (cmdName === 'ARROW_RIGHT') {
+        switch (this.selectionMode_) {
+          case SelectionMode.ROW:
+            if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+              return;
+            if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+              return;
+
+            if (!rowInfo.isExpanded)
+              this.setExpandedForTableRow(rowInfo.userRow, true);
+            this.selectedTableRow =
+              htmlNode.nextElementSibling.rowInfo.userRow;
+            this.focusSelected_();
+            return;
+
+          case SelectionMode.CELL:
+            var newIndex = this.selectedColumnIndex_ + 1;
+            if (newIndex >= this.tableColumns_.length)
+              return;
+            if (!this.doesColumnIndexSupportSelection(newIndex))
+              return;
+            this.selectedColumnIndex = newIndex;
+            this.focusSelected_();
+            return;
+
+          default:
+            throw new Error('Invalid selection mode ' + this.selectionMode_);
+        }
+      }
+
+      if (cmdName === 'ARROW_LEFT') {
+        switch (this.selectionMode_) {
+          case SelectionMode.ROW:
+            if (rowInfo.isExpanded) {
+              this.setExpandedForTableRow(rowInfo.userRow, false);
+              this.focusSelected_();
+              return;
+            }
+
+            // Not expanded. Select parent...
+            var parentRowInfo = rowInfo.parentRowInfo;
+            if (parentRowInfo) {
+              this.selectedTableRow = parentRowInfo.userRow;
+              this.focusSelected_();
+              return;
+            }
+            return;
+
+          case SelectionMode.CELL:
+            var newIndex = this.selectedColumnIndex_ - 1;
+            if (newIndex < 0)
+              return;
+            if (!this.doesColumnIndexSupportSelection(newIndex))
+              return;
+            this.selectedColumnIndex = newIndex;
+            this.focusSelected_();
+            return;
+
+          default:
+            throw new Error('Invalid selection mode ' + this.selectionMode_);
+        }
+      }
+
+      if (cmdName === 'ENTER') {
+        if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+          return;
+        if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+          return;
+        this.setExpandedForTableRow(rowInfo.userRow, !rowInfo.isExpanded);
+        this.focusSelected_();
+        return;
+      }
+
+      throw new Error('Unrecognized command ' + cmdName);
+    },
+
+    focusSelected_: function() {
+      if (!this.selectedTableRowInfo_)
+        return;
+      var node = this.getSelectableNodeGivenTableRowNode_(
+          this.selectedTableRowInfo_.htmlNode);
+      node.focus();
+    },
+
+    dispatchSortingChangedEvent_: function() {
+      var e = new tr.b.Event('sort-column-changed');
+      e.sortColumnIndex = this.sortColumnIndex_;
+      e.sortDescending = this.sortDescending_;
+      this.dispatchEvent(e);
+    }
+  });
+})();
+</script>
+
+<dom-module id="tr-ui-b-table-header-cell">
   <template>
   <style>
     :host {
@@ -1517,133 +1526,136 @@ tr.exportTo('tr.ui.b', function() {
     <button id="button"></button>
     <button id="side"></button>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
 
-  var ColumnAlignment = tr.ui.b.TableFormat.ColumnAlignment;
+Polymer({
+  is: 'tr-ui-b-table-header-cell',
 
-  Polymer({
-    created: function() {
-      this.tapCallback_ = undefined;
-      this.cellTitle_ = '';
-      this.align_ = undefined;
-      this.selectable_ = false;
-      this.column_ = undefined;
-    },
+  created: function() {
+    this.tapCallback_ = undefined;
+    this.cellTitle_ = '';
+    this.align_ = undefined;
+    this.selectable_ = false;
+    this.column_ = undefined;
+  },
 
-    ready: function() {
-      this.$.button.addEventListener('click', this.onSelect_.bind(this));
-      this.$.side.addEventListener('click', this.onTap_.bind(this));
-    },
+  ready: function() {
+    this.$.button.addEventListener('click', this.onSelect_.bind(this));
+    this.$.side.addEventListener('click', this.onTap_.bind(this));
+  },
 
-    onSelect_: function() {
-      this.selected = this.$.button.getAttribute('selected') !== 'true';
-      tr.b.dispatchSimpleEvent(this, 'selected-column-changed', true, false,
-          {column: this.column, selected: this.selected});
-    },
+  onSelect_: function() {
+    this.selected = this.$.button.getAttribute('selected') !== 'true';
+    var e = new tr.b.Event('selected-column-changed');
+    e.column = this.column;
+    e.selected = this.selected;
+    this.dispatchEvent(e);
+  },
 
-    set column(column) {
-      this.column_ = column;
-      this.selectable = column.selectable;
-      this.align = column.align;
-      this.cellTitle = column.title;
-    },
+  set column(column) {
+    this.column_ = column;
+    this.selectable = column.selectable;
+    this.align = column.align;
+    this.cellTitle = column.title;
+  },
 
-    get column() {
-      return this.column_;
-    },
+  get column() {
+    return this.column_;
+  },
 
-    set selectable(selectable) {
-      this.selectable_ = selectable;
-      this.cellTitle = this.$.title.childNodes[0] ||
-          this.$.button.childNodes[0];
-    },
+  set selectable(selectable) {
+    this.selectable_ = selectable;
+    this.cellTitle = this.$.title.childNodes[0] ||
+        this.$.button.childNodes[0];
+  },
 
-    get selectable() {
-      return this.selectable_;
-    },
+  get selectable() {
+    return this.selectable_;
+  },
 
-    set selected(selected) {
-      if (selected)
-        this.$.button.setAttribute('selected', true);
-      else
-        this.$.button.removeAttribute('selected');
-    },
+  set selected(selected) {
+    if (selected)
+      this.$.button.setAttribute('selected', true);
+    else
+      this.$.button.removeAttribute('selected');
+  },
 
-    get selected() {
-      if (!this.selectable_)
-        return false;
-      return this.$.button.getAttribute('selected') === 'true';
-    },
+  get selected() {
+    if (!this.selectable_)
+      return false;
+    return this.$.button.getAttribute('selected') === 'true';
+  },
 
-    set cellTitle(value) {
-      this.cellTitle_ = value;
+  set cellTitle(value) {
+    this.cellTitle_ = value;
 
-      var titleNode = tr.ui.b.asHTMLOrTextNode(
-          this.cellTitle_, this.ownerDocument);
+    var titleNode = tr.ui.b.asHTMLOrTextNode(
+        this.cellTitle_, this.ownerDocument);
 
-      this.$.title.innerText = '';
-      this.$.button.innerText = '';
+    this.$.title.innerText = '';
+    this.$.button.innerText = '';
 
-      if (this.selectable_)
-        this.$.button.appendChild(titleNode);
-      else
-        this.$.title.appendChild(titleNode);
-    },
+    if (this.selectable_)
+      Polymer.dom(this.$.button).appendChild(titleNode);
+    else
+      Polymer.dom(this.$.title).appendChild(titleNode);
+  },
 
-    get cellTitle() {
-      return this.cellTitle_;
-    },
+  get cellTitle() {
+    return this.cellTitle_;
+  },
 
-    set align(align) {
-      switch (align) {
-        case undefined:
-        case ColumnAlignment.LEFT:
-          this.style.justifyContent = '';
-          break;
+  set align(align) {
+    switch (align) {
+      case undefined:
+      case ColumnAlignment.LEFT:
+        this.style.justifyContent = '';
+        break;
 
-        case ColumnAlignment.RIGHT:
-          this.style.justifyContent = 'flex-end';
-          break;
+      case ColumnAlignment.RIGHT:
+        this.style.justifyContent = 'flex-end';
+        break;
 
-        default:
-          throw new Error('Invalid alignment of column (title=\'' +
-              this.cellTitle_ + '\'): ' + align);
-      }
-      this.align_ = align;
-    },
-
-    get align() {
-      return this.align_;
-    },
-
-    clearSideContent: function() {
-      this.$.side.textContent = '';
-    },
-
-    set sideContent(content) {
-      this.$.side.textContent = content;
-      this.$.side.style.display = content ? 'inline' : 'none';
-    },
-
-    get sideContent() {
-      return this.$.side.textContent;
-    },
-
-    set tapCallback(callback) {
-      this.style.cursor = 'pointer';
-      this.tapCallback_ = callback;
-    },
-
-    get tapCallback() {
-      return this.tapCallback_;
-    },
-
-    onTap_: function() {
-      if (this.tapCallback_)
-        this.tapCallback_();
+      default:
+        throw new Error('Invalid alignment of column (title=\'' +
+            this.cellTitle_ + '\'): ' + align);
     }
-  });
+    this.align_ = align;
+  },
+
+  get align() {
+    return this.align_;
+  },
+
+  clearSideContent: function() {
+    Polymer.dom(this.$.side).textContent = '';
+  },
+
+  set sideContent(content) {
+    Polymer.dom(this.$.side).textContent = content;
+    this.$.side.style.display = content ? 'inline' : 'none';
+  },
+
+  get sideContent() {
+    return Polymer.dom(this.$.side).textContent;
+  },
+
+  set tapCallback(callback) {
+    this.style.cursor = 'pointer';
+    this.tapCallback_ = callback;
+  },
+
+  get tapCallback() {
+    return this.tapCallback_;
+  },
+
+  onTap_: function() {
+    if (this.tapCallback_)
+      this.tapCallback_();
+  }
+});
 </script>
-</polymer-element>

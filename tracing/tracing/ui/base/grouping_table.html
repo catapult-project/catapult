@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/table.html">
 
-<polymer-element name="tr-ui-b-grouping-table">
+<dom-module id='tr-ui-b-grouping-table'>
   <template>
     <style>
     :host {
@@ -19,7 +19,7 @@ found in the LICENSE file.
     </style>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -104,7 +104,9 @@ tr.exportTo('tr.ui.b', function() {
     }
   };
 
-  Polymer('tr-ui-b-grouping-table', {
+  Polymer({
+    is: 'tr-ui-b-grouping-table',
+
     created: function() {
       this.dataToGroup_ = undefined;
       this.groupBy_ = undefined;

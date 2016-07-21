@@ -24,20 +24,20 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     __proto__: tr.ui.analysis.ObjectSnapshotView.prototype,
 
     decorate: function() {
-      this.classList.add('tr-ui-e-system-stats-snapshot-view');
+      Polymer.dom(this).classList.add('tr-ui-e-system-stats-snapshot-view');
     },
 
     updateContents: function() {
       var snapshot = this.objectSnapshot_;
       if (!snapshot || !snapshot.getStats()) {
-        this.textContent = 'No system stats snapshot found.';
+        Polymer.dom(this).textContent = 'No system stats snapshot found.';
         return;
       }
       // Clear old snapshot view.
-      this.textContent = '';
+      Polymer.dom(this).textContent = '';
 
       var stats = snapshot.getStats();
-      this.appendChild(this.buildList_(stats));
+      Polymer.dom(this).appendChild(this.buildList_(stats));
     },
 
     isFloat: function(n) {
@@ -55,16 +55,16 @@ tr.exportTo('tr.ui.e.system_stats', function() {
 
       for (var statName in stats) {
         var statText = document.createElement('li');
-        statText.textContent = '' + statName + ': ';
-        statList.appendChild(statText);
+        Polymer.dom(statText).textContent = '' + statName + ': ';
+        Polymer.dom(statList).appendChild(statText);
 
         if (stats[statName] instanceof Object) {
-          statList.appendChild(this.buildList_(stats[statName]));
+          Polymer.dom(statList).appendChild(this.buildList_(stats[statName]));
         } else {
           if (this.isFloat(stats[statName]))
-            statText.textContent += stats[statName].toFixed(2);
+            Polymer.dom(statText).textContent += stats[statName].toFixed(2);
           else
-            statText.textContent += stats[statName];
+            Polymer.dom(statText).textContent += stats[statName];
         }
       }
 

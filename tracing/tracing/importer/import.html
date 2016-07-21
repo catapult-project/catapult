@@ -86,10 +86,10 @@ tr.exportTo('tr.importer', function() {
       overlay.title = 'Importing...';
       overlay.userCanClose = false;
       overlay.msgEl = document.createElement('div');
-      overlay.appendChild(overlay.msgEl);
+      Polymer.dom(overlay).appendChild(overlay.msgEl);
       overlay.msgEl.style.margin = '20px';
       overlay.update = function(msg) {
-        this.msgEl.textContent = msg;
+        Polymer.dom(this.msgEl).textContent = msg;
       };
       overlay.visible = true;
 

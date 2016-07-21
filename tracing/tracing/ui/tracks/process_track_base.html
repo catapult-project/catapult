@@ -44,17 +44,17 @@ tr.exportTo('tr.ui.tracks', function() {
 
       this.processBase_ = undefined;
 
-      this.classList.add('process-track-base');
-      this.classList.add('expanded');
+      Polymer.dom(this).classList.add('process-track-base');
+      Polymer.dom(this).classList.add('expanded');
 
       this.processNameEl_ = tr.ui.b.createSpan();
-      this.processNameEl_.classList.add('process-track-name');
+      Polymer.dom(this.processNameEl_).classList.add('process-track-name');
 
       this.headerEl_ = tr.ui.b.createDiv({className: 'process-track-header'});
-      this.headerEl_.appendChild(this.processNameEl_);
+      Polymer.dom(this.headerEl_).appendChild(this.processNameEl_);
       this.headerEl_.addEventListener('click', this.onHeaderClick_.bind(this));
 
-      this.appendChild(this.headerEl_);
+      Polymer.dom(this).appendChild(this.headerEl_);
     },
 
     get processBase() {
@@ -75,7 +75,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     get expanded() {
-      return this.classList.contains('expanded');
+      return Polymer.dom(this).classList.contains('expanded');
     },
 
     set expanded(expanded) {
@@ -84,7 +84,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.expanded === expanded)
         return;
 
-      this.classList.toggle('expanded');
+      Polymer.dom(this).classList.toggle('expanded');
 
       // Expanding and collapsing tracks is, essentially, growing and shrinking
       // the viewport. We dispatch a change event to trigger any processing
@@ -119,7 +119,8 @@ tr.exportTo('tr.ui.tracks', function() {
       if (!this.processBase_)
         return;
 
-      this.processNameEl_.textContent = this.processBase_.userFriendlyName;
+      Polymer.dom(this.processNameEl_).textContent =
+          this.processBase_.userFriendlyName;
       this.headerEl_.title = this.processBase_.userFriendlyDetails;
 
       // Create the object instance tracks for this process.
@@ -156,7 +157,7 @@ tr.exportTo('tr.ui.tracks', function() {
       track.process = this.process;
       if (!track.hasVisibleContent)
         return;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       // no spacing track, since this track only shown in collapsed state
     },
 
@@ -167,7 +168,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       var track = new tr.ui.tracks.FrameTrack(this.viewport);
       track.frames = frames;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
     },
 
     appendObjectInstanceTracks_: function() {
@@ -228,11 +229,11 @@ tr.exportTo('tr.ui.tracks', function() {
         }
         var track = new trackConstructor(this.viewport);
         track.objectInstances = visibleInstances;
-        this.appendChild(track);
+        Polymer.dom(this).appendChild(track);
         didAppendAtLeastOneTrack = true;
       }, this);
       if (didAppendAtLeastOneTrack)
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
     },
 
     appendCounterTracks_: function() {
@@ -244,8 +245,8 @@ tr.exportTo('tr.ui.tracks', function() {
       counters.forEach(function(counter) {
         var track = new tr.ui.tracks.CounterTrack(this.viewport);
         track.counter = counter;
-        this.appendChild(track);
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(track);
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
       }.bind(this));
     },
 
@@ -260,8 +261,8 @@ tr.exportTo('tr.ui.tracks', function() {
         track.thread = thread;
         if (!track.hasVisibleContent)
           return;
-        this.appendChild(track);
-        this.appendChild(new SpacingTrack(this.viewport));
+        Polymer.dom(this).appendChild(track);
+        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
       }.bind(this));
     }
   };

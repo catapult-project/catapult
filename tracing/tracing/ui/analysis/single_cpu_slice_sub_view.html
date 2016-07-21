@@ -13,8 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-single-cpu-slice-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-single-cpu-slice-sub-view'>
   <template>
     <style>
     table {
@@ -79,61 +78,64 @@ found in the LICENSE file.
       </tr>
     </table>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
-  Polymer({
-    created: function() {
-      this.currentSelection_ = undefined;
-    },
+Polymer({
+  is: 'tr-ui-a-single-cpu-slice-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  created: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    set selection(selection) {
-      var cpuSlice = tr.b.getOnlyElement(selection);
-      if (!(cpuSlice instanceof tr.model.CpuSlice))
-        throw new Error('Only supports thread time slices');
+  get selection() {
+    return this.currentSelection_;
+  },
 
-      this.currentSelection_ = selection;
+  set selection(selection) {
+    var cpuSlice = tr.b.getOnlyElement(selection);
+    if (!(cpuSlice instanceof tr.model.CpuSlice))
+      throw new Error('Only supports thread time slices');
 
-      var thread = cpuSlice.threadThatWasRunning;
+    this.currentSelection_ = selection;
 
-      var shadowRoot = this.shadowRoot;
-      if (thread) {
-        shadowRoot.querySelector('#process-name').textContent =
-            thread.parent.userFriendlyName;
-        shadowRoot.querySelector('#thread-name').textContent =
-            thread.userFriendlyName;
-      } else {
-        shadowRoot.querySelector('#process-name').parentElement.style.display =
-            'none';
-        shadowRoot.querySelector('#thread-name').textContent = cpuSlice.title;
-      }
+    var thread = cpuSlice.threadThatWasRunning;
 
-      shadowRoot.querySelector('#start').setValueAndUnit(
-          cpuSlice.start, tr.v.Unit.byName.timeStampInMs);
-      shadowRoot.querySelector('#duration').setValueAndUnit(
-          cpuSlice.duration, tr.v.Unit.byName.timeDurationInMs);
-
-      var runningThreadEl = shadowRoot.querySelector('#running-thread');
-
-      var timeSlice = cpuSlice.getAssociatedTimeslice();
-      if (!timeSlice) {
-        runningThreadEl.parentElement.style.display = 'none';
-      } else {
-        var threadLink = document.createElement('tr-ui-a-analysis-link');
-        threadLink.selection = new tr.model.EventSet(timeSlice);
-        threadLink.textContent = 'Click to select';
-        runningThreadEl.parentElement.style.display = '';
-        runningThreadEl.textContent = '';
-        runningThreadEl.appendChild(threadLink);
-      }
-
-      shadowRoot.querySelector('#args').object = cpuSlice.args;
-
+    var root = Polymer.dom(this.root);
+    if (thread) {
+      Polymer.dom(root.querySelector('#process-name')).textContent =
+          thread.parent.userFriendlyName;
+      Polymer.dom(root.querySelector('#thread-name')).textContent =
+          thread.userFriendlyName;
+    } else {
+      root.querySelector('#process-name').parentElement.style.display =
+          'none';
+      Polymer.dom(root.querySelector('#thread-name')).textContent =
+          cpuSlice.title;
     }
-  });
-  </script>
-</polymer-element>
+
+    root.querySelector('#start').setValueAndUnit(
+        cpuSlice.start, tr.v.Unit.byName.timeStampInMs);
+    root.querySelector('#duration').setValueAndUnit(
+        cpuSlice.duration, tr.v.Unit.byName.timeDurationInMs);
+
+    var runningThreadEl = root.querySelector('#running-thread');
+
+    var timeSlice = cpuSlice.getAssociatedTimeslice();
+    if (!timeSlice) {
+      runningThreadEl.parentElement.style.display = 'none';
+    } else {
+      var threadLink = document.createElement('tr-ui-a-analysis-link');
+      threadLink.selection = new tr.model.EventSet(timeSlice);
+      Polymer.dom(threadLink).textContent = 'Click to select';
+      runningThreadEl.parentElement.style.display = '';
+      Polymer.dom(runningThreadEl).textContent = '';
+      Polymer.dom(runningThreadEl).appendChild(threadLink);
+    }
+
+    root.querySelector('#args').object = cpuSlice.args;
+  }
+});
+</script>

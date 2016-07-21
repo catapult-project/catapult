@@ -11,8 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-memory-dump-header-pane"
-    extends="tr-ui-a-stacked-pane">
+<dom-module id='tr-ui-a-memory-dump-header-pane'>
   <template>
     <style>
       :host {
@@ -45,31 +44,33 @@ found in the LICENSE file.
       <!-- Aggregation mode selector (added in Polymer.ready()) -->
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
+  Polymer({
+    is: 'tr-ui-a-memory-dump-header-pane',
+    behaviors: [tr.ui.analysis.behaviors.StackedPane],
 
-  Polymer('tr-ui-a-memory-dump-header-pane', {
     created: function() {
       this.containerMemoryDumps_ = undefined;
     },
 
     ready: function() {
-      this.$.aggregation_mode_container.appendChild(tr.ui.b.createSelector(
-          this, 'aggregationMode', 'memoryDumpHeaderPane.aggregationMode',
-          tr.ui.analysis.MemoryColumn.AggregationMode.DIFF,
-          [
-            {
-              label: 'Diff',
-              value: tr.ui.analysis.MemoryColumn.AggregationMode.DIFF
-            },
-            {
-              label: 'Max',
-              value: tr.ui.analysis.MemoryColumn.AggregationMode.MAX
-            }
-          ]));
+      Polymer.dom(this.$.aggregation_mode_container).appendChild(
+          tr.ui.b.createSelector(this, 'aggregationMode',
+              'memoryDumpHeaderPane.aggregationMode',
+              tr.ui.analysis.MemoryColumn.AggregationMode.DIFF, [
+                {
+                  label: 'Diff',
+                  value: tr.ui.analysis.MemoryColumn.AggregationMode.DIFF
+                },
+                {
+                  label: 'Max',
+                  value: tr.ui.analysis.MemoryColumn.AggregationMode.MAX
+                }
+              ]));
     },
 
     /**
@@ -112,30 +113,31 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     updateLabel_: function() {
-      this.$.label.textContent = '';
+      Polymer.dom(this.$.label).textContent = '';
 
       if (this.containerMemoryDumps_ === undefined ||
           this.containerMemoryDumps_.length <= 0) {
-        this.$.label.textContent = 'No memory dumps selected';
+        Polymer.dom(this.$.label).textContent = 'No memory dumps selected';
         return;
       }
 
       var containerDumpCount = this.containerMemoryDumps_.length;
       var isMultiSelection = containerDumpCount > 1;
 
-      this.$.label.appendChild(document.createTextNode(
+      Polymer.dom(this.$.label).appendChild(document.createTextNode(
           'Selected ' + containerDumpCount + ' memory dump' +
           (isMultiSelection ? 's' : '') +
           ' in ' + this.containerMemoryDumps_[0].containerName + ' at '));
       // TODO(petrcermak): Use <tr-v-ui-scalar-span> once it can be displayed
       // inline. See https://github.com/catapult-project/catapult/issues/1371.
-      this.$.label.appendChild(document.createTextNode(
+      Polymer.dom(this.$.label).appendChild(document.createTextNode(
           tr.v.Unit.byName.timeStampInMs.format(
               this.containerMemoryDumps_[0].start)));
       if (isMultiSelection) {
         var ELLIPSIS = String.fromCharCode(8230);
-        this.$.label.appendChild(document.createTextNode(ELLIPSIS));
-        this.$.label.appendChild(document.createTextNode(
+        Polymer.dom(this.$.label).appendChild(
+            document.createTextNode(ELLIPSIS));
+        Polymer.dom(this.$.label).appendChild(document.createTextNode(
             tr.v.Unit.byName.timeStampInMs.format(
                 this.containerMemoryDumps_[containerDumpCount - 1].start)));
       }

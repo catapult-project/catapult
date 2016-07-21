@@ -13,7 +13,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/value_set_view.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name='tr-v-ui-value-set-table'>
+<dom-module id="tr-v-ui-value-set-table">
   <template>
     <style>
     :host {
@@ -49,11 +49,12 @@ found in the LICENSE file.
     </table-container>
     <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
-tr.exportTo('tr.v.ui', function() {
+tr.exportTo('tr.ui', function() {
+
   /**
    * @param {!tr.v.Value} value
    * @param {string} fieldName
@@ -126,7 +127,9 @@ tr.exportTo('tr.v.ui', function() {
     });
   }
 
-  Polymer('tr-v-ui-value-set-table', {
+  Polymer({
+    is: 'tr-v-ui-value-set-table',
+
     /**
      * Return true if this view supports this ValueSet.
      * Value-set-table supports all possible metrics, so it always returns true.
@@ -297,7 +300,7 @@ tr.exportTo('tr.v.ui', function() {
     handleFailureValues_: function() {
       this.values.map(function(value) {
         if (value instanceof tr.v.FailureValue) {
-          this.$.error.textContent = value.description;
+          Polymer.dom(this.$.error).textContent = value.description;
           this.$.table.style.display = 'none';
           this.style.width = '10em';
         }
@@ -359,17 +362,17 @@ tr.exportTo('tr.v.ui', function() {
         return;
       this.style.width = '';
       this.$.table.style.display = '';
-      this.$.error.textContent = '';
+      Polymer.dom(this.$.error).textContent = '';
       this.$.histogram.style.display = 'none';
 
       this.handleFailureValues_();
-      if (this.$.error.textContent)
+      if (Polymer.dom(this.$.error).textContent)
         return;
 
       this.buildRows_();
 
       if (this.rows_.length === 0) {
-        this.$.error.textContent = 'zero values';
+        Polymer.dom(this.$.error).textContent = 'zero values';
         this.$.table.style.display = 'none';
         this.style.width = '10em';
         return;
@@ -707,7 +710,7 @@ tr.exportTo('tr.v.ui', function() {
 
           value: function(row) {
             var nameEl = document.createElement('span');
-            nameEl.textContent = row.name;
+            Polymer.dom(nameEl).textContent = row.name;
             if (row.description)
               nameEl.title = row.description;
             nameEl.style.textOverflow = 'ellipsis';

@@ -7,10 +7,11 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-v-ui-preferred-display-unit">
-  <script>
+<script>
   'use strict';
   Polymer({
+    is: 'tr-v-ui-preferred-display-unit',
+
     ready: function() {
       this.preferredTimeDisplayMode_ = undefined;
     },
@@ -36,5 +37,4 @@ found in the LICENSE file.
     }
 
   });
-  </script>
-</polymer-element>
+</script>

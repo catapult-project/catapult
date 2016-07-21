@@ -8,7 +8,7 @@ found in the LICENSE file.
 <!--
 An element displaying basic information about a display item in a list view.
 -->
-<polymer-element name="tr-ui-e-chrome-cc-display-item-list-item">
+<dom-module id='tr-ui-e-chrome-cc-display-item-list-item'>
   <template>
     <style>
       :host {
@@ -51,9 +51,8 @@ An element displaying basic information about a display item in a list view.
     </style>
     <div class="header">
       {{name}}
-      <template if="{{richDetails && richDetails.skp64}}">
-        <a class="extra"
-           href="data:application/octet-stream;base64,{{richDetails.skp64}}"
+      <template is="dom-if" if="{{_computeIf(richDetails)}}">
+        <a class="extra" href$="{{_computeHref(richDetails)}}"
            download="drawing.skp" on-click="{{stopPropagation}}">SKP</a>
       </template>
     </div>
@@ -61,13 +60,13 @@ An element displaying basic information about a display item in a list view.
       <template if="{{rawDetails}}">
         <div class="raw-details">{{rawDetails}}</div>
       </template>
-      <template if="{{richDetails}}" bind="{{richDetails}}">
+      <template is="dom-if" if="{{richDetails}}" bind="{{richDetails}}">
         <dl>
-          <template if="{{cullRect}}" bind="{{cullRect}}">
+          <template is="dom-if" if="{{cullRect}}" bind="{{cullRect}}">
             <dt>Cull rect</dt>
             <dd>{{x}},{{y}} {{width}}&times;{{height}}</dd>
           </template>
-          <template if="{{visualRect}}" bind="{{visualRect}}">
+          <template is="dom-if" if="{{visualRect}}" bind="{{visualRect}}">
             <dt>Visual rect</dt>
             <dd>{{x}},{{y}} {{width}}&times;{{height}}</dd>
           </template>
@@ -75,50 +74,63 @@ An element displaying basic information about a display item in a list view.
       </template>
     </div>
   </template>
-  <script>
-    'use strict';
-    (function() {
-      // Extracts the "type" and "details" parts of the unstructured (plaintext)
-      // display item format, even if the details span multiple lines.
-      // For example, given "FooDisplayItem type=hello\nworld", produces
-      // "FooDisplayItem" as the first capture and "type=hello\nworld" as the
-      // second. Either capture could be the empty string, but this regex will
-      // still successfully match.
-      var DETAILS_SPLIT_REGEX = /^(\S*)\s*([\S\s]*)$/;
+<script>
+'use strict';
+(function() {
+  // Extracts the "type" and "details" parts of the unstructured (plaintext)
+  // display item format, even if the details span multiple lines.
+  // For example, given "FooDisplayItem type=hello\nworld", produces
+  // "FooDisplayItem" as the first capture and "type=hello\nworld" as the
+  // second. Either capture could be the empty string, but this regex will
+  // still successfully match.
+  var DETAILS_SPLIT_REGEX = /^(\S*)\s*([\S\s]*)$/;
 
-      Polymer({
-        created: function() {
-          this.name = '';
-          this.rawDetails = '';
-          this.richDetails = undefined;
-          this.data_ = undefined;
-        },
+  Polymer({
+    is: 'tr-ui-e-chrome-cc-display-item-list-item',
 
-        get data() {
-          return this.data_;
-        },
+    created: function() {
+      // TODO(charliea): Why is setAttribute necessary here but not below? We
+      // should reach out to the Polymer team to figure out.
+      Polymer.dom(this).setAttribute('name', '');
+      Polymer.dom(this).setAttribute('rawDetails', '');
+      Polymer.dom(this).setAttribute('richDetails', undefined);
+      Polymer.dom(this).setAttribute('data_', undefined);
+    },
 
-        set data(data) {
-          this.data_ = data;
+    get data() {
+      return this.data_;
+    },
 
-          if (!data) {
-            this.name = 'DATA MISSING';
-            this.rawDetails = '';
-            this.richDetails = undefined;
-          } else if (typeof data === 'string') {
-            var match = data.match(DETAILS_SPLIT_REGEX);
-            this.name = match[1];
-            this.rawDetails = match[2];
-            this.richDetails = undefined;
-          } else {
-            this.name = data.name;
-            this.rawDetails = '';
-            this.richDetails = data;
-          }
-        },
+    set data(data) {
+      this.data_ = data;
 
-        stopPropagation: function(e) { e.stopPropagation(); }
-      });
-    })();
-  </script>
-</polymer-element>
+      if (!data) {
+        this.name = 'DATA MISSING';
+        this.rawDetails = '';
+        this.richDetails = undefined;
+      } else if (typeof data === 'string') {
+        var match = data.match(DETAILS_SPLIT_REGEX);
+        this.name = match[1];
+        this.rawDetails = match[2];
+        this.richDetails = undefined;
+      } else {
+        this.name = data.name;
+        this.rawDetails = '';
+        this.richDetails = data;
+      }
+    },
+
+    stopPropagation: function(e) {
+      e.stopPropagation();
+    },
+
+    _computeIf: function(richDetails) {
+      return richDetails && richDetails.skp64;
+    },
+
+    _computeHref: function(richDetails) {
+      return 'data:application/octet-stream;base64,' + richDetails.skp64;
+    }
+  });
+})();
+</script>

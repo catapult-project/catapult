@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(viewEl.aggregationMode, AggregationMode.DIFF);
 
     // Check the text in the label.
-    assert.equal(viewEl.$.label.textContent, expectedLabelText);
+    assert.equal(Polymer.dom(viewEl.$.label).textContent, expectedLabelText);
 
     // Check the visibility of aggregation mode selector.
     var aggregationModeContainerVisible =

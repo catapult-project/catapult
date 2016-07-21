@@ -9,7 +9,7 @@ The bisect-status elements indicate whether the last bisect job
 for a bug succeeded or failed, or is currently in progress. */
 -->
 
-<polymer-element name="bisect-status">
+<dom-module id="bisect-status">
   <template>
     <style>
       .bisect-status {
@@ -39,10 +39,14 @@ for a bug succeeded or failed, or is currently in progress. */
   </template>
   <script>
     'use strict';
-    Polymer('bisect-status', {
-      publish: {
-        status: null
+    Polymer({
+      is: 'bisect-status',
+      properties: {
+        status: {
+          type: String,
+          value: null
+        }
       }
     });
   </script>
-</polymer-element>
+</dom-module>

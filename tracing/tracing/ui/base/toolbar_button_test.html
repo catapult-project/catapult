@@ -4,8 +4,8 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/ui/base/toolbar_button.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/toolbar_button.html">
 <script>
 'use strict';
 
@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
     el.style.width = '100px';
     el.style.height = '40px';
 
-    el.textContent = 'blahblah';
+    Polymer.dom(el).textContent = 'blahblah';
 
     this.addHTMLOutput(el);
   });
@@ -25,14 +25,14 @@ tr.b.unittest.testSuite(function() {
     el.style.width = '100px';
     el.style.height = '40px';
 
-    el.appendChild(tr.ui.b.createSpan({textContent: 'blahblah'}));
+    Polymer.dom(el).appendChild(tr.ui.b.createSpan({textContent: 'blahblah'}));
 
     this.addHTMLOutput(el);
   });
 
   test('puny', function() {
     var el = document.createElement('tr-ui-b-toolbar-button');
-    el.textContent = 'M';
+    Polymer.dom(el).textContent = 'M';
     this.addHTMLOutput(el);
   });
 });

@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
-<link rel='import' href='/tracing/ui/base/polymer_utils.html'>
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
 
-<polymer-element name='tr-ui-side-panel-container' is='HTMLUnknownElement'>
+<dom-module id='tr-ui-side-panel-container'>
   <template>
     <style>
     :host {
@@ -71,182 +71,188 @@ found in the LICENSE file.
     </active-panel-container>
     <tab-strip id='tab_strip'></tab-strip>
   </template>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-ui-side-panel-container',
 
-  <script>
-  'use strict';
-  Polymer({
-    ready: function() {
-      this.activePanelContainer_ = this.$.active_panel_container;
-      this.tabStrip_ = this.$.tab_strip;
+  ready: function() {
+    this.activePanelContainer_ = this.$.active_panel_container;
+    this.tabStrip_ = this.$.tab_strip;
 
-      this.dragHandle_ = this.$.side_panel_drag_handle;
-      this.dragHandle_.horizontal = false;
-      this.rangeOfInterest_ = new tr.b.Range();
-      this.brushingStateController_ = undefined;
-      this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
-      this.onModelChanged_ = this.onModelChanged_.bind(this);
-    },
+    this.dragHandle_ = this.$.side_panel_drag_handle;
+    this.dragHandle_.horizontal = false;
+    this.rangeOfInterest_ = new tr.b.Range();
+    this.brushingStateController_ = undefined;
+    this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
+    this.onModelChanged_ = this.onModelChanged_.bind(this);
+  },
 
-    get brushingStateController() {
-      return this.brushingStateController_;
-    },
+  get brushingStateController() {
+    return this.brushingStateController_;
+  },
 
-    set brushingStateController(brushingStateController) {
-      if (this.brushingStateController) {
-        this.brushingStateController_.removeEventListener(
-            'change', this.onSelectionChanged_);
-        this.brushingStateController_.removeEventListener(
-            'model-changed', this.onModelChanged_);
-      }
-      this.brushingStateController_ = brushingStateController;
-      if (this.brushingStateController) {
-        this.brushingStateController_.addEventListener(
-            'change', this.onSelectionChanged_);
-        this.brushingStateController_.addEventListener(
-            'model-changed', this.onModelChanged_);
-      }
-    },
+  set brushingStateController(brushingStateController) {
+    if (this.brushingStateController) {
+      this.brushingStateController_.removeEventListener(
+          'change', this.onSelectionChanged_);
+      this.brushingStateController_.removeEventListener(
+          'model-changed', this.onModelChanged_);
+    }
+    this.brushingStateController_ = brushingStateController;
+    if (this.brushingStateController) {
+      this.brushingStateController_.addEventListener(
+          'change', this.onSelectionChanged_);
+      this.brushingStateController_.addEventListener(
+          'model-changed', this.onModelChanged_);
+    }
+  },
 
-    get selection() {
-      return this.brushingStateController_.selection;
-    },
+  onSelectionChanged_: function() {
+    if (this.activePanel)
+      this.activePanel.selection = this.selection;
+  },
 
-    onSelectionChanged_: function() {
-      if (this.activePanel)
-        this.activePanel.selection = this.selection;
-    },
+  get model() {
+    return this.brushingStateController_.model;
+  },
 
-    get model() {
-      return this.brushingStateController_.model;
-    },
+  onModelChanged_: function() {
+    this.activePanelType_ = undefined;
+    this.updateContents_();
+  },
 
-    onModelChanged_: function() {
-      this.activePanelType_ = undefined;
-      this.updateContents_();
-    },
+  get expanded() {
+    this.hasAttribute('expanded');
+  },
 
-    get expanded() {
-      this.hasAttribute('expanded');
-    },
-
-    get activePanel() {
-      if (this.activePanelContainer_.children.length < 2)
-        return undefined;
-      return this.activePanelContainer_.children[1];
-    },
-
-    get activePanelType() {
-      return this.activePanelType_;
-    },
-
-    set activePanelType(panelType) {
-      if (this.model === undefined)
-        throw new Error('Cannot activate panel without a model');
-
-      var panel = undefined;
-      if (panelType)
-          panel = document.createElement(panelType);
-
-      if (panel !== undefined && !panel.supportsModel(this.model))
-        throw new Error('Cannot activate panel: does not support this model');
-
-      if (this.activePanelType) {
-        this.getLabelElementForPanelType_(
-            this.activePanelType).removeAttribute('selected');
-      }
-
-      if (this.activePanel)
-        this.activePanelContainer_.removeChild(this.activePanel);
-
-      if (panelType === undefined) {
-        this.removeAttribute('expanded');
-        this.activePanelType_ = undefined;
-        return;
-      }
-
-      this.getLabelElementForPanelType_(panelType).
-          setAttribute('selected', true);
-      this.setAttribute('expanded', true);
-
-      this.activePanelContainer_.appendChild(panel);
-      this.dragHandle_.target = panel;
-      panel.rangeOfInterest = this.rangeOfInterest_;
-      panel.selection = this.selection_;
-      panel.model = this.model;
-
-      this.activePanelType_ = panelType;
-    },
-
-    getPanelTypeForConstructor_: function(constructor) {
-      for (var i = 0; i < this.tabStrip_.children.length; i++) {
-        if (this.tabStrip_.children[i].panelType.constructor == constructor)
-          return this.tabStrip_.children[i].panelType;
-      }
-    },
-
-    getLabelElementForPanelType_: function(panelType) {
-      for (var i = 0; i < this.tabStrip_.children.length; i++) {
-        if (this.tabStrip_.children[i].panelType == panelType)
-          return this.tabStrip_.children[i];
-      }
+  get activePanel() {
+    if (Polymer.dom(this.activePanelContainer_).children.length < 2)
       return undefined;
-    },
+    return this.activePanelContainer_.children[1];
+  },
 
-    updateContents_: function() {
-      var previouslyActivePanelType = this.activePanelType;
+  get activePanel() {
+    if (Polymer.dom(this.activePanelContainer_).children.length < 2)
+      return undefined;
+    return Polymer.dom(this.activePanelContainer_).children[1];
+  },
 
-      this.tabStrip_.textContent = '';
-      var supportedPanelTypes = [];
+  set activePanelType(panelType) {
+    if (this.model === undefined)
+      throw new Error('Cannot activate panel without a model');
 
-      var panelTypes =
-          tr.ui.b.getPolymerElementsThatSubclass('tr-ui-side-panel');
-      panelTypes.forEach(function(panelType) {
-        var labelEl = document.createElement('tab-strip-label');
-        var panel = document.createElement(panelType);
+    var panel = undefined;
+    if (panelType)
+        panel = document.createElement(panelType);
 
-        labelEl.textContent = panel.textLabel;
-        labelEl.panelType = panelType;
+    if (panel !== undefined && !panel.supportsModel(this.model))
+      throw new Error('Cannot activate panel: does not support this model');
 
-        var supported = panel.supportsModel(this.model);
-        if (this.model && supported.supported) {
-          supportedPanelTypes.push(panelType);
-          labelEl.setAttribute('enabled', true);
-          labelEl.addEventListener('click', function() {
-            this.activePanelType =
-                this.activePanelType === panelType ? undefined : panelType;
-          }.bind(this));
-        } else {
-          labelEl.title = 'Not supported for the current trace: ' +
-              supported.reason;
-          labelEl.style.display = 'none';
-        }
-        this.tabStrip_.appendChild(labelEl);
-      }, this);
+    if (this.activePanelType) {
+      Polymer.dom(this.getLabelElementForPanelType_(
+          this.activePanelType)).removeAttribute('selected');
+    }
 
-      // Restore the active panel, or collapse
-      if (previouslyActivePanelType &&
-          supportedPanelTypes.indexOf(previouslyActivePanelType) != -1) {
-        this.activePanelType = previouslyActivePanelType;
-        this.setAttribute('expanded', true);
+    Polymer.dom(this.activePanelContainer_).textContent = '';
+
+    if (this.activePanelType) {
+      this.getLabelElementForPanelType_(
+          this.activePanelType).removeAttribute('selected');
+    }
+
+    if (this.activePanel)
+      this.activePanelContainer_.removeChild(this.activePanel);
+
+    if (panelType === undefined) {
+      Polymer.dom(this).removeAttribute('expanded');
+      this.activePanelType_ = undefined;
+      return;
+    }
+
+    Polymer.dom(this.getLabelElementForPanelType_(panelType)).
+        setAttribute('selected', true);
+    Polymer.dom(this).setAttribute('expanded', true);
+
+    Polymer.dom(this.activePanelContainer_).appendChild(panel);
+    this.dragHandle_.target = panel;
+    panel.rangeOfInterest = this.rangeOfInterest_;
+    panel.selection = this.selection_;
+    panel.model = this.model;
+
+    this.activePanelType_ = panelType;
+  },
+
+  getPanelTypeForConstructor_: function(constructor) {
+    for (var i = 0; i < this.tabStrip_.children.length; i++) {
+      if (this.tabStrip_.children[i].panelType.constructor == constructor)
+        return this.tabStrip_.children[i].panelType;
+    }
+  },
+
+  getLabelElementForPanelType_: function(panelType) {
+    for (var i = 0; i < this.tabStrip_.children.length; i++) {
+      if (this.tabStrip_.children[i].panelType == panelType)
+        return this.tabStrip_.children[i];
+    }
+    return undefined;
+  },
+
+  updateContents_: function() {
+    var previouslyActivePanelType = this.activePanelType;
+
+    Polymer.dom(this.tabStrip_).textContent = '';
+    var supportedPanelTypes = [];
+
+    for (var panelTypeInfo of
+        tr.ui.side_panel.SidePanelRegistry.getAllRegisteredTypeInfos()) {
+      var labelEl = document.createElement('tab-strip-label');
+      var panel = panelTypeInfo.constructor();
+      var panelType = panel.tagName;
+
+      Polymer.dom(labelEl).textContent = panel.textLabel;
+      labelEl.panelType = panelType;
+
+      var supported = panel.supportsModel(this.model);
+      if (this.model && supported.supported) {
+        supportedPanelTypes.push(panelType);
+        Polymer.dom(labelEl).setAttribute('enabled', true);
+        labelEl.addEventListener('click', function(panelType) {
+          this.activePanelType =
+              this.activePanelType === panelType ? undefined : panelType;
+        }.bind(this, panelType));
       } else {
         if (this.activePanel)
           this.activePanelContainer_.removeChild(this.activePanel);
         this.removeAttribute('expanded');
       }
-    },
-
-    get rangeOfInterest() {
-      return this.rangeOfInterest_;
-    },
-
-    set rangeOfInterest(range) {
-      if (range == undefined)
-        throw new Error('Must not be undefined');
-      this.rangeOfInterest_ = range;
-      if (this.activePanel)
-        this.activePanel.rangeOfInterest = range;
+      Polymer.dom(this.tabStrip_).appendChild(labelEl);
     }
-  });
-  </script>
-</polymer-element>
 
+    // Restore the active panel, or collapse
+    if (previouslyActivePanelType &&
+        supportedPanelTypes.indexOf(previouslyActivePanelType) != -1) {
+      this.activePanelType = previouslyActivePanelType;
+      Polymer.dom(this).setAttribute('expanded', true);
+    } else {
+      if (this.activePanel)
+        Polymer.dom(this.activePanelContainer_).removeChild(this.activePanel);
+      Polymer.dom(this.activePanelContainer_).textContent = '';
+      Polymer.dom(this).removeAttribute('expanded');
+    }
+  },
+
+  get rangeOfInterest() {
+    return this.rangeOfInterest_;
+  },
+
+  set rangeOfInterest(range) {
+    if (range == undefined)
+      throw new Error('Must not be undefined');
+    this.rangeOfInterest_ = range;
+    if (this.activePanel)
+      this.activePanel.rangeOfInterest = range;
+  }
+});
+</script>

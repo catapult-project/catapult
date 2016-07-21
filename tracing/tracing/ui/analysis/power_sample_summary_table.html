@@ -10,120 +10,123 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-power-sample-summary-table">
+<dom-module id='tr-ui-a-power-sample-summary-table'>
   <template>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.$.table.tableColumns = [
-        {
-          title: 'Min power',
-          width: '100px',
-          value: function(row) {
-            return tr.v.Unit.byName.powerInWatts.format(row.min);
-          }
-        },
-        {
-          title: 'Max power',
-          width: '100px',
-          value: function(row) {
-            return tr.v.Unit.byName.powerInWatts.format(row.max);
-          }
-        },
-        {
-          title: 'Time-weighted average',
-          width: '100px',
-          value: function(row) {
-            return tr.v.Unit.byName.powerInWatts.format(
-                row.timeWeightedAverage);
-          }
-        },
-        {
-          title: 'Energy consumed',
-          width: '100px',
-          value: function(row) {
-            return tr.v.Unit.byName.energyInJoules.format(row.energyConsumed);
-          }
-        },
-        {
-          title: 'Sample count',
-          width: '100%',
-          value: function(row) { return row.sampleCount; }
+Polymer({
+  is: 'tr-ui-a-power-sample-summary-table',
+
+  ready: function() {
+    this.$.table.tableColumns = [
+      {
+        title: 'Min power',
+        width: '100px',
+        value: function(row) {
+          return tr.v.Unit.byName.powerInWatts.format(row.min);
         }
-      ];
-      this.samples = new tr.model.EventSet();
-    },
-
-    get samples() {
-      return this.samples_;
-    },
-
-    set samples(samples) {
-      if (samples === this.samples)
-        return;
-
-      this.samples_ =
-          (samples === undefined) ? new tr.model.EventSet() : samples;
-      this.updateContents_();
-    },
-
-    updateContents_: function() {
-      if (this.samples.length === 0) {
-        this.$.table.tableRows = [];
-      } else {
-        this.$.table.tableRows = [{
-          min: this.getMin(),
-          max: this.getMax(),
-          timeWeightedAverage: this.getTimeWeightedAverage(),
-          energyConsumed: this.getEnergyConsumed(),
-          sampleCount: this.samples.length
-        }];
+      },
+      {
+        title: 'Max power',
+        width: '100px',
+        value: function(row) {
+          return tr.v.Unit.byName.powerInWatts.format(row.max);
+        }
+      },
+      {
+        title: 'Time-weighted average',
+        width: '100px',
+        value: function(row) {
+          return tr.v.Unit.byName.powerInWatts.format(
+              row.timeWeightedAverage);
+        }
+      },
+      {
+        title: 'Energy consumed',
+        width: '100px',
+        value: function(row) {
+          return tr.v.Unit.byName.energyInJoules.format(row.energyConsumed);
+        }
+      },
+      {
+        title: 'Sample count',
+        width: '100%',
+        value: function(row) { return row.sampleCount; }
       }
+    ];
+    this.samples = new tr.model.EventSet();
+  },
 
-      this.$.table.rebuild();
-    },
+  get samples() {
+    return this.samples_;
+  },
 
-    getMin: function() {
-      return Math.min.apply(null, this.samples.map(function(sample) {
-        return sample.power;
-      }));
-    },
+  set samples(samples) {
+    if (samples === this.samples)
+      return;
 
-    getMax: function() {
-      return Math.max.apply(null, this.samples.map(function(sample) {
-        return sample.power;
-      }));
-    },
+    this.samples_ =
+        (samples === undefined) ? new tr.model.EventSet() : samples;
+    this.updateContents_();
+  },
 
-    /**
-     * Returns a time-weighted average of the power consumption (Watts)
-     * in between the first sample (inclusive) and last sample (exclusive).
-     */
-    getTimeWeightedAverage: function() {
-      var energyConsumed = this.getEnergyConsumed();
-
-      if (energyConsumed === 'N/A')
-        return 'N/A';
-
-      // Divide by 1000 to convert milliseconds to seconds.
-      var durationInSeconds = this.samples.bounds.duration / 1000;
-
-      // Convert energy to power in milliwatts by dividing by time in seconds.
-      return this.getEnergyConsumed() / durationInSeconds;
-    },
-
-    getEnergyConsumed: function() {
-      if (this.samples.length < 2)
-        return 'N/A';
-
-      var bounds = this.samples.bounds;
-      var series = tr.b.getFirstElement(this.samples).series;
-      return series.getEnergyConsumed(bounds.min, bounds.max);
+  updateContents_: function() {
+    if (this.samples.length === 0) {
+      this.$.table.tableRows = [];
+    } else {
+      this.$.table.tableRows = [{
+        min: this.getMin(),
+        max: this.getMax(),
+        timeWeightedAverage: this.getTimeWeightedAverage(),
+        energyConsumed: this.getEnergyConsumed(),
+        sampleCount: this.samples.length
+      }];
     }
-  });
-  </script>
-</polymer-element>
+
+    this.$.table.rebuild();
+  },
+
+  getMin: function() {
+    return Math.min.apply(null, this.samples.map(function(sample) {
+      return sample.power;
+    }));
+  },
+
+  getMax: function() {
+    return Math.max.apply(null, this.samples.map(function(sample) {
+      return sample.power;
+    }));
+  },
+
+  /**
+   * Returns a time-weighted average of the power consumption (Watts)
+   * in between the first sample (inclusive) and last sample (exclusive).
+   */
+  getTimeWeightedAverage: function() {
+    var energyConsumed = this.getEnergyConsumed();
+
+    if (energyConsumed === 'N/A')
+      return 'N/A';
+
+    // Divide by 1000 to convert milliseconds to seconds.
+    var durationInSeconds = this.samples.bounds.duration / 1000;
+
+    // Convert energy to power in milliwatts by dividing by time in seconds.
+    return this.getEnergyConsumed() / durationInSeconds;
+  },
+
+
+  getEnergyConsumed: function() {
+    if (this.samples.length < 2)
+      return 'N/A';
+
+    var bounds = this.samples.bounds;
+    var series = tr.b.getFirstElement(this.samples).series;
+    return series.getEnergyConsumed(bounds.min, bounds.max);
+  }
+});
+</script>

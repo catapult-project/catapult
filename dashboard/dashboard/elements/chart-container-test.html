@@ -13,6 +13,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/dashboard/elements/chart-container.html">
 <link rel="import" href="/dashboard/static/graph.html">
+<link rel="import" href="/dashboard/static/testdata/dromaeo-charts.html">
 <link rel="import" href="/dashboard/static/testing_common.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
@@ -23,79 +24,6 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
 
-  var GRAPH_JSON = {
-    'data': {
-      '0': {
-        'color': 0,
-        'data': [[348164, 24290], [348167, 22206], [348182, 24170],
-                 [348198, 22847], [348224, 25224]],
-        'id': 'line_0'
-      }
-    },
-    'error_bars': {
-      '0': [
-        {
-          'fillBetween': 'line_0',
-          'clickable': false,
-          'hoverable': false,
-          'data': [[348164, 24290], [348167, 22206], [348182, 24170],
-                   [348198, 22847], [348224, 25224]],
-          'color': 0,
-          'id': 'bottom_0',
-          'lines': {
-            'fill': 0.2,
-            'lineWidth': 0,
-            'show': true
-          }
-        },
-        {
-          'fillBetween': 'line_0',
-          'clickable': false,
-          'hoverable': false,
-          'data': [[348164, 24290], [348167, 22206], [348182, 24170],
-                   [348198, 22847], [348224, 25224]],
-          'color': 0,
-          'id': 'top_0',
-          'lines': {
-            'fill': 0.2,
-            'lineWidth': 0,
-            'show': true
-          }
-        }
-      ]
-    },
-    'annotations': {
-      '0': {
-        '0': {
-          'a_trace_rerun_options': null,
-          'error': 0,
-          'r_webkit_rev': '202058',
-          'a_stdio_uri': '[Buildbot stdio](//dromaeo/stdio)',
-          'r_commit_pos': '348164',
-          'timestamp': (new Date).getTime(),
-          'r_chromium': '0c554b0e1233639e7428facc13ff674741368fb2'
-        }
-      },
-      'series': {
-        '0': {
-          'name': 'dom',
-          'description': null,
-          'better': 'Higher',
-          'units': 'runs/s',
-          'path': 'ChromiumPerf/win/dromaeo/dom'
-        }
-      }
-    }
-  };
-
-  var GRAPH_REVISION_JSON = [
-     [348164, 24290, 1445661677000],
-     [348167, 22206, 1445674668000],
-     [348182, 24170, 1445685601000],
-     [348198, 22847, 1445696455000],
-     [348224, 25224, 1445707715000]
-  ];
-
   var testOptions = {
     tearDown: function() {
       testing_common.clearXhrMock();
@@ -103,60 +31,38 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  function createBasicChart() {
-    var params = {
-      'test_path_dict': {
-        'ChromiumPerf/win/dromaeo': []
-      },
-      'is_selected': true
-    };
-    var graphQuery = ('/graph_json?graphs=' +
-                      encodeURIComponent(JSON.stringify(params)));
-    testing_common.addXhrMock(graphQuery, JSON.stringify(GRAPH_JSON));
-    var revisionQuery = ('/graph_revisions?test_path=' +
-        encodeURIComponent('ChromiumPerf/win/dromaeo/dom'));
-    testing_common.addXhrMock(revisionQuery,
-                              JSON.stringify(GRAPH_REVISION_JSON));
-    var chart = document.createElement('chart-container');
-    return chart;
-  };
-
   test('instantiate basic', function() {
-    var chart = createBasicChart();
-    chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
+    testing_common.mockChartJson(dromaeo_charts);
+    var chart = document.createElement('chart-container');
     this.addHTMLOutput(chart);
+    chart.addSeriesGroup(dromaeo_charts.graphParams);
   }, testOptions);
 
   test('data is loaded when a series group is added', function() {
-    var chart = createBasicChart();
-    testing_common.addToFixture(chart);
-    chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
+    testing_common.mockChartJson(dromaeo_charts);
+    var chart = document.createElement('chart-container');
+    chart.addSeriesGroup(dromaeo_charts.graphParams);
+    this.addHTMLOutput(chart);
     assert.equal(chart.getDataForFlot().length, 3);
   }, testOptions);
 
   test('warning added for stale series', function() {
-    var params = {
-      'test_path_dict': {
-        'ChromiumPerf/win/dromaeo': []
-      },
-      'is_selected': true
-    };
-    var graphJson = testing_common.deepCopy(GRAPH_JSON);
-    graphJson['annotations']['0']['0']['timestamp'] -= 8 * 86400000;
-    var graphQuery = ('/graph_json?graphs=' +
-                      encodeURIComponent(JSON.stringify(params)));
-    testing_common.addXhrMock(graphQuery, JSON.stringify(graphJson));
-
+    var graphJson = testing_common.deepCopy(dromaeo_charts.graphSelectedJson);
+    for (var annotation in graphJson['annotations']['0']) {
+      graphJson['annotations']['0'][annotation]['timestamp'] -= 8 * 86400000;
+    }
+    testing_common.mockChartJson(dromaeo_charts, graphJson);
     var chart = document.createElement('chart-container');
-    testing_common.addToFixture(chart);
-    chart.addSeriesGroup([['ChromiumPerf/win/dromaeo', ['important']]]);
+    this.addHTMLOutput(chart);
+    chart.addSeriesGroup(dromaeo_charts.graphParams);
 
     return new Promise(function(resolve) {
       function check() {
+        assert.lengthOf(chart.warnings, 1);
         assert.notEqual(-1, chart.warnings[0].indexOf('Graph out of date!'));
         resolve();
       }
-      setTimeout(check, 10);
+      requestAnimationFrame(check);
     });
   }, testOptions);
 

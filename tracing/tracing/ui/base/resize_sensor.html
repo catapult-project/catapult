@@ -12,7 +12,7 @@ found in the LICENSE file.
 <!--
 @fileoverview A container that senses when its size changes.
 -->
-<polymer-element name="tr-ui-b-resize-sensor">
+<dom-module id='tr-ui-b-resize-sensor'>
   <template>
     <style>
       :host {
@@ -24,27 +24,28 @@ found in the LICENSE file.
       <content></content>
     </div>
   </template>
+</dom-module>
+<script>
+'use strict';
+(function() {
+  Polymer({
+    is: 'tr-ui-b-resize-sensor',
 
-  <script>
-  'use strict';
-  (function() {
-    Polymer({
-      attached: function() {
-        // ResizeSensor only works if it's rooted in a document when it's
-        // created, so wait until the tr-ui-b-resize-sensor is attached to the
-        // DOM before creating the ResizeSensor.
-        this.sensor_ = new ResizeSensor(this.$.container,
-                                        this.onResize_.bind(this));
-        // ResizeSensor appends a div to this.$.container. That div must be a
-        // direct sibling of <content>.
-        // ResizeSensor's first argument must be a Node, so it cannot be
-        // this.shadowRoot.
-      },
+    attached: function() {
+      // ResizeSensor only works if it's rooted in a document when it's
+      // created, so wait until the tr-ui-b-resize-sensor is attached to the
+      // DOM before creating the ResizeSensor.
+      this.sensor_ = new ResizeSensor(this.$.container,
+                                      this.onResize_.bind(this));
+      // ResizeSensor appends a div to this.$.container. That div must be a
+      // direct sibling of <content>.
+      // ResizeSensor's first argument must be a Node, so it cannot be
+      // this.root.
+    },
 
-      onResize_: function() {
-        this.dispatchEvent(new tr.b.Event('resize', false, false));
-      }
-    });
-  })();
-  </script>
-</polymer-element>
+    onResize_: function() {
+      this.dispatchEvent(new tr.b.Event('resize', false, false));
+    }
+  });
+})();
+</script>

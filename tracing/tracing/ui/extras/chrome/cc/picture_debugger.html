@@ -9,8 +9,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/chrome/cc/picture.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
-<link rel="import" href="/tracing/ui/base/info_bar.html">
 <link rel="import" href="/tracing/ui/base/hotkey_controller.html">
+<link rel="import" href="/tracing/ui/base/info_bar.html">
 <link rel="import" href="/tracing/ui/base/list_view.html">
 <link rel="import" href="/tracing/ui/base/mouse_mode_selector.html">
 <link rel="import" href="/tracing/ui/base/overlay.html">
@@ -120,24 +120,25 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
   var PictureDebugger = tr.ui.b.define('tr-ui-e-chrome-cc-picture-debugger');
 
   PictureDebugger.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function() {
       var node = tr.ui.b.instantiateTemplate(
           '#tr-ui-e-chrome-cc-picture-debugger-template', THIS_DOC);
 
-      this.appendChild(node);
+      Polymer.dom(this).appendChild(node);
 
       this.pictureAsImageData_ = undefined;
       this.showOverdraw_ = false;
       this.zoomScaleValue_ = 1;
 
-      this.sizeInfo_ = this.querySelector('.size');
-      this.rasterArea_ = this.querySelector('raster-area');
-      this.rasterCanvas_ = this.rasterArea_.querySelector('canvas');
+      this.sizeInfo_ = Polymer.dom(this).querySelector('.size');
+      this.rasterArea_ = Polymer.dom(this).querySelector('raster-area');
+      this.rasterCanvas_ = Polymer.dom(this.rasterArea_)
+          .querySelector('canvas');
       this.rasterCtx_ = this.rasterCanvas_.getContext('2d');
 
-      this.filename_ = this.querySelector('.filename');
+      this.filename_ = Polymer.dom(this).querySelector('.filename');
 
       this.drawOpsChartSummaryView_ =
           new tr.ui.e.chrome.cc.PictureOpsChartSummaryView();
@@ -145,7 +146,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.drawOpsChartView_.addEventListener(
           'selection-changed', this.onChartBarClicked_.bind(this));
 
-      this.exportButton_ = this.querySelector('.export');
+      this.exportButton_ = Polymer.dom(this).querySelector('.export');
       this.exportButton_.addEventListener(
           'click', this.onSaveAsSkPictureClicked_.bind(this));
 
@@ -161,31 +162,31 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           'pictureView.showSummaryChart', false,
           'Show timing summary');
 
-      var pictureInfo = this.querySelector('picture-info');
-      pictureInfo.appendChild(overdrawCheckbox);
-      pictureInfo.appendChild(chartCheckbox);
+      var pictureInfo = Polymer.dom(this).querySelector('picture-info');
+      Polymer.dom(pictureInfo).appendChild(overdrawCheckbox);
+      Polymer.dom(pictureInfo).appendChild(chartCheckbox);
 
       this.drawOpsView_ = new tr.ui.e.chrome.cc.PictureOpsListView();
       this.drawOpsView_.addEventListener(
           'selection-changed', this.onChangeDrawOps_.bind(this));
 
-      var leftPanel = this.querySelector('left-panel');
-      leftPanel.appendChild(this.drawOpsChartSummaryView_);
-      leftPanel.appendChild(this.drawOpsView_);
+      var leftPanel = Polymer.dom(this).querySelector('left-panel');
+      Polymer.dom(leftPanel).appendChild(this.drawOpsChartSummaryView_);
+      Polymer.dom(leftPanel).appendChild(this.drawOpsView_);
 
       var middleDragHandle = document.createElement('tr-ui-b-drag-handle');
       middleDragHandle.horizontal = false;
       middleDragHandle.target = leftPanel;
 
-      var rightPanel = this.querySelector('right-panel');
+      var rightPanel = Polymer.dom(this).querySelector('right-panel');
       rightPanel.replaceChild(
-          this.drawOpsChartView_,
-          rightPanel.querySelector('tr-ui-e-chrome-cc-picture-ops-chart-view'));
+          this.drawOpsChartView_, Polymer.dom(rightPanel)
+              .querySelector('tr-ui-e-chrome-cc-picture-ops-chart-view'));
 
       this.infoBar_ = document.createElement('tr-ui-b-info-bar');
-      this.rasterArea_.appendChild(this.infoBar_);
+      Polymer.dom(this.rasterArea_).appendChild(this.infoBar_);
 
-      this.insertBefore(middleDragHandle, rightPanel);
+      Polymer.dom(this).insertBefore(middleDragHandle, rightPanel);
 
       this.picture_ = undefined;
 
@@ -208,7 +209,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           e.stopPropagation();
         }
       }));
-      this.appendChild(hkc);
+      Polymer.dom(this).appendChild(hkc);
 
       // Add a mutation observer so that when the view is resized we can
       // update the chart summary view.
@@ -315,7 +316,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.updateContentsPending_ = false;
 
       if (this.picture_) {
-        this.sizeInfo_.textContent = '(' +
+        Polymer.dom(this.sizeInfo_).textContent = '(' +
             this.picture_.layerRect.width + ' x ' +
             this.picture_.layerRect.height + ')';
       }
@@ -333,7 +334,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         this.infoBar_.message = 'Cannot rasterize...';
         this.infoBar_.addButton('More info...', function(e) {
           var overlay = new tr.ui.b.Overlay();
-          overlay.textContent = this.pictureAsImageData_.error;
+          Polymer.dom(overlay).textContent = this.pictureAsImageData_.error;
           overlay.visible = true;
           e.stopPropagation();
           return false;
@@ -432,7 +433,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       this.mouseModeSelector_ = document.createElement(
           'tr-ui-b-mouse-mode-selector');
       this.mouseModeSelector_.targetElement = this.rasterArea_;
-      this.rasterArea_.appendChild(this.mouseModeSelector_);
+      Polymer.dom(this.rasterArea_).appendChild(this.mouseModeSelector_);
 
       this.mouseModeSelector_.supportedModeMask =
           tr.ui.b.MOUSE_SELECTOR_MODE.ZOOM;

@@ -17,59 +17,61 @@ tr.exportTo('tr.v.ui', function() {
   };
 });
 </script>
-<polymer-element name="tr-v-ui-array-of-numbers-span">
+<dom-module id='tr-v-ui-array-of-numbers-span'>
   <template>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    created: function() {
+Polymer({
+  is: 'tr-v-ui-array-of-numbers-span',
+
+  created: function() {
+    this.numbers_ = undefined;
+    this.summaryMode_ = tr.v.ui.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
+  },
+
+  get summaryMode() {
+    return this.summaryMode_;
+  },
+
+  set summaryMode(summaryMode) {
+    this.summaryMode_ = summaryMode;
+    this.updateContents_();
+  },
+
+  get numbers() {
+    return this.numbers_;
+  },
+
+  set numbers(numbers) {
+    if (numbers === undefined) {
       this.numbers_ = undefined;
-      this.summaryMode_ = tr.v.ui.ArrayOfNumbersSummaryModes.AVERAGE_MODE;
-    },
-
-    get summaryMode() {
-      return this.summaryMode_;
-    },
-
-    set summaryMode(summaryMode) {
-      this.summaryMode_ = summaryMode;
       this.updateContents_();
-    },
-
-    get numbers() {
-      return this.numbers_;
-    },
-
-    set numbers(numbers) {
-      if (numbers === undefined) {
-        this.numbers_ = undefined;
-        this.updateContents_();
-        return;
-      }
-      if (!(numbers instanceof Array))
-        throw new Error('Must provide an array');
-      this.numbers_ = numbers;
-      this.updateContents_();
-    },
-
-    updateContents_: function() {
-      if (this.numbers_ === undefined) {
-        this.shadowRoot.textContent = '-';
-        return;
-      }
-
-      var ArrayOfNumbersSummaryModes = tr.v.ui.ArrayOfNumbersSummaryModes;
-      var value;
-      if (this.summaryMode_ === ArrayOfNumbersSummaryModes.AVERAGE_MODE)
-        value = tr.b.Statistics.mean(this.numbers_);
-      else
-        value = tr.b.Statistics.sum(this.numbers_);
-
-      var valueRounded = Math.round(value * 1000.0) / 1000.0;
-      this.shadowRoot.textContent = valueRounded;
+      return;
     }
-  });
-  </script>
-</polymer-element>
+    if (!(numbers instanceof Array))
+      throw new Error('Must provide an array');
+    this.numbers_ = numbers;
+    this.updateContents_();
+  },
+
+  updateContents_: function() {
+    if (this.numbers_ === undefined) {
+      Polymer.dom(this.root).textContent = '-';
+      return;
+    }
+
+    var ArrayOfNumbersSummaryModes = tr.v.ui.ArrayOfNumbersSummaryModes;
+    var value;
+    if (this.summaryMode_ === ArrayOfNumbersSummaryModes.AVERAGE_MODE)
+      value = tr.b.Statistics.mean(this.numbers_);
+    else
+      value = tr.b.Statistics.sum(this.numbers_);
+
+    var valueRounded = Math.round(value * 1000.0) / 1000.0;
+    Polymer.dom(this.root).textContent = valueRounded;
+  }
+});
+</script>

@@ -10,39 +10,38 @@ on a point on a graph. It shows more detailed information about the point that
 was just clicked.
 -->
 
-<link rel="import" href="/components/paper-dialog/paper-action-dialog.html">
+<link rel="import" href="/components/paper-card/paper-card.html">
 
 <link rel="import" href="/dashboard/elements/alert-remove-box.html">
 <link rel="import" href="/dashboard/elements/bisect-button.html">
+<link rel="import" href="/dashboard/elements/dialog-container.html">
 <link rel="import" href="/dashboard/elements/trace-button.html">
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 
-<polymer-element
-    name="chart-tooltip"
-    attributes="testPath value bugId pointId revisions links alerts xsrfToken">
+<dom-module id="chart-tooltip">
+  <style>
+    #tooltip {
+      width: 330px;
+      position: relative;
+      margin: 10px;
+      padding: 0px;
+    }
+
+    #tooltip .card-content {
+      padding: 15px;
+      overflow-y: auto;
+      max-height: 250px;
+    }
+  </style>
+
   <template>
-    <style>
-      #container {
-        position: absolute;
-        margin: 20px;
-      }
-
-      #tooltip {
-        position: relative;
-        margin: 0px;
-        padding: 0px;
-      }
-    </style>
-
-    <div id="container">
+    <dialog-container id="container">
       <triage-dialog id="triage"
-                     xsrfToken="{{xsrfToken}}"
+                     xsrf-token="{{xsrfToken}}"
                      alerts="{{alerts}}"></triage-dialog>
-
-      <paper-action-dialog id="tooltip" layered="false" autoCloseDisabled="true">
+      <paper-card id="tooltip" alwaysOnTop elevation=4>
         <style>
           #test-name {
-            width : 300px;
             word-wrap: break-word;
           }
 
@@ -54,103 +53,117 @@ was just clicked.
         <!-- TODO(qyearsley): Either (1) Display alert details on mouse-over as
              well as click (The alerts attribute is only set currently on click,
              not on hover) OR (2) Display alert details in the triage dialog. -->
-        <template bind repeat="{{alerts}}">
-          <div class="important">
-            <b>Alert information:</b><br>
-            Median of segment before: {{median_before_anomaly}}<br>
-            Median of segment after: {{median_after_anomaly}}<br>
-            Relative change: {{percent_changed}}<br>
+        <div class="card-content">
+          <template is="dom-repeat" items="{{alerts}}">
+            <div class="important">
+              <b>Alert information:</b><br>
+              Median of segment before: {{item.median_before_anomaly}}<br>
+              Median of segment after: {{item.median_after_anomaly}}<br>
+              Relative change: {{item.percent_changed}}<br>
+            </div>
+          </template>
+
+          <div id="test-name">
+            Test: {{parentPath}}/<b>{{seriesName}}</b>
           </div>
-        </template>
 
-        <div id="test-name">
-          Test: {{parentPath}}/<b>{{seriesName}}</b>
-        </div>
-
-        <div>
-          Value: <b>{{value}}</b> <span hidden?={{!stddev}}>(± {{stddev}})</span>
-        </div>
-
-        <div>
-          <span hidden?={{!pointId}}>Point ID: {{pointId}}</span><br>
-          <span hidden?={{!timestamp}}>Time added: {{timestamp}}</span>
-        </div>
-
-        <template bind if="{{bugId}}">
           <div>
-            <span hidden?={{alertInvalidOrIgnored}}>Bug ID:
-              <b><a target="_blank" href="http://crbug.com/{{bugId}}">{{bugId}}</a></b>
-            </span>
-
-            <span hidden?="{{bugId != -1}}">Invalid alert</span>
-            <span hidden?="{{bugId != -2}}">Ignored alert</span>
-            <span hidden?="{{!recovered}}">Recovered alert</span>
-            <alert-remove-box key="{{alertKey}}" xsrfToken="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
-            </alert-remove-box><br>
-            <a href="/group_report?keys={{alertKey}}">View alert graph</a>
+            Value: <b>{{value}}</b> <span hidden$={{!stddev}}>(± {{stddev}})</span>
           </div>
-        </template>
 
-        <div>
-          <template repeat={{revisions}}>
-            {{name}}<template bind if="{{start}}"> range</template>:
-            <b>
-              <a href="{{url}}" on-click="{{onRevisionRangeClick}}">
-                <template bind if="{{start}}">{{displayStart}} - </template>
-                {{displayEnd}}
-              </a>
-            </b><br>
+          <div>
+            <span hidden$={{!pointId}}>Point ID: {{pointId}}</span><br>
+            <span hidden$={{!timestamp}}>Time added: {{timestamp}}</span>
+          </div>
+
+          <template is="dom-if" if="{{bugId}}">
+            <div>
+              <span hidden$={{alertInvalidOrIgnored}}>Bug ID:
+                <b><a target="_blank" href="http://crbug.com/{{bugId}}">{{bugId}}</a></b>
+              </span>
+
+              <span hidden$="{{bugNotInvalid(bugId)}}">Invalid alert</span>
+              <span hidden$="{{bugNotIgnored(bugId)}}">Ignored alert</span>
+              <span hidden$="{{!recovered}}">Recovered alert</span>
+              <alert-remove-box key="{{alertKey}}" xsrf-token="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
+              </alert-remove-box><br>
+              <a href="/group_report?keys={{alertKey}}">View alert graph</a>
+            </div>
           </template>
+
+          <div>
+            <template is="dom-repeat" items={{revisions}}>
+              {{item.name}}<template bind if="{{item.start}}"> range</template>:
+              <b>
+                <a href="{{item.url}}" on-click="{{item.onRevisionRangeClick}}">
+                  <template bind if="{{item.start}}">{{item.displayStart}} - </template>
+                  {{item.displayEnd}}
+                </a>
+              </b><br>
+            </template>
+          </div>
+
+          <div>
+            <template is="dom-repeat" items={{links}}>
+              <span class="annotation-link"><a href="{{item.url}}" target="_blank">{{item.text}}</a></span><br />
+            </template>
+          </div>
         </div>
 
-        <div>
-          <template repeat={{links}}>
-            <span class="annotation-link"><a href="{{url}}" target="_blank">{{text}}</a></span><br />
-          </template>
+        <div class="card-actions">
+          <bisect-button affirmative xsrf-token="{{xsrfToken}}"
+                         bug-id="{{bugId}}"
+                         bisect-info="{{bisectInfo}}"></bisect-button>
+          <trace-button affirmative xsrf-token="{{xsrfToken}}"
+                        bug-id="{{bugId}}"
+                        trace-info="{{bisectInfo}}"></trace-button>
         </div>
 
-        <bisect-button affirmative xsrfToken="{{xsrfToken}}"
-                       bugId="{{bugId}}"
-                       bisectInfo="{{bisectInfo}}"></bisect-button>
-        <trace-button affirmative xsrfToken="{{xsrfToken}}"
-                      bugId="{{bugId}}"
-                      traceInfo="{{bisectInfo}}"></trace-button>
-
-      </paper-action-dialog>
-    </div>
+      </paper-card>
+    </dialog-container>
   </template>
   <script>
     'use strict';
-    Polymer('chart-tooltip', {
-      traceName: null,
-      value: null,
-      stddev: null,
-      hideStddev: true,
-      bugId: null,
-      stdioUri: null,
-      hideStdioUri: true,
-      revisions: [],
-
-      ready: function() {
-        // This allows tooltip to show beyond the current window size.
-        // Our tooltip size is determined by 'sizingTarget' which is default to
-        // the  window size.  Here we set it to '#scroller' which is the
-        // content's container.
-        // 'core-overlay' API:
-        //   https://github.com/Polymer/core-overlay/blob/master/core-overlay.html
-        //
-        // Note: Though this deep shadow DOM selector was deprecated, it was
-        // a solution in Polymer 0.5 to customize elements.  This can be done
-        // using custom CSS properties when migrating to Polymer 1.0.
-        this.$.tooltip.sizingTarget = document.querySelector(
-            'html /deep/ paper-action-dialog::shadow #scroller');
-
-        // We're going to call 'open' tooltip and hide it's container on
-        // 'ready' to avoid 'core-overlay' initial element focus which causes
-        // the page to jump.
-        // TODO(chrisphan): Figure out a better way to do this.
-        this.$.container.hidden = true;
-        this.$.tooltip.open();
+    Polymer({
+      is: 'chart-tooltip',
+      properties: {
+        alerts: {
+          notify: true,
+          observer: 'alertsChanged'
+        },
+        bugId: {
+          value: null,
+          notify: true
+        },
+        hideStddev: {
+          type: Boolean,
+          value: true
+        },
+        hideStdioUri: {
+          type: Boolean,
+          value: true
+        },
+        links: { notify: true },
+        pointId: { notify: true },
+        revisions: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          notify: true
+        },
+        stddev: { value: null },
+        stdioUri: { value: null },
+        testPath: {
+          notify: true,
+          observer: 'testPathChanged'
+        },
+        traceName: { value: null },
+        value: {
+          value: null,
+          notify: true
+        },
+        xsrfToken: { notify: true }
       },
 
       testPathChanged: function() {
@@ -164,8 +177,9 @@ was just clicked.
       /**
        * Shows the CL descriptions for the given revision range.
        */
-      onRevisionRangeClick: function(event, detail, sender) {
-        window.open(sender.href, 'changelog', 'width=1000,height=1000');
+      onRevisionRangeClick: function(event, detail) {
+        window.open(
+            event.currentTarget.href, 'changelog', 'width=1000,height=1000');
         event.preventDefault();
       },
 
@@ -187,7 +201,7 @@ was just clicked.
       /**
        * Fires a 'triaged' event, which should be caught in chart-container.
        */
-      onUntriaged: function(event, detail, sender) {
+      onUntriaged: function(event, detail) {
         this.fire('triaged', {
           'alerts': this.triagedAlerts,
           'bugid': null
@@ -195,29 +209,29 @@ was just clicked.
       },
 
       open: function() {
-        if (this.closeTooltipJob) {
-          this.closeTooltipJob.stop();
-        }
-        this.$.tooltip.open();
-        this.$.container.hidden = false;
+        var old_left = this.$.container.offsetLeft;
+        var old_top = this.$.container.offsetTop;
+        openAtPosition(old_top, old_left);
       },
 
       close: function() {
-        // Add a short delay before closing as a workaround for a bug in
-        // core-overlay where core-overlay is opened and closed too frequent.
-        // See: https://github.com/dart-lang/paper-elements/issues/83"
-        this.closeTooltipJob = this.job(
-            this.closeTooltipJob,
-            function() {
-              this.$.container.hidden = true;
-            },
-            200);
+        if (this.$.container.opened)
+          this.$.container.close();
       },
 
-      setPosition: function(top, left) {
-        this.$.container.style.top = top + 'px';
-        this.$.container.style.left = left + 'px';
+      openAtPosition: function(top, left) {
+        this.$.container.updatePositionFromCoords(top, left);
+        if (!this.$.container.opened) {
+          this.$.container.open();
+        }
+      },
+
+      bugNotInvalid: function(bugId) {
+        return bugId != -1;
+      },
+      bugNotIgnored: function(bugId) {
+        return bugId != -2;
       }
     });
   </script>
-</polymer-element>
+</dom-module>

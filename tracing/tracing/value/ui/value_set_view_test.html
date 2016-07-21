@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/value_set_view.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
-<polymer-element name='test-value-set-view'>
+<dom-module id='test-value-set-view'>
   <template>
     <style>
     :host {
@@ -19,7 +19,7 @@ found in the LICENSE file.
     </style>
     <content></content>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
@@ -27,7 +27,9 @@ found in the LICENSE file.
 var useTestView = false;
 
 tr.exportTo('tr.v.ui', function() {
-  Polymer('test-value-set-view', {
+  Polymer({
+    is: 'test-value-set-view',
+
     supportsValueSet: function(values) {
       return useTestView;
     },
@@ -78,15 +80,15 @@ tr.b.unittest.testSuite(function() {
     var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
     values.addValue(foo);
 
-    view.values = values;
     this.addHTMLOutput(view);
+    view.values = values;
 
     var tabView = tr.b.findDeepElementMatchingPredicate(
         view, function(element) {
           return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
         });
-    assert.isTrue(tabView.children[0].selected);
-    assert.isTrue(tabView.tabsHidden);
+    assert.equal(tabView.selectedSubView, tabView.get('tabs.0'));
+    assert.isTrue(tabView.get('tabsHidden'));
   });
 
   test('instantiate1', function() {
@@ -105,15 +107,15 @@ tr.b.unittest.testSuite(function() {
     var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
     values.addValue(foo);
 
-    view.values = values;
     this.addHTMLOutput(view);
 
+    view.values = values;
     var tabView = tr.b.findDeepElementMatchingPredicate(
         view, function(element) {
           return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
         });
-    assert.isTrue(tabView.children[0].selected);
-    assert.isFalse(tabView.tabsHidden);
+    assert.equal(tabView.selectedSubView, tabView.get('tabs.0'));
+    assert.isFalse(tabView.get('tabsHidden'));
   });
 
   test('instantiate2', function() {
@@ -139,11 +141,11 @@ tr.b.unittest.testSuite(function() {
         view, function(element) {
           return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
         });
-    assert.isTrue(tabView.children[1].selected);
-    assert.isFalse(tabView.tabsHidden);
+    assert.equal(tabView.selectedSubView, tabView.get('tabs.1'));
+    assert.isFalse(tabView.get('tabsHidden'));
 
     // Test that selecting the Table view changes the setting.
-    tabView.selectedTab = tabView.children[0];
+    tabView.selectedSubView = tabView.tabs[0];
     return new Promise(function(resolve, reject) {
       assert.strictEqual(
           tr.b.Settings.get(tr.v.ui.SELECTED_TAB_SETTINGS_KEY),
@@ -175,8 +177,8 @@ tr.b.unittest.testSuite(function() {
         view, function(element) {
           return element.tagName.toLowerCase() === 'tr-ui-a-tab-view';
         });
-    assert.isTrue(tabView.children[0].selected);
-    assert.isTrue(tabView.tabsHidden);
+    assert.equal(tabView.selectedSubView, tabView.get('tabs.0'));
+    assert.isTrue(tabView.get('tabsHidden'));
   });
 });
 </script>

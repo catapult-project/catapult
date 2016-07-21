@@ -6,11 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
-<link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/related_events.html">
+<link rel="import" href="/tracing/ui/analysis/single_event_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-thread-slice-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-single-thread-slice-sub-view'>
   <template>
     <style>
     :host {
@@ -29,23 +28,25 @@ found in the LICENSE file.
       </tr-ui-a-related-events>
     </div>
   </template>
+</dom-module>
+<script>
+'use strict';
 
-  <script>
-  'use strict';
+Polymer({
+  is: 'tr-ui-a-single-thread-slice-sub-view',
+  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView],
 
-  Polymer({
-    get selection() {
-      return this.$.content.selection;
-    },
+  get selection() {
+    return this.$.content.selection;
+  },
 
-    set selection(selection) {
-      this.$.content.selection = selection;
-      this.$.relatedEvents.setRelatedEvents(selection);
-      if (this.$.relatedEvents.hasRelatedEvents())
-        this.$.relatedEvents.style.display = '';
-      else
-        this.$.relatedEvents.style.display = 'none';
-    }
-  });
-  </script>
-</polymer-element>
+  set selection(selection) {
+    this.$.content.selection = selection;
+    this.$.relatedEvents.setRelatedEvents(selection);
+    if (this.$.relatedEvents.hasRelatedEvents())
+      this.$.relatedEvents.style.display = '';
+    else
+      this.$.relatedEvents.style.display = 'none';
+  }
+});
+</script>

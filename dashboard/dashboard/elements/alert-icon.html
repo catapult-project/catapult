@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/core-icon/core-icon.html">
+<link rel="import" href="/components/iron-icon/iron-icon.html">
 
-<polymer-element name="alert-icon">
+<dom-module id="alert-icon">
   <template>
     <style>
 
@@ -19,48 +19,51 @@ found in the LICENSE file.
 
     </style>
 
-    <core-icon id="icon"></core-icon>
+    <iron-icon id="icon"></iron-icon>
 
   </template>
-  <script>
-    'use strict';
-    Polymer('alert-icon', {
 
-      initialize: function(alertAnnotation, alertKey) {
-        var bugId = alertAnnotation['bug_id'];
-        var improvement = alertAnnotation['improvement'];
-        var recovered = alertAnnotation['recovered'];
-        var key = alertAnnotation['key'];
+</dom-module>
 
-        this.$.icon.icon = 'report';
-        var color = 'black';
-        if (!bugId && !improvement) {
-          color = 'red';
-        } else if (!bugId && improvement) {
-          color = 'green';
-          this.$.icon.icon = 'info';
-        }
+<script>
+  'use strict';
+  Polymer({
 
-        this.$.icon.style.color = color;
+    is: 'alert-icon',
+    initialize: function(alertAnnotation, alertKey) {
+      var bugId = alertAnnotation['bug_id'];
+      var improvement = alertAnnotation['improvement'];
+      var recovered = alertAnnotation['recovered'];
+      var key = alertAnnotation['key'];
 
-        if (bugId && bugId < 0 || recovered) {
-          // Triaged as invalid, ignored, or recovered; lower opacity.
-          this.$.icon.style.opacity = 0.25;
-        }
-
-        // alertKey is an optional attribute to specify that this chart
-        // is associated with an alert. If this alert is the one alert that
-        // this chart is meant to draw attention to, we want to distinguish
-        // this alert from any others on the chart.
-        if (alertKey == key) {
-           this.$.icon.classList.add('highlighted');
-        }
-      },
-
-      setPosition: function(top, left) {
-        this.$.icon.style.top = top + 'px';
-        this.$.icon.style.left = left + 'px';
+      this.$.icon.icon = 'report';
+      var color = 'black';
+      if (!bugId && !improvement) {
+        color = 'red';
+      } else if (!bugId && improvement) {
+        color = 'green';
+        this.$.icon.icon = 'info';
       }
-    });
-  </script>
-</polymer-element>
+
+      this.$.icon.style.color = color;
+
+      if (bugId && bugId < 0 || recovered) {
+        // Triaged as invalid, ignored, or recovered; lower opacity.
+        this.$.icon.style.opacity = 0.25;
+      }
+
+      // alertKey is an optional attribute to specify that this chart
+      // is associated with an alert. If this alert is the one alert that
+      // this chart is meant to draw attention to, we want to distinguish
+      // this alert from any others on the chart.
+      if (alertKey == key) {
+        Polymer.dom(this.$.icon).classList.add('highlighted');
+      }
+    },
+
+    setPosition: function(top, left) {
+      this.$.icon.style.top = top + 'px';
+      this.$.icon.style.left = left + 'px';
+    }
+  });
+</script>

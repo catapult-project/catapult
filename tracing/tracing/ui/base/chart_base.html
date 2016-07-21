@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <!--
 Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/d3.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 
-<polymer-element name="tr-ui-b-chart-legend-key">
+<dom-module id="tr-ui-b-chart-legend-key">
   <template>
     <style>
       #checkbox {
@@ -30,93 +30,96 @@ found in the LICENSE file.
     <tr-ui-a-analysis-link id="link"></tr-ui-a-analysis-link>
     <label id="label"></label>
   </template>
+</dom-module>
+<script>
+'use strict';
+Polymer({
+  is: 'tr-ui-b-chart-legend-key',
 
-  <script>
-  'use strict';
-  Polymer({
-    ready: function() {
-      this.$.checkbox.addEventListener(
-          'change', this.onCheckboxChange_.bind(this));
-    },
+  ready: function() {
+    this.$.checkbox.addEventListener(
+        'change', this.onCheckboxChange_.bind(this));
+  },
 
-    /**
-     * Dispatch an event when the checkbox is toggled.
-     * The checkbox is visible when optional is set to true.
-     */
-    onCheckboxChange_: function() {
-      tr.b.dispatchSimpleEvent(this, tr.ui.b.DataSeriesEnableChangeEventType,
-          true, false, {key: this.textContent, enabled: this.enabled});
-    },
+  /**
+   * Dispatch an event when the checkbox is toggled.
+   * The checkbox is visible when optional is set to true.
+   */
+  onCheckboxChange_: function() {
+    tr.b.dispatchSimpleEvent(this, tr.ui.b.DataSeriesEnableChangeEventType,
+        true, false,
+        {key: Polymer.dom(this).textContent, enabled: this.enabled});
+  },
 
-    set textContent(t) {
-      this.$.label.textContent = t;
-      this.$.link.textContent = t;
-      this.updateContents_();
-    },
+  set textContent(t) {
+    Polymer.dom(this.$.label).textContent = t;
+    Polymer.dom(this.$.link).textContent = t;
+    this.updateContents_();
+  },
 
-    set width(w) {
-      w -= 20;  // reserve 20px for the checkbox
-      this.$.link.style.width = w + 'px';
-      this.$.label.style.width = w + 'px';
-    },
+  set width(w) {
+    w -= 20;  // reserve 20px for the checkbox
+    this.$.link.style.width = w + 'px';
+    this.$.label.style.width = w + 'px';
+  },
 
-    get textContent() {
-      return this.$.label.textContent;
-    },
+  get textContent() {
+    return Polymer.dom(this.$.label).textContent;
+  },
 
-    /**
-     * When a legend-key is "optional", then its checkbox is visible to allow
-     * the user to enable/disable the data series for the key.
-     * See ChartBase.customizeOptionalSeries().
-     *
-     * @param {boolean} optional
-     */
-    set optional(optional) {
-      this.$.checkbox.style.visibility = optional ? 'visible' : 'hidden';
-    },
+  /**
+   * When a legend-key is "optional", then its checkbox is visible to allow
+   * the user to enable/disable the data series for the key.
+   * See ChartBase.customizeOptionalSeries().
+   *
+   * @param {boolean} optional
+   */
+  set optional(optional) {
+    this.$.checkbox.style.visibility = optional ? 'visible' : 'hidden';
+  },
 
-    get optional() {
-      return this.$.checkbox.style.visibility === 'visible';
-    },
+  get optional() {
+    return this.$.checkbox.style.visibility === 'visible';
+  },
 
-    set enabled(enabled) {
-      this.$.checkbox.checked = enabled ? 'checked' : '';
-    },
+  set enabled(enabled) {
+    this.$.checkbox.checked = enabled ? 'checked' : '';
+  },
 
-    get enabled() {
-      return this.$.checkbox.checked;
-    },
+  get enabled() {
+    return this.$.checkbox.checked;
+  },
 
-    set color(c) {
-      this.$.label.style.color = c;
-      this.$.link.color = c;
-    },
+  set color(c) {
+    this.$.label.style.color = c;
+    this.$.link.color = c;
+  },
 
-    /**
-     * When target is defined, label is hidden and link is shown.
-     * When the link is clicked, then a RequestSelectionChangeEvent is
-     * dispatched containing the target.
-     * When target is undefined, label is shown and link is hidden, so that the
-     * link is not clickable.
-     * See ChartBase.customizeLegendTargets().
-     */
-    set target(target) {
-      this.$.link.setSelectionAndContent(target, this.$.label.textContent);
-      this.updateContents_();
-    },
+  /**
+   * When target is defined, label is hidden and link is shown.
+   * When the link is clicked, then a RequestSelectionChangeEvent is
+   * dispatched containing the target.
+   * When target is undefined, label is shown and link is hidden, so that the
+   * link is not clickable.
+   * See ChartBase.customizeLegendTargets().
+   */
+  set target(target) {
+    this.$.link.setSelectionAndContent(
+        target, Polymer.dom(this.$.label).textContent);
+    this.updateContents_();
+  },
 
-    get target() {
-      return this.$.link.selection;
-    },
+  get target() {
+    return this.$.link.selection;
+  },
 
-    updateContents_: function() {
-      this.$.link.style.display = this.target ? '' : 'none';
-      this.$.label.style.display = this.target ? 'none' : '';
-      this.$.label.htmlFor = this.optional ? 'checkbox' : '';
-    }
-  });
-  </script>
-</polymer-element>
+  updateContents_: function() {
+    this.$.link.style.display = this.target ? '' : 'none';
+    this.$.label.style.display = this.target ? 'none' : '';
+    this.$.label.htmlFor = this.optional ? 'checkbox' : '';
+  }
+});
+</script>
 
 <style>
   * /deep/ .chart-base #title {
@@ -227,7 +230,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     decorate: function() {
-      this.classList.add('chart-base');
+      Polymer.dom(this).classList.add('chart-base');
       this.chartTitle_ = undefined;
       this.seriesByKey_ = new Map();
       this.width_ = 400;
@@ -238,10 +241,12 @@ tr.exportTo('tr.ui.b', function() {
       // This should use tr.ui.b.instantiateTemplate. However, creating
       // svg-namespaced elements inside a template isn't possible. Thus, this
       // hack.
-      var template = THIS_DOC.querySelector('#chart-base-template');
-      var svgEl = template.content.querySelector('svg');
-      for (var i = 0; i < svgEl.children.length; i++)
-        this.appendChild(svgEl.children[i].cloneNode(true));
+      var template =
+          Polymer.dom(THIS_DOC).querySelector('#chart-base-template');
+      var svgEl = Polymer.dom(template.content).querySelector('svg');
+      for (var i = 0; i < Polymer.dom(svgEl).children.length; i++)
+        Polymer.dom(this).appendChild(
+            Polymer.dom(svgEl.children[i]).cloneNode(true));
 
       // svg likes to take over width & height properties for some reason. This
       // works around it.
@@ -306,7 +311,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get chartAreaElement() {
-      return this.querySelector('#chart-area');
+      return Polymer.dom(this).querySelector('#chart-area');
     },
 
     setSize: function(size) {

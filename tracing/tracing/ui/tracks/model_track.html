@@ -43,7 +43,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('model-track');
+      Polymer.dom(this).classList.add('model-track');
 
       var typeInfos = tr.ui.tracks.Highlighter.getAllRegisteredTypeInfos();
       this.highlighters_ = typeInfos.map(
@@ -86,7 +86,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     updateContents_: function() {
-      this.textContent = '';
+      Polymer.dom(this).textContent = '';
       if (!this.model_)
         return;
 
@@ -103,19 +103,19 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.model_.userModel.expectations.length) {
         var mrt = new tr.ui.tracks.InteractionTrack(this.viewport_);
         mrt.model = this.model_;
-        this.appendChild(mrt);
+        Polymer.dom(this).appendChild(mrt);
       }
 
       if (this.model_.alerts.length) {
         var at = new tr.ui.tracks.AlertTrack(this.viewport_);
         at.alerts = this.model_.alerts;
-        this.appendChild(at);
+        Polymer.dom(this).appendChild(at);
       }
 
       if (this.model_.globalMemoryDumps.length) {
         var gmdt = new tr.ui.tracks.GlobalMemoryDumpTrack(this.viewport_);
         gmdt.memoryDumps = this.model_.globalMemoryDumps;
-        this.appendChild(gmdt);
+        Polymer.dom(this).appendChild(gmdt);
       }
 
       this.appendDeviceTrack_();
@@ -134,7 +134,7 @@ tr.exportTo('tr.ui.tracks', function() {
         if (!track.hasVisibleContent)
           continue;
 
-        this.appendChild(track);
+        Polymer.dom(this).appendChild(track);
       }
       this.viewport_.rebuildEventToTrackMap();
       this.viewport_.rebuildContainerToTrackMap();
@@ -179,13 +179,21 @@ tr.exportTo('tr.ui.tracks', function() {
       track.device = this.model.device;
       if (!track.hasVisibleContent)
         return;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
     },
 
     appendKernelTrack_: function() {
       var kernel = this.model.kernel;
       var track = new tr.ui.tracks.KernelTrack(this.viewport);
       track.kernel = this.model.kernel;
+      if (!track.hasVisibleContent)
+        return;
+      Polymer.dom(this).appendChild(track);
+    },
+
+    appendCpuUsageTrack_: function() {
+      var track = new tr.ui.tracks.CpuUsageTrack(this.viewport);
+      track.initialize(this.model);
       if (!track.hasVisibleContent)
         return;
       this.appendChild(track);
@@ -394,7 +402,8 @@ tr.exportTo('tr.ui.tracks', function() {
       var bounds = track.getBoundingClientRect();
       var size = bounds.left + bounds.top + bounds.bottom + bounds.right;
       if (size === 0)
-        return this.calculateTrackY_(track.parentNode, canvasBounds);
+        return this.calculateTrackY_(
+            Polymer.dom(track).parentNode, canvasBounds);
 
       return bounds.top - canvasBounds.top + (bounds.height / 2);
     },

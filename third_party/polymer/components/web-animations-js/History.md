@@ -1,3 +1,116 @@
+### 2.2.1 - *April 28 2016*
+  * [Deprecated invalid timing inputs](https://github.com/web-animations/web-animations-next/pull/437) as they will soon throw [TypeErrors](https://github.com/web-animations/web-animations-next/pull/426) in native browsers.
+
+    For example, this is deprecated and will eventually throw a TypeError:
+
+        element.animate([], {
+            duration: -1,
+            iterationStart: -1,
+            iterations: -1,
+            easing: 'garbage string',
+        });
+
+  * [Fixed polyfill crash in browsers based on Chromium 36 to 46.](https://github.com/web-animations/web-animations-next/pull/434)
+
+  * [Increased cubic-bezier accuracy.](https://github.com/web-animations/web-animations-next/pull/428)
+
+  * [Added support for grad and turn units for angles.](https://github.com/web-animations/web-animations-next/pull/427)
+
+### 2.2.0 - *April 6 2016*
+  * Deprecated the use of hyphens in property names.
+
+    For example, this is deprecated:
+
+        element.animate([{'font-size': '0px'}, {'font-size': '10px'}]);
+
+    and this should be used instead:
+
+        element.animate([{fontSize: '0px'}, {fontSize: '10px'}]);
+
+  * Added arbitrary easing capitalisation.
+
+  * Added "id" effect option. (http://w3c.github.io/web-animations/#dom-keyframeanimationoptions-id)
+
+  * Added "oncancel" event handler.
+
+  * Added value list keyframe syntax.
+
+    As as alternative to:
+
+        element.animate([{color: 'red'}, {color: 'green'}, {color: 'blue'}]);
+
+    you can now use:
+
+        element.animate({color: ['red', 'green', 'blue']});
+
+  * Fixed easing TypeError in FireFox Nightly when using groups.
+
+  * Fixed delayed animation updates on Safari and Firefox
+
+  * Fixed infinite recursion when setting onfinish to null.
+
+### 2.1.4 - *December 1 2015*
+  * Use `Date.now()` instead of `performace.now()` for mobile Safari.
+
+### 2.1.3 - *October 12 2015*
+  * Removed web-animations.min.js.gz
+
+### 2.1.2 - *July 8 2015*
+  * Fix a bug where onfinish was being called for GroupEffects before they were finished.
+
+### 2.1.1 - *July 1 2015*
+  * Add Animation.timeline getter
+  * Add AnimationEffect.parent getter
+  * Make AnimationEffectTiming (returned by AnimationEffect.timing) attributes mutable
+  * Expose the Animation constructor
+  * Change custom effects from AnimationEffects to onsample functions. Custom effects should now be created by setting the onsample attribute of a KeyframeEffect.
+
+    For example, this is deprecated:
+
+        var myEffect = new KeyframeEffect(
+           element,
+           function(timeFraction, target, effect) {
+              target.style.opacity = timeFraction;
+           },
+           1000);
+        var myAnimation = document.timeline.play(myEffect);
+
+    and this should be used insead:
+
+        var myEffect = new KeyframeEffect(element, [], 1000);
+        effect.onsample = function(timeFraction, effect, animation) {
+           effect.target.style.opacity = timeFraction;
+        };
+        var myAnimation = document.timeline.play(myEffect);
+
+### 2.1.0 - *June 15 2015*
+  * Fix bug affecting GroupEffects with infinite iteration children
+  * Add GroupEffect.firstChild and GroupEffect.lastChild
+  * Add initial values for most CSS properties
+  * Allow `timeline.play()` to be called with no arguments
+  * Add AnimationEffect.clone
+  * Add GroupEffect.append and GroupEffect.prepend
+  * Add AnimationEffect.remove
+  * Add Animation.ready and Animation.finished promises
+
+### 2.0.0 - *April 5 2015*
+
+  * Improve behavior of group Animation playback rate.
+  * Rename Animation to KeyframeEffect.
+  * Rename AnimationSequence to SequenceEffect.
+  * Rename AnimationGroup to GroupEffect.
+  * Rename AnimationPlayer to Animation.
+  * Remove KeyframeEffect.effect and add KeyframeEffect.getFrames.
+  * Rename Animation.source to Animation.effect.
+  * Rename Timeline.getAnimationPlayers to Timeline.getAnimations.
+  * Rename Element.getAnimationPlayers to Element.getAnimations.
+
+### 1.0.7 - *March 10 2015*
+
+  * Improve performance of constructing groups and sequences.
+  * Remove support for animating zoom.
+  * Add bower file.
+
 ### 1.0.6 - *February 5 2015*
 
   * Implement playbackRate setter for group players.

@@ -7,45 +7,63 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 
+<dom-module id='tr-ui-b-deep-utils-test-a'>
+  <template>
+    <div></div>
+  </template>
+</dom-module>
+<dom-module id='tr-ui-b-deep-utils-test-b'>
+  <template>
+    <div></div>
+  </template>
+</dom-module>
+<dom-module id='tr-ui-b-deep-utils-test-c'>
+  <template>
+    <tr-ui-b-deep-utils-test-b class='x'></tr-ui-b-deep-utils-test-b>
+    <tr-ui-b-deep-utils-test-a class='x'></tr-ui-b-deep-utils-test-a>
+    <tr-ui-b-deep-utils-test-a class='x'></tr-ui-b-deep-utils-test-a>
+  </template>
+</dom-module>
+<dom-module id='tr-ui-b-deep-utils-test-d'>
+  <template>
+    <tr-ui-b-deep-utils-test-c></tr-ui-b-deep-utils-test-c>
+  </template>
+</dom-module>
 <script>
 'use strict';
 
+Polymer({
+  is: 'tr-ui-b-deep-utils-test-a'
+});
+
+Polymer({
+  is: 'tr-ui-b-deep-utils-test-b'
+});
+
+Polymer({
+  is: 'tr-ui-b-deep-utils-test-c'
+});
+
+Polymer({
+  is: 'tr-ui-b-deep-utils-test-d'
+});
+
 tr.b.unittest.testSuite(function() {
-  function createElement(tagName, opt_class) {
-    var el = document.createElement(tagName);
-    if (opt_class)
-      el.className = opt_class;
-    return el;
-  }
-
   test('testFindDeepElementMatching', function() {
-    var a = createElement('a');
-    var a_ = a.createShadowRoot();
+    var d = document.createElement('tr-ui-b-deep-utils-test-d');
 
-    var b = createElement('b');
-    a_.appendChild(b);
-
-    var b_ = b.createShadowRoot();
-    b_.appendChild(createElement('c', 'x'));
-
-    var m = tr.b.findDeepElementMatching(a, 'c.x');
-    assert.equal(m, b_.children[0]);
+    var b = tr.b.findDeepElementMatching(d, 'tr-ui-b-deep-utils-test-b.x');
+    assert.isDefined(b);
+    assert.equal(b.tagName, 'TR-UI-B-DEEP-UTILS-TEST-B');
   });
 
   test('testFindDeepElementsMatching', function() {
-    var a = createElement('a');
-    var a_ = a.createShadowRoot();
+    var d = document.createElement('tr-ui-b-deep-utils-test-d');
 
-    var b = createElement('b');
-    a_.appendChild(b);
-
-    var b_ = b.createShadowRoot();
-    b_.appendChild(createElement('c', 'x'));
-    b_.appendChild(createElement('c', 'x'));
-
-    var m = tr.b.findDeepElementsMatching(a, 'c.x');
-    assert.equal(m[0], b_.children[0]);
-    assert.equal(m[1], b_.children[1]);
+    var a = tr.b.findDeepElementsMatching(d, 'tr-ui-b-deep-utils-test-a.x');
+    assert.isDefined(a);
+    assert.equal(a[0].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
+    assert.equal(a[1].tagName, 'TR-UI-B-DEEP-UTILS-TEST-A');
   });
 });
 </script>

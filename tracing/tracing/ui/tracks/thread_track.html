@@ -32,7 +32,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('thread-track');
+      Polymer.dom(this).classList.add('thread-track');
     },
 
     get thread() {
@@ -78,7 +78,7 @@ tr.exportTo('tr.ui.tracks', function() {
         timeSlicesTrack.height = tr.ui.b.THIN_SLICE_HEIGHT + 'px';
         timeSlicesTrack.slices = this.thread_.timeSlices;
         if (timeSlicesTrack.hasVisibleContent)
-          this.appendChild(timeSlicesTrack);
+          Polymer.dom(this).appendChild(timeSlicesTrack);
       }
 
       if (this.thread_.sliceGroup.length) {
@@ -87,7 +87,7 @@ tr.exportTo('tr.ui.tracks', function() {
         track.tooltip = this.thread_.userFriendlyDetails;
         track.group = this.thread_.sliceGroup;
         if (track.hasVisibleContent)
-          this.appendChild(track);
+          Polymer.dom(this).appendChild(track);
       }
     },
 
@@ -99,7 +99,7 @@ tr.exportTo('tr.ui.tracks', function() {
         asyncTrack.group = subGroup;
         asyncTrack.heading = title;
         if (asyncTrack.hasVisibleContent)
-          this.appendChild(asyncTrack);
+          Polymer.dom(this).appendChild(asyncTrack);
       }, this);
     },
 
@@ -132,7 +132,7 @@ tr.exportTo('tr.ui.tracks', function() {
           }
           return selection;
         };
-        this.appendChild(samplesTrack);
+        Polymer.dom(this).appendChild(samplesTrack);
       }, this);
     },
 

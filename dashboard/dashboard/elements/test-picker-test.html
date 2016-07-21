@@ -6,11 +6,50 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/dashboard/elements/test-picker.html">
+<link rel="import" href="/dashboard/static/testing_common.html">
 
 <link rel="import" href="/tracing/core/test_utils.html">
 
 <script>
 'use strict';
+
+var MOCK_RESPONSE = {
+  'select-multiple-add': {
+    'has_rows': true,
+    'sub_tests': {
+      'select-multiple-add.html': {
+        'has_rows': true,
+        'sub_tests': {}
+      },
+      'select-multiple-add.html_ref': {
+        'has_rows': true,
+        'sub_tests': {
+        }
+      },
+      'ref': {
+        'has_rows': true,
+        'sub_tests': {}
+      }
+    }
+  },
+  'textarea-edit': {
+    'has_rows': true,
+    'sub_tests': {
+      'textarea-edit.html_ref': {
+        'has_rows': true,
+        'sub_tests': {}
+      },
+      'textarea-edit.html': {
+        'has_rows': true,
+        'sub_tests': {}
+      },
+      'ref': {
+        'has_rows': true,
+        'sub_tests': {}
+      }
+    }
+  }
+};
 
 tr.b.unittest.testSuite(function() {
 
@@ -19,8 +58,31 @@ tr.b.unittest.testSuite(function() {
     },
 
     tearDown: function() {
+      // Must comment this out to do manual tests; tearDown gets called
+      // immediately after the test method finishes, and this is used to respond
+      // to user input which occurs far later.
+      testing_common.clearXhrMock();
     }
   };
+
+  test('instantiate', function() {
+    testing_common.addXhrMock('*', JSON.stringify(MOCK_RESPONSE));
+    var testPicker = document.createElement('test-picker');
+    testPicker.testSuites = {
+      'endure': {
+        'mas': {'Chromium': {'mac': false, 'win7': true}},
+        'dep': true
+      },
+      'dromaeo': {
+        'mas': {'Chromium': {'mac': false, 'win7': false}}
+      },
+      'blink_perf': {
+        'mas': {'Chromium': {'mac': false, 'win7': false}},
+        'mon': ['select-multiple-add/select-multiple-add.html']
+      }
+    };
+    this.addHTMLOutput(testPicker);
+  }, testOptions);
 
   test('getSuiteItems', function() {
     var testPicker = document.createElement('test-picker');
@@ -32,15 +94,15 @@ tr.b.unittest.testSuite(function() {
       'dromaeo': {
         'mas': {'Chromium': {'mac': false, 'win7': false}}
       },
-      'scrolling': {
+      'blink_perf': {
         'mas': {'Chromium': {'mac': false, 'win7': false}},
-        'mon': ['average/www.yahoo.com']
+        'mon': ['select-multiple-add/select-multiple-add.html']
       }
     };
     var suiteItems = testPicker.getSuiteItems();
     // Test suites should be in the order of monitored, unmonitored,
     // and deprecated.
-    var expectedSuites = ['scrolling', 'dromaeo', 'endure'];
+    var expectedSuites = ['blink_perf', 'dromaeo', 'endure'];
     var actualSuites = [];
     for (var i = 0; i < suiteItems.length; i++) {
       actualSuites.push(suiteItems[i].name);

@@ -28,7 +28,7 @@ tr.b.unittest.testSuite(function() {
     var div = document.createElement('div');
     var viewport = new tr.ui.TimelineViewport(div);
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
-    div.appendChild(drawingContainer);
+    Polymer.dom(div).appendChild(drawingContainer);
 
     if (series) {
       series.updateBounds();
@@ -61,7 +61,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = createDrawingContainer(series);
     var track = new PowerSeriesTrack(drawingContainer.viewport);
     track.powerSeries = series;
-    drawingContainer.appendChild(track);
+    Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(drawingContainer);
   });

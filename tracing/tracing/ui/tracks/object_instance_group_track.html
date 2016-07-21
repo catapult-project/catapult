@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/analysis/object_snapshot_view.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/ui/analysis/object_instance_view.html">
+<link rel="import" href="/tracing/ui/analysis/object_snapshot_view.html">
+<link rel="import" href="/tracing/ui/base/ui.html">
 <link rel="import" href="/tracing/ui/tracks/multi_row_track.html">
 <link rel="import" href="/tracing/ui/tracks/object_instance_track.html">
-<link rel="import" href="/tracing/base/sorted_array_utils.html">
-<link rel="import" href="/tracing/ui/base/ui.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('object-instance-group-track');
+      Polymer.dom(this).classList.add('object-instance-group-track');
       this.objectInstances_ = undefined;
     },
 
@@ -46,7 +46,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var hasMultipleRows = this.subRows.length > 1;
       var track = new tr.ui.tracks.ObjectInstanceTrack(this.viewport);
       track.objectInstances = objectInstances;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       return track;
     },
 

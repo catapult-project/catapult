@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/bisect-form.html">
 <link rel="import" href="/dashboard/static/simple_xhr.html">
 
-<polymer-element name="bisect-button" attributes="bisectInfo bugId xsrfToken">
+<dom-module id="bisect-button">
   <template>
     <style>
       /*
@@ -38,22 +38,33 @@ found in the LICENSE file.
     </style>
     <paper-button raised
         id="button"
-        disabled?={{!canBisect}}
-        enabled?={{canBisect}}
-        on-click="{{onBisect}}">Bisect</paper-button>
+        disabled$={{!canBisect}}
+        enabled$={{canBisect}}
+        on-click="onBisect">Bisect</paper-button>
     <bisect-form
         id="bisect"
-        xsrfToken="{{xsrfToken}}"
-        earlierRevision="{{bisectInfo.goodRev}}"
-        laterRevision="{{bisectInfo.badRev}}"
-        testPath="{{bisectInfo.testPath}}"
-        bugId="{{bugId}}"></bisect-form>
+        xsrf-token="{{xsrfToken}}"
+        earlier-revision="{{bisectInfo.goodRev}}"
+        later-revision="{{bisectInfo.badRev}}"
+        test-path="{{bisectInfo.testPath}}"
+        bug-id="{{bugId}}"></bisect-form>
   </template>
   <script>
     'use strict';
 
     (function() {
-      Polymer('bisect-button', {
+      Polymer({
+
+        is: 'bisect-button',
+        properties: {
+          bisectInfo: {
+            notify: true,
+            observer: 'bisectInfoChanged'
+          },
+          bugId: { notify: true },
+          xsrfToken: { notify: true }
+        },
+
         /**
          * Initializes this element; this is an element lifecycle callback.
          */
@@ -102,4 +113,4 @@ found in the LICENSE file.
       });
     })();
   </script>
-</polymer-element>
+</dom-module>

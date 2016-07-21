@@ -214,11 +214,13 @@ tr.b.unittest.testSuite(function() {
 
       case STACK_FRAME:
       case OBJECT_TYPE:
-        assert.lengthOf(formattedTitle.childNodes, 2);
-        assert.strictEqual(formattedTitle.childNodes[0].textContent,
+        assert.lengthOf(Polymer.dom(formattedTitle).childNodes, 2);
+        assert.strictEqual(
+            Polymer.dom(formattedTitle).childNodes[0].textContent,
             expectedDimension === STACK_FRAME ? '\u0192' : '\u24C9');
         assert.strictEqual(
-            formattedTitle.childNodes[1].textContent, expectedTitle);
+            Polymer.dom(formattedTitle).childNodes[1].textContent,
+            expectedTitle);
         break;
 
       default:

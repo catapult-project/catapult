@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/ui/timeline_track_view.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/ui/timeline_track_view.html">
 
 <script>
 'use strict';
@@ -216,8 +216,8 @@ tr.b.unittest.testSuite(function() {
     processTrack.process = process;
     threadTrack.thread = thread;
     groupTrack.group = group;
-    processTrack.appendChild(threadTrack);
-    threadTrack.appendChild(groupTrack);
+    Polymer.dom(processTrack).appendChild(threadTrack);
+    Polymer.dom(threadTrack).appendChild(groupTrack);
 
     assert.equal(processTrack.eventContainer, process);
     assert.equal(threadTrack.eventContainer, thread);

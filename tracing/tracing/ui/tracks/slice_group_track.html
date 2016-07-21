@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/tracks/multi_row_track.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
+<link rel="import" href="/tracing/ui/tracks/multi_row_track.html">
 
 <script>
 'use strict';
@@ -27,7 +27,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     decorate: function(viewport) {
       tr.ui.tracks.MultiRowTrack.prototype.decorate.call(this, viewport);
-      this.classList.add('slice-group-track');
+      Polymer.dom(this).classList.add('slice-group-track');
       this.group_ = undefined;
       // Set the collapse threshold so we don't collapse by default, but the
       // user can explicitly collapse if they want it.
@@ -37,7 +37,7 @@ tr.exportTo('tr.ui.tracks', function() {
     addSubTrack_: function(slices) {
       var track = new tr.ui.tracks.SliceTrack(this.viewport);
       track.slices = slices;
-      this.appendChild(track);
+      Polymer.dom(this).appendChild(track);
       return track;
     },
 

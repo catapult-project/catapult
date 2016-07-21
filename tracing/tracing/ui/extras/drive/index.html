@@ -10,9 +10,9 @@ found in the LICENSE file.
   <script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
 
   <link rel="import" href="/components/polymer/polymer.html">
+  <link rel="import" href="/tracing/ui/extras/drive/drive_comment_provider.html">
   <link rel="import" href="/tracing/ui/extras/full_config.html">
   <link rel="import" href="/tracing/ui/timeline_view.html">
-  <link rel="import" href="/tracing/ui/extras/drive/drive_comment_provider.html">
 
   <style>
     body {
@@ -209,7 +209,7 @@ found in the LICENSE file.
           setTimeout(onRepeatAuthApiLoad, 30000);
         }, 30000);
       }});
-    }
+    };
 
     function onAuthApiLoad(tryImmediate, resultCallback) {
       window.gapi.auth.authorize(
@@ -287,11 +287,11 @@ found in the LICENSE file.
         downloadingOverlay.title = 'Downloading...';
         downloadingOverlay.userCanClose = false;
         downloadingOverlay.msgEl = document.createElement('div');
-        downloadingOverlay.appendChild(downloadingOverlay.msgEl);
+        Polymer.dom(downloadingOverlay).appendChild(downloadingOverlay.msgEl);
         downloadingOverlay.msgEl.style.margin = '20px';
         downloadingOverlay.update = function(msg) {
-          this.msgEl.textContent = msg;
-        }
+          Polymer.dom(this.msgEl).textContent = msg;
+        };
         downloadingOverlay.visible = true;
 
         var accessToken = gapi.auth.getToken().access_token;
@@ -317,7 +317,7 @@ found in the LICENSE file.
       var allCollaborators = driveDocument_.getCollaborators();
       var collaboratorCount = allCollaborators.length;
       var collabspan = document.getElementById('collabs');
-      collabspan.innerHTML = '';
+      Polymer.dom(collabspan).innerHTML = '';
       var imageList = [];
       for (var i = 0; i < collaboratorCount; i++) {
         var user = allCollaborators[i];
@@ -328,7 +328,7 @@ found in the LICENSE file.
         img.height = 30;
         img.width = 30;
         img.className = 'collaborator-img';
-        collabspan.appendChild(img);
+        Polymer.dom(collabspan).appendChild(img);
         imageList.push({'image': img, 'name': user.displayName});
       }
       for (i = 0; i < imageList.length; i++) {
@@ -338,18 +338,18 @@ found in the LICENSE file.
         var collabTooltipContent = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-content'
         });
-        collabTooltipContent.textContent = imageList[i].name;
-        collabTooltip.appendChild(collabTooltipContent);
-        collabspan.appendChild(collabTooltip);
+        Polymer.dom(collabTooltipContent).textContent = imageList[i].name;
+        Polymer.dom(collabTooltip).appendChild(collabTooltipContent);
+        Polymer.dom(collabspan).appendChild(collabTooltip);
         var collabTooltipArrow = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow'});
-        collabTooltip.appendChild(collabTooltipArrow);
+        Polymer.dom(collabTooltip).appendChild(collabTooltipArrow);
         var collabTooltipArrowBefore = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow-before'});
-        collabTooltipArrow.appendChild(collabTooltipArrowBefore);
+        Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowBefore);
         var collabTooltipArrowAfter = tr.ui.b.createDiv({
             className: 'collaborator-tooltip-arrow-after'});
-        collabTooltipArrow.appendChild(collabTooltipArrowAfter);
+        Polymer.dom(collabTooltipArrow).appendChild(collabTooltipArrowAfter);
 
         var rect = imageList[i].image.getBoundingClientRect();
         collabTooltip.style.top = (rect.bottom - 6) + 'px';
@@ -414,7 +414,7 @@ found in the LICENSE file.
           },
           function(err) {
             var downloadingOverlay = new tr.ui.b.Overlay();
-            downloadingOverlay.textContent =
+            Polymer.dom(downloadingOverlay).textContent =
                 tr.b.normalizeException(err).message;
             downloadingOverlay.title = 'Import error';
             downloadingOverlay.visible = true;
@@ -434,7 +434,7 @@ found in the LICENSE file.
     }
 
     function onLoad() {
-      timelineViewEl_ = document.querySelector('x-timeline-view');
+      timelineViewEl_ = Polymer.dom(document).querySelector('x-timeline-view');
       timelineViewEl_.globalMode = true;
       var navbar = document.getElementById('navbar');
       timelineViewEl_.style.top = navbar.offsetHeight + 'px';
