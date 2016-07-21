@@ -354,7 +354,7 @@ found in the LICENSE file.
           } else {
             allUnselected.push(test);
           }
-        });
+        }.bind(this));
 
         if (this.importantSelected(seriesGroup.tests)) {
           this.set(
@@ -473,7 +473,7 @@ found in the LICENSE file.
                   '.hidden',
                   false);
           }
-        });
+        }.bind(this));
         this.updateNumHidden(groupIndex);
       },
 
