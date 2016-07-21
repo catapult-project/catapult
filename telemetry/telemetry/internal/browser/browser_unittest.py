@@ -123,7 +123,8 @@ class BrowserTest(browser_test_case.BrowserTestCase):
   def testGetSystemTotalMemory(self):
     self.assertTrue(self._browser.memory_stats['SystemTotalPhysicalMemory'] > 0)
 
-  @decorators.Disabled('cros-chrome-guest', 'system-guest')  # chromeos guest
+  @decorators.Disabled('cros-chrome-guest', 'system-guest',  # chromeos guest
+                       'chromeos')  # crbug.com/628836.
   def testIsTracingRunning(self):
     tracing_controller = self._browser.platform.tracing_controller
     if not tracing_controller.IsChromeTracingSupported():
