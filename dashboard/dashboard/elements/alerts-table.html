@@ -298,7 +298,7 @@ found in the LICENSE file.
             improvement$="{{item.improvement}}"
             triaged$="{{item.triaged}}"
             hidden$="{{item.hideRow}}"
-            highlighted$="{{item.highlighted}}"
+            highlighted$="{{isHighlighted(commonRevisionRange, item)}}"
             expanded$="{{item.expanded}}"
             on-click="onRowClicked">
 
@@ -335,10 +335,10 @@ found in the LICENSE file.
           <td class="revision_range">
             <revision-range start={{item.start_revision}} end="{{item.end_revision}}"></revision-range>
           </td>
-          <td class="master"><label>{{item.master}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.master, expanded)}}">...</label></td>
-          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.bot, expanded)}}">...</label></td>
-          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.testsuite, expanded)}}">...</label></td>
-          <td class="test"><label>{{item.test}}</label><label hidden$="{{computeAbsentOrExpanded(item.additionColumnValues.test, expanded)}}">...</label></td>
+          <td class="master"><label>{{item.master}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'master')}}">...</label></td>
+          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'bot')}}">...</label></td>
+          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'testSuite')}}">...</label></td>
+          <td class="test"><label>{{item.test}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'test')}}">...</label></td>
 
           <template is="dom-repeat" items="{{extraColumns}}" as="column" index-as="colnum">
             <td class="{{column.key}}"><label>{{computeExtraColumnValue(alertList.*, index, column.key)}}</td>
@@ -364,6 +364,28 @@ found in the LICENSE file.
         keys.push(alerts[i]['key']);
       }
       return '/group_report?keys=' + keys.join(',');
+    }
+
+    /**
+     * Returns the intersection of the two ranges.
+     *
+     * @param {Object} range1 An range in the form:
+     * { start: <Number>, end: <Number> }, or null for an empty range.
+     * @param {Object} range2 A range in the same form.
+     * @return {Object} The intersection of the two ranges in the same form, or
+     * null if no such intersection exists.
+     */
+    function findRangeIntersection(range1, range2) {
+      if (range1 == null || range2 == null)
+        return null;
+
+      var start = Math.max(range1.start, range2.start);
+      var end = Math.min(range1.end, range2.end);
+
+      if (end < start)
+        return null;
+
+      return { start: start, end: end };
     }
 
     Polymer({
@@ -423,6 +445,20 @@ found in the LICENSE file.
          */
         currentCheckboxId: { value: null },
 
+        /**
+         * The revision range that's common between all selected alerts.
+         *
+         * If there's a common range, this is an object of the form:
+         *
+         *   { start: <number>, end: <number> }
+         *
+         * If there's no common range, this is null.
+         */
+        commonRevisionRange: {
+          type: Object,
+          value: null
+        },
+
         NUM_ALERTS_TO_CHECK_ON_INIT: {
           type: Number,
           value: 10
@@ -435,7 +471,26 @@ found in the LICENSE file.
       ready: function() {
       },
 
-      computeAbsentOrExpanded: (prop, exanded) => !prop || expanded,
+      // TODO(charliea): The current implementation of this depends on the fact
+      // the additional column values are computed immediately after the alerts
+      // are updated. If the additional column values are updated without
+      // resetting the alerts, this will stop working because this function
+      // observes the alert, not the alert's deep properties. Restructuring this
+      // so that additionalColumnValues is its own computed property that
+      // observes alerts rather than a weird appendage of the alert itself
+      // would fix this problem.
+      /**
+       * Returns whether the column associated with the given alert property
+       * should be ellipsized, which indicates that there are grouped alerts
+       * that have different values for that column.
+       */
+      computeColumnEllipsized: function(iterInfo, property) {
+        var alert = iterInfo.base;
+
+        return alert.additionalColumnValues != undefined &&
+            alert.additionalColumnValues[property] &&
+            !alert.expanded;
+      },
 
       computeIsPlural: (unused, n) => n > 1,
 
@@ -513,23 +568,31 @@ found in the LICENSE file.
        */
       addEllipsis: function() {
         for (var i = 0; i < this.alertList.length; i++) {
+          this.setAlertList(i, 'additionalColumnValues', {});
+        }
+
+        for (var i = 0; i < this.alertList.length; i++) {
           var alert = this.alertList[i];
           if (alert.rowType == 'group-header' && alert.size > 1) {
-            this.setAlertList(i, 'additionColumnValues', {});
+            var headerRowIndex = i;
             for (var j = i + 1; j < this.alertList.length; j++) {
               var memberAlert = this.alertList[j];
               if (memberAlert.rowType == 'group-member') {
                 if (memberAlert.master != alert.master) {
-                  this.setAlertList(i, 'additionColumnValues.master', true);
+                  this.setAlertList(
+                    headerRowIndex, 'additionalColumnValues.master', true);
                 }
                 if (memberAlert.bot != alert.bot) {
-                  this.setAlertList(i, 'additionColumnValues.bot', true);
+                  this.setAlertList(
+                    headerRowIndex, 'additionalColumnValues.bot', true);
                 }
                 if (memberAlert.testsuite != alert.testsuite) {
-                  this.setAlertList(i, 'additionColumnValues.testsuite', true);
+                  this.setAlertList(
+                    headerRowIndex, 'additionalColumnValues.testsuite', true);
                 }
                 if (memberAlert.test != alert.test) {
-                  this.setAlertList(i, 'additionColumnValues.test', true);
+                  this.setAlertList(
+                    headerRowIndex, 'additionalColumnValues.test', true);
                 }
               } else {
                 break;
@@ -549,7 +612,8 @@ found in the LICENSE file.
         var alertIndex = row.rowIndex - 1;
         var alert = this.alertList[alertIndex];
         var isExpand = !alert.expanded;
-        alert.expanded = isExpand;
+        this.setAlertList(alertIndex, 'expanded', isExpand);
+
         for (var i = alertIndex + 1; i < this.alertList.length; i++) {
           if (this.alertList[i].group == alert.group) {
             this.setAlertList(i, 'hideRow', !isExpand);
@@ -805,7 +869,7 @@ found in the LICENSE file.
        * represents the range [300, 400].
        *
        * The input and output revision ranges are inclusive; that is, both
-       * start and end revision are included in the range. Thus the minimum
+       * start and end revision are included in the range. Thus the common
        * revision range for alerts with ranges [110, 120] and [120, 130] is
        * [120, 120].
        *
@@ -813,49 +877,24 @@ found in the LICENSE file.
        * @return {?Object} An object containing start and end revision,
        *     or null if the checked alerts don't overlap.
        */
-      getMinimumRevisionRange: function(alerts) {
-        if (!alerts || alerts.length == 0) {
+      getCommonRevisionRange: function(alerts) {
+        if (!alerts || alerts.length == 0)
           return null;
-        }
-        // Start with the range of the first alert, and then narrow it down.
-        var start = alerts[0]['start_revision'];
-        var end = alerts[0]['end_revision'];
-        for (var i = 1; i < alerts.length; i++) {
-          var a = alerts[i];
-          if (a['start_revision'] > start) {
-            if (a['start_revision'] > end) {
-              return null;
-            }
-            start = a['start_revision'];
-          }
-          if (a['end_revision'] < end) {
-            if (a['end_revision'] < start) {
-              return null;
-            }
-            end = a['end_revision'];
-          }
-        }
-        return {'start': start, 'end': end};
-      },
 
-      /**
-       * Highlights alerts that overlap with checked alerts revision range.
-       */
-      updateHighlights: function() {
-        for (var i = 0; i < this.alertList.length; i++) {
-          this.setAlertList(i, 'highlighted', false);
+        var commonRange = { start: -Infinity, end: Infinity };
+        for (var alert of alerts) {
+          var alertRange = {
+            start: alert['start_revision'],
+            end: alert['end_revision']
+          };
+
+          commonRange = findRangeIntersection(commonRange, alertRange);
+
+          if (commonRange == null)
+            return null;
         }
-        var minRevisionRange = this.getMinimumRevisionRange(this.checkedAlerts);
-        if (!minRevisionRange) {
-          return;
-        }
-        for (var i = 0; i < this.alertList.length; i++) {
-          var alert = this.alertList[i];
-          if (alert.start_revision > minRevisionRange.end ||
-              alert.end_revision < minRevisionRange.start) {
-                this.setAlertList(i, 'highlighted', true);
-              }
-        }
+
+        return commonRange;
       },
 
       /**
@@ -930,8 +969,12 @@ found in the LICENSE file.
         this.set('checkedAlerts', this.alertList.filter(function(alertRow) {
           return alertRow.selected;
         }));
+
+        this.set(
+            'commonRevisionRange',
+            this.getCommonRevisionRange(this.checkedAlerts));
+
         this.updateHeaderCheckbox();
-        this.updateHighlights();
         this.maybeDisableButtons();
         this.fire('changeselection');
       },
@@ -1006,6 +1049,19 @@ found in the LICENSE file.
         });
         this.onCheckboxChange();
         this.updateBugColumn();
+      },
+
+      isHighlighted: function(commonRevisionRange, alert) {
+        if (commonRevisionRange == null)
+          return false;
+
+        var alertRevisionRange = {
+          start: alert.start_revision,
+          end: alert.end_revision
+        };
+
+        return findRangeIntersection(
+            commonRevisionRange, alertRevisionRange) != null;
       }
     });
   })();
