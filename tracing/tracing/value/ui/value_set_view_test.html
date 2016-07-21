@@ -145,7 +145,7 @@ tr.b.unittest.testSuite(function() {
     assert.isFalse(tabView.get('tabsHidden'));
 
     // Test that selecting the Table view changes the setting.
-    tabView.selectedTab = tabView.tabs[0];
+    tabView.selectedSubView = tabView.tabs[0];
     return new Promise(function(resolve, reject) {
       assert.strictEqual(
           tr.b.Settings.get(tr.v.ui.SELECTED_TAB_SETTINGS_KEY),
