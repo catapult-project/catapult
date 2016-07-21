@@ -197,6 +197,7 @@ class _FakeBrowser(object):
     self._returned_system_info = FakeSystemInfo()
     self._platform = platform
     self._browser_type = 'release'
+    self._is_crashed = False
 
   @property
   def platform(self):
@@ -236,7 +237,7 @@ class _FakeBrowser(object):
     return _FakeCredentials()
 
   def Close(self):
-    pass
+    self._is_crashed = False
 
   @property
   def supports_system_info(self):
@@ -333,7 +334,10 @@ class _FakeTab(object):
 
   def Navigate(self, url, script_to_evaluate_on_commit=None,
                timeout=0):
-    pass
+    del script_to_evaluate_on_commit, timeout # unused
+    if url == 'chrome://crash':
+      self.browser._is_crashed = True
+      raise Exception
 
   def WaitForDocumentReadyStateToBeInteractiveOrBetter(self, timeout=0):
     pass
@@ -380,7 +384,10 @@ class _FakeTabList(object):
     return len(self._tabs)
 
   def __getitem__(self, index):
-    return self._tabs[index]
+    if self._tabs[index].browser._is_crashed:
+      raise Exception
+    else:
+      return self._tabs[index]
 
   def GetTabById(self, identifier):
     """The identifier of a tab can be accessed with tab.id."""
