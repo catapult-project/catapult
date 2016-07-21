@@ -575,6 +575,7 @@ found in the LICENSE file.
           var alert = this.alertList[i];
           if (alert.rowType == 'group-header' && alert.size > 1) {
             var headerRowIndex = i;
+            this.setAlertList(i, 'additionalColumnValues', {});
             for (var j = i + 1; j < this.alertList.length; j++) {
               var memberAlert = this.alertList[j];
               if (memberAlert.rowType == 'group-member') {
