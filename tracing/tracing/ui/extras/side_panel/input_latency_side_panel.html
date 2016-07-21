@@ -192,6 +192,14 @@ Polymer({
         labels));
   },
 
+  // TODO(charliea): Delete this function in favor of rangeOfInterest.
+  get currentRangeOfInterest() {
+    if (this.rangeOfInterest_.isEmpty)
+      return this.model_.bounds;
+    else
+      return this.rangeOfInterest_;
+  },
+
   createLatencyLineChart: function(data, title) {
     var chart = new tr.ui.b.LineChart();
     var width = 600;
@@ -212,7 +220,7 @@ Polymer({
     if (this.modelHelper_ === undefined)
       return;
 
-    var rangeOfInterest = this.rangeOfInterest;
+    var rangeOfInterest = this.currentRangeOfInterest;
 
     var chromeProcess;
     if (this.modelHelper_.rendererHelpers[this.selectedProcessId_])
