@@ -275,15 +275,19 @@ tr.exportTo('tr.metrics.sh', function() {
           var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
           if (v8Dump !== undefined) {
             var allocatedByMalloc = 0;
+            var peakAllocatedByMalloc = 0;
             var hasMallocDump = false;
             v8Dump.children.forEach(function(isolateDump) {
               var mallocDump =
                   isolateDump.getDescendantDumpByFullName('malloc');
-              if (mallocDump === undefined ||
-                  mallocDump.numerics['effective_size'] === undefined) {
+              if (mallocDump === undefined)
                 return;
+              if (mallocDump.numerics['effective_size'] !== undefined) {
+                allocatedByMalloc +=
+                    mallocDump.numerics['effective_size'].value;
               }
-              allocatedByMalloc += mallocDump.numerics['effective_size'].value;
+              if (mallocDump.numerics['peak_size'] !== undefined)
+                peakAllocatedByMalloc += mallocDump.numerics['peak_size'].value;
               hasMallocDump = true;
             });
             if (hasMallocDump) {
@@ -295,6 +299,15 @@ tr.exportTo('tr.metrics.sh', function() {
                 unit: sizeInBytes_smallerIsBetter,
                 descriptionPrefixBuilder:
                     CHROME_VALUE_PROPERTIES['effective_size']
+              });
+              addProcessScalar({
+                source: 'reported_by_chrome',
+                component: ['v8', 'allocated_by_malloc'],
+                property: 'peak_size',
+                value: peakAllocatedByMalloc,
+                unit: sizeInBytes_smallerIsBetter,
+                descriptionPrefixBuilder:
+                    CHROME_VALUE_PROPERTIES['peak_size']
               });
             }
           }
@@ -403,7 +416,11 @@ tr.exportTo('tr.metrics.sh', function() {
     'locked_size': buildChromeValueDescriptionPrefix.bind(undefined, {
       userFriendlyPropertyName: 'locked (pinned) size',
       componentPreposition: 'of'
-    })
+    }),
+    'peak_size': buildChromeValueDescriptionPrefix.bind(undefined, {
+      userFriendlyPropertyName: 'peak size',
+      componentPreposition: 'of'
+    }),
   };
 
   /**

@@ -371,9 +371,23 @@ tr.b.unittest.testSuite(function() {
       var v8Dump = newAllocatorDump(pmdRendererA2, 'v8',
           {numerics: {size: 650}});
       var isolateDumpA = addChildDump(v8Dump, 'isolate_A');
-      addChildDump(isolateDumpA, 'malloc', {numerics: {size: 1 }});
+      addChildDump(isolateDumpA, 'malloc', {numerics: {
+          size: 1,
+          peak_size: 2
+      }});
       var isolateDumpB = addChildDump(v8Dump, 'isolate_B');
-      addChildDump(isolateDumpB, 'malloc', {numerics: {size: 10 }});
+      addChildDump(isolateDumpB, 'malloc', {numerics: {
+          size: 10,
+          peak_size: 20
+      }});
+      var isolateDumpC = addChildDump(v8Dump, 'isolate_C');
+      addChildDump(isolateDumpC, 'malloc', {numerics: {
+          size: 100,
+      }});
+      var isolateDumpD = addChildDump(v8Dump, 'isolate_D');
+      addChildDump(isolateDumpD, 'malloc', {numerics: {
+          peak_size: 200,
+      }});
       return [partitionAllocDump, v8Dump];
     })();
     var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 40});
@@ -463,6 +477,13 @@ tr.b.unittest.testSuite(function() {
       description: 'total size of all allocated objects reported by Chrome ' +
           'for all processes in Chrome'
     },
+    'memory:chrome:all_processes:reported_by_chrome:peak_size':
+        {
+          value: [0, 2 + 20 + 200, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total peak size reported by Chrome for all ' +
+              'processes in Chrome'
+        },
     'memory:chrome:all_processes:reported_by_chrome:gpu:effective_size': {
       value: [30, 0, 300, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -501,9 +522,16 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
         {
-          value: [0, 1 + 10, 0, 0],
+          value: [0, 1 + 10 + 100, 0, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'effective size of objects allocated by malloc for v8 ' +
+              'in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size':
+        {
+          value: [0, 2 + 20 + 200, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of objects allocated by malloc for v8 ' +
               'in all processes in Chrome'
         },
     'memory:chrome:all_processes:reported_by_chrome:v8:effective_size': {
@@ -517,6 +545,12 @@ tr.b.unittest.testSuite(function() {
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of all objects allocated by v8 in all processes ' +
               'in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:peak_size':
+        {
+          value: [0, 2 + 20 + 200, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of v8 in all processes in Chrome'
         },
     'memory:chrome:browser_process:process_count': {
       value: [1, 1, 1, 1],
@@ -599,6 +633,13 @@ tr.b.unittest.testSuite(function() {
           description: 'total size of all allocated objects reported by ' +
               'Chrome for renderer processes in Chrome'
         },
+    'memory:chrome:renderer_processes:reported_by_chrome:peak_size':
+        {
+          value: [0, 2 + 20 + 200, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total peak size reported by Chrome ' +
+              'for renderer processes in Chrome'
+        },
     'memory:chrome:renderer_processes:reported_by_chrome:malloc:effective_size':
         {
           value: [16, 0, 0, 0],
@@ -622,9 +663,16 @@ tr.b.unittest.testSuite(function() {
         },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:effective_size':
         {
-          value: [0, 1 + 10, 0, 0],
+          value: [0, 1 + 10 + 100, 0, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'effective size of objects allocated by malloc for v8 ' +
+              'in renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size':
+        {
+          value: [0, 2 + 20 + 200, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of objects allocated by malloc for v8 ' +
               'in renderer processes in Chrome'
         },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size': {
@@ -638,6 +686,12 @@ tr.b.unittest.testSuite(function() {
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of all objects allocated by v8 in renderer ' +
               'processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:peak_size':
+        {
+          value: [0, 2 + 20 + 200, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of v8 in renderer processes in Chrome'
         },
     'memory:chrome:unknown_processes:process_count': {
       value: [0, 1, 0, 0],
@@ -1463,7 +1517,10 @@ tr.b.unittest.testSuite(function() {
         size: 67108864
       }});
       var isolateDump = addChildDump(v8Dump, 'isolate');
-      addChildDump(isolateDump, 'malloc', {numerics: {size: 1 }});
+      addChildDump(isolateDump, 'malloc', {numerics: {
+          size: 1,
+          peak_size: 2
+      }});
       return [mallocDump, v8Dump];
     })();
     pmdBrowser6.vmRegions = VMRegionClassificationNode.fromRegions([
@@ -1533,6 +1590,13 @@ tr.b.unittest.testSuite(function() {
       description: 'total size of all allocated objects reported by Chrome ' +
           'for all processes in WebView'
     },
+    'memory:webview:all_processes:reported_by_chrome:peak_size':
+        {
+          value: [0, 2],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total peak size reported by Chrome for all ' +
+              'processes in WebView'
+        },
     'memory:webview:all_processes:reported_by_chrome:malloc:effective_size': {
       value: [2, 16384],
       unit: sizeInBytes_smallerIsBetter,
@@ -1543,6 +1607,13 @@ tr.b.unittest.testSuite(function() {
           value: [0, 1],
           unit: sizeInBytes_smallerIsBetter,
           description: 'effective size of objects allocated by malloc for v8 ' +
+              'in all processes in WebView'
+        },
+    'memory:webview:all_processes:reported_by_chrome:v8:allocated_by_malloc:peak_size':
+        {
+          value: [0, 2],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of objects allocated by malloc for v8 ' +
               'in all processes in WebView'
         },
     'memory:webview:all_processes:reported_by_chrome:v8:effective_size': {
@@ -1563,6 +1634,12 @@ tr.b.unittest.testSuite(function() {
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of all objects allocated by v8 in all processes ' +
               'in WebView'
+        },
+    'memory:webview:all_processes:reported_by_chrome:v8:peak_size':
+        {
+          value: [0, 2],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of v8 in all processes in WebView'
         },
     'memory:webview:all_processes:reported_by_os:private_dirty_size': {
       value: [65536],
@@ -1657,6 +1734,13 @@ tr.b.unittest.testSuite(function() {
           description: 'total size of code and metadata reported by Chrome ' +
               'for the browser process in WebView'
         },
+    'memory:webview:browser_process:reported_by_chrome:peak_size':
+        {
+          value: [0, 2],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total peak size reported by Chrome ' +
+              'for the browser process in WebView'
+        },
     'memory:webview:browser_process:reported_by_chrome:malloc:effective_size': {
       value: [2, 16384],
       unit: sizeInBytes_smallerIsBetter,
@@ -1667,6 +1751,13 @@ tr.b.unittest.testSuite(function() {
           value: [0, 1],
           unit: sizeInBytes_smallerIsBetter,
           description: 'effective size of objects allocated by malloc for v8 ' +
+              'in the browser process in WebView'
+        },
+    'memory:webview:browser_process:reported_by_chrome:v8:allocated_by_malloc:peak_size':
+        {
+          value: [0, 2],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of objects allocated by malloc for v8 ' +
               'in the browser process in WebView'
         },
     'memory:webview:browser_process:reported_by_chrome:v8:effective_size': {
@@ -1687,6 +1778,12 @@ tr.b.unittest.testSuite(function() {
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of v8 code and metadata in the browser process ' +
               'in WebView'
+        },
+    'memory:webview:browser_process:reported_by_chrome:v8:peak_size':
+        {
+          value: [0, 2],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'peak size of v8 in the browser process in WebView'
         },
     'memory:webview:browser_process:reported_by_os:private_dirty_size': {
       value: [65536],
