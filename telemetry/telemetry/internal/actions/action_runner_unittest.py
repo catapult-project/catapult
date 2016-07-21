@@ -255,6 +255,8 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         '(document.scrollingElement || document.body).scrollLeft') > 75)
 
+
+  @decorators.Disabled('chromeos')  # crbug.com/630017.
   def testEnterText(self):
     self.Navigate('blank.html')
     self._tab.ExecuteJavaScript(
