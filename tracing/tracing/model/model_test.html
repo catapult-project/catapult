@@ -252,26 +252,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(gie, m.getEventByStableId(gie.stableId));
   });
 
-  test('getEventByStableId', function() {
-    var m = new tr.Model();
-    var p = m.getOrCreateProcess(0);
-    var t = p.getOrCreateThread(1);
-    var slice = tr.c.TestUtils.newSliceEx({start: 0, duration: 10});
-    t.sliceGroup.pushSlice(slice);
-    var ue = tr.c.TestUtils.newInteractionRecord(m, 0, 10);
-    m.userModel.expectations.push(ue);
-    var gie = tr.c.TestUtils.newInstantEvent({
-      title: 'gie',
-      start: 0,
-      colorId: 0
-    });
-    m.instantEvents.push(gie);
-
-    assert.strictEqual(slice, m.getEventByStableId(slice.stableId));
-    assert.strictEqual(ue, m.getEventByStableId(ue.stableId));
-    assert.strictEqual(gie, m.getEventByStableId(gie.stableId));
-  });
-
   test('model_annotationAddRemove', function() {
     var m = new tr.Model();
     var a1 = new tr.model.Annotation();

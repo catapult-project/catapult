@@ -277,7 +277,6 @@ Polymer({
     if (n > 0) {
       var subRows = [];
       for (var argName in args) {
-<<<<<<< HEAD
         n += 1;
       }
       if (n > 0) {
@@ -294,12 +293,6 @@ Polymer({
           isExpanded: true,
           subRows: subRows
         });
-=======
-        var argView =
-            document.createElement('tr-ui-a-generic-object-view');
-        argView.object = args[argName];
-        subRows.push({ name: argName, value: argView});
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
       }
     }
   },
@@ -313,26 +306,6 @@ Polymer({
         return {name: 'Context', value: contextView};
       });
       rows.push({
-<<<<<<< HEAD
-=======
-        name: 'Args',
-        value: '',
-        isExpanded: true,
-        subRows: subRows
-      });
-    }
-  },
-
-  addContextsToRows_: function(rows, contexts) {
-    if (contexts.length) {
-      var subRows = contexts.map(function(context) {
-        var contextView =
-            document.createElement('tr-ui-a-generic-object-view');
-        contextView.object = context;
-        return {name: 'Context', value: contextView};
-      });
-      rows.push({
->>>>>>> 8881d68... Merge origin/master to the polymer branch.
         name: 'Contexts',
         value: '',
         isExpanded: true,

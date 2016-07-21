@@ -112,7 +112,7 @@ Polymer({
       return;
 
     var r = new tr.b.Range();
-    if (this.mouseDownIndex_ === undefined) {
+    if (this.mouseDownIndex_ === undefined)
       this.latencyChart_.brushedRange = r;
 
     // Based on the brushed range, update the selection of LatencyInfo in
@@ -187,53 +187,6 @@ Polymer({
         labels));
   },
 
-  updateToolbar_: function() {
-    var browserProcess = this.modelHelper_.browserProcess;
-    var labels = [];
-
-    if (browserProcess !== undefined) {
-      var label_str = 'Browser: ' + browserProcess.pid;
-      labels.push({label: label_str, value: browserProcess.pid});
-    }
-
-    tr.b.iterItems(this.modelHelper_.rendererHelpers,
-      function(pid, rendererHelper) {
-        var rendererProcess = rendererHelper.process;
-        var label_str = 'Renderer: ' + rendererProcess.userFriendlyName;
-        labels.push({label: label_str, value: rendererProcess.userFriendlyName
-      });
-
-    // Create summary.
-    var latencySummaryText = document.createElement('div');
-    latencySummaryText.appendChild(tr.ui.b.createSpan({
-      textContent: 'Average Latency ' + averageLatency + ' ms',
-      bold: true}));
-    resultArea.appendChild(latencySummaryText);
-
-    var frametimeSummaryText = document.createElement('div');
-    frametimeSummaryText.appendChild(tr.ui.b.createSpan({
-      textContent: 'Average Frame Time ' + averageFrametime + ' ms',
-      bold: true}));
-    resultArea.appendChild(frametimeSummaryText);
-
-    if (latencyData.length !== 0) {
-      this.latencyChart_ = this.createLatencyLineChart(
-          latencyData, 'Latency Over Time');
-      this.registerMouseEventForLatencyChart_();
-      resultArea.appendChild(this.latencyChart_);
-    }
-
-    if (frametimeData.length != 0) {
-      this.frametimeChart_ = this.createLatencyLineChart(
-          frametimeData, 'Frame Times');
-      resultArea.appendChild(this.frametimeChart_);
-    }
-  },
-
-  get rangeOfInterest() {
-      return this.rangeOfInterest_;
-  },
-
   createLatencyLineChart: function(data, title) {
     var chart = new tr.ui.b.LineChart();
     var width = 600;
@@ -254,7 +207,7 @@ Polymer({
     if (this.modelHelper_ === undefined)
       return;
 
-    var rangeOfInterest = this.currentRangeOfInterest;
+    var rangeOfInterest = this.rangeOfInterest;
 
     var chromeProcess;
     if (this.modelHelper_.rendererHelpers[this.selectedProcessId_])

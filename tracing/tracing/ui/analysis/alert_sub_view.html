@@ -74,21 +74,20 @@ Polymer({
       rows.push({ name: argName, value: argView });
     }
 
-      // Associated events
-      if (alert.associatedEvents.length) {
-        alert.associatedEvents.forEach(function(event, i) {
-          var linkEl = document.createElement('tr-ui-a-analysis-link');
-          linkEl.setSelectionAndContent(
-              new tr.model.EventSet(event), event.title);
+    // Associated events
+    if (alert.associatedEvents.length) {
+      alert.associatedEvents.forEach(function(event, i) {
+        var linkEl = document.createElement('tr-ui-a-analysis-link');
+        linkEl.setSelectionAndContent(
+            new tr.model.EventSet(event), event.title);
 
-          var valueString = '';
-          if (event instanceof tr.model.TimedEvent)
-            valueString = 'took ' + event.duration.toFixed(2) + 'ms';
+        var valueString = '';
+        if (event instanceof tr.model.TimedEvent)
+          valueString = 'took ' + event.duration.toFixed(2) + 'ms';
 
-          rows.push({
-            name: linkEl,
-            value: valueString
-          });
+        rows.push({
+          name: linkEl,
+          value: valueString
         });
       });
     }

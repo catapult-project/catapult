@@ -152,11 +152,7 @@ tr.exportTo('tr.v.ui', function() {
     changeSelectionFromRequestSelectionChangeEvent: function(selection) {
       if (this.parentController) {
         this.parentController.changeSelectionFromRequestSelectionChangeEvent(
-<<<<<<< HEAD
             selection);
-=======
-          selection);
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
       }
     },
 
@@ -193,21 +189,12 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     ready: function() {
-<<<<<<< HEAD
-      this.$.container.addEventListener(
-        'selected-tab-change', this.onSelectedTabChange_.bind(this));
-=======
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
       this.brushingStateController = new NullBrushingStateController();
     },
 
     attached: function() {
       this.brushingStateController.parentController =
-<<<<<<< HEAD
-        tr.c.BrushingStateController.getControllerForElement(this.parentNode);
-=======
           tr.c.BrushingStateController.getControllerForElement(this.parentNode);
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     },
 
     onSelectedTabChange_: function() {
@@ -216,11 +203,7 @@ tr.exportTo('tr.v.ui', function() {
 
       tr.b.Settings.set(
           SELECTED_TAB_SETTINGS_KEY,
-<<<<<<< HEAD
-          this.$.container.selectedTab.tagName.toLowerCase());
-=======
           this.$.tabView.selectedSubView.tagName.toLowerCase());
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     },
 
     /**
@@ -245,18 +228,9 @@ tr.exportTo('tr.v.ui', function() {
           this.$.tabView.selectedSubView = view;
       }, this);
 
-<<<<<<< HEAD
-      if (this.$.container.children.length === 1) {
-        this.$.container.tabsHidden = true;
-      }
-      if (this.$.container.selectedTab === undefined) {
-        this.$.container.children[0].setAttribute('selected', true);
-      }
-=======
       // TODO(charliea): If TabView were structured correctly, this could almost
       // certainly be done with attribute binding in the HTML template.
       this.$.tabView.set('tabsHidden', this$.tabView.tabs.length === 1);
->>>>>>> d779e0a... [polymer] Merge of master into polymer10-migration
     }
   });
 
