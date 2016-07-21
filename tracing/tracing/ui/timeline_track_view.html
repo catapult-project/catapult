@@ -654,16 +654,6 @@ Polymer({
     }
   },
 
-  selectPowerSamplesInCurrentTimeRange_: function() {
-    var selectionBounds = this.brushingStateController_.selection.bounds;
-    if (this.model.device.powerSeries && !selectionBounds.empty) {
-      var events = this.model.device.powerSeries.getSamplesWithinRange(
-          selectionBounds.min, selectionBounds.max);
-      var selection = new tr.model.EventSet(events);
-      this.brushingStateController_.changeSelectionFromTimeline(selection);
-    }
-  },
-
   /**
    * Zoom into the current selection.
    */
