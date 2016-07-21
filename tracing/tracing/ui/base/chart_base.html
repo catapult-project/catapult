@@ -229,12 +229,6 @@ tr.exportTo('tr.ui.b', function() {
       return this.seriesByKey_.get(key);
     },
 
-    getDataSeries: function(key) {
-      if (!this.seriesByKey_.has(key))
-        this.seriesByKey_.set(key, new DataSeries(key));
-      return this.seriesByKey_.get(key);
-    },
-
     decorate: function() {
       Polymer.dom(this).classList.add('chart-base');
       this.chartTitle_ = undefined;
