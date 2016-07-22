@@ -183,14 +183,14 @@ class HTMLModuleTests(unittest.TestCase):
 <link rel="import" href="/widget.html">
 <link rel="stylesheet" href="../common.css">
 <script src="/raw_script.js"></script>
-<polymer-element name="start">
+<dom-module id="start">
   <template>
   </template>
   <script>
     'use strict';
     console.log('inline script for start.html got written');
   </script>
-</polymer-element>
+</dom-module>
 """
     file_contents[os.path.normpath('/py_vulcanize/py_vulcanize.html')] = """<!DOCTYPE html>
 """
@@ -244,7 +244,7 @@ console.log('/raw/raw_script.js was written');
       # Check HTML generation.
       html = generate.GenerateStandaloneHTMLAsString(
           load_sequence, title='', flattened_js_url='/blah.js')
-      assert '<polymer-element name="start">' in html
+      assert '<dom-module id="start">' in html
       assert 'inline script for widget.html' not in html
       assert 'common.css' in html
 
@@ -252,15 +252,16 @@ console.log('/raw/raw_script.js was written');
     file_contents = {}
     file_contents[os.path.normpath('/tmp/a/b/my_component.html')] = """
 <!DOCTYPE html>
-<polymer-element name="my-component">
+<dom-module id="my-component">
   <template>
   </template>
   <script>
     'use strict';
     Polymer ( {
+      is: "my-component"
     });
   </script>
-</polymer-element>
+</dom-module>
 """
     with fake_fs.FakeFS(file_contents):
       project = project_module.Project([
@@ -276,39 +277,9 @@ console.log('/raw/raw_script.js was written');
       js = f.getvalue().rstrip()
       expected_js = """
     'use strict';
-    Polymer ( 'my-component', {
+    Polymer ( {
+      is: "my-component"
     });
-""".rstrip()
-      self.assertEquals(expected_js, js)
-
-  def testPolymerConversion2(self):
-    file_contents = {}
-    file_contents[os.path.normpath('/tmp/a/b/my_component.html')] = """
-<!DOCTYPE html>
-<polymer-element name="my-component">
-  <template>
-  </template>
-  <script>
-    'use strict';
-    Polymer ( );
-  </script>
-</polymer-element>
-"""
-    with fake_fs.FakeFS(file_contents):
-      project = project_module.Project([
-          os.path.normpath('/py_vulcanize/'), os.path.normpath('/tmp/')])
-      loader = resource_loader.ResourceLoader(project)
-      my_component = loader.LoadModule(module_name='a.b.my_component')
-
-      f = StringIO.StringIO()
-      my_component.AppendJSContentsToFile(
-          f,
-          use_include_tags_for_scripts=False,
-          dir_for_include_tag_root=None)
-      js = f.getvalue().rstrip()
-      expected_js = """
-    'use strict';
-    Polymer ( 'my-component');
 """.rstrip()
       self.assertEquals(expected_js, js)
 
