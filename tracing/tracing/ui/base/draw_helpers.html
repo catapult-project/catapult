@@ -246,7 +246,7 @@ tr.exportTo('tr.ui.b', function() {
         rect.setYandH(0, height);
       }
     }
-    Polymer.dom(rect).flush();
+    rect.flush();
 
     if (async && hadTopLevel) {
       // Draw a top border over async slices in order to visually separate
@@ -271,7 +271,7 @@ tr.exportTo('tr.ui.b', function() {
 
         rect.fillRect(x, w, blackColorId, 0.7);
       }
-      Polymer.dom(rect).flush();
+      rect.flush();
     }
 
     ctx.restore();
