@@ -49,7 +49,9 @@ class TraceValue(value_module.Value):
       if isinstance(trace, basestring):
         fp.write(trace)
       elif isinstance(trace, dict) or isinstance(trace, list):
-        json.dump(trace, fp)
+        # Creating the string using dumps and then writing it is
+        # ~5x faster than using json.dump().
+        fp.write(json.dumps(trace))
       else:
         raise TypeError('Trace is of unknown type.')
 
