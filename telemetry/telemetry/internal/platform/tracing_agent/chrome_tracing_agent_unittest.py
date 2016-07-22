@@ -58,6 +58,7 @@ class FakeDevtoolsClient(object):
     self.is_tracing_running = False
     self.remote_port = remote_port
     self.will_raise_exception_in_stop_tracing = False
+    self.collected = False
 
   def IsAlive(self):
     return self.is_alive
@@ -66,11 +67,15 @@ class FakeDevtoolsClient(object):
     del trace_options, timeout  # unused
     self.is_tracing_running = True
 
-  def StopChromeTracing(self, trace_data_builder):
-    del trace_data_builder  # unused
+  def StopChromeTracing(self):
     self.is_tracing_running = False
     if self.will_raise_exception_in_stop_tracing:
       raise Exception
+
+  def CollectChromeTracingData(self, trace_data_builder, timeout=30):
+    del trace_data_builder  # unused
+    del timeout # unused
+    self.collected = True
 
   def IsChromeTracingSupported(self):
     return True
@@ -190,19 +195,25 @@ class ChromeTracingAgentTest(unittest.TestCase):
     # port as devtool 2
     self.assertFalse(devtool4.is_tracing_running)
 
+
+    self.assertFalse(devtool1.collected)
     self.StopTracing(tracing_agent1)
+    self.assertTrue(devtool1.collected)
     self.assertFalse(devtool1.is_tracing_running)
     self.assertFalse(devtool2.is_tracing_running)
     self.assertFalse(devtool3.is_tracing_running)
     self.assertFalse(devtool4.is_tracing_running)
+
     # Test that it should be ok to start & stop tracing on platform1 again.
     tracing_agent1 = self.StartTracing(self.platform1)
     self.StopTracing(tracing_agent1)
 
     tracing_agent2 = self.StartTracing(self.platform2)
     self.assertTrue(devtool4.is_tracing_running)
+    self.assertFalse(devtool4.collected)
     self.StopTracing(tracing_agent2)
     self.assertFalse(devtool4.is_tracing_running)
+    self.assertTrue(devtool4.collected)
 
   def testFlushTracing(self):
     devtool1 = FakeDevtoolsClient(1)

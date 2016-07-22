@@ -52,6 +52,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     super(ChromeTracingAgent, self).__init__(platform_backend)
     self._trace_config = None
     self._trace_config_file = None
+    self._previously_responsive_devtools = []
 
   @property
   def trace_config(self):
@@ -183,12 +184,6 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
           sync_id, record_controller_clock_sync_marker_callback)
 
   def StopAgentTracing(self):
-    # TODO: Split collection and stopping.
-    pass
-
-  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
-    # TODO: Move stopping to StopAgentTracing.
-    del timeout # Unused.
     if not self._trace_config:
       raise ChromeTracingStoppedError(
           'Tracing is not running on platform backend %s.'
@@ -203,9 +198,12 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     devtools_clients = (chrome_tracing_devtools_manager
         .GetDevToolsClients(self._platform_backend))
     raised_exception_messages = []
+    assert len(self._previously_responsive_devtools) == 0
     for client in devtools_clients:
       try:
-        client.StopChromeTracing(trace_data_builder)
+        client.StopChromeTracing()
+        self._previously_responsive_devtools.append(client)
+
       except Exception:
         raised_exception_messages.append(
           'Error when trying to stop Chrome tracing on devtools at port %s:\n%s'
@@ -220,6 +218,23 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     if raised_exception_messages:
       raise ChromeTracingStoppedError(
           'Exceptions raised when trying to stop Chrome devtool tracing:\n' +
+          '\n'.join(raised_exception_messages))
+
+  def CollectAgentTraceData(self, trace_data_builder, timeout=None):
+    raised_exception_messages = []
+    for client in self._previously_responsive_devtools:
+      try:
+        client.CollectChromeTracingData(trace_data_builder)
+      except Exception:
+        raised_exception_messages.append(
+          'Error when collecting Chrome tracing on devtools at port %s:\n%s'
+          % (client.remote_port,
+             ''.join(traceback.format_exception(*sys.exc_info()))))
+    self._previously_responsive_devtools = []
+
+    if raised_exception_messages:
+      raise ChromeTracingStoppedError(
+          'Exceptions raised when trying to collect Chrome devtool tracing:\n' +
           '\n'.join(raised_exception_messages))
 
   def _CreateTraceConfigFileString(self, config):

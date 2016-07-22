@@ -249,8 +249,11 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     """
     return self.devtools_client.StartChromeTracing(trace_options, timeout)
 
-  def StopTracing(self, trace_data_builder):
-    self.devtools_client.StopChromeTracing(trace_data_builder)
+  def StopTracing(self):
+    self.devtools_client.StopChromeTracing()
+
+  def CollectTracingData(self, trace_data_builder):
+    self.devtools_client.CollectChromeTracingData(trace_data_builder)
 
   def GetProcessName(self, cmd_line):
     """Returns a user-friendly name for the process of the given |cmd_line|."""

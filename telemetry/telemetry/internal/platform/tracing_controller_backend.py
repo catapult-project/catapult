@@ -152,7 +152,7 @@ class TracingControllerBackend(object):
 
     if raised_exception_messages:
       raise TracingControllerStoppedError(
-          'Exceptions raised when trying to stop tracing:\n' +
+          'Exceptions raised when trying to flush tracing:\n' +
           '\n'.join(raised_exception_messages))
 
   def StartAgentTracing(self, config, timeout):

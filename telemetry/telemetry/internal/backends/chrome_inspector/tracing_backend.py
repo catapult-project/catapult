@@ -93,6 +93,7 @@ class TracingBackend(object):
         self._TRACING_DOMAIN, self._NotificationHandler)
     self._trace_events = []
     self._is_tracing_running = is_tracing_running
+    self._can_collect_data = False
     self._has_received_all_tracing_data = False
     self._support_modern_devtools_tracing_start_api = (
         support_modern_devtools_tracing_start_api)
@@ -108,6 +109,7 @@ class TracingBackend(object):
     """
     if self.is_tracing_running:
       return False
+    assert not self._can_collect_data, 'Data not collected from last trace.'
     # Reset collected tracing data from previous tracing calls.
     self._trace_events = []
 
@@ -151,7 +153,7 @@ class TracingBackend(object):
     if 'error' in rc:
       raise ClockSyncResponseException(rc['error']['message'])
 
-  def StopTracing(self, trace_data_builder, timeout=30):
+  def StopTracing(self):
     """Stops tracing and pushes results to the supplied TraceDataBuilder.
 
     If this is called after tracing has been stopped, trace data from the last
@@ -163,13 +165,9 @@ class TracingBackend(object):
     else:
       req = {'method': 'Tracing.end'}
       self._inspector_websocket.SendAndIgnoreResponse(req)
-      # After Tracing.end, chrome browser will send asynchronous notifications
-      # containing trace data. This is until Tracing.tracingComplete is sent,
-      # which means there is no trace buffers pending flush.
-      self._CollectTracingData(timeout)
+
     self._is_tracing_running = False
-    trace_data_builder.AddEventsTo(
-      trace_data_module.CHROME_TRACE_PART, self._trace_events)
+    self._can_collect_data = True
 
   def DumpMemory(self, timeout=30):
     """Dumps memory.
@@ -210,6 +208,14 @@ class TracingBackend(object):
 
     result = response['result']
     return result['dumpGuid'] if result['success'] else None
+
+  def CollectTraceData(self, trace_data_builder, timeout=30):
+    if not self._can_collect_data:
+      raise Exception('Cannot collect before tracing is finished.')
+    self._CollectTracingData(timeout)
+    self._can_collect_data = False
+    trace_data_builder.AddEventsTo(
+      trace_data_module.CHROME_TRACE_PART, self._trace_events)
 
   def _CollectTracingData(self, timeout):
     """Collects tracing data. Assumes that Tracing.end has already been sent.

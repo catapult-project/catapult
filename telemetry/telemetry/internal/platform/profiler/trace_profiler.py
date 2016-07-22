@@ -42,7 +42,8 @@ class TraceProfiler(profiler.Profiler):
     print 'Processing trace...'
 
     trace_result_builder = trace_data_module.TraceDataBuilder()
-    self._browser_backend.StopTracing(trace_result_builder)
+    self._browser_backend.StopTracing()
+    self._browser_backend.CollectTracingData(trace_result_builder)
     trace_result = trace_result_builder.AsData()
 
     trace_file = '%s.zip' % self._output_path

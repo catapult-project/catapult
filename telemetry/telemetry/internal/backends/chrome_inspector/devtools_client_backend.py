@@ -104,6 +104,8 @@ class DevToolsClientBackend(object):
     self._devtools_context_map_backend = _DevToolsContextMapBackend(
         self._app_backend, self)
 
+    self._tab_ids = None
+
     if not self.supports_tracing:
       return
     chrome_tracing_devtools_manager.RegisterDevToolsClient(
@@ -339,8 +341,9 @@ class DevToolsClientBackend(object):
     assert self.is_tracing_running, 'Tracing must be running to clock sync.'
     self._tracing_backend.RecordClockSyncMarker(sync_id)
 
-  def StopChromeTracing(self, trace_data_builder, timeout=30):
+  def StopChromeTracing(self):
     assert self.is_tracing_running
+    self._tab_ids = []
     try:
       context_map = self.GetUpdatedInspectableContexts()
       for context in context_map.contexts:
@@ -352,10 +355,18 @@ class DevToolsClientBackend(object):
             "console.time('" + backend.id + "');" +
             "console.timeEnd('" + backend.id + "');" +
             "console.time.toString().indexOf('[native code]') != -1;")
-        trace_data_builder.AddEventsTo(
-            trace_data_module.TAB_ID_PART, [backend.id])
+        self._tab_ids.append(backend.id)
     finally:
-      self._tracing_backend.StopTracing(trace_data_builder, timeout)
+      self._tracing_backend.StopTracing()
+
+  def CollectChromeTracingData(self, trace_data_builder, timeout=30):
+    try:
+      for tab_id in self._tab_ids:
+        trace_data_builder.AddEventsTo(
+            trace_data_module.TAB_ID_PART, [tab_id])
+      self._tab_ids = None
+    finally:
+      self._tracing_backend.CollectTraceData(trace_data_builder, timeout)
 
   def DumpMemory(self, timeout=30):
     """Dumps memory.

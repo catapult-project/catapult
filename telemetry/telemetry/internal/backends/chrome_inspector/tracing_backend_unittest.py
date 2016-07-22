@@ -189,6 +189,23 @@ class TracingBackendUnitTest(unittest.TestCase):
         'Tracing is already started',
         backend.StartTracing, config.chrome_trace_config)
 
+  def testStartTracingWithoutCollection(self):
+    self._inspector_socket.AddResponseHandler('Tracing.start', lambda req: {})
+    self._inspector_socket.AddEvent(
+        'Tracing.dataCollected', {'value': [{'ph': 'B'}]}, 1)
+    self._inspector_socket.AddEvent(
+        'Tracing.dataCollected', {'value': [{'ph': 'E'}]}, 2)
+    self._inspector_socket.AddEvent('Tracing.tracingComplete', {}, 3)
+    self._inspector_socket.AddResponseHandler(
+        'Tracing.hasCompleted', lambda req: {})
+
+    backend = tracing_backend.TracingBackend(self._inspector_socket)
+    config = tracing_config.TracingConfig()
+    backend.StartTracing(config._chrome_trace_config)
+    backend.StopTracing()
+    with self.assertRaisesRegexp(AssertionError, 'Data not collected from .*'):
+      backend.StartTracing(config._chrome_trace_config)
+
 
 class DevToolsStreamPerformanceTest(unittest.TestCase):
   def setUp(self):

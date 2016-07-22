@@ -88,5 +88,6 @@ class DevToolsClientBackendTest(browser_test_case.BrowserTestCase):
 
     # Stop Chrome tracing and check that the resulting data is valid.
     builder = trace_data.TraceDataBuilder()
-    devtools_client.StopChromeTracing(builder)
+    devtools_client.StopChromeTracing()
+    devtools_client.CollectChromeTracingData(builder)
     model.TimelineModel(builder.AsData())

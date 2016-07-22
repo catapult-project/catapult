@@ -102,7 +102,10 @@ class BrowserBackend(app_backend.AppBackend):
                    timeout=web_contents.DEFAULT_WEB_CONTENTS_TIMEOUT):
     raise NotImplementedError()
 
-  def StopTracing(self, trace_data_builder):
+  def StopTracing(self):
+    raise NotImplementedError()
+
+  def CollectTracingData(self, trace_data_builder):
     raise NotImplementedError()
 
   def Start(self):
