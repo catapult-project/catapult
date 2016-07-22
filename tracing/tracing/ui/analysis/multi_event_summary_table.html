@@ -148,6 +148,32 @@ Polymer({
         }
       });
     }
+
+    if (this.eventsHaveDuration_) {
+      columns.push({
+        title: 'Average ' + (hasCpuData ? 'CPU' : 'Wall') + ' Duration',
+        value: function(row) {
+          var totalDuration = hasCpuData ? row.cpuDuration : row.duration;
+          return tr.v.ui.createScalarSpan(totalDuration / row.numEvents, {
+            unit: tr.v.Unit.byName.timeDurationInMs,
+            total: row.totalsRow ? undefined : maxValues.duration,
+            ownerDocument: ownerDocument,
+            rightAlign: true
+          });
+        },
+        width: '<upated further down>',
+        cmp: function(rowA, rowB) {
+          if (hasCpuData) {
+            return rowA.cpuDuration / rowA.numEvents -
+              rowB.cpuDuration / rowB.numEvents;
+          } else {
+            return rowA.duration / rowA.numEvents -
+              rowB.duration / rowB.numEvents;
+          }
+        }
+      });
+    }
+
     columns.push({
       title: 'Occurrences',
       value: function(row) {
