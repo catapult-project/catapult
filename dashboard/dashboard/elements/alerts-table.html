@@ -341,7 +341,7 @@ found in the LICENSE file.
           <td class="test"><label>{{item.test}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'test')}}">...</label></td>
 
           <template is="dom-repeat" items="{{extraColumns}}" as="column" index-as="colnum">
-            <td class="{{column.key}}"><label>{{computeExtraColumnValue(alertList.*, index, column.key)}}</td>
+            <td class$="{{column.key}}"><label>{{computeExtraColumnValue(alertList.*, index, column.key)}}</td>
           </template>
         </tr>
       </template>
