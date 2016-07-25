@@ -276,13 +276,11 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.PressKey('Backspace', repeat_count=3)  # This is |ing.
     action_runner.EnterText('interest')  # This is interest|ing.
 
-    # Wait for a second to make sure that all keystrokes have been handled by
-    # the browser (crbug.com/630017).
-    action_runner.Wait(1)
-
-    self.assertEqual('This is interesting',
-                     self._tab.EvaluateJavaScript(
-                         'document.querySelector("textarea").value'))
+    # Check that the contents of the textarea is correct. It might take a second
+    # until all keystrokes have been handled by the browser (crbug.com/630017).
+    self._tab.WaitForJavaScriptExpression(
+        'document.querySelector("textarea").value === "This is interesting"',
+        timeout=1)
 
 
 class InteractionTest(unittest.TestCase):

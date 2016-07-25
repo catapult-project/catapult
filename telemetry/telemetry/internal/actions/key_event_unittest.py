@@ -75,14 +75,11 @@ class KeyPressActionTest(tab_test_case.TabTestCase):
     self._PressKey('Backspace')
     self._PressKey('Return')
 
-    # Wait for a second to make sure that all keystrokes have been handled by
-    # the browser (crbug.com/630017).
-    time.sleep(1)
-
-    # Check that the contents of the textarea is correct.
-    self.assertEquals('Hello,\nWorld!',
-                      self._tab.EvaluateJavaScript(
-                          'document.querySelector("textarea").value'))
+    # Check that the contents of the textarea is correct. It might take a second
+    # until all keystrokes have been handled by the browser (crbug.com/630017).
+    self._tab.WaitForJavaScriptExpression(
+        'document.querySelector("textarea").value === "Hello,\\nWorld!"',
+        timeout=1)
 
   def testPressUnknownKey(self):
     with self.assertRaises(ValueError):
