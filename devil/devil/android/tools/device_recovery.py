@@ -87,7 +87,8 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
                          reason='reboot_timeout')
 
     try:
-      device.WaitUntilFullyBooted(retries=0)
+      device.WaitUntilFullyBooted(
+          retries=0, timeout=device.REBOOT_DEFAULT_TIMEOUT)
     except device_errors.CommandFailedError:
       logging.exception('Failure while waiting for %s.', str(device))
       if blacklist:
