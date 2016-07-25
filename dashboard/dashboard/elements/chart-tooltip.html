@@ -93,10 +93,10 @@ was just clicked.
 
           <div>
             <template is="dom-repeat" items={{revisions}}>
-              {{item.name}}<template bind if="{{item.start}}"> range</template>:
+              {{item.name}}<template is="dom-if" bind if="{{item.displayStart}}"> range</template>:
               <b>
                 <a href="{{item.url}}" on-click="{{item.onRevisionRangeClick}}">
-                  <template bind if="{{item.start}}">{{item.displayStart}} - </template>
+                  <template is="dom-if" bind if="{{item.displayStart}}">{{item.displayStart}} - </template>
                   {{item.displayEnd}}
                 </a>
               </b><br>
