@@ -547,6 +547,7 @@ found in the LICENSE file.
         for (var i = this.alertList.length - 1; i >= 0; i--) {
           var alert = this.alertList[i];
           if (alert.group) {
+            this.setAlertList(i, 'index', i);
             if (alert.group in groupMap) {
               this.setAlertList(i, 'rowType', 'group-member');
               this.setAlertList(i, 'hideRow', true);
@@ -568,6 +569,24 @@ found in the LICENSE file.
             alertOrder.push(i);
           }
         }
+
+        // Preserve expanded groups
+        for (var k in groupMap) {
+          var alertsInGroup = groupMap[k];
+          var isGroupExpanded = false;
+          for (var i = 0; i < alertsInGroup.length; i++) {
+            isGroupExpanded = isGroupExpanded || alertsInGroup[i].expanded;
+            this.setAlertList(alertsInGroup[i].index, 'expanded', false);
+          }
+
+          if (isGroupExpanded) {
+            this.setAlertList(alertsInGroup[0].index, 'expanded', true);
+            for (var i = 0; i < alertsInGroup.length; i++) {
+              this.setAlertList(alertsInGroup[i].index, 'hideRow', false);
+            }
+          }
+        }
+
         var orderedAlertList = [];
         for (var i = alertOrder.length - 1; i >= 0; i--) {
           orderedAlertList.push.apply(
@@ -751,13 +770,21 @@ found in the LICENSE file.
       },
 
       sortByChanged: function() {
-        this.sort();
-        this.fire('sortby', this.sortBy);
+        // TODO(simonhatch): Similar to the async updates in alertListChanged,
+        // async the sort updates since we touch alertList.
+        this.async(function() {
+          this.sort();
+          this.fire('sortby', this.sortBy);
+        });
       },
 
       sortDirectionChanged: function() {
-        this.sort();
-        this.fire('sortdirection', this.sortDirection);
+        // TODO(simonhatch): Similar to the async updates in alertListChanged,
+        // async the sort updates since we touch alertList.
+        this.async(function() {
+          this.sort();
+          this.fire('sortdirection', this.sortDirection);
+        });
       },
 
       /**
