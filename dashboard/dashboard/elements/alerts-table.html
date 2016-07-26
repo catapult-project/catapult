@@ -515,6 +515,21 @@ found in the LICENSE file.
         if (this.recursingAlertListChanged) {
           return;
         }
+        // TODO(simonhatch): So what I think is happening is by observing
+        // changes to the array, and then subsequently attempting to modify the
+        // array, we're running into a weird case where previous values set via
+        // this.set("foo.0", foo) are cached and re-applied later. You can see
+        // this by setting conditional breakpoints in this._propertySetter().
+        // But since the array is swapped, the __data__ values are nulled out
+        // immediately and any call to change a value succeeds after. What
+        // happens then is this.__data__["foo.0"] and this.__data__.foo get
+        // out of sync.
+        this.async(function() {
+          this.updateAlertList();
+        });
+      },
+
+      updateAlertList: function() {
         this.recursingAlertListChanged = true;
         this.initRowsBasedOnQueryParameters();
         this.showAlertsGrouped();
