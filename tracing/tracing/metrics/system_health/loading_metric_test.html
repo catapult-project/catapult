@@ -6,8 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import"
-    href="/tracing/metrics/system_health/first_paint_metric.html">
+<link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
 <script>
@@ -38,7 +37,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     var values = new tr.v.ValueSet();
-    tr.metrics.sh.firstPaintMetric(values, model);
+    tr.metrics.sh.loadingMetric(values, model);
     var numeric = values.valueDicts[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
@@ -101,7 +100,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     var values = new tr.v.ValueSet();
-    tr.metrics.sh.firstPaintMetric(values, model);
+    tr.metrics.sh.loadingMetric(values, model);
     var numeric = values.valueDicts[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(400, numeric.running.mean);
@@ -168,7 +167,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     var values = new tr.v.ValueSet();
-    tr.metrics.sh.firstPaintMetric(values, model);
+    tr.metrics.sh.loadingMetric(values, model);
     var fmpEntries = values.valueDicts.filter(
         (dict) => dict.name === 'firstMeaningfulPaint');
     var numeric = fmpEntries[0].numeric;
@@ -225,7 +224,7 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     var values = new tr.v.ValueSet();
-    tr.metrics.sh.firstPaintMetric(values, model);
+    tr.metrics.sh.loadingMetric(values, model);
     var fmpEntries = values.valueDicts.filter(
         (dict) => dict.name === 'firstMeaningfulPaint');
     var numeric = fmpEntries[0].numeric;
