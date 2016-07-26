@@ -1,7 +1,7 @@
 <div id=sdch-view-tab-content class=content-box>
   <ul style="margin-top:0">
     <li>SDCH Enabled:
-      <span jscontent="!!sdch_enabled" id=sdch-view-sdch-enabled></span>
+      <span id=sdch-view-sdch-enabled></span>
     </li>
   </ul>
 
@@ -24,7 +24,7 @@
   </p>
 
   <h4>
-    Dictionaries loaded: <span jscontent="dictionaries.length"></span>
+    Dictionaries loaded: <span id=sdch-view-num-dictionaries-loaded></span>
   </h4>
   <table class="styled-table">
     <thead>
@@ -37,15 +37,7 @@
         <th>Url</th>
       </tr>
     </thead>
-    <tbody id=sdch-view-dictionaries-body>
-      <tr jsselect="dictionaries">
-        <td jscontent="domain"></td>
-        <td jscontent="path"></td>
-        <td jscontent="$this.ports ? $this.ports.join(', ') : ''"></td>
-        <td jscontent="server_hash"></td>
-        <td jscontent="client_hash"></td>
-        <td jscontent="url"></td>
-      </tr>
+    <tbody id=sdch-view-dictionaries-tbody>
     </tbody>
   </table>
 
@@ -58,12 +50,7 @@
         <th>Tries to back off</th>
       </tr>
     </thead>
-    <tbody id=sdch-view-blacklist-body>
-      <tr jsselect="blacklisted">
-        <td jscontent="domain"></td>
-        <td jscontent="sdchProblemCodeToString(reason)"></td>
-        <td jscontent="tries"></td>
-      </tr>
+    <tbody id=sdch-view-blacklist-tbody>
     </tbody>
   </table>
 </div>

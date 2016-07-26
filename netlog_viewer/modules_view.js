@@ -41,8 +41,20 @@ var ModulesView = (function() {
   // IDs for special HTML elements in modules_view.html.
   ModulesView.MAIN_BOX_ID = 'modules-view-tab-content';
   ModulesView.EXTENSION_INFO_ID = 'modules-view-extension-info';
+  ModulesView.EXTENSION_INFO_UNAVAILABLE_ID =
+      'modules-view-extension-info-unavailable';
+  ModulesView.EXTENSION_INFO_NO_CONTENT_ID =
+      'modules-view-extension-info-no-content';
+  ModulesView.EXTENSION_INFO_CONTENT_ID =
+      'modules-view-extension-info-content';
+  ModulesView.EXTENSION_INFO_TBODY_ID =
+      'modules-view-extension-info-tbody';
   ModulesView.WINDOWS_SERVICE_PROVIDERS_ID =
       'modules-view-windows-service-providers';
+  ModulesView.SERVICE_PROVIDERS_TBODY_ID =
+      'modules-view-service-providers-tbody';
+  ModulesView.NAMESPACE_PROVIDERS_TBODY_ID =
+      'modules-view-namespace-providers-tbody';
 
   cr.addSingletonGetter(ModulesView);
 
@@ -58,19 +70,73 @@ var ModulesView = (function() {
     },
 
     onExtensionInfoChanged: function(extensionInfo) {
-      // TODO(rayraymond): Update DOM without use of jstemplate.
-      // var input = new JsEvalContext({extensionInfo: extensionInfo});
-      // jstProcess(input, $(ModulesView.EXTENSION_INFO_ID));
-      // return !!extensionInfo;
-      return true;
+      setNodeDisplay($(ModulesView.EXTENSION_INFO_CONTENT_ID),
+          extensionInfo && extensionInfo.length > 0);
+      setNodeDisplay($(ModulesView.EXTENSION_INFO_UNAVAILABLE_ID),
+          !extensionInfo);
+      setNodeDisplay($(ModulesView.EXTENSION_INFO_NO_CONTENT_ID),
+          extensionInfo && extensionInfo.length == 0);
+
+      var tbodyExtension = $(ModulesView.EXTENSION_INFO_TBODY_ID);
+      tbodyExtension.innerHTML = '';
+
+      if (extensionInfo && extensionInfo.length > 0) {
+        // Fill in the extensions table.
+        for (var i = 0; i < extensionInfo.length; ++i) {
+          var e = extensionInfo[i];
+          var tr = addNode(tbodyExtension, 'tr');
+          tr.className = (e.enabled ? 'enabled' : '');
+
+          addNodeWithText(tr, 'td', e.id);
+          addNodeWithText(tr, 'td', e.packagedApp);
+          addNodeWithText(tr, 'td', e.enabled);
+          addNodeWithText(tr, 'td', e.name);
+          addNodeWithText(tr, 'td', e.version);
+          addNodeWithText(tr, 'td', e.description);
+        }
+      }
+
+      return !!extensionInfo;
     },
 
     onServiceProvidersChanged: function(serviceProviders) {
-      // TODO(rayraymond): Update DOM without use of jstemplate.
-      // var input = new JsEvalContext(serviceProviders);
-      // jstProcess(input, $(ModulesView.WINDOWS_SERVICE_PROVIDERS_ID));
-      //return !!serviceProviders;
-      return true;
+      setNodeDisplay($(ModulesView.WINDOWS_SERVICE_PROVIDERS_ID),
+          serviceProviders);
+      if (serviceProviders) {
+        var tbodyService = $(ModulesView.SERVICE_PROVIDERS_TBODY_ID);
+        tbodyService.innerHTML = '';
+
+        // Fill in the service providers table.
+        for (var i = 0; i < serviceProviders.service_providers.length; ++i) {
+          var s = serviceProviders.service_providers[i];
+          var tr = addNode(tbodyService, 'tr');
+
+          addNodeWithText(tr, 'td', s.name);
+          addNodeWithText(tr, 'td', s.version);
+          addNodeWithText(tr, 'td',
+              ModulesView.getLayeredServiceProviderType(s));
+          addNodeWithText(tr, 'td',
+              ModulesView.getLayeredServiceProviderSocketType(s));
+          addNodeWithText(tr, 'td',
+              ModulesView.getLayeredServiceProviderProtocolType(s));
+        }
+
+        var tbodyNamespace = $(ModulesView.NAMESPACE_PROVIDERS_TBODY_ID);
+        tbodyNamespace.innerHTML = '';
+
+        // Fill in the namespace providers table.
+        for (var i = 0; i < serviceProviders.namespace_providers.length; ++i) {
+          var n = serviceProviders.namespace_providers[i];
+          var tr = addNode(tbodyNamespace, 'tr');
+
+          addNodeWithText(tr, 'td', n.name);
+          addNodeWithText(tr, 'td', n.version);
+          addNodeWithText(tr, 'td', ModulesView.getNamespaceProviderType(n));
+          addNodeWithText(tr, 'td', n.active);
+        }
+      }
+
+      return !!serviceProviders;
     },
   };
 
@@ -113,7 +179,7 @@ var ModulesView = (function() {
   ModulesView.getLayeredServiceProviderProtocolType =
       function(serviceProvider) {
     return tryGetValueWithKey(PROTOCOL_TYPE, serviceProvider.socket_protocol);
-  }
+  };
 
   var NAMESPACE_PROVIDER_PTYPE = {
     '12': 'NS_DNS',

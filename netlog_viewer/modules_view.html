@@ -13,9 +13,9 @@
 <div id=modules-view-tab-content class=content-box>
   <h4 style='margin-top:0'>Chrome Extensions</h4>
   <div id="modules-view-extension-info">
-    <div jsdisplay="typeof extensionInfo == 'undefined'">No information</div>
-    <div jsdisplay="typeof extensionInfo != 'undefined' && extensionInfo.length == 0">None</div>
-    <div jsdisplay="typeof extensionInfo != 'undefined' && extensionInfo.length != 0">
+    <div id=modules-view-extension-info-unavailable>No information</div>
+    <div id=modules-view-extension-info-no-content>None</div>
+    <div id=modules-view-extension-info-content>
       <table class=styled-table>
         <thead>
           <tr>
@@ -27,23 +27,14 @@
             <th>Description</th>
           </tr>
         </thead>
-        <tbody class=modules-view-extension-list>
-          <tr jsselect="extensionInfo" jsvalues=".className: enabled ? 'enabled' : ''">
-            <td jscontent="id"></td>
-            <td jscontent="packagedApp"></td>
-            <td jscontent="enabled"></td>
-            <td jscontent="name"></td>
-            <td jscontent="version"></td>
-            <td jscontent="description"></td>
-          </tr>
+        <tbody id=modules-view-extension-info-tbody class=modules-view-extension-list>
         </tbody>
       </table>
     </div>
   </div>
 
   <!-- Only shown for Windows log dumps -->
-  <div id=modules-view-windows-service-providers style="display: none;"
-      jsdisplay="typeof $this != 'undefined'">
+  <div id=modules-view-windows-service-providers>
     <h4>Layered Service Providers</h4>
     <table class="styled-table">
       <thead>
@@ -56,15 +47,7 @@
           <th>Path</th>
         </tr>
       </thead>
-      <tbody>
-        <tr jsselect="service_providers">
-          <td jscontent="name"></td>
-          <td jscontent="version"></td>
-          <td jscontent="ModulesView.getLayeredServiceProviderType($this)"></td>
-          <td jscontent="ModulesView.getLayeredServiceProviderSocketType($this)"></td>
-          <td jscontent="ModulesView.getLayeredServiceProviderProtocolType($this)"></td>
-          <td jscontent="path"></td>
-        </tr>
+      <tbody id=modules-view-service-providers-tbody>
       </tbody>
     </table>
     <h4>Namespace Providers</h4>
@@ -77,13 +60,7 @@
           <th>Active</th>
         </tr>
       </thead>
-      <tbody>
-        <tr jsselect="namespace_providers">
-          <td jscontent="name"></td>
-          <td jscontent="version"></td>
-          <td jscontent="ModulesView.getNamespaceProviderType($this)"></td>
-          <td jscontent="active"></td>
-        </tr>
+      <tbody id=modules-view-namespace-providers-tbody>
       </tbody>
     </table>
   </div>

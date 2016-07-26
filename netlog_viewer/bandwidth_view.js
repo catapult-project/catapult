@@ -46,6 +46,7 @@ var BandwidthView = (function() {
   BandwidthView.EVENTS_TBODY_ID = 'data-reduction-proxy-view-events-tbody';
   BandwidthView.EVENTS_UL = 'data-reduction-proxy-view-events-list';
   BandwidthView.STATS_BOX_ID = 'bandwidth-stats-table';
+  BandwidthView.SAVINGS_TBODY_ID = 'bandwidth-savings-tbody';
 
   cr.addSingletonGetter(BandwidthView);
 
@@ -188,9 +189,19 @@ var BandwidthView = (function() {
                                             historicReceived)
       });
 
-      // TODO(rayraymond): Update DOM without use of jstemplate.
-      // var input = new JsEvalContext({rows: rows});
-      // jstProcess(input, $(BandwidthView.STATS_BOX_ID));
+      var tbody = $(BandwidthView.SAVINGS_TBODY_ID);
+      tbody.innerHTML = '';
+
+      // Fill in the bandwidth savings table.
+      for (var i = 0; i < rows.length; ++i) {
+        var r = rows[i];
+        var tr = addNode(tbody, 'tr');
+
+        addNodeWithText(tr, 'td', r.title);
+        addNodeWithText(tr, 'td', r.sessionValue);
+        addNodeWithText(tr, 'td', r.historicValue);
+      }
+
       return true;
     },
 

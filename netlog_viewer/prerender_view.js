@@ -29,8 +29,12 @@ var PrerenderView = (function() {
 
   // IDs for special HTML elements in prerender_view.html
   PrerenderView.MAIN_BOX_ID = 'prerender-view-tab-content';
-
-  // Used in tests.
+  PrerenderView.PRERENDER_VIEW_ENABLED_ID =
+      'prerender-view-enabled';
+  PrerenderView.PRERENDER_VIEW_ENABLED_NOTE_ID =
+      'prerender-view-enabled-note';
+  PrerenderView.PRERENDER_VIEW_OMNIBOX_ENABLED_ID =
+      'prerender-view-omnibox-enabled';
   PrerenderView.HISTORY_TABLE_ID = 'prerender-view-history-table';
   PrerenderView.ACTIVE_TABLE_ID = 'prerender-view-active-table';
 
@@ -47,9 +51,43 @@ var PrerenderView = (function() {
     onPrerenderInfoChanged: function(prerenderInfo) {
       if (!prerenderInfo)
         return false;
-      // TODO(rayraymond): Update DOM without use of jstemplate.
-      // var input = new JsEvalContext(prerenderInfo);
-      // jstProcess(input, $(PrerenderView.MAIN_BOX_ID));
+
+      $(PrerenderView.PRERENDER_VIEW_ENABLED_ID).textContent =
+          prerenderInfo.enabled;
+      $(PrerenderView.PRERENDER_VIEW_ENABLED_NOTE_ID).textContent =
+          prerenderInfo.enabled_note;
+      $(PrerenderView.PRERENDER_VIEW_OMNIBOX_ENABLED_ID).textContent =
+          prerenderInfo.omnibox_enabled;
+
+      var tbodyActive = $(PrerenderView.ACTIVE_TABLE_ID);
+      tbodyActive.innerHTML = '';
+
+      // Fill in Active Prerender Pages table
+      for (var i = 0; i < prerenderInfo.active.length; ++i) {
+        var a = prerenderInfo.active[i];
+        var tr = addNode(tbodyActive, 'tr');
+
+        addNodeWithText(tr, 'td', a.url);
+        addNodeWithText(tr, 'td', a.duration);
+        addNodeWithText(tr, 'td', a.is_loaded);
+      }
+
+      var tbodyHistory = $(PrerenderView.HISTORY_TABLE_ID);
+      tbodyHistory.innerHTML = '';
+
+      // Fill in Prerender History table
+      for (var i = 0; i < prerenderInfo.history.length; ++i) {
+        var h = prerenderInfo.history[i];
+        var tr = addNode(tbodyHistory, 'tr');
+        tr.className = h.final_status.toLowerCase();
+
+        addNodeWithText(tr, 'td', h.origin);
+        addNodeWithText(tr, 'td', h.url);
+        addNodeWithText(tr, 'td', h.final_status);
+        addNodeWithText(tr, 'td',
+            timeutil.dateToString(new Date(parseInt(h.end_time))));
+      }
+
       return true;
     }
   };
