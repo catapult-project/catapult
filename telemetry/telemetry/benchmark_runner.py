@@ -34,6 +34,19 @@ from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
 from telemetry.util import matching
 
+# Right now, we only have one of each of our power perf bots. This means that
+# all eligible Telemetry benchmarks are run unsharded, which results in very
+# long (12h) cycle times. We'd like to reduce the number of tests that we run
+# on each bot drastically until we get more of the same hardware to shard tests
+# with, but we can't do so until we've verified that the hardware configuration
+# is a viable one for Chrome Telemetry tests. This is done by seeing at least
+# one all-green test run. As this happens for each bot, we'll add it to this
+# whitelist, making it eligible to run only BattOr power tests.
+GOOD_POWER_PERF_BOT_WHITELIST = [
+  "Mac Power Dual-GPU Perf",
+  "Mac Power Low-End Perf"
+]
+
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
   return (issubclass(benchmark_class, benchmark.Benchmark) and
@@ -301,12 +314,11 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     }
   }
   """
-  # TODO(nednguyen): remove this once crbug.com/616832 is fixed.
-  only_run_subset_of_benchmarks = False
+  # TODO(charliea): Remove this once we have more power perf bots.
+  only_run_battor_benchmarks = False
   print 'Environment variables: ', os.environ
-  if (os.environ.get('BUILDBOT_BUILDERNAME') ==
-      'Win Power Perf (DELL)'):
-    only_run_subset_of_benchmarks = True
+  if os.environ.get('BUILDBOT_BUILDERNAME') in GOOD_POWER_PERF_BOT_WHITELIST:
+    only_run_battor_benchmarks = True
 
   output = {
     'version': 1,
@@ -318,10 +330,9 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
       continue
 
     base_name = benchmark_class.Name()
-    # Only run benchmarks start with 'b' or 'B' to reduce the cycle time of
-    # 'Win Power Perf (DELL)' bot.
-    # TODO(nednguyen): remove this once crbug.com/616832 is fixed.
-    if only_run_subset_of_benchmarks and not base_name[0] in ('b', 'B'):
+    # TODO(charliea): Remove this once we have more power perf bots.
+    # Only run battor power benchmarks to reduce the cycle time of this bot.
+    if only_run_battor_benchmarks and not base_name.startswith('battor'):
       continue
     base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
                 '-v', '--output-format=chartjson', '--upload-results',
