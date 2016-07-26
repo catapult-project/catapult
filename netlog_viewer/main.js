@@ -68,9 +68,8 @@ var MainView = (function() {
     this.initTabs_();
 
     // Cut out a small vertical strip at the top of the window, to display
-    // a high level status (i.e. if we are capturing events, or displaying a
-    // log file). Below it we will position the main tabs and their content
-    // area.
+    // a high level status (i.e. if we are displaying a log file or not).
+    // Below it we will position the main tabs and their content area.
     this.topBarView_ = TopBarView.getInstance(this);
     var verticalSplitView = new VerticalSplitView(
         this.topBarView_, this.tabSwitcher_);
@@ -128,10 +127,9 @@ var MainView = (function() {
     onLoadLog: function(opt_fileName) {
       isViewingLoadedLog = true;
 
-      this.stopCapturing();
       if (opt_fileName != undefined) {
-        // If there's a file name, a log file was loaded, so swap out the status
-        // bar to indicate we're no longer capturing events.
+        // If there's a file name, a log file was loaded, so display the
+        // file's name in the status bar.
         this.topBarView_.switchToSubView('loaded').setFileName(opt_fileName);
         SourceTracker.getInstance().setPrivacyStripping(false);
       }
@@ -141,12 +139,6 @@ var MainView = (function() {
       // Since this won't be dumped to a file, we don't want to remove
       // cookies and credentials.
       log_util.createLogDumpAsync('', log_util.loadLogFile, false);
-    },
-
-    stopCapturing: function() {
-      g_browser.disable();
-      document.styleSheets[0].insertRule(
-          '.hide-when-not-capturing { display: none; }', 0);
     },
 
     initTabs_: function() {
@@ -189,11 +181,19 @@ var MainView = (function() {
       addTab(QuicView);
       addTab(SdchView);
       addTab(HttpCacheView);
-      // TODO(rayraymond): Re-enable, Modules, Bandwidth, and Prerender tabs.
-      // addTab(ModulesView);
-      // addTab(BandwidthView);
-      // addTab(PrerenderView);
+      addTab(ModulesView);
+      addTab(BandwidthView);
+      addTab(PrerenderView);
       addTab(CrosView);
+
+      // Tab links start off hidden (besides import) since a log file has not
+      // been loaded yet. This must be done after all the tabs are added so
+      // that the width of the tab-list div is correctly styled.
+      for (var tabId in this.tabSwitcher_.getAllTabViews()) {
+        if (tabId != ImportView.TAB_ID) {
+          this.tabSwitcher_.showTabLink(tabId, false);
+        }
+      }
 
       this.tabSwitcher_.showTabLink(CrosView.TAB_ID, cr.isChromeOS);
     },

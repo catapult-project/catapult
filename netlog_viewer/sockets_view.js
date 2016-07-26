@@ -27,12 +27,6 @@ var SocketsView = (function() {
     g_browser.addSocketPoolInfoObserver(this, true);
     this.socketPoolDiv_ = $(SocketsView.SOCKET_POOL_DIV_ID);
     this.socketPoolGroupsDiv_ = $(SocketsView.SOCKET_POOL_GROUPS_DIV_ID);
-
-    var closeIdleButton = $(SocketsView.CLOSE_IDLE_SOCKETS_BUTTON_ID);
-    closeIdleButton.onclick = this.closeIdleSockets.bind(this);
-
-    var flushSocketsButton = $(SocketsView.SOCKET_POOL_FLUSH_BUTTON_ID);
-    flushSocketsButton.onclick = this.flushSocketPools.bind(this);
   }
 
   SocketsView.TAB_ID = 'tab-handle-sockets';
@@ -43,8 +37,6 @@ var SocketsView = (function() {
   SocketsView.MAIN_BOX_ID = 'sockets-view-tab-content';
   SocketsView.SOCKET_POOL_DIV_ID = 'sockets-view-pool-div';
   SocketsView.SOCKET_POOL_GROUPS_DIV_ID = 'sockets-view-pool-groups-div';
-  SocketsView.CLOSE_IDLE_SOCKETS_BUTTON_ID = 'sockets-view-close-idle-button';
-  SocketsView.SOCKET_POOL_FLUSH_BUTTON_ID = 'sockets-view-flush-button';
 
   cr.addSingletonGetter(SocketsView);
 
@@ -77,16 +69,6 @@ var SocketsView = (function() {
         }
       }
       return true;
-    },
-
-    closeIdleSockets: function() {
-      g_browser.sendCloseIdleSockets();
-      g_browser.checkForUpdatedInfo(false);
-    },
-
-    flushSocketPools: function() {
-      g_browser.sendFlushSocketPools();
-      g_browser.checkForUpdatedInfo(false);
     }
   };
 

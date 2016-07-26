@@ -31,6 +31,11 @@ var AltSvcView = (function() {
   AltSvcView.MAIN_BOX_ID = 'alt-svc-view-tab-content';
   AltSvcView.ALTERNATE_PROTOCOL_MAPPINGS_ID =
       'alt-svc-view-alternate-protocol-mappings';
+  AltSvcView.MAPPINGS_CONTENT_ID =
+      'alt-svc-view-mappings-content';
+  AltSvcView.MAPPINGS_NO_CONTENT_ID =
+      'alt-svc-view-mappings-no-content';
+  AltSvcView.MAPPINGS_TBODY_ID = 'alt-svc-view-mappings-tbody';
 
   cr.addSingletonGetter(AltSvcView);
 
@@ -51,9 +56,24 @@ var AltSvcView = (function() {
     onAltSvcMappingsChanged: function(altSvcMappings) {
       if (!altSvcMappings)
         return false;
-      // TODO(rayraymond): Update DOM without use of jstemplate.
-      // var input = new JsEvalContext({altSvcMappings: altSvcMappings});
-      // jstProcess(input, $(AltSvcView.ALTERNATE_PROTOCOL_MAPPINGS_ID));
+
+      var hasMappings = altSvcMappings && altSvcMappings.length > 0;
+
+      setNodeDisplay($(AltSvcView.MAPPINGS_CONTENT_ID), hasMappings);
+      setNodeDisplay($(AltSvcView.MAPPINGS_NO_CONTENT_ID), !hasMappings);
+
+      var tbody = $(AltSvcView.MAPPINGS_TBODY_ID);
+      tbody.innerHTML = '';
+
+      // Fill in the alternate service mappings table.
+      for (var i = 0; i < altSvcMappings.length; ++i) {
+        var a = altSvcMappings[i];
+        var tr = addNode(tbody, 'tr');
+
+        addNodeWithText(tr, 'td', a.server);
+        addNodeWithText(tr, 'td', a.alternative_service);
+      }
+
       return true;
     }
   };

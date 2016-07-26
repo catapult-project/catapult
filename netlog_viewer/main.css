@@ -9,8 +9,18 @@
   box-sizing: border-box;
 }
 
+html {
+  direction: ltr;
+}
+
 body {
+  font-family: DejaVu Sans, Arial, sans-serif;
+  font-size: 95%;
   overflow: hidden;  /* Prevents scroll bar flickering on resize. */
+}
+
+button {
+  font-family: DejaVu Sans, Arial, sans-serif;
 }
 
 ul {

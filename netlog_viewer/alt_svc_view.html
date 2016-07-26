@@ -1,8 +1,8 @@
 <div id=alt-svc-view-tab-content class=content-box>
   <h4>Alternate Service Mappings</h4>
   <div id=alt-svc-view-alternate-protocol-mappings>
-    <div jsdisplay="altSvcMappings.length == 0">None</div>
-    <div jsdisplay="altSvcMappings.length != 0">
+    <div id=alt-svc-view-mappings-no-content>None</div>
+    <div id=alt-svc-view-mappings-content>
       <table class="styled-table">
         <thead>
           <tr>
@@ -10,11 +10,7 @@
             <th>Alternative Service</th>
           </tr>
         </thead>
-        <tbody>
-          <tr jsselect="altSvcMappings">
-            <td jscontent="server"></td>
-            <td jscontent="alternative_service"></td>
-          </tr>
+        <tbody id=alt-svc-view-mappings-tbody>
         </tbody>
       </table>
     </div>
