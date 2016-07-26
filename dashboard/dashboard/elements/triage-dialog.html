@@ -48,7 +48,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           transition: opacity 0.2s;
         }
 
-        paper-button[affirmative] {
+        paper-button[dialog-confirm] {
           background: #4285f4;
           color: #fff;
         }
@@ -71,11 +71,11 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         <form>
           <fieldset name="Triage">
             <legend>Triage</legend>
-            <paper-button class="submit-button" raised affirmative
+            <paper-button class="submit-button" raised dialog-confirm
                           on-click="fileNewBug">New bug</paper-button>
-            <paper-button class="submit-button" raised affirmative
+            <paper-button class="submit-button" raised dialog-confirm
                           on-click="associateWithBug">Existing bug</paper-button>
-            <paper-button class="submit-button" raised affirmative
+            <paper-button class="submit-button" raised dialog-confirm
                           on-click="markIgnored">Ignore</paper-button>
           </fieldset>
           <fieldset name="Fix-up alert">
@@ -91,7 +91,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       </div>
 
       <div class="card-actions">
-        <paper-button dismissive raised>Close</paper-button>
+        <paper-button raised dismissive on-click="close">Close</paper-button>
 
         <template is="dom-if" if="{{loading}}">
           <div id="loading">

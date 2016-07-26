@@ -46,7 +46,7 @@ the bisect process after the user clicks on the bisect button.
           padding: 1px 2px;
         }
 
-        paper-button[affirmative] {
+        paper-button[dialog-confirm] {
           background: #4285f4;
           color: #fff;
         }
@@ -138,9 +138,9 @@ the bisect process after the user clicks on the bisect button.
 
       <p class="error">{{error}}</p>
 
-      <paper-button affirmative raised autofocus disabled$="{{error}}"
+      <paper-button dialog-confirm raised autofocus disabled$="{{error}}"
                     on-click="onSendToTrybot">Start bisect</paper-button>
-      <paper-button dismissive raised>Close</paper-button>
+      <paper-button dialog-dismiss raised>Close</paper-button>
 
       <template is="dom-if" if="{{loading}}">
         <div id="loading">
