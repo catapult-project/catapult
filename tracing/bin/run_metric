@@ -49,12 +49,15 @@ def Main(argv):
              metric_runner.RunMetricOnTraces(traces, args.metrics).iteritems()}
 
   failures = []
+  values = []
   for trace in traces:
-    failures.extend(results[trace].get('failures', []))
+    failures.extend(results[trace]['pairs'].get('failures', []))
+    values.extend(results[trace]['pairs'].get('values'))
   if failures:
     print 'Running metric failed:'
     for failure in failures:
       print failure['stack']
+
 
   output_file = args.filename + '.html'
   open(output_file, 'a').close() # Create file if it doesn't exist.
