@@ -22,6 +22,7 @@ BUILDBOT_BASE_URL = 'https://build.chromium.org/p'
 
 MASTER_NAMES = (
     'chromium.perf',
+    'chromium.perf.fyi',
     'client.catapult',
     'tryserver.chromium.perf',
     'tryserver.client.catapult',

@@ -14,6 +14,7 @@ import urllib2
 
 _MASTERS = [
     'chromium.perf',
+    'chromium.perf.fyi',
     'client.catapult',
     'tryserver.chromium.perf',
     'tryserver.client.catapult',
