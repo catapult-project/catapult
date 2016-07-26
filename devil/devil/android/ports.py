@@ -34,8 +34,6 @@ def ResetTestServerPortAllocation():
   try:
     with open(_TEST_SERVER_PORT_FILE, 'w') as fp:
       fp.write('%d' % _TEST_SERVER_PORT_FIRST)
-    if os.path.exists(_TEST_SERVER_PORT_LOCKFILE):
-      os.unlink(_TEST_SERVER_PORT_LOCKFILE)
     return True
   except Exception:  # pylint: disable=broad-except
     logging.exception('Error while resetting port allocation')
@@ -70,7 +68,7 @@ def AllocateTestServerPort():
         fp.seek(0, os.SEEK_SET)
         fp.write('%d' % (port + 1))
   except Exception:  # pylint: disable=broad-except
-    logging.exception('ERror while allocating port')
+    logging.exception('Error while allocating port')
   finally:
     if fp_lock:
       fcntl.flock(fp_lock, fcntl.LOCK_UN)
