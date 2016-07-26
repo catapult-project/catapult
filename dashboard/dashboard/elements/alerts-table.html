@@ -641,19 +641,18 @@ found in the LICENSE file.
        * Toggles expansion of a group of alerts.
        */
       onExpandGroupButtonClicked: function(event, detail) {
-        var row =
-            Polymer.dom(Polymer.dom(event.currentTarget).parentNode).parentNode;
+        var row = event.currentTarget.closest('tr');
+        // alertIndex = rowIndex - 1 due to the table header row.
         var alertIndex = row.rowIndex - 1;
         var alert = this.alertList[alertIndex];
-        var isExpand = !alert.expanded;
-        this.setAlertList(alertIndex, 'expanded', isExpand);
+        var shouldExpand = !alert.expanded;
+        this.setAlertList(alertIndex, 'expanded', shouldExpand);
 
         for (var i = alertIndex + 1; i < this.alertList.length; i++) {
-          if (this.alertList[i].group == alert.group) {
-            this.setAlertList(i, 'hideRow', !isExpand);
-          } else {
+          if (this.alertList[i].group != alert.group)
             break;
-          }
+
+          this.setAlertList(i, 'hideRow', !shouldExpand);
         }
       },
 
