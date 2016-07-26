@@ -254,6 +254,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       args.append('--window-size=1280,1024')
       if self._flash_path:
         args.append('--ppapi-flash-path=%s' % self._flash_path)
+        # Also specify the version of Flash as a large version, so that it is
+        # not overridden by the bundled or component-updated version of Flash.
+        args.append('--ppapi-flash-version=99.9.999.999')
       if not self.browser_options.dont_override_profile:
         args.append('--user-data-dir=%s' % self._tmp_profile_dir)
     else:
