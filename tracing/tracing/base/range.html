@@ -157,6 +157,14 @@ tr.exportTo('tr.b', function() {
       return this.intersectsExplicitRangeExclusive(range.min_, range.max_);
     },
 
+    findExplicitIntersectionDuration: function(min, max) {
+      var min = Math.max(this.min, min);
+      var max = Math.min(this.max, max);
+      if (max < min)
+        return 0;
+      return max - min;
+    },
+
     findIntersection: function(range) {
       if (this.isEmpty || range.isEmpty)
         return new Range();

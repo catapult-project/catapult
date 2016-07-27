@@ -348,8 +348,11 @@ tr.exportTo('tr.metrics.sh', function() {
         return;
       }
       var timeToFirstMeaningfulPaint = paintEvent.start - navigationStart.start;
+      var diagnosticDict = rendererHelper.generateTimeBreakdownTree(
+          navigationStart.start, paintEvent.start);
+      diagnosticDict.url = url;
       firstMeaningfulPaintHistogram.add(timeToFirstMeaningfulPaint,
-          new tr.v.d.Generic({url: url}));
+          new tr.v.d.Generic(diagnosticDict));
     }
 
     var layoutsForFrameId = findAllLayoutEvents(rendererHelper);

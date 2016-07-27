@@ -198,8 +198,19 @@ tr.exportTo('tr.e.chrome', function() {
         return userFriendlyCategory;
     }
 
-    return undefined;
+    return 'other';
   };
+
+  ChromeUserFriendlyCategoryDriver.ALL_TITLES = ['other'];
+  for (var category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
+    if (category === SAME_AS_PARENT)
+      continue;
+    ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
+  }
+  for (var category in USER_FRIENDLY_CATEGORY_FOR_EVENT_CATEGORY) {
+    ChromeUserFriendlyCategoryDriver.ALL_TITLES.push(category);
+  }
+
 
   return {
     ChromeUserFriendlyCategoryDriver: ChromeUserFriendlyCategoryDriver

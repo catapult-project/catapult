@@ -67,12 +67,12 @@ tr.b.unittest.testSuite(function() {
     }), 'startup');
   });
 
-  test('ufcUndefined', function() {
-    assert.isUndefined(ufcFromEvent({
+  test('ufcOther', function() {
+    assert.equal(ufcFromEvent({
       guid: tr.b.GUID.allocateSimple(),
       title: 'a',
       category: 'other'
-    }));
+    }), 'other');
   });
 });
 </script>

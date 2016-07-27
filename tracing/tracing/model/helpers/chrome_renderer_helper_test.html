@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var rendererPid = 12345;
+  var model = tr.c.TestUtils.newModel(function(model) {
+    var rendererProcess = model.getOrCreateProcess(rendererPid);
+    var mainThread = rendererProcess.getOrCreateThread(2);
+    mainThread.name = 'CrRendererMain';
+
+    // Our main thread looks like:
+    //
+    //      [    parseHTML    ]    [  layout   ]      [      script        ]
+    //      |   [ script ]    |    |           |      |     [ layout ]     |
+    //      |   |        |    |    |           |      |     |        |     |
+    //      |   |        |    |    |           |      |     |        |     |
+    //      v   v        v    v    v           v      v     v        v     v
+    // Ts: 200  250     300  400   450         550    570   600     620   650
+
+    // Add layout categories
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink',
+      title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
+      start: 200,
+      duration: 200,
+    }));
+
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'devtools.timeline',
+      title: 'Script',
+      start: 250,
+      duration: 50,
+    }));
+
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink',
+      title: 'FrameView::layout',
+      start: 450,
+      duration: 100,
+    }));
+
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'devtools.timeline',
+      title: 'EvaluateScript',
+      start: 570,
+      duration: 80,
+    }));
+    mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+      cat: 'blink',
+      title: 'WebViewImpl::layout',
+      start: 600,
+      duration: 20,
+    }));
+  });
+
+ var chromeHelper = model.getOrCreateHelper(
+     tr.model.helpers.ChromeModelHelper);
+
+  var rendererHelper = chromeHelper.rendererHelpers[rendererPid];
+
+  test('testTimeBreakdownNoIntersectingBoundary', function() {
+    var breakdownTree = rendererHelper.generateTimeBreakdownTree(0, 1000);
+    assert.deepEqual({total: 150, events: {
+        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 150
+        }},
+        breakdownTree['parseHTML']);
+
+        assert.deepEqual({total: 120, events: {
+            'FrameView::layout': 100,
+            'WebViewImpl::layout': 20,
+        }}, breakdownTree['layout']);
+
+        assert.deepEqual({total: 110, events: {
+            'EvaluateScript': 60,
+            'Script': 50,
+        }}, breakdownTree['script']);
+  });
+
+  test('testTimeBreakdownIntersectingBoundary', function() {
+
+    // Our main thread looks like:
+    //
+    //      [    parseHTML    ]    [  layout   ]      [      script        ]
+    //      |   [ script ]    |    |           |      |     [ layout ]     |
+    //      |   |        |    |    |           |      |     |        |     |
+    //      |   |        |    |    |           |      |     |        |     |
+    //      v   v        v    v    v           v      v     v        v     v
+    // Ts: 200  250  |  300  400   450         550    570   600  |  620   650
+    //               |                                           |
+    //              275                                         610
+
+    var breakdownTree = rendererHelper.generateTimeBreakdownTree(275, 610);
+    console.log(breakdownTree);
+    assert.deepEqual({total: 93.75, events: {
+        'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser': 93.75
+        }},
+        breakdownTree['parseHTML']);
+
+        assert.deepEqual({total: 110, events: {
+            'FrameView::layout': 100,
+            'WebViewImpl::layout': 10,
+        }}, breakdownTree['layout']);
+
+        assert.deepEqual({total: 55, events: {
+            'EvaluateScript': 30,
+            'Script': 25,
+        }}, breakdownTree['script']);
+  });
+
+});
+</script>
