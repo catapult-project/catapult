@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/value_set_table.html">
+<link rel="import" href="/tracing/value/ui/value_set_view.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+
+<dom-module id='breakdown-value-set-view'>
+<template>
+<style>
+  :host {
+    display: flex;
+    flex-direction: column;
+  }
+</style>
+<content></content>
+</template>
+</dom-module>
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
+  Polymer({
+    is: 'breakdown-value-set-view',
+
+    supportsValueSet: function(values) {
+      return false;
+    },
+
+    get tabLabel() {
+      return 'Breakdown View';
+    },
+
+    created: function() {
+     this.values_ = undefined;
+    },
+
+    get values() {
+      return this.values_;
+    },
+
+    /**
+    * @param {!tr.v.ValueSet} values
+    */
+    set values(values) {
+      this.values_ = values;
+    }
+  });
+
+  tr.v.ui.registerValueSetView('breakdown-value-set-view');
+
+  return {};
+});
+
+</script>
