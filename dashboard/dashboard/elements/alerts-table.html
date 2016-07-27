@@ -728,8 +728,10 @@ found in the LICENSE file.
         // Hide the bug id th element.
         if (shouldHideBugId) {
           this.$.bug_id.style.display = 'none';
+        } else {
+          this.$.bug_id.style.display = '';
         }
-        // Hide all of the bug id data cells in the table.
+        // Hide or show all of the bug id data cells in the table.
         for (var i = 0; i < this.alertList.length; i++) {
           this.setAlertList(i, 'hide_bug_id', shouldHideBugId);
         }
