@@ -26,6 +26,7 @@ def _UpdateSysPathIfNeeded():
   _AddToPathIfNeeded(os.path.join(catapult_path, 'tracing'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'perf_insights'))
   _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
+  _AddToPathIfNeeded(os.path.join(catapult_path, 'netlog_viewer'))
 
 
 _UpdateSysPathIfNeeded()
