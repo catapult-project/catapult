@@ -12,9 +12,9 @@
             "../bin/override/battor_agent"
           ]
         },
-        "mac_x86_64": {
+        "darwin_x86_64": {
           "cloud_storage_hash": "b8d590745daf2448609a81bd30d864fe98c68ec7",
-          "download_path": "../bin/mac/x86_64/battor_agent",
+          "download_path": "../bin/darwin/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]

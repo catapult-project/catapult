@@ -18,14 +18,12 @@ from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
 
 
-# TODO(rnephew): Expand to work on mac when the CQ has a mac with a BattOr.
-_SUPPORTED_CQ_PLATFORMS = ['win', 'linux']
+_SUPPORTED_CQ_PLATFORMS = ['win', 'linux', 'mac']
 
 class BattorWrapperDeviceTest(unittest.TestCase):
   def setUp(self):
     test_platform = platform.system()
     self._battor_list = None
-
     if 'Win' in test_platform:
       self._platform = 'win'
     elif 'Linux' in test_platform:
@@ -35,15 +33,19 @@ class BattorWrapperDeviceTest(unittest.TestCase):
     elif 'Darwin' in test_platform:
       self._platform = 'mac'
 
-  def testFullRun(self):
-    if self._platform not in _SUPPORTED_CQ_PLATFORMS:
-      logging.critical('Platform %s is not supported on CQ.' % self._platform)
-      return
+    if not battor_wrapper.IsBattOrConnected(self._platform):
+      self._battor_list = []
 
+  def testFullRun(self):
     # If battor_list is an empty list, a BattOr was expected but not found.
     if self._battor_list is not None and not self._battor_list:
       logging.critical('No BattOrs attached. Cannot run tests.')
       return
+
+    if self._platform not in _SUPPORTED_CQ_PLATFORMS:
+      logging.critical('Platform %s is not supported on CQ.' % self._platform)
+      return
+
 
     battor_path = (None if not self._battor_list
                    else '/dev/%s' % self._battor_list[0])

@@ -55,8 +55,6 @@ class IsBattOrConnectedTest(unittest.TestCase):
     self._get_battor_list = battor_device_mapping.GetBattorList
     battor_device_mapping.GetBattorList = lambda x: self._get_battor_list_return
 
-    # TODO(rnephew): Add Mac monkey patches when supported.
-
   def tearDown(self):
     serial.tools.list_ports.comports = self._comports
     battor_device_mapping.GenerateSerialMap = self._generate_serial_map
@@ -108,11 +106,11 @@ class IsBattOrConnectedTest(unittest.TestCase):
     self.assertFalse(battor_wrapper.IsBattOrConnected('linux'))
 
   def testMacWithBattor(self):
-    # TODO(rnephew) Fix test when mac is done.
-    self.assertFalse(battor_wrapper.IsBattOrConnected('mac'))
+    self._serial_tools_return = [('/dev/tty.usbserial-MAA', 'BattOr v3.3', '')]
+    self.assertTrue(battor_wrapper.IsBattOrConnected('mac'))
 
   def testMacWithoutBattor(self):
-    self._get_battor_list_return = []
+    self._serial_tools_return = [('/dev/tty.usbserial-MAA', 'not_one', '')]
     self.assertFalse(battor_wrapper.IsBattOrConnected('mac'))
 
   def testWinWithBattor(self):

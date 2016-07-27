@@ -53,8 +53,9 @@ def IsBattOrConnected(test_platform, android_device=None,
     return False
 
   elif test_platform == 'mac':
-    # TODO(rnephew): When we have a BattOr that can attach to mac, find a way
-    # to detect BattOrs on mac.
+    for (_1, desc, _2) in serial.tools.list_ports.comports():
+      if 'BattOr' in desc:
+        return True
     return False
 
   elif test_platform == 'linux':
@@ -186,31 +187,41 @@ class BattorWrapper(object):
           return port
       raise battor_error.BattorError(
           'Could not find BattOr attached to machine.')
-    device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
-    if battor_path:
-      if not isinstance(battor_path, basestring):
-        raise battor_error.BattorError('An invalid BattOr path was specified.')
-      return battor_path
+    if target_platform in ['mac']:
+      for (port, desc, _) in serial.tools.list_ports.comports():
+        if 'BattOr' in desc:
+          return port
 
-    if target_platform == 'android':
-      if not android_device:
+    if target_platform in ['android', 'linux']:
+      device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
+      if battor_path:
+        if not isinstance(battor_path, basestring):
+          raise battor_error.BattorError(
+              'An invalid BattOr path was specified.')
+        return battor_path
+
+      if target_platform == 'android':
+        if not android_device:
+          raise battor_error.BattorError(
+              'Must specify device for Android platform.')
+        if not battor_map_file and not battor_map:
+          # No map was passed, so must create one.
+          battor_map = battor_device_mapping.GenerateSerialMap()
+
+        return battor_device_mapping.GetBattorPathFromPhoneSerial(
+            str(android_device), serial_map_file=battor_map_file,
+            serial_map=battor_map)
+
+      # Not Android and no explicitly passed BattOr.
+      battors = battor_device_mapping.GetBattorList(device_tree)
+      if len(battors) != 1:
         raise battor_error.BattorError(
-            'Must specify device for Android platform.')
-      if not battor_map_file and not battor_map:
-        # No map was passed, so must create one.
-        battor_map = battor_device_mapping.GenerateSerialMap()
+            'For non-Android platforms, exactly one BattOr must be '
+            'attached unless address is explicitly given.')
+      return '/dev/%s' % battors.pop()
 
-      return battor_device_mapping.GetBattorPathFromPhoneSerial(
-          str(android_device), serial_map_file=battor_map_file,
-          serial_map=battor_map)
-
-    # Not Android and no explicitly passed BattOr.
-    battors = battor_device_mapping.GetBattorList(device_tree)
-    if len(battors) != 1:
-      raise battor_error.BattorError(
-          'For non-Android platforms, exactly one BattOr must be '
-          'attached unless address is explicitly given.')
-    return '/dev/%s' % battors.pop()
+    raise NotImplementedError(
+        'BattOr Wrapper not implemented for given platform')
 
   def _SendBattorCommandImpl(self, cmd):
     """Sends command to the BattOr."""
