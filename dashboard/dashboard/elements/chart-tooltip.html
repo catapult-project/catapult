@@ -95,7 +95,7 @@ was just clicked.
             <template is="dom-repeat" items={{revisions}}>
               {{item.name}}<template is="dom-if" bind if="{{item.displayStart}}"> range</template>:
               <b>
-                <a href="{{item.url}}" on-click="{{item.onRevisionRangeClick}}">
+                <a href="{{item.url}}" on-click="onRevisionRangeClick">
                   <template is="dom-if" bind if="{{item.displayStart}}">{{item.displayStart}} - </template>
                   {{item.displayEnd}}
                 </a>
