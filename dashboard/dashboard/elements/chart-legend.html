@@ -264,7 +264,7 @@ found in the LICENSE file.
               </iron-selector>
 
               <div class="layout horizontal end-justified">
-                <template is="dom-if" if="{{computeIsPositive(seriesGroup.numHidden)}}">
+                <template is="dom-if" if="{{computeIsPositive(seriesGroup.*, 'numHidden')}}">
                   <a href="javascript:void(0);" class="expand-link"
                      on-click="onExpandSeriesClicked">{{seriesGroup.numHidden}} more</a>
                 </template>
@@ -274,7 +274,7 @@ found in the LICENSE file.
                 </template>
               </div>
 
-              <template is="dom-if" if="{{computeIsPositive(seriesGroup.numPendingRequests)}}">
+              <template is="dom-if" if="{{computeIsPositive(seriesGroup.*, 'numPendingRequests')}}">
                 <div class="sg-loading">
                   <paper-spinner active></paper-spinner>
                 </div>
@@ -307,7 +307,9 @@ found in the LICENSE file.
         showDelta: { notify: true }
       },
 
-      computeIsPositive: n => n > 0,
+      computeIsPositive: function(iterInfo, prop) {
+        return iterInfo.base[prop] > 0;
+      },
       computeIsUndefined: x => x === undefined,
       computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 

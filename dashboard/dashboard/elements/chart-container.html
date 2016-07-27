@@ -759,15 +759,17 @@ triaging functionality in the chart.
          * @param {boolean} increment True to add one, False to subtract one.
          */
         updateSeriesGroupLoadingCounter: function(testPaths, increment) {
-          var testPathToGroup = {};
-          this.seriesGroupList.forEach(function(group) {
-            testPathToGroup[group.path] = group;
-          });
+          var testPathToGroupIndex = {};
+          for (var i = 0; i < this.seriesGroupList.length; i++) {
+            testPathToGroupIndex[this.seriesGroupList[i].path] = i;
+          }
 
           var delta = (increment) ? 1 : -1;
           testPaths.forEach(function(testPath) {
-            testPathToGroup[testPath].numPendingRequests += delta;
-          });
+            var index = testPathToGroupIndex[testPath];
+            this.set('seriesGroupList.' + index + '.numPendingRequests',
+                     this.seriesGroupList[index].numPendingRequests + delta);
+          }.bind(this));
         },
 
         checkForInternalUser: function() {
@@ -947,25 +949,25 @@ triaging functionality in the chart.
          * @param {Array} testList List of test object.
          */
         updateSeriesGroupList: function(testList) {
-          var testPathToGroup = {};
-          this.seriesGroupList.forEach(function(group) {
-            testPathToGroup[group.path] = group;
-          });
+          var testPathToGroupIndex = {};
+          for (var i = 0; i < this.seriesGroupList.length; i++) {
+            testPathToGroupIndex[this.seriesGroupList[i].path] = i;
+          }
 
           for (var i = 0; i < testList.length; i++) {
             var test = testList[i];
-            var seriesGroup = null;
-            if (test.path in testPathToGroup) {
-              seriesGroup = testPathToGroup[test.path];
+            var seriesGroupIndex = null;
+            if (test.path in testPathToGroupIndex) {
+              seriesGroupIndex = testPathToGroupIndex[test.path];
             } else {
               var parentPath = test.path.substring(0,
                   test.path.lastIndexOf('/'));
-              if (parentPath in testPathToGroup) {
-                seriesGroup = testPathToGroup[parentPath];
+              if (parentPath in testPathToGroupIndex) {
+                seriesGroupIndex = testPathToGroupIndex[parentPath];
               }
             }
-            if (seriesGroup) {
-              this.updateSeriesGroup(seriesGroup, test);
+            if (seriesGroupIndex != null) {
+              this.updateSeriesGroup(seriesGroupIndex, test);
             }
           }
         },
@@ -978,48 +980,57 @@ triaging functionality in the chart.
          * function replaces the existing test in its series group
          * with passed |test|, or inserts if it doesn't exist.
          *
-         * @param {Object} seriesGroup A series group object.
+         * @param {Number} seriesGroupIndex An index in the series group object.
          * @param {Object} newTest Contains information about a series
          * displayed in chart-legend.
          */
-        updateSeriesGroup: function(seriesGroup, newTest) {
+        updateSeriesGroup: function(seriesGroupIndex, newTest) {
           // Update series if its data has not been loaded.
-          var test = this.getTestInSeriesGroup(seriesGroup, newTest.name);
-          if (test) {
+          var testIndex = this.getTestIndexInSeriesGroup(
+              seriesGroupIndex, newTest.name);
+          if (testIndex != null) {
             for (var key in newTest) {
-              test[key] = newTest[key];
+              this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
+                       testIndex + '.' + key,
+                       newTest[key]);
             }
           } else {
-            this.addTestToSeriesGroup(seriesGroup, newTest);
-            test = newTest;
+            this.addTestToSeriesGroup(seriesGroupIndex, newTest);
+            testIndex = this.getTestIndexInSeriesGroup(
+                seriesGroupIndex, newTest.name);
           }
 
-          if (seriesGroup.selection == 'all' ||
-              seriesGroup.selection == 'important' && test.important) {
-            test.selected = true;
+          if (this.seriesGroupList[seriesGroupIndex].selection == 'all' ||
+              this.seriesGroupList[seriesGroupIndex].selection == 'important' &&
+              newTest.important) {
+            this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
+                     testIndex + '.selected', true);
           }
         },
 
         /**
          * Adds a test to seriesGroup and determines if it should be hidden.
          */
-        addTestToSeriesGroup: function(seriesGroup, test) {
+        addTestToSeriesGroup: function(seriesGroupIndex, test) {
+          var seriesGroup = this.seriesGroupList[seriesGroupIndex];
           if (seriesGroup.collapse && !test.selected && !test.important) {
             test.hidden = true;
             if (seriesGroup.numHidden == undefined) {
-              seriesGroup.numHidden = 0;
+              this.set('seriesGroupList.' + seriesGroupIndex + '.numHidden', 0);
             }
-            seriesGroup.numHidden++;
+            this.set('seriesGroupList.' + seriesGroupIndex + '.numHidden',
+                     seriesGroup.numHidden + 1);
           }
-          seriesGroup.tests.push(test);
-          seriesGroup.tests.sort(this.compareTest);
+          this.push('seriesGroupList.' + seriesGroupIndex + '.tests', test);
+          this.set('seriesGroupList.' + seriesGroupIndex + '.tests',
+                   seriesGroup.tests.sort(this.compareTest));
         },
 
-        getTestInSeriesGroup: function(seriesGroup, name) {
-          var tests = seriesGroup.tests;
+        getTestIndexInSeriesGroup: function(seriesGroupIndex, name) {
+          var tests = this.seriesGroupList[seriesGroupIndex].tests;
           for (var i = 0; i < tests.length; i++) {
             if (name == tests[i].name) {
-              return tests[i];
+              return i;
             }
           }
           return null;
