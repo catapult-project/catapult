@@ -36,6 +36,7 @@ from devil.android import device_temp_file
 from devil.android import install_commands
 from devil.android import logcat_monitor
 from devil.android import md5sum
+from devil.android.constants import chrome
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import gce_adb_wrapper
 from devil.android.sdk import intent
@@ -93,16 +94,15 @@ _PERMISSIONS_BLACKLIST = [
     'com.android.browser.permission.WRITE_HISTORY_BOOKMARKS',
     'com.android.launcher.permission.INSTALL_SHORTCUT',
     'com.chrome.permission.DEVICE_EXTRAS',
-    'com.google.android.apps.chrome.permission.C2D_MESSAGE',
-    'com.google.android.apps.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS',
-    'com.google.android.apps.chrome.TOS_ACKED',
     'com.google.android.c2dm.permission.RECEIVE',
     'com.google.android.providers.gsf.permission.READ_GSERVICES',
     'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
-    'org.chromium.chrome.permission.C2D_MESSAGE',
-    'org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS',
-    'org.chromium.chrome.TOS_ACKED',
 ]
+for package_info in chrome.PACKAGE_INFO.itervalues():
+  _PERMISSIONS_BLACKLIST.extend([
+      '%s.permission.C2D_MESSAGE' % package_info.package,
+      '%s.permission.READ_WRITE_BOOKMARK_FOLDERS' % package_info.package,
+      '%s.TOS_ACKED' % package_info.package])
 
 _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
