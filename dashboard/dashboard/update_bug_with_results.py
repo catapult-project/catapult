@@ -106,6 +106,10 @@ def _CheckJob(job, issue_tracker):
     issue_tracker: An issue_tracker_service.IssueTrackerService instance.
   """
   logging.info('Checking job %s', job.key.id())
+
+
+  job.CheckFailureFromBuildBucket()
+
   if _IsStale(job):
     logging.info('Stale')
     job.SetStaled()
@@ -249,13 +253,11 @@ def _PostResult(job, issue_tracker):
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
 
-
 def _IsStale(job):
   if not job.last_ran_timestamp:
     return False
   time_since_last_ran = datetime.datetime.now() - job.last_ran_timestamp
   return time_since_last_ran > _STALE_TRYJOB_DELTA
-
 
 def _MapAnomaliesToMergeIntoBug(dest_bug_id, source_bug_id):
   """Maps anomalies from source bug to destination bug.

@@ -17,6 +17,7 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_stats
 from dashboard.models import bug_data
+from dashboard import buildbucket_service
 from dashboard.models import internal_only_model
 
 
@@ -99,3 +100,40 @@ class TryJob(internal_only_model.InternalOnlyModel):
 
   def GetConfigDict(self):
     return json.loads(self.config.split('=', 1)[1])
+
+  def CheckFailureFromBuildBucket(self):
+    job_info = buildbucket_service.GetJobStatus(self.buildbucket_job_id)
+    data = job_info.get('build', {})
+    # Proceed if the job failed and the job status has
+    # not been updated
+    if data.get('result') != 'FAILURE' or self.status == 'failed':
+      return
+    data['result_details'] = json.loads(data['result_details_json'])
+    job_updates = {
+        'status': 'failed',
+        'failure_reason': data.get('failure_reason'),
+        'buildbot_log_url': data.get('url')
+    }
+    details = data.get('result_details')
+    if details:
+      properties = details.get('properties')
+      if properties:
+        job_updates['bisect_bot'] = properties.get('buildername')
+        job_updates['extra_result_code'] = properties.get(
+            'extra_result_code')
+        bisect_config = properties.get('bisect_config')
+        if bisect_config:
+          job_updates['try_job_id'] = bisect_config.get('try_job_id')
+          job_updates['bug_id'] = bisect_config.get('bug_id')
+          job_updates['command'] = bisect_config.get('command')
+          job_updates['test_type'] = bisect_config.get('test_type')
+          job_updates['metric'] = bisect_config.get('metric')
+          job_updates['good_revision'] = bisect_config.get('good_revision')
+          job_updates['bad_revision'] = bisect_config.get('bad_revision')
+    if not self.results_data:
+      self.results_data = {}
+    self.results_data.update(job_updates)
+    self.status = 'failed'
+    self.last_ran_timestamp = datetime.datetime.fromtimestamp(
+        float(data['updated_ts'])/1000000)
+    self.put()
