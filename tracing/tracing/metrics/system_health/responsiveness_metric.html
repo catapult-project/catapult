@@ -76,7 +76,7 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function responsivenessMetric(values, model, opt_options) {
     // TODO(benjhayden): Add categories to benchmark to support:
-    // tr.metrics.sh.firstPaintMetric(values, model);
+    // tr.metrics.sh.loadingMetric(values, model);
 
     var responseNumeric = RESPONSE_NUMERIC_BUILDER.build();
     var throughputNumeric = THROUGHPUT_NUMERIC_BUILDER.build();
@@ -95,7 +95,7 @@ tr.exportTo('tr.metrics.sh', function() {
       if (ue instanceof tr.model.um.IdleExpectation) {
         return;
       } else if (ue instanceof tr.model.um.LoadExpectation) {
-        // This is already covered by firstPaintMetric.
+        // This is already covered by loadingMetric.
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
         responseNumeric.add(ue.duration, sampleDiagnostic);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {

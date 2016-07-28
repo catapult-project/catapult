@@ -420,14 +420,6 @@ tr.exportTo('tr.metrics.sh', function() {
 
   tr.metrics.MetricRegistry.register(loadingMetric);
 
-  // Temporary alias until we remove old references in Chromium land.
-  // TODO(kouhei): remove the alias below.
-  function firstPaintMetric(values, model) {
-    loadingMetric(values, model);
-  }
-
-  tr.metrics.MetricRegistry.register(firstPaintMetric);
-
   return {
     loadingMetric: loadingMetric
   };

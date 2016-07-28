@@ -165,7 +165,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
         'devtools.timeline,disabled-by-default-blink.debug.layout')
 
     options = tbm_module.Options(overhead_level=cat_filter)
-    options.SetTimelineBasedMetrics(['firstPaintMetric'])
+    options.SetTimelineBasedMetrics(['loadingMetric'])
 
     tbm = tbm_module.TimelineBasedMeasurement(options)
     results = self.RunMeasurement(tbm, ps, self._options)
