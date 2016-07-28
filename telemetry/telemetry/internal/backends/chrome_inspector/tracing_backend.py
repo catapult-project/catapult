@@ -93,6 +93,7 @@ class TracingBackend(object):
         self._TRACING_DOMAIN, self._NotificationHandler)
     self._trace_events = []
     self._is_tracing_running = is_tracing_running
+    self._start_issued = False
     self._can_collect_data = False
     self._has_received_all_tracing_data = False
     self._support_modern_devtools_tracing_start_api = (
@@ -139,6 +140,7 @@ class TracingBackend(object):
           'Tracing.start:\n' + json.dumps(response, indent=2))
 
     self._is_tracing_running = True
+    self._start_issued = True
     return True
 
   def RecordClockSyncMarker(self, sync_id):
@@ -163,10 +165,22 @@ class TracingBackend(object):
       if not self._trace_events:
         raise TracingHasNotRunException()
     else:
+      if not self._start_issued:
+        # Tracing is running but start was not issued so, startup tracing must
+        # be in effect. Issue another Tracing.start to update the transfer mode.
+        # TODO(caseq): get rid of it when streaming is the default.
+        params = {
+          'transferMode': 'ReturnAsStream',
+          'traceConfig': {}
+        }
+        req = {'method': 'Tracing.start', 'params': params}
+        self._inspector_websocket.SendAndIgnoreResponse(req)
+
       req = {'method': 'Tracing.end'}
       self._inspector_websocket.SendAndIgnoreResponse(req)
 
     self._is_tracing_running = False
+    self._start_issued = False
     self._can_collect_data = True
 
   def DumpMemory(self, timeout=30):
