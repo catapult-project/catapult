@@ -419,6 +419,170 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('webGLAnimations_oneAnimation', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 18, end: 19});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 38, end: 39});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 58, end: 59});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+    };
+    verifier.expectedIRs = [
+      {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
+    ];
+    verifier.verify();
+  });
+
+  test('webGLAnimations_twoAnimations', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 18, end: 19});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 38, end: 39});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 58, end: 59});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 218, end: 19});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 238, end: 39});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 258, end: 59});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
+    };
+    verifier.expectedIRs = [
+      {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
+      {title: 'Idle', start: 62, end: 220, eventCount: 0},
+      {title: 'WebGL Animation', start: 220, end: 262, eventCount: 3}
+    ];
+    verifier.verify();
+  });
+
+  test('webGLAnimations_oneWithAnimationEventsOneWithout', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 18, end: 19});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 38, end: 39});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 58, end: 59});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
+    };
+    verifier.expectedIRs = [
+      {title: 'WebGL Animation', start: 0, end: 62, eventCount: 4},
+      {title: 'Idle', start: 62, end: 262, eventCount: 0},
+    ];
+    verifier.verify();
+  });
+
+  test('webGLAnimations_noAnimationEvents', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 262, eventCount: 0},
+    ];
+    verifier.verify();
+  });
+
+  test('webGLAnimations_animationEventsOnly', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'PageAnimator::serviceScriptedAnimations',
+          start: 0, end: 2}));
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 20, end: 22});
+      chrome_test_utils.addEvent(model.rendererMain, {
+          title: 'PageAnimator::serviceScriptedAnimations',
+          start: 40, end: 42});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 42, eventCount: 0},
+    ];
+    verifier.verify();
+  });
+
+  test('webGLAnimations_oneEvent', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
+      chrome_test_utils.addEvent(model.rendererMain, {
+        title: 'PageAnimator::serviceScriptedAnimations',
+        start: 4, end: 6});
+    };
+    verifier.expectedIRs = [
+      {title: 'WebGL Animation', start: 0, end: 2, eventCount: 1},
+      {title: 'Idle', start: 2, end: 6, eventCount: 0},
+    ];
+    verifier.verify();
+  });
+
   test('cssAnimations', function() {
     // CSS Animations happen on the renderer process, not the browser process.
     // They are merged if they overlap.

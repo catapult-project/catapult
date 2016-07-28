@@ -101,6 +101,7 @@ tr.exportTo('tr.importer', function() {
   var TOUCH_IR_NAME = 'Touch';
   var SCROLL_IR_NAME = 'Scroll';
   var CSS_IR_NAME = 'CSS';
+  var WEBGL_IR_NAME = 'WebGL';
 
   // TODO(benjhayden) Find a better home for this.
   function compareEvents(x, y) {
@@ -174,7 +175,8 @@ tr.exportTo('tr.importer', function() {
       handleFlingEvents,
       handleTouchEvents,
       handleScrollEvents,
-      handleCSSAnimations
+      handleCSSAnimations,
+      handleWebGLAnimations,
     ];
     handlers.forEach(function(handler) {
       protoExpectations.push.apply(protoExpectations, handler(
@@ -799,6 +801,105 @@ tr.exportTo('tr.importer', function() {
     });
   }
 
+  /**
+   * Get all the events (prepareMailbox and serviceScriptedAnimations)
+   * relevant to WebGL. Note that modelHelper is the helper object containing
+   * the model, and mailboxEvents and animationEvents are arrays where the
+   * events are being pushed into (DrawingBuffer::prepareMailbox events go
+   * into mailboxEvents; PageAnimator::serviceScriptedAnimations events go
+   * into animationEvents). The function does not return anything but
+   * modifies mailboxEvents and animationEvents.
+   */
+  function findWebGLEvents(modelHelper, mailboxEvents, animationEvents) {
+    for (var event of modelHelper.model.getDescendantEvents()) {
+      if (event.title === 'DrawingBuffer::prepareMailbox')
+        mailboxEvents.push(event);
+      else if (event.title === 'PageAnimator::serviceScriptedAnimations')
+        animationEvents.push(event);
+    }
+  }
+
+  /**
+   * Returns a list of events in mailboxEvents that have an event in
+   * animationEvents close by (within ANIMATION_MERGE_THRESHOLD_MS).
+   */
+  function findMailboxEventsNearAnimationEvents(
+      mailboxEvents, animationEvents) {
+    if (animationEvents.length === 0)
+      return [];
+
+    mailboxEvents.sort(compareEvents);
+    animationEvents.sort(compareEvents);
+    var animationIterator = animationEvents[Symbol.iterator]();
+    var animationEvent = animationIterator.next().value;
+
+    var filteredEvents = [];
+
+    // We iterate through the mailboxEvents. With each event, we check if
+    // there is a animationEvent near it, and if so, add it to the result.
+    for (var event of mailboxEvents) {
+      // If the current animationEvent is too far before the mailboxEvent,
+      // we advance until we get to the next animationEvent that is not too
+      // far before the animationEvent.
+      while (animationEvent &&
+          (animationEvent.start < (
+           event.start - ANIMATION_MERGE_THRESHOLD_MS)))
+        animationEvent = animationIterator.next().value;
+
+      // If there aren't any more animationEvents, then that means all the
+      // remaining mailboxEvents are too far after the animationEvents, so
+      // we can quit now.
+      if (!animationEvent)
+        break;
+
+      // If there's a animationEvent close to the mailboxEvent, then we push
+      // the current mailboxEvent onto the stack.
+      if (animationEvent.start < (event.start + ANIMATION_MERGE_THRESHOLD_MS))
+        filteredEvents.push(event);
+    }
+    return filteredEvents;
+  }
+
+  /**
+   * Merge consecutive mailbox events into a ProtoExpectation. Note: Only
+   * the drawingBuffer::prepareMailbox events will end up in the
+   * associatedEvents. The PageAnimator::serviceScriptedAnimations events
+   * will not end up in the associatedEvents.
+   */
+  function createProtoExpectationsFromMailboxEvents(mailboxEvents) {
+    var protoExpectations = [];
+    var currentPE = undefined;
+    for (var event of mailboxEvents) {
+      if (currentPE === undefined || !currentPE.isNear(
+          event, ANIMATION_MERGE_THRESHOLD_MS)) {
+        currentPE = new ProtoExpectation(
+            ProtoExpectation.ANIMATION_TYPE, WEBGL_IR_NAME);
+        currentPE.pushEvent(event);
+        protoExpectations.push(currentPE);
+      }
+      else {
+        currentPE.pushEvent(event);
+      }
+    }
+    return protoExpectations;
+  }
+
+  // WebGL animations are identified by the DrawingBuffer::prepareMailbox
+  // and PageAnimator::serviceScriptedAnimations events (one of each per frame)
+  // and consecutive frames are merged into the same animation.
+  function handleWebGLAnimations(modelHelper, sortedInputEvents) {
+    // Get the prepareMailbox and scriptedAnimation events.
+    var prepareMailboxEvents = [];
+    var scriptedAnimationEvents = [];
+
+    findWebGLEvents(modelHelper, prepareMailboxEvents, scriptedAnimationEvents);
+    var webGLMailboxEvents = findMailboxEventsNearAnimationEvents(
+        prepareMailboxEvents, scriptedAnimationEvents);
+
+    return createProtoExpectationsFromMailboxEvents(webGLMailboxEvents);
+  }
+
+
   function postProcessProtoExpectations(modelHelper, protoExpectations) {
     // protoExpectations is input only. Returns a modified set of
     // ProtoExpectations.  The order is important.
@@ -1022,7 +1123,11 @@ tr.exportTo('tr.importer', function() {
       // running, then it wasn't really an animation, now, was it?
       // Philosophy aside, the system_health Animation metrics fail hard if
       // there are no frames in an AnimationExpectation.
-      if (frameEvents.length === 0) {
+      // Since WebGL animations don't generate this type of frame event,
+      // don't remove them if it's a WebGL animation.
+      // TODO(alexandermont): Identify what the correct frame event to
+      // use here is.
+      if (frameEvents.length === 0 && !pe.names.has(WEBGL_IR_NAME)) {
         pe.irType = ProtoExpectation.IGNORED_TYPE;
         newPEs.push(pe);
         continue;
