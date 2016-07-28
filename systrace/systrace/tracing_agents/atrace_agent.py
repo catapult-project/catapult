@@ -49,6 +49,8 @@ def list_categories(options):
   """
   devutils = device_utils.DeviceUtils(options.device_serial_number)
   print '\n'.join(devutils.RunShellCommand(LIST_CATEGORIES_ARGS))
+  if not devutils.HasRoot():
+    print '\nNOTE: more categories may be available with adb root\n'
 
 
 def get_available_categories(options):
