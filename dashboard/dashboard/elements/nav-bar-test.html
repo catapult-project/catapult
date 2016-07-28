@@ -27,7 +27,6 @@ tr.b.unittest.testSuite(function() {
       'is_admin': true,
       'display_username': 'foo@bar.com'
     };
-    console.log('Adding XHR mock');
     testing_common.addXhrMock('*', JSON.stringify(mockResponse));
       var bar = document.createElement('nav-bar');
       this.addHTMLOutput(bar);

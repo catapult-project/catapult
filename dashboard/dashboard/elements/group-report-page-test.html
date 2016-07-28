@@ -154,7 +154,8 @@ tr.b.unittest.testSuite(function() {
         '/graph_json?graphs=%7B%22rev%22%3A55558%2C%22test_path_dict%22%3A%7B' +
         '%22Chromium%2Fwin%2Fsunspider%2FTotal%22%3A%5B%22Total%22%5D%7D%7D',
         JSON.stringify(GRAPH_JSON));
-    testing_common.addXhrMock('/graph_revisions',
+    testing_common.addXhrMock(
+        '/graph_revisions?test_path=Chromium%2Fwin%2Fsunspider%2FTotal',
         JSON.stringify(GRAPH_REVISION_JSON));
     var page = document.createElement('group-report-page');
     this.addHTMLOutput(page);

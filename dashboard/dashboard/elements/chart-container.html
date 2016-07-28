@@ -394,6 +394,8 @@ triaging functionality in the chart.
 
           alertKey: { notify: true },
           collapseLegend: {
+            type: Boolean,
+            value: false,
             notify: true,
             observer: 'collapseLegendChanged'
           },
@@ -1646,7 +1648,7 @@ triaging functionality in the chart.
          */
         onSeriesGroupClosed: function(event) {
           var groupIndex = event.detail.groupIndex;
-          var seriesGroup = this.seriesGroupList.splice(groupIndex, 1)[0];
+          var seriesGroup = this.splice('seriesGroupList', groupIndex, 1)[0];
 
           var tests = seriesGroup.tests;
           for (var i = 0; i < tests.length; i++) {
@@ -2313,7 +2315,7 @@ triaging functionality in the chart.
          * Resizes the chart if it's present.
          */
         resizeGraph: function() {
-          if (!this.chart) {
+          if (!this.chart || this.$.plot.offsetWidth == 0) {
             return;
           }
           // The chart is resized when it's updated.
