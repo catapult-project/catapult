@@ -502,7 +502,8 @@ found in the LICENSE file.
       },
 
       setAlertList: function(i, property, value) {
-        this.set('alertList.' + i + '.' + property, value);
+        if (this.alertList[i][property] != value)
+          this.set('alertList.' + i + '.' + property, value);
       },
 
       /**
@@ -544,27 +545,31 @@ found in the LICENSE file.
       showAlertsGrouped: function() {
         var groupMap = {};
         var alertOrder = [];
+        // Normally we should modify values in alertsList via
+        // this.setAlertList() but since we're planning on setting the array
+        // at the end of this function, we can just modify the contents of the
+        // array directly.
         for (var i = this.alertList.length - 1; i >= 0; i--) {
           var alert = this.alertList[i];
           if (alert.group) {
-            this.setAlertList(i, 'index', i);
+            alert.index = i;
             if (alert.group in groupMap) {
-              this.setAlertList(i, 'rowType', 'group-member');
-              this.setAlertList(i, 'hideRow', true);
-              this.setAlertList(i, 'size', 0);
+              alert.rowType = 'group-member';
+              alert.hideRow = true;
+              alert.size = 0;
               groupMap[alert.group].push(alert);
               groupMap[alert.group][0].size += 1;
             } else {
-              this.setAlertList(i, 'rowType', 'group-header');
-              this.setAlertList(i, 'hideRow', false);
-              this.setAlertList(i, 'size', 1);
+              alert.rowType = 'group-header';
+              alert.hideRow = false;
+              alert.size = 1;
               groupMap[alert.group] = [alert];
               alertOrder.push(alert.group);
             }
           } else {
-            this.setAlertList(i, 'rowType', 'group-header');
-            this.setAlertList(i, 'hideRow', false);
-            this.setAlertList(i, 'size', 1);
+            alert.rowType = 'group-header';
+            alert.hideRow = false;
+            alert.size = 1;
             groupMap[i] = [alert];
             alertOrder.push(i);
           }
@@ -576,13 +581,14 @@ found in the LICENSE file.
           var isGroupExpanded = false;
           for (var i = 0; i < alertsInGroup.length; i++) {
             isGroupExpanded = isGroupExpanded || alertsInGroup[i].expanded;
-            this.setAlertList(alertsInGroup[i].index, 'expanded', false);
+            alertsInGroup[i].expanded = false;
           }
 
           if (isGroupExpanded) {
-            this.setAlertList(alertsInGroup[0].index, 'expanded', true);
+            alertsInGroup[0].expanded = true;
             for (var i = 0; i < alertsInGroup.length; i++) {
               this.setAlertList(alertsInGroup[i].index, 'hideRow', false);
+              alertsInGroup[i].expanded = false;
             }
           }
         }
@@ -592,41 +598,39 @@ found in the LICENSE file.
           orderedAlertList.push.apply(
               orderedAlertList, groupMap[alertOrder[i]]);
         }
+        this.addEllipsis(orderedAlertList);
         this.set('alertList', orderedAlertList);
-        this.addEllipsis();
       },
 
       /**
        * Adds ellipsis to each column in header rows that contains different
        * values than its group member rows.
+       * TODO(simonhatch): addEllipsis() is only called via showAlertsGrouped(),
+       * which sets the array directly via this.set(), which is why we
+       * manipulate the array values directly instead of calling
+       * this.setAlertList() (which is much slower).
+       * https://github.com/catapult-project/catapult/issues/2553
        */
-      addEllipsis: function() {
-        for (var i = 0; i < this.alertList.length; i++) {
-          this.setAlertList(i, 'additionalColumnValues', {});
-        }
-
-        for (var i = 0; i < this.alertList.length; i++) {
-          var alert = this.alertList[i];
+      addEllipsis: function(alerts) {
+        for (var i = 0; i < alerts.length; i++) {
+          var alert = alerts[i];
+          alert.additionalColumnValues = {};
           if (alert.rowType == 'group-header' && alert.size > 1) {
             var headerRowIndex = i;
-            for (var j = i + 1; j < this.alertList.length; j++) {
-              var memberAlert = this.alertList[j];
+            for (var j = i + 1; j < alerts.length; j++) {
+              var memberAlert = alerts[j];
               if (memberAlert.rowType == 'group-member') {
                 if (memberAlert.master != alert.master) {
-                  this.setAlertList(
-                    headerRowIndex, 'additionalColumnValues.master', true);
+                  alert.additionalColumnValues['master'] = true;
                 }
                 if (memberAlert.bot != alert.bot) {
-                  this.setAlertList(
-                    headerRowIndex, 'additionalColumnValues.bot', true);
+                  alert.additionalColumnValues['bot'] = true;
                 }
                 if (memberAlert.testsuite != alert.testsuite) {
-                  this.setAlertList(
-                    headerRowIndex, 'additionalColumnValues.testsuite', true);
+                  alert.additionalColumnValues['testsuite'] = true;
                 }
                 if (memberAlert.test != alert.test) {
-                  this.setAlertList(
-                    headerRowIndex, 'additionalColumnValues.test', true);
+                  alert.additionalColumnValues['test'] = true;
                 }
               } else {
                 break;
@@ -837,7 +841,11 @@ found in the LICENSE file.
           var alert = this.alertList[i];
           // Associate the current index with each element, to enable stable
           // sorting.
-          this.setAlertList(i, 'index', i);
+          // TODO(simonhatch): sort() always calls this.set('alertList')
+          // to set the array value directly, which makes calls to
+          // this.setAlertList() unnecessary and slows things down.
+          // https://github.com/catapult-project/catapult/issues/2553
+          alert.index = i;
 
           // Create list of group header alerts to sort by group.
           if (alert.group) {
@@ -895,12 +903,6 @@ found in the LICENSE file.
           }
         });
         this.set('alertList', sortedAlertList);
-        for (var i = 0; i < this.extraColumns.length; i++) {
-          for (var j = 0; j < this.alertList.length; j++) {
-            this.setAlertList(j, this.extraColumns[i].key,
-                              this.alertList[j][this.extraColumns[i].key]);
-          }
-        }
         this.updateHeaders();
       },
 
