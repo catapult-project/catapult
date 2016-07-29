@@ -1330,7 +1330,10 @@ class DeviceUtils(object):
         len(host_device_tuples), dir_file_count, dir_size, False)
     zip_duration = self._ApproximateDuration(1, 1, size, True)
 
-    if dir_push_duration < push_duration and dir_push_duration < zip_duration:
+    if (dir_push_duration < push_duration and dir_push_duration < zip_duration
+        # TODO(jbudorick): Resume directory pushing once clients have switched
+        # to 1.0.36-compatible syntax.
+        and False):
       self._PushChangedFilesIndividually(host_device_tuples)
     elif push_duration < zip_duration:
       self._PushChangedFilesIndividually(files)

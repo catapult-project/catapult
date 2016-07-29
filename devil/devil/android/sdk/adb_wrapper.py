@@ -9,9 +9,11 @@ should be delegated to a higher level (ex. DeviceUtils).
 """
 
 import collections
+import distutils.version
 import errno
 import logging
 import os
+import posixpath
 import re
 import subprocess
 
@@ -29,10 +31,9 @@ with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
 DEFAULT_TIMEOUT = 30
 DEFAULT_RETRIES = 2
 
+_ADB_VERSION_RE = re.compile(r'Android Debug Bridge version (\d+\.\d+\.\d+)')
 _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
-
 _READY_STATE = 'device'
-
 _VERITY_DISABLE_RE = re.compile('Verity (already)? disabled')
 _VERITY_ENABLE_RE = re.compile('Verity (already)? enabled')
 
@@ -68,6 +69,16 @@ def _FindAdb():
     raise device_errors.NoAdbError()
 
 
+def _GetVersion():
+  # pylint: disable=protected-access
+  raw_version = AdbWrapper._RunAdbCmd(['version'], timeout=2, retries=0)
+  for l in raw_version.splitlines():
+    m = _ADB_VERSION_RE.search(l)
+    if m:
+      return m.group(1)
+  return None
+
+
 def _ShouldRetryAdbCmd(exc):
   return not isinstance(exc, device_errors.NoAdbError)
 
@@ -98,6 +109,7 @@ class AdbWrapper(object):
   """A wrapper around a local Android Debug Bridge executable."""
 
   _adb_path = lazy.WeakConstant(_FindAdb)
+  _adb_version = lazy.WeakConstant(_GetVersion)
 
   def __init__(self, device_serial):
     """Initializes the AdbWrapper.
@@ -204,6 +216,10 @@ class AdbWrapper(object):
   @classmethod
   def GetAdbPath(cls):
     return cls._adb_path.read()
+
+  @classmethod
+  def Version(cls):
+    return cls._adb_version.read()
 
   @classmethod
   def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
@@ -378,6 +394,44 @@ class AdbWrapper(object):
       retries: (optional) Number of retries to attempt.
     """
     VerifyLocalFileExists(local)
+
+    if (distutils.version.LooseVersion(self.Version()) <
+        distutils.version.LooseVersion('1.0.36')):
+
+      # Different versions of adb handle pushing a directory to an existing
+      # directory differently.
+
+      # In the version packaged with the M SDK, 1.0.32, the following push:
+      #   foo/bar -> /sdcard/foo/bar
+      # where bar is an existing directory both on the host and the device
+      # results in the contents of bar/ on the host being pushed to bar/ on
+      # the device, i.e.
+      #   foo/bar/A -> /sdcard/foo/bar/A
+      #   foo/bar/B -> /sdcard/foo/bar/B
+      #   ... etc.
+
+      # In the version packaged with the N SDK, 1.0.36, the same push under
+      # the same conditions results in a second bar/ directory being created
+      # underneath the first bar/ directory on the device, i.e.
+      #   foo/bar/A -> /sdcard/foo/bar/bar/A
+      #   foo/bar/B -> /sdcard/foo/bar/bar/B
+      #   ... etc.
+
+      # In order to provide a consistent interface to clients, we check whether
+      # the target is an existing directory on the device and, if so, modifies
+      # the target passed to adb to emulate the behavior on 1.0.36 and above.
+
+      # Note that this behavior may have started before 1.0.36; that's simply
+      # the earliest version we've confirmed thus far.
+
+      try:
+        self.Shell('test -d %s' % remote, timeout=timeout, retries=retries)
+        remote = posixpath.join(remote, posixpath.basename(local))
+      except device_errors.AdbShellCommandFailedError:
+        # The target directory doesn't exist on the device, so we can use it
+        # without modification.
+        pass
+
     self._RunDeviceAdbCmd(['push', local, remote], timeout, retries)
 
   def Pull(self, remote, local, timeout=60 * 5, retries=DEFAULT_RETRIES):

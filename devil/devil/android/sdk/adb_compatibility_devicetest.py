@@ -167,14 +167,15 @@ class AdbCompatibilityTest(unittest.TestCase):
     under_test = self.getTestInstance()
     with self.getTestPushDestination(under_test) as push_target_directory:
       src = os.path.join(_TEST_DATA_DIR, 'push_directory')
-      dest = posixpath.join(push_target_directory, 'push_directory')
+      dest = push_target_directory
+      resulting_directory = posixpath.join(dest, 'push_directory')
       with self.assertRaises(device_errors.AdbShellCommandFailedError):
-        under_test.Shell('ls %s' % dest)
-      under_test.Shell('mkdir %s' % dest)
+        under_test.Shell('ls %s' % resulting_directory)
+      under_test.Shell('mkdir %s' % resulting_directory)
       under_test.Push(src, dest)
       self.assertEquals(
           sorted(os.listdir(src)),
-          sorted(under_test.Shell('ls %s' % dest).strip().split()))
+          sorted(under_test.Shell('ls %s' % resulting_directory).split()))
 
   # TODO(jbudorick): Implement tests for the following:
   # taskset -c
@@ -201,18 +202,10 @@ class AdbCompatibilityTest(unittest.TestCase):
 
   @classmethod
   def tearDownClass(cls):
-    version_status, version_output = cmd_helper.GetCmdStatusAndOutput(
-        [_ADB_PATH, 'version'])
-    if version_status != 0:
-      version = ['(unable to determine version)']
-    else:
-      version = version_output.splitlines()
-
     print
     print
     print 'tested %s' % _ADB_PATH
-    for l in version:
-      print '  %s' % l
+    print '  %s' % adb_wrapper.AdbWrapper.Version()
     print 'connected devices:'
     try:
       for d in adb_wrapper.AdbWrapper.Devices():
