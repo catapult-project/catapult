@@ -155,6 +155,11 @@ tr.exportTo('tr.e.chrome', function() {
       'ThreadState::completeSweep' // blink_gc
     ],
 
+    // TODO(fmeawad): https://github.com/catapult-project/catapult/issues/2572
+    v8_runtime: [
+      // Dynamically populated.
+    ],
+
     [SAME_AS_PARENT]: [
       'SyncChannel::Send'
     ]
