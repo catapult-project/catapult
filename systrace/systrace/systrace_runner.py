@@ -8,24 +8,16 @@
 necessary tracing agents for systrace, runs them, and outputs the results
 as an HTML or JSON file.'''
 
-import json
-import os
-
+from systrace import output_generator
 from systrace import tracing_controller
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import atrace_from_file_agent
 from systrace.tracing_agents import battor_trace_agent
 from systrace.tracing_agents import ftrace_agent
 
+
 AGENT_MODULES_ = [atrace_agent, atrace_from_file_agent,
                  battor_trace_agent, ftrace_agent]
-
-
-# TODO(alexandermont): Current version of trace viewer does not support
-# the controller tracing agent output. Thus we use this variable to
-# suppress this tracing agent's output. This should be removed once
-# trace viewer is working again.
-OUTPUT_CONTROLLER_TRACE_ = False
 
 
 class SystraceRunner(object):
@@ -42,14 +34,6 @@ class SystraceRunner(object):
     self._script_dir = script_dir
     self._out_filename = options.output_file
     agents = CreateAgents(options)
-
-    # Update trace viewer if necessary.
-    try:
-      from systrace import update_systrace_trace_viewer
-    except ImportError:
-      pass
-    else:
-      update_systrace_trace_viewer.update(self._script_dir)
 
     # Set up tracing controller.
     self._tracing_controller = tracing_controller.TracingController(options,
@@ -74,75 +58,15 @@ class SystraceRunner(object):
     """
     print 'Tracing complete, writing results'
     if write_json:
-      self._WriteTraceJSON(self._tracing_controller.all_results)
+      result = output_generator.GenerateJSONOutput(
+                  self._tracing_controller.all_results,
+                  self._out_filename)
     else:
-      self._WriteTraceHTML(self._tracing_controller.all_results)
-
-  def _WriteTraceJSON(self, results):
-    """Write the results of systrace as a JSON file.
-
-    Args:
-        results: Results to write.
-    """
-    print 'Writing trace JSON'
-    results['controllerTraceDataKey'] = 'traceEvents'
-    if not OUTPUT_CONTROLLER_TRACE_:
-      results['traceEvents'] = []
-    with open(self._out_filename, 'w') as json_file:
-      json.dump(results, json_file)
-    print '\n    Wrote file://%s\n' % os.path.abspath(self._out_filename)
-
-  def _WriteTraceHTML(self, results):
-    """Write the results of systrace to an HTML file.
-    """
-    def _read_asset(src_dir, filename):
-      return open(os.path.join(src_dir, filename)).read()
-
-    # Get the trace viewer code and the prefix and suffix for the HTML.
-    print 'Writing trace HTML'
-    systrace_dir = os.path.abspath(os.path.dirname(__file__))
-    html_prefix = _read_asset(systrace_dir, 'prefix.html')
-    html_suffix = _read_asset(systrace_dir, 'suffix.html')
-    trace_viewer_html = _read_asset(self._script_dir,
-                                    'systrace_trace_viewer.html')
-
-    # Open the file in binary mode to prevent python from changing the
-    # line endings, then write the prefix.
-    html_file = open(self._out_filename, 'wb')
-    html_file.write(html_prefix.replace('{{SYSTRACE_TRACE_VIEWER_HTML}}',
-                                        trace_viewer_html))
-
-    # Write the trace data itself. There is a separate section of the form
-    # <script class="trace-data" type="application/text"> ... </script>
-    # for each tracing agent (including the controller tracing agent).
-    html_file.write('<!-- BEGIN TRACE -->\n')
-    for (name, data) in results.iteritems():
-      if name == 'traceEvents' and not OUTPUT_CONTROLLER_TRACE_:
-        continue
-      html_file.write('  <script class="')
-      html_file.write('trace-data')
-      html_file.write('" type="application/text">\n')
-      html_file.write(ConvertToHtmlString(data))
-      html_file.write('  </script>\n')
-    html_file.write('<!-- END TRACE -->\n')
-
-    # Write the suffix and finish.
-    html_file.write(html_suffix)
-    html_file.close()
-    print '\n    Wrote file://%s\n' % os.path.abspath(self._out_filename)
-
-def ConvertToHtmlString(trace_result):
-  """Convert a trace result to the format to be output into HTML.
-
-  If the trace result is a dictionary or list, JSON-encode it.
-  If the trace result is a string, leave it unchanged.
-  """
-  if isinstance(trace_result, dict) or isinstance(trace_result, list):
-    return json.dumps(trace_result)
-  elif isinstance(trace_result, str):
-    return trace_result
-  else:
-    raise ValueError('Invalid trace result format for HTML output')
+      result = output_generator.GenerateHTMLOutput(
+                  self._tracing_controller.all_results,
+                  self._out_filename)
+    print '\nWrote trace %s file: file://%s\n' % (('JSON' if write_json
+                                                   else 'HTML'), result)
 
 def CreateAgents(options):
   """Create tracing agents.

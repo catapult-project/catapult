@@ -47,7 +47,6 @@ class ProfilerTest(unittest.TestCase):
       self.assertEquals(controller.interval, interval)
       self.assertTrue(controller.stopped)
       self.assertTrue(os.path.exists(result))
-      self.assertFalse(os.path.exists(controller.filename))
       self.assertTrue(result.endswith('.html'))
     finally:
       os.remove(result)

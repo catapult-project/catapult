@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2016 The Chromium Authors. All rights reserved.
+# Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -15,13 +15,13 @@ import py_utils
 import tempfile
 import uuid
 
+from systrace import trace_result
 from systrace import tracing_agents
 from py_trace_event import trace_event
 
 
-
 def ControllerAgentClockSync(issue_ts, name):
-  '''Record the clock sync marker for controller tracing agent.
+  '''Record the clock sync marker for controller tracing agent.sub
 
   Unlike with the other tracing agents, the tracing controller should not
   call this directly. Rather, it is called via callback from the other
@@ -73,7 +73,7 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     """
     with open(self._log_path, 'r') as outfile:
       result = outfile.read() + ']'
-    return tracing_agents.TraceResult('traceEvents', ast.literal_eval(result))
+    return trace_result.TraceResult('traceEvents', ast.literal_eval(result))
 
   def SupportsExplicitClockSync(self):
     '''Returns whether this supports explicit clock sync.
@@ -187,17 +187,17 @@ class TracingController(object):
       self._child_agents = succ_agents
 
     # Collect the results from all the stopped tracing agents.
-    all_results = {}
+    all_results = []
     for agent in self._child_agents + [self._controller_agent]:
       try:
-        trace_result = agent.GetResults(
-            timeout=self._options.collection_timeout)
-        if not trace_result:
+        result = agent.GetResults(timeout=self._options.collection_timeout)
+        if not result:
           print 'Warning: Timeout when getting results from %s.' % str(agent)
           continue
-        if trace_result.source_name in all_results:
-          print 'Warning: Duplicate tracing agents'
-        all_results[trace_result.source_name] = trace_result.raw_data
+        if result.source_name in [r.source_name for r in all_results]:
+          print ('Warning: Duplicate tracing agents named %s.' %
+                 result.source_name)
+        all_results.append(result)
       # Check for exceptions. If any exceptions are seen, reraise and abort.
       # Note that a timeout exception will be swalloed by the timeout
       # mechanism and will not get to that point (it will return False instead

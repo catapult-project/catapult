@@ -12,7 +12,9 @@ from devil.android import battery_utils
 from devil.android import device_utils
 from devil.utils import battor_device_mapping
 from py_trace_event import trace_time
+from systrace import trace_result
 from systrace import tracing_agents
+
 
 def try_create_agent(options):
   if options.from_file is not None:
@@ -111,5 +113,5 @@ class BattorTraceAgent(tracing_agents.TracingAgent):
     Returns:
       The trace data.
     """
-    return tracing_agents.TraceResult(
+    return trace_result.TraceResult(
         'powerTraceAsString', self._battor_wrapper.CollectTraceData())

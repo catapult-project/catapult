@@ -1,10 +1,11 @@
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import unittest
 
-from . import util
+from systrace import util
+
 
 DEVICE_SERIAL = 'AG8404EC0444AGC'
 LIST_TMP_ARGS = ['ls', '/data/local/tmp']

@@ -12,6 +12,7 @@ import unittest
 from systrace import run_systrace
 from systrace.tracing_agents import atrace_agent
 
+
 DEVICE_SERIAL = 'AG8404EC0444AGC'
 ATRACE_ARGS = ['atrace', '-z', '-t', '10', '-b', '4096']
 CATEGORIES = ['sched', 'gfx', 'view', 'wm']

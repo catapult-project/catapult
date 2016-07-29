@@ -1,11 +1,13 @@
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import os
 import py_utils
 
+from systrace import trace_result
 from systrace import tracing_agents
+
 
 class FtraceAgentIo(object):
   @staticmethod
@@ -179,7 +181,7 @@ class FtraceAgent(tracing_agents.TracingAgent):
     # get the output
     d = self._fio.readFile(FT_TRACE)
     self._fio.writeFile(FT_BUFFER_SIZE, "1")
-    return tracing_agents.TraceResult('trace-data', d)
+    return trace_result.TraceResult('trace-data', d)
 
   def SupportsExplicitClockSync(self):
     return False

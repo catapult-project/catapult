@@ -15,6 +15,7 @@ from devil.android.sdk import intent
 
 _HEAP_PROFILE_MMAP_PROPERTY = 'heapprof.mmap'
 
+
 class ChromeTracingController(controllers.BaseController):
   def __init__(self, device, package_info,
                categories, ring_buffer, trace_memory=False):

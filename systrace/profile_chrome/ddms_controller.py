@@ -9,6 +9,7 @@ import time
 from profile_chrome import controllers
 from profile_chrome import util
 
+
 _DDMS_SAMPLING_FREQUENCY_US = 100
 
 

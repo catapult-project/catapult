@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -14,7 +14,9 @@ import sys
 _CATAPULT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir))
 sys.path.append(os.path.join(_CATAPULT_PATH, 'tracing'))
+
 from tracing_build import vulcanize_trace_viewer
+
 
 SYSTRACE_TRACE_VIEWER_HTML_FILE_ = 'systrace_trace_viewer.html'
 CATAPULT_REV_ = 'CATAPULT_REV'
@@ -40,11 +42,15 @@ def get_catapult_rev_in_file_(html_file):
 
 def get_catapult_rev_in_git_():
   try:
-    return subprocess.check_output(
+    catapult_rev = subprocess.check_output(
         ['git', 'rev-parse', 'HEAD'],
         cwd=os.path.dirname(os.path.abspath(__file__))).strip()
-  except subprocess.CalledProcessError:
+  except (subprocess.CalledProcessError, OSError):
+    catapult_rev = ''
+  if not catapult_rev:
     return ''
+  else:
+    return catapult_rev
 
 
 def update(script_dir, no_auto_update=False, no_min=False):
@@ -65,22 +71,20 @@ def update(script_dir, no_auto_update=False, no_min=False):
     new_rev = NO_AUTO_UPDATE_
   else:
     new_rev = get_catapult_rev_in_git_()
-    if not new_rev:
-      return
 
-    html_file = os.path.join(script_dir, SYSTRACE_TRACE_VIEWER_HTML_FILE_)
-    if os.path.exists(html_file):
-      rev_in_file = get_catapult_rev_in_file_(html_file)
+    viewer_file = os.path.join(script_dir, SYSTRACE_TRACE_VIEWER_HTML_FILE_)
+    if os.path.exists(viewer_file):
+      rev_in_file = get_catapult_rev_in_file_(viewer_file)
       if rev_in_file == NO_AUTO_UPDATE_ or rev_in_file == new_rev:
         return
 
-  print 'Generating %s with revision %s.' % (html_file, new_rev)
+  print 'Generating viewer file %s with revision %s.' % (viewer_file, new_rev)
 
   # Generate the vulcanized result.
-  with codecs.open(html_file, encoding='utf-8', mode='w') as f:
+  with codecs.open(viewer_file, encoding='utf-8', mode='w') as f:
     vulcanize_trace_viewer.WriteTraceViewer(
         f,
-        config_name='systrace',
+        config_name='full',
         minify=(not no_min),
         output_html_head_and_body=False)
     f.write(create_catapult_rev_str_(new_rev))
@@ -96,9 +100,6 @@ def main():
                     action='store_true', help='skip minification')
   # pylint: disable=unused-variable
   options, unused_args = parser.parse_args(sys.argv[1:])
-
-  update(options.no_auto_update, options.no_min)
-
 
 if __name__ == '__main__':
   main()

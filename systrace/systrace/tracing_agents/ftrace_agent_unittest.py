@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -8,6 +8,7 @@ import unittest
 import logging
 from systrace import run_systrace
 from systrace.tracing_agents import ftrace_agent
+
 
 SYSTRACE_HOST_CMD_DEFAULT = ['./systrace.py', '--target=linux']
 FT_DIR = "/sys/kernel/debug/tracing/"

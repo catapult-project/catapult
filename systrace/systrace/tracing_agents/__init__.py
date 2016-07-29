@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2016 The Chromium Authors. All rights reserved.
+# Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -14,12 +14,6 @@ tool (e.g. atrace, ftrace.)
 
 START_STOP_TIMEOUT = 10.0
 GET_RESULTS_TIMEOUT = 30.0
-
-
-class TraceResult(object):
-  def __init__(self, source_name, raw_data):
-    self.source_name = source_name
-    self.raw_data = raw_data
 
 
 class TracingAgent(object):

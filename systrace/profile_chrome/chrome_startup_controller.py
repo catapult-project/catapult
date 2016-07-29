@@ -12,6 +12,7 @@ from devil.android.sdk import intent
 
 from profile_chrome import controllers
 
+
 class ChromeStartupTracingController(controllers.BaseController):
   def __init__(self, device, package_info, cold, url):
     self._device = device

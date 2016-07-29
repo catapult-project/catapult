@@ -1,4 +1,4 @@
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -11,6 +11,7 @@ import zlib
 
 from devil.android import device_utils
 from py_trace_event import trace_time
+from systrace import trace_result
 from systrace import tracing_agents
 from systrace import util
 
@@ -189,7 +190,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     """Waits for collection thread to finish and returns trace results."""
     self._collection_thread.join()
     self._collection_thread = None
-    return tracing_agents.TraceResult('systemTraceEvents', self._trace_data)
+    return trace_result.TraceResult('systemTraceEvents', self._trace_data)
 
   def SupportsExplicitClockSync(self):
     return True

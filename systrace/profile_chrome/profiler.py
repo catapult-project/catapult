@@ -3,11 +3,13 @@
 # found in the LICENSE file.
 
 import os
+import shutil
 
 from devil.android.constants import chrome
-
-from profile_chrome import trace_packager
 from profile_chrome import ui
+from profile_chrome import util
+from systrace import output_generator
+from systrace import trace_result
 
 
 def _StartTracing(controllers, interval):
@@ -27,13 +29,39 @@ def _PullTraces(controllers, output, compress, write_json):
   if not trace_files:
     ui.PrintMessage('No results')
     return ''
-  result = trace_packager.PackageTraces(trace_files,
-                                        output=output,
-                                        compress=compress,
-                                        write_json=write_json)
-  ui.PrintMessage('done')
-  ui.PrintMessage('Trace written to file://%s' % os.path.abspath(result))
+
+  trace_files = output_generator.MergeTraceFilesIfNeeded(trace_files)
+  if not write_json:
+    print 'Writing trace HTML'
+    html_file = os.path.splitext(trace_files[0])[0] + '.html'
+    trace_results = _PrepareTracesForOutput(trace_files)
+    result = output_generator.GenerateHTMLOutput(trace_results, html_file)
+    print '\nWrote file://%s\n' % result
+    trace_files = [html_file]
+  if compress and len(trace_files) == 1:
+    result = output or trace_files[0] + '.gz'
+    util.CompressFile(trace_files[0], result)
+  elif len(trace_files) > 1:
+    result = (output or 'chrome-combined-trace-%s.zip' %
+              util.GetTraceTimestamp())
+    util.ArchiveFiles(trace_files, result)
+  elif output:
+    result = output
+    shutil.move(trace_files[0], result)
+  else:
+    result = trace_files[0]
+
   return result
+
+
+def _PrepareTracesForOutput(trace_files):
+  trace_results = []
+  for trace_file in trace_files:
+    trace_name = trace_file.split('-')[0]
+    with open(trace_file, 'r') as f:
+      trace_data = f.read()
+      trace_results.append(trace_result.TraceResult(trace_name, trace_data))
+  return trace_results
 
 
 def GetSupportedBrowsers():
@@ -69,12 +97,12 @@ def CaptureProfile(controllers, interval, output=None, compress=False,
   try:
     _StartTracing(controllers, interval)
     if interval:
-      ui.PrintMessage('Capturing %d-second %s. Press Enter to stop early...' % \
-          (interval, trace_type), eol='')
+      ui.PrintMessage(('Capturing %d-second %s. Press Enter to stop early...' %
+                      (interval, trace_type)), eol='')
       ui.WaitForEnter(interval)
     else:
-      ui.PrintMessage('Capturing %s. Press Enter to stop...' % \
-          trace_type, eol='')
+      ui.PrintMessage('Capturing %s. Press Enter to stop...' % trace_type,
+                      eol='')
       raw_input()
   finally:
     _StopTracing(controllers)

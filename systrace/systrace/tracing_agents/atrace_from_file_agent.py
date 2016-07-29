@@ -1,5 +1,4 @@
-
-# Copyright (c) 2016 The Chromium Authors. All rights reserved.
+# Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -8,13 +7,16 @@ import re
 
 from devil.utils import cmd_helper
 
+from systrace import trace_result
 from systrace import tracing_agents
 from systrace.tracing_agents import atrace_agent
+
 
 # ADB sends this text to indicate the beginning of the trace data.
 TRACE_START_REGEXP = r'TRACE\:'
 # Text that ADB sends, but does not need to be displayed to the user.
 ADB_IGNORE_REGEXP = r'^capturing trace\.\.\. done|^capturing trace\.\.\.'
+
 
 def try_create_agent(options):
   if options.from_file is not None:
@@ -45,7 +47,7 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
-    return tracing_agents.TraceResult('trace-data', self._trace_data)
+    return trace_result.TraceResult('trace-data', self._trace_data)
 
   def _read_trace_data(self):
     result = cmd_helper.GetCmdOutput(['cat', self._filename])

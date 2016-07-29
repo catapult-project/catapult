@@ -5,6 +5,8 @@
 import os
 import sys
 
+
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..')
 sys.path.append(os.path.join(_CATAPULT_DIR, 'devil'))
+sys.path.append(os.path.join(_CATAPULT_DIR, 'systrace'))
