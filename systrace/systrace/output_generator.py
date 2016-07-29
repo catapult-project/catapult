@@ -36,7 +36,7 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   except ImportError:
     pass
   else:
-    update_systrace_trace_viewer.update(systrace_dir)
+    update_systrace_trace_viewer.update()
 
   trace_viewer_html = _ReadAsset(systrace_dir, 'systrace_trace_viewer.html')
 

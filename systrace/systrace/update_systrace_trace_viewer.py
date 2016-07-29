@@ -18,7 +18,9 @@ sys.path.append(os.path.join(_CATAPULT_PATH, 'tracing'))
 from tracing_build import vulcanize_trace_viewer
 
 
-SYSTRACE_TRACE_VIEWER_HTML_FILE_ = 'systrace_trace_viewer.html'
+SYSTRACE_TRACE_VIEWER_HTML_FILE_ = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)),
+    'systrace_trace_viewer.html')
 CATAPULT_REV_ = 'CATAPULT_REV'
 NO_AUTO_UPDATE_ = 'NO_AUTO_UPDATE'
 
@@ -53,7 +55,7 @@ def get_catapult_rev_in_git_():
     return catapult_rev
 
 
-def update(script_dir, no_auto_update=False, no_min=False):
+def update(no_auto_update=False, no_min=False):
   """Update the systrace trace viewer html file.
 
   When the html file exists, do not update the file if
@@ -71,17 +73,20 @@ def update(script_dir, no_auto_update=False, no_min=False):
     new_rev = NO_AUTO_UPDATE_
   else:
     new_rev = get_catapult_rev_in_git_()
+    if not new_rev:
+      return
 
-    viewer_file = os.path.join(script_dir, SYSTRACE_TRACE_VIEWER_HTML_FILE_)
-    if os.path.exists(viewer_file):
-      rev_in_file = get_catapult_rev_in_file_(viewer_file)
+    if os.path.exists(SYSTRACE_TRACE_VIEWER_HTML_FILE_):
+      rev_in_file = get_catapult_rev_in_file_(SYSTRACE_TRACE_VIEWER_HTML_FILE_)
       if rev_in_file == NO_AUTO_UPDATE_ or rev_in_file == new_rev:
         return
 
-  print 'Generating viewer file %s with revision %s.' % (viewer_file, new_rev)
+  print 'Generating viewer file %s with revision %s.' % (
+            SYSTRACE_TRACE_VIEWER_HTML_FILE_, new_rev)
 
   # Generate the vulcanized result.
-  with codecs.open(viewer_file, encoding='utf-8', mode='w') as f:
+  with codecs.open(SYSTRACE_TRACE_VIEWER_HTML_FILE_,
+                   encoding='utf-8', mode='w') as f:
     vulcanize_trace_viewer.WriteTraceViewer(
         f,
         config_name='full',
@@ -100,6 +105,8 @@ def main():
                     action='store_true', help='skip minification')
   # pylint: disable=unused-variable
   options, unused_args = parser.parse_args(sys.argv[1:])
+
+  update(no_auto_update=options.no_auto_update, no_min=options.no_min)
 
 if __name__ == '__main__':
   main()
