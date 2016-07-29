@@ -59,19 +59,7 @@ def construct_adb_shell_command(shell_args, device_serial):
   return adb_command
 
 
-def run_adb_shell(shell_args, device_serial):
-  """Runs "adb shell" with the given arguments.
-
-  Args:
-    shell_args: array of arguments to pass to adb shell.
-    device_serial: if not empty, will add the appropriate command-line
-        parameters so that adb targets the given device.
-  Returns:
-    A tuple containing the adb output (stdout & stderr) and the return code
-    from adb.  Will exit if adb fails to start.
-  """
-  adb_command = construct_adb_shell_command(shell_args, device_serial)
-
+def run_adb_command(adb_command):
   adb_output = []
   adb_return_code = 0
   try:
@@ -91,6 +79,21 @@ def run_adb_shell(shell_args, device_serial):
     adb_output = error.output
 
   return (adb_output, adb_return_code)
+
+
+def run_adb_shell(shell_args, device_serial):
+  """Runs "adb shell" with the given arguments.
+
+  Args:
+    shell_args: array of arguments to pass to adb shell.
+    device_serial: if not empty, will add the appropriate command-line
+        parameters so that adb targets the given device.
+  Returns:
+    A tuple containing the adb output (stdout & stderr) and the return code
+    from adb.  Will exit if adb fails to start.
+  """
+  adb_command = construct_adb_shell_command(shell_args, device_serial)
+  return run_adb_command(adb_command)
 
 
 def get_device_sdk_version():
@@ -128,10 +131,20 @@ def get_device_sdk_version():
           success = True
 
   if not success:
-    print >> sys.stderr, (
-        '\nThe command "%s" failed with the following message:'
-        % ' '.join(getprop_args))
-    print >> sys.stderr, adb_output
     sys.exit(1)
 
   return version
+
+def get_device_serials():
+  """Get the serial numbers of devices connected via adb.
+
+  Only gets serial numbers of "active" devices (e.g. does not get serial
+  numbers of devices which have not been authorized.)
+  """
+
+  adb_output, adb_return_code = run_adb_command(['adb', 'devices'])
+  if adb_return_code == 0:
+    lines = [x.split() for x in adb_output.splitlines()[1:-1]]
+    return [x[0] for x in lines if x[1] == 'device']
+  else:
+    sys.exit(1)

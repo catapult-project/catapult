@@ -37,8 +37,8 @@ if _DEVIL_DIR not in sys.path:
 if _SYSTRACE_DIR not in sys.path:
   sys.path.insert(0, _SYSTRACE_DIR)
 
-from devil.utils import cmd_helper
 from systrace import systrace_runner
+from systrace import util
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import ftrace_agent
 
@@ -137,22 +137,12 @@ def parse_options(argv):
 
   return (options, categories)
 
-def get_device_serials():
-  """Get the serial numbers of devices connected via adb.
-
-  Only gets serial numbers of "active" devices (e.g. does not get serial
-  numbers of devices which have not been authorized.)
-  """
-  cmdout = cmd_helper.GetCmdOutput(['adb', 'devices'])
-  lines = [x.split() for x in cmdout.splitlines()[1:-1]]
-  return [x[0] for x in lines if x[1] == 'device']
-
 def main():
   # Parse the command line options.
   options, categories = parse_options(sys.argv)
 
   if options.target == 'android' and not options.device_serial_number:
-    devices = get_device_serials()
+    devices = util.get_device_serials()
     if len(devices) == 0:
       raise RuntimeError('No ADB devices connected.')
     elif len(devices) >= 2:
