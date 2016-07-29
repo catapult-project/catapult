@@ -77,7 +77,7 @@ _CATAPULT_TESTS = [
     },
     {
         'name': 'Devil Device Tests',
-        'path': 'devil/devil/android/device_utils_devicetest.py',
+        'path': 'devil/bin/run_py_devicetests',
         'disabled': ['win', 'mac', 'linux']
     },
     {

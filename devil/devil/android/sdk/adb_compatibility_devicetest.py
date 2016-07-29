@@ -21,11 +21,7 @@ from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
 from devil.utils import timeout_retry
 
-with devil_env.SysPath(os.path.join(_CATAPULT_BASE_DIR, 'third_party', 'mock')):
-  import mock # pylint: disable=import-error
 
-
-_ADB_PATH = os.environ.get('ADB_PATH', 'adb')
 _TEST_DATA_DIR = os.path.abspath(os.path.join(
     os.path.dirname(__file__), 'test', 'data'))
 
@@ -41,11 +37,26 @@ def _hostAdbPids():
           if name == 'adb']
 
 
-@mock.patch('devil.android.sdk.adb_wrapper.AdbWrapper.GetAdbPath',
-            return_value=_ADB_PATH)
 class AdbCompatibilityTest(unittest.TestCase):
 
-  def testStartServer(self, *_args):
+  @classmethod
+  def setUpClass(cls):
+    custom_adb_path = os.environ.get('ADB_PATH')
+    custom_deps = {
+      'config_type': 'BaseConfig',
+      'dependencies': {},
+    }
+    if custom_adb_path:
+      custom_deps['dependencies']['adb'] = {
+        'file_info': {
+          devil_env.GetPlatform(): {
+            'local_paths': [custom_adb_path],
+          },
+        },
+      }
+    devil_env.config.Initialize(configs=[custom_deps])
+
+  def testStartServer(self):
     # Manually kill off any instances of adb.
     adb_pids = _hostAdbPids()
     for p in adb_pids:
@@ -57,7 +68,7 @@ class AdbCompatibilityTest(unittest.TestCase):
 
     # start the adb server
     start_server_status, _ = cmd_helper.GetCmdStatusAndOutput(
-        [_ADB_PATH, 'start-server'])
+        [adb_wrapper.AdbWrapper.GetAdbPath(), 'start-server'])
 
     # verify that the server is now online
     self.assertEquals(0, start_server_status)
@@ -65,7 +76,7 @@ class AdbCompatibilityTest(unittest.TestCase):
         timeout_retry.WaitFor(
             lambda: bool(_hostAdbPids()), wait_period=0.1, max_tries=10))
 
-  def testKillServer(self, *_args):
+  def testKillServer(self):
     adb_pids = _hostAdbPids()
     if not adb_pids:
       adb_wrapper.AdbWrapper.StartServer()
@@ -74,13 +85,13 @@ class AdbCompatibilityTest(unittest.TestCase):
     self.assertEqual(1, len(adb_pids))
 
     kill_server_status, _ = cmd_helper.GetCmdStatusAndOutput(
-        [_ADB_PATH, 'kill-server'])
+        [adb_wrapper.AdbWrapper.GetAdbPath(), 'kill-server'])
     self.assertEqual(0, kill_server_status)
 
     adb_pids = _hostAdbPids()
     self.assertEqual(0, len(adb_pids))
 
-  def testDevices(self, *_args):
+  def testDevices(self):
     devices = adb_wrapper.AdbWrapper.Devices()
     self.assertNotEqual(0, len(devices), 'No devices found.')
 
@@ -91,18 +102,18 @@ class AdbCompatibilityTest(unittest.TestCase):
       self.skipTest('No test device available.')
     return adb_wrapper.AdbWrapper(devices[0])
 
-  def testShell(self, *_args):
+  def testShell(self):
     under_test = self.getTestInstance()
     shell_ls_result = under_test.Shell('ls')
     self.assertIsInstance(shell_ls_result, str)
     self.assertTrue(bool(shell_ls_result))
 
-  def testShell_failed(self, *_args):
+  def testShell_failed(self):
     under_test = self.getTestInstance()
     with self.assertRaises(device_errors.AdbShellCommandFailedError):
       under_test.Shell('ls /foo/bar/baz')
 
-  def testShell_externalStorageDefined(self, *_args):
+  def testShell_externalStorageDefined(self):
     under_test = self.getTestInstance()
     external_storage = under_test.Shell('echo $EXTERNAL_STORAGE')
     self.assertIsInstance(external_storage, str)
@@ -128,7 +139,7 @@ class AdbCompatibilityTest(unittest.TestCase):
     finally:
       under_test.Shell('rm -rf %s' % path)
 
-  def testPush_fileToFile(self, *_args):
+  def testPush_fileToFile(self):
     under_test = self.getTestInstance()
     with self.getTestPushDestination(under_test) as push_target_directory:
       src = os.path.join(_TEST_DATA_DIR, 'push_file.txt')
@@ -138,7 +149,7 @@ class AdbCompatibilityTest(unittest.TestCase):
       under_test.Push(src, dest)
       self.assertEquals(dest, under_test.Shell('ls %s' % dest).strip())
 
-  def testPush_fileToDirectory(self, *_args):
+  def testPush_fileToDirectory(self):
     under_test = self.getTestInstance()
     with self.getTestPushDestination(under_test) as push_target_directory:
       src = os.path.join(_TEST_DATA_DIR, 'push_file.txt')
@@ -151,7 +162,7 @@ class AdbCompatibilityTest(unittest.TestCase):
           resulting_file,
           under_test.Shell('ls %s' % resulting_file).strip())
 
-  def testPush_directoryToDirectory(self, *_args):
+  def testPush_directoryToDirectory(self):
     under_test = self.getTestInstance()
     with self.getTestPushDestination(under_test) as push_target_directory:
       src = os.path.join(_TEST_DATA_DIR, 'push_directory')
@@ -163,7 +174,7 @@ class AdbCompatibilityTest(unittest.TestCase):
           sorted(os.listdir(src)),
           sorted(under_test.Shell('ls %s' % dest).strip().split()))
 
-  def testPush_directoryToExistingDirectory(self, *_args):
+  def testPush_directoryToExistingDirectory(self):
     under_test = self.getTestInstance()
     with self.getTestPushDestination(under_test) as push_target_directory:
       src = os.path.join(_TEST_DATA_DIR, 'push_directory')
@@ -204,7 +215,7 @@ class AdbCompatibilityTest(unittest.TestCase):
   def tearDownClass(cls):
     print
     print
-    print 'tested %s' % _ADB_PATH
+    print 'tested %s' % adb_wrapper.AdbWrapper.GetAdbPath()
     print '  %s' % adb_wrapper.AdbWrapper.Version()
     print 'connected devices:'
     try:

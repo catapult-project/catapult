@@ -46,10 +46,11 @@ class TestAdbWrapper(unittest.TestCase):
     with self.assertRaises(device_errors.AdbCommandFailedError):
       self._adb.Shell('echo test', expect_status=1)
 
+  @unittest.skip("https://github.com/catapult-project/catapult/issues/2574")
   def testPersistentShell(self):
     # We need to access the device serial number here in order
     # to create the persistent shell.
-    serial = self._adb.device_serial # pylint: disable=protected-access
+    serial = self._adb.GetDeviceSerial() # pylint: disable=protected-access
     with self._adb.PersistentShell(serial) as pshell:
       (res1, code1) = pshell.RunCommand('echo TEST')
       (res2, code2) = pshell.RunCommand('echo TEST2')
