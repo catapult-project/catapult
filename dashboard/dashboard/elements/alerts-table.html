@@ -1091,7 +1091,7 @@ found in the LICENSE file.
               this.setAlertList(index, 'selected', false);
             }
           }
-        });
+        }.bind(this));
         this.onCheckboxChange();
         this.updateBugColumn();
       },
