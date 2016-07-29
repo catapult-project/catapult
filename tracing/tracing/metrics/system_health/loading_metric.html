@@ -17,6 +17,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
+  var RESPONSIVENESS_THRESHOLD = 50;
+  var INTERACTIVE_WINDOW_SIZE = 5 * 1000;
   var timeDurationInMs_smallerIsBetter =
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
 
@@ -310,9 +312,45 @@ tr.exportTo('tr.metrics.sh', function() {
         BLOCK_FIRST_MEANINGFUL_PAINT_IF_BLANK_CHARACTERS_MORE_THAN;
   }
 
+  function addTimeToInteractiveSampleToHistogram(histogram, rendererHelper,
+    navigationStartTime, firstMeaningfulPaint, url) {
+    if (shouldIgnoreURL(url))
+      return;
+    var firstInteractive = Infinity;
+    var firstInteractiveCandidate = firstMeaningfulPaint;
+    // Find the first interactive point X after firstMeaningfulPaint so that
+    // range [X, X + INTERACTIVE_WINDOW_SIZE] contains no
+    // 'TaskQueueManager::ProcessTaskFromWorkQueues' slice which takes more than
+    // RESPONSIVENESS_THRESHOLD.
+    // For more details on why TaskQueueManager::ProcessTaskFromWorkQueue is
+    // chosen as a proxy for all un-interruptable task on renderer thread, see
+    // https://github.com/GoogleChrome/lighthouse/issues/489
+    // TODO(nedn): replace this with just "var ev of rendererHelper..." once
+    // canary binary is updated.
+    // (https://github.com/catapult-project/catapult/issues/2586)
+    for (var ev of[...rendererHelper.mainThread.sliceGroup.childEvents()]) {
+      if (ev.start < firstInteractiveCandidate)
+        continue;
+      var interactiveDurationSoFar = ev.start - firstInteractiveCandidate;
+      if (interactiveDurationSoFar >= INTERACTIVE_WINDOW_SIZE) {
+        firstInteractive = firstInteractiveCandidate;
+        break;
+      }
+      if (ev.title === 'TaskQueueManager::ProcessTaskFromWorkQueue' &&
+          ev.duration > RESPONSIVENESS_THRESHOLD) {
+        firstInteractiveCandidate = ev.end - 50;
+      }
+    }
+    var diagnosticDict = rendererHelper.generateTimeBreakdownTree(
+        navigationStartTime, firstInteractive);
+    diagnosticDict.url = url;
+    var timeToFirstInteractive = firstInteractive - navigationStartTime;
+    histogram.add(timeToFirstInteractive, new tr.v.d.Generic(diagnosticDict));
+  }
+
   /**
-   * Computes Time to first meaningful paint (TTFMP) from |model| and add it to
-   * |value|.
+   * Computes Time to first meaningful paint (TTFMP) & time to interactive (TTI)
+   * from |model| and add it to |value|.
    *
    * TTFMP is computed from three types of events: NavigationStart, Layout, and
    * Paint. Each Layout event has associated "significance" value, indicating
@@ -322,14 +360,22 @@ tr.exportTo('tr.metrics.sh', function() {
    * with biggest significance value.
    *
    * Design doc: https://goo.gl/vpaxv6
+   *
+   * TTI is computed as the starting time of the timed window with size
+   * INTERACTIVE_WINDOW_SIZE that happens after FMP in which there is no
+   * uninterruptable task on the main thread with size more than
+   * RESPONSIVENESS_THRESHOLD.
+   *
+   * Design doc: https://goo.gl/ISWndc
    */
-  function firstMeaningfulPaintMetric(values, model) {
+  function firstMeaningfulPaintAndTimeToInteractiveMetrics(values, model) {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var rendererHelper = findTargetRendererHelper(chromeHelper);
     var navigationStartFinder = new NavigationStartFinder(rendererHelper);
     var paintFinder = new PaintFinder(rendererHelper);
     var firstMeaningfulPaintHistogram = createHistogram();
+    var firstInteractiveHistogram = createHistogram();
 
     function addFirstMeaningfulPaintSampleToHistogram(
         frameIdRef, navigationStart, mostSignificantLayout) {
@@ -353,6 +399,7 @@ tr.exportTo('tr.metrics.sh', function() {
       diagnosticDict.url = url;
       firstMeaningfulPaintHistogram.add(timeToFirstMeaningfulPaint,
           new tr.v.d.Generic(diagnosticDict));
+      return {firstMeaningfulPaint: paintEvent.start, url: url};
     }
 
     var layoutsForFrameId = findAllLayoutEvents(rendererHelper);
@@ -403,19 +450,28 @@ tr.exportTo('tr.metrics.sh', function() {
       }
 
       // Emit TTFMP for the last navigation.
-      if (mostSignificantLayout !== undefined)
-        addFirstMeaningfulPaintSampleToHistogram(
-            frameIdRef, navigationStart, mostSignificantLayout);
+      if (mostSignificantLayout !== undefined) {
+        var data = addFirstMeaningfulPaintSampleToHistogram(
+          frameIdRef, navigationStart, mostSignificantLayout);
+
+        if (data !== undefined)
+          addTimeToInteractiveSampleToHistogram(
+              firstInteractiveHistogram, rendererHelper, navigationStart.start,
+              data.firstMeaningfulPaint, data.url);
+      }
     }
 
     values.addValue(new tr.v.NumericValue(
         'firstMeaningfulPaint', firstMeaningfulPaintHistogram,
         { description: 'time to first meaningful paint' }));
+    values.addValue(new tr.v.NumericValue(
+        'timeToFirstInteractive', firstInteractiveHistogram,
+        { description: 'time to first interactive' }));
   }
 
   function loadingMetric(values, model) {
     firstContentfulPaintMetric(values, model);
-    firstMeaningfulPaintMetric(values, model);
+    firstMeaningfulPaintAndTimeToInteractiveMetrics(values, model);
   }
 
   tr.metrics.MetricRegistry.register(loadingMetric);
