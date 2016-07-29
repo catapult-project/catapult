@@ -65,12 +65,14 @@ class TraceDataTest(unittest.TestCase):
   def testListForm(self):
     d = trace_data.TraceData([{'ph': 'B'}])
     self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
-    self.assertEquals(1, len(d.GetTraceFor(trace_data.CHROME_TRACE_PART)))
+    events = d.GetTraceFor(trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertEquals(1, len(events))
 
   def testStringForm(self):
     d = trace_data.TraceData('[{"ph": "B"}]')
     self.assertTrue(d.HasTraceFor(trace_data.CHROME_TRACE_PART))
-    self.assertEquals(1, len(d.GetTraceFor(trace_data.CHROME_TRACE_PART)))
+    events = d.GetTraceFor(trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertEquals(1, len(events))
 
   def testStringForm2(self):
     d = trace_data.TraceData('{"inspectorTimelineEvents": [1]}')

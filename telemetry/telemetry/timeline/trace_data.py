@@ -102,7 +102,9 @@ class TraceData(object):
     elif isinstance(json_data, list):
       if len(json_data) == 0:
         self._raw_data = {}
-      self._raw_data = {CHROME_TRACE_PART.raw_field_name: json_data}
+      self._raw_data = {CHROME_TRACE_PART.raw_field_name: {
+        'traceEvents': json_data
+      }}
     else:
       raise Exception('Unrecognized data format.')
 
@@ -199,8 +201,12 @@ class TraceDataBuilder(object):
     assert isinstance(events, list)
     if self._raw_data == None:
       raise Exception('Already called AsData() on this builder.')
-
-    self._raw_data.setdefault(part.raw_field_name, []).extend(events)
+    if part == CHROME_TRACE_PART:
+      target_events = self._raw_data.setdefault(
+          part.raw_field_name, {}).setdefault('traceEvents', [])
+    else:
+      target_events = self._raw_data.setdefault(part.raw_field_name, [])
+    target_events.extend(events)
 
   def SetTraceFor(self, part, trace):
     assert isinstance(part, TraceDataPart)
@@ -215,6 +221,12 @@ class TraceDataBuilder(object):
       raise Exception('Trace part %s is already set.' % part.raw_field_name)
 
     self._raw_data[part.raw_field_name] = trace
+
+  def SetMetadataFor(self, part, metadata):
+    if part != CHROME_TRACE_PART:
+      raise Exception('Metadata are only supported for %s'
+                      % CHROME_TRACE_PART.raw_field_name)
+    self._raw_data.setdefault(part.raw_field_name, {})['metadata'] = metadata
 
   def HasTraceFor(self, part):
     return _HasTraceFor(part, self._raw_data)

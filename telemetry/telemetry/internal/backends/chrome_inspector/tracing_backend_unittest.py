@@ -68,7 +68,8 @@ class TracingBackendTest(tab_test_case.TabTestCase):
 
     # Check that clock sync data is in tracing data.
     clock_sync_found = False
-    for event in tracing_data.GetTraceFor(trace_data.CHROME_TRACE_PART):
+    trace = tracing_data.GetTraceFor(trace_data.CHROME_TRACE_PART)
+    for event in trace['traceEvents']:
       if event['name'] == 'clock_sync' or 'ClockSyncEvent' in event['name']:
         clock_sync_found = True
         break
@@ -128,11 +129,14 @@ class TracingBackendUnitTest(unittest.TestCase):
     self._inspector_socket.AddEvent('Tracing.tracingComplete', {}, 35)
     backend = tracing_backend.TracingBackend(self._inspector_socket)
 
+    trace_data_builder = trace_data.TraceDataBuilder()
     # The third response is 16 seconds after the second response, so we expect
     # a TracingTimeoutException.
     with self.assertRaises(tracing_backend.TracingTimeoutException):
-      backend._CollectTracingData(10)
-    self.assertEqual(2, len(backend._trace_events))
+      backend._CollectTracingData(trace_data_builder, 10)
+    trace_events = trace_data_builder.AsData().GetTraceFor(
+        trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertEqual(2, len(trace_events))
     self.assertFalse(backend._has_received_all_tracing_data)
 
   def testCollectTracingDataNoTimeout(self):
@@ -142,12 +146,14 @@ class TracingBackendUnitTest(unittest.TestCase):
         'Tracing.dataCollected', {'value': [{'ph': 'E'}]}, 14)
     self._inspector_socket.AddEvent('Tracing.tracingComplete', {}, 19)
     backend = tracing_backend.TracingBackend(self._inspector_socket)
-
-    backend._CollectTracingData(10)
-    self.assertEqual(2, len(backend._trace_events))
+    trace_data_builder = trace_data.TraceDataBuilder()
+    backend._CollectTracingData(trace_data_builder, 10)
+    trace_events = trace_data_builder.AsData().GetTraceFor(
+        trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertEqual(2, len(trace_events))
     self.assertTrue(backend._has_received_all_tracing_data)
 
-  def testCollectTracingDataFromStream(self):
+  def testCollectTracingDataFromStreamNoContainer(self):
     self._inspector_socket.AddEvent(
         'Tracing.tracingComplete', {'stream': '42'}, 1)
     self._inspector_socket.AddAsyncResponse(
@@ -155,9 +161,30 @@ class TracingBackendUnitTest(unittest.TestCase):
     self._inspector_socket.AddAsyncResponse(
         'IO.read', {'data': '},{},{}]', 'eof': True}, 3)
     backend = tracing_backend.TracingBackend(self._inspector_socket)
+    trace_data_builder = trace_data.TraceDataBuilder()
+    backend._CollectTracingData(trace_data_builder, 10)
+    trace_events = trace_data_builder.AsData().GetTraceFor(
+        trace_data.CHROME_TRACE_PART).get('traceEvents', [])
+    self.assertEqual(5, len(trace_events))
+    self.assertTrue(backend._has_received_all_tracing_data)
 
-    backend._CollectTracingData(10)
-    self.assertEqual(5, len(backend._trace_events))
+  def testCollectTracingDataFromStreamJSONContainer(self):
+    self._inspector_socket.AddEvent(
+        'Tracing.tracingComplete', {'stream': '42'}, 1)
+    self._inspector_socket.AddAsyncResponse(
+        'IO.read', {'data': '{"traceEvents": [{},{},{}],'}, 2)
+    self._inspector_socket.AddAsyncResponse(
+        'IO.read', {'data': '"metadata": {"a": "b"}'}, 3)
+    self._inspector_socket.AddAsyncResponse(
+        'IO.read', {'data': '}', 'eof': True}, 4)
+    backend = tracing_backend.TracingBackend(self._inspector_socket)
+    trace_data_builder = trace_data.TraceDataBuilder()
+    backend._CollectTracingData(trace_data_builder, 10)
+    data = trace_data_builder.AsData()
+    chrome_trace = data.GetTraceFor(trace_data.CHROME_TRACE_PART)
+
+    self.assertEqual(3, len(chrome_trace.get('traceEvents', [])))
+    self.assertEqual(dict, type(chrome_trace.get('metadata')))
     self.assertTrue(backend._has_received_all_tracing_data)
 
   def testDumpMemorySuccess(self):
