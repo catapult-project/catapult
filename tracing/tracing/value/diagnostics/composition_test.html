@@ -25,13 +25,13 @@ tr.b.unittest.testSuite(function() {
     var events = new tr.model.EventSet([
       {
         guid: 9,
-        title: 'EvaluateScript',
+        title: 'V8.Execute',
         cpuSelfTime: 1,
         stableId: '11.11'
       },
       {
         guid: 10,
-        title: 'EvaluateScript',
+        title: 'V8.Execute',
         cpuSelfTime: 2,
         stableId: '22.22'
       },
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(composition.values, 2);
     var scriptValue = values.getValuesWithName('foo-script')[0];
     assert.instanceOf(scriptValue, tr.v.NumericValue);
-    assert.strictEqual(scriptValue, composition.get('script'));
+    assert.strictEqual(scriptValue, composition.get('script_execute'));
     assert.lengthOf(scriptValue.numeric.centralBins[1].diagnostics, 1);
     assert.lengthOf(
         scriptValue.numeric.centralBins[1].diagnostics[0].events, 1);

@@ -21,12 +21,12 @@ tr.b.unittest.testSuite(function() {
 
     // Our main thread looks like:
     //
-    //      [      parseHTML     ]    [  layout   ]      [      script        ]
-    //      |   [   script  ]    |    |           |      |     [ layout ]     |
-    //      |   |   [Exec]  |    |    |           |      |     |        |     |
-    //      |   |   |    |  |    |    |           |      |     |        |     |
-    //      v   v   v    v  v    v    v           v      v     v        v     v
-    // Ts: 200  250 270 290 300  400  450         550    570   600     620  650
+    //      [      parseHTML     ]    [  layout   ]      [      V8.Exec       ]
+    //      |   [  V8.Exec  ]    |    |           |      |     [ layout ]     |
+    //      |   |           |    |    |           |      |     |        |     |
+    //      |   |           |    |    |           |      |     |        |     |
+    //      v   v           v    v    v           v      v     v        v     v
+    // Ts: 200  250         300  400  450         550    570   600     620  650
 
     // Add layout categories
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -46,8 +46,8 @@ tr.b.unittest.testSuite(function() {
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'v8',
       title: 'V8.Execute',
-      start: 270,
-      duration: 20,
+      start: 250,
+      duration: 50,
       args: {'runtime-call-stat': '{"ICMiss": [3, 150], "GC": [10, 60]}'},
     }));
 
@@ -59,10 +59,11 @@ tr.b.unittest.testSuite(function() {
     }));
 
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-      cat: 'devtools.timeline',
-      title: 'EvaluateScript',
+      cat: 'v8',
+      title: 'V8.Execute',
       start: 570,
       duration: 80,
+      args: {'runtime-call-stat': '{"DeOptimize": [1, 42], "GC": [3, 50]}'},
     }));
     mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
       cat: 'blink',
@@ -95,15 +96,15 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual({
       total: 110,
       events: {
-        'EvaluateScript': 60,
-        'Script': 30,
-        'V8.Execute': 20,
+        'V8.Execute': 110,
       }
-    }, breakdownTree['script']);
+    }, breakdownTree['script_execute']);
+    console.log(breakdownTree['v8_runtime']);
     assert.deepEqual({
-      total: 0.21,
+      total: 0.302,
       events: {
-        'GC': 0.06,
+        'DeOptimize': 0.042,
+        'GC': 0.11,
         'ICMiss': 0.15,
       }
     }, breakdownTree['v8_runtime']);
@@ -113,12 +114,12 @@ tr.b.unittest.testSuite(function() {
 
     // Our main thread looks like:
     //
-    //      [      parseHTML     ]    [  layout   ]      [      script        ]
-    //      |   [   script  ]    |    |           |      |     [ layout ]     |
-    //      |   |   [Exec]  |    |    |           |      |     |        |     |
-    //      |   |   |    |  |    |    |           |      |     |        |     |
-    //      v   v   v    v  v    v    v           v      v     v        v     v
-    // Ts: 200  250 270 290 300  400  450         550    570   600     620  650
+    //      [      parseHTML     ]    [  layout   ]      [      V8.Exec       ]
+    //      |   [  V8.Exec  ]    |    |           |      |     [ layout ]     |
+    //      |   |           |    |    |           |      |     |        |     |
+    //      |   |           |    |    |           |      |     |        |     |
+    //      v   v           v    v    v           v      v     v        v     v
+    // Ts: 200  250         300  400  450         550    570   600     620  650
     //                |                                           |
     //               275                                         610
 
@@ -137,18 +138,18 @@ tr.b.unittest.testSuite(function() {
       }
     }, breakdownTree['layout']);
     assert.deepEqual({
-      total: 60,
+      total: 55,
       events: {
-        'EvaluateScript': 30,
-        'Script': 15,
-        'V8.Execute': 15,
+        'V8.Execute': 55,
       }
-    }, breakdownTree['script']);
+    }, breakdownTree['script_execute']);
+    console.log(breakdownTree['v8_runtime']);
     assert.deepEqual({
-      total: 0.1575,
+      total: 0.151,
       events: {
-        'GC': 0.045,
-        'ICMiss': 0.1125,
+        'DeOptimize': 0.021,
+        'GC': 0.055,
+        'ICMiss': 0.075,
       }
     }, breakdownTree['v8_runtime']);
   });

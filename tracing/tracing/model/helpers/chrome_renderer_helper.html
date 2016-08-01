@@ -110,29 +110,27 @@ tr.exportTo('tr.model.helpers', function() {
             range.findExplicitIntersectionDuration(event.start, event.end) /
             event.duration;
         }
-        if (event.title === 'V8.Execute') {
-          var v8_runtime = event.args['runtime-call-stat'];
-          if (v8_runtime !== undefined) {
-            try {
-              var v8_runtime_object = JSON.parse(v8_runtime);
-              for (var runtime_call in v8_runtime_object) {
-                if (v8_runtime_object[runtime_call].length == 2) {
-                  if (breakdownMap['v8_runtime'].events[runtime_call] ===
-                      undefined) {
-                    breakdownMap['v8_runtime'].events[runtime_call] = 0;
-                  }
-                  // V8 Runtime Call Stats data is in us, while the
-                  // breakdown tree timing is in ms.
-                  var runtime_time = v8_runtime_object[runtime_call][1] *
-                                     wallTimeIntersectionRatio / 1000;
-                  breakdownMap['v8_runtime'].total += runtime_time;
-                  breakdownMap['v8_runtime'].events[runtime_call] +=
-                      runtime_time;
+        var v8_runtime = event.args['runtime-call-stat'];
+        if (v8_runtime !== undefined) {
+          try {
+            var v8_runtime_object = JSON.parse(v8_runtime);
+            for (var runtime_call in v8_runtime_object) {
+              if (v8_runtime_object[runtime_call].length == 2) {
+                if (breakdownMap['v8_runtime'].events[runtime_call] ===
+                    undefined) {
+                  breakdownMap['v8_runtime'].events[runtime_call] = 0;
                 }
+                // V8 Runtime Call Stats data is in us, while the
+                // breakdown tree timing is in ms.
+                var runtime_time = v8_runtime_object[runtime_call][1] *
+                                   wallTimeIntersectionRatio / 1000;
+                breakdownMap['v8_runtime'].total += runtime_time;
+                breakdownMap['v8_runtime'].events[runtime_call] +=
+                     runtime_time;
               }
-            } catch (e) {
-               console.warn(e);
             }
+          } catch (e) {
+             console.warn(e);
           }
         }
         //        [     Slice 1       ]   [      Slice  2   ]   [    Slice 3   ]

@@ -92,18 +92,6 @@ tr.exportTo('tr.e.chrome', function() {
       'RenderLayer::updateLayerPositionsAfterLayout'
     ],
 
-    script: [
-      'EvaluateScript',
-      'FunctionCall',
-      'ScheduledAction::execute',
-      'Script',
-      'V8.Execute',
-      'v8.run',
-      'v8.callModuleMethod',
-      'v8.callFunction',
-      'WindowProxy::initialize'
-    ],
-
     style: [
       'CSSParserImpl::parseStyleSheet.parse',
       'CSSParserImpl::parseStyleSheet.tokenize',
@@ -118,27 +106,13 @@ tr.exportTo('tr.e.chrome', function() {
     ],
 
     script_parse_and_compile: [
-      'V8.RecompileSynchronous',
-      'V8.RecompileConcurrent',
-      'V8.PreParseMicroSeconds',
       'v8.parseOnBackground',
-      'V8.ParseMicroSeconds',
-      'V8.ParseLazyMicroSeconds',
-      'V8.CompileScriptMicroSeconds',
-      'V8.CompileMicroSeconds',
-      'V8.CompileFullCode',
-      'V8.CompileEvalMicroSeconds',
-      'v8.compile'
+      'V8.ScriptCompiler'
     ],
 
-    script_parse: [
-      'V8Test.ParseScript',
-      'V8Test.ParseFunction',
-    ],
-
-    script_compile: [
-      'V8Test.Compile',
-      'V8Test.CompileFullCode',
+    script_execute: [
+      'V8.Execute',
+      'WindowProxy::initialize'
     ],
 
     resource_loading: [
