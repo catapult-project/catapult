@@ -12,5 +12,38 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var ColorScheme = tr.b.ColorScheme;
+
+  function isValidColorId(colorId) {
+    return typeof(colorId) === 'number' &&
+        colorId >= 0 &&
+        colorId <= 200;
+  }
+
+  test('getColorIdForReservedName', function() {
+    assert.isTrue(isValidColorId(
+        ColorScheme.getColorIdForReservedName('black')));
+    assert.throws(ColorScheme.getColorIdForReservedName.bind(
+        undefined, 'NOT_A_RESERVED_NAME'));
+    assert.throws(ColorScheme.getColorIdForReservedName.bind(
+        undefined, 'constructor'));
+  });
+
+  test('getColorForReservedNameAsString', function() {
+    assert.equal('rgb(0,0,0)',
+        ColorScheme.getColorForReservedNameAsString('black'));
+    assert.throws(ColorScheme.getColorForReservedNameAsString.bind(
+        undefined, 'NOT_A_RESERVED_NAME'));
+    assert.throws(ColorScheme.getColorForReservedNameAsString.bind(
+        undefined, 'constructor'));
+  });
+
+  test('getColorIdForGeneralPurposeString', function() {
+    assert.isTrue(isValidColorId(
+        ColorScheme.getColorIdForGeneralPurposeString('black')));
+    assert.isTrue(isValidColorId(
+        ColorScheme.getColorIdForGeneralPurposeString('NOT_A_RESERVED_NAME')));
+    assert.isTrue(isValidColorId(
+        ColorScheme.getColorIdForGeneralPurposeString('constructor')));
+  });
 });
 </script>
