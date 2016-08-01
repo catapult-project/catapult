@@ -23,6 +23,18 @@ tr.b.unittest.testSuite(function() {
   var ScalarNumeric = tr.v.ScalarNumeric;
   var timeDurationInMs = tr.v.Unit.byName.timeDurationInMs;
 
+  test('constructorSliceName', function() {
+    // verify 'constructor' slice name doesn't break the auditor
+    var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
+      var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
+      renderThread.name = 'RenderThread';
+      renderThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'constructor', start: 200, duration: 5}));
+    }, tr.e.audits.AndroidAuditor);
+
+    assert.equal(model.alerts.length, 0);
+  });
+
   test('saveLayerAlert_badAlpha', function() {
     var model = tr.c.TestUtils.newModelWithAuditor(function(model) {
       var renderThread = model.getOrCreateProcess(1).getOrCreateThread(2);
