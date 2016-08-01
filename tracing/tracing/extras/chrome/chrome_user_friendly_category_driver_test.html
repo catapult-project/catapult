@@ -45,6 +45,12 @@ tr.b.unittest.testSuite(function() {
       title: 'HTMLDocumentParser::didReceiveParsedChunkFromBackgroundParser',
       category: 'cat'
     }), 'parseHTML');
+
+    assert.equal(ufcFromEvent({
+      guid: tr.b.GUID.allocateSimple(),
+      title: 'constructor',
+      category: 'cat'
+    }), 'other');
   });
 
   test('ufcFromTraceCategory', function() {

@@ -139,11 +139,11 @@ tr.exportTo('tr.e.chrome', function() {
     ]
   };
 
-  var USER_FRIENDLY_CATEGORY_FOR_TITLE = {};
+  var USER_FRIENDLY_CATEGORY_FOR_TITLE = new Map();
 
   for (var category in TITLES_FOR_USER_FRIENDLY_CATEGORY) {
     TITLES_FOR_USER_FRIENDLY_CATEGORY[category].forEach(function(title) {
-      USER_FRIENDLY_CATEGORY_FOR_TITLE[title] = category;
+      USER_FRIENDLY_CATEGORY_FOR_TITLE.set(title, category);
     });
   }
 
@@ -158,7 +158,8 @@ tr.exportTo('tr.e.chrome', function() {
   }
 
   ChromeUserFriendlyCategoryDriver.fromEvent = function(event) {
-    var userFriendlyCategory = USER_FRIENDLY_CATEGORY_FOR_TITLE[event.title];
+    var userFriendlyCategory =
+        USER_FRIENDLY_CATEGORY_FOR_TITLE.get(event.title);
     if (userFriendlyCategory) {
       if (userFriendlyCategory == SAME_AS_PARENT) {
         if (event.parentSlice)
