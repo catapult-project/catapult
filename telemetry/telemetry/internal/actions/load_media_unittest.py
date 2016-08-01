@@ -18,7 +18,8 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     return self._tab.EvaluateJavaScript(
       'window.__hasEventCompleted("%s", "%s");' % (selector, event))
 
-  @decorators.Disabled('linux')  # crbug.com/418577
+  @decorators.Disabled('linux',     # crbug.com/418577
+                       'chromeos')  # crbug.com/632802
   def testAwaitedEventIsConfigurable(self):
     """It's possible to wait for different events."""
     action = LoadMediaAction(selector='#video_1', timeout_in_seconds=0.1,
