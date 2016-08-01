@@ -306,7 +306,7 @@ found in the LICENSE file.
             <a class="kd-button counter"
                expanded$="{{item.expanded}}"
                on-click="onExpandGroupButtonClicked"
-               hidden$="{{!computeIsPlural(alertList.*, item.size)}}">{{item.size}}</a>
+               hidden$="{{!computeIsPlural(item.size)}}">{{item.size}}</a>
           </td>
           <td>
             <input type="checkbox"
@@ -492,7 +492,7 @@ found in the LICENSE file.
             !alert.expanded;
       },
 
-      computeIsPlural: (unused, n) => n > 1,
+      computeIsPlural: (n) => n > 1,
 
       computeExtraColumnValue: function(change, index, key) {
         // Unused 'change' argument is used to clarify that this has a
