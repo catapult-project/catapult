@@ -50,7 +50,7 @@ _BUG_REPORT_COMMENT = (
 
 _BUG_REPORT_LINK_URL = (
     'https://code.google.com/p/chromium/issues/entry?summary=%s&comment=%s&'
-    'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,%s')
+    'labels=Type-Bug-Regression,Pri-2,%s')
 
 _ALL_ALERTS_LINK = (
     '<a href="https://chromeperf.appspot.com/alerts?sheriff=%s">'
@@ -299,7 +299,8 @@ def GetAlertInfo(alert, test):
   bug_comment = _BUG_REPORT_COMMENT % interpolation_parameters
   bug_summary = ('%(percent_changed)s %(change_type)s in %(test_name)s '
                  'on %(bot)s at %(start)d:%(end)d') % interpolation_parameters
-  labels = bug_label_patterns.GetBugLabelsForTest(test)
+  labels = (alert.sheriff.get().labels +
+            bug_label_patterns.GetBugLabelsForTest(test))
   bug_url = _BUG_REPORT_LINK_URL % (
       urllib.quote(bug_summary), urllib.quote(bug_comment), ','.join(labels))
 

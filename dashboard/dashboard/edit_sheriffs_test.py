@@ -48,12 +48,12 @@ class EditSheriffsTest(testing_common.TestCase):
 
   def _AddSheriff(self, name, email=None, url=None,
                   internal_only=False, summarize=False, patterns=None,
-                  stoppage_alert_delay=0):
+                  stoppage_alert_delay=0, labels=None):
     """Adds a Sheriff entity to the datastore."""
     sheriff.Sheriff(
         id=name, email=email, url=url, internal_only=internal_only,
         summarize=summarize, patterns=patterns or [],
-        stoppage_alert_delay=stoppage_alert_delay).put()
+        stoppage_alert_delay=stoppage_alert_delay, labels=labels or []).put()
 
   def testPost_AddNewSheriff(self):
     self.testapp.post('/edit_sheriffs', {
@@ -61,6 +61,7 @@ class EditSheriffsTest(testing_common.TestCase):
         'add-name': 'New Sheriff',
         'email': 'foo@chromium.org',
         'internal-only': 'true',
+        'labels': 'Performance-Sheriff,hello',
         'summarize': 'true',
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
     })
@@ -69,6 +70,7 @@ class EditSheriffsTest(testing_common.TestCase):
     self.assertEqual('New Sheriff', sheriffs[0].key.string_id())
     self.assertEqual('foo@chromium.org', sheriffs[0].email)
     self.assertEqual([], sheriffs[0].patterns)
+    self.assertEqual(['Performance-Sheriff', 'hello'], sheriffs[0].labels)
     self.assertTrue(sheriffs[0].internal_only)
     self.assertTrue(sheriffs[0].summarize)
 
@@ -83,12 +85,14 @@ class EditSheriffsTest(testing_common.TestCase):
         'internal-only': 'false',
         'summarize': 'true',
         'patterns': '*/*/Suite1/*\n',
+        'labels': '',
         'xsrf_token': xsrf.GenerateToken(users.get_current_user()),
     })
     sheriff_entity = sheriff.Sheriff.query().fetch()[0]
     self.assertEqual('bar@chromium.org', sheriff_entity.email)
     self.assertEqual('http://perf.com/mysheriff', sheriff_entity.url)
     self.assertEqual(['*/*/Suite1/*'], sheriff_entity.patterns)
+    self.assertEqual([], sheriff_entity.labels)
     self.assertTrue(sheriff_entity.summarize)
 
     # After the tasks get executed, the TestMetadata entities should also be
@@ -186,13 +190,14 @@ class EditSheriffsTest(testing_common.TestCase):
   def testGet_SheriffDataIsEmbeddedOnPage(self):
     self._AddSheriff('Foo Sheriff', email='foo@x.org', patterns=['*/*/*/*'])
     self._AddSheriff('Bar Sheriff', summarize=True, stoppage_alert_delay=5,
-                     patterns=['x/y/z', 'a/b/c'])
+                     patterns=['x/y/z', 'a/b/c'], labels=['hello', 'world'])
     response = self.testapp.get('/edit_sheriffs')
     expected = {
         'Foo Sheriff': {
             'url': '',
             'email': 'foo@x.org',
             'internal_only': False,
+            'labels': '',
             'summarize': False,
             'stoppage_alert_delay': 0,
             'patterns': '*/*/*/*',
@@ -201,6 +206,7 @@ class EditSheriffsTest(testing_common.TestCase):
             'url': '',
             'email': '',
             'internal_only': False,
+            'labels': 'hello,world',
             'summarize': True,
             'stoppage_alert_delay': 5,
             'patterns': 'a/b/c\nx/y/z',

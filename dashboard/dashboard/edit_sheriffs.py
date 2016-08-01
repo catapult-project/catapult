@@ -33,6 +33,7 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
           'url': sheriff_entity.url or '',
           'email': sheriff_entity.email or '',
           'patterns': '\n'.join(sorted(sheriff_entity.patterns)),
+          'labels': ','.join(sorted(sheriff_entity.labels)),
           'internal_only': sheriff_entity.internal_only,
           'summarize': sheriff_entity.summarize,
           'stoppage_alert_delay': sheriff_entity.stoppage_alert_delay or 0,
@@ -56,6 +57,11 @@ class EditSheriffsHandler(edit_config_handler.EditConfigHandler):
     sheriff_entity.url = self.request.get('url') or None
     sheriff_entity.email = self.request.get('email') or None
     sheriff_entity.internal_only = self.request.get('internal-only') == 'true'
+    labels = self.request.get('labels')
+    if labels:
+      sheriff_entity.labels = labels.split(',')
+    else:
+      sheriff_entity.labels = []
     sheriff_entity.summarize = self.request.get('summarize') == 'true'
     stoppage_alert_delay = self.request.get('stoppage-alert-delay')
     if stoppage_alert_delay and int(stoppage_alert_delay) > 0:

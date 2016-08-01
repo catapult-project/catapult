@@ -55,6 +55,7 @@ found in the LICENSE file.
     document.getElementById('summarize-' + summarize).checked = true;
 
     document.getElementById('patterns-textarea').value = sheriff['patterns'];
+    document.getElementById('labels').value = sheriff['labels'];
     document.getElementById('list-tests-button').hidden = false;
   }
 
@@ -69,6 +70,7 @@ found in the LICENSE file.
     document.getElementById('internal-only-yes').checked = true;
     document.getElementById('summarize-no').checked = true;
     document.getElementById('patterns-textarea').textContent = '';
+    document.getElementById('labels').value = '';
     document.getElementById('list-tests-button').hidden = true;
   }
 
@@ -131,6 +133,10 @@ found in the LICENSE file.
       </tr>
         <td><label for="email">Notification Email:</label></td>
         <td><input type="email" name="email" id="email" size=75></td>
+      </tr>
+      <tr>
+        <td><label for="labels">Bug labels to add (comma-separated):</label></td>
+        <td><input type="text" name="labels" id="labels" size=75></td>
       </tr>
       </tr>
         <td><label for="email">Days before alerting on missing data

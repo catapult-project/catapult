@@ -53,7 +53,7 @@ _TEXT_ALERT_ROW_TEMPLATE = """
 """
 _BUG_TEMPLATE_URL = (
     'https://code.google.com/p/chromium/issues/entry'
-    '?labels=Pri-1,Performance-Waterfall,Performance-Sheriff,'
+    '?labels=Pri-1,Performance-Waterfall,'
     'Type-Bug-Regression,OS-?&comment=Tests affected:'
     '&summary=No+data+received+for+<tests>+since+<rev>'
     'cc=%s')

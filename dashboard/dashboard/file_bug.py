@@ -25,7 +25,6 @@ from dashboard.models import bug_label_patterns
 _DEFAULT_LABELS = [
     'Type-Bug-Regression',
     'Pri-2',
-    'Performance-Sheriff'
 ]
 _OMAHA_PROXY_URL = 'https://omahaproxy.appspot.com/all.json'
 
@@ -185,6 +184,9 @@ def _FetchLabelsAndComponents(alert_keys):
   labels = set(_DEFAULT_LABELS)
   components = set()
   alerts = ndb.get_multi(alert_keys)
+  sheriff_keys = set(alert.sheriff for alert in alerts)
+  sheriff_labels = [sheriff.labels for sheriff in ndb.get_multi(sheriff_keys)]
+  labels.update([item for sublist in sheriff_labels for item in sublist])
   if any(a.internal_only for a in alerts):
     # This is a Chrome-specific behavior, and should ideally be made
     # more general (maybe there should be a list in datastore of bug

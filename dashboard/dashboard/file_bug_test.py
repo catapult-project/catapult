@@ -72,7 +72,8 @@ class FileBugTest(testing_common.TestCase):
   def _AddSampleAlerts(self):
     """Adds sample data and returns a dict of rev to anomaly key."""
     # Add sample sheriff, masters, bots, and tests.
-    sheriff_key = sheriff.Sheriff(id='Sheriff').put()
+    sheriff_key = sheriff.Sheriff(
+        id='Sheriff', labels=['Performance-Sheriff']).put()
     testing_common.AddTests(['ChromiumPerf'], ['linux'], {
         'scrolling': {
             'first_paint': {},
@@ -132,6 +133,7 @@ class FileBugTest(testing_common.TestCase):
             alert_keys[0].urlsafe(), alert_keys[1].urlsafe()))
     self.assertIn('label1-foo', response.body)
     self.assertIn('Performance&gt;Blink', response.body)
+    self.assertIn('Performance-Sheriff', response.body)
 
   @mock.patch(
       'google.appengine.api.app_identity.get_default_version_hostname',
