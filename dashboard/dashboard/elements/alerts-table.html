@@ -335,10 +335,10 @@ found in the LICENSE file.
           <td class="revision_range">
             <revision-range start={{item.start_revision}} end="{{item.end_revision}}"></revision-range>
           </td>
-          <td class="master"><label>{{item.master}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'master')}}">...</label></td>
-          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'bot')}}">...</label></td>
-          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'testSuite')}}">...</label></td>
-          <td class="test"><label>{{item.test}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'test')}}">...</label></td>
+          <td class="master"><label>{{item.master}}</label></td>
+          <td class="bot"><label>{{item.bot}}</label></td>
+          <td class="testsuite"><label>{{item.testsuite}}</label></td>
+          <td class="test"><label>{{item.test}}</label></td>
 
           <template is="dom-repeat" items="{{extraColumns}}" as="column" index-as="colnum">
             <td class$="{{column.key}}"><label>{{computeExtraColumnValue(item, column.key)}}</td>
@@ -471,26 +471,6 @@ found in the LICENSE file.
       ready: function() {
       },
 
-      // TODO(charliea): The current implementation of this depends on the fact
-      // the additional column values are computed immediately after the alerts
-      // are updated. If the additional column values are updated without
-      // resetting the alerts, this will stop working because this function
-      // observes the alert, not the alert's deep properties. Restructuring this
-      // so that additionalColumnValues is its own computed property that
-      // observes alerts rather than a weird appendage of the alert itself
-      // would fix this problem.
-      /**
-       * Returns whether the column associated with the given alert property
-       * should be ellipsized, which indicates that there are grouped alerts
-       * that have different values for that column.
-       */
-      computeColumnEllipsized: function(
-          expanded, additionalColumnValues, property) {
-        return additionalColumnValues != undefined &&
-            additionalColumnValues[property] &&
-            !expanded;
-      },
-
       computeIsPlural: (n) => n > 1,
 
       computeExtraColumnValue: function(item, key) {
@@ -595,52 +575,12 @@ found in the LICENSE file.
         }
         this.set('alertList', orderedAlertList);
         this.selectAlertsInKeysParameter(orderedAlertList);
-        this.addEllipsis(orderedAlertList);
         for (var i = 0; i < orderedAlertList.length; i++) {
           var alert = orderedAlertList[i];
           this.setAlertList(i, 'hideRow', alert.hideRow);
           this.setAlertList(i, 'improvement', alert.improvement);
           this.setAlertList(i, 'size', alert.size);
           this.setAlertList(i, 'expanded', alert.expanded);
-        }
-      },
-
-      /**
-       * Adds ellipsis to each column in header rows that contains different
-       * values than its group member rows.
-       * TODO(simonhatch): addEllipsis() is only called via showAlertsGrouped(),
-       * which sets the array directly via this.set(), which is why we
-       * manipulate the array values directly instead of calling
-       * this.setAlertList() (which is much slower).
-       * https://github.com/catapult-project/catapult/issues/2553
-       */
-      addEllipsis: function(alerts) {
-        for (var i = 0; i < alerts.length; i++) {
-          var alert = alerts[i];
-          alert.additionalColumnValues = {};
-          if (alert.rowType == 'group-header' && alert.size > 1) {
-            var headerRowIndex = i;
-            for (var j = i + 1; j < alerts.length; j++) {
-              var memberAlert = alerts[j];
-              if (memberAlert.rowType == 'group-member') {
-                if (memberAlert.master != alert.master) {
-                  alert.additionalColumnValues['master'] = true;
-                }
-                if (memberAlert.bot != alert.bot) {
-                  alert.additionalColumnValues['bot'] = true;
-                }
-                if (memberAlert.testsuite != alert.testsuite) {
-                  alert.additionalColumnValues['testsuite'] = true;
-                }
-                if (memberAlert.test != alert.test) {
-                  alert.additionalColumnValues['test'] = true;
-                }
-              } else {
-                break;
-              }
-              i++;
-            }
-          }
         }
       },
 
