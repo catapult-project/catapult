@@ -99,6 +99,11 @@ tr.exportTo('tr.metrics.sh', function() {
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
         responseNumeric.add(ue.duration, sampleDiagnostic);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
+        if (ue.frameEvents === undefined || ue.frameEvents.length === 0) {
+          // Ignore animation stages that do not have associated frames:
+          // https://github.com/catapult-project/catapult/issues/2446
+          return;
+        }
         var throughput = computeAnimationThroughput(ue);
         if (throughput === undefined)
           throw new Error('Missing throughput for ' +
