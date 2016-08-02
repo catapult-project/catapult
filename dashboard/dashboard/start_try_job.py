@@ -54,6 +54,7 @@ _NON_TELEMETRY_TEST_COMMANDS = {
     'cc_perftests': [
         './out/Release/cc_perftests',
         '--test-launcher-print-test-stdio=always',
+        '--verbose',
     ],
     'idb_perf': [
         './out/Release/performance_ui_tests',

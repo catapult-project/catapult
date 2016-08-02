@@ -685,7 +685,7 @@ class StartBisectTest(testing_common.TestCase):
   def testGetConfig_CCPerftests(self):
     self._TestGetConfigCommand(
         ('./out/Release/cc_perftests '
-         '--test-launcher-print-test-stdio=always'),
+         '--test-launcher-print-test-stdio=always --verbose'),
         bisect_bot='linux_perf_bisect',
         suite='cc_perftests')
 
@@ -1009,7 +1009,7 @@ class StartBisectTest(testing_common.TestCase):
   def testGetConfig_UseBuildbucket_CCPerftests(self):
     self._TestGetConfigCommand(
         ('./src/out/Release/cc_perftests '
-         '--test-launcher-print-test-stdio=always'),
+         '--test-launcher-print-test-stdio=always --verbose'),
         bisect_bot='linux_perf_bisect',
         suite='cc_perftests',
         use_buildbucket=True)
