@@ -335,13 +335,13 @@ found in the LICENSE file.
           <td class="revision_range">
             <revision-range start={{item.start_revision}} end="{{item.end_revision}}"></revision-range>
           </td>
-          <td class="master"><label>{{item.master}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'master')}}">...</label></td>
-          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'bot')}}">...</label></td>
-          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'testSuite')}}">...</label></td>
-          <td class="test"><label>{{item.test}}</label><label hidden$="{{!computeColumnEllipsized(item.*, 'test')}}">...</label></td>
+          <td class="master"><label>{{item.master}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'master')}}">...</label></td>
+          <td class="bot"><label>{{item.bot}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'bot')}}">...</label></td>
+          <td class="testsuite"><label>{{item.testsuite}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'testSuite')}}">...</label></td>
+          <td class="test"><label>{{item.test}}</label><label hidden$="{{!computeColumnEllipsized(item.expanded, item.additionalColumnValues, 'test')}}">...</label></td>
 
           <template is="dom-repeat" items="{{extraColumns}}" as="column" index-as="colnum">
-            <td class$="{{column.key}}"><label>{{computeExtraColumnValue(alertList.*, index, column.key)}}</td>
+            <td class$="{{column.key}}"><label>{{computeExtraColumnValue(item, column.key)}}</td>
           </template>
         </tr>
       </template>
@@ -484,26 +484,21 @@ found in the LICENSE file.
        * should be ellipsized, which indicates that there are grouped alerts
        * that have different values for that column.
        */
-      computeColumnEllipsized: function(iterInfo, property) {
-        var alert = iterInfo.base;
-
-        return alert.additionalColumnValues != undefined &&
-            alert.additionalColumnValues[property] &&
-            !alert.expanded;
+      computeColumnEllipsized: function(
+          expanded, additionalColumnValues, property) {
+        return additionalColumnValues != undefined &&
+            additionalColumnValues[property] &&
+            !expanded;
       },
 
       computeIsPlural: (n) => n > 1,
 
-      computeExtraColumnValue: function(change, index, key) {
-        // Unused 'change' argument is used to clarify that this has a
-        // dependency on alertList. For more details, see
-        // https://www.polymer-project.org/1.0/docs/devguide/data-binding.html#array-binding
-        return this.get('alertList.' + index)[key];
+      computeExtraColumnValue: function(item, key) {
+        return item[key];
       },
 
       setAlertList: function(i, property, value) {
-        if (this.alertList[i][property] != value)
-          this.set('alertList.' + i + '.' + property, value);
+        this.set('alertList.' + i + '.' + property, value);
       },
 
       /**
@@ -536,6 +531,7 @@ found in the LICENSE file.
         this.showAlertsGrouped();
         this.updateBugColumn();
         this.maybeDisableButtons();
+        this.onCheckboxChange();
         this.recursingAlertListChanged = false;
       },
 
@@ -587,8 +583,7 @@ found in the LICENSE file.
           if (isGroupExpanded) {
             alertsInGroup[0].expanded = true;
             for (var i = 0; i < alertsInGroup.length; i++) {
-              this.setAlertList(alertsInGroup[i].index, 'hideRow', false);
-              alertsInGroup[i].expanded = false;
+              alertsInGroup[i].hideRow = false;
             }
           }
         }
@@ -598,8 +593,16 @@ found in the LICENSE file.
           orderedAlertList.push.apply(
               orderedAlertList, groupMap[alertOrder[i]]);
         }
-        this.addEllipsis(orderedAlertList);
         this.set('alertList', orderedAlertList);
+        this.selectAlertsInKeysParameter(orderedAlertList);
+        this.addEllipsis(orderedAlertList);
+        for (var i = 0; i < orderedAlertList.length; i++) {
+          var alert = orderedAlertList[i];
+          this.setAlertList(i, 'hideRow', alert.hideRow);
+          this.setAlertList(i, 'improvement', alert.improvement);
+          this.setAlertList(i, 'size', alert.size);
+          this.setAlertList(i, 'expanded', alert.expanded);
+        }
       },
 
       /**
@@ -664,11 +667,6 @@ found in the LICENSE file.
        *  Shows, hides and checks alert rows depending on URL parameters.
        */
       initRowsBasedOnQueryParameters: function() {
-        var keys = uri.getParameter('keys');
-        if (keys != null) {
-          this.selectAlertsInKeysParameter(keys);
-        }
-
         // When we're looking at alerts for a particular bug, we usually want
         // to see the graphs right away, but we also don't want to select too
         // many alerts at once.
@@ -680,22 +678,26 @@ found in the LICENSE file.
 
       /**
        * Checks the alerts enumerated in the "keys" query parameter parameter.
-       * @param {string} keys The value of the "keys" query parameter.
+       * @param {array} alerts The array of alerts to modify.
        */
-      selectAlertsInKeysParameter: function(keys) {
+      selectAlertsInKeysParameter: function(alerts) {
+        var keys = uri.getParameter('keys');
+        if (!keys)
+          return;
+
         var keySet = {};
         keys.split(',').forEach(function(k) {
           keySet[k] = true;
         });
-        for (var i = 0; i < this.alertList.length; i++) {
-          if (keySet[this.alertList[i].key]) {
-            this.setAlertList(i, 'selected', true);
-            this.setAlertList(i, 'hideRow', false);
-          } else if (this.alertList[i].improvement) {
-            this.setAlertList(i, 'hideRow', true);
+        for (var i = 0; i < alerts.length; i++) {
+          var alert = alerts[i];
+          if (keySet[alerts[i].key]) {
+            alert.selected = true;
+            alert.hideRow = false;
+          } else if (alert.improvement) {
+            alert.hideRow = true;
           }
         }
-        this.onCheckboxChange();
       },
 
       /**
@@ -703,10 +705,9 @@ found in the LICENSE file.
        */
       selectFirstNAlerts: function(n) {
         for (var i = 0; i < Math.min(n, this.alertList.length); i++) {
-          this.setAlertList(i, 'selected', true);
-          this.setAlertList(i, 'hideRow', false);
+          this.alertList[i].selected = true;
+          this.alertList[i].hideRow = false;
         }
-        this.onCheckboxChange();
       },
 
       /**
