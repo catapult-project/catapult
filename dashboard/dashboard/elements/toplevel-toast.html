@@ -19,7 +19,7 @@ found in the LICENSE file.
         text-decoration: none;
       }
     </style>
-    <paper-toast id="toast" text={{text}} duration="20">
+    <paper-toast id="toast" text={{text}} duration="2000">
       <div id="content"></div>
     </paper-toast>
   </template>
@@ -41,7 +41,7 @@ found in the LICENSE file.
           this.text = detail.text;
           var content = Polymer.dom(this.$.content);
           for (var i = content.childNodes.length - 1; i >= 0; i--) {
-          content.removeChild(content.childNodes[i]);
+            content.removeChild(content.childNodes[i]);
           }
           if (detail.content) {
             content.appendChild(detail.content.cloneNode(true));
