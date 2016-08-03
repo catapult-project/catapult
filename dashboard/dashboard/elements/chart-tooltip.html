@@ -85,7 +85,7 @@ was just clicked.
               <span hidden$="{{bugNotInvalid(bugId)}}">Invalid alert</span>
               <span hidden$="{{bugNotIgnored(bugId)}}">Ignored alert</span>
               <span hidden$="{{!recovered}}">Recovered alert</span>
-              <alert-remove-box key="{{alertKey}}" xsrf-token="{{xsrfToken}}" on-untriaged="{{onUntriaged}}">
+              <alert-remove-box key="{{alertKey}}" xsrf-token="{{xsrfToken}}" on-untriaged="onUntriaged">
               </alert-remove-box><br>
               <a href="/group_report?keys={{alertKey}}">View alert graph</a>
             </div>
