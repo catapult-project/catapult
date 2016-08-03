@@ -348,8 +348,12 @@ def IsValidSheriffUser():
   """Checks whether the user should be allowed to triage alerts."""
   user = users.get_current_user()
   sheriff_domains = stored_object.Get(SHERIFF_DOMAINS_KEY)
-  return user and sheriff_domains and any(
-      user.email().endswith('@' + domain) for domain in sheriff_domains)
+  if user:
+    domain_matched = sheriff_domains and any(
+        user.email().endswith('@' + domain) for domain in sheriff_domains)
+    return domain_matched or IsGroupMember(
+        identity=user, group='project-chromium-tryjob-access')
+  return False
 
 
 def GetIpWhitelist():

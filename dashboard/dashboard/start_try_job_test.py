@@ -368,6 +368,7 @@ class StartBisectTest(testing_common.TestCase):
         server_url='https://test-rietveld.appspot.com')
     rietveld_config.put()
 
+  @mock.patch.object(utils, 'IsGroupMember', mock.MagicMock(return_value=False))
   def testPost_InvalidUser_ShowsErrorMessage(self):
     self.SetCurrentUser('foo@yahoo.com')
     response = self.testapp.post('/start_try_job', {
