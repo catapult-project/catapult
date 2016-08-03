@@ -121,7 +121,7 @@ class NetworkControllerBackendTest(unittest.TestCase):
     # Always use our FakeReplayServer.
     FakeReplayServer.DEFAULT_PORTS = DEFAULT_PORTS  # Use global defaults.
     self.Patch(
-        'telemetry.internal.util.webpagereplay.ReplayServer', FakeReplayServer)
+        'telemetry.internal.util.wpr_server.ReplayServer', FakeReplayServer)
 
     # Pretend that only some predefined set of files exist.
     def fake_path_exists(filename):

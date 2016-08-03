@@ -8,7 +8,7 @@ import shutil
 import tempfile
 
 from telemetry.internal import forwarders
-from telemetry.internal.util import webpagereplay
+from telemetry.internal.util import wpr_server
 from telemetry.util import wpr_modes
 
 import certutils
@@ -205,7 +205,7 @@ class NetworkControllerBackend(object):
     """Start the replay server and return the started local_ports."""
     self._StopReplayServer()  # In case it was already running.
     local_ports = self._wpr_port_pairs.local_ports
-    self._wpr_server = webpagereplay.ReplayServer(
+    self._wpr_server = wpr_server.ReplayServer(
         self._archive_path,
         self.host_ip,
         local_ports.http,

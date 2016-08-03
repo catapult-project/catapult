@@ -5,7 +5,7 @@
 import sys
 import unittest
 
-from telemetry.internal.util import webpagereplay
+from telemetry.internal.util import wpr_server
 
 
 # pylint: disable=protected-access
@@ -15,7 +15,7 @@ class CreateCommandTest(unittest.TestCase):
         sys.executable, 'replay.py', '--host=127.0.0.1',
         '--port=2', '--ssl_port=1', '--dns_port=0',
         '--use_closest_match', '--log_level=warning', '--extra_arg', 'foo.wpr']
-    cmd_line = webpagereplay.ReplayServer._GetCommandLine(
+    cmd_line = wpr_server.ReplayServer._GetCommandLine(
         'replay.py', '127.0.0.1', 2, 1, 0, ['--extra_arg'], 'foo.wpr')
     self.assertEqual(expected_cmd_line, cmd_line)
 
@@ -24,7 +24,7 @@ class CreateCommandTest(unittest.TestCase):
         sys.executable, 'replay.py', '--host=127.0.0.1',
         '--port=8080', '--ssl_port=8443', '--no-dns_forwarding',
         '--use_closest_match', '--log_level=warning', 'bar.wpr']
-    cmd_line = webpagereplay.ReplayServer._GetCommandLine(
+    cmd_line = wpr_server.ReplayServer._GetCommandLine(
         'replay.py', '127.0.0.1', 8080, 8443, None, [], 'bar.wpr')
     self.assertEqual(expected_cmd_line, cmd_line)
 
@@ -35,7 +35,7 @@ class ParseLogFilePortsTest(unittest.TestCase):
     log_lines = iter([])
     self.assertEqual(
       {},
-      webpagereplay.ReplayServer._ParseLogFilePorts(log_lines))
+      wpr_server.ReplayServer._ParseLogFilePorts(log_lines))
 
   def testSingleMatchGivesSingleElementDict(self):
     log_lines = iter([
@@ -45,7 +45,7 @@ class ParseLogFilePortsTest(unittest.TestCase):
         ])
     self.assertEqual(
         {'http': 5167},
-        webpagereplay.ReplayServer._ParseLogFilePorts(log_lines))
+        wpr_server.ReplayServer._ParseLogFilePorts(log_lines))
 
   def testUnknownProtocolSkipped(self):
     log_lines = iter([
@@ -54,7 +54,7 @@ class ParseLogFilePortsTest(unittest.TestCase):
         ])
     self.assertEqual(
         {'http': 5167},
-        webpagereplay.ReplayServer._ParseLogFilePorts(log_lines))
+        wpr_server.ReplayServer._ParseLogFilePorts(log_lines))
 
   def testTypicalLogLinesGiveFullDict(self):
     log_lines = iter([
@@ -65,4 +65,4 @@ class ParseLogFilePortsTest(unittest.TestCase):
         ])
     self.assertEqual(
         {'dns': 2345, 'http': 3456, 'https': 4567},
-        webpagereplay.ReplayServer._ParseLogFilePorts(log_lines))
+        wpr_server.ReplayServer._ParseLogFilePorts(log_lines))
