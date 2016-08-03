@@ -214,8 +214,7 @@ def GenerateSerialMap(hub_types=None):
   result = {}
   for pair in port_to_devices.values():
     if pair.phone is None:
-      raise battor_error.BattorError(
-          'BattOr detected with no corresponding phone')
+      continue
     if pair.battor is None:
       raise battor_error.BattorError(
           'Phone detected with no corresponding BattOr')
