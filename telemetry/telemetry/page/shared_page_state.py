@@ -5,7 +5,6 @@
 import logging
 import os
 import sys
-import tempfile
 
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -19,7 +18,7 @@ from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
 from telemetry.page import legacy_page_test
 from telemetry import story
-from telemetry.util import image_util
+from telemetry.util import screenshot
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
 
@@ -98,7 +97,6 @@ class SharedPageState(story.SharedState):
     self.platform.network_controller.Open(wpr_mode,
                                           browser_options.extra_wpr_args)
 
-
   @property
   def browser(self):
     return self._browser
@@ -139,33 +137,11 @@ class SharedPageState(story.SharedState):
 
     # Capture a screenshot
     if self._finder_options.browser_options.take_screenshot_for_failed_page:
-      self._TryCaptureScreenShot(page, self._current_tab, results)
+      fh = screenshot.TryCaptureScreenShot(self.platform, self._current_tab)
+      if fh is not None:
+        results.AddProfilingFile(page, fh)
     else:
       logging.warning('Taking screenshots upon failures disabled.')
-
-  def _TryCaptureScreenShot(self, page, tab, results):
-    try:
-      # TODO(nednguyen): once all platforms support taking screenshot,
-      # remove the tab checking logic and consider moving this to story_runner.
-      # (crbug.com/369490)
-      if self.platform.CanTakeScreenshot():
-        tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        tf.close()
-        self.platform.TakeScreenshot(tf.name)
-        results.AddProfilingFile(page, file_handle.FromTempFile(tf))
-      elif tab and tab.IsAlive() and tab.screenshot_supported:
-        tf = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
-        tf.close()
-        image = tab.Screenshot()
-        image_util.WritePngFile(image, tf.name)
-        results.AddProfilingFile(page, file_handle.FromTempFile(tf))
-      else:
-        logging.warning(
-            'Either tab has crashed or browser does not support taking tab '
-            'screenshot. Skip taking screenshot on failure.')
-    except Exception as e:
-      logging.warning('Exception when trying to capture screenshot: %s',
-                      repr(e))
 
   def DidRunStory(self, results):
     if self._finder_options.profiler:
