@@ -93,8 +93,9 @@ def FetchBinaryDepdencies(platform, client_configs,
   ]
   dep_manager = dependency_manager.DependencyManager(configs)
   target_platform = '%s_%s' % (platform.GetOSName(), platform.GetArchName())
-  dep_manager.PrefetchPaths(target_platform)
+  host_platform = None
 
+  dep_manager.PrefetchPaths(target_platform)
   if platform.GetOSName() == 'android':
     host_platform = '%s_%s' % (
         platform_module.GetHostPlatform().GetOSName(),
@@ -117,6 +118,9 @@ def FetchBinaryDepdencies(platform, client_configs,
         list(dependency_manager.BaseConfig(c) for c in client_configs))
     try:
       manager.PrefetchPaths(target_platform)
+      if host_platform is not None:
+        manager.PrefetchPaths(host_platform)
+
     except dependency_manager.NoPathFoundError as e:
       logging.error('Error when trying to prefetch paths for %s: %s',
                     target_platform, e.message)
