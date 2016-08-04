@@ -186,6 +186,11 @@ class PlatformBackend(object):
   def FlushDnsCache(self):
     pass
 
+  def CanElevatePrivilege(self):
+    # TODO: Implement for all platforms.
+    # https://github.com/catapult-project/catapult/issues/2612
+    return False
+
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
     raise NotImplementedError()

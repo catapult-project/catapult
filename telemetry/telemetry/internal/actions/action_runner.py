@@ -29,6 +29,9 @@ from telemetry.internal.actions.wait import WaitForElementAction
 from telemetry.web_perf import timeline_interaction_record
 
 
+_DUMP_WAIT_TIME = 3
+
+
 class ActionRunner(object):
 
   def __init__(self, tab, skip_waits=False):
@@ -104,6 +107,36 @@ class ActionRunner(object):
       An instance of action_runner.Interaction
     """
     return self.CreateInteraction('Gesture_' + label, repeatable)
+
+  def MeasureMemory(self, deterministic_mode=False):
+    """Add a memory measurement to the trace being recorded.
+
+    Behaves as a no-op if tracing is not enabled.
+
+    TODO(perezju): Also behave as a no-op if tracing is enabled but
+    memory-infra is not.
+
+    Args:
+      deterministic_mode: A boolean indicating whether to attempt or not to
+          control the environment (force GCs, clear caches) before making the
+          measurement in an attempt to obtain more deterministic results.
+
+    Returns:
+      GUID of the generated dump if one was triggered, None otherwise.
+    """
+    platform = self.tab.browser.platform
+    if not platform.tracing_controller.is_tracing_running:
+      logging.warning('Tracing is off. No memory dumps are being recorded.')
+      return None
+    if deterministic_mode:
+      self.Wait(_DUMP_WAIT_TIME)
+      self.ForceGarbageCollection()
+      if platform.CanElevatePrivilege():
+        platform.FlushEntireSystemCache()
+      self.Wait(_DUMP_WAIT_TIME)
+    dump_id = self.tab.browser.DumpMemory()
+    assert dump_id, 'Unable to obtain memory dump'
+    return dump_id
 
   def Navigate(self, url, script_to_evaluate_on_commit=None,
                timeout_in_seconds=60):

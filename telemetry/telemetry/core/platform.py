@@ -171,6 +171,10 @@ class Platform(object):
     This function may require root or administrator access."""
     return self._platform_backend.FlushDnsCache()
 
+  def CanElevatePrivilege(self):
+    """Returns true if root or admin rights are available on the platform."""
+    return self._platform_backend.CanElevatePrivilege()
+
   def LaunchApplication(self,
                         application,
                         parameters=None,

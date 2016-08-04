@@ -94,7 +94,7 @@ class AndroidPlatformBackend(
     self._perf_tests_setup = perf_control.PerfControl(self._device)
     self._thermal_throttle = thermal_throttle.ThermalThrottle(self._device)
     self._raw_display_frame_rate_measurements = []
-    self._can_access_protected_file_contents = (
+    self._can_elevate_privilege = (
         self._device.HasRoot() or self._device.NeedsSU())
     self._device_copy_script = None
     self._power_monitor = (
@@ -214,13 +214,13 @@ class AndroidPlatformBackend(
     return self._thermal_throttle.HasBeenThrottled()
 
   def GetCpuStats(self, pid):
-    if not self._can_access_protected_file_contents:
+    if not self._can_elevate_privilege:
       logging.warning('CPU stats cannot be retrieved on non-rooted device.')
       return {}
     return super(AndroidPlatformBackend, self).GetCpuStats(pid)
 
   def GetCpuTimestamp(self):
-    if not self._can_access_protected_file_contents:
+    if not self._can_elevate_privilege:
       logging.warning('CPU timestamp cannot be retrieved on non-rooted device.')
       return {}
     return super(AndroidPlatformBackend, self).GetCpuTimestamp()
@@ -242,7 +242,7 @@ class AndroidPlatformBackend(
 
     This can be used to make memory measurements more stable. Requires root.
     """
-    if not self._can_access_protected_file_contents:
+    if not self._can_elevate_privilege:
       logging.warning('Cannot run purge_ashmem. Requires a rooted device.')
       return
 
@@ -300,6 +300,9 @@ class AndroidPlatformBackend(
     return False
 
   def FlushEntireSystemCache(self):
+    if not self._can_elevate_privilege:
+      logging.warning('Cannot flush system cache on non-rooted device.')
+      return
     cache = cache_control.CacheControl(self._device)
     cache.DropRamCaches()
 
@@ -328,6 +331,9 @@ class AndroidPlatformBackend(
     """
     assert isinstance(application, basestring)
     self._device.KillAll(application, blocking=True, quiet=True)
+
+  def CanElevatePrivilege(self):
+    return self._can_elevate_privilege
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):
@@ -416,7 +422,7 @@ class AndroidPlatformBackend(
         device_path, timeout=timeout, retries=retries)
 
   def GetFileContents(self, fname):
-    if not self._can_access_protected_file_contents:
+    if not self._can_elevate_privilege:
       logging.warning('%s cannot be retrieved on non-rooted device.', fname)
       return ''
     return self._device.ReadFile(fname, as_root=True)

@@ -1,6 +1,7 @@
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+import mock
 import unittest
 
 from telemetry.core import exceptions
@@ -8,7 +9,7 @@ from telemetry import decorators
 from telemetry.internal.actions import action_runner as action_runner_module
 from telemetry.internal.actions import page_action
 from telemetry.testing import tab_test_case
-import mock
+from telemetry.timeline import chrome_trace_category_filter
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
 from telemetry.web_perf import timeline_interaction_record as tir_module
@@ -53,6 +54,59 @@ class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
   @decorators.Disabled('android', 'chromeos', 'linux')
   def testIssuingMultipleMeasurementInteractionRecords(self):
     self.VerifyIssuingInteractionRecords(repeatable=True)
+
+
+class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
+  def setUp(self):
+    super(ActionRunnerMeasureMemoryTest, self).setUp()
+    self.action_runner = action_runner_module.ActionRunner(self._tab,
+                                                           skip_waits=True)
+    self.Navigate('blank.html')
+
+  def testWithoutTracing(self):
+    with mock.patch.object(self._tab.browser, 'DumpMemory') as mock_method:
+      self.assertIsNone(self.action_runner.MeasureMemory())
+      self.assertFalse(mock_method.called)  # No-op with no tracing.
+
+  def _testWithTracing(self, deterministic_mode=False):
+    trace_memory = chrome_trace_category_filter.ChromeTraceCategoryFilter(
+        filter_string='-*,blink.console,disabled-by-default-memory-infra')
+    config = tracing_config.TracingConfig()
+    config.enable_chrome_trace = True
+    config.chrome_trace_config.SetCategoryFilter(trace_memory)
+    self._browser.platform.tracing_controller.StartTracing(config)
+    try:
+      dump_id = self.action_runner.MeasureMemory(deterministic_mode)
+    finally:
+      trace_data = self._browser.platform.tracing_controller.StopTracing()
+
+    # If successful, i.e. we haven't balied out due to an exception, check
+    # that we can find our dump in the trace.
+    self.assertIsNotNone(dump_id)
+    timeline_model = model.TimelineModel(trace_data)
+    dump_ids = (d.dump_id for d in timeline_model.IterGlobalMemoryDumps())
+    self.assertIn(dump_id, dump_ids)
+
+  # TODO(perezju): Enable when reference browser is >= M53
+  # https://github.com/catapult-project/catapult/issues/2610
+  @decorators.Disabled('reference')
+  def testDeterministicMode(self):
+    self._testWithTracing(deterministic_mode=True)
+
+  # TODO(perezju): Enable when reference browser is >= M53
+  # https://github.com/catapult-project/catapult/issues/2610
+  @decorators.Disabled('reference')
+  def testRealisticMode(self):
+    with mock.patch.object(
+        self.action_runner, 'ForceGarbageCollection') as mock_method:
+      self._testWithTracing(deterministic_mode=False)
+      self.assertFalse(mock_method.called)  # No forced GC in "realistic" mode.
+
+  def testWithFailedDump(self):
+    with mock.patch.object(self._tab.browser, 'DumpMemory') as mock_method:
+      mock_method.return_value = False  # Dump fails!
+      with self.assertRaises(AssertionError):
+        self._testWithTracing()
 
 
 class ActionRunnerTest(tab_test_case.TabTestCase):
