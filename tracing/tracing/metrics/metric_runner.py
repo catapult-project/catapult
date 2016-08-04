@@ -5,7 +5,7 @@ import os
 
 from perf_insights.mre import function_handle
 from perf_insights.mre import map_runner
-from perf_insights.mre import progress_reporter
+from perf_insights.mre import gtest_progress_reporter
 from perf_insights.mre import file_handle
 from perf_insights.mre import job as job_module
 
@@ -41,6 +41,6 @@ def RunMetricOnTraces(filenames, metrics,
   job = _GetMetricRunnerHandle(metrics)
   runner = map_runner.MapRunner(
       trace_handles, job, extra_import_options=extra_import_options,
-      progress_reporter=progress_reporter.ProgressReporter())
+      progress_reporter=gtest_progress_reporter.GTestProgressReporter())
   map_results = runner.RunMapper()
   return map_results

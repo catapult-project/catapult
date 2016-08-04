@@ -52,7 +52,7 @@ def Main(argv):
   values = []
   for trace in traces:
     failures.extend(results[trace]['pairs'].get('failures', []))
-    values.extend(results[trace]['pairs'].get('values'))
+    values.extend(results[trace]['pairs'].get('values', []))
   if failures:
     print 'Running metric failed:'
     for failure in failures:

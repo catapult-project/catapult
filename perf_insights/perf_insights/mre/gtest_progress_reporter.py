@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import time
+import sys
 
 from perf_insights.mre import progress_reporter
 
@@ -45,7 +46,7 @@ class GTestProgressReporter(progress_reporter.ProgressReporter):
       print >> self._output_stream, "[ OK ] %s" % testname
   """
 
-  def __init__(self, output_stream):
+  def __init__(self, output_stream=sys.stdout):
     super(GTestProgressReporter, self).__init__()
     self._output_stream = output_stream
 
