@@ -67,4 +67,8 @@ class TapAction(page_action.PageAction):
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self.selector, text=self.text,
         element_function=self.element_function)
-    tab.WaitForJavaScriptExpression('window.__tapActionDone', 60)
+    # The second disjunct handles the case where the tap action leads to an
+    # immediate navigation (in which case the expression below might already be
+    # evaluated on the new page).
+    tab.WaitForJavaScriptExpression(
+        'window.__tapActionDone || window.__tapAction === undefined', 60)
