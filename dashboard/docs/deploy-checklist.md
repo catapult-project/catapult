@@ -20,6 +20,12 @@ set as default When setting a new version as default, in order to avoid
 outages, the basic functionality of the dashboard should be checked to
 make sure it's not broken.
 
+If the new clean version passes the checklist, add the version name to the
+top of
+[the list of default Perf Dashboard versions](https://docs.google.com/spreadsheets/d/1MyxMZDSPedahmdh9EHGRxFdNMwVfBD4cB4jYGWuG6FM).
+Then in the app engine versions list, select the checkbox next to the
+clean version and click on the "Migrate Version" button.
+
 ## The check list
 
 ### Alerts page functionality

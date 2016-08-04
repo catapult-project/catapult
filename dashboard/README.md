@@ -9,6 +9,7 @@ and monitoring performance test results.
  - [Example code snippets](/dashboard/docs/code-snippets.md)
  - [Data format for new graph data](/dashboard/docs/data-format.md)
  - [Checklist for deployment](/dashboard/docs/deploy-checklist.md)
+ - [Rolling back from a broken deployment](/dashboard/docs/rollback.md)
  - [Project glossary](/dashboard/docs/glossary.md)
  - [Pages and endpoints](/dashboard/docs/pages-and-endpoints.md)
 
