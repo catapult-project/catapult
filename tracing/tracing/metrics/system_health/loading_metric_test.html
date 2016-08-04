@@ -241,7 +241,7 @@ tr.b.unittest.testSuite(function() {
     // First navigation             FMP                        TTI
     // 200                          9200                      15400
     var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
+      var rendererProcess = model.getOrCreateProcess(1984);
       var mainThread = rendererProcess.getOrCreateThread(2);
       mainThread.name = 'CrRendererMain';
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -344,6 +344,12 @@ tr.b.unittest.testSuite(function() {
     var numeric = ttiEntries[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(15200, numeric.running.mean);
+    var binsWithSampleDiagnostics = numeric.centralBins.filter(
+        (bin) => bin.diagnostics.length > 0);
+    var diagnostic = binsWithSampleDiagnostics[0].diagnostics[0];
+    assert.equal(diagnostic.value.start, 200);
+    assert.equal(diagnostic.value.interactive, 15400);
+    assert.equal(diagnostic.value.pid, 1984);
   });
 
 });

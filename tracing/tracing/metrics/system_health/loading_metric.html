@@ -344,6 +344,9 @@ tr.exportTo('tr.metrics.sh', function() {
     var diagnosticDict = rendererHelper.generateTimeBreakdownTree(
         navigationStartTime, firstInteractive);
     diagnosticDict.url = url;
+    diagnosticDict.start = navigationStartTime;
+    diagnosticDict.interactive = firstInteractive;
+    diagnosticDict.pid = rendererHelper.pid;
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
     histogram.add(timeToFirstInteractive, new tr.v.d.Generic(diagnosticDict));
   }
