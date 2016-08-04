@@ -63,7 +63,7 @@ the bisect process after the user clicks on the bisect button.
             <td>
               <select id="bot" value="{{bot::input}}">
                 <template is="dom-repeat" items="{{botList}}" as="name">
-                <option value="{{name}}">{{name}}</option>
+                <option value="{{name}}" selected="{{computeIsSelected(name, bot)}}">{{name}}</option>
                 </template>
               </select>
             </td>
@@ -207,6 +207,10 @@ the bisect process after the user clicks on the bisect button.
 
         computeHasError: function(e) {
           return !!e;
+        },
+
+        computeIsSelected: function(name, bot) {
+          return name == bot;
         },
 
         /**
