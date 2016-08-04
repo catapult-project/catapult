@@ -138,7 +138,7 @@ the bisect process after the user clicks on the bisect button.
 
       <p class="error">{{error}}</p>
 
-      <paper-button dialog-confirm raised autofocus disabled$="{{error}}"
+      <paper-button dialog-confirm raised autofocus disabled$="{{computeHasError(error)}}"
                     on-click="onSendToTrybot">Start bisect</paper-button>
       <paper-button dialog-dismiss raised>Close</paper-button>
 
@@ -203,6 +203,10 @@ the bisect process after the user clicks on the bisect button.
           },
           testPath: { notify: true },
           xsrfToken: { notify: true }
+        },
+
+        computeHasError: function(e) {
+          return !!e;
         },
 
         /**
