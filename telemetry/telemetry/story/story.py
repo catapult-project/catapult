@@ -38,7 +38,7 @@ class Story(object):
           requires that the web content is served via Web Page Replay
           to take effect. This setting does not affect stories containing no web
           content or where the HTTP MIME type is not text/html.See also:
-          _InjectScripts method in third_party/webpagereplay/httpclient.py.
+          _InjectScripts method in third_party/web-page-replay/httpclient.py.
     """
     assert issubclass(shared_state_class,
                       shared_state_module.SharedState)

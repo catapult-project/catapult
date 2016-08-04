@@ -94,7 +94,7 @@ def _GetPathsToPrepend(input_api):
       input_api.os_path.join(telemetry_dir, 'third_party', 'modulegraph'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'pexpect'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'png'),
-      input_api.os_path.join(telemetry_dir, 'third_party', 'webpagereplay'),
+      input_api.os_path.join(telemetry_dir, 'third_party', 'web-page-replay'),
       input_api.os_path.join(telemetry_dir, 'third_party', 'websocket-client'),
 
       input_api.os_path.join(catapult_dir, 'catapult_base'),

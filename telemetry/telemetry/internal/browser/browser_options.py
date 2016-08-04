@@ -330,7 +330,7 @@ class BrowserOptions(object):
     group.add_option('--extra-wpr-args',
         dest='extra_wpr_args_as_string',
         help=('Additional arguments to pass to Web Page Replay. '
-              'See third_party/webpagereplay/replay.py for usage.'))
+              'See third_party/web-page-replay/replay.py for usage.'))
     group.add_option('--show-stdout',
         action='store_true',
         help='When possible, will display the stdout of the process')

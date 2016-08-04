@@ -19,7 +19,7 @@ from telemetry.core import util
 from telemetry.internal import forwarders
 
 _REPLAY_DIR = os.path.join(
-    util.GetTelemetryThirdPartyDir(), 'webpagereplay')
+    util.GetTelemetryThirdPartyDir(), 'web-page-replay')
 
 
 class ReplayError(Exception):

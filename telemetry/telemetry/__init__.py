@@ -56,7 +56,7 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyfakefs')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
-_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'web-page-replay')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
 
 # Install Telemtry global hooks.
