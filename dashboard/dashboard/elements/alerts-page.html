@@ -120,9 +120,9 @@ found in the LICENSE file.
             </alerts-table>
           </template>
           <template is="dom-if" if="{{!anomalies.length}}">
-            <template is="dom-if" if="{{stoppageAlerts.length}}">
+            <template is="dom-if" if="{{!stoppageAlerts.length}}">
               <h2 class="center">All alerts triaged!</h2>
-              <img class="center" src="http://thecatapi.com/api/images/get?api_key=MjUzMDQ&amp;category=space&amp;size=small">
+              <img class="center" src="https://thecatapi.com/api/images/get?api_key=MjUzMDQ&amp;category=space&amp;size=small">
             </template>
           </template>
           <quick-log id="auto-triage-log" xsrf-token="{{xsrfToken}}"
