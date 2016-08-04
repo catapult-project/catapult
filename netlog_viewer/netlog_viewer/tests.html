@@ -13,9 +13,14 @@ found in the LICENSE file.
         type="image/x-icon">
 
   <script src="/components/webcomponentsjs/webcomponents.js"></script>
+  <script src="/netlog_viewer/net_internals_test.js"></script>
 
   <link rel="import" href="/components/polymer/polymer.html">
   <link rel="import" href="/tracing/base/unittest/interactive_test_runner.html">
+  <link rel="import" href="/tracing/core/test_utils.html">
+
+  <link rel="import" href="/netlog_viewer/index.html">
+  
   <style>
     html, body {
       box-sizing: border-box;
@@ -30,7 +35,20 @@ found in the LICENSE file.
   <script>
     'use strict';
 
+    var hiddenUIDivForNetLogViewerTest = null;
+    var isRunningInsideNetLogViewerTest = true;
+
     window.addEventListener('load', function() {
+      // The following constructs the main UI page by importing nodes
+      // from index.html. This will allow the tests that follow to
+      // reference the individual components of the netlog viewer's DOM.
+      hiddenUIDivForNetLogViewerTest = document.createElement('div');
+      hiddenUIDivForNetLogViewerTest.setAttribute('id', 'hidden-ui-div');
+
+      copyToMainDocument(document.querySelector(
+          'link[href$="/netlog_viewer/index.html"]'),
+          hiddenUIDivForNetLogViewerTest);
+
       tr.b.unittest.loadAndRunTests({
         title: 'All NetLog Viewer Tests',
         getAllSuiteRelPathsAsync: function() {

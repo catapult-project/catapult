@@ -187,6 +187,15 @@ _CATAPULT_TESTS = [
         'path': 'third_party/vinn/bin/run_tests',
         'disabled': ['android'],
     },
+    {
+        'name': 'NetLog Viewer Dev Server Tests',
+        'path': 'netlog_viewer/bin/run_dev_server_tests',
+        'additional_args': [
+            '--no-install-hooks',
+            '--no-use-local-chrome',
+        ],
+        'disabled': ['android'],
+    },
 ]
 
 

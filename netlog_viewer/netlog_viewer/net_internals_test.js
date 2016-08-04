@@ -15,10 +15,6 @@
  * or an exception is thrown.
  */
 
-// Include the C++ browser test class when generating *.cc files.
-GEN('#include ' +
-    '"chrome/browser/ui/webui/net_internals/net_internals_ui_browsertest.h"');
-
 var NetInternalsTest = (function() {
   /**
    * A shorter poll interval is used for tests, since a few tests wait for
@@ -40,8 +36,6 @@ var NetInternalsTest = (function() {
   }
 
   NetInternalsTest.prototype = {
-    __proto__: testing.Test.prototype,
-
     /**
      * Define the C++ fixture class and include it.
      * @type {?string}
@@ -158,7 +152,7 @@ var NetInternalsTest = (function() {
    */
   NetInternalsTest.setCallback = function(callbackFunction) {
     // Make sure no Task has already set the callback function.
-    assertEquals(null, NetInternalsTest.callback);
+    chai.assert.strictEqual(null, NetInternalsTest.callback);
 
     // Wrap |callbackFunction| in a function that clears
     // |NetInternalsTest.callback| before calling |callbackFunction|.
@@ -214,7 +208,7 @@ var NetInternalsTest = (function() {
    * @param {number} expectedRows Expected number of rows in the table.
    */
   NetInternalsTest.checkTbodyRows = function(ancestorId, expectedRows) {
-    expectEquals(expectedRows,
+    chai.assert.strictEqual(expectedRows,
                  NetInternalsTest.getTbodyNumRows(ancestorId),
                  'Incorrect number of rows in ' + ancestorId);
   };
@@ -252,8 +246,8 @@ var NetInternalsTest = (function() {
     var view = tabSwitcher.getTabView(tabId);
     var tabLink = tabSwitcher.tabIdToLink_[tabId];
 
-    assertNotEquals(view, undefined, tabId + ' does not exist.');
-    assertNotEquals(tabLink, undefined, tabId + ' does not exist.');
+    chai.assert.notStrictEqual(view, undefined, tabId + ' does not exist.');
+    chai.assert.notStrictEqual(tabLink, undefined, tabId + ' does not exist.');
 
     return {
       view: view,
@@ -303,8 +297,6 @@ var NetInternalsTest = (function() {
      * @type {object.<string, string>}
      */
     var hashToTabIdMap = {
-      capture: CaptureView.TAB_ID,
-      export: ExportView.TAB_ID,
       import: ImportView.TAB_ID,
       proxy: ProxyView.TAB_ID,
       events: EventsView.TAB_ID,
@@ -317,16 +309,15 @@ var NetInternalsTest = (function() {
       sdch: SdchView.TAB_ID,
       httpCache: HttpCacheView.TAB_ID,
       modules: ModulesView.TAB_ID,
-      hsts: HSTSView.TAB_ID,
       prerender: PrerenderView.TAB_ID,
       bandwidth: BandwidthView.TAB_ID,
       chromeos: CrosView.TAB_ID
     };
 
-    assertEquals(typeof hashToTabIdMap[hash], 'string',
+    chai.assert.strictEqual(typeof hashToTabIdMap[hash], 'string',
                  'Invalid tab anchor: ' + hash);
     var tabId = hashToTabIdMap[hash];
-    assertEquals('object', typeof NetInternalsTest.getTab(tabId),
+    chai.assert.strictEqual('object', typeof NetInternalsTest.getTab(tabId),
                  'Invalid tab: ' + tabId);
     return tabId;
   };
@@ -339,7 +330,7 @@ var NetInternalsTest = (function() {
     var tabId = NetInternalsTest.getTabId(hash);
 
     // Make sure the tab link is visible, as we only simulate normal usage.
-    expectTrue(NetInternalsTest.tabLinkIsVisible(tabId),
+    chai.assert.isTrue(NetInternalsTest.tabLinkIsVisible(tabId),
                tabId + ' does not have a visible tab link.');
     var tabLinkNode = NetInternalsTest.getTab(tabId).tabLink;
 
@@ -350,7 +341,7 @@ var NetInternalsTest = (function() {
     tabLinkNode.dispatchEvent(mouseEvent);
 
     // Make sure the hash changed.
-    assertEquals('#' + hash, document.location.hash);
+    chai.assert.strictEqual('#' + hash, document.location.hash);
 
     // Run the onhashchange function, so can test the resulting state.
     // Otherwise, the method won't trigger synchronously.
@@ -360,7 +351,7 @@ var NetInternalsTest = (function() {
     var tabSwitcher = MainView.getInstance().tabSwitcher();
     var tabIdToView = tabSwitcher.getAllTabViews();
     for (var curTabId in tabIdToView) {
-      expectEquals(curTabId == tabId,
+      chai.assert.strictEqual(curTabId == tabId,
                    tabSwitcher.getTabView(curTabId).isVisible(),
                    curTabId + ': Unexpected visibility state.');
     }
@@ -377,20 +368,18 @@ var NetInternalsTest = (function() {
   NetInternalsTest.checkTabLinkVisibility = function(tabVisibilityState,
                                                      tourTabs) {
     // The currently active tab should have a link that is visible.
-    expectTrue(NetInternalsTest.tabLinkIsVisible(
+    chai.assert.isTrue(NetInternalsTest.tabLinkIsVisible(
                    NetInternalsTest.getActiveTabId()));
 
     // Check visibility state of all tabs.
     var tabCount = 0;
     for (var hash in tabVisibilityState) {
       var tabId = NetInternalsTest.getTabId(hash);
-      assertEquals('object', typeof NetInternalsTest.getTab(tabId),
+      chai.assert.strictEqual('object', typeof NetInternalsTest.getTab(tabId),
                    'Invalid tab: ' + tabId);
-      expectEquals(tabVisibilityState[hash],
+      chai.assert.strictEqual(tabVisibilityState[hash],
                    NetInternalsTest.tabLinkIsVisible(tabId),
                    tabId + ' visibility state is unexpected.');
-      if (tourTabs && tabVisibilityState[hash])
-        NetInternalsTest.switchToView(hash);
       tabCount++;
     }
 
@@ -400,7 +389,7 @@ var NetInternalsTest = (function() {
     var expectedTabCount = 0;
     for (tabId in tabIdToView)
       expectedTabCount++;
-    expectEquals(tabCount, expectedTabCount);
+    chai.assert.strictEqual(tabCount, expectedTabCount);
   };
 
   /**
@@ -444,7 +433,7 @@ var NetInternalsTest = (function() {
      * to the first Task's start function.  May only be called once.
      */
     run: function() {
-      assertFalse(this.isRunning_);
+      chai.assert.isFalse(this.isRunning_);
       this.isRunning_ = true;
       this.runNextTask_(Array.prototype.slice.call(arguments));
     },
@@ -457,7 +446,7 @@ var NetInternalsTest = (function() {
      *     method.  May be a 0-length array.
      */
     runNextTask_: function(argArray) {
-      assertTrue(this.isRunning_);
+      chai.assert.isTrue(this.isRunning_);
       // The last Task may have used |NetInternalsTest.callback|.  Make sure
       // it's now null.
       expectEquals(null, NetInternalsTest.callback);
@@ -516,7 +505,7 @@ var NetInternalsTest = (function() {
      * @param {TaskQueue}: taskQueue The TaskQueue |this| has been added to.
      */
     setTaskQueue_: function(taskQueue) {
-      assertEquals(null, this.taskQueue_);
+      chai.assert.strictEqual(null, this.taskQueue_);
       this.taskQueue_ = taskQueue;
     },
 
@@ -525,7 +514,7 @@ var NetInternalsTest = (function() {
      * task.  Runs the next task, if any, passing along all arguments.
      */
     onTaskDone: function() {
-      assertFalse(this.isDone_);
+      chai.assert.isFalse(this.isDone_);
       this.isDone_ = true;
 
       // Function to run the next task in the queue.
@@ -555,7 +544,7 @@ var NetInternalsTest = (function() {
    */
   NetInternalsTest.CallFunctionTask = function(taskFunction) {
     NetInternalsTest.Task.call(this);
-    assertEquals('function', typeof taskFunction);
+    chai.assert.strictEqual('function', typeof taskFunction);
     this.taskFunction_ = taskFunction;
   };
 
@@ -582,7 +571,7 @@ var NetInternalsTest = (function() {
    */
   NetInternalsTest.GetTestServerURLTask = function(path) {
     NetInternalsTest.Task.call(this);
-    assertEquals('string', typeof path);
+    chai.assert.strictEqual('string', typeof path);
     this.path_ = path;
   };
 
@@ -602,7 +591,7 @@ var NetInternalsTest = (function() {
      * @param {string} url TestServer URL of the input path.
      */
     onURLReceived_: function(url) {
-      assertEquals('string', typeof url);
+      chai.assert.strictEqual('string', typeof url);
       this.onTaskDone(url);
     }
   };
@@ -630,7 +619,7 @@ var NetInternalsTest = (function() {
     start: function() {
       // Reuse the BrowserBridge's callback mechanism, since it's already
       // wrapped in our test harness.
-      assertEquals('undefined',
+      chai.assert.strictEqual('undefined',
                    typeof g_browser.onIncognitoBrowserCreatedForTest);
       g_browser.onIncognitoBrowserCreatedForTest =
           this.onIncognitoBrowserCreatedForTest.bind(this);
@@ -677,7 +666,7 @@ var NetInternalsTest = (function() {
    * @constructor
    */
   NetInternalsTest.Source = function(type, id) {
-    assertNotEquals(getKeyWithValue(EventSourceType, type), '?');
+    chai.assert.notStrictEqual(getKeyWithValue(EventSourceType, type), '?');
     assertGE(id, 0);
     this.type = type;
     this.id = id;
@@ -693,8 +682,8 @@ var NetInternalsTest = (function() {
    * @constructor
    */
   NetInternalsTest.Event = function(source, type, time, phase, params) {
-    assertNotEquals(getKeyWithValue(EventType, type), '?');
-    assertNotEquals(getKeyWithValue(EventPhase, phase), '?');
+    chai.assert.notStrictEqual(getKeyWithValue(EventType, type), '?');
+    chai.assert.notStrictEqual(getKeyWithValue(EventPhase, phase), '?');
 
     this.source = source;
     this.phase = phase;
@@ -751,7 +740,8 @@ var NetInternalsTest = (function() {
 
     for (var i = 0; i < allIds.length; ++i) {
       var curId = allIds[i];
-      expectEquals(nodeId == curId, NetInternalsTest.nodeIsVisible($(curId)));
+      chai.assert.strictEqual(nodeId == curId,
+          NetInternalsTest.nodeIsVisible($(curId)));
     }
   };
 

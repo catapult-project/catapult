@@ -86,38 +86,24 @@ found in the LICENSE file.
     <script>
       'use strict';
 
-      /**
-       * Conceptually copies and pastes all the styling and nodes from
-       * an imported HTML file to the main document.
-       * TODO(rayraymond): Switch to using Polymer instead as this is
-       * not the ideal way to import these document objects.
-       * @param {Node} importLink The import link node in the document.
-       */
-      function copyToMainDocument(importLink) {;
-        // Get the parent node for the link, within the main document.
-        var parentInMainDocument = importLink.parentNode;
-
-        var importedDoc = importLink.import;
-
-        var topLevelElements =
-            importedDoc.getElementsByTagName('html')[0].childNodes;
-        for (var i = 0; i < topLevelElements.length; i++) {
-          parentInMainDocument.appendChild(
-              document.importNode(topLevelElements[i], true));
-        }
-      }
-
       var allImports =
           document.querySelectorAll('link[rel=import]');
       for (var i = 0; i < allImports.length; i++) {
+        if (allImports[i].parentNode.tagName == 'HEAD')
+          continue;
         var htmlFileName = allImports[i].getAttribute('href');
         copyToMainDocument(document.querySelector(
-            'link[href$="' + htmlFileName + '"]'));
+            'link[href$="' + htmlFileName + '"]'),
+            allImports[i].parentNode);
       }
     </script>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        MainView.getInstance();  // from main.js
+        // index.html is imported into tests.html, however
+        // MainView.getInstance() should only be called when not
+        // testing.
+        if (typeof(isRunningInsideNetLogViewerTest) === 'undefined')
+          MainView.getInstance();  // from main.js
       });
     </script>
   </body>

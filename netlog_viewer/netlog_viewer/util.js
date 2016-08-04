@@ -174,3 +174,23 @@ function hasTouchScreen() {
   return 'ontouchstart' in window;
 }
 
+/**
+ * Conceptually copies and pastes all the styling and nodes from
+ * an imported HTML file to the main document.
+ * TODO(rayraymond): Switch to using Polymer instead as this is
+ * not the ideal way to import these document objects.
+ * @param {Node} importLink The import link node in the document.
+ * @param {Node} parentInDoc A specified parent to import the HTML
+ *     file contents to.
+ */
+function copyToMainDocument(importLink, parentInDoc) {
+  var importedDoc = importLink.import;
+
+  var topLevelElements =
+      importedDoc.getElementsByTagName('html')[0].childNodes;
+  for (var i = 0; i < topLevelElements.length; i++) {
+    parentInDoc.appendChild(
+        document.importNode(topLevelElements[i], true));
+  }
+}
+
