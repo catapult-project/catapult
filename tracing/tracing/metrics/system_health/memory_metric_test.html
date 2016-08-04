@@ -375,14 +375,74 @@ tr.b.unittest.testSuite(function() {
           size: 1,
           peak_size: 2
       }});
+      var heapDumpA = addChildDump(isolateDumpA, 'heap_spaces', {numerics: {
+          size: 42,
+          allocated_objects_size: 36
+      }});
+      addChildDump(heapDumpA, 'code_space', {numerics: {
+          allocated_objects_size: 1,
+          size: 2
+      }});
+      addChildDump(heapDumpA, 'large_object_space', {numerics: {
+          allocated_objects_size: 3,
+          size: 4
+      }});
+      addChildDump(heapDumpA, 'map_space', {numerics: {
+          allocated_objects_size: 5,
+          size: 6,
+      }});
+      addChildDump(heapDumpA, 'new_space', {numerics: {
+          allocated_objects_size: 7,
+          size: 8
+      }});
+      addChildDump(heapDumpA, 'old_space', {numerics: {
+          allocated_objects_size: 9,
+          size: 10
+      }});
+      addChildDump(heapDumpA, 'other_spaces', {numerics: {
+          allocated_objects_size: 11,
+          size: 12
+      }});
       var isolateDumpB = addChildDump(v8Dump, 'isolate_B');
       addChildDump(isolateDumpB, 'malloc', {numerics: {
           size: 10,
           peak_size: 20
       }});
+      var heapDumpB = addChildDump(isolateDumpB, 'heap_spaces', {numerics: {
+          size: 12,
+          allocated_objects_size: 6
+      }});
+      addChildDump(heapDumpB, 'code_space', {numerics: {
+          allocated_objects_size: 1,
+          size: 2
+      }});
+      addChildDump(heapDumpB, 'large_object_space', {numerics: {
+          allocated_objects_size: 1,
+          size: 2
+      }});
+      addChildDump(heapDumpB, 'map_space', {numerics: {
+          allocated_objects_size: 1,
+          size: 2,
+      }});
+      addChildDump(heapDumpB, 'new_space', {numerics: {
+          allocated_objects_size: 1,
+          size: 2
+      }});
+      addChildDump(heapDumpB, 'old_space', {numerics: {
+          allocated_objects_size: 1,
+          size: 2
+      }});
+      addChildDump(heapDumpB, 'other_spaces', {numerics: {
+          allocated_objects_size: 1,
+          size: 2
+      }});
       var isolateDumpC = addChildDump(v8Dump, 'isolate_C');
       addChildDump(isolateDumpC, 'malloc', {numerics: {
           size: 100,
+      }});
+      addChildDump(isolateDumpC, 'heap_spaces', {numerics: {
+          size: 2,
+          allocated_objects_size: 1
       }});
       var isolateDumpD = addChildDump(v8Dump, 'isolate_D');
       addChildDump(isolateDumpD, 'malloc', {numerics: {
@@ -472,7 +532,7 @@ tr.b.unittest.testSuite(function() {
           'processes in Chrome'
     },
     'memory:chrome:all_processes:reported_by_chrome:allocated_objects_size': {
-      value: [25 + 4, 750 + 860, 4000, 0],
+      value: [25 + 4, (36 + 6 + 1) + 750 + 860, 4000, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total size of all allocated objects reported by Chrome ' +
           'for all processes in Chrome'
@@ -534,6 +594,88 @@ tr.b.unittest.testSuite(function() {
           description: 'peak size of objects allocated by malloc for v8 ' +
               'in all processes in Chrome'
         },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:allocated_objects_size':
+        {
+          value: [0, 36 + 6 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap in all ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:effective_size': {
+      value: [0, 42 + 12 + 2, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'effective size of v8:heap in all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size':
+        {
+          value: [0, 1 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:code_space ' +
+              'in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:code_space:effective_size':
+        {
+          value: [0, 2 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:code_space in all ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size':
+        {
+          value: [0, 3 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by ' +
+              'v8:heap:large_object_space in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:large_object_space:effective_size':
+        {
+          value: [0, 4 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:large_object_space in all ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:map_space:allocated_objects_size':
+        {
+          value: [0, 5 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:map_space ' +
+              'in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:map_space:effective_size':
+        {
+          value: [0, 6 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:map_space in all ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size':
+        {
+          value: [0, 7 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:new_space ' +
+              'in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:new_space:effective_size':
+        {
+          value: [0, 8 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:new_space in all ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size':
+        {
+          value: [0, 9 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:old_space ' +
+              'in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:heap:old_space:effective_size':
+        {
+          value: [0, 10 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:old_space in all ' +
+              'processes in Chrome'
+        },
     'memory:chrome:all_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 650 + 970 + 111, 0, 4e5],
       unit: sizeInBytes_smallerIsBetter,
@@ -541,7 +683,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:chrome:all_processes:reported_by_chrome:v8:allocated_objects_size':
         {
-          value: [0, 860, 0, 0],
+          value: [0, (36 + 6 + 1) + 860, 0, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of all objects allocated by v8 in all processes ' +
               'in Chrome'
@@ -628,7 +770,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:chrome:renderer_processes:reported_by_chrome:allocated_objects_size':
         {
-          value: [0, 750 + 860, 0, 0],
+          value: [0, (36 + 6 + 1) + 750 + 860, 0, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'total size of all allocated objects reported by ' +
               'Chrome for renderer processes in Chrome'
@@ -675,6 +817,90 @@ tr.b.unittest.testSuite(function() {
           description: 'peak size of objects allocated by malloc for v8 ' +
               'in renderer processes in Chrome'
         },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:allocated_objects_size':
+        {
+          value: [0, 36 + 6 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap in renderer ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:effective_size':
+        {
+          value: [0, 42 + 12 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap in renderer processes ' +
+              'in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:allocated_objects_size':
+        {
+          value: [0, 1 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:code_space ' +
+              'in renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:code_space:effective_size':
+        {
+          value: [0, 2 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:code_space in renderer ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:allocated_objects_size':
+        {
+          value: [0, 3 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by ' +
+              'v8:heap:large_object_space in renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:large_object_space:effective_size':
+        {
+          value: [0, 4 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:large_object_space in ' +
+              'renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:map_space:allocated_objects_size':
+        {
+          value: [0, 5 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:map_space ' +
+              'in renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:map_space:effective_size':
+        {
+          value: [0, 6 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:map_space in renderer ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:allocated_objects_size':
+        {
+          value: [0, 7 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:new_space ' +
+              'in renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:new_space:effective_size':
+        {
+          value: [0, 8 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:new_space in renderer ' +
+              'processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:allocated_objects_size':
+        {
+          value: [0, 9 + 1, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of all objects allocated by v8:heap:old_space ' +
+              'in renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:old_space:effective_size':
+        {
+          value: [0, 10 + 2, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'effective size of v8:heap:old_space in renderer ' +
+              'processes in Chrome'
+        },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:effective_size': {
       value: [0, 650 + 970, 0, 4e5],
       unit: sizeInBytes_smallerIsBetter,
@@ -682,7 +908,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:allocated_objects_size':
         {
-          value: [0, 860, 0, 0],
+          value: [0, (36 + 6 + 1) + 860, 0, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of all objects allocated by v8 in renderer ' +
               'processes in Chrome'

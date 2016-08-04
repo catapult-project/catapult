@@ -270,47 +270,10 @@ tr.exportTo('tr.metrics.sh', function() {
                   });
                 });
           });
+
           // Add memory:<browser-name>:<process-name>:reported_by_chrome:v8:
-          // allocated_by_malloc:effective_size when available.
-          var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
-          if (v8Dump !== undefined) {
-            var allocatedByMalloc = 0;
-            var peakAllocatedByMalloc = 0;
-            var hasMallocDump = false;
-            v8Dump.children.forEach(function(isolateDump) {
-              var mallocDump =
-                  isolateDump.getDescendantDumpByFullName('malloc');
-              if (mallocDump === undefined)
-                return;
-              if (mallocDump.numerics['effective_size'] !== undefined) {
-                allocatedByMalloc +=
-                    mallocDump.numerics['effective_size'].value;
-              }
-              if (mallocDump.numerics['peak_size'] !== undefined)
-                peakAllocatedByMalloc += mallocDump.numerics['peak_size'].value;
-              hasMallocDump = true;
-            });
-            if (hasMallocDump) {
-              addProcessScalar({
-                source: 'reported_by_chrome',
-                component: ['v8', 'allocated_by_malloc'],
-                property: 'effective_size',
-                value: allocatedByMalloc,
-                unit: sizeInBytes_smallerIsBetter,
-                descriptionPrefixBuilder:
-                    CHROME_VALUE_PROPERTIES['effective_size']
-              });
-              addProcessScalar({
-                source: 'reported_by_chrome',
-                component: ['v8', 'allocated_by_malloc'],
-                property: 'peak_size',
-                value: peakAllocatedByMalloc,
-                unit: sizeInBytes_smallerIsBetter,
-                descriptionPrefixBuilder:
-                    CHROME_VALUE_PROPERTIES['peak_size']
-              });
-            }
-          }
+          //     {heap, allocated_by_malloc}:...
+          addV8MemoryDumpValues(processDump, addProcessScalar);
         },
         function(componentTree) {
           // Subtract memory:<browser-name>:<process-name>:reported_by_chrome:
@@ -322,6 +285,59 @@ tr.exportTo('tr.metrics.sh', function() {
           for (var i = 0; i < componentTree.values.length; i++)
             componentTree.values[i].total -= tracingNode.values[i].total;
         }, values);
+  }
+
+  /**
+   * Add memory dump values calculated from V8 components excluding
+   * 'heap_spaces/other_spaces'.
+   *
+   * @param {!tr.model.ProcessMemoryDump} processDump The process memory dump.
+   * @param {!function} addProcessScalar The callback for adding a scalar value.
+   */
+  function addV8MemoryDumpValues(processDump, addProcessScalar) {
+    var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
+    if (v8Dump === undefined)
+      return;
+    v8Dump.children.forEach(function(isolateDump) {
+      // v8:allocated_by_malloc:...
+      var mallocDump = isolateDump.getDescendantDumpByFullName('malloc');
+      if (mallocDump !== undefined) {
+        addV8ComponentValues(mallocDump, ['v8', 'allocated_by_malloc'],
+                             addProcessScalar);
+      }
+      // v8:heap:...
+      var heapDump = isolateDump.getDescendantDumpByFullName('heap_spaces');
+      if (heapDump !== undefined) {
+        addV8ComponentValues(heapDump, ['v8', 'heap'], addProcessScalar);
+        heapDump.children.forEach(function(spaceDump) {
+          if (spaceDump.name === 'other_spaces')
+            return;
+          addV8ComponentValues(spaceDump, ['v8', 'heap', spaceDump.name],
+                               addProcessScalar);
+        });
+      }
+    });
+  }
+
+  /**
+   * Add memory dump values calculated from the specified V8 component.
+   *
+   * @param {!tr.model.MemoryAllocatorDump} v8Dump The V8 memory dump.
+   * @param {!Array<string>} componentPath The component path for reporting.
+   * @param {!function} addProcessScalar The callback for adding a scalar value.
+   */
+  function addV8ComponentValues(componentDump, componentPath,
+                                addProcessScalar) {
+      tr.b.iterItems(CHROME_VALUE_PROPERTIES,
+          function(propertyName, descriptionPrefixBuilder) {
+            addProcessScalar({
+              source: 'reported_by_chrome',
+              component: componentPath,
+              property: propertyName,
+              value: componentDump.numerics[propertyName],
+              descriptionPrefixBuilder: descriptionPrefixBuilder
+            });
+          });
   }
 
   /**
