@@ -13,7 +13,7 @@ from dashboard import utils
 
 _DISCOVERY_URL = (
     'https://cr-buildbucket.appspot.com'
-    '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
+    '/api/discovery/v1/apis/{api}/{apiVersion}/rest')
 
 # Default Buildbucket bucket name.
 _BUCKET_NAME = 'master.tryserver.chromium.perf'
