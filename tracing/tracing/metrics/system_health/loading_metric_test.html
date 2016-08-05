@@ -344,9 +344,10 @@ tr.b.unittest.testSuite(function() {
     var numeric = ttiEntries[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(15200, numeric.running.mean);
-    var binsWithSampleDiagnostics = numeric.centralBins.filter(
-        (bin) => bin.diagnostics.length > 0);
-    var diagnostic = binsWithSampleDiagnostics[0].diagnostics[0];
+    var binsWithSampleDiagnosticMaps = numeric.centralBins.filter(
+        (bin) => bin.diagnosticMaps.length > 0);
+    var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0][
+                                                        'breakdown'];
     assert.equal(diagnostic.value.start, 200);
     assert.equal(diagnostic.value.interactive, 15400);
     assert.equal(diagnostic.value.pid, 1984);

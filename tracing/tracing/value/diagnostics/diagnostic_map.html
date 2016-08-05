@@ -23,7 +23,10 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v.d', function() {
   /** @constructor */
-  function DiagnosticMap() {
+  function DiagnosticMap(opt_diagnosticsByName) {
+    if (opt_diagnosticsByName !== undefined)
+      return DiagnosticMap.fromObject(opt_diagnosticsByName);
+
     this.diagnosticsByName_ = {};
   }
 
@@ -88,6 +91,14 @@ tr.exportTo('tr.v.d', function() {
   DiagnosticMap.fromDict = function(d) {
     var diagnostics = new DiagnosticMap();
     diagnostics.addDicts(d);
+    return diagnostics;
+  };
+
+  DiagnosticMap.fromObject = function(obj) {
+    var diagnostics = new DiagnosticMap();
+    tr.b.iterItems(obj, function(name, diagnostic) {
+      diagnostics.add(name, diagnostic);
+    });
     return diagnostics;
   };
 

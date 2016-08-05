@@ -57,24 +57,32 @@ tr.b.unittest.testSuite(function() {
     var scriptValue = values.getValuesWithName('foo-script')[0];
     assert.instanceOf(scriptValue, tr.v.NumericValue);
     assert.strictEqual(scriptValue, composition.get('script_execute'));
-    assert.lengthOf(scriptValue.numeric.centralBins[1].diagnostics, 1);
+    assert.lengthOf(scriptValue.numeric.centralBins[1].diagnosticMaps, 1);
     assert.lengthOf(
-        scriptValue.numeric.centralBins[1].diagnostics[0].events, 1);
+        scriptValue.numeric.centralBins[1].diagnosticMaps[0]
+        .get('relatedEvents').events, 1);
     assert.strictEqual(events[0],
-        scriptValue.numeric.centralBins[1].diagnostics[0].events[0]);
-    assert.lengthOf(scriptValue.numeric.centralBins[2].diagnostics, 1);
+        scriptValue.numeric.centralBins[1].diagnosticMaps[0]
+        .get('relatedEvents').events[0]);
+    assert.lengthOf(scriptValue.numeric.centralBins[2].diagnosticMaps, 1);
     assert.lengthOf(
-        scriptValue.numeric.centralBins[2].diagnostics[0].events, 1);
-    assert.strictEqual(events[1],
-        scriptValue.numeric.centralBins[2].diagnostics[0].events[0]);
+        scriptValue.numeric.centralBins[2].diagnosticMaps[0]
+        .get('relatedEvents').events, 1);
+    assert.strictEqual(
+        events[1],
+        scriptValue.numeric.centralBins[2].diagnosticMaps[0]
+        .get('relatedEvents').events[0]);
 
     var styleValue = values.getValuesWithName('foo-style')[0];
     assert.instanceOf(styleValue, tr.v.NumericValue);
     assert.strictEqual(styleValue, composition.get('style'));
-    assert.lengthOf(styleValue.numeric.centralBins[3].diagnostics, 1);
-    assert.lengthOf(styleValue.numeric.centralBins[3].diagnostics[0].events, 1);
+    assert.lengthOf(styleValue.numeric.centralBins[3].diagnosticMaps, 1);
+    assert.lengthOf(
+        styleValue.numeric.centralBins[3].diagnosticMaps[0]
+        .get('relatedEvents').events, 1);
     assert.strictEqual(events[2],
-        styleValue.numeric.centralBins[3].diagnostics[0].events[0]);
+        styleValue.numeric.centralBins[3].diagnosticMaps[0]
+        .get('relatedEvents').events[0]);
   });
 });
 </script>

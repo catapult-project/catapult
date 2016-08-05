@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/running_statistics.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -18,7 +19,7 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   var Range = tr.b.Range;
 
-  var MAX_DIAGNOSTICS = 16;
+  var MAX_DIAGNOSTIC_MAPS = 16;
 
   // p-values less than this indicate statistical significance.
   var DEFAULT_ALPHA = 0.05;
@@ -88,7 +89,7 @@ tr.exportTo('tr.v', function() {
     this.parentNumeric = parentNumeric;
     this.range = opt_range || (new tr.b.Range());
     this.count = 0;
-    this.diagnostics = [];
+    this.diagnosticMaps = [];
   }
 
   NumericBin.fromDict = function(parentNumeric, d) {
@@ -96,29 +97,34 @@ tr.exportTo('tr.v', function() {
     n.range.min = d.min;
     n.range.max = d.max;
     n.count = d.count;
-    if (d.diagnostics)
-      n.diagnostics = d.diagnostics.map(dd => tr.v.d.Diagnostic.fromDict(dd));
+    if (d.diagnosticMaps)
+      n.diagnosticMaps = d.diagnosticMaps.map(
+          dmd => tr.v.d.DiagnosticMap.fromDict(dmd));
     return n;
   };
 
   NumericBin.prototype = {
     /**
      * @param {*} value
-     * @param {!tr.v.d.Diagnostic=} opt_diagnostic
+     * @param {!tr.v.d.DiagnosticMap=} opt_diagnosticMap
      */
-    add: function(value, opt_diagnostic) {
+    add: function(value, opt_diagnosticMap) {
+      if ((opt_diagnosticMap !== undefined) &&
+          !(opt_diagnosticMap instanceof tr.v.d.DiagnosticMap))
+        throw new Error('Can\'t add a sample with a non-DiagnosticMap');
       this.count += 1;
-      if (opt_diagnostic) {
+      if (opt_diagnosticMap) {
         tr.b.Statistics.uniformlySampleStream(
-            this.diagnostics, this.count, opt_diagnostic, MAX_DIAGNOSTICS);
+            this.diagnosticMaps, this.count, opt_diagnosticMap,
+            MAX_DIAGNOSTIC_MAPS);
       }
     },
 
     addBin: function(other) {
       if (!this.range.equals(other.range))
         throw new Error('Merging incompatible Numeric bins.');
-      tr.b.Statistics.mergeSampledStreams(this.diagnostics, this.count,
-          other.diagnostics, other.count, MAX_DIAGNOSTICS);
+      tr.b.Statistics.mergeSampledStreams(this.diagnosticMaps, this.count,
+          other.diagnosticMaps, other.count, MAX_DIAGNOSTIC_MAPS);
       this.count += other.count;
     },
 
@@ -127,7 +133,7 @@ tr.exportTo('tr.v', function() {
         min: this.range.min,
         max: this.range.max,
         count: this.count,
-        diagnostics: this.diagnostics.map(d => d.asDict())
+        diagnosticMaps: this.diagnosticMaps.map(d => d.asDict())
       };
     },
 
@@ -142,7 +148,7 @@ tr.exportTo('tr.v', function() {
     this.range = range;
 
     this.numNans = 0;
-    this.nanDiagnostics = [];
+    this.nanDiagnosticMaps = [];
 
     this.running = new tr.b.RunningStatistics();
     this.maxCount_ = 0;
@@ -184,9 +190,9 @@ tr.exportTo('tr.v', function() {
     if (d.summaryOptions)
       n.customizeSummaryOptions(d.summaryOptions);
     n.numNans = d.numNans;
-    if (d.nanDiagnostics) {
-      n.nanDiagnostics = d.nanDiagnostics.map(
-          dd => tr.v.d.Diagnostic.fromDict(dd));
+    if (d.nanDiagnosticMaps) {
+      n.nanDiagnosticMaps = d.nanDiagnosticMaps.map(
+          dmd => tr.v.d.DiagnosticMap.fromDict(dmd));
     }
     n.maxNumSampleValues = d.maxNumSampleValues;
     n.sampleValues_ = d.sampleValues;
@@ -220,7 +226,7 @@ tr.exportTo('tr.v', function() {
     var result = builder.build();
     result.maxNumSampleValues = 1000;
 
-    // TODO(eakuefner): Propagate diagnostics?
+    // TODO(eakuefner): Propagate diagnosticMaps?
     for (var sample of samples)
       result.add(sample);
 
@@ -371,18 +377,21 @@ tr.exportTo('tr.v', function() {
 
     /**
      * @param {*} value
-     * @param {!tr.v.d.Diagnostic=} opt_diagnostic
+     * @param {!tr.v.d.DiagnosticMap=} opt_diagnosticMap
      */
-    add: function(value, opt_diagnostic) {
+    add: function(value, opt_diagnosticMap) {
+      if ((opt_diagnosticMap !== undefined) &&
+          !(opt_diagnosticMap instanceof tr.v.d.DiagnosticMap))
+        throw new Error('Can\'t add a sample with a non-DiagnosticMap');
       if (typeof(value) !== 'number' || isNaN(value)) {
         this.numNans++;
-        if (opt_diagnostic) {
-          tr.b.Statistics.uniformlySampleStream(this.nanDiagnostics,
-              this.numNans, opt_diagnostic, MAX_DIAGNOSTICS);
+        if (opt_diagnosticMap) {
+          tr.b.Statistics.uniformlySampleStream(this.nanDiagnosticMaps,
+              this.numNans, opt_diagnosticMap, MAX_DIAGNOSTIC_MAPS);
         }
       } else {
         var bin = this.getBinForValue(value);
-        bin.add(value, opt_diagnostic);
+        bin.add(value, opt_diagnosticMap);
         this.running.add(value);
         if (bin.count > this.maxCount_)
           this.maxCount_ = bin.count;
@@ -427,8 +436,8 @@ tr.exportTo('tr.v', function() {
       if (!this.canAddNumeric(other))
         throw new Error('Merging incompatible Numerics.');
 
-      tr.b.Statistics.mergeSampledStreams(this.nanDiagnostics, this.numNans,
-          other.nanDiagnostics, other.numNans, MAX_DIAGNOSTICS);
+      tr.b.Statistics.mergeSampledStreams(this.nanDiagnosticMaps, this.numNans,
+          other.nanDiagnosticMaps, other.numNans, MAX_DIAGNOSTIC_MAPS);
       tr.b.Statistics.mergeSampledStreams(
           this.sampleValues, this.numValues,
           other.sampleValues, other.numValues, tr.b.Statistics.mean(
@@ -560,7 +569,7 @@ tr.exportTo('tr.v', function() {
         max: this.range.max,
 
         numNans: this.numNans,
-        nanDiagnostics: this.nanDiagnostics.map(d => d.asDict()),
+        nanDiagnosticMaps: this.nanDiagnosticMaps.map(dm => dm.asDict()),
 
         running: this.running.asDict(),
         summaryOptions: this.summaryOptions,

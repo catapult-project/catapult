@@ -65,7 +65,10 @@ tr.exportTo('tr.v.d', function() {
         composition.set(eventCategory, value);
       }
 
-      value.numeric.add(sample, new tr.v.d.RelatedEventSet([event]));
+      value.numeric.add(
+          sample,
+          new tr.v.d.DiagnosticMap(
+              {relatedEvents: new tr.v.d.RelatedEventSet([event])}));
     }
     return composition;
   };

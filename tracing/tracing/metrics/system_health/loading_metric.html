@@ -272,7 +272,10 @@ tr.exportTo('tr.metrics.sh', function() {
           continue;
 
         var timeToEvent = ev.start - navigationStartEvent.start;
-        histogram.add(timeToEvent, new tr.v.d.Generic({url: url}));
+        histogram.add(
+            timeToEvent,
+            new tr.v.d.DiagnosticMap(
+                {url: new tr.v.d.Generic(url)}));
       }
       values.addValue(new tr.v.NumericValue(
           metric.valueName, histogram,
@@ -348,7 +351,10 @@ tr.exportTo('tr.metrics.sh', function() {
     diagnosticDict.interactive = firstInteractive;
     diagnosticDict.pid = rendererHelper.pid;
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
-    histogram.add(timeToFirstInteractive, new tr.v.d.Generic(diagnosticDict));
+    histogram.add(
+        timeToFirstInteractive,
+        new tr.v.d.DiagnosticMap(
+            {breakdown: new tr.v.d.Generic(diagnosticDict)}));
   }
 
   /**
@@ -400,8 +406,10 @@ tr.exportTo('tr.metrics.sh', function() {
       var diagnosticDict = rendererHelper.generateTimeBreakdownTree(
           navigationStart.start, paintEvent.start);
       diagnosticDict.url = url;
-      firstMeaningfulPaintHistogram.add(timeToFirstMeaningfulPaint,
-          new tr.v.d.Generic(diagnosticDict));
+      firstMeaningfulPaintHistogram.add(
+          timeToFirstMeaningfulPaint,
+          new tr.v.d.DiagnosticMap(
+              {breakdown: new tr.v.d.Generic(diagnosticDict)}));
       return {firstMeaningfulPaint: paintEvent.start, url: url};
     }
 

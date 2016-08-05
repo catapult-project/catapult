@@ -5,6 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
+<link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -19,17 +21,17 @@ tr.b.unittest.testSuite(function() {
 
   test('basic', function() {
     var h = DURATION_NUMERIC_BUILDER.build();
-    h.add(-1, 'a');
-    h.add(0, 'b');
-    h.add(0, 'b');
-    h.add(0, 'b');
-    h.add(0, 'b');
-    h.add(0, 'b');
-    h.add(0, 'b');
-    h.add(0, 'c');
-    h.add(500, 'c');
-    h.add(999, 'd');
-    h.add(1000, 'd');
+    h.add(-1, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('a')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(0, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c')}));
+    h.add(500, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c')}));
+    h.add(999, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d')}));
+    h.add(1000, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d')}));
 
     var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
@@ -52,8 +54,8 @@ tr.b.unittest.testSuite(function() {
 
   test('nans', function() {
     var h = DURATION_NUMERIC_BUILDER.build();
-    h.add(undefined, 'b');
-    h.add(NaN, 'c');
+    h.add(undefined, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')}));
+    h.add(NaN, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c')}));
     h.customizeSummaryOptions({nans: true});
 
     var span = document.createElement('tr-v-ui-histogram-span');

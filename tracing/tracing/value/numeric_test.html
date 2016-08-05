@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
@@ -79,17 +80,32 @@ tr.b.unittest.testSuite(function() {
     var n = TEST_NUMERIC_BUILDER.build();
     assert.equal(n.getBinForValue(250).range.min, 200);
     assert.equal(n.getBinForValue(250).range.max, 300);
-    n.add(-1, new tr.v.d.Generic('a'));
-    n.add(0, new tr.v.d.Generic('b'));
-    n.add(0, new tr.v.d.Generic('c'));
-    n.add(500, new tr.v.d.Generic('c'));
-    n.add(999, new tr.v.d.Generic('d'));
-    n.add(1000, new tr.v.d.Generic('d'));
+
+    var dm0 = new tr.v.d.DiagnosticMap();
+    var dm1 = new tr.v.d.DiagnosticMap();
+    var dm2 = new tr.v.d.DiagnosticMap();
+    var dm3 = new tr.v.d.DiagnosticMap();
+    var dm4 = new tr.v.d.DiagnosticMap();
+    var dm5 = new tr.v.d.DiagnosticMap();
+    dm0.add('foo', new tr.v.d.Generic('a'));
+    dm1.add('foo', new tr.v.d.Generic('b'));
+    dm2.add('foo', new tr.v.d.Generic('c'));
+    dm3.add('foo', new tr.v.d.Generic('c'));
+    dm4.add('foo', new tr.v.d.Generic('d'));
+    dm5.add('foo', new tr.v.d.Generic('d'));
+
+    n.add(-1, dm0);
+    n.add(0, dm1);
+    n.add(0, dm2);
+    n.add(500, dm3);
+    n.add(999, dm4);
+    n.add(1000, dm5);
     assert.equal(n.underflowBin.count, 1);
 
     assert.equal(n.getBinForValue(0).count, 2);
-    assert.deepEqual(n.getBinForValue(0).diagnostics.map(d => d.value),
-                     ['b', 'c']);
+    assert.deepEqual(
+        n.getBinForValue(0).diagnosticMaps.map(dm => dm.get('foo').value),
+        ['b', 'c']);
 
     assert.equal(n.getBinForValue(500).count, 1);
     assert.equal(n.getBinForValue(999).count, 1);
@@ -101,58 +117,84 @@ tr.b.unittest.testSuite(function() {
 
   test('numericNans', function() {
     var n = TEST_NUMERIC_BUILDER.build();
-    n.add(undefined, new tr.v.d.Generic('b'));
-    n.add(NaN, new tr.v.d.Generic('c'));
+
+    var dm0 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')});
+    var dm1 = new tr.v.d.DiagnosticMap({'foo': new tr.v.d.Generic('c')});
+
+    n.add(undefined, dm0);
+    n.add(NaN, dm1);
     n.add(undefined);
     n.add(NaN);
 
     assert.equal(n.numNans, 4);
-    assert.deepEqual(n.nanDiagnostics.map(d => d.value), ['b', 'c']);
+    assert.deepEqual(n.nanDiagnosticMaps.map(dm => dm.get('foo').value),
+                                             ['b', 'c']);
 
     var n2 = n.clone();
-    assert.instanceOf(n2.nanDiagnostics[0], tr.v.d.Generic);
+    assert.instanceOf(n2.nanDiagnosticMaps[0], tr.v.d.DiagnosticMap);
+    assert.instanceOf(n2.nanDiagnosticMaps[0].get('foo'), tr.v.d.Generic);
   });
 
   test('addNumericsValid', function() {
     var n0 = TEST_NUMERIC_BUILDER.build();
     var n1 = TEST_NUMERIC_BUILDER.build();
-    n0.add(-1, new tr.v.d.Generic('a0'));
-    n0.add(0, new tr.v.d.Generic('b0'));
-    n0.add(0, new tr.v.d.Generic('c0'));
-    n0.add(500, new tr.v.d.Generic('c0'));
-    n0.add(1000, new tr.v.d.Generic('d0'));
-    n0.add(NaN, new tr.v.d.Generic('e0'));
 
-    n1.add(-1, new tr.v.d.Generic('a1'));
-    n1.add(0, new tr.v.d.Generic('b1'));
-    n1.add(0, new tr.v.d.Generic('c1'));
-    n1.add(999, new tr.v.d.Generic('d1'));
-    n1.add(1000, new tr.v.d.Generic('d1'));
-    n1.add(NaN, new tr.v.d.Generic('e1'));
+    var dm0 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('a0')});
+    var dm1 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b0')});
+    var dm2 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c0')});
+    var dm3 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c0')});
+    var dm4 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d0')});
+    var dm5 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('e0')});
+    var dm6 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('a1')});
+    var dm7 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b1')});
+    var dm8 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c1')});
+    var dm9 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d1')});
+    var dm10 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d1')});
+    var dm11 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('e1')});
+
+    n0.add(-1, dm0);
+    n0.add(0, dm1);
+    n0.add(0, dm2);
+    n0.add(500, dm3);
+    n0.add(1000, dm4);
+    n0.add(NaN, dm5);
+
+    n1.add(-1, dm6);
+    n1.add(0, dm7);
+    n1.add(0, dm8);
+    n1.add(999, dm9);
+    n1.add(1000, dm10);
+    n1.add(NaN, dm11);
 
     n0.addNumeric(n1);
 
     assert.equal(n0.numNans, 2);
-    assert.deepEqual(n0.nanDiagnostics.map(d => d.value), ['e0', 'e1']);
+    assert.deepEqual(n0.nanDiagnosticMaps.map(dmd => dmd.get('foo').value),
+                     ['e0', 'e1']);
 
     assert.equal(n0.underflowBin.count, 2);
-    assert.deepEqual(n0.underflowBin.diagnostics.map(d => d.value),
+    assert.deepEqual(
+        n0.underflowBin.diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['a0', 'a1']);
 
     assert.equal(n0.getBinForValue(0).count, 4);
-    assert.deepEqual(n0.getBinForValue(0).diagnostics.map(d => d.value),
+    assert.deepEqual(
+        n0.getBinForValue(0).diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['b0', 'c0', 'b1', 'c1']);
 
     assert.equal(n0.getBinForValue(500).count, 1);
-    assert.deepEqual(n0.getBinForValue(500).diagnostics.map(d => d.value),
+    assert.deepEqual(
+        n0.getBinForValue(500).diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['c0']);
 
     assert.equal(n0.getBinForValue(999).count, 1);
-    assert.deepEqual(n0.getBinForValue(999).diagnostics.map(d => d.value),
+    assert.deepEqual(
+        n0.getBinForValue(999).diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['d1']);
 
     assert.equal(n0.overflowBin.count, 2);
-    assert.deepEqual(n0.overflowBin.diagnostics.map(d => d.value),
+    assert.deepEqual(
+        n0.overflowBin.diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['d0', 'd1']);
 
     assert.equal(n0.numValues, 10);
@@ -162,7 +204,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(2, n1.maxCount);
 
     var n02 = n0.clone();
-    assert.instanceOf(n02.underflowBin.diagnostics[0], tr.v.d.Generic);
+    assert.instanceOf(n02.underflowBin.diagnosticMaps[0], tr.v.d.DiagnosticMap);
+    assert.instanceOf(n02.underflowBin.diagnosticMaps[0].get('foo'),
+                      tr.v.d.Generic);
   });
 
   test('addNumericsInvalid', function() {
@@ -175,6 +219,11 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(n0.addNumeric.bind(n0, n1), Error);
     assert.throws(n0.addNumeric.bind(n0, n1), Error);
+  });
+
+  test('addNumericWithNonDiagnosticMapThrows', function() {
+    var n = TEST_NUMERIC_BUILDER.build();
+    assert.throws(n.add.bind(42, 'foo'), Error);
   });
 
   test('getInterpolateCountAt', function() {
@@ -225,7 +274,8 @@ tr.b.unittest.testSuite(function() {
           tr.v.Unit.byName.timeDurationInMs,
           tr.b.Range.fromExplicitRange(min, max),
           bins).build();
-      array.forEach((x) => n.add(x, new tr.v.d.Generic('x')));
+      array.forEach((x) => n.add(
+          x, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('x')})));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
         var expected = tr.b.Statistics.percentile(array, percent);
         var actual = n.getApproximatePercentile(percent);
