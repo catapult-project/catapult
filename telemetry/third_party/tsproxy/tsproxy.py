@@ -39,6 +39,13 @@ flush_pipes = False
 REMOVE_TCP_OVERHEAD = 1460.0 / 1500.0
 
 
+def PrintMessage(msg):
+  # Print the message to stdout & flush to make sure that the message is not
+  # buffered when tsproxy is run as a subprocess.
+  print >> sys.stdout, msg
+  sys.stdout.flush()
+
+
 ########################################################################################################################
 #   Traffic-shaping pipe (just passthrough for now)
 ########################################################################################################################
@@ -315,7 +322,7 @@ class Socks5Server(asyncore.dispatcher):
       self.ipaddr, self.port = self.getsockname()
       self.current_client_id = 0
     except:
-      print "Unable to listen on {0}:{1}. Is the port already in use?".format(host, port)
+      PrintMessage("Unable to listen on {0}:{1}. Is the port already in use?".format(host, port))
       exit(1)
 
   def handle_accept(self):
@@ -555,7 +562,7 @@ class CommandProcessor():
           needs_flush = True
           ok = True
         if not ok:
-          print 'ERROR'
+          PrintMessage('ERROR')
 
 
 ########################################################################################################################
@@ -621,7 +628,7 @@ def main():
   signal.signal(signal.SIGINT, signal_handler)
   server = Socks5Server(options.bind, options.port)
   command_processor = CommandProcessor()
-  print 'Started Socks5 proxy server on {0}:{1:d}\nHit Ctrl-C to exit.'.format(server.ipaddr, server.port)
+  PrintMessage('Started Socks5 proxy server on {0}:{1:d}\nHit Ctrl-C to exit.'.format(server.ipaddr, server.port))
   run_loop()
 
 def signal_handler(signal, frame):
@@ -653,7 +660,7 @@ def run_loop():
     if out_pipe.tick():
       last_activity = time.clock()
     if flush_pipes:
-      print 'OK'
+      PrintMessage('OK')
       flush_pipes = False
     # Every 500 loops (~0.5 second) check to see if it is a good time to do a gc
     if gc_check_count > 1000:
