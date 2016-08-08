@@ -20,6 +20,9 @@ from systrace import tracing_agents
 from py_trace_event import trace_event
 
 
+TRACE_DATA_CONTROLLER_NAME = 'systraceController'
+
+
 def ControllerAgentClockSync(issue_ts, name):
   '''Record the clock sync marker for controller tracing agent.sub
 
@@ -73,7 +76,8 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     """
     with open(self._log_path, 'r') as outfile:
       result = outfile.read() + ']'
-    return trace_result.TraceResult('traceEvents', ast.literal_eval(result))
+    return trace_result.TraceResult(TRACE_DATA_CONTROLLER_NAME,
+                                    ast.literal_eval(result))
 
   def SupportsExplicitClockSync(self):
     '''Returns whether this supports explicit clock sync.

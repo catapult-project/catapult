@@ -10,12 +10,15 @@ import json
 import os
 import StringIO
 
+from systrace import tracing_controller
+
 
 # TODO(alexandermont): Current version of trace viewer does not support
 # the controller tracing agent output. Thus we use this variable to
 # suppress this tracing agent's output. This should be removed once
 # trace viewer is working again.
 OUTPUT_CONTROLLER_TRACE_ = False
+CONTROLLER_TRACE_DATA_KEY = 'controllerTraceDataKey'
 
 
 def GenerateHTMLOutput(trace_results, output_file_name):
@@ -59,7 +62,8 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   # for each tracing agent (including the controller tracing agent).
   html_file.write('<!-- BEGIN TRACE -->\n')
   for result in trace_results:
-    if result.source_name == 'traceEvents' and not OUTPUT_CONTROLLER_TRACE_:
+    if (result.source_name == tracing_controller.TRACE_DATA_CONTROLLER_NAME and
+        not OUTPUT_CONTROLLER_TRACE_):
       continue
     html_file.write('  <script class="trace-data" type="application/text">\n')
     html_file.write(_ConvertToHtmlString(result.raw_data))
@@ -95,9 +99,10 @@ def GenerateJSONOutput(trace_results, output_file_name):
           results should be written to.
   """
   results = _ConvertTraceListToDictionary(trace_results)
-  results['controllerTraceDataKey'] = 'traceEvents'
+  results[CONTROLLER_TRACE_DATA_KEY] = (
+      tracing_controller.TRACE_DATA_CONTROLLER_NAME)
   if not OUTPUT_CONTROLLER_TRACE_:
-    results['traceEvents'] = []
+    results[tracing_controller.TRACE_DATA_CONTROLLER_NAME] = []
   with open(output_file_name, 'w') as json_file:
     json.dump(results, json_file)
   final_path = os.path.abspath(output_file_name)
