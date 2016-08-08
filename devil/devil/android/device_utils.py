@@ -234,6 +234,18 @@ def _CreateAdbWrapper(device):
       return adb_wrapper.AdbWrapper(device)
 
 
+def _FormatPartialOutputError(output):
+  lines = output.splitlines() if isinstance(output, basestring) else output
+  message = ['Partial output found:']
+  if len(lines) > 11:
+    message.extend('- %s' % line for line in lines[:5])
+    message.extend('<snip>')
+    message.extend('- %s' % line for line in lines[-5:])
+  else:
+    message.extend('- %s' % line for line in lines)
+  return '\n'.join(message)
+
+
 class DeviceUtils(object):
 
   _MAX_ADB_COMMAND_LENGTH = 512
@@ -864,7 +876,7 @@ class DeviceUtils(object):
           return handle_large_command(cmd)
         except device_errors.AdbCommandFailedError as exc:
           if exc.status is None:
-            logging.exception('No output found for %s', cmd)
+            logging.error(_FormatPartialOutputError(exc.output))
             logging.warning('Attempting to run in large_output mode.')
             logging.warning('Use RunShellCommand(..., large_output=True) for '
                             'shell commands that expect a lot of output.')

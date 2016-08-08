@@ -95,7 +95,8 @@ class ThermalThrottle(object):
       return False
     has_been_throttled = False
     serial_number = str(self._device)
-    log = self._device.RunShellCommand('dmesg -c')
+    log = self._device.RunShellCommand(
+        ['dmesg', '-c'], large_output=True, check_return=True)
     degree_symbol = unichr(0x00B0)
     for line in log:
       if self._detector.BecameThrottled(line):
@@ -129,4 +130,3 @@ class ThermalThrottle(object):
                         serial_number, btemp, degree_symbol)
 
     return has_been_throttled
-
