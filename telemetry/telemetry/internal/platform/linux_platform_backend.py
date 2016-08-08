@@ -72,6 +72,9 @@ class LinuxPlatformBackend(
   def CanFlushIndividualFilesFromSystemCache(self):
     return True
 
+  def SupportFlushEntireSystemCache(self):
+    return self.HasRootAccess()
+
   def FlushEntireSystemCache(self):
     p = subprocess.Popen(['/sbin/sysctl', '-w', 'vm.drop_caches=3'])
     p.wait()

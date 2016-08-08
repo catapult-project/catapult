@@ -177,6 +177,9 @@ class PlatformBackend(object):
   def CanFlushIndividualFilesFromSystemCache(self):
     raise NotImplementedError()
 
+  def SupportFlushEntireSystemCache(self):
+    return False
+
   def FlushEntireSystemCache(self):
     raise NotImplementedError()
 
@@ -185,11 +188,6 @@ class PlatformBackend(object):
 
   def FlushDnsCache(self):
     pass
-
-  def CanElevatePrivilege(self):
-    # TODO: Implement for all platforms.
-    # https://github.com/catapult-project/catapult/issues/2612
-    return False
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):

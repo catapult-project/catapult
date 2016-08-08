@@ -299,10 +299,10 @@ class AndroidPlatformBackend(
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
 
+  def SupportFlushEntireSystemCache(self):
+    return self._can_elevate_privilege
+
   def FlushEntireSystemCache(self):
-    if not self._can_elevate_privilege:
-      logging.warning('Cannot flush system cache on non-rooted device.')
-      return
     cache = cache_control.CacheControl(self._device)
     cache.DropRamCaches()
 
@@ -331,9 +331,6 @@ class AndroidPlatformBackend(
     """
     assert isinstance(application, basestring)
     self._device.KillAll(application, blocking=True, quiet=True)
-
-  def CanElevatePrivilege(self):
-    return self._can_elevate_privilege
 
   def LaunchApplication(
       self, application, parameters=None, elevate_privilege=False):

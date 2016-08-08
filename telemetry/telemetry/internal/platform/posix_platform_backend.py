@@ -37,6 +37,9 @@ class PosixPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
   # This is an abstract class. It is OK to have abstract methods.
   # pylint: disable=abstract-method
 
+  def HasRootAccess(self):
+    return os.getuid() == 0
+
   def RunCommand(self, args):
     return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
 

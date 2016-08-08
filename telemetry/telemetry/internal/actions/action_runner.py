@@ -131,7 +131,7 @@ class ActionRunner(object):
     if deterministic_mode:
       self.Wait(_DUMP_WAIT_TIME)
       self.ForceGarbageCollection()
-      if platform.CanElevatePrivilege():
+      if platform.SupportFlushEntireSystemCache():
         platform.FlushEntireSystemCache()
       self.Wait(_DUMP_WAIT_TIME)
     dump_id = self.tab.browser.DumpMemory()

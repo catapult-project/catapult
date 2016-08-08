@@ -153,10 +153,19 @@ class Platform(object):
     """Returns true if the disk cache can be flushed for specific files."""
     return self._platform_backend.CanFlushIndividualFilesFromSystemCache()
 
+  def SupportFlushEntireSystemCache(self):
+    """Returns true if entire system cache can be flushed.
+
+    Also checks that platform has required privilegues to flush system caches.
+    """
+    return self._platform_backend.SupportFlushEntireSystemCache()
+
   def FlushEntireSystemCache(self):
     """Flushes the OS's file cache completely.
 
-    This function may require root or administrator access."""
+    This function may require root or administrator access. Clients should
+    call SupportFlushEntireSystemCache to check first.
+    """
     return self._platform_backend.FlushEntireSystemCache()
 
   def FlushSystemCacheForDirectory(self, directory):
@@ -170,10 +179,6 @@ class Platform(object):
 
     This function may require root or administrator access."""
     return self._platform_backend.FlushDnsCache()
-
-  def CanElevatePrivilege(self):
-    """Returns true if root or admin rights are available on the platform."""
-    return self._platform_backend.CanElevatePrivilege()
 
   def LaunchApplication(self,
                         application,

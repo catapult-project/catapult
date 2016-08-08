@@ -161,6 +161,9 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
   def CanFlushIndividualFilesFromSystemCache(self):
     return False
 
+  def SupportFlushEntireSystemCache(self):
+    return self.HasRootAccess()
+
   def FlushEntireSystemCache(self):
     mavericks_or_later = self.GetOSVersionName() >= os_version_module.MAVERICKS
     p = self.LaunchApplication('purge', elevate_privilege=mavericks_or_later)
