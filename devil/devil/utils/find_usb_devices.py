@@ -489,17 +489,15 @@ def TestUSBTopologyScript():
 
   # Display TTY information about devices plugged into hubs.
   print '==== TTY INFORMATION ===='
-  for port_map in GetAllPhysicalPortToTTYMaps([usb_hubs.PLUGABLE_7PORT,
-      usb_hubs.PLUGABLE_7PORT_USB3_PART2, usb_hubs.PLUGABLE_7PORT_USB3_PART3],
-      device_tree_map=device_trees):
+  for port_map in GetAllPhysicalPortToTTYMaps(
+      usb_hubs.ALL_HUBS, device_tree_map=device_trees):
     print port_map
   print
 
   # Display serial number information about devices plugged into hubs.
   print '==== SERIAL NUMBER INFORMATION ===='
-  for port_map in GetAllPhysicalPortToSerialMaps([usb_hubs.PLUGABLE_7PORT,
-      usb_hubs.PLUGABLE_7PORT_USB3_PART2, usb_hubs.PLUGABLE_7PORT_USB3_PART3],
-      device_tree_map=device_trees):
+  for port_map in GetAllPhysicalPortToSerialMaps(
+      usb_hubs.ALL_HUBS, device_tree_map=device_trees):
     print port_map
 
 

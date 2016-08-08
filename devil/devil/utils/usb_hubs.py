@@ -12,6 +12,11 @@ PLUGABLE_7PORT_USB3_LAYOUT = {1:{1:1, 2:2, 3:3, 4:4},
                               3:6,
                               4:7}
 
+KEEDOX_LAYOUT = {1:1,
+                 2:2,
+                 3:3,
+                 4:{1:4, 2:5, 3:6, 4:7}}
+
 class HubType(object):
   def __init__(self, id_func, port_mapping):
     """Defines a type of hub.
@@ -123,11 +128,29 @@ def _is_plugable_7port_usb3_part3_hub(node):
     return False
   return '2109:8110' in node.PortToDevice(1).desc
 
+def _is_keedox_hub(node):
+  """Check if a node is a Keedox hub.
+  The topology of this device is a 4-port hub,
+  with another 4-port hub connected on port 4.
+  """
+  if '0bda:5411' not in node.desc:
+    return False
+  if not node.HasPort(4):
+    return False
+  return '0bda:5411' in node.PortToDevice(4).desc
+
+
 PLUGABLE_7PORT = HubType(_is_plugable_7port_hub, PLUGABLE_7PORT_LAYOUT)
 PLUGABLE_7PORT_USB3_PART2 = HubType(_is_plugable_7port_usb3_part2_hub,
                                     PLUGABLE_7PORT_USB3_LAYOUT)
 PLUGABLE_7PORT_USB3_PART3 = HubType(_is_plugable_7port_usb3_part3_hub,
                                     PLUGABLE_7PORT_USB3_LAYOUT)
+KEEDOX = HubType(_is_keedox_hub, KEEDOX_LAYOUT)
+
+ALL_HUBS = [PLUGABLE_7PORT,
+            PLUGABLE_7PORT_USB3_PART2,
+            PLUGABLE_7PORT_USB3_PART3,
+            KEEDOX]
 
 def GetHubType(type_name):
   if type_name == 'plugable_7port':
@@ -136,5 +159,7 @@ def GetHubType(type_name):
     return PLUGABLE_7PORT_USB3_PART2
   if type_name == 'plugable_7port_usb3_part3':
     return PLUGABLE_7PORT_USB3_PART3
+  if type_name == 'keedox':
+    return KEEDOX
   else:
     raise ValueError('Invalid hub type')
