@@ -128,7 +128,6 @@ _CATAPULT_TESTS = [
     {
         'name': 'Systrace Tests',
         'path': 'systrace/bin/run_tests',
-        'disabled': ['android'],
     },
     {
         'name': 'Telemetry Tests with Stable Browser',
@@ -250,6 +249,8 @@ def main(args=None):
         'env': {}
     }
     step['cmd'] = ['python', os.path.join(args.api_path_checkout, test['path'])]
+    if step['name'] == 'Systrace Tests':
+      step['cmd'] += ['--device=' + args.platform]
     if test.get('additional_args'):
       step['cmd'] += test['additional_args']
     if test.get('uses_app_engine_sdk'):

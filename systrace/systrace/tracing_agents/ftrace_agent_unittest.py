@@ -6,6 +6,8 @@
 
 import unittest
 import logging
+
+from systrace import decorators
 from systrace import run_systrace
 from systrace.tracing_agents import ftrace_agent
 
@@ -41,6 +43,7 @@ def make_test_io_interface(permitted_files):
 
 class FtraceAgentTest(unittest.TestCase):
 
+  @decorators.HostOnlyTest
   def test_avail_categories(self):
     # sched only has required events
     permitted_files = {
@@ -66,6 +69,7 @@ class FtraceAgentTest(unittest.TestCase):
     agent = ftrace_agent.FtraceAgent(io_interface)
     self.assertEqual(['disk'], agent._avail_categories())
 
+  @decorators.HostOnlyTest
   def test_tracing_bootstrap(self):
     workq_event_path = FT_EVENT_DIR + "workqueue/enable"
     permitted_files = {
@@ -98,6 +102,7 @@ class FtraceAgentTest(unittest.TestCase):
     # confirm buffer size is reset to 1
     self.assertEqual(permitted_files[FT_BUFFER_SIZE], "1")
 
+  @decorators.HostOnlyTest
   def test_tracing_event_enable_disable(self):
     # turn on irq tracing
     ipi_event_path = FT_EVENT_DIR + "ipi/enable"
@@ -123,6 +128,7 @@ class FtraceAgentTest(unittest.TestCase):
     self.assertEqual(permitted_files[irq_event_path], "0")
     self.assertEqual(permitted_files[ipi_event_path], "0")
 
+  @decorators.HostOnlyTest
   def test_buffer_size(self):
     systrace_cmd = SYSTRACE_HOST_CMD_DEFAULT + ['-b', '16000']
     options, categories = run_systrace.parse_options(systrace_cmd)

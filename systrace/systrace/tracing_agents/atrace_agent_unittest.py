@@ -9,6 +9,7 @@ import logging
 import os
 import unittest
 
+from systrace import decorators
 from systrace import run_systrace
 from systrace.tracing_agents import atrace_agent
 
@@ -50,11 +51,13 @@ ATRACE_FIXED_TGIDS = os.path.join(TEST_DIR, 'atrace_fixed_tgids')
 
 class AtraceAgentTest(unittest.TestCase):
 
+  @decorators.HostOnlyTest
   def test_construct_atrace_args(self):
     options, categories = run_systrace.parse_options(SYSTRACE_CMD)
     tracer_args = atrace_agent._construct_atrace_args(options, categories)
     self.assertEqual(' '.join(TRACE_ARGS), ' '.join(tracer_args))
 
+  @decorators.HostOnlyTest
   def test_preprocess_trace_data(self):
     with contextlib.nested(open(ATRACE_DATA_STRIPPED, 'r'),
                            open(ATRACE_DATA_RAW, 'r')) as (f1, f2):
@@ -67,6 +70,7 @@ class AtraceAgentTest(unittest.TestCase):
       trace_data = agent._preprocess_trace_data(atrace_data_raw)
       self.assertEqual(atrace_data, trace_data)
 
+  @decorators.HostOnlyTest
   def test_extract_thread_list(self):
     with contextlib.nested(open(ATRACE_EXTRACTED_THREADS, 'r'),
                            open(ATRACE_THREAD_LIST)) as (f1, f2):
@@ -77,6 +81,7 @@ class AtraceAgentTest(unittest.TestCase):
       thread_names = atrace_agent.extract_thread_list(ps_dump)
       self.assertEqual(atrace_result, str(thread_names))
 
+  @decorators.HostOnlyTest
   def test_strip_and_decompress_trace(self):
     with contextlib.nested(open(ATRACE_DATA_RAW, 'r'),
                            open(ATRACE_DATA_STRIPPED, 'r')) as (f1, f2):
@@ -86,6 +91,7 @@ class AtraceAgentTest(unittest.TestCase):
       trace_data = atrace_agent.strip_and_decompress_trace(atrace_data_raw)
       self.assertEqual(atrace_data_stripped, trace_data)
 
+  @decorators.HostOnlyTest
   def test_fix_thread_names(self):
     with contextlib.nested(
         open(ATRACE_DATA_STRIPPED, 'r'),
@@ -100,6 +106,7 @@ class AtraceAgentTest(unittest.TestCase):
           atrace_data_stripped, thread_names)
       self.assertEqual(atrace_data_thread_fixed, trace_data)
 
+  @decorators.HostOnlyTest
   def test_extract_tgids(self):
     with contextlib.nested(open(ATRACE_PROCFS_DUMP, 'r'),
                            open(ATRACE_EXTRACTED_TGIDS, 'r')) as (f1, f2):
@@ -112,6 +119,7 @@ class AtraceAgentTest(unittest.TestCase):
 
       self.assertEqual(result, tgids)
 
+  @decorators.HostOnlyTest
   def test_fix_missing_tgids(self):
     with contextlib.nested(open(ATRACE_EXTRACTED_TGIDS, 'r'),
                            open(ATRACE_MISSING_TGIDS, 'r'),
@@ -126,6 +134,8 @@ class AtraceAgentTest(unittest.TestCase):
 
 
 class BootAgentTest(unittest.TestCase):
+
+  @decorators.HostOnlyTest
   def test_boot(self):
     options, _ = run_systrace.parse_options(SYSTRACE_BOOT_CMD)
     tracer_args = atrace_agent._construct_boot_trace_command(options)

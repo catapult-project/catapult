@@ -4,6 +4,7 @@
 
 import unittest
 
+from systrace import decorators
 from systrace import util
 
 
@@ -15,6 +16,7 @@ ADB_SHELL = ['adb', '-s', DEVICE_SERIAL, 'shell']
 
 class UtilTest(unittest.TestCase):
 
+  @decorators.HostOnlyTest
   def test_construct_adb_shell_command(self):
     command = util.construct_adb_shell_command(LIST_TMP_ARGS, None)
     self.assertEqual(' '.join(command), 'adb shell ls /data/local/tmp')

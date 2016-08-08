@@ -10,6 +10,7 @@ import random
 import string
 import unittest
 
+from systrace import decorators
 from systrace import output_generator
 from systrace import trace_result
 
@@ -23,6 +24,7 @@ COMBINED_PROFILE_CHROME_DATA = os.path.join(
 
 class OutputGeneratorTest(unittest.TestCase):
 
+  @decorators.HostOnlyTest
   def testJsonTraceMerging(self):
     t1 = {'traceEvents': [{'ts': 123, 'ph': 'b'}]}
     t2 = {'traceEvents': [], 'stackFrames': ['blah']}
@@ -52,6 +54,7 @@ class OutputGeneratorTest(unittest.TestCase):
       if os.path.isfile(output_file):
         os.remove(output_file)
 
+  @decorators.HostOnlyTest
   def testHtmlOutputGenerationFormatsSingleTrace(self):
     with open(ATRACE_DATA) as f:
       atrace_data = f.read().replace(" ", "").strip()
@@ -72,6 +75,7 @@ class OutputGeneratorTest(unittest.TestCase):
     # malformed.
     self.assertEquals(trace_data, atrace_data)
 
+  @decorators.HostOnlyTest
   def testHtmlOutputGenerationFormatsMultipleTraces(self):
     json_data = open(COMBINED_PROFILE_CHROME_DATA).read()
     combined_data = json.loads(json_data)
