@@ -47,13 +47,31 @@ your CL be related.
 _CONFIDENCE_LEVEL_TO_CC_AUTHOR = 95
 
 _BUILD_FAILURE_REASON = {
-    'BUILD_FAILURE': 'the build has failed',
+    'BUILD_FAILURE': 'the build has failed.',
     'INFRA_FAILURE': 'the build has failed due to infrastructure failure.',
     'BUILDBUCKET_FAILURE': 'the buildbucket service failure.',
     'INVALID_BUILD_DEFINITION': 'incorrect bisect configuation.',
     'CANCELED_EXPLICITLY': 'the build was canceled explicitly.',
     'TIMEOUT': 'the build was canceled by buildbot on timeout.',
 }
+
+_BUILD_FAILURE_DETAIL = {
+    'B4T_TEST_TIMEOUT': 'Timed out waiting for the test job.',
+    'B4T_BUILD_TIMEOUT': 'Timed out waiting for the build.',
+    'B4T_TEST_FAILURE': 'The test failed to produce parseable results.',
+    'B4T_BUILD_FAILURE': 'The build could not be requested, or the job failed.',
+    'B4T_BAD_REV': 'The revision range could not be expanded, or the commit '
+                   'positions could not be resolved into commit hashes.',
+    'B4T_REF_RANGE_FAIL': 'Either of the initial "good" or "bad" revisions '
+                          'failed to be tested or built.',
+    'B4T_BAD_CONFIG': 'There was a problem with the bisect_config dictionary '
+                      'passed to the recipe. See output of the config step.',
+    'B4T_CULPRIT_FOUND': 'A Culprit CL was found with "high" confidence.',
+    'B4T_LO_INIT_CONF': 'Bisect aborted early for lack of confidence.',
+    'B4T_MISSING_METRIC': 'The metric was not found in the test output.',
+    'B4T_LO_FINAL_CONF': 'The bisect completed without a culprit.',
+}
+
 
 class BisectJobFailure(Exception):
   pass
@@ -115,6 +133,7 @@ def _CheckJob(job, issue_tracker):
     job.SetStaled()
     # TODO(chrisphan): Add a staled TryJob log.
     # TODO(chrisphan): Do we want to send a FYI Bisect email here?
+    # TODO(sullivan): Probably want to update bug as well.
     return
 
   results_data = job.results_data
@@ -148,8 +167,9 @@ def _CheckBisectJob(job, issue_tracker):
   has_partial_result = ('revision_data' in results_data and
                         results_data['revision_data'])
   if results_data.get('status') == FAILED and not has_partial_result:
+    _PostFailedResult(job, issue_tracker)
     return
-  _PostResult(job, issue_tracker)
+  _PostSuccessfulResult(job, issue_tracker)
 
 
 def _CheckFYIBisectJob(job, issue_tracker):
@@ -160,7 +180,7 @@ def _CheckFYIBisectJob(job, issue_tracker):
       raise BisectJobFailure('Bisect job completed, but results data is not '
                              'found, bot might have failed to post results.')
     error_message = bisect_fyi.VerifyBisectFYIResults(job)
-    _PostResult(job, issue_tracker)
+    _PostSuccessfulResult(job, issue_tracker)
     if not bisect_fyi.IsBugUpdated(job, issue_tracker):
       error_message += '\nFailed to update bug with bisect results.'
   except BisectJobFailure as e:
@@ -199,8 +219,8 @@ def _SendPerfTryJobEmail(job):
                  html=email_report['html'])
 
 
-def _PostResult(job, issue_tracker):
-  """Posts bisect results on issue tracker."""
+def _PostSuccessfulResult(job, issue_tracker):
+  """Posts successful bisect results on issue tracker."""
   # From the results, get the list of people to CC (if applicable), the bug
   # to merge into (if applicable) and the commit hash cache key, which
   # will be used below.
@@ -252,6 +272,21 @@ def _PostResult(job, issue_tracker):
                               days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
+
+
+def _PostFailedResult(job, issue_tracker):
+  """Posts failed bisect results on issue tracker."""
+  bug_comment = 'Bisect failed: %s\n' % job.results_data.get(
+      'buildbot_log_url', '')
+  if job.results_data.get('failure_reason'):
+    bug_comment += 'Failure reason: %s\n' % _BUILD_FAILURE_REASON.get(
+        job.results_data.get('failure_reason'), 'Unknown')
+  if job.results_data.get('extra_result_code'):
+    bug_comment += 'Additional errors:\n'
+    for code in job.results_data.get('extra_result_code'):
+      bug_comment += '%s\n' % _BUILD_FAILURE_DETAIL.get(code, code)
+  issue_tracker.AddBugComment(job.bug_id, bug_comment)
+
 
 def _IsStale(job):
   if not job.last_ran_timestamp:

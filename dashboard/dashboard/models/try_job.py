@@ -102,6 +102,9 @@ class TryJob(internal_only_model.InternalOnlyModel):
     return json.loads(self.config.split('=', 1)[1])
 
   def CheckFailureFromBuildBucket(self):
+    # Buildbucket job id is not always set.
+    if not self.buildbucket_job_id:
+      return
     job_info = buildbucket_service.GetJobStatus(self.buildbucket_job_id)
     data = job_info.get('build', {})
     # Proceed if the job failed and the job status has

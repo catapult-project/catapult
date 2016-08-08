@@ -72,6 +72,18 @@ _SAMPLE_BISECT_RESULTS_JSON = {
     ]
 }
 
+_SAMPLE_BISECT_FAILED_JSON = {
+    'try_job_id': 12345,
+    'bug_id': 1234,
+    'status': 'failed',
+    'buildbot_log_url': 'http://master/builder/builds/138',
+    'failure_reason': 'BUILD_FAILURE',
+    'extra_result_code': [
+        'B4T_MISSING_METRIC',
+        'B4T_TEST_FAILURE',
+    ],
+}
+
 _REVISION_RESPONSE = """
 <html xmlns=....>
 <head><title>[chrome] Revision 207985</title></head><body><table>....
@@ -399,6 +411,27 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         mock.ANY, mock.ANY,
         cc_list=mock.ANY,
         merge_issue=None, labels=['Restrict-View-Google'], owner=mock.ANY)
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  def testGet_FailedTryJob_UpdatesBug(
+      self, mock_update_bug):
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_FAILED_JSON,
+                    internal_only=True)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY,
+        'Bisect failed: http://master/builder/builds/138\n'
+        'Failure reason: the build has failed.\n'
+        'Additional errors:\n'
+        'The metric was not found in the test output.\n'
+        'The test failed to produce parseable results.\n')
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
