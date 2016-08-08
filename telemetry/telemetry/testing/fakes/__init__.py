@@ -10,7 +10,6 @@ underscore are intended to be implementation details, and should not
 be subclassed; however, some, like _FakeBrowser, have public APIs that
 may need to be called in tests.
 """
-
 from telemetry.internal.backends.chrome_inspector import websocket
 from telemetry.internal.browser import browser_options
 from telemetry.internal.platform import system_info
@@ -112,11 +111,12 @@ class FakeHTTPServer(object):
 
 
 class FakePossibleBrowser(object):
-  def __init__(self):
+  def __init__(self, execute_on_startup=None):
     self._returned_browser = _FakeBrowser(FakeLinuxPlatform())
     self.browser_type = 'linux'
     self.supports_tab_control = False
     self.is_remote = False
+    self.execute_on_startup = execute_on_startup
 
   @property
   def returned_browser(self):
@@ -124,6 +124,8 @@ class FakePossibleBrowser(object):
     return self._returned_browser
 
   def Create(self, finder_options):
+    if self.execute_on_startup is not None:
+      self.execute_on_startup()
     del finder_options  # unused
     return self.returned_browser
 
@@ -175,14 +177,15 @@ class FakeSystemInfo(system_info.SystemInfo):
 
 
 class _FakeBrowserFinderOptions(browser_options.BrowserFinderOptions):
-  def __init__(self, *args, **kwargs):
+  def __init__(self, execute_on_startup=None, *args, **kwargs):
     browser_options.BrowserFinderOptions.__init__(self, *args, **kwargs)
-    self.fake_possible_browser = FakePossibleBrowser()
+    self.fake_possible_browser = \
+      FakePossibleBrowser(execute_on_startup=execute_on_startup)
 
-
-def CreateBrowserFinderOptions(browser_type=None):
+def CreateBrowserFinderOptions(browser_type=None, execute_on_startup=None):
   """Creates fake browser finder options for discovering a browser."""
-  return _FakeBrowserFinderOptions(browser_type=browser_type)
+  return _FakeBrowserFinderOptions(browser_type=browser_type, \
+    execute_on_startup=execute_on_startup)
 
 
 # Internal classes. Note that end users may still need to both call
