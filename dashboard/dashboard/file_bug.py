@@ -179,6 +179,9 @@ def _UrlsafeKeys(alerts):
   return ','.join(a.key.urlsafe() for a in alerts)
 
 
+def _ComponentFromCrLabel(label):
+  return label.replace('Cr-', '').replace('-', '>')
+
 def _FetchLabelsAndComponents(alert_keys):
   """Fetches a list of bug labels and components for the given Alert keys."""
   labels = set(_DEFAULT_LABELS)
@@ -186,7 +189,12 @@ def _FetchLabelsAndComponents(alert_keys):
   alerts = ndb.get_multi(alert_keys)
   sheriff_keys = set(alert.sheriff for alert in alerts)
   sheriff_labels = [sheriff.labels for sheriff in ndb.get_multi(sheriff_keys)]
-  labels.update([item for sublist in sheriff_labels for item in sublist])
+  tags = [item for sublist in sheriff_labels for item in sublist]
+  for tag in tags:
+    if tag.startswith('Cr-'):
+      components.add(_ComponentFromCrLabel(tag))
+    else:
+      labels.add(tag)
   if any(a.internal_only for a in alerts):
     # This is a Chrome-specific behavior, and should ideally be made
     # more general (maybe there should be a list in datastore of bug
@@ -196,7 +204,7 @@ def _FetchLabelsAndComponents(alert_keys):
     labels_components = bug_label_patterns.GetBugLabelsForTest(test)
     for item in labels_components:
       if item.startswith('Cr-'):
-        components.add(item.replace('Cr-', '').replace('-', '>'))
+        components.add(_ComponentFromCrLabel(item))
       else:
         labels.add(item)
   return labels, components
