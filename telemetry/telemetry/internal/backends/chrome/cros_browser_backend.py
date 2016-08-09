@@ -123,7 +123,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._WaitForBrowserToComeUp()
     self._InitDevtoolsClientBackend(
         remote_devtools_port=self._remote_debugging_port)
-    util.WaitFor(lambda: self.oobe_exists, 10)
+    util.WaitFor(lambda: self.oobe_exists, 30)
 
     if self.browser_options.auto_login:
       try:
