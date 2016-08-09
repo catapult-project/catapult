@@ -631,13 +631,14 @@ def _ValidateRowId(row_dict, test_map):
     logging.warning('Test %s has no last added revision entry.', test_path)
     return
 
-  if not _IsAcceptableRowId(row_id, last_row_id):
+  allow_jump = master.endswith('Internal')
+  if not _IsAcceptableRowId(row_id, last_row_id, allow_jump=allow_jump):
     raise BadRequestError(
         'Invalid ID (revision) %d; compared to previous ID %s, it was larger '
         'or smaller by too much.' % (row_id, last_row_id))
 
 
-def _IsAcceptableRowId(row_id, last_row_id):
+def _IsAcceptableRowId(row_id, last_row_id, allow_jump=False):
   """Checks whether the given row id (aka revision) is not too large or small.
 
   For each data series (i.e. TestMetadata entity), we assume that row IDs are
@@ -670,6 +671,12 @@ def _IsAcceptableRowId(row_id, last_row_id):
   # Too big of a decrease.
   if row_id < 0.5 * last_row_id:
     return False
+  # TODO(perezju): We temporarily allow for a big jump on special cased bots,
+  # while we migrate from using commit position to timestamp as row id.
+  # The jump is only allowed into a timestamp falling within Aug-Dec 2016.
+  # This special casing should be removed after finishing the migration.
+  if allow_jump and 1470009600 < row_id < 1483228800:
+    return True
   # Too big of an increase.
   if row_id > 2 * last_row_id:
     return False
