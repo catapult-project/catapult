@@ -776,16 +776,16 @@ tr.exportTo('tr.importer', function() {
         // find ranges where the animation was actually running.
         var start = undefined;
         animation.subSlices.forEach(function(sub) {
-          if ((sub.args.state === 'running') &&
+          if ((sub.args.data.state === 'running') &&
               (start === undefined)) {
             // It's possible for the state to alternate between running and
             // pending, but the animation is still running in that case,
             // so only set start if the state is changing from one of the halted
             // states.
             start = sub.start;
-          } else if ((sub.args.state === 'paused') ||
-                     (sub.args.state === 'idle') ||
-                     (sub.args.state === 'finished')) {
+          } else if ((sub.args.data.state === 'paused') ||
+                     (sub.args.data.state === 'idle') ||
+                     (sub.args.data.state === 'finished')) {
             if (start === undefined) {
               // An animation was already running when the trace started.
               // (Actually, it's possible that the animation was in the 'idle'
@@ -800,9 +800,10 @@ tr.exportTo('tr.importer', function() {
           }
         });
 
-        // An animation was still running when the trace ended.
+        // An animation was still running when the
+        // top-level animation event ended.
         if (start !== undefined)
-          pushAnimationRange(start, modelHelper.model.bounds.max, animation);
+          pushAnimationRange(start, animation.end, animation);
       }
     });
 

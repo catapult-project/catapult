@@ -606,6 +606,41 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('cssAnimationStatesRunningAtEnd', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      // If a top-level Animation async slice has state-change instant
+      // events and the last one is a "running" event, then it will run
+      // to the end of the top level event.
+      var animationA = tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'Animation', start: 0, end: 500, isTopLevel: true});
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 100, args: {data: {state: 'running'}}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 200, args: {data: {state: 'idle'}}}));
+      animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
+          {title: 'Animation', start: 300, args: {data: {state: 'running'}}}));
+      model.rendererMain.asyncSliceGroup.push(animationA);
+      chrome_test_utils.addFrameEvent(model, {start: 50, end: 60});
+      chrome_test_utils.addFrameEvent(model, {start: 150, end: 160});
+      chrome_test_utils.addFrameEvent(model, {start: 250, end: 260});
+      chrome_test_utils.addFrameEvent(model, {start: 350, end: 360});
+      chrome_test_utils.addFrameEvent(model, {start: 450, end: 460});
+      // We include a frame event off the end of the top level animation slice
+      // so we can test that it correctly stops the AnimationExpectation
+      // at the end of the top-level event, not tne end of the whole trace,
+      chrome_test_utils.addFrameEvent(model, {start: 1050, end: 1060});
+    };
+    verifier.expectedIRs = [
+      {title: 'Idle', start: 0, end: 100, eventCount: 1},
+      {title: 'CSS Animation', start: 100, end: 200, eventCount: 5},
+      {title: 'Idle', start: 200, end: 300, eventCount: 1},
+      {title: 'CSS Animation', start: 300, end: 500, eventCount: 6},
+      {title: 'Idle', start: 500, end: 1060, eventCount: 1},
+    ];
+    verifier.verify();
+  });
+
   test('cssAnimationStates', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
@@ -627,17 +662,17 @@ tr.b.unittest.testSuite(function() {
       var animationA = tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 50, end: 500, isTopLevel: true});
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 71, args: {state: 'running'}}));
+          {title: 'Animation', start: 71, args: {data: {state: 'running'}}}));
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 104, args: {state: 'pending'}}));
+          {title: 'Animation', start: 104, args: {data: {state: 'pending'}}}));
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 137, args: {state: 'running'}}));
+          {title: 'Animation', start: 137, args: {data: {state: 'running'}}}));
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 150, args: {state: 'paused'}}));
+          {title: 'Animation', start: 150, args: {data: {state: 'paused'}}}));
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 281, args: {state: 'running'}}));
+          {title: 'Animation', start: 281, args: {data: {state: 'running'}}}));
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 350, args: {state: 'idle'}}));
+          {title: 'Animation', start: 350, args: {data: {state: 'idle'}}}));
       model.rendererMain.asyncSliceGroup.push(animationA);
       chrome_test_utils.addFrameEvent(model, {start: 80, end: 90});
       chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
@@ -647,16 +682,16 @@ tr.b.unittest.testSuite(function() {
           {title: 'Animation', start: 350, end: 382, isTopLevel: true});
       model.rendererMain.asyncSliceGroup.push(animationC);
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 350, args: {state: 'idle'}}));
+          {title: 'Animation', start: 350, args: {data: {state: 'idle'}}}));
 
       // This animation was running from model.bounds.min-50 and
       // 70-model.bounds.max.
       var animationB = tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 0, end: 500, isTopLevel: true});
       animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 40, args: {state: 'finished'}}));
+          {title: 'Animation', start: 40, args: {data: {state: 'finished'}}}));
       animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
-          {title: 'Animation', start: 382, args: {state: 'running'}}));
+          {title: 'Animation', start: 382, args: {data: {state: 'running'}}}));
       model.rendererMain.asyncSliceGroup.push(animationB);
       chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
       chrome_test_utils.addFrameEvent(model, {start: 390, end: 400});
