@@ -314,12 +314,28 @@ found in the LICENSE file.
       computeIsUndefined: x => x === undefined,
       computeSelectionIsAll: seriesGroup => seriesGroup.selection == 'all',
 
+      getTestIndexInSeriesGroup: function(seriesGroupIndex, name) {
+        var tests = this.seriesGroupList[seriesGroupIndex].tests;
+        for (var i = 0; i < tests.length; i++) {
+          if (name == tests[i].name) {
+            return i;
+          }
+        }
+        return null;
+      },
+
       /**
        * Event handler for the change event of any of the checkboxes.
        */
       onCheckboxClicked: function(event, detail) {
         var test = event.model.test;
         var seriesGroupIndex = this.$.grouplist.indexForElement(event.target);
+        var testIndex = this.getTestIndexInSeriesGroup(
+            seriesGroupIndex, test.name);
+        if (testIndex !== null) {
+          this.set('seriesGroupList.' + seriesGroupIndex + '.tests.' +
+              testIndex + '.selected', event.currentTarget.checked);
+        }
         this.updateIndicesToGraph(
             test.index, event.currentTarget.checked);
         this.updateSeriesGroupCheckedState(seriesGroupIndex);
