@@ -20,7 +20,7 @@ tr.exportTo('tr.ui.b', function() {
    *   value: Another dict whose key is width
    *     and value is an ElidedStringWidthPair.
    */
-  var elidedTitleCacheDict = {};
+  var elidedTitleCacheDict = new Map();
   var elidedTitleCache = new ElidedTitleCache();
 
   /**
@@ -30,7 +30,7 @@ tr.exportTo('tr.ui.b', function() {
   function ElidedTitleCache() {
     // TODO(jrg): possibly obsoleted with the elided string cache.
     // Consider removing.
-    this.textWidthMap = {};
+    this.textWidthMap = new Map();
   }
 
   ElidedTitleCache.prototype = {
@@ -45,19 +45,19 @@ tr.exportTo('tr.ui.b', function() {
      * @return {ElidedStringWidthPair} Elided string and width.
      */
     get: function(ctx, pixWidth, title, width, sliceDuration) {
-      var elidedDict = elidedTitleCacheDict[title];
+      var elidedDict = elidedTitleCacheDict.get(title);
       if (!elidedDict) {
-        elidedDict = {};
-        elidedTitleCacheDict[title] = elidedDict;
+        elidedDict = new Map();
+        elidedTitleCacheDict.set(title, elidedDict);
       }
 
-      var elidedDictForPixWidth = elidedDict[pixWidth];
+      var elidedDictForPixWidth = elidedDict.get(pixWidth);
       if (!elidedDictForPixWidth) {
-        elidedDict[pixWidth] = {};
-        elidedDictForPixWidth = elidedDict[pixWidth];
+        elidedDict.set(pixWidth, new Map());
+        elidedDictForPixWidth = elidedDict.get(pixWidth);
       }
 
-      var stringWidthPair = elidedDictForPixWidth[sliceDuration];
+      var stringWidthPair = elidedDictForPixWidth.get(sliceDuration);
       if (stringWidthPair === undefined) {
         var newtitle = title;
         var elided = false;
@@ -73,16 +73,16 @@ tr.exportTo('tr.ui.b', function() {
 
         stringWidthPair = new ElidedStringWidthPair(
             newtitle, this.labelWidth(ctx, newtitle));
-        elidedDictForPixWidth[sliceDuration] = stringWidthPair;
+        elidedDictForPixWidth.set(sliceDuration, stringWidthPair);
       }
       return stringWidthPair;
     },
 
     quickMeasureText_: function(ctx, text) {
-      var w = this.textWidthMap[text];
+      var w = this.textWidthMap.get(text);
       if (!w) {
         w = ctx.measureText(text).width;
-        this.textWidthMap[text] = w;
+        this.textWidthMap.set(text, w);
       }
       return w;
     },
