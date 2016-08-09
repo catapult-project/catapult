@@ -552,8 +552,9 @@ found in the LICENSE file.
         this.set('indicesToGraph', []);
         for (var i = 0; i < this.seriesGroupList.length; i++) {
           var group = this.seriesGroupList[i];
-          for (var i = 0; i < group.tests.length; i++) {
-            group.tests[i].selected = false;
+          for (var j = 0; j < group.tests.length; j++) {
+            this.set('seriesGroupList.' + i + '.tests.' + j + '.selected',
+                false);
           }
           this.updateSeriesGroupCheckedState(i);
           this.updateNumHidden(i);
