@@ -134,6 +134,18 @@ Polymer({
     this.push('subViews_', subView);
   },
 
+  resetSubViews: function(subViews) {
+    this.splice('subViews_', 0, this.subViews_.length);
+    if (subViews.length) {
+      for (var subView of subViews)
+        this.push('subViews_', subView);
+      this.selectedSubView = subViews[0];
+    }
+    else {
+      this.selectedSubView = undefined;
+    }
+  },
+
   onTabChanged_: function(event) {
     this.selectedSubView = event.model.item;
   },

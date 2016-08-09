@@ -76,14 +76,14 @@ tr.exportTo('tr.c', function() {
 
     modelWillChange: function() {
       if (this.currentBrushingState_.isAppliedToModel)
-        this.currentBrushingState_.unapplyFromModelSelectionState();
+        this.currentBrushingState_.unapplyFromEventSelectionStates();
     },
 
     modelDidChange: function() {
       this.selections_ = {};
 
       this.currentBrushingState_ = new BrushingState();
-      this.currentBrushingState_.applyToModelSelectionState(this.model);
+      this.currentBrushingState_.applyToEventSelectionStates(this.model);
 
       var e = new tr.b.Event('model-changed', false, false);
       this.dispatchEvent(e);
@@ -153,12 +153,11 @@ tr.exportTo('tr.c', function() {
       }
 
       if (this.currentBrushingState_.isAppliedToModel)
-        this.currentBrushingState_.unapplyFromModelSelectionState();
+        this.currentBrushingState_.unapplyFromEventSelectionStates();
 
       this.currentBrushingState_ = newBrushingState;
 
-      if (this.model)
-        this.currentBrushingState_.applyToModelSelectionState(this.model);
+      this.currentBrushingState_.applyToEventSelectionStates(this.model);
 
       this.dispatchChangeEvent_();
     },

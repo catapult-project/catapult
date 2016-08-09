@@ -187,16 +187,18 @@ using custom elements specialized for different event types.
       this.lastSelection_ = this.selection;
 
       this.tallMode = false;
-      this.tabView_.clearSubViews();
 
       this.tabView_.label = getTabStripLabel(this.selection.length);
       var eventsByBaseTypeName =
           this.selection.getEventsOrganizedByBaseType(true);
 
+      var newSubViews = [];
+
       tr.b.iterItems(eventsByBaseTypeName, function(eventTypeName, events) {
-        var subView = createSubView(eventTypeName, events);
-        this.tabView_.addSubView(subView);
+        newSubViews.push(createSubView(eventTypeName, events));
       }, this);
+
+      this.tabView_.resetSubViews(newSubViews);
     },
 
     onSelectedSubViewChanged_: function() {

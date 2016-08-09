@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/selection_state.html">
 
@@ -137,9 +138,11 @@ tr.exportTo('tr.ui.b', function() {
       this.viewSpecificBrushingStates_ = viewSpecificBrushingStates;
     },
 
-    get causesDimming_() {
-      return this.findMatches_.length > 0 ||
-          this.analysisViewRelatedEvents_.length > 0;
+    get dimmedEvents_() {
+      var dimmedEvents = new EventSet();
+      dimmedEvents.addEventSet(this.findMatches);
+      dimmedEvents.addEventSet(this.analysisViewRelatedEvents_);
+      return dimmedEvents;
     },
 
     get brightenedEvents_() {
@@ -149,41 +152,70 @@ tr.exportTo('tr.ui.b', function() {
       return brightenedEvents;
     },
 
-    applyToModelSelectionState: function(model) {
+    /**
+     * This function sets the SelectionStates according to these rules:
+     *
+     * - Events in ONE of findMatches or analysisViewRelatedEvents
+     * are set to SelectionState.BRIGHTENED0.
+     * - Events in BOTH of findMatches and analysisViewRelatedEvents
+     * are set to SelectionState.BRIGHTENED1.
+     * - Events in ONE of selection or analysisLinkHoveredEvents
+     * are set to SelectionState.DIMMED1.
+     * - Events in BOTH selection and analysisLinkHoveredEvents
+     * are set to SelectionState.DIMMED2.
+     * - Events not in any of the above are set to SelectionState.NONE
+     * if there are no events in selection or analysisLinkHoveredEvents
+     * (i.e. model is "default bright") or SelectionState.DIMMED0 (i.e.
+     * model is "default dimmed").
+     *
+     * It is up to the caller to assure that all of the SelectionStates
+     * are the same before calling this function. Normally,
+     * this is done by calling unapplyFromModelSelectionState on the
+     * old brushing state first.
+     */
+    applyToEventSelectionStates: function(model) {
       this.appliedToModel_ = model;
 
-      if (!this.causesDimming_) {
-        this.brightenedEvents_.forEach(function(e) {
-          var score;
-          score = 0;
-          if (this.selection_.contains(e))
-            score++;
-          if (this.analysisLinkHoveredEvents_.contains(e))
-            score++;
-          e.selectionState = SelectionState.getFromBrighteningLevel(score);
-        }, this);
-        return;
+      var dimmedEvents = this.dimmedEvents_;
+
+      // It's possible for this to get called with an undefined model pointer.
+      // If so, skip adjusting the defaults.
+      if (model) {
+        var newDefaultState = (
+            dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
+
+        // Since all the states are the same, we can get the current default
+        // state by looking at the first element.
+        var currentDefaultState = tr.b.getFirstElement(
+            model.getDescendantEvents()).selectionState;
+
+        // If the default state was changed, then we have to iterate through
+        // and reset all the events to the new default state.
+        if (currentDefaultState !== newDefaultState)
+          for (var e of model.getDescendantEvents())
+            e.selectionState = newDefaultState;
       }
 
-      var brightenedEvents = this.brightenedEvents_;
-      for (var e of model.getDescendantEvents()) {
-        var score;
-        if (brightenedEvents.contains(e)) {
-          score = 0;
-          if (this.selection_.contains(e))
-            score++;
-          if (this.analysisLinkHoveredEvents_.contains(e))
-            score++;
-          e.selectionState = SelectionState.getFromBrighteningLevel(score);
-        } else {
-          score = 0;
-          if (this.findMatches_.contains(e))
-            score++;
-          if (this.analysisViewRelatedEvents_.contains(e))
-            score++;
-          e.selectionState = SelectionState.getFromDimmingLevel(score);
-        }
+      // Now we apply the other rules above.
+      var score;
+      for (var e of dimmedEvents) {
+        score = 0;
+        if (this.findMatches_.contains(e))
+          score++;
+        if (this.analysisViewRelatedEvents_.contains(e))
+          score++;
+        e.selectionState = SelectionState.getFromDimmingLevel(score);
       }
+
+      for (var e of this.brightenedEvents_) {
+        score = 0;
+        if (this.selection_.contains(e))
+          score++;
+        if (this.analysisLinkHoveredEvents_.contains(e))
+          score++;
+        e.selectionState = SelectionState.getFromBrighteningLevel(score);
+      }
+
     },
 
     transferModelOwnershipToClone: function(that) {
@@ -194,20 +226,27 @@ tr.exportTo('tr.ui.b', function() {
       this.appliedToModel_ = undefined;
     },
 
-    unapplyFromModelSelectionState: function() {
+    /**
+     * Unapplies this brushing state from the model selection state.
+     * Resets all the SelectionStates to their default value (DIMMED0 or NONE)
+     * and returns the default selection states. The caller should store this
+     * value and pass it into applyFromModelSelectionStat when that is called.
+     */
+    unapplyFromEventSelectionStates: function() {
       if (!this.appliedToModel_)
         throw new Error('Not applied');
       var model = this.appliedToModel_;
       this.appliedToModel_ = undefined;
 
-      if (!this.causesDimming_) {
-        for (var e of this.brightenedEvents_)
-          e.selectionState = SelectionState.NONE;
-        return;
-      }
+      var dimmedEvents = this.dimmedEvents_;
+      var defaultState = (
+          dimmedEvents.length ? SelectionState.DIMMED0 : SelectionState.NONE);
 
-      for (var e of model.getDescendantEvents())
-        e.selectionState = SelectionState.NONE;
+      for (var e of this.brightenedEvents_)
+        e.selectionState = defaultState;
+      for (var e of dimmedEvents)
+        e.selectionState = defaultState;
+      return defaultState;
     }
   };
 
