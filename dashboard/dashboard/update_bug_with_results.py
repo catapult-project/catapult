@@ -174,6 +174,10 @@ def _CheckBisectJob(job, issue_tracker):
 
 def _CheckFYIBisectJob(job, issue_tracker):
   try:
+    if job.use_buildbucket and not job.buildbucket_job_id:
+      job.key.delete()
+      return
+
     if not _IsBisectJobCompleted(job):
       return
     if not job.results_data:
