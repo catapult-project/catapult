@@ -63,19 +63,6 @@ tr.b.unittest.testSuite(function() {
         'clock sync marker to it.');
   }, testOptions);
 
-  test('addClockSyncMarker_throwsWhenAddingDuplicatePaths', function() {
-    var mgr = new ClockSyncManager();
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
-
-    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 100);
-
-    assert.throws(function() {
-      mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 100);
-    }, 'The current code cannot handle multiple paths between the same clock ' +
-        'domains. However, this is a valid operation.');
-  }, testOptions);
-
   test('addClockSyncMarker_throwsAfterGetModelTimeTransformer', function() {
     var mgr = new ClockSyncManager();
     mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100);
@@ -221,6 +208,36 @@ tr.b.unittest.testSuite(function() {
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(100), 100);
     assert.strictEqual(
         mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_3)(300), 100);
+  }, testOptions);
+
+  test('getModelTimeTransformer_usesPathWithLeastError', function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 100, 150);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 100);
+
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 200);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(125), 125);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(100), 125);
+  }, testOptions);
+
+  // NOTE: This is the same test as the above, but reversed to ensure that
+  // the result didn't stem from some ordering coincidence.
+  test('getModelTimeTransformer_usesPathWithLeastErrorReverse', function() {
+    var mgr = new ClockSyncManager();
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync1', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync1', 100, 150);
+
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_2, 'sync2', 100);
+    mgr.addClockSyncMarker(ClockDomainId.DOMAIN_1, 'sync2', 100, 200);
+
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_1)(125), 125);
+    assert.strictEqual(
+        mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2)(100), 125);
   }, testOptions);
 
   test('getModelTimeTransformer_battorSyncUsesNormalTimestampWhenFast',
