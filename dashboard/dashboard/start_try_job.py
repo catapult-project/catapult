@@ -423,9 +423,11 @@ def _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket):
     return None
   if suite == 'cc_perftests' and bisect_bot.startswith('android'):
     if use_buildbucket:
-      return 'src/build/android/test_runner.py gtest --release -s cc_perftests'
+      return ('src/build/android/test_runner.py '
+              'gtest --release -s cc_perftests --verbose')
     else:
-      return 'build/android/test_runner.py gtest --release -s cc_perftests'
+      return ('build/android/test_runner.py '
+              'gtest --release -s cc_perftests --verbose')
 
   command = list(_NON_TELEMETRY_TEST_COMMANDS[suite])
 

@@ -692,7 +692,8 @@ class StartBisectTest(testing_common.TestCase):
 
   def testGetConfig_AndroidCCPerftests(self):
     self._TestGetConfigCommand(
-        'build/android/test_runner.py gtest --release -s cc_perftests',
+        'build/android/test_runner.py '
+        'gtest --release -s cc_perftests --verbose',
         bisect_bot='android_nexus7_perf_bisect',
         suite='cc_perftests')
 
@@ -1017,7 +1018,8 @@ class StartBisectTest(testing_common.TestCase):
 
   def testGetConfig_UseBuildbucket_AndroidCCPerftests(self):
     self._TestGetConfigCommand(
-        'src/build/android/test_runner.py gtest --release -s cc_perftests',
+        'src/build/android/test_runner.py '
+        'gtest --release -s cc_perftests --verbose',
         bisect_bot='android_nexus7_perf_bisect',
         suite='cc_perftests',
         use_buildbucket=True)
