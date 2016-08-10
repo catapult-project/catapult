@@ -75,6 +75,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         not self.browser_options.gaia_login):
       args.append('--disable-gaia-services')
 
+    trace_config_file = (self.platform_backend.tracing_controller_backend
+                         .GetChromeTraceConfigFile())
+    if trace_config_file:
+      args.append('--trace-config-file=%s' % trace_config_file)
+
     return args
 
   @property
@@ -108,6 +113,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
             'array:string:"%s"' % ','.join(startup_args)]
+    logging.info('Starting Chrome %s', args)
     self._cri.RunCmdOnDevice(args)
 
     if not self._cri.local:

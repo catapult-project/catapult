@@ -11,6 +11,9 @@ from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
 from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 from telemetry.timeline import tracing_config
+from telemetry.core import cros_interface
+from telemetry.testing import options_for_unittests
+
 
 from devil.android import device_utils
 
@@ -35,6 +38,18 @@ class FakeAndroidPlatformBackend(FakePlatformBackend):
 
   def GetOSName(self):
     return 'android'
+
+class FakeCrOSPlatformBackend(FakePlatformBackend):
+  def __init__(self):
+    super(FakeCrOSPlatformBackend, self).__init__()
+    remote = options_for_unittests.GetCopy().cros_remote
+    remote_ssh_port = options_for_unittests.GetCopy().cros_remote_ssh_port
+    self.cri = cros_interface.CrOSInterface(
+        remote, remote_ssh_port,
+        options_for_unittests.GetCopy().cros_ssh_identity)
+
+  def GetOSName(self):
+    return 'chromeos'
 
 class FakeDesktopPlatformBackend(FakePlatformBackend):
   def GetOSName(self):
@@ -320,6 +335,30 @@ class ChromeTracingAgentTest(unittest.TestCase):
     # robust to multiple file removal
     agent._RemoveTraceConfigFile()
     self.assertFalse(platform_backend.device.PathExists(config_file_path))
+    self.assertIsNone(agent.trace_config_file)
+
+  @decorators.Enabled('chromeos')
+  def testCreateAndRemoveTraceConfigFileOnCrOS(self):
+    platform_backend = FakeCrOSPlatformBackend()
+    cri = platform_backend.cri
+    agent = chrome_tracing_agent.ChromeTracingAgent(platform_backend)
+    self.assertIsNone(agent.trace_config_file)
+
+    config = tracing_config.TracingConfig()
+    agent._CreateTraceConfigFile(config)
+    self.assertIsNotNone(agent.trace_config_file)
+    self.assertTrue(cri.FileExistsOnDevice(agent.trace_config_file))
+    config_file_str = cri.GetFileContents(agent.trace_config_file)
+    self.assertEqual(agent._CreateTraceConfigFileString(config),
+                     config_file_str.strip())
+
+    config_file_path = agent.trace_config_file
+    agent._RemoveTraceConfigFile()
+    self.assertFalse(cri.FileExistsOnDevice(config_file_path))
+    self.assertIsNone(agent.trace_config_file)
+    # robust to multiple file removal
+    agent._RemoveTraceConfigFile()
+    self.assertFalse(cri.FileExistsOnDevice(config_file_path))
     self.assertIsNone(agent.trace_config_file)
 
   @decorators.Enabled('linux', 'mac', 'win')

@@ -155,6 +155,11 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testStartupTracingOnAndroid(self):
     self._StartupTracing(self._browser.platform)
 
+  @decorators.Enabled('chromeos')
+  @decorators.Isolated
+  def testStartupTracingOnCrOS(self):
+    self._StartupTracing(self._browser.platform)
+
   @decorators.Enabled('linux', 'mac', 'win')
   @decorators.Isolated
   def testStartupTracingOnDesktop(self):

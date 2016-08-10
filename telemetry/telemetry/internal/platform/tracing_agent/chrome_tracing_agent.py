@@ -18,11 +18,12 @@ from telemetry.internal.platform.tracing_agent import (
     chrome_tracing_devtools_manager)
 
 _DESKTOP_OS_NAMES = ['linux', 'mac', 'win']
-_STARTUP_TRACING_OS_NAMES = _DESKTOP_OS_NAMES + ['android']
+_STARTUP_TRACING_OS_NAMES = _DESKTOP_OS_NAMES + ['android', 'chromeos']
 
 # The trace config file path should be the same as specified in
 # src/components/tracing/trace_config_file.[h|cc]
 _CHROME_TRACE_CONFIG_DIR_ANDROID = '/data/local/'
+_CHROME_TRACE_CONFIG_DIR_CROS = '/tmp/'
 _CHROME_TRACE_CONFIG_FILE_NAME = 'chrome-trace-config.json'
 
 
@@ -255,6 +256,16 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       # The config file has fixed path on Android. We need to ensure it is
       # always cleaned up.
       atexit_with_log.Register(self._RemoveTraceConfigFile)
+    elif self._platform_backend.GetOSName() == 'chromeos':
+      self._trace_config_file = os.path.join(_CHROME_TRACE_CONFIG_DIR_CROS,
+                                             _CHROME_TRACE_CONFIG_FILE_NAME)
+      cri = self._platform_backend.cri
+      cri.PushContents(self._CreateTraceConfigFileString(config),
+                       self._trace_config_file)
+      cri.Chown(self._trace_config_file)
+      # The config file has fixed path on CrOS. We need to ensure it is
+      # always cleaned up.
+      atexit_with_log.Register(self._RemoveTraceConfigFile)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
       self._trace_config_file = os.path.join(tempfile.mkdtemp(),
                                              _CHROME_TRACE_CONFIG_FILE_NAME)
@@ -274,6 +285,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       self._platform_backend.device.RunShellCommand(
           ['rm', '-f', self._trace_config_file], check_return=True,
           as_root=True)
+    elif self._platform_backend.GetOSName() == 'chromeos':
+      self._platform_backend.cri.RmRF(self._trace_config_file)
     elif self._platform_backend.GetOSName() in _DESKTOP_OS_NAMES:
       if os.path.exists(self._trace_config_file):
         os.remove(self._trace_config_file)
