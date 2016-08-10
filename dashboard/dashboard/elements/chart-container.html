@@ -892,7 +892,19 @@ triaging functionality in the chart.
             this.json['error_bars'][nextIndex] = newJson['error_bars'][index];
           }
 
-          this.updateForNewSeries(newSeries, isSelected);
+          // Sort the series by path.
+          var sortedSeriesArray = [];
+          for (var k in newSeries) {
+            sortedSeriesArray.push([parseInt(k), newSeries[k]]);
+          }
+          var unsortedSeriesArray = sortedSeriesArray.slice().sort(
+              (a, b) => a[0] - b[0]);
+          sortedSeriesArray.sort((a, b) => a[1].path.localeCompare(b[1].path));
+          var sortedSeries = {};
+          for (var i = 0; i < sortedSeriesArray.length; i++) {
+            sortedSeries[unsortedSeriesArray[i][0]] = sortedSeriesArray[i][1];
+          }
+          this.updateForNewSeries(sortedSeries, isSelected);
         },
 
         /**
