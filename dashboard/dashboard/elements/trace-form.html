@@ -72,9 +72,9 @@ the trace process after the user clicks on the trace button.
             <td>Trace Options:</td>
             <td>
               <select id="rerun-options">
-                  <option template
-                          repeat="{{rerunInfo}}"
-                          value="{{option}}">{{name}}</option>
+                <template is="dom-repeat" items="{{rerunInfo}}">
+                  <option value="{{item.option}}">{{item.name}}</option>
+                </template>
               </select>
             </td>
           </tr>
@@ -91,7 +91,7 @@ the trace process after the user clicks on the trace button.
 
       <p class="error">{{error}}</p>
 
-      <paper-button dialog-confirm raised autofocus disabled$="{{error}}"
+      <paper-button dialog-confirm raised autofocus disabled$="{{computeHasError(error)}}"
                     on-click="onSendToTrybot">Send to perf try bot</paper-button>
       <paper-button dialog-dismiss raised>Close</paper-button>
 
@@ -132,6 +132,7 @@ the trace process after the user clicks on the trace button.
         is: 'trace-form',
         properties: {
           bugId: { notify: true },
+          error: { type: String, value: '', notify: true},
           earlierRevision: {
             notify: true,
             observer: 'earlierRevisionChanged'
@@ -144,6 +145,9 @@ the trace process after the user clicks on the trace button.
           testPath: { notify: true },
           xsrfToken: { notify: true }
         },
+
+        computeHasError: errorMessage => !!errorMessage,
+
         /**
          * Initializes and shows the trace form.
          */
@@ -161,9 +165,7 @@ the trace process after the user clicks on the trace button.
                 this.bot = info['bisect_bot'];
                 this.botList = info['all_bots'];
 
-                // Platform.performMicrotaskCheckpoint signals Polymer to update
-                // bound elements based on their model objects.
-                Platform.performMicrotaskCheckpoint();
+                Polymer.dom.flush();
 
                 this.email = info['email'];
                 this.suite = info['suite'];
