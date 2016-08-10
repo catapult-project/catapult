@@ -26,6 +26,7 @@ if version != (2, 7):
 import optparse
 import os
 import time
+from distutils.spawn import find_executable
 
 _SYSTRACE_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.path.pardir))
@@ -37,11 +38,11 @@ if _DEVIL_DIR not in sys.path:
 if _SYSTRACE_DIR not in sys.path:
   sys.path.insert(0, _SYSTRACE_DIR)
 
+from devil import devil_env
 from systrace import systrace_runner
 from systrace import util
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import ftrace_agent
-
 
 def parse_options(argv):
   """Parses and checks the command-line options.
@@ -137,9 +138,29 @@ def parse_options(argv):
 
   return (options, categories)
 
+
+def initialize_devil():
+  """Initialize devil to use adb from $PATH"""
+  devil_dynamic_config = {
+    'config_type': 'BaseConfig',
+    'dependencies': {
+      'adb': {
+        'file_info': {
+          devil_env.GetPlatform(): {
+            'local_paths': [os.path.abspath(find_executable('adb'))]
+          }
+        }
+      }
+    }
+  }
+  devil_env.config.Initialize(configs=[devil_dynamic_config])
+
+
 def main():
   # Parse the command line options.
   options, categories = parse_options(sys.argv)
+
+  initialize_devil()
 
   if options.target == 'android' and not options.device_serial_number:
     devices = util.get_device_serials()
