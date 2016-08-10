@@ -24,12 +24,12 @@ TRACE_DATA_CONTROLLER_NAME = 'systraceController'
 
 
 def ControllerAgentClockSync(issue_ts, name):
-  '''Record the clock sync marker for controller tracing agent.sub
+  """Record the clock sync marker for controller tracing agent.
 
   Unlike with the other tracing agents, the tracing controller should not
   call this directly. Rather, it is called via callback from the other
   tracing agents when they write a trace.
-  '''
+  """
   trace_event.clock_sync(name, issue_ts=issue_ts)
 
 
@@ -80,18 +80,18 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
                                     ast.literal_eval(result))
 
   def SupportsExplicitClockSync(self):
-    '''Returns whether this supports explicit clock sync.
+    """Returns whether this supports explicit clock sync.
     Although the tracing controller conceptually supports explicit clock
     sync, it is not an agent controlled by other controllers so it does not
     define RecordClockSyncMarker (rather, the recording of the "controller
     side" of the clock sync marker is done in _IssueClockSyncMarker). Thus,
     SupportsExplicitClockSync must return false.
-    '''
+    """
     return False
 
+  # pylint: disable=unused-argument
   def RecordClockSyncMarker(self, sync_id, callback):
     raise NotImplementedError
-
 
 class TracingController(object):
   def __init__(self, options, categories, agents):

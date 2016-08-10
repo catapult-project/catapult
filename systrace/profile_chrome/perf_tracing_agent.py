@@ -4,6 +4,7 @@
 
 import logging
 import os
+import py_utils
 import signal
 import subprocess
 import sys
@@ -12,8 +13,9 @@ import tempfile
 from devil.android import device_temp_file
 from devil.android.perf import perf_control
 
-from profile_chrome import controllers
 from profile_chrome import ui
+from systrace import trace_result
+from systrace import tracing_agents
 
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..')
@@ -90,9 +92,9 @@ class _PerfProfiler(object):
     return perf_profile
 
 
-class PerfProfilerController(controllers.BaseController):
+class PerfProfilerAgent(tracing_agents.TracingAgent):
   def __init__(self, device, categories):
-    controllers.BaseController.__init__(self)
+    tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._categories = categories
     self._perf_binary = self._PrepareDevice(device)
@@ -118,15 +120,23 @@ class PerfProfilerController(controllers.BaseController):
     perf_binary = cls._PrepareDevice(device)
     return device.RunShellCommand('%s list' % perf_binary)
 
-  def StartTracing(self, _):
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, categories, timeout=None):
     self._perf_instance = _PerfProfiler(self._device,
                                         self._perf_binary,
                                         self._categories)
 
-  def StopTracing(self):
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     if not self._perf_instance:
       return
     self._perf_instance.SignalAndWait()
+
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
+    with open(self._PullTrace(), 'r') as f:
+      trace_data = f.read()
+    return trace_result.TraceResult('perf', trace_data)
 
   @staticmethod
   def _GetInteractivePerfCommand(perfhost_path, perf_profile, symfs_dir,
@@ -144,7 +154,7 @@ class PerfProfilerController(controllers.BaseController):
         break
     return cmd
 
-  def PullTrace(self):
+  def _PullTrace(self):
     symfs_dir = os.path.join(tempfile.gettempdir(),
                              os.path.expandvars('$USER-perf-symfs'))
     if not os.path.exists(symfs_dir):
@@ -187,3 +197,10 @@ class PerfProfilerController(controllers.BaseController):
         return None
 
     return json_file_name
+
+  def SupportsExplicitClockSync(self):
+    return False
+
+  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
+        'recorded since explicit clock sync is not supported.')

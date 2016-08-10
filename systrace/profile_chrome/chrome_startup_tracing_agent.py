@@ -3,18 +3,20 @@
 # found in the LICENSE file.
 
 import os
+import py_utils
 import re
-import time
 
 from devil.android import flag_changer
 from devil.android.perf import cache_control
 from devil.android.sdk import intent
 
-from profile_chrome import controllers
+from systrace import trace_result
+from systrace import tracing_agents
 
 
-class ChromeStartupTracingController(controllers.BaseController):
+class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def __init__(self, device, package_info, cold, url):
+    tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._package_info = package_info
     self._cold = cold
@@ -53,21 +55,34 @@ class ChromeStartupTracingController(controllers.BaseController):
   def _TearDownTracing(self):
     self._flag_changer.Restore()
 
-  def StartTracing(self, interval):  # pylint: disable=unused-argument
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, categories, timeout=None):
     self._SetupTracing()
     self._logcat_monitor.Start()
 
-  def StopTracing(self):
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     try:
       self._trace_file = self._logcat_monitor.WaitFor(
           self._trace_finish_re).group(1)
     finally:
       self._TearDownTracing()
 
-  def PullTrace(self):
-    # Wait a bit for the browser to finish writing the trace file.
-    time.sleep(3)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
+    with open(self._PullTrace(), 'r') as f:
+      trace_data = f.read()
+    return trace_result.TraceResult('traceEvents', trace_data)
+
+  def _PullTrace(self):
     trace_file = self._trace_file.replace('/storage/emulated/0/', '/sdcard/')
     host_file = os.path.join(os.path.curdir, os.path.basename(trace_file))
     self._device.PullFile(trace_file, host_file)
     return host_file
+
+  def SupportsExplicitClockSync(self):
+    return False
+
+  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
+        'recorded since explicit clock sync is not supported.')

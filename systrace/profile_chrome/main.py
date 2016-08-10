@@ -10,12 +10,12 @@ import os
 import sys
 import webbrowser
 
-from profile_chrome import chrome_controller
-from profile_chrome import ddms_controller
+from profile_chrome import chrome_tracing_agent
+from profile_chrome import ddms_tracing_agent
 from profile_chrome import flags
-from profile_chrome import perf_controller
+from profile_chrome import perf_tracing_agent
 from profile_chrome import profiler
-from profile_chrome import systrace_controller
+from profile_chrome import atrace_tracing_agent
 from profile_chrome import ui
 
 from devil.android import device_utils
@@ -45,14 +45,14 @@ def _ComputeChromeCategories(options):
   return categories
 
 
-def _ComputeSystraceCategories(options):
-  if not options.systrace_categories:
+def _ComputeAtraceCategories(options):
+  if not options.atrace_categories:
     return []
-  return options.systrace_categories.split(',')
+  return options.atrace_categories.split(',')
 
 
 def _ComputePerfCategories(options):
-  if not perf_controller.PerfProfilerController.IsSupported():
+  if not perf_tracing_agent.PerfProfilerAgent.IsSupported():
     return []
   if not options.perf_categories:
     return []
@@ -120,9 +120,9 @@ def _CreateOptionParser():
                          action='store_true')
   parser.add_option_group(chrome_opts)
 
-  parser.add_option_group(flags.SystraceOptions(parser))
+  parser.add_option_group(flags.AtraceOptions(parser))
 
-  if perf_controller.PerfProfilerController.IsSupported():
+  if perf_tracing_agent.PerfProfilerAgent.IsSupported():
     perf_opts = optparse.OptionGroup(parser, 'Perf profiling options')
     perf_opts.add_option('-p', '--perf', help='Capture a perf profile with '
                          'the chosen comma-delimited event categories. '
@@ -178,7 +178,7 @@ When in doubt, just try out --trace-frame-viewer.
     record_categories = []
     disabled_by_default_categories = []
     record_categories, disabled_by_default_categories = \
-        chrome_controller.ChromeTracingController.GetCategories(
+        chrome_tracing_agent.ChromeTracingAgent.GetCategories(
             device, package_info)
 
     ui.PrintMessage('done')
@@ -192,15 +192,15 @@ When in doubt, just try out --trace-frame-viewer.
 
     return 0
 
-  if options.systrace_categories in ['list', 'help']:
+  if options.atrace_categories in ['list', 'help']:
     ui.PrintMessage('\n'.join(
-        systrace_controller.SystraceController.GetCategories(device)))
+        atrace_tracing_agent.AtraceAgent.GetCategories(device)))
     return 0
 
-  if (perf_controller.PerfProfilerController.IsSupported() and
+  if (perf_tracing_agent.PerfProfilerAgent.IsSupported() and
       options.perf_categories in ['list', 'help']):
     ui.PrintMessage('\n'.join(
-        perf_controller.PerfProfilerController.GetCategories(device)))
+        perf_tracing_agent.PerfProfilerAgent.GetCategories(device)))
     return 0
 
   if not options.time and not options.continuous:
@@ -208,45 +208,45 @@ When in doubt, just try out --trace-frame-viewer.
     return 1
 
   chrome_categories = _ComputeChromeCategories(options)
-  systrace_categories = _ComputeSystraceCategories(options)
+  atrace_categories = _ComputeAtraceCategories(options)
   perf_categories = _ComputePerfCategories(options)
 
-  if chrome_categories and 'webview' in systrace_categories:
-    logging.warning('Using the "webview" category in systrace together with '
+  if chrome_categories and 'webview' in atrace_categories:
+    logging.warning('Using the "webview" category in atrace together with '
                     'Chrome tracing results in duplicate trace events.')
 
-  enabled_controllers = []
+  enabled_agents = []
   if chrome_categories:
-    enabled_controllers.append(
-        chrome_controller.ChromeTracingController(device,
-                                                  package_info,
-                                                  chrome_categories,
-                                                  options.ring_buffer,
-                                                  options.trace_memory))
-  if systrace_categories:
-    enabled_controllers.append(
-        systrace_controller.SystraceController(device,
-                                               systrace_categories,
-                                               options.ring_buffer))
+    enabled_agents.append(
+        chrome_tracing_agent.ChromeTracingAgent(device,
+                                                package_info,
+                                                chrome_categories,
+                                                options.ring_buffer,
+                                                options.trace_memory))
+  if atrace_categories:
+    enabled_agents.append(
+        atrace_tracing_agent.AtraceAgent(device,
+                                         atrace_categories,
+                                         options.ring_buffer))
 
   if perf_categories:
-    enabled_controllers.append(
-        perf_controller.PerfProfilerController(device,
-                                               perf_categories))
+    enabled_agents.append(
+        perf_tracing_agent.PerfProfilerAgent(device,
+                                             perf_categories))
 
   if options.ddms:
-    enabled_controllers.append(
-        ddms_controller.DdmsController(device,
-                                       package_info))
+    enabled_agents.append(
+        ddms_tracing_agent.DdmsAgent(device,
+                                     package_info))
 
-  if not enabled_controllers:
+  if not enabled_agents:
     ui.PrintMessage('No trace categories enabled.')
     return 1
 
   if options.output:
     options.output = os.path.expanduser(options.output)
   result = profiler.CaptureProfile(
-      enabled_controllers,
+      enabled_agents,
       options.time if not options.continuous else 0,
       output=options.output,
       compress=options.compress,

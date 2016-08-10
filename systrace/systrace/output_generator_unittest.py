@@ -26,33 +26,18 @@ class OutputGeneratorTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def testJsonTraceMerging(self):
-    t1 = {'traceEvents': [{'ts': 123, 'ph': 'b'}]}
-    t2 = {'traceEvents': [], 'stackFrames': ['blah']}
+    t1 = "{'traceEvents': [{'ts': 123, 'ph': 'b'}]}"
+    t2 = "{'traceEvents': [], 'stackFrames': ['blah']}"
+    results = [trace_result.TraceResult('a', t1),
+               trace_result.TraceResult('b', t2)]
 
-    output_file_name1 = ''.join(random.choice(string.ascii_uppercase +
-                            string.digits) for _ in range(10))
-    output_file_name2 = ''.join(random.choice(string.ascii_uppercase +
-                            string.digits) for _ in range(10))
-
-    # Both trace files will be merged to a third file and will get deleted in
-    # the process, so there's no need for NamedTemporaryFile to do the
-    # deletion.
-    with open(output_file_name1, 'wb') as f1:
-      with open(output_file_name2, 'wb') as f2:
-        f1.write(json.dumps(t1))
-        f2.write(json.dumps(t2))
-        f1.flush()
-        f2.flush()
-
-    output_files = output_generator.MergeTraceFilesIfNeeded(
-                      [output_file_name1, output_file_name2])
-    for output_file in output_files:
-      with open(output_file) as f:
-        output = json.load(f)
-        self.assertEquals(output['traceEvents'], t1['traceEvents'])
-        self.assertEquals(output['stackFrames'], t2['stackFrames'])
-      if os.path.isfile(output_file):
-        os.remove(output_file)
+    merged_results = output_generator.MergeTraceResultsIfNeeded(results)
+    for r in merged_results:
+      if r.source_name == 'a':
+        self.assertEquals(r.raw_data, t1)
+      elif r.source_name == 'b':
+        self.assertEquals(r.raw_data, t2)
+    self.assertEquals(len(merged_results), len(results))
 
   @decorators.HostOnlyTest
   def testHtmlOutputGenerationFormatsSingleTrace(self):
@@ -60,15 +45,16 @@ class OutputGeneratorTest(unittest.TestCase):
       atrace_data = f.read().replace(" ", "").strip()
       trace_results = [trace_result.TraceResult('systemTraceEvents',
                        atrace_data)]
-      output_file_name = ''.join(random.choice(string.ascii_uppercase +
-                            string.digits) for _ in range(10))
-      output_generator.GenerateHTMLOutput(trace_results, output_file_name)
+      output_file_name = _GenerateRandomString(10)
+      final_path = output_generator.GenerateHTMLOutput(trace_results,
+                                                       output_file_name)
       with open(output_file_name, 'r') as f:
         output_generator.GenerateHTMLOutput(trace_results, f.name)
         html_output = f.read()
         trace_data = (html_output.split(
           '<script class="trace-data" type="application/text">')[1].split(
           '</script>'))[0].replace(" ", "").strip()
+      os.remove(final_path)
 
     # Ensure the trace data written in HTML is located within the
     # correct place in the HTML document and that the data is not
@@ -83,11 +69,11 @@ class OutputGeneratorTest(unittest.TestCase):
     trace_results_expected = []
     for (trace_name, data) in combined_data.iteritems():
       trace_results.append(trace_result.TraceResult(str(trace_name),
-                                                             str(data)))
+                                                    str(data)))
       trace_results_expected.append(str(data).replace(" ", "").strip())
-    output_file_name = ''.join(random.choice(string.ascii_uppercase +
-                            string.digits) for _ in range(10))
-    output_generator.GenerateHTMLOutput(trace_results, output_file_name)
+    output_file_name = _GenerateRandomString(10)
+    final_path = output_generator.GenerateHTMLOutput(trace_results,
+                                                     output_file_name)
     with open(output_file_name, 'r') as f:
       html_output = f.read()
       for i in range(1, len(trace_results)):
@@ -99,3 +85,8 @@ class OutputGeneratorTest(unittest.TestCase):
         # correct place in the HTML document and that the data is not
         # malformed.
         self.assertTrue(trace_data in trace_results_expected)
+    os.remove(final_path)
+
+def _GenerateRandomString(strlen):
+  return ''.join(random.choice(string.ascii_uppercase +
+              string.digits) for _ in range(strlen))

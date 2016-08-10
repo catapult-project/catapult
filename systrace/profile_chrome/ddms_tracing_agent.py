@@ -3,19 +3,20 @@
 # found in the LICENSE file.
 
 import os
+import py_utils
 import re
-import time
 
-from profile_chrome import controllers
 from profile_chrome import util
+from systrace import trace_result
+from systrace import tracing_agents
 
 
 _DDMS_SAMPLING_FREQUENCY_US = 100
 
 
-class DdmsController(controllers.BaseController):
+class DdmsAgent(tracing_agents.TracingAgent):
   def __init__(self, device, package_info):
-    controllers.BaseController.__init__(self)
+    tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._package = package_info.package
     self._output_file = None
@@ -30,7 +31,8 @@ class DdmsController(controllers.BaseController):
         return True
     return False
 
-  def StartTracing(self, _):
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, categories, timeout=None):
     self._output_file = (
         '/data/local/tmp/ddms-profile-%s' % util.GetTraceTimestamp())
     cmd = 'am profile start '
@@ -39,17 +41,28 @@ class DdmsController(controllers.BaseController):
     cmd += '%s %s' % (self._package, self._output_file)
     self._device.RunShellCommand(cmd)
 
-  def StopTracing(self):
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     self._device.RunShellCommand('am profile stop %s' % self._package)
 
-  def PullTrace(self):
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
+    with open(self._PullTrace(), 'r') as f:
+      trace_data = f.read()
+    return trace_result.TraceResult('ddms', trace_data)
+
+  def _PullTrace(self):
     if not self._output_file:
       return None
-
-    # Wait for the trace file to get written.
-    time.sleep(1)
 
     host_file = os.path.join(
         os.path.curdir, os.path.basename(self._output_file))
     self._device.PullFile(self._output_file, host_file)
     return host_file
+
+  def SupportsExplicitClockSync(self):
+    return False
+
+  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
+        'recorded since explicit clock sync is not supported.')

@@ -4,29 +4,29 @@
 
 import json
 import os
+import py_utils
 import re
-import time
-
-from profile_chrome import controllers
 
 from devil.android import device_errors
 from devil.android.sdk import intent
+
+from systrace import trace_result
+from systrace import tracing_agents
 
 
 _HEAP_PROFILE_MMAP_PROPERTY = 'heapprof.mmap'
 
 
-class ChromeTracingController(controllers.BaseController):
+class ChromeTracingAgent(tracing_agents.TracingAgent):
   def __init__(self, device, package_info,
                categories, ring_buffer, trace_memory=False):
-    controllers.BaseController.__init__(self)
+    tracing_agents.TracingAgent.__init__(self)
     self._device = device
     self._package_info = package_info
     self._categories = categories
     self._ring_buffer = ring_buffer
     self._logcat_monitor = self._device.GetLogcatMonitor()
     self._trace_file = None
-    self._trace_interval = None
     self._trace_memory = trace_memory
     self._is_tracing = False
     self._trace_start_re = \
@@ -61,8 +61,8 @@ class ChromeTracingController(controllers.BaseController):
 
     return list(record_categories), list(disabled_by_default_categories)
 
-  def StartTracing(self, interval):
-    self._trace_interval = interval
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StartAgentTracing(self, options, categories, timeout=None):
     self._logcat_monitor.Start()
     start_extras = {'categories': ','.join(self._categories)}
     if self._ring_buffer:
@@ -90,7 +90,8 @@ class ChromeTracingController(controllers.BaseController):
           'Trace start marker not found. Possible causes: 1) Is the correct '
           'version of the browser running? 2) Is the browser already launched?')
 
-  def StopTracing(self):
+  @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
+  def StopAgentTracing(self, timeout=None):
     if self._is_tracing:
       self._device.BroadcastIntent(intent.Intent(
           action='%s.GPU_PROFILER_STOP' % self._package_info.package))
@@ -100,10 +101,13 @@ class ChromeTracingController(controllers.BaseController):
     if self._trace_memory:
       self._device.SetProp(_HEAP_PROFILE_MMAP_PROPERTY, 0)
 
-  def PullTrace(self):
-    # Wait a bit for the browser to finish writing the trace file.
-    time.sleep(self._trace_interval / 4 + 1)
+  @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
+  def GetResults(self, timeout=None):
+    with open(self._PullTrace(), 'r') as f:
+      trace_data = f.read()
+    return trace_result.TraceResult('traceEvents', trace_data)
 
+  def _PullTrace(self):
     trace_file = self._trace_file.replace('/storage/emulated/0/', '/sdcard/')
     host_file = os.path.join(os.path.curdir, os.path.basename(trace_file))
     try:
@@ -114,3 +118,10 @@ class ChromeTracingController(controllers.BaseController):
           'the browser? (Android Settings -> Apps -> [the browser app] -> '
           'Permissions -> Storage)')
     return host_file
+
+  def SupportsExplicitClockSync(self):
+    return False
+
+  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
+        'recorded since explicit clock sync is not supported.')

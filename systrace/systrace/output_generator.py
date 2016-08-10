@@ -11,6 +11,7 @@ import os
 import StringIO
 
 from systrace import tracing_controller
+from systrace import trace_result
 
 
 # TODO(alexandermont): Current version of trace viewer does not support
@@ -77,16 +78,16 @@ def GenerateHTMLOutput(trace_results, output_file_name):
   final_path = os.path.abspath(output_file_name)
   return final_path
 
-def _ConvertToHtmlString(trace_result):
+def _ConvertToHtmlString(result):
   """Convert a trace result to the format to be output into HTML.
 
   If the trace result is a dictionary or list, JSON-encode it.
   If the trace result is a string, leave it unchanged.
   """
-  if isinstance(trace_result, dict) or isinstance(trace_result, list):
-    return json.dumps(trace_result)
-  elif isinstance(trace_result, str):
-    return trace_result
+  if isinstance(result, dict) or isinstance(result, list):
+    return json.dumps(result)
+  elif isinstance(result, str):
+    return result
   else:
     raise ValueError('Invalid trace result format for HTML output')
 
@@ -108,43 +109,45 @@ def GenerateJSONOutput(trace_results, output_file_name):
   final_path = os.path.abspath(output_file_name)
   return final_path
 
-def MergeTraceFilesIfNeeded(trace_files):
-  """Merge a list of trace files, if possible. This function can take any list
-     of trace files, but it will only merge the JSON files (since that's all
+def MergeTraceResultsIfNeeded(trace_results):
+  """Merge a list of trace data, if possible. This function can take any list
+     of trace data, but it will only merge the JSON data (since that's all
      we can merge).
 
      Args:
-        trace_files: A list of filenames for files containing trace data.
+        trace_results: A list of TraceResults containing trace data.
   """
-  if len(trace_files) <= 1:
-    return trace_files
+  if len(trace_results) <= 1:
+    return trace_results
   merge_candidates = []
-  for trace_file in trace_files:
-    with open(trace_file) as f:
-      # Try to detect a JSON file cheaply since that's all we can merge.
-      if f.read(1) != '{':
-        continue
-      f.seek(0)
-      try:
-        json_data = json.load(f)
-      except ValueError:
-        continue
-      merge_candidates.append((trace_file, json_data))
+  for result in trace_results:
+    # Try to detect a JSON file cheaply since that's all we can merge.
+    if result.raw_data[0] != '{':
+      continue
+    try:
+      json_data = json.loads(result.raw_data)
+    except ValueError:
+      continue
+    merge_candidates.append(trace_result.TraceResult(result.source_name,
+                                                     json_data))
+
   if len(merge_candidates) <= 1:
-    return trace_files
+    return trace_results
 
-  other_files = [f for f in trace_files
-                 if not f in [c[0] for c in merge_candidates]]
-  merged_file, merged_data = merge_candidates[0]
-  for trace_file, json_data in merge_candidates[1:]:
+  other_results = [r for r in trace_results
+                   if not r.source_name in
+                   [c.source_name for c in merge_candidates]]
+
+  merged_data = merge_candidates[0].raw_data
+
+  for candidate in merge_candidates[1:]:
+    json_data = candidate.raw_data
     for key, value in json_data.items():
-      if not merged_data.get(key) or json_data[key]:
-        merged_data[key] = value
-    os.unlink(trace_file)
+      if not str(key) in merged_data or str(key) in json_data:
+        merged_data[str(key)] = value
 
-  with open(merged_file, 'w') as f:
-    json.dump(merged_data, f)
-  return [merged_file] + other_files
+  return ([trace_result.TraceResult('merged-data', json.dumps(merged_data))]
+              + other_results)
 
 def _EncodeTraceData(trace_string):
   compressed_trace = StringIO.StringIO()

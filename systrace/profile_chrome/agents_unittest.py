@@ -10,7 +10,7 @@ from devil.android import device_utils
 from devil.android.sdk import intent
 
 
-class BaseControllerTest(unittest.TestCase):
+class BaseAgentTest(unittest.TestCase):
   def setUp(self):
     devices = device_utils.DeviceUtils.HealthyDevices()
     self.browser = 'stable'
