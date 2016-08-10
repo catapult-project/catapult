@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+
+  var CPU_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.normalizedPercentage_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(0, 100), 20);
+
+  function getCpuSnapshotsFromModel(model) {
+   var snapshots = [];
+   for (var pid in model.processes) {
+     var snapshotInstances = model.processes[pid].objects.getAllInstancesNamed(
+         'CPUSnapshots');
+     if (!snapshotInstances)
+       continue;
+     for (var object of snapshotInstances[0].snapshots)
+       snapshots.push(object.args.processes);
+   }
+   return snapshots;
+  }
+
+  function getProcessSumsFromSnapshot(snapshot) {
+    var processSums = new Map();
+    for (var processData of snapshot) {
+      var processName = processData.name;
+      if (!(processSums.has(processName)))
+        processSums.set(processName, {sum: 0.0, paths: new Set()});
+      processSums.get(processName).sum += parseFloat(processData.pCpu);
+      // The process path may be missing on Windows because of AccessDenied
+      // error thrown by psutil package used by CPU tracing agent.
+      if (processData.path)
+        processSums.get(processName).paths.add(processData.path);
+    }
+    return processSums;
+  }
+
+  function buildNumericsFromSnapshots(snapshots) {
+   var processNumerics = new Map();
+   for (var snapshot of snapshots) {
+     var processSums = getProcessSumsFromSnapshot(snapshot);
+     for (var [processName, processData] of processSums.entries()) {
+       if (!(processNumerics.has(processName))) {
+         processNumerics.set(processName, {
+           numeric: CPU_NUMERIC_BUILDER.build(),
+           paths: new Set()
+         });
+       }
+       processNumerics.get(processName).numeric.add(
+           processData.sum);
+       for (var path of processData.paths)
+         processNumerics.get(processName).paths.add(path);
+     }
+   }
+   return processNumerics;
+  }
+
+  function cpuProcessMetric(values, model) {
+    var snapshots = getCpuSnapshotsFromModel(model);
+    var processNumerics = buildNumericsFromSnapshots(snapshots);
+    for (var [processName, processData] of processNumerics.entries()) {
+      var numeric = processData.numeric;
+      // Treat missing snapshots as zeros. A process is missing from a snapshots
+      // when its CPU usage was below minimum threshold when the snapshot was
+      // taken.
+      var missingSnapshotCount = snapshots.length - numeric.numValues;
+      for (var i = 0; i < missingSnapshotCount; i++)
+        numeric.add(0);
+      var value = new tr.v.NumericValue('cpu:percent:' + processName, numeric);
+      value.diagnostics.add('paths', new
+          tr.v.d.Generic([...processData.paths]));
+      values.addValue(value);
+    }
+  }
+
+  tr.metrics.MetricRegistry.register(cpuProcessMetric);
+
+  return {
+    cpuProcessMetric: cpuProcessMetric
+  };
+});
+</script>

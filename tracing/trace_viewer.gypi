@@ -166,6 +166,7 @@
       'tracing/importer/user_model_builder.html',
       'tracing/metrics/all_metrics.html',
       'tracing/metrics/blink/gc_metric.html',
+      'tracing/metrics/cpu_process_metric.html',
       'tracing/metrics/metric_registry.html',
       'tracing/metrics/sample_metric.html',
       'tracing/metrics/system_health/clock_sync_latency_metric.html',

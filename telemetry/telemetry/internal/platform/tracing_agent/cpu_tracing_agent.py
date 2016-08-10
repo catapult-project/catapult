@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import json
+import logging
 import os
 try:
   import psutil
@@ -34,7 +35,7 @@ class UnixProcessCollector(ProcessCollector):
     'pCpu': 2,
     'pid': 0,
     'pMem': 3,
-    'command': 1
+    'path': 1
   }
 
   def __init__(self, min_pcpu, binary_output=False):
@@ -74,9 +75,9 @@ class UnixProcessCollector(ProcessCollector):
       process = self._ParseLine(process_line)
       if (not process) or (float(process['pCpu']) < self._min_pcpu):
         continue
+      process['name'] = os.path.split(process['path'])[1]
       top_processes.append(process)
     return top_processes
-
 
 class WindowsProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Windows.
@@ -93,14 +94,23 @@ class WindowsProcessCollector(ProcessCollector):
       try:
         cpu_percent = p.get_cpu_percent(interval=0)
         if cpu_percent >= self._min_pcpu:
+          # Get full path of the process. p.exe often throws AccessDenied
+          # and should have its own try block so that the dictionary literal
+          # can be added to returned data whether p.exe throws an exception
+          # ot not.
+          try:
+            path = p.exe
+          except psutil.Error:
+            path = None
           data.append({
             'pCpu': cpu_percent,
             'pMem': p.get_memory_percent(),
-            'command': p.name,
-            'pid': p.pid
+            'name': p.name,
+            'pid': p.pid,
+            'path': path
           })
       except psutil.Error:
-        pass
+        logging.exception('Failed to get process data')
     data = sorted(data, key=lambda d: d['pCpu'],
                   reverse=True)
     return data
@@ -138,10 +148,10 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     super(CpuTracingAgent, self).__init__(platform_backend)
     self._snapshot_ongoing = False
     self._snapshots = []
-    os_name = platform_backend.GetOSName()
-    if  os_name == 'win':
+    self._os_name = platform_backend.GetOSName()
+    if  self._os_name == 'win':
       self._collector = WindowsProcessCollector(min_pcpu)
-    elif os_name == 'mac':
+    elif self._os_name == 'mac':
       self._collector = MacProcessCollector(min_pcpu)
     else:
       self._collector = LinuxProcessCollector(min_pcpu)
@@ -165,7 +175,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     if not self._snapshot_ongoing:
       return
     # Assume CpuTracingAgent shares the same clock domain as telemetry
-    self._snapshots.append((self._collector.GetProcesses(), trace_time.Now()))
+    self._snapshots.append(
+        (self._collector.GetProcesses(), trace_time.Now()))
     Timer(self.SNAPSHOT_FREQUENCY, self._KeepTakingSnapshots).start()
 
   def StopAgentTracing(self):
@@ -177,6 +188,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     assert not self._snapshot_ongoing, (
            'Agent is still taking snapshots when data is collected.')
     self._snapshot_ongoing = False
+    if self._os_name == 'win' and self._snapshots:
+      self._snapshots.pop(0)
     data = json.dumps(self._FormatSnapshotsData())
     trace_data_builder.SetTraceFor(trace_data.CPU_TRACE_DATA, data)
 
@@ -192,6 +205,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
       'pid': pid,
       'tid':None,
       'args': {
-        'processes': snapshot
+        'snapshot':{
+          'processes': snapshot
+        }
       }
     } for snapshot, timestamp in self._snapshots]

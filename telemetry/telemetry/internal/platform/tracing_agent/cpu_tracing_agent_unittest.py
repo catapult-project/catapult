@@ -15,7 +15,7 @@ from telemetry.internal.platform import win_platform_backend
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 
-SNAPSHOT_KEYS = ['pid', 'command', 'pCpu', 'pMem']
+SNAPSHOT_KEYS = ['pid', 'name', 'path', 'pCpu', 'pMem']
 TRACE_EVENT_KEYS = ['name', 'tid', 'pid', 'ph', 'args', 'local', 'id', 'ts']
 
 
@@ -112,9 +112,10 @@ class CpuTracingAgentTest(unittest.TestCase):
     data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
     self.assertTrue(data)
     self.assertEquals(set(data[0].keys()), set(TRACE_EVENT_KEYS))
-    self.assertEquals(set(data[0]['args'].keys()), set(['processes']))
-    self.assertTrue(data[0]['args']['processes'])
-    self.assertEquals(set(data[0]['args']['processes'][0].keys()),
+    self.assertEquals(set(data[0]['args']['snapshot'].keys()),
+                      set(['processes']))
+    self.assertTrue(data[0]['args']['snapshot']['processes'])
+    self.assertEquals(set(data[0]['args']['snapshot']['processes'][0].keys()),
                       set(SNAPSHOT_KEYS))
 
   @decorators.Enabled('linux', 'mac', 'win')
@@ -128,7 +129,7 @@ class CpuTracingAgentTest(unittest.TestCase):
     data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
     self.assertTrue(data)
     for snapshot in data:
-      for process in snapshot['args']['processes']:
+      for process in snapshot['args']['snapshot']['processes']:
         self.assertTrue(process['pCpu'] >= cpu_tracing_agent.DEFAULT_MIN_PCPU)
 
   @decorators.Enabled('linux', 'mac')
@@ -139,7 +140,7 @@ class CpuTracingAgentTest(unittest.TestCase):
       self.assertFalse(collector._ParseLine(invalid_input))
     valid_input = '1000 chrome 20.0 10.0 '
     output = collector._ParseLine(valid_input)
-    self.assertTrue(output['pCpu'] == '20.0' and
-                    output['pMem'] == '10.0'and
-                    output['pid'] == '1000'and
-                    output['command'] == 'chrome')
+    self.assertEquals(output['pCpu'], '20.0')
+    self.assertEquals(output['pMem'], '10.0')
+    self.assertEquals(output['pid'], '1000')
+    self.assertEquals(output['path'], 'chrome')
