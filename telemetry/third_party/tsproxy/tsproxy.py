@@ -300,9 +300,9 @@ class TCPConnection(asyncore.dispatcher):
       self.create_socket(self.addr[0], socket.SOCK_STREAM)
       addr = self.addr[4][0]
       if not self.is_localhost or map_localhost:
-        port = GetDestPort(self.addr[4][1])
+        port = GetDestPort(message['port'])
       else:
-        port = self.addr[4][1]
+        port = message['port']
       logging.info('[{0:d}] Connecting to {1}:{2:d}'.format(self.client_id, addr, port))
       self.connect((addr, port))
 
