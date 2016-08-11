@@ -18,43 +18,74 @@ class FakeTest(object):
 
   def SetDisabledStrings(self, disabled_strings):
     # pylint: disable=attribute-defined-outside-init
-    self._disabled_strings = disabled_strings
+    disabled_attr_name = decorators.DisabledAttributeName(self)
+    setattr(self, disabled_attr_name, disabled_strings)
 
 
 class TestDisableDecorators(unittest.TestCase):
+  @staticmethod
+  def DisabledAttr(obj):
+    disabled_attr_name = decorators.DisabledAttributeName(obj)
+    if hasattr(obj, disabled_attr_name):
+      return getattr(obj, disabled_attr_name)
+    return None
+
+  @staticmethod
+  def EnabledAttr(obj):
+    enabled_attr_name = decorators.EnabledAttributeName(obj)
+    if hasattr(obj, enabled_attr_name):
+      return getattr(obj, enabled_attr_name)
+    return None
 
   def testDisabledStringOnFunction(self):
     @decorators.Disabled('bar')
     def Sum():
       return 1 + 1
-    self.assertEquals({'bar'}, Sum._disabled_strings)
+    self.assertEquals({'bar'}, self.DisabledAttr(Sum))
 
     @decorators.Disabled('bar')
     @decorators.Disabled('baz')
     @decorators.Disabled('bart', 'baz')
     def Product():
       return 1 * 1
-    self.assertEquals({'bar', 'bart', 'baz'}, Product._disabled_strings)
+    self.assertEquals({'bar', 'bart', 'baz'}, self.DisabledAttr(Product))
 
   def testDisabledStringOnClass(self):
     @decorators.Disabled('windshield')
     class Ford(object):
       pass
-    self.assertEquals({'windshield'}, Ford._disabled_strings)
+    self.assertEquals({'windshield'}, self.DisabledAttr(Ford))
 
     @decorators.Disabled('windows', 'Drive')
     @decorators.Disabled('wheel')
     @decorators.Disabled('windows')
     class Honda(object):
       pass
-    self.assertEquals({'wheel', 'Drive', 'windows'}, Honda._disabled_strings)
+    self.assertEquals({'wheel', 'Drive', 'windows'}, self.DisabledAttr(Honda))
+
+  def testDisabledStringOnSubClass(self):
+    @decorators.Disabled('windshield')
+    class Car(object):
+      pass
+    class Ford(Car):
+      pass
+    self.assertEquals({'windshield'}, self.DisabledAttr(Car))
+    self.assertFalse(self.DisabledAttr(Ford))
+
+    @decorators.Disabled('windows', 'Drive')
+    @decorators.Disabled('wheel')
+    @decorators.Disabled('windows')
+    class Honda(Car):
+      pass
+    self.assertEquals({'windshield'}, self.DisabledAttr(Car))
+    self.assertEquals({'wheel', 'Drive', 'windows'}, self.DisabledAttr(Honda))
 
   def testDisabledStringOnMethod(self):
     class Ford(object):
       @decorators.Disabled('windshield')
       def Drive(self):
         pass
-    self.assertEquals({'windshield'}, Ford().Drive._disabled_strings)
+    self.assertEquals({'windshield'}, self.DisabledAttr(Ford().Drive))
 
     class Honda(object):
       @decorators.Disabled('windows', 'Drive')
@@ -63,7 +94,19 @@ class TestDisableDecorators(unittest.TestCase):
       def Drive(self):
         pass
     self.assertEquals({'wheel', 'Drive', 'windows'},
-                      Honda().Drive._disabled_strings)
+                      self.DisabledAttr(Honda().Drive))
+    self.assertEquals({'windshield'}, self.DisabledAttr(Ford().Drive))
+
+    class Accord(Honda):
+      def Drive(self):
+        pass
+    class Explorer(Ford):
+      pass
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      self.DisabledAttr(Honda().Drive))
+    self.assertEquals({'windshield'}, self.DisabledAttr(Ford().Drive))
+    self.assertEquals({'windshield'}, self.DisabledAttr(Explorer().Drive))
+    self.assertFalse(self.DisabledAttr(Accord().Drive))
 
 class TestEnableDecorators(unittest.TestCase):
 

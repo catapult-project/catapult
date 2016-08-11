@@ -11,6 +11,10 @@ import types
 import warnings
 
 
+# TODO(aiolos): remove after perf-side update has finished.
+IS_UPDATED_DECORATORS = True
+
+
 def Cache(obj):
   """Decorator for caching read-only properties.
 
@@ -109,9 +113,12 @@ def Disabled(*args):
     @Disabled('all')  # Unconditionally disabled.
   """
   def _Disabled(func):
-    if not hasattr(func, '_disabled_strings'):
-      func._disabled_strings = set()
-    func._disabled_strings.update(disabled_strings)
+    disabled_attr_name = DisabledAttributeName(func)
+    if not hasattr(func, disabled_attr_name):
+      setattr(func, disabled_attr_name, set())
+    disabled_set = getattr(func, disabled_attr_name)
+    disabled_set.update(disabled_strings)
+    setattr(func, disabled_attr_name, disabled_set)
     return func
   assert args, (
       "@Disabled(...) requires arguments. Use @Disabled('all') if you want to "
@@ -188,26 +195,43 @@ def IsEnabled(test, possible_browser):
   return (not should_skip, msg)
 
 
+def _TestName(test):
+  if inspect.ismethod(test):
+    # On methods, __name__ is "instancemethod", use __func__.__name__ instead.
+    test = test.__func__
+  if hasattr(test, '__name__'):
+    return test.__name__
+  elif hasattr(test, '__class__'):
+    return test.__class__.__name__
+  return str(test)
+
+
+def DisabledAttributeName(test):
+  name = _TestName(test)
+  return '_%s_%s_disabled_strings' % (test.__module__, name)
+
+
+def EnabledAttributeName(unused_test):
+  # TODO(aiolos): Update to match disabled attribute names, and use in
+  # ShouldSkip and Enabled in a secondary cl.
+  return '_enabled_strings'
+
 def ShouldSkip(test, possible_browser):
   """Returns whether the test should be skipped and the reason for it."""
   platform_attributes = _PlatformAttributes(possible_browser)
 
-  if hasattr(test, '__name__'):
-    name = test.__name__
-  elif hasattr(test, '__class__'):
-    name = test.__class__.__name__
-  else:
-    name = str(test)
-
+  name = _TestName(test)
   skip = 'Skipping %s (%s) because' % (name, str(test))
   running = 'You are running %r.' % platform_attributes
 
-  if hasattr(test, '_disabled_strings'):
-    if 'all' in test._disabled_strings:
+  disabled_attr_name = DisabledAttributeName(test)
+  if hasattr(test, disabled_attr_name):
+    disabled_strings = getattr(test, disabled_attr_name)
+    if 'all' in disabled_strings:
       return (True, '%s it is unconditionally disabled.' % skip)
-    if set(test._disabled_strings) & set(platform_attributes):
+    if set(disabled_strings) & set(platform_attributes):
       return (True, '%s it is disabled for %s. %s' %
-                      (skip, ' and '.join(test._disabled_strings), running))
+                      (skip, ' and '.join(disabled_strings), running))
 
   if hasattr(test, '_enabled_strings'):
     if 'all' in test._enabled_strings:
