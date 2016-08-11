@@ -18,6 +18,7 @@ class TracingConfig(object):
   Options:
       enable_atrace_trace: a boolean that specifies whether to enable
           atrace tracing.
+      enable_cpu_trace: a boolean that specifies whether to enable cpu tracing.
       enable_chrome_trace: a boolean that specifies whether to enable
           chrome tracing.
       enable_platform_display_trace: a boolean that specifies whether to
@@ -39,7 +40,7 @@ class TracingConfig(object):
     self._enable_platform_display_trace = False
     self._enable_android_graphics_memtrack = False
     self._enable_battor_trace = False
-    self.enable_cpu_trace = False
+    self._enable_cpu_trace = False
     self._enable_chrome_trace = False
 
     self._atrace_config = atrace_config.AtraceConfig()
@@ -52,6 +53,14 @@ class TracingConfig(object):
   @enable_atrace_trace.setter
   def enable_atrace_trace(self, value):
     self._enable_atrace_trace = value
+
+  @property
+  def enable_cpu_trace(self):
+    return self._enable_cpu_trace
+
+  @enable_cpu_trace.setter
+  def enable_cpu_trace(self, value):
+    self._enable_cpu_trace = value
 
   @property
   def enable_platform_display_trace(self):
