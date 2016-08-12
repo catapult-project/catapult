@@ -12,7 +12,6 @@ from dashboard import alerts
 from dashboard import chart_handler
 from dashboard import list_tests
 from dashboard import request_handler
-from dashboard import test_owner
 from dashboard import update_test_suites
 from dashboard import utils
 from dashboard.models import anomaly
@@ -168,15 +167,11 @@ class GroupReportHandler(chart_handler.ChartHandler):
     stoppage_alert_dicts = alerts.StoppageAlertDicts(
         [a for a in alert_list if a.key.kind() == 'StoppageAlert'])
     alert_dicts = anomaly_dicts + stoppage_alert_dicts
-    owner_info = None
-    if bug_id and ndb.Key('Bug', bug_id).get():
-      owner_info = _GetOwnerInfo(alert_dicts)
 
     values = {
         'alert_list': alert_dicts[:_DISPLAY_LIMIT],
         'subtests': _GetSubTestsForAlerts(alert_dicts),
         'bug_id': bug_id,
-        'owner_info': owner_info,
         'test_suites': update_test_suites.FetchCachedTestSuites(),
     }
     self.GetDynamicVariables(values)
@@ -220,21 +215,3 @@ def _GetOverlaps(anomalies, start, end):
   """
   return [a for a in anomalies
           if a.start_revision <= end and a.end_revision >= start]
-
-
-def _GetOwnerInfo(alert_dicts):
-  """Gets a list of owner info for list of alerts for bug with bisect result.
-
-  Test owners are retrieved by a set of master and test suite name from each
-  alert in alert_dicts.
-
-  Args:
-    alert_dicts: List of alert data dictionaries.
-
-  Returns:
-    A list of dictionary containing owner information.
-  """
-  test_suite_paths = {'%s/%s' % (a['master'], a['testsuite'])
-                      for a in alert_dicts}
-  owners = test_owner.GetOwners(test_suite_paths)
-  return [{'email': owner} for owner in owners]

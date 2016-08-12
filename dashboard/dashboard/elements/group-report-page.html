@@ -415,7 +415,6 @@ found in the LICENSE file.
         simple_xhr.send('/group_report', params,
           function(response) {
             this.subtests = response['subtests'];
-            this.ownerInfo = response['owner_info'];
             this.revisionInfo = response['revision_info'];
             this.loginLink = response['login_url'];
             this.isInternalUser = response['is_internal_user'];
@@ -433,7 +432,7 @@ found in the LICENSE file.
             this.bugId = uri.getParameter('bug_id');
             if (this.bugId) {
               this.$['bug-info'].initialize(
-                  this.bugId, this.alertsTable, this.ownerInfo);
+                  this.bugId, this.alertsTable);
             }
             var charts = this.getCharts();
             for (var i = 0; i < charts.length; i++) {

@@ -10,7 +10,6 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import group_report
-from dashboard import test_owner
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
@@ -145,19 +144,6 @@ class GroupReportTest(testing_common.TestCase):
     response = self.testapp.post('/group_report?bug_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(1, len(alert_list))
-
-  def testPost_WithBugIdForBugThatHasOwner_ShowsOwnerInfo(self):
-    sheriff_key = self._AddSheriff()
-    test_keys = self._AddTests()
-    bug_data.Bug(id=123).put()
-    test_key = test_keys[0]
-    test_path_parts = utils.TestPath(test_key).split('/')
-    test_suite_path = '%s/%s' % (test_path_parts[0], test_path_parts[2])
-    test_owner.AddOwnerFromDict({test_suite_path: ['foo@bar.com']})
-    self._AddAnomalyEntities([(150, 250)], test_key, sheriff_key, bug_id=123)
-    response = self.testapp.post('/group_report?bug_id=123')
-    owner_info = self.GetJsonValue(response, 'owner_info')
-    self.assertEqual('foo@bar.com', owner_info[0]['email'])
 
   def testPost_WithInvalidBugIdParameter_ShowsError(self):
     response = self.testapp.post('/group_report?bug_id=foo')

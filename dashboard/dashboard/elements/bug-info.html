@@ -5,8 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/dashboard/elements/bisect-button.html">
-
 <dom-module id="bug-info">
   <template>
     <style>
@@ -45,19 +43,12 @@ found in the LICENSE file.
         <p>
           <span id="revision_range"></span>
           <span id="warning" class="warning"></span>
-          <bisect-button id="bisect" class="mini"></bisect-button>
         </p>
-        <template is="dom-if" if="{{ownerInfo}}">
-          <p>
-            Owners:
-            <ul>
-              <template is="dom-repeat" items="{{ownerInfo}}">
-                <!--TODO(chrisphan): Link this to bug comment dialog.-->
-                <li><a href="#" onclick="return false;">{{item.email}}</a></li>
-              </template>
-            </ul>
-          </p>
-        </template>
+        <p>
+          See <a
+            target="_blank"
+            href="https://docs.google.com/spreadsheets/d/1R_1BAOd3xeVtR0jn6wB5HHJ2K25mIbKp3iIRQKkX38o/edit"
+          >spreadsheet</a> for info about test owners</p>
       </div>
     </div>
   </template>
@@ -74,13 +65,11 @@ found in the LICENSE file.
        * Initializes this element.
        * @param {Number} bugId A bug ID number.
        * @param {HTMLElement} alertsTable HTML element of alerts-table.
-       * @param {Array.<Object>} ownerInfo List of owners info.
        */
-      initialize: function(bugId, alertsTable, ownerInfo) {
+      initialize: function(bugId, alertsTable) {
         this.$.container.style.display = '';
         this.bugId = bugId;
         this.alertsTable = alertsTable;
-        this.ownerInfo = ownerInfo;
         this.alertsTable.addEventListener('changeselection',
             this.updateBugInfo.bind(this), false);
         this.updateBugInfo();
@@ -103,7 +92,6 @@ found in the LICENSE file.
           info += (alerts.length == 1) ? ' alert: ' : ' alerts: ';
           info += minRevRange['start'] + ':' + minRevRange['end'];
           this.$.revision_range.innerText = info;
-          this.updateBisectButton(alerts, minRevRange);
           return;
         } else {
           this.$.warning.textContent =
@@ -128,23 +116,6 @@ found in the LICENSE file.
               });
         }
         return alerts;
-      },
-
-      /**
-       * Displays a bisect button.
-       *
-       * @param {Array.<Object>} alerts List of alerts.
-       * @param {Object} minRevRange Minimum revision range.
-       */
-      updateBisectButton: function(alerts, minRevRange) {
-        this.$.bisect.bugId = this.bugId;
-        // minRevRange['start'] is the first possible bad revision.
-        // Subtracting one to get the last known good revision.
-        this.$.bisect.bisectInfo = {
-          badRev: minRevRange['end'],
-          goodRev: minRevRange['start'] - 1,
-          testPath: this.getTestPathFromStartRev(alerts, minRevRange['start'])
-        };
       },
 
       /**
