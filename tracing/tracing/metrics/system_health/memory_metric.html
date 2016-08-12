@@ -20,6 +20,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
+  var BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
   var ScalarNumeric = tr.v.ScalarNumeric;
@@ -31,6 +32,7 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
 
   var LEVEL_OF_DETAIL_NAMES = new Map();
+  LEVEL_OF_DETAIL_NAMES.set(BACKGROUND, 'background');
   LEVEL_OF_DETAIL_NAMES.set(LIGHT, 'light');
   LEVEL_OF_DETAIL_NAMES.set(DETAILED, 'detailed');
 

@@ -22,6 +22,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
   var DISPLAYED_SIZE_NUMERIC_NAME =
       tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
+  var BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
@@ -136,6 +137,8 @@ tr.exportTo('tr.ui.tracks', function() {
    * inside).
    */
   function buildMemoryLetterDots(memoryDumps) {
+    var backgroundMemoryColorId =
+        ColorScheme.getColorIdForReservedName('background_memory_dump');
     var lightMemoryColorId =
         ColorScheme.getColorIdForReservedName('light_memory_dump');
     var detailedMemoryColorId =
@@ -143,6 +146,9 @@ tr.exportTo('tr.ui.tracks', function() {
     return memoryDumps.map(function(memoryDump) {
       var memoryColorId;
       switch (memoryDump.levelOfDetail) {
+        case BACKGROUND:
+          memoryColorId = backgroundMemoryColorId;
+          break;
         case DETAILED:
           memoryColorId = detailedMemoryColorId;
           break;

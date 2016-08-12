@@ -61,9 +61,11 @@ tr.exportTo('tr.e.importer', function() {
   var CONSUMER = 'consumer';
   var STEP = 'step';
 
+  var BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
-  var MEMORY_DUMP_LEVEL_OF_DETAIL_ORDER = [undefined, LIGHT, DETAILED];
+  var MEMORY_DUMP_LEVEL_OF_DETAIL_ORDER = [undefined, BACKGROUND, LIGHT,
+                                           DETAILED];
 
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
 
@@ -2258,7 +2260,7 @@ tr.exportTo('tr.e.importer', function() {
       if (levelsOfDetail.process === undefined) {
         // Infer level of detail from the presence of VM regions in legacy
         // traces (where raw process memory dump events don't contain the
-        // level_of_detail field).
+        // level_of_detail field). These traces will not have BACKGROUND mode.
         levelsOfDetail.process = processMemoryDump.vmRegions ? DETAILED : LIGHT;
       }
       if (!this.updateMemoryDumpLevelOfDetail_(
@@ -2587,6 +2589,9 @@ tr.exportTo('tr.e.importer', function() {
       var rawLevelOfDetail = dumps.level_of_detail;
       var level;
       switch (rawLevelOfDetail) {
+        case 'background':
+          level = BACKGROUND;
+          break;
         case 'light':
           level = LIGHT;
           break;

@@ -22,11 +22,12 @@ tr.b.unittest.testSuite(function() {
     var dumps = createTestGlobalMemoryDumps(false, false);
     var items = tr.ui.tracks.buildMemoryLetterDots(dumps);
 
-    assert.lengthOf(items, 4);
+    assert.lengthOf(items, 5);
     assert.equal(items[0].start, 0);
     assert.equal(items[1].start, 5);
     assert.equal(items[2].start, 15);
     assert.equal(items[3].start, 18);
+    assert.equal(items[4].start, 20);
 
     // Check model mapping.
     assert.equal(items[1].selectionState, SelectionState.HIGHLIGHTED);
@@ -38,11 +39,12 @@ tr.b.unittest.testSuite(function() {
     var dumps = createTestGlobalMemoryDumps(false, false);
     var items = tr.ui.tracks.buildMemoryLetterDots(dumps);
 
-    assert.lengthOf(items, 4);
+    assert.lengthOf(items, 5);
     assert.equal(items[0].start, 0);
     assert.equal(items[1].start, 5);
     assert.equal(items[2].start, 15);
     assert.equal(items[3].start, 18);
+    assert.equal(items[4].start, 20);
 
     // Check model mapping.
     assert.equal(items[1].selectionState, SelectionState.HIGHLIGHTED);
@@ -67,9 +69,9 @@ tr.b.unittest.testSuite(function() {
     var sb = series[1];
     var sc = series[0];
 
-    assert.lengthOf(sa.points, 4);
-    assert.lengthOf(sb.points, 4);
-    assert.lengthOf(sc.points, 4);
+    assert.lengthOf(sa.points, 5);
+    assert.lengthOf(sb.points, 5);
+    assert.lengthOf(sc.points, 5);
 
     // Process A: VM regions defined -> sum their PSS values (111).
     // Process B: VM regions undefined and no previous value -> assume zero.
@@ -117,9 +119,22 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sa.points[3].y, 0);
     assert.equal(sb.points[3].y, 0);
     assert.equal(sc.points[3].y, 0);
+    assert.equal(sa.points[3].yBase, 0);
+    assert.equal(sb.points[3].yBase, 0);
     assert.equal(sc.points[3].yBase, 0);
-    assert.equal(sc.points[3].yBase, 0);
-    assert.equal(sc.points[3].yBase, 0);
+
+    // Process A: VM regions defined -> sum their PSS values (105).
+    // Process B: VM regions undefined and no previous value -> assume zero.
+    // Process C: Memory dump not present -> assume process not alive (0).
+    assert.equal(sa.points[4].x, 20);
+    assert.equal(sb.points[4].x, 20);
+    assert.equal(sc.points[4].x, 20);
+    assert.equal(sa.points[4].y, 105);
+    assert.equal(sb.points[4].y, 105);
+    assert.equal(sc.points[4].y, 105);
+    assert.equal(sa.points[4].yBase, 0);
+    assert.equal(sb.points[4].yBase, 105);
+    assert.equal(sc.points[4].yBase, 105);
 
     // Check model mapping.
     assert.equal(sa.points[1].selectionState, SelectionState.HIGHLIGHTED);
@@ -145,8 +160,8 @@ tr.b.unittest.testSuite(function() {
     var so = series[0];
     var sv = series[1];
 
-    assert.lengthOf(so.points, 4);
-    assert.lengthOf(sv.points, 4);
+    assert.lengthOf(so.points, 5);
+    assert.lengthOf(sv.points, 5);
 
     // Oilpan: Only process B dumps allocated objects size (1024).
     // V8: No process dumps allocated objects size (0).
@@ -175,6 +190,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sv.points[3].x, 18);
     assert.equal(so.points[3].y, 0);
     assert.equal(sv.points[3].y, 0);
+
+    // Oilpan: Only process B dumps allocated objects size (100).
+    // V8: No process dumps allocated objects size (0).
+    assert.equal(so.points[4].x, 20);
+    assert.equal(sv.points[4].x, 20);
+    assert.equal(so.points[4].y, 100);
+    assert.equal(sv.points[4].y, 0);
 
     // Check model mapping.
     assert.equal(so.points[1].selectionState, SelectionState.HIGHLIGHTED);

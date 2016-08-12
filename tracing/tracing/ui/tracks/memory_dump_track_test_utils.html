@@ -29,6 +29,7 @@ tr.exportTo('tr.ui.tracks', function() {
   var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;
   var newAllocatorDump = tr.model.MemoryDumpTestUtils.newAllocatorDump;
   var addOwnershipLink = tr.model.MemoryDumpTestUtils.addOwnershipLink;
+  var BACKGROUND = tr.model.ContainerMemoryDump.LevelOfDetail.BACKGROUND;
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
@@ -117,6 +118,13 @@ tr.exportTo('tr.ui.tracks', function() {
           maybePssValues([70, 70, 70]), maybeDumpData({oilpan: {size: 512}}));
 
       var gmd4 = addGlobalMemoryDump(model, {ts: 18, levelOfDetail: LIGHT});
+
+      var gmd5 = addGlobalMemoryDump(model,
+                                     {ts: 20, levelOfDetail: BACKGROUND});
+      addProcessMemoryDumpWithFields(gmd5, pa, 0, maybePssValues([105]));
+      addProcessMemoryDumpWithFields(gmd5, pb, 0.2, undefined,
+          maybeDumpData({oilpan: {size: 100}}));
+
     });
   }
 
