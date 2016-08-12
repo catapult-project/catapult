@@ -321,8 +321,10 @@ def RunBenchmark(benchmark, finder_options):
       return_code = 255
 
     try:
-      bucket = cloud_storage.BUCKET_ALIASES[finder_options.upload_bucket]
       if finder_options.upload_results:
+        bucket = finder_options.upload_bucket
+        if bucket in cloud_storage.BUCKET_ALIASES:
+          bucket = cloud_storage.BUCKET_ALIASES[bucket]
         results.UploadTraceFilesToCloud(bucket)
         results.UploadProfilingFilesToCloud(bucket)
     finally:

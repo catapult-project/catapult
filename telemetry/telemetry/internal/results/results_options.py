@@ -59,10 +59,10 @@ def AddResultsOptions(parser):
   group.add_option('--upload-results', action='store_true',
                     help='Upload the results to cloud storage.')
   group.add_option('--upload-bucket', default='output',
-                    choices=cloud_storage.BUCKET_ALIAS_NAMES,
                     help='Storage bucket to use for the uploaded results. ' +
                     'Defaults to output bucket. Supported values are: ' +
-                    ', '.join(cloud_storage.BUCKET_ALIAS_NAMES) + '.')
+                    ', '.join(cloud_storage.BUCKET_ALIAS_NAMES) +
+                    '; or a valid cloud storage bucket name.')
   group.add_option('--results-label',
                     default=None,
                     help='Optional label to use for the results of a run .')
