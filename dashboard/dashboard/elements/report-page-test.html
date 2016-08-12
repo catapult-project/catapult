@@ -136,10 +136,6 @@ tr.b.unittest.testSuite(function() {
     testing_common.addXhrMock(
         '/short_uri?sid=12345', JSON.stringify(SHORT_URI_JSON));
 
-    // Tooltips have a horrible behavior of requesting /can_bisect every time
-    // they are opened :(. Quiet them.
-    testing_common.addXhrMock('/can_bisect.*', 'true');
-
     // Fill in teh submenus for dromaeo.
     testing_common.addXhrMock(
         '/list_tests?bots=ChromiumPerf%2Fchromium-rel-mac11&suite=dromaeo.' +

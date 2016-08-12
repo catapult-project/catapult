@@ -6,7 +6,6 @@
 
 import re
 
-from dashboard import request_handler
 from dashboard import namespaced_stored_object
 
 # A set of suites for which we can't do performance bisects.
@@ -22,25 +21,6 @@ _UNBISECTABLE_SUITES = [
 # a dict mapping master names to [perf bot, bisect bot] pairs.
 # If a master name is not in the dict, bisect isn't supported.
 BISECT_BOT_MAP_KEY = 'bisect_bot_map'
-
-
-class CanBisectHandler(request_handler.RequestHandler):
-
-  def post(self):
-    """Checks whether bisect is supported for a test.
-
-    Request parameters:
-      test_path: A full test path (Master/bot/benchmark/...)
-      start_revision: The start of the bisect revision range.
-      end_revision: The end of the bisect revision range.
-
-    Outputs: The string "true" or the string "false".
-    """
-    can_bisect = (
-        IsValidTestForBisect(self.request.get('test_path')) and
-        IsValidRevisionForBisect(self.request.get('start_revision')) and
-        IsValidRevisionForBisect(self.request.get('end_revision')))
-    self.response.write('true' if can_bisect else 'false')
 
 
 def IsValidTestForBisect(test_path):

@@ -2040,6 +2040,7 @@ triaging functionality in the chart.
               });
           }
           this.$.tooltip.bisectInfo = {
+            canBisect: series.can_bisect,
             badRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex),
             goodRev: this.getRevisionForBisect(jsonSeriesIndex, dataIndex - 1),
             testPath: series.path,

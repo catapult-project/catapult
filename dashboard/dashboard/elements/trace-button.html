@@ -22,7 +22,7 @@ See https://github.com/catapult-project/catapult/issues/1905
        * FIXME: This style is duplicated from the bisect-form style.
        * See the comments there.
        */
-      #button[enabled] {
+      #button:not([disabled]) {
         background-color: #4285f4;
         color: white;
       }
@@ -36,8 +36,7 @@ See https://github.com/catapult-project/catapult/issues/1905
     </style>
     <paper-button raised
         id="button"
-        disabled$={{!canTrace}}
-        enabled$={{canTrace}}
+        disabled$={{!traceInfo.canBisect}}
         on-click="onTrace">Trace</paper-button>
     <trace-form
         id="trace"
@@ -61,45 +60,6 @@ See https://github.com/catapult-project/catapult/issues/1905
             observer: 'traceInfoChanged'
           },
           xsrfToken: { notify: true }
-        },
-
-        /**
-         * Initializes this element; this is an element lifecycle callback.
-         */
-        ready: function() {
-          this.update();
-        },
-
-        /**
-         * Updates the trace button when the traceInfo is set.
-         */
-        traceInfoChanged: function() {
-          this.update();
-        },
-
-        /**
-         * Updates the canTrace state based on the traceInfo state.
-         */
-        update: function() {
-          this.canTrace = false;
-          if (!this.traceInfo) {
-            return;
-          }
-          var that = this;
-          simple_xhr.send(
-              '/can_bisect',
-              {
-                'test_path': this.traceInfo.testPath,
-                'start_revision': this.traceInfo.goodRev,
-                'end_revision': this.traceInfo.badRev,
-              },
-              function loadCallback(responseBool) {
-                that.canTrace = responseBool;
-              },
-              function errorCallback(message) {
-                console.warn('Request to /can_bisect failed.', message);
-                that.canTrace = true;
-              });
         },
 
         /**

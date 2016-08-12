@@ -577,7 +577,8 @@ class GraphJsonTest(testing_common.TestCase):
             'path': 'ChromiumGPU/win7/dromaeo/dom',
             'units': 'ms',
             'better': 'Higher',
-            'description': 'About this test'
+            'description': 'About this test',
+            'can_bisect': True,
         }
     }, annotations['series'])
 

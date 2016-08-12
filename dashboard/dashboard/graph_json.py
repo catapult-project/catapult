@@ -17,6 +17,7 @@ import re
 from google.appengine.ext import ndb
 
 from dashboard import alerts
+from dashboard import can_bisect
 from dashboard import datastore_hooks
 from dashboard import list_tests
 from dashboard import request_handler
@@ -287,7 +288,8 @@ def _GetSeriesAnnotations(tests):
         'path': test.test_path,
         'units': test.units,
         'better': _BETTER_DICT[test.improvement_direction],
-        'description': test.description
+        'description': test.description,
+        'can_bisect': can_bisect.IsValidTestForBisect(test.test_path),
     }
   return series_annotations
 
