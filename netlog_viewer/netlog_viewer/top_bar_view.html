@@ -5,27 +5,24 @@ found in the LICENSE file.
 -->
 
 <!-- Status bar at top of screen -->
-
-<style>
-#top-bar-view {
-  -webkit-align-items: center;
-  border-bottom: 1px solid gray;
-  color: #fff;
-  display: -webkit-flex;
-  padding: 2px 2px 4px 7px;
-}
-</style>
-
-<div id=top-bar-view>
-  <div style="-webkit-flex-grow: 1">
-    <!-- Status bar at top of screen -->
-    <div id=loaded-status-view>
-      <span id=loaded-status-view-dump-file-name></span>
-
-      <!-- TODO(rayraymond): Add any extra tools here -->
-      <select id=capture-status-view-actions>
-      </select>
+<dom-module id="top-bar-view">
+  <template>
+    <div id=top-bar-view>
+      <div style="-webkit-flex-grow: 1">
+        <!-- Status bar at top of screen -->
+        <div id=loaded-status-view>
+          <span id=loaded-status-view-dump-file-name></span>
+      
+          <!-- TODO(rayraymond): Add any extra tools here -->
+          <select id=capture-status-view-actions>
+          </select>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
+  </template>
+  <script>
+    Polymer({
+      is: 'top-bar-view'
+    });
+  </script>
+</dom-module>

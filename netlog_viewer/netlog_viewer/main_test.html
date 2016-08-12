@@ -5,13 +5,15 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/netlog_viewer/netlog_viewer.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('netInternalsTourTabs', function() {
-    this.addHTMLOutput(hiddenUIDivForNetLogViewerTest);
+    var netlogViewer = document.createElement('netlog-viewer');
+    this.addHTMLOutput(netlogViewer);
 
     // Expected visibility state of each tab.
     var tabVisibilityState = {
