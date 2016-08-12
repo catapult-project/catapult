@@ -11,7 +11,6 @@ import time
 from catapult_base import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import exceptions
-from telemetry import decorators
 from telemetry.internal.actions import page_action
 from telemetry.internal.browser import browser_finder
 from telemetry.internal.results import results_options
@@ -294,9 +293,9 @@ def RunBenchmark(benchmark, finder_options):
   pt = benchmark.CreatePageTest(finder_options)
   pt.__name__ = benchmark.__class__.__name__
 
-  disabled_attr_name = decorators.DisabledAttributeName(benchmark)
-  # pylint: disable=protected-access
-  pt._disabled_strings = getattr(benchmark, disabled_attr_name, set())
+  if hasattr(benchmark, '_disabled_strings'):
+    # pylint: disable=protected-access
+    pt._disabled_strings = benchmark._disabled_strings
   if hasattr(benchmark, '_enabled_strings'):
     # pylint: disable=protected-access
     pt._enabled_strings = benchmark._enabled_strings
