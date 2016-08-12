@@ -1,210 +1,237 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+<!DOCTYPE html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
 
-// Include test fixture.
-GEN_INCLUDE(['net_internals_test.js']);
+<script>
+'use strict';
 
 // Anonymous namespace
 (function() {
 
-/**
- * Check that stripPrivacyInfo correctly removes cookies and login information.
- */
-TEST_F('NetInternalsTest', 'netInternalsLogViewPainterStripInfo', function() {
-  // Each entry in |expectations| is a list consisting of a header element
-  // before and after applying the filter.  If the second entry is null, the
-  // element should be unmodified.
-  var expectations = [
-    ['set-cookie: blah', 'set-cookie: [4 bytes were stripped]'],
-    ['set-cookie2: blah', 'set-cookie2: [4 bytes were stripped]'],
-    ['cookie: blah', 'cookie: [4 bytes were stripped]'],
-    ['authorization: NTLM blah', 'authorization: NTLM [4 bytes were stripped]'],
+tr.b.unittest.testSuite(function() {
+  /**
+   * Check that stripPrivacyInfo correctly removes cookies and login
+   * information.
+   */
+  test('netInternalsLogViewPainterStripInfo', function() {
+    this.addHTMLOutput(globalNetLogViewerElementForTests);
 
-    ['proxy-authorization: Basic blah',
-     'proxy-authorization: Basic [4 bytes were stripped]'],
+    setNetLogConstantsForTest();
 
-    ['WWW-Authenticate: Basic realm="Something, or another"', null],
+    // Each entry in |expectations| is a list consisting of a header element
+    // before and after applying the filter.  If the second entry is null, the
+    // element should be unmodified.
+    var expectations = [
+      ['set-cookie: blah', 'set-cookie: [4 bytes were stripped]'],
+      ['set-cookie2: blah', 'set-cookie2: [4 bytes were stripped]'],
+      ['cookie: blah', 'cookie: [4 bytes were stripped]'],
+      ['authorization: NTLM blah',
+          'authorization: NTLM [4 bytes were stripped]'],
 
-    ['WWW-Authenticate: Negotiate blah-token-blah',
-     'WWW-Authenticate: Negotiate [15 bytes were stripped]'],
+      ['proxy-authorization: Basic blah',
+       'proxy-authorization: Basic [4 bytes were stripped]'],
 
-    ['WWW-Authenticate: NTLM asdllk2j3l423lk4j23l4kj',
-     'WWW-Authenticate: NTLM [23 bytes were stripped]'],
+      ['WWW-Authenticate: Basic realm="Something, or another"', null],
 
-    ['WWW-Authenticate: Kerberos , Negotiate asdfasdfasdfasfa', null],
-    ['WWW-Authenticate: Kerberos, Negotiate asdfasdfasdfasfa', null],
-    ['WWW-Authenticate: Digest , Negotiate asdfasdfasdfasfa', null],
-    ['WWW-Authenticate: Digest realm="Foo realm", Negotiate asdf', null],
-    ['WWW-Authenticate: Kerberos,Digest,Basic', null],
-    ['WWW-Authenticate: Digest realm="asdfasdf", nonce=5, qop="auth"', null],
-    ['WWW-Authenticate: Basic realm=foo,foo=bar , Digest ', null],
-    ['Proxy-Authenticate: Basic realm="Something, or another"', null],
+      ['WWW-Authenticate: Negotiate blah-token-blah',
+       'WWW-Authenticate: Negotiate [15 bytes were stripped]'],
 
-    ['Proxy-Authenticate: Negotiate blah-token-blah',
-     'Proxy-Authenticate: Negotiate [15 bytes were stripped]'],
+      ['WWW-Authenticate: NTLM asdllk2j3l423lk4j23l4kj',
+       'WWW-Authenticate: NTLM [23 bytes were stripped]'],
 
-    ['Proxy-Authenticate: NTLM asdllk2j3l423lk4j23l4kj',
-     'Proxy-Authenticate: NTLM [23 bytes were stripped]'],
+      ['WWW-Authenticate: Kerberos , Negotiate asdfasdfasdfasfa', null],
+      ['WWW-Authenticate: Kerberos, Negotiate asdfasdfasdfasfa', null],
+      ['WWW-Authenticate: Digest , Negotiate asdfasdfasdfasfa', null],
+      ['WWW-Authenticate: Digest realm="Foo realm", Negotiate asdf', null],
+      ['WWW-Authenticate: Kerberos,Digest,Basic', null],
+      ['WWW-Authenticate: Digest realm="asdfasdf", nonce=5, qop="auth"', null],
+      ['WWW-Authenticate: Basic realm=foo,foo=bar , Digest ', null],
+      ['Proxy-Authenticate: Basic realm="Something, or another"', null],
 
-    ['Proxy-Authenticate: Kerberos , Negotiate asdfasdfa', null],
-    ['Proxy-Authenticate: Kerberos, Negotiate asdfasdfa', null],
-    ['Proxy-Authenticate: Digest , Negotiate asdfasdfa', null],
-    ['Proxy-Authenticate: Digest realm="Foo realm", Negotiate asdfasdfa', null],
-    ['Proxy-Authenticate: Kerberos,Digest,Basic', null],
-    ['Proxy-Authenticate: Digest realm="asdfasdf", nonce=5, qop="auth"', null],
-    ['Proxy-Authenticate: Basic realm=foo,foo=bar , Digest ', null],
+      ['Proxy-Authenticate: Negotiate blah-token-blah',
+       'Proxy-Authenticate: Negotiate [15 bytes were stripped]'],
 
-    ['cookie: [4 bytes were stripped]', null],
-    ['cookie: Stuff [4 bytes were stripped]',
-     'cookie: [29 bytes were stripped]'],
-    ['cookie: [4 bytes were stripped] Stuff',
-     'cookie: [29 bytes were stripped]'],
-    ['set-cookie: [4 bytes were stripped]', null],
-    ['Proxy-Authenticate: NTLM [23 bytes were stripped]', null],
-  ];
+      ['Proxy-Authenticate: NTLM asdllk2j3l423lk4j23l4kj',
+       'Proxy-Authenticate: NTLM [23 bytes were stripped]'],
 
-  for (var i = 0; i < expectations.length; ++i) {
-    var expectation = expectations[i];
-    // Position within params.headers where the authentication information goes.
-    for (var position = 0; position < 3; ++position) {
-      var entry = {
-        'params': {
-          'headers': [
-            'Host: clients1.google.com',
-            'Connection: keep-alive',
-            'User-Agent: Mozilla/5.0'
-          ],
-          'line': 'GET / HTTP/1.1\r\n'
-        },
-        'phase': EventPhase.PHASE_BEGIN,
-        'source': {'id': 329, 'type': EventSourceType.URL_REQUEST},
-        'time': '22468349',
-        'type': EventSourceType.URL_REQUEST
-      };
+      ['Proxy-Authenticate: Kerberos , Negotiate asdfasdfa', null],
+      ['Proxy-Authenticate: Kerberos, Negotiate asdfasdfa',
+          null],
+      ['Proxy-Authenticate: Digest , Negotiate asdfasdfa', null],
+      ['Proxy-Authenticate: Digest realm="Foo realm", Negotiate asdfasdfa',
+          null],
+      ['Proxy-Authenticate: Kerberos,Digest,Basic', null],
+      ['Proxy-Authenticate: Digest realm="asdfasdf", nonce=5, qop="auth"',
+          null],
+      ['Proxy-Authenticate: Basic realm=foo,foo=bar , Digest ', null],
 
-      entry.params.headers[position] = expectation[0];
-      var stripped = stripPrivacyInfo(entry);
-      // The entry should be duplicated, so the original still has the deleted
-      // information.
-      expectNotEquals(stripped, entry);
-      if (expectation[1] == null) {
-        expectEquals(expectation[0], stripped.params.headers[position]);
-      } else {
-        expectEquals(expectation[1], stripped.params.headers[position]);
+      ['cookie: [4 bytes were stripped]', null],
+      ['cookie: Stuff [4 bytes were stripped]',
+       'cookie: [29 bytes were stripped]'],
+      ['cookie: [4 bytes were stripped] Stuff',
+       'cookie: [29 bytes were stripped]'],
+      ['set-cookie: [4 bytes were stripped]', null],
+      ['Proxy-Authenticate: NTLM [23 bytes were stripped]', null],
+    ];
+
+    for (var i = 0; i < expectations.length; ++i) {
+      var expectation = expectations[i];
+      // Position within params.headers where the authentication information
+      // goes.
+      for (var position = 0; position < 3; ++position) {
+        var entry = {
+          'params': {
+            'headers': [
+              'Host: clients1.google.com',
+              'Connection: keep-alive',
+              'User-Agent: Mozilla/5.0'
+            ],
+            'line': 'GET / HTTP/1.1\r\n'
+          },
+          'phase': EventPhase.PHASE_BEGIN,
+          'source': {'id': 329, 'type': EventSourceType.URL_REQUEST},
+          'time': '22468349',
+          'type': EventSourceType.URL_REQUEST
+        };
+
+        entry.params.headers[position] = expectation[0];
+        var stripped = stripPrivacyInfo(entry);
+        // The entry should be duplicated, so the original still has the deleted
+        // information.
+        chai.assert.notStrictEqual(stripped, entry);
+        if (expectation[1] == null) {
+          chai.assert.strictEqual(expectation[0],
+              stripped.params.headers[position]);
+        } else {
+          chai.assert.strictEqual(expectation[1],
+              stripped.params.headers[position]);
+        }
       }
     }
-  }
 
-  // Test with HTTP/2 request headers, which use an object rather than an array.
-  var spdyRequestHeadersEntry = {
-    'params': {
-      'headers': {
-        ':host': 'clients1.google.com',
-        ':method': 'GET',
-        ':path': '/cute/cat/pictures/',
-        'cookie': 'blah'
+    // Test with HTTP/2 request headers, which use an object rather than an
+    // array.
+    var spdyRequestHeadersEntry = {
+      'params': {
+        'headers': {
+          ':host': 'clients1.google.com',
+          ':method': 'GET',
+          ':path': '/cute/cat/pictures/',
+          'cookie': 'blah'
+        },
+        'line': 'GET / HTTP/1.1\r\n'
       },
-      'line': 'GET / HTTP/1.1\r\n'
-    },
-    'phase': EventPhase.PHASE_BEGIN,
-    'source': {'id': 329, 'type': EventSourceType.URL_REQUEST},
-    'time': '22468349',
-    'type': EventSourceType.HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS
-  };
-  var strippedSpdyRequestHeadersEntry =
-      stripPrivacyInfo(spdyRequestHeadersEntry);
-  expectEquals('cookie: [4 bytes were stripped]',
-               strippedSpdyRequestHeadersEntry.params.headers[3]);
+      'phase': EventPhase.PHASE_BEGIN,
+      'source': {'id': 329, 'type': EventSourceType.URL_REQUEST},
+      'time': '22468349',
+      'type': EventSourceType.HTTP_TRANSACTION_HTTP2_SEND_REQUEST_HEADERS
+    };
+    var strippedSpdyRequestHeadersEntry =
+        stripPrivacyInfo(spdyRequestHeadersEntry);
+    chai.assert.strictEqual('cookie: [4 bytes were stripped]',
+                 strippedSpdyRequestHeadersEntry.params.headers[3]);
 
-  testDone();
-});
+    unsetNetLogConstantsForTest();
+  });
 
-/**
- * Check that stripPrivacyInfo correctly removes HTTP/2 GOAWAY frame debug data.
- */
-TEST_F('NetInternalsTest', 'netInternalsLogViewPainterStripGoAway', function() {
-  var entry = {
-    'params': {
-      'active_streams': 1,
-      'debug_data': 'potentially privacy sensitive information',
-      'last_accepted_stream_id': 1,
-      'status': 0,
-      'unclaimed_streams': 0,
-    },
-    'phase': 0,
-    'source': {'id': 404, 'type': 5},
-    'time': '49236780',
-    'type': EventType.HTTP2_SESSION_GOAWAY,
-  };
+  /**
+   * Check that stripPrivacyInfo correctly removes HTTP/2 GOAWAY frame debug
+   * data.
+   */
+  test('netInternalsLogViewPainterStripGoAway', function() {
+    this.addHTMLOutput(globalNetLogViewerElementForTests);
 
-  var stripped = stripPrivacyInfo(entry);
+    setNetLogConstantsForTest();
 
-  // The entry should be duplicated, so the original still has the deleted
-  // information.
-  expectNotEquals(stripped, entry);
-  expectEquals('[41 bytes were stripped]',
-               stripped.params.debug_data);
+    var entry = {
+      'params': {
+        'active_streams': 1,
+        'debug_data': 'potentially privacy sensitive information',
+        'last_accepted_stream_id': 1,
+        'status': 0,
+        'unclaimed_streams': 0,
+      },
+      'phase': 0,
+      'source': {'id': 404, 'type': 5},
+      'time': '49236780',
+      'type': EventType.HTTP2_SESSION_GOAWAY,
+    };
 
-  testDone();
-});
+    var stripped = stripPrivacyInfo(entry);
 
-/**
- * Tests the formatting of log entries to fixed width text.
- */
-TEST_F('NetInternalsTest', 'netInternalsLogViewPainterPrintAsText', function() {
-  // Add a DOM node to draw the log entries into.
-  var div = addNode(document.body, 'div');
+    // The entry should be duplicated, so the original still has the deleted
+    // information.
+    chai.assert.notStrictEqual(stripped, entry);
+    chai.assert.strictEqual('[41 bytes were stripped]',
+                 stripped.params.debug_data);
 
-  // Helper function to run a particular "test case". This comprises an input
-  // and the resulting formatted text expectation.
-  function runTestCase(testCase) {
-    div.innerHTML = '';
-    timeutil.setTimeTickOffset(testCase.tickOffset);
+    unsetNetLogConstantsForTest();
+  });
 
-    var baseTime = 0;
-    if (typeof testCase.baseTimeTicks != 'undefined')
-      baseTime = timeutil.convertTimeTicksToTime(testCase.baseTimeTicks);
+  /**
+   * Tests the formatting of log entries to fixed width text.
+   */
+  test('netInternalsLogViewPainterPrintAsText', function() {
+    this.addHTMLOutput(globalNetLogViewerElementForTests);
 
-    var tablePrinter =
-        createLogEntryTablePrinter(testCase.logEntries,
-                                   testCase.privacyStripping,
-                                   baseTime, testCase.logCreationTime);
-    tablePrinter.toText(0, div);
+    setNetLogConstantsForTest();
 
-    // Strip any trailing newlines, since the whitespace when using innerText
-    // can be a bit unpredictable.
-    var actualText = div.innerText;
-    actualText = actualText.replace(/^\s+|\s+$/g, '');
+    // Add a DOM node to draw the log entries into.
+    var div = addNode(document.body, 'div');
 
-    expectEquals(testCase.expectedText, actualText);
-  }
+    // Helper function to run a particular "test case". This comprises an input
+    // and the resulting formatted text expectation.
+    function runTestCase(testCase) {
+      div.innerHTML = '';
+      timeutil.setTimeTickOffset(testCase.tickOffset);
 
-  runTestCase(painterTestURLRequest());
-  runTestCase(painterTestURLRequestIncomplete());
-  runTestCase(painterTestURLRequestIncompleteFromLoadedLog());
-  runTestCase(painterTestURLRequestIncompleteFromLoadedLogSingleEvent());
-  runTestCase(painterTestNetError());
-  runTestCase(painterTestQuicError());
-  runTestCase(painterTestQuicCryptoHandshakeMessage());
-  runTestCase(painterTestHexEncodedBytes());
-  runTestCase(painterTestCertVerifierJob());
-  runTestCase(painterTestCertVerifyResult());
-  runTestCase(painterTestProxyConfigOneProxyAllSchemes());
-  runTestCase(painterTestProxyConfigTwoProxiesAllSchemes());
-  runTestCase(painterTestDontStripCookiesURLRequest());
-  runTestCase(painterTestStripCookiesURLRequest());
-  runTestCase(painterTestDontStripCookiesSPDYSession());
-  runTestCase(painterTestStripCookiesSPDYSession());
-  runTestCase(painterTestSpdyURLRequestDontStripCookies());
-  runTestCase(painterTestSpdyURLRequestStripCookies());
-  runTestCase(painterTestExtraCustomParameter());
-  runTestCase(painterTestMissingCustomParameter());
-  runTestCase(painterTestSSLVersionFallback());
-  runTestCase(painterTestInProgressURLRequest());
-  runTestCase(painterTestBaseTime());
+      var baseTime = 0;
+      if (typeof testCase.baseTimeTicks != 'undefined')
+        baseTime = timeutil.convertTimeTicksToTime(testCase.baseTimeTicks);
 
-  testDone();
+      var tablePrinter =
+          createLogEntryTablePrinter(testCase.logEntries,
+                                     testCase.privacyStripping,
+                                     baseTime, testCase.logCreationTime);
+      tablePrinter.toText(0, div);
+
+      // Strip any trailing newlines, since the whitespace when using innerText
+      // can be a bit unpredictable.
+      var actualText = div.innerText;
+      actualText = actualText.replace(/^\s+|\s+$/g, '');
+
+      chai.assert.strictEqual(testCase.expectedText, actualText);
+    }
+
+    runTestCase(painterTestURLRequest());
+    runTestCase(painterTestURLRequestIncomplete());
+    runTestCase(painterTestURLRequestIncompleteFromLoadedLog());
+    runTestCase(painterTestURLRequestIncompleteFromLoadedLogSingleEvent());
+    runTestCase(painterTestNetError());
+    runTestCase(painterTestQuicError());
+    runTestCase(painterTestQuicCryptoHandshakeMessage());
+    runTestCase(painterTestHexEncodedBytes());
+    runTestCase(painterTestCertVerifierJob());
+    runTestCase(painterTestCertVerifyResult());
+    runTestCase(painterTestProxyConfigOneProxyAllSchemes());
+    runTestCase(painterTestProxyConfigTwoProxiesAllSchemes());
+    runTestCase(painterTestDontStripCookiesURLRequest());
+    runTestCase(painterTestStripCookiesURLRequest());
+    runTestCase(painterTestDontStripCookiesSPDYSession());
+    runTestCase(painterTestStripCookiesSPDYSession());
+    runTestCase(painterTestSpdyURLRequestDontStripCookies());
+    runTestCase(painterTestSpdyURLRequestStripCookies());
+    runTestCase(painterTestExtraCustomParameter());
+    runTestCase(painterTestMissingCustomParameter());
+    runTestCase(painterTestSSLVersionFallback());
+    runTestCase(painterTestInProgressURLRequest());
+    runTestCase(painterTestBaseTime());
+
+    unsetNetLogConstantsForTest();
+  });
 });
 
 /**
@@ -2202,3 +2229,4 @@ function painterTestBaseTime() {
 }
 
 })();  // Anonymous namespace
+</script>

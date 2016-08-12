@@ -13,11 +13,14 @@ found in the LICENSE file.
         type="image/x-icon">
 
   <script src="/components/webcomponentsjs/webcomponents.js"></script>
-  <script src="/netlog_viewer/net_internals_test.js"></script>
+  <script src="/netlog_viewer/net_constants.js"></script>  
+  <script src="/netlog_viewer/net_internals_test.js"></script>  
 
   <link rel="import" href="https://polygit2.appspot.com/components/polymer/polymer.html">
   <link rel="import" href="/tracing/base/unittest/interactive_test_runner.html">
   <link rel="import" href="/tracing/core/test_utils.html">
+
+  <link rel="import" href="/netlog_viewer/netlog_viewer.html">
 
   <style>
     html, body {
@@ -33,7 +36,17 @@ found in the LICENSE file.
   <script>
     'use strict';
 
+    var globalNetLogViewerElementForTests = null;
+
     window.addEventListener('load', function() {
+      // TODO(rayraymond): The following creates the custom element that
+      // represents the entire web app. In the future each test file should
+      // import and create its corresponding component to test. For now
+      // this uber component can be created at the beginning and all the test
+      // files can use it.
+      globalNetLogViewerElementForTests =
+          document.createElement('netlog-viewer');
+
       tr.b.unittest.loadAndRunTests({
         title: 'All NetLog Viewer Tests',
         getAllSuiteRelPathsAsync: function() {
