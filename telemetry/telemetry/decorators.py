@@ -211,6 +211,20 @@ def DisabledAttributeName(test):
   return '_%s_%s_disabled_strings' % (test.__module__, name)
 
 
+def GetDisabledAttributes(test):
+  disabled_attr_name = DisabledAttributeName(test)
+  if not hasattr(test, disabled_attr_name):
+    return set()
+  return set(getattr(test, disabled_attr_name))
+
+
+def GetEnabledAttributes(test):
+  enabled_attr_name = EnabledAttributeName(test)
+  if not hasattr(test, enabled_attr_name):
+    return set()
+  return set(getattr(test, enabled_attr_name))
+
+
 def EnabledAttributeName(unused_test):
   # TODO(aiolos): Update to match disabled attribute names, and use in
   # ShouldSkip and Enabled in a secondary cl.

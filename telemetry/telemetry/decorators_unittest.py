@@ -12,9 +12,10 @@ from telemetry.internal.browser import possible_browser
 
 
 class FakeTest(object):
+
   def SetEnabledStrings(self, enabled_strings):
-    # pylint: disable=attribute-defined-outside-init
-    self._enabled_strings = enabled_strings
+    enabled_attr_name = decorators.EnabledAttributeName(self)
+    setattr(self, enabled_attr_name, enabled_strings)
 
   def SetDisabledStrings(self, disabled_strings):
     # pylint: disable=attribute-defined-outside-init
@@ -23,134 +24,162 @@ class FakeTest(object):
 
 
 class TestDisableDecorators(unittest.TestCase):
-  @staticmethod
-  def DisabledAttr(obj):
-    disabled_attr_name = decorators.DisabledAttributeName(obj)
-    if hasattr(obj, disabled_attr_name):
-      return getattr(obj, disabled_attr_name)
-    return None
-
-  @staticmethod
-  def EnabledAttr(obj):
-    enabled_attr_name = decorators.EnabledAttributeName(obj)
-    if hasattr(obj, enabled_attr_name):
-      return getattr(obj, enabled_attr_name)
-    return None
 
   def testDisabledStringOnFunction(self):
+
     @decorators.Disabled('bar')
     def Sum():
       return 1 + 1
-    self.assertEquals({'bar'}, self.DisabledAttr(Sum))
+
+    self.assertEquals({'bar'}, decorators.GetDisabledAttributes(Sum))
 
     @decorators.Disabled('bar')
     @decorators.Disabled('baz')
     @decorators.Disabled('bart', 'baz')
     def Product():
       return 1 * 1
-    self.assertEquals({'bar', 'bart', 'baz'}, self.DisabledAttr(Product))
+
+    self.assertEquals({'bar', 'bart', 'baz'},
+                      decorators.GetDisabledAttributes(Product))
 
   def testDisabledStringOnClass(self):
+
     @decorators.Disabled('windshield')
     class Ford(object):
       pass
-    self.assertEquals({'windshield'}, self.DisabledAttr(Ford))
+
+    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Ford))
 
     @decorators.Disabled('windows', 'Drive')
     @decorators.Disabled('wheel')
     @decorators.Disabled('windows')
     class Honda(object):
       pass
-    self.assertEquals({'wheel', 'Drive', 'windows'}, self.DisabledAttr(Honda))
+
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      decorators.GetDisabledAttributes(Honda))
 
   def testDisabledStringOnSubClass(self):
+
     @decorators.Disabled('windshield')
     class Car(object):
       pass
+
     class Ford(Car):
       pass
-    self.assertEquals({'windshield'}, self.DisabledAttr(Car))
-    self.assertFalse(self.DisabledAttr(Ford))
+
+    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Car))
+    self.assertFalse(decorators.GetDisabledAttributes(Ford))
 
     @decorators.Disabled('windows', 'Drive')
     @decorators.Disabled('wheel')
     @decorators.Disabled('windows')
     class Honda(Car):
       pass
-    self.assertEquals({'windshield'}, self.DisabledAttr(Car))
-    self.assertEquals({'wheel', 'Drive', 'windows'}, self.DisabledAttr(Honda))
+
+    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Car))
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      decorators.GetDisabledAttributes(Honda))
 
   def testDisabledStringOnMethod(self):
+
     class Ford(object):
+
       @decorators.Disabled('windshield')
       def Drive(self):
         pass
-    self.assertEquals({'windshield'}, self.DisabledAttr(Ford().Drive))
+
+    self.assertEquals({'windshield'},
+                      decorators.GetDisabledAttributes(Ford().Drive))
 
     class Honda(object):
+
       @decorators.Disabled('windows', 'Drive')
       @decorators.Disabled('wheel')
       @decorators.Disabled('windows')
       def Drive(self):
         pass
+
     self.assertEquals({'wheel', 'Drive', 'windows'},
-                      self.DisabledAttr(Honda().Drive))
-    self.assertEquals({'windshield'}, self.DisabledAttr(Ford().Drive))
+                      decorators.GetDisabledAttributes(Honda().Drive))
+    self.assertEquals({'windshield'},
+                      decorators.GetDisabledAttributes(Ford().Drive))
 
     class Accord(Honda):
+
       def Drive(self):
         pass
+
     class Explorer(Ford):
       pass
+
     self.assertEquals({'wheel', 'Drive', 'windows'},
-                      self.DisabledAttr(Honda().Drive))
-    self.assertEquals({'windshield'}, self.DisabledAttr(Ford().Drive))
-    self.assertEquals({'windshield'}, self.DisabledAttr(Explorer().Drive))
-    self.assertFalse(self.DisabledAttr(Accord().Drive))
+                      decorators.GetDisabledAttributes(Honda().Drive))
+    self.assertEquals({'windshield'},
+                      decorators.GetDisabledAttributes(Ford().Drive))
+    self.assertEquals({'windshield'},
+                      decorators.GetDisabledAttributes(Explorer().Drive))
+    self.assertFalse(decorators.GetDisabledAttributes(Accord().Drive))
+
 
 class TestEnableDecorators(unittest.TestCase):
 
   def testEnabledStringOnFunction(self):
+
     @decorators.Enabled('minus', 'power')
     def Sum():
       return 1 + 1
-    self.assertEquals({'minus', 'power'}, Sum._enabled_strings)
+
+    self.assertEquals({'minus', 'power'}, decorators.GetEnabledAttributes(Sum))
 
     @decorators.Enabled('dot')
     @decorators.Enabled('product')
     @decorators.Enabled('product', 'dot')
     def Product():
       return 1 * 1
-    self.assertEquals({'dot', 'product'}, Product._enabled_strings)
+
+    self.assertEquals({'dot', 'product'},
+                      decorators.GetEnabledAttributes(Product))
 
   def testEnabledStringOnClass(self):
+
     @decorators.Enabled('windshield', 'light')
     class Ford(object):
       pass
-    self.assertEquals({'windshield', 'light'}, Ford._enabled_strings)
+
+    self.assertEquals({'windshield', 'light'},
+                      decorators.GetEnabledAttributes(Ford))
 
     @decorators.Enabled('wheel', 'Drive')
     @decorators.Enabled('wheel')
     @decorators.Enabled('windows')
     class Honda(object):
       pass
-    self.assertEquals({'wheel', 'Drive', 'windows'}, Honda._enabled_strings)
+
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      decorators.GetEnabledAttributes(Honda))
 
   def testEnabledStringOnMethod(self):
+
     class Ford(object):
+
       @decorators.Enabled('windshield')
       def Drive(self):
         pass
-    self.assertEquals({'windshield'}, Ford().Drive._enabled_strings)
+
+    self.assertEquals({'windshield'},
+                      decorators.GetEnabledAttributes(Ford().Drive))
 
     class Honda(object):
+
       @decorators.Enabled('windows', 'Drive')
       @decorators.Enabled('wheel', 'Drive')
       @decorators.Enabled('windows')
       def Drive(self):
         pass
+
     self.assertEquals({'wheel', 'Drive', 'windows'},
-                      Honda().Drive._enabled_strings)
+                      decorators.GetEnabledAttributes(Honda().Drive))
 
 
 class TestShouldSkip(unittest.TestCase):
@@ -309,23 +338,28 @@ class TestShouldSkip(unittest.TestCase):
                              'another_os_version_name-reference'])
     self.assertFalse(decorators.ShouldSkip(test, self.possible_browser)[0])
 
+
 class TestDeprecation(unittest.TestCase):
 
   @mock.patch('warnings.warn')
   def testFunctionDeprecation(self, warn_mock):
+
     @decorators.Deprecated(2015, 12, 1)
     def Foo(x):
       return x
+
     Foo(1)
     warn_mock.assert_called_with(
         'Function Foo is deprecated. It will no longer be supported on '
         'December 01, 2015. Please remove it or switch to an alternative '
-        'before that time. \n', stacklevel=4)
+        'before that time. \n',
+        stacklevel=4)
 
   @mock.patch('warnings.warn')
   def testMethodDeprecated(self, warn_mock):
 
     class Bar(object):
+
       @decorators.Deprecated(2015, 12, 1, 'Testing only.')
       def Foo(self, x):
         return x
@@ -334,12 +368,15 @@ class TestDeprecation(unittest.TestCase):
     warn_mock.assert_called_with(
         'Function Foo is deprecated. It will no longer be supported on '
         'December 01, 2015. Please remove it or switch to an alternative '
-        'before that time. Testing only.\n', stacklevel=4)
+        'before that time. Testing only.\n',
+        stacklevel=4)
 
   @mock.patch('warnings.warn')
   def testClassWithoutInitDefinedDeprecated(self, warn_mock):
+
     @decorators.Deprecated(2015, 12, 1)
     class Bar(object):
+
       def Foo(self, x):
         return x
 
@@ -347,15 +384,18 @@ class TestDeprecation(unittest.TestCase):
     warn_mock.assert_called_with(
         'Class Bar is deprecated. It will no longer be supported on '
         'December 01, 2015. Please remove it or switch to an alternative '
-        'before that time. \n', stacklevel=4)
+        'before that time. \n',
+        stacklevel=4)
 
   @mock.patch('warnings.warn')
   def testClassWithInitDefinedDeprecated(self, warn_mock):
 
     @decorators.Deprecated(2015, 12, 1)
     class Bar(object):
+
       def __init__(self):
         pass
+
       def Foo(self, x):
         return x
 
@@ -363,15 +403,18 @@ class TestDeprecation(unittest.TestCase):
     warn_mock.assert_called_with(
         'Class Bar is deprecated. It will no longer be supported on '
         'December 01, 2015. Please remove it or switch to an alternative '
-        'before that time. \n', stacklevel=4)
+        'before that time. \n',
+        stacklevel=4)
 
   @mock.patch('warnings.warn')
   def testInheritedClassDeprecated(self, warn_mock):
+
     class Ba(object):
       pass
 
     @decorators.Deprecated(2015, 12, 1)
     class Bar(Ba):
+
       def Foo(self, x):
         return x
 
@@ -382,10 +425,13 @@ class TestDeprecation(unittest.TestCase):
     warn_mock.assert_called_with(
         'Class Bar is deprecated. It will no longer be supported on '
         'December 01, 2015. Please remove it or switch to an alternative '
-        'before that time. \n', stacklevel=4)
+        'before that time. \n',
+        stacklevel=4)
 
   def testReturnValue(self):
+
     class Bar(object):
+
       @decorators.Deprecated(2015, 12, 1, 'Testing only.')
       def Foo(self, x):
         return x
