@@ -13,7 +13,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.ui.analysis.behaviors', function() {
+tr.exportTo('tr.ui.analysis', function() {
 
   var AnalysisSubView = {
     set tabLabel(label) {
@@ -53,6 +53,6 @@ tr.exportTo('tr.ui.analysis.behaviors', function() {
 // Dummy element for testing
 Polymer({
   is: 'tr-ui-a-sub-view',
-  behaviors: [tr.ui.analysis.behaviors.AnalysisSubView]
+  behaviors: [tr.ui.analysis.AnalysisSubView]
 });
 </script>
