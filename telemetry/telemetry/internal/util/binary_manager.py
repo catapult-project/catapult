@@ -93,14 +93,21 @@ def FetchBinaryDepdencies(platform, client_configs,
   ]
   dep_manager = dependency_manager.DependencyManager(configs)
   target_platform = '%s_%s' % (platform.GetOSName(), platform.GetArchName())
-  host_platform = None
-
   dep_manager.PrefetchPaths(target_platform)
+
+  host_platform = None
+  fetch_devil_deps = False
   if platform.GetOSName() == 'android':
     host_platform = '%s_%s' % (
         platform_module.GetHostPlatform().GetOSName(),
         platform_module.GetHostPlatform().GetArchName())
     dep_manager.PrefetchPaths(host_platform)
+    # TODO(aiolos): this is a hack to prefetch the devil deps.
+    if host_platform == 'linux_x86_64':
+      fetch_devil_deps = True
+    else:
+      logging.error('Devil only supports 64 bit linux as a host platform. '
+                    'Android tests may fail.')
 
   if fetch_reference_chrome_binary:
     _FetchReferenceBrowserBinary(platform)
@@ -124,6 +131,14 @@ def FetchBinaryDepdencies(platform, client_configs,
     except dependency_manager.NoPathFoundError as e:
       logging.error('Error when trying to prefetch paths for %s: %s',
                     target_platform, e.message)
+
+  # TODO(aiolos, jbudorick): we should have a devil pre-fetch API to call here
+  # and/or switch devil to use the same platform names so we can include it in
+  # the primary loop.
+  if fetch_devil_deps:
+    devil_env.config.Initialize()
+    devil_env.config._dm.PrefetchPaths(target_platform)
+    devil_env.config._dm.PrefetchPaths('linux2_x86_64')
 
 
 def _FetchReferenceBrowserBinary(platform):
