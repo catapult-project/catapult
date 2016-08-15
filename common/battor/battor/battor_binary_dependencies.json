@@ -13,7 +13,7 @@
           ]
         },
         "darwin_x86_64": {
-          "cloud_storage_hash": "7f102cc0a39a5bc9e67fbbf2a7f4edf534964b62",
+          "cloud_storage_hash": "6923bb851fe57f5880d5dac78add6939134e5514",
           "download_path": "../bin/darwin/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
