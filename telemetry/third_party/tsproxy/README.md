@@ -36,6 +36,7 @@ The traffic shaping configuration can be changed dynamically at runtime by passi
 * **set rtt <latency>** : Change the connection latency. i.e. "set rtt 200\n" will change to a 200ms RTT.
 * **set inkbps <bandwidth>** : Change the download bandwidth. i.e. "set inkbps 5000\n" will change to a 5Mbps download connection.
 * **set outkbps <bandwidth>** : Change the upload bandwidth. i.e. "set outkbps 1000\n" will change to a 1Mbps upload connection.
+* **set mapports <port mapping string>** : Change the destination port mapping.
 
 All bandwidth and latency changes also carry an implied flush and clear out any pending data.
 

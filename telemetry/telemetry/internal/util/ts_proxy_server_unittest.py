@@ -21,6 +21,19 @@ class TsProxyServerTest(unittest.TestCase):
           'Failed to start sock5 proxy.'),
       None)
 
-  def testSmoke(self):
+  def testSmokeStartingTsProxyServer(self):
+    with ts_proxy_server.TsProxyServer() as server:
+      self.assertIsNotNone(server.port)
     with ts_proxy_server.TsProxyServer(37124, 37125) as server:
       self.assertIsNotNone(server.port)
+
+  def testSmokeUpdatingOutboundPorts(self):
+    with ts_proxy_server.TsProxyServer() as server:
+      self.assertIsNotNone(server.port)
+      server.UpdateOutboundPorts(31242, 14220)
+
+  def testSmokeUpdatingOutboundPortsInvalid(self):
+    with ts_proxy_server.TsProxyServer() as server:
+      self.assertIsNotNone(server.port)
+      with self.assertRaises(AssertionError):
+        server.UpdateOutboundPorts(31242, 'abcde')

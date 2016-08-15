@@ -540,29 +540,36 @@ class CommandProcessor():
     global needs_flush
     global REMOVE_TCP_OVERHEAD
     if len(input):
-      command = input.split()
-      if len(command) and len(command[0]):
-        ok = False
-        if command[0].lower() == 'flush':
-          needs_flush = True
-          ok = True
-        elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'rtt' and len(command[2]):
-          rtt = float(command[2])
-          latency = rtt / 2000.0
-          in_pipe.latency = latency
-          out_pipe.latency = latency
-          needs_flush = True
-          ok = True
-        elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'inkbps' and len(command[2]):
-          in_pipe.kbps = float(command[2]) * REMOVE_TCP_OVERHEAD
-          needs_flush = True
-          ok = True
-        elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'outkbps' and len(command[2]):
-          out_pipe.kbps = float(command[2]) * REMOVE_TCP_OVERHEAD
-          needs_flush = True
-          ok = True
-        if not ok:
-          PrintMessage('ERROR')
+      ok = False
+      try:
+        command = input.split()
+        if len(command) and len(command[0]):
+          if command[0].lower() == 'flush':
+            needs_flush = True
+            ok = True
+          elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'rtt' and len(command[2]):
+            rtt = float(command[2])
+            latency = rtt / 2000.0
+            in_pipe.latency = latency
+            out_pipe.latency = latency
+            needs_flush = True
+            ok = True
+          elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'inkbps' and len(command[2]):
+            in_pipe.kbps = float(command[2]) * REMOVE_TCP_OVERHEAD
+            needs_flush = True
+            ok = True
+          elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'outkbps' and len(command[2]):
+            out_pipe.kbps = float(command[2]) * REMOVE_TCP_OVERHEAD
+            needs_flush = True
+            ok = True
+          elif len(command) >= 3 and command[0].lower() == 'set' and command[1].lower() == 'mapports' and len(command[2]):
+            SetPortMappings(command[2])
+            needs_flush = True
+            ok = True
+      except:
+        pass
+      if not ok:
+        PrintMessage('ERROR')
 
 
 ########################################################################################################################
@@ -607,13 +614,7 @@ def main():
 
   # Parse any port mappings
   if options.mapports:
-    port_mappings = {}
-    for pair in options.mapports.split(','):
-      (src, dest) = pair.split(':')
-      if src == '*':
-        port_mappings['default'] = int(dest)
-      else:
-        port_mappings[src] = int(dest)
+    SetPortMappings(options.mapports)
 
   map_localhost = options.localhost
 
@@ -673,6 +674,7 @@ def run_loop():
     else:
       gc_check_count += 1
 
+
 def GetDestPort(port):
   global port_mappings
   if port_mappings is not None:
@@ -682,6 +684,20 @@ def GetDestPort(port):
     elif 'default' in port_mappings:
       return port_mappings['default']
   return port
+
+
+def SetPortMappings(map_string):
+  global port_mappings
+  port_mappings = {}
+  map_string = map_string.strip('\'" \t\r\n')
+  for pair in map_string.split(','):
+    (src, dest) = pair.split(':')
+    if src == '*':
+      port_mappings['default'] = int(dest)
+      logging.debug("Default port mapped to port {0}".format(dest))
+    else:
+      logging.debug("Port {0} mapped to port {1}".format(src, dest))
+      port_mappings[src] = int(dest)
 
 
 if '__main__' == __name__:

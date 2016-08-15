@@ -37,11 +37,13 @@ class TsProxyServer(object):
   telemetry/third_party/tsproxy/tsproxy.py
   """
 
-  def __init__(self, http_port, https_port):
+  def __init__(self, http_port=None, https_port=None):
     """Initialize TsProxyServer.
     """
     self._proc = None
     self._port = None
+    self._is_running = False
+    assert bool(http_port) == bool(https_port)
     self._http_port = http_port
     self._https_port = https_port
 
@@ -54,9 +56,11 @@ class TsProxyServer(object):
     """
     cmd_line = [sys.executable, _TSPROXY_PATH]
     cmd_line.extend([
-        '--port=0',  # Use port 0 so tsproxy picks a random available port.
-        '--mapports=4a43:%s,*:%s' % (self._https_port, self._http_port)
-        ])
+        '--port=0'])  # Use port 0 so tsproxy picks a random available port.
+
+    if self._http_port:
+      cmd_line.extend([
+        '--mapports=443:%s,*:%s' % (self._https_port, self._http_port)])
     logging.info('Tsproxy commandline: %r' % cmd_line)
     self._proc = subprocess.Popen(
         cmd_line, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
@@ -64,12 +68,14 @@ class TsProxyServer(object):
     atexit_with_log.Register(self.StopServer)
     try:
       util.WaitFor(self._IsStarted, timeout)
+      self._is_running = True
     except exceptions.TimeoutException:
       err = self.StopServer()
       raise RuntimeError(
           'Error starting tsproxy: %s' % err)
 
   def _IsStarted(self):
+    assert not self._is_running
     assert self._proc
     if self._proc.poll() is not None:
       return False
@@ -78,9 +84,34 @@ class TsProxyServer(object):
           output_line=self._proc.stdout.readline())
     return self._port != None
 
+
+  def _IssueCommand(self, command_string, timeout):
+    command_output = []
+    self._proc.stdin.write('%s\n' % command_string)
+    self._proc.stdin.flush()
+    self._proc.stdout.flush()
+    def CommandStatusIsRead():
+      command_output.append(self._proc.stdout.readline().strip())
+      return (
+          command_output[-1] == 'OK' or command_output[-1] == 'ERROR')
+    util.WaitFor(CommandStatusIsRead, timeout)
+    if not 'OK' in command_output:
+      raise RuntimeError('Failed to execute command %s:\n%s' %
+                         (repr(command_string), '\n'.join(command_output)))
+
+
+  def UpdateOutboundPorts(self, http_port, https_port, timeout=5):
+    assert http_port and https_port
+    assert http_port != https_port
+    assert isinstance(http_port, int) and isinstance(https_port, int)
+    assert 1 <= http_port <= 65535
+    assert 1 <= https_port <= 65535
+    self._IssueCommand('set mapports 443:%i,*:%i' % (https_port, http_port),
+                       timeout)
+
   def StopServer(self):
     """Stop TsProxy Server."""
-    if not self._proc:
+    if not self._is_running:
       logging.warning('Attempting to stop TsProxy server that is not running.')
       return
     if self._proc:
@@ -89,6 +120,7 @@ class TsProxyServer(object):
     err = self._proc.stderr.read()
     self._proc = None
     self._port = None
+    self._is_running = False
     return err
 
   def __enter__(self):
