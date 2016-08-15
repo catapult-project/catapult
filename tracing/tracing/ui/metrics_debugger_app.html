@@ -84,7 +84,7 @@ tr.exportTo('tr.ui', function() {
       }
       var result = new pi.mre.MreResult();
       var model = this.activeTrace_.model;
-      var options = {metric: this.currentMetricName_};
+      var options = {metrics: [this.currentMetricName_]};
       try {
         tr.metrics.metricMapFunction(result, model, options);
         this.set(
