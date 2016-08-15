@@ -105,7 +105,9 @@ found in the LICENSE file.
     createSamplingSummary_: function(selection, viewOption) {
       var builder = new MultiDimensionalViewBuilder(
           1 /* dimensions */, 1 /* valueCount */);
-      var samples = selection.getEventsOrganizedByBaseType().sample;
+      var samples = selection.filter(function(event) {
+        return event instanceof tr.model.Sample;
+      });
 
       samples.forEach(function(sample) {
         builder.addPath([sample.getUserFriendlyStackTrace().reverse()],
