@@ -115,6 +115,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
 
   # Fails on chromeos: crbug.com/483212
   @decorators.Disabled('chromeos')
+  @decorators.Isolated
   def testTBM2ForSmoke(self):
     ps = self.CreateEmptyPageSet()
     ps.AddStory(TestTimelinebasedMeasurementPage(ps, ps.base_dir))
