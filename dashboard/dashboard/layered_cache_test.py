@@ -4,14 +4,17 @@
 
 import cPickle
 import datetime
+import mock
 import unittest
 
 import webapp2
 import webtest
 
 from google.appengine.ext import ndb
+from google.appengine.runtime import apiproxy_errors
 
 from dashboard import layered_cache
+from dashboard import stored_object
 from dashboard import testing_common
 
 
@@ -139,6 +142,17 @@ class LayeredCacheTest(testing_common.TestCase):
     self.assertEqual('cat', layered_cache.Get('expired_str3'))
     self.assertEqual('dog', layered_cache.Get('expired_str4'))
     self.assertEqual('egg', layered_cache.Get('expired_str5'))
+
+  @mock.patch.object(layered_cache.CachedPickledString, 'put')
+  def testSet_TooBig(self, mock_cached_pickled_string):
+    e = apiproxy_errors.RequestTooLargeError('too big!')
+    mock_cached_pickled_string.side_effect = e
+    layered_cache.Set('foo', 'bar')
+    self.assertEqual('bar', stored_object.Get('foo'))
+
+  def testGet_StoredObject(self):
+    stored_object.Set('foo', 'bar')
+    self.assertEqual('bar', layered_cache.Get('foo'))
 
 
 if __name__ == '__main__':

@@ -40,6 +40,7 @@ from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
 from dashboard import request_handler
+from dashboard import stored_object
 
 
 class DeleteExpiredEntitiesHandler(request_handler.RequestHandler):
@@ -97,22 +98,28 @@ def Prewarm(keys):
 
 def Get(key):
   """Gets the value from the datastore."""
+  if key is None:
+    return None
   namespaced_key = _NamespaceKey(key)
   entity = ndb.Key('CachedPickledString', namespaced_key).get(
       read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
     return cPickle.loads(entity.value)
-  return None
+  else:
+    return stored_object.Get(key)
 
 
 def GetExternal(key):
   """Gets the value from the datastore for the externally namespaced key."""
+  if key is None:
+    return None
   namespaced_key = _NamespaceKey(key, datastore_hooks.EXTERNAL)
   entity = ndb.Key('CachedPickledString', namespaced_key).get(
       read_policy=ndb.EVENTUAL_CONSISTENCY)
   if entity:
     return cPickle.loads(entity.value)
-  return None
+  else:
+    return stored_object.Get(key)
 
 
 def Set(key, value, days_to_keep=None, namespace=None):
@@ -142,9 +149,7 @@ def Set(key, value, days_to_keep=None, namespace=None):
   except datastore_errors.BadRequestError as e:
     logging.warning('BadRequestError for key %s: %s', key, e)
   except apiproxy_errors.RequestTooLargeError as e:
-    # TODO(sullivan): Fix instead of swallowing exception.
-    # https://github.com/catapult-project/catapult/issues/2305
-    logging.error('RequestTooLargeError for key %s: %s', key, e)
+    stored_object.Set(key, value)
 
 
 def SetExternal(key, value, days_to_keep=None):
@@ -168,6 +173,7 @@ def Delete(key):
   external_key = _NamespaceKey(key, namespace=datastore_hooks.EXTERNAL)
   ndb.delete_multi([ndb.Key('CachedPickledString', internal_key),
                     ndb.Key('CachedPickledString', external_key)])
+  stored_object.Delete(key)
 
 
 def DeleteAllExpiredEntities():
