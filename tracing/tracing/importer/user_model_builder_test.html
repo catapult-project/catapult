@@ -791,8 +791,8 @@ tr.b.unittest.testSuite(function() {
       chrome_test_utils.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
-      {title: 'Startup', start: 2, end: 20, eventCount: 2},
-      {title: 'Idle', start: 20, end: 30, eventCount: 0}
+      {title: 'Startup', start: 2, end: 20, eventCount: 3},
+      {title: 'Idle', start: 20, end: 30, eventCount: 1}
     ];
     verifier.verify();
   });

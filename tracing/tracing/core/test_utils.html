@@ -241,7 +241,7 @@ tr.exportTo('tr.c', function() {
     if (options.type)
       type = options.type;
     else
-      type = tr.model.Slice;
+      type = tr.model.ThreadSlice;
 
     var slice = new type(
         options.cat ? options.cat : 'cat',
