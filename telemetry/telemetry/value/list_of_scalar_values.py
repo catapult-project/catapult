@@ -167,18 +167,16 @@ class ListOfScalarValues(summarizable.SummarizableValue):
     assert len(values) > 0
     v0 = values[0]
 
-    return cls._MergeLikeValues(values, v0.page, v0.name, v0.tir_label,
-                                v0.grouping_keys)
+    return cls._MergeLikeValues(values, v0.page, v0.name, v0.grouping_keys)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, None, v0.name, v0.tir_label,
-                                v0.grouping_keys)
+    return cls._MergeLikeValues(values, None, v0.name, v0.grouping_keys)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name, tir_label, grouping_keys):
+  def _MergeLikeValues(cls, values, page, name, grouping_keys):
     v0 = values[0]
     merged_values = []
     list_of_samples = []
@@ -204,7 +202,7 @@ class ListOfScalarValues(summarizable.SummarizableValue):
         merged_values,
         important=v0.important,
         description=v0.description,
-        tir_label=tir_label,
+        tir_label=value_module.MergedTirLabel(values),
         std=pooled_std,
         none_value_reason=none_value_reason,
         improvement_direction=v0.improvement_direction,

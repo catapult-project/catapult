@@ -7,7 +7,6 @@ import itertools
 import json
 
 from telemetry.internal.results import output_formatter
-from telemetry.value import summary as summary_module
 from telemetry.value import trace
 
 def ResultsAsChartDict(benchmark_metadata, page_specific_values,
@@ -31,9 +30,8 @@ def ResultsAsChartDict(benchmark_metadata, page_specific_values,
   Returns:
     A Chart JSON dict corresponding to the given data.
   """
-  summary = summary_module.Summary(page_specific_values)
   values = itertools.chain(
-      summary.interleaved_computed_per_page_values_and_summaries,
+      output_formatter.SummarizePageSpecificValues(page_specific_values),
       summary_values)
   charts = collections.defaultdict(dict)
 

@@ -322,3 +322,16 @@ class ValueTest(TestBase):
     vs = value.Value.ListOfValuesFromListOfDicts([d0, d1], {})
     self.assertEquals(vs[0].name, 'x')
     self.assertEquals(vs[1].name, 'y')
+
+  def testMergedTirLabelForSameLabel(self):
+    v = ValueForTest(None, 'foo', 'ms', False, 'd', 'bar', {})
+
+    tir_label = value.MergedTirLabel([v, v])
+    self.assertEquals(tir_label, 'bar')
+
+  def testMergedTirLabelForDifferentLabels(self):
+    v0 = ValueForTest(None, 'foo', 'ms', False, 'd', 'bar', {})
+    v1 = ValueForTest(None, 'foo', 'ms', False, 'd', 'baz', {})
+
+    tir_label = value.MergedTirLabel([v0, v1])
+    self.assertIsNone(tir_label)

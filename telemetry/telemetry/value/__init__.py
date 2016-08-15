@@ -312,6 +312,32 @@ class Value(object):
 
     return d
 
+
+def MergedTirLabel(values):
+  """Returns the tir_label that should be applied to a merge of values.
+
+  As of TBMv2, we encounter situations where we need to merge values with
+  different tir_labels because Telemetry's tir_label field is being used to
+  store story keys for system health stories. As such, when merging, we want to
+  take the common tir_label if all values share the same label (legacy
+  behavior), or have no tir_label if not.
+
+  Args:
+    values: a list of Value instances
+
+  Returns:
+    The tir_label that would be set on the merge of |values|.
+  """
+  assert len(values) > 0
+  v0 = values[0]
+
+  first_tir_label = v0.tir_label
+  if all(v.tir_label == first_tir_label for v in values):
+    return first_tir_label
+  else:
+    return None
+
+
 def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
   """Mangles a trace name plus optional chart name into a standard string.
 
@@ -329,6 +355,7 @@ def ValueNameFromTraceAndChartName(trace_name, chart_name=None):
     assert '.' not in trace_name, ('Trace names cannot contain "." with an '
         'empty chart_name since this is used to delimit chart_name.trace_name.')
     return trace_name
+
 
 def _ConvertValueNameToChartAndTraceName(value_name):
   """Converts a value_name into the equivalent chart-trace name pair.

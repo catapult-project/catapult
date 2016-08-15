@@ -99,19 +99,18 @@ class ScalarValue(summarizable.SummarizableValue):
   def MergeLikeValuesFromSamePage(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, v0.page, v0.name, v0.tir_label,
-                                v0.grouping_keys)
+    return cls._MergeLikeValues(values, v0.page, v0.name, v0.grouping_keys)
 
   @classmethod
   def MergeLikeValuesFromDifferentPages(cls, values):
     assert len(values) > 0
     v0 = values[0]
-    return cls._MergeLikeValues(values, None, v0.name, v0.tir_label,
-                                v0.grouping_keys)
+    return cls._MergeLikeValues(values, None, v0.name, v0.grouping_keys)
 
   @classmethod
-  def _MergeLikeValues(cls, values, page, name, tir_label, grouping_keys):
+  def _MergeLikeValues(cls, values, page, name, grouping_keys):
     v0 = values[0]
+
     merged_value = [v.value for v in values]
     none_value_reason = None
     if None in merged_value:
@@ -123,7 +122,7 @@ class ScalarValue(summarizable.SummarizableValue):
     return list_of_scalar_values.ListOfScalarValues(
         page, name, v0.units, merged_value, important=v0.important,
         description=v0.description,
-        tir_label=tir_label,
+        tir_label=value_module.MergedTirLabel(values),
         none_value_reason=none_value_reason,
         improvement_direction=v0.improvement_direction,
         grouping_keys=grouping_keys)
