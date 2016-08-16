@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!--
+Copyright 2015 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<link rel="import" href="/perf_insights/mre/function_handle.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/ir_coverage.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
+<link rel="import" href="/tracing/value/unit.html">
+
+<script>
+'use strict';
+
+
+tr.exportTo('pi.m', function() {
+  function v8CallStatsDump(result, model) {
+    var v8_runtime_map = {};
+    var totalCount = 0;
+    var totalTime = 0;
+    // TODO(fmeawad): filter events until TTI only.
+    for (var event of model.getDescendantEvents()) {
+      if (!(event instanceof tr.model.ThreadSlice))
+        continue;
+      var v8_runtime = event.args['runtime-call-stat'];
+      if (v8_runtime !== undefined) {
+        try {
+          var v8_runtime_object = JSON.parse(v8_runtime);
+          for (var runtime_call in v8_runtime_object) {
+            // exclude "END" and malformed entries.
+            if (v8_runtime_object[runtime_call].length == 2) {
+              if (v8_runtime_map[runtime_call] === undefined) {
+                v8_runtime_map[runtime_call] = {count: 0, time: 0};
+              }
+              v8_runtime_map[runtime_call].count++;
+              var runtime_time = v8_runtime_object[runtime_call][1] / 1000;
+              v8_runtime_map[runtime_call].time += runtime_time;
+              totalCount++;
+              totalTime += runtime_time;
+            }
+          }
+        } catch (e) {
+           console.warn(e);
+        }
+      }
+    }
+    for (var i in v8_runtime_map) {
+      result.addPair(i, {time: Number(v8_runtime_map[i].time).toFixed(2),
+                         count: v8_runtime_map[i].count});
+    }
+    result.addPair('Total', {time: Number(totalTime).toFixed(2),
+                             count: totalCount});
+  }
+
+  pi.FunctionRegistry.register(v8CallStatsDump);
+
+  // Exporting for tests.
+  return {
+    v8CallStatsDump: v8CallStatsDump
+  };
+});
+
+</script>
