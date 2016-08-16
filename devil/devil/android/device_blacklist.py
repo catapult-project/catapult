@@ -22,15 +22,22 @@ class Blacklist(object):
       A dict containing bad devices.
     """
     with self._blacklist_lock:
+      blacklist = dict()
       if not os.path.exists(self._path):
-        return dict()
+        return blacklist
 
-      with open(self._path, 'r') as f:
-        blacklist = json.load(f)
+      try:
+        with open(self._path, 'r') as f:
+          blacklist = json.load(f)
+      except (IOError, ValueError) as e:
+        logging.warning('Unable to read blacklist: %s', str(e))
+        os.remove(self._path)
+
       if not isinstance(blacklist, dict):
         logging.warning('Ignoring %s: %s (a dict was expected instead)',
                         self._path, blacklist)
         blacklist = dict()
+
       return blacklist
 
   def Write(self, blacklist):
