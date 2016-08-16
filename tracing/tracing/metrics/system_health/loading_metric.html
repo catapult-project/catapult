@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/category_util.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
@@ -21,6 +22,13 @@ tr.exportTo('tr.metrics.sh', function() {
   var INTERACTIVE_WINDOW_SIZE = 5 * 1000;
   var timeDurationInMs_smallerIsBetter =
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
+
+  // TODO(ksakamoto): This should be a method of tr.model.Event or one of its
+  // subclasses.
+  function hasCategoryAndName(event, category, title) {
+    return event.title === title && event.category &&
+        tr.b.getCategoryParts(event.category).indexOf(category) !== -1;
+  }
 
   function findTargetRendererHelper(chromeHelper) {
     var largestPid = -1;
@@ -46,8 +54,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function NavigationStartFinder(rendererHelper) {
     this.navigationStartsForFrameId_ = {};
     for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-      if (ev.category !== 'blink.user_timing' ||
-          ev.title !== 'navigationStart')
+      if (!hasCategoryAndName(ev, 'blink.user_timing', 'navigationStart'))
         continue;
       var frameIdRef = ev.args['frame'];
       var list = this.navigationStartsForFrameId_[frameIdRef];
@@ -87,7 +94,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function PaintFinder(rendererHelper) {
     this.paintsForFrameId_ = {};
     for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
-      if (ev.category !== 'devtools.timeline' || ev.title !== 'Paint')
+      if (!hasCategoryAndName(ev, 'devtools.timeline', 'Paint'))
         continue;
       var frameIdRef = ev.args['data']['frame'];
       var list = this.paintsForFrameId_[frameIdRef];
@@ -162,7 +169,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var targetEvents = [];
 
     for (var ev of rendererHelper.process.getDescendantEvents()) {
-      if (ev.category !== 'blink.user_timing' || ev.title !== title)
+      if (!hasCategoryAndName(ev, 'blink.user_timing', title))
         continue;
       targetEvents.push(ev);
     }
@@ -175,10 +182,10 @@ tr.exportTo('tr.metrics.sh', function() {
         prepareTelemetryInternalEventPredicate(rendererHelper);
     var layoutsForFrameId = {};
     for (var ev of rendererHelper.process.getDescendantEvents()) {
-      if (ev.category !==
-          'blink,benchmark,disabled-by-default-blink.debug.layout' ||
-          ev.title !== 'FrameView::performLayout')
+      if (!hasCategoryAndName(ev, 'disabled-by-default-blink.debug.layout',
+              'FrameView::performLayout')) {
         continue;
+      }
       if (isTelemetryInternalEvent(ev))
         continue;
       if (ev.args.counters === undefined) {
