@@ -121,7 +121,8 @@ def DeviceStatus(devices, blacklist):
         try:
           build_product = device.build_product
           build_id = device.build_id
-          build_fingerprint = device.GetProp('ro.build.fingerprint', cache=True)
+          build_fingerprint = device.build_fingerprint
+          build_description = device.build_description
           wifi_ip = device.GetProp('dhcp.wlan0.ipaddress')
           battery_info = _BatteryStatus(device, blacklist)
           imei_slice = _IMEISlice(device)
@@ -134,6 +135,7 @@ def DeviceStatus(devices, blacklist):
             'ro.build.product': build_product,
             'ro.build.id': build_id,
             'ro.build.fingerprint': build_fingerprint,
+            'ro.build.description': build_description,
             'battery': battery_info,
             'imei_slice': imei_slice,
             'wifi_ip': wifi_ip,
@@ -302,7 +304,8 @@ def main():
   # Dump the device statuses to JSON.
   if args.json_output:
     with open(args.json_output, 'wb') as f:
-      f.write(json.dumps(statuses, indent=4))
+      f.write(json.dumps(
+          statuses, indent=4, sort_keys=True, separators=(',', ': ')))
 
   live_devices = [status['serial'] for status in statuses
                   if (status['adb_status'] == 'device'
