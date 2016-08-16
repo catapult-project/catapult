@@ -10,6 +10,7 @@ import gzip
 import json
 import os
 import re
+import subprocess
 import sys
 
 _SYMBOLS_PATH = os.path.abspath(os.path.join(
@@ -36,6 +37,21 @@ ANDROID_PATH_MATCHER = re.compile(
 
 # Subpath of output path where unstripped libraries are stored.
 ANDROID_UNSTRIPPED_SUBPATH = 'lib.unstripped'
+
+
+def FindInSystemPath(binary_name):
+  paths = os.environ['PATH'].split(os.pathsep)
+  for path in paths:
+    binary_path = os.path.join(path, binary_name)
+    if os.path.isfile(binary_path):
+      return binary_path
+  return None
+
+
+def IsSymbolizableFile(file_path):
+  result = subprocess.check_output(['file', '-0', file_path])
+  type_string = result[result.find('\0') + 1:]
+  return bool(re.match(r'\: (ELF|Mach-O) (32|64)-bit\b', type_string))
 
 
 class ProcessMemoryMaps(object):
@@ -268,8 +284,10 @@ def SymbolizeFiles(symfiles, addr2line_path):
       problem = 'not a file'
     elif not os.path.isfile(symfile.path):
       problem = "file doesn't exist"
+    elif not IsSymbolizableFile(symfile.path):
+      problem = 'file is not symbolizable'
     if problem:
-      _SubPrintf("Can't symbolize {} PCs for '{}': {}.",
+      _SubPrintf("Won't symbolize {} PCs for '{}': {}.",
                  len(symfile.frames_by_address),
                  symfile.path,
                  problem)
@@ -307,15 +325,6 @@ def SymbolizeFiles(symfiles, addr2line_path):
     symbolized = True
 
   return symbolized
-
-
-def FindInSystemPath(binary_name):
-  paths = os.environ['PATH'].split(os.pathsep)
-  for path in paths:
-    binary_path = os.path.join(path, binary_name)
-    if os.path.isfile(binary_path):
-      return binary_path
-  return None
 
 
 def HaveFilesFromAndroid(symfiles):
