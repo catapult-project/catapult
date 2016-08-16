@@ -6,6 +6,7 @@ import logging
 
 from battor import battor_error
 from battor import battor_wrapper
+from catapult_base import cloud_storage
 from devil.android import battery_utils
 from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
@@ -36,8 +37,9 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     self._battery = (
         battery_utils.BatteryUtils(platform_backend.device)
         if platform_backend.GetOSName() == 'android' else None)
-    self._battor = battor_wrapper.BattorWrapper(platform_backend.GetOSName(),
-                                                android_device=android_device)
+    self._battor = battor_wrapper.BattorWrapper(
+        platform_backend.GetOSName(), android_device=android_device,
+        serial_log_bucket=cloud_storage.TELEMETRY_OUTPUT)
 
   @classmethod
   def IsSupported(cls, platform_backend):

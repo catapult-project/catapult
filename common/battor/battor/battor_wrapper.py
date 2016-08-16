@@ -2,15 +2,18 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import datetime
 import os
 import logging
 import platform
+import random
 import subprocess
 import sys
 import tempfile
 import time
 
 from battor import battor_error
+from catapult_base import cloud_storage
 import dependency_manager
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices
@@ -74,7 +77,7 @@ class BattorWrapper(object):
   _SUPPORTED_PLATFORMS = ['android', 'chromeos', 'linux', 'mac', 'win']
 
   def __init__(self, target_platform, android_device=None, battor_path=None,
-               battor_map_file=None, battor_map=None):
+               battor_map_file=None, battor_map=None, serial_log_bucket=None):
     """Constructor.
 
     Args:
@@ -83,6 +86,8 @@ class BattorWrapper(object):
       battor_path: Path to BattOr device.
       battor_map_file: File giving map of [device serial: BattOr path]
       battor_map: Map of [device serial: BattOr path]
+      serial_log_bucket: The cloud storage bucket to which BattOr agent serial
+        logs are uploaded on failure.
 
     Attributes:
       _battor_path: Path to BattOr. Typically similar to /tty/USB0.
@@ -91,6 +96,9 @@ class BattorWrapper(object):
       _tracing: A bool saying if tracing has been started.
       _battor_shell: A subprocess running the bator_agent_binary
       _trace_results_path: Path to BattOr trace results file.
+      _serial_log_bucket: Cloud storage bucket to which BattOr agent serial logs
+        are uploaded on failure.
+      _serial_log_file: Temp file for the BattOr agent serial log.
     """
     self._battor_path = self._GetBattorPath(target_platform, android_device,
         battor_path, battor_map_file, battor_map)
@@ -102,6 +110,7 @@ class BattorWrapper(object):
         [dependency_manager.BaseConfig(config)])
     self._battor_agent_binary = dm.FetchPath(
         'battor_agent_binary', '%s_%s' % (sys.platform, platform.machine()))
+    self._serial_log_bucket = serial_log_bucket
 
     self._tracing = False
     self._battor_shell = None
@@ -109,19 +118,23 @@ class BattorWrapper(object):
     self._start_tracing_time = None
     self._stop_tracing_time = None
     self._trace_results = None
+    self._serial_log_file = None
 
-  def IsShellRunning(self):
-    """Determines if shell is running."""
-    return self._battor_shell.poll() is None
+  def GetShellReturnCode(self):
+    """Gets the return code of the BattOr agent shell."""
+    return self._battor_shell.poll()
 
   def StartShell(self):
     """Start BattOr binary shell."""
     assert not self._battor_shell, 'Attempting to start running BattOr shell.'
     battor_cmd = [self._battor_agent_binary]
+    if self._serial_log_bucket:
+      self._serial_log_file = tempfile.NamedTemporaryFile()
+      battor_cmd.append('--battor-serial-log=%s' % self._serial_log_file)
     if self._battor_path:
       battor_cmd.append('--battor-path=%s' % self._battor_path)
     self._battor_shell = self._StartShellImpl(battor_cmd)
-    assert self.IsShellRunning(), 'Shell did not start properly.'
+    assert self.GetShellReturnCode() is None, 'Shell failed to start.'
 
   def StartTracing(self):
     """Start tracing on the BattOr."""
@@ -154,10 +167,14 @@ class BattorWrapper(object):
     # The BattOr shell terminates after returning the results.
     if timeout is None:
       timeout = self._stop_tracing_time - self._start_tracing_time
-    self._battor_shell.wait()
+
+    if self.GetShellReturnCode() == 1:
+      self._UploadSerialLogToCloudStorage()
+
     with open(self._trace_results_path) as results:
       self._trace_results = results.read()
     self._battor_shell = None
+    self._serial_log_file = None
     return self._trace_results
 
   def SupportsExplicitClockSync(self):
@@ -231,7 +248,10 @@ class BattorWrapper(object):
 
   def _SendBattorCommand(self, cmd, check_return=True):
     status = self._SendBattorCommandImpl(cmd)
+
     if check_return and not 'Done.' in status:
+      self._UploadSerialLogToCloudStorage()
+      self._serial_log_file = None
       raise battor_error.BattorError(
           'BattOr did not complete command \'%s\' correctly.\n'
           'Outputted: %s' % (cmd, status))
@@ -241,3 +261,20 @@ class BattorWrapper(object):
     return subprocess.Popen(
         battor_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, shell=False)
+
+  def _UploadSerialLogToCloudStorage(self):
+    """Uploads the BattOr serial log to cloud storage."""
+    if not self._serial_log_file or not cloud_storage.IsNetworkIOEnabled():
+      return
+
+    remote_path = ('battor-serial-log-%s-%d.txt' % (
+        datetime.datetime.now().strftime('%Y-%m-%d_%H-%M.txt'),
+        random.randint(1, 100000)))
+
+    try:
+      cloud_url = cloud_storage.Insert(
+          self._serial_log_bucket, remote_path, self._serial_log_file.name)
+      sys.stderr.write('View BattOr serial log at %s\n' % cloud_url)
+    except cloud_storage.PermissionError as e:
+      logging.error('Cannot upload BattOr serial log file to cloud storage due '
+                    'to permission error: %s' % e.message)

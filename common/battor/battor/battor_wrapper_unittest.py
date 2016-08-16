@@ -28,6 +28,9 @@ class PopenMock(object):
   def __init__(self, *unused):
     pass
 
+  def poll(self):
+    pass
+
 
 class IsBattOrConnectedTest(unittest.TestCase):
   def setUp(self):
@@ -162,8 +165,8 @@ class BattorWrapperTest(unittest.TestCase):
     serial.tools.list_ports.comports = self._serial_tools
 
   def _DefaultBattorReplacements(self):
-    self._battor._StartShellImpl = lambda *unused: PopenMock
-    self._battor.IsShellRunning = lambda *unused: True
+    self._battor._StartShellImpl = lambda *unused: PopenMock()
+    self._battor.GetShellReturnCode = lambda *unused: None
     self._battor._SendBattorCommandImpl = lambda x: 'Done.\n'
     self._battor._StopTracingImpl = lambda *unused: ('Done.\n', None)
 
@@ -221,7 +224,7 @@ class BattorWrapperTest(unittest.TestCase):
   def testStartShellFail(self):
     self._battor = battor_wrapper.BattorWrapper('win')
     self._DefaultBattorReplacements()
-    self._battor.IsShellRunning = lambda *unused: False
+    self._battor.GetShellReturnCode = lambda *unused: 1
     with self.assertRaises(AssertionError):
       self._battor.StartShell()
 
@@ -253,7 +256,7 @@ class BattorWrapperTest(unittest.TestCase):
     self._DefaultBattorReplacements()
     self._battor.StartShell()
     self._battor.StartTracing()
-    self._battor.IsShellRunning = lambda *unused: False
+    self._battor.GetShellReturnCode = lambda *unused: 0
     self._battor.StopTracing()
     self.assertFalse(self._battor._tracing)
 

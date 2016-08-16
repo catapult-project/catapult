@@ -50,12 +50,13 @@ class FakeDesktopPlatformBackend(FakePlatformBackend):
 
 class FakeBattOr(object):
   def __init__(self, test_platform, android_device=None, battor_path=None,
-               battor_map=None):
+               battor_map=None, serial_log_bucket=None):
     self._is_shell_running = False
     self._android_device = android_device
     self._battor_path = battor_path
     self._battor_map = battor_map
     self._test_platform = test_platform
+    self._serial_log_bucket = serial_log_bucket
     self._stop_tracing_called = False
     self._start_shell_called = False
     self._start_tracing_called = False
