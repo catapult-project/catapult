@@ -130,7 +130,7 @@ class BattorWrapper(object):
     battor_cmd = [self._battor_agent_binary]
     if self._serial_log_bucket:
       self._serial_log_file = tempfile.NamedTemporaryFile()
-      battor_cmd.append('--battor-serial-log=%s' % self._serial_log_file)
+      battor_cmd.append('--battor-serial-log=%s' % self._serial_log_file.name)
     if self._battor_path:
       battor_cmd.append('--battor-path=%s' % self._battor_path)
     self._battor_shell = self._StartShellImpl(battor_cmd)
