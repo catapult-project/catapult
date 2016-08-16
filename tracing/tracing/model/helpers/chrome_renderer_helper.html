@@ -30,7 +30,11 @@ tr.exportTo('tr.model.helpers', function() {
         process.labels !== undefined &&
         process.labels.length === 1 &&
         process.labels[0] === 'chrome://tracing';
+    if (!process.name)
+      process.name = ChromeRendererHelper.PROCESS_NAME;
   };
+
+  ChromeRendererHelper.PROCESS_NAME = 'Renderer';
 
   // Returns true if there is either a main thread or a compositor thread.
   ChromeRendererHelper.isRenderProcess = function(process) {
