@@ -332,7 +332,8 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     base_name = benchmark_class.Name()
     # TODO(charliea): Remove this once we have more power perf bots.
     # Only run battor power benchmarks to reduce the cycle time of this bot.
-    if only_run_battor_benchmarks and not base_name.startswith('battor'):
+    if only_run_battor_benchmarks and not (base_name.startswith('battor')
+                                           or base_name.startswith('power')):
       continue
     base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
                 '-v', '--output-format=chartjson', '--upload-results',
