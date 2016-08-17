@@ -238,7 +238,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   var METRICS = [
     {
-      valueName: 'firstContentfulPaint',
+      valueName: 'timeToFirstContentfulPaint',
       title: 'firstContentfulPaint',
       description: 'time to first contentful paint'
     },
@@ -249,7 +249,7 @@ tr.exportTo('tr.metrics.sh', function() {
         'This is temporary metric used for PCv1/v2 sanity checking'
     }];
 
-  function firstContentfulPaintMetric(values, model) {
+  function timeToFirstContentfulPaintMetric(values, model) {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var rendererHelper = findTargetRendererHelper(chromeHelper);
@@ -384,7 +384,8 @@ tr.exportTo('tr.metrics.sh', function() {
    *
    * Design doc: https://goo.gl/ISWndc
    */
-  function firstMeaningfulPaintAndTimeToInteractiveMetrics(values, model) {
+  function timeToFirstMeaningfulPaintAndTimeToInteractiveMetrics(
+      values, model) {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var rendererHelper = findTargetRendererHelper(chromeHelper);
@@ -480,7 +481,7 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     values.addValue(new tr.v.NumericValue(
-        'firstMeaningfulPaint', firstMeaningfulPaintHistogram,
+        'timeToFirstMeaningfulPaint', firstMeaningfulPaintHistogram,
         { description: 'time to first meaningful paint' }));
     values.addValue(new tr.v.NumericValue(
         'timeToFirstInteractive', firstInteractiveHistogram,
@@ -488,8 +489,8 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function loadingMetric(values, model) {
-    firstContentfulPaintMetric(values, model);
-    firstMeaningfulPaintAndTimeToInteractiveMetrics(values, model);
+    timeToFirstContentfulPaintMetric(values, model);
+    timeToFirstMeaningfulPaintAndTimeToInteractiveMetrics(values, model);
   }
 
   tr.metrics.MetricRegistry.register(loadingMetric);

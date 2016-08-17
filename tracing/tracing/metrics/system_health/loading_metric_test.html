@@ -13,7 +13,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('firstContentfulPaint', function() {
+  test('timeToFirstContentfulPaint', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(800, numeric.running.mean);
   });
 
-  test('firstContentfulPaintIgnoringWarmCache', function() {
+  test('timeToFirstContentfulPaintIgnoringWarmCache', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
@@ -106,7 +106,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(400, numeric.running.mean);
   });
 
-  test('firstMeaningfulPaint', function() {
+  test('timeToFirstMeaningfulPaint', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
@@ -168,14 +168,14 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var fmpEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'firstMeaningfulPaint');
-    var numeric = fmpEntries[0].numeric;
+    var ttfmpEntries = values.valueDicts.filter(
+        (dict) => dict.name === 'timeToFirstMeaningfulPaint');
+    var numeric = ttfmpEntries[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
   });
 
-  test('firstMeaningfulPaintWithInvalidLayoutCounters', function() {
+  test('timeToFirstMeaningfulPaintWithInvalidLayoutCounters', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var rendererProcess = model.getOrCreateProcess(1);
       var mainThread = rendererProcess.getOrCreateThread(2);
@@ -225,9 +225,9 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var fmpEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'firstMeaningfulPaint');
-    var numeric = fmpEntries[0].numeric;
+    var ttfmpEntries = values.valueDicts.filter(
+        (dict) => dict.name === 'timeToFirstMeaningfulPaint');
+    var numeric = ttfmpEntries[0].numeric;
     assert.equal(0, numeric.running.count);
   });
 

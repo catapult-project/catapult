@@ -172,17 +172,17 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertEquals(0, len(results.failures), results.failures)
-    v_fcp_max = results.FindAllPageSpecificValuesNamed(
-        'firstContentfulPaint_max')
-    self.assertEquals(len(v_fcp_max), 1)
-    self.assertIsNotNone(v_fcp_max[0].page)
+    v_ttfcp_max = results.FindAllPageSpecificValuesNamed(
+        'timeToFirstContentfulPaint_max')
+    self.assertEquals(len(v_ttfcp_max), 1)
+    self.assertIsNotNone(v_ttfcp_max[0].page)
     # TODO(kouhei): enable this once the reference build of telemetry is
     # updated.
-    #  self.assertGreater(v_fcp_max[0].value, 0)
+    #  self.assertGreater(v_ttfcp_max[0].value, 0)
 
-    v_fmp_max = results.FindAllPageSpecificValuesNamed(
-       'firstMeaningfulPaint_max')
-    self.assertEquals(len(v_fmp_max), 1)
+    v_ttfmp_max = results.FindAllPageSpecificValuesNamed(
+       'timeToFirstMeaningfulPaint_max')
+    self.assertEquals(len(v_ttfmp_max), 1)
     # TODO(ksakamoto): enable this once the reference build of telemetry is
     # updated.
-    # self.assertIsNotNone(v_fmp_max[0].page)
+    # self.assertIsNotNone(v_ttfmp_max[0].page)
