@@ -66,6 +66,9 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return [arg for arg in args if arg.startswith('--proxy-server=')]
 
   def GetBrowserStartupArgs(self):
+    assert not '--no-proxy-server' in self.browser_options.extra_browser_args, (
+        '--no-proxy-server flag is disallowed as Chrome needs to be route to '
+        'ts_proxy_server')
     args = []
     args.extend(self.browser_options.extra_browser_args)
     args.append('--enable-net-benchmarking')
@@ -79,11 +82,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # programmatically inspect a pageset's actions in order to determine if it
     # might eventually scroll.
     args.append('--enable-gpu-benchmarking')
-
-    # Set --no-proxy-server to work around some XP issues unless
-    # some other flag indicates a proxy is needed.
-    if not self._ArgsNeedProxyServer(args):
-      self.browser_options.no_proxy_server = True
 
     if self.browser_options.disable_background_networking:
       args.append('--disable-background-networking')
@@ -104,9 +102,6 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     component_extension_str = ','.join(component_extensions)
     if len(component_extensions) > 0:
       args.append('--load-component-extension=%s' % component_extension_str)
-
-    if self.browser_options.no_proxy_server:
-      args.append('--no-proxy-server')
 
     if self.browser_options.disable_component_extensions_with_background_pages:
       args.append('--disable-component-extensions-with-background-pages')

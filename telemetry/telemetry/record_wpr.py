@@ -148,7 +148,6 @@ class WprRecorder(object):
   def _CreateOptions(self):
     options = browser_options.BrowserFinderOptions()
     options.browser_options.wpr_mode = wpr_modes.WPR_RECORD
-    options.browser_options.no_proxy_server = True
     return options
 
   def CreateResults(self):

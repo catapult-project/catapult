@@ -263,7 +263,6 @@ class BrowserOptions(object):
     self._browser_startup_timeout = 60
 
     self.disable_background_networking = True
-    self.no_proxy_server = False
     self.browser_user_agent_type = None
 
     self.clear_sytem_cache_for_browser_and_profile_on_start = False

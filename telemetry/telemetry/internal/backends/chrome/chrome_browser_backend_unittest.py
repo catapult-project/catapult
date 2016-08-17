@@ -55,20 +55,6 @@ class TestChromeBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         browser_options=browser_options)
 
 
-class StartupArgsTest(unittest.TestCase):
-  """Test expected inputs for GetBrowserStartupArgs."""
-
-  def testNoProxyServer(self):
-    browser_options = FakeBrowserOptions()
-    browser_options.no_proxy_server = False
-    browser_options.AppendExtraBrowserArgs('--proxy-server=http=inter.net')
-    browser_backend = TestChromeBrowserBackend(browser_options)
-    self.assertNotIn('--no-proxy-server',
-                     browser_backend.GetBrowserStartupArgs())
-
-    browser_options.no_proxy_server = True
-    self.assertIn('--no-proxy-server', browser_backend.GetBrowserStartupArgs())
-
 class ReplayStartupArgsTest(unittest.TestCase):
   """Test expected inputs for GetReplayBrowserStartupArgs."""
 
