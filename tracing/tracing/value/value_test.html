@@ -53,21 +53,10 @@ tr.b.unittest.testSuite(function() {
     assert.equal(v.stack, v2.stack);
   });
 
-  test('skipValueBasic', function() {
-    var v = new tr.v.SkipValue('MySkip',
-                               {description: 'WhySkipped'});
-    assert.isDefined(v.guid);
-    var d = v.asDict();
-
-    var v2 = tr.v.Value.fromDict(d);
-    assert.equal(v.guid, v2.guid);
-    assert.instanceOf(v2, tr.v.SkipValue);
-    assert.equal(v.description, v2.description);
-  });
-
   test('genericDiagnostic', function() {
-    var skip = new tr.v.SkipValue('skip');
-    skip.diagnostics.add('foo', new tr.v.d.Generic({
+    var v0 = new tr.v.NumericValue('val',
+        tr.v.Numeric.buildFromSamples(tr.v.Unit.byName.count, [42]));
+    v0.diagnostics.add('foo', new tr.v.d.Generic({
       t: true,
       f: false,
       z: 0,
@@ -77,16 +66,16 @@ tr.b.unittest.testSuite(function() {
       a: [42.42, 'more string'],
       d: {a: {b: 'c'}}
     }));
-    var skip2 = tr.v.Value.fromDict(skip.asDict());
-    var foo2 = skip2.diagnostics.get('foo');
-    assert.strictEqual(true, foo2.value.t);
-    assert.strictEqual(false, foo2.value.f);
-    assert.strictEqual(0, foo2.value.z);
-    assert.strictEqual(1, foo2.value.o);
-    assert.strictEqual(0.42, foo2.value.ans);
-    assert.strictEqual('string', foo2.value.s);
-    assert.deepEqual([42.42, 'more string'], foo2.value.a);
-    assert.deepEqual({a: {b: 'c'}}, foo2.value.d);
+    var v1 = tr.v.Value.fromDict(v0.asDict());
+    var d = v1.diagnostics.get('foo');
+    assert.strictEqual(true, d.value.t);
+    assert.strictEqual(false, d.value.f);
+    assert.strictEqual(0, d.value.z);
+    assert.strictEqual(1, d.value.o);
+    assert.strictEqual(0.42, d.value.ans);
+    assert.strictEqual('string', d.value.s);
+    assert.deepEqual([42.42, 'more string'], d.value.a);
+    assert.deepEqual({a: {b: 'c'}}, d.value.d);
   });
 });
 </script>

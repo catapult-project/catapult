@@ -50,10 +50,6 @@ tr.exportTo('tr.v', function() {
         value = FailureValue.fromDict(d);
         break;
 
-      case 'skip':
-        value = SkipValue.fromDict(d);
-        break;
-
       default:
         throw new Error('Not implemented');
     }
@@ -211,32 +207,11 @@ tr.exportTo('tr.v', function() {
     }
   };
 
-  /** @constructor */
-  function SkipValue(name, opt_options) {
-    Value.call(this, name, opt_options);
-  }
-
-  SkipValue.fromDict = function(d) {
-    if (d.units !== undefined)
-      throw new Error('Expected units to be undefined');
-    return new SkipValue(d.name, d);
-  };
-
-  SkipValue.prototype = {
-    __proto__: Value.prototype,
-
-    asDictInto_: function(d) {
-      d.type = 'skip';
-    }
-  };
-
-
   return {
     Value: Value,
     NumericValue: NumericValue,
     DictValue: DictValue,
-    FailureValue: FailureValue,
-    SkipValue: SkipValue
+    FailureValue: FailureValue
   };
 });
 </script>
