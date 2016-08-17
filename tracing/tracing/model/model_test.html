@@ -318,7 +318,7 @@ tr.b.unittest.testSuite(function() {
     };
 
     var typeName = 'RefCountingSnapshot';
-    tr.model.ObjectSnapshot.register(
+    tr.model.ObjectSnapshot.subTypes.register(
         RefCountingSnapshot,
         {typeName: typeName});
 

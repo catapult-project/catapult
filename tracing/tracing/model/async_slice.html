@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/extension_registry.html">
 <link rel="import" href="/tracing/model/timed_event.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -141,17 +140,9 @@ tr.exportTo('tr.model', function() {
       AsyncSlice,
       {
         name: 'asyncSlice',
-        pluralName: 'asyncSlices',
-        singleViewElementName: 'tr-ui-a-single-async-slice-sub-view',
-        multiViewElementName: 'tr-ui-a-multi-async-slice-sub-view'
+        pluralName: 'asyncSlices'
       });
 
-
-  var options = new tr.b.ExtensionRegistryOptions(
-      tr.b.TYPE_BASED_REGISTRY_MODE);
-  options.mandatoryBaseClass = AsyncSlice;
-  options.defaultConstructor = AsyncSlice;
-  tr.b.decorateExtensionRegistry(AsyncSlice, options);
 
   return {
     AsyncSlice: AsyncSlice

@@ -327,6 +327,11 @@ tr.b.unittest.testSuite(function() {
     TestSlice.prototype = {
       __proto__: Slice.prototype
     };
+    TestSlice.subTypes = {
+      getConstructor: function(category, title) {
+        return TestSlice;
+      }
+    };
 
     var thread = newFakeThread();
     var a = new SliceGroup(thread, TestSlice);

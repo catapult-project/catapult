@@ -18,11 +18,11 @@ tr.b.unittest.testSuite(function() {
   var GpuAsyncSlice = tr.e.gpu.GpuAsyncSlice;
 
   test('construct', function() {
-    assert.equal(AsyncSlice.getConstructor('disabled-by-default-gpu.device',
-                                           'gpu1'),
+    assert.equal(AsyncSlice.subTypes.getConstructor(
+                     'disabled-by-default-gpu.device', 'gpu1'),
                  GpuAsyncSlice);
-    assert.equal(AsyncSlice.getConstructor('disabled-by-default-gpu.service',
-                                           'gpu2'),
+    assert.equal(AsyncSlice.subTypes.getConstructor(
+                     'disabled-by-default-gpu.service', 'gpu2'),
                  GpuAsyncSlice);
   });
 

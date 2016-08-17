@@ -55,7 +55,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreateKernelThread(
           category + ':' + threadName, pid);
       var asyncSliceConstructor =
-         tr.model.AsyncSlice.getConstructor(
+         tr.model.AsyncSlice.subTypes.getConstructor(
             category, name);
       var slice = new asyncSliceConstructor(
           category, name,

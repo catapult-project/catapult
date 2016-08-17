@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/extras/chrome/layout_tree.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 
 <dom-module id='tr-ui-a-layout-tree-sub-view'>
@@ -201,5 +202,20 @@ tr.exportTo('tr.ui.analysis', function() {
 
   return {};
 });
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-layout-tree-sub-view',
+    tr.e.chrome.LayoutTreeSnapshot,
+    {
+      multi: false,
+      title: 'Layout Tree',
+    });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-layout-tree-sub-view',
+    tr.e.chrome.LayoutTreeSnapshot,
+    {
+      multi: true,
+      title: 'Layout Trees',
+    });
 </script>
 

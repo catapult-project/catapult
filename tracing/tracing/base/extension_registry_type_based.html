@@ -4,9 +4,9 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/extension_registry_base.html">
-<link rel="import" href="/tracing/base/event.html">
 <link rel="import" href="/tracing/base/category_util.html">
+<link rel="import" href="/tracing/base/event.html">
+<link rel="import" href="/tracing/base/extension_registry_base.html">
 <script>
 'use strict';
 
@@ -23,8 +23,8 @@ tr.exportTo('tr.b', function() {
 
     registry.registeredTypeInfos_ = [];
 
-    registry.categoryPartToTypeInfoMap_ = {};
-    registry.typeNameToTypeInfoMap_ = {};
+    registry.categoryPartToTypeInfoMap_ = new Map();
+    registry.typeNameToTypeInfoMap_ = new Map();
 
     registry.register = function(constructor,
                                  metadata) {
@@ -54,11 +54,11 @@ tr.exportTo('tr.b', function() {
 
       // Sanity checks...
       typeInfo.typeNames.forEach(function(typeName) {
-        if (registry.typeNameToTypeInfoMap_[typeName])
+        if (registry.typeNameToTypeInfoMap_.has(typeName))
           throw new Error('typeName ' + typeName + ' already registered');
       });
       typeInfo.categoryParts.forEach(function(categoryPart) {
-        if (registry.categoryPartToTypeInfoMap_[categoryPart]) {
+        if (registry.categoryPartToTypeInfoMap_.has(categoryPart)) {
           throw new Error('categoryPart ' + categoryPart +
                           ' already registered');
         }
@@ -70,10 +70,10 @@ tr.exportTo('tr.b', function() {
 
       // Actual registration.
       typeInfo.typeNames.forEach(function(typeName) {
-        registry.typeNameToTypeInfoMap_[typeName] = typeInfo;
+        registry.typeNameToTypeInfoMap_.set(typeName, typeInfo);
       });
       typeInfo.categoryParts.forEach(function(categoryPart) {
-        registry.categoryPartToTypeInfoMap_[categoryPart] = typeInfo;
+        registry.categoryPartToTypeInfoMap_.set(categoryPart, typeInfo);
       });
       registry.registeredTypeInfos_.push(typeInfo);
 
@@ -88,8 +88,8 @@ tr.exportTo('tr.b', function() {
         categoryPartToTypeInfoMap: registry.categoryPartToTypeInfoMap_
       });
       registry.registeredTypeInfos_ = [];
-      registry.typeNameToTypeInfoMap_ = {};
-      registry.categoryPartToTypeInfoMap_ = {};
+      registry.typeNameToTypeInfoMap_ = new Map();
+      registry.categoryPartToTypeInfoMap_ = new Map();
       var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
     };
@@ -119,10 +119,10 @@ tr.exportTo('tr.b', function() {
       var typeInfo = registry.registeredTypeInfos_[typeInfoIndex];
       registry.registeredTypeInfos_.splice(typeInfoIndex, 1);
       typeInfo.typeNames.forEach(function(typeName) {
-        delete registry.typeNameToTypeInfoMap_[typeName];
+        registry.typeNameToTypeInfoMap_.delete(typeName);
       });
       typeInfo.categoryParts.forEach(function(categoryPart) {
-        delete registry.categoryPartToTypeInfoMap_[categoryPart];
+        registry.categoryPartToTypeInfoMap_.delete(categoryPart);
       });
       var e = new tr.b.Event('registry-changed');
       registry.dispatchEvent(e);
@@ -133,12 +133,14 @@ tr.exportTo('tr.b', function() {
         var categoryParts = getCategoryParts(category);
         for (var i = 0; i < categoryParts.length; i++) {
           var categoryPart = categoryParts[i];
-          if (registry.categoryPartToTypeInfoMap_[categoryPart])
-            return registry.categoryPartToTypeInfoMap_[categoryPart];
+          var typeInfo = registry.categoryPartToTypeInfoMap_.get(categoryPart);
+          if (typeInfo !== undefined)
+            return typeInfo;
         }
       }
-      if (registry.typeNameToTypeInfoMap_[typeName])
-        return registry.typeNameToTypeInfoMap_[typeName];
+      var typeInfo = registry.typeNameToTypeInfoMap_.get(typeName);
+      if (typeInfo !== undefined)
+        return typeInfo;
 
       return extensionRegistryOptions.defaultTypeInfo;
     };

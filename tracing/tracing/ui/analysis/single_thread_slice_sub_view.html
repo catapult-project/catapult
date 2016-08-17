@@ -49,4 +49,12 @@ Polymer({
       this.$.relatedEvents.style.display = 'none';
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-single-thread-slice-sub-view',
+    tr.model.ThreadSlice,
+    {
+        multi: false,
+        title: 'Slices',
+    });
 </script>

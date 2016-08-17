@@ -88,4 +88,12 @@ Polymer({
     table.rebuild();
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-single-sample-sub-view',
+    tr.model.Sample,
+    {
+      multi: false,
+      title: 'Sample',
+    });
 </script>

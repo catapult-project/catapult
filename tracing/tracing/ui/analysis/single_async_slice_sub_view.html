@@ -69,4 +69,11 @@ Polymer({
     return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
   }
 });
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-single-async-slice-sub-view',
+    tr.model.AsyncSlice,
+    {
+      multi: false,
+      title: 'Async Slice',
+    });
 </script>

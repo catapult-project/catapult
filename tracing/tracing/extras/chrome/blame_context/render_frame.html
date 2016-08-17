@@ -51,7 +51,7 @@ tr.exportTo('tr.e.chrome', function() {
     }
   };
 
-  tr.model.ObjectSnapshot.register(
+  tr.model.ObjectSnapshot.subTypes.register(
       RenderFrameSnapshot,
       {typeName: 'RenderFrame'});
 
@@ -67,7 +67,7 @@ tr.exportTo('tr.e.chrome', function() {
     }
   };
 
-  tr.model.ObjectInstance.register(
+  tr.model.ObjectInstance.subTypes.register(
       RenderFrameInstance,
       {typeName: 'RenderFrame'});
 

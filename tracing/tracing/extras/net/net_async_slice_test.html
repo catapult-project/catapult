@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
-<link rel="import" href="/tracing/extras/net/net.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
+<link rel="import" href="/tracing/extras/net/net.html">
 <link rel="import" href="/tracing/model/model.html">
 
 <script>
@@ -21,8 +21,9 @@ tr.b.unittest.testSuite(function() {
     var s = new NetAsyncSlice('netlog', 'HTTP_STREAM_JOB', 7, 0, {});
     s.duration = 100;
 
-    assert.equal(AsyncSlice.getConstructor('netlog', 'HTTP_STREAM_JOB'),
-                 NetAsyncSlice);
+    assert.equal(
+        AsyncSlice.subTypes.getConstructor('netlog', 'HTTP_STREAM_JOB'),
+        NetAsyncSlice);
     assert.equal(s.viewSubGroupTitle, 'NetLog');
   });
 

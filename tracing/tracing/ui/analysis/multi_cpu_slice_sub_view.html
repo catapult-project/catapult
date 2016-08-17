@@ -40,4 +40,12 @@ Polymer({
     this.$.content.setSelectionWithoutErrorChecks(selection);
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-multi-cpu-slice-sub-view',
+    tr.model.CpuSlice,
+    {
+      multi: true,
+      title: 'CPU Slice',
+    });
 </script>

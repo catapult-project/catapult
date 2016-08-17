@@ -38,4 +38,12 @@ Polymer({
     return this.$.content.selection;
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-multi-flow-event-sub-view',
+    tr.model.FlowEvent,
+    {
+      multi: true,
+      title: 'Flow Events',
+    });
 </script>

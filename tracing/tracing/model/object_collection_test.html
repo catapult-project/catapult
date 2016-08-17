@@ -25,7 +25,7 @@ tr.b.unittest.testSuite(function() {
 
   test('objectInstanceSubtype', function() {
     // Register that TestObjects are bound to TestObjectInstance.
-    tr.model.ObjectInstance.register(
+    tr.model.ObjectInstance.subTypes.register(
         TestObjectInstance,
         {typeName: 'TestObject'});
 
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
       assert.instanceOf(testObject, tr.model.ObjectInstance);
       assert.instanceOf(testObject, TestObjectInstance);
     } finally {
-      tr.model.ObjectInstance.unregister(TestObjectInstance);
+      tr.model.ObjectInstance.subTypes.unregister(TestObjectInstance);
     }
   });
 

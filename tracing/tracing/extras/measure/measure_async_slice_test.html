@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
       'blink.user_timing', 'createImports', 7, 0, {});
     s.duration = 100;
 
-    assert.equal(AsyncSlice.getConstructor(
+    assert.equal(AsyncSlice.subTypes.getConstructor(
       'blink.user_timing', 'createImports'),
                  MeasureAsyncSlice);
     assert.equal(s.viewSubGroupTitle, 'Ungrouped Measure');

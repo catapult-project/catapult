@@ -614,7 +614,7 @@ tr.exportTo('tr.e.cc', function() {
     allTypeNames.push('InputLatency::' + eventTypeName);
   });
 
-  AsyncSlice.register(
+  AsyncSlice.subTypes.register(
     InputLatencyAsyncSlice,
     {
       typeNames: allTypeNames,

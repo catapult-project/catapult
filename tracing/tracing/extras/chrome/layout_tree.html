@@ -23,7 +23,8 @@ tr.exportTo('tr.e.chrome', function() {
     __proto__: ObjectInstance.prototype,
   };
 
-  ObjectInstance.register(LayoutTreeInstance, {typeName: 'LayoutTree'});
+  ObjectInstance.subTypes.register(
+      LayoutTreeInstance, {typeName: 'LayoutTree'});
 
   function LayoutTreeSnapshot() {
     ObjectSnapshot.apply(this, arguments);
@@ -34,16 +35,8 @@ tr.exportTo('tr.e.chrome', function() {
     __proto__: ObjectSnapshot.prototype,
   };
 
-  ObjectSnapshot.register(LayoutTreeSnapshot, {typeName: 'LayoutTree'});
-
-  tr.model.EventRegistry.register(
-      LayoutTreeSnapshot,
-      {
-        name: 'layoutTree',
-        pluralName: 'layoutTrees',
-        singleViewElementName: 'tr-ui-a-layout-tree-sub-view',
-        multiViewElementName: 'tr-ui-a-layout-tree-sub-view'
-      });
+  ObjectSnapshot.subTypes.register(
+      LayoutTreeSnapshot, {typeName: 'LayoutTree'});
 
   return {
     LayoutTreeInstance: LayoutTreeInstance,

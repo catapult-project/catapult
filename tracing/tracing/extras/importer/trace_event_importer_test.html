@@ -2219,10 +2219,10 @@ tr.b.unittest.testSuite(function() {
     // arguments of the snapshots to be mutated.
     var m;
     try {
-      tr.model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
+      tr.model.ObjectSnapshot.subTypes.register(ASnapshot, {typeName: 'a'});
       m = makeModel(events);
     } finally {
-      tr.model.ObjectSnapshot.unregister(ASnapshot);
+      tr.model.ObjectSnapshot.subTypes.unregister(ASnapshot);
     }
     assert.isFalse(m.hasImportWarnings);
 

@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/extension_registry.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -83,16 +82,8 @@ tr.exportTo('tr.model', function() {
       ObjectSnapshot,
       {
         name: 'objectSnapshot',
-        pluralName: 'objectSnapshots',
-        singleViewElementName: 'tr-ui-a-single-object-snapshot-sub-view',
-        multiViewElementName: 'tr-ui-a-multi-object-sub-view'
+        pluralName: 'objectSnapshots'
       });
-
-  var options = new tr.b.ExtensionRegistryOptions(
-      tr.b.TYPE_BASED_REGISTRY_MODE);
-  options.mandatoryBaseClass = ObjectSnapshot;
-  options.defaultConstructor = ObjectSnapshot;
-  tr.b.decorateExtensionRegistry(ObjectSnapshot, options);
 
   return {
     ObjectSnapshot: ObjectSnapshot

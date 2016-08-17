@@ -66,4 +66,12 @@ Polymer({
     this.$.chart.setData(this.selection, vSyncTimestamps);
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-multi-power-sample-sub-view',
+    tr.model.PowerSample,
+    {
+      multi: true,
+      title: 'Power Sample',
+    });
 </script>

@@ -1376,7 +1376,7 @@ tr.exportTo('tr.e.importer', function() {
           if (event.ph === 'F') {
             // Create a slice from start to end.
             var asyncSliceConstructor =
-               tr.model.AsyncSlice.getConstructor(
+               tr.model.AsyncSlice.subTypes.getConstructor(
                   events[0].event.cat,
                   name);
             var slice = new asyncSliceConstructor(
@@ -1433,7 +1433,7 @@ tr.exportTo('tr.e.importer', function() {
                 subName = subName + ':' + events[j].event.args.step;
 
               var asyncSliceConstructor =
-                 tr.model.AsyncSlice.getConstructor(
+                 tr.model.AsyncSlice.subTypes.getConstructor(
                     events[0].event.cat,
                     subName);
               var subSlice = new asyncSliceConstructor(
@@ -1563,7 +1563,7 @@ tr.exportTo('tr.e.importer', function() {
 
           var isTopLevel = (eventStateEntry.parentEntry === undefined);
           var asyncSliceConstructor =
-              tr.model.AsyncSlice.getConstructor(
+              tr.model.AsyncSlice.subTypes.getConstructor(
                 eventStateEntry.event.cat,
                 eventStateEntry.event.name);
 

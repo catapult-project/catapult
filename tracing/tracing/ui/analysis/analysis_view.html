@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import"
     href="/tracing/ui/analysis/container_memory_dump_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/counter_sample_sub_view.html">
-<link rel="import" href="/tracing/ui/analysis/layout_tree_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/multi_async_slice_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/multi_cpu_slice_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/multi_flow_event_sub_view.html">
@@ -88,45 +87,27 @@ using custom elements specialized for different event types.
     return numEvents + ' items selected.';
   }
 
-  /**
-   * Returns the tab label for the analysis sub-view associated with the
-   * specified event type and number of events.
-   */
-  function getTabLabel(eventTypeName, numEvents) {
-    var camelLabel = numEvents === 1 ?
-        EventRegistry.getUserFriendlySingularName(eventTypeName) :
-        EventRegistry.getUserFriendlyPluralName(eventTypeName);
-    return camelLabel + ' (' + numEvents + ')';
-  }
+  function createSubView(subViewTypeInfo, selection) {
+    var tagName;
+    if (selection.length == 1)
+      tagName = subViewTypeInfo.singleTagName;
+    else
+      tagName = subViewTypeInfo.multiTagName;
 
-  /**
-   * Returns the HTML tag for the analysis sub-view associated with the
-   * specified event type and number of events.
-   */
-  function getSubViewTagName(eventTypeName, numEvents) {
-    var eventTypeInfo =
-        EventRegistry.getEventTypeInfoByTypeName(eventTypeName);
-    return numEvents === 1 ?
-        eventTypeInfo.metadata.singleViewElementName :
-        eventTypeInfo.metadata.multiViewElementName;
-  }
+    if (tagName === undefined) {
+      throw new Error('No view registered for ' +
+                      subViewTypeInfo.eventConstructor.name);
+    }
+    var subView = document.createElement(tagName);
 
-  /**
-   * Returns a new analysis sub-view for the selection and throws an error if no
-   * such sub-view exists.
-   */
-  function createSubView(eventTypeName, selection) {
-    var subView = document.createElement(
-        getSubViewTagName(eventTypeName, selection.length));
+    var title;
+    if (selection.length)
+      title = subViewTypeInfo.singleTitle;
+    else
+      title = subViewTypeInfo.multiTitle;
+    title += ' (' + selection.length + ')';
+    subView.tabLabel = title;
 
-    // Unregistered elements with valid names (i.e. names that have a hyphen
-    // in them) inherit from HTMLElement. Unregistered elements with
-    // invalid names inherit from HTMLUnknownElement.
-    if (subView.constructor === HTMLElement ||
-        subView.constructor === HTMLUnknownElement)
-      throw new Error('Element not registered: ' + tagName);
-
-    subView.tabLabel = getTabLabel(eventTypeName, selection.length);
     subView.selection = selection;
     return subView;
   }
@@ -192,11 +173,12 @@ using custom elements specialized for different event types.
       var eventsByBaseTypeName =
           this.selection.getEventsOrganizedByBaseType(true);
 
+      var ASV = tr.ui.analysis.AnalysisSubView;
+      var eventsByTagName = ASV.getEventsOrganizedByTypeInfo(this.selection);
       var newSubViews = [];
-
-      tr.b.iterItems(eventsByBaseTypeName, function(eventTypeName, events) {
-        newSubViews.push(createSubView(eventTypeName, events));
-      }, this);
+      eventsByTagName.forEach(function(events, typeInfo) {
+        newSubViews.push(createSubView(typeInfo, events));
+      });
 
       this.tabView_.resetSubViews(newSubViews);
     },

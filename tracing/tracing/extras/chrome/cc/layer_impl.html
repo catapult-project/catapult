@@ -170,13 +170,13 @@ tr.exportTo('tr.e.cc', function() {
     }
   };
 
-  ObjectSnapshot.register(
+  ObjectSnapshot.subTypes.register(
       PictureLayerImplSnapshot,
       {
         typeName: 'cc::PictureLayerImpl'
       });
 
-  ObjectSnapshot.register(
+  ObjectSnapshot.subTypes.register(
       LayerImplSnapshot,
       {
         typeNames: [

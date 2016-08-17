@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/model/container_memory_dump.html">
+<link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_header_pane.html">
@@ -162,6 +162,38 @@ tr.exportTo('tr.ui.analysis', function() {
       Polymer.dom(this.$.content).appendChild(table);
     }
   });
+
+  tr.ui.analysis.AnalysisSubView.register(
+      'tr-ui-a-container-memory-dump-sub-view',
+      tr.model.GlobalMemoryDump,
+      {
+        multi: false,
+        title: 'Global Memory Dump',
+      });
+
+  tr.ui.analysis.AnalysisSubView.register(
+      'tr-ui-a-container-memory-dump-sub-view',
+      tr.model.GlobalMemoryDump,
+      {
+        multi: true,
+        title: 'Global Memory Dumps',
+      });
+
+  tr.ui.analysis.AnalysisSubView.register(
+      'tr-ui-a-container-memory-dump-sub-view',
+      tr.model.ProcessMemoryDump,
+      {
+        multi: false,
+        title: 'Process Memory Dump',
+      });
+
+  tr.ui.analysis.AnalysisSubView.register(
+      'tr-ui-a-container-memory-dump-sub-view',
+      tr.model.ProcessMemoryDump,
+      {
+        multi: true,
+        title: 'Process Memory Dumps',
+      });
 
   return {};
 });

@@ -21,7 +21,7 @@ tr.exportTo('tr.model.um', function() {
     constructor: StartupExpectation
   };
 
-  tr.model.um.UserExpectation.register(StartupExpectation, {
+  tr.model.um.UserExpectation.subTypes.register(StartupExpectation, {
     stageTitle: 'Startup',
     colorId: tr.b.ColorScheme.getColorIdForReservedName('startup')
   });

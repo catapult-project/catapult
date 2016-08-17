@@ -41,7 +41,7 @@ tr.exportTo('tr.e.gpu', function() {
     }
   };
 
-  ObjectSnapshot.register(
+  ObjectSnapshot.subTypes.register(
     StateSnapshot,
     {typeName: 'gpu::State'});
 

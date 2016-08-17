@@ -27,7 +27,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  tr.model.ObjectSnapshot.register(
+  tr.model.ObjectSnapshot.subTypes.register(
     TestBlameContextSnapshot,
     {typeName: 'Test'});
 
@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
-  tr.model.ObjectInstance.register(
+  tr.model.ObjectInstance.subTypes.register(
     TestBlameContextInstance,
     {typeName: 'Test'});
 

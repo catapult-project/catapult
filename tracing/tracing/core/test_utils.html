@@ -10,9 +10,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
-<link rel="import" href="/tracing/model/slice.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/stack_frame.html">
+<link rel="import" href="/tracing/model/thread_slice.html">
 <link rel="import" href="/tracing/model/thread_time_slice.html">
 <link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 
@@ -80,7 +80,7 @@ tr.exportTo('tr.c', function() {
   TestUtils.newAsyncSliceNamed = function(
       name, start, duration, startThread, endThread) {
     var asyncSliceConstructor =
-        tr.model.AsyncSlice.getConstructor('', name);
+        tr.model.AsyncSlice.subTypes.getConstructor('', name);
 
     var s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
@@ -116,7 +116,7 @@ tr.exportTo('tr.c', function() {
       isTopLevel = false;
 
     var asyncSliceConstructor =
-        tr.model.AsyncSlice.getConstructor(cat, title);
+        tr.model.AsyncSlice.subTypes.getConstructor(cat, title);
 
     var slice = new asyncSliceConstructor(
         cat,
@@ -237,14 +237,16 @@ tr.exportTo('tr.c', function() {
 
     var cpuSD = _maybeGetCpuStartAndCpuDurationFromDict(options);
 
+    var cat = options.cat ? options.cat : 'cat';
+
     var type;
     if (options.type)
       type = options.type;
     else
-      type = tr.model.ThreadSlice;
+      type = tr.model.ThreadSlice.subTypes.getConstructor(cat, title);
 
     var slice = new type(
-        options.cat ? options.cat : 'cat',
+        cat,
         title,
         colorId,
         sd.start,

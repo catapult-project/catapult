@@ -138,4 +138,12 @@ Polymer({
     root.querySelector('#args').object = cpuSlice.args;
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-single-cpu-slice-sub-view',
+    tr.model.CpuSlice,
+    {
+      multi: false,
+      title: 'CPU Slice',
+    });
 </script>

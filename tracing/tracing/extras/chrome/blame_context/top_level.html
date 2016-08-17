@@ -31,7 +31,7 @@ tr.exportTo('tr.e.chrome', function() {
     }
   };
 
-  tr.model.ObjectSnapshot.register(
+  tr.model.ObjectSnapshot.subTypes.register(
       TopLevelSnapshot,
       {typeName: 'TopLevel'});
 
@@ -47,7 +47,7 @@ tr.exportTo('tr.e.chrome', function() {
     }
   };
 
-  tr.model.ObjectInstance.register(
+  tr.model.ObjectInstance.subTypes.register(
       TopLevelInstance,
       {typeName: 'TopLevel'});
 

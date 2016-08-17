@@ -25,14 +25,14 @@ tr.b.unittest.testSuite(function() {
     var instance = new tr.model.ObjectInstance(
         {}, '0x1000', 'cat', 'MySnapshot', 10);
     try {
-      tr.model.ObjectSnapshot.register(
+      tr.model.ObjectSnapshot.subTypes.register(
           MySnapshot,
           {typeName: 'MySnapshot'});
       var snapshot = instance.addSnapshot(15, {foo: 'bar'});
       assert.instanceOf(snapshot, MySnapshot);
       assert.equal(snapshot.myFoo, 'bar');
     } finally {
-      tr.model.ObjectSnapshot.unregister(MySnapshot);
+      tr.model.ObjectSnapshot.subTypes.unregister(MySnapshot);
     }
   });
 });
