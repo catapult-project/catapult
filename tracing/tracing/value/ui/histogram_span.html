@@ -103,19 +103,6 @@ Polymer({
       centralMax + binWidth;
 
     this.chart_.brushedRange = r;
-
-    Polymer.dom(this.$.diagnostics).textContent = '';
-    for (var bin of this.brushedBins) {
-      for (var diagnosticMap of bin.diagnosticMaps) {
-        // TODO(eakuefner): Display these in a table.
-        diagnosticMap.forEach(function(unused_name, d) {
-          Polymer.dom(this.$.diagnostics).appendChild(
-              tr.v.ui.createDiagnosticSpan(d));
-        }, this);
-      }
-    }
-
-    this.dispatchEvent(new tr.b.Event('brushed-bins-changed'));
   },
 
   onMouseDown_: function(chartEvent) {
@@ -138,6 +125,16 @@ Polymer({
     if (!this.histogram_)
       return;
     this.updateBrushedRange_(chartEvent.x);
+    Polymer.dom(this.$.diagnostics).textContent = '';
+    for (var bin of this.brushedBins) {
+      for (var diagnosticMap of bin.diagnosticMaps) {
+        // TODO(eakuefner): Display these in a table.
+        diagnosticMap.forEach(function(unused_name, d) {
+          Polymer.dom(this.$.diagnostics).appendChild(
+              tr.v.ui.createDiagnosticSpan(d));
+        }, this);
+      }
+    }
     this.mouseDownX_ = undefined;
   },
 
