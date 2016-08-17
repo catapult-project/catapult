@@ -27,17 +27,6 @@ tr.b.unittest.testSuite(function() {
     assert.equal(v.numeric.value, v2.numeric.value);
   });
 
-  test('dictValueBasic', function() {
-    var v = new tr.v.DictValue('MyDict', {my_key: 'my_value'});
-    assert.isDefined(v.guid);
-    var d = v.asDict();
-
-    var v2 = tr.v.Value.fromDict(d);
-    assert.instanceOf(v2, tr.v.DictValue);
-    assert.equal(v.guid, v2.guid);
-    assert.deepEqual(v.value, v2.value);
-  });
-
   test('failureValueBasic', function() {
     var v = new tr.v.FailureValue(
       'MyFailure',
