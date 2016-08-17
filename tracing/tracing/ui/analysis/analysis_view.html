@@ -101,7 +101,7 @@ using custom elements specialized for different event types.
     var subView = document.createElement(tagName);
 
     var title;
-    if (selection.length)
+    if (selection.length === 1)
       title = subViewTypeInfo.singleTitle;
     else
       title = subViewTypeInfo.multiTitle;
