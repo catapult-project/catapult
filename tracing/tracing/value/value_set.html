@@ -25,9 +25,7 @@ tr.exportTo('tr.v', function() {
 
   ValueSet.prototype = {
     get valueDicts() {
-      return this.map(function(v) {
-        return v.asDict();
-      });
+      return this.map(v => v.asDict());
     },
 
     lookup: function(guid) {
@@ -90,6 +88,19 @@ tr.exportTo('tr.v', function() {
               (diagnostic instanceof tr.v.d.RelatedValueMap))
             diagnostic.resolve(this);
         }, this);
+
+        // In addition Values, we must also look inside of Numeric samples.
+        if (value instanceof tr.v.NumericValue &&
+            value.numeric instanceof tr.v.Numeric)
+          value.numeric.allBins.forEach(function(b) {
+            b.diagnosticMaps.forEach(function(dm) {
+              dm.forEach(function(d) {
+                if ((d instanceof tr.v.d.RelatedValueSet) ||
+                    (d instanceof tr.v.d.RelatedValueMap))
+                  d.resolve(this);
+              }, this);
+            }, this);
+          }, this);
       }, this);
     },
 
@@ -101,18 +112,34 @@ tr.exportTo('tr.v', function() {
      */
     get sourceValues() {
       var sourceValues = tr.b.cloneDictionary(this.values_);
-      // If a Value is in a RelatedValueSet or RelatedValueMap, then it is not a
+      // If a Value is in a RelatedValueSet or RelatedValueMap, which can be
+      // owned either by Values or by numeric samples, then it is not a
       // source Value.
-      this.map(function(value) {
-        value.diagnostics.forEach(function(name, diagnostic) {
+      function deleteSourceValues(values, diagnosticMap) {
+        diagnosticMap.forEach(function(unused_name, diagnostic) {
           if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
               (diagnostic instanceof tr.v.d.RelatedValueMap)) {
             diagnostic.values.forEach(function(relatedValue) {
-              delete sourceValues[relatedValue.guid];
+              delete values[relatedValue.guid];
             });
           }
-        }, this);
-      }, this);
+        });
+      }
+
+      this.map(function(value) {
+        deleteSourceValues(sourceValues, value.diagnostics);
+        if ((value instanceof tr.v.NumericValue) &&
+            (value.numeric instanceof tr.v.Numeric)) {
+          for (var b of value.numeric.allBins) {
+            for (var dm of b.diagnosticMaps) {
+              // TODO(eakuefner): Rewrite this as a for-of loop once
+              // https://github.com/catapult-project/catapult/issues/2678 is
+              // fixed.
+              deleteSourceValues(sourceValues, dm);
+            }
+          }
+        }
+      });
       return tr.b.dictionaryValues(sourceValues);
     },
 

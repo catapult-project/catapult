@@ -198,5 +198,22 @@ tr.b.unittest.testSuite(function() {
     // Now a real c2 Value should be in a2's RelatedValueMap.
     assert.strictEqual(rvm2.get('z'), c2);
   });
+
+  test('sourceValuesWithSampleDiagnostic', function() {
+    var unit = tr.v.Unit.byName.unitlessNumber;
+    var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 1));
+
+    var numeric = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.timeDurationInMs,
+        tr.b.Range.fromExplicitRange(0, 1000), 10).build();
+    numeric.add(1, new tr.v.d.DiagnosticMap({
+      rvs: new tr.v.d.RelatedValueSet([a])
+    }));
+    var b = new tr.v.NumericValue('b', numeric);
+
+    var values = new tr.v.ValueSet([a, b]);
+    assert.lengthOf(values.sourceValues, 1);
+    assert.strictEqual(values.sourceValues[0], b);
+  });
 });
 </script>
