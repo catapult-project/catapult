@@ -13,7 +13,7 @@ to allow it to show links).
 
 <dom-module id="revision-range">
   <template>
-    <span>{{displayRevisionRange}}</span>
+    <span>{{computeRevisionRange(start, end)}}</span>
   </template>
   <script>
     'use strict';
@@ -80,19 +80,16 @@ to allow it to show links).
           end: { notify: true },
           start: { notify: true }
         },
-        ready: function() {
-          this.displayRevisionRange = this.getDisplayRevisionRange();
-        },
 
-        getDisplayRevisionRange: function() {
-          if (!this.start || !this.end) {
+        computeRevisionRange: function(start, end) {
+          if (!start || !end) {
             return '';
           }
-          if (this.start == this.end) {
-            return displayRevision(this.end);
+          if (start == end) {
+            return displayRevision(end);
           }
-          return (displayRevision(this.start) + ' - ' +
-                  displayRevision(this.end));
+          return (displayRevision(start) + ' - ' +
+                  displayRevision(end));
         }
       });
     })();
