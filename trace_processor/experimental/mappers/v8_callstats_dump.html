@@ -6,10 +6,8 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/perf_insights/mre/function_handle.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
-<link rel="import" href="/tracing/model/ir_coverage.html">
-<link rel="import" href="/tracing/model/user_model/user_expectation.html">
-<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
+<link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
@@ -20,9 +18,20 @@ tr.exportTo('pi.m', function() {
     var v8_runtime_map = {};
     var totalCount = 0;
     var totalTime = 0;
-    // TODO(fmeawad): filter events until TTI only.
+    var values = new tr.v.ValueSet();
+
+    tr.metrics.sh.loadingMetric(values, model);
+    var ttiEntries = values.valueDicts.filter(
+        (dict) => dict.name === 'timeToFirstInteractive');
+    var numeric = ttiEntries[0].numeric;
+    if (numeric.running.count > 1) {
+      throw 'Unable to work with a trace that has more than one navigation';
+    }
+
+    var tti = numeric.running.mean;
+
     for (var event of model.getDescendantEvents()) {
-      if (!(event instanceof tr.model.ThreadSlice))
+      if (!(event instanceof tr.model.ThreadSlice) /* || event.start > tti*/)
         continue;
       var v8_runtime = event.args['runtime-call-stat'];
       if (v8_runtime !== undefined) {
