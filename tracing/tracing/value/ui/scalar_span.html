@@ -253,9 +253,12 @@ Polymer({
   },
 
   updateDelta_: function() {
-    if (!this.unit_.isDelta)
+    if (!this.unit_.isDelta) {
+      this.$.significance.style.display = 'none';
       return;
+    }
 
+    this.$.significance.style.display = '';
     var biggerIsBetter = false;
     var smallerIsBetter = false;
     switch (this.unit_.improvementDirection) {
