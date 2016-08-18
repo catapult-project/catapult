@@ -11,6 +11,7 @@ import psutil
 
 from devil import base_error
 from devil import devil_env
+from devil.android import device_errors
 from devil.android.constants import file_system
 from devil.android.valgrind_tools import base_tool
 from devil.utils import cmd_helper
@@ -288,7 +289,11 @@ class Forwarder(object):
     device_serial = str(device)
     if device_serial in self._initialized_devices:
       return
-    Forwarder._KillDeviceLocked(device, tool)
+    try:
+      Forwarder._KillDeviceLocked(device, tool)
+    except device_errors.CommandFailedError:
+      logging.warning('Failed to kill device forwarder. Rebooting.')
+      device.Reboot()
     forwarder_device_path_on_host = devil_env.config.FetchPath(
         'forwarder_device', device=device)
     forwarder_device_path_on_device = (
