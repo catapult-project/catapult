@@ -284,7 +284,8 @@ tr.exportTo('tr.ui', function() {
         cell = row.columns[this.columns_[col].title];
 
       if ((cell instanceof tr.v.NumericValue) &&
-          (cell.numeric instanceof tr.v.Numeric)) {
+          (cell.numeric instanceof tr.v.Numeric) &&
+          (cell.numeric.numValues > 1)) {
         this.$.histogram.style.display = 'block';
         this.$.histogram.histogram = cell.numeric;
 
