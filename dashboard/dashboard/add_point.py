@@ -631,7 +631,9 @@ def _ValidateRowId(row_dict, test_map):
     logging.warning('Test %s has no last added revision entry.', test_path)
     return
 
-  allow_jump = master.endswith('Internal')
+  allow_jump = (
+      master.endswith('Internal') or
+      (master.endswith('QA') and bot.startswith('release-tests-')))
   if not _IsAcceptableRowId(row_id, last_row_id, allow_jump=allow_jump):
     raise BadRequestError(
         'Invalid ID (revision) %d; compared to previous ID %s, it was larger '
