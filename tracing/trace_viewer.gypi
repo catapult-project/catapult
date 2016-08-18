@@ -116,6 +116,7 @@
       'tracing/extras/importer/linux_perf/exynos_parser.html',
       'tracing/extras/importer/linux_perf/ftrace_importer.html',
       'tracing/extras/importer/linux_perf/gesture_parser.html',
+      'tracing/extras/importer/linux_perf/i2c_parser.html',
       'tracing/extras/importer/linux_perf/i915_parser.html',
       'tracing/extras/importer/linux_perf/irq_parser.html',
       'tracing/extras/importer/linux_perf/kfunc_parser.html',
