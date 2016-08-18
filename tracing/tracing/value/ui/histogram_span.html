@@ -125,8 +125,13 @@ Polymer({
     if (!this.histogram_)
       return;
     this.updateBrushedRange_(chartEvent.x);
+    this.updateDiagnostics_(this.brushedBins);
+    this.mouseDownX_ = undefined;
+  },
+
+  updateDiagnostics_: function(bins) {
     Polymer.dom(this.$.diagnostics).textContent = '';
-    for (var bin of this.brushedBins) {
+    for (var bin of bins) {
       for (var diagnosticMap of bin.diagnosticMaps) {
         // TODO(eakuefner): Display these in a table.
         diagnosticMap.forEach(function(unused_name, d) {
@@ -135,7 +140,6 @@ Polymer({
         }, this);
       }
     }
-    this.mouseDownX_ = undefined;
   },
 
   get histogram() {
@@ -180,6 +184,14 @@ Polymer({
     this.chart_.data = chartData;
     this.brushedBins_ = [];
     this.chart_.brushedRange = new tr.b.Range();
+
+    var occupiedBins = [];
+    for (var bin of this.histogram.allBins) {
+      if (bin.count > 0)
+        occupiedBins.push(bin);
+    }
+    if (occupiedBins.length === 1)
+      this.updateDiagnostics_(occupiedBins);
   }
 });
 </script>
