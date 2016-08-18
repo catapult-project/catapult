@@ -31,7 +31,7 @@ tr.exportTo('pi.m', function() {
     var tti = numeric.running.mean;
 
     for (var event of model.getDescendantEvents()) {
-      if (!(event instanceof tr.model.ThreadSlice) /* || event.start > tti*/)
+      if (!(event instanceof tr.model.ThreadSlice) || event.start > tti)
         continue;
       var v8_runtime = event.args['runtime-call-stat'];
       if (v8_runtime !== undefined) {
