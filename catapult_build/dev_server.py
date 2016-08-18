@@ -317,7 +317,7 @@ def Main(argv):
   app = DevServerApp(pds, args=args)
 
   server = httpserver.serve(app, host='127.0.0.1', port=args.port,
-                            start_loop=False)
+                            start_loop=False, daemon_threads=True)
   _AddPleaseExitMixinToServer(server)
   # pylint: disable=no-member
   server.urlbase = 'http://127.0.0.1:%i' % server.server_port
