@@ -39,6 +39,10 @@ tr.b.unittest.testSuite(function() {
             ue.associatedEvents.push(slice);
           });
           model.userModel.expectations.push(ue);
+          model.userModel.expectations.push(
+              new tr.model.um.StartupExpectation(model, 0, 1));
+          model.userModel.expectations.push(
+              new tr.model.um.ResponseExpectation(model, 'test', 1, 1));
         });
       }
     };

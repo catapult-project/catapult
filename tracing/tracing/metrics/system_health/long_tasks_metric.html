@@ -95,7 +95,8 @@ tr.exportTo('tr.metrics.sh', function() {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
             longTaskNumeric.add(task.duration,
-                new tr.v.d.RelatedEventSet([task]));
+                new tr.v.d.DiagnosticMap({
+                relatedEvents: new tr.v.d.RelatedEventSet([task])}));
             slices.push(task);
             slices.addEventSet(task.descendentSlices);
           });

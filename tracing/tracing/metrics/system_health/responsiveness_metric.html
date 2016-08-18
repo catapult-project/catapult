@@ -93,13 +93,15 @@ tr.exportTo('tr.metrics.sh', function() {
       var sampleDiagnosticMap =
           new tr.v.d.DiagnosticMap({relatedEvents: sampleDiagnostic});
 
-      // Responsiveness is not defined for Idle.
+      // Responsiveness is not defined for Idle or Startup expectations.
       if (ue instanceof tr.model.um.IdleExpectation) {
+        return;
+      } else if (ue instanceof tr.model.um.StartupExpectation) {
         return;
       } else if (ue instanceof tr.model.um.LoadExpectation) {
         // This is already covered by loadingMetric.
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
-        responseNumeric.add(ue.duration, sampleDiagnostic);
+        responseNumeric.add(ue.duration, sampleDiagnosticMap);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
         if (ue.frameEvents === undefined || ue.frameEvents.length === 0) {
           // Ignore animation stages that do not have associated frames:
