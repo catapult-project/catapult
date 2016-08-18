@@ -9,8 +9,6 @@ should be delegated to a higher level (ex. FastbootUtils).
 """
 # pylint: disable=unused-argument
 
-import os
-
 from devil import devil_env
 from devil.android import decorators
 from devil.android import device_errors
@@ -24,8 +22,8 @@ _FLASH_TIMEOUT = _DEFAULT_TIMEOUT * 10
 
 class Fastboot(object):
 
-  _fastboot_path = lazy.WeakConstant(lambda: os.path.join(
-      devil_env.config.LocalPath('android_sdk'), 'platform-tools', 'fastboot'))
+  _fastboot_path = lazy.WeakConstant(
+      lambda: devil_env.config.FetchPath('fastboot'))
 
   def __init__(self, device_serial, default_timeout=_DEFAULT_TIMEOUT,
                default_retries=_DEFAULT_RETRIES):
