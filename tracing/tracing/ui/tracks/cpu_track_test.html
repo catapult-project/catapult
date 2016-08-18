@@ -15,7 +15,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Cpu = tr.model.Cpu;
   var CpuTrack = tr.ui.tracks.CpuTrack;
-  var Slice = tr.model.Slice;
+  var ThreadSlice = tr.model.ThreadSlice;
   var StackFrame = tr.model.StackFrame;
   var Sample = tr.model.Sample;
   var Thread = tr.model.Thread;
@@ -24,8 +24,8 @@ tr.b.unittest.testSuite(function() {
   test('basicCpu', function() {
     var cpu = new Cpu({}, 7);
     cpu.slices = [
-      new Slice('', 'a', 0, 1, {}, 1),
-      new Slice('', 'b', 1, 2.1, {}, 4.8)
+      new ThreadSlice('', 'a', 0, 1, {}, 1),
+      new ThreadSlice('', 'b', 1, 2.1, {}, 4.8)
     ];
     cpu.updateBounds();
 

@@ -35,7 +35,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     drmVblankSlice: function(ts, eventName, args) {
       var kthread = this.importer.getOrCreatePseudoThread('drm_vblank');
       kthread.openSlice = eventName;
-      var slice = new tr.model.Slice('', kthread.openSlice,
+      var slice = new tr.model.ThreadSlice('', kthread.openSlice,
           ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
           ts, args, 0);
 

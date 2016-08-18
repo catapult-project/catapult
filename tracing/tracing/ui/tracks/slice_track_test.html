@@ -15,11 +15,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var SliceTrack = tr.ui.tracks.SliceTrack;
-  var Slice = tr.model.Slice;
+  var ThreadSlice = tr.model.ThreadSlice;
 
   test('modelMapping', function() {
     var track = new SliceTrack(new tr.ui.TimelineViewport());
-    var slice = new Slice('', 'a', 0, 1, {}, 1);
+    var slice = new ThreadSlice('', 'a', 0, 1, {}, 1);
     track.slices = [slice];
     var me0 = track.rects[0].modelItem;
     assert.equal(slice, me0);

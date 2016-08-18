@@ -24,6 +24,9 @@ tr.exportTo('tr.model', function() {
   function Slice(category, title, colorId, start, args, opt_duration,
                  opt_cpuStart, opt_cpuDuration, opt_argsStripped,
                  opt_bind_id) {
+    if (new.target) {
+      throw new Error("Can't instantiate pure virtual class Slice");
+    }
     tr.model.TimedEvent.call(this, start);
 
     this.category = category || '';

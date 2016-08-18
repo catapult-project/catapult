@@ -60,7 +60,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         var value = thread.lastActiveValue;
         if (value == undefined)
           value = ' ';
-        var slice = new tr.model.Slice(
+        var slice = new tr.model.ThreadSlice(
             '', value,
             ColorScheme.getColorIdForGeneralPurposeString(value),
             thread.lastActiveTs, {},

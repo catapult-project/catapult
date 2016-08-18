@@ -85,7 +85,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var kthread = this.importer.getOrCreatePseudoThread(
           'exynos_flip_state (pipe:' + pipe + ', fb:' + fb + ')');
       if (kthread.openSlice) {
-        var slice = new tr.model.Slice('', kthread.openSlice,
+        var slice = new tr.model.ThreadSlice('', kthread.openSlice,
             ColorScheme.getColorIdForGeneralPurposeString(kthread.openSlice),
             kthread.openSliceTS,
             args,

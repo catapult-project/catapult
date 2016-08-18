@@ -215,5 +215,23 @@ tr.b.unittest.testSuite(function() {
     assert.equal(group.stableId + '.1', sB.stableId);
     assert.equal(group.stableId + '.2', sC.stableId);
   });
+
+  test('cantInstantiateDirectly', function() {
+    assert.throws(function() {
+      new Slice('', 'Test', 0, 0, { });
+    });
+  });
+
+  test('canInstantiateSubclasses', function() {
+    function TestSlice() {
+      Slice.call(this, '', 'Test', 0, 0, { });
+    }
+    TestSlice.prototype = {
+      __proto__: Slice.prototype
+    };
+    assert.doesNotThrow(function() {
+      new TestSlice();
+    });
+  });
 });
 </script>

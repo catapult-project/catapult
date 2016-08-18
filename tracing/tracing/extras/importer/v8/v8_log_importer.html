@@ -90,7 +90,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       start /= 1000;  // Convert to milliseconds.
       length /= 1000;
       var colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
-      var slice = new tr.model.Slice('v8', name, colorId, start,
+      var slice = new tr.model.ThreadSlice('v8', name, colorId, start,
           args, length);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
@@ -355,7 +355,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       function addSlices(slices, thread) {
         for (var i = 0; i < slices.length; i++) {
           var duration = slices[i].end - slices[i].start;
-          var slice = new tr.model.Slice('v8', slices[i].name,
+          var slice = new tr.model.ThreadSlice('v8', slices[i].name,
               ColorScheme.getColorIdForGeneralPurposeString(slices[i].name),
               slices[i].start, {}, duration);
           thread.sliceGroup.pushSlice(slice);
