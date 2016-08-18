@@ -31,12 +31,14 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(eventSet.bounds.min, 1);
     assert.equal(eventSet.bounds.max, 4);
-    assert.equal(eventSet[0], t1.sliceGroup.slices[0]);
+    assert.deepEqual(eventSet, new tr.model.EventSet(
+        t1.sliceGroup.slices[0]));
 
     eventSet.push(t1.sliceGroup.slices[1]);
     assert.equal(eventSet.bounds.min, 1);
     assert.equal(eventSet.bounds.max, 6);
-    assert.equal(eventSet[1], t1.sliceGroup.slices[1]);
+    assert.deepEqual(eventSet, new tr.model.EventSet(
+        [t1.sliceGroup.slices[0], t1.sliceGroup.slices[1]]));
 
     eventSet.clear();
     assert.equal(eventSet.length, 0);

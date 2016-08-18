@@ -228,13 +228,9 @@ tr.exportTo('tr.e.audits', function() {
     // simplifying assumption - check for *any* inflation.
     // TODO(ccraik): make 'inflate' slices associated events.
     var hasInflation = false;
-    for (var i = 0; i < events.length; i++) {
-      if (events[i] instanceof tr.model.Slice &&
-          events[i].findDescendentSlice('inflate')) {
+    for (var event of events)
+      if (event.findDescendentSlice('inflate'))
         hasInflation = true;
-        break;
-      }
-    }
 
     var start = Statistics.min(events, getStart);
     var args = { 'Time spent': new ScalarNumeric(timeDurationInMs, duration) };

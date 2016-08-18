@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
 
   test('optimalEfficiency', function() {
     var model = createModel();
-    var exp = model.userModel.expectations[0];
+    var exp = tr.b.getOnlyElement(model.userModel.expectations);
     tr.b.getOnlyElement(exp.associatedEvents).cpuSelfTime = 10;
     var values = new tr.v.ValueSet();
     tr.metrics.sh.efficiencyMetric(values, model);
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
   test('pessimalEfficiency', function() {
     var model = createModel();
-    var exp = model.userModel.expectations[0];
+    var exp = tr.b.getOnlyElement(model.userModel.expectations);
     tr.b.getOnlyElement(exp.associatedEvents).cpuSelfTime = 100;
     var values = new tr.v.ValueSet();
     tr.metrics.sh.efficiencyMetric(values, model);

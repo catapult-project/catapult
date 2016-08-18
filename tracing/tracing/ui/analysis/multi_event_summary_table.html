@@ -291,12 +291,13 @@ Polymer({
     else
       eventsByTitle = [];
 
-    var allEvents = [];
+    var allEvents = new tr.model.EventSet();
     var rows = [];
     tr.b.iterItems(
         eventsByTitle,
         function(title, eventsOfSingleTitle) {
-          allEvents.push.apply(allEvents, eventsOfSingleTitle);
+          for (var event of allEvents)
+            allEvents.push(event);
           var row = new tr.ui.analysis.MultiEventSummary(
             title, eventsOfSingleTitle);
           rows.push(row);

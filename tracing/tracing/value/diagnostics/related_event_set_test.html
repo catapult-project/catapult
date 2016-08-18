@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/value/diagnostics/related_event_set.html">
 
@@ -26,27 +27,23 @@ tr.b.unittest.testSuite(function() {
     });
 
     var d = new tr.v.d.RelatedEventSet(slice);
-    assert.lengthOf(d.events, 1);
-    assert.strictEqual(d.events[0], slice);
+    assert.strictEqual(tr.b.getOnlyElement(d.events), slice);
 
     d = new tr.v.d.RelatedEventSet([slice]);
-    assert.lengthOf(d.events, 1);
-    assert.strictEqual(d.events[0], slice);
+    assert.strictEqual(tr.b.getOnlyElement(d.events), slice);
 
     d = new tr.v.d.RelatedEventSet(new tr.model.EventSet([slice]));
-    assert.lengthOf(d.events, 1);
-    assert.strictEqual(d.events[0], slice);
+    assert.strictEqual(tr.b.getOnlyElement(d.events), slice);
 
     var d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
     assert.instanceOf(d2, tr.v.d.RelatedEventSet);
-    assert.lengthOf(d2.events, 1);
 
     // Can't use assert.instanceOf() because EventRef is private.
-    assert.isFalse(d2.events[0] instanceof tr.model.Event);
+    assert.isFalse(tr.b.getOnlyElement(d2.events) instanceof tr.model.Event);
 
     d2.resolve(model, true);
 
-    assert.strictEqual(d2.events[0], slice);
+    assert.strictEqual(tr.b.getOnlyElement(d2.events), slice);
   });
 });
 </script>

@@ -68,22 +68,20 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
   });
 
-  test('noDurationNoSubRows', function() {
+  test('noSelfTimeNoSubRows', function() {
     var model = new Model();
 
     var fe1 = new tr.model.FlowEvent('cat', 1234, 'title', 7, 10, {});
     var fe2 = new tr.model.FlowEvent('cat', 1234, 'title', 8, 20, {});
 
     // Make reading some properties an explosion, as a way to ensure that they
-    // aren't read.
+    // aren't read. Note that 'duration' is read since it is used by the
+    // EventSet to get the range.
     var failProp = {
       get: function() {
         throw new Error('Should not be called');
       }
     };
-    Object.defineProperty(fe1, 'duration', failProp);
-    Object.defineProperty(fe2, 'duration', failProp);
-
     Object.defineProperty(fe1, 'subRows', failProp);
     Object.defineProperty(fe2, 'subRows', failProp);
 

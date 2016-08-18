@@ -309,27 +309,30 @@ tr.b.unittest.testSuite(function() {
 
     // Select to the right of B.
     var selRight = new EventSet();
-    ret = track.addEventNearToProvidedEventToSelection(sel[0], 1, selRight);
+    ret = track.addEventNearToProvidedEventToSelection(
+        tr.b.getFirstElement(sel), 1, selRight);
     assert.isTrue(ret);
-    assert.equal(track.rects[2].modelItem, selRight[0]);
+    assert.equal(track.rects[2].modelItem, tr.b.getFirstElement(selRight));
 
     // Select to the right of the 2nd b.
     var selRight2 = new EventSet();
-    ret = track.addEventNearToProvidedEventToSelection(sel[0], 2, selRight2);
+    ret = track.addEventNearToProvidedEventToSelection(
+        tr.b.getFirstElement(sel), 2, selRight2);
     assert.isTrue(ret);
-    assert.equal(track.rects[3].modelItem, selRight2[0]);
+    assert.equal(track.rects[3].modelItem, tr.b.getFirstElement(selRight2));
 
     // Select to 2 to the right of the 2nd b.
     var selRightOfRight = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(
-        selRight[0], 1, selRightOfRight);
+        tr.b.getFirstElement(selRight), 1, selRightOfRight);
     assert.isTrue(ret);
-    assert.equal(track.rects[3].modelItem, selRightOfRight[0]);
+    assert.equal(track.rects[3].modelItem,
+        tr.b.getFirstElement(selRightOfRight));
 
     // Select to the right of the rightmost slice.
     var selNone = new EventSet();
     ret = track.addEventNearToProvidedEventToSelection(
-        selRightOfRight[0], 1, selNone);
+        tr.b.getFirstElement(selRightOfRight), 1, selNone);
     assert.isFalse(ret);
     assert.equal(0, selNone.length);
 
@@ -340,7 +343,8 @@ tr.b.unittest.testSuite(function() {
     var ret;
 
     selNone = new EventSet();
-    ret = track.addEventNearToProvidedEventToSelection(sel[0], -1, selNone);
+    ret = track.addEventNearToProvidedEventToSelection(
+        tr.b.getFirstElement(sel), -1, selNone);
     assert.isFalse(ret);
     assert.equal(0, selNone.length);
   });

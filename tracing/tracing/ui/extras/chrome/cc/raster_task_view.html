@@ -131,10 +131,9 @@ Polymer({
       table.rebuild();
       return;
     }
-
     // LTHI link.
     var lthi = tr.e.cc.getTileFromRasterTaskSlice(
-        this.selection_[0]).containingSnapshot;
+        tr.b.getFirstElement(this.selection_)).containingSnapshot;
     this.$.link.setSelectionAndContent(function() {
         return new tr.model.EventSet(lthi);
     }, lthi.userFriendlyName);

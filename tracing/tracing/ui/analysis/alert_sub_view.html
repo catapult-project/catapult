@@ -124,7 +124,7 @@ Polymer({
         name: 'Alert',
         value: tr.b.getOnlyElement(alerts).title
       }];
-      var detailRows = this.getRowsForSingleAlert_(alerts[0]);
+      var detailRows = this.getRowsForSingleAlert_(tr.b.getOnlyElement(alerts));
       rows.push.apply(rows, detailRows);
       return rows;
     } else {

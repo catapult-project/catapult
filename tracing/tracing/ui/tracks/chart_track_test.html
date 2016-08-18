@@ -167,9 +167,10 @@ tr.b.unittest.testSuite(function() {
     track.addIntersectingEventsInRangeToSelectionInWorldSpace(
         -1.1, -0.7, 0.01, sel);
     assert.lengthOf(sel, 3);
-    assert.equal(sel[0], track.series[0].points[1].modelItem);
-    assert.equal(sel[1], track.series[1].points[1].modelItem);
-    assert.equal(sel[2], track.series[2].points[3].modelItem);
+    var iterator = sel[Symbol.iterator]();
+    assert.equal(iterator.next().value, track.series[0].points[1].modelItem);
+    assert.equal(iterator.next().value, track.series[1].points[1].modelItem);
+    assert.equal(iterator.next().value, track.series[2].points[3].modelItem);
   });
 
   test('checkaddEventNearToProvidedEventToSelection', function() {
@@ -185,8 +186,7 @@ tr.b.unittest.testSuite(function() {
     var sel = new EventSet();
     assert.isTrue(track.addEventNearToProvidedEventToSelection(
         track.series[1].points[1].modelItem, 1, sel));
-    assert.lengthOf(sel, 1);
-    assert.equal(sel[0], track.series[1].points[2].modelItem);
+    assert.equal(tr.b.getOnlyElement(sel), track.series[1].points[2].modelItem);
   });
 
   test('checkAddClosestEventToSelection', function() {
@@ -195,8 +195,9 @@ tr.b.unittest.testSuite(function() {
     var sel = new EventSet();
     track.addClosestEventToSelection(-0.8, 0.4, 0.5, 1.5, sel);
     assert.lengthOf(sel, 2);
-    assert.equal(sel[0], track.series[0].points[2].modelItem);
-    assert.equal(sel[1], track.series[2].points[4].modelItem);
+    var iterator = sel[Symbol.iterator]();
+    assert.equal(iterator.next().value, track.series[0].points[2].modelItem);
+    assert.equal(iterator.next().value, track.series[2].points[4].modelItem);
   });
 
   test('checkAutoSetAllAxes', function() {

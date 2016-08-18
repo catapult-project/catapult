@@ -60,9 +60,8 @@ Polymer({
       return;
     }
 
-    var sample = this.currentSelection_[0];
+    var sample = tr.b.getOnlyElement(this.currentSelection_);
     var table = this.$.content;
-
     var rows = [];
 
     rows.push({

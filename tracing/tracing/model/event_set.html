@@ -26,16 +26,13 @@ tr.exportTo('tr.model', function() {
    * @constructor
    */
   function EventSet(opt_events) {
-    this.bounds_dirty_ = true;
     this.bounds_ = new tr.b.Range();
-    this.length_ = 0;
-    this.guid_ = tr.b.GUID.allocateSimple();
-    this.pushed_guids_ = {};
+    this.events_ = new Set();
 
     if (opt_events) {
       if (opt_events instanceof Array) {
-        for (var i = 0; i < opt_events.length; i++)
-          this.push(opt_events[i]);
+        for (var event of opt_events)
+          this.push(event);
       } else if (opt_events instanceof EventSet) {
         this.addEventSet(opt_events);
       } else {
@@ -43,12 +40,11 @@ tr.exportTo('tr.model', function() {
       }
     }
   }
+
   EventSet.prototype = {
     __proto__: Object.prototype,
 
     get bounds() {
-      if (this.bounds_dirty_)
-        this.resolveBounds_();
       return this.bounds_;
     },
 
@@ -59,7 +55,7 @@ tr.exportTo('tr.model', function() {
     },
 
     get length() {
-      return this.length_;
+      return this.events_.size;
     },
 
     get guid() {
@@ -67,22 +63,13 @@ tr.exportTo('tr.model', function() {
     },
 
     *[Symbol.iterator]() {
-      for (var i = 0; i < this.length_; ++i)
-        yield this[i];
+      for (var event of this.events_)
+        yield event;
     },
 
     clear: function() {
-      for (var i = 0; i < this.length_; ++i)
-        delete this[i];
-      this.length_ = 0;
-      this.bounds_dirty_ = true;
-    },
-
-    resolveBounds_: function() {
-      this.bounds_.reset();
-      for (var i = 0; i < this.length_; i++)
-        this[i].addBoundsToRange(this.bounds_);
-      this.bounds_dirty_ = false;
+      this.bounds_ = new tr.b.Range();
+      this.events_.clear();
     },
 
     // push pushes only unique events.
@@ -91,61 +78,49 @@ tr.exportTo('tr.model', function() {
       if (event.guid == undefined)
         throw new Error('Event must have a GUID');
 
-      if (this.contains(event))
-        return event;
+      if (!this.events_.has(event)) {
+        this.events_.add(event);
+        // Some uses of eventSet, particularly in tests, have Events as objects
+        // that don't have addBoundsToRange as a function. Thus we need to
+        // handle this case.
+        if (event.addBoundsToRange)
+          if (this.bounds_ !== undefined)
+            event.addBoundsToRange(this.bounds_);
+      }
 
-      this.pushed_guids_[event.guid] = true;
-      this[this.length_++] = event;
-      this.bounds_dirty_ = true;
       return event;
     },
 
     contains: function(event) {
-      return this.pushed_guids_[event.guid];
-    },
-
-    indexOf: function(event) {
-      for (var i = 0; i < this.length; i++) {
-        if (this[i].guid === event.guid)
-          return i;
-      }
-      return -1;
+      if (this.events_.has(event))
+        return event;
+      else
+        return undefined;
     },
 
     addEventSet: function(eventSet) {
-      for (var i = 0; i < eventSet.length; i++)
-        this.push(eventSet[i]);
-    },
-
-    subEventSet: function(index, count) {
-      count = count || 1;
-
-      var eventSet = new EventSet();
-      eventSet.bounds_dirty_ = true;
-      if (index < 0 || index + count > this.length_)
-        throw new Error('Index out of bounds');
-
-      for (var i = index; i < index + count; i++)
-        eventSet.push(this[i]);
-
-      return eventSet;
+      for (var event of eventSet)
+        this.push(event);
     },
 
     intersectionIsEmpty: function(otherEventSet) {
-      return !this.some(function(event) {
-        return otherEventSet.contains(event);
-      });
+      return !this.some(event => otherEventSet.contains(event));
     },
 
     equals: function(that) {
       if (this.length !== that.length)
         return false;
-      for (var i = 0; i < this.length; i++) {
-        var event = this[i];
-        if (that.pushed_guids_[event.guid] === undefined)
-          return false;
-      }
-      return true;
+      return this.every(event => that.contains(event));
+    },
+
+    sortEvents: function(compare) {
+      // Convert to array, then sort, then convert back
+      var ary = this.toArray();
+      ary.sort(compare);
+
+      this.clear();
+      for (var event of ary)
+        this.push(event);
     },
 
     getEventsOrganizedByBaseType: function(opt_pruneEmpty) {
@@ -201,9 +176,9 @@ tr.exportTo('tr.model', function() {
     },
 
     enumEventsOfType: function(type, func) {
-      for (var i = 0; i < this.length_; i++)
-        if (this[i] instanceof type)
-          func(this[i]);
+      for (var event of this)
+        if (event instanceof type)
+          func(event);
     },
 
     get userFriendlyName() {
@@ -216,7 +191,7 @@ tr.exportTo('tr.model', function() {
 
       if (this.length === 1) {
         var tmp = EventRegistry.getUserFriendlySingularName(eventTypeName);
-        return this[0].userFriendlyName;
+        return tr.b.getOnlyElement(this.events_).userFriendlyName;
       }
 
       var numEventTypes = tr.b.dictionaryLength(eventsByBaseType);
@@ -230,60 +205,60 @@ tr.exportTo('tr.model', function() {
 
     filter: function(fn, opt_this) {
       var res = new EventSet();
-
-      this.forEach(function(slice) {
-        if (fn.call(this, slice))
-          res.push(slice);
-      }, opt_this);
+      for (var event of this)
+        if (fn.call(opt_this, event))
+          res.push(event);
 
       return res;
     },
 
     toArray: function() {
       var ary = [];
-      for (var i = 0; i < this.length; i++)
-        ary.push(this[i]);
+      for (var event of this)
+        ary.push(event);
       return ary;
     },
 
     forEach: function(fn, opt_this) {
-      for (var i = 0; i < this.length; i++)
-        fn.call(opt_this, this[i], i);
+      for (var event of this)
+        fn.call(opt_this, event);
     },
 
     map: function(fn, opt_this) {
       var res = [];
-      for (var i = 0; i < this.length; i++)
-        res.push(fn.call(opt_this, this[i], i));
+      for (var event of this)
+        res.push(fn.call(opt_this, event));
       return res;
     },
 
     every: function(fn, opt_this) {
-      for (var i = 0; i < this.length; i++)
-        if (!fn.call(opt_this, this[i], i))
+      for (var event of this)
+        if (!fn.call(opt_this, event))
           return false;
       return true;
     },
 
     some: function(fn, opt_this) {
-      for (var i = 0; i < this.length; i++)
-        if (fn.call(opt_this, this[i], i))
+      for (var event of this)
+        if (fn.call(opt_this, event))
           return true;
       return false;
     },
 
     asDict: function() {
       var stable_ids = [];
-      this.forEach(function(event) {
+      for (var event of this)
         stable_ids.push(event.stableId);
-      });
       return {'events': stable_ids};
+    },
+
+    asSet: function() {
+      return this.events_;
     }
   };
 
   EventSet.IMMUTABLE_EMPTY_SET = (function() {
     var s = new EventSet();
-    s.resolveBounds_();
     s.push = function() {
       throw new Error('Cannot push to an immutable event set');
     };
