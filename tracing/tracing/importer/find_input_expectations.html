@@ -1182,7 +1182,8 @@ tr.exportTo('tr.importer', function() {
             (event.subSlices.length > 0))
           return;
 
-        if (handledEvents.indexOf(event) >= 0) {
+        if ((handledEvents.indexOf(event) >= 0) &&
+            (event.title !== tr.model.helpers.IMPL_RENDERING_STATS)) {
           console.error('double-handled event', event.typeName,
               parseInt(event.start), parseInt(event.end), protoExpectation);
           return;
