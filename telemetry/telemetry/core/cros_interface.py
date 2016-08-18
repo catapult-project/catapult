@@ -502,11 +502,8 @@ class CrOSInterface(object):
   def GetArchName(self):
     return self.RunCmdOnDevice(['uname', '-m'])[0]
 
-  def SysVendor(self):
-    return self.GetFileContents('/sys/class/dmi/id/sys_vendor').rstrip()
-
   def IsRunningOnVM(self):
-    return self.SysVendor() == 'QEMU'
+    return self.RunCmdOnDevice(['crossystem', 'inside_vm'])[0] != '0'
 
   def LsbReleaseValue(self, key, default):
     """/etc/lsb-release is a file with key=value pairs."""
