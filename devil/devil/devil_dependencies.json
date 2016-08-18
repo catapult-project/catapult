@@ -51,6 +51,16 @@
         }
       }
     },
+    "fastboot": {
+      "cloud_storage_bucket": "chromium-telemetry",
+      "cloud_storage_base_folder": "binary_dependencies",
+      "file_info": {
+        "linux2_x86_64": {
+          "cloud_storage_hash": "db9728166f182800eb9d09e9f036d56e105e8235",
+          "download_path": "../bin/deps/linux2/x86_64/bin/fastboot"
+        }
+      }
+    },
     "forwarder_device": {
       "cloud_storage_bucket": "chromium-telemetry",
       "cloud_storage_base_folder": "binary_dependencies",
