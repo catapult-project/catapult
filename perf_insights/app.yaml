@@ -18,30 +18,3 @@ handlers:
   script: perf_insights.endpoints.corpus_cleanup.app
   secure: always
   login: admin
-
-- url: /query
-  script: perf_insights.endpoints.query.app
-  secure: always
-
-# Cloud Mapper Endpoints
-- url: /cloud_mapper/create
-  script: perf_insights.endpoints.cloud_mapper.create.app
-  secure: always
-
-- url: /cloud_mapper/status
-  script: perf_insights.endpoints.cloud_mapper.status.app
-  secure: always
-
-- url: /cloud_mapper/cancel
-  script: perf_insights.endpoints.cloud_mapper.cancel.app
-  secure: always
-
-- url: /cloud_mapper/task
-  script: perf_insights.endpoints.cloud_mapper.task.app
-  secure: always
-  login: admin
-
-- url: /cloud_mapper/test
-  script: perf_insights.endpoints.cloud_mapper.test.app
-  secure: always
-  login: admin
