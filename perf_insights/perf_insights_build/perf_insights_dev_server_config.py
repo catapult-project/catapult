@@ -10,7 +10,6 @@ import perf_insights_project
 import webapp2
 from webapp2 import Route
 
-
 MAX_TRACES = 10000
 
 

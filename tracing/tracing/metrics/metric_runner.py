@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 import os
 
-from perf_insights.mre import function_handle
-from perf_insights.mre import map_runner
-from perf_insights.mre import gtest_progress_reporter
-from perf_insights.mre import file_handle
-from perf_insights.mre import job as job_module
+from tracing.mre import function_handle
+from tracing.mre import gtest_progress_reporter
+from tracing.mre import map_runner
+from tracing.mre import file_handle
+from tracing.mre import job as job_module
 
 _METRIC_MAP_FUNCTION_FILENAME = 'metric_map_function.html'
 

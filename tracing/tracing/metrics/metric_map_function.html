@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/mre/function_handle.html">
 <link rel="import" href="/tracing/metrics/all_metrics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/mre/function_handle.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
 <script>
@@ -49,7 +49,7 @@ tr.exportTo('tr.metrics', function() {
     result.addPair('values', values.valueDicts);
   }
 
-  pi.FunctionRegistry.register(metricMapFunction);
+  tr.mre.FunctionRegistry.register(metricMapFunction);
 
   return {
     metricMapFunction: metricMapFunction

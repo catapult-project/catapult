@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/mre/mre_result.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/metrics/metric_map_function.html">
 <link rel="import" href="/tracing/metrics/sample_metric.html">
+<link rel="import" href="/tracing/mre/mre_result.html">
 
 <script>
 'use strict';
@@ -44,21 +44,21 @@ tr.b.unittest.testSuite(function() {
     });
 
     assert.throw(function() {
-      var result = new pi.mre.MreResult();
+      var result = new tr.mre.MreResult();
       tr.metrics.metricMapFunction(result, m, {});
     }, Error, 'Metric names should be specified.');
 
     assert.throw(function() {
-      var result = new pi.mre.MreResult();
+      var result = new tr.mre.MreResult();
       tr.metrics.metricMapFunction(result, m, {'metrics': ['wrongMetric']});
     }, Error, '"wrongMetric" is not a registered metric.');
 
-    var result = new pi.mre.MreResult();
+    var result = new tr.mre.MreResult();
     tr.metrics.metricMapFunction(result, m, {'metrics': ['sampleMetric']});
     assert.property(result.pairs, 'values');
     assert.equal(result.pairs.values.length, 9);
 
-    var result2 = new pi.mre.MreResult();
+    var result2 = new tr.mre.MreResult();
     tr.metrics.metricMapFunction(
         result2, m, {'metrics': ['sampleMetric', 'sampleMetric2']});
     assert.property(result2.pairs, 'values');

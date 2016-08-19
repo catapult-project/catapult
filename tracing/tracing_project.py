@@ -82,7 +82,7 @@ class TracingProject(object):
   chai_path = os.path.join(tracing_third_party_path, 'chai')
   mocha_path = os.path.join(tracing_third_party_path, 'mocha')
 
-  mre_path = os.path.join(catapult_path, 'perf_insights')
+  mre_path = os.path.join(tracing_src_path, 'mre')
 
   metrics_path = os.path.join(tracing_src_path, 'metrics')
 
