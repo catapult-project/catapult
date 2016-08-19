@@ -53,6 +53,16 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def GetBrowserStartupArgs(self):
     args = super(CrOSBrowserBackend, self).GetBrowserStartupArgs()
+
+    logging_patterns = ['*/chromeos/net/*',
+                        '*/chromeos/login/*',
+                        'application_lifetime',
+                        'chrome_browser_main_posix']
+    vmodule = '--vmodule='
+    for pattern in logging_patterns:
+      vmodule += '%s=2,' % pattern
+    vmodule = vmodule.rstrip(',')
+
     args.extend([
             '--enable-smooth-scrolling',
             '--enable-threaded-compositing',
@@ -67,7 +77,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             # Skip user image selection screen, and post login screens.
             '--oobe-skip-postlogin',
             # Debug logging.
-            '--vmodule=*/chromeos/net/*=2,*/chromeos/login/*=2'])
+            vmodule])
 
     # Disable GAIA services unless we're using GAIA login, or if there's an
     # explicit request for it.
@@ -106,7 +116,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     startup_args = [a.replace(',', '\\,') for a in self.GetBrowserStartupArgs()]
 
     # Restart Chrome with the login extension and remote debugging.
-    logging.info('Restarting Chrome with flags and login')
+    pid = self.pid
+    logging.info('Restarting Chrome (pid=%d) with remote port', pid)
     args = ['dbus-send', '--system', '--type=method_call',
             '--dest=org.chromium.SessionManager',
             '/org/chromium/SessionManager',
@@ -125,7 +136,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
               https=None,
               dns=None), use_remote_port_forwarding=False)
 
-    # Wait for oobe.
+    # Wait for new chrome and oobe.
+    util.WaitFor(lambda: pid != self.pid, 15)
     self._WaitForBrowserToComeUp()
     self._InitDevtoolsClientBackend(
         remote_devtools_port=self._remote_debugging_port)
@@ -138,7 +150,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           self.oobe.NavigateGuestLogin()
           # Guest browsing shuts down the current browser and launches an
           # incognito browser in a separate process, which we need to wait for.
-          util.WaitFor(lambda: pid != self.pid, 10)
+          util.WaitFor(lambda: pid != self.pid, 15)
         elif self.browser_options.gaia_login:
           self.oobe.NavigateGaiaLogin(self._username, self._password)
         else:
