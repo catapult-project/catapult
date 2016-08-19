@@ -60,6 +60,7 @@ def teardown_browser():
 
   if current_browser:
     current_browser.Close()
+    current_browser.platform.network_controller.Close()
   current_browser = None
   current_browser_options = None
 
