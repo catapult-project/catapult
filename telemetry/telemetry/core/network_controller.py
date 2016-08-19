@@ -11,6 +11,10 @@ class NetworkController(object):
 
   def __init__(self, network_controller_backend):
     self._network_controller_backend = network_controller_backend
+    self.InitializeIfNeeded()
+
+  def InitializeIfNeeded(self):
+    self._network_controller_backend.InitializeIfNeeded()
 
   def Open(self, wpr_mode, extra_wpr_args):
     self._network_controller_backend.Open(wpr_mode, extra_wpr_args)

@@ -20,9 +20,9 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
     super(AndroidForwarderFactory, self).__init__()
     self._device = device
 
-  def Create(self, port_pairs):
+  def Create(self, port_pair):
     try:
-      return AndroidForwarder(self._device, port_pairs)
+      return AndroidForwarder(self._device, port_pair)
     except Exception:
       try:
         logging.warning('Failed to create forwarder. '
@@ -53,23 +53,20 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
 
 class AndroidForwarder(forwarders.Forwarder):
 
-  def __init__(self, device, port_pairs):
-    super(AndroidForwarder, self).__init__(port_pairs)
+  def __init__(self, device, port_pair):
+    super(AndroidForwarder, self).__init__(port_pair)
     self._device = device
-    forwarder.Forwarder.Map([(p.remote_port, p.local_port)
-                             for p in port_pairs if p], self._device)
-    self._port_pairs = forwarders.PortPairs(*[
+    forwarder.Forwarder.Map(
+        [(port_pair.remote_port, port_pair.local_port)], self._device)
+    self._port_pair = (
         forwarders.PortPair(
-            p.local_port,
-            forwarder.Forwarder.DevicePortForHostPort(p.local_port))
-        if p else None for p in port_pairs])
+            port_pair.local_port,
+            forwarder.Forwarder.DevicePortForHostPort(port_pair.local_port)))
     atexit_with_log.Register(self.Close)
     # TODO(tonyg): Verify that each port can connect to host.
 
   def Close(self):
     if self._forwarding:
-      for port_pair in self._port_pairs:
-        if port_pair:
-          forwarder.Forwarder.UnmapDevicePort(
-              port_pair.remote_port, self._device)
-      super(AndroidForwarder, self).Close()
+      forwarder.Forwarder.UnmapDevicePort(
+          self._port_pair.remote_port, self._device)
+    super(AndroidForwarder, self).Close()

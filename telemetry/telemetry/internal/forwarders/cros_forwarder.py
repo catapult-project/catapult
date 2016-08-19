@@ -17,20 +17,20 @@ class CrOsForwarderFactory(forwarders.ForwarderFactory):
     self._cri = cri
 
   # pylint: disable=arguments-differ
-  def Create(self, port_pairs, use_remote_port_forwarding=True):
+  def Create(self, port_pair, use_remote_port_forwarding=True):
     if self._cri.local:
-      return do_nothing_forwarder.DoNothingForwarder(port_pairs)
-    return CrOsSshForwarder(self._cri, use_remote_port_forwarding, port_pairs)
+      return do_nothing_forwarder.DoNothingForwarder(port_pair)
+    return CrOsSshForwarder(self._cri, use_remote_port_forwarding, port_pair)
 
 
 class CrOsSshForwarder(forwarders.Forwarder):
 
-  def __init__(self, cri, use_remote_port_forwarding, port_pairs):
-    super(CrOsSshForwarder, self).__init__(port_pairs)
+  def __init__(self, cri, use_remote_port_forwarding, port_pair):
+    super(CrOsSshForwarder, self).__init__(port_pair)
     self._cri = cri
     self._proc = None
     forwarding_args = self._ForwardingArgs(
-        use_remote_port_forwarding, self.host_ip, port_pairs)
+        use_remote_port_forwarding, self.host_ip, port_pair)
     self._proc = subprocess.Popen(
         self._cri.FormSSHCommandLine(['sleep', '999999999'], forwarding_args),
         stdout=subprocess.PIPE,
@@ -43,16 +43,18 @@ class CrOsSshForwarder(forwarders.Forwarder):
 
   # pylint: disable=unused-argument
   @staticmethod
-  def _ForwardingArgs(use_remote_port_forwarding, host_ip, port_pairs):
+  def _ForwardingArgs(use_remote_port_forwarding, host_ip, port_pair):
     if use_remote_port_forwarding:
-      arg_format = '-R{pp.remote_port}:{host_ip}:{pp.local_port}'
+      arg_format = '-R{remote_port}:{host_ip}:{local_port}'
     else:
-      arg_format = '-L{pp.local_port}:{host_ip}:{pp.remote_port}'
-    return [arg_format.format(**locals()) for pp in port_pairs if pp]
+      arg_format = '-L{local_port}:{host_ip}:{remote_port}'
+    return [arg_format.format(host_ip=host_ip,
+                              local_port=port_pair.local_port,
+                              remote_port=port_pair.remote_port)]
 
   @property
   def host_port(self):
-    return self._port_pairs.http.remote_port
+    return self._port_pair.remote_port
 
   def Close(self):
     if self._proc:

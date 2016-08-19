@@ -14,6 +14,7 @@ from telemetry.core import android_platform
 from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
+from telemetry.internal import forwarders
 from telemetry.internal.forwarders import android_forwarder
 from telemetry.internal.image_processing import video
 from telemetry.internal.platform import android_device
@@ -582,6 +583,9 @@ class AndroidPlatformBackend(
       self._device_copy_script = _DEVICE_COPY_SCRIPT_FILE
     self._device.RunShellCommand(
         ['sh', self._device_copy_script, source, dest])
+
+  def GetPortPairForForwarding(self, local_port):
+    return forwarders.PortPair(local_port=local_port, remote_port=0)
 
   def RemoveProfile(self, package, ignore_list):
     """Delete application profile on device.

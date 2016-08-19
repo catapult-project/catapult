@@ -293,6 +293,9 @@ class _FakeNetworkController(object):
     self.is_replay_active = False
     self.is_open = False
 
+  def InitializeIfNeeded(self):
+    pass
+
   def Open(self, wpr_mode, extra_wpr_args):
     self.wpr_mode = wpr_mode
     self.extra_wpr_args = extra_wpr_args

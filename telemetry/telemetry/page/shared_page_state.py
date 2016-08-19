@@ -94,6 +94,7 @@ class SharedPageState(story.SharedState):
 
     if self.platform.network_controller.is_open:
       self.platform.network_controller.Close()
+    self.platform.network_controller.InitializeIfNeeded()
     self.platform.network_controller.Open(wpr_mode,
                                           browser_options.extra_wpr_args)
 

@@ -84,6 +84,8 @@ class BrowserTestCase(unittest.TestCase):
       browser_to_create = browser_finder.FindBrowser(options)
       if not browser_to_create:
         raise Exception('No browser found, cannot continue test.')
+      cls._platform = browser_to_create.platform
+      cls._platform.network_controller.InitializeIfNeeded()
 
       try:
         current_browser = browser_to_create.Create(options)
@@ -92,7 +94,6 @@ class BrowserTestCase(unittest.TestCase):
         cls.tearDownClass()
         raise
     cls._browser = current_browser
-    cls._platform = current_browser.platform
     cls._device = options.remote_platform_options.device
 
   @classmethod

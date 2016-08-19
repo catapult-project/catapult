@@ -121,24 +121,16 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     return args
 
   def GetReplayBrowserStartupArgs(self):
+    replay_args = []
     network_backend = self.platform_backend.network_controller_backend
+    proxy_port = network_backend.forwarder.port_pair.remote_port
+    replay_args.append('--proxy-server=socks://localhost:%s' % proxy_port)
     if not network_backend.is_replay_active:
       return []
-    replay_args = []
     if not network_backend.is_test_ca_installed:
       # Ignore certificate errors if the platform backend has not created
       # and installed a root certificate.
       replay_args.append('--ignore-certificate-errors')
-    # Force hostnames to resolve to the replay's host_ip.
-    replay_args.append('--host-resolver-rules=MAP * %s,EXCLUDE localhost' %
-                         network_backend.host_ip)
-    # Force the browser to send HTTP/HTTPS requests to fixed ports if they
-    # are not the standard HTTP/HTTPS ports.
-    device_ports = network_backend.wpr_device_ports
-    if device_ports.http != 80:
-      replay_args.append('--testing-fixed-http-port=%s' % device_ports.http)
-    if device_ports.https != 443:
-      replay_args.append('--testing-fixed-https-port=%s' % device_ports.https)
     return replay_args
 
   def HasBrowserFinishedLaunching(self):
