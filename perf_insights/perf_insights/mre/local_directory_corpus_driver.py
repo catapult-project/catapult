@@ -26,25 +26,6 @@ def _GetFilesIn(basedir):
   return data_files
 
 
-def _GetTagsForRelPath(relpath):
-  # Tags.
-  sub_dir = os.path.dirname(relpath)
-  if len(sub_dir) == 0:
-    return []
-  parts = sub_dir.split(os.sep)
-  return [p for p in parts if len(p) > 0]
-
-
-def _GetMetadataForFilename(base_directory, filename):
-  relpath = os.path.relpath(filename, base_directory)
-  tags = _GetTagsForRelPath(relpath)
-
-  metadata = {'tags': tags}
-
-  # TODO(nduca): Add modification time to metadata.
-  return metadata
-
-
 def _DefaultUrlResover(abspath):
   return 'file:///%s' % abspath
 
@@ -69,16 +50,12 @@ class LocalDirectoryCorpusDriver(corpus_driver.CorpusDriver):
         '--trace_directory',
         help='Local directory containing traces to process.')
 
-  def GetTraceHandlesMatchingQuery(self, query):
+  def GetTraceHandles(self):
     trace_handles = []
 
     files = _GetFilesIn(self.directory)
     for rel_filename in files:
       filename = os.path.join(self.directory, rel_filename)
-      metadata = _GetMetadataForFilename(self.directory, filename)
-
-      if not query.Eval(metadata, len(trace_handles)):
-        continue
 
       url = self.url_resolver(filename)
       if url is None:

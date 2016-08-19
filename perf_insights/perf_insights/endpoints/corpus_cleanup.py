@@ -7,14 +7,15 @@ import logging
 import webapp2
 
 from perf_insights import cloud_config
-from perf_insights.endpoints.cloud_mapper.cloud_helper import \
-    default_retry_params
 from perf_insights.trace_info import TraceInfo
 import cloudstorage as gcs
 
 BATCH_SIZE = 100
 MAX_DAYS = 30
-
+DEFAULT_RETRY_PARAMS = gcs.RetryParams(initial_delay=0.2,
+                                       max_delay=5.0,
+                                       backoff_factor=2,
+                                       max_retry_period=15)
 
 class CorpusCleanupPage(webapp2.RequestHandler):
 
@@ -28,7 +29,7 @@ class CorpusCleanupPage(webapp2.RequestHandler):
     for key in q.fetch(BATCH_SIZE, keys_only=True):
       gcs_path = '/%s/%s.gz' % (trace_bucket, key.id())
       try:
-        gcs.delete(gcs_path, retry_params=default_retry_params)
+        gcs.delete(gcs_path, retry_params=DEFAULT_RETRY_PARAMS)
       except gcs.NotFoundError:
         pass
 

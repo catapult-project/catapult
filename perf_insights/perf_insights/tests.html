@@ -37,14 +37,11 @@ found in the LICENSE file.
         getAllSuiteRelPathsAsync: function() {
           return tr.b.getAsync('/perf_insights/tests').then(function(json) {
             return JSON.parse(json).test_relpaths;
-          }).catch (function(e) {
+          }).catch(function(e) {
            throw e;
           });
         },
-        testLinks: [
-          {linkPath: '/perf_insights_examples/perf_insights_viewer.html',
-           title: 'Perf Insights Viewer'}
-        ]
+        testLinks: []
       });
     });
 

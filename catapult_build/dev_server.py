@@ -38,8 +38,6 @@ _QUICK_LINKS = [
      '/tracing_examples/trace_viewer.html'),
     ('Metrics debugger',
      '/tracing_examples/metrics_debugger.html'),
-    ('Perf Insights Viewer',
-     '/perf_insights_examples/perf_insights_viewer.html'),
 ]
 
 _LINK_ITEM = '<li><a href="%s">%s</a></li>'

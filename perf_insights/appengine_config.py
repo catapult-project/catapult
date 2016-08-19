@@ -13,10 +13,23 @@ import os
 
 from google.appengine.ext import vendor
 
-from perf_insights.endpoints import cloud_mapper
-
 appstats_SHELL_OK = True
 
+# Directories in catapult/third_party required by uploader/corpus cleanup.
+THIRD_PARTY_LIBRARIES = [
+    'apiclient',
+    'uritemplate',
+]
+# Directories in perf_insights/third_party required by uploader/corpus cleanup.
+THIRD_PARTY_LIBRARIES_IN_PERF_INSIGHTS = [
+    'cloudstorage',
+]
+# Libraries bundled with the App Engine SDK.
+THIRD_PARTY_LIBRARIES_IN_SDK = [
+    'httplib2',
+    'oauth2client',
+    'six',
+]
 
 def _AddThirdPartyLibraries():
   """Registers the third party libraries with App Engine.
@@ -28,8 +41,9 @@ def _AddThirdPartyLibraries():
   # The deploy script is expected to add links to third party libraries
   # before deploying. If the directories aren't there (e.g. when running tests)
   # then just ignore it.
-  for library_dir in (cloud_mapper.THIRD_PARTY_LIBRARIES +
-                      cloud_mapper.THIRD_PARTY_LIBRARIES_IN_SDK):
+  for library_dir in (THIRD_PARTY_LIBRARIES +
+                      THIRD_PARTY_LIBRARIES_IN_PERF_INSIGHTS +
+                      THIRD_PARTY_LIBRARIES_IN_SDK):
     if os.path.exists(library_dir):
       vendor.add(os.path.join(os.path.dirname(__file__), library_dir))
 

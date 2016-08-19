@@ -5,5 +5,5 @@
 
 class CorpusDriver(object):
 
-  def GetTraceHandlesMatchingQuery(self, query):
+  def GetTraceHandles(self):
     raise NotImplementedError()
