@@ -70,6 +70,7 @@ class TsProxyServer(object):
     atexit_with_log.Register(self.StopServer)
     try:
       util.WaitFor(self._IsStarted, timeout)
+      logging.info('TsProxy port: %s', self._port)
       self._is_running = True
     except exceptions.TimeoutException:
       err = self.StopServer()
