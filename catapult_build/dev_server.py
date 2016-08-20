@@ -17,7 +17,6 @@ import webapp2
 from webapp2 import Route, RedirectHandler
 
 from dashboard_build import dashboard_dev_server_config
-from perf_insights_build import perf_insights_dev_server_config
 from tracing_build import tracing_dev_server_config
 from netlog_viewer_build import netlog_viewer_dev_server_config
 
@@ -302,7 +301,6 @@ def _AddCommandLineArguments(pds, argv):
 def Main(argv):
   pds = [
       dashboard_dev_server_config.DashboardDevServerConfig(),
-      perf_insights_dev_server_config.PerfInsightsDevServerConfig(),
       tracing_dev_server_config.TracingDevServerConfig(),
       netlog_viewer_dev_server_config.NetlogViewerDevServerConfig(),
   ]

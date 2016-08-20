@@ -86,40 +86,6 @@ _CATAPULT_TESTS = [
         'disabled': ['mac', 'win'],
     },
     {
-        'name': 'Perf Insights Dev Server Tests Canary',
-        'path': 'perf_insights/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks',
-            '--no-use-local-chrome',
-            '--channel=canary'
-        ],
-        'outputs_presentation_json': True,
-        'disabled': ['android'],
-    },
-    {
-        'name': 'Perf Insights Dev Server Tests Stable',
-        'path': 'perf_insights/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks',
-            '--no-use-local-chrome',
-            '--channel=stable',
-        ],
-        'uses_sandbox_env': True,
-        'outputs_presentation_json': True,
-        'disabled': ['android'],
-    },
-    {
-        'name': 'Perf Insights Python Tests',
-        'path': 'perf_insights/bin/run_py_tests',
-        'additional_args': ['--no-install-hooks'],
-        'disabled': ['android'],
-    },
-    {
-        'name': 'Perf VINN Insights Tests',
-        'path': 'perf_insights/bin/run_vinn_tests',
-        'disabled': ['android'],
-    },
-    {
         'name': 'Py-vulcanize Tests',
         'path': 'third_party/py_vulcanize/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],

@@ -9,8 +9,8 @@ import re
 import webapp2
 import uuid
 
-from perf_insights import trace_info
-from perf_insights import cloud_config
+from . import trace_info
+from . import cloud_config
 
 import cloudstorage as gcs
 

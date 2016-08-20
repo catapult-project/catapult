@@ -6,8 +6,8 @@ import datetime
 import logging
 import webapp2
 
-from perf_insights import cloud_config
-from perf_insights.trace_info import TraceInfo
+from . import cloud_config
+from .trace_info import TraceInfo
 import cloudstorage as gcs
 
 BATCH_SIZE = 100
