@@ -46,6 +46,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     cls._browser_to_create = browser_finder.FindBrowser(browser_options)
     if not cls.platform:
       cls.platform = cls._browser_to_create.platform
+      cls.platform.network_controller.InitializeIfNeeded()
     else:
       assert cls.platform == cls._browser_to_create.platform, (
           'All browser launches within same test suite must use browsers on '
@@ -92,6 +93,7 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
   def tearDownClass(cls):
     if cls.platform:
       cls.platform.StopAllLocalServers()
+      cls.platform.network_controller.Close()
     if cls.browser:
       cls.StopBrowser()
 

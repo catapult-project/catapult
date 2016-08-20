@@ -101,6 +101,7 @@ class BrowserTestCase(unittest.TestCase):
   def tearDownClass(cls):
     if cls._platform:
       cls._platform.StopAllLocalServers()
+      cls._platform.network_controller.Close()
 
   @classmethod
   def CustomizeBrowserOptions(cls, options):

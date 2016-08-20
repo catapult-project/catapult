@@ -18,6 +18,7 @@ from telemetry.testing import options_for_unittests
 class ExtensionTest(unittest.TestCase):
   def setUp(self):
     self._browser = None
+    self._platform = None
     self._extension = None
     self._extension_id = None
 
@@ -32,6 +33,8 @@ class ExtensionTest(unittest.TestCase):
     if not browser_to_create:
       # May not find a browser that supports extensions.
       return False
+    self._platform = browser_to_create.platform
+    self._platform.network_controller.InitializeIfNeeded()
     self._browser = browser_to_create.Create(options)
     self._extension = self._browser.extensions[load_extension]
     self._extension_id = load_extension.extension_id
@@ -41,6 +44,7 @@ class ExtensionTest(unittest.TestCase):
   def tearDown(self):
     if self._browser:
       self._browser.Close()
+      self._platform.network_controller.Close()
 
   def testExtensionBasic(self):
     """Test ExtensionPage's ExecuteJavaScript and EvaluateJavaScript."""
@@ -98,9 +102,13 @@ class NonExistentExtensionTest(unittest.TestCase):
     load_extension = extension_to_load.ExtensionToLoad(
         extension_path, options.browser_type)
     browser_to_create = browser_finder.FindBrowser(options)
-    with browser_to_create.Create(options) as b:
-      if b.supports_extensions:
-        self.assertRaises(KeyError, lambda: b.extensions[load_extension])
+    try:
+      browser_to_create.platform.network_controller.InitializeIfNeeded()
+      with browser_to_create.Create(options) as b:
+        if b.supports_extensions:
+          self.assertRaises(KeyError, lambda: b.extensions[load_extension])
+    finally:
+      browser_to_create.platform.network_controller.Close()
 
 class MultipleExtensionTest(unittest.TestCase):
   def setUp(self):
@@ -120,12 +128,17 @@ class MultipleExtensionTest(unittest.TestCase):
                                 for d in self._extension_dirs]
     options.browser_options.extensions_to_load = self._extensions_to_load
     browser_to_create = browser_finder.FindBrowser(options)
+    self._platform = None
     self._browser = None
     # May not find a browser that supports extensions.
     if browser_to_create:
+      self._platform = browser_to_create.platform
+      self._platform.network_controller.InitializeIfNeeded()
       self._browser = browser_to_create.Create(options)
 
   def tearDown(self):
+    if self._platform:
+      self._platform.network_controller.Close()
     if self._browser:
       self._browser.Close()
     for d in self._extension_dirs:
@@ -165,12 +178,16 @@ class ComponentExtensionTest(unittest.TestCase):
                       'skipping test.')
       return
 
-    with browser_to_create.Create(options) as b:
-      extension = b.extensions[load_extension]
-      self.assertTrue(
-          extension.EvaluateJavaScript('chrome.runtime != null'))
-      extension.ExecuteJavaScript('setTestVar("abcdef")')
-      self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
+    try:
+      browser_to_create.platform.network_controller.InitializeIfNeeded()
+      with browser_to_create.Create(options) as b:
+        extension = b.extensions[load_extension]
+        self.assertTrue(
+            extension.EvaluateJavaScript('chrome.runtime != null'))
+        extension.ExecuteJavaScript('setTestVar("abcdef")')
+        self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
+    finally:
+      browser_to_create.platform.network_controller.Close()
 
   def testComponentExtensionNoPublicKey(self):
     # simple_extension does not have a public key.
