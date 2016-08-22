@@ -244,10 +244,11 @@ def _PointInfoDict(row, anomaly_annotation_map):
       # should be 'camel.client.case'.
       master_camel_case = utils.TestPath(row.parent_test).split('/')[0]
       master_parts = re.findall('([A-Z][a-z0-9]+)', master_camel_case)
-      master_name = '%s.client.%s' % (
-          master_parts[1].lower(), master_parts[0].lower())
-      val = val.replace('(None', '(%s/%s/' % (
-          row_dict['a_stdio_uri_prefix'], master_name))
+      if master_parts and len(master_parts) == 2:
+        master_name = '%s.client.%s' % (
+            master_parts[1].lower(), master_parts[0].lower())
+        val = val.replace('(None', '(%s/%s/' % (
+            row_dict['a_stdio_uri_prefix'], master_name))
 
     if name.startswith('r_'):
       point_info[name] = val
