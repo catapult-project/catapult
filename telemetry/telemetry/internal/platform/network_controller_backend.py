@@ -7,8 +7,8 @@ import os
 import shutil
 import tempfile
 
+from telemetry.internal import forwarders
 from telemetry.internal.util import wpr_server
-from telemetry.internal.util import ts_proxy_server
 from telemetry.util import wpr_modes
 
 import certutils
@@ -36,27 +36,12 @@ class NetworkControllerBackend(object):
     self._platform_backend = platform_backend
     self._wpr_mode = None
     self._extra_wpr_args = None
+    self._wpr_port_pairs = None
     self._archive_path = None
     self._make_javascript_deterministic = None
     self._forwarder = None
     self._wpr_ca_cert_path = None
     self._wpr_server = None
-    self._ts_proxy_server = None
-    self._port_pair = None
-
-  def InitializeIfNeeded(self):
-    """
-    This may, e.g., install test certificates and perform any needed setup
-    on the target platform.
-
-    After network interactions are over, clients should call the Close method.
-    """
-    assert bool(self._ts_proxy_server) == bool(self._forwarder)
-    if self._ts_proxy_server:
-      return
-    local_port = self._StartTsProxyServer()
-    self._forwarder = self._platform_backend.forwarder_factory.Create(
-        self._platform_backend.GetPortPairForForwarding(local_port))
 
   @property
   def is_open(self):
@@ -95,10 +80,10 @@ class NetworkControllerBackend(object):
           wpr_modes.WPR_RECORD.
       extra_wpr_args: an list of extra arguments for web page replay.
     """
-    self.InitializeIfNeeded()
     assert not self.is_open, 'Network controller is already open'
     self._wpr_mode = wpr_mode
     self._extra_wpr_args = extra_wpr_args
+    self._wpr_port_pairs = self._platform_backend.GetWprPortPairs()
     self._InstallTestCa()
 
   def Close(self):
@@ -107,11 +92,10 @@ class NetworkControllerBackend(object):
     Implicitly stops replay if currently active.
     """
     self.StopReplay()
-    self._StopForwarder()
-    self._StopTsProxyServer()
     self._RemoveTestCa()
     self._make_javascript_deterministic = None
     self._archive_path = None
+    self._wpr_port_pairs = None
     self._extra_wpr_args = None
     self._wpr_mode = None
 
@@ -205,31 +189,29 @@ class NetworkControllerBackend(object):
     self._archive_path = archive_path
     self._make_javascript_deterministic = make_javascript_deterministic
     local_ports = self._StartReplayServer()
-    self._ts_proxy_server.UpdateOutboundPorts(
-        http_port=local_ports.http, https_port=local_ports.https)
-
-  def _StopForwarder(self):
-    if self._forwarder:
-      self._forwarder.Close()
-      self._forwarder = None
+    self._StartForwarder(local_ports)
 
   def StopReplay(self):
     """Stop web page replay.
 
     Stops both the replay server and the forwarder if currently active.
     """
+    if self._forwarder:
+      self._forwarder.Close()
+      self._forwarder = None
     self._StopReplayServer()
 
   def _StartReplayServer(self):
     """Start the replay server and return the started local_ports."""
     self._StopReplayServer()  # In case it was already running.
+    local_ports = self._wpr_port_pairs.local_ports
     self._wpr_server = wpr_server.ReplayServer(
         self._archive_path,
         self.host_ip,
-        http_port=0,
-        https_port=0,
-        dns_port=None,
-        replay_options=self._ReplayCommandLineArgs())
+        local_ports.http,
+        local_ports.https,
+        local_ports.dns,
+        self._ReplayCommandLineArgs())
     return self._wpr_server.StartServer()
 
   def _StopReplayServer(self):
@@ -237,12 +219,6 @@ class NetworkControllerBackend(object):
     if self._wpr_server:
       self._wpr_server.StopServer()
       self._wpr_server = None
-
-  def _StopTsProxyServer(self):
-    """Stop the replay server only."""
-    if self._ts_proxy_server:
-      self._ts_proxy_server.StopServer()
-      self._ts_proxy_server = None
 
   def _ReplayCommandLineArgs(self):
     wpr_args = list(self._extra_wpr_args)
@@ -258,12 +234,15 @@ class NetworkControllerBackend(object):
           '--https_root_ca_cert_path=%s' % self._wpr_ca_cert_path])
     return wpr_args
 
-  def _StartTsProxyServer(self):
-    assert not self._ts_proxy_server, 'ts_proxy_server is already started'
-    self._ts_proxy_server = ts_proxy_server.TsProxyServer(host_ip=self.host_ip)
-    self._ts_proxy_server.StartServer()
-    return self._ts_proxy_server.port
-
-  @property
-  def forwarder(self):
-    return self._forwarder
+  def _StartForwarder(self, local_ports):
+    """Start a forwarder from local_ports to the set WPR remote_ports."""
+    if self._forwarder is not None:
+      if local_ports == self._forwarder.port_pairs.local_ports:
+        return  # Safe to reuse existing forwarder.
+      self._forwarder.Close()
+    self._forwarder = self._platform_backend.forwarder_factory.Create(
+        forwarders.PortPairs.Zip(local_ports,
+                                 self._wpr_port_pairs.remote_ports))
+    # Override port pairts with values after defaults have been resolved;
+    # we should use the same set of ports when restarting replay.
+    self._wpr_port_pairs = self._forwarder.port_pairs

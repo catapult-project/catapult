@@ -85,9 +85,6 @@ class PlatformBackend(object):
       self._forwarder_factory = do_nothing_forwarder.DoNothingForwarderFactory()
     return self._forwarder_factory
 
-  def GetPortPairForForwarding(self, local_port):
-    return forwarders.PortPair(local_port=local_port, remote_port=local_port)
-
   def GetRemotePort(self, port):
     return port
 
@@ -105,6 +102,13 @@ class PlatformBackend(object):
       self.SetFullPerformanceModeEnabled(False)
 
     self._running_browser_backends.discard(browser_backend)
+
+  def GetWprPortPairs(self):
+    """Return suitable port pairs to be used for web page replay."""
+    return forwarders.PortPairs(
+        http=forwarders.PortPair(0, 0),
+        https=forwarders.PortPair(0, 0),
+        dns=None)
 
   def IsDisplayTracingSupported(self):
     return False

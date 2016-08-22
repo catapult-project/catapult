@@ -82,15 +82,13 @@ class LocalServer(object):
                                         stdout=subprocess.PIPE)
 
     named_ports = self._GetNamedPortsFromBackend()
-    http_port = None
-    for p in named_ports:
-      if p.name == 'http':
-        http_port = p.port
-    assert http_port and len(named_ports) == 1, (
-        'Only http port is supported: %s' % named_ports)
+    named_port_pair_map = {'http': None, 'https': None, 'dns': None}
+    for name, port in named_ports:
+      assert name in named_port_pair_map, '%s forwarding is unsupported' % name
+      named_port_pair_map[name] = (forwarders.PortPair(
+          port, local_server_controller.GetRemotePort(port)))
     self.forwarder = local_server_controller.CreateForwarder(
-        forwarders.PortPair(http_port,
-                            local_server_controller.GetRemotePort(http_port)))
+        forwarders.PortPairs(**named_port_pair_map))
 
   def _GetNamedPortsFromBackend(self):
     named_ports_json = None
@@ -180,8 +178,8 @@ class LocalServerController(object):
         import traceback
         traceback.print_exc()
 
-  def CreateForwarder(self, port_pair):
-    return self._platform_backend.forwarder_factory.Create(port_pair)
+  def CreateForwarder(self, port_pairs):
+    return self._platform_backend.forwarder_factory.Create(port_pairs)
 
   def GetRemotePort(self, port):
     return self._platform_backend.GetRemotePort(port)

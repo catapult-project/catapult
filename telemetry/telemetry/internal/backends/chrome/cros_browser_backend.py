@@ -131,8 +131,10 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # TODO(crbug.com/404771): Move port forwarding to network_controller.
       self._port = util.GetUnreservedAvailableLocalPort()
       self._forwarder = self._platform_backend.forwarder_factory.Create(
-          forwarders.PortPair(self._port, self._remote_debugging_port),
-          use_remote_port_forwarding=False)
+          forwarders.PortPairs(
+              http=forwarders.PortPair(self._port, self._remote_debugging_port),
+              https=None,
+              dns=None), use_remote_port_forwarding=False)
 
     # Wait for new chrome and oobe.
     util.WaitFor(lambda: pid != self.pid, 15)
