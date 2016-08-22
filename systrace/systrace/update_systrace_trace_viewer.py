@@ -18,7 +18,7 @@ sys.path.append(os.path.join(_CATAPULT_PATH, 'tracing'))
 from tracing_build import vulcanize_trace_viewer
 
 
-SYSTRACE_TRACE_VIEWER_HTML_FILE_ = os.path.join(
+SYSTRACE_TRACE_VIEWER_HTML_FILE = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
     'systrace_trace_viewer.html')
 CATAPULT_REV_ = 'CATAPULT_REV'
@@ -55,7 +55,7 @@ def get_catapult_rev_in_git_():
     return catapult_rev
 
 
-def update(no_auto_update=False, no_min=False):
+def update(no_auto_update=False, no_min=False, force_update=False):
   """Update the systrace trace viewer html file.
 
   When the html file exists, do not update the file if
@@ -67,33 +67,39 @@ def update(no_auto_update=False, no_min=False):
                     NO_AUTO_UPDATE_. Future updates will be skipped unless this
                     argument is true again.
     no_min:         If true, skip minification when updating the file.
+    force_update:   If true, update the systrace trace viewer file no matter
+                    what.
   """
   new_rev = None
-  if no_auto_update:
-    new_rev = NO_AUTO_UPDATE_
-  else:
-    new_rev = get_catapult_rev_in_git_()
-    if not new_rev:
-      return
-
-    if os.path.exists(SYSTRACE_TRACE_VIEWER_HTML_FILE_):
-      rev_in_file = get_catapult_rev_in_file_(SYSTRACE_TRACE_VIEWER_HTML_FILE_)
-      if rev_in_file == NO_AUTO_UPDATE_ or rev_in_file == new_rev:
+  if not force_update:
+    if no_auto_update:
+      new_rev = NO_AUTO_UPDATE_
+    else:
+      new_rev = get_catapult_rev_in_git_()
+      if not new_rev:
         return
 
+      if os.path.exists(SYSTRACE_TRACE_VIEWER_HTML_FILE):
+        rev_in_file = get_catapult_rev_in_file_(SYSTRACE_TRACE_VIEWER_HTML_FILE)
+        if rev_in_file == NO_AUTO_UPDATE_ or rev_in_file == new_rev:
+          return
+
+  if force_update and not new_rev:
+    new_rev = "none"
+
   print 'Generating viewer file %s with revision %s.' % (
-            SYSTRACE_TRACE_VIEWER_HTML_FILE_, new_rev)
+            SYSTRACE_TRACE_VIEWER_HTML_FILE, new_rev)
 
   # Generate the vulcanized result.
-  with codecs.open(SYSTRACE_TRACE_VIEWER_HTML_FILE_,
+  with codecs.open(SYSTRACE_TRACE_VIEWER_HTML_FILE,
                    encoding='utf-8', mode='w') as f:
     vulcanize_trace_viewer.WriteTraceViewer(
         f,
         config_name='full',
         minify=(not no_min),
         output_html_head_and_body=False)
-    f.write(create_catapult_rev_str_(new_rev))
-
+    if not force_update:
+      f.write(create_catapult_rev_str_(new_rev))
 
 def main():
   parser = optparse.OptionParser()

@@ -13,19 +13,22 @@ import unittest
 from systrace import decorators
 from systrace import output_generator
 from systrace import trace_result
+from systrace import update_systrace_trace_viewer
 
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 ATRACE_DATA = os.path.join(TEST_DIR, 'atrace_data')
 COMBINED_PROFILE_CHROME_DATA = os.path.join(
-                                  TEST_DIR,
-                                  'profile-chrome_systrace_perf_chrome_data')
+    TEST_DIR, 'profile-chrome_systrace_perf_chrome_data')
 
 
 class OutputGeneratorTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def testJsonTraceMerging(self):
+    update_systrace_trace_viewer.update(force_update=True)
+    self.assertTrue(os.path.exists(
+        update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE))
     t1 = "{'traceEvents': [{'ts': 123, 'ph': 'b'}]}"
     t2 = "{'traceEvents': [], 'stackFrames': ['blah']}"
     results = [trace_result.TraceResult('a', t1),
@@ -38,9 +41,13 @@ class OutputGeneratorTest(unittest.TestCase):
       elif r.source_name == 'b':
         self.assertEquals(r.raw_data, t2)
     self.assertEquals(len(merged_results), len(results))
+    os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
 
   @decorators.HostOnlyTest
   def testHtmlOutputGenerationFormatsSingleTrace(self):
+    update_systrace_trace_viewer.update(force_update=True)
+    self.assertTrue(os.path.exists(
+        update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE))
     with open(ATRACE_DATA) as f:
       atrace_data = f.read().replace(" ", "").strip()
       trace_results = [trace_result.TraceResult('systemTraceEvents',
@@ -60,9 +67,13 @@ class OutputGeneratorTest(unittest.TestCase):
     # correct place in the HTML document and that the data is not
     # malformed.
     self.assertEquals(trace_data, atrace_data)
+    os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
 
   @decorators.HostOnlyTest
   def testHtmlOutputGenerationFormatsMultipleTraces(self):
+    update_systrace_trace_viewer.update(force_update=True)
+    self.assertTrue(os.path.exists(
+        update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE))
     json_data = open(COMBINED_PROFILE_CHROME_DATA).read()
     combined_data = json.loads(json_data)
     trace_results = []
@@ -86,6 +97,7 @@ class OutputGeneratorTest(unittest.TestCase):
         # malformed.
         self.assertTrue(trace_data in trace_results_expected)
     os.remove(final_path)
+    os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
 
 def _GenerateRandomString(strlen):
   return ''.join(random.choice(string.ascii_uppercase +
