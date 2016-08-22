@@ -741,9 +741,11 @@ class AndroidPlatformBackend(
     return self._IsScreenLocked(input_methods)
 
   def HasBattOrConnected(self):
-    # str(self.device) is the device id as a string.
-    return battor_wrapper.IsBattOrConnected(self.GetOSName(),
-                                            android_device=str(self.device))
+    # Use linux instead of Android because when determining what tests to run on
+    # a bot the individual device could be down, which would make BattOr tests
+    # not run on any device. BattOrs communicate with the host and not android
+    # devices.
+    return battor_wrapper.IsBattOrConnected('linux')
 
 
 def _FixPossibleAdbInstability():
