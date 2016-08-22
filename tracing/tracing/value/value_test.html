@@ -17,14 +17,16 @@ tr.b.unittest.testSuite(function() {
   test('numericValueBasic', function() {
     var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
     var v = new tr.v.NumericValue('MyNumeric', n);
+    v.shortName = 'n';
     assert.isDefined(v.guid);
     var d = v.asDict();
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.NumericValue);
-    assert.equal(v.guid, v2.guid);
-    assert.equal(v.name, v2.name);
-    assert.equal(v.numeric.value, v2.numeric.value);
+    assert.strictEqual(v.guid, v2.guid);
+    assert.strictEqual(v.name, v2.name);
+    assert.strictEqual(v.shortName, v2.shortName);
+    assert.strictEqual(v.numeric.value, v2.numeric.value);
   });
 
   test('failureValueBasic', function() {
@@ -36,10 +38,10 @@ tr.b.unittest.testSuite(function() {
 
     var v2 = tr.v.Value.fromDict(d);
     assert.instanceOf(v2, tr.v.FailureValue);
-    assert.equal(v.guid, v2.guid);
-    assert.equal(v.name, v2.name);
-    assert.equal(v.description, v2.description);
-    assert.equal(v.stack, v2.stack);
+    assert.strictEqual(v.guid, v2.guid);
+    assert.strictEqual(v.name, v2.name);
+    assert.strictEqual(v.description, v2.description);
+    assert.strictEqual(v.stack, v2.stack);
   });
 
   test('genericDiagnostic', function() {
@@ -57,8 +59,8 @@ tr.b.unittest.testSuite(function() {
     }));
     var v1 = tr.v.Value.fromDict(v0.asDict());
     var d = v1.diagnostics.get('foo');
-    assert.strictEqual(true, d.value.t);
-    assert.strictEqual(false, d.value.f);
+    assert.isTrue(d.value.t);
+    assert.isFalse(d.value.f);
     assert.strictEqual(0, d.value.z);
     assert.strictEqual(1, d.value.o);
     assert.strictEqual(0.42, d.value.ans);

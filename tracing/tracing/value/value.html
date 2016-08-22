@@ -20,6 +20,7 @@ tr.exportTo('tr.v', function() {
       throw new Error('name must be a string');
 
     this.name_ = name;
+    this.shortName = undefined;
 
     // If this Value is being deserialized, then its guid will be set by
     // fromDict().
@@ -51,6 +52,7 @@ tr.exportTo('tr.v', function() {
     }
 
     value.guid = d.guid;
+    value.shortName = d.shortName;
     value.diagnostics.addDicts(d.diagnostics);
     return value;
   };
@@ -86,6 +88,9 @@ tr.exportTo('tr.v', function() {
         important: this.important,
         diagnostics: this.diagnostics.asDict()
       };
+
+      if (this.shortName)
+        d.shortName = this.shortName;
 
       this.asDictInto_(d);
       if (d.type === undefined)
