@@ -159,7 +159,7 @@ _CATAPULT_TESTS = [
             '--no-install-hooks',
             '--no-use-local-chrome',
         ],
-        'disabled': ['android'],
+        'disabled': ['android', 'win', 'mac', 'linux'],
     },
 ]
 
