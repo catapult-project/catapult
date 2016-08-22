@@ -476,6 +476,7 @@
       'tracing/value/diagnostics/related_event_set.html',
       'tracing/value/diagnostics/related_value_map.html',
       'tracing/value/diagnostics/related_value_set.html',
+      'tracing/value/diagnostics/value_ref.html',
       'tracing/value/generic_table.html',
       'tracing/value/numeric.html',
       'tracing/value/time_display_mode.html',

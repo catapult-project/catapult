@@ -7,16 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+<link rel="import" href="/tracing/value/diagnostics/value_ref.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  /** @constructor */
-  function ValueRef(guid) {
-    this.guid = guid;
-  }
-
   /** @constructor */
   function RelatedValueSet(opt_values) {
     this.valuesByGuid_ = {};
@@ -31,11 +27,11 @@ tr.exportTo('tr.v.d', function() {
     /**
      * Add a Value to this set.
      *
-     * @param {!(ValueRef|tr.v.Value)} v
+     * @param {!(tr.v.d.ValueRef|tr.v.Value)} v
      */
     add: function(value) {
       if (!(value instanceof tr.v.Value) &&
-          !(value instanceof ValueRef))
+          !(value instanceof tr.v.d.ValueRef))
         throw new Error('Must be instanceof Value or ValueRef: ' + value);
 
       if (this.valuesByGuid_[value.guid])
@@ -45,7 +41,7 @@ tr.exportTo('tr.v.d', function() {
     },
 
     /**
-     * @return {Array.<(ValueRef|tr.v.Value)>}
+     * @return {Array.<(tr.v.d.ValueRef|tr.v.Value)>}
      */
     get values() {
       return tr.b.dictionaryValues(this.valuesByGuid_);
@@ -64,7 +60,7 @@ tr.exportTo('tr.v.d', function() {
      */
     resolve: function(valueSet, opt_required) {
       tr.b.iterItems(this.valuesByGuid_, function(guid, value) {
-        if (!(value instanceof ValueRef))
+        if (!(value instanceof tr.v.d.ValueRef))
           return;
 
         value = valueSet.lookup(guid);
@@ -81,7 +77,7 @@ tr.exportTo('tr.v.d', function() {
   };
 
   RelatedValueSet.fromDict = function(d) {
-    return new RelatedValueSet(d.guids.map(guid => new ValueRef(guid)));
+    return new RelatedValueSet(d.guids.map(guid => new tr.v.d.ValueRef(guid)));
   };
 
   tr.v.d.Diagnostic.register(RelatedValueSet, {
@@ -90,7 +86,6 @@ tr.exportTo('tr.v.d', function() {
 
   return {
     RelatedValueSet: RelatedValueSet,
-    ValueRef: ValueRef
   };
 });
 </script>
