@@ -169,21 +169,11 @@ def main():
   args = parser.parse_args()
   run_tests_helper.SetLogLevel(args.verbose)
 
-  devil_dynamic_config = {
-    'config_type': 'BaseConfig',
-    'dependencies': {},
-  }
-
+  devil_dynamic_config = devil_env.EmptyConfig()
   if args.adb_path:
-    devil_dynamic_config['dependencies'].update({
-        'adb': {
-          'file_info': {
-            devil_env.GetPlatform(): {
-              'local_paths': [args.adb_path]
-            }
-          }
-        }
-    })
+    devil_dynamic_config['dependencies'].update(
+        devil_env.LocalConfigItem(
+            'adb', devil_env.GetPlatform(), args.adb_path))
   devil_env.config.Initialize(configs=[devil_dynamic_config])
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)

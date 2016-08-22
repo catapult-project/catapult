@@ -47,22 +47,37 @@ _LEGACY_ENVIRONMENT_VARIABLES = {
 }
 
 
+def EmptyConfig():
+  return {
+    'config_type': 'BaseConfig',
+    'dependencies': {}
+  }
+
+
+def LocalConfigItem(dependency_name, dependency_platform, dependency_path):
+  if isinstance(dependency_path, basestring):
+    dependency_path = [dependency_path]
+  return {
+    dependency_name: {
+      'file_info': {
+        dependency_platform: {
+          'local_paths': dependency_path
+        },
+      },
+    },
+  }
+
+
 def _GetEnvironmentVariableConfig():
+  env_config = EmptyConfig()
   path_config = (
       (os.environ.get(k), v)
       for k, v in _LEGACY_ENVIRONMENT_VARIABLES.iteritems())
-  return {
-    'config_type': 'BaseConfig',
-    'dependencies': {
-      c['dependency_name']: {
-        'file_info': {
-          c['platform']: {
-            'local_paths': [p],
-          },
-        },
-      } for p, c in path_config if p
-    },
-  }
+  path_config = ((p, c) for p, c in path_config if p)
+  for p, c in path_config:
+    env_config['dependencies'].update(
+        LocalConfigItem(c['dependency_name'], c['platform'], p))
+  return env_config
 
 
 class _Environment(object):

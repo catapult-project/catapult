@@ -28,6 +28,8 @@ with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
   import dependency_manager  # pylint: disable=import-error
 
 
+ADB_KEYS_FILE = '/data/misc/adb/adb_keys'
+
 DEFAULT_TIMEOUT = 30
 DEFAULT_RETRIES = 2
 
