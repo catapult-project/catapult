@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+
+  function railPowerMetricHelper(values, model) {
+
+    var railStageTimes = new Map();
+    var railStageEnergy = new Map();
+
+    for (var exp of model.userModel.expectations) {
+      var currTitle = exp.title.toLowerCase().replace(' ', '_');
+      var currTime = 0;
+      var currEnergy = 0;
+      if (railStageTimes.has(currTitle)) {
+        currTime = railStageTimes.get(currTitle);
+        currEnergy = railStageEnergy.get(currTitle);
+      }
+      var thisTime = exp.duration;
+      var thisEnergy = model.device.powerSeries.getEnergyConsumed(
+        exp.start, exp.end);
+      railStageTimes.set(currTitle, currTime + thisTime);
+      railStageEnergy.set(currTitle, currEnergy + thisEnergy);
+    }
+
+    for (var [title, durationMs] of railStageTimes) {
+      var energyJ = railStageEnergy.get(title) / 1000.0; //convert mJ to J
+      var powerW = energyJ / (durationMs / 1000.0); // in time, convert ms to s
+
+      values.addValue(new tr.v.NumericValue(
+        'total_time_' + title,
+        new tr.v.ScalarNumeric(
+            tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+            durationMs),
+        { description: 'Time spent in RAIL stage ' + title }));
+
+      values.addValue(new tr.v.NumericValue(
+        'total_energy_' + title,
+        new tr.v.ScalarNumeric(
+            tr.v.Unit.byName.energyInJoules_smallerIsBetter,
+            energyJ),
+        { description: 'Energy consumed in RAIL stage ' + title }));
+
+      values.addValue(new tr.v.NumericValue(
+        'energy_consumption_rate_' + title,
+        new tr.v.ScalarNumeric(
+            tr.v.Unit.byName.powerInWatts_smallerIsBetter,
+            powerW),
+        { description: 'Energy consumption rate for RAIL stage ' + title }));
+    }
+  }
+
+  function railPowerMetric(values, model) {
+    if (!model.device.powerSeries)
+      return;
+    railPowerMetricHelper(values, model);
+  }
+
+  tr.metrics.MetricRegistry.register(railPowerMetric);
+
+  return {
+    railPowerMetric: railPowerMetric
+  };
+});
+</script>

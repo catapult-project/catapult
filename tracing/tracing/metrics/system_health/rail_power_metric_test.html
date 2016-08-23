@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/rail_power_metric.html">
+<link rel="import" href="/tracing/model/user_model/idle_expectation.html">
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+function getMetricValue(valueSet, name) {
+  var dicts = valueSet.valueDicts.filter(
+      (dict) => dict.name === name);
+  return tr.b.getOnlyElement(dicts).numeric.value;
+}
+
+tr.b.unittest.testSuite(function() {
+  test('railPowerMetric_oneStageEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 500, 500));
+    tr.metrics.sh.railPowerMetric(valueSet, model);
+
+    assert.equal(getMetricValue(valueSet,
+        'total_time_successful_load'), 500);
+    assert.equal(getMetricValue(valueSet,
+        'total_time_idle'), 500);
+    assert.closeTo(getMetricValue(valueSet,
+        'total_energy_successful_load'), 0.125, 1e-2);
+    assert.closeTo(getMetricValue(valueSet,
+        'total_energy_idle'), 0.375, 1e-2);
+    assert.closeTo(getMetricValue(valueSet,
+        'energy_consumption_rate_successful_load'), 0.25, 1e-2);
+    assert.closeTo(getMetricValue(valueSet,
+        'energy_consumption_rate_idle'), 0.75, 1e-2);
+  });
+
+  test('railPowerMetric_multipleStagesEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 200, 300));
+    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 500, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 700, 300));
+    tr.metrics.sh.railPowerMetric(valueSet, model);
+
+    assert.equal(getMetricValue(valueSet,
+        'total_time_successful_load'), 400);
+    assert.equal(getMetricValue(valueSet,
+        'total_time_idle'), 600);
+    assert.closeTo(getMetricValue(valueSet,
+        'total_energy_successful_load'), 0.14, 1e-2);
+    assert.closeTo(getMetricValue(valueSet,
+        'total_energy_idle'), 0.36, 1e-2);
+    assert.closeTo(getMetricValue(valueSet,
+        'energy_consumption_rate_successful_load'), 0.35, 1e-2);
+    assert.closeTo(getMetricValue(valueSet,
+        'energy_consumption_rate_idle'), 0.6, 1e-2);
+  });
+
+  test('railPowerMetric_noPowerSeries', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    tr.metrics.sh.railPowerMetric(valueSet, model);
+    var powerEntries = valueSet.valueDicts.filter(
+        (dict) => dict.name.indexOf('rail_stage') === 0);
+    assert.lengthOf(powerEntries, 0);
+  });
+});
+</script>

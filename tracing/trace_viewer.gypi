@@ -179,6 +179,7 @@
       'tracing/metrics/system_health/long_tasks_metric.html',
       'tracing/metrics/system_health/memory_metric.html',
       'tracing/metrics/system_health/power_metric.html',
+      'tracing/metrics/system_health/rail_power_metric.html',
       'tracing/metrics/system_health/responsiveness_metric.html',
       'tracing/metrics/system_health/system_health_metrics.html',
       'tracing/metrics/system_health/utils.html',
