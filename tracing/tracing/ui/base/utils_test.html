@@ -35,7 +35,7 @@ Polymer({
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var THIS_DOC = document._currentScript.ownerDocument;
+  var THIS_DOC = document.currentScript.ownerDocument;
 
   test('instantiateTemplatePolymer', function() {
     var e = tr.ui.b.instantiateTemplate(

@@ -17,7 +17,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var ScalarNumeric = tr.v.ScalarNumeric;
   var Unit = tr.v.Unit;
-  var THIS_DOC = document._currentScript.ownerDocument;
+  var THIS_DOC = document.currentScript.ownerDocument;
 
   function checkScalarSpan(test, value, unit, expectedContent, opt_options) {
     var options = opt_options || {};
