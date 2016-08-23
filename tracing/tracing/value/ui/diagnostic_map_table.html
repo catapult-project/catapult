@@ -12,14 +12,15 @@ found in the LICENSE file.
   <template>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
+
   <script>
   'use strict';
 
   Polymer({
     is: 'tr-v-ui-diagnostic-map-table',
 
-    ready: function() {
-      this.titledDiagnosticMaps_ = undefined;
+    created: function() {
+      this.diagnosticMaps_ = undefined;
     },
 
     /**
@@ -30,61 +31,42 @@ found in the LICENSE file.
      * @param {!string} maps[].title
      * @param {!tr.v.d.DiagnosticMap} maps[].diagnosticMap
      */
-    set titledDiagnosticMaps(maps) {
-      this.titledDiagnosticMaps_ = maps;
+    set diagnosticMaps(maps) {
+      this.diagnosticMaps_ = maps;
       this.updateContent_();
     },
 
     updateContent_: function() {
-      if (this.titledDiagnosticMaps_ === undefined ||
-          this.titledDiagnosticMaps_.length === 0) {
+      if (this.diagnosticMaps_ === undefined ||
+          this.diagnosticMaps_.length === 0) {
         this.$.table.tableRows = [];
         this.$.table.tableColumns = [];
         return;
       }
 
-      var columns = [{
-        title: 'Name',
+      var columnTitles = new Set();
+      for (var map of this.diagnosticMaps_) {
+        map.forEach(function(name, diagnostic) {
+          columnTitles.add(name);
+        });
+      }
+      columnTitles = [...columnTitles].sort();
 
-        value: function(row) {
-          return row.name;
-        },
-
-        cmp: function(a, b) {
-          return a.name.localeCompare(b.name);
-        }
-      }];
-
-      var rowNames = {};
-      var rows = [];
-
-      this.titledDiagnosticMaps_.forEach(function(titledMap) {
-        var title = titledMap.title;
-        var diagnosticMap = titledMap.diagnosticMap;
-
-        columns.push({
+      var columns = [];
+      function makeColumn(title) {
+        return {
           title: title,
-
-          value: function(row) {
-            var diagnostic = diagnosticMap.get(row.name);
-            if (diagnostic === undefined)
-              return '';
-
-            return tr.v.ui.createDiagnosticSpan(diagnostic);
+          value: function(map) {
+            return tr.v.ui.createDiagnosticSpan(map.get(title));
           }
-        });
+        };
+      }
+      for (var title of columnTitles) {
+        columns.push(makeColumn(title));
+      }
 
-        diagnosticMap.forEach(function(name, diagnostic) {
-          if (rowNames[name] !== true) {
-            rowNames[name] = true;
-            rows.push({name: name});
-          }
-        });
-      }, this);
-
-      rows.sort(columns[0].cmp);
       this.$.table.tableColumns = columns;
-      this.$.table.tableRows = rows;
+      this.$.table.tableRows = this.diagnosticMaps_;
       this.$.table.rebuild();
     }
   });

@@ -20,10 +20,7 @@ tr.b.unittest.testSuite(function() {
     map1.add('genericA', new tr.v.d.Generic({a: 1}));
     map1.add('genericB', new tr.v.d.Generic({b: 1}));
     var table = document.createElement('tr-v-ui-diagnostic-map-table');
-    table.titledDiagnosticMaps = [
-      {title: 'map0', diagnosticMap: map0},
-      {title: 'map1', diagnosticMap: map1},
-    ];
+    table.diagnosticMaps = [map0, map1];
     this.addHTMLOutput(table);
   });
 });

@@ -18,18 +18,14 @@ found in the LICENSE file.
         display: flex;
         flex-direction: row;
       }
-      #diagnostics {
-        display: flex;
-        flex-direction: column;
-      }
     </style>
 
     <div id="container">
       <div id="chart"></div>
       <tr-v-ui-numeric-stats-span id="stats"></tr-v-ui-numeric-stats-span>
     </div>
-    <div id="diagnostics">
-    </div>
+
+    <tr-v-ui-diagnostic-map-table id="diagnostic_map_table"/>
   </template>
 </dom-module>
 <script>
@@ -130,16 +126,17 @@ Polymer({
   },
 
   updateDiagnostics_: function(bins) {
-    Polymer.dom(this.$.diagnostics).textContent = '';
-    for (var bin of bins) {
-      for (var diagnosticMap of bin.diagnosticMaps) {
-        // TODO(eakuefner): Display these in a table.
-        diagnosticMap.forEach(function(unused_name, d) {
-          Polymer.dom(this.$.diagnostics).appendChild(
-              tr.v.ui.createDiagnosticSpan(d));
-        }, this);
-      }
+    var maps = [];
+    for (var bin of bins)
+      maps.push(...bin.diagnosticMaps);
+
+    if (maps.length === 0) {
+      this.$.diagnostic_map_table.style.display = 'none';
+      return;
     }
+
+    this.$.diagnostic_map_table.diagnosticMaps = maps;
+    this.$.diagnostic_map_table.style.display = 'block';
   },
 
   get histogram() {
@@ -148,7 +145,6 @@ Polymer({
 
   set histogram(histogram) {
     this.histogram_ = histogram;
-    Polymer.dom(this.$.diagnostics).textContent = '';
     this.updateContents_();
   },
 
@@ -158,6 +154,7 @@ Polymer({
 
   updateContents_: function() {
     this.$.chart.style.display = this.histogram_ ? '' : 'none';
+    this.$.diagnostic_map_table.style.display = 'none';
     this.$.stats.numeric = this.histogram_;
     if (!this.histogram_)
       return;
