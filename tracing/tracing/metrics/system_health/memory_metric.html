@@ -271,6 +271,24 @@ tr.exportTo('tr.metrics.sh', function() {
                     descriptionPrefixBuilder: descriptionPrefixBuilder
                   });
                 });
+            // Some dump providers add allocated objects size as
+            // "allocated_objects" child dump.
+            if (rootAllocatorDump.numerics['allocated_objects_size'] ===
+                    undefined) {
+              var allocatedObjectsDump =
+                  rootAllocatorDump.getDescendantDumpByFullName(
+                      'allocated_objects');
+              if (allocatedObjectsDump !== undefined) {
+                addProcessScalar({
+                  source: 'reported_by_chrome',
+                  component: [rootAllocatorDump.name],
+                  property: 'allocated_objects_size',
+                  value: allocatedObjectsDump.numerics['size'],
+                  descriptionPrefixBuilder:
+                      CHROME_VALUE_PROPERTIES['allocated_objects_size']
+                });
+              }
+            }
           });
 
           // Add memory:<browser-name>:<process-name>:reported_by_chrome:v8:
