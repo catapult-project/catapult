@@ -11,7 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/mre/mre_result.html">
 <link rel="import" href="/tracing/mre/reduce_map_results.html">
 <link rel="import" href="/tracing/mre/run_and_convert_errors_to_failures.html">
-<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/histogram.html">
 
 <script>
 'use strict';
@@ -19,7 +19,7 @@ found in the LICENSE file.
 tr.exportTo('tr.mre', function() {
 
   function jsonReplacer(key, value) {
-    if (value instanceof tr.v.Numeric) {
+    if (value instanceof tr.v.Histogram) {
       return value.asDict();
     }
     return value;

@@ -103,15 +103,14 @@ tr.b.unittest.testSuite(function() {
           assert.closeTo(actualNumeric.value, expectedNumeric.value,
               SIZE_DELTA, 'Invalid \'' + valueName + '\' numeric value');
         } else if (expectedNumeric.value instanceof Array) {
-          // Histogram.
-          assert.instanceOf(actualNumeric, tr.v.Numeric,
+          assert.instanceOf(actualNumeric, tr.v.Histogram,
               'Invalid \'' + valueName + '\' class');
           assert.strictEqual(actualNumeric.numValues,
               expectedNumeric.value.length,
-              'Invalid \'' + valueName + '\' Numeric numValues');
+              'Invalid \'' + valueName + '\' Histogram numValues');
           assert.closeTo(actualNumeric.sum,
               expectedNumeric.value.reduce((a, b) => a + b, 0), SIZE_DELTA,
-              'Invalid \'' + valueName + '\' Numeric sum');
+              'Invalid \'' + valueName + '\' Histogram sum');
 
           // Check that the bin counts match.
           var binToCount = new Map();

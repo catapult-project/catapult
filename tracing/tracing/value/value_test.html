@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
   test('genericDiagnostic', function() {
     var v0 = new tr.v.NumericValue('val',
-        tr.v.Numeric.buildFromSamples(tr.v.Unit.byName.count, [42]));
+        tr.v.Histogram.buildFromSamples(tr.v.Unit.byName.count, [42]));
     v0.diagnostics.add('foo', new tr.v.d.Generic({
       t: true,
       f: false,

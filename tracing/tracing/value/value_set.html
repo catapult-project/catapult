@@ -6,8 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -89,9 +88,9 @@ tr.exportTo('tr.v', function() {
             diagnostic.resolve(this);
         }, this);
 
-        // In addition Values, we must also look inside of Numeric samples.
+        // In addition Values, we must also look inside of Histogram samples.
         if (value instanceof tr.v.NumericValue &&
-            value.numeric instanceof tr.v.Numeric)
+            value.numeric instanceof tr.v.Histogram)
           value.numeric.allBins.forEach(function(b) {
             b.diagnosticMaps.forEach(function(dm) {
               dm.forEach(function(d) {
@@ -129,7 +128,7 @@ tr.exportTo('tr.v', function() {
       this.map(function(value) {
         deleteSourceValues(sourceValues, value.diagnostics);
         if ((value instanceof tr.v.NumericValue) &&
-            (value.numeric instanceof tr.v.Numeric)) {
+            (value.numeric instanceof tr.v.Histogram)) {
           for (var b of value.numeric.allBins) {
             for (var dm of b.diagnosticMaps) {
               // TODO(eakuefner): Rewrite this as a for-of loop once
@@ -160,7 +159,7 @@ tr.exportTo('tr.v', function() {
     addValue: function(v) {
       this.addValueInternal_(v);
 
-      if (v.numeric instanceof tr.v.Numeric) {
+      if (v.numeric instanceof tr.v.Histogram) {
         ValueSet.computeSummaryValuesForNumericValue(v).forEach(function(s) {
           this.addValue(s);
         }, this);
@@ -170,7 +169,7 @@ tr.exportTo('tr.v', function() {
 
   ValueSet.computeSummaryValuesForNumericValue = function(value) {
     if (!(value instanceof tr.v.NumericValue &&
-          value.numeric instanceof tr.v.Numeric))
+          value.numeric instanceof tr.v.Histogram))
       throw new Error('Tried to compute summary values for non-numeric');
 
     var summaryValueMap = new tr.v.d.RelatedValueMap();

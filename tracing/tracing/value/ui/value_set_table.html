@@ -284,7 +284,7 @@ tr.exportTo('tr.ui', function() {
         cell = row.columns[this.columns_[col].title];
 
       if ((cell instanceof tr.v.NumericValue) &&
-          (cell.numeric instanceof tr.v.Numeric) &&
+          (cell.numeric instanceof tr.v.Histogram) &&
           (cell.numeric.numValues > 1)) {
         this.$.histogram.style.display = 'block';
         this.$.histogram.histogram = cell.numeric;
@@ -622,7 +622,7 @@ tr.exportTo('tr.ui', function() {
 
     buildColumn_: function(displayLabel) {
       function getValueForValue(value) {
-        return value.numeric instanceof tr.v.Numeric ? value.numeric.average :
+        return value.numeric instanceof tr.v.Histogram ? value.numeric.average :
           value.numeric.value;
       }
 
@@ -647,8 +647,8 @@ tr.exportTo('tr.ui', function() {
                   cell.numeric.unit === referenceCell.numeric.unit) {
                 var significance = tr.v.Significance.DONT_CARE;
 
-                if (cell.numeric instanceof tr.v.Numeric &&
-                    referenceCell.numeric instanceof tr.v.Numeric) {
+                if (cell.numeric instanceof tr.v.Histogram &&
+                    referenceCell.numeric instanceof tr.v.Histogram) {
                   significance = cell.numeric.getDifferenceSignificance(
                       referenceCell.numeric);
                 }

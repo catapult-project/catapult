@@ -73,7 +73,7 @@ Polymer({
       value = value.numeric;
       if (value instanceof tr.v.ScalarNumeric)
         data[name] = value.value;
-      else if (value instanceof tr.v.Numeric)
+      else if (value instanceof tr.v.Histogram)
         data[name] = value.sum;
 
     }, this);
