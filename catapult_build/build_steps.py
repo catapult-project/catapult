@@ -200,6 +200,12 @@ def main(args=None):
                                  'android', 'tools', 'device_recovery.py')],
         },
         {
+            'name': 'Android: Provision Devices',
+            'cmd': ['python',
+                    os.path.join(args.api_path_checkout, 'devil', 'devil',
+                                 'android', 'tools', 'provision_devices.py')],
+        },
+        {
             'name': 'Android: Device Status',
             'cmd': ['python',
                     os.path.join(args.api_path_checkout, 'devil', 'devil',

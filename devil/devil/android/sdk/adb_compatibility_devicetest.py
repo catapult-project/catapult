@@ -17,6 +17,7 @@ _CATAPULT_BASE_DIR = os.path.abspath(os.path.join(
 sys.path.append(os.path.join(_CATAPULT_BASE_DIR, 'devil'))
 from devil import devil_env
 from devil.android import device_errors
+from devil.android import device_test_case
 from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
 from devil.utils import timeout_retry
@@ -37,7 +38,7 @@ def _hostAdbPids():
           if name == 'adb']
 
 
-class AdbCompatibilityTest(unittest.TestCase):
+class AdbCompatibilityTest(device_test_case.DeviceTestCase):
 
   @classmethod
   def setUpClass(cls):
@@ -97,10 +98,7 @@ class AdbCompatibilityTest(unittest.TestCase):
 
   def getTestInstance(self):
     """Creates a real AdbWrapper instance for testing."""
-    devices = adb_wrapper.AdbWrapper.Devices()
-    if not devices:
-      self.skipTest('No test device available.')
-    return adb_wrapper.AdbWrapper(devices[0])
+    return adb_wrapper.AdbWrapper(self.serial)
 
   def testShell(self):
     under_test = self.getTestInstance()

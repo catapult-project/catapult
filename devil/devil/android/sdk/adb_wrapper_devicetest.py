@@ -11,16 +11,16 @@ import tempfile
 import time
 import unittest
 
+from devil.android import device_test_case
 from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
 
 
-class TestAdbWrapper(unittest.TestCase):
+class TestAdbWrapper(device_test_case.DeviceTestCase):
 
   def setUp(self):
-    devices = adb_wrapper.AdbWrapper.Devices()
-    assert devices, 'A device must be attached'
-    self._adb = devices[0]
+    super(TestAdbWrapper, self).setUp()
+    self._adb = adb_wrapper.AdbWrapper(self.serial)
     self._adb.WaitForDevice()
 
   @staticmethod
@@ -94,7 +94,13 @@ class TestAdbWrapper(unittest.TestCase):
     self._adb.WaitForDevice()
     self.assertEqual(self._adb.GetState(), 'device')
     print 'waiting for package manager...'
-    while 'package:' not in self._adb.Shell('pm path android'):
+    while True:
+      try:
+        android_path = self._adb.Shell('pm path android')
+      except device_errors.AdbShellCommandFailedError:
+        android_path = None
+      if android_path and 'package:' in android_path:
+        break
       time.sleep(1)
 
   def testRootRemount(self):

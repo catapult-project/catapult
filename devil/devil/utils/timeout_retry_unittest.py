@@ -40,7 +40,7 @@ class TestRun(unittest.TestCase):
       time.sleep(1)
 
     self.assertRaises(
-        reraiser_thread.TimeoutError, timeout_retry.Run, _sleep, .0001, 1,
+        reraiser_thread.TimeoutError, timeout_retry.Run, _sleep, .01, 1,
         error_log_func=logging.debug)
     self.assertEqual(tries[0], 2)
 

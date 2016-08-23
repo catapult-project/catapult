@@ -9,19 +9,18 @@ import unittest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+from devil.android import device_test_case
 from devil.android import device_utils
 from devil.android.perf import perf_control
 
 
-class TestPerfControl(unittest.TestCase):
+class TestPerfControl(device_test_case.DeviceTestCase):
 
   def setUp(self):
+    super(TestPerfControl, self).setUp()
     if not os.getenv('BUILDTYPE'):
       os.environ['BUILDTYPE'] = 'Debug'
-
-    devices = device_utils.DeviceUtils.HealthyDevices(blacklist=None)
-    self.assertGreater(len(devices), 0, 'No device attached!')
-    self._device = devices[0]
+    self._device = device_utils.DeviceUtils(self.serial)
 
   def testHighPerfMode(self):
     perf = perf_control.PerfControl(self._device)

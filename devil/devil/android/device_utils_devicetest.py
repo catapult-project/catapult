@@ -17,6 +17,7 @@ if __name__ == '__main__':
   sys.path.append(
       os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', )))
 
+from devil.android import device_test_case
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
@@ -29,12 +30,11 @@ _SUB_DIR1 = "sub1"
 _SUB_DIR2 = "sub2"
 
 
-class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
+class DeviceUtilsPushDeleteFilesTest(device_test_case.DeviceTestCase):
 
   def setUp(self):
-    devices = adb_wrapper.AdbWrapper.Devices()
-    assert devices, 'A device must be attached'
-    self.adb = devices[0]
+    super(DeviceUtilsPushDeleteFilesTest, self).setUp()
+    self.adb = adb_wrapper.AdbWrapper(self.serial)
     self.adb.WaitForDevice()
     self.device = device_utils.DeviceUtils(
         self.adb, default_timeout=10, default_retries=0)
@@ -210,11 +210,16 @@ class DeviceUtilsPushDeleteFilesTest(unittest.TestCase):
     cmd_helper.RunCmd(['rm', '-rf', host_tmp_dir])
 
   def testRestartAdbd(self):
-    old_adbd_pid = self.device.RunShellCommand(
-        ['ps', '|', 'grep', 'adbd'])[1].split()[1]
+    def get_adbd_pid():
+      ps_output = self.device.RunShellCommand(['ps'])
+      for ps_line in ps_output:
+        if 'adbd' in ps_line:
+          return ps_line.split()[1]
+      self.fail('Unable to find adbd')
+
+    old_adbd_pid = get_adbd_pid()
     self.device.RestartAdbd()
-    new_adbd_pid = self.device.RunShellCommand(
-        ['ps', '|', 'grep', 'adbd'])[1].split()[1]
+    new_adbd_pid = get_adbd_pid()
     self.assertNotEqual(old_adbd_pid, new_adbd_pid)
 
 
