@@ -18,12 +18,14 @@ found in the LICENSE file.
       background-color: white;
     }
 
+    :host([expanded]) > #side_panel_drag_handle,
     :host([expanded]) > active-panel-container {
       -webkit-flex: 1 1 auto;
       border-left: 1px solid black;
       display: -webkit-flex;
     }
 
+    :host(:not([expanded])) > #side_panel_drag_handle,
     :host(:not([expanded])) > active-panel-container {
       display: none;
     }
@@ -64,10 +66,14 @@ found in the LICENSE file.
       border-left: none;
       padding: 14px 2px 14px 1px;
     }
+
+    #active_panel_container {
+      overflow: auto;
+    }
     </style>
 
+    <tr-ui-b-drag-handle id="side_panel_drag_handle"></tr-ui-b-drag-handle>
     <active-panel-container id='active_panel_container'>
-      <tr-ui-b-drag-handle id="side_panel_drag_handle"></tr-ui-b-drag-handle>
     </active-panel-container>
     <tab-strip id='tab_strip'></tab-strip>
   </template>
@@ -83,6 +89,7 @@ Polymer({
 
     this.dragHandle_ = this.$.side_panel_drag_handle;
     this.dragHandle_.horizontal = false;
+    this.dragHandle_.target = this.activePanelContainer_;
     this.rangeOfInterest_ = new tr.b.Range();
     this.brushingStateController_ = undefined;
     this.onSelectionChanged_ = this.onSelectionChanged_.bind(this);
@@ -128,15 +135,11 @@ Polymer({
   },
 
   get activePanel() {
-    if (Polymer.dom(this.activePanelContainer_).children.length < 2)
-      return undefined;
-    return this.activePanelContainer_.children[1];
+    return this.activePanelContainer_.children[0];
   },
 
-  get activePanel() {
-    if (Polymer.dom(this.activePanelContainer_).children.length < 2)
-      return undefined;
-    return Polymer.dom(this.activePanelContainer_).children[1];
+  get activePanelType() {
+    return this.activePanelType_;
   },
 
   set activePanelType(panelType) {
@@ -154,8 +157,6 @@ Polymer({
       Polymer.dom(this.getLabelElementForPanelType_(
           this.activePanelType)).removeAttribute('selected');
     }
-
-    Polymer.dom(this.activePanelContainer_).textContent = '';
 
     if (this.activePanelType) {
       this.getLabelElementForPanelType_(
@@ -176,7 +177,6 @@ Polymer({
     Polymer.dom(this).setAttribute('expanded', true);
 
     Polymer.dom(this.activePanelContainer_).appendChild(panel);
-    this.dragHandle_.target = panel;
     panel.rangeOfInterest = this.rangeOfInterest_;
     panel.selection = this.selection_;
     panel.model = this.model;
@@ -238,7 +238,6 @@ Polymer({
     } else {
       if (this.activePanel)
         Polymer.dom(this.activePanelContainer_).removeChild(this.activePanel);
-      Polymer.dom(this.activePanelContainer_).textContent = '';
       Polymer.dom(this).removeAttribute('expanded');
     }
   },
