@@ -17,17 +17,17 @@ tr.exportTo('tr.model', function() {
   var EventRegistry = tr.model.EventRegistry;
 
   /**
-   * A sample that contains a power measurement (in mW).
+   * A sample that contains a power measurement (in W).
    *
    * @constructor
    * @extends {Event}
    */
-  function PowerSample(series, start, power) {
+  function PowerSample(series, start, powerInW) {
     Event.call(this);
 
     this.series_ = series;
     this.start_ = start;
-    this.power_ = power;
+    this.powerInW_ = powerInW;
   }
 
   PowerSample.prototype = {
@@ -45,12 +45,12 @@ tr.exportTo('tr.model', function() {
       this.start_ = value;
     },
 
-    get power() {
-      return this.power_;
+    get powerInW() {
+      return this.powerInW_;
     },
 
-    set power(value) {
-      this.power_ = value;
+    set powerInW(value) {
+      this.powerInW_ = value;
     },
 
     addBoundsToRange: function(range) {

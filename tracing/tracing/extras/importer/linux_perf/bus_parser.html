@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/extras/importer/linux_perf/parser.html">
 <link rel="import" href="/tracing/model/counter_series.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
@@ -43,17 +44,23 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var event = re.exec(eventBase.details);
 
       var name = event[1];
-      var rw_bytes = parseInt(event[2]);
-      var r_bytes = parseInt(event[3]);
-      var w_bytes = parseInt(event[4]);
+      var rwBytes = parseInt(event[2]);
+      var rBytes = parseInt(event[3]);
+      var wBytes = parseInt(event[4]);
       var cycles = parseInt(event[5]);
       var ns = parseInt(event[6]);
 
-      // BW in MB/s
-      var r_bw = r_bytes * 1000000000 / ns;
-      r_bw /= 1024 * 1024;
-      var w_bw = w_bytes * 1000000000 / ns;
-      w_bw /= 1024 * 1024;
+      // BW in MiB/s.
+      var sec = tr.v.convertUnit(ns, tr.v.UnitScale.Metric.NANO,
+          tr.v.UnitScale.Metric.NONE);
+      var readBandwidthInBps = rBytes / sec;
+      var readBandwidthInMiBps = tr.v.convertUnit(readBandwidthInBps,
+          tr.v.UnitScale.Binary.NONE,
+          tr.v.UnitScale.Binary.MEBI);
+      var writeBandwidthInBps = wBytes / sec;
+      var writeBandwidthInMiBps = tr.v.convertUnit(writeBandwidthInBps,
+          tr.v.UnitScale.Binary.NONE,
+          tr.v.UnitScale.Binary.MEBI);
 
       var ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' read');
@@ -63,7 +70,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
-        series.addCounterSample(ts, r_bw);
+        series.addCounterSample(ts, readBandwidthInMiBps);
       });
 
       ctr = this.model_.kernel
@@ -74,7 +81,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
-        series.addCounterSample(ts, r_bw);
+        series.addCounterSample(ts, readBandwidthInMiBps);
       });
 
       return true;

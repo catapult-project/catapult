@@ -24,11 +24,11 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(sample1.series, series);
     assert.equal(sample1.start, 0.0);
-    assert.equal(sample1.power, 1000.0);
+    assert.equal(sample1.powerInW, 1000.0);
 
     assert.equal(sample2.series, series);
     assert.equal(sample2.start, 1.0);
-    assert.equal(sample2.power, 2000.0);
+    assert.equal(sample2.powerInW, 2000.0);
   });
 
   test('addBoundsToRange', function() {

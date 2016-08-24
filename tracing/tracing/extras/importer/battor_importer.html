@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/power_series.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 /**
@@ -97,7 +98,7 @@ tr.exportTo('tr.e.importer.battor', function() {
       for (var i = 0; i < this.samples_.length; i++) {
         var sample = this.samples_[i];
         powerSeries.addPowerSample(
-            modelTimeTransformer(sample.ts), sample.power);
+            modelTimeTransformer(sample.ts), sample.powerInW);
       }
     },
 
@@ -128,14 +129,16 @@ tr.exportTo('tr.e.importer.battor', function() {
         }
 
         var ts = parseFloat(groups[1]);
-        var voltage = parseFloat(groups[2]) / 1000;
-        var current = parseFloat(groups[3]) / 1000;
+        var voltageInV = tr.v.convertUnit(parseFloat(groups[2]),
+            tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+        var currentInA = tr.v.convertUnit(parseFloat(groups[3]),
+            tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
         var syncId = groups[4];
 
         if (syncId)
           this.syncTimestampsById_.set(syncId, ts);
 
-        if (voltage < 0 || current < 0) {
+        if (voltageInV < 0 || currentInA < 0) {
           this.model_.importWarning({
             type: 'parse_error',
             message: 'The following line in the BattOr trace has a negative ' +
@@ -146,7 +149,7 @@ tr.exportTo('tr.e.importer.battor', function() {
           continue;
         }
 
-        this.samples_.push(new Sample(ts, voltage, current));
+        this.samples_.push(new Sample(ts, voltageInV, currentInA));
       }
     }
   };
@@ -160,15 +163,15 @@ tr.exportTo('tr.e.importer.battor', function() {
    *
    * @constructor
    */
-  function Sample(ts, voltage, current) {
+  function Sample(ts, voltageInV, currentInA) {
     this.ts = ts;
-    this.voltage = voltage;
-    this.current = current;
+    this.voltageInV = voltageInV;
+    this.currentInA = currentInA;
   }
 
   Sample.prototype = {
     /** Returns the instantaneous power consumption (in Watts). */
-    get power() { return this.voltage * this.current; }
+    get powerInW() { return this.voltageInV * this.currentInA; }
   };
 
   tr.importer.Importer.register(BattorImporter);

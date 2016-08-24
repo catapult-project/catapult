@@ -39,13 +39,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(getMetricValue(valueSet,
         'total_time_idle'), 500);
     assert.closeTo(getMetricValue(valueSet,
-        'total_energy_successful_load'), 0.125, 1e-2);
+        'total_energy_successful_load'), 125, 0.5);
     assert.closeTo(getMetricValue(valueSet,
-        'total_energy_idle'), 0.375, 1e-2);
+        'total_energy_idle'), 375, 0.5);
     assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_successful_load'), 0.25, 1e-2);
+        'energy_consumption_rate_successful_load'), 250, 0.5);
     assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_idle'), 0.75, 1e-2);
+        'energy_consumption_rate_idle'), 750, 0.5);
   });
 
   test('railPowerMetric_multipleStagesEachType', function() {
@@ -70,13 +70,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(getMetricValue(valueSet,
         'total_time_idle'), 600);
     assert.closeTo(getMetricValue(valueSet,
-        'total_energy_successful_load'), 0.14, 1e-2);
+        'total_energy_successful_load'), 140, 0.5);
     assert.closeTo(getMetricValue(valueSet,
-        'total_energy_idle'), 0.36, 1e-2);
+        'total_energy_idle'), 360, 0.5);
     assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_successful_load'), 0.35, 1e-2);
+        'energy_consumption_rate_successful_load'), 350, 0.5);
     assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_idle'), 0.6, 1e-2);
+        'energy_consumption_rate_idle'), 600, 0.5);
   });
 
   test('railPowerMetric_noPowerSeries', function() {

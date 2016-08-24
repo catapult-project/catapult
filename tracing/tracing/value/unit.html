@@ -35,9 +35,11 @@ tr.exportTo('tr.v', function() {
   };
 
   /** @constructor */
-  function Unit(unitName, jsonName, isDelta, improvementDirection, formatSpec) {
+  function Unit(unitName, jsonName, basePrefix, 
+      isDelta, improvementDirection, formatSpec) {
     this.unitName = unitName;
     this.jsonName = jsonName;
+    this.basePrefix = basePrefix;
     this.isDelta = isDelta;
     this.improvementDirection = improvementDirection;
     this.formatSpec_ = formatSpec;
@@ -96,7 +98,10 @@ tr.exportTo('tr.v', function() {
             selectedPrefix = unitPrefix;
           }
           unitString += selectedPrefix.symbol || '';
-          value /= selectedPrefix.value;
+          value = tr.v.convertUnit(value, this.basePrefix, selectedPrefix);
+        } else {
+          value = tr.v.convertUnit(value, this.basePrefix,
+              tr.v.UnitScale.Metric.NONE);
         }
         unitString += formatSpec.unit;
       }
@@ -134,11 +139,8 @@ tr.exportTo('tr.v', function() {
   };
 
   Unit.timestampFromUs = function(us) {
-    return us / 1000;
-  };
-
-  Unit.maybeTimestampFromUs = function(us) {
-    return us === undefined ? undefined : us / 1000;
+    return tr.v.convertUnit(us, tr.v.UnitScale.Metric.MICRO,
+        tr.v.UnitScale.Metric.MILLI);
   };
 
   Object.defineProperty(Unit, 'currentTimeDisplayMode', {
@@ -245,8 +247,10 @@ tr.exportTo('tr.v', function() {
     if (Unit.byJSONName[jsonName] !== undefined)
       throw new Error('JSON unit \'' + jsonName + '\' alread exists');
 
-    var unit = new Unit(
-        unitName, jsonName, isDelta, improvementDirection, params.formatSpec);
+    var basePrefix = params.basePrefix ?
+        params.basePrefix : tr.v.UnitScale.Metric.NONE;
+    var unit = new Unit(unitName, jsonName, basePrefix,
+        isDelta, improvementDirection, params.formatSpec);
     Unit.byName[unitName] = unit;
     Unit.byJSONName[jsonName] = unit;
 
@@ -262,6 +266,7 @@ tr.exportTo('tr.v', function() {
   Unit.define({
     baseUnitName: 'timeDurationInMs',
     baseJsonName: 'ms',
+    basePrefix: tr.v.UnitScale.Metric.MILLI,
     formatSpec: function() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
@@ -270,6 +275,7 @@ tr.exportTo('tr.v', function() {
   Unit.define({
     baseUnitName: 'timeStampInMs',
     baseJsonName: 'tsMs',
+    basePrefix: tr.v.UnitScale.Metric.MILLI,
     formatSpec: function() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }

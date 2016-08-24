@@ -84,27 +84,31 @@ tr.exportTo('tr.e.importer.v8', function() {
       return 'V8LogImporter';
     },
 
-    processTimerEvent_: function(name, start, length) {
+    processTimerEvent_: function(name, startInUs, lengthInUs) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
-      start /= 1000;  // Convert to milliseconds.
-      length /= 1000;
+      var startInMs = tr.v.convertUnit(startInUs,
+          tr.v.UnitScale.Metric.MICRO, tr.v.UnitScale.Metric.MILLI);
+      var lengthInMs = tr.v.convertUnit(lengthInUs,
+          tr.v.UnitScale.Metric.MICRO, tr.v.UnitScale.Metric.MILLI);
       var colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
-      var slice = new tr.model.ThreadSlice('v8', name, colorId, start,
-          args, length);
+      var slice = new tr.model.ThreadSlice('v8', name, colorId, startInMs,
+          args, lengthInMs);
       this.v8_timer_thread_.sliceGroup.pushSlice(slice);
     },
 
-    processTimerEventStart_: function(name, start) {
+    processTimerEventStart_: function(name, startInUs) {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
-      start /= 1000;  // Convert to milliseconds.
-      this.v8_timer_thread_.sliceGroup.beginSlice('v8', name, start, args);
+      var startInMs = tr.v.convertUnit(startInUs,
+          tr.v.UnitScale.Metric.MICRO, tr.v.UnitScale.Metric.MILLI);
+      this.v8_timer_thread_.sliceGroup.beginSlice('v8', name, startInMs, args);
     },
 
-    processTimerEventEnd_: function(name, end) {
-      end /= 1000;  // Convert to milliseconds.
-      this.v8_timer_thread_.sliceGroup.endSlice(end);
+    processTimerEventEnd_: function(name, endInUs) {
+      var endInMs = tr.v.convertUnit(endInUs,
+          tr.v.UnitScale.Metric.MICRO, tr.v.UnitScale.Metric.MILLI);
+      this.v8_timer_thread_.sliceGroup.endSlice(endInMs);
     },
 
     processCodeCreateEvent_: function(type, kind, address, size, name,
@@ -176,9 +180,11 @@ tr.exportTo('tr.e.importer.v8', function() {
       this.code_map_.addStaticCode(address, code_entry);
     },
 
-    processTickEvent_: function(pc, start, is_external_callback,
+    processTickEvent_: function(pc, startInUs, is_external_callback,
                                 tos_or_external_callback, vmstate, stack) {
-      start /= 1000;
+
+      var startInMs = tr.v.convertUnit(startInUs,
+          tr.v.UnitScale.Metric.MICRO, tr.v.UnitScale.Metric.MILLI);
 
       function findChildWithEntryID(stackFrame, entryID) {
         for (var i = 0; i < stackFrame.children.length; i++) {
@@ -261,7 +267,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       if (lastStackFrame !== this.root_stack_frame_) {
         var sample = new tr.model.Sample(
           undefined, this.v8_thread_, 'V8 PC',
-          start, lastStackFrame, 1);
+          startInMs, lastStackFrame, 1);
         this.model_.samples.push(sample);
       }
     },

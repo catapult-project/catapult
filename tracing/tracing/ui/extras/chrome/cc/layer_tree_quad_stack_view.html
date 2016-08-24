@@ -18,6 +18,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/info_bar.html">
 <link rel="import" href="/tracing/ui/base/quad_stack_view.html">
 <link rel="import" href="/tracing/ui/base/utils.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <style>
 * /deep/ tr-ui-e-chrome-cc-layer-tree-quad-stack-view {
@@ -86,8 +87,6 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     return [{label: 'None', value: 'none'},
             {label: 'Coverage Rects', value: 'coverage'}];
   }
-
-  var bytesToRoundedMegabytes = tr.e.cc.bytesToRoundedMegabytes;
 
 
   /**
@@ -440,18 +439,20 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
         var otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
             thisTreeUsageInBytes;
-        message += bytesToRoundedMegabytes(thisTreeUsageInBytes) +
-                'MB on this tree';
+        message += tr.v.convertUnit(thisTreeUsageInBytes,
+            tr.v.UnitScale.Binary.NONE,
+            tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB on this tree';
         if (otherTreeUsageInBytes) {
-          message += ', ' +
-              bytesToRoundedMegabytes(otherTreeUsageInBytes) +
-              'MB on the other tree';
+          message += ', ' + tr.v.convertUnit(otherTreeUsageInBytes,
+              tr.v.UnitScale.Binary.NONE,
+              tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB on the other tree';
         }
       } else {
         if (this.layerTreeImpl_) {
           var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
-          message += bytesToRoundedMegabytes(thisTreeUsageInBytes) +
-              'MB on this tree';
+          message += tr.v.convertUnit(thisTreeUsageInBytes,
+              tr.v.UnitScale.Binary.NONE,
+              tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB on this tree';
 
           if (this.layerTreeImpl_.otherTree) {
             // Older Chromes don't report enough data to know how much memory is
@@ -461,7 +462,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
             // plus one tree, to guess the unique on the other tree, etc. Newer
             // chromes report memory per tile, which allows LTHI to compute the
             // total tile memory usage, letting us figure things out properly.
-            message += ', ???MB on other tree. ';
+            message += ', ??? MiB on other tree. ';
           }
         }
       }
@@ -469,10 +470,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (lthi.args.tileManagerBasicState) {
         var tmgs = lthi.args.tileManagerBasicState.globalState;
         message += ' (softMax=' +
-          bytesToRoundedMegabytes(tmgs.softMemoryLimitInBytes) +
-          'MB, hardMax=' +
-          bytesToRoundedMegabytes(tmgs.hardMemoryLimitInBytes) + 'MB, ' +
-          tmgs.memoryLimitPolicy + ')';
+            tr.v.convertUnit(tmgs.softMemoryLimitInBytes,
+                tr.v.UnitScale.Binary.NONE,
+                tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, hardMax=' +
+            tr.v.convertUnit(tmgs.hardMemoryLimitInBytes,
+                tr.v.UnitScale.Binary.NONE,
+                tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, ' +
+            tmgs.memoryLimitPolicy + ')';
 
       } else {
         // Old Chromes do not have a globalState on the LTHI dump.
@@ -495,10 +499,13 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var newest = didManageTilesSlices[didManageTilesSlices.length - 1];
           var tmgs = newest.args.state.global_state;
           message += ' (softMax=' +
-            bytesToRoundedMegabytes(tmgs.soft_memory_limit_in_bytes) +
-            'MB, hardMax=' +
-            bytesToRoundedMegabytes(tmgs.hard_memory_limit_in_bytes) + 'MB, ' +
-            tmgs.memory_limit_policy + ')';
+            tr.v.convertUnit(tmgs.softMemoryLimitInBytes,
+                tr.v.UnitScale.Binary.NONE,
+                tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, hardMax=' +
+            tr.v.convertUnit(tmgs.hardMemoryLimitInBytes,
+                tr.v.UnitScale.Binary.NONE,
+                tr.v.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, ' +
+            tmgs.memoryLimitPolicy + ')';
         }
       }
 

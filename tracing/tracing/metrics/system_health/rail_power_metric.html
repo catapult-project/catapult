@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
 <link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -30,35 +31,38 @@ tr.exportTo('tr.metrics.sh', function() {
         currEnergy = railStageEnergy.get(currTitle);
       }
       var thisTime = exp.duration;
-      var thisEnergy = model.device.powerSeries.getEnergyConsumed(
+      var thisEnergy = model.device.powerSeries.getEnergyConsumedInJ(
         exp.start, exp.end);
       railStageTimes.set(currTitle, currTime + thisTime);
       railStageEnergy.set(currTitle, currEnergy + thisEnergy);
     }
 
     for (var [title, durationMs] of railStageTimes) {
-      var energyJ = railStageEnergy.get(title) / 1000.0; //convert mJ to J
-      var powerW = energyJ / (durationMs / 1000.0); // in time, convert ms to s
+      var energyInJ = railStageEnergy.get(title);
+      var durationInMs = railStageTimes.get(title);
+      var durationInS = tr.v.convertUnit(durationInMs,
+          tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+      var powerInW = energyInJ / durationInS;
 
       values.addValue(new tr.v.NumericValue(
         'total_time_' + title,
         new tr.v.ScalarNumeric(
             tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-            durationMs),
+            durationInMs),
         { description: 'Time spent in RAIL stage ' + title }));
 
       values.addValue(new tr.v.NumericValue(
         'total_energy_' + title,
         new tr.v.ScalarNumeric(
             tr.v.Unit.byName.energyInJoules_smallerIsBetter,
-            energyJ),
+            energyInJ),
         { description: 'Energy consumed in RAIL stage ' + title }));
 
       values.addValue(new tr.v.NumericValue(
         'energy_consumption_rate_' + title,
         new tr.v.ScalarNumeric(
             tr.v.Unit.byName.powerInWatts_smallerIsBetter,
-            powerW),
+            powerInW),
         { description: 'Energy consumption rate for RAIL stage ' + title }));
     }
   }

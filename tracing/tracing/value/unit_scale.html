@@ -10,6 +10,8 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+var GREEK_SMALL_LETTER_MU = String.fromCharCode(956);
+
 tr.exportTo('tr.v', function() {
 
   var UnitScale = {};
@@ -32,6 +34,23 @@ tr.exportTo('tr.v', function() {
     UnitScale[name] = prefixes;
   }
 
+ /**
+  * Converts |value| from |fromPrefix| (e.g. kilo) to |toPrefix| (e.g. mega).
+  *
+  * Returns undefined if |value| is undefined.
+  * |fromPrefix| and |toPrefix| need not come from the same UnitScale.
+  *
+  * @param {(undefined|number)} value
+  * @param {!object} fromPrefix
+  * @param {!object} toPrefix
+  * @return {(undefined|number)}
+  */
+  function convertUnit(value, fromPrefix, toPrefix) {
+    if (value === undefined)
+      return undefined;
+    return value * (fromPrefix.value / toPrefix.value);
+  }
+
   // See https://en.wikipedia.org/wiki/Binary_prefix.
   defineUnitScale('Binary', {
     NONE: { value: Math.pow(1024, 0), symbol: '' },
@@ -42,15 +61,19 @@ tr.exportTo('tr.v', function() {
   });
 
   // See https://en.wikipedia.org/wiki/Metric_prefix.
-  // The base time unit used in the whole repository is ms (milliseconds), so
-  // all values are multiplied by 1000.
-  defineUnitScale('MetricTime', {
-    NANO: { value: 1e-6, symbol: 'n' },
-    MILLI: { value: 1, symbol: 'm' }
+  defineUnitScale('Metric', {
+    NANO: { value: 1e-9, symbol: 'n' },
+    MICRO: { value: 1e-6, symbol: GREEK_SMALL_LETTER_MU },
+    MILLI: { value: 1e-3, symbol: 'm' },
+    NONE: { value: 1, symbol: ''},
+    KILO: { value: 1e3, symbol: 'k'},
+    MEGA: { value: 1e6, symbol: 'M'},
+    GIGA: { value: 1e9, symbol: 'G'}
   });
 
   return {
-    UnitScale: UnitScale
+    UnitScale: UnitScale,
+    convertUnit: convertUnit
   };
 });
 </script>

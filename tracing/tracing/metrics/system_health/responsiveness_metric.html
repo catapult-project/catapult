@@ -34,8 +34,9 @@ tr.exportTo('tr.metrics.sh', function() {
       throw new Error('Animation missing frameEvents ' +
                       animationExpectation.stableId);
 
-    var durationSeconds = animationExpectation.duration / 1000;
-    return animationExpectation.frameEvents.length / durationSeconds;
+    var durationInS = tr.v.convertUnit(animationExpectation.duration,
+        tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+    return animationExpectation.frameEvents.length / durationInS;
   }
 
   function computeAnimationframeTimeDiscrepancy(animationExpectation) {

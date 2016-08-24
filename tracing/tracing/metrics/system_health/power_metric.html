@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -16,24 +17,25 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
 
-  var IDEAL_FRAME_RATE = 60;
-  var IDEAL_FRAME_DURATION = 1000 / IDEAL_FRAME_RATE;
+  var IDEAL_FRAME_RATE_FPS = 60;
+  var IDEAL_FRAME_DURATION_MS = tr.v.convertUnit(1.0 / IDEAL_FRAME_RATE_FPS,
+      tr.v.UnitScale.Metric.NONE, tr.v.UnitScale.Metric.MILLI);
 
   function energyConsumedPerFrame(valueList, model) {
-    var frameEnergyConsumed = tr.v.NumericBuilder.createLinear(
+    var frameEnergyConsumedInJ = tr.v.NumericBuilder.createLinear(
         tr.v.Unit.byName.energyInJoules_smallerIsBetter,
         tr.b.Range.fromExplicitRange(0, .5), 20).build();
     var frameStartTs = parseFloat(model.device.powerSeries.samples[0].start);
     while (model.device.powerSeries.getSamplesWithinRange(
-        frameStartTs, frameStartTs + IDEAL_FRAME_DURATION).length) {
-      var currentFrameEnergy = model.device.powerSeries.getEnergyConsumed(
-          frameStartTs, frameStartTs + IDEAL_FRAME_DURATION);
-      frameStartTs += IDEAL_FRAME_DURATION;
-      frameEnergyConsumed.add(currentFrameEnergy);
+        frameStartTs, frameStartTs + IDEAL_FRAME_DURATION_MS).length) {
+      var currentFrameEnergy = model.device.powerSeries.getEnergyConsumedInJ(
+          frameStartTs, frameStartTs + IDEAL_FRAME_DURATION_MS);
+      frameStartTs += IDEAL_FRAME_DURATION_MS;
+      frameEnergyConsumedInJ.add(currentFrameEnergy);
     }
 
     valueList.addValue(new tr.v.NumericValue(
-        'energy_consumed_per_frame', frameEnergyConsumed,
+        'energy_consumed_per_frame', frameEnergyConsumedInJ,
         {description: 'Energy consumption per frame in joules'}));
   }
 

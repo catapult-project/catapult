@@ -55,7 +55,6 @@ tr.exportTo('tr.e.importer', function() {
   }
 
   var timestampFromUs = tr.v.Unit.timestampFromUs;
-  var maybeTimestampFromUs = tr.v.Unit.maybeTimestampFromUs;
 
   var PRODUCER = 'producer';
   var CONSUMER = 'consumer';
@@ -509,9 +508,9 @@ tr.exportTo('tr.e.importer', function() {
 
       var slice = thread.sliceGroup.pushCompleteSlice(event.cat, event.name,
           timestampFromUs(event.ts),
-          maybeTimestampFromUs(event.dur),
-          maybeTimestampFromUs(event.tts),
-          maybeTimestampFromUs(event.tdur),
+          timestampFromUs(event.dur),
+          timestampFromUs(event.tts),
+          timestampFromUs(event.tdur),
           this.deepCopyIfNeeded_(event.args),
           event.argsStripped,
           getEventColor(event),

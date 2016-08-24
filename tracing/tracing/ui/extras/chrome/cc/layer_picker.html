@@ -16,13 +16,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/list_view.html">
 <link rel="import" href="/tracing/ui/extras/chrome/cc/selection.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
+
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.e.chrome.cc', function() {
   var constants = tr.e.cc.constants;
-  var bytesToRoundedMegabytes = tr.e.cc.bytesToRoundedMegabytes;
   var RENDER_PASS_QUADS =
       Math.max(constants.ACTIVE_TREE, constants.PENDING_TREE) + 1;
 
@@ -237,11 +238,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           if (layerInfo.isReplicaLayer)
             Polymer.dom(notesEl).textContent += '(replica)';
 
-          if (layer.gpuMemoryUsageInBytes !== undefined) {
-            var rounded = bytesToRoundedMegabytes(layer.gpuMemoryUsageInBytes);
-            if (rounded !== 0)
-              Polymer.dom(notesEl).textContent += ' (' + rounded + ' MB)';
-          }
+          if ((layer.gpuMemoryUsageInBytes !== undefined) &&
+              (layer.gpuMemoryUsageInBytes > 0)) {
+            var gpuUsageStr = tr.v.Unit.byName.sizeInBytes.format(
+                layer.gpuMemoryUsageInBytes);
+            Polymer.dom(notesEl).textContent += ' (' + gpuUsageStr + ' MiB)';
+            }
 
           item.layer = layer;
           Polymer.dom(this.itemList_).appendChild(item);

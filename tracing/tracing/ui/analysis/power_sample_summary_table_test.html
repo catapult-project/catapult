@@ -58,8 +58,8 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(table.$.table.tableRows, 1);
     assert.equal(table.$.table.tableRows[0].min, 1);
     assert.equal(table.$.table.tableRows[0].max, 1);
-    assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 'N/A');
-    assert.equal(table.$.table.tableRows[0].energyConsumed, 'N/A');
+    assert.equal(table.$.table.tableRows[0].timeWeightedAverageInW, 'N/A');
+    assert.equal(table.$.table.tableRows[0].energyConsumedInJ, 'N/A');
     assert.equal(table.$.table.tableRows[0].sampleCount, 1);
   });
 
@@ -75,8 +75,8 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(table.$.table.tableRows, 1);
     assert.equal(table.$.table.tableRows[0].min, 1);
     assert.equal(table.$.table.tableRows[0].max, 2);
-    assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 1);
-    assert.equal(table.$.table.tableRows[0].energyConsumed, 1);
+    assert.equal(table.$.table.tableRows[0].timeWeightedAverageInW, 1);
+    assert.equal(table.$.table.tableRows[0].energyConsumedInJ, 1);
     assert.equal(table.$.table.tableRows[0].sampleCount, 2);
   });
 
@@ -93,8 +93,8 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(table.$.table.tableRows, 1);
     assert.equal(table.$.table.tableRows[0].min, 1);
     assert.equal(table.$.table.tableRows[0].max, 3);
-    assert.equal(table.$.table.tableRows[0].timeWeightedAverage, 1.5);
-    assert.equal(table.$.table.tableRows[0].energyConsumed, 3);
+    assert.equal(table.$.table.tableRows[0].timeWeightedAverageInW, 1.5);
+    assert.equal(table.$.table.tableRows[0].energyConsumedInJ, 3);
     assert.equal(table.$.table.tableRows[0].sampleCount, 3);
   });
 

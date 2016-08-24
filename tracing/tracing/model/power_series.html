@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/power_sample.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
@@ -60,10 +61,10 @@ tr.exportTo('tr.model', function() {
      * Returns the total energy (in Joules) consumed between the specified
      * start and end timestamps (in milliseconds).
      */
-    getEnergyConsumed: function(start, end) {
+    getEnergyConsumedInJ: function(start, end) {
       var measurementRange = tr.b.Range.fromExplicitRange(start, end);
 
-      var energyConsumed = 0;
+      var energyConsumedInJ = 0;
       var startIndex = tr.b.findLowIndexInSortedArray(
           this.samples, x => x.start, start) - 1;
       var endIndex = tr.b.findLowIndexInSortedArray(
@@ -80,15 +81,16 @@ tr.exportTo('tr.model', function() {
         sampleRange.addValue(sample.start);
         sampleRange.addValue(nextSample ? nextSample.start : sample.start);
 
-        var timeIntersection = measurementRange.findIntersection(sampleRange);
+        var intersectionRangeInMs = measurementRange.findIntersection(
+            sampleRange);
 
-        // Divide by 1000 to convert milliseconds to seconds.
-        var durationInSeconds = timeIntersection.duration / 1000;
+        var durationInS = tr.v.convertUnit(intersectionRangeInMs.duration,
+            tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
 
-        energyConsumed += durationInSeconds * sample.power;
+        energyConsumedInJ += durationInS * sample.powerInW;
       }
 
-      return energyConsumed;
+      return energyConsumedInJ;
     },
 
     getSamplesWithinRange: function(start, end) {

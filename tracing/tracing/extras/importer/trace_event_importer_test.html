@@ -884,9 +884,9 @@ tr.b.unittest.testSuite(function() {
         ph: 'C', id: 1},
       {name: 'ctr', args: {'value': 20}, pid: 1, ts: 15, cat: 'foo', tid: 1,
         ph: 'C', id: 1},
-      {name: 'ctr', args: {'value': 30}, pid: 1, ts: 18, cat: 'foo', tid: 1,
+      {name: 'ctr', args: {'value': 30}, pid: 1, ts: 20, cat: 'foo', tid: 1,
         ph: 'C', id: 1},
-      {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
+      {name: 'ctr', args: {'value': 40}, pid: 1, ts: 25, cat: 'bar', tid: 1,
         ph: 'C', id: 2}
     ];
     var m = makeModel(events);
@@ -909,7 +909,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.category, 'foo');
     assert.equal(ctr.numSamples, 3);
     assert.equal(ctr.numSeries, 1);
-    assert.deepEqual(ctr.timestamps, [0.01, 0.015, 0.018]);
+    assert.deepEqual(ctr.timestamps, [0.01, 0.015, 0.02]);
 
     samples = [];
     ctr.series[0].samples.forEach(function(sample) {
@@ -922,7 +922,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.category, 'bar');
     assert.equal(ctr.numSamples, 1);
     assert.equal(ctr.numSeries, 1);
-    assert.deepEqual(ctr.timestamps, [0.02]);
+    assert.deepEqual(ctr.timestamps, [0.025]);
     var samples = [];
     ctr.series[0].samples.forEach(function(sample) {
       samples.push(sample.value);

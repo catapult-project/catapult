@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/value/unit_scale.html">
 
 <dom-module id='tr-ui-a-power-sample-summary-table'>
   <template>
@@ -42,14 +43,14 @@ Polymer({
         width: '100px',
         value: function(row) {
           return tr.v.Unit.byName.powerInWatts.format(
-              row.timeWeightedAverage);
+              row.timeWeightedAverageInW);
         }
       },
       {
         title: 'Energy consumed',
         width: '100px',
         value: function(row) {
-          return tr.v.Unit.byName.energyInJoules.format(row.energyConsumed);
+          return tr.v.Unit.byName.energyInJoules.format(row.energyConsumedInJ);
         }
       },
       {
@@ -81,8 +82,8 @@ Polymer({
       this.$.table.tableRows = [{
         min: this.getMin(),
         max: this.getMax(),
-        timeWeightedAverage: this.getTimeWeightedAverage(),
-        energyConsumed: this.getEnergyConsumed(),
+        timeWeightedAverageInW: this.getTimeWeightedAverageInW(),
+        energyConsumedInJ: this.getEnergyConsumedInJ(),
         sampleCount: this.samples.length
       }];
     }
@@ -92,13 +93,13 @@ Polymer({
 
   getMin: function() {
     return Math.min.apply(null, this.samples.map(function(sample) {
-      return sample.power;
+      return sample.powerInW;
     }));
   },
 
   getMax: function() {
     return Math.max.apply(null, this.samples.map(function(sample) {
-      return sample.power;
+      return sample.powerInW;
     }));
   },
 
@@ -106,27 +107,26 @@ Polymer({
    * Returns a time-weighted average of the power consumption (Watts)
    * in between the first sample (inclusive) and last sample (exclusive).
    */
-  getTimeWeightedAverage: function() {
-    var energyConsumed = this.getEnergyConsumed();
+  getTimeWeightedAverageInW: function() {
+    var energyConsumedInJ = this.getEnergyConsumedInJ();
 
-    if (energyConsumed === 'N/A')
+    if (energyConsumedInJ === 'N/A')
       return 'N/A';
 
-    // Divide by 1000 to convert milliseconds to seconds.
-    var durationInSeconds = this.samples.bounds.duration / 1000;
+    var durationInS = tr.v.convertUnit(this.samples.bounds.duration,
+        tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
 
-    // Convert energy to power in milliwatts by dividing by time in seconds.
-    return this.getEnergyConsumed() / durationInSeconds;
+    return energyConsumedInJ / durationInS;
   },
 
 
-  getEnergyConsumed: function() {
+  getEnergyConsumedInJ: function() {
     if (this.samples.length < 2)
       return 'N/A';
 
     var bounds = this.samples.bounds;
     var series = tr.b.getFirstElement(this.samples).series;
-    return series.getEnergyConsumed(bounds.min, bounds.max);
+    return series.getEnergyConsumedInJ(bounds.min, bounds.max);
   }
 });
 </script>

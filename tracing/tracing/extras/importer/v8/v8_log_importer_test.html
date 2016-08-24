@@ -172,7 +172,7 @@ tr.b.unittest.testSuite(function() {
       'tick,0x7fd2a534,536213,0,0x81d8d080,0,0x2905d304,0x2904d6e8',
       'code-creation,Script,0,0x2906a7c0,792,"http://www.google.com/",0x5b12fe50,~', // @suppress longLineCheck
       'tick,0xb6f51d30,794049,0,0xb6f7b368,2,0x2906a914',
-      'tick,0xb6f51d30,799146,0,0xb6f7b368,0,0x2906a914'
+      'tick,0xb6f51d30,799145,0,0xb6f7b368,0,0x2906a914'
     ];
     var m = newModel(lines.join('\n'));
     var p = m.processes[-32];
@@ -184,7 +184,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[1].start, 528674 / 1000);
     assert.equal(t.samples[2].start, 536213 / 1000);
     assert.equal(t.samples[3].start, 794049 / 1000);
-    assert.equal(t.samples[4].start, 799146 / 1000);
+    assert.equal(t.samples[4].start, 799145 / 1000);
 
     assert.deepEqual(
         ['~Instantiate native apinatives.js:9:21'],

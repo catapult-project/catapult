@@ -125,7 +125,7 @@ Polymer({
         return;
 
       var point = { x: sample.start - lastVSyncTimestamp };
-      point['f' + frameNumber] = sample.power;
+      point['f' + frameNumber] = sample.powerInW;
       points.push(point);
     });
 
