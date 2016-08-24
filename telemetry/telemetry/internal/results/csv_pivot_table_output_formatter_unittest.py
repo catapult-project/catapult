@@ -5,12 +5,16 @@ import os
 import StringIO
 import unittest
 
+import mock
+
 from telemetry import story
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
+from telemetry.timeline import trace_data
 from telemetry.value import improvement_direction
 from telemetry.value import scalar
+from telemetry.value import trace
 
 
 def _MakeStorySet():
@@ -70,7 +74,11 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
 
     self.assertEqual(expected, self.Format())
 
-  def testMultiplePagesAndValues(self):
+  @mock.patch('catapult_base.cloud_storage.Insert')
+  def testMultiplePagesAndValues(self, cs_insert_mock):
+    cs_insert_mock.return_value = 'https://cloud_storage_url/foo'
+    trace_value = trace.TraceValue(None, trace_data.TraceData('{"events": 0}'))
+    trace_value.UploadToCloud(bucket='foo')
     self.SimulateBenchmarkRun({
         self._story_set[0]: [
             scalar.ScalarValue(
@@ -80,6 +88,7 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
             scalar.ScalarValue(
                 None, 'foo', 'seconds', 3.4,
                 improvement_direction=improvement_direction.DOWN),
+            trace_value,
             scalar.ScalarValue(
                 None, 'bar', 'km', 10,
                 improvement_direction=improvement_direction.DOWN),
@@ -92,9 +101,12 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
     lines = csv_string.split(self._LINE_SEPARATOR)
     values = [s.split(',') for s in lines[1:-1]]
 
-    self.assertEquals(len(values), 4)  # We expect 4 value in total.
+    self.assertEquals(len(values), 5)  # We expect 5 value in total.
     self.assertEquals(len(set((v[1] for v in values))), 2)  # 2 pages.
-    self.assertEquals(len(set((v[2] for v in values))), 3)  # 3 value names.
+    self.assertEquals(len(set((v[2] for v in values))), 4)  # 4 value names.
+    self.assertEquals(values[2],
+        ['story_set', 'http://www.bar.com/', 'trace',
+         'https://cloud_storage_url/foo', '', '1'])
 
   def testTraceTag(self):
     self.MakeFormatter(trace_tag='date,option')

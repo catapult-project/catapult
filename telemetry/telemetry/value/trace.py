@@ -38,6 +38,13 @@ class TraceValue(value_module.Value):
     self._cloud_url = None
     self._serialized_file_handle = None
 
+  @property
+  def value(self):
+    if self._cloud_url:
+      return self._cloud_url
+    elif self._serialized_file_handle:
+      return self._serialized_file_handle.GetAbsPath()
+
   def _GetTraceParts(self, trace_data):
     return [(trace_data.GetTraceFor(p), p)
             for p in trace_data_module.ALL_TRACE_PARTS

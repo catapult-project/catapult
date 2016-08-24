@@ -6,6 +6,7 @@ import csv
 
 from telemetry.internal.results import output_formatter
 from telemetry.value import scalar
+from telemetry.value import trace
 
 
 class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
@@ -50,7 +51,8 @@ class CsvPivotTableOutputFormatter(output_formatter.OutputFormatter):
           'run_index': run_index,
       }
       for value in run.values:
-        if isinstance(value, scalar.ScalarValue):
+        if (isinstance(value, scalar.ScalarValue) or
+            isinstance(value, trace.TraceValue)):
           value_dict = {
             'name': value.name,
             'value': value.value,
