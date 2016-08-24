@@ -42,7 +42,6 @@ index %(hash_a)s..%(hash_b)s 100644
 _BOT_BROWSER_MAP_KEY = 'bot_browser_map'
 _INTERNAL_MASTERS_KEY = 'internal_masters'
 _BUILDER_TYPES_KEY = 'bisect_builder_types'
-_TESTER_DIRECTOR_MAP_KEY = 'recipe_tester_director_map'
 _MASTER_TRY_SERVER_MAP_KEY = 'master_try_server_map'
 _MASTER_BUILDBUCKET_MAP_KEY = 'master_buildbucket_map'
 _NON_TELEMETRY_TEST_COMMANDS = {
@@ -129,7 +128,6 @@ class StartBisectHandler(request_handler.RequestHandler):
     internal_only = self.request.get('internal_only') == 'true'
     bisect_bot = self.request.get('bisect_bot')
     bypass_no_repro_check = self.request.get('bypass_no_repro_check') == 'true'
-    use_recipe = bool(GetBisectDirectorForTester(master_name, bisect_bot))
 
     bisect_config = GetBisectConfig(
         bisect_bot=bisect_bot,
@@ -143,7 +141,6 @@ class StartBisectHandler(request_handler.RequestHandler):
         bug_id=bug_id,
         use_archive=self.request.get('use_archive'),
         bisect_mode=self.request.get('bisect_mode', 'mean'),
-        use_buildbucket=use_recipe,
         bypass_no_repro_check=bypass_no_repro_check)
 
     if 'error' in bisect_config:
@@ -159,8 +156,7 @@ class StartBisectHandler(request_handler.RequestHandler):
         email=user.email(),
         master_name=master_name,
         internal_only=internal_only,
-        job_type='bisect',
-        use_buildbucket=use_recipe)
+        job_type='bisect')
 
     try:
       results = PerformBisect(bisect_job)
@@ -253,7 +249,7 @@ def _PrefillInfo(test_path):
 def GetBisectConfig(
     bisect_bot, master_name, suite, metric, good_revision, bad_revision,
     repeat_count, max_time_minutes, bug_id, use_archive=None,
-    bisect_mode='mean', use_buildbucket=False, bypass_no_repro_check=False):
+    bisect_mode='mean', bypass_no_repro_check=False):
   """Fills in a JSON response with the filled-in config file.
 
   Args:
@@ -271,15 +267,12 @@ def GetBisectConfig(
         If this is not empty or None, then we want to use archived builds.
     bisect_mode: What aspect of the test run to bisect on; possible options are
         "mean", "std_dev", and "return_code".
-    use_buildbucket: Whether this job will started using buildbucket,
-        this should be used for bisects using the bisect recipe.
 
   Returns:
     A dictionary with the result; if successful, this will contain "config",
     which is a config string; if there's an error, this will contain "error".
   """
-  command = GuessCommand(
-      bisect_bot, suite, metric=metric, use_buildbucket=use_buildbucket)
+  command = GuessCommand(bisect_bot, suite, metric=metric)
   if not command:
     return {'error': 'Could not guess command for %r.' % suite}
 
@@ -307,8 +300,7 @@ def GetBisectConfig(
       'target_arch': GuessTargetArch(bisect_bot),
       'bisect_mode': bisect_mode,
   }
-  if use_buildbucket:
-    config_dict['recipe_tester_name'] = bisect_bot
+  config_dict['recipe_tester_name'] = bisect_bot
   if bypass_no_repro_check:
     config_dict['required_initial_confidence'] = '0'
   return config_dict
@@ -409,35 +401,30 @@ def GuessBisectBot(master_name, bot_name):
 
 
 def GuessCommand(
-    bisect_bot, suite, metric=None, rerun_option=None, use_buildbucket=False):
+    bisect_bot, suite, metric=None, rerun_option=None):
   """Returns a command to use in the bisect configuration."""
   if suite in _NON_TELEMETRY_TEST_COMMANDS:
-    return _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket)
-  return _GuessCommandTelemetry(
-      suite, bisect_bot, metric, rerun_option, use_buildbucket)
+    return _GuessCommandNonTelemetry(suite, bisect_bot)
+  return _GuessCommandTelemetry(suite, bisect_bot, metric, rerun_option)
 
 
-def _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket):
+def _GuessCommandNonTelemetry(suite, bisect_bot):
   """Returns a command string to use for non-Telemetry tests."""
   if suite not in _NON_TELEMETRY_TEST_COMMANDS:
     return None
   if suite == 'cc_perftests' and bisect_bot.startswith('android'):
-    if use_buildbucket:
-      return ('src/build/android/test_runner.py '
-              'gtest --release -s cc_perftests --verbose')
-    else:
-      return ('build/android/test_runner.py '
-              'gtest --release -s cc_perftests --verbose')
+    return ('src/build/android/test_runner.py '
+            'gtest --release -s cc_perftests --verbose')
 
   command = list(_NON_TELEMETRY_TEST_COMMANDS[suite])
 
-  if use_buildbucket and command[0].startswith('./out'):
+  if command[0].startswith('./out'):
     command[0] = command[0].replace('./', './src/')
 
   # For Windows x64, the compilation output is put in "out/Release_x64".
   # Note that the legacy bisect script always extracts binaries into Release
   # regardless of platform, so this change is only necessary for recipe bisect.
-  if use_buildbucket and _GuessBrowserName(bisect_bot) == 'release_x64':
+  if _GuessBrowserName(bisect_bot) == 'release_x64':
     command[0] = command[0].replace('/Release/', '/Release_x64/')
 
   if bisect_bot.startswith('win'):
@@ -448,22 +435,19 @@ def _GuessCommandNonTelemetry(suite, bisect_bot, use_buildbucket):
 
 def _GuessCommandTelemetry(
     suite, bisect_bot, metric,  # pylint: disable=unused-argument
-    rerun_option, use_buildbucket):
+    rerun_option):
   """Returns a command to use given that |suite| is a Telemetry benchmark."""
   # TODO(qyearsley): Use metric to add a --story-filter flag for Telemetry.
   # See: http://crbug.com/448628
   command = []
 
-  if use_buildbucket:
-    test_cmd = 'src/tools/perf/run_benchmark'
-  else:
-    test_cmd = 'tools/perf/run_benchmark'
+  test_cmd = 'src/tools/perf/run_benchmark'
 
   command.extend([
       test_cmd,
       '-v',
       '--browser=%s' % _GuessBrowserName(bisect_bot),
-      '--output-format=%s' % ('chartjson' if use_buildbucket else 'buildbot'),
+      '--output-format=chartjson',
       '--upload-results',
       '--also-run-disabled-tests',
   ])
@@ -621,10 +605,7 @@ def PerformBisect(bisect_job):
   if not bisect_job.key:
     bisect_job.put()
 
-  if bisect_job.use_buildbucket:
-    result = _PerformBuildbucketBisect(bisect_job)
-  else:
-    result = _PerformLegacyBisect(bisect_job)
+  result = _PerformBuildbucketBisect(bisect_job)
   if 'error' in result:
     bisect_job.run_count += 1
     bisect_job.SetFailed()
@@ -638,81 +619,6 @@ def PerformBisect(bisect_job):
         additional_credentials=utils.ServiceAccountCredentials())
     issue_tracker.AddBugComment(bisect_job.bug_id, comment, send_email=False)
   return result
-
-
-def _PerformLegacyBisect(bisect_job):
-  bot = bisect_job.bot
-  email = bisect_job.email
-  bug_id = bisect_job.bug_id
-
-  config_dict = bisect_job.GetConfigDict()
-  config_dict['try_job_id'] = bisect_job.key.id()
-  bisect_job.config = utils.BisectConfigPythonString(config_dict)
-
-  # Get the base config file contents and make a patch.
-  base_config = utils.DownloadChromiumFile(_BISECT_CONFIG_PATH)
-  if not base_config:
-    return {'error': 'Error downloading base config'}
-  patch, base_checksum, base_hashes = _CreatePatch(
-      base_config, bisect_job.config, _BISECT_CONFIG_PATH)
-
-  # Check if bisect is for internal only tests.
-  bisect_internal = _IsBisectInternalOnly(bisect_job)
-
-  # Upload the patch to Rietveld.
-  server = rietveld_service.RietveldService(bisect_internal)
-
-  subject = 'Perf bisect for bug %s on behalf of %s' % (bug_id, email)
-  issue_id, patchset_id = server.UploadPatch(subject,
-                                             patch,
-                                             base_checksum,
-                                             base_hashes,
-                                             base_config,
-                                             _BISECT_CONFIG_PATH)
-
-  if not issue_id:
-    return {'error': 'Error uploading patch to rietveld_service.'}
-
-  if bisect_internal:
-    # Internal server URL has '/bots', that cannot be accessed via browser,
-    # therefore strip this path from internal server URL.
-    issue_url = '%s/%s' % (server.Config().internal_server_url.strip('/bots'),
-                           issue_id)
-  else:
-    issue_url = '%s/%s' % (server.Config().server_url.strip('/bots'), issue_id)
-
-  # Tell Rietveld to try the patch.
-  master = _GetTryServerMaster(bisect_job)
-  trypatch_success = server.TryPatch(master, issue_id, patchset_id, bot)
-  if trypatch_success:
-    # Create TryJob entity.  update_bug_with_results and auto_bisect
-    # cron job will be tracking/starting/restarting bisect.
-    if bug_id and bug_id > 0:
-      bisect_job.rietveld_issue_id = int(issue_id)
-      bisect_job.rietveld_patchset_id = int(patchset_id)
-      bisect_job.SetStarted()
-      bug_comment = ('Bisect started; track progress at '
-                     '<a href="%s">%s</a>' % (issue_url, issue_url))
-      LogBisectResult(bisect_job, bug_comment)
-    return {'issue_id': issue_id, 'issue_url': issue_url}
-
-  return {'error': 'Error starting try job. Try to fix at %s' % issue_url}
-
-
-def _IsBisectInternalOnly(bisect_job):
-  """Checks if the bisect is for an internal-only test."""
-  internal_masters = namespaced_stored_object.Get(_INTERNAL_MASTERS_KEY)
-  return internal_masters and bisect_job.master_name in internal_masters
-
-
-def _GetTryServerMaster(bisect_job):
-  """Returns the try server master to be used for bisecting."""
-  try_server_map = namespaced_stored_object.Get(_MASTER_TRY_SERVER_MAP_KEY)
-  default = 'tryserver.chromium.perf'
-  if not try_server_map:
-    logging.warning('Could not get master to try server map, using default.')
-    return default
-  return try_server_map.get(bisect_job.master_name, default)
 
 
 def _PerformPerfTryJob(perf_job):
@@ -810,13 +716,8 @@ def _MakeBuildbucketBisectJob(bisect_job):
   if config.get('bisect_mode') == 'return_code':
     test_type = config['bisect_mode']
 
-  # Tester name is a required parameter for recipe bisects.
-  tester_name = config['recipe_tester_name']
-
   return buildbucket_job.BisectJob(
       try_job_id=bisect_job.key.id(),
-      bisect_director=GetBisectDirectorForTester(
-          bisect_job.master_name, tester_name),
       good_revision=config['good_revision'],
       bad_revision=config['bad_revision'],
       test_command=config['command'],
@@ -825,7 +726,7 @@ def _MakeBuildbucketBisectJob(bisect_job):
       timeout_minutes=config['max_time_minutes'],
       bug_id=bisect_job.bug_id,
       gs_bucket='chrome-perf',
-      recipe_tester_name=tester_name,
+      recipe_tester_name=config['recipe_tester_name'],
       test_type=test_type,
       required_initial_confidence=config.get('required_initial_confidence')
   )
@@ -858,25 +759,6 @@ def _PerformBuildbucketBisect(bisect_job):
         'error': ('Could not start job because of the following exception: ' +
                   e.message),
     }
-
-
-def GetBisectDirectorForTester(master_name, bot):
-  """Maps the name of a tester bot to its corresponding bisect director.
-
-  Args:
-    bot (str): The name of the tester bot in the tryserver.chromium.perf
-        waterfall. (e.g. 'linux_perf_tester').
-    master_name (str): The name of the master where the bot is hosted.
-
-  Returns:
-    The name of the bisect director that can use the given tester (e.g.
-        'linux_perf_bisector')
-  """
-  master_tester_map = namespaced_stored_object.Get(_TESTER_DIRECTOR_MAP_KEY)
-  for master, recipe_tester_director_mapping in master_tester_map.iteritems():
-    if master_name.startswith(master):
-      return recipe_tester_director_mapping.get(bot)
-  return []
 
 
 def _GetTryServerBucket(bisect_job):

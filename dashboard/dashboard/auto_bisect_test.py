@@ -10,9 +10,7 @@ import webapp2
 import webtest
 
 from dashboard import auto_bisect
-from dashboard import namespaced_stored_object
 from dashboard import request_handler
-from dashboard import start_try_job
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
@@ -29,14 +27,6 @@ class AutoBisectTest(testing_common.TestCase):
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.testapp = webtest.TestApp(app)
     self.SetCurrentUser('internal@chromium.org')
-    namespaced_stored_object.Set(
-        start_try_job._TESTER_DIRECTOR_MAP_KEY,
-        {
-            'ChromiumPerf': {
-                'linux_perf_tester': 'linux_perf_bisector',
-                'win64_nv_tester': 'linux_perf_bisector',
-            }
-        })
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testPost_FailedJobRunTwice_JobRestarted(self, mock_perform_bisect):
@@ -85,7 +75,7 @@ class AutoBisectTest(testing_common.TestCase):
         last_ran_timestamp=now, run_count=1).put()
     try_job.TryJob(
         bug_id=777, status='started',
-        last_ran_timestamp=now, use_buildbucket=True, run_count=1).put()
+        last_ran_timestamp=now, run_count=1).put()
     try_job.TryJob(
         bug_id=555, status=None,
         last_ran_timestamp=now, run_count=1).put()
@@ -99,14 +89,6 @@ class StartNewBisectForBugTest(testing_common.TestCase):
   def setUp(self):
     super(StartNewBisectForBugTest, self).setUp()
     self.SetCurrentUser('internal@chromium.org')
-    namespaced_stored_object.Set(
-        start_try_job._TESTER_DIRECTOR_MAP_KEY,
-        {
-            'ChromiumPerf': {
-                'linux_perf_tester': 'linux_perf_bisector',
-                'win64_nv_tester': 'linux_perf_bisector',
-            }
-        })
 
   @mock.patch.object(auto_bisect.start_try_job, 'PerformBisect')
   def testStartNewBisectForBug_StartsBisect(self, mock_perform_bisect):

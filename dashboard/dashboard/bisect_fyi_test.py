@@ -10,8 +10,6 @@ import webtest
 
 from dashboard import bisect_fyi
 from dashboard import issue_tracker_service
-from dashboard import namespaced_stored_object
-from dashboard import start_try_job
 from dashboard import stored_object
 from dashboard import testing_common
 from dashboard import utils
@@ -74,14 +72,6 @@ class BisectFYITest(testing_common.TestCase):
         bisect_fyi._BISECT_FYI_CONFIGS_KEY, TEST_FYI_CONFIGS)
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.SetCurrentUser('internal@chromium.org')
-    namespaced_stored_object.Set(
-        start_try_job._TESTER_DIRECTOR_MAP_KEY,
-        {
-            'ChromiumPerf': {
-                'linux_perf_bisect': 'linux_perf_bisector',
-                'win_x64_perf_bisect': 'win_x64_perf_bisect',
-            }
-        })
 
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'AddBugComment')

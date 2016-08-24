@@ -31,7 +31,6 @@ class TryJob(internal_only_model.InternalOnlyModel):
   rietveld_patchset_id = ndb.IntegerProperty()
   master_name = ndb.StringProperty(default='ChromiumPerf', indexed=False)
   buildbucket_job_id = ndb.StringProperty()
-  use_buildbucket = ndb.BooleanProperty(default=False, indexed=True)
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
 
   # Bisect run status (e.g., started, failed).

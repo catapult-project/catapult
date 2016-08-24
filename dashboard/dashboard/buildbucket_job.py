@@ -10,7 +10,7 @@ import re
 class BisectJob(object):
   """A buildbot bisect job started and monitored through buildbucket."""
 
-  def __init__(self, try_job_id, bisect_director, good_revision, bad_revision,
+  def __init__(self, try_job_id, good_revision, bad_revision,
                test_command, metric, repeats, timeout_minutes, bug_id,
                gs_bucket, recipe_tester_name, builder_host=None,
                builder_port=None, test_type='perf',
@@ -21,7 +21,6 @@ class BisectJob(object):
                        'construction was not given or was given with a None '
                        'value.')
     self.try_job_id = try_job_id
-    self.bisect_director = bisect_director
     self.good_revision = good_revision
     self.bad_revision = bad_revision
     self.command = BisectJob.EnsureCommandPath(test_command)
@@ -69,7 +68,7 @@ class BisectJob(object):
           self.required_initial_confidence)
     properties = {'bisect_config': bisect_config}
     parameters = {
-        'builder_name': self.bisect_director,
+        'builder_name': self.recipe_tester_name,
         'properties': properties,
     }
     return parameters

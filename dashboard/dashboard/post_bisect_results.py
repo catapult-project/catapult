@@ -12,7 +12,6 @@ from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
 from dashboard import post_data_handler
-from dashboard import rietveld_service
 from dashboard import update_bug_with_results
 from dashboard import utils
 from dashboard.models import try_job
@@ -100,12 +99,6 @@ def _GetTryJob(results_data):
 
 def _IssueURL(job):
   """Returns a URL for information about a bisect try job."""
-  if job.use_buildbucket:
-    hostname = app_identity.get_default_version_hostname()
-    job_id = job.buildbucket_job_id
-    return 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)
-  else:
-    config = rietveld_service.GetDefaultRietveldConfig()
-    host = (config.internal_server_url if job.internal_only else
-            config.server_url)
-    return '%s/%d' % (host, job.rietveld_issue_id)
+  hostname = app_identity.get_default_version_hostname()
+  job_id = job.buildbucket_job_id
+  return 'https://%s/buildbucket_job_status/%s' % (hostname, job_id)

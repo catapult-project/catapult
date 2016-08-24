@@ -457,6 +457,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(0, len(messages))
 
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -480,6 +481,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self._AddTryJob(12345, 'started', 'win_perf',
                     results_data=sample_bisect_results,
                     internal_only=True,
+                    buildbucket_job_id='12345',
                     config=utils.BisectConfigPythonString(bisect_config),
                     job_type='bisect-fyi',
                     job_name='positive_culprit',
@@ -489,6 +491,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -512,6 +515,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self._AddTryJob(12345, 'started', 'win_perf',
                     results_data=sample_bisect_results,
                     internal_only=True,
+                    buildbucket_job_id='12345',
                     config=utils.BisectConfigPythonString(bisect_config),
                     job_type='bisect-fyi',
                     job_name='positive_culprit',

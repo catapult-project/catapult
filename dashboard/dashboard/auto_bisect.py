@@ -95,7 +95,6 @@ def _RestartBisect(bisect_job):
     return False
   bisect_job.config = new_bisect_job.config
   bisect_job.bot = new_bisect_job.bot
-  bisect_job.use_buildbucket = new_bisect_job.use_buildbucket
   bisect_job.put()
   try:
     start_try_job.PerformBisect(bisect_job)
@@ -166,9 +165,6 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if not bisect_bot or '_' not in bisect_bot:
     raise NotBisectableError('Could not select a bisect bot.')
 
-  use_recipe = bool(start_try_job.GetBisectDirectorForTester(
-      test.master_name, bisect_bot))
-
   new_bisect_config = start_try_job.GetBisectConfig(
       bisect_bot=bisect_bot,
       master_name=test.master_name,
@@ -179,8 +175,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       repeat_count=10,
       max_time_minutes=20,
       bug_id=bug_id,
-      use_archive='true',
-      use_buildbucket=use_recipe)
+      use_archive='true')
 
   if 'error' in new_bisect_config:
     raise NotBisectableError('Could not make a valid config.')
@@ -193,8 +188,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       bug_id=bug_id,
       master_name=test.master_name,
       internal_only=test.internal_only,
-      job_type='bisect',
-      use_buildbucket=use_recipe)
+      job_type='bisect')
 
   return bisect_job
 

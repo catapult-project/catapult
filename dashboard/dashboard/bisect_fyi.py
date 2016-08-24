@@ -99,15 +99,12 @@ def _MakeBisectFYITryJob(test_name, bisect_config):
     raise auto_bisect.NotBisectableError('Could not select a bisect bot.')
 
   config_python_string = utils.BisectConfigPythonString(bisect_config)
-  use_recipe = bool(start_try_job.GetBisectDirectorForTester(
-      bisect_config.get('master_name', 'ChromiumPerf'), bisect_bot))
   bisect_job = try_job.TryJob(
       bot=bisect_bot,
       config=config_python_string,
       bug_id=bisect_config.get('bug_id', -1),
       master_name=bisect_config.get('master_name', 'ChromiumPerf'),
       job_type='bisect-fyi',
-      use_buildbucket=use_recipe,
       job_name=test_name)
 
   return bisect_job
