@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 <link rel="import" href="/tracing/value/ui/numeric_stats_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
@@ -25,7 +26,7 @@ found in the LICENSE file.
       <tr-v-ui-numeric-stats-span id="stats"></tr-v-ui-numeric-stats-span>
     </div>
 
-    <tr-v-ui-diagnostic-map-table id="diagnostic_map_table"/>
+    <tr-v-ui-diagnostic-map-table id="diagnostic_map_table"></tr-v-ui-diagnostic-map-table>
   </template>
 </dom-module>
 <script>
@@ -128,7 +129,8 @@ Polymer({
   updateDiagnostics_: function(bins) {
     var maps = [];
     for (var bin of bins)
-      maps.push(...bin.diagnosticMaps);
+      for (var map of bin.diagnosticMaps)
+        maps.push(map);
 
     if (maps.length === 0) {
       this.$.diagnostic_map_table.style.display = 'none';
@@ -156,31 +158,32 @@ Polymer({
     this.$.chart.style.display = this.histogram_ ? '' : 'none';
     this.$.diagnostic_map_table.style.display = 'none';
     this.$.stats.numeric = this.histogram_;
+    this.brushedBins_ = [];
     if (!this.histogram_)
       return;
 
-    var maximumBinValue = tr.b.Statistics.max(this.histogram_.allBins,
-                                              function(bin) {
-                                                return bin.count;
-                                              });
-    var chartData = [];
-    var binWidth = this.histogram_.centralBins[0].range.range;
-    this.histogram_.allBins.forEach(function(bin) {
-      var x = bin.range.min;
-      if (x === -Number.MAX_VALUE) {
-        if (!bin.count)
-          return;
-        x = bin.range.max - binWidth;
-      }
-      chartData.push({x: x, y: bin.count});
-    });
-    chartData.sort(function(x, y) {
-      return x.x - y.x;
-    });
-    this.$.chart.style.display = chartData.length ? '' : 'none';
-    this.chart_.data = chartData;
-    this.brushedBins_ = [];
-    this.chart_.brushedRange = new tr.b.Range();
+    if (this.histogram_.numValues <= 1) {
+      this.$.container.style.display = 'none';
+      // Don't return! Still do the updateDiagnostics_(occupiedBins) below!
+    } else {
+      this.$.container.style.display = '';
+      var maximumBinValue = tr.b.Statistics.max(
+          this.histogram_.allBins, (bin) => bin.count);
+      var chartData = [];
+      var binWidth = this.histogram_.centralBins[0].range.range;
+      this.histogram_.allBins.forEach(function(bin) {
+        var x = bin.range.min;
+        if (x === -Number.MAX_VALUE) {
+          if (!bin.count)
+            return;
+          x = bin.range.max - binWidth;
+        }
+        chartData.push({x: x, y: bin.count});
+      });
+      chartData.sort((x, y) => x.x - y.x);
+      this.chart_.data = chartData;
+      this.chart_.brushedRange = new tr.b.Range();
+    }
 
     var occupiedBins = [];
     for (var bin of this.histogram.allBins) {

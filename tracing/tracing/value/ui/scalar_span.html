@@ -150,7 +150,7 @@ Polymer({
 
   set significance(s) {
     this.significance_ = s;
-    this.updateContent_();
+    this.updateContents_();
   },
 
   set contentTextDecoration(deco) {
@@ -168,17 +168,17 @@ Polymer({
     } else {
       this.value_ = value;
     }
-    this.updateContent_();
+    this.updateContents_();
   },
 
   attached: function() {
     tr.v.Unit.addEventListener(
-        'display-mode-changed', this.updateContent_.bind(this));
+        'display-mode-changed', this.updateContents_.bind(this));
   },
 
   detached: function() {
     tr.v.Unit.removeEventListener(
-        'display-mode-changed', this.updateContent_.bind(this));
+        'display-mode-changed', this.updateContents_.bind(this));
   },
 
   get context() {
@@ -187,7 +187,7 @@ Polymer({
 
   set context(context) {
     this.context_ = context;
-    this.updateContent_();
+    this.updateContents_();
   },
 
   get unit() {
@@ -196,13 +196,13 @@ Polymer({
 
   set unit(unit) {
     this.unit_ = unit;
-    this.updateContent_();
+    this.updateContents_();
   },
 
   setValueAndUnit: function(value, unit) {
     this.value_ = value;
     this.unit_ = unit;
-    this.updateContent_();
+    this.updateContents_();
   },
 
   get percentage() {
@@ -235,7 +235,7 @@ Polymer({
     }
   },
 
-  updateContent_: function() {
+  updateContents_: function() {
     Polymer.dom(this.$.significance).textContent = '';
     Polymer.dom(this.$.content).textContent = '';
     Polymer.dom(this.$.content).classList.remove('better');

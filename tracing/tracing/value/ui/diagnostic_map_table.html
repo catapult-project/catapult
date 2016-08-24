@@ -33,10 +33,10 @@ found in the LICENSE file.
      */
     set diagnosticMaps(maps) {
       this.diagnosticMaps_ = maps;
-      this.updateContent_();
+      this.updateContents_();
     },
 
-    updateContent_: function() {
+    updateContents_: function() {
       if (this.diagnosticMaps_ === undefined ||
           this.diagnosticMaps_.length === 0) {
         this.$.table.tableRows = [];

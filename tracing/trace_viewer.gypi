@@ -487,6 +487,7 @@
       'tracing/value/ui/array_of_numbers_span.html',
       'tracing/value/ui/breakdown_value_set_view.html',
       'tracing/value/ui/composition_span.html',
+      'tracing/value/ui/diagnostic_map_table.html',
       'tracing/value/ui/diagnostic_span.html',
       'tracing/value/ui/generic_diagnostic_span.html',
       'tracing/value/ui/generic_table_view.html',
