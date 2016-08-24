@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/perf_insights/mre/function_handle.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/mre/function_handle.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -65,7 +65,7 @@ tr.exportTo('pi.m', function() {
     result.addPair('stats', stats);
   }
 
-  pi.FunctionRegistry.register(traceStatsFunction);
+  tr.mre.FunctionRegistry.register(traceStatsFunction);
 
   //Exporting for tests.
   return {

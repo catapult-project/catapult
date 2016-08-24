@@ -41,7 +41,7 @@ def _GetExitCodeForResults(results):
 
 
 def _ProcessTracesWithMetric(metric_name, traces, output_file):
-  results = metric_runner.RunMetricOnTraces(traces, metric_name)
+  results = metric_runner.RunMetricOnTraces(traces, [metric_name])
   results_dict = {k: v.AsDict() for k, v in results.iteritems()}
   _DumpToOutputJson(results_dict, output_file)
 

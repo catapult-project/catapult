@@ -9,11 +9,9 @@ import sys
 if __name__ == '__main__':
   path_to_catapult = os.path.join(os.path.dirname(__file__), '..', '..')
   path_to_tracing = os.path.join(path_to_catapult, 'tracing')
-  path_to_perf_insights = os.path.join(path_to_catapult, 'perf_insights')
   path_to_trace_processor = os.path.join(path_to_catapult, 'trace_processor')
 
   sys.path.append(path_to_tracing)
-  sys.path.append(path_to_perf_insights)
   sys.path.append(path_to_trace_processor)
 
   from trace_processor import process_traces

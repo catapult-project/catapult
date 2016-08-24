@@ -82,7 +82,7 @@ def MapSingleTrace(trace_handle,
   project = tracing_project.TracingProject()
 
   all_source_paths = list(project.source_paths)
-  all_source_paths.append(project.tracing_root_path)
+  all_source_paths.append(project.trace_processor_root_path)
 
   result = mre_result.MreResult()
 
