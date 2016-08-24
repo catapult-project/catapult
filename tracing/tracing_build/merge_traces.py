@@ -27,6 +27,7 @@ METADATA_PHASE = 'M'
 MEMORY_DUMP_PHASE = 'v'
 BEGIN_PHASE = 'B'
 END_PHASE = 'E'
+CLOCK_SYNC_EVENT_PHASE = 'c'
 
 
 # Minimum gap between two consecutive merged traces in microseconds.
@@ -295,17 +296,37 @@ def LoadTrace(filename):
   """Load a trace from a (possibly gzipped) file and return its parsed JSON."""
   logging.info('Loading trace %r...', filename)
   if filename.endswith(HTML_FILENAME_SUFFIX):
-    traces = html2trace.ReadTracesFromHTMLFilePath(filename)
-    if len(traces) > 1:
-      logging.warning('HTML trace contains multiple trace data blocks. Only '
-                      'the first block will be merged.')
-    return traces[0]
+    return LoadHTMLTrace(filename)
   elif filename.endswith(GZIP_FILENAME_SUFFIX):
     with gzip.open(filename, 'rb') as f:
       return json.load(f)
   else:
     with open(filename, 'r') as f:
       return json.load(f)
+
+
+def LoadHTMLTrace(filename):
+  """Load a trace from a vulcanized HTML trace file."""
+  trace_components = collections.defaultdict(list)
+
+  for sub_trace in html2trace.ReadTracesFromHTMLFilePath(filename):
+    for name, component in TraceAsDict(sub_trace).iteritems():
+      trace_components[name].append(component)
+
+  trace = {}
+  for name, components in trace_components.iteritems():
+    if len(components) == 1:
+      trace[name] = components[0]
+    elif all(isinstance(component, list) for component in components):
+      trace[name] = [e for component in components for e in component]
+    else:
+      trace[name] = components[0]
+      logging.warning(
+          'Values of repeated trace component %r in HTML trace %r are not '
+          'lists. The first defined value of the component will be used.',
+          filename, name)
+
+  return trace
 
 
 def SaveTrace(trace, filename):
@@ -324,6 +345,13 @@ def SaveTrace(trace, filename):
     else:
       with open(filename, 'w') as f:
         json.dump(trace, f)
+
+
+def TraceAsDict(trace):
+  """Ensure that a trace is a dictionary."""
+  if isinstance(trace, list):
+    return {'traceEvents': trace}
+  return trace
 
 
 def MergeTraceFiles(input_trace_filenames, output_trace_filename):
@@ -347,9 +375,7 @@ def MergeTraces(traces):
   trace_components = collections.defaultdict(collections.OrderedDict)
 
   for filename, trace in traces.iteritems():
-    if isinstance(trace, list):
-      trace = {'traceEvents': trace}
-    for name, component in trace.iteritems():
+    for name, component in TraceAsDict(trace).iteritems():
       trace_components[name][filename] = component
 
   merged_trace = {}
@@ -372,12 +398,30 @@ def MergeComponents(component_name, components_by_filename):
 
 def MergeTraceEvents(events_by_filename):
   """Merge trace events from multiple traces into a single list of events."""
+  # Remove strings from the list of trace events
+  # (https://github.com/catapult-project/catapult/issues/2497).
+  events_by_filename = collections.OrderedDict(
+      (filename, [e for e in events if not isinstance(e, basestring)])
+      for filename, events in events_by_filename.iteritems())
+
   timestamp_range_by_filename = _AdjustTimestampRanges(events_by_filename)
   process_map = _CreateProcessMapFromTraceEvents(events_by_filename)
   merged_events = _CombineTraceEvents(events_by_filename, process_map)
+  _RemoveSurplusClockSyncEvents(merged_events)
   merged_events.extend(
       _BuildInjectedTraceMarkerEvents(timestamp_range_by_filename, process_map))
   return merged_events
+
+
+def _RemoveSurplusClockSyncEvents(events):
+  """Remove all clock sync events except for the first one."""
+  # TODO(petrcermak): Figure out how to handle merging multiple clock sync
+  # events.
+  clock_sync_event_indices = [i for i, e in enumerate(events)
+                              if e['ph'] == CLOCK_SYNC_EVENT_PHASE]
+  # The indices need to be traversed from largest to smallest (hence the -1).
+  for i in clock_sync_event_indices[:0:-1]:
+    del events[i]
 
 
 def _AdjustTimestampRanges(events_by_filename):
