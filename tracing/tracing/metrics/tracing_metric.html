@@ -43,8 +43,13 @@ tr.exportTo('tr.metrics', function() {
             nonMemoryInfraThreadOverhead += slice.duration;
           if (slice.args && slice.args['dump_provider.name']) {
             var providerName = slice.args['dump_provider.name'];
-            overheadByProvider[providerName] =
-                (overheadByProvider[providerName] || 0) + slice.duration;
+            var durationAndCount = overheadByProvider[providerName];
+            if (durationAndCount === undefined) {
+              overheadByProvider[providerName] = durationAndCount =
+                  {duration: 0, count: 0};
+            }
+            durationAndCount.duration += slice.duration;
+            durationAndCount.count++;
           }
         });
       });
@@ -59,8 +64,8 @@ tr.exportTo('tr.metrics', function() {
         nonMemoryInfraThreadOverhead / memoryDumpCount, values);
     tr.b.iterItems(overheadByProvider, function(providerName, overhead) {
       addTimeDurationValue(
-          'Average CPU overhead of ' + providerName + ' per memory-infra dump',
-          overhead / memoryDumpCount, values);
+          'Average CPU overhead of ' + providerName + ' per OnMemoryDump call',
+          overhead.duration / overhead.count, values);
     });
 
     var memoryInfraEventsSize =

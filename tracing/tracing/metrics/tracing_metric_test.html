@@ -153,13 +153,13 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(sizePerDumpValue[0].numeric.value, memoryCategorySize);
 
     checkDurationValue(allValues,
-        'Average CPU overhead of mdp1 per memory-infra dump', 13);
+        'Average CPU overhead of mdp1 per OnMemoryDump call', 6.5);
     checkDurationValue(allValues,
-        'Average CPU overhead of mdp2 per memory-infra dump', 32);
+        'Average CPU overhead of mdp2 per OnMemoryDump call', 16);
     checkDurationValue(allValues,
-        'Average CPU overhead of mdp3 per memory-infra dump', 12);
+        'Average CPU overhead of mdp3 per OnMemoryDump call', 6);
     checkDurationValue(allValues,
-        'Average CPU overhead of mdp4 per memory-infra dump', 8);
+        'Average CPU overhead of mdp4 per OnMemoryDump call', 8);
     checkDurationValue(allValues,
         'Average CPU overhead on non-memory-infra threads per memory-infra ' +
             'dump',
