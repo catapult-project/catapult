@@ -159,7 +159,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
         self._WaitForLogin()
       except exceptions.TimeoutException:
-        self._cri.TakeScreenshotWithPrefix('login-screen')
+        if self._platform_backend.CanTakeScreenshot():
+          self._cri.TakeScreenshotWithPrefix('login-screen')
         raise exceptions.LoginException('Timed out going through login screen. '
                                         + self._GetLoginStatus())
 
