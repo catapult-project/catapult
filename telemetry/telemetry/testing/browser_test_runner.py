@@ -147,6 +147,76 @@ def _SplitShardsByTime(test_cases, total_shards, test_times,
 
 _TEST_GENERATOR_PREFIX = 'GenerateTestCases_'
 
+
+def _GenerateTestCases(test_class, finder_options):
+  test_cases = []
+  for name, method in inspect.getmembers(
+      test_class, predicate=inspect.ismethod):
+    if name.startswith('test'):
+      # Do not allow method names starting with "test" in these
+      # subclasses, to avoid collisions with Python's unit test runner.
+      raise Exception('Name collision with Python\'s unittest runner: %s' %
+                      name)
+    elif name.startswith('Test'):
+      # Pass these through for the time being. We may want to rethink
+      # how they are handled in the future.
+      test_cases.append(test_class(name))
+    elif name.startswith(_TEST_GENERATOR_PREFIX):
+      based_method_name = name[len(_TEST_GENERATOR_PREFIX):]
+      assert hasattr(test_class, based_method_name), (
+          '%s is specified but based method %s does not exist' %
+          (name, based_method_name))
+      based_method = getattr(test_class, based_method_name)
+      for generated_test_name, args in method(finder_options):
+        _ValidateTestMethodname(generated_test_name)
+        setattr(test_class, generated_test_name, _GenerateTestMethod(
+            based_method, args))
+        test_cases.append(test_class(generated_test_name))
+  return test_cases
+
+
+def LoadAllTestsInModule(module):
+  """ Load all tests & generated browser tests in a given module.
+
+  This is supposed to be invoke in load_tests() method of your test modules that
+  use browser_test_runner framework to discover & generate the tests to be
+  picked up by the test runner. Here is the example of how your test module
+  should looks like:
+
+  ################## my_awesome_browser_tests.py  ################
+  import sys
+
+  from telemetry.testing import serially_executed_browser_test_case
+  ...
+
+  class TestSimpleBrowser(
+      serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
+  ...
+  ...
+
+  def load_tests(loader, tests, pattern):
+    return browser_test_runner.LoadAllTestsInModule(
+        sys.modules[__name__])
+  #################################################################
+
+  Args:
+    module: the module which contains test cases classes.
+
+  Returns:
+    an instance of unittest.TestSuite, which contains all the tests & generated
+    test cases to be run.
+  """
+  suite = unittest.TestSuite()
+  for _, obj in inspect.getmembers(module):
+    if (inspect.isclass(obj) and
+        issubclass(obj, serially_executed_browser_test_case.
+        SeriallyExecutedBrowserTestCase)):
+      for test in _GenerateTestCases(test_class=obj,
+          finder_options=options_for_unittests.GetCopy()):
+        suite.addTest(test)
+  return suite
+
+
 def _LoadTests(test_class, finder_options, filter_regex_str,
                filter_tests_after_sharding,
                total_shards, shard_index, test_times,
@@ -160,29 +230,11 @@ def _LoadTests(test_class, finder_options, filter_regex_str,
   else:
     filter_regex = real_regex
     post_filter_regex = noop_regex
-  for name, method in inspect.getmembers(
-      test_class, predicate=inspect.ismethod):
-    if name.startswith('test'):
-      # Do not allow method names starting with "test" in these
-      # subclasses, to avoid collisions with Python's unit test runner.
-      raise Exception('Name collision with Python\'s unittest runner: %s' %
-                      name)
-    elif name.startswith('Test') and filter_regex.search(name):
-      # Pass these through for the time being. We may want to rethink
-      # how they are handled in the future.
-      test_cases.append(test_class(name))
-    elif name.startswith(_TEST_GENERATOR_PREFIX):
-      based_method_name = name[len(_TEST_GENERATOR_PREFIX):]
-      assert hasattr(test_class, based_method_name), (
-          '%s is specified but %s based method %s does not exist' %
-          name, based_method_name)
-      based_method = getattr(test_class, based_method_name)
-      for generated_test_name, args in method(finder_options):
-        _ValidateTestMethodname(generated_test_name)
-        if filter_regex.search(generated_test_name):
-          setattr(test_class, generated_test_name, _GenerateTestMethod(
-              based_method, args))
-          test_cases.append(test_class(generated_test_name))
+
+  for t in _GenerateTestCases(test_class, finder_options):
+    if filter_regex.search(t.shortName()):
+      test_cases.append(t)
+
   if test_times:
     # Assign tests to shards.
     shards = _SplitShardsByTime(test_cases, total_shards, test_times,

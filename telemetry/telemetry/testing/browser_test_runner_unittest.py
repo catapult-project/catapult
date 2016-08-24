@@ -4,6 +4,7 @@
 
 import os
 import string
+import sys
 import tempfile
 import unittest
 import json
@@ -13,6 +14,7 @@ import mock
 from telemetry import project_config
 from telemetry.core import util
 from telemetry.testing import browser_test_runner
+from telemetry.testing import serially_executed_browser_test_case
 
 
 class BrowserTestRunnerTest(unittest.TestCase):
@@ -287,3 +289,44 @@ class BrowserTestRunnerTest(unittest.TestCase):
     self.assertEqual(4.0, browser_test_runner._MedianTestTime(
       {'test1': 2.0, 'test2': 6.0, 'test3': 1.0, 'test4': 8.0}))
 
+
+class Algebra(
+    serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
+
+  @classmethod
+  def GenerateTestCases_Simple(cls, options):
+    del options  # Unused.
+    yield 'testOne', (1, 2)
+    yield 'testTwo', (3, 3)
+
+  def Simple(self, x, y):
+    self.assertEquals(x, y)
+
+  def TestNumber(self):
+    self.assertEquals(0, 1)
+
+
+class Geometric(
+    serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
+
+  @classmethod
+  def GenerateTestCases_Compare(cls, options):
+    del options  # Unused.
+    yield 'testBasic', ('square', 'circle')
+
+  def Compare(self, x, y):
+    self.assertEquals(x, y)
+
+  def TestAngle(self):
+    self.assertEquals(90, 450)
+
+
+class TestLoadAllTestModules(unittest.TestCase):
+  def testLoadAllTestsInModule(self):
+    tests = browser_test_runner.LoadAllTestsInModule(sys.modules[__name__])
+    self.assertEquals(sorted([t.id() for t in tests]),
+        ['telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
+         'telemetry.testing.browser_test_runner_unittest.Algebra.testOne',
+         'telemetry.testing.browser_test_runner_unittest.Algebra.testTwo',
+         'telemetry.testing.browser_test_runner_unittest.Geometric.TestAngle',
+         'telemetry.testing.browser_test_runner_unittest.Geometric.testBasic'])
