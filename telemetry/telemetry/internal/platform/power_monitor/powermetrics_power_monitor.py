@@ -236,6 +236,40 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
 
     for m in metrics:
       StoreMetricAverage(m, sample_durations, out_dict)
+
+    if 'tasks' not in plist:
+      logging.error("'tasks' field not found in plist.")
+      return {}
+
+    # The following CPU metrics are already time-normalized, and segmented by
+    # process. Sum the metrics across all Chrome processes.
+    cputime = 0
+    energy_impact = 0
+    browser_process_count = 0
+    idle_wakeups = 0
+    for task in plist['tasks']:
+      if 'Chrome' in task['name'] or 'Chromium' in task['name']:
+        if 'Helper' not in task['name']:
+          browser_process_count += 1
+        cputime += float(task['cputime_ms_per_s'])
+        energy_impact += float(task.get('energy_impact', 0))
+        idle_wakeups += float(task['idle_wakeups_per_s'])
+    if browser_process_count == 0:
+      logging.warning('No Chrome or Chromium browser process found with '
+                      'powermetrics. Chrome CPU metrics will not be emitted.')
+      return {}
+    elif browser_process_count >= 2:
+      logging.warning('powermetrics found more than one Chrome or Chromium '
+                      'browser. Chrome CPU metrics will not be emitted.')
+      # During Telemetry unit tests, there may be multiple Chrome browsers
+      # present. Don't add cpu metrics, but don't return {} either.
+    else:  # browser_process_count == 1:
+      chrome_dict = {}
+      chrome_dict['cputime_ms_per_s'] = cputime
+      chrome_dict['energy_impact'] = energy_impact
+      chrome_dict['idle_wakeups_per_s'] = idle_wakeups
+      out_dict['component_utilization']['chrome'] = chrome_dict
+
     return out_dict
 
   def _KillPowerMetricsProcess(self):
