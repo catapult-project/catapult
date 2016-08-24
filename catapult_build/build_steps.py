@@ -103,6 +103,7 @@ _CATAPULT_TESTS = [
             '--start-xvfb'
         ],
         'uses_sandbox_env': True,
+        'disabled': ['android'],
     },
     {
         'name': 'Telemetry Integration Tests with Stable Browser',
