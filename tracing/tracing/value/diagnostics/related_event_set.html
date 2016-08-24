@@ -7,71 +7,56 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
+<link rel="import" href="/tracing/value/diagnostics/event_ref.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
   /**
-   * Similar to ValueRef, this is a placeholder in case the referenced Event
-   * isn't available in memory to point to directly.
-   *
-   * @constructor
-   * @param {!Object} event
-   * @param {string} event.stableId
-   * @param {string} event.title
-   * @param {number} event.start
-   * @param {number} event.duration
-   */
-  function EventRef(event) {
-    this.stableId = event.stableId;
-    this.title = event.title;
-    this.start = event.start;
-    this.duration = event.duration;
-    this.end = this.start + this.duration;
-
-    // tr.v.d.RelatedEventSet identifies events using stableId, but
-    // tr.model.EventSet uses guid.
-    this.guid = tr.b.GUID.allocateSimple();
-  }
-
-  /**
    * A RelatedEventSet diagnostic contains references to Events
-   *
-   * @constructor
-   * @param {(!tr.model.EventSet|Array.<!(EventRef|tr.model.Event)>|!EventRef|!tr.model.Event)=} opt_events
    */
-  function RelatedEventSet(opt_events) {
-    this.eventsByStableId_ = {};
-
-    if (opt_events) {
-      if (opt_events instanceof tr.model.EventSet ||
-          opt_events instanceof Array)
-        opt_events.forEach(this.push.bind(this));
-      else
-        this.push(opt_events);
+  class RelatedEventSet extends tr.v.d.Diagnostic {
+    /**
+     * @param {(!tr.model.EventSet|Array.<!(tr.v.d.EventRef|tr.model.Event)>|!tr.v.d.EventRef|!tr.model.Event)=} opt_events
+     */
+    constructor(opt_events) {
+      super();
+      this.eventsByStableId_ = new Map();
+      if (opt_events) {
+        if (opt_events instanceof tr.model.EventSet ||
+            opt_events instanceof Array) {
+          for (var event of opt_events)
+            this.add(event);
+        } else {
+          this.add(opt_events);
+        }
+      }
     }
-  }
-
-  RelatedEventSet.prototype = {
-    __proto__: tr.v.d.Diagnostic.prototype,
 
     /**
-     * Add an event to this set.
-     *
-     * @param {!(EventRef|tr.model.Event)} event
+     * @param {!(tr.v.d.EventRef|tr.model.Event)} event
      */
-    push: function(event) {
-      this.eventsByStableId_[event.stableId] = event;
-    },
+    add(event) {
+      this.eventsByStableId_.set(event.stableId, event);
+    }
 
     /**
-     * @return {!Array.<!(EventRef|tr.model.Event)>}
+     * @param {!(tr.v.d.EventRef|tr.model.Event)} event
+     * @return {boolean}
      */
-    get events() {
-      return new tr.model.EventSet(
-          tr.b.dictionaryValues(this.eventsByStableId_));
-    },
+    has(event) {
+      return this.eventsByStableId_.has(event.stableId);
+    }
+
+    get length() {
+      return this.eventsByStableId_.size;
+    }
+
+    *[Symbol.iterator]() {
+      for (var [stableId, event] of this.eventsByStableId_)
+        yield event;
+    }
 
     /**
      * Resolve all EventRefs into Events by finding their stableIds in |model|.
@@ -83,33 +68,35 @@ tr.exportTo('tr.v.d', function() {
      * @param {!tr.model.Model} model
      * @param {boolean=} opt_required
      */
-    resolve: function(model, opt_required) {
-      tr.b.iterItems(this.eventsByStableId_, function(stableId, event) {
-        if (!(event instanceof EventRef))
-          return;
+    resolve(model, opt_required) {
+      for (var [stableId, event] of this.eventsByStableId_) {
+        if (!(event instanceof tr.v.d.EventRef))
+          continue;
 
         event = model.getEventByStableId(stableId);
         if (event instanceof tr.model.Event)
-          this.eventsByStableId_[stableId] = event;
+          this.eventsByStableId_.set(stableId, event);
         else if (opt_required)
           throw new Error('Unable to find Event ' + ref.stableId);
-      }, this);
-    },
+      }
+    }
 
-    asDictInto_: function(d) {
-      d.events = this.events.map(function eventAsDict(event) {
-        return {
+    asDictInto_(d) {
+      d.events = [];
+      for (var event of this) {
+        d.events.push({
           stableId: event.stableId,
           title: event.title,
           start: event.start,
           duration: event.duration
-        };
-      });
+        });
+      }
     }
   };
 
   RelatedEventSet.fromDict = function(d) {
-    return new RelatedEventSet(d.events.map(event => new EventRef(event)));
+    return new RelatedEventSet(d.events.map(
+        event => new tr.v.d.EventRef(event)));
   };
 
   tr.v.d.Diagnostic.register(RelatedEventSet, {

@@ -27,23 +27,22 @@ tr.b.unittest.testSuite(function() {
     });
 
     var d = new tr.v.d.RelatedEventSet(slice);
-    assert.strictEqual(tr.b.getOnlyElement(d.events), slice);
+    assert.strictEqual(tr.b.getOnlyElement([...d]), slice);
 
     d = new tr.v.d.RelatedEventSet([slice]);
-    assert.strictEqual(tr.b.getOnlyElement(d.events), slice);
+    assert.strictEqual(tr.b.getOnlyElement([...d]), slice);
 
     d = new tr.v.d.RelatedEventSet(new tr.model.EventSet([slice]));
-    assert.strictEqual(tr.b.getOnlyElement(d.events), slice);
+    assert.strictEqual(tr.b.getOnlyElement([...d]), slice);
 
     var d2 = tr.v.d.Diagnostic.fromDict(d.asDict());
     assert.instanceOf(d2, tr.v.d.RelatedEventSet);
 
-    // Can't use assert.instanceOf() because EventRef is private.
-    assert.isFalse(tr.b.getOnlyElement(d2.events) instanceof tr.model.Event);
+    assert.instanceOf(tr.b.getOnlyElement([...d2]), tr.v.d.EventRef);
 
     d2.resolve(model, true);
 
-    assert.strictEqual(tr.b.getOnlyElement(d2.events), slice);
+    assert.strictEqual(tr.b.getOnlyElement([...d2]), slice);
   });
 });
 </script>

@@ -58,31 +58,27 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(scriptValue, tr.v.NumericValue);
     assert.strictEqual(scriptValue, composition.get('script_execute'));
     assert.lengthOf(scriptValue.numeric.centralBins[1].diagnosticMaps, 1);
-    assert.lengthOf(
-        scriptValue.numeric.centralBins[1].diagnosticMaps[0]
-        .get('relatedEvents').events, 1);
-    assert.strictEqual(events[0],
-        scriptValue.numeric.centralBins[1].diagnosticMaps[0]
-        .get('relatedEvents').events[0]);
+    events = [...events];
+    var relatedEvents = scriptValue.numeric.centralBins[1].diagnosticMaps[0]
+        .get('relatedEvents');
+    assert.lengthOf(relatedEvents, 1);
+    assert.strictEqual(events[0], [...relatedEvents][0]);
     assert.lengthOf(scriptValue.numeric.centralBins[2].diagnosticMaps, 1);
     assert.lengthOf(
         scriptValue.numeric.centralBins[2].diagnosticMaps[0]
-        .get('relatedEvents').events, 1);
-    assert.strictEqual(
-        events[1],
-        scriptValue.numeric.centralBins[2].diagnosticMaps[0]
-        .get('relatedEvents').events[0]);
+        .get('relatedEvents'), 1);
+    assert.strictEqual(events[1],
+        [...scriptValue.numeric.centralBins[2].diagnosticMaps[0]
+        .get('relatedEvents')][0]);
 
     var styleValue = values.getValuesWithName('foo-style')[0];
     assert.instanceOf(styleValue, tr.v.NumericValue);
     assert.strictEqual(styleValue, composition.get('style'));
     assert.lengthOf(styleValue.numeric.centralBins[3].diagnosticMaps, 1);
-    assert.lengthOf(
-        styleValue.numeric.centralBins[3].diagnosticMaps[0]
-        .get('relatedEvents').events, 1);
-    assert.strictEqual(events[2],
-        styleValue.numeric.centralBins[3].diagnosticMaps[0]
-        .get('relatedEvents').events[0]);
+    relatedEvents = styleValue.numeric.centralBins[3].diagnosticMaps[0]
+        .get('relatedEvents');
+    assert.lengthOf(relatedEvents, 1);
+    assert.strictEqual(events[2], [...relatedEvents][0]);
   });
 });
 </script>

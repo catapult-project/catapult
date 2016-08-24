@@ -473,6 +473,7 @@
       'tracing/value/diagnostics/composition.html',
       'tracing/value/diagnostics/diagnostic.html',
       'tracing/value/diagnostics/diagnostic_map.html',
+      'tracing/value/diagnostics/event_ref.html',
       'tracing/value/diagnostics/generic.html',
       'tracing/value/diagnostics/iteration_info.html',
       'tracing/value/diagnostics/related_event_set.html',

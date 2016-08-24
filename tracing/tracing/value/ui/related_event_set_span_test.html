@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
       var event = tr.c.TestUtils.newSliceEx(
           {title: 'a', start: 0, duration: 1});
       thread.sliceGroup.pushSlice(event);
-      diagnostic.push(event);
+      diagnostic.add(event);
     });
     var span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-RELATED-EVENT-SET-SPAN', span.tagName);
@@ -44,10 +44,10 @@ tr.b.unittest.testSuite(function() {
       var thread = proc.getOrCreateThread(2);
       var event = tr.c.TestUtils.newSliceEx({start: 0, duration: 1});
       thread.sliceGroup.pushSlice(event);
-      diagnostic.push(event);
+      diagnostic.add(event);
       event = tr.c.TestUtils.newSliceEx({start: 1, duration: 1});
       thread.sliceGroup.pushSlice(event);
-      diagnostic.push(event);
+      diagnostic.add(event);
     });
     var span = tr.v.ui.createDiagnosticSpan(diagnostic);
     assert.strictEqual('TR-V-UI-RELATED-EVENT-SET-SPAN', span.tagName);
