@@ -371,12 +371,14 @@ tr.b.unittest.testSuite(function() {
           newAllocatorDump(pmdRendererA1, 'malloc', {numerics: {size: 16}});
       var partitionAllocDump =
           newAllocatorDump(pmdRendererA1, 'partition_alloc');
+      var v8Dump = newAllocatorDump(pmdRendererA1, 'v8',
+          {numerics: {code_and_metadata_size: 16}});
       addOwnershipLink(
           addChildDump(partitionAllocDump, 'allocated_objects',
               {numerics: {size: 32}}),
           addChildDump(partitionAllocDump, 'partitions',
               {numerics: {size: 24}}));
-      return [mallocDump, partitionAllocDump];
+      return [mallocDump, partitionAllocDump, v8Dump];
     })();
     var pmdGpu1 = addProcessMemoryDump(gmd1, pPpapi, {ts: 21});
     pmdGpu1.memoryAllocatorDumps = [
@@ -491,7 +493,8 @@ tr.b.unittest.testSuite(function() {
     pmdRendererB2.memoryAllocatorDumps = [
       newAllocatorDump(pmdRendererB2, 'v8', {numerics: {
         size: 970,
-        allocated_objects_size: 860
+        allocated_objects_size: 860,
+        bytecode_and_metadata_size: 678
       }}),
       newAllocatorDump(pmdRendererB2, 'malloc',
           {numerics: {allocated_objects_size: 750}})
@@ -525,8 +528,11 @@ tr.b.unittest.testSuite(function() {
     ];
     var pmdRendererB4 = addProcessMemoryDump(gmd4, pRendererB, {ts: 79});
     pmdRendererB4.memoryAllocatorDumps = (function() {
-      var v8Dump = newAllocatorDump(pmdRendererB4, 'v8',
-          {numerics: {size: 9e5}});
+      var v8Dump = newAllocatorDump(pmdRendererB4, 'v8', {numerics: {
+        code_and_metadata_size: 21,
+        bytecode_and_metadata_size: 35,
+        size: 9e5
+      }});
       var partitionAllocDump = newAllocatorDump(pmdRendererB4,
           'partition_alloc', {numerics: {size: 5e5}});
       addOwnershipLink(partitionAllocDump, v8Dump);
@@ -643,6 +649,19 @@ tr.b.unittest.testSuite(function() {
           unit: sizeInBytes_smallerIsBetter,
           description: 'peak size of objects allocated by malloc for v8 ' +
               'in all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:code_and_metadata_size':
+        {
+          value: [16, 678, 0, 21 + 35],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total size of code and metadata reported by Chrome ' +
+              'for all processes in Chrome'
+        },
+    'memory:chrome:all_processes:reported_by_chrome:v8:code_and_metadata_size':
+        {
+          value: [16, 678, 0, 21 + 35],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of v8 code and metadata in all processes in Chrome'
         },
     'memory:chrome:all_processes:reported_by_chrome:v8:heap:allocated_objects_size':
         {
@@ -881,6 +900,20 @@ tr.b.unittest.testSuite(function() {
           description: 'size of all objects allocated by v8:heap in renderer ' +
               'processes in Chrome'
         },
+    'memory:chrome:renderer_processes:reported_by_chrome:code_and_metadata_size':
+        {
+          value: [16, 678, 0, 21 + 35],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total size of code and metadata reported by Chrome ' +
+              'for renderer processes in Chrome'
+        },
+    'memory:chrome:renderer_processes:reported_by_chrome:v8:code_and_metadata_size':
+        {
+          value: [16, 678, 0, 21 + 35],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'size of v8 code and metadata in renderer processes ' +
+              'in Chrome'
+        },
     'memory:chrome:renderer_processes:reported_by_chrome:v8:heap:effective_size':
         {
           value: [0, 42 + 12 + 2, 0, 0],
@@ -1018,10 +1051,6 @@ tr.b.unittest.testSuite(function() {
       new VMRegion(0x2345, 512, 0, '[heap]',
           {proportionalResident: 67, privateDirtyResident: 34})
     ]);
-    pmdRendererB1.memoryAllocatorDumps = [
-      newAllocatorDump(pmdRendererB1, 'v8',
-          {numerics: {code_and_metadata_size: 16}})
-    ];
     var pmdGpu1 = addProcessMemoryDump(gmd1, pGpu, {ts: 10});
     pmdGpu1.memoryAllocatorDumps = (function() {
       var gpuDump = newAllocatorDump(pmdGpu1, 'gpu');
@@ -1039,11 +1068,6 @@ tr.b.unittest.testSuite(function() {
       new VMRegion(0x999, 999, 999, '/dev/ashmem/dalvik-main space',
           {proportionalResident: 999})
     ]);
-    var pmdRendererA2 = addProcessMemoryDump(gmd2, pRendererA, {ts: 19});
-    pmdRendererA2.memoryAllocatorDumps = [
-      newAllocatorDump(pmdRendererA2, 'v8',
-          {numerics: {bytecode_and_metadata_size: 678}})
-    ];
     var pmdRendererB2 = addProcessMemoryDump(gmd2, pRendererB, {ts: 21});
     var pmdRendererC2 = addProcessMemoryDump(gmd2, pRendererC, {ts: 22});
     var pmdGpu2 = addProcessMemoryDump(gmd2, pGpu, {ts: 20});
@@ -1088,13 +1112,6 @@ tr.b.unittest.testSuite(function() {
     // Timestamp 4.
     var gmd4 = addGlobalMemoryDump(model, {ts: 40, levelOfDetail: DETAILED});
     var pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, {ts: 40});
-    var pmdRendererA4 = addProcessMemoryDump(gmd4, pRendererA, {ts: 40});
-    pmdRendererA4.memoryAllocatorDumps = [
-      newAllocatorDump(pmdRendererA4, 'v8', {numerics: {
-        code_and_metadata_size: 21,
-        bytecode_and_metadata_size: 35
-      }})
-    ];
   }, undefined /* opt_options */, {
     'memory:unknown_browser:all_processes:dump_count:detailed': {
       value: 3,
@@ -1121,24 +1138,10 @@ tr.b.unittest.testSuite(function() {
           'browser to the trace'
     },
     'memory:unknown_browser:all_processes:process_count': {
-      value: [4, 5, 4, 2],
+      value: [4, 4, 4, 1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all processes in an unknown browser'
     },
-    'memory:unknown_browser:all_processes:reported_by_chrome:code_and_metadata_size':
-        {
-          value: [16, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of code and metadata reported by Chrome ' +
-              'for all processes in an unknown browser'
-        },
-    'memory:unknown_browser:all_processes:reported_by_chrome:v8:code_and_metadata_size':
-        {
-          value: [16, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of v8 code and metadata in all processes in an ' +
-              'unknown browser'
-        },
     'memory:unknown_browser:all_processes:reported_by_os:gpu_memory:proportional_resident_size':
         {
           value: [100 + 200, 3000 + 1000, 0],
@@ -1416,24 +1419,10 @@ tr.b.unittest.testSuite(function() {
               'in the GPU process in an unknown browser'
         },
     'memory:unknown_browser:renderer_processes:process_count': {
-      value: [2, 3, 2, 1],
+      value: [2, 2, 2, 0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of renderer processes in an unknown browser'
     },
-    'memory:unknown_browser:renderer_processes:reported_by_chrome:code_and_metadata_size':
-        {
-          value: [16, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'total size of code and metadata reported by Chrome ' +
-              'for renderer processes in an unknown browser'
-        },
-    'memory:unknown_browser:renderer_processes:reported_by_chrome:v8:code_and_metadata_size':
-        {
-          value: [16, 0, 21 + 35],
-          unit: sizeInBytes_smallerIsBetter,
-          description: 'size of v8 code and metadata in renderer processes ' +
-              'in an unknown browser'
-        },
     'memory:unknown_browser:renderer_processes:reported_by_os:private_dirty_size':
         {
           value: [17 + 34, 0, 0],
@@ -1896,7 +1885,7 @@ tr.b.unittest.testSuite(function() {
           'processes in WebView'
     },
     'memory:webview:all_processes:reported_by_chrome:code_and_metadata_size': {
-      value: [33554432],
+      value: [0, 33554432, 0],
       unit: sizeInBytes_smallerIsBetter,
       description: 'total size of code and metadata reported by Chrome for ' +
           'all processes in WebView'
@@ -1945,7 +1934,7 @@ tr.b.unittest.testSuite(function() {
     },
     'memory:webview:all_processes:reported_by_chrome:v8:code_and_metadata_size':
         {
-          value: [33554432],
+          value: [0, 33554432, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of v8 code and metadata in all processes in ' +
               'WebView'
@@ -2051,7 +2040,7 @@ tr.b.unittest.testSuite(function() {
         },
     'memory:webview:browser_process:reported_by_chrome:code_and_metadata_size':
         {
-          value: [33554432],
+          value: [0, 33554432, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'total size of code and metadata reported by Chrome ' +
               'for the browser process in WebView'
@@ -2101,7 +2090,7 @@ tr.b.unittest.testSuite(function() {
         },
     'memory:webview:browser_process:reported_by_chrome:v8:code_and_metadata_size':
         {
-          value: [33554432],
+          value: [0, 33554432, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'size of v8 code and metadata in the browser process ' +
               'in WebView'

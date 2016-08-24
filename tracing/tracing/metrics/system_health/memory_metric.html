@@ -338,6 +338,26 @@ tr.exportTo('tr.metrics.sh', function() {
         });
       }
     });
+
+    // V8 generates bytecode when interpreting and code objects when
+    // compiling the javascript. Total code size includes the size
+    // of code and bytecode objects.
+    addProcessScalar({
+      source: 'reported_by_chrome',
+      component: ['v8'],
+      property: 'code_and_metadata_size',
+      value: v8Dump.numerics['code_and_metadata_size'],
+      descriptionPrefixBuilder:
+          buildCodeAndMetadataSizeValueDescriptionPrefix
+    });
+    addProcessScalar({
+      source: 'reported_by_chrome',
+      component: ['v8'],
+      property: 'code_and_metadata_size',
+      value: v8Dump.numerics['bytecode_and_metadata_size'],
+      descriptionPrefixBuilder:
+          buildCodeAndMetadataSizeValueDescriptionPrefix
+    });
   }
 
   /**
@@ -530,31 +550,6 @@ tr.exportTo('tr.metrics.sh', function() {
                 value: memtrackChildDump.numerics['memtrack_pss'],
                 descriptionPrefixBuilder: descriptionPrefixBuilder
               });
-            });
-          }
-
-          // Add memory:<browser-name>:<process-name>:reported_by_chrome:v8:
-          // code_and_metadata_size when available.
-          var v8Dump = processDump.getMemoryAllocatorDumpByFullName('v8');
-          if (v8Dump !== undefined) {
-            // V8 generates bytecode when interpreting and code objects when
-            // compiling the javascript. Total code size includes the size
-            // of code and bytecode objects.
-            addProcessScalar({
-              source: 'reported_by_chrome',
-              component: ['v8'],
-              property: 'code_and_metadata_size',
-              value: v8Dump.numerics['code_and_metadata_size'],
-              descriptionPrefixBuilder:
-                  buildCodeAndMetadataSizeValueDescriptionPrefix
-            });
-            addProcessScalar({
-              source: 'reported_by_chrome',
-              component: ['v8'],
-              property: 'code_and_metadata_size',
-              value: v8Dump.numerics['bytecode_and_metadata_size'],
-              descriptionPrefixBuilder:
-                  buildCodeAndMetadataSizeValueDescriptionPrefix
             });
           }
         }, function(componentTree) {}, values);
