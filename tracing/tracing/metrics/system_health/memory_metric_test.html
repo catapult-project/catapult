@@ -365,6 +365,10 @@ tr.b.unittest.testSuite(function() {
         allocated_objects_size: 4
       }})
     ];
+    pmdBrowser1.totals = {
+      residentBytes: 200,
+      peakResidentBytes: 230
+    };
     var pmdRendererA1 = addProcessMemoryDump(gmd1, pRendererA, {ts: 20});
     pmdRendererA1.memoryAllocatorDumps = (function() {
       var mallocDump =
@@ -593,6 +597,31 @@ tr.b.unittest.testSuite(function() {
           description: 'total peak size reported by Chrome for all ' +
               'processes in Chrome'
         },
+    'memory:chrome:all_processes:reported_by_os:resident_size': {
+      value: [200, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total resident set size (RSS) reported by the OS for all ' +
+          'processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:peak_resident_size': {
+      value: [230, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak resident set size reported by the OS for all ' +
+          'processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:system_memory:resident_size': {
+      value: [200, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total resident set size (RSS) of system memory (RAM) ' +
+          'used by all processes in Chrome'
+    },
+    'memory:chrome:all_processes:reported_by_os:system_memory:peak_resident_size':
+        {
+          value: [230, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total peak resident set size of system memory (RAM) ' +
+              'used by all processes in Chrome'
+        },
     'memory:chrome:all_processes:reported_by_chrome:gpu:effective_size': {
       value: [30, 0, 300, 0],
       unit: sizeInBytes_smallerIsBetter,
@@ -762,6 +791,32 @@ tr.b.unittest.testSuite(function() {
           value: [0, 2 + 20 + 200, 0, 0],
           unit: sizeInBytes_smallerIsBetter,
           description: 'peak size of v8 in all processes in Chrome'
+        },
+    'memory:chrome:browser_process:reported_by_os:peak_resident_size': {
+      value: [230, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total peak resident set size reported by the OS for the ' +
+          'browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:peak_resident_size':
+        {
+          value: [230, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total peak resident set size of system memory (RAM) ' +
+              'used by the browser process in Chrome'
+        },
+    'memory:chrome:browser_process:reported_by_os:resident_size': {
+      value: [200, 0, 0, 0],
+      unit: sizeInBytes_smallerIsBetter,
+      description: 'total resident set size (RSS) reported by the OS for the ' +
+          'browser process in Chrome'
+    },
+    'memory:chrome:browser_process:reported_by_os:system_memory:resident_size':
+        {
+          value: [200, 0, 0, 0],
+          unit: sizeInBytes_smallerIsBetter,
+          description: 'total resident set size (RSS) of system memory (RAM) ' +
+              'used by the browser process in Chrome'
         },
     'memory:chrome:browser_process:process_count': {
       value: [1, 1, 1, 1],

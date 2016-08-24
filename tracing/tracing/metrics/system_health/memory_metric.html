@@ -257,6 +257,21 @@ tr.exportTo('tr.metrics.sh', function() {
             descriptionPrefixBuilder: buildProcessCountDescriptionPrefix
           });
 
+          if (processDump.totals !== undefined) {
+            tr.b.iterItems(SYSTEM_TOTAL_VALUE_PROPERTIES,
+                function(propertyName, propertySpec) {
+                  addProcessScalar({
+                    source: 'reported_by_os',
+                    property: propertyName,
+                    component: ['system_memory'],
+                    value: propertySpec.getPropertyFunction(processDump),
+                    unit: sizeInBytes_smallerIsBetter,
+                    descriptionPrefixBuilder:
+                        propertySpec.descriptionPrefixBuilder
+                  });
+                });
+          }
+
           // Add memory:<browser-name>:<process-name>:reported_by_chrome:...
           // values.
           if (processDump.memoryAllocatorDumps === undefined)
@@ -478,6 +493,23 @@ tr.exportTo('tr.metrics.sh', function() {
       userFriendlyPropertyName: 'peak size',
       componentPreposition: 'of'
     }),
+  };
+
+  var SYSTEM_TOTAL_VALUE_PROPERTIES = {
+    'resident_size': {
+      getPropertyFunction: function(processDump) {
+        return processDump.totals.residentBytes;
+      },
+      descriptionPrefixBuilder: buildOsValueDescriptionPrefix.bind(
+          undefined, 'resident set size (RSS)')
+    },
+    'peak_resident_size': {
+      getPropertyFunction: function(processDump) {
+        return processDump.totals.peakResidentBytes;
+      },
+      descriptionPrefixBuilder: buildOsValueDescriptionPrefix.bind(
+          undefined, 'peak resident set size')
+    }
   };
 
   /**
