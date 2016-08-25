@@ -15,51 +15,51 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   var SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME = 'summary values';
 
-  function ValueSet(opt_values) {
-    this.values_ = {};
+  class ValueSet {
+    constructor(opt_values) {
+      this.values_ = {};
 
-    if (opt_values !== undefined)
-      opt_values.forEach(this.addValue, this);
-  }
+      if (opt_values !== undefined)
+        opt_values.forEach(this.addValue, this);
+    }
 
-  ValueSet.prototype = {
     get valueDicts() {
       return this.map(v => v.asDict());
-    },
+    }
 
-    lookup: function(guid) {
+    lookup(guid) {
       return this.values_[guid];
-    },
+    }
 
-    toArray: function() {
+    toArray() {
       return tr.b.dictionaryValues(this.values_);
-    },
+    }
 
     *[Symbol.iterator]() {
       for (var guid in this.values_)
         yield this.values_[guid];
-    },
+    }
 
     /**
      * @param {!function(!tr.v.Value):*} callback
      * @param {*=} opt_this
      */
-    map: function(callback, opt_this) {
+    map(callback, opt_this) {
       return this.toArray().map(callback, opt_this || this);
-    },
+    }
 
     get organizedByName() {
       return this.getValuesOrganizedByCallback(v => v.name);
-    },
+    }
 
     /**
      * @param {!function(!tr.v.Value):*} callback
      * @param {*=} opt_this
      * @return {!Object}
      */
-    getValuesOrganizedByCallback: function(callback, opt_this) {
+    getValuesOrganizedByCallback(callback, opt_this) {
       return tr.b.group(this.toArray(), callback, opt_this || this);
-    },
+    }
 
     /**
      * Convert Values from dicts and add them.
@@ -67,7 +67,7 @@ tr.exportTo('tr.v', function() {
      *
      * @param {Array.<Object>} dicts
      */
-    addValuesFromDicts: function(dicts) {
+    addValuesFromDicts(dicts) {
       dicts.forEach(function(dict) {
         var value = tr.v.Value.fromDict(dict);
         this.addValueInternal_(value);
@@ -101,7 +101,7 @@ tr.exportTo('tr.v', function() {
             }, this);
           }, this);
       }, this);
-    },
+    }
 
     /**
      * Find the Values that are not contained in any other Values'
@@ -140,23 +140,23 @@ tr.exportTo('tr.v', function() {
         }
       });
       return tr.b.dictionaryValues(sourceValues);
-    },
+    }
 
-    getValuesWithName: function(name) {
+    getValuesWithName(name) {
       return this.toArray().filter(v => v.name.indexOf(name) > -1);
-    },
+    }
 
-    getValuesNamed: function(name) {
+    getValuesNamed(name) {
       return this.toArray().filter(v => v.name == name);
-    },
+    }
 
-    addValueInternal_: function(v) {
+    addValueInternal_(v) {
       if (this.values_[v.guid])
         throw new Error('Tried to add same value twice');
       this.values_[v.guid] = v;
-    },
+    }
 
-    addValue: function(v) {
+    addValue(v) {
       this.addValueInternal_(v);
 
       if (v.numeric instanceof tr.v.Histogram) {
@@ -165,23 +165,23 @@ tr.exportTo('tr.v', function() {
         }, this);
       }
     }
-  };
 
-  ValueSet.computeSummaryValuesForNumericValue = function(value) {
-    if (!(value instanceof tr.v.NumericValue &&
-          value.numeric instanceof tr.v.Histogram))
-      throw new Error('Tried to compute summary values for non-numeric');
+    static computeSummaryValuesForNumericValue(value) {
+      if (!(value instanceof tr.v.NumericValue &&
+            value.numeric instanceof tr.v.Histogram))
+        throw new Error('Tried to compute summary values for non-numeric');
 
-    var summaryValueMap = new tr.v.d.RelatedValueMap();
-    value.diagnostics.add(SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME, summaryValueMap);
-    var options = {description: value.description};
-    var stats = value.numeric.getSummarizedScalarNumericsWithNames();
-    return stats.map(function(stat) {
-      var summaryValue = new tr.v.NumericValue(
-          value.name + '_' + stat.name, stat.scalar, options);
-      summaryValueMap.set(stat.name, summaryValue);
-      return summaryValue;
-    });
+      var summaryValueMap = new tr.v.d.RelatedValueMap();
+      value.diagnostics.add(SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME, summaryValueMap);
+      var options = {description: value.description};
+      var stats = value.numeric.getSummarizedScalarNumericsWithNames();
+      return stats.map(function(stat) {
+        var summaryValue = new tr.v.NumericValue(
+            value.name + '_' + stat.name, stat.scalar, options);
+        summaryValueMap.set(stat.name, summaryValue);
+        return summaryValue;
+      });
+    }
   };
 
   return {
