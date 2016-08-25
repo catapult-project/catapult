@@ -33,7 +33,7 @@ tr.exportTo('tr.metrics', function() {
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
       if (metric === undefined)
         throw new Error('"' + metricName + '" is not a registered metric.');
-      metric.constructor(values, model);
+      metric.constructor(values, model, options);
     }
 
     for (var metadata of model.metadata) {

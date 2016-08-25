@@ -6,8 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/metrics/metric_map_function.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/mre/mre_result.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/ui/side_panel/side_panel_registry.html">
@@ -174,7 +176,7 @@ tr.exportTo('tr.ui', function() {
       }
 
       var values = new tr.v.ValueSet();
-      var options = {};
+      var options = {metrics: [this.currentMetricName_]};
 
       if (this.currentMetricTypeInfo_ &&
           this.currentMetricTypeInfo_.metadata.supportsRangeOfInterest &&
@@ -184,11 +186,13 @@ tr.exportTo('tr.ui', function() {
 
       var startDate = new Date();
       try {
-        this.currentMetricTypeInfo_.constructor(values, this.model_, options);
+        var mreResult = new tr.mre.MreResult();
+        tr.metrics.metricMapFunction(mreResult, this.model_, options);
+        values.addValuesFromDicts(mreResult.pairs.values);
       } catch (err) {
-        var metricName = this.currentMetricTypeInfo_.constructor.name;
         console.warn(
-            metricName + ' could not be computed for the current model:\n' +
+            this.currentMetricName_ +
+            ' could not be computed for the current model:\n' +
             err.stack);
         this.$.results.values = new tr.v.ValueSet([
             new tr.v.FailureValue('error', {
