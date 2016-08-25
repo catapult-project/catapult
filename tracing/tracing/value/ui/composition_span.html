@@ -14,6 +14,7 @@ found in the LICENSE file.
     <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
   </template>
 </dom-module>
+
 <script>
 'use strict';
 Polymer({
@@ -63,19 +64,37 @@ Polymer({
       this.chart_.data = [];
       return;
     }
+
     var data = {x: 0};
     this.minHeightPx_ = 20;
+
     this.diagnostic_.iterItems(function(name, value) {
-      this.chart_.getDataSeries(name).target = value;
-      this.chart_.getDataSeries(name).optional = true;
       this.minHeightPx_ += 20;
 
-      value = value.numeric;
-      if (value instanceof tr.v.ScalarNumeric)
-        data[name] = value.value;
-      else if (value instanceof tr.v.Histogram)
-        data[name] = value.sum;
+      var dataSeries = this.chart_.getDataSeries(name);
+      dataSeries.optional = true;
 
+      if (this.diagnostic.colorScheme ===
+          tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER) {
+        var cat = name.split(' ');
+        cat = cat[cat.length - 1];
+        var color = tr.e.chrome.ChromeUserFriendlyCategoryDriver.getColor(cat);
+        var hsl = color.toHSL();
+        hsl.l *= 0.85;
+        var highlightedColor = tr.b.Color.fromHSL(hsl);
+        dataSeries.highlightedColor = highlightedColor;
+        dataSeries.color = color;
+      }
+
+      if (value instanceof tr.v.NumericValue) {
+        dataSeries.target = value;
+        if (value.numeric instanceof tr.v.ScalarNumeric)
+          data[name] = value.numeric.value;
+        else if (value.numeric instanceof tr.v.Histogram)
+          data[name] = value.numeric.sum;
+      } else if (typeof value === 'number') {
+        data[name] = value;
+      }
     }, this);
     this.chart_.data = [data];
   }

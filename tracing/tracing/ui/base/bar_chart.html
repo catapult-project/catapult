@@ -13,7 +13,6 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   var ColorScheme = tr.b.ColorScheme;
   var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
-  var getColorOfKey = tr.ui.b.getColorOfKey;
 
   function getTextWidth(parentNode, text) {
     var textNode = document.createElementNS(
@@ -140,7 +139,7 @@ tr.exportTo('tr.ui.b', function() {
         stacks.push({
           key: key,
           value: datum[key],
-          color: getColorOfKey(key),
+          color: this.getDataSeries(key).color,
           heightPx: heightPx,
           topPx: bottom
         });
@@ -162,7 +161,7 @@ tr.exportTo('tr.ui.b', function() {
           value: datum[key],
           topPx: topPx,
           heightPx: this.yScale_.range()[0] - topPx,
-          color: getColorOfKey(key)
+          color: this.getDataSeries(key).color
         });
       }
       stacks.sort(function(a, b) {
@@ -202,11 +201,11 @@ tr.exportTo('tr.ui.b', function() {
               var keyHeightPx = 0;
               if (seriesKeys.length > 1) {
                 keyWidthPx = getTextWidth(this.chartAreaElement, rect.key);
-                keyHeightPx = 25;
+                keyHeightPx = 12;
               }
               var valueWidthPx = getTextWidth(
                   this.chartAreaElement, rect.value);
-              var valueHeightPx = 25;
+              var valueHeightPx = 12;
               var hoverLeftPx = leftPx + (widthPx / 2);
 
               chartAreaSel
@@ -224,7 +223,7 @@ tr.exportTo('tr.ui.b', function() {
                   .attr('class', 'hover')
                   .attr('fill', rect.color)
                   .attr('x', hoverLeftPx + 2)
-                  .attr('y', rect.topPx + 10)
+                  .attr('y', rect.topPx + keyHeightPx - 2)
                   .text(rect.key);
               }
 
@@ -233,7 +232,7 @@ tr.exportTo('tr.ui.b', function() {
                 .attr('class', 'hover')
                 .attr('fill', rect.color)
                 .attr('x', hoverLeftPx + 2)
-                .attr('y', rect.topPx + keyHeightPx + valueHeightPx - 5)
+                .attr('y', rect.topPx + keyHeightPx + valueHeightPx - 2)
                 .text(rect.value);
             }.bind(this))
             .on('mouseleave', function() {

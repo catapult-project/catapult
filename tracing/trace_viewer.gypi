@@ -58,6 +58,7 @@
       'tracing/base/rect.html',
       'tracing/base/running_statistics.html',
       'tracing/base/settings.html',
+      'tracing/base/sinebow_color_generator.html',
       'tracing/base/sorted_array_utils.html',
       'tracing/base/statistics.html',
       'tracing/base/task.html',

@@ -129,8 +129,7 @@ tr.exportTo('tr.ui.b', function() {
 
     updateSeriesKeys_: function() {
       // Don't clear seriesByKey_; the caller might have put state in it using
-      // customizeLegendTargets, customizeOptionalSeries, or
-      // customizeEnabledSeries before setting data.
+      // getDataSeries() before setting data.
       this.data_.forEach(function(datum) {
         Object.keys(datum).forEach(function(key) {
           if (this.isDatumFieldSeries_(key))

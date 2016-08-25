@@ -108,6 +108,8 @@ tr.exportTo('tr.metrics.sh', function() {
     var composition = tr.v.d.Composition.buildFromEvents(
         values, 'long tasks ', slices, SLICE_NUMERIC_BUILDER,
         e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'));
+    composition.colorScheme =
+      tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
     longTaskValue.diagnostics.add('category', composition);
   }
 

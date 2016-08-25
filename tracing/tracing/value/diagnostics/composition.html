@@ -26,7 +26,11 @@ tr.exportTo('tr.v.d', function() {
    */
   function Composition() {
     tr.v.d.RelatedValueMap.call(this);
+    this.colorScheme = undefined;
   }
+
+  var COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER =
+    'ChromeUserFriendlyCategory';
 
   /**
    * Build a Composition and its NumericValues from |events|. Group events using
@@ -99,6 +103,12 @@ tr.exportTo('tr.v.d', function() {
       }
 
       tr.v.d.RelatedValueMap.prototype.set.call(this, name, value);
+    },
+
+    asDictInto_: function(d) {
+      tr.v.d.RelatedValueMap.prototype.asDictInto_.call(this, d);
+      if (this.colorScheme)
+        d.colorScheme = this.colorScheme;
     }
   };
 
@@ -107,6 +117,8 @@ tr.exportTo('tr.v.d', function() {
     tr.b.iterItems(d.values, function(name, guid) {
       composition.set(name, new tr.v.d.ValueRef(guid));
     });
+    if (d.colorScheme)
+      composition.colorScheme = d.colorScheme;
     return composition;
   };
 
@@ -115,6 +127,8 @@ tr.exportTo('tr.v.d', function() {
   });
 
   return {
+    COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER:
+      COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER,
     Composition: Composition
   };
 });

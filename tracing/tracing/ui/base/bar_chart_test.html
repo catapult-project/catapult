@@ -39,11 +39,10 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_legendTargets', function() {
     var chart = new tr.ui.b.BarChart();
-    chart.customizeLegendTargets({
-      lorem_ipsum: 'lorem_ipsumTarget',
-      qux: 'quxTarget'
-    });
-    chart.customizeOptionalSeries({lorem_ipsum: true, bar: true});
+    chart.getDataSeries('lorem_ipsum').target = 'lorem_ipsumTarget';
+    chart.getDataSeries('qux').target = 'quxTarget';
+    chart.getDataSeries('lorem_ipsum').optional = true;
+    chart.getDataSeries('bar').optional = true;
     chart.isStacked = true;
     chart.hideXAxis = true;
     chart.width = 140;

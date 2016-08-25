@@ -45,8 +45,8 @@ tr.exportTo('tr.ui.b', function() {
           .append('path')
           .attr('class', 'line')
           .style('stroke', function(key) {
-              return tr.ui.b.getColorOfKey(key);
-            })
+              return this.getDataSeries(key).color;
+            }.bind(this))
           .attr('d', function(key) {
               var line = d3.svg.line()
                 .x(function(d) { return this.xScale_(d.x); }.bind(this))

@@ -268,6 +268,7 @@ tr.exportTo('tr.ui', function() {
           continue;
 
         if (test === value) {
+          found = true;
           this.$.show_all.checked = true;
           this.onShowAllChange_();
           this.onRelatedValueSelected_(event);
@@ -663,6 +664,7 @@ tr.exportTo('tr.ui', function() {
           }
           if (cell instanceof tr.v.d.Diagnostic) {
             var span = tr.v.ui.createDiagnosticSpan(cell);
+            span.addEventListener('click', (event) => event.stopPropagation());
             span.style.textAlign = 'left';
             return span;
           }

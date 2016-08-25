@@ -31,6 +31,7 @@ found in the LICENSE file.
     <label id="label"></label>
   </template>
 </dom-module>
+
 <script>
 'use strict';
 Polymer({
@@ -70,7 +71,6 @@ Polymer({
   /**
    * When a legend-key is "optional", then its checkbox is visible to allow
    * the user to enable/disable the data series for the key.
-   * See ChartBase.customizeOptionalSeries().
    *
    * @param {boolean} optional
    */
@@ -101,7 +101,6 @@ Polymer({
    * dispatched containing the target.
    * When target is undefined, label is shown and link is hidden, so that the
    * link is not clickable.
-   * See ChartBase.customizeLegendTargets().
    */
   set target(target) {
     this.$.link.setSelectionAndContent(
@@ -176,11 +175,29 @@ tr.exportTo('tr.ui.b', function() {
     this.target_ = undefined;
     this.optional_ = false;
     this.enabled_ = true;
+    this.color_ = getColorOfKey(key, false);
+    this.highlightedColor_ = getColorOfKey(key, true);
   }
 
   DataSeries.prototype = {
     get key() {
       return this.key_;
+    },
+
+    get color() {
+      return this.color_;
+    },
+
+    set color(c) {
+      this.color_ = c;
+    },
+
+    get highlightedColor() {
+      return this.highlightedColor_;
+    },
+
+    set highlightedColor(c) {
+      this.highlightedColor_ = c;
     },
 
     get optional() {
@@ -327,59 +344,6 @@ tr.exportTo('tr.ui.b', function() {
       };
     },
 
-    /**
-     * Legend keys can be clickable links instead of plain text.
-     * When a legend key link is clicked, a RequestSelectionChangeEvent is
-     * dispatched containing arbitrary data. ChartBase calls that arbitrary data
-     * the "target" of the legend key link.
-     * In order to turn the legend key for the 'foo' data series into a
-     * clickable link, call customizeLegendTargets({foo: target}). When the user
-     * clicks on the legend key link for 'foo', then a
-     * RequestSelectionChangeEvent will be dispatched, and its |selection| field
-     * will be the |target| value for the 'foo' key in |delta|.
-     *
-     * @param {!Object} delta
-     */
-    customizeLegendTargets: function(delta) {
-      tr.b.iterItems(delta, function(key, value) {
-        this.getDataSeries(key).target = value;
-      }, this);
-    },
-
-    /**
-     * Optional data series can be enabled and disabled using checkboxes.
-     * In order to allow the user to enable/disabled the 'foo' data series,
-     * call customizeOptionalSeries({foo: true}). This will show a checkbox
-     * next to the 'foo' legend key. When the user toggles the checkbox, then a
-     * DataSeriesEnableChangeEvent will be dispatched with its |key| = 'foo'.
-     * ChartBase listens for that event and updates |isSeriesEnabled('foo')| to
-     * reflect the state of that checkbox, and calls updateContents_().
-     * Subclasses are responsible for implementing updateContents_() in order to
-     * hiding disabled data series -- see BarChart.
-     *
-     * @param {!Object} delta
-     */
-    customizeOptionalSeries: function(delta) {
-      tr.b.iterItems(delta, function(key, value) {
-        this.getDataSeries(key).optional = value;
-      }, this);
-    },
-
-    /**
-     * Data series can be enabled and disabled.
-     * See customizeOptionalSeries() in order to allow the user to
-     * enable/disable data series manually. Callers may call
-     * customizeEnabledSeries({foo: false}) in order to automatically
-     * disable the 'foo' data series, for example.
-     *
-     * @param {!Object} delta
-     */
-    customizeEnabledSeries: function(delta) {
-      tr.b.iterItems(delta, function(key, value) {
-        this.getDataSeries(key).enabled = value;
-      }, this);
-    },
-
     updateScales_: function() {
       throw new Error('Not implemented');
     },
@@ -435,8 +399,9 @@ tr.exportTo('tr.ui.b', function() {
           .append('xhtml:body')
           .append('tr-ui-b-chart-legend-key')
           .property('color', function(series) {
-            var selected = this.currentHighlightedLegendKey === series.key;
-            return getColorOfKey(series.key, selected);
+            if (this.currentHighlightedLegendKey === series.key)
+              return series.highlightedColor;
+            return series.color;
           }.bind(this))
           .property('width', width)
           .property('target', function(series) { return series.target; })
@@ -482,13 +447,14 @@ tr.exportTo('tr.ui.b', function() {
 
       var that = this;
       legendEntriesSel.each(function(key) {
-        var highlighted = key == that.currentHighlightedLegendKey;
-        var color = getColorOfKey(key, highlighted);
-        this.style.fill = color;
-        if (highlighted)
+        var dataSeries = that.getDataSeries(key);
+        if (key === that.currentHighlightedLegendKey) {
+          this.style.fill = dataSeries.highlightedColor;
           this.style.fontWeight = 'bold';
-        else
+        } else {
+          this.style.fill = dataSeries.color;
           this.style.fontWeight = '';
+        }
       });
     }
   };

@@ -16,7 +16,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.b', function() {
   var ChartBase = tr.ui.b.ChartBase;
-  var getColorOfKey = tr.ui.b.getColorOfKey;
 
   var MIN_RADIUS = 100;
 
@@ -68,8 +67,7 @@ tr.exportTo('tr.ui.b', function() {
         //   [{label: 'a', ...}, {label: 'b', ...}]
         // we would commpute ['a', 'y']. These become the series keys.
         // Don't clear seriesByKey_; the caller might have put state in it using
-        // customizeLegendTargets, customizeOptionalSeries, or
-        // customizeEnabledSeries before setting data.
+        // getDataSeries() before setting data.
         var seenSeriesKeys = {};
         data.forEach(function(d) {
           var k = d.label;
@@ -167,9 +165,10 @@ tr.exportTo('tr.ui.b', function() {
         .attr('class', 'arc')
         .attr('fill', function(d, i) {
             var origData = this.data_[i];
-            var highlighted = (origData.label ===
-                               this.currentHighlightedLegendKey);
-            return getColorOfKey(origData.label, highlighted);
+            var dataSeries = this.getDataSeries(origData.label);
+            if (origData.label === this.currentHighlightedLegendKey)
+              return dataSeries.highlightedColor;
+            return dataSeries.color;
           }.bind(this))
         .attr('d', pathsArc)
         .on('click', function(d, i) {
@@ -260,9 +259,11 @@ tr.exportTo('tr.ui.b', function() {
       var that = this;
       pathsGroupSel.selectAll('.arc').each(function(d, i) {
         var origData = that.data_[i];
-        var highlighted = origData.label == that.currentHighlightedLegendKey;
-        var color = getColorOfKey(origData.label, highlighted);
-        this.style.fill = color;
+        var dataSeries = that.getDataSeries(origData.label);
+        if (origData.label == that.currentHighlightedLegendKey)
+          this.style.fill = dataSeries.highlightedColor;
+        else
+          this.style.fill = dataSeries.color;
       });
     }
   };
