@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
+<link rel="import" href="/tracing/ui/analysis/rebuildable_behavior.html">
 
 <!--
 @fileoverview Analysis view stacked pane. See the stacked pane view element
@@ -16,45 +16,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.analysis', function() {
 
-  var StackedPane = {
-    rebuild: function() {
-      /**
-       * Rebuild the pane if necessary.
-       *
-       * This method is not intended to be overriden by subclasses. Please
-       * override scheduleRebuildPane_() instead.
-       */
-      if (!this.paneDirty_) {
-        // Avoid rebuilding unnecessarily as it breaks things like table
-        // selection.
-        return;
-      }
-
-      this.paneDirty_ = false;
-      this.rebuildPane_();
-    },
-
-    /**
-     * Mark the UI state of the pane as dirty and schedule a rebuild.
-     *
-     * This method is intended to be called by subclasses.
-     */
-    scheduleRebuildPane_: function() {
-      if (this.paneDirty_)
-        return;
-      this.paneDirty_ = true;
-      setTimeout(this.rebuild.bind(this), 0);
-    },
-
-    /**
-     * Called when the pane is dirty and a rebuild is triggered.
-     *
-     * This method is intended to be overriden by subclasses (instead of
-     * directly overriding rebuild()).
-     */
-    rebuildPane_: function() {
-    },
-
+  var StackedPaneImpl = {
     /**
      * Request changing the child pane of this pane in the associated stacked
      * pane view. If the assigned builder is undefined, request removing the
@@ -77,15 +39,16 @@ tr.exportTo('tr.ui.analysis', function() {
     /**
      * Called right after the pane is appended to a pane view.
      *
-     * This method triggers an immediate rebuild by default (if necessary).
-     * Subclasses are free to change this behavior (e.g. if a pane has lots of
-     * data to display, it might decide to defer rebuilding in order not to
-     * cause jank).
+     * This method triggers an immediate rebuild by default. Subclasses are
+     * free to change this behavior (e.g. if a pane has lots of data to display,
+     * it might decide to defer rebuilding in order not to cause jank).
      */
     appended: function() {
       this.rebuild();
     }
   };
+
+  var StackedPane = [tr.ui.analysis.RebuildableBehavior, StackedPaneImpl];
 
   return {
     StackedPane: StackedPane

@@ -189,7 +189,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set vmRegions(vmRegions) {
       this.vmRegions_ = vmRegions;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get vmRegions() {
@@ -198,14 +198,14 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
       return this.aggregationMode_;
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.vmRegions_ === undefined || this.vmRegions_.length === 0) {
         // Show the info text (hide the table).
         this.$.info_text.style.display = 'block';

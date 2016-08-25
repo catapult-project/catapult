@@ -521,7 +521,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set memoryAllocatorDumps(memoryAllocatorDumps) {
       this.memoryAllocatorDumps_ = memoryAllocatorDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get memoryAllocatorDumps() {
@@ -533,19 +533,19 @@ tr.exportTo('tr.ui.analysis', function() {
     // (view) instead.
     set heapDumps(heapDumps) {
       this.heapDumps_ = heapDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
       return this.aggregationMode_;
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.memoryAllocatorDumps_ === undefined ||
           this.memoryAllocatorDumps_.length === 0) {
         // Show the info text (hide the table).

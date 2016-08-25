@@ -11,35 +11,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('rebuild', function() {
-    var pane = document.createElement('tr-ui-a-stacked-pane');
-    var didFireBuildPane;
-    pane.rebuildPane_ = function() {
-      didFireBuildPane = true;
-    };
-
-    function checkRebuild(expectedDidFireBuildPane) {
-      didFireBuildPane = false;
-      pane.rebuild();
-      assert.strictEqual(didFireBuildPane, expectedDidFireBuildPane);
-    }
-
-    // No rebuilds should occur when not scheduled.
-    checkRebuild(false);
-    checkRebuild(false);
-
-    // Single rebuild should occur when scheduled once.
-    pane.scheduleRebuildPane_();
-    checkRebuild(true);
-    checkRebuild(false);
-
-    // Only a single rebuild should occur even when scheduled multiple times.
-    pane.scheduleRebuildPane_();
-    pane.scheduleRebuildPane_();
-    checkRebuild(true);
-    checkRebuild(false);
-  });
-
   test('changeChildPane', function() {
     var pane = document.createElement('tr-ui-a-stacked-pane');
     var didFireEvent;

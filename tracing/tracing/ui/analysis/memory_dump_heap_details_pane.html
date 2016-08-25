@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set heapDumps(heapDumps) {
       this.heapDumps_ = heapDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get heapDumps() {
@@ -260,7 +260,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
@@ -269,7 +269,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set viewMode(viewMode) {
       this.viewMode_ = viewMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get viewMode() {
@@ -286,7 +286,7 @@ tr.exportTo('tr.ui.analysis', function() {
       }
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.heapDumps_ === undefined ||
           this.heapDumps_.length === 0) {
         // Show the info text (hide the table and the view mode selector).

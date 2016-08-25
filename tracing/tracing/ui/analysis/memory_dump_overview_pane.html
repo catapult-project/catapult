@@ -492,7 +492,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set processMemoryDumps(processMemoryDumps) {
       this.processMemoryDumps_ = processMemoryDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get processMemoryDumps() {
@@ -501,7 +501,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
@@ -550,7 +550,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return selectedColumn.getChildPaneBuilder(selectedTableRow.contexts);
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.processMemoryDumps_ === undefined ||
           this.processMemoryDumps_.length === 0) {
         // Show the info text (hide the table).

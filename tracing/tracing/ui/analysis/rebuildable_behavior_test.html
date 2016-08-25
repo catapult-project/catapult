@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/analysis/rebuildable_behavior.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  Polymer({
+    is: 'tr-ui-analysis-rebuildable-test-element',
+    behaviors: [tr.ui.analysis.RebuildableBehavior]
+  });
+
+  test('rebuild', function() {
+    var el = document.createElement('tr-ui-analysis-rebuildable-test-element');
+    var didFireOnRebuild;
+    el.onRebuild_ = function() {
+      didFireOnRebuild = true;
+    };
+
+    function checkRebuild(expectedDidFireOnRebuild) {
+      didFireOnRebuild = false;
+      el.rebuild();
+      assert.strictEqual(didFireOnRebuild, expectedDidFireOnRebuild);
+    }
+
+    // No rebuilds should occur when not scheduled.
+    checkRebuild(false);
+    checkRebuild(false);
+
+    // Single rebuild should occur when scheduled once.
+    el.scheduleRebuild_();
+    checkRebuild(true);
+    checkRebuild(false);
+
+    // Only a single rebuild should occur even when scheduled multiple times.
+    el.scheduleRebuild_();
+    el.scheduleRebuild_();
+    checkRebuild(true);
+    checkRebuild(false);
+  });
+});
+</script>

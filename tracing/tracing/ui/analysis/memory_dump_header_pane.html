@@ -90,7 +90,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set containerMemoryDumps(containerMemoryDumps) {
       this.containerMemoryDumps_ = containerMemoryDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get containerMemoryDumps() {
@@ -99,14 +99,14 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
       return this.aggregationMode_;
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       this.updateLabel_();
       this.updateAggregationModeSelector_();
       this.changeChildPane_();
