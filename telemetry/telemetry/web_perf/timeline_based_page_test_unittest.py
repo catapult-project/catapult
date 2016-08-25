@@ -128,9 +128,10 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertEquals(0, len(results.failures))
-    self.assertEquals(9, len(results.value_set))
-    self.assertEquals(1, len(results.value_set[0]['diagnostics']))
-    iter_info = results.value_set[0]['diagnostics']['iteration']
+    self.assertEquals(7, len(results.value_set))
+    diagnostics = results.value_set[0]['diagnostics']
+    self.assertEquals(2, len(diagnostics))
+    iter_info = diagnostics['iteration']
     self.assertEqual('IterationInfo', iter_info['type'])
     self.assertEqual('', iter_info['benchmarkName'])
     self.assertEqual('interaction_enabled_page.html',
@@ -140,21 +141,10 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEqual(0, iter_info['storysetRepeatCounter'])
     self.assertEqual('file://interaction_enabled_page.html',
                      iter_info['storyUrl'])
-    v_foo = results.FindAllPageSpecificValuesNamed('foo')
-    v_bar = results.FindAllPageSpecificValuesNamed('bar')
-    v_baz_avg = results.FindAllPageSpecificValuesNamed('baz_avg')
-    v_baz_sum = results.FindAllPageSpecificValuesNamed('baz_sum')
-    v_baz_count = results.FindAllPageSpecificValuesNamed('baz_count')
+    v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
     self.assertEquals(len(v_foo), 1)
-    self.assertEquals(len(v_bar), 1)
-    self.assertEquals(v_foo[0].value, 1)
+    self.assertEquals(v_foo[0].value, 50)
     self.assertIsNotNone(v_foo[0].page)
-    self.assertEquals(v_bar[0].value, 2)
-    self.assertIsNotNone(v_bar[0].page)
-    self.assertEquals(len(v_baz_avg), 1)
-    self.assertEquals(len(v_baz_sum), 1)
-    self.assertEquals(len(v_baz_count), 1)
-
 
   @decorators.Disabled('chromeos')
   def testFirstPaintMetricSmoke(self):

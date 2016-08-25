@@ -14,38 +14,21 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
-  var sizeInBytes_smallerIsBetter =
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
-
   var SIZE_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      sizeInBytes_smallerIsBetter, tr.b.Range.fromExplicitRange(1, 100), 100);
+      tr.v.Unit.byName.sizeInBytes_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(0, 100), 10);
 
   function sampleMetric(values, model) {
-    var n1 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 1);
-    var n2 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 2);
-    var n3 = SIZE_NUMERIC_BUILDER.build();
-    n3.add(1);
-    values.addValue(new tr.v.NumericValue('foo', n1));
-    values.addValue(new tr.v.NumericValue('bar', n2));
-    values.addValue(new tr.v.NumericValue('baz', n3));
-  }
-
-  function sampleMetric2(values, model) {
-    var n1 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 1);
-    var n2 = new tr.v.ScalarNumeric(sizeInBytes_smallerIsBetter, 2);
-    var n3 = SIZE_NUMERIC_BUILDER.build();
-    n3.add(1);
-    values.addValue(new tr.v.NumericValue('one', n1));
-    values.addValue(new tr.v.NumericValue('two', n2));
-    values.addValue(new tr.v.NumericValue('three', n3));
+    var hist = SIZE_NUMERIC_BUILDER.build();
+    hist.add(9);
+    hist.add(91);
+    values.addValue(new tr.v.NumericValue('foo', hist));
   }
 
   tr.metrics.MetricRegistry.register(sampleMetric);
-  tr.metrics.MetricRegistry.register(sampleMetric2);
 
   return {
-    sampleMetric: sampleMetric,
-    sampleMetric2: sampleMetric2
+    sampleMetric: sampleMetric
   };
 });
 </script>
