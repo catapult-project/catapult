@@ -444,9 +444,15 @@ tr.exportTo('tr.metrics.sh', function() {
           // New navigation is found. Compute TTFMP for current navigation, and
           // reset the state variables.
           if (navigationStart !== undefined &&
-              mostSignificantLayout !== undefined)
-            addFirstMeaningfulPaintSampleToHistogram(
-                frameIdRef, navigationStart, mostSignificantLayout);
+              mostSignificantLayout !== undefined) {
+            data = addFirstMeaningfulPaintSampleToHistogram(
+                  frameIdRef, navigationStart, mostSignificantLayout);
+            if (data !== undefined)
+              addTimeToInteractiveSampleToHistogram(
+                  firstInteractiveHistogram, rendererHelper,
+                  navigationStart.start,
+                  data.firstMeaningfulPaint, data.url);
+          }
           navigationStart = navigationStartForThisLayout;
           mostSignificantLayout = undefined;
           maxSignificanceSoFar = 0;
