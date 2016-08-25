@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+# Copyright 2016 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+import os
+import sys
+import json
+import ntpath
+
+
+OUT_DIR = 'v8_callstats_dump'
+
+def extractFilename(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+def writeDump(name, value):
+  dump_file = open(OUT_DIR + '/' + extractFilename(name) + '.txt', 'w+')
+  runtime_call = value['pairs']
+  for name in runtime_call:
+    dump_file.write(name + '\t' + str(runtime_call[name]['time']) + '\tX\t' + str(runtime_call[name]['count']) + '\n')
+  dump_file.close()
+
+if __name__ == '__main__':
+  with open(sys.argv[1]) as data_file:
+    data = json.load(data_file)
+
+  if not os.path.exists(OUT_DIR):
+    os.makedirs(OUT_DIR)
+
+  for entry in data:
+    writeDump(entry, data[entry])
+  sys.exit(0)
+
