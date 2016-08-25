@@ -82,7 +82,7 @@ tr.exportTo('tr.ui', function() {
         tr.ui.b.Overlay.showError('You must load a trace first!');
         return;
       }
-      var result = new pi.mre.MreResult();
+      var result = new tr.mre.MreResult();
       var model = this.activeTrace_.model;
       var options = {metrics: [this.currentMetricName_]};
       try {
