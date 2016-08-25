@@ -56,6 +56,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     logging_patterns = ['*/chromeos/net/*',
                         '*/chromeos/login/*',
+                        '*/dbus/*',
                         'application_lifetime',
                         'chrome_browser_main_posix']
     vmodule = '--vmodule='
@@ -144,25 +145,28 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     util.WaitFor(lambda: self.oobe_exists, 30)
 
     if self.browser_options.auto_login:
-      try:
-        if self._is_guest:
-          pid = self.pid
-          self.oobe.NavigateGuestLogin()
-          # Guest browsing shuts down the current browser and launches an
-          # incognito browser in a separate process, which we need to wait for.
+      if self._is_guest:
+        pid = self.pid
+        self.oobe.NavigateGuestLogin()
+        # Guest browsing shuts down the current browser and launches an
+        # incognito browser in a separate process, which we need to wait for.
+        try:
           util.WaitFor(lambda: pid != self.pid, 15)
-        elif self.browser_options.gaia_login:
-          self.oobe.NavigateGaiaLogin(self._username, self._password)
-        else:
-          self.oobe.NavigateFakeLogin(self._username, self._password,
-              self._gaia_id, not self.browser_options.disable_gaia_services)
+        except exceptions.TimeoutException:
+          self._RaiseOnLoginFailure(
+              'Failed to restart browser in guest mode (pid %d).' % pid)
 
+      elif self.browser_options.gaia_login:
+        self.oobe.NavigateGaiaLogin(self._username, self._password)
+      else:
+        self.oobe.NavigateFakeLogin(self._username, self._password,
+            self._gaia_id, not self.browser_options.disable_gaia_services)
+
+      try:
         self._WaitForLogin()
       except exceptions.TimeoutException:
-        if self._platform_backend.CanTakeScreenshot():
-          self._cri.TakeScreenshotWithPrefix('login-screen')
-        raise exceptions.LoginException('Timed out going through login screen. '
-                                        + self._GetLoginStatus())
+        self._RaiseOnLoginFailure('Timed out going through login screen. '
+                                  + self._GetLoginStatus())
 
     logging.info('Browser is up!')
 
@@ -263,3 +267,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     # Wait for extensions to load.
     if self._supports_extensions:
       self._WaitForExtensionsToLoad()
+
+  def _RaiseOnLoginFailure(self, error):
+    if self._platform_backend.CanTakeScreenshot():
+      self._cri.TakeScreenshotWithPrefix('login-screen')
+    raise exceptions.LoginException(error)
