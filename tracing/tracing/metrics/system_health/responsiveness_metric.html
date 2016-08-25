@@ -50,7 +50,7 @@ tr.exportTo('tr.metrics.sh', function() {
       return event.start;
     });
 
-    var absolute = false;
+    var absolute = true;
     return tr.b.Statistics.timestampsDiscrepancy(frameTimestamps, absolute);
   }
 
@@ -62,9 +62,10 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.v.Unit.byName.unitlessNumber_biggerIsBetter,
       tr.b.Range.fromExplicitRange(10, 60), 10);
 
-  var DISCREPANCY_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.unitlessNumber_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(0, 1), 50);
+  var DISCREPANCY_NUMERIC_BUILDER = new tr.v.NumericBuilder(
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, 0)
+          .addLinearBins(1000, 50) // 20ms step to 1s
+          .addExponentialBins(10000, 10);
 
   var LATENCY_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
