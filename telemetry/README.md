@@ -56,7 +56,7 @@ of different system concepts.
     [`adb shell`](http://developer.android.com/tools/help/adb.html).
 
 The Telemetry framework lives in
-[`src/tools/telemetry/`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/)
+[`src/third_party/catapult/telemetry/`](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/)
 and performance benchmarks that use Telemetry live in
 [`src/tools/perf/`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/perf/).
 
@@ -67,19 +67,19 @@ performance of automated actions in terms of benchmarks, measurements, and story
 sets.
 
 *   A
-    [_benchmark_](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/benchmark.py)
+    [_benchmark_](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/benchmark.py)
     combines a _measurement_ together with a _story set_, and optionally a set
     of browser options.
     *   We strongly discourage benchmark authors from using command-line flags
         to specify the behavior of benchmarks, since benchmarks should be
         cross-platform.
     *   Benchmarks are discovered and run by the
-        [benchmark runner](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/benchmark_runner.py),
+        [benchmark runner](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/benchmark_runner.py),
         which is wrapped by scripts like
         [`run_benchmark`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/perf/run_benchmark)
         in `tools/perf`.
 *   A _measurement_ (called
-    [`StoryTest`](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/web_perf/story_test.py)
+    [`StoryTest`](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/web_perf/story_test.py)
     in the code) is responsible for setting up and tearing down the testing
     platform, and for collecting _metrics_ that quantify the application
     scenario under test.
@@ -88,19 +88,19 @@ sets.
     *   You probably don't need to override `StoryTest` (see "Timeline Based
         Measurement" below). If you think you do, please talk to us.
 *   A
-    [_story set_](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/story/story_set.py)
+    [_story set_](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/story/story_set.py)
     is a set of _stories_ together with a
-    [_shared state_](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/story/shared_state.py)
+    [_shared state_](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/story/shared_state.py)
     that describes application-level configuration options.
 *   A
-    [_story_](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/story/story.py)
+    [_story_](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/story/story.py)
     is an application scenario and a set of actions to run in that scenario. In
     the typical Chromium use case, this will be a web page together with actions
     like scrolling, clicking, or executing JavaScript.
 *   A _metric_ describes how to collect data about the story run and compute
     results.
     *   New metrics should generally be
-        [timeline-based](https://code.google.com/p/chromium/codesearch#chromium/src/tools/telemetry/telemetry/web_perf/metrics/timeline_based_metric.py).
+        [timeline-based](https://cs.chromium.org/chromium/src/third_party/catapult/telemetry/telemetry/web_perf/metrics/timeline_based_metric.py).
     *   Metrics can specify many different types of results, including numbers,
         histograms, traces, and failures.
 *   _Timeline Based Measurement_ is a built-in `StoryTest` that runs all
@@ -134,7 +134,7 @@ You can keep up with Telemetry related discussions by joining the
 The recordings are not included in the Chromium source tree. If you are a Google
 partner, run `gsutil config` to authenticate, then try running the test again.
 If you don't have `gsutil` installed on your machine, you can find it in
-`src/tools/telemetry/third_party/gsutil/gsutil`.
+`build/third_party/gsutil/gsutil`.
 
 If you are not a Google partner, you can run on live sites with
 --use-live-sites` or
