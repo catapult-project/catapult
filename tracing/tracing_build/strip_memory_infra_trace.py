@@ -10,9 +10,9 @@ import json
 
 
 def FormatBytes(value):
-  units = ['B', 'kB', 'MB', 'GB']
-  while abs(value) >= 1000 and len(units) > 1:
-    value /= 1000
+  units = ['B', 'KiB', 'MiB', 'GiB']
+  while abs(value) >= 1024 and len(units) > 1:
+    value /= 1024
     units = units.pop(0)
   return '%3.1f %s' % (value, units[0])
 
