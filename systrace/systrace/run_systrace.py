@@ -141,13 +141,17 @@ def parse_options(argv):
 
 def initialize_devil():
   """Initialize devil to use adb from $PATH"""
+  adb_path = find_executable('adb')
+  if adb_path is None:
+    print >> sys.stderr, "Unable to find adb, is it in your path?"
+    sys.exit(1)
   devil_dynamic_config = {
     'config_type': 'BaseConfig',
     'dependencies': {
       'adb': {
         'file_info': {
           devil_env.GetPlatform(): {
-            'local_paths': [os.path.abspath(find_executable('adb'))]
+            'local_paths': [os.path.abspath(adb_path)]
           }
         }
       }
