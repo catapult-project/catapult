@@ -22,84 +22,55 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  /** @constructor */
-  function DiagnosticMap(opt_diagnosticsByName) {
-    if (opt_diagnosticsByName !== undefined)
-      return DiagnosticMap.fromObject(opt_diagnosticsByName);
-
-    this.diagnosticsByName_ = {};
-  }
-
-  DiagnosticMap.prototype = {
+  class DiagnosticMap extends Map {
     /**
      * Add a new Diagnostic to this map.
      *
      * @param {string} name
      * @param {!tr.v.d.Diagnostic} diagnostic
      */
-    add: function(name, diagnostic) {
-      if (!(diagnostic instanceof tr.v.d.Diagnostic))
-        throw new Error('Must be instanceof Diagnostic: ' + diagnostic);
-
+    set(name, diagnostic) {
       if (typeof(name) !== 'string')
         throw new Error('name must be string, not ' + name);
 
-      if (this.diagnosticsByName_[name])
-        throw new Error('Attempt to add duplicate diagnostic ' + name);
+      if (!(diagnostic instanceof tr.v.d.Diagnostic))
+        throw new Error('Must be instanceof Diagnostic: ' + diagnostic);
 
-      this.diagnosticsByName_[name] = diagnostic;
-    },
+      Map.prototype.set.call(this, name, diagnostic);
+    }
 
     /**
      * Add Diagnostics from a dictionary of dictionaries.
      *
      * @param {Object} dict
      */
-    addDicts: function(dict) {
+    addDicts(dict) {
       tr.b.iterItems(dict, function(name, diagnosticDict) {
-        this.add(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
+        this.set(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
       }, this);
-    },
+    }
 
-    /**
-     * @param {string} name
-     * @return {tr.v.d.Diagnostic}
-     */
-    get: function(name) {
-      return this.diagnosticsByName_[name];
-    },
-
-    /**
-     * Iterate over this map's key-value-pairs.
-     *
-     * @param {function(string, tr.v.d.Diagnostic)} callback
-     * @param {Object=} opt_this
-     */
-    forEach: function(callback, opt_this) {
-      tr.b.iterItems(this.diagnosticsByName_, callback, opt_this || this);
-    },
-
-    asDict: function() {
+    asDict() {
       var dict = {};
-      this.forEach(function(name, diagnostic) {
+      for (var [name, diagnostic] of this) {
         dict[name] = diagnostic.asDict();
-      });
+      }
       return dict;
     }
-  };
 
-  DiagnosticMap.fromDict = function(d) {
-    var diagnostics = new DiagnosticMap();
-    diagnostics.addDicts(d);
-    return diagnostics;
-  };
+    static fromDict(d) {
+      var diagnostics = new DiagnosticMap();
+      diagnostics.addDicts(d);
+      return diagnostics;
+    }
 
-  DiagnosticMap.fromObject = function(obj) {
-    var diagnostics = new DiagnosticMap();
-    tr.b.iterItems(obj, function(name, diagnostic) {
-      diagnostics.add(name, diagnostic);
-    });
-    return diagnostics;
+    static fromObject(obj) {
+      var diagnostics = new DiagnosticMap();
+      tr.b.iterItems(obj, function(name, diagnostic) {
+        diagnostics.set(name, diagnostic);
+      });
+      return diagnostics;
+    }
   };
 
   return {

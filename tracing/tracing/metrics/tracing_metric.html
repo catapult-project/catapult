@@ -165,19 +165,19 @@ tr.exportTo('tr.metrics', function() {
 
     var totalBytes = new tr.v.NumericValue(
         'Total trace size in bytes', totalTraceBytesValue);
-    totalBytes.diagnostics.add(
+    totalBytes.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
     values.addValue(totalBytes);
 
     var peakEvents = new tr.v.NumericValue(
         'Max number of events per second', maxEventCountPerSecValue);
-    peakEvents.diagnostics.add(
+    peakEvents.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
     values.addValue(peakEvents);
 
     var peakBytes = new tr.v.NumericValue(
         'Max event size in bytes per second', maxEventBytesPerSecValue);
-    peakBytes.diagnostics.add(
+    peakBytes.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
     values.addValue(peakBytes);
 

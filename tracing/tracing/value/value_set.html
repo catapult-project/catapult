@@ -20,7 +20,8 @@ tr.exportTo('tr.v', function() {
       this.values_ = {};
 
       if (opt_values !== undefined)
-        opt_values.forEach(this.addValue, this);
+        for (var value of opt_values)
+          this.addValue(value);
     }
 
     get valueDicts() {
@@ -68,10 +69,8 @@ tr.exportTo('tr.v', function() {
      * @param {Array.<Object>} dicts
      */
     addValuesFromDicts(dicts) {
-      dicts.forEach(function(dict) {
-        var value = tr.v.Value.fromDict(dict);
-        this.addValueInternal_(value);
-      }, this);
+      for (var dict of dicts)
+        this.addValueInternal_(tr.v.Value.fromDict(dict));
 
       // Now resolve the RelatedValueSet references between values.
       // This resolution process must wait until all new values are added in
@@ -81,26 +80,29 @@ tr.exportTo('tr.v', function() {
       // The expected running time is this: for each value (hundreds to
       // thousands?), for each diagnostic that is a RelatedValueSet (0-5?), for
       // each ValueRef (0-10?), do a hash lookup (constant time?).
-      tr.b.iterItems(this.values_, function(guid, value) {
-        value.diagnostics.forEach(function(name, diagnostic) {
+      for (var value of this) {
+        for (var [name, diagnostic] of value.diagnostics) {
           if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
-              (diagnostic instanceof tr.v.d.RelatedValueMap))
+              (diagnostic instanceof tr.v.d.RelatedValueMap)) {
             diagnostic.resolve(this);
-        }, this);
+          }
+        }
 
-        // In addition Values, we must also look inside of Histogram samples.
+        // In addition to Values, we must also look inside of Histogram samples.
         if (value instanceof tr.v.NumericValue &&
-            value.numeric instanceof tr.v.Histogram)
-          value.numeric.allBins.forEach(function(b) {
-            b.diagnosticMaps.forEach(function(dm) {
-              dm.forEach(function(d) {
+            value.numeric instanceof tr.v.Histogram) {
+          for (var bin of value.numeric.allBins) {
+            for (var dm of bin.diagnosticMaps) {
+              for (var [name, diagnostic] of dm) {
                 if ((d instanceof tr.v.d.RelatedValueSet) ||
-                    (d instanceof tr.v.d.RelatedValueMap))
+                    (d instanceof tr.v.d.RelatedValueMap)) {
                   d.resolve(this);
-              }, this);
-            }, this);
-          }, this);
-      }, this);
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     /**
@@ -115,14 +117,14 @@ tr.exportTo('tr.v', function() {
       // owned either by Values or by numeric samples, then it is not a
       // source Value.
       function deleteSourceValues(values, diagnosticMap) {
-        diagnosticMap.forEach(function(unused_name, diagnostic) {
+        for (var [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedValueSet)
             for (var relatedValue of diagnostic)
               delete values[relatedValue.guid];
           else if (diagnostic instanceof tr.v.d.RelatedValueMap)
             for (var [name, relatedValue] of diagnostic)
               delete values[relatedValue.guid];
-        });
+        }
       }
 
       this.map(function(value) {
@@ -160,9 +162,8 @@ tr.exportTo('tr.v', function() {
       this.addValueInternal_(v);
 
       if (v.numeric instanceof tr.v.Histogram) {
-        ValueSet.computeSummaryValuesForNumericValue(v).forEach(function(s) {
+        for (var s of ValueSet.computeSummaryValuesForNumericValue(v))
           this.addValue(s);
-        }, this);
       }
     }
 
@@ -172,7 +173,7 @@ tr.exportTo('tr.v', function() {
         throw new Error('Tried to compute summary values for non-numeric');
 
       var summaryValueMap = new tr.v.d.RelatedValueMap();
-      value.diagnostics.add(SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME, summaryValueMap);
+      value.diagnostics.set(SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME, summaryValueMap);
       var options = {description: value.description};
       var stats = value.numeric.getSummarizedScalarNumericsWithNames();
       return stats.map(function(stat) {

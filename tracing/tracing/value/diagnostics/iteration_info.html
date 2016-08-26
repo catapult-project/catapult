@@ -56,7 +56,7 @@ tr.exportTo('tr.v.d', function() {
     __proto__: tr.v.d.Diagnostic.prototype,
 
     addToValue: function(value) {
-      value.diagnostics.add(IterationInfo.NAME, this);
+      value.diagnostics.set(IterationInfo.NAME, this);
     },
 
     asDictInto_: function(d) {

@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
     var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 0));
     var b = new tr.v.NumericValue('b', new tr.v.ScalarNumeric(unit, 1));
     var c = new tr.v.NumericValue('c', new tr.v.ScalarNumeric(unit, 2));
-    a.diagnostics.add('rvs', new tr.v.d.RelatedValueSet([b, c]));
+    a.diagnostics.set('rvs', new tr.v.d.RelatedValueSet([b, c]));
 
     // Don't serialize c just yet.
     var values = new tr.v.ValueSet([a, b]);
@@ -145,7 +145,7 @@ tr.b.unittest.testSuite(function() {
     var rvm = new tr.v.d.RelatedValueMap();
     rvm.set('y', b);
     rvm.set('z', c);
-    a.diagnostics.add('rvm', rvm);
+    a.diagnostics.set('rvm', rvm);
 
     // Don't serialize c just yet.
     var values = new tr.v.ValueSet([a, b]);
@@ -206,9 +206,8 @@ tr.b.unittest.testSuite(function() {
     var numeric = tr.v.NumericBuilder.createLinear(
         tr.v.Unit.byName.timeDurationInMs,
         tr.b.Range.fromExplicitRange(0, 1000), 10).build();
-    numeric.add(1, new tr.v.d.DiagnosticMap({
-      rvs: new tr.v.d.RelatedValueSet([a])
-    }));
+    numeric.add(1, tr.v.d.DiagnosticMap.fromObject({
+      rvs: new tr.v.d.RelatedValueSet([a])}));
     var b = new tr.v.NumericValue('b', numeric);
 
     var values = new tr.v.ValueSet([a, b]);

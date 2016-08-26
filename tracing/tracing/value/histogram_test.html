@@ -74,12 +74,12 @@ tr.b.unittest.testSuite(function() {
     var dm3 = new tr.v.d.DiagnosticMap();
     var dm4 = new tr.v.d.DiagnosticMap();
     var dm5 = new tr.v.d.DiagnosticMap();
-    dm0.add('foo', new tr.v.d.Generic('a'));
-    dm1.add('foo', new tr.v.d.Generic('b'));
-    dm2.add('foo', new tr.v.d.Generic('c'));
-    dm3.add('foo', new tr.v.d.Generic('c'));
-    dm4.add('foo', new tr.v.d.Generic('d'));
-    dm5.add('foo', new tr.v.d.Generic('d'));
+    dm0.set('foo', new tr.v.d.Generic('a'));
+    dm1.set('foo', new tr.v.d.Generic('b'));
+    dm2.set('foo', new tr.v.d.Generic('c'));
+    dm3.set('foo', new tr.v.d.Generic('c'));
+    dm4.set('foo', new tr.v.d.Generic('d'));
+    dm5.set('foo', new tr.v.d.Generic('d'));
 
     n.add(-1, dm0);
     n.add(0, dm1);
@@ -105,8 +105,8 @@ tr.b.unittest.testSuite(function() {
   test('numericNans', function() {
     var n = TEST_NUMERIC_BUILDER.build();
 
-    var dm0 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b')});
-    var dm1 = new tr.v.d.DiagnosticMap({'foo': new tr.v.d.Generic('c')});
+    var dm0 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')});
+    var dm1 = tr.v.d.DiagnosticMap.fromObject({'foo': new tr.v.d.Generic('c')});
 
     n.add(undefined, dm0);
     n.add(NaN, dm1);
@@ -126,18 +126,18 @@ tr.b.unittest.testSuite(function() {
     var n0 = TEST_NUMERIC_BUILDER.build();
     var n1 = TEST_NUMERIC_BUILDER.build();
 
-    var dm0 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('a0')});
-    var dm1 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b0')});
-    var dm2 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c0')});
-    var dm3 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c0')});
-    var dm4 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d0')});
-    var dm5 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('e0')});
-    var dm6 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('a1')});
-    var dm7 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('b1')});
-    var dm8 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('c1')});
-    var dm9 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d1')});
-    var dm10 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('d1')});
-    var dm11 = new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('e1')});
+    var dm0 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('a0')});
+    var dm1 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b0')});
+    var dm2 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c0')});
+    var dm3 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c0')});
+    var dm4 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d0')});
+    var dm5 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('e0')});
+    var dm6 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('a1')});
+    var dm7 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b1')});
+    var dm8 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c1')});
+    var dm9 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d1')});
+    var dm10 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d1')});
+    var dm11 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('e1')});
 
     n0.add(-1, dm0);
     n0.add(0, dm1);
@@ -250,7 +250,7 @@ tr.b.unittest.testSuite(function() {
           tr.b.Range.fromExplicitRange(min, max),
           bins).build();
       array.forEach((x) => n.add(
-          x, new tr.v.d.DiagnosticMap({foo: new tr.v.d.Generic('x')})));
+          x, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('x')})));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
         var expected = tr.b.Statistics.percentile(array, percent);
         var actual = n.getApproximatePercentile(percent);

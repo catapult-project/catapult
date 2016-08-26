@@ -94,8 +94,7 @@ tr.exportTo('tr.metrics.sh', function() {
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
-            longTaskNumeric.add(task.duration,
-                new tr.v.d.DiagnosticMap({
+            longTaskNumeric.add(task.duration, tr.v.d.DiagnosticMap.fromObject({
                 relatedEvents: new tr.v.d.RelatedEventSet([task])}));
             slices.push(task);
             slices.addEventSet(task.descendentSlices);
@@ -110,7 +109,7 @@ tr.exportTo('tr.metrics.sh', function() {
         e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'));
     composition.colorScheme =
       tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
-    longTaskValue.diagnostics.add('category', composition);
+    longTaskValue.diagnostics.set('category', composition);
   }
 
   tr.metrics.MetricRegistry.register(longTasksMetric, {

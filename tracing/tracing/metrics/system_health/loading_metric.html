@@ -280,14 +280,11 @@ tr.exportTo('tr.metrics.sh', function() {
           continue;
 
         var timeToEvent = ev.start - navigationStartEvent.start;
-        histogram.add(
-            timeToEvent,
-            new tr.v.d.DiagnosticMap(
-                {url: new tr.v.d.Generic(url)}));
+        histogram.add(timeToEvent, tr.v.d.DiagnosticMap.fromObject(
+            {url: new tr.v.d.Generic(url)}));
       }
-      values.addValue(new tr.v.NumericValue(
-          metric.valueName, histogram,
-          { description: metric.description }));
+      values.addValue(new tr.v.NumericValue(metric.valueName, histogram,
+          {description: metric.description}));
     }
   }
 
@@ -359,10 +356,8 @@ tr.exportTo('tr.metrics.sh', function() {
     diagnosticDict.interactive = firstInteractive;
     diagnosticDict.pid = rendererHelper.pid;
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
-    histogram.add(
-        timeToFirstInteractive,
-        new tr.v.d.DiagnosticMap(
-            {breakdown: new tr.v.d.Generic(diagnosticDict)}));
+    histogram.add(timeToFirstInteractive, tr.v.d.DiagnosticMap.fromObject(
+        {breakdown: new tr.v.d.Generic(diagnosticDict)}));
   }
 
   /**
@@ -417,7 +412,7 @@ tr.exportTo('tr.metrics.sh', function() {
       diagnosticDict.url = url;
       firstMeaningfulPaintHistogram.add(
           timeToFirstMeaningfulPaint,
-          new tr.v.d.DiagnosticMap(
+          tr.v.d.DiagnosticMap.fromObject(
               {breakdown: new tr.v.d.Generic(diagnosticDict)}));
       return {firstMeaningfulPaint: paintEvent.start, url: url};
     }

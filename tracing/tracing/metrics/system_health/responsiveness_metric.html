@@ -91,9 +91,8 @@ tr.exportTo('tr.metrics.sh', function() {
             ue.start, ue.end))
         return;
 
-      var sampleDiagnostic = new tr.v.d.RelatedEventSet([ue]);
-      var sampleDiagnosticMap =
-          new tr.v.d.DiagnosticMap({relatedEvents: sampleDiagnostic});
+      var sampleDiagnosticMap = tr.v.d.DiagnosticMap.fromObject(
+          {relatedEvents: new tr.v.d.RelatedEventSet([ue])});
 
       // Responsiveness is not defined for Idle or Startup expectations.
       if (ue instanceof tr.model.um.IdleExpectation) {

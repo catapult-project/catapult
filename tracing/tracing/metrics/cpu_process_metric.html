@@ -78,7 +78,7 @@ tr.exportTo('tr.metrics.sh', function() {
       for (var i = 0; i < missingSnapshotCount; i++)
         numeric.add(0);
       var value = new tr.v.NumericValue('cpu:percent:' + processName, numeric);
-      value.diagnostics.add('paths', new
+      value.diagnostics.set('paths', new
           tr.v.d.Generic([...processData.paths]));
       values.addValue(value);
     }

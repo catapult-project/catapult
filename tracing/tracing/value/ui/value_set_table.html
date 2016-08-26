@@ -297,25 +297,29 @@ tr.exportTo('tr.ui', function() {
     },
 
     addDiagnosticSubRows_: function(value, row, column) {
-      value.diagnostics.forEach(function(name, diagnostic) {
+      for (var [name, diagnostic] of value.diagnostics) {
         if (name === tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME)
-          return;
+          continue;
 
         // If a previous |value| had a diagnostic with the same name, then
         // there is already a subRow that should contain this diagnostic.
+        var foundSubRow = false;
         for (var subRow of row.subRows) {
           if (subRow.name === name) {
+            foundSubRow = true;
             subRow.columns[column] = diagnostic;
-            return;
+            continue;
           }
         }
+        if (foundSubRow)
+          continue;
 
         // This is the first time that a diagnostic with this name has been
         // seen for Values whose name is |value.name|, so create a new subRow.
         var subRow = {name: name, columns: {}};
         subRow.columns[column] = diagnostic;
         row.subRows.push(subRow);
-      });
+      }
     },
 
     get values() {

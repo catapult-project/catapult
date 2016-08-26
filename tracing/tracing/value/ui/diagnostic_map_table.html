@@ -45,11 +45,10 @@ found in the LICENSE file.
       }
 
       var columnTitles = new Set();
-      for (var map of this.diagnosticMaps_) {
-        map.forEach(function(name, diagnostic) {
+      for (var map of this.diagnosticMaps_)
+        for (var [name, diagnostic] of map)
           columnTitles.add(name);
-        });
-      }
+
       columnTitles = [...columnTitles].sort();
 
       var columns = [];
@@ -61,9 +60,8 @@ found in the LICENSE file.
           }
         };
       }
-      for (var title of columnTitles) {
+      for (var title of columnTitles)
         columns.push(makeColumn(title));
-      }
 
       this.$.table.tableColumns = columns;
       this.$.table.tableRows = this.diagnosticMaps_;
