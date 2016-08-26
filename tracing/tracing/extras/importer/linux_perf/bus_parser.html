@@ -81,7 +81,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
                 ctr.name + '.' + 'value')));
       }
       ctr.series.forEach(function(series) {
-        series.addCounterSample(ts, readBandwidthInMiBps);
+        series.addCounterSample(ts, writeBandwidthInMiBps);
       });
 
       return true;
