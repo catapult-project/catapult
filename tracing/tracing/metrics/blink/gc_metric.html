@@ -78,9 +78,17 @@ tr.exportTo('tr.metrics.blink', function() {
     return n;
   }
 
+  var PERCENTAGE_BUILDER = new tr.v.NumericBuilder.createLinear(
+      percentage_biggerIsBetter,
+      tr.b.Range.fromExplicitRange(0, 1), 20);
+
   function createPercentage(numerator, denominator) {
-    var percentage = denominator === 0 ? 0 : numerator / denominator * 100;
-    return new tr.v.ScalarNumeric(percentage_biggerIsBetter, percentage);
+    var histogram = PERCENTAGE_BUILDER.build();
+    if (denominator === 0)
+      histogram.add(0);
+    else
+      histogram.add(numerator / denominator);
+    return histogram;
   }
 
   /**
