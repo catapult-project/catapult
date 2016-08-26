@@ -15,15 +15,15 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   var MAX_DIAGNOSTIC_MAPS = 16;
 
-  function NumericBase(unit) {
-    if (!(unit instanceof tr.v.Unit))
-      throw new Error('Expected provided unit to be instance of Unit');
+  class NumericBase {
+    constructor(unit) {
+      if (!(unit instanceof tr.v.Unit))
+        throw new Error('Expected provided unit to be instance of Unit');
 
-    this.unit = unit;
-  }
+      this.unit = unit;
+    }
 
-  NumericBase.prototype = {
-    merge: function(other) {
+    merge(other) {
       if (this.unit !== other.unit)
         throw new Error('Merging Numerics with different units');
 
@@ -43,13 +43,13 @@ tr.exportTo('tr.v', function() {
       this.sampleValuesInto(samples);
       other.sampleValuesInto(samples);
       return tr.v.Histogram.buildFromSamples(this.unit, samples);
-    },
+    }
 
-    sampleValuesInto: function(samples) {
+    sampleValuesInto(samples) {
       throw new Error('Not implemented');
-    },
+    }
 
-    asDict: function() {
+    asDict() {
       var d = {
         unit: this.unit.asJSON()
       };
@@ -57,33 +57,31 @@ tr.exportTo('tr.v', function() {
       this.asDictInto_(d);
       return d;
     }
+
+    static fromDict(d) {
+      if (d.type === 'scalar')
+        return ScalarNumeric.fromDict(d);
+
+      if (d.type === 'numeric')
+        return tr.v.Histogram.fromDict(d);
+
+      throw new Error('Not implemented');
+    }
   };
 
-  NumericBase.fromDict = function(d) {
-    if (d.type === 'scalar')
-      return ScalarNumeric.fromDict(d);
+  class ScalarNumeric extends NumericBase {
+    constructor(unit, value) {
+      if (!(unit instanceof tr.v.Unit))
+        throw new Error('Expected Unit');
 
-    if (d.type === 'numeric')
-      return tr.v.Histogram.fromDict(d);
+      if (!(typeof(value) == 'number'))
+        throw new Error('Expected value to be number');
 
-    throw new Error('Not implemented');
-  };
+      super(unit);
+      this.value = value;
+    }
 
-  function ScalarNumeric(unit, value) {
-    if (!(unit instanceof tr.v.Unit))
-      throw new Error('Expected Unit');
-
-    if (!(typeof(value) == 'number'))
-      throw new Error('Expected value to be number');
-
-    NumericBase.call(this, unit);
-    this.value = value;
-  }
-
-  ScalarNumeric.prototype = {
-    __proto__: NumericBase.prototype,
-
-    asDictInto_: function(d) {
+    asDictInto_(d) {
       d.type = 'scalar';
 
       // Infinity and NaN are left out of JSON for security reasons that do not
@@ -96,31 +94,31 @@ tr.exportTo('tr.v', function() {
         d.value = 'NaN';
       else
         d.value = this.value;
-    },
+    }
 
-    sampleValuesInto: function(samples) {
+    sampleValuesInto(samples) {
       samples.push(this.value);
-    },
+    }
 
-    toString: function() {
+    toString() {
       return this.unit.format(this.value);
     }
-  };
 
-  ScalarNumeric.fromDict = function(d) {
-    // Infinity and NaN are left out of JSON for security reasons that do not
-    // apply to our use cases.
-    if (typeof(d.value) === 'string') {
-      if (d.value === '-Infinity') {
-        d.value = -Infinity;
-      } else if (d.value === 'Infinity') {
-        d.value = Infinity;
-      } else if (d.value === 'NaN') {
-        d.value = NaN;
+    static fromDict(d) {
+      // Infinity and NaN are left out of JSON for security reasons that do not
+      // apply to our use cases.
+      if (typeof(d.value) === 'string') {
+        if (d.value === '-Infinity') {
+          d.value = -Infinity;
+        } else if (d.value === 'Infinity') {
+          d.value = Infinity;
+        } else if (d.value === 'NaN') {
+          d.value = NaN;
+        }
       }
-    }
 
-    return new ScalarNumeric(tr.v.Unit.fromJSON(d.unit), d.value);
+      return new ScalarNumeric(tr.v.Unit.fromJSON(d.unit), d.value);
+    }
   };
 
   return {

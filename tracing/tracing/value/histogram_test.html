@@ -213,39 +213,9 @@ tr.b.unittest.testSuite(function() {
     assert.throws(n.add.bind(42, 'foo'), Error);
   });
 
-  test('getInterpolateCountAt', function() {
-    var n = tr.v.Histogram.fromDict({
-      unit: 'unitless',
-      min: 0,
-      max: 100,
-      centralBinWidth: 10,
-      underflowBin: {min: -Number.MAX_VALUE, max: 0, count: 11},
-      centralBins: [
-        {min: 0, max: 10, count: 10},
-        {min: 10, max: 20, count: 9},
-        {min: 20, max: 30, count: 8},
-        {min: 30, max: 40, count: 7},
-        {min: 40, max: 50, count: 6},
-        {min: 50, max: 60, count: 5},
-        {min: 60, max: 70, count: 4},
-        {min: 70, max: 80, count: 3},
-        {min: 80, max: 90, count: 2},
-        {min: 90, max: 100, count: 1}
-      ],
-      overflowBin: {min: 100, max: Number.MAX_VALUE, count: 0}
-    });
-
-    assert.equal(11, n.maxCount);
-    assert.equal(11, n.getInterpolatedCountAt(-1));
-    assert.equal(0, n.getInterpolatedCountAt(101));
-    assert.closeTo(10.8, n.getInterpolatedCountAt(1), 1e-3);
-    assert.closeTo(9.5, n.getInterpolatedCountAt(10), 1e-3);
-    assert.closeTo(0.2, n.getInterpolatedCountAt(99), 1e-3);
-  });
-
   test('numericPercentile', function() {
     function check(array, min, max, bins, precision) {
-      var n = new tr.v.NumericBuilder.createLinear(
+      var n = tr.v.NumericBuilder.createLinear(
           tr.v.Unit.byName.timeDurationInMs,
           tr.b.Range.fromExplicitRange(min, max),
           bins).build();
@@ -276,15 +246,6 @@ tr.b.unittest.testSuite(function() {
     check([10000], 0, 10, 10, 10000 - 10);
     // The result is no more than the bin width away from the real percentile.
     check([1, 1], 0, 10, 1, 10);
-  });
-
-  test('numericBuilder_empty', function() {
-    var b = new tr.v.NumericBuilder(tr.v.Unit.byName.sizeInBytes, 0);
-
-    checkBuilder(b, 0, 0, tr.v.Unit.byName.sizeInBytes, [
-      tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, 0),
-      tr.b.Range.fromExplicitRange(0, Number.MAX_VALUE)
-    ]);
   });
 
   test('numericBuilder_addBinBoundary', function() {
@@ -519,8 +480,6 @@ tr.b.unittest.testSuite(function() {
 
     var numeric = scalarA.merge(scalarB);
     assert.instanceOf(numeric, tr.v.Histogram);
-    assert.strictEqual(numeric.range.min, 10);
-    assert.strictEqual(numeric.range.max, 20);
     assert.strictEqual(numeric.maxNumSampleValues, 1000);
     assert.strictEqual(numeric.numValues, 2);
     assert.strictEqual(numeric.numNans, 0);
@@ -535,8 +494,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(numeric.numNans, 0);
     assert.lengthOf(numeric.sampleValues, 2);
     assert.lengthOf(numeric.allBins, 4);
-    assert.strictEqual(numeric.range.min, 9);
-    assert.strictEqual(numeric.range.max, 10);
 
     scalarA.value = 'i am not a number';
     scalarB.value = 'i am also not a number';
@@ -547,8 +504,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(numeric.numNans, 2);
     assert.lengthOf(numeric.sampleValues, 2);
     assert.lengthOf(numeric.allBins, 4);
-    assert.strictEqual(numeric.range.min, 0);
-    assert.strictEqual(numeric.range.max, 1);
   });
 
   test('mergeNumericWithScalar', function() {
@@ -568,15 +523,11 @@ tr.b.unittest.testSuite(function() {
     // numValues does not include non-number samples.
     assert.strictEqual(mergedA.numValues, 101);
     assert.strictEqual(mergedA.numNans, 1);
-    assert.strictEqual(mergedA.range.min, numeric.running.min);
-    assert.strictEqual(mergedA.range.max, 1010);
 
     assert.strictEqual(mergedB.maxNumSampleValues, 1000);
     // numValues does not include non-number samples.
     assert.strictEqual(mergedB.numValues, 101);
     assert.strictEqual(mergedB.numNans, 1);
-    assert.strictEqual(mergedB.range.min, numeric.running.min);
-    assert.strictEqual(mergedB.range.max, 1010);
 
     // Normalize away some insignificant differences so that deepEqual can test
     // the significant fields.

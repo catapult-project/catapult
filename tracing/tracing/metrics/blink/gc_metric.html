@@ -78,7 +78,7 @@ tr.exportTo('tr.metrics.blink', function() {
     return n;
   }
 
-  var PERCENTAGE_BUILDER = new tr.v.NumericBuilder.createLinear(
+  var PERCENTAGE_BUILDER = tr.v.NumericBuilder.createLinear(
       percentage_biggerIsBetter,
       tr.b.Range.fromExplicitRange(0, 1), 20);
 
