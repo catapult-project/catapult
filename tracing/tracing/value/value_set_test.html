@@ -105,10 +105,10 @@ tr.b.unittest.testSuite(function() {
 
     var rvs2 = a2.diagnostics.get('rvs');
     assert.instanceOf(rvs2, tr.v.d.RelatedValueSet);
-    assert.lengthOf(rvs2.values, 2);
+    assert.lengthOf(rvs2, 2);
 
     // Assert that b and c are in a2's RelatedValueSet.
-    var rvs2vs = rvs2.values;
+    var rvs2vs = [...rvs2];
     var rvs2guids = rvs2vs.map(v => v.guid);
     var b2i = rvs2guids.indexOf(b.guid);
     assert.strictEqual(rvs2vs[b2i], b2);
@@ -129,7 +129,7 @@ tr.b.unittest.testSuite(function() {
     assert.notStrictEqual(c2, c);
 
     // Now a real c2 Value should be in a2's RelatedValueSet.
-    rvs2vs = rvs2.values;
+    rvs2vs = [...rvs2];
     rvs2guids = rvs2vs.map(v => v.guid);
     b2i = rvs2guids.indexOf(b.guid);
     c2i = rvs2guids.indexOf(c.guid);
@@ -173,7 +173,7 @@ tr.b.unittest.testSuite(function() {
 
     var rvm2 = a2.diagnostics.get('rvm');
     assert.instanceOf(rvm2, tr.v.d.RelatedValueMap);
-    assert.lengthOf(rvm2.values, 2);
+    assert.lengthOf(rvm2, 2);
 
     // Assert that b and c are in a2's RelatedValueMap.
     // |c| should still be a ValueRef since it wasn't in values2.

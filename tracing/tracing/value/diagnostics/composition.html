@@ -11,6 +11,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
+  var COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER =
+    'ChromeUserFriendlyCategory';
+
   /**
    * Composition encapsulates an additive relationship between NumericValues:
    * the Value that contains this Composition diagnostic is composed of the
@@ -21,64 +24,12 @@ tr.exportTo('tr.v.d', function() {
    * to be the most common way of building Compositions, though it is not the
    * only way. See buildFromEvents() for an example of how to build a
    * Composition from an EventSet and a grouping function.
-   *
-   * @constructor
    */
-  function Composition() {
-    tr.v.d.RelatedValueMap.call(this);
-    this.colorScheme = undefined;
-  }
-
-  var COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER =
-    'ChromeUserFriendlyCategory';
-
-  /**
-   * Build a Composition and its NumericValues from |events|. Group events using
-   * |categoryForEvent|. Add the NumericValues to |values|. NumericValues' names
-   * are prefixed with |namePrefix|. Numerics are built by |numericBuilder|. The
-   * numeric sample for each Event is derived from |opt_sampleForEvent|, which
-   * defaults to event.cpuSelfTime. The caller must add the result Composition
-   * to their Value's diagnostics.
-   *
-   * @param {!tr.v.ValueSet} values
-   * @param {string} namePrefix
-   * @param {!tr.model.EventSet} events
-   * @param {!tr.v.NumericBuilder} numericBuilder
-   * @param {!function(!tr.model.Event):string} categoryForEvent
-   * @param {!function(!tr.model.Event):number=} opt_sampleForEvent
-   * @param {*=} opt_this
-   * @return {!Composition}
-   */
-  Composition.buildFromEvents = function(
-      values, namePrefix, events, numericBuilder, categoryForEvent,
-      opt_sampleForEvent, opt_this) {
-    var sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
-
-    var composition = new Composition();
-    for (var event of events) {
-      var sample = sampleForEvent.call(opt_this, event);
-      if (sample === undefined)
-        continue;
-
-      var eventCategory = categoryForEvent.call(opt_this, event);
-      var value = composition.get(eventCategory);
-      if (value === undefined) {
-        value = new tr.v.NumericValue(
-            namePrefix + eventCategory, numericBuilder.build());
-        values.addValue(value);
-        composition.set(eventCategory, value);
-      }
-
-      value.numeric.add(
-          sample,
-          new tr.v.d.DiagnosticMap(
-              {relatedEvents: new tr.v.d.RelatedEventSet([event])}));
+  class Composition extends tr.v.d.RelatedValueMap {
+    constructor() {
+      super();
+      this.colorScheme = undefined;
     }
-    return composition;
-  };
-
-  Composition.prototype = {
-    __proto__: tr.v.d.RelatedValueMap.prototype,
 
     /**
      * Add a Value by an explicit name to this map.
@@ -86,7 +37,7 @@ tr.exportTo('tr.v.d', function() {
      * @param {string} name
      * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
      */
-    set: function(name, value) {
+    set(name, value) {
       if (!(value instanceof tr.v.d.ValueRef)) {
         if (!(value instanceof tr.v.NumericValue))
           throw new Error('Composition can only contain NumericValues');
@@ -94,32 +45,76 @@ tr.exportTo('tr.v.d', function() {
         if (value.name.indexOf(name) !== (value.name.length - name.length))
           throw new Error('Composition name must be a suffix of value.name');
 
-        var existingValues = this.values;
-        if ((existingValues.length > 0) &&
-            (value.numeric.unit !== existingValues[0].numeric.unit)) {
-          throw new Error('Units mismatch', existingValues[0].numeric.unit,
-                          value.numeric.unit);
+        if ((this.length > 0) &&
+            (value.numeric.unit !==
+             tr.b.getFirstElement(this)[1].numeric.unit)) {
+          throw new Error('Units mismatch',
+              tr.b.getFirstElement(this)[1].numeric.unit, value.numeric.unit);
         }
       }
 
       tr.v.d.RelatedValueMap.prototype.set.call(this, name, value);
-    },
+    }
 
-    asDictInto_: function(d) {
+    asDictInto_(d) {
       tr.v.d.RelatedValueMap.prototype.asDictInto_.call(this, d);
       if (this.colorScheme)
         d.colorScheme = this.colorScheme;
     }
-  };
 
-  Composition.fromDict = function(d) {
-    var composition = new Composition();
-    tr.b.iterItems(d.values, function(name, guid) {
-      composition.set(name, new tr.v.d.ValueRef(guid));
-    });
-    if (d.colorScheme)
-      composition.colorScheme = d.colorScheme;
-    return composition;
+    static fromDict(d) {
+      var composition = new Composition();
+      tr.b.iterItems(d.values, function(name, guid) {
+        composition.set(name, new tr.v.d.ValueRef(guid));
+      });
+      if (d.colorScheme)
+        composition.colorScheme = d.colorScheme;
+      return composition;
+    }
+
+    /**
+    * Build a Composition and its NumericValues from |events|. Group events
+    * using |categoryForEvent|. Add the NumericValues to |values|.
+    * NumericValues' names are prefixed with |namePrefix|. Numerics are built by
+    * |numericBuilder|. The numeric sample for each Event is derived from
+    * |opt_sampleForEvent|, which defaults to event.cpuSelfTime. The caller must
+    * add the result Composition to their Value's diagnostics.
+    *
+    * @param {!tr.v.ValueSet} values
+    * @param {string} namePrefix
+    * @param {!tr.model.EventSet} events
+    * @param {!tr.v.NumericBuilder} numericBuilder
+    * @param {!function(!tr.model.Event):string} categoryForEvent
+    * @param {!function(!tr.model.Event):number=} opt_sampleForEvent
+    * @param {*=} opt_this
+    * @return {!Composition}
+    */
+    static buildFromEvents(values, namePrefix, events, numericBuilder,
+        categoryForEvent, opt_sampleForEvent, opt_this) {
+      var sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
+
+      var composition = new Composition();
+      for (var event of events) {
+        var sample = sampleForEvent.call(opt_this, event);
+        if (sample === undefined)
+          continue;
+
+        var eventCategory = categoryForEvent.call(opt_this, event);
+        var value = composition.get(eventCategory);
+        if (value === undefined) {
+          value = new tr.v.NumericValue(
+              namePrefix + eventCategory, numericBuilder.build());
+          values.addValue(value);
+          composition.set(eventCategory, value);
+        }
+
+        value.numeric.add(
+            sample,
+            new tr.v.d.DiagnosticMap(
+                {relatedEvents: new tr.v.d.RelatedEventSet([event])}));
+      }
+      return composition;
+    }
   };
 
   tr.v.d.Diagnostic.register(Composition, {

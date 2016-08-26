@@ -67,8 +67,7 @@ Polymer({
 
     var data = {x: 0};
     this.minHeightPx_ = 20;
-
-    this.diagnostic_.iterItems(function(name, value) {
+    for (var [name, value] of this.diagnostic) {
       this.minHeightPx_ += 20;
 
       var dataSeries = this.chart_.getDataSeries(name);
@@ -95,7 +94,7 @@ Polymer({
       } else if (typeof value === 'number') {
         data[name] = value;
       }
-    }, this);
+    }
     this.chart_.data = [data];
   }
 });

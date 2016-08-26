@@ -116,12 +116,12 @@ tr.exportTo('tr.v', function() {
       // source Value.
       function deleteSourceValues(values, diagnosticMap) {
         diagnosticMap.forEach(function(unused_name, diagnostic) {
-          if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
-              (diagnostic instanceof tr.v.d.RelatedValueMap)) {
-            diagnostic.values.forEach(function(relatedValue) {
+          if (diagnostic instanceof tr.v.d.RelatedValueSet)
+            for (var relatedValue of diagnostic)
               delete values[relatedValue.guid];
-            });
-          }
+          else if (diagnostic instanceof tr.v.d.RelatedValueMap)
+            for (var [name, relatedValue] of diagnostic)
+              delete values[relatedValue.guid];
         });
       }
 

@@ -13,39 +13,42 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  /** @constructor */
-  function RelatedValueSet(opt_values) {
-    this.valuesByGuid_ = {};
+  class RelatedValueSet extends tr.v.d.Diagnostic {
+    constructor(opt_values) {
+      super();
+      this.valuesByGuid_ = new Map();
 
-    if (opt_values)
-      opt_values.forEach(this.add, this);
-  }
-
-  RelatedValueSet.prototype = {
-    __proto__: tr.v.d.Diagnostic.prototype,
+      if (opt_values)
+        for (var value of opt_values)
+          this.add(value);
+    }
 
     /**
-     * Add a Value to this set.
-     *
      * @param {!(tr.v.d.ValueRef|tr.v.Value)} v
      */
-    add: function(value) {
+    add(value) {
       if (!(value instanceof tr.v.Value) &&
           !(value instanceof tr.v.d.ValueRef))
         throw new Error('Must be instanceof Value or ValueRef: ' + value);
 
-      if (this.valuesByGuid_[value.guid])
+      if (this.valuesByGuid_.get(value.guid))
         throw new Error('Tried to add same value twice');
 
-      this.valuesByGuid_[value.guid] = value;
-    },
+      this.valuesByGuid_.set(value.guid, value);
+    }
 
-    /**
-     * @return {Array.<(tr.v.d.ValueRef|tr.v.Value)>}
-     */
-    get values() {
-      return tr.b.dictionaryValues(this.valuesByGuid_);
-    },
+    has(value) {
+      return this.valuesByGuid_.has(value.guid);
+    }
+
+    get length() {
+      return this.valuesByGuid_.size;
+    }
+
+    *[Symbol.iterator]() {
+      for (var [guid, value] of this.valuesByGuid_)
+        yield value;
+    }
 
     /**
      * Resolve all ValueRefs into Values by looking up their guids in
@@ -58,21 +61,23 @@ tr.exportTo('tr.v.d', function() {
      * @param {!tr.v.ValueSet} valueSet
      * @param {boolean=} opt_required
      */
-    resolve: function(valueSet, opt_required) {
-      tr.b.iterItems(this.valuesByGuid_, function(guid, value) {
+    resolve(valueSet, opt_required) {
+      for (var [guid, value] of this.valuesByGuid_) {
         if (!(value instanceof tr.v.d.ValueRef))
-          return;
+          continue;
 
         value = valueSet.lookup(guid);
         if (value instanceof tr.v.Value)
-          this.valuesByGuid_[guid] = value;
+          this.valuesByGuid_.set(guid, value);
         else if (opt_required)
           throw new Error('Unable to find Value ' + guid);
-      }, this);
-    },
+      }
+    }
 
-    asDictInto_: function(d) {
-      d.guids = tr.b.dictionaryKeys(this.valuesByGuid_);
+    asDictInto_(d) {
+      d.guids = [];
+      for (var value of this)
+        d.guids.push(value.guid);
     }
   };
 

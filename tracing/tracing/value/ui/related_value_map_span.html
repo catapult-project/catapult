@@ -28,12 +28,12 @@ found in the LICENSE file.
 
     updateContents_: function() {
       Polymer.dom(this).textContent = '';
-      this.diagnostic.iterItems(function(name, value) {
+      for (var [name, value] of this.diagnostic) {
         var link = document.createElement('tr-ui-a-analysis-link');
         link.setSelectionAndContent(value, name);
         Polymer.dom(this).appendChild(link);
         Polymer.dom(this).appendChild(document.createElement('br'));
-      }, this);
+      }
     }
   });
   </script>

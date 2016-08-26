@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
         values, 'foo-', events, TEST_NUMERIC_BUILDER,
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent);
 
-    assert.lengthOf(composition.values, 2);
+    assert.lengthOf(composition, 2);
     var scriptValue = values.getValuesWithName('foo-script')[0];
     assert.instanceOf(scriptValue, tr.v.NumericValue);
     assert.strictEqual(scriptValue, composition.get('script_execute'));
