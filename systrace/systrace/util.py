@@ -134,17 +134,3 @@ def get_device_sdk_version():
     sys.exit(1)
 
   return version
-
-def get_device_serials():
-  """Get the serial numbers of devices connected via adb.
-
-  Only gets serial numbers of "active" devices (e.g. does not get serial
-  numbers of devices which have not been authorized.)
-  """
-
-  adb_output, adb_return_code = run_adb_command(['adb', 'devices'])
-  if adb_return_code == 0:
-    lines = [x.split() for x in adb_output.splitlines()[1:-1]]
-    return [x[0] for x in lines if x[1] == 'device']
-  else:
-    sys.exit(1)

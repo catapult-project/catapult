@@ -39,8 +39,8 @@ if _SYSTRACE_DIR not in sys.path:
   sys.path.insert(0, _SYSTRACE_DIR)
 
 from devil import devil_env
+from devil.android.sdk import adb_wrapper
 from systrace import systrace_runner
-from systrace import util
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import ftrace_agent
 
@@ -163,7 +163,7 @@ def main():
   initialize_devil()
 
   if options.target == 'android' and not options.device_serial_number:
-    devices = util.get_device_serials()
+    devices = [a.GetDeviceSerial() for a in adb_wrapper.AdbWrapper.Devices()]
     if len(devices) == 0:
       raise RuntimeError('No ADB devices connected.')
     elif len(devices) >= 2:
