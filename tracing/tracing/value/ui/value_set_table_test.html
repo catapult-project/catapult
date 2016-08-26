@@ -29,7 +29,6 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_1x1', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
     var values = new tr.v.ValueSet();
-    assert.isTrue(table.supportsValueSet(values));
     var numeric = TEST_NUMERIC_BUILDER.build();
     for (var i = 0; i < 100; ++i)
       numeric.add(Math.random() * 1000);
@@ -47,7 +46,6 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_2x2', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
     var values = new tr.v.ValueSet();
-    assert.isTrue(table.supportsValueSet(values));
 
     var numeric0a = TEST_NUMERIC_BUILDER.build();
     for (var i = 0; i < 100; ++i)

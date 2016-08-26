@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/tab_view.html">
 <link rel="import" href="/tracing/ui/brushing_state_controller.html">
+<link rel="import" href="/tracing/value/ui/value_set_table.html">
 
 <dom-module id="tr-v-ui-value-set-view">
   <template>
@@ -16,7 +17,7 @@ found in the LICENSE file.
       };
     </style>
 
-    <tr-ui-a-tab-view id="tabView"></tr-ui-a-tab-view>
+    <tr-v-ui-value-set-table id="valueSetTable"></tr-v-ui-value-set-table>
   </template>
 </dom-module>
 
@@ -183,16 +184,8 @@ tr.exportTo('tr.v.ui', function() {
     }
   };
 
-  var VALUE_SET_VIEW_ELEMENT_NAMES = [];
-
-  var SELECTED_TAB_SETTINGS_KEY = 'tr-v-ui-value-set-view-element-name';
-
   Polymer({
     is: 'tr-v-ui-value-set-view',
-
-    listeners: {
-      'tabView.selected-tab-change': 'onSelectedTabChange_'
-    },
 
     ready: function() {
       this.brushingStateController = new NullBrushingStateController();
@@ -203,58 +196,14 @@ tr.exportTo('tr.v.ui', function() {
           tr.c.BrushingStateController.getControllerForElement(this.parentNode);
     },
 
-    onSelectedTabChange_: function() {
-      if (!this.$.tabView.selectedSubView)
-        return;
-
-      tr.b.Settings.set(
-          SELECTED_TAB_SETTINGS_KEY,
-          this.$.tabView.selectedSubView.tagName.toLowerCase());
-    },
-
     /**
      * @param {!tr.v.ValueSet} values
      */
     set values(values) {
-      this.$.tabView.clearSubViews();
-
-      var initialTabElementName = tr.b.Settings.get(
-          SELECTED_TAB_SETTINGS_KEY, undefined);
-
-      VALUE_SET_VIEW_ELEMENT_NAMES.forEach(function(elementName, index) {
-        var view = document.createElement(elementName);
-        if (!view.supportsValueSet(values))
-          return;
-
-        view.values = values;
-
-        this.$.tabView.addSubView(view);
-
-        if (elementName.toLowerCase() === initialTabElementName)
-          this.$.tabView.selectedSubView = view;
-      }, this);
-
-      // TODO(charliea): If TabView were structured correctly, this could almost
-      // certainly be done with attribute binding in the HTML template.
-      this.$.tabView.set('tabsHidden', this.$.tabView.tabs.length === 1);
+      this.$.valueSetTable.values = values;
     }
   });
 
-  /**
-   * Register the name of a polymer element that supports displaying ValueSets.
-   *
-   * @param {string} elementName
-   */
-  function registerValueSetView(elementName) {
-    if (tr.ui.b.isUnknownElementName(elementName))
-      throw new Error('Element not registered: ' + elementName);
-
-    VALUE_SET_VIEW_ELEMENT_NAMES.push(elementName);
-  }
-
-  return {
-    registerValueSetView: registerValueSetView,
-    SELECTED_TAB_SETTINGS_KEY: SELECTED_TAB_SETTINGS_KEY
-  };
+  return {};
 });
 </script>

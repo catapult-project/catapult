@@ -10,7 +10,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/ui/value_set_view.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id="tr-v-ui-value-set-table">
@@ -129,17 +128,6 @@ tr.exportTo('tr.ui', function() {
 
   Polymer({
     is: 'tr-v-ui-value-set-table',
-
-    /**
-     * Return true if this view supports this ValueSet.
-     * Value-set-table supports all possible metrics, so it always returns true.
-     *
-     * @param {!tr.v.ValueSet} values
-     * @return {boolean}
-     */
-    supportsValueSet: function(values) {
-      return true;
-    },
 
     /**
      * This can optionally depend on the ValueSet.
@@ -727,8 +715,6 @@ tr.exportTo('tr.ui', function() {
         this.columns_.push(this.buildColumn_(displayLabel));
     }
   });
-
-  tr.v.ui.registerValueSetView('tr-v-ui-value-set-table');
 
   return {};
 });
