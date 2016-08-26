@@ -14,10 +14,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-function getMetricValue(valueSet, name) {
-  var dicts = valueSet.valueDicts.filter(
-      (dict) => dict.name === name);
-  return tr.b.getOnlyElement(dicts).numeric.value;
+function getMetricValue(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return value.numeric.average;
 }
 
 tr.b.unittest.testSuite(function() {

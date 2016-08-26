@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
-<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/unit_scale.html">
 <link rel="import" href="/tracing/value/value.html">
 
@@ -16,9 +16,19 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
+  var TIME_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(1e-3, 1e6), 50);
+
+  var ENERGY_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
+      tr.v.Unit.byName.energyInJoules_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(1e-3, 1e3), 50);
+
+  var POWER_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
+      tr.v.Unit.byName.powerInWatts_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(1e-3, 1e3), 50);
 
   function railPowerMetricHelper(values, model) {
-
     var railStageTimes = new Map();
     var railStageEnergy = new Map();
 
@@ -44,26 +54,21 @@ tr.exportTo('tr.metrics.sh', function() {
           tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
       var powerInW = energyInJ / durationInS;
 
-      values.addValue(new tr.v.NumericValue(
-        'total_time_' + title,
-        new tr.v.ScalarNumeric(
-            tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-            durationInMs),
-        { description: 'Time spent in RAIL stage ' + title }));
+      var durationHist = TIME_NUMERIC_BUILDER.build();
+      durationHist.add(durationInMs);
+      values.addValue(new tr.v.NumericValue('total_time_' + title, durationHist,
+          {description: 'Time spent in RAIL stage ' + title}));
 
-      values.addValue(new tr.v.NumericValue(
-        'total_energy_' + title,
-        new tr.v.ScalarNumeric(
-            tr.v.Unit.byName.energyInJoules_smallerIsBetter,
-            energyInJ),
-        { description: 'Energy consumed in RAIL stage ' + title }));
+      var energyHist = ENERGY_NUMERIC_BUILDER.build();
+      energyHist.add(energyInJ);
+      values.addValue(new tr.v.NumericValue('total_energy_' + title, energyHist,
+          {description: 'Energy consumed in RAIL stage ' + title}));
 
-      values.addValue(new tr.v.NumericValue(
-        'energy_consumption_rate_' + title,
-        new tr.v.ScalarNumeric(
-            tr.v.Unit.byName.powerInWatts_smallerIsBetter,
-            powerInW),
-        { description: 'Energy consumption rate for RAIL stage ' + title }));
+      var powerHist = POWER_NUMERIC_BUILDER.build();
+      powerHist.add(powerInW);
+      values.addValue(new tr.v.NumericValue('energy_consumption_rate_' + title,
+          powerHist,
+          {description: 'Energy consumption rate for RAIL stage ' + title}));
     }
   }
 
