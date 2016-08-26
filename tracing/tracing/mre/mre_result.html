@@ -10,27 +10,27 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.mre', function() {
-  function MreResult(failures, pairs) {
-    if (failures === undefined)
-      failures = [];
-    if (pairs === undefined)
-      pairs = {};
-    this.failures = failures;
-    this.pairs = pairs;
-  }
+  class MreResult {
+    constructor(failures, pairs) {
+      if (failures === undefined)
+        failures = [];
+      if (pairs === undefined)
+        pairs = {};
+      this.failures = failures;
+      this.pairs = pairs;
+    }
 
-  MreResult.prototype = {
-    addFailure: function(failure) {
+    addFailure(failure) {
       this.failures.push(failure);
-    },
+    }
 
-    addPair: function(key, value) {
+    addPair(key, value) {
       if (key in this.pairs)
         throw new Error('Key ' + key + ' already exists in result.');
       this.pairs[key] = value;
-    },
+    }
 
-    asDict: function() {
+    asDict() {
       var d = {
         pairs: this.pairs
       };
@@ -39,18 +39,18 @@ tr.exportTo('tr.mre', function() {
         d.failures = this.failures.map(function(f) {return f.asDict();});
 
       return d;
-    },
+    }
 
-    hadFailures: function() {
+    hadFailures() {
       return this.failures.length > 0;
     }
-  };
 
-  MreResult.fromDict = function(resultDict) {
-    if (resultDict.failures !== undefined)
-      var failures = resultDict.failures.map(tr.mre.Failure.fromDict);
-    var pairs = resultDict.pairs;
-    return new MreResult(failures, pairs);
+    static fromDict(resultDict) {
+      if (resultDict.failures !== undefined)
+        var failures = resultDict.failures.map(tr.mre.Failure.fromDict);
+      var pairs = resultDict.pairs;
+      return new MreResult(failures, pairs);
+    }
   };
 
   return {
