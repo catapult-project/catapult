@@ -163,7 +163,7 @@ tr.exportTo('tr.ui.analysis', function() {
   function findLowestTypeInfoForEvents(thisTypeInfo, events) {
     if (events.length === 0)
       return thisTypeInfo;
-    var event0 = events[0];
+    var event0 = tr.b.getFirstElement(events);
 
     var candidateSubTypeInfo;
     for (var i = 0; i < thisTypeInfo.childrenTypeInfos.length; i++) {
@@ -178,8 +178,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     // Validate that all the other events are instances of the candidate type.
     var allMatch = true;
-    for (var i = 1; i < events.length; i++) {
-      var event = events[i];
+    for (var event of events) {
       if (event instanceof candidateSubTypeInfo.eventConstructor)
         continue;
       allMatch = false;
