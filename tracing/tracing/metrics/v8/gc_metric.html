@@ -37,6 +37,8 @@ tr.exportTo('tr.metrics.v8', function() {
       tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
   var percentage_biggerIsBetter =
       tr.v.Unit.byName.normalizedPercentage_biggerIsBetter;
+  var PERCENTAGE_BUILDER = tr.v.NumericBuilder.createLinear(
+      percentage_biggerIsBetter, tr.b.Range.fromExplicitRange(0, 1), 20);
 
   var numericBuilder = new tr.v.NumericBuilder(
       timeDurationInMs_smallerIsBetter, 0);
@@ -87,8 +89,12 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createPercentage(numerator, denominator) {
-    var percentage = denominator === 0 ? 0 : numerator / denominator * 100;
-    return new tr.v.ScalarNumeric(percentage_biggerIsBetter, percentage);
+    var hist = PERCENTAGE_BUILDER.build();
+    if (denominator === 0)
+      hist.add(0);
+    else
+      hist.add(numerator / denominator);
+    return hist;
   }
 
   function isNotForcedTopGarbageCollectionEvent(event) {
@@ -255,17 +261,16 @@ tr.exportTo('tr.metrics.v8', function() {
           var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
               0, time, WINDOW_SIZE_MS, pauses);
           [0.90, 0.95, 0.99].forEach(function(percent) {
-            var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
-                mutatorUtilization.percentile(1.0 - percent) * 100);
+            var hist = PERCENTAGE_BUILDER.build();
+            hist.add(mutatorUtilization.percentile(1.0 - percent));
             values.addValue(new tr.v.NumericValue(
-                'v8-execute-mutator-utilization_pct_0' +
-                percent * 100,
-                value));
+                'v8-execute-mutator-utilization_pct_0' + percent * 100,
+                hist));
           });
-          var value = new tr.v.ScalarNumeric(percentage_biggerIsBetter,
-              mutatorUtilization.min);
+          var hist = PERCENTAGE_BUILDER.build();
+          hist.add(mutatorUtilization.min);
           values.addValue(new tr.v.NumericValue(
-              'v8-execute-mutator-utilization_min', value));
+              'v8-execute-mutator-utilization_min', hist));
         }
     );
   }

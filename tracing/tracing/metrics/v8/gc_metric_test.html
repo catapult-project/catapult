@@ -79,7 +79,7 @@ tr.b.unittest.testSuite(function() {
         outside_idle_sum: 100,
         outside_idle_avg: 100,
         outside_idle_max: 100,
-        percentage_idle: 0
+        percentage_idle_avg: 0
       };
       tr.b.iterItems(expected, function(key, value) {
         var name = constructName(telemetryName, key);
@@ -114,7 +114,7 @@ tr.b.unittest.testSuite(function() {
       outside_idle_sum: 0,
       outside_idle_avg: 0,
       outside_idle_max: 0,
-      percentage_idle: 100
+      percentage_idle_avg: 1.0
     };
     tr.b.iterItems(expected, function(key, value) {
       var name = constructName('v8-gc-latency-mark-compactor', key);
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
       outside_idle_sum: 70,
       outside_idle_avg: 70,
       outside_idle_max: 70,
-      percentage_idle: 100 / 8
+      percentage_idle_avg: 1.0 / 8
     };
     tr.b.iterItems(expected, function(key, value) {
       var name = constructName('v8-gc-latency-mark-compactor', key);
@@ -204,7 +204,7 @@ tr.b.unittest.testSuite(function() {
       outside_idle_sum: 180,
       outside_idle_avg: 90,
       outside_idle_max: 100,
-      percentage_idle: 0
+      percentage_idle_avg: 0
     };
     tr.b.iterItems(expected, function(key, value) {
       var name = constructName('v8-gc-total', key);
@@ -236,12 +236,12 @@ tr.b.unittest.testSuite(function() {
         0, 300, tr.metrics.v8.WINDOW_SIZE_MS,
         [{start: 50, end: 60}, {start: 110, end: 120}]);
     var actual = run(slices);
-    assert.strictEqual(
-        actual['v8-execute-mutator-utilization_pct_095'],
-        mutatorUtilization.percentile(1 - 0.95) * 100);
-    assert.strictEqual(
-        actual['v8-execute-mutator-utilization_pct_099'],
-        mutatorUtilization.percentile(1 - 0.99) * 100);
+    assert.closeTo(
+        actual['v8-execute-mutator-utilization_pct_095_avg'],
+        mutatorUtilization.percentile(1 - 0.95), 1e-2);
+    assert.closeTo(
+        actual['v8-execute-mutator-utilization_pct_099_avg'],
+        mutatorUtilization.percentile(1 - 0.99), 1e-2);
  });
 
 });
