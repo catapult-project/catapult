@@ -48,10 +48,11 @@ tr.exportTo('tr.mre', function() {
               if (v8_runtime_map[runtime_call] === undefined) {
                 v8_runtime_map[runtime_call] = {count: 0, time: 0};
               }
-              v8_runtime_map[runtime_call].count++;
+              var runtime_count = v8_runtime_object[runtime_call][0];
+              v8_runtime_map[runtime_call].count += runtime_count;
               var runtime_time = v8_runtime_object[runtime_call][1] / 1000;
               v8_runtime_map[runtime_call].time += runtime_time;
-              totalCount++;
+              totalCount += runtime_count;
               totalTime += runtime_time;
             }
           }
