@@ -20,6 +20,9 @@ def _WinReadOnlyHandler(func, path, execinfo):
 
 
 def RemoveDir(dir_path):
+  assert os.path.isabs(dir_path)
+  if sys.platform.startswith('win'):
+    dir_path = u'\\\\?\\' + dir_path
   if os.path.isdir(dir_path):
     shutil.rmtree(dir_path, onerror=_WinReadOnlyHandler)
 
@@ -87,9 +90,14 @@ def UnzipArchive(archive_path, unzip_path):
   try:
     with zipfile.ZipFile(archive_path, 'r') as archive:
       VerifySafeArchive(archive)
+      assert os.path.isabs(unzip_path)
+      unzip_path_without_prefix = unzip_path
+      if sys.platform.startswith('win'):
+        unzip_path = u'\\\\?\\' + unzip_path
       archive.extractall(path=unzip_path)
       SetUnzippedDirPermissions(archive, unzip_path)
   except:
-    if unzip_path and os.path.isdir(unzip_path):
-      RemoveDir(unzip_path)
+    # Hack necessary because isdir doesn't work with escaped paths on Windows.
+    if unzip_path_without_prefix and os.path.isdir(unzip_path_without_prefix):
+      RemoveDir(unzip_path_without_prefix)
     raise

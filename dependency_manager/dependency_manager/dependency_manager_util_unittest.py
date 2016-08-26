@@ -135,6 +135,34 @@ class DependencyManagerUtilTest(unittest.TestCase):
     self.AssertExpectedDirFiles(self.tmp_dir)
     dependency_manager_util.RemoveDir(unzip_path)
 
+  def testUnzipFileContainingLongPath(self):
+    try:
+      dir_path = self.tmp_dir
+      if sys.platform.startswith('win'):
+        dir_path = u'\\\\?\\' + dir_path
+
+      archive_suffix = ''
+      # 260 is the Windows API path length limit.
+      while len(archive_suffix) < 260:
+        archive_suffix = os.path.join(archive_suffix, 'really')
+      contents_dir_path = os.path.join(dir_path, archive_suffix)
+      os.makedirs(contents_dir_path)
+      filename = os.path.join(contents_dir_path, 'longpath.txt')
+      open(filename, 'a').close()
+
+      base_path = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+      archive_path = shutil.make_archive(base_path, 'zip', dir_path)
+      self.assertTrue(os.path.exists(archive_path))
+      self.assertTrue(zipfile.is_zipfile(archive_path))
+    except:
+      if os.path.isfile(archive_path):
+        os.remove(archive_path)
+      raise
+
+    unzip_path = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
+    dependency_manager_util.UnzipArchive(archive_path, unzip_path)
+    dependency_manager_util.RemoveDir(unzip_path)
+
   def testUnzipFileFailure(self):
     unzip_path = os.path.join(tempfile.gettempdir(), str(uuid.uuid4()))
     self.assertFalse(os.path.exists(unzip_path))
