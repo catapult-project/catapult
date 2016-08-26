@@ -21,3 +21,6 @@ perf_insights/perf_insights/download_traces.py
 
 # catapult_base's binary dependency download folder.
 /catapult_base/catapult_base/bin/
+
+# catapult_base's npm installation folder.
+/catapult_base/catapult_base/node_modules/
