@@ -94,9 +94,9 @@ tr.exportTo('tr.v', function() {
           for (var bin of value.numeric.allBins) {
             for (var dm of bin.diagnosticMaps) {
               for (var [name, diagnostic] of dm) {
-                if ((d instanceof tr.v.d.RelatedValueSet) ||
-                    (d instanceof tr.v.d.RelatedValueMap)) {
-                  d.resolve(this);
+                if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
+                    (diagnostic instanceof tr.v.d.RelatedValueMap)) {
+                  diagnostic.resolve(this);
                 }
               }
             }
