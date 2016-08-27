@@ -35,34 +35,17 @@ function makeTestModel() {
 }
 
 tr.b.unittest.testSuite(function() {
-  test('webviewStartupMetric_allIntervals', function() {
+  test('webviewStartupMetric', function() {
     var values = new tr.v.ValueSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.lengthOf(values.valueDicts, 4);
-  });
-
-  test('webviewStartupMetric_startupWallInterval', function() {
-    var values = new tr.v.ValueSet();
-    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.equal(values.valueDicts[0].numeric.value, 42);
-  });
-
-  test('webviewStartupMetric_startupCpuInterval', function() {
-    var values = new tr.v.ValueSet();
-    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.equal(values.valueDicts[1].numeric.value, 32);
-  });
-
-  test('webviewStartupMetric_urlLoadWallInterval', function() {
-    var values = new tr.v.ValueSet();
-    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.equal(values.valueDicts[2].numeric.value, 27);
-  });
-
-  test('webviewStartupMetric_urlLoadCpuInterval', function() {
-    var values = new tr.v.ValueSet();
-    tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
-    assert.equal(values.valueDicts[3].numeric.value, 17);
+    assert.closeTo(42, values.getValuesNamed(
+        'webview_startup_wall_time_avg')[0].numeric.value, 1e-2);
+    assert.closeTo(32, values.getValuesNamed(
+        'webview_startup_cpu_time_avg')[0].numeric.value, 1e-2);
+    assert.closeTo(27, values.getValuesNamed(
+        'webview_url_load_wall_time_avg')[0].numeric.value, 1e-2);
+    assert.closeTo(17, values.getValuesNamed(
+        'webview_url_load_cpu_time_avg')[0].numeric.value, 1e-2);
   });
 });
 </script>
