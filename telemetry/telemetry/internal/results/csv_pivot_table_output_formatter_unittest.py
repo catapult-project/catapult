@@ -104,7 +104,8 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
     self.assertEquals(len(values), 5)  # We expect 5 value in total.
     self.assertEquals(len(set((v[1] for v in values))), 2)  # 2 pages.
     self.assertEquals(len(set((v[2] for v in values))), 4)  # 4 value names.
-    self.assertEquals(values[2],
+    trace_value_csv_row = list(v for v in values if v[2] == 'trace')[0]
+    self.assertEquals(trace_value_csv_row,
         ['story_set', 'http://www.bar.com/', 'trace',
          'https://cloud_storage_url/foo', '', '1'])
 
