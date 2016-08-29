@@ -107,6 +107,12 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     for (var value of allValues) {
+      // TODO(benjhayden): Remove this after statistics scalars are moved to
+      // python.
+      if (!(value instanceof tr.v.NumericValue) ||
+          !(value.numeric instanceof tr.v.Histogram))
+        continue;
+
       var d = value.diagnostics.get('category_with_max_event_size').value;
       assert.strictEqual(d.name, 'foo');
       assert.strictEqual(d.size_in_bytes, getEventStringSize(
