@@ -106,13 +106,11 @@ tr.b.unittest.testSuite(function() {
     var model = makeModel(JSON.stringify(events), true);
     tr.metrics.tracingMetric(allValues, model);
 
-    for (var i = 0; i < allValues.length; i++) {
-      assert.strictEqual(
-          values[i].diagnostics.category_with_max_event_size.name,
-          'foo');
-      assert.strictEqual(
-          values[i].diagnostics.category_with_max_event_size.size_in_bytes,
-          getEventStringSize(events, [0, 1, 3]));
+    for (var value of allValues) {
+      var d = value.diagnostics.get('category_with_max_event_size').value;
+      assert.strictEqual(d.name, 'foo');
+      assert.strictEqual(d.size_in_bytes, getEventStringSize(
+          events, [0, 1, 3]));
     }
   });
 

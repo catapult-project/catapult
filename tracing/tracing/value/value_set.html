@@ -32,6 +32,10 @@ tr.exportTo('tr.v', function() {
       return this.values_[guid];
     }
 
+    get length() {
+      return tr.b.dictionaryLength(this.values_);
+    }
+
     toArray() {
       return tr.b.dictionaryValues(this.values_);
     }

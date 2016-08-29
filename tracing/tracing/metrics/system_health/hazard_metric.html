@@ -14,8 +14,9 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var normalizedPercentage_smallerIsBetter =
-    tr.v.Unit.byName.normalizedPercentage_smallerIsBetter;
+  var NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
+      tr.v.Unit.byName.normalizedPercentage_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(0, 1), 20);
 
   // The following math is easier if the units are seconds rather than ms,
   // so durations will be converted from ms to s.
@@ -127,9 +128,9 @@ tr.exportTo('tr.metrics.sh', function() {
     if (overallHazard === undefined)
       overallHazard = 0;
 
-    values.addValue(new tr.v.NumericValue(
-        'hazard', new tr.v.ScalarNumeric(
-            normalizedPercentage_smallerIsBetter, overallHazard)));
+    var hist = NUMERIC_BUILDER.build();
+    hist.add(overallHazard);
+    values.addValue(new tr.v.NumericValue('hazard', hist));
   }
 
   tr.metrics.MetricRegistry.register(hazardMetric);
