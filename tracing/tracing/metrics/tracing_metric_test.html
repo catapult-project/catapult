@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkDurationValue(allValues, metricName, expected) {
-    var values = allValues.getValuesWithName(metricName);
+    var values = allValues.getValuesWithName(metricName + '_avg');
     assert.lengthOf(values, 1);
     assert.closeTo(1000 * values[0].numeric.value, expected, 0.1);
   }
@@ -62,8 +62,8 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
-    var values = allValues.getValuesWithName('Total trace size in bytes');
-    assert.strictEqual(values.length, 1);
+    var values = allValues.getValuesWithName('Total trace size in bytes_avg');
+    assert.lengthOf(values, 1);
     assert.strictEqual(values[0].numeric.value, eventStringSize);
   });
 
@@ -82,14 +82,15 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     var maxEventCountPerSec = 3;
-    var values = allValues.getValuesWithName('Max number of events per second');
-    assert.strictEqual(values.length, 1);
+    var values = allValues.getValuesWithName(
+        'Max number of events per second_avg');
+    assert.lengthOf(values, 1);
     assert.strictEqual(values[0].numeric.value, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
     var values = allValues.getValuesWithName(
-        'Max event size in bytes per second');
-    assert.strictEqual(values.length, 1);
+        'Max event size in bytes per second_avg');
+    assert.lengthOf(values, 1);
     assert.strictEqual(values[0].numeric.value, maxEventBytesPerSec);
   });
 
@@ -144,11 +145,11 @@ tr.b.unittest.testSuite(function() {
         slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
             (acc, slice) => acc + JSON.stringify(slice).length, 0);
     var totalSizeValue = allValues.getValuesWithName(
-        'Total trace size of memory-infra dumps in bytes');
+        'Total trace size of memory-infra dumps in bytes_avg');
     assert.lengthOf(totalSizeValue, 1);
     assert.strictEqual(totalSizeValue[0].numeric.value, memoryCategorySize);
     var sizePerDumpValue = allValues.getValuesWithName(
-        'Average trace size of memory-infra dumps in bytes');
+        'Average trace size of memory-infra dumps in bytes_avg');
     assert.lengthOf(sizePerDumpValue, 1);
     assert.strictEqual(sizePerDumpValue[0].numeric.value, memoryCategorySize);
 
