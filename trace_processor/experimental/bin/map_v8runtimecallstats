@@ -10,10 +10,41 @@ import ntpath
 
 OUT_DIR = 'v8_callstats_dump'
 
+URL_MAP = dict()
+
+URL_MAP['http___edition_cnn_com10.html'] = 'cnn.com'
+URL_MAP['http___hi_wikipedia_org_wiki__E0_A4_AE_E0_A5_81_E0_A4_96_E0_A4_AA_E0_A5_83_E0_A4_B7_E0_A5_8D_E0_A4_A06.html'] = 'wikipedia.org'
+URL_MAP['http___inbox_google_com23.html'] = 'inbox.google.com'
+URL_MAP['http___maps_google_co_jp_maps_search_restaurant_tokyo24.html'] = 'maps.google.co.jp'
+URL_MAP['http___meta_discourse_org21.html'] = 'discourse.org'
+URL_MAP['http___reddit_musicplayer_io22.html'] = 'reddit.musicplayer.io'
+URL_MAP['https___www_facebook_com_shakira2.html'] = 'facebook.com'
+URL_MAP['https___www_google_de_search_q_v80.html'] = 'google.de'
+URL_MAP['https___www_linkedin_com_m_13.html'] = 'linkedin.com'
+URL_MAP['https___www_youtube_com1.html'] = 'youtube.com'
+URL_MAP['http___weibo_com18.html'] = 'weibo.com'
+URL_MAP['http___world_taobao_com11.html'] = 'taobao.com'
+URL_MAP['http___www_amazon_com_s__field_keywords_v85.html'] = 'amazon.com'
+URL_MAP['http___www_baidu_com_s_wd_v83.html'] = 'baidu.com'
+URL_MAP['http___www_bing_com_search_q_v8_engine15.html'] = 'bing.com'
+URL_MAP['http___www_ebay_fr_sch_i_html__nkw_v89.html'] = 'ebay.fr'
+URL_MAP['http___www_instagram_com_archdigest12.html'] = 'instagram.com'
+URL_MAP['http___www_msn_com_ar_ae14.html'] = 'msn.com'
+URL_MAP['http___www_pinterest_com_categories_popular16.html'] = 'pinterest.com'
+URL_MAP['http___www_qq_com7.html'] = 'qq.com'
+URL_MAP['http___www_reddit_com8.html'] = 'reddit.com'
+URL_MAP['http___www_sina_com_cn17.html'] = 'sina.com.cn'
+URL_MAP['http___www_wikiwand_com_en_hill20.html'] = 'wikiwand.com'
+URL_MAP['http___www_yahoo_co_jp4.html'] = 'yahoo.co.jp'
+URL_MAP['http___yandex_ru_search__text_v819.html'] = 'yandex.ru'
+
 
 def extractFilename(path):
     head, tail = ntpath.split(path)
-    return tail or ntpath.basename(head)
+    name = tail or ntpath.basename(head)
+    if name in URL_MAP:
+      return URL_MAP[name]
+    return name
 
 
 def writeDump(name, value):
