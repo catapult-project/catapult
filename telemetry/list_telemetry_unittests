@@ -12,9 +12,13 @@ def _ExtractQueuedTestName(line):
   return test_name
 
 
-def _ExtractPassedTestName(line):
-  _, test_name, _, _ = line.split(' ')
-  return test_name
+def _ExtractPassedTestNameAndTime(line):
+  _, test_name, _, test_time_string = line.split(' ')
+  if test_time_string.endswith(':'):
+    test_time = float(test_time_string[:-2])
+  else:
+    test_time = float(test_time_string[:-1])
+  return test_name, test_time
 
 
 def _IsQueued(line):
@@ -36,9 +40,9 @@ def _ProcessLogFile(file_path):
       if _IsQueued(line):
         queued_unittests.append(_ExtractQueuedTestName(line))
       elif _IsPassed(line):
-        passed_unittests.append(_ExtractPassedTestName(line))
+        passed_unittests.append(_ExtractPassedTestNameAndTime(line))
   queued_unittests.sort()
-  passed_unittests.sort()
+  passed_unittests.sort(key=lambda v: -v[1])
   return queued_unittests, passed_unittests
 
 
@@ -49,16 +53,13 @@ def main(args):
   parser.add_argument(
       'filepath', help='path to log file of telemetry unittest')
   parser.add_argument(
-      '-p', '--list-passed-tests', action='store_true',
-      help='List all the passed telemetry unittests')
-  parser.add_argument(
       '-q', '--list-queued-tests', action='store_true',
-      help='List all the queued telemetry unittests')
+      help='Also list all the queued telemetry unittests')
   options = parser.parse_args(args)
   queued_unittests, passed_unittests = _ProcessLogFile(options.filepath)
-  if options.list_passed_tests:
-    print 'All passed telemetry unittests:\n'
-    print '\n'.join(passed_unittests)
+  print 'All passed telemetry unittests:\n'
+  for test, time in passed_unittests:
+      print test, time
   if options.list_queued_tests:
     print 'All queued telemetry unittests:\n'
     print '\n'.join(queued_unittests)
