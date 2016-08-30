@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/base/base.html">
 
 <!--
-@fileoverview A series of tabs for the analysis view that controls which
-analysis sub-view is being displayed.
+@fileoverview A view that allows the user to control which single tab is
+displayed.
 
 We follow a fairly standard web convention of backing our tabs with hidden radio
 buttons but visible radio button labels (the tabs themselves) which toggle the
@@ -17,7 +17,7 @@ input element when clicked. Using hidden radio buttons makes sense, as both tabs
 and radio buttons are input elements that allow user selection through clicking
 and limit users to having one option selected at a time.
 -->
-<dom-module id='tr-ui-a-tab-view'>
+<dom-module id='tr-ui-b-tab-view'>
   <template>
     <style>
       :host {
@@ -87,7 +87,7 @@ and limit users to having one option selected at a time.
 'use strict';
 
 Polymer({
-  is: 'tr-ui-a-tab-view',
+  is: 'tr-ui-b-tab-view',
 
   properties: {
     label_: {
