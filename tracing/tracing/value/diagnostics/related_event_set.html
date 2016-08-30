@@ -77,7 +77,7 @@ tr.exportTo('tr.v.d', function() {
         if (event instanceof tr.model.Event)
           this.eventsByStableId_.set(stableId, event);
         else if (opt_required)
-          throw new Error('Unable to find Event ' + ref.stableId);
+          throw new Error('Unable to find Event ' + stableId);
       }
     }
 

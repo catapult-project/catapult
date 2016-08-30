@@ -77,7 +77,8 @@ tr.exportTo('tr.v.d', function() {
         if (!(value instanceof tr.v.d.ValueRef))
           continue;
 
-        value = valueSet.lookup(value.guid);
+        var guid = value.guid;
+        value = valueSet.lookup(guid);
         if (value instanceof tr.v.Value)
           this.valuesByName_.set(name, value);
         else if (opt_required)
