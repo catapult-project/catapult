@@ -38,7 +38,13 @@ tr.exportTo('tr.mre', function() {
     for (var event of model.getDescendantEvents()) {
       if (!(event instanceof tr.model.ThreadSlice) || event.start > tti)
         continue;
-      var v8_runtime = event.args['runtime-call-stat'];
+      var v8_runtime = event.args['runtime-call-stats'];
+
+      // For older traces, check if we had an arg called 'runtime-call-stat'
+      // instead.
+      if (v8_runtime === undefined)
+        v8_runtime = event.args['runtime-call-stat'];
+
       if (v8_runtime !== undefined) {
         try {
           var v8_runtime_object = JSON.parse(v8_runtime);

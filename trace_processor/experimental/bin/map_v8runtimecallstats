@@ -10,9 +10,11 @@ import ntpath
 
 OUT_DIR = 'v8_callstats_dump'
 
+
 def extractFilename(path):
     head, tail = ntpath.split(path)
     return tail or ntpath.basename(head)
+
 
 def writeDump(name, value):
   dump_file = open(OUT_DIR + '/' + extractFilename(name) + '.txt', 'w+')
@@ -31,4 +33,3 @@ if __name__ == '__main__':
   for entry in data:
     writeDump(entry, data[entry])
   sys.exit(0)
-
