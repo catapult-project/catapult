@@ -22,7 +22,6 @@ from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import device_status
 from devil.utils import lsusb
-from devil.utils import reset_usb
 from devil.utils import run_tests_helper
 
 
@@ -140,7 +139,10 @@ def RecoverDevices(devices, blacklist):
     KillAllAdb()
   for serial in should_restart_usb:
     try:
-      reset_usb.reset_android_usb(serial)
+      # TODO(crbug.com/642194): Resetting may be causing more harm
+      # (specifically, kernel panics) than it does good.
+      logging.warning('USB reset disabled for %s (crbug.com/642914)',
+                      serial)
     except IOError:
       logging.exception('Unable to reset USB for %s.', serial)
       if blacklist:
