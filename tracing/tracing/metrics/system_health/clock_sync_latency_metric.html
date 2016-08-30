@@ -8,13 +8,16 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/model.html">
-<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
+  var LATENCY_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
+      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+      tr.b.Range.fromExplicitRange(1e-3, 1e3), 30);
 
   function syncIsComplete(markers) {
     return markers.length === 2;
@@ -34,6 +37,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var targetDomain = undefined;
       if (!syncIsComplete(markers) || !syncInvolvesTelemetry(markers))
         continue;
+
       for (var marker of markers) {
         var domain = marker.domainId;
         if (domain === tr.model.ClockDomainId.TELEMETRY)
@@ -41,12 +45,12 @@ tr.exportTo('tr.metrics.sh', function() {
         else
           targetDomain = domain.toLowerCase();
       }
+
+      var hist = LATENCY_NUMERIC_BUILDER.build();
+      hist.add(latency);
       values.addValue(new tr.v.NumericValue(
-          'clock_sync_latency_' + targetDomain,
-          new tr.v.ScalarNumeric(
-              tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-              latency),
-          { description: 'Clock sync latency for domain ' + targetDomain }));
+          'clock_sync_latency_' + targetDomain, hist,
+          {description: 'Clock sync latency for domain ' + targetDomain}));
     }
   };
 

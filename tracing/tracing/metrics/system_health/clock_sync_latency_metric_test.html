@@ -33,16 +33,19 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.ValueSet();
     tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
 
-    var battorEntry = tr.b.getOnlyElement(
-        valueSet.valueDicts.filter(
-            (dict) => dict.name === battorName));
+    var battorValue = undefined;
+    var winQpcValue = undefined;
+    for (var value of valueSet) {
+      if (value.name === battorName)
+        battorValue = value;
+      else if (value.name === winQpcName)
+        winQpcValue = value;
+    }
 
-    var winQpcEntry = tr.b.getOnlyElement(
-        valueSet.valueDicts.filter(
-            (dict) => dict.name === winQpcName));
-
-    assert.equal(battorEntry.numeric.value, 3.0);
-    assert.equal(winQpcEntry.numeric.value, 6.0);
+    assert.isDefined(battorValue);
+    assert.isDefined(winQpcValue);
+    assert.closeTo(battorValue.numeric.average, 3.0, 1e-5);
+    assert.closeTo(winQpcValue.numeric.average, 6.0, 1e-5);
   });
 
   test('clockSyncLatencyMetric_noTelemetry', function() {
