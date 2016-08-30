@@ -11,6 +11,7 @@ from dashboard import delete_test_data
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import graph_data
+from dashboard.models import sheriff
 
 # Masters, bots and test names to add to the mock datastore.
 _MOCK_DATA = [
@@ -156,6 +157,63 @@ class DeleteTestDataTest(testing_common.TestCase):
         'ChromiumPerf/win7/moz/read_op_b/r_op_b',
         'ChromiumPerf/mac/moz/read_op_b/r_op_b',
     ])
+
+  def testPost_DeleteMonitoredTest_SendsEmail(self):
+    self._AddMockData()
+    # Add a sheriff for one test.
+    test_path = 'ChromiumPerf/mac/SunSpider/Total/t'
+    test = utils.TestKey(test_path).get()
+    sheriff_key = sheriff.Sheriff(
+        id='Perf Sheriff Mac', email='sullivan@google.com',
+        patterns=['*/*/*/*/*']).put()
+    test.sheriff = sheriff_key
+    test.put()
+
+    self.testapp.post('/delete_test_data', {
+        'pattern': 'ChromiumPerf/mac/SunSpider/Total/t',
+    })
+    self.ExecuteTaskQueueTasks(
+        '/delete_test_data', delete_test_data._TASK_QUEUE_NAME)
+    self._AssertNotExists([
+        'ChromiumPerf/mac/SunSpider/Total/t',
+    ])
+
+    # Check the emails that were sent.
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(1, len(messages))
+    self.assertEqual('gasper-alerts@google.com', messages[0].sender)
+    self.assertEqual('chrome-performance-monitoring-alerts@google.com',
+                     messages[0].to)
+    self.assertEqual('Sheriffed Test Deleted', messages[0].subject)
+    body = str(messages[0].body)
+    self.assertIn(
+        'test ChromiumPerf/mac/SunSpider/Total/t has been DELETED', body)
+
+  def testPost_DeleteMonitoredTestNotifyFalse_DoesNotSendEmail(self):
+    self._AddMockData()
+
+    # Add a sheriff for one test.
+    test_path = 'ChromiumPerf/mac/SunSpider/Total/t'
+    test = utils.TestKey(test_path).get()
+    sheriff_key = sheriff.Sheriff(
+        id='Perf Sheriff Mac', email='sullivan@google.com',
+        patterns=['*/*/*/*/*']).put()
+    test.sheriff = sheriff_key
+    test.put()
+
+    self.testapp.post('/delete_test_data', {
+        'pattern': 'ChromiumPerf/mac/SunSpider/Total/t',
+        'notify': 'false',
+    })
+    self.ExecuteTaskQueueTasks(
+        '/delete_test_data', delete_test_data._TASK_QUEUE_NAME)
+    self._AssertNotExists([
+        'ChromiumPerf/mac/SunSpider/Total/t',
+    ])
+
+    # Check the emails that were sent.
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(0, len(messages))
 
 
 if __name__ == '__main__':

@@ -118,6 +118,7 @@ def DeprecateTestsMapper(entity):
           params={
               'test_path': utils.TestPath(entity.key),  # For manual inspection.
               'test_key': entity.key.urlsafe(),
+              'notify': 'false',
           },
           queue_name=_DELETE_TASK_QUEUE_NAME)
       return

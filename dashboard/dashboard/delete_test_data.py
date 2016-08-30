@@ -66,22 +66,27 @@ class DeleteTestDataHandler(request_handler.RequestHandler):
 
     pattern = self.request.get('pattern')
     test_key = self.request.get('test_key')
+    notify = self.request.get('notify', 'true')
+    if notify.lower() == 'true':
+      notify = True
+    else:
+      notify = False
 
     if pattern:
       try:
-        _AddTasksForPattern(pattern)
+        _AddTasksForPattern(pattern, notify)
         self.RenderHtml('result.html', {
             'headline': 'Test deletion task started.'
         })
       except BadInputPatternError as error:
         self.ReportError('Error: %s' % error.message, status=400)
     elif test_key:
-      _DeleteTest(test_key)
+      _DeleteTest(test_key, notify)
     else:
       self.ReportError('Missing required parameters of /delete_test_data.')
 
 
-def _AddTasksForPattern(pattern):
+def _AddTasksForPattern(pattern, notify):
   """Enumerates individual test deletion tasks and enqueues them.
 
   Typically, this function is called by a request initiated by the user.
@@ -90,23 +95,26 @@ def _AddTasksForPattern(pattern):
 
   Args:
     pattern: Test path pattern for TestMetadatas to delete.
+    notify: If true, send an email notification for monitored test deletion.
 
   Raises:
     BadInputPatternError: Something was wrong with the input pattern.
   """
   tests = list_tests.GetTestsMatchingPattern(pattern, list_entities=True)
   for test in tests:
-    _AddTaskForTest(test)
+    _AddTaskForTest(test, notify)
 
 
-def _AddTaskForTest(test):
+def _AddTaskForTest(test, notify):
   """Adds a task to the task queue to delete a TestMetadata and its descendants.
 
   Args:
     test: A TestMetadata entity.
+    notify: If true, send an email notification for monitored test deletion.
   """
   task_params = {
       'test_key': test.key.urlsafe(),
+      'notify': 'true' if notify else 'false',
   }
   taskqueue.add(
       url='/delete_test_data',
@@ -114,7 +122,7 @@ def _AddTaskForTest(test):
       queue_name=_TASK_QUEUE_NAME)
 
 
-def _DeleteTest(test_key_urlsafe):
+def _DeleteTest(test_key_urlsafe, notify):
   """Deletes data for one TestMetadata.
 
   This gets all the descendant TestMetadata entities, and deletes their Row
@@ -123,10 +131,11 @@ def _DeleteTest(test_key_urlsafe):
   doesn't finish, it will re-add itself to the same task queue and retry.
   """
   test_key = ndb.Key(urlsafe=test_key_urlsafe)
-  finished = _DeleteTestData(test_key)
+  finished = _DeleteTestData(test_key, notify)
   if not finished:
     task_params = {
         'test_key': test_key_urlsafe,
+        'notify': 'true' if notify else 'false',
     }
     taskqueue.add(
         url='/delete_test_data',
@@ -134,7 +143,7 @@ def _DeleteTest(test_key_urlsafe):
         queue_name=_TASK_QUEUE_NAME)
 
 
-def _DeleteTestData(test_key):
+def _DeleteTestData(test_key, notify):
   logging.info('DELETING TEST DATA FOR %s', utils.TestPath(test_key))
   futures = []
   num_tests_processed = 0
@@ -154,7 +163,7 @@ def _DeleteTestData(test_key):
   if finished:
     descendants = ndb.get_multi(descendants)
     for descendant in descendants:
-      _SendNotificationEmail(descendant)
+      _SendNotificationEmail(descendant, notify)
       futures.append(descendant.key.delete_async())
 
 
@@ -162,13 +171,14 @@ def _DeleteTestData(test_key):
   return finished
 
 
-def _SendNotificationEmail(test):
+def _SendNotificationEmail(test, notify):
   """Send a notification email about the test deletion.
 
   Args:
     test_key: Key of the TestMetadata that's about to be deleted.
+    notify: If true, send an email notification for monitored test deletion.
   """
-  if not test or not test.sheriff:
+  if not test or not test.sheriff or not notify:
     return
   body = _SHERIFF_ALERT_EMAIL_BODY % {
       'test_path': utils.TestPath(test.key),
