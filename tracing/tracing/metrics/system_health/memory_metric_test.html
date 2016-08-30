@@ -96,45 +96,36 @@ tr.b.unittest.testSuite(function() {
             expectedNumeric.unit.unitName, + ', actual: ' +
             actualNumeric.unit.unitName + ')');
 
-        if (typeof expectedNumeric.value === 'number') {
-          // Scalar.
-          assert.instanceOf(actualNumeric, tr.v.ScalarNumeric,
-              'Invalid \'' + valueName + '\' class');
-          assert.closeTo(actualNumeric.value, expectedNumeric.value,
-              SIZE_DELTA, 'Invalid \'' + valueName + '\' numeric value');
-        } else if (expectedNumeric.value instanceof Array) {
-          assert.instanceOf(actualNumeric, tr.v.Histogram,
-              'Invalid \'' + valueName + '\' class');
-          assert.strictEqual(actualNumeric.numValues,
-              expectedNumeric.value.length,
-              'Invalid \'' + valueName + '\' Histogram numValues');
-          assert.closeTo(actualNumeric.sum,
-              expectedNumeric.value.reduce((a, b) => a + b, 0), SIZE_DELTA,
-              'Invalid \'' + valueName + '\' Histogram sum');
+        if (!(expectedNumeric.value instanceof Array))
+          assert.fail('Test sanity check: expected value must be an array');
 
-          // Check that the bin counts match.
-          var binToCount = new Map();
-          expectedNumeric.value.forEach(function(value) {
-            var bin = actualNumeric.getBinForValue(value);
-            binToCount.set(bin, (binToCount.get(bin) || 0) + 1);
-          });
-          actualNumeric.allBins.forEach(function(bin) {
-            binToCount.set(bin, (binToCount.get(bin) || 0) - bin.count);
-          });
-          binToCount.forEach(function(count, bin) {
-            assert.strictEqual(count, 0, 'Invalid \'' + valueName +
-                '\' bin count for range ' + bin.min + '-' + bin.max);
-          });
-        } else {
-          assert.fail(
-              'Test sanity check: expected value must be a number or an array');
-        }
+        assert.instanceOf(actualNumeric, tr.v.Histogram,
+            'Invalid \'' + valueName + '\' class');
+        assert.strictEqual(actualNumeric.numValues,
+            expectedNumeric.value.length,
+            'Invalid \'' + valueName + '\' Histogram numValues');
+        assert.closeTo(actualNumeric.sum,
+            expectedNumeric.value.reduce((a, b) => a + b, 0), SIZE_DELTA,
+            'Invalid \'' + valueName + '\' Histogram sum');
+
+        // Check that the bin counts match.
+        var binToCount = new Map();
+        expectedNumeric.value.forEach(function(value) {
+          var bin = actualNumeric.getBinForValue(value);
+          binToCount.set(bin, (binToCount.get(bin) || 0) + 1);
+        });
+        actualNumeric.allBins.forEach(function(bin) {
+          binToCount.set(bin, (binToCount.get(bin) || 0) - bin.count);
+        });
+        binToCount.forEach(function(count, bin) {
+          assert.strictEqual(count, 0, 'Invalid \'' + valueName +
+              '\' bin count for range ' + bin.min + '-' + bin.max);
+        });
 
         // Check that the description matches expectations.
-        //if (expectedNumeric.description !== '')
-          assert.strictEqual(
-              actualValue.description, expectedNumeric.description,
-              'Invalid \'' + valueName + '\' description');
+        assert.strictEqual(
+            actualValue.description, expectedNumeric.description,
+            'Invalid \'' + valueName + '\' description');
       });
     });
   }
@@ -169,25 +160,25 @@ tr.b.unittest.testSuite(function() {
     createChromeBrowserProcess(model);
   }, undefined /* opt_options */, {
     'memory:chrome:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:light': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome to the ' +
           'trace'
@@ -201,73 +192,73 @@ tr.b.unittest.testSuite(function() {
     createChromeBrowserProcess(model);
   }, undefined /* opt_options */, {
     'memory:chrome2:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome(2) ' +
           'to the trace'
     },
     'memory:chrome2:all_processes:dump_count:light': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome(2) to ' +
           'the trace'
     },
     'memory:chrome2:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by ' +
           'Chrome(2) to the trace'
     },
     'memory:chrome2:all_processes:dump_count': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome(2) to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:light': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome to the ' +
           'trace'
     },
     'memory:webview:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count:light': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by WebView to ' +
           'the trace'
     },
     'memory:webview:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by WebView to the ' +
           'trace'
@@ -281,25 +272,25 @@ tr.b.unittest.testSuite(function() {
     addGlobalMemoryDump(model, {ts: 89, levelOfDetail: DETAILED});
   }, undefined /* opt_options */, {
     'memory:unknown_browser:all_processes:dump_count:detailed': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by an unknown ' +
           'browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:background': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count': {
-      value: 4,
+      value: [4],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by an unknown ' +
           'browser to the trace'
@@ -314,25 +305,25 @@ tr.b.unittest.testSuite(function() {
         model, {ts: 68, levelOfDetail: LIGHT}), p, {ts: 68});
   }, undefined /* opt_options */, {
     'memory:webview:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count:light': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by WebView to ' +
           'the trace'
     },
     'memory:webview:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by WebView to the ' +
           'trace'
@@ -549,25 +540,25 @@ tr.b.unittest.testSuite(function() {
     ];
   }, undefined /* opt_options */, {
     'memory:chrome:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:light': {
-      value: 4,
+      value: [4],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
-      value: 4,
+      value: [4],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome to the ' +
           'trace'
@@ -1169,25 +1160,25 @@ tr.b.unittest.testSuite(function() {
     var pmdBrowser4 = addProcessMemoryDump(gmd4, pBrowser, {ts: 40});
   }, undefined /* opt_options */, {
     'memory:unknown_browser:all_processes:dump_count:detailed': {
-      value: 3,
+      value: [3],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by an unknown ' +
           'browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count': {
-      value: 4,
+      value: [4],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by an unknown ' +
           'browser to the trace'
@@ -1581,25 +1572,25 @@ tr.b.unittest.testSuite(function() {
     ]);
   }, {} /* opt_options */, {
     'memory:chrome:all_processes:dump_count:detailed': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
-      value: 3,
+      value: [3],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome to the ' +
           'trace'
@@ -1905,25 +1896,25 @@ tr.b.unittest.testSuite(function() {
   }, undefined /* opt_options */, {
     // WebView (GMD1, GMD6).
     'memory:webview:all_processes:dump_count:detailed': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by WebView to ' +
           'the trace'
     },
     'memory:webview:all_processes:dump_count:background': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count': {
-      value: 3,
+      value: [3],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by WebView to the ' +
           'trace'
@@ -2235,25 +2226,25 @@ tr.b.unittest.testSuite(function() {
               'memtrack component in all processes in Chrome'
         },
     'memory:chrome:all_processes:dump_count:detailed': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:light': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:background': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
     },
     'memory:chrome:all_processes:dump_count': {
-      value: 3,
+      value: [3],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome to the ' +
           'trace'
@@ -2635,25 +2626,25 @@ tr.b.unittest.testSuite(function() {
 
     // Chrome 2 (GMD2, GMD7).
     'memory:chrome2:all_processes:dump_count:detailed': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome(2) ' +
           'to the trace'
     },
     'memory:chrome2:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome(2) to ' +
           'the trace'
     },
     'memory:chrome2:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by ' +
           'Chrome(2) to the trace'
     },
     'memory:chrome2:all_processes:dump_count': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome(2) to ' +
           'the trace'
@@ -2909,25 +2900,25 @@ tr.b.unittest.testSuite(function() {
 
     // Unknown browser (GMD5).
     'memory:unknown_browser:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by an unknown ' +
           'browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by an unknown ' +
           'browser to the trace'
@@ -3023,25 +3014,25 @@ tr.b.unittest.testSuite(function() {
     rangeOfInterest: tr.b.Range.fromExplicitRange(10, 20)
   }, {
     'memory:chrome:all_processes:dump_count': {
-      value: 3,
+      value: [3],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by Chrome to the ' +
           'trace'
     },
     'memory:chrome:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:light': {
-      value: 2,
+      value: [2],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by Chrome to ' +
           'the trace'
     },
     'memory:chrome:all_processes:dump_count:background': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by Chrome ' +
           'to the trace'
@@ -3058,25 +3049,25 @@ tr.b.unittest.testSuite(function() {
     },
 
     'memory:webview:all_processes:dump_count': {
-      value: 4,
+      value: [4],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by WebView to the ' +
           'trace'
     },
     'memory:webview:all_processes:dump_count:detailed': {
-      value: 3,
+      value: [3],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by WebView ' +
           'to the trace'
     },
     'memory:webview:all_processes:dump_count:light': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by WebView to ' +
           'the trace'
     },
     'memory:webview:all_processes:dump_count:background': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by WebView ' +
           'to the trace'
@@ -3229,25 +3220,25 @@ tr.b.unittest.testSuite(function() {
               'memory (RAM) used by the browser process in WebView'
         },
     'memory:unknown_browser:all_processes:dump_count': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of all memory dumps added by an unknown ' +
           'browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:detailed': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of detailed memory dumps added by an ' +
           'unknown browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:light': {
-      value: 1,
+      value: [1],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of light memory dumps added by an unknown ' +
           'browser to the trace'
     },
     'memory:unknown_browser:all_processes:dump_count:background': {
-      value: 0,
+      value: [0],
       unit: unitlessNumber_smallerIsBetter,
       description: 'total number of background memory dumps added by an ' +
           'unknown browser to the trace'
