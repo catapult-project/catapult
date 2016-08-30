@@ -12,6 +12,7 @@ They are also used in /auto_bisect to restart unsuccessful bisect jobs.
 
 import datetime
 import json
+import logging
 
 from google.appengine.ext import ndb
 
@@ -85,12 +86,16 @@ class TryJob(internal_only_model.InternalOnlyModel):
   def SetStaled(self):
     self.status = 'staled'
     self.put()
+    logging.info('Updated status to staled')
+    # TODO(sullivan, dtu): what is the purpose of 'staled' status? Doesn't it
+    # just prevent updating jobs older than 24 hours???
     # TODO(chrisphan): Add 'staled' state to bug_data and bisect_stats.
     if self.bug_id:
       bug_data.SetBisectStatus(self.bug_id, 'failed')
     bisect_stats.UpdateBisectStats(self.bot, 'failed')
 
   def SetCompleted(self):
+    logging.info('Updated status to completed')
     self.status = 'completed'
     self.put()
     if self.bug_id:
@@ -110,6 +115,7 @@ class TryJob(internal_only_model.InternalOnlyModel):
     # not been updated
     if data.get('result') != 'FAILURE' or self.status == 'failed':
       return
+    logging.info('Job failed. Buildbucket id %s', self.buildbucket_job_id)
     data['result_details'] = json.loads(data['result_details_json'])
     job_updates = {
         'status': 'failed',
@@ -139,3 +145,4 @@ class TryJob(internal_only_model.InternalOnlyModel):
     self.last_ran_timestamp = datetime.datetime.fromtimestamp(
         float(data['updated_ts'])/1000000)
     self.put()
+    logging.info('updated status to failed.')

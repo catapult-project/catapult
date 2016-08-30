@@ -123,7 +123,8 @@ def _CheckJob(job, issue_tracker):
     job: A TryJob entity, which represents one bisect try job.
     issue_tracker: An issue_tracker_service.IssueTrackerService instance.
   """
-  logging.info('Checking job %s', job.key.id())
+  logging.info('Checking job %s for bug %s, with buildbucket_job_id %s',
+               job.key.id(), job.bug_id, job.buildbucket_job_id)
 
 
   job.CheckFailureFromBuildBucket()
@@ -289,6 +290,7 @@ def _PostFailedResult(job, issue_tracker):
     bug_comment += 'Additional errors:\n'
     for code in job.results_data.get('extra_result_code'):
       bug_comment += '%s\n' % _BUILD_FAILURE_DETAIL.get(code, code)
+  logging.info('Adding bug comment: %s', bug_comment)
   issue_tracker.AddBugComment(job.bug_id, bug_comment)
 
 
