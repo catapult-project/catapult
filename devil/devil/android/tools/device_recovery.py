@@ -22,6 +22,8 @@ from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.tools import device_status
 from devil.utils import lsusb
+# TODO(jbudorick): Resolve this after experimenting w/ disabling the USB reset.
+from devil.utils import reset_usb  # pylint: disable=unused-import
 from devil.utils import run_tests_helper
 
 
