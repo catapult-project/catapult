@@ -11,7 +11,7 @@ class DdmsAgentTest(agents_unittest.BaseAgentTest):
     agent = ddms_tracing_agent.DdmsAgent(self.device, self.package_info)
 
     try:
-      agent.StartAgentTracing(None, None)
+      agent.StartAgentTracing(None)
     finally:
       agent.StopAgentTracing()
 

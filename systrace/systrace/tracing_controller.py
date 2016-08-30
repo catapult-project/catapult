@@ -39,15 +39,14 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     self._log_path = None
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
     """Start tracing for the controller tracing agent.
 
     Start tracing for the controller tracing agent. Note that
     the tracing controller records the "controller side"
     of the clock sync records, and nothing else.
     """
-    del options
-    del categories
+    del config
     if not trace_event.trace_can_enable():
       raise RuntimeError, ('Cannot enable trace_event;'
                            ' ensure py_utils is in PYTHONPATH')
@@ -94,21 +93,21 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     raise NotImplementedError
 
 class TracingController(object):
-  def __init__(self, options, categories, agents):
+  def __init__(self, agents_with_config, controller_config):
     """Create tracing controller.
 
     Create a tracing controller object. Note that the tracing
     controller is also a tracing agent.
 
     Args:
-       options: Tracing options.
-       categories: Categories of trace events to record.
-       agents: List of tracing agents for this controller.
+       agents_with_config: List of tracing agents for this controller with the
+                           corresponding tracing configuration objects.
+       controller_config:  Configuration options for the tracing controller.
     """
-    self._child_agents = agents
+    self._child_agents = None
+    self._child_agents_with_config = agents_with_config
     self._controller_agent = TracingControllerAgent()
-    self._options = options
-    self._categories = categories
+    self._controller_config = controller_config
     self._trace_in_progress = False
     self.all_results = None
 
@@ -129,28 +128,28 @@ class TracingController(object):
     # Start the controller tracing agents. Controller tracing agent
     # must be started successfully to proceed.
     if not self._controller_agent.StartAgentTracing(
-        self._options,
-        self._categories,
-        timeout=self._options.timeout):
+        self._controller_config,
+        timeout=self._controller_config.timeout):
       print 'Unable to start controller tracing agent.'
       return False
 
     # Start the child tracing agents.
     succ_agents = []
-    for agent in self._child_agents:
-      if agent.StartAgentTracing(self._options,
-                                 self._categories,
-                                 timeout=self._options.timeout):
+    for agent_and_config in self._child_agents_with_config:
+      agent = agent_and_config.agent
+      config = agent_and_config.config
+      if agent.StartAgentTracing(config,
+                                 timeout=self._controller_config.timeout):
         succ_agents.append(agent)
       else:
         print 'Agent %s not started.' % str(agent)
 
     # Print warning if all agents not started.
-    na = len(self._child_agents)
+    na = len(self._child_agents_with_config)
     ns = len(succ_agents)
     if ns < na:
       print 'Warning: Only %d of %d tracing agents started.' % (ns, na)
-      self._child_agents = succ_agents
+    self._child_agents = succ_agents
     return True
 
   def StopTracing(self):
@@ -171,7 +170,7 @@ class TracingController(object):
     self._IssueClockSyncMarker()
     succ_agents = []
     for agent in self._child_agents:
-      if agent.StopAgentTracing(timeout=self._options.timeout):
+      if agent.StopAgentTracing(timeout=self._controller_config.timeout):
         succ_agents.append(agent)
       else:
         print 'Agent %s not stopped.' % str(agent)
@@ -179,7 +178,7 @@ class TracingController(object):
     # Stop the controller tracing agent. Controller tracing agent
     # must be stopped successfully to proceed.
     if not self._controller_agent.StopAgentTracing(
-        timeout=self._options.timeout):
+        timeout=self._controller_config.timeout):
       print 'Unable to stop controller tracing agent.'
       return False
 
@@ -194,7 +193,8 @@ class TracingController(object):
     all_results = []
     for agent in self._child_agents + [self._controller_agent]:
       try:
-        result = agent.GetResults(timeout=self._options.collection_timeout)
+        result = agent.GetResults(
+            timeout=self._controller_config.collection_timeout)
         if not result:
           print 'Warning: Timeout when getting results from %s.' % str(agent)
           continue

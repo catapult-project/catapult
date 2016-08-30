@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import optparse
 import os
 import py_utils
 import re
@@ -56,7 +57,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
     self._flag_changer.Restore()
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
     self._SetupTracing()
     self._logcat_monitor.Start()
 
@@ -86,3 +87,24 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
+
+
+class ChromeStartupConfig(tracing_agents.TracingConfig):
+  def __init__(self):
+    tracing_agents.TracingConfig.__init__(self)
+
+
+def add_options(parser):
+  options = optparse.OptionGroup(parser, 'Chrome startup tracing')
+  options.add_option('--url', help='URL to visit on startup. Default: '
+                     'https://www.google.com. An empty URL launches Chrome '
+                     'with a MAIN action instead of VIEW.',
+                     default='https://www.google.com', metavar='URL')
+  options.add_option('--cold', help='Flush the OS page cache before starting '
+                     'the browser. Note that this require a device with root '
+                     'access.', default=False, action='store_true')
+  return options
+
+def get_config(options):
+  # pylint: disable=unused-argument
+  return ChromeStartupConfig()

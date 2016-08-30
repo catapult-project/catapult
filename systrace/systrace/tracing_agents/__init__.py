@@ -16,17 +16,26 @@ START_STOP_TIMEOUT = 10.0
 GET_RESULTS_TIMEOUT = 30.0
 
 
+class TracingConfig(object):
+  '''Store the tracing configuration options for all Systrace agents. If there
+  are ever any options that are to be shared between all of the agents, those
+  options should go here.
+  '''
+  def __init__(self):
+    pass
+
+
 class TracingAgent(object):
   def __init__(self):
     pass
 
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
     '''Starts running the trace for this agent. Stops with timeout if
     not completed within timeout interval.
 
     Args:
-        options: Tracing options.
-        categories: Categories of trace events to record.
+        config: TracingConfig subclass containing agent-specific options
+                and categories.
         timeout: Timeout interval in seconds.
 
     Returns:

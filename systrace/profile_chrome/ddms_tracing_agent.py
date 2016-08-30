@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import optparse
 import os
 import py_utils
 import re
@@ -32,7 +33,7 @@ class DdmsAgent(tracing_agents.TracingAgent):
     return False
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
     self._output_file = (
         '/data/local/tmp/ddms-profile-%s' % util.GetTraceTimestamp())
     cmd = 'am profile start '
@@ -66,3 +67,19 @@ class DdmsAgent(tracing_agents.TracingAgent):
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
+
+
+class DdmsConfig(tracing_agents.TracingConfig):
+  def __init__(self):
+    tracing_agents.TracingConfig.__init__(self)
+
+
+def add_options(parser):
+  options = optparse.OptionGroup(parser, 'Java tracing')
+  options.add_option('--ddms', help='Trace Java execution using DDMS '
+                     'sampling.', action='store_true')
+  return options
+
+def get_config(options):
+  # pylint: disable=unused-argument
+  return DdmsConfig()

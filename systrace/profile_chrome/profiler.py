@@ -5,15 +5,33 @@
 import time
 
 from devil.android.constants import chrome
+from profile_chrome import atrace_tracing_agent
+from profile_chrome import chrome_startup_tracing_agent
 from profile_chrome import chrome_tracing_agent
+from profile_chrome import ddms_tracing_agent
+from profile_chrome import perf_tracing_agent
 from profile_chrome import ui
 from profile_chrome import util
 from systrace import output_generator
 
 
-def _StartTracing(agents):
+# TODO(washingtonp): This mapping is temporarily in place because
+# profile_chrome does not currently follow Systrace's controller API. This
+# mapping will be removed in the CL that makes profile_chrome follow the
+# Systrace API.
+AGENT_TYPE_TO_MODULE = {'chrome trace': chrome_tracing_agent,
+                        'Browser Startup Trace': chrome_startup_tracing_agent,
+                        'ddms profile': ddms_tracing_agent,
+                        'perf profile': perf_tracing_agent,
+                        'atrace': atrace_tracing_agent}
+
+
+def _StartTracing(agents, options):
   for agent in agents:
-    agent.StartAgentTracing(None, None)
+    if repr(agent) not in AGENT_TYPE_TO_MODULE:
+      continue
+    agent.StartAgentTracing(AGENT_TYPE_TO_MODULE[repr(agent)].
+                            get_config(options))
 
 
 def _StopTracing(agents):
@@ -76,11 +94,12 @@ def GetSupportedBrowsers():
   return supported_browsers
 
 
-def CaptureProfile(agents, interval, output=None, compress=False,
+def CaptureProfile(options, agents, interval, output=None, compress=False,
                    write_json=False):
   """Records a profiling trace saves the result to a file.
 
   Args:
+    options: Command line options.
     agents: List of tracing agents.
     interval: Time interval to capture in seconds. An interval of None (or 0)
         continues tracing until stopped by the user.
@@ -94,7 +113,7 @@ def CaptureProfile(agents, interval, output=None, compress=False,
   """
   trace_type = ' + '.join(map(str, agents))
   try:
-    _StartTracing(agents)
+    _StartTracing(agents, options)
     if interval:
       ui.PrintMessage(('Capturing %d-second %s. Press Enter to stop early...' %
                       (interval, trace_type)), eol='')

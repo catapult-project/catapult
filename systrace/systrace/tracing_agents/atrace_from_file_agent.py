@@ -24,6 +24,22 @@ def try_create_agent(options):
   else:
     return False
 
+
+class AtraceFromFileConfig(tracing_agents.TracingConfig):
+  def __init__(self, fix_circular, from_file):
+    tracing_agents.TracingConfig.__init__(self)
+    self.fix_circular = fix_circular
+    self.from_file = from_file
+
+def add_options(parser): # pylint: disable=unused-argument
+  # The atrace_from_file_agent is not currently used, so don't display
+  # any options.
+  return None
+
+def get_config(options):
+  return AtraceFromFileConfig(options.fix_circular, options.from_file)
+
+
 class AtraceFromFileAgent(tracing_agents.TracingAgent):
   def __init__(self, options):
     super(AtraceFromFileAgent, self).__init__()
@@ -32,7 +48,7 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
     self._fix_circular_traces = options.fix_circular
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, options, timeout=None):
     pass
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)

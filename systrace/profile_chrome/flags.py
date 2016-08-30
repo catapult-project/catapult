@@ -4,19 +4,6 @@
 
 import optparse
 
-def AtraceOptions(parser):
-  atrace_opts = optparse.OptionGroup(parser, 'Systrace tracing options')
-  atrace_opts.add_option('-s', '--systrace', help='Capture a systrace with '
-                           'the chosen comma-delimited systrace categories. You'
-                           ' can also capture a combined Chrome + systrace by '
-                           'enabling both types of categories. Use "list" to '
-                           'see the available categories. Systrace is disabled'
-                           ' by default. Note that in this case, Systrace is '
-                           'synonymous with Atrace.',
-                           metavar='ATRACE_CATEGORIES',
-                           dest='atrace_categories', default='')
-  return atrace_opts
-
 
 def OutputOptions(parser):
   output_options = optparse.OptionGroup(parser, 'Output options')

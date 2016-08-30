@@ -21,12 +21,11 @@ class PerfProfilerAgentTest(agents_unittest.BaseAgentTest):
     if not perf_tracing_agent.PerfProfilerAgent.IsSupported():
       return
     ui.EnableTestMode()
-    categories = ['cycles']
-    agent = perf_tracing_agent.PerfProfilerAgent(self.device,
-                                                 categories)
+    categories = 'cycles'
+    agent = perf_tracing_agent.PerfProfilerAgent(self.device)
 
     try:
-      agent.StartAgentTracing(None, None)
+      agent.StartAgentTracing(perf_tracing_agent.PerfConfig(categories))
     finally:
       agent.StopAgentTracing()
 

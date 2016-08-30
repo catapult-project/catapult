@@ -14,14 +14,13 @@ class AtraceAgentTest(agents_unittest.BaseAgentTest):
     assert 'gfx' in ' '.join(categories)
 
   def testTracing(self):
-    categories = ['gfx', 'input', 'view']
+    categories = 'gfx,input,view'
     ring_buffer = False
     agent = atrace_tracing_agent.AtraceAgent(self.device,
-                                             categories,
                                              ring_buffer)
 
     try:
-      agent.StartAgentTracing(None, None)
+      agent.StartAgentTracing(atrace_tracing_agent.AtraceConfig(categories))
     finally:
       agent.StopAgentTracing()
     result = agent.GetResults()

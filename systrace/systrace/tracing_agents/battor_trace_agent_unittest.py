@@ -22,13 +22,13 @@ OPTIONS = mock_opts('android', 'Phn2', ['plugable_7port'],
                     None, False, __file__)
 CATEGORIES = None
 
+
 def raise_error(*args, **kwargs):
   del args
   del kwargs
   raise RuntimeError('Should not call this function in the test')
 
 battor_device_mapping.GenerateSerialMapFile = raise_error
-
 
 def setup_battor_test(StartShell_error, StartTracing_error,
                       StopTracing_error, CollectTraceData_error):
@@ -39,6 +39,7 @@ def setup_battor_test(StartShell_error, StartTracing_error,
     del kwargs
     return wrapper
   battor_wrapper.BattorWrapper = wrapper_maker
+
 
 class MockBattorWrapper(object):
   def __init__(self, StartShell_error=False, StartTracing_error=False,
@@ -82,6 +83,7 @@ class MockBattorWrapper(object):
       raise RuntimeError('Simulated error in CollectTraceData')
     return 'traceout1\ntraceout2'
 
+
 class MockBatteryUtils(object):
   def __init__(self, _):
     self._is_charging = True
@@ -92,7 +94,9 @@ class MockBatteryUtils(object):
   def SetCharging(self, value):
     self._is_charging = value
 
+
 battery_utils.BatteryUtils = MockBatteryUtils
+
 
 class BattorAgentTest(unittest.TestCase):
 
@@ -147,6 +151,7 @@ class BattorAgentTest(unittest.TestCase):
     agent.StopAgentTracing()
     x = agent.GetResults()
     self.assertEqual(x.raw_data, 'traceout1\ntraceout2')
+
 
 if __name__ == "__main__":
   logging.getLogger().setLevel(logging.DEBUG)

@@ -54,6 +54,7 @@ class AtraceAgentTest(unittest.TestCase):
   @decorators.HostOnlyTest
   def test_construct_atrace_args(self):
     options, categories = run_systrace.parse_options(SYSTRACE_CMD)
+    options.atrace_categories = categories
     tracer_args = atrace_agent._construct_atrace_args(options, categories)
     self.assertEqual(' '.join(TRACE_ARGS), ' '.join(tracer_args))
 
@@ -65,8 +66,8 @@ class AtraceAgentTest(unittest.TestCase):
       atrace_data_raw = f2.read()
       options, categories = run_systrace.parse_options(STOP_FIX_UPS)
       agent = atrace_agent.AtraceAgent()
-      agent._options = options
-      agent._categories = categories
+      agent._config = options
+      agent._config.atrace_categories = categories
       trace_data = agent._preprocess_trace_data(atrace_data_raw)
       self.assertEqual(atrace_data, trace_data)
 
@@ -140,6 +141,7 @@ class BootAgentTest(unittest.TestCase):
     options, _ = run_systrace.parse_options(SYSTRACE_BOOT_CMD)
     tracer_args = atrace_agent._construct_boot_trace_command(options)
     self.assertEqual(' '.join(TRACE_BOOT_CMD), ' '.join(tracer_args))
+
 
 if __name__ == "__main__":
   logging.getLogger().setLevel(logging.DEBUG)

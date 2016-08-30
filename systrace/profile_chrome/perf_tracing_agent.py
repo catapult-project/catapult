@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import logging
+import optparse
 import os
 import py_utils
 import signal
@@ -93,12 +94,12 @@ class _PerfProfiler(object):
 
 
 class PerfProfilerAgent(tracing_agents.TracingAgent):
-  def __init__(self, device, categories):
+  def __init__(self, device):
     tracing_agents.TracingAgent.__init__(self)
     self._device = device
-    self._categories = categories
     self._perf_binary = self._PrepareDevice(device)
     self._perf_instance = None
+    self._categories = None
 
   def __repr__(self):
     return 'perf profile'
@@ -121,7 +122,8 @@ class PerfProfilerAgent(tracing_agents.TracingAgent):
     return device.RunShellCommand('%s list' % perf_binary)
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
+    self._categories = _ComputePerfCategories(config)
     self._perf_instance = _PerfProfiler(self._device,
                                         self._perf_binary,
                                         self._categories)
@@ -204,3 +206,39 @@ class PerfProfilerAgent(tracing_agents.TracingAgent):
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
+
+def _OptionalValueCallback(default_value):
+  def callback(option, _, __, parser):  # pylint: disable=unused-argument
+    value = default_value
+    if parser.rargs and not parser.rargs[0].startswith('-'):
+      value = parser.rargs.pop(0)
+    setattr(parser.values, option.dest, value)
+  return callback
+
+
+class PerfConfig(tracing_agents.TracingConfig):
+  def __init__(self, perf_categories):
+    tracing_agents.TracingConfig.__init__(self)
+    self.perf_categories = perf_categories
+
+
+def add_options(parser):
+  options = optparse.OptionGroup(parser, 'Perf profiling options')
+  options.add_option('-p', '--perf', help='Capture a perf profile with '
+                     'the chosen comma-delimited event categories. '
+                     'Samples CPU cycles by default. Use "list" to see '
+                     'the available sample types.', action='callback',
+                     default='', callback=_OptionalValueCallback('cycles'),
+                     metavar='PERF_CATEGORIES', dest='perf_categories')
+  parser.add_option_group(options)
+  return options
+
+def get_config(options):
+  return PerfConfig(options.perf_categories)
+
+def _ComputePerfCategories(config):
+  if not PerfProfilerAgent.IsSupported():
+    return []
+  if not config.perf_categories:
+    return []
+  return config.perf_categories.split(',')

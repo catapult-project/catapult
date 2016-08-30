@@ -14,7 +14,7 @@ class ChromeAgentTest(agents_unittest.BaseAgentTest):
         self.device, self.package_info, False, 'https://www.google.com')
 
     try:
-      agent.StartAgentTracing(None, None)
+      agent.StartAgentTracing(None)
     finally:
       agent.StopAgentTracing()
 

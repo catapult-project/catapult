@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import optparse
 import py_utils
 import threading
 import zlib
@@ -22,18 +23,22 @@ _ATRACE_OPTIONS = [
 # Interval in seconds for sampling atrace data.
 _ATRACE_INTERVAL = 15
 
+# If a custom list of categories is not specified, traces will include
+# these categories (if available on the device).
+_DEFAULT_CATEGORIES = 'sched gfx view dalvik webview input disk am wm'.split()
+
 _TRACING_ON_PATH = '/sys/kernel/debug/tracing/tracing_on'
 
 
 class AtraceAgent(tracing_agents.TracingAgent):
-  def __init__(self, device, categories, ring_buffer):
+  def __init__(self, device, ring_buffer):
     tracing_agents.TracingAgent.__init__(self)
     self._device = device
-    self._categories = categories
     self._ring_buffer = ring_buffer
     self._done = threading.Event()
     self._thread = None
     self._trace_data = None
+    self._categories = None
 
   def __repr__(self):
     return 'atrace'
@@ -43,7 +48,8 @@ class AtraceAgent(tracing_agents.TracingAgent):
     return device.RunShellCommand('atrace --list_categories')
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
+    self._categories = _ComputeAtraceCategories(config)
     self._thread = threading.Thread(target=self._CollectData)
     self._thread.start()
 
@@ -117,3 +123,31 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     # Skip the initial newline.
     return trace_data[1:]
+
+
+class AtraceConfig(tracing_agents.TracingConfig):
+  def __init__(self, atrace_categories):
+    tracing_agents.TracingConfig.__init__(self)
+    self.atrace_categories = atrace_categories
+
+
+def add_options(parser):
+  atrace_opts = optparse.OptionGroup(parser, 'Atrace tracing options')
+  atrace_opts.add_option('-s', '--systrace', help='Capture a systrace with '
+                           'the chosen comma-delimited systrace categories. You'
+                           ' can also capture a combined Chrome + systrace by '
+                           'enabling both types of categories. Use "list" to '
+                           'see the available categories. Systrace is disabled'
+                           ' by default. Note that in this case, Systrace is '
+                           'synonymous with Atrace.',
+                           metavar='ATRACE_CATEGORIES',
+                           dest='atrace_categories', default='')
+  return atrace_opts
+
+def get_config(options):
+  return AtraceConfig(options.atrace_categories)
+
+def _ComputeAtraceCategories(config):
+  if not config.atrace_categories:
+    return _DEFAULT_CATEGORIES
+  return config.atrace_categories.split(',')

@@ -5,6 +5,7 @@
 from os import path
 import atexit
 import logging
+import optparse
 import py_utils
 
 from battor import battor_wrapper
@@ -16,17 +17,60 @@ from systrace import trace_result
 from systrace import tracing_agents
 
 
-def try_create_agent(options):
-  if options.from_file is not None:
+def try_create_agent(config):
+  if config.from_file is not None:
     return False
-  if options.battor:
+  if config.battor:
     return BattorTraceAgent()
   return False
+
+
+class BattorConfig(tracing_agents.TracingConfig):
+  def __init__(self, battor_categories, hub_types, serial_map, battor_path,
+               update_map, battor, target, from_file):
+    tracing_agents.TracingConfig.__init__(self)
+    self.battor_categories = battor_categories
+    self.hub_types = hub_types
+    self.serial_map = serial_map
+    self.battor_path = battor_path
+    self.update_map = update_map
+    self.battor = battor
+    self.target = target
+    self.from_file = from_file
+
+
+def add_options(parser):
+  options = optparse.OptionGroup(parser, 'Battor trace options')
+  options.add_option('--battor-categories', dest='battor_categories',
+                     help='Select battor categories with a comma-delimited '
+                     'list, e.g. --battor-categories=cat1,cat2,cat3')
+  options.add_option('--hubs', dest='hub_types', default='plugable_7port',
+                    help='List of hub types to check for for BattOr mapping. '
+                    'Used when updating mapping file.')
+  options.add_option('--serial-map', dest='serial_map',
+                    default='serial_map.json',
+                    help='File containing pregenerated map of phone serial '
+                    'numbers to BattOr serial numbers.')
+  options.add_option('--battor_path', dest='battor_path', default=None,
+                    type='string', help='specify a BattOr path to use')
+  options.add_option('--update-map', dest='update_map', default=False,
+                    action='store_true',
+                    help='force update of phone-to-BattOr map')
+  options.add_option('--battor', dest='battor', default=False,
+                    action='store_true', help='Use the BattOr tracing agent.')
+  return options
+
+def get_config(options):
+  return BattorConfig(options.battor_categories, options.hub_types,
+                      options.serial_map, options.battor_path,
+                      options.update_map, options.battor, options.target,
+                      options.from_file)
 
 def _reenable_charging_if_needed(battery):
   if not battery.GetCharging():
     battery.SetCharging(True)
   logging.info('Charging status checked at exit.')
+
 
 class BattorTraceAgent(tracing_agents.TracingAgent):
   # Class representing tracing agent that gets data from a BattOr.
@@ -39,25 +83,25 @@ class BattorTraceAgent(tracing_agents.TracingAgent):
     self._battery_utils = None
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, _, timeout=None):
+  def StartAgentTracing(self, config, timeout=None):
     """Starts tracing.
 
     Args:
-        options: Tracing options.
+        config: Tracing config.
 
     Raises:
         RuntimeError: If trace already in progress.
     """
-    if options.update_map or not path.isfile(options.serial_map):
-      battor_device_mapping.GenerateSerialMapFile(options.serial_map,
-                                                  options.hub_types)
+    if config.update_map or not path.isfile(config.serial_map):
+      battor_device_mapping.GenerateSerialMapFile(config.serial_map,
+                                                  config.hub_types)
     self._battor_wrapper = battor_wrapper.BattorWrapper(
-        target_platform=options.target,
-        android_device=options.device_serial_number,
-        battor_path=options.battor_path,
-        battor_map_file=options.serial_map)
+        target_platform=config.target,
+        android_device=config.device_serial_number,
+        battor_path=config.battor_path,
+        battor_map_file=config.serial_map)
 
-    dev_utils = device_utils.DeviceUtils(options.device_serial_number)
+    dev_utils = device_utils.DeviceUtils(config.device_serial_number)
     self._battery_utils = battery_utils.BatteryUtils(dev_utils)
     self._battery_utils.SetCharging(False)
     atexit.register(_reenable_charging_if_needed, self._battery_utils)

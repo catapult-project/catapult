@@ -2,15 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
+import optparse
 import py_utils
+import re
 import subprocess
 import sys
 import threading
 import zlib
 
 from devil.android import device_utils
-from py_trace_event import trace_time
+from py_trace_event import trace_time as trace_time_module
 from systrace import trace_result
 from systrace import tracing_agents
 from systrace import util
@@ -39,76 +40,74 @@ BOOTTRACE_PROP = 'persist.debug.atrace.boottrace'
 BOOTTRACE_CATEGORIES = '/data/misc/boottrace/categories'
 
 
-def list_categories(options):
+def list_categories(config):
   """List the possible trace event categories.
 
-  This function needs the tracing options since it needs to get the serial
+  This function needs the tracing config since it needs to get the serial
   number of the device to send a command to.
 
   Args:
-      options: Tracing options.
+      config: Tracing config.
   """
-  devutils = device_utils.DeviceUtils(options.device_serial_number)
+  devutils = device_utils.DeviceUtils(config.device_serial_number)
   print '\n'.join(devutils.RunShellCommand(LIST_CATEGORIES_ARGS))
   if not devutils.HasRoot():
     print '\nNOTE: more categories may be available with adb root\n'
 
 
-def get_available_categories(options):
+def get_available_categories(config):
   """Gets the list of atrace categories available for tracing.
   Args:
-      options: Tracing options.
+      config: Tracing config.
   """
-  devutils = device_utils.DeviceUtils(options.device_serial_number)
+  devutils = device_utils.DeviceUtils(config.device_serial_number)
   categories_output = devutils.RunShellCommand(LIST_CATEGORIES_ARGS)
   return [c.split('-')[0].strip() for c in categories_output]
 
 
-def try_create_agent(options):
+def try_create_agent(config):
   """Create an Atrace agent.
 
   Args:
-      options: Command line options.
-      categories: Categories of trace events to capture.
+      config: Command line config.
   """
-  if options.target != 'android':
-    return False
-  if options.from_file is not None:
-    return False
+  if config.target != 'android':
+    return None
+  if config.from_file is not None:
+    return None
 
   # Check device SDK version.
   device_sdk_version = util.get_device_sdk_version()
   if device_sdk_version <= 17:
     print ('Device SDK versions <= 17 not supported.\n'
            'Your device SDK version is %d.' % device_sdk_version)
-    return False
-  if device_sdk_version <= 22 and options.boot:
+    return None
+  if device_sdk_version <= 22 and config.boot:
     print ('--boot option does not work on the device SDK '
            'version 22 or before.\nYour device SDK version '
            'is %d.' % device_sdk_version)
-    return False
+    return None
 
-  return BootAgent() if options.boot else AtraceAgent()
+  return BootAgent() if config.boot else AtraceAgent()
 
-def _construct_extra_atrace_args(options, categories):
+def _construct_extra_atrace_args(config, categories):
   """Construct extra arguments (-a, -k, categories) for atrace command.
 
   Args:
-      options: Tracing options.
-      categories: Categories of trace events to capture.
+      config: Tracing config.
   """
   extra_args = []
 
-  if options.app_name is not None:
-    extra_args.extend(['-a', options.app_name])
+  if config.app_name is not None:
+    extra_args.extend(['-a', config.app_name])
 
-  if options.kfuncs is not None:
-    extra_args.extend(['-k', options.kfuncs])
+  if config.kfuncs is not None:
+    extra_args.extend(['-k', config.kfuncs])
 
   extra_args.extend(categories)
   return extra_args
 
-def _construct_atrace_args(options, categories):
+def _construct_atrace_args(config, categories):
   """Builds the command used to invoke a trace process.
   Returns:
     A tuple where the first element is an array of command arguments, and
@@ -117,23 +116,24 @@ def _construct_atrace_args(options, categories):
   """
   atrace_args = ATRACE_BASE_ARGS[:]
 
-  if options.compress_trace_data:
+  if config.compress_trace_data:
     atrace_args.extend(['-z'])
 
-  if (options.trace_time is not None) and (options.trace_time > 0):
-    atrace_args.extend(['-t', str(options.trace_time)])
+  if (config.trace_time is not None) and (config.trace_time > 0):
+    atrace_args.extend(['-t', str(config.trace_time)])
 
-  if (options.trace_buf_size is not None) and (options.trace_buf_size > 0):
-    atrace_args.extend(['-b', str(options.trace_buf_size)])
+  if (config.trace_buf_size is not None) and (config.trace_buf_size > 0):
+    atrace_args.extend(['-b', str(config.trace_buf_size)])
 
   elif 'sched' in categories:
     # 'sched' is a high-volume tag, double the default buffer size
     # to accommodate that
     atrace_args.extend(['-b', '4096'])
-  extra_args = _construct_extra_atrace_args(options, categories)
+  extra_args = _construct_extra_atrace_args(config, categories)
 
   atrace_args.extend(extra_args)
   return atrace_args
+
 
 class AtraceAgent(tracing_agents.TracingAgent):
 
@@ -145,23 +145,24 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._collection_thread = None
     self._device_utils = None
     self._device_serial_number = None
-    self._options = None
+    self._config = None
     self._categories = None
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
-    self._options = options
-    self._categories = categories
+  def StartAgentTracing(self, config, timeout=None):
+    self._config = config
+    self._categories = config.atrace_categories
     if not self._categories:
       self._categories = DEFAULT_CATEGORIES
-    avail_cats = get_available_categories(options)
+    avail_cats = get_available_categories(config)
     unavailable = [x for x in self._categories if x not in avail_cats]
     self._categories = [x for x in self._categories if x in avail_cats]
     if unavailable:
       print 'These categories are unavailable: ' + ' '.join(unavailable)
-    self._device_utils = device_utils.DeviceUtils(options.device_serial_number)
-    self._device_serial_number = options.device_serial_number
-    self._tracer_args = _construct_atrace_args(options, self._categories)
+    self._device_utils = device_utils.DeviceUtils(config.device_serial_number)
+    self._device_serial_number = config.device_serial_number
+    self._tracer_args = _construct_atrace_args(config,
+                                               self._categories)
     self._device_utils.RunShellCommand(self._tracer_args + ['--async_start'])
     return True
 
@@ -205,7 +206,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
         ' /sys/kernel/debug/tracing/trace_marker' % sync_id
     with self._device_utils.adb.PersistentShell(
         self._device_serial_number) as shell:
-      t1 = trace_time.Now()
+      t1 = trace_time_module.Now()
       shell.RunCommand(cmd, close=True)
       did_record_sync_marker_callback(t1, sync_id)
 
@@ -255,24 +256,24 @@ class AtraceAgent(tracing_agents.TracingAgent):
                             'written.')
       sys.exit(1)
 
-    if self._options.fix_threads:
+    if self._config.fix_threads:
       # Issue ps command to device and patch thread names
       ps_dump = do_preprocess_adb_cmd('ps -t',
-                                      self._options.device_serial_number)
+                                      self._config.device_serial_number)
       if ps_dump is not None:
         thread_names = extract_thread_list(ps_dump)
         trace_data = fix_thread_names(trace_data, thread_names)
 
-    if self._options.fix_tgids:
+    if self._config.fix_tgids:
       # Issue printf command to device and patch tgids
       procfs_dump = do_preprocess_adb_cmd('printf "%s\n" ' +
                                           '/proc/[0-9]*/task/[0-9]*',
-                                          self._options.device_serial_number)
+                                          self._config.device_serial_number)
       if procfs_dump is not None:
         pid2_tgid = extract_tgids(procfs_dump)
         trace_data = fix_missing_tgids(trace_data, pid2_tgid)
 
-    if self._options.fix_circular:
+    if self._config.fix_circular:
       trace_data = fix_circular_traces(trace_data)
 
     return trace_data
@@ -285,10 +286,10 @@ class BootAgent(AtraceAgent):
     super(BootAgent, self).__init__()
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
-  def StartAgentTracing(self, options, categories, timeout=None):
-    self._options = options
+  def StartAgentTracing(self, config, timeout=None):
+    self._config = config
     try:
-      setup_args = _construct_boot_setup_command(options, categories)
+      setup_args = _construct_boot_setup_command(config)
       subprocess.check_call(setup_args)
     except OSError as error:
       print >> sys.stderr, (
@@ -299,7 +300,7 @@ class BootAgent(AtraceAgent):
 
   def _dump_trace(self): #called by StopAgentTracing
     """Dumps the running trace asynchronously and returns the dumped trace."""
-    dump_cmd = _construct_boot_trace_command(self._options)
+    dump_cmd = _construct_boot_trace_command(self._config)
     return self._device_utils.RunShellCommand(dump_cmd, raw_output=True)
 
   def _stop_trace(self): # called by _collect_trace_data via StopAgentTracing
@@ -307,21 +308,22 @@ class BootAgent(AtraceAgent):
     # This is a member function for consistency with AtraceAgent
     pass # don't need to stop separately; already done in dump_trace
 
-def _construct_boot_setup_command(options, categories):
-  echo_args = ['echo'] + categories + ['>', BOOTTRACE_CATEGORIES]
+def _construct_boot_setup_command(config):
+  echo_args = (['echo'] + config.atrace_categories +
+               ['>', BOOTTRACE_CATEGORIES])
   setprop_args = ['setprop', BOOTTRACE_PROP, '1']
   reboot_args = ['reboot']
   return util.construct_adb_shell_command(
       echo_args + ['&&'] + setprop_args + ['&&'] + reboot_args,
-      options.device_serial_number)
+      config.device_serial_number)
 
-def _construct_boot_trace_command(options):
+def _construct_boot_trace_command(config):
   atrace_args = ['atrace', '--async_stop']
   setprop_args = ['setprop', BOOTTRACE_PROP, '0']
   rm_args = ['rm', BOOTTRACE_CATEGORIES]
   return util.construct_adb_shell_command(
         atrace_args + ['&&'] + setprop_args + ['&&'] + rm_args,
-        options.device_serial_number)
+        config.device_serial_number)
 
 
 def extract_thread_list(trace_text):
@@ -511,3 +513,56 @@ def do_preprocess_adb_cmd(command, serial):
 
   dump = ''.join(dump)
   return dump
+
+
+class AtraceConfig(tracing_agents.TracingConfig):
+  def __init__(self, atrace_categories, trace_buf_size, kfuncs,
+               app_name, fix_threads, fix_tgids, fix_circular,
+               compress_trace_data, boot, from_file, device_serial_number,
+               trace_time, target):
+    tracing_agents.TracingConfig.__init__(self)
+    self.atrace_categories = atrace_categories
+    self.trace_buf_size = trace_buf_size
+    self.kfuncs = kfuncs
+    self.app_name = app_name
+    self.fix_threads = fix_threads
+    self.fix_tgids = fix_tgids
+    self.fix_circular = fix_circular
+    self.compress_trace_data = compress_trace_data
+    self.boot = boot
+    self.from_file = from_file
+    self.device_serial_number = device_serial_number
+    self.trace_time = trace_time
+    self.target = target
+
+
+def add_options(parser):
+  options = optparse.OptionGroup(parser, 'Atrace options')
+  options.add_option('--atrace-categories', dest='atrace_categories',
+                     help='Select atrace categories with a comma-delimited '
+                     'list, e.g. --atrace-categories=cat1,cat2,cat3')
+  options.add_option('-k', '--ktrace', dest='kfuncs', action='store',
+                     help='specify a comma-separated list of kernel functions '
+                     'to trace')
+  options.add_option('-a', '--app', dest='app_name', default=None,
+                     type='string', action='store',
+                     help='enable application-level tracing for '
+                     'comma-separated list of app cmdlines')
+  options.add_option('--no-compress', dest='compress_trace_data',
+                     default=True, action='store_false',
+                     help='Tell the device not to send the trace data in '
+                     'compressed form.')
+  options.add_option('--boot', dest='boot', default=False, action='store_true',
+                     help='reboot the device with tracing during boot enabled.'
+                     'The report is created by hitting Ctrl+C after the device'
+                     'has booted up.')
+  return options
+
+def get_config(options):
+  return AtraceConfig(options.atrace_categories,
+                      options.trace_buf_size, options.kfuncs,
+                      options.app_name, options.fix_threads,
+                      options.fix_tgids, options.fix_circular,
+                      options.compress_trace_data, options.boot,
+                      options.from_file, options.device_serial_number,
+                      options.trace_time, options.target)

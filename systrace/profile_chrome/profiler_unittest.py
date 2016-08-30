@@ -17,13 +17,11 @@ class FakeAgent(object):
     self.contents = contents
     self.stopped = False
     self.filename = None
-    self.options = None
-    self.categories = None
+    self.config = None
     self.timeout = None
 
-  def StartAgentTracing(self, options, categories, timeout=None):
-    self.options = options
-    self.categories = categories
+  def StartAgentTracing(self, config, timeout=None):
+    self.config = config
     self.timeout = timeout
 
   # pylint: disable=unused-argument
@@ -60,7 +58,7 @@ class ProfilerTest(unittest.TestCase):
 
   def testCaptureBasicProfile(self):
     agent = FakeAgent()
-    result = profiler.CaptureProfile([agent], 1)
+    result = profiler.CaptureProfile(None, [agent], 1)
 
     try:
       self.assertTrue(agent.stopped)
@@ -72,7 +70,7 @@ class ProfilerTest(unittest.TestCase):
 
   def testCaptureJsonProfile(self):
     agent = FakeAgent()
-    result = profiler.CaptureProfile([agent], 1, write_json=True)
+    result = profiler.CaptureProfile(None, [agent], 1, write_json=True)
 
     try:
       self.assertFalse(result.endswith('.html'))
@@ -84,7 +82,7 @@ class ProfilerTest(unittest.TestCase):
 
   def testCaptureMultipleProfiles(self):
     agents = [FakeAgent('c1'), FakeAgent('c2')]
-    result = profiler.CaptureProfile(agents, 1, write_json=True)
+    result = profiler.CaptureProfile(None, agents, 1, write_json=True)
 
     try:
       self.assertTrue(result.endswith('.zip'))
