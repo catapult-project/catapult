@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from catapult_base.refactor import snippet
+from py_utils.refactor import snippet
 
 
 class AnnotatedSymbol(snippet.Symbol):

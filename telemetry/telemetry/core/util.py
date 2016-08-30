@@ -10,7 +10,7 @@ import socket
 import sys
 import time
 
-from catapult_base import util as catapult_util  # pylint: disable=import-error
+import py_utils as catapult_util  # pylint: disable=import-error
 
 from telemetry.core import exceptions
 

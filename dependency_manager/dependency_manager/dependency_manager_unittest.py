@@ -4,9 +4,10 @@
 
 # pylint: disable=unused-argument
 
-from catapult_base import cloud_storage
 import mock
+
 from pyfakefs import fake_filesystem_unittest
+from py_utils import cloud_storage
 
 import dependency_manager
 from dependency_manager import exceptions

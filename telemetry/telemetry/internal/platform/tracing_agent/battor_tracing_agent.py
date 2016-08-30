@@ -6,7 +6,7 @@ import logging
 
 from battor import battor_error
 from battor import battor_wrapper
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 from devil.android import battery_utils
 from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent

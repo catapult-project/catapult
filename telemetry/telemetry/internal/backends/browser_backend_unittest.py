@@ -37,7 +37,7 @@ class BrowserBackendLogsUploadingUnittest(unittest.TestCase):
 
       b = FakeBrowserBackend(None, False, options.browser_options, None)
       self.assertEquals(b.GetLogFileContents(), 'This is a\ntest log file.\n')
-      with mock.patch('catapult_base.cloud_storage.Insert') as mock_insert:
+      with mock.patch('py_utils.cloud_storage.Insert') as mock_insert:
         b.UploadLogsToCloudStorage()
         mock_insert.assert_called_with(
             bucket='ABC', remote_path='def', local_path=temp_file_name)

@@ -10,7 +10,7 @@ import shlex
 import socket
 import sys
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import platform
 from telemetry.core import util

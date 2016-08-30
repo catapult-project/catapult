@@ -18,7 +18,7 @@ def _AddDirToPythonPath(*path_parts):
     sys.path.append(path)
 
 
-_AddDirToPythonPath(CATAPULT_PATH, 'catapult_base')
+_AddDirToPythonPath(CATAPULT_PATH, 'common', 'py_utils')
 _AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'mock')
 _AddDirToPythonPath(CATAPULT_THIRD_PARTY_PATH, 'pyfakefs')
 _AddDirToPythonPath(DEPENDENCY_MANAGER_PATH)

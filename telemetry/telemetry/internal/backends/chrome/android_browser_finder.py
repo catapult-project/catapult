@@ -8,7 +8,7 @@ import logging
 import os
 import sys
 
-from catapult_base import dependency_util
+from py_utils import dependency_util
 from devil.android import apk_helper
 
 from telemetry.core import exceptions

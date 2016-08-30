@@ -8,7 +8,7 @@ import sys
 import token
 import tokenize
 
-from catapult_base.refactor import offset_token
+from py_utils.refactor import offset_token
 
 
 class Snippet(object):

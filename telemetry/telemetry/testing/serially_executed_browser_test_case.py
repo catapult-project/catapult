@@ -4,7 +4,7 @@
 
 import unittest
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 from telemetry.internal.browser import browser_finder
 from telemetry.testing import options_for_unittests
 from telemetry.util import wpr_modes

@@ -6,9 +6,9 @@ import glob
 import os
 
 from telemetry.core import util
-from catapult_base import util as catapult_util  # pylint: disable=import-error
+import py_utils as catapult_util
 
-# TODO(aiolos): Move these functions to catapult_base or here.
+# TODO(aiolos): Move these functions to catapult_util or here.
 GetBaseDir = util.GetBaseDir
 GetTelemetryDir = util.GetTelemetryDir
 GetUnittestDataDir = util.GetUnittestDataDir

@@ -23,7 +23,7 @@ class BinaryManagerTest(unittest.TestCase):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.InitDependencyManager, None)
 
-  @mock.patch('catapult_base.binary_manager.BinaryManager')
+  @mock.patch('py_utils.binary_manager.BinaryManager')
   def testFetchPathInitialized(self, binary_manager_mock):
     expected = [mock.call.binary_manager.BinaryManager(
                    ['base_config_object']),
@@ -37,7 +37,7 @@ class BinaryManagerTest(unittest.TestCase):
     self.assertRaises(exceptions.InitializationError,
                       binary_manager.FetchPath, 'dep', 'plat', 'arch')
 
-  @mock.patch('catapult_base.binary_manager.BinaryManager')
+  @mock.patch('py_utils.binary_manager.BinaryManager')
   def testLocalPathInitialized(self, binary_manager_mock):
     expected = [mock.call.binary_manager.BinaryManager(
                    ['base_config_object']),

@@ -5,8 +5,8 @@
 import logging
 import os
 
-from catapult_base import binary_manager
-from catapult_base import dependency_util
+from py_utils import binary_manager
+from py_utils import dependency_util
 import dependency_manager
 from devil import devil_env
 
@@ -19,8 +19,8 @@ TELEMETRY_PROJECT_CONFIG = os.path.join(
     util.GetTelemetryDir(), 'telemetry', 'internal', 'binary_dependencies.json')
 
 
-CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'catapult_base',
-                                    'catapult_base', 'chrome_binaries.json')
+CHROME_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'py_utils',
+                                    'py_utils', 'chrome_binaries.json')
 
 
 BATTOR_BINARY_CONFIG = os.path.join(util.GetCatapultDir(), 'common', 'battor',

@@ -7,7 +7,7 @@ import tempfile
 import unittest
 import os
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.testing import fakes
 from telemetry.internal.util import file_handle
 from telemetry.util import image_util
@@ -44,7 +44,7 @@ class ScreenshotUtilTests(unittest.TestCase):
 
     local_path = '123456abcdefg.png'
 
-    with mock.patch('catapult_base.cloud_storage.Insert') as mock_insert:
+    with mock.patch('py_utils.cloud_storage.Insert') as mock_insert:
       with mock.patch('telemetry.util.screenshot._GenerateRemotePath',
         return_value=local_path):
 

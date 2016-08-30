@@ -8,7 +8,7 @@ import os
 from pyfakefs import fake_filesystem_unittest
 from dependency_manager import exceptions
 
-from catapult_base import binary_manager
+from py_utils import binary_manager
 
 class BinaryManagerTest(fake_filesystem_unittest.TestCase):
   # TODO(aiolos): disable cloud storage use during this test.

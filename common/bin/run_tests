@@ -9,12 +9,12 @@ import sys
 _CATAPULT_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
 
-_CATAPULT_BASE_PATH = os.path.abspath(
-    os.path.join(_CATAPULT_PATH, 'catapult_base'))
+_PY_UTILS_PATH = os.path.abspath(
+    os.path.join(_CATAPULT_PATH, 'common', 'py_utils'))
 
 
 def _RunTestsOrDie(top_level_dir):
-  exit_code = run_with_typ.Run(top_level_dir, path=[_CATAPULT_BASE_PATH])
+  exit_code = run_with_typ.Run(top_level_dir, path=[_PY_UTILS_PATH])
   if exit_code:
     sys.exit(exit_code)
 
@@ -34,5 +34,5 @@ if __name__ == '__main__':
     install.InstallHooks()
 
   from catapult_build import run_with_typ
-  _RunTestsOrDie(_CATAPULT_BASE_PATH)
+  _RunTestsOrDie(_PY_UTILS_PATH)
   sys.exit(0)

@@ -15,17 +15,17 @@ def _CommonChecks(input_api, output_api):
   results = []
   results += input_api.RunTests(input_api.canned_checks.GetPylint(
       input_api, output_api, extra_paths_list=_GetPathsToPrepend(input_api),
-      pylintrc='../pylintrc'))
+      pylintrc='../../pylintrc'))
   return results
 
 
 def _GetPathsToPrepend(input_api):
   project_dir = input_api.PresubmitLocalPath()
-  catapult_dir = input_api.os_path.join(project_dir, '..')
+  catapult_dir = input_api.os_path.join(project_dir, '..', '..')
   return [
       project_dir,
-
       input_api.os_path.join(catapult_dir, 'dependency_manager'),
+      input_api.os_path.join(catapult_dir, 'devil'),
       input_api.os_path.join(catapult_dir, 'third_party', 'mock'),
       input_api.os_path.join(catapult_dir, 'third_party', 'pyfakefs'),
   ]

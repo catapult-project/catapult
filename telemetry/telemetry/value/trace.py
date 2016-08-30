@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.internal.util import file_handle
 from telemetry.timeline import trace_data as trace_data_module

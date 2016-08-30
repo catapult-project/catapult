@@ -6,7 +6,7 @@ import errno
 import os
 import stat
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 
 from dependency_manager import exceptions
 

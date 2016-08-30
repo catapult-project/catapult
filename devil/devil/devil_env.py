@@ -91,7 +91,7 @@ class _Environment(object):
 
     This uses all configurations provided via |configs| and |config_files|
     to determine the locations of devil's dependencies. Configurations should
-    all take the form described by catapult_base.dependency_manager.BaseConfig.
+    all take the form described by py_utils.dependency_manager.BaseConfig.
     If no configurations are provided, a default one will be used if available.
 
     Args:

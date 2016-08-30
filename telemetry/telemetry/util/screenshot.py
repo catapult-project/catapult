@@ -8,7 +8,7 @@ import os
 import random
 import tempfile
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 from telemetry.util import image_util
 from telemetry.internal.util import file_handle
 

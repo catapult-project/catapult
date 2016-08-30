@@ -13,7 +13,7 @@ import tempfile
 import time
 
 from battor import battor_error
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 import dependency_manager
 from devil.utils import battor_device_mapping
 from devil.utils import find_usb_devices

@@ -7,7 +7,7 @@
 import os
 import unittest
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 import mock
 from pyfakefs import fake_filesystem_unittest
 from pyfakefs import fake_filesystem

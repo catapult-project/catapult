@@ -6,7 +6,7 @@ import json
 import logging
 import os
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 from dependency_manager import archive_info
 from dependency_manager import cloud_storage_info
 from dependency_manager import dependency_info

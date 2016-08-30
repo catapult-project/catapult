@@ -6,7 +6,7 @@ import logging
 import os
 import urlparse
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import story
 from telemetry.page import shared_page_state

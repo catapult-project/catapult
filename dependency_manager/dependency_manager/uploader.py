@@ -5,7 +5,7 @@
 import logging
 import os
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 
 from dependency_manager import exceptions
 

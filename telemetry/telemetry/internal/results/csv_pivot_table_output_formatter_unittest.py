@@ -74,7 +74,7 @@ class CsvPivotTableOutputFormatterTest(unittest.TestCase):
 
     self.assertEqual(expected, self.Format())
 
-  @mock.patch('catapult_base.cloud_storage.Insert')
+  @mock.patch('py_utils.cloud_storage.Insert')
   def testMultiplePagesAndValues(self, cs_insert_mock):
     cs_insert_mock.return_value = 'https://cloud_storage_url/foo'
     trace_value = trace.TraceValue(None, trace_data.TraceData('{"events": 0}'))

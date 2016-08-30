@@ -5,18 +5,18 @@ import os
 import sys
 import unittest
 
-from catapult_base import util
+import py_utils
 
 
 class PathTest(unittest.TestCase):
 
   def testIsExecutable(self):
-    self.assertFalse(util.IsExecutable('nonexistent_file'))
+    self.assertFalse(py_utils.IsExecutable('nonexistent_file'))
     # We use actual files on disk instead of pyfakefs because the executable is
     # set different on win that posix platforms and pyfakefs doesn't support
     # win platform well.
-    self.assertFalse(util.IsExecutable(_GetFileInTestDir('foo.txt')))
-    self.assertTrue(util.IsExecutable(sys.executable))
+    self.assertFalse(py_utils.IsExecutable(_GetFileInTestDir('foo.txt')))
+    self.assertTrue(py_utils.IsExecutable(sys.executable))
 
 
 def _GetFileInTestDir(file_name):

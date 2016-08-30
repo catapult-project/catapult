@@ -13,8 +13,8 @@ from telemetry.core import util
 from telemetry.internal.util import command_line
 
 sys.path.insert(1, os.path.abspath(os.path.join(
-    util.GetCatapultDir(), 'catapult_base')))
-from catapult_base import cloud_storage
+    util.GetCatapultDir(), 'common', 'py_utils')))
+from py_utils import cloud_storage
 
 
 BUCKETS = {bucket: easy_bucket_name for easy_bucket_name, bucket

@@ -47,8 +47,7 @@ class ServerError(CloudStorageError):
 
 
 def Copy(src, dst):
-  # TODO(simonhatch): Once catapult_base is migrated to catapult, let's
-  # use cloud_storage.py instead of duplicating a lot of the code here.
+  # TODO(simonhatch): switch to use py_utils.cloud_storage.
   args = [sys.executable, _GSUTIL_PATH, 'cp', src, dst]
   gsutil = subprocess.Popen(args, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)

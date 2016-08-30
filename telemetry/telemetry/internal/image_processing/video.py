@@ -4,7 +4,7 @@
 
 import subprocess
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import platform
 from telemetry.util import image_util

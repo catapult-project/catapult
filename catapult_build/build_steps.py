@@ -39,8 +39,8 @@ _CATAPULT_TESTS = [
         'disabled': ['android'],
     },
     {
-        'name': 'Catapult Base Tests',
-        'path': 'catapult_base/bin/run_tests',
+        'name': 'Common Tests',
+        'path': 'common/bin/run_tests',
     },
     {
         'name': 'Dashboard Dev Server Tests Canary',

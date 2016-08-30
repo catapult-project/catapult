@@ -12,8 +12,8 @@ import functools
 import multiprocessing
 
 # pylint: disable=wildcard-import
-from catapult_base.refactor.annotated_symbol import *
-from catapult_base.refactor.module import Module
+from py_utils.refactor.annotated_symbol import *
+from py_utils.refactor.module import Module
 
 
 def _TransformFile(transform, file_path):

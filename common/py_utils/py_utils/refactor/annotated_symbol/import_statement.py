@@ -7,8 +7,8 @@ import keyword
 import symbol
 import token
 
-from catapult_base.refactor.annotated_symbol import base_symbol
-from catapult_base.refactor import snippet
+from py_utils.refactor.annotated_symbol import base_symbol
+from py_utils.refactor import snippet
 
 
 __all__ = [

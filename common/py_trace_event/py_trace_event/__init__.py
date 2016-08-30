@@ -4,4 +4,4 @@
 import sys
 
 
-sys.path.append('../../../catapult_base')
+sys.path.append('../../../py_utils')

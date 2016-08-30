@@ -8,7 +8,7 @@ import sys
 import time
 import threading
 
-from catapult_base import lock
+from py_utils import lock
 
 
 _lock = threading.Lock()

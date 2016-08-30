@@ -3,11 +3,11 @@
 # found in the LICENSE file.
 
 # pylint: disable=wildcard-import
-from catapult_base.refactor.annotated_symbol.class_definition import *
-from catapult_base.refactor.annotated_symbol.function_definition import *
-from catapult_base.refactor.annotated_symbol.import_statement import *
-from catapult_base.refactor.annotated_symbol.reference import *
-from catapult_base.refactor import snippet
+from py_utils.refactor.annotated_symbol.class_definition import *
+from py_utils.refactor.annotated_symbol.function_definition import *
+from py_utils.refactor.annotated_symbol.import_statement import *
+from py_utils.refactor.annotated_symbol.reference import *
+from py_utils.refactor import snippet
 
 
 __all__ = [

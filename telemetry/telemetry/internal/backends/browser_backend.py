@@ -4,7 +4,7 @@
 import uuid
 import sys
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry import decorators
 from telemetry.internal.backends import app_backend

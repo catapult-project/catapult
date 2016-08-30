@@ -8,7 +8,7 @@ import unittest
 
 import mock
 from pyfakefs import fake_filesystem_unittest
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 
 from dependency_manager import archive_info
 from dependency_manager import cloud_storage_info
@@ -127,7 +127,7 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
     self.tearDownPyfakefs()
 
   @mock.patch(
-      'catapult_base.cloud_storage.GetIfHashChanged')
+      'py_utils.cloud_storage.GetIfHashChanged')
   def testGetRemotePathNoArchive(self, cs_get_mock):
     def _GetIfHashChangedMock(cs_path, download_path, bucket, file_hash):
       del cs_path, bucket, file_hash
@@ -198,7 +198,7 @@ class TestGetRemotePath(fake_filesystem_unittest.TestCase):
 
 
   @mock.patch(
-      'catapult_base.cloud_storage.GetIfHashChanged')
+      'py_utils.cloud_storage.GetIfHashChanged')
   def testGetRemotePathCloudStorageErrors(self, cs_get_mock):
     cs_get_mock.side_effect = cloud_storage.CloudStorageError
     self.assertRaises(cloud_storage.CloudStorageError,

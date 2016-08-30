@@ -4,14 +4,65 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# Decorator that adds timeout functionality to a function.
+import functools
+import os
+import sys
+
+
+def GetCatapultDir():
+  return os.path.normpath(
+      os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+
+def IsRunningOnCrosDevice():
+  """Returns True if we're on a ChromeOS device."""
+  lsb_release = '/etc/lsb-release'
+  if sys.platform.startswith('linux') and os.path.exists(lsb_release):
+    with open(lsb_release, 'r') as f:
+      res = f.read()
+      if res.count('CHROMEOS_RELEASE_NAME'):
+        return True
+  return False
+
+
+def _ExecutableExtensions():
+  # pathext is, e.g. '.com;.exe;.bat;.cmd'
+  exts = os.getenv('PATHEXT').split(';') #e.g. ['.com','.exe','.bat','.cmd']
+  return [x[1:].upper() for x in exts] #e.g. ['COM','EXE','BAT','CMD']
+
+
+def IsExecutable(path):
+  if os.path.isfile(path):
+    if hasattr(os, 'name') and os.name == 'nt':
+      return path.split('.')[-1].upper() in _ExecutableExtensions()
+    else:
+      return os.access(path, os.X_OK)
+  else:
+    return False
+
+
+def _AddDirToPythonPath(*path_parts):
+  path = os.path.abspath(os.path.join(*path_parts))
+  if os.path.isdir(path) and path not in sys.path:
+    # Some callsite that use telemetry assumes that sys.path[0] is the directory
+    # containing the script, so we add these extra paths to right after it.
+    sys.path.insert(1, path)
+
+_AddDirToPythonPath(os.path.join(GetCatapultDir(), 'devil'))
+_AddDirToPythonPath(os.path.join(GetCatapultDir(), 'dependency_manager'))
+_AddDirToPythonPath(os.path.join(GetCatapultDir(), 'third_party', 'mock'))
+# mox3 is needed for pyfakefs usage, but not for pylint.
+_AddDirToPythonPath(os.path.join(GetCatapultDir(), 'third_party', 'mox3'))
+_AddDirToPythonPath(
+    os.path.join(GetCatapultDir(), 'third_party', 'pyfakefs'))
 
 from devil.utils import timeout_retry
 from devil.utils import reraiser_thread
-import functools
 
+
+# Decorator that adds timeout functionality to a function.
 def Timeout(default_timeout):
-  return lambda func: timeout_deco(func, default_timeout)
+  return lambda func: TimeoutDeco(func, default_timeout)
 
 # Note: Even though the "timeout" keyword argument is the only
 # keyword argument that will need to be given to the decorated function,
@@ -21,9 +72,9 @@ def Timeout(default_timeout):
 # a single named keyword argument after *args.
 # (e.g., 'def foo(*args, bar=42):' is a syntax error)
 
-def timeout_deco(func, default_timeout):
+def TimeoutDeco(func, default_timeout):
   @functools.wraps(func)
-  def run_with_timeout(*args, **kwargs):
+  def RunWithTimeout(*args, **kwargs):
     if 'timeout' in kwargs:
       timeout = kwargs['timeout']
     else:
@@ -33,4 +84,4 @@ def timeout_deco(func, default_timeout):
     except reraiser_thread.TimeoutError:
       print '%s timed out.' % func.__name__
       return False
-  return run_with_timeout
+  return RunWithTimeout

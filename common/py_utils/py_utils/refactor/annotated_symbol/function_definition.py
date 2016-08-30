@@ -4,7 +4,7 @@
 
 import symbol
 
-from catapult_base.refactor.annotated_symbol import base_symbol
+from py_utils.refactor.annotated_symbol import base_symbol
 
 
 __all__ = [

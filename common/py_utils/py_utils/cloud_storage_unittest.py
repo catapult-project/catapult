@@ -9,9 +9,8 @@ import unittest
 import mock
 from pyfakefs import fake_filesystem_unittest
 
-
-from catapult_base import cloud_storage
-from catapult_base import util
+import py_utils
+from py_utils import cloud_storage
 
 
 def _FakeReadHash(_):
@@ -33,7 +32,8 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     os.environ['DISABLE_CLOUD_STORAGE_IO'] = ''
     self.setUpPyfakefs()
     self.fs.CreateFile(
-        os.path.join(util.GetCatapultDir(), 'third_party', 'gsutil', 'gsutil'))
+        os.path.join(py_utils.GetCatapultDir(),
+                     'third_party', 'gsutil', 'gsutil'))
 
   def CreateFiles(self, file_paths):
     for f in file_paths:
@@ -50,7 +50,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     pass
 
   def _AssertRunCommandRaisesError(self, communicate_strs, error):
-    with mock.patch('catapult_base.cloud_storage.subprocess.Popen') as popen:
+    with mock.patch('py_utils.cloud_storage.subprocess.Popen') as popen:
       p_mock = mock.Mock()
       popen.return_value = p_mock
       p_mock.returncode = 1
@@ -94,7 +94,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     finally:
       cloud_storage._RunCommand = orig_run_command
 
-  @mock.patch('catapult_base.cloud_storage.subprocess')
+  @mock.patch('py_utils.cloud_storage.subprocess')
   def testExistsReturnsFalse(self, subprocess_mock):
     p_mock = mock.Mock()
     subprocess_mock.Popen.return_value = p_mock
@@ -105,10 +105,10 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     self.assertFalse(cloud_storage.Exists('fake bucket',
                                           'fake remote path'))
 
-  @mock.patch('catapult_base.cloud_storage.CalculateHash')
-  @mock.patch('catapult_base.cloud_storage._GetLocked')
-  @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
-  @mock.patch('catapult_base.cloud_storage.os.path')
+  @mock.patch('py_utils.cloud_storage.CalculateHash')
+  @mock.patch('py_utils.cloud_storage._GetLocked')
+  @mock.patch('py_utils.cloud_storage._PseudoFileLock')
+  @mock.patch('py_utils.cloud_storage.os.path')
   def testGetIfHashChanged(self, path_mock, unused_lock_mock, get_mock,
                            calc_hash_mock):
     path_mock.exists.side_effect = [False, True, True]
@@ -141,7 +141,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     calc_hash_mock.reset_mock()
     get_mock.reset_mock()
 
-  @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
+  @mock.patch('py_utils.cloud_storage._PseudoFileLock')
   def testGetIfChanged(self, unused_lock_mock):
     orig_get = cloud_storage._GetLocked
     orig_read_hash = cloud_storage.ReadHash
@@ -214,7 +214,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage._RunCommand = orig_run_command
 
 
-  @mock.patch('catapult_base.cloud_storage._PseudoFileLock')
+  @mock.patch('py_utils.cloud_storage._PseudoFileLock')
   def testDisableCloudStorageIo(self, unused_lock_mock):
     os.environ['DISABLE_CLOUD_STORAGE_IO'] = '1'
     dir_path = 'real_dir_path'

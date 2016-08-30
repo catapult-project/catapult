@@ -50,7 +50,7 @@ class TracingControllerAgent(tracing_agents.TracingAgent):
     del categories
     if not trace_event.trace_can_enable():
       raise RuntimeError, ('Cannot enable trace_event;'
-                           ' ensure catapult_base is in PYTHONPATH')
+                           ' ensure py_utils is in PYTHONPATH')
 
     controller_log_file = tempfile.NamedTemporaryFile(delete=False)
     self._log_path = controller_log_file.name

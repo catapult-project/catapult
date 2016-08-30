@@ -6,7 +6,7 @@ import os
 import platform
 import sys
 
-from catapult_base import util
+import py_utils
 
 def GetOSAndArchForCurrentDesktopPlatform():
   os_name = GetOSNameForCurrentDesktopPlatform()
@@ -14,7 +14,7 @@ def GetOSAndArchForCurrentDesktopPlatform():
 
 
 def GetOSNameForCurrentDesktopPlatform():
-  if util.IsRunningOnCrosDevice():
+  if py_utils.IsRunningOnCrosDevice():
     return 'chromeos'
   if sys.platform.startswith('linux'):
     return 'linux'

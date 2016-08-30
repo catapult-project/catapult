@@ -20,8 +20,8 @@ _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
                     os.path.pardir, os.path.pardir, os.path.pardir)
 
-_AddDirToPythonPath(_CATAPULT_DIR, 'catapult_base')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_utils')
 _AddDirToPythonPath(_CATAPULT_DIR, 'dependency_manager')
 _AddDirToPythonPath(_CATAPULT_DIR, 'devil')
 _AddDirToPythonPath(_CATAPULT_DIR, 'telemetry', 'third_party', 'pyserial')
-_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')

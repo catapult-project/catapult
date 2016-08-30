@@ -6,7 +6,7 @@ import functools
 import os
 import sys
 
-from catapult_base import refactor
+from py_utils import refactor
 
 
 def Run(sources, target, files_to_update):

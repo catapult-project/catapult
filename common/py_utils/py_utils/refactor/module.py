@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from catapult_base.refactor import annotated_symbol
+from py_utils.refactor import annotated_symbol
 
 
 class Module(object):

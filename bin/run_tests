@@ -18,7 +18,7 @@ _TESTS = [
     {'path': os.path.join(_CATAPULT_PATH, 'perf_insights', 'bin', 'run_tests')},
     {'path': os.path.join(
         _CATAPULT_PATH, 'catapult_build', 'bin', 'run_py_tests')},
-    {'path': os.path.join(_CATAPULT_PATH, 'catapult_base', 'bin', 'run_tests')},
+    {'path': os.path.join(_CATAPULT_PATH, 'common', 'bin', 'run_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'dependency_manager', 'bin', 'run_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'telemetry', 'bin', 'run_tests')},
     {'path': os.path.join(_CATAPULT_PATH, 'third_party', 'vinn', 'run_test')},

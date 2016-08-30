@@ -6,7 +6,7 @@ import datetime
 import logging
 import os
 
-from catapult_base import cloud_storage
+from py_utils import cloud_storage
 
 from telemetry.internal.results import output_formatter
 

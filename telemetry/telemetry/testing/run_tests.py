@@ -19,8 +19,8 @@ from telemetry.internal.util import ps_util
 from telemetry.testing import browser_test_case
 from telemetry.testing import options_for_unittests
 
-from catapult_base import cloud_storage
-from catapult_base import xvfb
+from py_utils import cloud_storage
+from py_utils import xvfb
 
 import typ
 

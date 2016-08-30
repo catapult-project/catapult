@@ -9,7 +9,7 @@ import unittest
 import tempfile
 
 
-from catapult_base import lock
+from py_utils import lock
 
 
 def _AppendTextToFile(file_name):

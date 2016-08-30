@@ -27,10 +27,10 @@ def _AddDirToPythonPath(*path_parts):
 
 
 # Add Catapult dependencies to our path.
-# util depends on catapult_base, so we can't use it to get the catapult dir.
+# util depends on py_utils, so we can't use it to get the catapult dir.
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..')
-_AddDirToPythonPath(_CATAPULT_DIR, 'catapult_base')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_utils')
 _AddDirToPythonPath(_CATAPULT_DIR, 'dependency_manager')
 _AddDirToPythonPath(_CATAPULT_DIR, 'devil')
 _AddDirToPythonPath(_CATAPULT_DIR, 'systrace')
