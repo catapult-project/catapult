@@ -489,6 +489,12 @@ class DeviceUtils(object):
     apks = []
     for line in output:
       if not line.startswith('package:'):
+        # KitKat on x86 may show following warnings that is safe to ignore.
+        if (line.startswith('WARNING: linker: libdvm.so has text relocations.')
+            and version_codes.KITKAT <= self.build_version_sdk
+            and self.build_version_sdk <= version_codes.KITKAT_WATCH
+            and self.product_cpu_abi == 'x86'):
+          continue
         raise device_errors.CommandFailedError(
             'pm path returned: %r' % '\n'.join(output), str(self))
       apks.append(line[len('package:'):])
