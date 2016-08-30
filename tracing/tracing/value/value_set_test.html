@@ -6,6 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
+<link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value_set.html">
@@ -34,6 +36,26 @@ tr.b.unittest.testSuite(function() {
     // foo, foo_count, foo_sum
     assert.lengthOf(values2.getValuesWithName('foo'), 3);
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
+  });
+
+  test('addValueFromDictsWithSampleDiagnostic', function() {
+    var n = tr.v.NumericBuilder.createLinear(
+        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
+        100).build();
+    n.add(10, tr.v.d.DiagnosticMap.fromObject({
+      bar: new tr.v.d.Generic('baz')
+    }));
+
+    var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
+    var values2 = new tr.v.ValueSet();
+    values2.addValuesFromDicts(values.valueDicts);
+    assert.lengthOf(values2.getValuesNamed('foo'), 1);
+    var v = values2.getValuesNamed('foo')[0];
+    assert.lengthOf(v.numeric.getBinForValue(10).diagnosticMaps, 1);
+    var dm = v.numeric.getBinForValue(10).diagnosticMaps[0];
+    assert.strictEqual(dm.size, 1);
+    assert.instanceOf(dm.get('bar'), tr.v.d.Generic);
+    assert.strictEqual(dm.get('bar').value, 'baz');
   });
 
   test('computeSummaryValuesForNumericValue', function() {
