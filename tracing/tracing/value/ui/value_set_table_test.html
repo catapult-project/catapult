@@ -15,9 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(0, 1000), 20);
+  var TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 20);
 
   function getTableRowAtPath(table, path) {
     var row = table.tableRows[0];
@@ -29,7 +27,8 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_1x1', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
     var values = new tr.v.ValueSet();
-    var numeric = TEST_NUMERIC_BUILDER.build();
+    var numeric = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric.add(Math.random() * 1000);
     values.addValue(new tr.v.NumericValue('foo', numeric));
@@ -47,7 +46,8 @@ tr.b.unittest.testSuite(function() {
     var table = document.createElement('tr-v-ui-value-set-table');
     var values = new tr.v.ValueSet();
 
-    var numeric0a = TEST_NUMERIC_BUILDER.build();
+    var numeric0a = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric0a.add(Math.random() * 1000);
     var fooA = new tr.v.NumericValue('foo', numeric0a, {
@@ -59,7 +59,8 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: new Date().getTime(),
     }).addToValue(fooA);
 
-    var numeric1a = TEST_NUMERIC_BUILDER.build();
+    var numeric1a = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric1a.add(Math.random() * 1000);
     var barA = new tr.v.NumericValue('bar', numeric1a, {
@@ -71,7 +72,8 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: new Date().getTime(),
     }).addToValue(barA);
 
-    var numeric0b = TEST_NUMERIC_BUILDER.build();
+    var numeric0b = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric0b.add(Math.random() * 1000);
     var fooB = new tr.v.NumericValue('foo', numeric0b, {
@@ -83,7 +85,8 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: new Date().getTime(),
     }).addToValue(fooB);
 
-    var numeric1b = TEST_NUMERIC_BUILDER.build();
+    var numeric1b = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric1b.add(Math.random() * 1000);
     var barB = new tr.v.NumericValue('bar', numeric1b, {
@@ -127,7 +130,9 @@ tr.b.unittest.testSuite(function() {
                   ++storysetCounter) {
                 for (var storyCounter = 0; storyCounter < 2; ++storyCounter) {
                   for (var label of labels) {
-                    var numeric = TEST_NUMERIC_BUILDER.build();
+                    var numeric = new tr.v.Histogram(
+                        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+                        TEST_BOUNDARIES);
                     for (var i = 0; i < 100; ++i)
                       numeric.add(Math.random() * 1000);
 

@@ -14,22 +14,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var test_utils = tr.c.TestUtils;
-  var ThreadSlice = tr.model.ThreadSlice;
-  var NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.unitlessNumber, tr.b.Range.fromExplicitRange(0, 10), 10);
-
   test('FindMetricByName', function() {
     function sampleMetricA(values, model) {
-      var n1 = NUMERIC_BUILDER.build();
+      var n1 = new tr.v.Histogram(tr.v.Unit.byName.count);
       n1.add(1);
       values.addValue(new tr.v.NumericValue('foo', n1));
     }
     tr.metrics.MetricRegistry.register(sampleMetricA);
 
     function sampleMetricB(values, model) {
-      var n1 = NUMERIC_BUILDER.build();
-      var n2 = NUMERIC_BUILDER.build();
+      var n1 = new tr.v.Histogram(tr.v.Unit.byName.count);
+      var n2 = new tr.v.Histogram(tr.v.Unit.byName.count);
       n1.add(1);
       n2.add(2);
       values.addValue(new tr.v.NumericValue('foo', n1));
@@ -38,9 +33,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.MetricRegistry.register(sampleMetricB);
 
     function sampleMetricC(values, model) {
-      var n1 = NUMERIC_BUILDER.build();
-      var n2 = NUMERIC_BUILDER.build();
-      var n3 = NUMERIC_BUILDER.build();
+      var n1 = new tr.v.Histogram(tr.v.Unit.byName.count);
+      var n2 = new tr.v.Histogram(tr.v.Unit.byName.count);
+      var n3 = new tr.v.Histogram(tr.v.Unit.byName.count);
       n1.add(1);
       n2.add(2);
       n3.add(3);
@@ -50,7 +45,9 @@ tr.b.unittest.testSuite(function() {
     }
     tr.metrics.MetricRegistry.register(sampleMetricC);
 
-    assert.isTrue(tr.metrics.MetricRegistry.findTypeInfoWithName('sampleMetricB').constructor === sampleMetricB); // @suppress longLineCheck
+    var typeInfo = tr.metrics.MetricRegistry.findTypeInfoWithName(
+        'sampleMetricB');
+    assert.strictEqual(typeInfo.constructor, sampleMetricB);
   });
 
   test('registerNonFunctionThrows', function() {

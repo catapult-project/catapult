@@ -15,12 +15,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1),
-      20);
-
   test('instantiate_Composition', function() {
-    var numeric = TEST_NUMERIC_BUILDER.build();
+    var numeric = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs);
     var scalar = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 42);
     for (var i = 0; i < 1e2; ++i) {
       numeric.add(Math.random());

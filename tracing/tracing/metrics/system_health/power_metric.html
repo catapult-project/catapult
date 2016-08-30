@@ -22,9 +22,10 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.v.UnitScale.Metric.NONE, tr.v.UnitScale.Metric.MILLI);
 
   function energyConsumedPerFrame(valueList, model) {
-    var frameEnergyConsumedInJ = tr.v.NumericBuilder.createLinear(
+    var frameEnergyConsumedInJ = new tr.v.Histogram(
         tr.v.Unit.byName.energyInJoules_smallerIsBetter,
-        tr.b.Range.fromExplicitRange(0, .5), 20).build();
+        tr.v.HistogramBinBoundaries.createLinear(0, 0.5, 20));
+
     var frameStartTs = parseFloat(model.device.powerSeries.samples[0].start);
     while (model.device.powerSeries.getSamplesWithinRange(
         frameStartTs, frameStartTs + IDEAL_FRAME_DURATION_MS).length) {

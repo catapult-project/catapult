@@ -14,13 +14,11 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
-      10);
-
   test('instantiate_RelatedValueMap', function() {
-    var aValue = new tr.v.NumericValue('a', TEST_NUMERIC_BUILDER.build());
-    var bValue = new tr.v.NumericValue('b', TEST_NUMERIC_BUILDER.build());
+    var aValue = new tr.v.NumericValue('a', new tr.v.Histogram(
+        tr.v.Unit.byName.unitlessNumber));
+    var bValue = new tr.v.NumericValue('b', new tr.v.Histogram(
+        tr.v.Unit.byName.unitlessNumber));
     var diagnostic = new tr.v.d.RelatedValueMap();
     diagnostic.set('foo', aValue);
     diagnostic.set('bar', bValue);

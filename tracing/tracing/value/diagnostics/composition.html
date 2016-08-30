@@ -83,14 +83,15 @@ tr.exportTo('tr.v.d', function() {
     * @param {!tr.v.ValueSet} values
     * @param {string} namePrefix
     * @param {!tr.model.EventSet} events
-    * @param {!tr.v.NumericBuilder} numericBuilder
     * @param {!function(!tr.model.Event):string} categoryForEvent
+    * @param {!tr.v.Unit} unit
     * @param {!function(!tr.model.Event):number=} opt_sampleForEvent
+    * @param {!tr.v.HistogramBinBoundaries=} opt_binBoundaries
     * @param {*=} opt_this
     * @return {!Composition}
     */
-    static buildFromEvents(values, namePrefix, events, numericBuilder,
-        categoryForEvent, opt_sampleForEvent, opt_this) {
+    static buildFromEvents(values, namePrefix, events, categoryForEvent, unit,
+        opt_sampleForEvent, opt_binBoundaries, opt_this) {
       var sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
 
       var composition = new Composition();
@@ -102,8 +103,8 @@ tr.exportTo('tr.v.d', function() {
         var eventCategory = categoryForEvent.call(opt_this, event);
         var value = composition.get(eventCategory);
         if (value === undefined) {
-          value = new tr.v.NumericValue(
-              namePrefix + eventCategory, numericBuilder.build());
+          value = new tr.v.NumericValue(namePrefix + eventCategory,
+              new tr.v.Histogram(unit, opt_binBoundaries));
           values.addValue(value);
           composition.set(eventCategory, value);
         }

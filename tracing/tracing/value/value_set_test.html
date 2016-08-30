@@ -17,9 +17,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('addValuesFromDicts', function() {
-    var n = tr.v.NumericBuilder.createLinear(
-        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
-        100).build();
+    var n = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
     n.add(10);
     n.customizeSummaryOptions({
       count: true,
@@ -39,9 +37,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addValueFromDictsWithSampleDiagnostic', function() {
-    var n = tr.v.NumericBuilder.createLinear(
-        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
-        100).build();
+    var n = new tr.v.Histogram(tr.v.Unit.byName.count);
     n.add(10, tr.v.d.DiagnosticMap.fromObject({
       bar: new tr.v.d.Generic('baz')
     }));
@@ -59,9 +55,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('computeSummaryValuesForNumericValue', function() {
-    var n = tr.v.NumericBuilder.createLinear(
-        tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 100),
-        100).build();
+    var n = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber,
+        tr.v.HistogramBinBoundaries.createLinear(0, 100, 100));
 
     n.add(50);
     n.add(60);
@@ -225,9 +220,7 @@ tr.b.unittest.testSuite(function() {
     var unit = tr.v.Unit.byName.unitlessNumber;
     var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 1));
 
-    var numeric = tr.v.NumericBuilder.createLinear(
-        tr.v.Unit.byName.timeDurationInMs,
-        tr.b.Range.fromExplicitRange(0, 1000), 10).build();
+    var numeric = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
     numeric.add(1, tr.v.d.DiagnosticMap.fromObject({
       rvs: new tr.v.d.RelatedValueSet([a])}));
     var b = new tr.v.NumericValue('b', numeric);

@@ -15,10 +15,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var LATENCY_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(1e-3, 1e3), 30);
-
   function syncIsComplete(markers) {
     return markers.length === 2;
   }
@@ -46,7 +42,9 @@ tr.exportTo('tr.metrics.sh', function() {
           targetDomain = domain.toLowerCase();
       }
 
-      var hist = LATENCY_NUMERIC_BUILDER.build();
+      var hist = new tr.v.Histogram(
+          tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+          tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 30));
       hist.add(latency);
       values.addValue(new tr.v.NumericValue(
           'clock_sync_latency_' + targetDomain, hist,

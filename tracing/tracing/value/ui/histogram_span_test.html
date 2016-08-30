@@ -15,12 +15,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
-      10);
-
   test('basic', function() {
-    var h = DURATION_NUMERIC_BUILDER.build();
+    var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
     h.add(-1, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('a')}));
     h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
     h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
@@ -46,7 +42,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyHistogram', function() {
-    var h = DURATION_NUMERIC_BUILDER.build();
+    var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
 
     var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
@@ -54,7 +50,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nans', function() {
-    var h = DURATION_NUMERIC_BUILDER.build();
+    var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
     h.add(undefined, tr.v.d.DiagnosticMap.fromObject(
         {foo: new tr.v.d.Generic('b')}));
     h.add(NaN, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c')}));

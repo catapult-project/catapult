@@ -27,7 +27,7 @@ tr.exportTo('tr.v', function() {
       if (this.unit !== other.unit)
         throw new Error('Merging Numerics with different units');
 
-      // Two Numerics that were built using the same NumericBuilder
+      // Two Numerics that were built with the same boundaries
       // can be merged using addNumeric().
       if (this instanceof tr.v.Histogram && other instanceof tr.v.Histogram &&
           this.canAddNumeric(other)) {
@@ -37,8 +37,8 @@ tr.exportTo('tr.v', function() {
       }
 
       // Either a Scalar and a Histogram, or two Scalars...
-      // or two Numerics that were not built using the same NumericBuilder,
-      // should be built from their raw samples.
+      // or two Numerics that were not built with the same boundaries should be
+      // built from their raw samples.
       var samples = [];
       this.sampleValuesInto(samples);
       other.sampleValuesInto(samples);

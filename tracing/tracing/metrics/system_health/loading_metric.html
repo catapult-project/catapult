@@ -122,13 +122,14 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   };
 
-  var FIRST_PAINT_NUMERIC_BUILDER =
-      new tr.v.NumericBuilder(timeDurationInMs_smallerIsBetter, 0)
-      .addLinearBins(1000, 20) // 50ms step to 1s
-      .addLinearBins(3000, 20) // 100ms step to 3s
-      .addExponentialBins(20000, 20);
+  var FIRST_PAINT_BOUNDARIES = tr.v.HistogramBinBoundaries
+    .createLinear(0, 1e3, 20)  // 50ms step to 1s
+    .addLinearBins(3e3, 20) // 100ms step to 3s
+    .addExponentialBins(20e3, 20);
+
   function createHistogram() {
-    var histogram = FIRST_PAINT_NUMERIC_BUILDER.build();
+    var histogram = new tr.v.Histogram(
+        timeDurationInMs_smallerIsBetter, FIRST_PAINT_BOUNDARIES);
     histogram.customizeSummaryOptions({
       avg: true,
       count: false,

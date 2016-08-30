@@ -17,20 +17,18 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics', function() {
   var MEMORY_INFRA_TRACING_CATEGORY = 'disabled-by-default-memory-infra';
 
-  var TIME_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(1e-3, 1e5), 30);
+  var TIME_BOUNDARIES = tr.v.HistogramBinBoundaries.createExponential(
+      1e-3, 1e5, 30);
 
-  var BYTE_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(1, 1e9), 30);
+  var BYTE_BOUNDARIES = tr.v.HistogramBinBoundaries.createExponential(
+      1, 1e9, 30);
 
-  var COUNT_NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
-      tr.v.Unit.byName.count_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(1, 1e5), 30);
+  var COUNT_BOUNDARIES = tr.v.HistogramBinBoundaries.createExponential(
+      1, 1e5, 30);
 
   function addTimeDurationValue(valueName, duration, allValues) {
-    var hist = TIME_NUMERIC_BUILDER.build();
+    var hist = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
     hist.add(duration);
     allValues.addValue(new tr.v.NumericValue(valueName, hist));
   }
@@ -81,13 +79,15 @@ tr.exportTo('tr.metrics', function() {
 
     var memoryInfraEventsSize =
         categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
-    var memoryInfraTraceBytesValue = BYTE_NUMERIC_BUILDER.build();
+    var memoryInfraTraceBytesValue = new tr.v.Histogram(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     memoryInfraTraceBytesValue.add(memoryInfraEventsSize);
     values.addValue(new tr.v.NumericValue(
         'Total trace size of memory-infra dumps in bytes',
         memoryInfraTraceBytesValue));
 
-    var traceBytesPerDumpValue = BYTE_NUMERIC_BUILDER.build();
+    var traceBytesPerDumpValue = new tr.v.Histogram(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     traceBytesPerDumpValue.add(memoryInfraEventsSize / memoryDumpCount);
     values.addValue(new tr.v.NumericValue(
         'Average trace size of memory-infra dumps in bytes',
@@ -161,13 +161,16 @@ tr.exportTo('tr.metrics', function() {
     var maxEventBytesPerCategory = maxCatNameAndBytes[1];
     var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 
-    var maxEventCountPerSecValue = COUNT_NUMERIC_BUILDER.build();
+    var maxEventCountPerSecValue = new tr.v.Histogram(
+      tr.v.Unit.byName.count_smallerIsBetter, COUNT_BOUNDARIES);
     maxEventCountPerSecValue.add(maxEventCountPerSec);
 
-    var maxEventBytesPerSecValue = BYTE_NUMERIC_BUILDER.build();
+    var maxEventBytesPerSecValue = new tr.v.Histogram(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     maxEventBytesPerSecValue.add(maxEventBytesPerSec);
 
-    var totalTraceBytesValue = BYTE_NUMERIC_BUILDER.build();
+    var totalTraceBytesValue = new tr.v.Histogram(
+        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     totalTraceBytesValue.add(totalTraceBytes);
 
     var biggestCategory = {

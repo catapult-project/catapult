@@ -14,10 +14,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.normalizedPercentage_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(0, 1), 20);
-
   // The following math is easier if the units are seconds rather than ms,
   // so durations will be converted from ms to s.
   var MS_PER_S = 1000;
@@ -128,7 +124,8 @@ tr.exportTo('tr.metrics.sh', function() {
     if (overallHazard === undefined)
       overallHazard = 0;
 
-    var hist = NUMERIC_BUILDER.build();
+    var hist = new tr.v.Histogram(
+        tr.v.Unit.byName.normalizedPercentage_smallerIsBetter);
     hist.add(overallHazard);
     values.addValue(new tr.v.NumericValue('hazard', hist));
   }

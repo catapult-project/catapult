@@ -12,14 +12,10 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
-      20);
-
   test('instantiate', function() {
     var span = document.createElement('tr-v-ui-numeric-stats-span');
 
-    var numeric = TEST_NUMERIC_BUILDER.build();
+    var numeric = new tr.v.Histogram(tr.v.Unit.byName.count);
     for (var i = 0; i < 1e2; ++i) {
       numeric.add(Math.random() * 1000);
     }

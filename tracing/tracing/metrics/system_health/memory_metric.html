@@ -35,17 +35,15 @@ tr.exportTo('tr.metrics.sh', function() {
   LEVEL_OF_DETAIL_NAMES.set(LIGHT, 'light');
   LEVEL_OF_DETAIL_NAMES.set(DETAILED, 'detailed');
 
-  var MEMORY_NUMERIC_BUILDER_MAP = new WeakMap();
+  var BOUNDARIES_FOR_UNIT_MAP = new WeakMap();
   // For unitless numerics (process counts), we use 20 linearly scaled bins
   // from 0 to 20.
-  MEMORY_NUMERIC_BUILDER_MAP.set(unitlessNumber_smallerIsBetter,
-      tr.v.NumericBuilder.createLinear(
-          tr.v.Unit.byName.unitlessNumber_smallerIsBetter,
-          tr.b.Range.fromExplicitRange(0, 20), 20));
+  BOUNDARIES_FOR_UNIT_MAP.set(unitlessNumber_smallerIsBetter,
+      tr.v.HistogramBinBoundaries.createLinear(0, 20, 20));
   // For size numerics (subsystem and vm stats), we use 1 bin from 0 B to
   // 1 KiB and 4*24 exponentially scaled bins from 1 KiB to 16 GiB (=2^24 KiB).
-  MEMORY_NUMERIC_BUILDER_MAP.set(sizeInBytes_smallerIsBetter,
-      new tr.v.NumericBuilder(sizeInBytes_smallerIsBetter, 0)
+  BOUNDARIES_FOR_UNIT_MAP.set(sizeInBytes_smallerIsBetter,
+      new tr.v.HistogramBinBoundaries(0)
           .addBinBoundary(1024 /* 1 KiB */)
           .addExponentialBins(16 * 1024 * 1024 * 1024 /* 16 GiB */, 4 * 24));
 
@@ -771,10 +769,10 @@ tr.exportTo('tr.metrics.sh', function() {
       nameParts.push(levelOfDetailName);
     var name = nameParts.join(':');
 
-    // Build the underlying numeric for the memory value.
-    var numeric = MEMORY_NUMERIC_BUILDER_MAP.get(
-        unitlessNumber_smallerIsBetter).build();
-    numeric.add(levelOfDetailDumpCount);
+    // Build the underlying histogram for the memory value.
+    var histogram = new tr.v.Histogram(unitlessNumber_smallerIsBetter,
+        BOUNDARIES_FOR_UNIT_MAP.get(unitlessNumber_smallerIsBetter));
+    histogram.add(levelOfDetailDumpCount);
 
     // Build the options for the memory value.
     var description = [
@@ -787,7 +785,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var options = { description: description };
 
     // Report the memory value.
-    values.addValue(new tr.v.NumericValue(name, numeric, options));
+    values.addValue(new tr.v.NumericValue(name, histogram, options));
   }
 
   /**
@@ -1126,7 +1124,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * |node| to it.
    */
   function buildMemoryNumericFromNode(node, unit) {
-    var numeric = MEMORY_NUMERIC_BUILDER_MAP.get(unit).build();
+    var numeric = new tr.v.Histogram(unit, BOUNDARIES_FOR_UNIT_MAP.get(unit));
     node.values.forEach(v => numeric.add(v.total));
     return numeric;
   }

@@ -15,15 +15,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.v8', function() {
-  var DURATION_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(4, 200), 100);
+  var CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(4, 200, 100);
 
   function computeExecuteMetrics(values, model) {
-    var cpuTotalExecution = DURATION_NUMERIC_BUILDER.build();
-    var wallTotalExecution = DURATION_NUMERIC_BUILDER.build();
-    var cpuSelfExecution = DURATION_NUMERIC_BUILDER.build();
-    var wallSelfExecution = DURATION_NUMERIC_BUILDER.build();
+    var cpuTotalExecution = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallTotalExecution = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var cpuSelfExecution = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallSelfExecution = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.Execute')) {
       cpuTotalExecution.add(e.cpuDuration);
@@ -47,8 +49,10 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeParseLazyMetrics(values, model) {
-    var cpuSelfParseLazy = DURATION_NUMERIC_BUILDER.build();
-    var wallSelfParseLazy = DURATION_NUMERIC_BUILDER.build();
+    var cpuSelfParseLazy = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallSelfParseLazy = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.ParseLazyMicroSeconds')) {
       cpuSelfParseLazy.add(e.cpuSelfTime);
@@ -68,8 +72,10 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeCompileFullCodeMetrics(values, model) {
-    var cpuSelfCompileFullCode = DURATION_NUMERIC_BUILDER.build();
-    var wallSelfCompileFullCode = DURATION_NUMERIC_BUILDER.build();
+    var cpuSelfCompileFullCode = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallSelfCompileFullCode = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.CompileFullCode')) {
       cpuSelfCompileFullCode.add(e.cpuSelfTime);
@@ -88,8 +94,10 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeCompileIgnitionMetrics(values, model) {
-    var cpuSelfCompileIgnition = DURATION_NUMERIC_BUILDER.build();
-    var wallSelfCompileIgnition = DURATION_NUMERIC_BUILDER.build();
+    var cpuSelfCompileIgnition = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallSelfCompileIgnition = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.CompileIgnition')) {
       cpuSelfCompileIgnition.add(e.cpuSelfTime);
@@ -108,14 +116,20 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeRecompileMetrics(values, model) {
-    var cpuTotalRecompileSynchronous = DURATION_NUMERIC_BUILDER.build();
-    var wallTotalRecompileSynchronous = DURATION_NUMERIC_BUILDER.build();
-    var cpuTotalRecompileConcurrent = DURATION_NUMERIC_BUILDER.build();
-    var wallTotalRecompileConcurrent = DURATION_NUMERIC_BUILDER.build();
+    var cpuTotalRecompileSynchronous = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallTotalRecompileSynchronous = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var cpuTotalRecompileConcurrent = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallTotalRecompileConcurrent = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     // TODO(eakuefner): Stop computing overall values once dash v2 is ready.
     // https://github.com/catapult-project/catapult/issues/2180
-    var cpuTotalRecompileOverall = DURATION_NUMERIC_BUILDER.build();
-    var wallTotalRecompileOverall = DURATION_NUMERIC_BUILDER.build();
+    var cpuTotalRecompileOverall = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallTotalRecompileOverall = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.RecompileSynchronous')) {
       cpuTotalRecompileSynchronous.add(e.cpuDuration);
@@ -164,8 +178,10 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeOptimizeCodeMetrics(values, model) {
-    var cpuTotalOptimizeCode = DURATION_NUMERIC_BUILDER.build();
-    var wallTotalOptimizeCode = DURATION_NUMERIC_BUILDER.build();
+    var cpuTotalOptimizeCode = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallTotalOptimizeCode = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.OptimizeCode')) {
       cpuTotalOptimizeCode.add(e.cpuDuration);
@@ -183,8 +199,10 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function computeDeoptimizeCodeMetrics(values, model) {
-    var cpuTotalDeoptimizeCode = DURATION_NUMERIC_BUILDER.build();
-    var wallTotalDeoptimizeCode = DURATION_NUMERIC_BUILDER.build();
+    var cpuTotalDeoptimizeCode = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+    var wallTotalDeoptimizeCode = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.DeoptimizeCode')) {
       cpuTotalDeoptimizeCode.add(e.cpuDuration);

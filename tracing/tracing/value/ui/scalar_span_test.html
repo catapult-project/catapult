@@ -215,6 +215,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, 123.456789, Unit.byName.timeDurationInMs,
         '123.457 ms');
     checkScalarSpan(this, 0, Unit.byName.normalizedPercentage, '0.000%');
+    checkScalarSpan(this, 1, Unit.byName.normalizedPercentage, '100.000%');
     checkScalarSpan(this, -2560, Unit.byName.sizeInBytes, '-2.5 KiB');
   });
 
@@ -341,7 +342,7 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate_withPercentage', function() {
     var span = document.createElement('tr-v-ui-scalar-span');
-    span.value = new ScalarNumeric(Unit.byName.unitlessNumber, 99);
+    span.value = new ScalarNumeric(Unit.byName.unitlessNumber, 0.99);
     span.percentage = 0.66;
     this.addHTMLOutput(span);
   });
@@ -424,10 +425,8 @@ tr.b.unittest.testSuite(function() {
   test('emptyNumeric', function() {
     assert.strictEqual(tr.v.ui.createScalarSpan(), '');
 
-    var numeric = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
-      10).build();
-    var value = new tr.v.NumericValue('foo', numeric);
+    var value = new tr.v.NumericValue(
+        'foo', new tr.v.Histogram(tr.v.Unit.byName.count));
     assert.strictEqual(tr.v.ui.createScalarSpan(value), '');
   });
 });

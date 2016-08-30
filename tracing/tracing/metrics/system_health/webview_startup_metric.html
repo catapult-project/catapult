@@ -14,15 +14,15 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var NUMERIC_BUILDER = tr.v.NumericBuilder.createExponential(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(1e-3, 1e6), 50);
-
   function webviewStartupMetric(values, model) {
-    var startupWallHist = NUMERIC_BUILDER.build();
-    var startupCPUHist = NUMERIC_BUILDER.build();
-    var loadWallHist = NUMERIC_BUILDER.build();
-    var loadCPUHist = NUMERIC_BUILDER.build();
+    var startupWallHist = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter);
+    var startupCPUHist = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter);
+    var loadWallHist = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter);
+    var loadCPUHist = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter);
 
     // TODO(alexandermont): Only iterate over the processes and threads that
     // could contain these events.

@@ -54,36 +54,25 @@ tr.exportTo('tr.metrics.sh', function() {
     return tr.b.Statistics.timestampsDiscrepancy(frameTimestamps, absolute);
   }
 
-  var RESPONSE_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(100, 1000), 90);
-
-  var THROUGHPUT_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.unitlessNumber_biggerIsBetter,
-      tr.b.Range.fromExplicitRange(10, 60), 10);
-
-  var DISCREPANCY_NUMERIC_BUILDER = new tr.v.NumericBuilder(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, 0)
-          .addLinearBins(1000, 50) // 20ms step to 1s
-          .addExponentialBins(10000, 10);
-
-  var LATENCY_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(0, 300), 60);
-
   /**
    * @param {!tr.v.ValueSet} values
    * @param {!tr.model.Model} model
    * @param {!Object=} opt_options
    */
   function responsivenessMetric(values, model, opt_options) {
-    // TODO(benjhayden): Add categories to benchmark to support:
-    // tr.metrics.sh.loadingMetric(values, model);
-
-    var responseNumeric = RESPONSE_NUMERIC_BUILDER.build();
-    var throughputNumeric = THROUGHPUT_NUMERIC_BUILDER.build();
-    var frameTimeDiscrepancyNumeric = DISCREPANCY_NUMERIC_BUILDER.build();
-    var latencyNumeric = LATENCY_NUMERIC_BUILDER.build();
+    var responseNumeric = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.v.HistogramBinBoundaries.createLinear(100, 1e3, 50));
+    var throughputNumeric = new tr.v.Histogram(
+        tr.v.Unit.byName.unitlessNumber_biggerIsBetter,
+        tr.v.HistogramBinBoundaries.createLinear(10, 60, 10));
+    var frameTimeDiscrepancyNumeric = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 50).
+          addExponentialBins(1e4, 10));
+    var latencyNumeric = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.v.HistogramBinBoundaries.createLinear(0, 300, 60));
 
     model.userModel.expectations.forEach(function(ue) {
       if (opt_options && opt_options.rangeOfInterest &&

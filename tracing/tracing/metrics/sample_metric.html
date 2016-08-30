@@ -14,12 +14,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
-  var SIZE_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(0, 100), 10);
-
   function sampleMetric(values, model) {
-    var hist = SIZE_NUMERIC_BUILDER.build();
+    var hist = new tr.v.Histogram(tr.v.Unit.byName.sizeInBytes_smallerIsBetter);
     hist.add(9);
     hist.add(91);
     values.addValue(new tr.v.NumericValue('foo', hist));

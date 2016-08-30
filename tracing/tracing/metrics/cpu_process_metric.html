@@ -13,11 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-
-  var CPU_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.normalizedPercentage_smallerIsBetter,
-      tr.b.Range.fromExplicitRange(0, 100), 20);
-
   function getCpuSnapshotsFromModel(model) {
    var snapshots = [];
    for (var pid in model.processes) {
@@ -53,12 +48,13 @@ tr.exportTo('tr.metrics.sh', function() {
      for (var [processName, processData] of processSums.entries()) {
        if (!(processNumerics.has(processName))) {
          processNumerics.set(processName, {
-           numeric: CPU_NUMERIC_BUILDER.build(),
+           numeric: new tr.v.Histogram(
+             tr.v.Unit.byName.normalizedPercentage_smallerIsBetter),
            paths: new Set()
          });
        }
        processNumerics.get(processName).numeric.add(
-           processData.sum);
+           processData.sum / 100.0);
        for (var path of processData.paths)
          processNumerics.get(processName).paths.add(path);
      }

@@ -30,12 +30,14 @@ tr.exportTo('tr.v', function() {
     SIGNIFICANT: 1
   };
 
-  var DEFAULT_BUILDER_FOR_UNIT = new Map();
+  var DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
   class HistogramBin {
-    constructor(parentNumeric, min, max) {
-      this.parentNumeric = parentNumeric;
-      this.range = tr.b.Range.fromExplicitRange(min, max);
+    /**
+     * @param {!tr.b.Range} range
+     */
+    constructor(range) {
+      this.range = range;
       this.count = 0;
       this.diagnosticMaps = [];
     }
@@ -93,18 +95,19 @@ tr.exportTo('tr.v', function() {
    * Histogram stores a random sample of optional per-sample DiagnosticMaps.
    * Histogram is visualized by <tr-v-ui-histogram-span>, which supports
    * selecting bins, and visualizing the DiagnosticMaps of selected bins.
+   *
+   * @param {!tr.v.Unit} unit
+   * @param {!tr.v.HistogramBinBoundaries=} opt_binBoundaries
    */
   class Histogram extends tr.v.NumericBase {
-    constructor(unit, opt_binBounds) {
+    constructor(unit, opt_binBoundaries) {
       super(unit);
 
-      var binBounds = opt_binBounds;
-      if (!binBounds) {
+      var binBoundaries = opt_binBoundaries;
+      if (!binBoundaries) {
         var baseUnit = unit.baseUnit ? unit.baseUnit : unit;
-        binBounds = DEFAULT_BUILDER_FOR_UNIT.get(baseUnit.unitName).binBounds;
+        binBoundaries = DEFAULT_BOUNDARIES_FOR_UNIT.get(baseUnit.unitName);
       }
-      if (binBounds.length < 2)
-        throw new Error('Need at least 2 binBounds');
 
       this.allBins = [];
       this.centralBins = [];
@@ -124,15 +127,13 @@ tr.exportTo('tr.v', function() {
         percentile: []
       };
 
-      this.underflowBin = new HistogramBin(this,
-          -Number.MAX_VALUE, binBounds[0]);
-      this.overflowBin = new HistogramBin(this,
-          binBounds[binBounds.length - 1], Number.MAX_VALUE);
+      this.underflowBin = new HistogramBin(tr.b.Range.fromExplicitRange(
+          -Number.MAX_VALUE, binBoundaries.minBinBoundary));
+      this.overflowBin = new HistogramBin(tr.b.Range.fromExplicitRange(
+          binBoundaries.maxBinBoundary, Number.MAX_VALUE));
 
-      for (var i = 0; i < binBounds.length - 1; ++i) {
-        this.centralBins.push(new HistogramBin(
-            this, binBounds[i], binBounds[i + 1]));
-      }
+      for (var range of binBoundaries)
+        this.centralBins.push(new HistogramBin(range));
 
       this.allBins.push(this.underflowBin);
       for (var bin of this.centralBins)
@@ -143,7 +144,9 @@ tr.exportTo('tr.v', function() {
     }
 
     static fromDict(d) {
-      var n = new Histogram(tr.v.Unit.fromJSON(d.unit), d.binBounds);
+      var boundaries = HistogramBinBoundaries.createWithBoundaries(
+          d.binBoundaries);
+      var n = new Histogram(tr.v.Unit.fromJSON(d.unit), boundaries);
       n.underflowBin.fromDict(d.underflowBin);
       for (var i = 0; i < d.centralBins.length; ++i)
         n.centralBins[i].fromDict(d.centralBins[i]);
@@ -179,7 +182,8 @@ tr.exportTo('tr.v', function() {
      * @return {!Histogram}
      */
     static buildFromSamples(unit, samples) {
-      var result = NumericBuilder.createFromSamples(unit, samples).build();
+      var boundaries = HistogramBinBoundaries.createFromSamples(samples);
+      var result = new Histogram(unit, boundaries);
       result.maxNumSampleValues = 1000;
 
       // TODO(eakuefner): Propagate diagnosticMaps?
@@ -441,12 +445,12 @@ tr.exportTo('tr.v', function() {
       return this.sampleValues_;
     }
 
-    get binBounds() {
-      var bounds = [];
+    get binBoundaries() {
+      var boundaries = [];
       for (var bin of this.centralBins)
-        bounds.push(bin.range.min);
-      bounds.push(this.overflowBin.range.min);
-      return bounds;
+        boundaries.push(bin.range.min);
+      boundaries.push(this.overflowBin.range.min);
+      return boundaries;
     }
 
     clone() {
@@ -457,10 +461,10 @@ tr.exportTo('tr.v', function() {
       return {
         type: 'numeric',
         unit: this.unit.asJSON(),
-        binBounds: this.binBounds,
+        binBoundaries: this.binBoundaries,
 
         underflowBin: this.underflowBin.asDict(),
-        centralBins: this.centralBins.map((bin) => bin.asDict()),
+        centralBins: this.centralBins.map(bin => bin.asDict()),
         overflowBin: this.overflowBin.asDict(),
 
         running: this.running.asDict(),
@@ -509,48 +513,51 @@ tr.exportTo('tr.v', function() {
    *     the underflow bin and the first central bin (or the overflow bin if
    *     no other boundaries are added later).
    */
-  class NumericBuilder {
+  class HistogramBinBoundaries {
     /**
-     * Create a linearly scaled tr.v.NumericBuilder with |numBins| bins ranging
-     * from |range.min| to |range.max|.
+     * Create a linearly scaled tr.v.HistogramBinBoundaries with |numBins| bins
+     * ranging from |min| to |max|.
      *
-     * @param {!tr.v.Unit} unit
-     * @param {!tr.b.Range} range
+     * @param {number} min
+     * @param {number} max
      * @param {number} numBins
-     * @return {tr.v.NumericBuilder}
+     * @return {tr.v.HistogramBinBoundaries}
      */
-    static createLinear(unit, range, numBins) {
-      if (range.isEmpty)
-        throw new Error('Range must be non-empty');
-
-      return new NumericBuilder(unit, range.min).addLinearBins(
-          range.max, numBins);
+    static createLinear(min, max, numBins) {
+      return new HistogramBinBoundaries(min).addLinearBins(max, numBins);
     }
 
     /**
-     * Create an exponentially scaled tr.v.NumericBuilder with |numBins| bins
-     * ranging from |range.min| to |range.max|.
+     * Create an exponentially scaled tr.v.HistogramBinBoundaries with |numBins|
+     * bins ranging from |min| to |max|.
      *
-     * @param {!tr.v.Unit} unit
-     * @param {!tr.b.Range} range
+     * @param {number} min
+     * @param {number} max
      * @param {number} numBins
-     * @return {tr.v.NumericBuilder}
+     * @return {tr.v.HistogramBinBoundaries}
      */
-    static createExponential(unit, range, numBins) {
-      if (range.isEmpty)
-        throw new Error('Range must be non-empty');
-      return new NumericBuilder(unit, range.min).addExponentialBins(
-          range.max, numBins);
+    static createExponential(min, max, numBins) {
+      return new HistogramBinBoundaries(min).addExponentialBins(max, numBins);
     }
 
-    static createFromSamples(unit, samples) {
+    /**
+     * @param {Array.<number>} binBoundaries
+     */
+    static createWithBoundaries(binBoundaries) {
+      var builder = new HistogramBinBoundaries(binBoundaries[0]);
+      for (var boundary of binBoundaries.slice(1))
+        builder.addBinBoundary(boundary);
+      return builder;
+    }
+
+    static createFromSamples(samples) {
       var range = new tr.b.Range();
       // Prevent non-numeric samples from introducing NaNs into the range.
       for (var sample of samples)
         if (!isNaN(Math.max(sample)))
           range.addValue(sample);
 
-      // NumericBuilder.addLinearBins() requires this.
+      // HistogramBinBoundaries.addLinearBins() requires this.
       if (range.isEmpty)
         range.addValue(1);
       if (range.min === range.max)
@@ -559,18 +566,16 @@ tr.exportTo('tr.v', function() {
       // This optimizes the resolution when samples are uniformly distributed
       // (which is almost never the case).
       var numBins = Math.ceil(Math.sqrt(samples.length));
-      var builder = new NumericBuilder(unit, range.min);
+      var builder = new HistogramBinBoundaries(range.min);
       builder.addLinearBins(range.max, numBins);
       return builder;
     }
 
-    constructor(unit, minBinBoundary) {
-      this.unit_ = unit;
+    /**
+     * @param {number} minBinBoundary
+     */
+    constructor(minBinBoundary) {
       this.boundaries_ = [minBinBoundary];
-    }
-
-    get binBounds() {
-      return this.boundaries_;
     }
 
     get minBinBoundary() {
@@ -579,6 +584,16 @@ tr.exportTo('tr.v', function() {
 
     get maxBinBoundary() {
       return this.boundaries_[this.boundaries_.length - 1];
+    }
+
+    /**
+     * Yield Ranges of adjacent boundaries.
+     */
+    *[Symbol.iterator]() {
+      for (var i = 0; i < this.boundaries_.length - 1; ++i) {
+        yield tr.b.Range.fromExplicitRange(
+            this.boundaries_[i], this.boundaries_[i + 1]);
+      }
     }
 
     /**
@@ -686,50 +701,44 @@ tr.exportTo('tr.v', function() {
 
       return this;
     }
-
-    /**
-     * Build a tr.v.Histogram from the list of bin boundaries.
-     *
-     * As explained earlier, this method can be called arbitrarily many times
-     * to produce arbitrarily many distinct numerics.
-     */
-    build() {
-      return new Histogram(this.unit_, this.boundaries_);
-    }
   };
 
-  function defineDefaultBuilder(unit, options) {
-    var range = tr.b.Range.fromExplicitRange(options.min, options.max);
-    var builder;
-    if (options.exponential)
-      builder = NumericBuilder.createExponential(unit, range, options.numBins);
-    else
-      builder = NumericBuilder.createLinear(unit, range, options.numBins);
-    DEFAULT_BUILDER_FOR_UNIT.set(unit.unitName, builder);
-  }
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.timeDurationInMs.unitName,
+      HistogramBinBoundaries.createExponential(1e-3, 1e6, 1e2));
 
-  defineDefaultBuilder(tr.v.Unit.byName.timeDurationInMs, {
-    exponential: true, min: 1e-3, max: 1e6, numBins: 1e2});
-  defineDefaultBuilder(tr.v.Unit.byName.timeStampInMs, {
-    exponential: false, min: 0, max: 1e10, numBins: 1e3});
-  defineDefaultBuilder(tr.v.Unit.byName.normalizedPercentage, {
-    exponential: false, min: 0.0, max: 1.0, numBins: 20});
-  defineDefaultBuilder(tr.v.Unit.byName.sizeInBytes, {
-    exponential: true, min: 1, max: 1e12, numBins: 1e2});
-  defineDefaultBuilder(tr.v.Unit.byName.energyInJoules, {
-    exponential: true, min: 1e-3, max: 1e2, numBins: 30});
-  defineDefaultBuilder(tr.v.Unit.byName.powerInWatts, {
-    exponential: true, min: 1e-3, max: 1e2, numBins: 30});
-  defineDefaultBuilder(tr.v.Unit.byName.unitlessNumber, {
-    exponential: true, min: 1e-3, max: 1e3, numBins: 20});
-  defineDefaultBuilder(tr.v.Unit.byName.count, {
-    exponential: true, min: 1, max: 1e3, numBins: 20});
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.timeStampInMs.unitName,
+      HistogramBinBoundaries.createLinear(0, 1e10, 1e3));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.normalizedPercentage.unitName,
+      HistogramBinBoundaries.createLinear(0, 1.0, 20));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.sizeInBytes.unitName,
+      HistogramBinBoundaries.createExponential(1, 1e12, 1e2));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.energyInJoules.unitName,
+      HistogramBinBoundaries.createExponential(1e-3, 1e3, 50));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.powerInWatts.unitName,
+      HistogramBinBoundaries.createExponential(1e-3, 1, 50));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.unitlessNumber.unitName,
+      HistogramBinBoundaries.createExponential(1e-3, 1e3, 50));
+
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.v.Unit.byName.count.unitName,
+      HistogramBinBoundaries.createExponential(1, 1e3, 20));
 
   return {
     Significance: Significance,
-    HistogramBin: HistogramBin,
     Histogram: Histogram,
-    NumericBuilder: NumericBuilder,
+    HistogramBinBoundaries: HistogramBinBoundaries,
   };
 });
 </script>

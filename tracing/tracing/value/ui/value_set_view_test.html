@@ -14,17 +14,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var TEST_NUMERIC_BUILDER = tr.v.NumericBuilder.createLinear(
-      tr.v.Unit.byName.timeDurationInMs, tr.b.Range.fromExplicitRange(0, 1000),
-      20);
-
   test('instantiate0', function() {
     var view = document.createElement('tr-v-ui-value-set-view');
     var values = new tr.v.ValueSet();
 
-    var numeric = TEST_NUMERIC_BUILDER.build();
+    var numeric = new tr.v.Histogram(tr.v.Unit.byName.normalizedPercentage);
     for (var i = 0; i < 1e2; ++i) {
-      numeric.add(Math.random() * TEST_NUMERIC_BUILDER.maxBinBoundary);
+      numeric.add(Math.random());
     }
     var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
     values.addValue(foo);

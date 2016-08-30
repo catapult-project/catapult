@@ -56,8 +56,8 @@ tr.b.unittest.testSuite(function() {
     var chromeValue = values.getValuesWithName('cpu:percent:chrome')[0];
     var chromeStatistics = chromeValue.numeric.running;
     assert.strictEqual(chromeStatistics.count, 1);
-    assert.strictEqual(chromeStatistics.mean, 1.1);
-    assert.strictEqual(chromeStatistics.max, 1.1);
+    assert.closeTo(chromeStatistics.mean, 0.011, 1e-5);
+    assert.closeTo(chromeStatistics.max, 0.011, 1e-5);
     assert.instanceOf(chromeValue.diagnostics.get('paths'), tr.v.d.Generic);
     assert.lengthOf(chromeValue.diagnostics.get('paths').value, 1);
     assert.strictEqual(chromeValue.diagnostics.get('paths').value[0],
@@ -109,8 +109,8 @@ tr.b.unittest.testSuite(function() {
     var chromeValue = values.getValuesWithName('cpu:percent:chrome')[0];
     var chromeStatistics = chromeValue.numeric.running;
     assert.strictEqual(chromeStatistics.count, 2);
-    assert.strictEqual(chromeStatistics.mean, 0.75);
-    assert.strictEqual(chromeStatistics.max, 0.8);
+    assert.closeTo(chromeStatistics.mean, 0.0075, 1e-5);
+    assert.strictEqual(chromeStatistics.max, 0.008);
     assert.instanceOf(chromeValue.diagnostics.get('paths'), tr.v.d.Generic);
     assert.lengthOf(chromeValue.diagnostics.get('paths').value, 2);
     assert.strictEqual(chromeValue.diagnostics.get('paths').value[0],
