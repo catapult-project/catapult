@@ -88,7 +88,7 @@ _CATAPULT_TESTS = [
     {
         'name': 'Node Smoke Test',
         'path': 'common/node_runner/bin/test_node_for_smoke',
-        'disabled': ['android', 'win'],
+        'disabled': ['android'],
     },
     {
         'name': 'Py-vulcanize Tests',
