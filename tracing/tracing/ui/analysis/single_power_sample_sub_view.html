@@ -44,7 +44,7 @@ Polymer({
         title: 'Power',
         width: '100%',
         value: function(row) {
-          return tr.v.ui.createScalarSpan(row.power, {
+          return tr.v.ui.createScalarSpan(row.powerInW, {
             unit: tr.v.Unit.byName.powerInWatts
           });
         }
