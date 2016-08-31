@@ -1,0 +1,52 @@
+{
+  "config_type": "BaseConfig",
+  "dependencies": {
+    "node": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "aedecb4f979a1410d0423ad7e4c5416eea1ce146",
+          "download_path": "bin/node/node-linux64.zip",
+          "path_within_archive": "node-linux64/bin/node",
+          "version_in_cs": "5.10.1"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "3dda6d1779e3b4e17ab17a75342198aff43522ab",
+          "download_path": "bin/node/node-mac64.zip",
+          "path_within_archive": "node-mac64/bin/node",
+          "version_in_cs": "5.10.1"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "59dcae5e49d97b53f7579bf3c9454d6d53edf8db",
+          "download_path": "bin/node/node.exe",
+          "version_in_cs": "5.10.1"
+        }
+      }
+    },
+    "npm": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux_x86_64": {
+          "cloud_storage_hash": "aedecb4f979a1410d0423ad7e4c5416eea1ce146",
+          "download_path": "bin/node/node-linux64.zip",
+          "path_within_archive": "node-linux64/lib/node_modules/npm/bin/npm-cli.js",
+          "version_in_cs": "5.10.1"
+        },
+        "mac_x86_64": {
+          "cloud_storage_hash": "3dda6d1779e3b4e17ab17a75342198aff43522ab",
+          "download_path": "bin/node/node-mac64.zip",
+          "path_within_archive": "node-mac64/lib/node_modules/npm/bin/npm-cli.js",
+          "version_in_cs": "5.10.1"
+        },
+        "win_AMD64": {
+          "cloud_storage_hash": "0fdeec4c78abe528af760a5e9d8e0998a2dc77eb",
+          "download_path": "bin/node/npm.zip",
+          "path_within_archive": "npm/bin/npm-cli.js",
+          "version_in_cs": "3.8.3"
+        }
+      }
+    }
+  }
+}

@@ -86,6 +86,11 @@ _CATAPULT_TESTS = [
         'disabled': ['mac', 'win'],
     },
     {
+        'name': 'Node Smoke Test',
+        'path': 'common/node_runner/bin/test_node_for_smoke',
+        'disabled': ['android', 'win'],
+    },
+    {
         'name': 'Py-vulcanize Tests',
         'path': 'third_party/py_vulcanize/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],
