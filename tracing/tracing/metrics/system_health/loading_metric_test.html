@@ -122,48 +122,18 @@ tr.b.unittest.testSuite(function() {
           {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 500,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 10,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000,
-          },
-          contentsHeightBeforeLayout: 0
-        }
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 600,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 800,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 100,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000
-          },
-          contentsHeightBeforeLayout: 800
-        }
-      }));
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 1000,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
     });
     var values = new tr.v.ValueSet();
@@ -173,62 +143,6 @@ tr.b.unittest.testSuite(function() {
     var numeric = ttfmpEntries[0].numeric;
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
-  });
-
-  test('timeToFirstMeaningfulPaintWithInvalidLayoutCounters', function() {
-    var model = tr.c.TestUtils.newModel(function(model) {
-      var rendererProcess = model.getOrCreateProcess(1);
-      var mainThread = rendererProcess.getOrCreateThread(2);
-      mainThread.name = 'CrRendererMain';
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink.user_timing',
-        title: 'navigationStart',
-        start: 200,
-        duration: 0.0,
-        args: {frame: '0xdeadbeef'}
-      }));
-      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
-          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
-            documentLoaderURL: 'http://example.com'});
-
-      // FrameView::performLayout trace event does not have frame ID
-      // if blink.debug.layout category is not enabled.
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 500,
-        duration: 10.0,
-        args: {
-          counters: {},
-          contentsHeightBeforeLayout: 0
-        }
-      }));
-
-      // Incomplete slice: counters argument is missing.
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 550,
-        duration: 10.0,
-        args: {
-          contentsHeightBeforeLayout: 0
-        }
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
-        start: 600,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
-      }));
-    });
-    var values = new tr.v.ValueSet();
-    tr.metrics.sh.loadingMetric(values, model);
-    var ttfmpEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'timeToFirstMeaningfulPaint');
-    var numeric = ttfmpEntries[0].numeric;
-    assert.equal(0, numeric.running.count);
   });
 
   test('timeToInteractive', function() {
@@ -254,52 +168,21 @@ tr.b.unittest.testSuite(function() {
       rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
           {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'});
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 500,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 10,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000,
-          },
-          contentsHeightBeforeLayout: 0
-        }
-      }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 9180,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 9190,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 100,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000
-          },
-          contentsHeightBeforeLayout: 800
-        }
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 9200,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -377,51 +260,19 @@ tr.b.unittest.testSuite(function() {
           {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
             documentLoaderURL: 'http://example.com'});
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 500,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 10,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000,
-          },
-          contentsHeightBeforeLayout: 0
-        }
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 9180,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 9190,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 100,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000
-          },
-          contentsHeightBeforeLayout: 800
-        }
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 9200,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
@@ -461,27 +312,11 @@ tr.b.unittest.testSuite(function() {
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'blink,benchmark,rail,disabled-by-default-blink.debug.layout',
-        title: 'FrameView::performLayout',
-        start: 15990,
-        duration: 10.0,
-        args: {
-          counters: {
-            frame: '0xdeadbeef',
-            LayoutObjectsThatHadNeverHadLayout: 100,
-            contentsHeightAfterLayout: 800,
-            visibleHeight: 1000
-          },
-          contentsHeightBeforeLayout: 800
-        }
-      }));
-
-      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
-        cat: 'devtools.timeline,rail',
-        title: 'Paint',
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
         start: 16000,
-        duration: 1.0,
-        args: {data: {frame: '0xdeadbeef'}}
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
       }));
 
       mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
