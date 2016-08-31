@@ -159,16 +159,17 @@ tr.exportTo('tr.v', function() {
     addValueInternal_(v) {
       if (this.values_[v.guid])
         throw new Error('Tried to add same value twice');
+
       this.values_[v.guid] = v;
     }
 
     addValue(v) {
       this.addValueInternal_(v);
 
-      if (v.numeric instanceof tr.v.Histogram) {
+      // TODO(eakuefner): Do this as a separate telemetry step.
+      if (v.numeric instanceof tr.v.Histogram)
         for (var s of ValueSet.computeSummaryValuesForNumericValue(v))
-          this.addValue(s);
-      }
+          this.addValueInternal_(s);
     }
 
     static computeSummaryValuesForNumericValue(value) {

@@ -91,9 +91,9 @@ tr.b.unittest.testSuite(function() {
 
   test('relatedValueSetDiagnostic', function() {
     var unit = tr.v.Unit.byName.unitlessNumber;
-    var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 0));
-    var b = new tr.v.NumericValue('b', new tr.v.ScalarNumeric(unit, 1));
-    var c = new tr.v.NumericValue('c', new tr.v.ScalarNumeric(unit, 2));
+    var a = new tr.v.NumericValue('a', new tr.v.Histogram(unit));
+    var b = new tr.v.NumericValue('b', new tr.v.Histogram(unit));
+    var c = new tr.v.NumericValue('c', new tr.v.Histogram(unit));
     a.diagnostics.set('rvs', new tr.v.d.RelatedValueSet([b, c]));
 
     // Don't serialize c just yet.
@@ -106,14 +106,14 @@ tr.b.unittest.testSuite(function() {
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
 
-    var a2 = values2.getValuesWithName('a');
+    var a2 = values2.getValuesNamed('a');
     assert.lengthOf(a2, 1);
     a2 = a2[0];
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Value);
     assert.notStrictEqual(a2, a);
 
-    var b2 = values2.getValuesWithName('b');
+    var b2 = values2.getValuesNamed('b');
     assert.lengthOf(b2, 1);
     b2 = b2[0];
     assert.strictEqual(b2.guid, b.guid);
@@ -139,7 +139,7 @@ tr.b.unittest.testSuite(function() {
     // Old values can refer to new values.
     values2.addValuesFromDicts([c.asDict()]);
 
-    var c2 = values2.getValuesWithName('c');
+    var c2 = values2.getValuesNamed('c');
     assert.lengthOf(c2, 1);
     c2 = c2[0];
     assert.strictEqual(c2.guid, c.guid);
@@ -156,9 +156,9 @@ tr.b.unittest.testSuite(function() {
 
   test('relatedValueMapDiagnostic', function() {
     var unit = tr.v.Unit.byName.unitlessNumber;
-    var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 0));
-    var b = new tr.v.NumericValue('b', new tr.v.ScalarNumeric(unit, 1));
-    var c = new tr.v.NumericValue('c', new tr.v.ScalarNumeric(unit, 2));
+    var a = new tr.v.NumericValue('a', new tr.v.Histogram(unit));
+    var b = new tr.v.NumericValue('b', new tr.v.Histogram(unit));
+    var c = new tr.v.NumericValue('c', new tr.v.Histogram(unit));
     var rvm = new tr.v.d.RelatedValueMap();
     rvm.set('y', b);
     rvm.set('z', c);
@@ -174,14 +174,14 @@ tr.b.unittest.testSuite(function() {
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
 
-    var a2 = values2.getValuesWithName('a');
+    var a2 = values2.getValuesNamed('a');
     assert.lengthOf(a2, 1);
     a2 = a2[0];
     assert.strictEqual(a2.guid, a.guid);
     assert.instanceOf(a2, tr.v.Value);
     assert.notStrictEqual(a2, a);
 
-    var b2 = values2.getValuesWithName('b');
+    var b2 = values2.getValuesNamed('b');
     assert.lengthOf(b2, 1);
     b2 = b2[0];
     assert.strictEqual(b2.guid, b.guid);
@@ -202,7 +202,7 @@ tr.b.unittest.testSuite(function() {
     // Old values can refer to new values.
     values2.addValuesFromDicts([c.asDict()]);
 
-    var c2 = values2.getValuesWithName('c');
+    var c2 = values2.getValuesNamed('c');
     assert.lengthOf(c2, 1);
     c2 = c2[0];
     assert.strictEqual(c2.guid, c.guid);
@@ -218,7 +218,9 @@ tr.b.unittest.testSuite(function() {
 
   test('sourceValuesWithSampleDiagnostic', function() {
     var unit = tr.v.Unit.byName.unitlessNumber;
-    var a = new tr.v.NumericValue('a', new tr.v.ScalarNumeric(unit, 1));
+    var aHist = new tr.v.Histogram(unit);
+    aHist.add(1);
+    var a = new tr.v.NumericValue('a', aHist);
 
     var numeric = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
     numeric.add(1, tr.v.d.DiagnosticMap.fromObject({
