@@ -34,16 +34,16 @@ tr.exportTo('tr.metrics.sh', function() {
       // entered (via android.os.Trace.beginSection) when WebView is started
       // up. This value is defined in TelemetryActivity.java.
       if (slice.title === 'WebViewStartupInterval') {
-        startupWallHist.add(slice.duration);
-        startupCPUHist.add(slice.cpuDuration);
+        startupWallHist.addSample(slice.duration);
+        startupCPUHist.addSample(slice.cpuDuration);
       }
 
       // WebViewBlankUrlLoadInterval is the title of the section of code
       // that is entered (via android.os.Trace.beginSection) when WebView
       // is started up. This value is defined in TelemetryActivity.java.
       if (slice.title === 'WebViewBlankUrlLoadInterval') {
-        loadWallHist.add(slice.duration);
-        loadCPUHist.add(slice.cpuDuration);
+        loadWallHist.addSample(slice.duration);
+        loadCPUHist.addSample(slice.cpuDuration);
       }
     }
 

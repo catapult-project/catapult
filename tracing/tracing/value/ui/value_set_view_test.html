@@ -18,11 +18,10 @@ tr.b.unittest.testSuite(function() {
     var view = document.createElement('tr-v-ui-value-set-view');
     var values = new tr.v.ValueSet();
 
-    var numeric = new tr.v.Histogram(tr.v.Unit.byName.normalizedPercentage);
-    for (var i = 0; i < 1e2; ++i) {
-      numeric.add(Math.random());
-    }
-    var foo = new tr.v.NumericValue('foo', numeric, {description: 'bar'});
+    var hist = new tr.v.Histogram(tr.v.Unit.byName.normalizedPercentage);
+    for (var i = 0; i < 1e2; ++i)
+      hist.addSample(Math.random());
+    var foo = new tr.v.NumericValue('foo', hist, {description: 'bar'});
     values.addValue(foo);
 
     this.addHTMLOutput(view);

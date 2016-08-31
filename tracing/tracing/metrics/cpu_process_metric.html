@@ -53,7 +53,7 @@ tr.exportTo('tr.metrics.sh', function() {
            paths: new Set()
          });
        }
-       processNumerics.get(processName).numeric.add(
+       processNumerics.get(processName).numeric.addSample(
            processData.sum / 100.0);
        for (var path of processData.paths)
          processNumerics.get(processName).paths.add(path);
@@ -72,7 +72,7 @@ tr.exportTo('tr.metrics.sh', function() {
       // taken.
       var missingSnapshotCount = snapshots.length - numeric.numValues;
       for (var i = 0; i < missingSnapshotCount; i++)
-        numeric.add(0);
+        numeric.addSample(0);
       var value = new tr.v.NumericValue('cpu:percent:' + processName, numeric);
       value.diagnostics.set('paths', new
           tr.v.d.Generic([...processData.paths]));

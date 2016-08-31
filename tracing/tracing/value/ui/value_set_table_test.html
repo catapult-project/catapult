@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
     var numeric = new tr.v.Histogram(
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
-      numeric.add(Math.random() * 1000);
+      numeric.addSample(Math.random() * 1000);
     values.addValue(new tr.v.NumericValue('foo', numeric));
     table.values = values;
     this.addHTMLOutput(table);
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
     var numeric0a = new tr.v.Histogram(
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
-      numeric0a.add(Math.random() * 1000);
+      numeric0a.addSample(Math.random() * 1000);
     var fooA = new tr.v.NumericValue('foo', numeric0a, {
       description: 'they should have sent a poet'
     });
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
     var numeric1a = new tr.v.Histogram(
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
-      numeric1a.add(Math.random() * 1000);
+      numeric1a.addSample(Math.random() * 1000);
     var barA = new tr.v.NumericValue('bar', numeric1a, {
       description: 'indescribable'
     });
@@ -75,7 +75,7 @@ tr.b.unittest.testSuite(function() {
     var numeric0b = new tr.v.Histogram(
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
-      numeric0b.add(Math.random() * 1000);
+      numeric0b.addSample(Math.random() * 1000);
     var fooB = new tr.v.NumericValue('foo', numeric0b, {
       description: 'they should have sent a poet'
     });
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
     var numeric1b = new tr.v.Histogram(
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
-      numeric1b.add(Math.random() * 1000);
+      numeric1b.addSample(Math.random() * 1000);
     var barB = new tr.v.NumericValue('bar', numeric1b, {
       description: 'indescribable'
     });
@@ -134,7 +134,7 @@ tr.b.unittest.testSuite(function() {
                         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
                         TEST_BOUNDARIES);
                     for (var i = 0; i < 100; ++i)
-                      numeric.add(Math.random() * 1000);
+                      numeric.addSample(Math.random() * 1000);
 
                     var value = new tr.v.NumericValue('foo', numeric);
                     values.addValue(value);

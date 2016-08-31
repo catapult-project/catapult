@@ -44,19 +44,19 @@ tr.exportTo('tr.metrics.sh', function() {
 
       var durationHist = new tr.v.Histogram(
           tr.v.Unit.byName.timeDurationInMs_smallerIsBetter);
-      durationHist.add(durationInMs);
+      durationHist.addSample(durationInMs);
       values.addValue(new tr.v.NumericValue('total_time_' + title, durationHist,
           {description: 'Time spent in RAIL stage ' + title}));
 
       var energyHist = new tr.v.Histogram(
           tr.v.Unit.byName.energyInJoules_smallerIsBetter);
-      energyHist.add(energyInJ);
+      energyHist.addSample(energyInJ);
       values.addValue(new tr.v.NumericValue('total_energy_' + title, energyHist,
           {description: 'Energy consumed in RAIL stage ' + title}));
 
       var powerHist = new tr.v.Histogram(
           tr.v.Unit.byName.powerInWatts_smallerIsBetter);
-      powerHist.add(powerInW);
+      powerHist.addSample(powerInW);
       values.addValue(new tr.v.NumericValue('energy_consumption_rate_' + title,
           powerHist, {description: 'Energy consumption rate for RAIL stage ' +
             title}));

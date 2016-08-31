@@ -772,7 +772,7 @@ tr.exportTo('tr.metrics.sh', function() {
     // Build the underlying histogram for the memory value.
     var histogram = new tr.v.Histogram(unitlessNumber_smallerIsBetter,
         BOUNDARIES_FOR_UNIT_MAP.get(unitlessNumber_smallerIsBetter));
-    histogram.add(levelOfDetailDumpCount);
+    histogram.addSample(levelOfDetailDumpCount);
 
     // Build the options for the memory value.
     var description = [
@@ -1124,9 +1124,9 @@ tr.exportTo('tr.metrics.sh', function() {
    * |node| to it.
    */
   function buildMemoryNumericFromNode(node, unit) {
-    var numeric = new tr.v.Histogram(unit, BOUNDARIES_FOR_UNIT_MAP.get(unit));
-    node.values.forEach(v => numeric.add(v.total));
-    return numeric;
+    var histogram = new tr.v.Histogram(unit, BOUNDARIES_FOR_UNIT_MAP.get(unit));
+    node.values.forEach(v => histogram.addSample(v.total));
+    return histogram;
   }
 
   tr.metrics.MetricRegistry.register(memoryMetric, {

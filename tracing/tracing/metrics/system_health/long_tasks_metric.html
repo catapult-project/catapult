@@ -82,8 +82,8 @@ tr.exportTo('tr.metrics.sh', function() {
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
           thread, rangeOfInterest, function(task) {
-            longTaskNumeric.add(task.duration, tr.v.d.DiagnosticMap.fromObject({
-                relatedEvents: new tr.v.d.RelatedEventSet([task])}));
+            longTaskNumeric.addSample(task.duration,
+                {relatedEvents: new tr.v.d.RelatedEventSet([task])});
             slices.push(task);
             slices.addEventSet(task.descendentSlices);
           });

@@ -17,7 +17,7 @@ tr.b.unittest.testSuite(function() {
   test('FindMetricByName', function() {
     function sampleMetricA(values, model) {
       var n1 = new tr.v.Histogram(tr.v.Unit.byName.count);
-      n1.add(1);
+      n1.addSample(1);
       values.addValue(new tr.v.NumericValue('foo', n1));
     }
     tr.metrics.MetricRegistry.register(sampleMetricA);
@@ -25,8 +25,8 @@ tr.b.unittest.testSuite(function() {
     function sampleMetricB(values, model) {
       var n1 = new tr.v.Histogram(tr.v.Unit.byName.count);
       var n2 = new tr.v.Histogram(tr.v.Unit.byName.count);
-      n1.add(1);
-      n2.add(2);
+      n1.addSample(1);
+      n2.addSample(2);
       values.addValue(new tr.v.NumericValue('foo', n1));
       values.addValue(new tr.v.NumericValue('bar', n2));
     }
@@ -36,9 +36,9 @@ tr.b.unittest.testSuite(function() {
       var n1 = new tr.v.Histogram(tr.v.Unit.byName.count);
       var n2 = new tr.v.Histogram(tr.v.Unit.byName.count);
       var n3 = new tr.v.Histogram(tr.v.Unit.byName.count);
-      n1.add(1);
-      n2.add(2);
-      n3.add(3);
+      n1.addSample(1);
+      n2.addSample(2);
+      n3.addSample(3);
       values.addValue(new tr.v.NumericValue('foo', n1));
       values.addValue(new tr.v.NumericValue('bar', n2));
       values.addValue(new tr.v.NumericValue('baz', n3));

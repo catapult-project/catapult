@@ -109,8 +109,8 @@ tr.exportTo('tr.v.d', function() {
           composition.set(eventCategory, value);
         }
 
-        value.numeric.add(sample, tr.v.d.DiagnosticMap.fromObject(
-            {relatedEvents: new tr.v.d.RelatedEventSet([event])}));
+        value.numeric.addSample(sample,
+            {relatedEvents: new tr.v.d.RelatedEventSet([event])});
       }
       return composition;
     }

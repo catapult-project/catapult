@@ -45,7 +45,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var hist = new tr.v.Histogram(
           tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
           tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 30));
-      hist.add(latency);
+      hist.addSample(latency);
       values.addValue(new tr.v.NumericValue(
           'clock_sync_latency_' + targetDomain, hist,
           {description: 'Clock sync latency for domain ' + targetDomain}));

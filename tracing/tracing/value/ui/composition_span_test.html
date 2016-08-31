@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
     var numeric = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs);
     var scalar = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 42);
     for (var i = 0; i < 1e2; ++i) {
-      numeric.add(Math.random());
+      numeric.addSample(Math.random());
     }
     var composition = new tr.v.d.Composition();
     composition.add(new tr.v.NumericValue('numeric', numeric));

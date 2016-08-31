@@ -90,9 +90,9 @@ tr.exportTo('tr.metrics.v8', function() {
   function createPercentage(numerator, denominator) {
     var hist = new tr.v.Histogram(percentage_biggerIsBetter);
     if (denominator === 0)
-      hist.add(0);
+      hist.addSample(0);
     else
-      hist.add(numerator / denominator);
+      hist.addSample(numerator / denominator);
     return hist;
   }
 
@@ -121,7 +121,7 @@ tr.exportTo('tr.metrics.v8', function() {
       function(name, events) {
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
-          cpuDuration.add(event.cpuDuration);
+          cpuDuration.addSample(event.cpuDuration);
         });
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
       }
@@ -139,7 +139,7 @@ tr.exportTo('tr.metrics.v8', function() {
       function(name, events) {
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
-          cpuDuration.add(event.cpuDuration);
+          cpuDuration.addSample(event.cpuDuration);
         });
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
       }
@@ -157,7 +157,7 @@ tr.exportTo('tr.metrics.v8', function() {
       function(name, events) {
         var cpuDuration = createNumericForSubEventTime();
         events.forEach(function(event) {
-          cpuDuration.add(event.cpuDuration);
+          cpuDuration.addSample(event.cpuDuration);
         });
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
       }
@@ -220,10 +220,10 @@ tr.exportTo('tr.metrics.v8', function() {
           inside = event.cpuDuration;
         }
       }
-      cpuDuration.add(event.cpuDuration);
-      insideIdle.add(inside);
-      outsideIdle.add(event.cpuDuration - inside);
-      idleDeadlineOverrun.add(overrun);
+      cpuDuration.addSample(event.cpuDuration);
+      insideIdle.addSample(inside);
+      outsideIdle.addSample(event.cpuDuration - inside);
+      idleDeadlineOverrun.addSample(overrun);
     });
     values.addValue(new tr.v.NumericValue(
         name + '_idle_deadline_overrun',
@@ -261,13 +261,13 @@ tr.exportTo('tr.metrics.v8', function() {
               0, time, WINDOW_SIZE_MS, pauses);
           [0.90, 0.95, 0.99].forEach(function(percent) {
             var hist = new tr.v.Histogram(percentage_biggerIsBetter);
-            hist.add(mutatorUtilization.percentile(1.0 - percent));
+            hist.addSample(mutatorUtilization.percentile(1.0 - percent));
             values.addValue(new tr.v.NumericValue(
                 'v8-execute-mutator-utilization_pct_0' + percent * 100,
                 hist));
           });
           var hist = new tr.v.Histogram(percentage_biggerIsBetter);
-          hist.add(mutatorUtilization.min);
+          hist.addSample(mutatorUtilization.min);
           values.addValue(new tr.v.NumericValue(
               'v8-execute-mutator-utilization_min', hist));
         }

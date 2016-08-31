@@ -28,10 +28,10 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.Execute')) {
-      cpuTotalExecution.add(e.cpuDuration);
-      wallTotalExecution.add(e.duration);
-      cpuSelfExecution.add(e.cpuSelfTime);
-      wallSelfExecution.add(e.selfTime);
+      cpuTotalExecution.addSample(e.cpuDuration);
+      wallTotalExecution.addSample(e.duration);
+      cpuSelfExecution.addSample(e.cpuSelfTime);
+      wallSelfExecution.addSample(e.selfTime);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -55,12 +55,12 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.ParseLazyMicroSeconds')) {
-      cpuSelfParseLazy.add(e.cpuSelfTime);
-      wallSelfParseLazy.add(e.selfTime);
+      cpuSelfParseLazy.addSample(e.cpuSelfTime);
+      wallSelfParseLazy.addSample(e.selfTime);
     }
     for (var e of model.findTopmostSlicesNamed('V8.ParseLazy')) {
-      cpuSelfParseLazy.add(e.cpuSelfTime);
-      wallSelfParseLazy.add(e.selfTime);
+      cpuSelfParseLazy.addSample(e.cpuSelfTime);
+      wallSelfParseLazy.addSample(e.selfTime);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -78,8 +78,8 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.CompileFullCode')) {
-      cpuSelfCompileFullCode.add(e.cpuSelfTime);
-      wallSelfCompileFullCode.add(e.selfTime);
+      cpuSelfCompileFullCode.addSample(e.cpuSelfTime);
+      wallSelfCompileFullCode.addSample(e.selfTime);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -100,8 +100,8 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.CompileIgnition')) {
-      cpuSelfCompileIgnition.add(e.cpuSelfTime);
-      wallSelfCompileIgnition.add(e.selfTime);
+      cpuSelfCompileIgnition.addSample(e.cpuSelfTime);
+      wallSelfCompileIgnition.addSample(e.selfTime);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -132,10 +132,10 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.RecompileSynchronous')) {
-      cpuTotalRecompileSynchronous.add(e.cpuDuration);
-      wallTotalRecompileSynchronous.add(e.duration);
-      cpuTotalRecompileOverall.add(e.cpuDuration);
-      wallTotalRecompileOverall.add(e.duration);
+      cpuTotalRecompileSynchronous.addSample(e.cpuDuration);
+      wallTotalRecompileSynchronous.addSample(e.duration);
+      cpuTotalRecompileOverall.addSample(e.cpuDuration);
+      wallTotalRecompileOverall.addSample(e.duration);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -149,10 +149,10 @@ tr.exportTo('tr.metrics.v8', function() {
 
 
     for (var e of model.findTopmostSlicesNamed('V8.RecompileConcurrent')) {
-      cpuTotalRecompileConcurrent.add(e.cpuDuration);
-      wallTotalRecompileConcurrent.add(e.duration);
-      cpuTotalRecompileOverall.add(e.cpuDuration);
-      wallTotalRecompileOverall.add(e.duration);
+      cpuTotalRecompileConcurrent.addSample(e.cpuDuration);
+      wallTotalRecompileConcurrent.addSample(e.duration);
+      cpuTotalRecompileOverall.addSample(e.cpuDuration);
+      wallTotalRecompileOverall.addSample(e.duration);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -184,8 +184,8 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.OptimizeCode')) {
-      cpuTotalOptimizeCode.add(e.cpuDuration);
-      wallTotalOptimizeCode.add(e.duration);
+      cpuTotalOptimizeCode.addSample(e.cpuDuration);
+      wallTotalOptimizeCode.addSample(e.duration);
     }
 
     values.addValue(new tr.v.NumericValue(
@@ -205,8 +205,8 @@ tr.exportTo('tr.metrics.v8', function() {
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.DeoptimizeCode')) {
-      cpuTotalDeoptimizeCode.add(e.cpuDuration);
-      wallTotalDeoptimizeCode.add(e.duration);
+      cpuTotalDeoptimizeCode.addSample(e.cpuDuration);
+      wallTotalDeoptimizeCode.addSample(e.duration);
     }
 
     values.addValue(new tr.v.NumericValue(

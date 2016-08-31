@@ -44,18 +44,17 @@ tr.exportTo('tr.v', function() {
 
     /**
      * @param {*} value
-     * @param {!tr.v.d.DiagnosticMap=} opt_diagnosticMap
      */
-    add(value, opt_diagnosticMap) {
-      if ((opt_diagnosticMap !== undefined) &&
-          !(opt_diagnosticMap instanceof tr.v.d.DiagnosticMap))
-        throw new Error('Can\'t add a sample with a non-DiagnosticMap');
+    addSample(value) {
       this.count += 1;
-      if (opt_diagnosticMap) {
-        tr.b.Statistics.uniformlySampleStream(
-            this.diagnosticMaps, this.count, opt_diagnosticMap,
-            MAX_DIAGNOSTIC_MAPS);
-      }
+    }
+
+    /**
+     * @param {!tr.v.d.DiagnosticMap} diagnostics
+     */
+    addDiagnosticMap(diagnostics) {
+      tr.b.Statistics.uniformlySampleStream(
+          this.diagnosticMaps, this.count, diagnostics, MAX_DIAGNOSTIC_MAPS);
     }
 
     addBin(other) {
@@ -188,7 +187,7 @@ tr.exportTo('tr.v', function() {
 
       // TODO(eakuefner): Propagate diagnosticMaps?
       for (var sample of samples)
-        result.add(sample);
+        result.addSample(sample);
 
       return result;
     }
@@ -280,23 +279,27 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * @param {*} value
-     * @param {!tr.v.d.DiagnosticMap=} opt_diagnosticMap
+     * @param {number|*} value
+     * @param {(!Object|!tr.v.d.DiagnosticMap)=} opt_diagnostics
      */
-    add(value, opt_diagnosticMap) {
-      if ((opt_diagnosticMap !== undefined) &&
-          !(opt_diagnosticMap instanceof tr.v.d.DiagnosticMap))
-        throw new Error('Can\'t add a sample with a non-DiagnosticMap');
+    addSample(value, opt_diagnostics) {
+      if (opt_diagnostics &&
+          !(opt_diagnostics instanceof tr.v.d.DiagnosticMap))
+        opt_diagnostics = tr.v.d.DiagnosticMap.fromObject(opt_diagnostics);
+
       if (typeof(value) !== 'number' || isNaN(value)) {
         this.numNans++;
-        if (opt_diagnosticMap) {
+        if (opt_diagnostics) {
           tr.b.Statistics.uniformlySampleStream(this.nanDiagnosticMaps,
-              this.numNans, opt_diagnosticMap, MAX_DIAGNOSTIC_MAPS);
+              this.numNans, opt_diagnostics, MAX_DIAGNOSTIC_MAPS);
         }
       } else {
-        var bin = this.getBinForValue(value);
-        bin.add(value, opt_diagnosticMap);
         this.running.add(value);
+
+        var bin = this.getBinForValue(value);
+        bin.addSample(value);
+        if (opt_diagnostics)
+          bin.addDiagnosticMap(opt_diagnostics);
         if (bin.count > this.maxCount_)
           this.maxCount_ = bin.count;
       }

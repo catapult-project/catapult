@@ -17,18 +17,17 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
     var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
-    h.add(-1, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('a')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')}));
-    h.add(0, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c')}));
-    h.add(500, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c')}));
-    h.add(999, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d')}));
-    h.add(1000, tr.v.d.DiagnosticMap.fromObject(
-        {foo: new tr.v.d.Generic('d')}));
+    h.addSample(-1, {foo: new tr.v.d.Generic('a')});
+    h.addSample(0, {foo: new tr.v.d.Generic('b')});
+    h.addSample(0, {foo: new tr.v.d.Generic('b')});
+    h.addSample(0, {foo: new tr.v.d.Generic('b')});
+    h.addSample(0, {foo: new tr.v.d.Generic('b')});
+    h.addSample(0, {foo: new tr.v.d.Generic('b')});
+    h.addSample(0, {foo: new tr.v.d.Generic('b')});
+    h.addSample(0, {foo: new tr.v.d.Generic('c')});
+    h.addSample(500, {foo: new tr.v.d.Generic('c')});
+    h.addSample(999, {foo: new tr.v.d.Generic('d')});
+    h.addSample(1000, {foo: new tr.v.d.Generic('d')});
 
     var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
@@ -51,9 +50,8 @@ tr.b.unittest.testSuite(function() {
 
   test('nans', function() {
     var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
-    h.add(undefined, tr.v.d.DiagnosticMap.fromObject(
-        {foo: new tr.v.d.Generic('b')}));
-    h.add(NaN, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c')}));
+    h.addSample(undefined, {foo: new tr.v.d.Generic('b')});
+    h.addSample(NaN, {foo: new tr.v.d.Generic('c')});
     h.customizeSummaryOptions({nans: true});
 
     var span = document.createElement('tr-v-ui-histogram-span');

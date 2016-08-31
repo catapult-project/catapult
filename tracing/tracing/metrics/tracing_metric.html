@@ -29,7 +29,7 @@ tr.exportTo('tr.metrics', function() {
   function addTimeDurationValue(valueName, duration, allValues) {
     var hist = new tr.v.Histogram(
         tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
-    hist.add(duration);
+    hist.addSample(duration);
     allValues.addValue(new tr.v.NumericValue(valueName, hist));
   }
 
@@ -81,14 +81,14 @@ tr.exportTo('tr.metrics', function() {
         categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
     var memoryInfraTraceBytesValue = new tr.v.Histogram(
         tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
-    memoryInfraTraceBytesValue.add(memoryInfraEventsSize);
+    memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
     values.addValue(new tr.v.NumericValue(
         'Total trace size of memory-infra dumps in bytes',
         memoryInfraTraceBytesValue));
 
     var traceBytesPerDumpValue = new tr.v.Histogram(
         tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
-    traceBytesPerDumpValue.add(memoryInfraEventsSize / memoryDumpCount);
+    traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
     values.addValue(new tr.v.NumericValue(
         'Average trace size of memory-infra dumps in bytes',
         traceBytesPerDumpValue));
@@ -163,15 +163,15 @@ tr.exportTo('tr.metrics', function() {
 
     var maxEventCountPerSecValue = new tr.v.Histogram(
       tr.v.Unit.byName.count_smallerIsBetter, COUNT_BOUNDARIES);
-    maxEventCountPerSecValue.add(maxEventCountPerSec);
+    maxEventCountPerSecValue.addSample(maxEventCountPerSec);
 
     var maxEventBytesPerSecValue = new tr.v.Histogram(
         tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
-    maxEventBytesPerSecValue.add(maxEventBytesPerSec);
+    maxEventBytesPerSecValue.addSample(maxEventBytesPerSec);
 
     var totalTraceBytesValue = new tr.v.Histogram(
         tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
-    totalTraceBytesValue.add(totalTraceBytes);
+    totalTraceBytesValue.addSample(totalTraceBytes);
 
     var biggestCategory = {
       name: categoryWithMaxEventBytes,

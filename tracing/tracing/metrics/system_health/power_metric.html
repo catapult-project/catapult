@@ -32,7 +32,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var currentFrameEnergy = model.device.powerSeries.getEnergyConsumedInJ(
           frameStartTs, frameStartTs + IDEAL_FRAME_DURATION_MS);
       frameStartTs += IDEAL_FRAME_DURATION_MS;
-      frameEnergyConsumedInJ.add(currentFrameEnergy);
+      frameEnergyConsumedInJ.addSample(currentFrameEnergy);
     }
 
     valueList.addValue(new tr.v.NumericValue(

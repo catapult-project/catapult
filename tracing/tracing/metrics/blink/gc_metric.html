@@ -81,9 +81,9 @@ tr.exportTo('tr.metrics.blink', function() {
   function createPercentage(numerator, denominator) {
     var histogram = new tr.v.Histogram(percentage_biggerIsBetter);
     if (denominator === 0)
-      histogram.add(0);
+      histogram.addSample(0);
     else
-      histogram.add(numerator / denominator);
+      histogram.addSample(numerator / denominator);
     return histogram;
   }
 
@@ -98,7 +98,7 @@ tr.exportTo('tr.metrics.blink', function() {
       function(name, events) {
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
-          cpuDuration.add(event.cpuDuration);
+          cpuDuration.addSample(event.cpuDuration);
         });
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
       }
@@ -116,7 +116,7 @@ tr.exportTo('tr.metrics.blink', function() {
       function(name, events) {
         var cpuDuration = createNumericForTopEventTime();
         events.forEach(function(event) {
-          cpuDuration.add(event.cpuDuration);
+          cpuDuration.addSample(event.cpuDuration);
         });
         values.addValue(new tr.v.NumericValue(name, cpuDuration));
       }
@@ -179,10 +179,10 @@ tr.exportTo('tr.metrics.blink', function() {
           inside = event.cpuDuration;
         }
       }
-      cpuDuration.add(event.cpuDuration);
-      insideIdle.add(inside);
-      outsideIdle.add(event.cpuDuration - inside);
-      idleDeadlineOverrun.add(overrun);
+      cpuDuration.addSample(event.cpuDuration);
+      insideIdle.addSample(inside);
+      outsideIdle.addSample(event.cpuDuration - inside);
+      idleDeadlineOverrun.addSample(overrun);
     });
     values.addValue(new tr.v.NumericValue(
         name + '_idle_deadline_overrun',

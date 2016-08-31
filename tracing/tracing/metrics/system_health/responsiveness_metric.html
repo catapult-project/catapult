@@ -91,7 +91,7 @@ tr.exportTo('tr.metrics.sh', function() {
       } else if (ue instanceof tr.model.um.LoadExpectation) {
         // This is already covered by loadingMetric.
       } else if (ue instanceof tr.model.um.ResponseExpectation) {
-        responseNumeric.add(ue.duration, sampleDiagnosticMap);
+        responseNumeric.addSample(ue.duration, sampleDiagnosticMap);
       } else if (ue instanceof tr.model.um.AnimationExpectation) {
         if (ue.frameEvents === undefined || ue.frameEvents.length === 0) {
           // Ignore animation stages that do not have associated frames:
@@ -103,21 +103,21 @@ tr.exportTo('tr.metrics.sh', function() {
           throw new Error('Missing throughput for ' +
                           ue.stableId);
 
-        throughputNumeric.add(throughput, sampleDiagnosticMap);
+        throughputNumeric.addSample(throughput, sampleDiagnosticMap);
 
         var frameTimeDiscrepancy = computeAnimationframeTimeDiscrepancy(ue);
         if (frameTimeDiscrepancy === undefined)
           throw new Error('Missing frameTimeDiscrepancy for ' +
                           ue.stableId);
 
-        frameTimeDiscrepancyNumeric.add(frameTimeDiscrepancy,
-                                        sampleDiagnosticMap);
+        frameTimeDiscrepancyNumeric.addSample(
+            frameTimeDiscrepancy, sampleDiagnosticMap);
 
         ue.associatedEvents.forEach(function(event) {
           if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice))
             return;
 
-          latencyNumeric.add(event.duration, sampleDiagnosticMap);
+          latencyNumeric.addSample(event.duration, sampleDiagnosticMap);
         });
       } else {
         throw new Error('Unrecognized stage for ' + ue.stableId);

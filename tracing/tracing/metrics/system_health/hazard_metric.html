@@ -126,7 +126,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var hist = new tr.v.Histogram(
         tr.v.Unit.byName.normalizedPercentage_smallerIsBetter);
-    hist.add(overallHazard);
+    hist.addSample(overallHazard);
     values.addValue(new tr.v.NumericValue('hazard', hist));
   }
 

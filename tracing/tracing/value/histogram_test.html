@@ -47,8 +47,8 @@ tr.b.unittest.testSuite(function() {
     var numericA = new tr.v.Histogram(unitlessNumber_sIB, boundaries);
     var numericB = new tr.v.Histogram(unitlessNumber_sIB, boundaries);
     for (var i = 0; i < 100; ++i) {
-      numericA.add(i);
-      numericB.add(i * 0.85);
+      numericA.addSample(i);
+      numericB.addSample(i * 0.85);
     }
 
     assert.strictEqual(numericA.getDifferenceSignificance(numericB),
@@ -66,25 +66,12 @@ tr.b.unittest.testSuite(function() {
     assert.equal(n.getBinForValue(250).range.min, 200);
     assert.equal(n.getBinForValue(250).range.max, 300);
 
-    var dm0 = new tr.v.d.DiagnosticMap();
-    var dm1 = new tr.v.d.DiagnosticMap();
-    var dm2 = new tr.v.d.DiagnosticMap();
-    var dm3 = new tr.v.d.DiagnosticMap();
-    var dm4 = new tr.v.d.DiagnosticMap();
-    var dm5 = new tr.v.d.DiagnosticMap();
-    dm0.set('foo', new tr.v.d.Generic('a'));
-    dm1.set('foo', new tr.v.d.Generic('b'));
-    dm2.set('foo', new tr.v.d.Generic('c'));
-    dm3.set('foo', new tr.v.d.Generic('c'));
-    dm4.set('foo', new tr.v.d.Generic('d'));
-    dm5.set('foo', new tr.v.d.Generic('d'));
-
-    n.add(-1, dm0);
-    n.add(0, dm1);
-    n.add(0, dm2);
-    n.add(500, dm3);
-    n.add(999, dm4);
-    n.add(1000, dm5);
+    n.addSample(-1, {foo: new tr.v.d.Generic('a')});
+    n.addSample(0, {foo: new tr.v.d.Generic('b')});
+    n.addSample(0, {foo: new tr.v.d.Generic('c')});
+    n.addSample(500, {foo: new tr.v.d.Generic('c')});
+    n.addSample(999, {foo: new tr.v.d.Generic('d')});
+    n.addSample(1000, {foo: new tr.v.d.Generic('d')});
     assert.equal(n.underflowBin.count, 1);
 
     assert.equal(n.getBinForValue(0).count, 2);
@@ -103,13 +90,10 @@ tr.b.unittest.testSuite(function() {
   test('numericNans', function() {
     var n = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
 
-    var dm0 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b')});
-    var dm1 = tr.v.d.DiagnosticMap.fromObject({'foo': new tr.v.d.Generic('c')});
-
-    n.add(undefined, dm0);
-    n.add(NaN, dm1);
-    n.add(undefined);
-    n.add(NaN);
+    n.addSample(undefined, {foo: new tr.v.d.Generic('b')});
+    n.addSample(NaN, {'foo': new tr.v.d.Generic('c')});
+    n.addSample(undefined);
+    n.addSample(NaN);
 
     assert.equal(n.numNans, 4);
     assert.deepEqual(n.nanDiagnosticMaps.map(dm => dm.get('foo').value),
@@ -124,32 +108,19 @@ tr.b.unittest.testSuite(function() {
     var n0 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
     var n1 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
 
-    var dm0 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('a0')});
-    var dm1 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b0')});
-    var dm2 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c0')});
-    var dm3 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c0')});
-    var dm4 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d0')});
-    var dm5 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('e0')});
-    var dm6 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('a1')});
-    var dm7 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('b1')});
-    var dm8 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('c1')});
-    var dm9 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d1')});
-    var dm10 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('d1')});
-    var dm11 = tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('e1')});
+    n0.addSample(-1, {foo: new tr.v.d.Generic('a0')});
+    n0.addSample(0, {foo: new tr.v.d.Generic('b0')});
+    n0.addSample(0, {foo: new tr.v.d.Generic('c0')});
+    n0.addSample(500, {foo: new tr.v.d.Generic('c0')});
+    n0.addSample(1000, {foo: new tr.v.d.Generic('d0')});
+    n0.addSample(NaN, {foo: new tr.v.d.Generic('e0')});
 
-    n0.add(-1, dm0);
-    n0.add(0, dm1);
-    n0.add(0, dm2);
-    n0.add(500, dm3);
-    n0.add(1000, dm4);
-    n0.add(NaN, dm5);
-
-    n1.add(-1, dm6);
-    n1.add(0, dm7);
-    n1.add(0, dm8);
-    n1.add(999, dm9);
-    n1.add(1000, dm10);
-    n1.add(NaN, dm11);
+    n1.addSample(-1, {foo: new tr.v.d.Generic('a1')});
+    n1.addSample(0, {foo: new tr.v.d.Generic('b1')});
+    n1.addSample(0, {foo: new tr.v.d.Generic('c1')});
+    n1.addSample(999, {foo: new tr.v.d.Generic('d1')});
+    n1.addSample(1000, {foo: new tr.v.d.Generic('d1')});
+    n1.addSample(NaN, {foo: new tr.v.d.Generic('e1')});
 
     n0.addNumeric(n1);
 
@@ -208,15 +179,14 @@ tr.b.unittest.testSuite(function() {
 
   test('addNumericWithNonDiagnosticMapThrows', function() {
     var n = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
-    assert.throws(n.add.bind(42, 'foo'), Error);
+    assert.throws(n.addSample.bind(42, 'foo'), Error);
   });
 
   test('numericPercentile', function() {
     function check(array, min, max, bins, precision) {
       var boundaries = tr.v.HistogramBinBoundaries.createLinear(min, max, bins);
       var n = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs, boundaries);
-      array.forEach((x) => n.add(
-          x, tr.v.d.DiagnosticMap.fromObject({foo: new tr.v.d.Generic('x')})));
+      array.forEach((x) => n.addSample(x, {foo: new tr.v.d.Generic('x')}));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
         var expected = tr.b.Statistics.percentile(array, percent);
         var actual = n.getApproximatePercentile(percent);
@@ -342,9 +312,9 @@ tr.b.unittest.testSuite(function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
     var n = new tr.v.Histogram(unitlessNumber, boundaries);
 
-    n.add(50);
-    n.add(60);
-    n.add(70);
+    n.addSample(50);
+    n.addSample(60);
+    n.addSample(70);
 
     n.customizeSummaryOptions({
       count: true,
@@ -376,9 +346,9 @@ tr.b.unittest.testSuite(function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
     var n = new tr.v.Histogram(unitlessNumber, boundaries);
 
-    n.add(50);
-    n.add(60);
-    n.add(70);
+    n.addSample(50);
+    n.addSample(60);
+    n.addSample(70);
 
     n.customizeSummaryOptions({
       count: false,
@@ -440,11 +410,11 @@ tr.b.unittest.testSuite(function() {
     var values1 = [];
     for (var i = 0; i < 10; ++i) {
       values0.push(i);
-      n0.add(i);
+      n0.addSample(i);
     }
     for (var i = 10; i < 20; ++i) {
       values1.push(i);
-      n1.add(i);
+      n1.addSample(i);
     }
     assert.deepEqual(n0.sampleValues, values0);
     assert.deepEqual(n1.sampleValues, values1);
@@ -454,13 +424,13 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(n2.sampleValues, values0.concat(values1));
 
     for (var i = 0; i < 200; ++i)
-      n0.add(i);
+      n0.addSample(i);
     assert.strictEqual(n0.sampleValues.length, n0.maxNumSampleValues);
 
     var n3 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
     n3.maxNumSampleValues = 10;
     for (var i = 0; i < 100; ++i)
-      n3.add(i);
+      n3.addSample(i);
     assert.strictEqual(n3.sampleValues.length, 10);
   });
 
@@ -496,5 +466,4 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(numeric.allBins, 4);
   });
 });
-
 </script>

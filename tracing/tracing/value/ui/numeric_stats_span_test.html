@@ -17,10 +17,10 @@ tr.b.unittest.testSuite(function() {
 
     var numeric = new tr.v.Histogram(tr.v.Unit.byName.count);
     for (var i = 0; i < 1e2; ++i) {
-      numeric.add(Math.random() * 1000);
+      numeric.addSample(Math.random() * 1000);
     }
 
-    numeric.add('foo');
+    numeric.addSample('foo');
     numeric.customizeSummaryOptions({nans: true});
 
     span.numeric = numeric;

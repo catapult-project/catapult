@@ -16,8 +16,23 @@ found in the LICENSE file.
 tr.exportTo('tr.metrics', function() {
   function sampleMetric(values, model) {
     var hist = new tr.v.Histogram(tr.v.Unit.byName.sizeInBytes_smallerIsBetter);
-    hist.add(9);
-    hist.add(91);
+    hist.addSample(9);
+    hist.addSample(91, {bar: new tr.v.d.Generic({hello: 42})});
+
+    for (var expectation of model.userModel.expectations) {
+      if (expectation instanceof tr.model.um.ResponseExpectation) {
+      } else if (expectation instanceof tr.model.um.AnimationExpectation) {
+      } else if (expectation instanceof tr.model.um.IdleExpectation) {
+      } else if (expectation instanceof tr.model.um.LoadExpectation) {
+      }
+    }
+
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+
+    tr.b.iterItems(model.processes, function(pid, process) {
+    });
+
     values.addValue(new tr.v.NumericValue('foo', hist));
   }
 

@@ -18,7 +18,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('addValuesFromDicts', function() {
     var n = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
-    n.add(10);
+    n.addSample(10);
     n.customizeSummaryOptions({
       count: true,
       min: false,
@@ -38,9 +38,7 @@ tr.b.unittest.testSuite(function() {
 
   test('addValueFromDictsWithSampleDiagnostic', function() {
     var n = new tr.v.Histogram(tr.v.Unit.byName.count);
-    n.add(10, tr.v.d.DiagnosticMap.fromObject({
-      bar: new tr.v.d.Generic('baz')
-    }));
+    n.addSample(10, {bar: new tr.v.d.Generic('baz')});
 
     var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
     var values2 = new tr.v.ValueSet();
@@ -58,9 +56,9 @@ tr.b.unittest.testSuite(function() {
     var n = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber,
         tr.v.HistogramBinBoundaries.createLinear(0, 100, 100));
 
-    n.add(50);
-    n.add(60);
-    n.add(70);
+    n.addSample(50);
+    n.addSample(60);
+    n.addSample(70);
 
     n.customizeSummaryOptions({
       count: true,
@@ -219,12 +217,11 @@ tr.b.unittest.testSuite(function() {
   test('sourceValuesWithSampleDiagnostic', function() {
     var unit = tr.v.Unit.byName.unitlessNumber;
     var aHist = new tr.v.Histogram(unit);
-    aHist.add(1);
+    aHist.addSample(1);
     var a = new tr.v.NumericValue('a', aHist);
 
     var numeric = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
-    numeric.add(1, tr.v.d.DiagnosticMap.fromObject({
-      rvs: new tr.v.d.RelatedValueSet([a])}));
+    numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([a])});
     var b = new tr.v.NumericValue('b', numeric);
 
     var values = new tr.v.ValueSet([a, b]);
