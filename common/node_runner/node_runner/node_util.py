@@ -51,15 +51,16 @@ def GetNodePath():
   return _NODE_MANAGER.node_path
 
 
-def GetNpmBinPath():
+def GetNodeModulesPath():
   _NODE_MANAGER.InitNode()
-  path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'node_modules',
-                                      '.bin'))
+  path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                      'node_modules'))
   if sys.platform.startswith('win'):
     # Escape path on Windows because it's very long and must be passed to NTFS.
     path = u'\\\\?\\' + path
   return path
 
 def RunEslint():
-  subprocess.call([GetNodePath(), os.path.join(GetNpmBinPath(), 'eslint')])
+  subprocess.call([GetNodePath(), os.path.join(GetNodeModulesPath(), 'eslint',
+                                               'bin', 'eslint.js')])
 
