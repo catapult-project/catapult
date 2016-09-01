@@ -188,6 +188,53 @@ tr.exportTo('tr.v', function() {
         return summaryValue;
       });
     }
+  }
+
+  // This does not contain storyGroupingKeys!
+  ValueSet.GROUPINGS = {
+    HISTOGRAM_NAME: {
+      key: 'histogramName',
+      label: 'name',
+      dataFn: v => v.name
+    },
+
+    BENCHMARK_NAME: {
+      key: 'benchmarkName',
+      label: 'benchmark',
+      dataFn: v => tr.v.d.IterationInfo.getField(v, 'benchmarkName', '')
+    },
+
+    BENCHMARK_START: {
+      key: 'benchmarkStart',
+      label: 'time',
+      dataFn: v => tr.v.d.IterationInfo.getField(v, 'benchmarkStartString', '')
+    },
+
+    STORYSET_REPEAT: {
+      key: 'storysetRepeat',
+      label: 'storyset repeat',
+      dataFn: v => tr.v.d.IterationInfo.getField(
+          v, 'storysetRepeatCounterLabel', 0)
+    },
+
+    STORY_REPEAT: {
+      key: 'storyRepeat',
+      label: 'story repeat',
+      dataFn: v => tr.v.d.IterationInfo.getField(
+          v, 'storyRepeatCounterLabel', 0)
+    },
+
+    STORY_NAME: {
+      key: 'storyName',
+      label: 'story',
+      dataFn: v => tr.v.d.IterationInfo.getField(v, 'storyDisplayName', '')
+    },
+
+    DISPLAY_LABEL: {
+      key: 'displayLabel',
+      label: 'label',
+      dataFn: v => tr.v.d.IterationInfo.getField(v, 'displayLabel', 'Value')
+    }
   };
 
   return {

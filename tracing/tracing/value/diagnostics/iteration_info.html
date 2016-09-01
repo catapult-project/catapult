@@ -129,6 +129,32 @@ tr.exportTo('tr.v.d', function() {
     elementName: 'tr-v-ui-iteration-info-span'
   });
 
+  /**
+   * @param {!tr.v.Value} value
+   * @param {string} fieldName
+   * @param {*} defaultValue
+   * @return {*}
+   */
+  IterationInfo.getField = function(value, fieldName, defaultValue) {
+    var iteration = tr.v.d.IterationInfo.getFromValue(value);
+    if (!(iteration instanceof tr.v.d.IterationInfo))
+      return defaultValue;
+    return iteration[fieldName];
+  }
+
+  /**
+   * @param {!tr.v.Value} value
+   * @param {string} storyGroupingKey
+   * @return {string}
+   */
+  IterationInfo.getStoryGroupingKeyLabel = function(value, storyGroupingKey) {
+    var iteration = tr.v.d.IterationInfo.getFromValue(value);
+    if (!(iteration instanceof tr.v.d.IterationInfo))
+      return storyGroupingKey + ': undefined';
+    return storyGroupingKey + ': ' +
+      iteration.storyGroupingKeys[storyGroupingKey];
+  }
+
   return {
     IterationInfo: IterationInfo
   };
