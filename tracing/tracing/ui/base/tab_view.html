@@ -56,6 +56,10 @@ and limit users to having one option selected at a time.
         padding: 3px 10px 3px 10px;
       }
 
+      #tabs tab label span {
+        font-weight: bold;
+      }
+
       #tabs input[type=radio]:checked ~ label {
         background-color: white;
         border: 1px solid #8e8e8e;
@@ -74,7 +78,12 @@ and limit users to having one option selected at a time.
           <input type=radio name=tabs id$=[[computeRadioId_(item)]]
               on-change='onTabChanged_'
               checked$='[[isChecked_(item)]]' />
-          <label for$=[[computeRadioId_(item)]]>[[item.tabLabel]]</label>
+          <label for$=[[computeRadioId_(item)]]>
+            <template is=dom-if if=[[item.tabIcon]]>
+              <span style$='[[item.tabIcon.style]]'>[[item.tabIcon.text]]</span>
+            </template>
+            [[item.tabLabel]]
+          </label>
         </tab>
       </template>
     </div>

@@ -61,6 +61,7 @@ tr.b.unittest.testSuite(function() {
     var subView = document.createElement('tr-ui-a-alert-sub-view');
     subView.selection = new tr.model.EventSet(alert);
     subView.tabLabel = 'Alerts';
+    subView.tabIcon = { text: '\u26A0', style: 'color: red;' };
 
     return subView;
   }
