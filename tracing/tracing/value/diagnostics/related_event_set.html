@@ -14,11 +14,15 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v.d', function() {
   /**
+   * @typedef {!(tr.v.d.EventRef|tr.model.Event)} EventLike
+   */
+
+  /**
    * A RelatedEventSet diagnostic contains references to Events
    */
   class RelatedEventSet extends tr.v.d.Diagnostic {
     /**
-     * @param {(!tr.model.EventSet|Array.<!(tr.v.d.EventRef|tr.model.Event)>|!tr.v.d.EventRef|!tr.model.Event)=} opt_events
+     * @param {!(tr.model.EventSet|Array.<EventLike>|EventLike)=} opt_events
      */
     constructor(opt_events) {
       super();
@@ -92,7 +96,7 @@ tr.exportTo('tr.v.d', function() {
         });
       }
     }
-  };
+  }
 
   RelatedEventSet.fromDict = function(d) {
     return new RelatedEventSet(d.events.map(

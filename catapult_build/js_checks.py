@@ -2,11 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
 import re
-import sys
-import warnings
 
+from node_runner import node_util
 from py_vulcanize import strip_js_comments
 
 from catapult_build import parse_html
@@ -61,76 +59,6 @@ class JSChecker(object):
     See:
     http://chromium.org/developers/web-development-style-guide#TOC-JavaScript
     """
-    old_path = sys.path
-    old_filters = warnings.filters
-
-    try:
-      base_path = os.path.abspath(os.path.join(
-          os.path.dirname(__file__), '..'))
-      closure_linter_path = os.path.join(
-          base_path, 'third_party', 'closure_linter')
-      gflags_path = os.path.join(
-          base_path, 'third_party', 'python_gflags')
-      sys.path.insert(0, closure_linter_path)
-      sys.path.insert(0, gflags_path)
-
-      warnings.filterwarnings('ignore', category=DeprecationWarning)
-
-      from closure_linter import runner, errors
-      from closure_linter.common import errorhandler
-
-    finally:
-      sys.path = old_path
-      warnings.filters = old_filters
-
-    class ErrorHandlerImpl(errorhandler.ErrorHandler):
-      """Filters out errors that don't apply to Chromium JavaScript code."""
-
-      def __init__(self):
-        super(ErrorHandlerImpl, self).__init__()
-        self._errors = []
-        self._filename = None
-
-      def HandleFile(self, filename, _):
-        self._filename = filename
-
-      def HandleError(self, error):
-        if self._Valid(error):
-          error.filename = self._filename
-          self._errors.append(error)
-
-      def GetErrors(self):
-        return self._errors
-
-      def HasErrors(self):
-        return bool(self._errors)
-
-      def _Valid(self, error):
-        """Checks whether an error is valid.
-
-        Most errors are valid, with a few exceptions which are listed here.
-        """
-        if re.search('</?(include|if)', error.token.line):
-          return False  # GRIT statement.
-
-        if (error.code == errors.MISSING_SEMICOLON and
-            error.token.string == 'of'):
-          return False  # ES6 for...of statement.
-
-        if (error.code == errors.LINE_STARTS_WITH_OPERATOR and
-            error.token.string == '*'):
-          return False  # *[...] syntax
-
-        if (error.code == errors.MISSING_SPACE and
-            error.token.string == '['):
-          return False  # *[...] syntax
-
-        return error.code not in [
-            errors.JSDOC_ILLEGAL_QUESTION_WITH_PIPE,
-            errors.MISSING_JSDOC_TAG_THIS,
-            errors.MISSING_MEMBER_DOCUMENTATION,
-        ]
-
     results = []
 
     affected_files = self.input_api.AffectedFiles(
@@ -156,27 +84,12 @@ class JSChecker(object):
       for i, line in enumerate(contents, start=1):
         error_lines += filter(None, [self.ConstCheck(i, line)])
 
-      # Use closure_linter to check for several different errors.
-      import gflags as flags
-      flags.FLAGS.strict = True
-      error_handler = ErrorHandlerImpl()
-      runner.Run(f.AbsoluteLocalPath(), error_handler)
-
-      for error in error_handler.GetErrors():
-        highlight = _ErrorHighlight(
-            error.token.start_index, error.token.length)
-        error_msg = '  line %d: E%04d: %s\n%s\n%s' % (
-            error.token.line_number,
-            error.code,
-            error.message,
-            error.token.line.rstrip(),
-            highlight)
-        error_lines.append(error_msg)
+      eslint_output = node_util.RunEslint(f.AbsoluteLocalPath()).rstrip()
+      if eslint_output:
+        error_lines.append('eslint found JavaScript style violations:')
+        error_lines.append(eslint_output)
 
       if error_lines:
-        error_lines = [
-            'Found JavaScript style violations in %s:' %
-            f.LocalPath()] + error_lines
         results.append(
             _MakeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
 

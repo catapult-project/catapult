@@ -24,5 +24,5 @@ if __name__ == '__main__':
   _AddToPathIfNeeded(_PY_UTILS_PATH)
 
   from node_runner import node_util
-  node_util.RunEslint()
+  print node_util.RunEslint()
   sys.exit(0)
