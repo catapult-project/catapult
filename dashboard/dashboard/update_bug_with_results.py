@@ -91,9 +91,8 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
     jobs and send comments to an issue on the issue tracker if a bisect job has
     completed.
     """
-    credentials = utils.ServiceAccountCredentials()
     issue_tracker = issue_tracker_service.IssueTrackerService(
-        additional_credentials=credentials)
+        utils.ServiceAccountHttp())
 
     # Set privilege so we can also fetch internal try_job entities.
     datastore_hooks.SetPrivilegedRequest()

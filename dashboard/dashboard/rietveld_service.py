@@ -9,8 +9,6 @@ import logging
 import mimetypes
 import urllib
 
-import httplib2
-
 from google.appengine.ext import ndb
 
 from dashboard import utils
@@ -85,15 +83,8 @@ class RietveldService(object):
     else:
       server_url = self.Config().server_url
     url = '%s/%s' % (server_url, path)
-    response, content = self._Http().request(url, *args, **kwargs)
+    response, content = utils.ServiceAccountHttp().request(url, *args, **kwargs)
     return ResponseObject(response.get('status'), content)
-
-  def _Http(self):
-    if not self._http:
-      self._http = httplib2.Http()
-      credentials = utils.ServiceAccountCredentials()
-      credentials.authorize(self._http)
-    return self._http
 
   def _XsrfToken(self):
     """Requests a XSRF token from Rietveld."""

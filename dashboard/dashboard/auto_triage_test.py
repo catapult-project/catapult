@@ -20,7 +20,7 @@ from dashboard.models import sheriff
 
 
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
-@mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class AutoTriageTest(testing_common.TestCase):
 

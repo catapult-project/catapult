@@ -85,7 +85,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
 
   def _FetchBugs(self):
     http = oauth2_decorator.DECORATOR.http()
-    issue_tracker = issue_tracker_service.IssueTrackerService(http=http)
+    issue_tracker = issue_tracker_service.IssueTrackerService(http)
     response = issue_tracker.List(
         q='opened-after:today-5', label='Type-Bug-Regression,Performance',
         sort='-id')

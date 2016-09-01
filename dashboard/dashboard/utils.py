@@ -19,6 +19,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import urlfetch_errors
 from google.appengine.api import users
 from google.appengine.ext import ndb
+import httplib2
 from oauth2client import client
 
 from dashboard import stored_object
@@ -323,7 +324,7 @@ def IsGroupMember(identity, group):
                      '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
     service = discovery.build(
         'auth', 'v1', discoveryServiceUrl=discovery_url,
-        credentials=ServiceAccountCredentials())
+        http=ServiceAccountHttp())
     request = service.membership(identity=identity, group=group)
     response = request.execute()
     return response['is_member']
@@ -332,16 +333,20 @@ def IsGroupMember(identity, group):
     return False
 
 
-def ServiceAccountCredentials():
+def ServiceAccountHttp():
   """Returns the Credentials of the service account if available."""
   account_details = stored_object.Get(SERVICE_ACCOUNT_KEY)
   if not account_details:
-    logging.error('Service account credentials not found.')
-    return None
-  return client.SignedJwtAssertionCredentials(
+    raise KeyError('Service account credentials not found.')
+
+  credentials = client.SignedJwtAssertionCredentials(
       service_account_name=account_details['client_email'],
       private_key=account_details['private_key'],
       scope=EMAIL_SCOPE)
+
+  http = httplib2.Http()
+  http.authorize(credentials)
+  return http
 
 
 def IsValidSheriffUser():

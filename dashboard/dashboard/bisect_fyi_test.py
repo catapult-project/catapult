@@ -60,7 +60,7 @@ TEST_FYI_CONFIGS = {
 
 
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
-@mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 class BisectFYITest(testing_common.TestCase):
 
   def setUp(self):

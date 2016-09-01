@@ -252,6 +252,7 @@ class UtilsTest(testing_common.TestCase):
   def testValidate_TypeConversion_Passes(self):
     utils.Validate([1], '1')
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('utils.discovery.build')
   def testIsGroupMember_PositiveCase(self, mock_discovery_build):
     mock_request = mock.MagicMock()
@@ -264,7 +265,7 @@ class UtilsTest(testing_common.TestCase):
     mock_service.membership.assert_called_once_with(
         identity='foo@bar.com', group='group')
 
-  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('logging.error')
   @mock.patch('utils.discovery.build')
   def testIsGroupMember_RequestFails_LogsErrorAndReturnsFalse(

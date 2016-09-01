@@ -616,7 +616,7 @@ def PerformBisect(bisect_job):
     comment = 'Started bisect job: %s' % result
   if bisect_job.bug_id:
     issue_tracker = issue_tracker_service.IssueTrackerService(
-        additional_credentials=utils.ServiceAccountCredentials())
+        utils.ServiceAccountHttp())
     issue_tracker.AddBugComment(bisect_job.bug_id, comment, send_email=False)
   return result
 

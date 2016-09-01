@@ -129,7 +129,7 @@ class FileBugHandler(request_handler.RequestHandler):
       return
 
     http = oauth2_decorator.DECORATOR.http()
-    service = issue_tracker_service.IssueTrackerService(http=http)
+    service = issue_tracker_service.IssueTrackerService(http)
 
     bug_id = service.NewBug(
         summary, description, labels=labels, components=components, owner=owner)

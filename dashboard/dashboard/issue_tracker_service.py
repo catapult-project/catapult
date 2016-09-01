@@ -9,7 +9,6 @@ import logging
 
 from apiclient import discovery
 from apiclient import errors
-import httplib2
 
 _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
                   '/_ah/api/discovery/v1/apis/{api}/{apiVersion}/rest')
@@ -18,7 +17,7 @@ _DISCOVERY_URI = ('https://monorail-prod.appspot.com'
 class IssueTrackerService(object):
   """Class for updating bug issues."""
 
-  def __init__(self, http=None, additional_credentials=None):
+  def __init__(self, http):
     """Initializes an object for adding and updating bugs on the issue tracker.
 
     This object can be re-used to make multiple requests without calling
@@ -28,18 +27,11 @@ class IssueTrackerService(object):
     API explorer: https://goo.gl/xWd0dX
 
     Args:
-      http: A Http object to pass to request.execute; this should be an
+      http: A Http object that requests will be made through; this should be an
           Http object that's already authenticated via OAuth2.
-      additional_credentials: A credentials object, e.g. an instance of
-          oauth2client.client.SignedJwtAssertionCredentials. This includes
-          the email and secret key of a service account.
     """
-    self._http = http or httplib2.Http()
-    if additional_credentials:
-      additional_credentials.authorize(self._http)
     self._service = discovery.build(
-        'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI,
-        http=self._http)
+        'monorail', 'v1', discoveryServiceUrl=_DISCOVERY_URI, http=http)
 
   def AddBugComment(self, bug_id, comment, status=None, cc_list=None,
                     merge_issue=None, labels=None, owner=None, send_email=True):
@@ -210,7 +202,7 @@ class IssueTrackerService(object):
       The response if there was one, or else None.
     """
     try:
-      response = request.execute(http=self._http)
+      response = request.execute()
       return response
     except errors.HttpError as e:
       logging.error(e)
