@@ -5,16 +5,29 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/math.html">
 
 <script>
 'use strict';
 tr.exportTo('tr.b', function() {
+  /**
+   * Generate pretty colors!
+   * http://basecase.org/env/on-rainbows
+   * https://mycarta.wordpress.com/2012/10/06/the-rainbow-is-deadlong-live-the-rainbow-part-3/
+   *
+   * Set brightness = 0 to always generate black.
+   * Set brightness = 2 to always generate white.
+   * Set brightness = 1 to generate saturated colors.
+   *
+   * @constructor
+   * @param {number=} opt_a alpha opacity in [0,1]
+   * @param {number=} opt_brightness in [0,2]
+   */
   function SinebowColorGenerator(opt_a, opt_brightness) {
-    this.a_ = opt_a || 1;
-    this.brightness_ = opt_brightness || 1;
+    this.a_ = (opt_a === undefined) ? 1 : opt_a;
+    this.brightness_ = (opt_brightness === undefined) ? 1 : opt_brightness;
     this.colorIndex_ = 0;
     this.keyToColor = {};
   }
@@ -28,18 +41,14 @@ tr.exportTo('tr.b', function() {
 
     nextColor: function() {
       var components = SinebowColorGenerator.nthColor(this.colorIndex_++);
-      return tr.b.Color.fromString(
-          SinebowColorGenerator.calculateColor(components[0], components[1],
-                                               components[2], this.a_,
-                                               this.brightness_));
+      return tr.b.Color.fromString(SinebowColorGenerator.calculateColor(
+          components[0], components[1], components[2],
+          this.a_, this.brightness_));
     }
   };
 
-  // Rainbows are hard.
-  // https://mycarta.wordpress.com/2012/10/06/the-rainbow-is-deadlong-live-the-rainbow-part-3/
   SinebowColorGenerator.PHI = (1 + Math.sqrt(5)) / 2;
 
-  // http://basecase.org/env/on-rainbows
   SinebowColorGenerator.sinebow_ = function(h) {
     h += 0.5;
     h = -h;
@@ -66,9 +75,9 @@ tr.exportTo('tr.b', function() {
       g *= brightness;
       b *= brightness;
     } else {
-      r = mapRange(brightness, 1, 2, r, 255);
-      g = mapRange(brightness, 1, 2, g, 255);
-      b = mapRange(brightness, 1, 2, b, 255);
+      r = tr.b.lerp(tr.b.normalize(brightness, 1, 2), r, 255);
+      g = tr.b.lerp(tr.b.normalize(brightness, 1, 2), g, 255);
+      b = tr.b.lerp(tr.b.normalize(brightness, 1, 2), b, 255);
     }
     r = Math.round(r);
     g = Math.round(g);

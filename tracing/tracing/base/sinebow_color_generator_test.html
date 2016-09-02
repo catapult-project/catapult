@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/sinebow_color_generator.html">
+
+<script>
+'use strict';
+tr.b.unittest.testSuite(function() {
+  test('SinebowColorGenerator', function() {
+    var generator = new tr.b.SinebowColorGenerator();
+    assert.strictEqual('rgba(270,67,67,1)',
+        generator.colorForKey('z').toString());
+    assert.strictEqual('rgba(44,132,329,1)',
+        generator.colorForKey('y').toString());
+    assert.strictEqual('rgba(99,166,9,1)',
+        generator.colorForKey('x').toString());
+    assert.strictEqual('rgba(270,67,67,1)',
+        generator.colorForKey('z').toString());
+
+    generator = new tr.b.SinebowColorGenerator(0.5);
+    assert.strictEqual('rgba(270,67,67,0.5)',
+        generator.colorForKey('z').toString());
+    assert.strictEqual('rgba(44,132,329,0.5)',
+        generator.colorForKey('y').toString());
+    assert.strictEqual('rgba(99,166,9,0.5)',
+        generator.colorForKey('x').toString());
+    assert.strictEqual('rgba(270,67,67,0.5)',
+        generator.colorForKey('z').toString());
+
+    generator = new tr.b.SinebowColorGenerator(1, 0);
+    assert.strictEqual('rgba(0,0,0,1)',
+        generator.colorForKey('z').toString());
+    assert.strictEqual('rgba(0,0,0,1)',
+        generator.colorForKey('y').toString());
+    assert.strictEqual('rgba(0,0,0,1)',
+        generator.colorForKey('x').toString());
+    assert.strictEqual('rgba(0,0,0,1)',
+        generator.colorForKey('z').toString());
+
+    generator = new tr.b.SinebowColorGenerator(1, 2);
+    assert.strictEqual('rgba(255,255,255,1)',
+        generator.colorForKey('z').toString());
+    assert.strictEqual('rgba(255,255,255,1)',
+        generator.colorForKey('y').toString());
+    assert.strictEqual('rgba(255,255,255,1)',
+        generator.colorForKey('x').toString());
+    assert.strictEqual('rgba(255,255,255,1)',
+        generator.colorForKey('z').toString());
+  });
+});
+</script>
