@@ -116,6 +116,10 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     # TODO(pliard): Implement this.
     pass
 
+  @decorators.Deprecated(
+      2017, 11, 4,
+      'Clients should use tracing and memory-infra in new Telemetry '
+      'benchmarks. See for context: https://crbug.com/632021')
   def GetMemoryStats(self, pid):
     rss_vsz = self.GetPsOutput(['rss', 'vsz'], pid)
     if rss_vsz:

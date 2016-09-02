@@ -159,6 +159,10 @@ class WinPlatformBackend(desktop_platform_backend.DesktopPlatformBackend):
     """Return current timestamp in seconds."""
     return {'TotalTime': time.time()}
 
+  @decorators.Deprecated(
+      2017, 11, 4,
+      'Clients should use tracing and memory-infra in new Telemetry '
+      'benchmarks. See for context: https://crbug.com/632021')
   def GetMemoryStats(self, pid):
     memory_info = self._GetWin32ProcessInfo(
         win32process.GetProcessMemoryInfo, pid)

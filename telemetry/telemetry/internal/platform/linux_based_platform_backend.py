@@ -60,6 +60,10 @@ class LinuxBasedPlatformBackend(platform_backend.PlatformBackend):
     clock_ticks = self.GetClockTicks()
     return {'TotalTime': total_jiffies / clock_ticks}
 
+  @decorators.Deprecated(
+      2017, 11, 4,
+      'Clients should use tracing and memory-infra in new Telemetry '
+      'benchmarks. See for context: https://crbug.com/632021')
   def GetMemoryStats(self, pid):
     status_contents = self._GetProcFileForPid(pid, 'status')
     stats = self._GetProcFileForPid(pid, 'stat').split()

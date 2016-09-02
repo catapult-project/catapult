@@ -254,6 +254,10 @@ class AndroidPlatformBackend(
     for l in output:
       logging.info(l)
 
+  @decorators.Deprecated(
+      2017, 11, 4,
+      'Clients should use tracing and memory-infra in new Telemetry '
+      'benchmarks. See for context: https://crbug.com/632021')
   def GetMemoryStats(self, pid):
     memory_usage = self._device.GetMemoryUsageForPid(pid)
     if not memory_usage:
