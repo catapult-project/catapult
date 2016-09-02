@@ -151,7 +151,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         # Guest browsing shuts down the current browser and launches an
         # incognito browser in a separate process, which we need to wait for.
         try:
-          util.WaitFor(lambda: pid != self.pid, 15)
+          # TODO(achuith): Reduce this timeout to 15 sec after crbug.com/631640
+          # is resolved.
+          util.WaitFor(lambda: pid != self.pid, 60)
         except exceptions.TimeoutException:
           self._RaiseOnLoginFailure(
               'Failed to restart browser in guest mode (pid %d).' % pid)
