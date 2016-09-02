@@ -28,11 +28,11 @@ tr.exportTo('tr.v', function() {
         throw new Error('Merging Numerics with different units');
 
       // Two Numerics that were built with the same boundaries
-      // can be merged using addNumeric().
+      // can be merged using addHistogram().
       if (this instanceof tr.v.Histogram && other instanceof tr.v.Histogram &&
-          this.canAddNumeric(other)) {
+          this.canAddHistogram(other)) {
         var result = this.clone();
-        result.addNumeric(other.clone());
+        result.addHistogram(other.clone());
         return result;
       }
 
@@ -67,7 +67,7 @@ tr.exportTo('tr.v', function() {
 
       throw new Error('Not implemented');
     }
-  };
+  }
 
   class ScalarNumeric extends NumericBase {
     constructor(unit, value) {
@@ -119,7 +119,7 @@ tr.exportTo('tr.v', function() {
 
       return new ScalarNumeric(tr.v.Unit.fromJSON(d.unit), d.value);
     }
-  };
+  }
 
   return {
     NumericBase: NumericBase,

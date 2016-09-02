@@ -81,7 +81,7 @@ tr.exportTo('tr.v', function() {
         diagnosticMaps: this.diagnosticMaps.map(d => d.asDict())
       };
     }
-  };
+  }
 
   /**
    * This is basically a histogram, but so much more.
@@ -319,7 +319,7 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.Histogram} other
      * @return {boolean}
      */
-    canAddNumeric(other) {
+    canAddHistogram(other) {
       if (this.unit !== other.unit)
         return false;
       if (this.allBins.length !== other.allBins.length)
@@ -337,8 +337,8 @@ tr.exportTo('tr.v', function() {
      *
      * @param {!tr.v.Histogram} other
      */
-    addNumeric(other) {
-      if (!this.canAddNumeric(other))
+    addHistogram(other) {
+      if (!this.canAddHistogram(other))
         throw new Error('Merging incompatible Numerics.');
 
       tr.b.Statistics.mergeSampledStreams(this.nanDiagnosticMaps, this.numNans,
@@ -480,7 +480,7 @@ tr.exportTo('tr.v', function() {
         nanDiagnosticMaps: this.nanDiagnosticMaps.map(dm => dm.asDict()),
       };
     }
-  };
+  }
 
   /**
    * Reusable builder for tr.v.Histogram objects.
@@ -704,7 +704,7 @@ tr.exportTo('tr.v', function() {
 
       return this;
     }
-  };
+  }
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
       tr.v.Unit.byName.timeDurationInMs.unitName,

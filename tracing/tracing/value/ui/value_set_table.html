@@ -130,7 +130,7 @@ tr.exportTo('tr.ui', function() {
 
   function mergeCells(a, b) {
     if (a === UNMERGEABLE || b === UNMERGEABLE || !a.numeric || !b.numeric ||
-        !a.numeric.canAddNumeric(b.numeric))
+        !a.numeric.canAddHistogram(b.numeric))
       return UNMERGEABLE;
     return a.merge(b);
   }

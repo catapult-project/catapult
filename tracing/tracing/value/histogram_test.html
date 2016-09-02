@@ -122,7 +122,7 @@ tr.b.unittest.testSuite(function() {
     n1.addSample(1000, {foo: new tr.v.d.Generic('d1')});
     n1.addSample(NaN, {foo: new tr.v.d.Generic('e1')});
 
-    n0.addNumeric(n1);
+    n0.addHistogram(n1);
 
     assert.equal(n0.numNans, 2);
     assert.deepEqual(n0.nanDiagnosticMaps.map(dmd => dmd.get('foo').value),
@@ -173,11 +173,18 @@ tr.b.unittest.testSuite(function() {
     var n2 = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 11));
 
-    assert.throws(n0.addNumeric.bind(n0, n1), Error);
-    assert.throws(n0.addNumeric.bind(n0, n2), Error);
+    assert.isFalse(n0.canAddHistogram(n1));
+    assert.isFalse(n0.canAddHistogram(n2));
+    assert.isFalse(n1.canAddHistogram(n0));
+    assert.isFalse(n1.canAddHistogram(n2));
+    assert.isFalse(n2.canAddHistogram(n0));
+    assert.isFalse(n2.canAddHistogram(n1));
+
+    assert.throws(n0.addHistogram.bind(n0, n1), Error);
+    assert.throws(n0.addHistogram.bind(n0, n2), Error);
   });
 
-  test('addNumericWithNonDiagnosticMapThrows', function() {
+  test('addHistogramWithNonDiagnosticMapThrows', function() {
     var n = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
     assert.throws(n.addSample.bind(42, 'foo'), Error);
   });
@@ -418,7 +425,7 @@ tr.b.unittest.testSuite(function() {
     }
     assert.deepEqual(n0.sampleValues, values0);
     assert.deepEqual(n1.sampleValues, values1);
-    n0.addNumeric(n1);
+    n0.addHistogram(n1);
     assert.deepEqual(n0.sampleValues, values0.concat(values1));
     var n2 = n0.clone();
     assert.deepEqual(n2.sampleValues, values0.concat(values1));
