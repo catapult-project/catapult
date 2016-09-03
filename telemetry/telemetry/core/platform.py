@@ -149,6 +149,10 @@ class Platform(object):
     Examples: On Mac, 13 for Mavericks, 14 for Yosemite."""
     return self._platform_backend.GetOSVersionNumber()
 
+  def GetSystemTotalPhysicalMemory(self):
+    """Returns an integer with the total physical memory in bytes."""
+    return self._platform_backend.GetSystemTotalPhysicalMemory()
+
   def CanFlushIndividualFilesFromSystemCache(self):
     """Returns true if the disk cache can be flushed for specific files."""
     return self._platform_backend.CanFlushIndividualFilesFromSystemCache()
