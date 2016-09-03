@@ -110,7 +110,7 @@ class Benchmark(command_line.Command):
     This should only be used by TimelineBasedMeasurement (TBM) benchmarks, but
     not by PageTest based benchmarks.
     """
-    return False
+    return True
 
   @classmethod
   def ShouldTearDownStateAfterEachStorySetRun(cls):
