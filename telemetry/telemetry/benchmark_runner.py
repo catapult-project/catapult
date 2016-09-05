@@ -14,16 +14,6 @@ import logging
 import os
 import sys
 
-
-# We need to set logging format here to make sure that any other modules
-# imported by telemetry doesn't set the logging format before this, which will
-# make this a no-op call.
-# (See: https://docs.python.org/2/library/logging.html#logging.basicConfig)
-logging.basicConfig(
-    format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-           '%(message)s')
-
-
 from telemetry import benchmark
 from telemetry.core import discover
 from telemetry import decorators
@@ -46,6 +36,10 @@ GOOD_POWER_PERF_BOT_WHITELIST = [
   "Mac Power Dual-GPU Perf",
   "Mac Power Low-End Perf"
 ]
+
+DEFAULT_LOG_FORMAT = (
+  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+  '%(message)s')
 
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
@@ -380,7 +374,12 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
   return json.dumps(output, indent=2, sort_keys=True)
 
 
-def main(environment, extra_commands=None):
+def main(environment, extra_commands=None, **log_config_kwargs):
+  # the log level is set in browser_options
+  log_config_kwargs.pop('level', None)
+  log_config_kwargs.setdefault('format', DEFAULT_LOG_FORMAT)
+  logging.basicConfig(**log_config_kwargs)
+
   ps_util.EnableListingStrayProcessesUponExitHook()
 
   # Get the command name from the command line.

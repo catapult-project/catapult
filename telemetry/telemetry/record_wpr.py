@@ -20,6 +20,10 @@ from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.web_perf import timeline_based_page_test
 
+DEFAULT_LOG_FORMAT = (
+  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+  '%(message)s')
+
 
 class RecorderPageTest(legacy_page_test.LegacyPageTest):
   def __init__(self):
@@ -235,7 +239,11 @@ class WprRecorder(object):
         upload_to_cloud_storage)
 
 
-def Main(environment):
+def Main(environment, **log_config_kwargs):
+  # the log level is set in browser_options
+  log_config_kwargs.pop('level', None)
+  log_config_kwargs.setdefault('format', DEFAULT_LOG_FORMAT)
+  logging.basicConfig(**log_config_kwargs)
 
   parser = argparse.ArgumentParser(
       usage='Record a benchmark or a story (page set).')
@@ -270,7 +278,6 @@ def Main(environment):
     return 0
 
   binary_manager.InitDependencyManager(environment.client_configs)
-
 
   # TODO(nednguyen): update WprRecorder so that it handles the difference
   # between recording a benchmark vs recording a story better based on

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import logging
 import sys
 import unittest
 
@@ -16,7 +17,8 @@ class CreateCommandTest(unittest.TestCase):
         '--port=2', '--ssl_port=1', '--dns_port=0',
         '--use_closest_match', '--log_level=warning', '--extra_arg', 'foo.wpr']
     cmd_line = wpr_server.ReplayServer._GetCommandLine(
-        'replay.py', '127.0.0.1', 2, 1, 0, ['--extra_arg'], 'foo.wpr')
+        'replay.py', '127.0.0.1', 2, 1, 0, ['--extra_arg'], 'foo.wpr',
+        log_level=logging.WARNING)
     self.assertEqual(expected_cmd_line, cmd_line)
 
   def testNoDnsGivesNoDnsForwarding(self):
@@ -25,7 +27,8 @@ class CreateCommandTest(unittest.TestCase):
         '--port=8080', '--ssl_port=8443', '--no-dns_forwarding',
         '--use_closest_match', '--log_level=warning', 'bar.wpr']
     cmd_line = wpr_server.ReplayServer._GetCommandLine(
-        'replay.py', '127.0.0.1', 8080, 8443, None, [], 'bar.wpr')
+        'replay.py', '127.0.0.1', 8080, 8443, None, [], 'bar.wpr',
+        log_level=logging.WARNING)
     self.assertEqual(expected_cmd_line, cmd_line)
 
 

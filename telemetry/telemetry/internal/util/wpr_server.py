@@ -95,8 +95,18 @@ class ReplayServer(object):
     self.replay_process = None
 
   @staticmethod
+  def _GetLoggingLevel(log_level=None):
+    return {
+      logging.DEBUG: 'debug',
+      logging.INFO: 'info',
+      logging.WARNING: 'warning',
+      logging.ERROR: 'error',
+      logging.CRITICAL: 'critical',
+    }[log_level or logging.getLogger().level]
+
+  @staticmethod
   def _GetCommandLine(replay_py, host_ip, http_port, https_port, dns_port,
-                      replay_options, archive_path):
+                      replay_options, archive_path, log_level=None):
     """Set WPR command-line options. Can be overridden if needed."""
     cmd_line = [sys.executable, replay_py]
     cmd_line.extend([
@@ -112,7 +122,7 @@ class ReplayServer(object):
       cmd_line.append('--no-dns_forwarding')
     cmd_line.extend([
         '--use_closest_match',
-        '--log_level=warning'
+        '--log_level=%s' % ReplayServer._GetLoggingLevel(log_level)
         ])
     cmd_line.extend(replay_options)
     cmd_line.append(archive_path)
@@ -274,7 +284,7 @@ class ReplayServer(object):
 
   def _CleanUpTempLogFilePath(self):
     assert self._temp_log_file_path
-    if logging.getLogger('').isEnabledFor(logging.INFO):
+    if logging.getLogger('').isEnabledFor(logging.DEBUG):
       with open(self._temp_log_file_path, 'r') as f:
         wpr_log_content = '\n'.join([
             '************************** WPR LOG *****************************',

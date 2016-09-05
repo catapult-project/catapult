@@ -5,6 +5,7 @@
 import argparse
 import inspect
 import json
+import logging
 import re
 import time
 import unittest
@@ -14,6 +15,10 @@ from telemetry.internal.browser import browser_options
 from telemetry.internal.util import binary_manager
 from telemetry.testing import options_for_unittests
 from telemetry.testing import serially_executed_browser_test_case
+
+DEFAULT_LOG_FORMAT = (
+  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+  '%(message)s')
 
 
 def ProcessCommandLineOptions(test_class, project_config, args):
@@ -281,7 +286,12 @@ class BrowserTestResult(unittest.TextTestResult):
     self.times[test.shortName()] = (time.time() - self._current_test_start_time)
 
 
-def Run(project_config, test_run_options, args):
+def Run(project_config, test_run_options, args, **log_config_kwargs):
+  # the log level is set in browser_options
+  log_config_kwargs.pop('level', None)
+  log_config_kwargs.setdefault('format', DEFAULT_LOG_FORMAT)
+  logging.basicConfig(**log_config_kwargs)
+
   binary_manager.InitDependencyManager(project_config.client_configs)
   parser = argparse.ArgumentParser(description='Run a browser test suite')
   parser.add_argument('test', type=str, help='Name of the test suite to run')
