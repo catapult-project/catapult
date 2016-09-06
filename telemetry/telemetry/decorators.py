@@ -11,10 +11,6 @@ import types
 import warnings
 
 
-# TODO(aiolos): remove after perf-side update has finished.
-IS_UPDATED_DECORATORS = True
-
-
 def Cache(obj):
   """Decorator for caching read-only properties.
 
