@@ -16,57 +16,79 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  function railPowerMetricHelper(values, model) {
-    var railStageTimes = new Map();
-    var railStageEnergy = new Map();
-
-    for (var exp of model.userModel.expectations) {
-      var currTitle = exp.title.toLowerCase().replace(' ', '_');
-      var currTime = 0;
-      var currEnergy = 0;
-      if (railStageTimes.has(currTitle)) {
-        currTime = railStageTimes.get(currTitle);
-        currEnergy = railStageEnergy.get(currTitle);
-      }
-      var thisTime = exp.duration;
-      var thisEnergy = model.device.powerSeries.getEnergyConsumedInJ(
-        exp.start, exp.end);
-      railStageTimes.set(currTitle, currTime + thisTime);
-      railStageEnergy.set(currTitle, currEnergy + thisEnergy);
-    }
-
-    for (var [title, durationMs] of railStageTimes) {
-      var energyInJ = railStageEnergy.get(title);
-      var durationInMs = railStageTimes.get(title);
-      var durationInS = tr.v.convertUnit(durationInMs,
-          tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
-      var powerInW = energyInJ / durationInS;
-
-      var durationHist = new tr.v.Histogram(
-          tr.v.Unit.byName.timeDurationInMs_smallerIsBetter);
-      durationHist.addSample(durationInMs);
-      values.addValue(new tr.v.NumericValue('total_time_' + title, durationHist,
-          {description: 'Time spent in RAIL stage ' + title}));
-
-      var energyHist = new tr.v.Histogram(
-          tr.v.Unit.byName.energyInJoules_smallerIsBetter);
-      energyHist.addSample(energyInJ);
-      values.addValue(new tr.v.NumericValue('total_energy_' + title, energyHist,
-          {description: 'Energy consumed in RAIL stage ' + title}));
-
-      var powerHist = new tr.v.Histogram(
-          tr.v.Unit.byName.powerInWatts_smallerIsBetter);
-      powerHist.addSample(powerInW);
-      values.addValue(new tr.v.NumericValue('energy_consumption_rate_' + title,
-          powerHist, {description: 'Energy consumption rate for RAIL stage ' +
-            title}));
-    }
-  }
-
   function railPowerMetric(values, model) {
     if (!model.device.powerSeries)
       return;
-    railPowerMetricHelper(values, model);
+    var railStageToTimeHist = new Map();
+    var railStageToEnergyHist = new Map();
+    var railStageToPowerHist = new Map();
+
+    for (var exp of model.userModel.expectations) {
+      var currTitle = exp.title.toLowerCase().replace(' ', '_');
+      if (!railStageToTimeHist.has(currTitle)) {
+        var timeHist = new tr.v.Histogram(
+            tr.v.Unit.byName.timeDurationInMs_smallerIsBetter)
+        var energyHist = new tr.v.Histogram(
+            tr.v.Unit.byName.energyInJoules_smallerIsBetter)
+        var powerHist = new tr.v.Histogram(
+            tr.v.Unit.byName.powerInWatts_smallerIsBetter)
+
+        timeHist.customizeSummaryOptions({
+          avg: false,
+          count: false,
+          max: true,
+          min: true,
+          std: false,
+          sum: true,
+        });
+
+        energyHist.customizeSummaryOptions({
+          avg: false,
+          count: false,
+          max: true,
+          min: true,
+          std: false,
+          sum: true,
+        });
+
+        powerHist.customizeSummaryOptions({
+          avg: true,
+          count: false,
+          max: true,
+          min: true,
+          std: false,
+          sum: false,
+        });
+
+        railStageToTimeHist.set(currTitle, timeHist);
+        railStageToEnergyHist.set(currTitle, energyHist);
+        railStageToPowerHist.set(currTitle, powerHist);
+      }
+      var durationInMs = exp.duration;
+      var durationInS = tr.v.convertUnit(durationInMs,
+          tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+      var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(
+        exp.start, exp.end);
+      var powerInW = energyInJ / durationInS;
+
+      railStageToTimeHist.get(currTitle).addSample(durationInMs);
+      railStageToEnergyHist.get(currTitle).addSample(energyInJ);
+      railStageToPowerHist.get(currTitle).addSample(powerInW);
+    }
+
+    for (var title of railStageToTimeHist.keys()) {
+      values.addValue(new tr.v.NumericValue('time:' + title,
+          railStageToTimeHist.get(title),
+          {description: 'Time spent in RAIL stage ' + title}));
+
+      values.addValue(new tr.v.NumericValue('energy:' + title,
+          railStageToEnergyHist.get(title),
+          {description: 'Energy consumed by RAIL stage ' + title}));
+
+      values.addValue(new tr.v.NumericValue('power:' + title,
+          railStageToPowerHist.get(title),
+          {description: 'Energy consumption rate by RAIL stage ' + title}));
+    }
   }
 
   tr.metrics.MetricRegistry.register(railPowerMetric);

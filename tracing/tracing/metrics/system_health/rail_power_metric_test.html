@@ -14,7 +14,13 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-function getMetricValue(values, name) {
+function getMetricValueSum(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return value.numeric.sum;
+}
+
+function getMetricValueAvg(values, name) {
   for (var value of values)
     if (value.name === name)
       return value.numeric.average;
@@ -34,18 +40,18 @@ tr.b.unittest.testSuite(function() {
         model, 500, 500));
     tr.metrics.sh.railPowerMetric(valueSet, model);
 
-    assert.equal(getMetricValue(valueSet,
-        'total_time_successful_load'), 500);
-    assert.equal(getMetricValue(valueSet,
-        'total_time_idle'), 500);
-    assert.closeTo(getMetricValue(valueSet,
-        'total_energy_successful_load'), 125, 0.5);
-    assert.closeTo(getMetricValue(valueSet,
-        'total_energy_idle'), 375, 0.5);
-    assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_successful_load'), 250, 0.5);
-    assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_idle'), 750, 0.5);
+    assert.equal(getMetricValueSum(valueSet,
+        'time:successful_load'), 500);
+    assert.equal(getMetricValueSum(valueSet,
+        'time:idle'), 500);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'energy:successful_load'), 125, 0.5);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'energy:idle'), 375, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'power:successful_load'), 250, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'power:idle'), 750, 0.5);
   });
 
   test('railPowerMetric_multipleStagesEachType', function() {
@@ -65,27 +71,25 @@ tr.b.unittest.testSuite(function() {
         model, 700, 300));
     tr.metrics.sh.railPowerMetric(valueSet, model);
 
-    assert.equal(getMetricValue(valueSet,
-        'total_time_successful_load'), 400);
-    assert.equal(getMetricValue(valueSet,
-        'total_time_idle'), 600);
-    assert.closeTo(getMetricValue(valueSet,
-        'total_energy_successful_load'), 140, 0.5);
-    assert.closeTo(getMetricValue(valueSet,
-        'total_energy_idle'), 360, 0.5);
-    assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_successful_load'), 350, 0.5);
-    assert.closeTo(getMetricValue(valueSet,
-        'energy_consumption_rate_idle'), 600, 0.5);
+    assert.equal(getMetricValueSum(valueSet,
+        'time:successful_load'), 400);
+    assert.equal(getMetricValueSum(valueSet,
+        'time:idle'), 600);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'energy:successful_load'), 140, 0.5);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'energy:idle'), 360, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'power:successful_load'), 350, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'power:idle'), 600, 0.5);
   });
 
   test('railPowerMetric_noPowerSeries', function() {
     var model = new tr.Model();
     var valueSet = new tr.v.ValueSet();
     tr.metrics.sh.railPowerMetric(valueSet, model);
-    var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name.indexOf('rail_stage') === 0);
-    assert.lengthOf(powerEntries, 0);
+    assert.lengthOf(valueSet, 0);
   });
 });
 </script>
