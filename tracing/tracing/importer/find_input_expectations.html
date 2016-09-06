@@ -72,6 +72,7 @@ tr.exportTo('tr.importer', function() {
   );
 
   var RENDERER_FLING_TITLE = 'InputHandlerProxy::HandleGestureFling::started';
+  var PLAYBACK_EVENT_TITLE = 'VideoPlayback';
 
   var CSS_ANIMATION_TITLE = 'Animation';
 
@@ -108,6 +109,7 @@ tr.exportTo('tr.importer', function() {
   var SCROLL_IR_NAME = 'Scroll';
   var CSS_IR_NAME = 'CSS';
   var WEBGL_IR_NAME = 'WebGL';
+  var VIDEO_IR_NAME = 'Video';
 
   // TODO(benjhayden) Find a better home for this.
   function compareEvents(x, y) {
@@ -183,6 +185,7 @@ tr.exportTo('tr.importer', function() {
       handleScrollEvents,
       handleCSSAnimations,
       handleWebGLAnimations,
+      handleVideoAnimations
     ];
     handlers.forEach(function(handler) {
       protoExpectations.push.apply(protoExpectations, handler(
@@ -743,6 +746,38 @@ tr.exportTo('tr.importer', function() {
   }
 
   /**
+   * Returns proto expectations for video animation events.
+   *
+   * Video animations represent video playback, and are based on
+   * VideoPlayback async events (going from the VideoFrameCompositor::Start
+   * to VideoFrameCompositor::Stop calls)
+   */
+  function handleVideoAnimations(modelHelper, sortedInputEvents) {
+    var events = [];
+    for (var pid in modelHelper.rendererHelpers) {
+      for (var asyncSlice of
+          modelHelper.rendererHelpers[pid].mainThread.asyncSliceGroup.slices) {
+        if (asyncSlice.title === PLAYBACK_EVENT_TITLE)
+          events.push(asyncSlice);
+      }
+    }
+
+    events.sort(tr.importer.compareEvents);
+
+    var protoExpectations = [];
+    for (var event of events) {
+      var currentPE = new ProtoExpectation(
+          ProtoExpectation.ANIMATION_TYPE, VIDEO_IR_NAME);
+      currentPE.start = event.start;
+      currentPE.end = event.end;
+      currentPE.pushEvent(event);
+      protoExpectations.push(currentPE);
+    }
+
+    return protoExpectations;
+  }
+
+  /**
    * CSS Animations are merged into AnimationExpectations when they intersect.
    */
   function handleCSSAnimations(modelHelper, sortedInputEvents) {
@@ -1009,6 +1044,7 @@ tr.exportTo('tr.importer', function() {
 
       var isCSS = pe.containsSliceTitle(CSS_ANIMATION_TITLE);
       var isFling = pe.containsTypeNames([INPUT_TYPE.FLING_START]);
+      var isVideo = pe.containsTypeNames([VIDEO_IR_NAME]);
 
       for (var i = 0; i < protoExpectations.length; ++i) {
         var otherPE = protoExpectations[i];
@@ -1028,7 +1064,11 @@ tr.exportTo('tr.importer', function() {
         }
 
         // Don't merge Fling Animations with any other types.
-        if (isFling != otherPE.containsTypeNames([INPUT_TYPE.FLING_START]))
+        if (isFling !== otherPE.containsTypeNames([INPUT_TYPE.FLING_START]))
+          continue;
+
+        // Don't merge Video Animations with any other types.
+        if (isVideo !== otherPE.containsTypeNames([VIDEO_IR_NAME]))
           continue;
 
         pe.merge(otherPE);

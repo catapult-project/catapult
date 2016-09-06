@@ -38,6 +38,56 @@ tr.b.unittest.testSuite(function() {
     verifier.verify();
   });
 
+  test('videoExpectations_gapInMiddle', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 0, end: 100, isTopLevel: true}));
+      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 200, end: 300, isTopLevel: true}));
+      chrome_test_utils.addFrameEvent(model, {start: 210, end: 220});
+    };
+    verifier.expectedIRs = [
+      {title: 'Video Animation', start: 0, end: 100, eventCount: 2},
+      {title: 'Idle', start: 100, end: 200, eventCount: 0},
+      {title: 'Video Animation', start: 200, end: 300, eventCount: 2},
+    ];
+    verifier.verify();
+  });
+
+  test('videoExpectations_overlapping', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 0, end: 200, isTopLevel: true}));
+      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 100, end: 300, isTopLevel: true}));
+      chrome_test_utils.addFrameEvent(model, {start: 210, end: 220});
+    };
+    verifier.expectedIRs = [
+      {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
+    ];
+    verifier.verify();
+  });
+
+  test('videoExpectations_oneInTheOther', function() {
+    var verifier = new UserExpectationVerifier();
+    verifier.customizeModelCallback = function(model) {
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 0, end: 300, isTopLevel: true}));
+      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
+          {title: 'VideoPlayback', start: 100, end: 200, isTopLevel: true}));
+      chrome_test_utils.addFrameEvent(model, {start: 110, end: 120});
+    };
+    verifier.expectedIRs = [
+      {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
+    ];
+    verifier.verify();
+  });
+
   test('slowMouseMoveResponses', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
