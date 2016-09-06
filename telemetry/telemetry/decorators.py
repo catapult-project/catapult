@@ -142,9 +142,12 @@ def Enabled(*args):
     @Enabled('mavericks')     # Enabled only on Mac Mavericks (10.9).
   """
   def _Enabled(func):
-    if not hasattr(func, '_enabled_strings'):
-      func._enabled_strings = set()
-    func._enabled_strings.update(enabled_strings)
+    enabled_attr_name = EnabledAttributeName(func)
+    if not hasattr(func, enabled_attr_name):
+      setattr(func, enabled_attr_name, set())
+    enabled_set = getattr(func, enabled_attr_name)
+    enabled_set.update(enabled_strings)
+    setattr(func, enabled_attr_name, enabled_set)
     return func
   assert args, '@Enabled(..) requires arguments'
   assert not callable(args[0]), 'Please use @Enabled(..).'
@@ -222,13 +225,14 @@ def GetEnabledAttributes(test):
   enabled_attr_name = EnabledAttributeName(test)
   if not hasattr(test, enabled_attr_name):
     return set()
-  return set(getattr(test, enabled_attr_name))
+  enabled_strings = set(getattr(test, enabled_attr_name))
+  return enabled_strings
 
 
-def EnabledAttributeName(unused_test):
-  # TODO(aiolos): Update to match disabled attribute names, and use in
-  # ShouldSkip and Enabled in a secondary cl.
-  return '_enabled_strings'
+def EnabledAttributeName(test):
+  name = _TestName(test)
+  return '_%s_%s_enabled_strings' % (test.__module__, name)
+
 
 def ShouldSkip(test, possible_browser):
   """Returns whether the test should be skipped and the reason for it."""
@@ -247,12 +251,14 @@ def ShouldSkip(test, possible_browser):
       return (True, '%s it is disabled for %s. %s' %
                       (skip, ' and '.join(disabled_strings), running))
 
-  if hasattr(test, '_enabled_strings'):
-    if 'all' in test._enabled_strings:
+  enabled_attr_name = EnabledAttributeName(test)
+  if hasattr(test, enabled_attr_name):
+    enabled_strings = getattr(test, enabled_attr_name)
+    if 'all' in enabled_strings:
       return False, None  # No arguments to @Enabled means always enable.
-    if not set(test._enabled_strings) & set(platform_attributes):
+    if not set(enabled_strings) & set(platform_attributes):
       return (True, '%s it is only enabled for %s. %s' %
-                      (skip, ' or '.join(test._enabled_strings), running))
+                      (skip, ' or '.join(enabled_strings), running))
 
   return False, None
 

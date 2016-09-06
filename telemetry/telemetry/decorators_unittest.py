@@ -56,6 +56,7 @@ class TestDisableDecorators(unittest.TestCase):
     class Honda(object):
       pass
 
+    self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Ford))
     self.assertEquals({'wheel', 'Drive', 'windows'},
                       decorators.GetDisabledAttributes(Honda))
 
@@ -77,6 +78,7 @@ class TestDisableDecorators(unittest.TestCase):
     class Honda(Car):
       pass
 
+    self.assertFalse(decorators.GetDisabledAttributes(Ford))
     self.assertEquals({'windshield'}, decorators.GetDisabledAttributes(Car))
     self.assertEquals({'wheel', 'Drive', 'windows'},
                       decorators.GetDisabledAttributes(Honda))
@@ -158,6 +160,31 @@ class TestEnableDecorators(unittest.TestCase):
 
     self.assertEquals({'wheel', 'Drive', 'windows'},
                       decorators.GetEnabledAttributes(Honda))
+    self.assertEquals({'windshield', 'light'},
+                      decorators.GetEnabledAttributes(Ford))
+
+  def testEnabledStringOnSubClass(self):
+
+    @decorators.Enabled('windshield')
+    class Car(object):
+      pass
+
+    class Ford(Car):
+      pass
+
+    self.assertEquals({'windshield'}, decorators.GetEnabledAttributes(Car))
+    self.assertFalse(decorators.GetEnabledAttributes(Ford))
+
+    @decorators.Enabled('windows', 'Drive')
+    @decorators.Enabled('wheel')
+    @decorators.Enabled('windows')
+    class Honda(Car):
+      pass
+
+    self.assertFalse(decorators.GetEnabledAttributes(Ford))
+    self.assertEquals({'windshield'}, decorators.GetEnabledAttributes(Car))
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      decorators.GetEnabledAttributes(Honda))
 
   def testEnabledStringOnMethod(self):
 
@@ -180,6 +207,22 @@ class TestEnableDecorators(unittest.TestCase):
 
     self.assertEquals({'wheel', 'Drive', 'windows'},
                       decorators.GetEnabledAttributes(Honda().Drive))
+
+    class Accord(Honda):
+
+      def Drive(self):
+        pass
+
+    class Explorer(Ford):
+      pass
+
+    self.assertEquals({'wheel', 'Drive', 'windows'},
+                      decorators.GetEnabledAttributes(Honda().Drive))
+    self.assertEquals({'windshield'},
+                      decorators.GetEnabledAttributes(Ford().Drive))
+    self.assertEquals({'windshield'},
+                      decorators.GetEnabledAttributes(Explorer().Drive))
+    self.assertFalse(decorators.GetEnabledAttributes(Accord().Drive))
 
 
 class TestShouldSkip(unittest.TestCase):
