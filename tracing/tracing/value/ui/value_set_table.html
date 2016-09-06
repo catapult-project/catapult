@@ -76,9 +76,8 @@ found in the LICENSE file.
     <container>
       <controls>
         <div>
-          <input type="checkbox" id="show_all" on-change="onShowAllChange_">
+          <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
           <label for="show_all">Show all</label>
-          <a id="help_show_all" on-mouseover="onMouseOverHelpShowAll_">?</a>
         </div>
         <div id="groupby" on-mouseover="onMouseOverGroupBy_">
           Group by...
@@ -100,10 +99,6 @@ found in the LICENSE file.
       </tr-ui-b-grouping-table-groupby-picker>
     </paper-card>
 
-    <paper-card id="show_all_help" on-mouseleave="onMouseLeaveShowAllHelp_">
-      When unchecked, less important histograms are hidden.<br>
-      When checked, all histograms are shown.
-    </paper-card>
   </template>
 </dom-module>
 
@@ -214,17 +209,6 @@ tr.exportTo('tr.ui', function() {
         tr.v.ValueSet.GROUPINGS.STORY_NAME.key];
       this.$.picker.addEventListener('current-groups-changed',
                                      this.currentGroupsChanged_.bind(this));
-    },
-
-    onMouseOverHelpShowAll_: function(event) {
-      this.$.show_all_help.style.display = 'block';
-      var rect = this.$.help_show_all.getBoundingClientRect();
-      this.$.show_all_help.style.top = rect.top + 'px';
-      this.$.show_all_help.style.left = rect.left + 'px';
-    },
-
-    onMouseLeaveShowAllHelp_: function(event) {
-      this.$.show_all_help.style.display = 'none';
     },
 
     set groupingKeys(keys) {
