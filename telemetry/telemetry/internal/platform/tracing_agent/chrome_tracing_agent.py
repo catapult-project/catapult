@@ -133,7 +133,7 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
       devtools_clients):
     has_clock_synced = False
     if not devtools_clients:
-      raise ChromeClockSyncError()
+      raise ChromeClockSyncError('Cannot issue clock sync. No devtools clients')
 
     for client in devtools_clients:
       try:
@@ -146,7 +146,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         logging.exception('Failed to record clock sync marker with sync_id=%r '
                           'via DevTools client %r:' % (sync_id, client))
     if not has_clock_synced:
-      raise ChromeClockSyncError()
+      raise ChromeClockSyncError(
+          'Failed to issue clock sync to devtools client')
     record_controller_clock_sync_marker_callback(sync_id, timestamp)
 
   def _RecordClockSyncMarkerAsyncEvent(
@@ -165,7 +166,8 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
         logging.exception('Failed to record clock sync marker with sync_id=%r '
                           'via inspector backend %r:' % (sync_id, backend))
     if not has_clock_synced:
-      raise ChromeClockSyncError()
+      raise ChromeClockSyncError(
+          'Failed to issue clock sync to devtools client')
     record_controller_clock_sync_marker_callback(sync_id, timestamp)
 
   def RecordClockSyncMarker(self, sync_id,
