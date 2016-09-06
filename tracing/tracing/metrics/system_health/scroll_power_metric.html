@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+  function scrollPowerMetric(values, model) {
+    if (!model.device.powerSeries)
+      return;
+    var timeHist = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter)
+    var energyHist = new tr.v.Histogram(
+        tr.v.Unit.byName.energyInJoules_smallerIsBetter)
+    var powerHist = new tr.v.Histogram(
+        tr.v.Unit.byName.powerInWatts_smallerIsBetter)
+
+    timeHist.customizeSummaryOptions({
+      avg: false,
+      count: false,
+      max: true,
+      min: true,
+      std: false,
+      sum: true,
+    });
+
+    energyHist.customizeSummaryOptions({
+      avg: false,
+      count: false,
+      max: true,
+      min: true,
+      std: false,
+      sum: true,
+    });
+
+    powerHist.customizeSummaryOptions({
+      avg: true,
+      count: false,
+      max: true,
+      min: true,
+      std: false,
+      sum: false,
+    });
+
+    for (var exp of model.userModel.expectations) {
+      if (exp.title.indexOf("Scroll") !== -1) {
+        var durationInMs = exp.duration;
+        var durationInS = tr.v.convertUnit(durationInMs,
+            tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+        var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(
+          exp.start, exp.end);
+        var powerInW = energyInJ / durationInS;
+
+        timeHist.addSample(durationInMs);
+        energyHist.addSample(energyInJ);
+        powerHist.addSample(powerInW);
+      }
+    }
+
+    values.addValue(new tr.v.NumericValue('time:scroll',
+        timeHist, {description: 'Time spent in scrolling'}));
+
+    values.addValue(new tr.v.NumericValue('energy:scroll',
+        energyHist, {description: 'Energy consumed by scrolling'}));
+
+    values.addValue(new tr.v.NumericValue('power:scroll',
+        powerHist, {description: 'Energy consumption rate in scrolling'}));
+  }
+
+  tr.metrics.MetricRegistry.register(scrollPowerMetric);
+
+  return {
+    scrollPowerMetric: scrollPowerMetric
+  };
+});
+</script>

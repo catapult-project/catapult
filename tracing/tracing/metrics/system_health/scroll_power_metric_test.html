@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/scroll_power_metric.html">
+<link rel="import" href="/tracing/model/user_model/idle_expectation.html">
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+function getMetricValueSum(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return value.numeric.sum;
+}
+
+function getMetricValueAvg(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return value.numeric.average;
+}
+
+tr.b.unittest.testSuite(function() {
+  test('railPowerMetric_oneStageEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Scroll", 0, 500));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 500, 500));
+    tr.metrics.sh.scrollPowerMetric(valueSet, model);
+
+    assert.equal(getMetricValueSum(valueSet,
+        'time:scroll'), 500);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'energy:scroll'), 125, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'power:scroll'), 250, 0.5);
+  });
+
+  test('railPowerMetric_multipleStagesEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Scroll", 0, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 200, 300));
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Touch, Scroll, Tap", 500, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 700, 300));
+    tr.metrics.sh.scrollPowerMetric(valueSet, model);
+
+    assert.equal(getMetricValueSum(valueSet,
+        'time:scroll'), 400);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'energy:scroll'), 140, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'power:scroll'), 350, 0.5);
+  });
+
+  test('railPowerMetric_noPowerSeries', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    tr.metrics.sh.scrollPowerMetric(valueSet, model);
+    var powerEntries = valueSet.valueDicts.filter(
+        (dict) => dict.name.indexOf('time:') === 0);
+    assert.lengthOf(powerEntries, 0);
+  });
+});
+</script>
