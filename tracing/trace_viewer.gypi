@@ -30,7 +30,6 @@
       'tracing/ui/tracks/track.css',
     ],
     'tracing_js_html_files': [
-      '../third_party/polymer/components/iron-icons/iron-icons.html',
       '../third_party/polymer/components/paper-card/paper-card.html',
       '../third_party/polymer/components/polymer/polymer-micro.html',
       '../third_party/polymer/components/polymer/polymer-mini.html',

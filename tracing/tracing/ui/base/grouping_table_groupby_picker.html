@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/iron-icons/iron-icons.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/ui/base/dropdown.html">
@@ -83,6 +82,7 @@ found in the LICENSE file.
 
     #remove {
       visibility: hidden;
+      padding-left: 3px;
       width: 20px;
       height: 20px;
       cursor: auto;
@@ -93,7 +93,9 @@ found in the LICENSE file.
     }
     </style>
 
-    <iron-icon icon="close" id="remove" on-click="remove_"></iron-icon>
+    <!-- TODO(eakuefner): Use an iron-icon here once
+         https://github.com/catapult-project/catapult/issues/2772 is fixed. -->
+    <span id="remove">&times;</span>
     <span id="key"></span>
   </template>
 </dom-module>
