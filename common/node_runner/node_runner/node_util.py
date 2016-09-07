@@ -62,11 +62,11 @@ def GetNodeModulesPath():
   return path
 
 
-def RunEslint(filename=None):
-  cmd = [GetNodePath(), os.path.join(GetNodeModulesPath(), 'eslint', 'bin',
-                                     'eslint.js'), '--color']
-  if filename:
-    cmd.append(filename)
+def RunEslint(filenames=None):
+  cmd = [GetNodePath(), os.path.join(
+      GetNodeModulesPath(), 'eslint', 'bin', 'eslint.js'), '--color']
+  if filenames:
+    cmd += filenames
   try:
     return subprocess.check_output(cmd, stderr=subprocess.STDOUT)
   except subprocess.CalledProcessError as e:

@@ -73,9 +73,8 @@ class JSChecker(object):
       return False
 
     affected_js_files = filter(ShouldCheck, affected_files)
+    error_lines = []
     for f in affected_js_files:
-      error_lines = []
-
       contents = list(f.NewContents())
       error_lines += CheckStrictMode(
           '\n'.join(contents),
@@ -84,14 +83,18 @@ class JSChecker(object):
       for i, line in enumerate(contents, start=1):
         error_lines += filter(None, [self.ConstCheck(i, line)])
 
-      eslint_output = node_util.RunEslint(f.AbsoluteLocalPath()).rstrip()
+    if affected_js_files:
+      eslint_output = node_util.RunEslint(
+          [f.AbsoluteLocalPath() for f in affected_js_files]).rstrip()
+
       if eslint_output:
-        error_lines.append('eslint found JavaScript style violations:')
+        error_lines.append('\neslint found lint errors:')
         error_lines.append(eslint_output)
 
-      if error_lines:
-        results.append(
-            _MakeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
+    if error_lines:
+      error_lines.insert(0, 'Found JavaScript style violations:')
+      results.append(
+          _MakeErrorOrWarning(self.output_api, '\n'.join(error_lines)))
 
     return results
 
