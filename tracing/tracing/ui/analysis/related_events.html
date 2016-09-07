@@ -96,6 +96,8 @@ Polymer({
   setRelatedEvents: function(eventSet) {
     this.cancelAllTasks_();
     this.eventGroups_ = [];
+    this.addRuntimeCallStats_(eventSet);
+    this.addV8Slices_(eventSet);
     this.addConnectedFlows_(eventSet);
     this.addConnectedEvents_(eventSet);
     this.addOverlappingSamples_(eventSet);
@@ -231,7 +233,7 @@ Polymer({
         selection: events
       });
       this.updateContents_();
-    };
+    }
     function cancelTask() {
       isCanceled = true;
     }
@@ -258,6 +260,37 @@ Polymer({
         type: 'Overlapping samples',
         tooltip: 'All samples overlapping the selected slice(s).',
         selection: samples
+      });
+    }
+  },
+
+  addV8Slices_: function(eventSet) {
+    var v8Slices = new tr.model.EventSet;
+    for (var slice of eventSet) {
+      if (slice.category === 'v8')
+        v8Slices.push(slice);
+    }
+    if (v8Slices.length > 0) {
+      this.eventGroups_.push({
+        type: 'V8 Slices',
+        tooltip: 'All V8 slices in the selected slice(s).',
+        selection: v8Slices
+      });
+    }
+  },
+
+  addRuntimeCallStats_: function(eventSet) {
+    var slices = new tr.model.EventSet;
+    for (var slice of eventSet) {
+      if (slice.category === 'v8' && slice.runtimeCallStats)
+        slices.push(slice);
+    }
+    if (slices.length > 0) {
+      this.eventGroups_.push({
+        type: 'Runtime call stats table',
+        // eslint-disable-next-line
+        tooltip: 'All V8 slices containing runtime call stats table in the selected slice(s).',
+        selection: slices
       });
     }
   },

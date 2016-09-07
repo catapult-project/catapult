@@ -138,7 +138,7 @@ tr.exportTo('tr.ui.e.v8', function() {
           title: 'Time',
           value: function(row) {
             var typeEl = document.createElement('span');
-            typeEl.innerText = row.time + 'us';
+            typeEl.innerText = (row.time / 1000.0).toFixed(3) + ' ms';
             return typeEl;
           },
           width: '100px',
