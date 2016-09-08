@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -18,7 +17,7 @@ tr.b.unittest.testSuite(function() {
 
   test('Unit.display-mode-changed', function() {
     var Unit = tr.v.Unit;
-    var TimeDisplayModes = tr.v.TimeDisplayModes;
+    var TimeDisplayModes = tr.b.TimeDisplayModes;
 
     var listenerWasCalled = false;
     function listener(e) {
@@ -42,7 +41,7 @@ tr.b.unittest.testSuite(function() {
   function checkTimeUnit(unit) {
     try {
       // Use milliseconds to display time (default behavior).
-      Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ms;
+      Unit.currentTimeDisplayMode = tr.b.TimeDisplayModes.ms;
 
       assert.strictEqual(unit.format(0), '0.000 ms');
       assert.strictEqual(unit.format(0.02), '0.020 ms');
@@ -56,7 +55,7 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(unit.format(-123456789), '-123,456,789.000 ms');
 
       // Change the unit to nanoseconds.
-      Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ns;
+      Unit.currentTimeDisplayMode = tr.b.TimeDisplayModes.ns;
 
       assert.strictEqual(unit.format(0), '0 ns');
       assert.strictEqual(unit.format(1), '1,000,000 ns');

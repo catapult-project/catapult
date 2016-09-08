@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
 
@@ -380,14 +380,14 @@ tr.b.unittest.testSuite(function() {
 
   test('respectCurrentDisplayUnit', function() {
     try {
-      Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ns;
+      Unit.currentTimeDisplayMode = tr.b.TimeDisplayModes.ns;
 
       var span = document.createElement('tr-v-ui-scalar-span');
       span.setValueAndUnit(73, Unit.byName.timeStampInMs);
       this.addHTMLOutput(span);
 
       assert.isTrue(Polymer.dom(span.$.content).textContent.indexOf('ns') > 0);
-      Unit.currentTimeDisplayMode = tr.v.TimeDisplayModes.ms;
+      Unit.currentTimeDisplayMode = tr.b.TimeDisplayModes.ms;
       assert.isTrue(Polymer.dom(span.$.content).textContent.indexOf('ms') > 0);
     } finally {
       Unit.reset();

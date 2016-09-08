@@ -194,7 +194,7 @@ tr.exportTo('tr.e.importer', function() {
       // Some implementations specify displayTimeUnit
       if (container.displayTimeUnit) {
         var unitName = container.displayTimeUnit;
-        var unit = tr.v.TimeDisplayModes[unitName];
+        var unit = tr.b.TimeDisplayModes[unitName];
         if (unit === undefined) {
           throw new Error('Unit ' + unitName + ' is not supported.');
         }

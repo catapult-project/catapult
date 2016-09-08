@@ -7,14 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/timed_event.html">
-<link rel="import" href="/tracing/value/time_display_mode.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('bounds_startPrecision', function() {
-    var unit = tr.v.TimeDisplayModes;
+    var unit = tr.b.TimeDisplayModes;
 
     var outer = new tr.model.TimedEvent(10.0001);
     outer.duration = 0.9999;
@@ -28,7 +27,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('bounds_endPrecision', function() {
-    var unit = tr.v.TimeDisplayModes;
+    var unit = tr.b.TimeDisplayModes;
 
     var outer = new tr.model.TimedEvent(10.0000);
     outer.duration = 0.9999;
@@ -42,4 +41,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

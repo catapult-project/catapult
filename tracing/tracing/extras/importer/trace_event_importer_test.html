@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
@@ -14,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -5253,7 +5253,7 @@ tr.b.unittest.testSuite(function() {
       displayTimeUnit: 'ns'
     };
     var m = makeModel(JSON.stringify(eventData));
-    assert.equal(m.intrinsicTimeUnit, tr.v.TimeDisplayModes.ns);
+    assert.equal(m.intrinsicTimeUnit, tr.b.TimeDisplayModes.ns);
   });
 
   test('extractBattorSubTraces', function() {

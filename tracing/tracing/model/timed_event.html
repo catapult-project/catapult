@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/model/event.html">
-<link rel="import" href="/tracing/value/time_display_mode.html">
 
 <script>
 'use strict';
@@ -46,7 +46,7 @@ tr.exportTo('tr.model', function() {
     // event.
     bounds: function(that, opt_precisionUnit) {
       if (opt_precisionUnit === undefined)
-        opt_precisionUnit = tr.v.TimeDisplayModes.ms;
+        opt_precisionUnit = tr.b.TimeDisplayModes.ms;
 
       var startsBefore = opt_precisionUnit.roundedLess(that.start, this.start);
       var endsAfter = opt_precisionUnit.roundedLess(this.end, that.end);

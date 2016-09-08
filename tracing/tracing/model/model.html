@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/quad.html">
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/task.html">
+<link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/alert.html">
@@ -31,7 +32,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/stack_frame.html">
 <link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/model/user_model/user_model.html">
-<link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/unit.html">
 
 <script>
@@ -368,7 +368,7 @@ tr.exportTo('tr', function() {
      */
     get intrinsicTimeUnit() {
       if (this.intrinsicTimeUnit_ === undefined)
-        return tr.v.TimeDisplayModes.ms;
+        return tr.b.TimeDisplayModes.ms;
       return this.intrinsicTimeUnit_;
     },
 
