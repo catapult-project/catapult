@@ -9,7 +9,9 @@ import os
 import string
 import sys
 
-sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(
+    1,
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), '..'))
 from tracing.metrics import discover
 import tracing_project
 

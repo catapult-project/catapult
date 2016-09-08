@@ -7,8 +7,11 @@ import os
 import platform
 import sys
 
-_CATAPULT_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.path.pardir, os.path.pardir))
+_CATAPULT_PATH = os.path.abspath(
+    os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        os.path.pardir,
+        os.path.pardir))
 _TRACING_PATH = os.path.join(_CATAPULT_PATH, 'tracing')
 
 

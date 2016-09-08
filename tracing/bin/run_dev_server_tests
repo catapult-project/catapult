@@ -7,8 +7,8 @@ import os
 import sys
 
 if __name__ == '__main__':
-  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                 '..', '..'))
-  sys.path.append(catapult_path)
+  tracing_path = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), '..', '..'))
+  sys.path.append(tracing_path)
   from catapult_build import run_dev_server_tests
   sys.exit(run_dev_server_tests.Main(sys.argv + ['--tests=tracing']))

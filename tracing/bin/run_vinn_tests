@@ -7,8 +7,8 @@ import os
 import sys
 
 if __name__ == '__main__':
-  tracing_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                 '..'))
+  tracing_path = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), '..'))
   sys.path.append(tracing_path)
   from tracing_build import run_vinn_tests
   sys.exit(run_vinn_tests.Main(sys.argv))

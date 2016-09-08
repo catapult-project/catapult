@@ -7,7 +7,7 @@ import os
 import sys
 
 
-_THIS_PATH = os.path.dirname(__file__)
+_THIS_PATH = os.path.dirname(os.path.realpath(__file__))
 _TESTS = [
     {'path': os.path.join(_THIS_PATH, 'run_py_tests')},
     {'path': os.path.join(_THIS_PATH, 'run_vinn_tests'),
@@ -18,8 +18,8 @@ _TESTS = [
 
 
 if __name__ == '__main__':
-  catapult_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                  '..', '..'))
-  sys.path.append(catapult_path)
+  tracing_path = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), '..'))
+  sys.path.append(tracing_path)
   from catapult_build import test_runner
   sys.exit(test_runner.Main('tracing', _TESTS, sys.argv))
