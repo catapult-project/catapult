@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/tti_power_metric.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+function getMetricValue(valueSet, name) {
+  for (var value of valueSet)
+    if (value.name === name)
+      return value.numeric.average;
+}
+
+tr.b.unittest.testSuite(function() {
+
+  test('ttiPowerMetric_oneInterval', function() {
+    // Interval of load is [200, 15400].
+    // Trace goes until 22150.
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1984);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9180,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9350,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 11150,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 12550,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 14950,
+        duration: 500,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 22150,
+        duration: 10,
+      }));
+
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 15400; i++)
+        model.device.powerSeries.addPowerSample(i.toString(), '20');
+      for (var i = 15401; i <= 22160; i++)
+        model.device.powerSeries.addPowerSample(i.toString(), '10');
+    });
+
+  var valueSet = new tr.v.ValueSet();
+  tr.metrics.sh.ttiPowerMetric(valueSet, model);
+
+  // Energy for first load is 20 W * 15.2 s
+  // (interval from 0.2 s to 15.4 s)
+  assert.closeTo(
+      getMetricValue(valueSet, 'energy:load'), 304, 0.1);
+  assert.closeTo(
+      getMetricValue(valueSet, 'power:after_load'), 10, 0.01);
+  });
+});
+</script>

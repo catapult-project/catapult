@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
+<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+
+  /*
+  * Call the functions in loading_metric.html to get the TTI intervals.
+  * "TTI interval" here means the interval between the start of the
+  * LoadExpectation (i.e. navigation start) and time to interactive.
+  * A trace can have multiple TTI intervals in the case that there are
+  * multiple page loads (e.g. a browsing story where the user switches
+  * between multiple pages)
+  */
+
+  function getNavigationTTIIntervals(model) {
+    // TODO(alexandermont): When LoadExpectation v.1.0 is released,
+    // update this function to use the new LoadExpectation rather
+    // than calling loading_metric.html.
+
+    var values = new tr.v.ValueSet();
+    tr.metrics.sh.loadingMetric(values, model);
+    var ttiValues = values.getValuesNamed('timeToFirstInteractive');
+    var intervals = [];
+    for (var bin of tr.b.getOnlyElement(ttiValues).numeric.allBins)
+      for (var diagnostics of bin.diagnosticMaps) {
+        var breakdown = diagnostics.get('breakdown');
+        intervals.push(tr.b.Range.fromExplicitRange(
+            breakdown.value.start, breakdown.value.interactive));
+      }
+    return intervals.sort((x, y) => x.min - y.min);
+  }
+
+  function ttiPowerMetric(values, model) {
+    if (!model.device.powerSeries)
+      return;
+
+    var intervals = getNavigationTTIIntervals(model);
+    var lastLoadTime = 0;
+    var loadHistogram = new tr.v.Histogram(
+        tr.v.Unit.byName.energyInJoules_smallerIsBetter);
+    loadHistogram.customizeSummaryOptions({
+        avg: false,
+        count: false,
+        max: false,
+        min: false,
+        std: false,
+        sum: true,
+    });
+    for (var interval of intervals) {
+      var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(
+        interval.min, interval.max);
+      loadHistogram.addSample(energyInJ);
+      lastLoadTime = interval.max;
+    }
+    values.addValue(new tr.v.NumericValue('energy:load',
+        loadHistogram, {description: 'Energy consumed in page loads'}));
+    var afterLoadEnergyInJ = model.device.powerSeries.getEnergyConsumedInJ(
+        lastLoadTime, model.bounds.max);
+    var afterLoadTimeInMs = model.bounds.max - lastLoadTime;
+    var afterLoadTimeInS = tr.b.convertUnit(afterLoadTimeInMs,
+        tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+    var afterLoadPowerInW = afterLoadEnergyInJ / afterLoadTimeInS;
+    var afterLoadHistogram = new tr.v.Histogram(
+        tr.v.Unit.byName.powerInWatts_smallerIsBetter);
+    afterLoadHistogram.customizeSummaryOptions({
+        avg: false,
+        count: false,
+        max: false,
+        min: false,
+        std: false,
+        sum: false,
+    });
+    afterLoadHistogram.addSample(afterLoadPowerInW);
+    values.addValue(new tr.v.NumericValue(
+      'power:after_load', afterLoadHistogram,
+      {description: 'Average power after load'}));
+  }
+
+  tr.metrics.MetricRegistry.register(ttiPowerMetric);
+
+  return {
+    ttiPowerMetric: ttiPowerMetric
+  };
+});
+</script>
