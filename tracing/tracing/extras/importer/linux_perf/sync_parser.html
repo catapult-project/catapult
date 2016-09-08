@@ -112,16 +112,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     syncPtEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var event = syncPtRE.exec(eventBase.details);
-      if (!event)
-        return false;
-
-      return true;
-
-      var thread = this.importer.getOrCreateKernelThread(
-          eventBase[1]).thread;
-      thread.syncWaitSyncPts[event[1]] = event[2];
-      return true;
+      return !!syncPtRE.exec(eventBase.details);
     }
   };
 
@@ -132,4 +123,3 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   };
 });
 </script>
-
