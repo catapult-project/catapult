@@ -7,14 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/unit.html">
-<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var Unit = tr.v.Unit;
-  var UnitScale = tr.v.UnitScale;
+  var UnitScale = tr.b.UnitScale;
   var ImprovementDirection = tr.v.ImprovementDirection;
 
   test('Unit.display-mode-changed', function() {

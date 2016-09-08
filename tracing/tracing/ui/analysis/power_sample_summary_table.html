@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/unit.html">
-<link rel="import" href="/tracing/value/unit_scale.html">
 
 <dom-module id='tr-ui-a-power-sample-summary-table'>
   <template>
@@ -113,8 +112,8 @@ Polymer({
     if (energyConsumedInJ === 'N/A')
       return 'N/A';
 
-    var durationInS = tr.v.convertUnit(this.samples.bounds.duration,
-        tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+    var durationInS = tr.b.convertUnit(this.samples.bounds.duration,
+        tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
 
     return energyConsumedInJ / durationInS;
   },

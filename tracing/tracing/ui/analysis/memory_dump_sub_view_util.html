@@ -870,7 +870,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     getFormattingContext: function(unit) {
       if (unit.baseUnit === tr.v.Unit.byName.sizeInBytes)
-        return { unitPrefix: tr.v.UnitScale.Binary.KIBI };
+        return { unitPrefix: tr.b.UnitScale.Binary.KIBI };
       return undefined;
     }
   };

@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/value/unit_scale.html">
+<link rel="import" href="/tracing/base/unit_scale.html">
 
 <script>
 'use strict';
@@ -23,7 +23,7 @@ tr.exportTo('tr.v', function() {
     },
     formatSpec: {
       unit: 's',
-      unitPrefix: tr.v.UnitScale.Metric.MILLI,
+      unitPrefix: tr.b.UnitScale.Metric.MILLI,
       minimumFractionDigits: 3,
     }
   };
@@ -37,7 +37,7 @@ tr.exportTo('tr.v', function() {
     },
     formatSpec: {
       unit: 's',
-      unitPrefix: tr.v.UnitScale.Metric.NANO,
+      unitPrefix: tr.b.UnitScale.Metric.NANO,
       maximumFractionDigits: 0
     }
   };

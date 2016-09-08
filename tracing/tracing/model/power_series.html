@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/power_sample.html">
-<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
@@ -84,8 +84,8 @@ tr.exportTo('tr.model', function() {
         var intersectionRangeInMs = measurementRange.findIntersection(
             sampleRange);
 
-        var durationInS = tr.v.convertUnit(intersectionRangeInMs.duration,
-            tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+        var durationInS = tr.b.convertUnit(intersectionRangeInMs.duration,
+            tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
 
         energyConsumedInJ += durationInS * sample.powerInW;
       }

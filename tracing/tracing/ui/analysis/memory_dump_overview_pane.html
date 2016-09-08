@@ -20,7 +20,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/view_specific_brushing_state.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/unit.html">
-<link rel="import" href="/tracing/value/unit_scale.html">
 
 <dom-module id='tr-ui-a-memory-dump-overview-pane'>
   <template>
@@ -150,7 +149,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getFormattingContext: function(unit) {
-      return { unitPrefix: tr.v.UnitScale.Binary.MEBI };
+      return { unitPrefix: tr.b.UnitScale.Binary.MEBI };
     },
 
     color: function(numerics, processMemoryDumps) {
@@ -341,7 +340,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getFormattingContext: function(unit) {
-      return { unitPrefix: tr.v.UnitScale.Binary.MEBI };
+      return { unitPrefix: tr.b.UnitScale.Binary.MEBI };
     },
 
     addInfos: function(numerics, processMemoryDumps, infos) {

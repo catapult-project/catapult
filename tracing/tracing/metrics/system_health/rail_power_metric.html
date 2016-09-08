@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/unit_scale.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -65,8 +64,8 @@ tr.exportTo('tr.metrics.sh', function() {
         railStageToPowerHist.set(currTitle, powerHist);
       }
       var durationInMs = exp.duration;
-      var durationInS = tr.v.convertUnit(durationInMs,
-          tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+      var durationInS = tr.b.convertUnit(durationInMs,
+          tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
       var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(
         exp.start, exp.end);
       var powerInW = energyInJ / durationInS;

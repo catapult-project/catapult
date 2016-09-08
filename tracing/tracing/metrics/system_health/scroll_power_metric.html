@@ -54,8 +54,8 @@ tr.exportTo('tr.metrics.sh', function() {
     for (var exp of model.userModel.expectations) {
       if (exp.title.indexOf("Scroll") !== -1) {
         var durationInMs = exp.duration;
-        var durationInS = tr.v.convertUnit(durationInMs,
-            tr.v.UnitScale.Metric.MILLI, tr.v.UnitScale.Metric.NONE);
+        var durationInS = tr.b.convertUnit(durationInMs,
+            tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
         var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(
           exp.start, exp.end);
         var powerInW = energyInJ / durationInS;

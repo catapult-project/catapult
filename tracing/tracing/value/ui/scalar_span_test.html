@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/time_display_mode.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/unit.html">
-<link rel="import" href="/tracing/value/unit_scale.html">
 
 <script>
 'use strict';
@@ -315,7 +314,7 @@ tr.b.unittest.testSuite(function() {
     var span = tr.v.ui.createScalarSpan(
         new ScalarNumeric(Unit.byName.sizeInBytesDelta_smallerIsBetter,
             256 * 1024 * 1024), { context: {
-              unitPrefix: tr.v.UnitScale.Binary.KIBI,
+              unitPrefix: tr.b.UnitScale.Binary.KIBI,
               minimumFractionDigits: 2
             } });
     assert.strictEqual(
@@ -325,7 +324,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(span.value, 256 * 1024 * 1024);
     assert.strictEqual(span.unit, Unit.byName.sizeInBytesDelta_smallerIsBetter);
     assert.deepEqual(span.context,
-        { unitPrefix: tr.v.UnitScale.Binary.KIBI, minimumFractionDigits: 2 });
+        { unitPrefix: tr.b.UnitScale.Binary.KIBI, minimumFractionDigits: 2 });
     assert.isUndefined(span.percentage);
     assert.isUndefined(span.warning);
     assert.isFalse(span.rightAlign);
