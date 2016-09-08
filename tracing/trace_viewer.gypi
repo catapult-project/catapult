@@ -477,6 +477,7 @@
       'tracing/ui/tracks/thread_track.html',
       'tracing/ui/tracks/track.html',
       'tracing/ui/view_specific_brushing_state.html',
+      'tracing/value/diagnostics/breakdown.html',
       'tracing/value/diagnostics/composition.html',
       'tracing/value/diagnostics/diagnostic.html',
       'tracing/value/diagnostics/diagnostic_map.html',

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/value/diagnostics/breakdown.html">
 <link rel="import" href="/tracing/value/diagnostics/composition.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/composition_span.html">
@@ -25,6 +26,17 @@ tr.b.unittest.testSuite(function() {
     composition.add(new tr.v.NumericValue('numeric', numeric));
     composition.add(new tr.v.NumericValue('scalar', scalar));
     var span = tr.v.ui.createDiagnosticSpan(composition);
+    assert.strictEqual('TR-V-UI-COMPOSITION-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+
+  test('instantiate_Breakdown', function() {
+    var breakdown = new tr.v.d.Breakdown();
+    breakdown.colorScheme =
+      tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
+    breakdown.set('script', 42);
+    breakdown.set('style', 57);
+    var span = tr.v.ui.createDiagnosticSpan(breakdown);
     assert.strictEqual('TR-V-UI-COMPOSITION-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
