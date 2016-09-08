@@ -131,7 +131,7 @@ class AdbWrapper(object):
     up a new ADB shell for each command.
 
     Example of use:
-    with pshell as PersistentShell('123456789'):
+    with PersistentShell('123456789') as pshell:
         pshell.RunCommand('which ls')
         pshell.RunCommandAndClose('echo TEST')
     '''
