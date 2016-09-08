@@ -99,6 +99,10 @@ class SharedPageState(story.SharedState):
                                           browser_options.extra_wpr_args)
 
   @property
+  def possible_browser(self):
+    return self._possible_browser
+
+  @property
   def browser(self):
     return self._browser
 
