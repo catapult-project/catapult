@@ -119,6 +119,7 @@ tr.exportTo('tr.v', function() {
         count: true,
         sum: true,
         avg: true,
+        geometricMean: false,
         std: true,
         min: true,
         max: true,
@@ -200,6 +201,10 @@ tr.exportTo('tr.v', function() {
 
     get average() {
       return this.running.mean;
+    }
+
+    get geometricMean() {
+      return this.running.geometricMean;
     }
 
     get sum() {

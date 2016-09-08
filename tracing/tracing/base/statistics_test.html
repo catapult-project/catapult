@@ -145,7 +145,33 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('meanBasic', function() {
-    assert.equal(Statistics.mean([1, 2, 3]), 2);
+    assert.closeTo(Statistics.mean([1, 2, 3]), 2, 1e-6);
+    assert.closeTo(Statistics.mean(new Set([1, 2, 3])), 2, 1e-6);
+  });
+
+  test('geometricMean', function() {
+    assert.strictEqual(1, Statistics.geometricMean([]));
+    assert.strictEqual(1, Statistics.geometricMean([1]));
+    assert.strictEqual(0, Statistics.geometricMean([-1]));
+    assert.strictEqual(0, Statistics.geometricMean([0]));
+    assert.strictEqual(0, Statistics.geometricMean([1, 2, 3, 0]));
+    assert.strictEqual(0, Statistics.geometricMean([1, 2, 3, -1]));
+    assert.strictEqual(1, Statistics.geometricMean([1, 1, 1]));
+    assert.strictEqual(2, Statistics.geometricMean([2]));
+    assert.closeTo(Math.sqrt(6), Statistics.geometricMean([2, 3]), 1e-6);
+    assert.closeTo(6, Statistics.geometricMean(new Set([4, 9])), 1e-6);
+
+    var samples = [];
+    for (var i = 0; i < 1e3; ++i)
+      samples.push(Number.MAX_SAFE_INTEGER);
+    assert.closeTo(Number.MAX_SAFE_INTEGER, Statistics.geometricMean(samples),
+        Number.MAX_SAFE_INTEGER * 1e-13);
+
+    samples = [];
+    for (var i = 0; i < 1e3; ++i)
+      samples.push(Number.MAX_VALUE / 1e3);
+    assert.closeTo(Number.MAX_VALUE / 1e3, Statistics.geometricMean(samples),
+        Number.MAX_VALUE * 1e-13);
   });
 
   test('weightedMean', function() {

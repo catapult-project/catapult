@@ -330,6 +330,7 @@ tr.b.unittest.testSuite(function() {
       sum: true,
       avg: true,
       std: true,
+      geometricMean: true,
       percentile: [0.5, 1]
     });
 
@@ -347,6 +348,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(values.std.value, 10);
     assert.closeTo(values.pct_050.value, 60, 1);
     assert.closeTo(values.pct_100.value, 70, 1);
+    assert.closeTo(values.geometricMean.value, 59.439, 1e-3);
   });
 
   test('getSummarizedScalarNumericsWithNamesNoSummaryOptions', function() {
