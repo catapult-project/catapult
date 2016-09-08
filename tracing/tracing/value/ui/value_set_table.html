@@ -54,15 +54,10 @@ found in the LICENSE file.
       justify-content: space-between;
     }
 
-    #picker_container, #show_all_help {
+    #picker_container {
       position: absolute;
       display: none;
       background: white;
-    }
-
-    #help_show_all {
-      color: blue;
-      text-decoration: underline;
     }
 
     #groupby {
@@ -506,10 +501,23 @@ tr.exportTo('tr.ui', function() {
       this.$.table.sortColumnIndex = 0;
       this.$.table.rebuild();
       this.selectValue_();
+      this.maybeDisableShowAll_();
 
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
       }, this);
+    },
+
+    maybeDisableShowAll_: function() {
+      var hiddenValues = 0;
+      for (var value of this.values) {
+        if (!this.summaryValuesByGuid_[value.guid] &&
+            this.sourceValues_.indexOf(value) < 0) {
+          ++hiddenValues;
+        }
+      }
+      this.$.show_all.checked = (hiddenValues === 0);
+      this.$.show_all.disabled = (hiddenValues === 0);
     },
 
     selectValue_: function() {
