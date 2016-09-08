@@ -50,6 +50,12 @@ ALL_MODULES = [atrace_agent, atrace_from_file_agent,
                battor_trace_agent, ftrace_agent]
 
 
+def _get_default_serial():
+  if 'ANDROID_SERIAL' in os.environ:
+    return os.environ['ANDROID_SERIAL']
+  return None
+
+
 def parse_options(argv):
   """Parses and checks the command-line options.
 
@@ -79,6 +85,7 @@ def parse_options(argv):
   parser.add_option('--asset-dir', dest='asset_dir', default='trace-viewer',
                     type='string', help='(deprecated)')
   parser.add_option('-e', '--serial', dest='device_serial_number',
+                    default=_get_default_serial(),
                     type='string', help='adb device serial number')
   parser.add_option('--target', dest='target', default='android', type='string',
                     help='chose tracing target (android or linux)')
