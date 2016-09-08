@@ -202,5 +202,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.unit, tr.v.Unit.byName.normalizedPercentage);
   });
 
+  test('httpLink', function() {
+    var view = document.createElement('tr-ui-a-generic-object-view');
+    var url = 'https://google.com/chrome';
+    view.object = {a: url};
+    this.addHTMLOutput(view);
+    var a = tr.b.findDeepElementMatching(view.$.content, 'a');
+    assert.isDefined(a);
+    assert.strictEqual(url, a.href);
+    assert.strictEqual(url, a.textContent);
+  });
 });
 </script>
