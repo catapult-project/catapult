@@ -725,7 +725,7 @@ tr.exportTo('tr.ui', function() {
         value: function(row) {
           var cell = row.columns[displayLabel];
           if (cell === undefined)
-            return '';
+            return '(missing)';
 
           if (cell === UNMERGEABLE)
             return cell;
@@ -751,6 +751,11 @@ tr.exportTo('tr.ui', function() {
                     {unit: cell.numeric.unit.correspondingDeltaUnit,
                      significance: significance});
               }
+            }
+
+            if (cell.numeric instanceof tr.v.Histogram &&
+                cell.numeric.numValues === 0) {
+              return '(empty)';
             }
 
             return tr.v.ui.createScalarSpan(cell);

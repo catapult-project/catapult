@@ -24,6 +24,51 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
+  test('emptyAndMissing', function() {
+    var now = new Date().getTime();
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+
+    var histA = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (var i = 0; i < 100; ++i)
+      histA.addSample(Math.random() * 1e3);
+    var valueA = new tr.v.NumericValue('histogram A', histA);
+    new tr.v.d.IterationInfo({
+      label: 'iteration A',
+      benchmarkStartMs: now,
+    }).addToValue(valueA);
+    values.addValue(valueA);
+
+    var histB = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (var i = 0; i < 100; ++i)
+      histB.addSample(Math.random() * 1e3);
+    var valueB = new tr.v.NumericValue('histogram B', histB);
+    new tr.v.d.IterationInfo({
+      label: 'iteration B',
+      benchmarkStartMs: now,
+    }).addToValue(valueB);
+    values.addValue(valueB);
+
+    var histC = new tr.v.Histogram(
+        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    var valueC = new tr.v.NumericValue('histogram A', histC);
+    new tr.v.d.IterationInfo({
+      label: 'iteration B',
+      benchmarkStartMs: now,
+    }).addToValue(valueC);
+    values.addValue(valueC);
+
+    table.values = values;
+    this.addHTMLOutput(table);
+
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+          table, e => e.textContent === '(empty)'));
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+          table, e => e.textContent === '(missing)'));
+  });
+
   test('instantiate_1x1', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
     var values = new tr.v.ValueSet();
