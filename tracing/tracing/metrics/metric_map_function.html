@@ -36,15 +36,20 @@ tr.exportTo('tr.metrics', function() {
       metric.constructor(values, model, options);
     }
 
+    var iterationInfo = new tr.v.d.IterationInfo();
     for (var metadata of model.metadata) {
-      if (!metadata.value || !metadata.value['iteration-info'])
+      if (!metadata.value)
         continue;
-      var iteration = new tr.v.d.IterationInfo(
-          metadata.value['iteration-info']);
-      // Values can be separated from their ValueSet and mixed into ValueSets
-      // with Values from other iterations, so add IterationInfo to each Value.
-      values.map(v => iteration.addToValue(v));
+
+      if (metadata.value['iteration-info'])
+        iterationInfo.addInfo(metadata.value['iteration-info']);
+
+      if (metadata.value['os-version'])
+        iterationInfo.addInfo(metadata.value);
     }
+    // Values can be separated from their ValueSet and mixed into ValueSets with
+    // Values from other iterations, so add IterationInfo to each Value.
+    values.map(v => iterationInfo.addToValue(v));
 
     result.addPair('values', values.valueDicts);
   }

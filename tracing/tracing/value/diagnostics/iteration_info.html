@@ -12,27 +12,181 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  /**
-   * @constructor
-   * @param {!Object} info
-   * @param {string} info.benchmarkName
-   * @param {undefined|string} info.label
-   * @param {undefined|!Object} info.storyGroupingKeys
-   * @param {undefined|string} info.storyDisplayName
-   * @param {string} info.storyUrl
-   * @param {number} info.storyRepeatCounter
-   * @param {number} info.storysetRepeatCounter
-   * @param {number} info.benchmarkStartMs Milliseconds since Unix epoch.
-   */
-  function IterationInfo(info) {
-    this.benchmarkName_ = info.benchmarkName;
-    this.benchmarkStart_ = new Date(info.benchmarkStartMs);
-    this.label_ = info.label;
-    this.storyDisplayName_ = info.storyDisplayName;
-    this.storyGroupingKeys_ = info.storyGroupingKeys;
-    this.storyRepeatCounter_ = info.storyRepeatCounter;
-    this.storyUrl_ = info.storyUrl;
-    this.storysetRepeatCounter_ = info.storysetRepeatCounter;
+  class IterationInfo extends tr.v.d.Diagnostic {
+    constructor(opt_info) {
+      super();
+
+      this.benchmarkName_ = '';
+      this.benchmarkStart_ = undefined;
+      this.label_ = '';
+      this.osVersion_ = '';
+      this.productVersion_ = '';
+      this.storyDisplayName_ = '';
+      this.storyGroupingKeys_ = {};
+      this.storyRepeatCounter_ = 0;
+      this.storyUrl_ = '';
+      this.storysetRepeatCounter_ = 0;
+
+      if (opt_info)
+        this.addInfo(opt_info);
+    }
+
+    /**
+     * @param {!Object} info
+     * @param {string} info.benchmarkName
+     * @param {undefined|string} info.label
+     * @param {undefined|!Object} info.storyGroupingKeys
+     * @param {undefined|string} info.storyDisplayName
+     * @param {undefined|string} info.storyUrl
+     * @param {undefined|number} info.storyRepeatCounter
+     * @param {number} info.storysetRepeatCounter
+     * @param {number} info.benchmarkStartMs Milliseconds since Unix epoch.
+     */
+    addInfo(info) {
+      // IterationInfo from Telemetry
+      if (info.benchmarkName)
+        this.benchmarkName_ = info.benchmarkName;
+      if (info.benchmarkStartMs)
+        this.benchmarkStart_ = new Date(info.benchmarkStartMs);
+      if (info.label)
+        this.label_ = info.label;
+      if (info.storyDisplayName)
+        this.storyDisplayName_ = info.storyDisplayName;
+      if (info.storyGroupingKeys)
+        this.storyGroupingKeys_ = info.storyGroupingKeys;
+      if (info.storyRepeatCounter)
+        this.storyRepeatCounter_ = info.storyRepeatCounter;
+      if (info.storyUrl)
+        this.storyUrl_ = info.storyUrl;
+      if (info.storysetRepeatCounter)
+        this.storysetRepeatCounter_ = info.storysetRepeatCounter;
+
+      // From platform tracing metadata
+      if (info['os-version'])
+        this.osVersion_ = info['os-version'];
+      if (info['product-version'])
+        this.productVersion_ = info['product-version'];
+    }
+
+    addToValue(value) {
+      value.diagnostics.set(IterationInfo.NAME, this);
+    }
+
+    /**
+     * @param {!tr.v.Value} value
+     * @return {(undefined|!tr.v.d.IterationInfo)}
+     */
+    static getFromValue(value) {
+      return value.diagnostics.get(IterationInfo.NAME);
+    }
+
+    asDictInto_(d) {
+      d.benchmarkName = this.benchmarkName;
+      if (this.benchmarkStart)
+        d.benchmarkStartMs = this.benchmarkStart.getTime();
+      d.label = this.label;
+      d.storyDisplayName = this.storyDisplayName;
+      d.storyGroupingKeys = this.storyGroupingKeys;
+      d.storyRepeatCounter = this.storyRepeatCounter;
+      d.storyUrl = this.storyUrl;
+      d.storysetRepeatCounter = this.storysetRepeatCounter;
+      d['os-version'] = this.osVersion;
+      d['product-version'] = this.productVersion;
+    }
+
+    static fromDict(d) {
+      var info = new IterationInfo();
+      info.addInfo(d);
+      return info;
+    }
+
+    get displayLabel() {
+      if (this.label)
+        return this.label;
+      return this.benchmarkName + ' ' + this.benchmarkStartString;
+    }
+
+    get osVersion() {
+      return this.osVersion_;
+    }
+
+    get productVersion() {
+      return this.productVersion_;
+    }
+
+    get benchmarkName() {
+      return this.benchmarkName_;
+    }
+
+    get label() {
+      return this.label_;
+    }
+
+    get storyGroupingKeys() {
+      return this.storyGroupingKeys_;
+    }
+
+    get storyDisplayName() {
+      return this.storyDisplayName_;
+    }
+
+    get storyUrl() {
+      return this.storyUrl_;
+    }
+
+    get storyRepeatCounter() {
+      return this.storyRepeatCounter_;
+    }
+
+    get storyRepeatCounterLabel() {
+      return 'story repeat ' + this.storyRepeatCounter;
+    }
+
+    get storysetRepeatCounter() {
+      return this.storysetRepeatCounter_;
+    }
+
+    get storysetRepeatCounterLabel() {
+      return 'storyset repeat ' + this.storysetRepeatCounter;
+    }
+
+    get benchmarkStart() {
+      return this.benchmarkStart_;
+    }
+
+    get benchmarkStartString() {
+      if (this.benchmarkStart_ === undefined)
+        return '';
+      return tr.b.formatDate(this.benchmarkStart);
+    }
+
+    /**
+     * @param {!tr.v.Value} value
+     * @param {string} fieldName
+     * @param {*} defaultValue
+     * @return {*}
+     */
+    static getField(value, fieldName, defaultValue) {
+      var iteration = tr.v.d.IterationInfo.getFromValue(value);
+      if (!(iteration instanceof tr.v.d.IterationInfo) ||
+          !iteration[fieldName]) {
+        return defaultValue;
+      }
+      return iteration[fieldName];
+    }
+
+    /**
+     * @param {!tr.v.Value} value
+     * @param {string} storyGroupingKey
+     * @return {string}
+     */
+    static getStoryGroupingKeyLabel(value, storyGroupingKey) {
+      var iteration = tr.v.d.IterationInfo.getFromValue(value);
+      if (!(iteration instanceof tr.v.d.IterationInfo))
+        return storyGroupingKey + ': undefined';
+      return storyGroupingKey + ': ' +
+        iteration.storyGroupingKeys[storyGroupingKey];
+    }
   }
 
   // Diagnostics generally do not need a constant name or getFromValue().
@@ -44,116 +198,9 @@ tr.exportTo('tr.v.d', function() {
   // their DiagnosticMap.
   IterationInfo.NAME = 'iteration';
 
-  /**
-   * @param {!tr.v.Value} value
-   * @return {(undefined|!IterationInfo)}
-   */
-  IterationInfo.getFromValue = function(value) {
-    return value.diagnostics.get(IterationInfo.NAME);
-  };
-
-  IterationInfo.prototype = {
-    __proto__: tr.v.d.Diagnostic.prototype,
-
-    addToValue: function(value) {
-      value.diagnostics.set(IterationInfo.NAME, this);
-    },
-
-    asDictInto_: function(d) {
-      d.benchmarkName = this.benchmarkName;
-      d.benchmarkStartMs = this.benchmarkStart.getTime();
-      d.label = this.label;
-      d.storyDisplayName = this.storyDisplayName;
-      d.storyGroupingKeys = this.storyGroupingKeys;
-      d.storyRepeatCounter = this.storyRepeatCounter;
-      d.storyUrl = this.storyUrl;
-      d.storysetRepeatCounter = this.storysetRepeatCounter;
-    },
-
-    get displayLabel() {
-      if (this.label)
-        return this.label;
-      return this.benchmarkName + ' ' + this.benchmarkStartString;
-    },
-
-    get benchmarkName() {
-      return this.benchmarkName_;
-    },
-
-    get label() {
-      return this.label_;
-    },
-
-    get storyGroupingKeys() {
-      return this.storyGroupingKeys_;
-    },
-
-    get storyDisplayName() {
-      return this.storyDisplayName_;
-    },
-
-    get storyUrl() {
-      return this.storyUrl_;
-    },
-
-    get storyRepeatCounter() {
-      return this.storyRepeatCounter_;
-    },
-
-    get storyRepeatCounterLabel() {
-      return 'story repeat ' + this.storyRepeatCounter;
-    },
-
-    get storysetRepeatCounter() {
-      return this.storysetRepeatCounter_;
-    },
-
-    get storysetRepeatCounterLabel() {
-      return 'storyset repeat ' + this.storysetRepeatCounter;
-    },
-
-    get benchmarkStart() {
-      return this.benchmarkStart_;
-    },
-
-    get benchmarkStartString() {
-      return tr.b.formatDate(this.benchmarkStart);
-    }
-  };
-
-  IterationInfo.fromDict = function(d) {
-    return new IterationInfo(d);
-  };
-
   tr.v.d.Diagnostic.register(IterationInfo, {
     elementName: 'tr-v-ui-iteration-info-span'
   });
-
-  /**
-   * @param {!tr.v.Value} value
-   * @param {string} fieldName
-   * @param {*} defaultValue
-   * @return {*}
-   */
-  IterationInfo.getField = function(value, fieldName, defaultValue) {
-    var iteration = tr.v.d.IterationInfo.getFromValue(value);
-    if (!(iteration instanceof tr.v.d.IterationInfo))
-      return defaultValue;
-    return iteration[fieldName];
-  }
-
-  /**
-   * @param {!tr.v.Value} value
-   * @param {string} storyGroupingKey
-   * @return {string}
-   */
-  IterationInfo.getStoryGroupingKeyLabel = function(value, storyGroupingKey) {
-    var iteration = tr.v.d.IterationInfo.getFromValue(value);
-    if (!(iteration instanceof tr.v.d.IterationInfo))
-      return storyGroupingKey + ': undefined';
-    return storyGroupingKey + ': ' +
-      iteration.storyGroupingKeys[storyGroupingKey];
-  }
 
   return {
     IterationInfo: IterationInfo
