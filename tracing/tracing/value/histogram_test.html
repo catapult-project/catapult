@@ -12,8 +12,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var unitlessNumber = tr.v.Unit.byName.unitlessNumber;
-  var unitlessNumber_sIB = tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+  var unitlessNumber = tr.b.Unit.byName.unitlessNumber;
+  var unitlessNumber_sIB = tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
 
   var TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10);
 
@@ -166,11 +166,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addHistogramsInvalid', function() {
-    var n0 = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs,
+    var n0 = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10));
-    var n1 = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs,
+    var n1 = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1001, 10));
-    var n2 = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs,
+    var n2 = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 11));
 
     assert.isFalse(n0.canAddHistogram(n1));
@@ -192,7 +192,7 @@ tr.b.unittest.testSuite(function() {
   test('numericPercentile', function() {
     function check(array, min, max, bins, precision) {
       var boundaries = tr.v.HistogramBinBoundaries.createLinear(min, max, bins);
-      var n = new tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs, boundaries);
+      var n = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs, boundaries);
       array.forEach((x) => n.addSample(x, {foo: new tr.v.d.Generic('x')}));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
         var expected = tr.b.Statistics.percentile(array, percent);
@@ -225,7 +225,7 @@ tr.b.unittest.testSuite(function() {
     var b = new tr.v.HistogramBinBoundaries(-100);
     b.addBinBoundary(50);
 
-    checkBoundaries(b, -100, 50, tr.v.Unit.byName.timeDurationInMs, [
+    checkBoundaries(b, -100, 50, tr.b.Unit.byName.timeDurationInMs, [
       tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, -100),
       tr.b.Range.fromExplicitRange(-100, 50),
       tr.b.Range.fromExplicitRange(50, Number.MAX_VALUE)
@@ -234,7 +234,7 @@ tr.b.unittest.testSuite(function() {
     b.addBinBoundary(60);
     b.addBinBoundary(75);
 
-    checkBoundaries(b, -100, 75, tr.v.Unit.byName.timeDurationInMs, [
+    checkBoundaries(b, -100, 75, tr.b.Unit.byName.timeDurationInMs, [
       tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, -100),
       tr.b.Range.fromExplicitRange(-100, 50),
       tr.b.Range.fromExplicitRange(50, 60),
@@ -247,7 +247,7 @@ tr.b.unittest.testSuite(function() {
     var b = new tr.v.HistogramBinBoundaries(1000);
     b.addLinearBins(1200, 5);
 
-    checkBoundaries(b, 1000, 1200, tr.v.Unit.byName.powerInWatts, [
+    checkBoundaries(b, 1000, 1200, tr.b.Unit.byName.powerInWatts, [
       tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, 1000),
       tr.b.Range.fromExplicitRange(1000, 1040),
       tr.b.Range.fromExplicitRange(1040, 1080),
@@ -262,7 +262,7 @@ tr.b.unittest.testSuite(function() {
     var b = new tr.v.HistogramBinBoundaries(0.5);
     b.addExponentialBins(8, 4);
 
-    checkBoundaries(b, 0.5, 8, tr.v.Unit.byName.energyInJoules, [
+    checkBoundaries(b, 0.5, 8, tr.b.Unit.byName.energyInJoules, [
       tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, 0.5),
       tr.b.Range.fromExplicitRange(0.5, 1),
       tr.b.Range.fromExplicitRange(1, 2),
@@ -280,7 +280,7 @@ tr.b.unittest.testSuite(function() {
     b.addLinearBins(17, 4);
     b.addBinBoundary(100);
 
-    checkBoundaries(b, -273.15, 100, tr.v.Unit.byName.unitlessNumber, [
+    checkBoundaries(b, -273.15, 100, tr.b.Unit.byName.unitlessNumber, [
       tr.b.Range.fromExplicitRange(-Number.MAX_VALUE, -273.15),
       tr.b.Range.fromExplicitRange(-273.15, -50),
       tr.b.Range.fromExplicitRange(-50, -32),
@@ -444,8 +444,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mergeScalarNumerics', function() {
-    var scalarA = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 10);
-    var scalarB = new tr.v.ScalarNumeric(tr.v.Unit.byName.timeDurationInMs, 20);
+    var scalarA = new tr.v.ScalarNumeric(tr.b.Unit.byName.timeDurationInMs, 10);
+    var scalarB = new tr.v.ScalarNumeric(tr.b.Unit.byName.timeDurationInMs, 20);
 
     var numeric = scalarA.merge(scalarB);
     assert.instanceOf(numeric, tr.v.Histogram);

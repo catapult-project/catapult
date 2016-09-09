@@ -6,13 +6,13 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_sub_view_test_utils.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
       tr.ui.analysis.aggregateTableRowCellsRecursively;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+      tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var checkSizeNumericFields = tr.ui.analysis.checkSizeNumericFields;
   var checkNumericFields = tr.ui.analysis.checkNumericFields;
   var checkStringFields = tr.ui.analysis.checkStringFields;
@@ -118,8 +118,8 @@ tr.b.unittest.testSuite(function() {
                   [512, 513]),
               'mixed': new MemoryCell(['0.01', '0.10']),
               'mixed2': new MemoryCell([
-                new ScalarNumeric(tr.v.Unit.byName.powerInWatts, 2.43e18),
-                new ScalarNumeric(tr.v.Unit.byName.powerInWatts, 0.5433)
+                new ScalarNumeric(tr.b.Unit.byName.powerInWatts, 2.43e18),
+                new ScalarNumeric(tr.b.Unit.byName.powerInWatts, 0.5433)
               ])
             }
           }
@@ -129,7 +129,7 @@ tr.b.unittest.testSuite(function() {
         title: 'Row 2',
         fields: {
           'cpu_temperature': undefined,
-          'mixed': buildScalarCell(tr.v.Unit.byName.timeDurationInMs,
+          'mixed': buildScalarCell(tr.b.Unit.byName.timeDurationInMs,
               [0.99, 0.999])
         }
       }
@@ -175,8 +175,8 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(element.tagName, 'TR-V-UI-SCALAR-SPAN');
       assert.strictEqual(element.value, expectedValue);
       assert.strictEqual(element.unit, opt_expectedIsDelta ?
-          tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter :
-          tr.v.Unit.byName.sizeInBytes_smallerIsBetter);
+          tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter :
+          tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
       assert.deepEqual(element.context, opt_expectedContext);
     };
   }
@@ -367,8 +367,8 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(c.fields({x: new MemoryCell(undefined)}));
 
     // Defined field(s) inside cell.
-    var field1 = new ScalarNumeric(tr.v.Unit.byName.powerInWatts, 1013.25);
-    var field2 = new ScalarNumeric(tr.v.Unit.byName.powerInWatts, 1065);
+    var field1 = new ScalarNumeric(tr.b.Unit.byName.powerInWatts, 1013.25);
+    var field2 = new ScalarNumeric(tr.b.Unit.byName.powerInWatts, 1065);
     var row1 = {x: new MemoryCell([field1])};
     var row2 = {x: new MemoryCell([field1, field2])};
     assert.deepEqual(c.fields(row1), [field1]);
@@ -772,7 +772,7 @@ tr.b.unittest.testSuite(function() {
     // With custom formatting context.
     c.getFormattingContext = function(unit) {
       assert.strictEqual(unit,
-          tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter);
+          tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter);
       return { minimumFractionDigits: 2 };
     };
     checkCellValue(this, c.value(row),
@@ -785,10 +785,10 @@ tr.b.unittest.testSuite(function() {
     var c = new NumericMemoryColumn('non_bytes_column', ['x'],
         undefined /* aggregation mode */);
     var value = c.formatSingleField(new ScalarNumeric(
-        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, 123));
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 123));
     assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.equal(value.value, 123);
-    assert.equal(value.unit, tr.v.Unit.byName.unitlessNumber_smallerIsBetter);
+    assert.equal(value.unit, tr.b.Unit.byName.unitlessNumber_smallerIsBetter);
     this.addHTMLOutput(value);
 
     var c = new NumericMemoryColumn('bytes_column', ['x'],
@@ -797,7 +797,7 @@ tr.b.unittest.testSuite(function() {
         sizeInBytes_smallerIsBetter, 456));
     assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.equal(value.value, 456);
-    assert.equal(value.unit, tr.v.Unit.byName.sizeInBytes_smallerIsBetter);
+    assert.equal(value.unit, tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
     this.addHTMLOutput(value);
   });
 
@@ -806,26 +806,26 @@ tr.b.unittest.testSuite(function() {
     var c = new NumericMemoryColumn('non_bytes_column', ['x'],
         AggregationMode.DIFF);
     checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.v.Unit.byName.unitlessNumberDelta_smallerIsBetter, 2);
+        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 2);
     checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.v.Unit.byName.unitlessNumberDelta_smallerIsBetter, -10);
+        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, -10);
     checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.v.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
+        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
     checkNumericMemoryColumnFieldFormat(
         this, c, [2.71828, 2.71829] /* diff within epsilon */,
-        tr.v.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
+        tr.b.Unit.byName.unitlessNumberDelta_smallerIsBetter, 0);
 
     var c = new NumericMemoryColumn('bytes_column', ['x'],
         AggregationMode.DIFF);
     checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter, 2);
+        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 2);
     checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter, -10);
+        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, -10);
     checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
+        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
     checkNumericMemoryColumnFieldFormat(
         this, c, [1.41421, 1.41422] /* diff within epsilon */,
-        tr.v.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
+        tr.b.Unit.byName.sizeInBytesDelta_smallerIsBetter, 0);
   });
 
   test('checkNumericMemoryColumn_formatMultipleFields_max',
@@ -833,24 +833,24 @@ tr.b.unittest.testSuite(function() {
     var c = new NumericMemoryColumn('non_bytes_column', ['x'],
         AggregationMode.MAX);
     checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, 3);
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 3);
     checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, 10);
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 10);
     checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, 60);
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 60);
     checkNumericMemoryColumnFieldFormat(this, c, [undefined, 10, 20, undefined],
-        tr.v.Unit.byName.unitlessNumber_smallerIsBetter, 20);
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 20);
 
     var c = new NumericMemoryColumn('bytes_column', ['x'],
         AggregationMode.MAX);
     checkNumericMemoryColumnFieldFormat(this, c, [1, 2, 3],
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, 3);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 3);
     checkNumericMemoryColumnFieldFormat(this, c, [10, undefined],
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, 10);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 10);
     checkNumericMemoryColumnFieldFormat(this, c, [undefined, 60, 0],
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, 60);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 60);
     checkNumericMemoryColumnFieldFormat(this, c, [undefined, 10, 20, undefined],
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, 20);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, 20);
   });
 
   test('checkNumericMemoryColumn_cmp', function() {
@@ -886,12 +886,12 @@ tr.b.unittest.testSuite(function() {
 
     assert.isBelow(c.compareSingleFields(
         new ScalarNumeric(
-            tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, 99),
+            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, 99),
         new ScalarNumeric(
-            tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, 100)), 0);
+            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, 100)), 0);
     assert.equal(c.compareSingleFields(
-        new ScalarNumeric(tr.v.Unit.byName.unitlessNumber, 0xEEE),
-        new ScalarNumeric(tr.v.Unit.byName.unitlessNumber, 0xEEE)), 0);
+        new ScalarNumeric(tr.b.Unit.byName.unitlessNumber, 0xEEE),
+        new ScalarNumeric(tr.b.Unit.byName.unitlessNumber, 0xEEE)), 0);
     assert.isAbove(c.compareSingleFields(
         new ScalarNumeric(sizeInBytes_smallerIsBetter, 10),
         new ScalarNumeric(sizeInBytes_smallerIsBetter, 2)), 0);
@@ -907,9 +907,9 @@ tr.b.unittest.testSuite(function() {
         buildScalarCell(sizeInBytes_smallerIsBetter,
             [5, 7, 8] /* diff +3 */).fields), 0);
     assert.equal(c.compareMultipleFields(
-        buildScalarCell(tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
             [4, undefined] /* diff -4 */).fields,
-        buildScalarCell(tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
             [999, 995] /* diff -4 */).fields), 0);
     assert.isAbove(c.compareMultipleFields(
         buildScalarCell(sizeInBytes_smallerIsBetter,
@@ -917,9 +917,9 @@ tr.b.unittest.testSuite(function() {
         buildScalarCell(sizeInBytes_smallerIsBetter,
             [11, 50, 12] /* diff +1 */).fields), 0);
     assert.equal(c.compareMultipleFields(
-        buildScalarCell(tr.v.Unit.byName.powerInWatts_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.powerInWatts_smallerIsBetter,
             [17, undefined, 17] /* diff 0 */).fields,
-        buildScalarCell(tr.v.Unit.byName.powerInWatts_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.powerInWatts_smallerIsBetter,
             [undefined, 100, undefined] /* diff 0 */).fields), 0);
     assert.equal(c.compareMultipleFields(
         buildScalarCell(sizeInBytes_smallerIsBetter,
@@ -937,18 +937,18 @@ tr.b.unittest.testSuite(function() {
             [10, undefined, 12]).fields,
         buildScalarCell(sizeInBytes_smallerIsBetter, [11, 50, 12]).fields), 0);
     assert.equal(c.compareMultipleFields(
-        buildScalarCell(tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
             [999, undefined, -8888]).fields,
-        buildScalarCell(tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
             [undefined, 999, undefined]).fields), 0);
     assert.isAbove(c.compareMultipleFields(
         buildScalarCell(sizeInBytes_smallerIsBetter,
             [10000, 10001, 10002]).fields,
         buildScalarCell(sizeInBytes_smallerIsBetter, [5, 7, 8]).fields), 0);
     assert.isBelow(c.compareMultipleFields(
-        buildScalarCell(tr.v.Unit.byName.powerInWatts_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.powerInWatts_smallerIsBetter,
             [17, undefined, 17]).fields,
-        buildScalarCell(tr.v.Unit.byName.powerInWatts_smallerIsBetter,
+        buildScalarCell(tr.b.Unit.byName.powerInWatts_smallerIsBetter,
             [undefined, 100, undefined]).fields), 0);
   });
 
@@ -1134,7 +1134,7 @@ tr.b.unittest.testSuite(function() {
     var row = {
       // Intentionally no testCells.
       otherCells: {
-        a: buildScalarCell(tr.v.Unit.byName.unitlessNumber,
+        a: buildScalarCell(tr.b.Unit.byName.unitlessNumber,
             [5, undefined, undefined])
       }
     };
@@ -1157,7 +1157,7 @@ tr.b.unittest.testSuite(function() {
           b: buildScalarCell(sizeInBytes_smallerIsBetter, [5])
         },
         otherCells: {
-          a: buildScalarCell(tr.v.Unit.byName.unitlessNumber,
+          a: buildScalarCell(tr.b.Unit.byName.unitlessNumber,
               [153, undefined, 257]),
           b: new MemoryCell(['field-should-not-propagate-upwards', ''])
         }
@@ -1177,7 +1177,7 @@ tr.b.unittest.testSuite(function() {
     checkSizeNumericFields(row, ctc, undefined);
 
     checkNumericFields(row, coa, [5, undefined, 257],
-        tr.v.Unit.byName.unitlessNumber);
+        tr.b.Unit.byName.unitlessNumber);
     checkStringFields(row, cob, undefined);
   });
 

@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -25,7 +25,7 @@ tr.exportTo('tr.v.ui', function() {
    * @param {Object=} opt_config
    * @param {number=} opt_config.total
    * @param {boolean=} opt_config.rightAlign
-   * @param {!tr.v.Unit=} opt_config.unit
+   * @param {!tr.b.Unit=} opt_config.unit
    * @param {tr.v.Significance=} opt_config.significance
    * @return {string|Element}
    */
@@ -172,12 +172,12 @@ Polymer({
   },
 
   attached: function() {
-    tr.v.Unit.addEventListener(
+    tr.b.Unit.addEventListener(
         'display-mode-changed', this.updateContents_.bind(this));
   },
 
   detached: function() {
-    tr.v.Unit.removeEventListener(
+    tr.b.Unit.removeEventListener(
         'display-mode-changed', this.updateContents_.bind(this));
   },
 
@@ -262,14 +262,14 @@ Polymer({
     var biggerIsBetter = false;
     var smallerIsBetter = false;
     switch (this.unit_.improvementDirection) {
-      case tr.v.ImprovementDirection.DONT_CARE:
+      case tr.b.ImprovementDirection.DONT_CARE:
         return;
 
-      case tr.v.ImprovementDirection.BIGGER_IS_BETTER:
+      case tr.b.ImprovementDirection.BIGGER_IS_BETTER:
         biggerIsBetter = true;
         break;
 
-      case tr.v.ImprovementDirection.SMALLER_IS_BETTER:
+      case tr.b.ImprovementDirection.SMALLER_IS_BETTER:
         smallerIsBetter = true;
         break;
     }

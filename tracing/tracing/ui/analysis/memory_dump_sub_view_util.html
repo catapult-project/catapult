@@ -869,7 +869,7 @@ tr.exportTo('tr.ui.analysis', function() {
     __proto__: NumericMemoryColumn.prototype,
 
     getFormattingContext: function(unit) {
-      if (unit.baseUnit === tr.v.Unit.byName.sizeInBytes)
+      if (unit.baseUnit === tr.b.Unit.byName.sizeInBytes)
         return { unitPrefix: tr.b.UnitScale.Binary.KIBI };
       return undefined;
     }

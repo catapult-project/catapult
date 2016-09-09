@@ -5,18 +5,18 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
+    var h = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
     h.addSample(-1, {foo: new tr.v.d.Generic('a')});
     h.addSample(0, {foo: new tr.v.d.Generic('b')});
     h.addSample(0, {foo: new tr.v.d.Generic('b')});
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyHistogram', function() {
-    var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
+    var h = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
 
     var span = document.createElement('tr-v-ui-histogram-span');
     span.histogram = h;
@@ -49,7 +49,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nans', function() {
-    var h = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
+    var h = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
     h.addSample(undefined, {foo: new tr.v.d.Generic('b')});
     h.addSample(NaN, {foo: new tr.v.d.Generic('c')});
     h.customizeSummaryOptions({nans: true});

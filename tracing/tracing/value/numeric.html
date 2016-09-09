@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -17,7 +17,7 @@ tr.exportTo('tr.v', function() {
 
   class NumericBase {
     constructor(unit) {
-      if (!(unit instanceof tr.v.Unit))
+      if (!(unit instanceof tr.b.Unit))
         throw new Error('Expected provided unit to be instance of Unit');
 
       this.unit = unit;
@@ -71,7 +71,7 @@ tr.exportTo('tr.v', function() {
 
   class ScalarNumeric extends NumericBase {
     constructor(unit, value) {
-      if (!(unit instanceof tr.v.Unit))
+      if (!(unit instanceof tr.b.Unit))
         throw new Error('Expected Unit');
 
       if (!(typeof(value) == 'number'))
@@ -117,7 +117,7 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      return new ScalarNumeric(tr.v.Unit.fromJSON(d.unit), d.value);
+      return new ScalarNumeric(tr.b.Unit.fromJSON(d.unit), d.value);
     }
   }
 

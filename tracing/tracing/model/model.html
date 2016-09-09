@@ -12,6 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/task.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/auditor.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/alert.html">
@@ -32,7 +33,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/stack_frame.html">
 <link rel="import" href="/tracing/model/user_model/user_expectation.html">
 <link rel="import" href="/tracing/model/user_model/user_model.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -196,7 +196,7 @@ tr.exportTo('tr', function() {
     convertTimestampToModelTime: function(sourceClockDomainName, ts) {
       if (sourceClockDomainName !== 'traceEventClock')
         throw new Error('Only traceEventClock is supported.');
-      return tr.v.Unit.timestampFromUs(ts) +
+      return tr.b.Unit.timestampFromUs(ts) +
         this.timestampShiftToZeroAmount_;
     },
 

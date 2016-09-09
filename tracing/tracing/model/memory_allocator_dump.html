@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -59,7 +59,7 @@ tr.exportTo('tr.model', function() {
 
     // For debugging purposes.
     this.guid = opt_guid;
-  };
+  }
 
   /**
    * Size numeric names. Please refer to the Memory Dump Graph Metric
@@ -167,7 +167,7 @@ tr.exportTo('tr.model', function() {
         }
         // Use the most generic unit when the numerics don't agree (best
         // effort).
-        aggregatedUnit = tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+        aggregatedUnit = tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
       }
 
       aggregatedValue += numeric.value;

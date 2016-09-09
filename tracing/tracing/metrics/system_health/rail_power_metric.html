@@ -26,11 +26,11 @@ tr.exportTo('tr.metrics.sh', function() {
       var currTitle = exp.title.toLowerCase().replace(' ', '_');
       if (!railStageToTimeHist.has(currTitle)) {
         var timeHist = new tr.v.Histogram(
-            tr.v.Unit.byName.timeDurationInMs_smallerIsBetter)
+            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter)
         var energyHist = new tr.v.Histogram(
-            tr.v.Unit.byName.energyInJoules_smallerIsBetter)
+            tr.b.Unit.byName.energyInJoules_smallerIsBetter)
         var powerHist = new tr.v.Histogram(
-            tr.v.Unit.byName.powerInWatts_smallerIsBetter)
+            tr.b.Unit.byName.powerInWatts_smallerIsBetter)
 
         timeHist.customizeSummaryOptions({
           avg: false,

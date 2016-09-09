@@ -5,12 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/ui/analysis/single_sample_sub_view.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(rows[0].value, 'X');
     assert.equal(rows[1].value.value, 0.184);
-    assert.strictEqual(rows[1].value.unit, tr.v.Unit.byName.timeStampInMs);
+    assert.strictEqual(rows[1].value.unit, tr.b.Unit.byName.timeStampInMs);
     assert.equal(rows[2].value.stackFrame, t53.samples[0].leafStackFrame);
   });
 });

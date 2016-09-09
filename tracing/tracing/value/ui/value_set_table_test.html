@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet();
 
     var histA = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       histA.addSample(Math.random() * 1e3);
     var valueA = new tr.v.NumericValue('histogram A', histA);
@@ -41,7 +41,7 @@ tr.b.unittest.testSuite(function() {
     values.addValue(valueA);
 
     var histB = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       histB.addSample(Math.random() * 1e3);
     var valueB = new tr.v.NumericValue('histogram B', histB);
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
     values.addValue(valueB);
 
     var histC = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     var valueC = new tr.v.NumericValue('histogram A', histC);
     new tr.v.d.IterationInfo({
       label: 'iteration B',
@@ -74,7 +74,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet();
 
     var hist = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       hist.addSample(Math.random() * 1e3);
     values.addValue(new tr.v.NumericValue('foo', hist));
@@ -96,7 +96,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet();
 
     var histA = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       histA.addSample(Math.random() * 1e3);
     var valueA = new tr.v.NumericValue('histogram A', histA);
@@ -108,7 +108,7 @@ tr.b.unittest.testSuite(function() {
     values.addValue(valueA);
 
     var histB = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 20));
     for (var i = 0; i < 100; ++i)
       histB.addSample(Math.random() * Math.random() * 1e3);
@@ -121,7 +121,7 @@ tr.b.unittest.testSuite(function() {
     values.addValue(valueB);
 
     var histC = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 30));
     for (var i = 0; i < 100; ++i)
       histC.addSample(Math.random() * Math.random() * 1e3);
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet();
 
     var numeric0a = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric0a.addSample(Math.random() * 1e3);
     var fooA = new tr.v.NumericValue('foo', numeric0a, {
@@ -160,7 +160,7 @@ tr.b.unittest.testSuite(function() {
     }).addToValue(fooA);
 
     var numeric1a = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric1a.addSample(Math.random() * 1e3);
     var barA = new tr.v.NumericValue('bar', numeric1a, {
@@ -173,7 +173,7 @@ tr.b.unittest.testSuite(function() {
     }).addToValue(barA);
 
     var numeric0b = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric0b.addSample(Math.random() * 1e3);
     var fooB = new tr.v.NumericValue('foo', numeric0b, {
@@ -186,7 +186,7 @@ tr.b.unittest.testSuite(function() {
     }).addToValue(fooB);
 
     var numeric1b = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       numeric1b.addSample(Math.random() * 1e3);
     var barB = new tr.v.NumericValue('bar', numeric1b, {
@@ -231,7 +231,7 @@ tr.b.unittest.testSuite(function() {
                 for (var storyCounter = 0; storyCounter < 2; ++storyCounter) {
                   for (var label of labels) {
                     var numeric = new tr.v.Histogram(
-                        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+                        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
                         TEST_BOUNDARIES);
                     for (var i = 0; i < 100; ++i)
                       numeric.addSample(Math.random() * 1e3);

@@ -5,8 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/base/base.html">
-<link rel="import" href="/tracing/value/unit.html">
+<link rel="import" href="/tracing/base/unit.html">
 
 <script>
 'use strict';
@@ -47,7 +46,7 @@ tr.exportTo('tr.model', function() {
       eventStats.numEvents++;
 
       var timeIntervalKey = Math.floor(
-          tr.v.Unit.timestampFromUs(ts) / this.TIME_INTERVAL_SIZE_IN_MS);
+          tr.b.Unit.timestampFromUs(ts) / this.TIME_INTERVAL_SIZE_IN_MS);
       var eventStatsByTimeInverval =
           this.traceEventStatsInTimeIntervals_.get(timeIntervalKey);
       if (eventStatsByTimeInverval === undefined) {

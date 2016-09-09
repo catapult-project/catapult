@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/model.html">
@@ -15,7 +16,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id='tr-ui-a-single-thread-time-slice-sub-view'>
   <template>
@@ -126,9 +126,9 @@ Polymer({
         thread.userFriendlyName;
 
     root.querySelector('#start').setValueAndUnit(
-        timeSlice.start, tr.v.Unit.byName.timeStampInMs);
+        timeSlice.start, tr.b.Unit.byName.timeStampInMs);
     root.querySelector('#duration').setValueAndUnit(
-        timeSlice.duration, tr.v.Unit.byName.timeDurationInMs);
+        timeSlice.duration, tr.b.Unit.byName.timeDurationInMs);
 
     var onCpuEl = root.querySelector('#on-cpu');
     Polymer.dom(onCpuEl).textContent = '';

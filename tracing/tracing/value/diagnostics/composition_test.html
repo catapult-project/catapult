@@ -51,7 +51,7 @@ tr.b.unittest.testSuite(function() {
     var composition = tr.v.d.Composition.buildFromEvents(
         values, 'foo-', events,
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent,
-        tr.v.Unit.byName.timeDurationInMs, sampleForEvent, TEST_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs, sampleForEvent, TEST_BOUNDARIES);
 
     assert.lengthOf(composition, 2);
     var scriptValue = values.getValuesNamed('foo-script_execute')[0];

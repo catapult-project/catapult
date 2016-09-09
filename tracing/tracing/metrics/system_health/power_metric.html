@@ -22,7 +22,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function energyConsumedPerFrame(valueList, model) {
     var frameEnergyConsumedInJ = new tr.v.Histogram(
-        tr.v.Unit.byName.energyInJoules_smallerIsBetter,
+        tr.b.Unit.byName.energyInJoules_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 0.5, 20));
 
     var frameStartTs = parseFloat(model.device.powerSeries.samples[0].start);

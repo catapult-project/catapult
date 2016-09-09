@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/global_memory_dump.html">
 <link rel="import" href="/tracing/model/heap_dump.html">
@@ -14,7 +15,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/process_memory_dump.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -31,9 +31,9 @@ tr.exportTo('tr.ui.analysis', function() {
   var VMRegionClassificationNode = tr.model.VMRegionClassificationNode;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+      tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var unitlessNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var HeapDump = tr.model.HeapDump;
   var addGlobalMemoryDump = tr.model.MemoryDumpTestUtils.addGlobalMemoryDump;
   var addProcessMemoryDump = tr.model.MemoryDumpTestUtils.addProcessMemoryDump;

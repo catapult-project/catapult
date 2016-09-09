@@ -6,11 +6,11 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id='tr-ui-a-power-sample-table'>
   <template>
@@ -36,7 +36,7 @@ Polymer({
         width: '100px',
         value: function(row) {
           return tr.v.ui.createScalarSpan(row.start, {
-            unit: tr.v.Unit.byName.timeStampInMs
+            unit: tr.b.Unit.byName.timeStampInMs
           });
         }
       },
@@ -45,7 +45,7 @@ Polymer({
         width: '100%',
         value: function(row) {
           return tr.v.ui.createScalarSpan(row.powerInW, {
-            unit: tr.v.Unit.byName.powerInWatts
+            unit: tr.b.Unit.byName.powerInWatts
           });
         }
       }

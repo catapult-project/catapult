@@ -6,12 +6,12 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id='tr-ui-a-single-cpu-slice-sub-view'>
   <template>
@@ -117,9 +117,9 @@ Polymer({
     }
 
     root.querySelector('#start').setValueAndUnit(
-        cpuSlice.start, tr.v.Unit.byName.timeStampInMs);
+        cpuSlice.start, tr.b.Unit.byName.timeStampInMs);
     root.querySelector('#duration').setValueAndUnit(
-        cpuSlice.duration, tr.v.Unit.byName.timeDurationInMs);
+        cpuSlice.duration, tr.b.Unit.byName.timeDurationInMs);
 
     var runningThreadEl = root.querySelector('#running-thread');
 

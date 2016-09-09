@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -19,13 +19,13 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeExecuteMetrics(values, model) {
     var cpuTotalExecution = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallTotalExecution = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var cpuSelfExecution = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallSelfExecution = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.Execute')) {
       cpuTotalExecution.addSample(e.cpuDuration);
@@ -50,9 +50,9 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeParseLazyMetrics(values, model) {
     var cpuSelfParseLazy = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallSelfParseLazy = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.ParseLazyMicroSeconds')) {
       cpuSelfParseLazy.addSample(e.cpuSelfTime);
@@ -73,9 +73,9 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeCompileFullCodeMetrics(values, model) {
     var cpuSelfCompileFullCode = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallSelfCompileFullCode = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.CompileFullCode')) {
       cpuSelfCompileFullCode.addSample(e.cpuSelfTime);
@@ -95,9 +95,9 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeCompileIgnitionMetrics(values, model) {
     var cpuSelfCompileIgnition = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallSelfCompileIgnition = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.CompileIgnition')) {
       cpuSelfCompileIgnition.addSample(e.cpuSelfTime);
@@ -117,19 +117,19 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeRecompileMetrics(values, model) {
     var cpuTotalRecompileSynchronous = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallTotalRecompileSynchronous = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var cpuTotalRecompileConcurrent = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallTotalRecompileConcurrent = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     // TODO(eakuefner): Stop computing overall values once dash v2 is ready.
     // https://github.com/catapult-project/catapult/issues/2180
     var cpuTotalRecompileOverall = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallTotalRecompileOverall = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.RecompileSynchronous')) {
       cpuTotalRecompileSynchronous.addSample(e.cpuDuration);
@@ -179,9 +179,9 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeOptimizeCodeMetrics(values, model) {
     var cpuTotalOptimizeCode = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallTotalOptimizeCode = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.OptimizeCode')) {
       cpuTotalOptimizeCode.addSample(e.cpuDuration);
@@ -200,9 +200,9 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function computeDeoptimizeCodeMetrics(values, model) {
     var cpuTotalDeoptimizeCode = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     var wallTotalDeoptimizeCode = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
 
     for (var e of model.findTopmostSlicesNamed('V8.DeoptimizeCode')) {
       cpuTotalDeoptimizeCode.addSample(e.cpuDuration);

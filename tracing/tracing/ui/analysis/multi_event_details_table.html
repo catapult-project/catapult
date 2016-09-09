@@ -7,12 +7,12 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/ui/analysis/generic_object_view.html">
 <link rel="import" href="/tracing/ui/analysis/multi_event_summary.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id='tr-ui-a-multi-event-details-table'>
   <template>
@@ -168,7 +168,7 @@ Polymer({
             return new tr.model.EventSet(row.event);
         });
         Polymer.dom(linkEl).appendChild(tr.v.ui.createScalarSpan(row.start, {
-          unit: tr.v.Unit.byName.timeStampInMs,
+          unit: tr.b.Unit.byName.timeStampInMs,
           ownerDocument: ownerDocument
         }));
         return linkEl;
@@ -184,7 +184,7 @@ Polymer({
         title: 'Wall Duration (ms)',
         value: function(row) {
           return tr.v.ui.createScalarSpan(row.duration, {
-            unit: tr.v.Unit.byName.timeDurationInMs,
+            unit: tr.b.Unit.byName.timeDurationInMs,
             ownerDocument: ownerDocument
           });
         },
@@ -200,7 +200,7 @@ Polymer({
         title: 'CPU Duration (ms)',
         value: function(row) {
           return tr.v.ui.createScalarSpan(row.cpuDuration, {
-            unit: tr.v.Unit.byName.timeDurationInMs,
+            unit: tr.b.Unit.byName.timeDurationInMs,
             ownerDocument: ownerDocument
           });
         },
@@ -216,7 +216,7 @@ Polymer({
         title: 'Self time (ms)',
         value: function(row) {
           return tr.v.ui.createScalarSpan(row.selfTime, {
-            unit: tr.v.Unit.byName.timeDurationInMs,
+            unit: tr.b.Unit.byName.timeDurationInMs,
             ownerDocument: ownerDocument
           });
         },
@@ -232,7 +232,7 @@ Polymer({
         title: 'CPU Self Time (ms)',
         value: function(row) {
           return tr.v.ui.createScalarSpan(row.cpuSelfTime, {
-            unit: tr.v.Unit.byName.timeDurationInMs,
+            unit: tr.b.Unit.byName.timeDurationInMs,
             ownerDocument: ownerDocument
           });
         },

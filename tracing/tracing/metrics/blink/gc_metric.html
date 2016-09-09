@@ -4,11 +4,12 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -40,9 +41,9 @@ tr.exportTo('tr.metrics.blink', function() {
   tr.metrics.MetricRegistry.register(blinkGcMetric);
 
   var timeDurationInMs_smallerIsBetter =
-      tr.v.Unit.byName.timeDurationInMs_smallerIsBetter;
+      tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   var percentage_biggerIsBetter =
-      tr.v.Unit.byName.normalizedPercentage_biggerIsBetter;
+      tr.b.Unit.byName.normalizedPercentage_biggerIsBetter;
 
   // 0.1 steps from 0 to 20 since it is the most common range.
   // Exponentially increasing steps from 20 to 200.

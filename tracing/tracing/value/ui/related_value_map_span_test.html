@@ -16,9 +16,9 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiate_RelatedValueMap', function() {
     var aValue = new tr.v.NumericValue('a', new tr.v.Histogram(
-        tr.v.Unit.byName.unitlessNumber));
+        tr.b.Unit.byName.unitlessNumber));
     var bValue = new tr.v.NumericValue('b', new tr.v.Histogram(
-        tr.v.Unit.byName.unitlessNumber));
+        tr.b.Unit.byName.unitlessNumber));
     var diagnostic = new tr.v.d.RelatedValueMap();
     diagnostic.set('foo', aValue);
     diagnostic.set('bar', bValue);

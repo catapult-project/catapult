@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id="tr-v-ui-related-event-set-span">
   <script>
@@ -35,7 +35,7 @@ found in the LICENSE file.
       if (events.length === 1) {
         var event = tr.b.getOnlyElement(events);
         label = event.title + ' ';
-        label += tr.v.Unit.byName.timeDurationInMs.format(
+        label += tr.b.Unit.byName.timeDurationInMs.format(
             event.duration);
       }
       link.setSelectionAndContent(events, label);

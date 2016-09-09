@@ -52,7 +52,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var intervals = getNavigationTTIIntervals(model);
     var lastLoadTime = 0;
     var loadHistogram = new tr.v.Histogram(
-        tr.v.Unit.byName.energyInJoules_smallerIsBetter);
+        tr.b.Unit.byName.energyInJoules_smallerIsBetter);
     loadHistogram.customizeSummaryOptions({
         avg: false,
         count: false,
@@ -76,7 +76,7 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
     var afterLoadPowerInW = afterLoadEnergyInJ / afterLoadTimeInS;
     var afterLoadHistogram = new tr.v.Histogram(
-        tr.v.Unit.byName.powerInWatts_smallerIsBetter);
+        tr.b.Unit.byName.powerInWatts_smallerIsBetter);
     afterLoadHistogram.customizeSummaryOptions({
         avg: false,
         count: false,

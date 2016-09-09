@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/base64.html">
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_entry.html">
 <link rel="import" href="/tracing/extras/importer/trace_code_map.html">
@@ -31,7 +32,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/model/x_marker_annotation.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -54,7 +54,7 @@ tr.exportTo('tr.e.importer', function() {
     }
   }
 
-  var timestampFromUs = tr.v.Unit.timestampFromUs;
+  var timestampFromUs = tr.b.Unit.timestampFromUs;
 
   var PRODUCER = 'producer';
   var CONSUMER = 'consumer';
@@ -2763,8 +2763,8 @@ tr.exportTo('tr.e.importer', function() {
                 break;
               }
               var unit = attrArgs.units === 'bytes' ?
-                  tr.v.Unit.byName.sizeInBytes_smallerIsBetter :
-                  tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+                  tr.b.Unit.byName.sizeInBytes_smallerIsBetter :
+                  tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
               var value = parseInt(attrValue, 16);
               allocatorDump.addNumeric(attrName,
                   new tr.v.ScalarNumeric(unit, value));

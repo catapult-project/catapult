@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/settings.html">
 <link rel="import" href="/tracing/base/task.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/filter.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -22,7 +23,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/tracks/drawing_container.html">
 <link rel="import" href="/tracing/ui/tracks/model_track.html">
 <link rel="import" href="/tracing/ui/tracks/ruler_track.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <!--
   Interactive visualizaiton of Model objects based loosely on gantt charts.
@@ -842,7 +842,7 @@ Polymer({
         (hiX - canv.offsetLeft) * pixelRatio);
 
     Polymer.dom(this.$.drag_box).textContent =
-        tr.v.Unit.byName.timeDurationInMs.format(hiWX - loWX);
+        tr.b.Unit.byName.timeDurationInMs.format(hiWX - loWX);
 
     var e = new tr.b.Event('selectionChanging');
     e.loWX = loWX;

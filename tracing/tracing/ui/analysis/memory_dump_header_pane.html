@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_overview_pane.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id='tr-ui-a-memory-dump-header-pane'>
   <template>
@@ -131,14 +131,14 @@ tr.exportTo('tr.ui.analysis', function() {
       // TODO(petrcermak): Use <tr-v-ui-scalar-span> once it can be displayed
       // inline. See https://github.com/catapult-project/catapult/issues/1371.
       Polymer.dom(this.$.label).appendChild(document.createTextNode(
-          tr.v.Unit.byName.timeStampInMs.format(
+          tr.b.Unit.byName.timeStampInMs.format(
               this.containerMemoryDumps_[0].start)));
       if (isMultiSelection) {
         var ELLIPSIS = String.fromCharCode(8230);
         Polymer.dom(this.$.label).appendChild(
             document.createTextNode(ELLIPSIS));
         Polymer.dom(this.$.label).appendChild(document.createTextNode(
-            tr.v.Unit.byName.timeStampInMs.format(
+            tr.b.Unit.byName.timeStampInMs.format(
                 this.containerMemoryDumps_[containerDumpCount - 1].start)));
       }
     },

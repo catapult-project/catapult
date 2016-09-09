@@ -61,17 +61,17 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function responsivenessMetric(values, model, opt_options) {
     var responseNumeric = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(100, 1e3, 50));
     var throughputNumeric = new tr.v.Histogram(
-        tr.v.Unit.byName.unitlessNumber_biggerIsBetter,
+        tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(10, 60, 10));
     var frameTimeDiscrepancyNumeric = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 50).
           addExponentialBins(1e4, 10));
     var latencyNumeric = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 300, 60));
 
     model.userModel.expectations.forEach(function(ue) {

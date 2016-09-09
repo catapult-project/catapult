@@ -75,7 +75,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function longTasksMetric(values, model, opt_options) {
     var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
     var longTaskNumeric = new
-      tr.v.Histogram(tr.v.Unit.byName.timeDurationInMs_smallerIsBetter,
+      tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
           tr.v.HistogramBinBoundaries.createLinear(
               LONG_TASK_MS, LONGEST_TASK_MS, 40));
     var slices = new tr.model.EventSet();
@@ -97,7 +97,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var composition = tr.v.d.Composition.buildFromEvents(
         values, 'long tasks ', slices,
         e => (model.getUserFriendlyCategoryFromEvent(e) || 'unknown'),
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, sampleForEvent,
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, sampleForEvent,
         tr.v.HistogramBinBoundaries.createExponential(1, LONGEST_TASK_MS, 40));
     composition.colorScheme =
       tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;

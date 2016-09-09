@@ -28,7 +28,7 @@ tr.exportTo('tr.metrics', function() {
 
   function addTimeDurationValue(valueName, duration, allValues) {
     var hist = new tr.v.Histogram(
-        tr.v.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
     hist.addSample(duration);
     allValues.addValue(new tr.v.NumericValue(valueName, hist));
   }
@@ -80,14 +80,14 @@ tr.exportTo('tr.metrics', function() {
     var memoryInfraEventsSize =
         categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
     var memoryInfraTraceBytesValue = new tr.v.Histogram(
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
     values.addValue(new tr.v.NumericValue(
         'Total trace size of memory-infra dumps in bytes',
         memoryInfraTraceBytesValue));
 
     var traceBytesPerDumpValue = new tr.v.Histogram(
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
     values.addValue(new tr.v.NumericValue(
         'Average trace size of memory-infra dumps in bytes',
@@ -162,15 +162,15 @@ tr.exportTo('tr.metrics', function() {
     var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 
     var maxEventCountPerSecValue = new tr.v.Histogram(
-      tr.v.Unit.byName.count_smallerIsBetter, COUNT_BOUNDARIES);
+      tr.b.Unit.byName.count_smallerIsBetter, COUNT_BOUNDARIES);
     maxEventCountPerSecValue.addSample(maxEventCountPerSec);
 
     var maxEventBytesPerSecValue = new tr.v.Histogram(
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     maxEventBytesPerSecValue.addSample(maxEventBytesPerSec);
 
     var totalTraceBytesValue = new tr.v.Histogram(
-        tr.v.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     totalTraceBytesValue.addSample(totalTraceBytes);
 
     var biggestCategory = {

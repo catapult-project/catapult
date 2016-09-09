@@ -14,7 +14,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-tr.exportTo('tr.v', function() {
+tr.exportTo('tr.b', function() {
   var TimeDisplayModes = tr.b.TimeDisplayModes;
 
   var PLUS_MINUS_SIGN = String.fromCharCode(177);
@@ -35,8 +35,8 @@ tr.exportTo('tr.v', function() {
   };
 
   /** @constructor */
-  function Unit(unitName, jsonName, basePrefix,
-      isDelta, improvementDirection, formatSpec) {
+  function Unit(unitName, jsonName, basePrefix, isDelta, improvementDirection,
+      formatSpec) {
     this.unitName = unitName;
     this.jsonName = jsonName;
     this.basePrefix = basePrefix;

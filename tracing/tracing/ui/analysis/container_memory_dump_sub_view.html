@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_link.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
@@ -13,7 +14,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/analysis/stacked_pane_view.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <dom-module id='tr-ui-a-container-memory-dump-sub-view'>
   <template>
@@ -130,7 +130,7 @@ tr.exportTo('tr.ui.analysis', function() {
             linkEl.setSelectionAndContent(new tr.model.EventSet([row]));
             Polymer.dom(linkEl).appendChild(tr.v.ui.createScalarSpan(
                 row.start, {
-                  unit: tr.v.Unit.byName.timeStampInMs,
+                  unit: tr.b.Unit.byName.timeStampInMs,
                   ownerDocument: ownerDocument
                 }));
             return linkEl;

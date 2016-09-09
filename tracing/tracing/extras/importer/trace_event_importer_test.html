@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/time_display_modes.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
@@ -15,7 +16,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
   var VMRegion = tr.model.VMRegion;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var unitlessNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
   var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;

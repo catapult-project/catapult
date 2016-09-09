@@ -84,7 +84,7 @@ tr.exportTo('tr.v.d', function() {
     * @param {string} namePrefix
     * @param {!tr.model.EventSet} events
     * @param {!function(!tr.model.Event):string} categoryForEvent
-    * @param {!tr.v.Unit} unit
+    * @param {!tr.b.Unit} unit
     * @param {!function(!tr.model.Event):number=} opt_sampleForEvent
     * @param {!tr.v.HistogramBinBoundaries=} opt_binBoundaries
     * @param {*=} opt_this
@@ -114,7 +114,7 @@ tr.exportTo('tr.v.d', function() {
       }
       return composition;
     }
-  };
+  }
 
   tr.v.d.Diagnostic.register(Composition, {
     elementName: 'tr-v-ui-composition-span'

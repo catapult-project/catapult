@@ -10,9 +10,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/running_statistics.html">
 <link rel="import" href="/tracing/base/sorted_array_utils.html">
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -95,7 +95,7 @@ tr.exportTo('tr.v', function() {
    * Histogram is visualized by <tr-v-ui-histogram-span>, which supports
    * selecting bins, and visualizing the DiagnosticMaps of selected bins.
    *
-   * @param {!tr.v.Unit} unit
+   * @param {!tr.b.Unit} unit
    * @param {!tr.v.HistogramBinBoundaries=} opt_binBoundaries
    */
   class Histogram extends tr.v.NumericBase {
@@ -146,7 +146,7 @@ tr.exportTo('tr.v', function() {
     static fromDict(d) {
       var boundaries = HistogramBinBoundaries.createWithBoundaries(
           d.binBoundaries);
-      var n = new Histogram(tr.v.Unit.fromJSON(d.unit), boundaries);
+      var n = new Histogram(tr.b.Unit.fromJSON(d.unit), boundaries);
       n.underflowBin.fromDict(d.underflowBin);
       for (var i = 0; i < d.centralBins.length; ++i)
         n.centralBins[i].fromDict(d.centralBins[i]);
@@ -177,7 +177,7 @@ tr.exportTo('tr.v', function() {
      * largest sample value, which is unpredictable.
      * https://github.com/catapult-project/catapult/issues/2685
      *
-     * @param {!tr.v.Unit} unit
+     * @param {!tr.b.Unit} unit
      * @param {!Array.<number>} samples
      * @return {!Histogram}
      */
@@ -231,7 +231,7 @@ tr.exportTo('tr.v', function() {
         throw new Error('Cannot compare Numerics with different units');
 
       if (this.unit.improvementDirection ===
-          tr.v.ImprovementDirection.DONT_CARE) {
+          tr.b.ImprovementDirection.DONT_CARE) {
         return tr.v.Significance.DONT_CARE;
       }
 
@@ -431,11 +431,11 @@ tr.exportTo('tr.v', function() {
           results.push({
             name: 'nans',
             scalar: new tr.v.ScalarNumeric(
-                tr.v.Unit.byName.count_smallerIsBetter, this.numNans)
+                tr.b.Unit.byName.count_smallerIsBetter, this.numNans)
           });
         } else {
           var statUnit = stat === 'count' ?
-              tr.v.Unit.byName.count_smallerIsBetter : this.unit;
+              tr.b.Unit.byName.count_smallerIsBetter : this.unit;
           var key = statNameToKey(stat);
           var statValue = this.running[key];
           if (typeof(statValue) === 'number') {
@@ -516,7 +516,7 @@ tr.exportTo('tr.v', function() {
    * used to build multiple numerics with the same unit and bin structure.
    *
    * @constructor
-   * @param {!tr.v.Unit} unit Unit of the resulting Histogram(s).
+   * @param {!tr.b.Unit} unit Unit of the resulting Histogram(s).
    * @param {number} minBinBoundary The minimum boundary between bins, namely
    *     the underflow bin and the first central bin (or the overflow bin if
    *     no other boundaries are added later).
@@ -712,35 +712,35 @@ tr.exportTo('tr.v', function() {
   }
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.timeDurationInMs.unitName,
+      tr.b.Unit.byName.timeDurationInMs.unitName,
       HistogramBinBoundaries.createExponential(1e-3, 1e6, 1e2));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.timeStampInMs.unitName,
+      tr.b.Unit.byName.timeStampInMs.unitName,
       HistogramBinBoundaries.createLinear(0, 1e10, 1e3));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.normalizedPercentage.unitName,
+      tr.b.Unit.byName.normalizedPercentage.unitName,
       HistogramBinBoundaries.createLinear(0, 1.0, 20));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.sizeInBytes.unitName,
+      tr.b.Unit.byName.sizeInBytes.unitName,
       HistogramBinBoundaries.createExponential(1, 1e12, 1e2));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.energyInJoules.unitName,
+      tr.b.Unit.byName.energyInJoules.unitName,
       HistogramBinBoundaries.createExponential(1e-3, 1e3, 50));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.powerInWatts.unitName,
+      tr.b.Unit.byName.powerInWatts.unitName,
       HistogramBinBoundaries.createExponential(1e-3, 1, 50));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.unitlessNumber.unitName,
+      tr.b.Unit.byName.unitlessNumber.unitName,
       HistogramBinBoundaries.createExponential(1e-3, 1e3, 50));
 
   DEFAULT_BOUNDARIES_FOR_UNIT.set(
-      tr.v.Unit.byName.count.unitName,
+      tr.b.Unit.byName.count.unitName,
       HistogramBinBoundaries.createExponential(1, 1e3, 20));
 
   return {

@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/event.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -74,7 +74,7 @@ tr.exportTo('tr.model', function() {
       return 'Snapshot of ' +
              this.objectInstance.typeName + ' ' +
              this.objectInstance.id + ' @ ' +
-             tr.v.Unit.byName.timeStampInMs.format(this.ts);
+             tr.b.Unit.byName.timeStampInMs.format(this.ts);
     }
   };
 

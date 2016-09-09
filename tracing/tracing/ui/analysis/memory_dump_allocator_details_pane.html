@@ -7,14 +7,13 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_heap_details_pane.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_pane.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 
 <dom-module id='tr-ui-a-memory-dump-allocator-details-pane'>
@@ -210,7 +209,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     appendSizeIfDefined: function(size) {
       if (size !== undefined)
-        this.append(' (', tr.v.Unit.byName.sizeInBytes.format(size), ')');
+        this.append(' (', tr.b.Unit.byName.sizeInBytes.format(size), ')');
     },
 
     appendSomeTimestampsQuantifier: function() {

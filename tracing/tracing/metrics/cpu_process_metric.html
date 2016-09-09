@@ -49,7 +49,7 @@ tr.exportTo('tr.metrics.sh', function() {
        if (!(processNumerics.has(processName))) {
          processNumerics.set(processName, {
            numeric: new tr.v.Histogram(
-             tr.v.Unit.byName.normalizedPercentage_smallerIsBetter),
+             tr.b.Unit.byName.normalizedPercentage_smallerIsBetter),
            paths: new Set()
          });
        }

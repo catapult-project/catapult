@@ -7,10 +7,10 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
@@ -21,12 +21,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('nonNumberScalarThrows', function() {
-    var unit = tr.v.Unit.byName.sizeInBytes;
+    var unit = tr.b.Unit.byName.sizeInBytes;
     assert.throws(function() { new tr.v.ScalarNumeric(unit, 'foo'); });
   });
 
   test('scalarBasic', function() {
-    var unit = tr.v.Unit.byName.sizeInBytes;
+    var unit = tr.b.Unit.byName.sizeInBytes;
 
     var d = {
       type: 'scalar',

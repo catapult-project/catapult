@@ -6,10 +6,10 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
 <script>
@@ -17,7 +17,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('addValuesFromDicts', function() {
-    var n = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
+    var n = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
     n.addSample(10);
     n.customizeSummaryOptions({
       count: true,
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addValueFromDictsWithSampleDiagnostic', function() {
-    var n = new tr.v.Histogram(tr.v.Unit.byName.count);
+    var n = new tr.v.Histogram(tr.b.Unit.byName.count);
     n.addSample(10, {bar: new tr.v.d.Generic('baz')});
 
     var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('computeSummaryValuesForNumericValue', function() {
-    var n = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber,
+    var n = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber,
         tr.v.HistogramBinBoundaries.createLinear(0, 100, 100));
 
     n.addSample(50);
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('relatedValueSetDiagnostic', function() {
-    var unit = tr.v.Unit.byName.unitlessNumber;
+    var unit = tr.b.Unit.byName.unitlessNumber;
     var a = new tr.v.NumericValue('a', new tr.v.Histogram(unit));
     var b = new tr.v.NumericValue('b', new tr.v.Histogram(unit));
     var c = new tr.v.NumericValue('c', new tr.v.Histogram(unit));
@@ -153,7 +153,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('relatedValueMapDiagnostic', function() {
-    var unit = tr.v.Unit.byName.unitlessNumber;
+    var unit = tr.b.Unit.byName.unitlessNumber;
     var a = new tr.v.NumericValue('a', new tr.v.Histogram(unit));
     var b = new tr.v.NumericValue('b', new tr.v.Histogram(unit));
     var c = new tr.v.NumericValue('c', new tr.v.Histogram(unit));
@@ -215,12 +215,12 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sourceValuesWithSampleDiagnostic', function() {
-    var unit = tr.v.Unit.byName.unitlessNumber;
+    var unit = tr.b.Unit.byName.unitlessNumber;
     var aHist = new tr.v.Histogram(unit);
     aHist.addSample(1);
     var a = new tr.v.NumericValue('a', aHist);
 
-    var numeric = new tr.v.Histogram(tr.v.Unit.byName.unitlessNumber);
+    var numeric = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
     numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([a])});
     var b = new tr.v.NumericValue('b', numeric);
 

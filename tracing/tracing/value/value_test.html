@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('numericValueBasic', function() {
-    var n = new tr.v.ScalarNumeric(tr.v.Unit.byName.sizeInBytes, 314);
+    var n = new tr.v.ScalarNumeric(tr.b.Unit.byName.sizeInBytes, 314);
     var v = new tr.v.NumericValue('MyNumeric', n);
     v.shortName = 'n';
     assert.isDefined(v.guid);
@@ -46,7 +46,7 @@ tr.b.unittest.testSuite(function() {
 
   test('genericDiagnostic', function() {
     var v0 = new tr.v.NumericValue('val',
-        tr.v.Histogram.buildFromSamples(tr.v.Unit.byName.count, [42]));
+        tr.v.Histogram.buildFromSamples(tr.b.Unit.byName.count, [42]));
     v0.diagnostics.set('foo', new tr.v.d.Generic({
       t: true,
       f: false,

@@ -8,12 +8,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/unit.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -24,9 +24,9 @@ tr.exportTo('tr.metrics.sh', function() {
   var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
   var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
   var sizeInBytes_smallerIsBetter =
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+      tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
   var unitlessNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var DISPLAYED_SIZE_NUMERIC_NAME =
       tr.model.MemoryAllocatorDump.DISPLAYED_SIZE_NUMERIC_NAME;
 
@@ -120,7 +120,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function canonicalizeName(name) {
     return name.toLowerCase().replace(' ', '_');
-  };
+  }
 
   var USER_FRIENDLY_BROWSER_NAMES = {
     'chrome': 'Chrome',
@@ -908,7 +908,7 @@ tr.exportTo('tr.metrics.sh', function() {
    *         componentPath: (!Array<string>|undefined),
    *         propertyName: (string|undefined),
    *         value: (!tr.v.Histogram|number|undefined),
-   *         unit: (!tr.v.Unit|undefined),
+   *         unit: (!tr.b.Unit|undefined),
    *         descriptionPrefixBuilder: (!function(!Array<string>): string)
    *     }))}
    *     customProcessDumpValueExtractor Callback for extracting values from a
