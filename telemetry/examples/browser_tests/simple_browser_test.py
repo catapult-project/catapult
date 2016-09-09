@@ -26,8 +26,8 @@ class SimpleBrowserTest(
     cls.SetBrowserOptions(cls._finder_options)
     cls.StartBrowser()
     cls.action_runner = cls.browser.tabs[0].action_runner
-    cls.SetStaticServerDir(
-        os.path.join(os.path.abspath(__file__), '..', 'pages'))
+    cls.SetStaticServerDirs(
+        [os.path.join(os.path.abspath(__file__), '..', 'pages')])
 
   def JavascriptTest(self, file_path, num_1, num_2, expected_sum):
     url = self.UrlOfStaticFilePath(file_path)

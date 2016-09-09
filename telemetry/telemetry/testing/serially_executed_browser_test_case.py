@@ -101,5 +101,11 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
     cls.platform.SetHTTPServerDirectories(dir_path)
 
   @classmethod
+  def SetStaticServerDirs(cls, dirs_path):
+    assert cls.platform
+    assert isinstance(dirs_path, list)
+    cls.platform.SetHTTPServerDirectories(dirs_path)
+
+  @classmethod
   def UrlOfStaticFilePath(cls, file_path):
     return cls.platform.http_server.UrlOf(file_path)
