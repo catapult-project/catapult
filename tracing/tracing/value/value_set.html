@@ -17,7 +17,7 @@ tr.exportTo('tr.v', function() {
 
   class ValueSet {
     constructor(opt_values) {
-      this.values_ = {};
+      this.values_ = new Map();
 
       if (opt_values !== undefined)
         for (var value of opt_values)
@@ -29,20 +29,20 @@ tr.exportTo('tr.v', function() {
     }
 
     lookup(guid) {
-      return this.values_[guid];
+      return this.values_.get(guid);
     }
 
     get length() {
-      return tr.b.dictionaryLength(this.values_);
+      return this.values_.size;
     }
 
     toArray() {
-      return tr.b.dictionaryValues(this.values_);
+      return [...this];
     }
 
     *[Symbol.iterator]() {
-      for (var guid in this.values_)
-        yield this.values_[guid];
+      for (var [guid, value] of this.values_)
+        yield value;
     }
 
     /**
@@ -51,19 +51,6 @@ tr.exportTo('tr.v', function() {
      */
     map(callback, opt_this) {
       return this.toArray().map(callback, opt_this || this);
-    }
-
-    get organizedByName() {
-      return this.getValuesOrganizedByCallback(v => v.name);
-    }
-
-    /**
-     * @param {!function(!tr.v.Value):*} callback
-     * @param {*=} opt_this
-     * @return {!Object}
-     */
-    getValuesOrganizedByCallback(callback, opt_this) {
-      return tr.b.group(this.toArray(), callback, opt_this || this);
     }
 
     /**
@@ -116,23 +103,23 @@ tr.exportTo('tr.v', function() {
      * @return {!Array.<!tr.v.Value>}
      */
     get sourceValues() {
-      var sourceValues = tr.b.cloneDictionary(this.values_);
+      var sourceValues = new Map(this.values_);
       // If a Value is in a RelatedValueSet or RelatedValueMap, which can be
       // owned either by Values or by numeric samples, then it is not a
       // source Value.
-      function deleteSourceValues(values, diagnosticMap) {
+      function deleteSourceValues(diagnosticMap) {
         for (var [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedValueSet)
             for (var relatedValue of diagnostic)
-              delete values[relatedValue.guid];
+              sourceValues.delete(relatedValue.guid);
           else if (diagnostic instanceof tr.v.d.RelatedValueMap)
             for (var [name, relatedValue] of diagnostic)
-              delete values[relatedValue.guid];
+              sourceValues.delete(relatedValue.guid);
         }
       }
 
       this.map(function(value) {
-        deleteSourceValues(sourceValues, value.diagnostics);
+        deleteSourceValues(value.diagnostics);
         if ((value instanceof tr.v.NumericValue) &&
             (value.numeric instanceof tr.v.Histogram)) {
           for (var b of value.numeric.allBins) {
@@ -140,12 +127,12 @@ tr.exportTo('tr.v', function() {
               // TODO(eakuefner): Rewrite this as a for-of loop once
               // https://github.com/catapult-project/catapult/issues/2678 is
               // fixed.
-              deleteSourceValues(sourceValues, dm);
+              deleteSourceValues(dm);
             }
           }
         }
       });
-      return tr.b.dictionaryValues(sourceValues);
+      return [...sourceValues.values()];
     }
 
     getValuesNamed(name) {
@@ -153,10 +140,10 @@ tr.exportTo('tr.v', function() {
     }
 
     addValueInternal_(v) {
-      if (this.values_[v.guid])
+      if (this.values_.get(v.guid))
         throw new Error('Tried to add same value twice');
 
-      this.values_[v.guid] = v;
+      this.values_.set(v.guid, v);
     }
 
     addValue(v) {
