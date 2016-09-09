@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/metrics/system_health/cpu_time_metric.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function computeCpuTime(customizeModelCallback) {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      customizeModelCallback(model);
+    });
+    var values = new tr.v.ValueSet();
+    tr.metrics.sh.cpuTimeMetric(values, model);
+    assert.equal(7, values.length);
+    for (var value of values) {
+      if (value.numeric instanceof tr.v.Histogram) {
+        return value.numeric.average;
+      }
+    }
+  }
+
+  // There are two slices, each of length 50. The total bounds is 3000.
+  // This yields total CPU time of 100ms, averaged over 3 seconds is 33ms.
+  test('cpuTimeMetric_oneProcess', function() {
+    var sliceDuration = 50;
+    var totalDuration = 3000;
+    var value = computeCpuTime(function(model) {
+      model.rendererProcess = model.getOrCreateProcess(2);
+      model.rendererMain = model.rendererProcess.getOrCreateThread(3);
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: sliceDuration,
+        cpuStart: 0,
+        cpuDuration: sliceDuration,
+      }));
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: totalDuration - sliceDuration,
+        duration: sliceDuration,
+        cpuStart: totalDuration - sliceDuration,
+        cpuDuration: sliceDuration,
+      }));
+    });
+    assert.closeTo(value, 33.33, 0.1);
+  });
+
+  // Process 1: There are two slices, each of length 50. The total bounds is
+  // 3000. Process 2: There is one slice of length 50.
+  // This yields total CPU time of 150ms, averaged over 3 seconds is 50ms.
+  test('cpuTimeMetric_twoProcesses', function() {
+    var sliceDuration = 50;
+    var totalDuration = 3000;
+    var value = computeCpuTime(function(model) {
+      model.rendererProcess = model.getOrCreateProcess(2);
+      model.rendererMain = model.rendererProcess.getOrCreateThread(3);
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: sliceDuration,
+        cpuStart: 0,
+        cpuDuration: sliceDuration,
+      }));
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: totalDuration - sliceDuration,
+        duration: sliceDuration,
+        cpuStart: totalDuration - sliceDuration,
+        cpuDuration: sliceDuration,
+      }));
+
+      var otherProcess = model.getOrCreateProcess(3);
+      var otherThread = otherProcess.getOrCreateThread(4);
+      otherThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: sliceDuration,
+        cpuStart: 0,
+        cpuDuration: sliceDuration,
+      }));
+    });
+    assert.closeTo(value, 50.0, 0.1);
+  });
+});
+</script>

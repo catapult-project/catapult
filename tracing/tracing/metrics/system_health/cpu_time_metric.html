@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/value.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.metrics.sh', function() {
+  /**
+   * This metric measures total CPU time for Chrome processes, per second of
+   *   clock time.
+   * This metric requires only the 'toplevel' tracing category.
+   *
+   * @param {!tr.v.ValueSet} values
+   * @param {!tr.model.Model} model
+   * @param {!Object=} optOptions
+   */
+  function cpuTimeMetric(values, model, optOptions) {
+    var rangeOfInterest = optOptions ? optOptions.rangeOfInterest : undefined;
+    var allProcessCpuTime = 0;
+
+    for (var pid in model.processes) {
+      var process = model.processes[pid];
+      var processCpuTime = 0;
+      for (var tid in process.threads) {
+        var thread = process.threads[tid];
+        var threadCpuTime = 0;
+        thread.sliceGroup.topLevelSlices.forEach(function(slice) {
+          if (rangeOfInterest &&
+              !rangeOfInterest.intersectsExplicitRangeInclusive(
+                  slice.start, slice.end))
+            return;
+          threadCpuTime += slice.cpuDuration;
+        });
+        processCpuTime += threadCpuTime;
+      }
+      allProcessCpuTime += processCpuTime;
+    }
+
+    // Normalize cpu time by clock time.
+    var normalizationRange = rangeOfInterest ?
+        rangeOfInterest : model.bounds.range;
+    var MILLISECONDS_PER_SECOND = 1000;
+    var clockTimeInSeconds = normalizationRange / MILLISECONDS_PER_SECOND;
+
+    // Use a minimum clock time of 0.0001 to allow 0-sized ranges.
+    clockTimeInSeconds = Math.max(clockTimeInSeconds, 0.0001);
+    var normalizedAllProcessCpuTime = allProcessCpuTime /
+        clockTimeInSeconds;
+
+    var unit = tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
+    var boundaries = tr.v.HistogramBinBoundaries
+      .createExponential(1, 100000, 200)
+    var cpuTimeNumeric = new tr.v.Histogram(unit, boundaries);
+    cpuTimeNumeric.addSample(normalizedAllProcessCpuTime);
+
+    var options = {
+      description: 'Total CPU time on all Chrome processes, per second of ' +
+                   'clock time.'
+    };
+    var threadTimesValue = new tr.v.NumericValue(
+        'cpu_time', cpuTimeNumeric, options);
+    values.addValue(threadTimesValue);
+  }
+
+  tr.metrics.MetricRegistry.register(cpuTimeMetric, {
+    supportsRangeOfInterest: true
+  });
+
+  return {
+    cpuTimeMetric: cpuTimeMetric,
+  };
+});
+</script>
+

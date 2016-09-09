@@ -178,6 +178,7 @@
       'tracing/metrics/metric_registry.html',
       'tracing/metrics/sample_metric.html',
       'tracing/metrics/system_health/clock_sync_latency_metric.html',
+      'tracing/metrics/system_health/cpu_time_metric.html',
       'tracing/metrics/system_health/hazard_metric.html',
       'tracing/metrics/system_health/loading_metric.html',
       'tracing/metrics/system_health/long_tasks_metric.html',
