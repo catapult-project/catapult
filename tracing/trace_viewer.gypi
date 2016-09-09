@@ -507,6 +507,7 @@
       'tracing/value/ui/related_event_set_span.html',
       'tracing/value/ui/related_value_map_span.html',
       'tracing/value/ui/related_value_set_span.html',
+      'tracing/value/ui/scalar_context_controller.html',
       'tracing/value/ui/scalar_span.html',
       'tracing/value/ui/value_set_table.html',
       'tracing/value/ui/value_set_view.html',

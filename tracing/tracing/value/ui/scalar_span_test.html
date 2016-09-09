@@ -5,10 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/ui/scalar_context_controller.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
 <script>
@@ -428,6 +430,123 @@ tr.b.unittest.testSuite(function() {
     var value = new tr.v.NumericValue(
         'foo', new tr.v.Histogram(tr.b.Unit.byName.count));
     assert.strictEqual(tr.v.ui.createScalarSpan(value), '');
+  });
+
+  test('contextController', function() {
+    var div = document.createElement('div');
+    div.style.width = '100px';
+    this.addHTMLOutput(div);
+
+    div.appendChild(
+        document.createElement('tr-v-ui-scalar-context-controller'));
+
+    function createAndAddSpan(value, opt_contextGroup) {
+      var config = opt_contextGroup ?
+          { contextGroup: opt_contextGroup } : undefined;
+      var span = tr.v.ui.createScalarSpan(new ScalarNumeric(
+          Unit.byName.timeDurationInMs, value), config);
+      div.appendChild(span);
+      return span;
+    }
+
+    function checkSpan(span, expectedWidth) {
+      tr.b.forceAllPendingTasksToRunForTest();
+      var computedStyle = getComputedStyle(span.$.sparkline);
+      if (expectedWidth === undefined) {
+        assert.strictEqual(computedStyle.display, 'none');
+      } else {
+        assert.strictEqual(computedStyle.display, 'block');
+        assert.strictEqual(parseInt(computedStyle.width), expectedWidth);
+      }
+    }
+
+    var s1 = createAndAddSpan(10);
+    checkSpan(s1, undefined);
+
+    var s2 = createAndAddSpan(20, 'A');
+    checkSpan(s1, undefined);
+    checkSpan(s2, 100);
+
+    var s3 = createAndAddSpan(30, 'A');
+    checkSpan(s1, undefined);
+    checkSpan(s2, 66);
+    checkSpan(s3, 100);
+
+    var s4 = createAndAddSpan(40, 'B');
+    checkSpan(s1, undefined);
+    checkSpan(s2, 66);
+    checkSpan(s3, 100);
+    checkSpan(s4, 100);
+
+    s3.contextGroup = 'B';
+    checkSpan(s1, undefined);
+    checkSpan(s2, 100);
+    checkSpan(s3, 75);
+    checkSpan(s4, 100);
+
+    s1.setAttribute('context-group', 'A');
+    checkSpan(s1, 50);
+    checkSpan(s2, 100);
+    checkSpan(s3, 75);
+    checkSpan(s4, 100);
+
+    s1.value = 50;
+    checkSpan(s1, 100);
+    checkSpan(s2, 40);
+    checkSpan(s3, 75);
+    checkSpan(s4, 100);
+
+    s1.percentage = 0.3;
+    checkSpan(s1, 30);
+    checkSpan(s2, 40);
+    checkSpan(s3, 75);
+    checkSpan(s4, 100);
+
+    s4.contextGroup = null;
+    checkSpan(s1, 30);
+    checkSpan(s2, 40);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+
+    s1.percentage = undefined;
+    checkSpan(s1, 100);
+    checkSpan(s2, 40);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+
+    s4.value = 0;
+    checkSpan(s1, 100);
+    checkSpan(s2, 40);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+
+    div.removeChild(s1);
+    checkSpan(s2, 100);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+
+    s1.contextGroup = 'B';
+    checkSpan(s2, 100);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+
+    div.appendChild(s1);
+    checkSpan(s2, 100);
+    checkSpan(s3, 60);
+    checkSpan(s4, undefined);
+    checkSpan(s1, 100);
+
+    s1.removeAttribute('context-group');
+    checkSpan(s2, 100);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+    checkSpan(s1, undefined);
+
+    s1.percentage = 0.5;
+    checkSpan(s2, 100);
+    checkSpan(s3, 100);
+    checkSpan(s4, undefined);
+    checkSpan(s1, 50);
   });
 });
 </script>

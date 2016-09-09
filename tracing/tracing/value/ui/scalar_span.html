@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/ui/scalar_context_controller.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -74,6 +75,9 @@ tr.exportTo('tr.v.ui', function() {
     if (config.significance !== undefined)
       span.significance = config.significance;
 
+    if (config.contextGroup !== undefined)
+      span.contextGroup = config.contextGroup;
+
     return span;
   }
 
@@ -134,14 +138,36 @@ tr.exportTo('tr.v.ui', function() {
 Polymer({
   is: 'tr-v-ui-scalar-span',
 
+  properties: {
+    /**
+     * String identifier for grouping scalar spans with common context (e.g.
+     * all scalar spans in a single table column would typically share a common
+     * context and, thus, have the same context group identifier). If falsy,
+     * the scalar span will NOT be associated with any context.
+     */
+    contextGroup: {
+      type: String,
+      reflectToAttribute: true,
+      observer: 'contextGroupChanged_'
+    }
+  },
+
   created: function() {
     this.value_ = undefined;
     this.unit_ = undefined;
+
+    // TODO(petrcermak): Merge this into the context controller.
     this.context_ = undefined;
 
     this.warning_ = undefined;
     this.percentage_ = undefined;
     this.significance_ = tr.v.Significance.DONT_CARE;
+
+    // To avoid unnecessary DOM traversal, search for the context controller
+    // only when necessary (when the span is attached and has a context group).
+    this.shouldSearchForContextController_ = false;
+    this.lazyContextController_ = undefined;
+    this.onContextUpdated_ = this.onContextUpdated_.bind(this);
   },
 
   get significance() {
@@ -169,16 +195,68 @@ Polymer({
       this.value_ = value;
     }
     this.updateContents_();
+    if (this.hasContext_(this.contextGroup))
+      this.contextController_.onScalarSpanUpdated(this.contextGroup, this);
+  },
+
+  get contextController_() {
+    if (this.shouldSearchForContextController_) {
+      this.lazyContextController_ =
+          tr.v.ui.getScalarContextControllerForElement(this);
+      this.shouldSearchForContextController_ = false;
+    }
+    return this.lazyContextController_;
+  },
+
+  hasContext_: function(contextGroup) {
+    // The ordering here is important. It ensures that we avoid a DOM traversal
+    // when the span doesn't have a context group.
+    return !!(contextGroup && this.contextController_);
+  },
+
+  contextGroupChanged_: function(newContextGroup, oldContextGroup) {
+    this.detachFromContextControllerIfPossible_(oldContextGroup);
+    if (!this.attachToContextControllerIfPossible_(newContextGroup)) {
+      // If the span failed to attach to a controller, it won't receive a
+      // context-updated event, so we trigger it manually.
+      this.onContextUpdated_();
+    }
+  },
+
+  attachToContextControllerIfPossible_: function(contextGroup) {
+    if (!this.hasContext_(contextGroup))
+      return false;
+    this.contextController_.addEventListener(
+        'context-updated', this.onContextUpdated_);
+    this.contextController_.onScalarSpanAdded(contextGroup, this);
+    return true;
+  },
+
+  detachFromContextControllerIfPossible_: function(contextGroup) {
+    if (!this.hasContext_(contextGroup))
+      return;
+    this.contextController_.removeEventListener(
+        'context-updated', this.onContextUpdated_);
+    this.contextController_.onScalarSpanRemoved(contextGroup, this);
   },
 
   attached: function() {
     tr.b.Unit.addEventListener(
         'display-mode-changed', this.updateContents_.bind(this));
+    this.shouldSearchForContextController_ = true;
+    this.attachToContextControllerIfPossible_(this.contextGroup);
   },
 
   detached: function() {
     tr.b.Unit.removeEventListener(
         'display-mode-changed', this.updateContents_.bind(this));
+    this.detachFromContextControllerIfPossible_(this.contextGroup);
+    this.shouldSearchForContextController_ = false;
+    this.lazyContextController_ = undefined;
+  },
+
+  onContextUpdated_: function() {
+    this.updateSparkline_();
   },
 
   get context() {
@@ -226,12 +304,22 @@ Polymer({
   },
 
   updateSparkline_: function() {
-    if (this.percentage_ === undefined) {
+    var percentage = undefined;
+    if (this.percentage_ !== undefined) {
+      // Explicitly set percentage takes precedence over context.
+      percentage = this.percentage_;
+    } else if (this.hasContext_(this.contextGroup)) {
+      var context = this.contextController_.getContext(this.contextGroup);
+      if (context && this.value !== undefined && context.range.max !== 0)
+        percentage = this.value / context.range.max;
+    }
+
+    if (percentage !== undefined) {
+      this.$.sparkline.style.display = 'block';
+      this.$.sparkline.style.width = (percentage * 100) + '%';
+    } else {
       this.$.sparkline.style.display = 'none';
       this.$.sparkline.style.width = '0';
-    } else {
-      this.$.sparkline.style.display = 'block';
-      this.$.sparkline.style.width = (this.percentage_ * 100) + '%';
     }
   },
 
