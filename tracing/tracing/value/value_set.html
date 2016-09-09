@@ -148,10 +148,6 @@ tr.exportTo('tr.v', function() {
       return tr.b.dictionaryValues(sourceValues);
     }
 
-    getValuesWithName(name) {
-      return this.toArray().filter(v => v.name.indexOf(name) > -1);
-    }
-
     getValuesNamed(name) {
       return this.toArray().filter(v => v.name == name);
     }

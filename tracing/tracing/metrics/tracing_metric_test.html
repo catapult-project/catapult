@@ -29,9 +29,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkDurationValue(allValues, metricName, expected) {
-    var values = allValues.getValuesWithName(metricName + '_avg');
-    assert.lengthOf(values, 1);
-    assert.closeTo(1000 * values[0].numeric.value, expected, 0.1);
+    var value = tr.b.getOnlyElement(allValues.getValuesNamed(metricName));
+    assert.closeTo(1000 * value.numeric.average, expected, 0.1);
   }
 
   test('hasEventSizesInBytes', function() {
@@ -62,9 +61,9 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     var eventStringSize = getEventStringSize(events, [0, 1]);
-    var values = allValues.getValuesWithName('Total trace size in bytes_avg');
-    assert.lengthOf(values, 1);
-    assert.strictEqual(values[0].numeric.value, eventStringSize);
+    var value = tr.b.getOnlyElement(allValues.getValuesNamed(
+        'Total trace size in bytes'));
+    assert.strictEqual(value.numeric.average, eventStringSize);
   });
 
   test('maxValuePerSec', function() {
@@ -82,16 +81,14 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     var maxEventCountPerSec = 3;
-    var values = allValues.getValuesWithName(
-        'Max number of events per second_avg');
-    assert.lengthOf(values, 1);
-    assert.strictEqual(values[0].numeric.value, maxEventCountPerSec);
+    var value = tr.b.getOnlyElement(allValues.getValuesNamed(
+        'Max number of events per second'));
+    assert.strictEqual(value.numeric.average, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
-    var values = allValues.getValuesWithName(
-        'Max event size in bytes per second_avg');
-    assert.lengthOf(values, 1);
-    assert.strictEqual(values[0].numeric.value, maxEventBytesPerSec);
+    value = tr.b.getOnlyElement(allValues.getValuesNamed(
+        'Max event size in bytes per second'));
+    assert.strictEqual(value.numeric.average, maxEventBytesPerSec);
   });
 
   test('diagnostics', function() {
@@ -148,14 +145,12 @@ tr.b.unittest.testSuite(function() {
     var memoryCategorySize = events.filter(
         slice => slice['cat'] === MEMORY_INFRA_TRACING_CATEGORY).reduce(
             (acc, slice) => acc + JSON.stringify(slice).length, 0);
-    var totalSizeValue = allValues.getValuesWithName(
-        'Total trace size of memory-infra dumps in bytes_avg');
-    assert.lengthOf(totalSizeValue, 1);
-    assert.strictEqual(totalSizeValue[0].numeric.value, memoryCategorySize);
-    var sizePerDumpValue = allValues.getValuesWithName(
-        'Average trace size of memory-infra dumps in bytes_avg');
-    assert.lengthOf(sizePerDumpValue, 1);
-    assert.strictEqual(sizePerDumpValue[0].numeric.value, memoryCategorySize);
+    var totalSizeValue = tr.b.getOnlyElement(allValues.getValuesNamed(
+        'Total trace size of memory-infra dumps in bytes'));
+    assert.strictEqual(totalSizeValue.numeric.average, memoryCategorySize);
+    var sizePerDumpValue = tr.b.getOnlyElement(allValues.getValuesNamed(
+        'Average trace size of memory-infra dumps in bytes'));
+    assert.strictEqual(sizePerDumpValue.numeric.average, memoryCategorySize);
 
     checkDurationValue(allValues,
         'Average CPU overhead of mdp1 per OnMemoryDump call', 6.5);

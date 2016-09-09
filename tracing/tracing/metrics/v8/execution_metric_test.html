@@ -42,7 +42,7 @@ tr.b.unittest.testSuite(function() {
       'v8_deoptimize_code_cpu_total',
       'v8_deoptimize_code_wall_total',
     ].forEach(function(name) {
-      assert.isAbove(values.getValuesWithName(name).length, 0);
+      assert.strictEqual(values.getValuesNamed(name).length, 1);
     });
   });
 
@@ -62,12 +62,10 @@ tr.b.unittest.testSuite(function() {
       shiftWorldToZero: false
     });
     var values = new tr.v.ValueSet();
-
     tr.metrics.v8.executionMetric(values, model);
 
-    var value = values.getValuesWithName('v8_execution_wall_total_sum')[0];
-
-    assert.closeTo(value.numeric.value, 0.1, 1e-5);
+    var value = values.getValuesNamed('v8_execution_wall_total')[0];
+    assert.closeTo(value.numeric.running.sum, 0.1, 1e-5);
   });
 });
 </script>

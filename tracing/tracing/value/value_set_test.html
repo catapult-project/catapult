@@ -31,9 +31,9 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
-    // foo, foo_count, foo_sum
-    assert.lengthOf(values2.getValuesWithName('foo'), 3);
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
+    assert.lengthOf(values2.getValuesNamed('foo_count'), 1);
+    assert.lengthOf(values2.getValuesNamed('foo_sum'), 1);
   });
 
   test('addValueFromDictsWithSampleDiagnostic', function() {

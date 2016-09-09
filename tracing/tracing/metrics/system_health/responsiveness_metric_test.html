@@ -53,22 +53,18 @@ tr.b.unittest.testSuite(function() {
     var model = createModel([[]]);
     var valueList = new tr.v.ValueSet();
     tr.metrics.sh.responsivenessMetric(valueList, model);
-    var result = {};
-    valueList.valueDicts.forEach(function(value) {
-      result[value.name] = value.numeric.value;
-    });
-    assert.strictEqual(result['animation throughput_avg'], undefined);
+    var value = tr.b.getOnlyElement(valueList.getValuesNamed(
+        'animation throughput'));
+    assert.strictEqual(value.numeric.numValues, 0);
   });
 
   test('animationThroughputFramesAndNoFrames', function() {
     var model = createModel([[0, 100], []]);
     var valueList = new tr.v.ValueSet();
     tr.metrics.sh.responsivenessMetric(valueList, model);
-    var result = {};
-    valueList.valueDicts.forEach(function(value) {
-      result[value.name] = value.numeric.value;
-    });
-    assert.strictEqual(result['animation throughput_avg'], 20);
+    var value = tr.b.getOnlyElement(valueList.getValuesNamed(
+        'animation throughput'));
+    assert.strictEqual(value.numeric.average, 20);
   });
 });
 </script>
