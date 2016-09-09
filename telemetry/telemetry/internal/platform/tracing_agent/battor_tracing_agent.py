@@ -99,7 +99,13 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
         tracing controller clock sync marker.
     """
     timestamp = trace_time.Now()
-    self._battor.RecordClockSyncMarker(sync_id)
+    try:
+      self._battor.RecordClockSyncMarker(sync_id)
+    except battor_error.BattOrError:
+      logging.critical(
+          'Error while clock syncing with BattOr. Killing BattOr shell.')
+      self._battor.KillBattOrShell()
+      raise
     record_controller_clock_sync_marker_callback(sync_id, timestamp)
 
   def CollectAgentTraceData(self, trace_data_builder, timeout=None):
