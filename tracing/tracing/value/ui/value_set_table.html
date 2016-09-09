@@ -34,10 +34,6 @@ found in the LICENSE file.
       overflow-y: auto;
     }
 
-    div#error {
-      color: red;
-    }
-
     #histogram {
       display: none;
     }
@@ -79,8 +75,6 @@ found in the LICENSE file.
         </div>
         <input id="search" placeholder="Find Value name" on-keyup="onSearch_">
       </controls>
-
-      <div id="error"></div>
 
       <table-container>
         <tr-ui-b-table id="table"/>
@@ -371,16 +365,6 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    handleFailureValues_: function() {
-      this.values.map(function(value) {
-        if (value instanceof tr.v.FailureValue) {
-          Polymer.dom(this.$.error).textContent = value.description;
-          this.$.table.style.display = 'none';
-          this.style.width = '10em';
-        }
-      }, this);
-    },
-
     addDiagnosticSubRows_: function(value, row, column) {
       for (var [name, diagnostic] of value.diagnostics) {
         if (name === tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME)
@@ -476,26 +460,12 @@ tr.exportTo('tr.ui', function() {
     updateContents_: function() {
       if (!this.values_)
         return;
+
       this.style.width = '';
       this.$.table.style.display = '';
-      Polymer.dom(this.$.error).textContent = '';
       this.$.histogram.style.display = 'none';
-
-      this.handleFailureValues_();
-      if (Polymer.dom(this.$.error).textContent)
-        return;
-
       this.buildRows_();
-
-      if (this.rows_.length === 0) {
-        Polymer.dom(this.$.error).textContent = 'zero values';
-        this.$.table.style.display = 'none';
-        this.style.width = '10em';
-        return;
-      }
-
       this.buildColumns_();
-
       this.$.table.tableColumns = this.columns_;
       this.$.table.tableRows = this.rows_;
       this.$.table.sortColumnIndex = 0;

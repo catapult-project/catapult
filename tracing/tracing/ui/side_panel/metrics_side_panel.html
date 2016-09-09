@@ -23,10 +23,14 @@ found in the LICENSE file.
       display: flex;
       flex-direction: column;
     }
+    div#error {
+      color: red;
+    }
     </style>
 
     <top-left-controls id="top_left_controls"></top-left-controls>
     <tr-v-ui-value-set-view id="results"></tr-v-ui-value-set-view>
+    <div id="error"></div>
   </template>
 </dom-module>
 
@@ -160,18 +164,11 @@ tr.exportTo('tr.ui', function() {
 
     updateContents_: function() {
       this.style.width = '';
-      tr.b.requestAnimationFrame(function() {
-        var width = this.$.results.getBoundingClientRect().width + 15;
-        this.style.width = width + 'px';
-      }, this);
+      Polymer.dom(this.$.error).textContent = '';
+      this.$.results.style.display = 'none';
 
       if (!this.model_) {
-        this.$.results.values = new tr.v.ValueSet([
-            new tr.v.FailureValue('missing', {
-              description: 'Missing model',
-              stack: ''
-            })
-        ]);
+        Polymer.dom(this.$.error).textContent = 'Missing model';
         return;
       }
 
@@ -194,12 +191,7 @@ tr.exportTo('tr.ui', function() {
             this.currentMetricName_ +
             ' could not be computed for the current model:\n' +
             err.stack);
-        this.$.results.values = new tr.v.ValueSet([
-            new tr.v.FailureValue('error', {
-              description: err.message,
-              stack: err.stack
-            })
-        ]);
+        Polymer.dom(this.$.error).textContent = err.message;
         return;
       }
 
@@ -208,7 +200,19 @@ tr.exportTo('tr.ui', function() {
         this.metricLatenciesMs_.shift();
 
       this.recomputeButton_.style.background = '';
+
+      if (values.length === 0) {
+        Polymer.dom(this.$.error).textContent = 'zero values';
+        return;
+      }
+
+      this.$.results.style.display = '';
       this.$.results.values = values;
+
+      tr.b.requestAnimationFrame(function() {
+        var width = this.$.results.getBoundingClientRect().width + 15;
+        this.style.width = width + 'px';
+      }, this);
     }
   });
 
