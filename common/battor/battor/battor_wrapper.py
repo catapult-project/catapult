@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import atexit
 import datetime
 import os
 import logging
@@ -119,6 +120,13 @@ class BattorWrapper(object):
     self._stop_tracing_time = None
     self._trace_results = None
     self._serial_log_file = None
+
+    atexit.register(self.KillBattOrShell)
+
+  def KillBattOrShell(self):
+    if self._battor_shell:
+      logging.critical('BattOr shell was not properly closed. Killing now.')
+      self._battor_shell.kill()
 
   def GetShellReturnCode(self):
     """Gets the return code of the BattOr agent shell."""
