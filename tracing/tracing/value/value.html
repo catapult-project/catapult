@@ -43,10 +43,6 @@ tr.exportTo('tr.v', function() {
         value = NumericValue.fromDict(d);
         break;
 
-      case 'failure':
-        value = FailureValue.fromDict(d);
-        break;
-
       default:
         throw new Error('Not implemented');
     }
@@ -139,55 +135,9 @@ tr.exportTo('tr.v', function() {
     }
   };
 
-  /** @constructor */
-  function FailureValue(name, opt_options) {
-    var options = opt_options || {};
-
-    var stack;
-    if (options.stack === undefined) {
-      if (options.stack_str === undefined) {
-        throw new Error('Expected stack_str or stack to be provided');
-      } else {
-        stack = options.stack_str;
-      }
-    } else {
-      stack = options.stack;
-    }
-
-    if (typeof stack !== 'string')
-      throw new Error('stack must be provided as a string');
-
-    Value.call(this, name, options);
-    this.stack = stack;
-  }
-
-  FailureValue.fromError = function(e) {
-    var ex = tr.b.normalizeException(e);
-    return new FailureValue(ex.typeName, {
-      description: ex.message, stack: ex.stack});
-  };
-
-  FailureValue.fromDict = function(d) {
-    if (d.units !== undefined)
-      throw new Error('Expected units to be undefined');
-    if (d.stack_str === undefined)
-      throw new Error('Expected stack_str to be provided');
-    return new FailureValue(d.name, d);
-  };
-
-  FailureValue.prototype = {
-    __proto__: Value.prototype,
-
-    asDictInto_: function(d) {
-      d.type = 'failure';
-      d.stack_str = this.stack;
-    }
-  };
-
   return {
     Value: Value,
     NumericValue: NumericValue,
-    FailureValue: FailureValue
   };
 });
 </script>

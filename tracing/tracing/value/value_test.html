@@ -29,21 +29,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(v.numeric.value, v2.numeric.value);
   });
 
-  test('failureValueBasic', function() {
-    var v = new tr.v.FailureValue(
-      'MyFailure',
-      {description: 'Description', stack: tr.b.stackTraceAsString()});
-    assert.isDefined(v.guid);
-    var d = v.asDict();
-
-    var v2 = tr.v.Value.fromDict(d);
-    assert.instanceOf(v2, tr.v.FailureValue);
-    assert.strictEqual(v.guid, v2.guid);
-    assert.strictEqual(v.name, v2.name);
-    assert.strictEqual(v.description, v2.description);
-    assert.strictEqual(v.stack, v2.stack);
-  });
-
   test('genericDiagnostic', function() {
     var v0 = new tr.v.NumericValue('val',
         tr.v.Histogram.buildFromSamples(tr.b.Unit.byName.count, [42]));
