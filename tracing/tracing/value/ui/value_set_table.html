@@ -5,7 +5,6 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/components/paper-card/paper-card.html">
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/table.html">
@@ -44,50 +43,26 @@ found in the LICENSE file.
     }
 
     controls {
-      display: flex;
-      flex-direction: row;
+      display: block;
       white-space: nowrap;
-      justify-content: space-between;
-    }
-
-    #picker_container {
-      position: absolute;
-      display: none;
-      background: white;
-    }
-
-    #groupby {
-      margin-left: 20px;
-      background-color: #dddddd;
-      padding-left: 3px;
-      padding-right: 3px;
     }
     </style>
 
     <container>
       <controls>
-        <div>
-          <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
-          <label for="show_all">Show all</label>
-        </div>
-        <div id="groupby" on-mouseover="onMouseOverGroupBy_">
-          Group by...
-        </div>
+        <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
+        <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
         <input id="search" placeholder="Find Value name" on-keyup="onSearch_">
       </controls>
+
+      <tr-ui-b-grouping-table-groupby-picker id="picker">
+      </tr-ui-b-grouping-table-groupby-picker>
 
       <table-container>
         <tr-ui-b-table id="table"/>
       </table-container>
       <tr-v-ui-histogram-span id="histogram"/>
     </container>
-
-    <paper-card id="picker_container"
-        on-mouseleave="onMouseLeavePicker_">
-      <tr-ui-b-grouping-table-groupby-picker id="picker">
-      </tr-ui-b-grouping-table-groupby-picker>
-    </paper-card>
-
   </template>
 </dom-module>
 
@@ -184,7 +159,6 @@ tr.exportTo('tr.ui', function() {
       this.addEventListener('requestSelectionChange',
           this.onRelatedValueSelected_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
-      this.$.picker.vertical = true;
       this.$.picker.settingsKey = 'tr-v-ui-value-set-table-groupby-picker';
 
       var groups = [];
@@ -226,17 +200,6 @@ tr.exportTo('tr.ui', function() {
       this.updateContents_();
       if (expansionStates)
         this.setExpansionStates_(expansionStates, this.rows_);
-    },
-
-    onMouseOverGroupBy_: function() {
-      this.$.picker_container.style.display = 'block';
-      var groupbyRect = this.$.groupby.getBoundingClientRect();
-      this.$.picker_container.style.top = groupbyRect.top + 'px';
-      this.$.picker_container.style.left = groupbyRect.left + 'px';
-    },
-
-    onMouseLeavePicker_: function() {
-      this.$.picker_container.style.display = 'none';
     },
 
     onShowAllChange_: function() {
@@ -426,7 +389,11 @@ tr.exportTo('tr.ui', function() {
         if (group.key.indexOf('storyGroupingKey_') === 0)
           return false;
 
-        // Remove groups for which there is only one value.
+        // Remove groups for which there is only one value, except
+        // HISTOGRAM_NAME.
+        if (group === tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME)
+          return true;
+
         var values = new Set();
         for (var value of this.values_) {
           value = group.dataFn(value);
@@ -455,6 +422,8 @@ tr.exportTo('tr.ui', function() {
       this.groupingKeys = [];
       this.$.picker.possibleGroups = groups;
       this.groupingKeys = groupingKeys;
+
+      this.$.picker.style.display = (groups.length === 1) ? 'none' : '';
     },
 
     updateContents_: function() {
