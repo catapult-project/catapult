@@ -28,6 +28,8 @@ tr.exportTo('tr.metrics.v8', function() {
     addDurationOfSubEvents(values, model);
     addIdleTimesOfTopEvents(values, model);
     addTotalIdleTimesOfTopEvents(values, model);
+    addPercentageInV8ExecuteOfTopEvents(values, model);
+    addTotalPercentageInV8Execute(values, model);
     addV8ExecuteMutatorUtilization(values, model);
   }
 
@@ -37,6 +39,8 @@ tr.exportTo('tr.metrics.v8', function() {
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   var percentage_biggerIsBetter =
       tr.b.Unit.byName.normalizedPercentage_biggerIsBetter;
+  var percentage_smallerIsBetter =
+      tr.b.Unit.byName.normalizedPercentage_smallerIsBetter;
 
   // 0.1 steps from 0 to 20 since it is the most common range.
   // Exponentially increasing steps from 20 to 200.
@@ -87,12 +91,21 @@ tr.exportTo('tr.metrics.v8', function() {
     return n;
   }
 
-  function createPercentage(numerator, denominator) {
-    var hist = new tr.v.Histogram(percentage_biggerIsBetter);
+  function createPercentage(numerator, denominator, unit) {
+    var hist = new tr.v.Histogram(unit);
     if (denominator === 0)
       hist.addSample(0);
     else
       hist.addSample(numerator / denominator);
+    hist.customizeSummaryOptions({
+        avg: true,
+        count: false,
+        max: false,
+        min: false,
+        std: false,
+        sum: false,
+        percentile: []
+      });
     return hist;
   }
 
@@ -231,9 +244,57 @@ tr.exportTo('tr.metrics.v8', function() {
     values.addValue(new tr.v.NumericValue(
         name + '_outside_idle', outsideIdle));
     var percentage = createPercentage(insideIdle.sum,
-                                      cpuDuration.sum);
+                                      cpuDuration.sum,
+                                      percentage_biggerIsBetter);
     values.addValue(new tr.v.NumericValue(
         name + '_percentage_idle', percentage));
+  }
+
+
+  /**
+   * Example output:
+   * - v8-gc-full-mark-compactor_percentage_in_v8_execute.
+   */
+  function addPercentageInV8ExecuteOfTopEvents(values, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+      isNotForcedTopGarbageCollectionEvent,
+      tr.metrics.v8.utils.topGarbageCollectionEventName,
+      function(name, events) {
+        addPercentageInV8Execute(values, model, name, events);
+      }
+    );
+  }
+
+  /**
+   * Example output:
+   * - v8-gc-total_percentage_in_v8_execute.
+   */
+  function addTotalPercentageInV8Execute(values, model) {
+    tr.metrics.v8.utils.groupAndProcessEvents(model,
+      isNotForcedTopGarbageCollectionEvent,
+      event => 'v8-gc-total',
+      function(name, events) {
+        addPercentageInV8Execute(values, model, name, events);
+      }
+    );
+  }
+
+  function addPercentageInV8Execute(values, model, name, events) {
+    var cpuDurationInV8Execute = 0;
+    var cpuDurationTotal = 0;
+    events.forEach(function(event) {
+      var v8Execute = tr.metrics.v8.utils.findParent(
+          event, tr.metrics.v8.utils.isV8ExecuteEvent);
+      if (v8Execute) {
+        cpuDurationInV8Execute += event.cpuDuration;
+      }
+      cpuDurationTotal += event.cpuDuration;
+    });
+    var percentage = createPercentage(cpuDurationInV8Execute,
+                                      cpuDurationTotal,
+                                      percentage_smallerIsBetter);
+    values.addValue(new tr.v.NumericValue(
+        name + '_percentage_in_v8_execute', percentage));
   }
 
   function addV8ExecuteMutatorUtilization(values, model) {

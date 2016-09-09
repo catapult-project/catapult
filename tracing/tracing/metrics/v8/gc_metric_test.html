@@ -226,6 +226,30 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(value.numeric.average, 0);
   });
 
+  test('percentageInV8Execute', function() {
+    var values = new tr.v.ValueSet();
+    var slices = [
+      {
+        title: 'V8.Execute',
+        args: {}, start: 100, end: 200,
+        cpuStart: 100, cpuEnd: 200
+      },
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 110, end: 190,
+        cpuStart: 110, cpuEnd: 190
+      },
+      {
+        title: 'V8.GCFinalizeMC', args: {}, start: 210, end: 220,
+        cpuStart: 210, cpuEnd: 220
+      }
+    ];
+    var actual = run(slices);
+    var value = tr.b.getOnlyElement(actual.getValuesNamed(
+        'v8-gc-latency-mark-compactor_percentage_in_v8_execute'));
+    assert.strictEqual(value.numeric.average,
+        (190 - 110) / ((190 - 110) + (220 - 210)));
+  });
+
   test('mutatorUtilization', function() {
     var values = new tr.v.ValueSet();
     var slices = [
