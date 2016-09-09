@@ -107,7 +107,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
 
   @mock.patch('py_utils.cloud_storage.CalculateHash')
   @mock.patch('py_utils.cloud_storage._GetLocked')
-  @mock.patch('py_utils.cloud_storage._PseudoFileLock')
+  @mock.patch('py_utils.cloud_storage._FileLock')
   @mock.patch('py_utils.cloud_storage.os.path')
   def testGetIfHashChanged(self, path_mock, unused_lock_mock, get_mock,
                            calc_hash_mock):
@@ -141,7 +141,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
     calc_hash_mock.reset_mock()
     get_mock.reset_mock()
 
-  @mock.patch('py_utils.cloud_storage._PseudoFileLock')
+  @mock.patch('py_utils.cloud_storage._FileLock')
   def testGetIfChanged(self, unused_lock_mock):
     orig_get = cloud_storage._GetLocked
     orig_read_hash = cloud_storage.ReadHash
@@ -214,7 +214,7 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage._RunCommand = orig_run_command
 
 
-  @mock.patch('py_utils.cloud_storage._PseudoFileLock')
+  @mock.patch('py_utils.cloud_storage._FileLock')
   def testDisableCloudStorageIo(self, unused_lock_mock):
     os.environ['DISABLE_CLOUD_STORAGE_IO'] = '1'
     dir_path = 'real_dir_path'

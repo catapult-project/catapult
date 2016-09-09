@@ -16,12 +16,8 @@ import sys
 import tempfile
 import time
 
-try:
-  import fcntl
-except ImportError:
-  fcntl = None
-
 import py_utils
+from py_utils import lock
 
 
 PUBLIC_BUCKET = 'chromium-telemetry'
@@ -220,29 +216,38 @@ def Delete(bucket, remote_path):
 
 
 def Get(bucket, remote_path, local_path):
-  with _PseudoFileLock(local_path):
+  with _FileLock(local_path):
     _GetLocked(bucket, remote_path, local_path)
 
 
+_CLOUD_STORAGE_GLOBAL_LOCK = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'cloud_storage_global_lock')
+
+
 @contextlib.contextmanager
-def _PseudoFileLock(base_path):
+def _FileLock(base_path):
   pseudo_lock_path = '%s.pseudo_lock' % base_path
   _CreateDirectoryIfNecessary(os.path.dirname(pseudo_lock_path))
-  # This is somewhat of a racy hack because we don't have a good
-  # cross-platform file lock. If we get one, this should be refactored
-  # to use it.
+
+  # We need to make sure that there is no other process which is acquiring the
+  # lock on |base_path| and has not finished before proceeding further to create
+  # the |pseudo_lock_path|. Otherwise, |pseudo_lock_path| may be deleted by
+  # that other process after we create it in this process.
   while os.path.exists(pseudo_lock_path):
     time.sleep(0.1)
-  fd = os.open(pseudo_lock_path, os.O_RDONLY | os.O_CREAT)
-  if fcntl:
-    fcntl.flock(fd, fcntl.LOCK_EX)
+
+  # Guard the creation & acquiring lock of |pseudo_lock_path| by the global lock
+  # to make sure that there is no race condition on creating the file.
+  with open(_CLOUD_STORAGE_GLOBAL_LOCK) as global_file:
+    with lock.FileLock(global_file, lock.LOCK_EX):
+      fd = open(pseudo_lock_path, 'w')
+      lock.AcquireFileLock(fd, lock.LOCK_EX)
   try:
     yield
   finally:
-    if fcntl:
-      fcntl.flock(fd, fcntl.LOCK_UN)
+    lock.ReleaseFileLock(fd)
     try:
-      os.close(fd)
+      fd.close()
       os.remove(pseudo_lock_path)
     except OSError:
       # We don't care if the pseudo-lock gets removed elsewhere before we have
@@ -312,7 +317,7 @@ def GetIfHashChanged(cs_path, download_path, bucket, file_hash):
     PermissionError if the user does not have permission to access the bucket.
     NotFoundError if the file is not in the given bucket in cloud_storage.
   """
-  with _PseudoFileLock(download_path):
+  with _FileLock(download_path):
     if (os.path.exists(download_path) and
         CalculateHash(download_path) == file_hash):
       return False
@@ -331,7 +336,7 @@ def GetIfChanged(file_path, bucket):
     PermissionError if the user does not have permission to access the bucket.
     NotFoundError if the file is not in the given bucket in cloud_storage.
   """
-  with _PseudoFileLock(file_path):
+  with _FileLock(file_path):
     hash_path = file_path + '.sha1'
     if not os.path.exists(hash_path):
       logging.warning('Hash file not found: %s', hash_path)
