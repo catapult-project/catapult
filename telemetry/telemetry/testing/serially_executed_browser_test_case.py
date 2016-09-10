@@ -96,11 +96,6 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
       cls.StopBrowser()
 
   @classmethod
-  def SetStaticServerDir(cls, dir_path):
-    assert cls.platform
-    cls.platform.SetHTTPServerDirectories(dir_path)
-
-  @classmethod
   def SetStaticServerDirs(cls, dirs_path):
     assert cls.platform
     assert isinstance(dirs_path, list)
