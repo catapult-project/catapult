@@ -308,13 +308,22 @@ def RunBenchmark(benchmark, finder_options):
           'PageTest must be used with StorySet containing only '
           'telemetry.page.Page stories.')
 
+  should_tear_down_state_after_each_story_run = (
+      benchmark.ShouldTearDownStateAfterEachStoryRun())
+  # HACK: restarting shared state has huge overhead on cros (crbug.com/645329),
+  # hence we default this to False when test is run against CrOS.
+  # TODO(cros-team): figure out ways to remove this hack.
+  if (possible_browser.platform.GetOSName() == 'chromeos' and
+      not benchmark.IsShouldTearDownStateAfterEachStoryRunOverriden()):
+    should_tear_down_state_after_each_story_run = False
+
   benchmark_metadata = benchmark.GetMetadata()
   with results_options.CreateResults(
       benchmark_metadata, finder_options,
       benchmark.ValueCanBeAddedPredicate) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
-          benchmark.ShouldTearDownStateAfterEachStoryRun(),
+          should_tear_down_state_after_each_story_run,
           benchmark.ShouldTearDownStateAfterEachStorySetRun())
       return_code = min(254, len(results.failures))
     except Exception:
