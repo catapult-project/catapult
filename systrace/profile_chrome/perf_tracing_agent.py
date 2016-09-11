@@ -127,12 +127,14 @@ class PerfProfilerAgent(tracing_agents.TracingAgent):
     self._perf_instance = _PerfProfiler(self._device,
                                         self._perf_binary,
                                         self._categories)
+    return True
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     if not self._perf_instance:
       return
     self._perf_instance.SignalAndWait()
+    return True
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
@@ -204,6 +206,7 @@ class PerfProfilerAgent(tracing_agents.TracingAgent):
     return False
 
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    # pylint: disable=unused-argument
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
 
@@ -217,10 +220,16 @@ def _OptionalValueCallback(default_value):
 
 
 class PerfConfig(tracing_agents.TracingConfig):
-  def __init__(self, perf_categories):
+  def __init__(self, perf_categories, device):
     tracing_agents.TracingConfig.__init__(self)
     self.perf_categories = perf_categories
+    self.device = device
 
+
+def try_create_agent(config):
+  if config.perf_categories:
+    return PerfProfilerAgent(config.device)
+  return None
 
 def add_options(parser):
   options = optparse.OptionGroup(parser, 'Perf profiling options')
@@ -234,7 +243,7 @@ def add_options(parser):
   return options
 
 def get_config(options):
-  return PerfConfig(options.perf_categories)
+  return PerfConfig(options.perf_categories, options.device)
 
 def _ComputePerfCategories(config):
   if not PerfProfilerAgent.IsSupported():

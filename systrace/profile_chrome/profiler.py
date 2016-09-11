@@ -5,51 +5,29 @@
 import time
 
 from devil.android.constants import chrome
-from profile_chrome import atrace_tracing_agent
 from profile_chrome import chrome_startup_tracing_agent
 from profile_chrome import chrome_tracing_agent
-from profile_chrome import ddms_tracing_agent
-from profile_chrome import perf_tracing_agent
 from profile_chrome import ui
 from profile_chrome import util
 from systrace import output_generator
+from systrace import tracing_controller
 
 
-# TODO(washingtonp): This mapping is temporarily in place because
-# profile_chrome does not currently follow Systrace's controller API. This
-# mapping will be removed in the CL that makes profile_chrome follow the
-# Systrace API.
-AGENT_TYPE_TO_MODULE = {'chrome trace': chrome_tracing_agent,
-                        'Browser Startup Trace': chrome_startup_tracing_agent,
-                        'ddms profile': ddms_tracing_agent,
-                        'perf profile': perf_tracing_agent,
-                        'atrace': atrace_tracing_agent}
-
-
-def _StartTracing(agents, options):
-  for agent in agents:
-    if repr(agent) not in AGENT_TYPE_TO_MODULE:
-      continue
-    agent.StartAgentTracing(AGENT_TYPE_TO_MODULE[repr(agent)].
-                            get_config(options))
-
-
-def _StopTracing(agents):
-  for agent in agents:
-    agent.StopAgentTracing()
-
-
-def _GetResults(agents, output, compress, write_json, interval):
+def _GetResults(trace_results, controller, output, compress, write_json,
+                interval):
   ui.PrintMessage('Downloading...', eol='')
 
   # Wait for the trace file to get written.
   time.sleep(1)
 
-  trace_results = []
-  for agent in agents:
+  for agent in controller.get_child_agents:
     if isinstance(agent, chrome_tracing_agent.ChromeTracingAgent):
       time.sleep(interval / 4)
-    trace_results.append(agent.GetResults())
+
+  # Ignore the systraceController because it will not contain any results,
+  # instead being in charge of collecting results.
+  trace_results = [x for x in controller.all_results if not (x.source_name ==
+      'systraceController')]
 
   if not trace_results:
     ui.PrintMessage('No results')
@@ -94,15 +72,15 @@ def GetSupportedBrowsers():
   return supported_browsers
 
 
-def CaptureProfile(options, agents, interval, output=None, compress=False,
-                   write_json=False):
+def CaptureProfile(options, interval, modules, output=None,
+                   compress=False, write_json=False):
   """Records a profiling trace saves the result to a file.
 
   Args:
     options: Command line options.
-    agents: List of tracing agents.
     interval: Time interval to capture in seconds. An interval of None (or 0)
         continues tracing until stopped by the user.
+    modules: The list of modules to initialize the tracing controller with.
     output: Output file name or None to use an automatically generated name.
     compress: If True, the result will be compressed either with gzip or zip
         depending on the number of captured subtraces.
@@ -111,20 +89,32 @@ def CaptureProfile(options, agents, interval, output=None, compress=False,
   Returns:
     Path to saved profile.
   """
-  trace_type = ' + '.join(map(str, agents))
+  agents_with_config = tracing_controller.CreateAgentsWithConfig(options,
+                                                                 modules)
+  if chrome_startup_tracing_agent in modules:
+    controller_config = tracing_controller.GetChromeStartupControllerConfig(
+        options)
+  else:
+    controller_config = tracing_controller.GetControllerConfig(options)
+  controller = tracing_controller.TracingController(agents_with_config,
+                                                    controller_config)
   try:
-    _StartTracing(agents, options)
+    result = controller.StartTracing()
+    trace_type = controller.GetTraceType()
+    if not result:
+      print 'Trace starting failed.'
     if interval:
       ui.PrintMessage(('Capturing %d-second %s. Press Enter to stop early...' %
-                      (interval, trace_type)), eol='')
+                     (interval, trace_type)), eol='')
       ui.WaitForEnter(interval)
     else:
       ui.PrintMessage('Capturing %s. Press Enter to stop...' % trace_type,
-                      eol='')
+                     eol='')
       raw_input()
+    all_results = controller.StopTracing()
   finally:
-    _StopTracing(agents)
-  if interval:
-    ui.PrintMessage('done')
+    if interval:
+      ui.PrintMessage('done')
 
-  return _GetResults(agents, output, compress, write_json, interval)
+  return _GetResults(all_results, controller, output, compress, write_json,
+                     interval)

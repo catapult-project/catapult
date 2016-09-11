@@ -25,7 +25,8 @@ class PerfProfilerAgentTest(agents_unittest.BaseAgentTest):
     agent = perf_tracing_agent.PerfProfilerAgent(self.device)
 
     try:
-      agent.StartAgentTracing(perf_tracing_agent.PerfConfig(categories))
+      agent.StartAgentTracing(perf_tracing_agent.PerfConfig(categories,
+                                                            self.device))
     finally:
       agent.StopAgentTracing()
 

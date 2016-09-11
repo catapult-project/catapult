@@ -21,8 +21,8 @@ from profile_chrome import ui
 from devil.android import device_utils
 
 
-PROFILE_CHROME_AGENT_MODULES = [chrome_tracing_agent, ddms_tracing_agent,
-                                perf_tracing_agent, atrace_tracing_agent]
+_PROFILE_CHROME_AGENT_MODULES = [chrome_tracing_agent, ddms_tracing_agent,
+                                 perf_tracing_agent, atrace_tracing_agent]
 
 
 def _CreateOptionParser():
@@ -35,7 +35,7 @@ def _CreateOptionParser():
   timed_options = optparse.OptionGroup(parser, 'Timed tracing')
   timed_options.add_option('-t', '--time', help='Profile for N seconds and '
                           'download the resulting trace.', metavar='N',
-                           type='float')
+                           type='float', dest='trace_time')
   parser.add_option_group(timed_options)
 
   cont_options = optparse.OptionGroup(parser, 'Continuous tracing')
@@ -61,10 +61,10 @@ def _CreateOptionParser():
   parser.add_option('-d', '--device', help='The Android device ID to use, '
                     'defaults to the value of ANDROID_SERIAL environment '
                     'variable. If not specified, only 0 or 1 connected '
-                    'devices are supported.')
+                    'devices are supported.', dest='device_serial_number')
 
   # Add options from profile_chrome agents.
-  for module in PROFILE_CHROME_AGENT_MODULES:
+  for module in _PROFILE_CHROME_AGENT_MODULES:
     parser.add_option_group(module.add_options(parser))
 
   return parser
@@ -85,8 +85,24 @@ When in doubt, just try out --trace-frame-viewer.
   if options.verbose:
     logging.getLogger().setLevel(logging.DEBUG)
 
-  device = device_utils.DeviceUtils.HealthyDevices(device_arg=options.device)[0]
+  device = device_utils.DeviceUtils.HealthyDevices(device_arg=
+      options.device_serial_number)[0]
   package_info = profiler.GetSupportedBrowsers()[options.browser]
+
+  options.device = device
+  options.package_info = package_info
+
+  # Add options that are present in Systrace but not in profile_chrome (since
+  # they both use the same tracing controller).
+  # TODO(washingtonp): Once Systrace uses all of the profile_chrome agents,
+  # manually setting these options will no longer be necessary and should be
+  # removed.
+  options.list_categories = None
+  options.link_assets = None
+  options.asset_dir = None
+  options.timeout = None
+  options.collection_timeout = None
+  options.target = None
 
   if options.chrome_categories in ['list', 'help']:
     ui.PrintMessage('Collecting record categories list...', eol='')
@@ -118,7 +134,7 @@ When in doubt, just try out --trace-frame-viewer.
         perf_tracing_agent.PerfProfilerAgent.GetCategories(device)))
     return 0
 
-  if not options.time and not options.continuous:
+  if not options.trace_time and not options.continuous:
     ui.PrintMessage('Time interval or continuous tracing should be specified.')
     return 1
 
@@ -126,40 +142,15 @@ When in doubt, just try out --trace-frame-viewer.
     logging.warning('Using the "webview" category in atrace together with '
                     'Chrome tracing results in duplicate trace events.')
 
-  enabled_agents = []
-  if options.chrome_categories:
-    enabled_agents.append(
-        chrome_tracing_agent.ChromeTracingAgent(device,
-                                                package_info,
-                                                options.ring_buffer,
-                                                options.trace_memory))
-  if options.atrace_categories:
-    enabled_agents.append(
-        atrace_tracing_agent.AtraceAgent(device,
-                                         options.ring_buffer))
-
-  if options.perf_categories:
-    enabled_agents.append(
-        perf_tracing_agent.PerfProfilerAgent(device))
-
-  if options.ddms:
-    enabled_agents.append(
-        ddms_tracing_agent.DdmsAgent(device,
-                                     package_info))
-
-  if not enabled_agents:
-    ui.PrintMessage('No trace categories enabled.')
-    return 1
-
-  if options.output:
-    options.output = os.path.expanduser(options.output)
+  if options.output_file:
+    options.output_file = os.path.expanduser(options.output_file)
   result = profiler.CaptureProfile(
       options,
-      enabled_agents,
-      options.time if not options.continuous else 0,
-      output=options.output,
+      options.trace_time if not options.continuous else 0,
+      _PROFILE_CHROME_AGENT_MODULES,
+      output=options.output_file,
       compress=options.compress,
-      write_json=options.json)
+      write_json=options.write_json)
   if options.view:
     if sys.platform == 'darwin':
       os.system('/usr/bin/open %s' % os.path.abspath(result))

@@ -20,7 +20,8 @@ class AtraceAgentTest(agents_unittest.BaseAgentTest):
                                              ring_buffer)
 
     try:
-      agent.StartAgentTracing(atrace_tracing_agent.AtraceConfig(categories))
+      agent.StartAgentTracing(atrace_tracing_agent.AtraceConfig(categories,
+          self.device, ring_buffer))
     finally:
       agent.StopAgentTracing()
     result = agent.GetResults()

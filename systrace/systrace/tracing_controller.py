@@ -111,6 +111,10 @@ class TracingController(object):
     self._trace_in_progress = False
     self.all_results = None
 
+  @property
+  def get_child_agents(self):
+    return self._child_agents
+
   def StartTracing(self):
     """Start tracing for all tracing agents.
 
@@ -213,6 +217,10 @@ class TracingController(object):
     self.all_results = all_results
     return all_results
 
+  def GetTraceType(self):
+    """Return a string representing the child agents that are being traced."""
+    sorted_agents = sorted(map(str, self._child_agents))
+    return ' + '.join(sorted_agents)
 
   def _IssueClockSyncMarker(self):
     """Issue clock sync markers to all the child tracing agents."""
@@ -228,3 +236,63 @@ def GetUniqueSyncID():
   (since UUIDs are not JSON serializable)
   """
   return str(uuid.uuid4())
+
+
+class AgentWithConfig(object):
+  def __init__(self, agent, config):
+    self.agent = agent
+    self.config = config
+
+
+def CreateAgentsWithConfig(options, modules):
+  """Create tracing agents.
+
+  This function will determine which tracing agents are valid given the
+  options and create those agents along with their corresponding configuration
+  object.
+  Args:
+    options: The command-line options.
+    modules: The modules for either Systrace or profile_chrome.
+             TODO(washingtonp): After all profile_chrome agents are in
+             Systrace, this parameter will no longer be valid.
+  Returns:
+    A list of AgentWithConfig options containing agents and their corresponding
+    configuration object.
+  """
+  result = []
+  for module in modules:
+    config = module.get_config(options)
+    agent = module.try_create_agent(config)
+    if agent and config:
+      result.append(AgentWithConfig(agent, config))
+  return [x for x in result if x and x.agent]
+
+
+class TracingControllerConfig(tracing_agents.TracingConfig):
+  def __init__(self, output_file, trace_time, list_categories, write_json,
+               link_assets, asset_dir, timeout, collection_timeout,
+               device_serial_number, target):
+    tracing_agents.TracingConfig.__init__(self)
+    self.output_file = output_file
+    self.trace_time = trace_time
+    self.list_categories = list_categories
+    self.write_json = write_json
+    self.link_assets = link_assets
+    self.asset_dir = asset_dir
+    self.timeout = timeout
+    self.collection_timeout = collection_timeout
+    self.device_serial_number = device_serial_number
+    self.target = target
+
+
+def GetControllerConfig(options):
+  return TracingControllerConfig(options.output_file, options.trace_time,
+                                 options.list_categories, options.write_json,
+                                 options.link_assets, options.asset_dir,
+                                 options.timeout, options.collection_timeout,
+                                 options.device_serial_number, options.target)
+
+def GetChromeStartupControllerConfig(options):
+  return TracingControllerConfig(None, options.trace_time, None,
+                                 options.write_json, None, None, None, None,
+                                 None, None)

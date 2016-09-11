@@ -90,7 +90,7 @@ all_categories = {
 
 def try_create_agent(config):
   if config.target != 'linux':
-    return False
+    return None
   return FtraceAgent(FtraceAgentIo)
 
 

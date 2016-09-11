@@ -19,10 +19,10 @@ from systrace import tracing_agents
 
 def try_create_agent(config):
   if config.from_file is not None:
-    return False
+    return None
   if config.battor:
     return BattorTraceAgent()
-  return False
+  return None
 
 
 class BattorConfig(tracing_agents.TracingConfig):

@@ -52,10 +52,12 @@ class AtraceAgent(tracing_agents.TracingAgent):
     self._categories = _ComputeAtraceCategories(config)
     self._thread = threading.Thread(target=self._CollectData)
     self._thread.start()
+    return True
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
     self._done.set()
+    return True
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
@@ -67,6 +69,7 @@ class AtraceAgent(tracing_agents.TracingAgent):
     return False
 
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    # pylint: disable=unused-argument
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
 
@@ -126,10 +129,17 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
 
 class AtraceConfig(tracing_agents.TracingConfig):
-  def __init__(self, atrace_categories):
+  def __init__(self, atrace_categories, device, ring_buffer):
     tracing_agents.TracingConfig.__init__(self)
     self.atrace_categories = atrace_categories
+    self.device = device
+    self.ring_buffer = ring_buffer
 
+
+def try_create_agent(config):
+  if config.atrace_categories:
+    return AtraceAgent(config.device, config.ring_buffer)
+  return None
 
 def add_options(parser):
   atrace_opts = optparse.OptionGroup(parser, 'Atrace tracing options')
@@ -145,7 +155,8 @@ def add_options(parser):
   return atrace_opts
 
 def get_config(options):
-  return AtraceConfig(options.atrace_categories)
+  return AtraceConfig(options.atrace_categories, options.device,
+                      options.ring_buffer)
 
 def _ComputeAtraceCategories(config):
   if not config.atrace_categories:

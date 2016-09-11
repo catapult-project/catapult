@@ -91,6 +91,7 @@ class ChromeTracingAgent(tracing_agents.TracingAgent):
       raise RuntimeError(
           'Trace start marker not found. Possible causes: 1) Is the correct '
           'version of the browser running? 2) Is the browser already launched?')
+    return True
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
@@ -102,6 +103,7 @@ class ChromeTracingAgent(tracing_agents.TracingAgent):
       self._is_tracing = False
     if self._trace_memory:
       self._device.SetProp(_HEAP_PROFILE_MMAP_PROPERTY, 0)
+    return True
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
@@ -125,6 +127,7 @@ class ChromeTracingAgent(tracing_agents.TracingAgent):
     return False
 
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    # pylint: disable=unused-argument
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
 
@@ -132,7 +135,7 @@ class ChromeTracingAgent(tracing_agents.TracingAgent):
 class ChromeConfig(tracing_agents.TracingConfig):
   def __init__(self, chrome_categories, trace_cc, trace_frame_viewer,
                trace_ubercompositor, trace_gpu, trace_flow, trace_memory,
-               trace_scheduler):
+               trace_scheduler, ring_buffer, device, package_info):
     tracing_agents.TracingConfig.__init__(self)
     self.chrome_categories = chrome_categories
     self.trace_cc = trace_cc
@@ -142,7 +145,16 @@ class ChromeConfig(tracing_agents.TracingConfig):
     self.trace_flow = trace_flow
     self.trace_memory = trace_memory
     self.trace_scheduler = trace_scheduler
+    self.ring_buffer = ring_buffer
+    self.device = device
+    self.package_info = package_info
 
+
+def try_create_agent(config):
+  if config.chrome_categories:
+    return ChromeTracingAgent(config.device, config.package_info,
+                              config.ring_buffer, config.trace_memory)
+  return None
 
 def add_options(parser):
   chrome_opts = optparse.OptionGroup(parser, 'Chrome tracing options')
@@ -179,7 +191,9 @@ def get_config(options):
   return ChromeConfig(options.chrome_categories, options.trace_cc,
                       options.trace_frame_viewer, options.trace_ubercompositor,
                       options.trace_gpu, options.trace_flow,
-                      options.trace_memory, options.trace_scheduler)
+                      options.trace_memory, options.trace_scheduler,
+                      options.ring_buffer, options.device,
+                      options.package_info)
 
 def _ComputeChromeCategories(config):
   categories = []

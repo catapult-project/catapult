@@ -26,9 +26,8 @@ class ChromeAgentTest(agents_unittest.BaseAgentTest):
                                                     ring_buffer)
 
     agent.StartAgentTracing(chrome_tracing_agent.ChromeConfig(categories, None,
-                                                              None, None, None,
-                                                              None, None,
-                                                              None))
+        None, None, None, None, None, None, ring_buffer, self.device,
+        self.package_info))
     agent.StopAgentTracing()
     result = agent.GetResults()
     json.loads(result.raw_data)

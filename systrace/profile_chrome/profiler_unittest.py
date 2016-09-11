@@ -23,17 +23,19 @@ class FakeAgent(object):
   def StartAgentTracing(self, config, timeout=None):
     self.config = config
     self.timeout = timeout
+    return True
 
   # pylint: disable=unused-argument
   def StopAgentTracing(self, timeout=None):
     self.stopped = True
+    return True
 
   # pylint: disable=unused-argument
   def GetResults(self, timeout=None):
-    trace_data = open(self.PullTrace()).read()
+    trace_data = open(self._PullTrace()).read()
     return trace_result.TraceResult('fakeData', trace_data)
 
-  def PullTrace(self):
+  def _PullTrace(self):
     with tempfile.NamedTemporaryFile(delete=False) as f:
       self.filename = f.name
       f.write(self.contents)

@@ -60,6 +60,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
   def StartAgentTracing(self, config, timeout=None):
     self._SetupTracing()
     self._logcat_monitor.Start()
+    return True
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StopAgentTracing(self, timeout=None):
@@ -68,6 +69,7 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
           self._trace_finish_re).group(1)
     finally:
       self._TearDownTracing()
+    return True
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)
   def GetResults(self, timeout=None):
@@ -85,14 +87,24 @@ class ChromeStartupTracingAgent(tracing_agents.TracingAgent):
     return False
 
   def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
+    # pylint: disable=unused-argument
     assert self.SupportsExplicitClockSync(), ('Clock sync marker cannot be '
         'recorded since explicit clock sync is not supported.')
 
 
 class ChromeStartupConfig(tracing_agents.TracingConfig):
-  def __init__(self):
+  def __init__(self, device, package_info, cold, url, chrome_categories):
     tracing_agents.TracingConfig.__init__(self)
+    self.device = device
+    self.package_info = package_info
+    self.cold = cold
+    self.url = url
+    self.chrome_categories = chrome_categories
 
+
+def try_create_agent(config):
+  return ChromeStartupTracingAgent(config.device, config.package_info,
+                                   config.cold, config.url)
 
 def add_options(parser):
   options = optparse.OptionGroup(parser, 'Chrome startup tracing')
@@ -106,5 +118,6 @@ def add_options(parser):
   return options
 
 def get_config(options):
-  # pylint: disable=unused-argument
-  return ChromeStartupConfig()
+  return ChromeStartupConfig(options.device, options.package_info,
+                             options.cold, options.url,
+                             options.chrome_categories)
