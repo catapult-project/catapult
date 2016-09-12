@@ -19,6 +19,11 @@ import time
 import py_utils
 from py_utils import lock
 
+# Do a no-op import here so that cloud_storage_global_lock dep is picked up
+# by https://cs.chromium.org/chromium/src/build/android/test_runner.pydeps.
+# TODO(nedn, jbudorick): figure out a way to get rid of this ugly hack.
+from py_utils import cloud_storage_global_lock  # pylint: disable=unused-import
+
 
 PUBLIC_BUCKET = 'chromium-telemetry'
 PARTNER_BUCKET = 'chrome-partner-telemetry'
@@ -221,7 +226,7 @@ def Get(bucket, remote_path, local_path):
 
 
 _CLOUD_STORAGE_GLOBAL_LOCK = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'cloud_storage_global_lock')
+    os.path.dirname(os.path.abspath(__file__)), 'cloud_storage_global_lock.py')
 
 
 @contextlib.contextmanager
