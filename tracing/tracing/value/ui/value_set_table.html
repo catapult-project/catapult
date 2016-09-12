@@ -148,6 +148,8 @@ tr.exportTo('tr.ui', function() {
 
       this.rows_ = undefined;
       this.columns_ = undefined;
+
+      this.updatingContents_ = false;
     },
 
     ready: function() {
@@ -189,6 +191,9 @@ tr.exportTo('tr.ui', function() {
     },
 
     currentGroupsChanged_: function() {
+      if (this.updatingContents_)
+        return;
+
       if (this.$.picker.currentGroups.length === 0 &&
           this.possibleGroupingKeys.length > 0) {
         this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
@@ -203,6 +208,9 @@ tr.exportTo('tr.ui', function() {
     },
 
     onShowAllChange_: function() {
+      if (this.updatingContents_)
+        return;
+
       tr.b.Settings.set(SHOW_ALL_SETTINGS_KEY, this.$.show_all.checked);
       // TODO(benjhayden): remember selected cells and column
       var expansionStates = this.getExpansionStates_(this.rows_);
@@ -378,7 +386,6 @@ tr.exportTo('tr.ui', function() {
       this.values_ = values;
       this.sourceValues_ = values.sourceValues;
       this.findSummaryValues_();
-      this.updateGroups_();
       this.updateContents_();
     },
 
@@ -427,12 +434,16 @@ tr.exportTo('tr.ui', function() {
     },
 
     updateContents_: function() {
-      if (!this.values_)
+      if (!this.values_ || this.updatingContents_)
         return;
+
+      this.updatingContents_ = true;
 
       this.style.width = '';
       this.$.table.style.display = '';
       this.$.histogram.style.display = 'none';
+
+      this.updateGroups_();
       this.buildRows_();
       this.buildColumns_();
       this.$.table.tableColumns = this.columns_;
@@ -445,6 +456,8 @@ tr.exportTo('tr.ui', function() {
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
       }, this);
+
+      this.updatingContents_ = false;
     },
 
     maybeDisableShowAll_: function() {
