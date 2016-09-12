@@ -82,6 +82,22 @@ tr.exportTo('tr.ui', function() {
 
   var getDisplayLabel = tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL.dataFn;
 
+  var DEFAULT_POSSIBLE_GROUPS = [];
+  DEFAULT_POSSIBLE_GROUPS.push({
+    key: tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
+    label: tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.label,
+    dataFn: v => v.shortName || v.name
+  });
+
+  tr.b.iterItems(tr.v.ValueSet.GROUPINGS, function(name, group) {
+    // DISPLAY_LABEL is used to define the columns, so don't allow grouping
+    // rows by it.
+    // Override HISTOGRAM_NAME so that we can display shortName.
+    if (group !== tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL &&
+        group !== tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME)
+      DEFAULT_POSSIBLE_GROUPS.push(group);
+  });
+
   var SELECTED_VALUE_SETTINGS_KEY = 'tr-v-ui-value-set-table-value';
   var SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-value-set-table-show-all';
 
@@ -161,12 +177,7 @@ tr.exportTo('tr.ui', function() {
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
       this.$.picker.settingsKey = 'tr-v-ui-value-set-table-groupby-picker';
 
-      var groups = [];
-      tr.b.iterItems(tr.v.ValueSet.GROUPINGS, function(name, group) {
-        if (group !== tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL)
-          groups.push(group);
-      });
-      this.$.picker.possibleGroups = groups;
+      this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS;
       this.$.picker.defaultGroupKeys = [
         tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
         tr.v.ValueSet.GROUPINGS.STORY_NAME.key];
@@ -379,7 +390,7 @@ tr.exportTo('tr.ui', function() {
 
         // Remove groups for which there is only one value, except
         // HISTOGRAM_NAME.
-        if (group === tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME)
+        if (group.key === tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key)
           return true;
 
         var values = new Set();

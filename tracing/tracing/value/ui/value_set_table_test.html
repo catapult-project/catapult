@@ -24,6 +24,47 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
+  test('shortName', function() {
+    // One value has |name|='long name' and |shortName|='short name',
+    // another value has |name|='short name' to demonstrate the fundamental
+    // ambiguity that arises when Values can have multiple different "names".
+
+    var now = new Date().getTime();
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+
+    var histA = new tr.v.Histogram(
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (var i = 0; i < 100; ++i)
+      histA.addSample(Math.random() * 1e3);
+    var valueA = new tr.v.NumericValue('long name', histA);
+    valueA.shortName = 'short name';
+    new tr.v.d.IterationInfo({
+      label: 'iteration A',
+      benchmarkStartMs: now,
+    }).addToValue(valueA);
+    values.addValue(valueA);
+
+    var histB = new tr.v.Histogram(
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    for (var i = 0; i < 100; ++i)
+      histB.addSample(Math.random() * 1e3);
+    var valueB = new tr.v.NumericValue('short name', histB);
+    new tr.v.d.IterationInfo({
+      label: 'iteration B',
+      benchmarkStartMs: now,
+    }).addToValue(valueB);
+    values.addValue(valueB);
+
+    table.values = values;
+    this.addHTMLOutput(table);
+
+    assert.isDefined(tr.b.findDeepElementMatchingPredicate(
+          table, e => e.textContent === 'short name'));
+    assert.isUndefined(tr.b.findDeepElementMatchingPredicate(
+          table, e => e.textContent === 'long name'));
+  });
+
   test('emptyAndMissing', function() {
     var now = new Date().getTime();
     var table = document.createElement('tr-v-ui-value-set-table');
