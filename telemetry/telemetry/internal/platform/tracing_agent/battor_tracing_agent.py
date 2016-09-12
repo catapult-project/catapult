@@ -101,7 +101,7 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     timestamp = trace_time.Now()
     try:
       self._battor.RecordClockSyncMarker(sync_id)
-    except battor_error.BattOrError:
+    except battor_error.BattorError:
       logging.critical(
           'Error while clock syncing with BattOr. Killing BattOr shell.')
       self._battor.KillBattOrShell()
