@@ -10,7 +10,6 @@ import re
 
 from devil.android import device_errors
 from devil.android.sdk import intent
-
 from systrace import trace_result
 from systrace import tracing_agents
 

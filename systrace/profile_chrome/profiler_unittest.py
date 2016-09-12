@@ -3,88 +3,52 @@
 # found in the LICENSE file.
 
 import os
-import tempfile
 import unittest
 import zipfile
 
 from profile_chrome import profiler
 from profile_chrome import ui
-from systrace import trace_result
-
-
-class FakeAgent(object):
-  def __init__(self, contents='fake-contents'):
-    self.contents = contents
-    self.stopped = False
-    self.filename = None
-    self.config = None
-    self.timeout = None
-
-  def StartAgentTracing(self, config, timeout=None):
-    self.config = config
-    self.timeout = timeout
-    return True
-
-  # pylint: disable=unused-argument
-  def StopAgentTracing(self, timeout=None):
-    self.stopped = True
-    return True
-
-  # pylint: disable=unused-argument
-  def GetResults(self, timeout=None):
-    trace_data = open(self._PullTrace()).read()
-    return trace_result.TraceResult('fakeData', trace_data)
-
-  def _PullTrace(self):
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-      self.filename = f.name
-      f.write(self.contents)
-      return f.name
-
-  # pylint: disable=no-self-use
-  def SupportsExplicitClockSync(self):
-    return False
-
-  # pylint: disable=unused-argument, no-self-use
-  def RecordClockSyncMarker(self, sync_id, did_record_sync_marker_callback):
-    print ('Clock sync marker cannot be recorded since explicit clock sync '
-           'is not supported.')
-
-  def __repr__(self):
-    return 'faketrace'
+from profile_chrome import fake_agent_1
+from profile_chrome import fake_agent_2
+from systrace import decorators
+from systrace import tracing_controller
 
 
 class ProfilerTest(unittest.TestCase):
   def setUp(self):
     ui.EnableTestMode()
+    self._tracing_options = tracing_controller.TracingControllerConfig(None,
+        None, None, None, None, None, None, None, None, None)
 
+  @decorators.ClientOnlyTest
   def testCaptureBasicProfile(self):
-    agent = FakeAgent()
-    result = profiler.CaptureProfile(None, [agent], 1)
+    result = profiler.CaptureProfile(self._tracing_options, 1, [fake_agent_1])
 
     try:
-      self.assertTrue(agent.stopped)
       self.assertTrue(os.path.exists(result))
       self.assertTrue(result.endswith('.html'))
     finally:
       if os.path.exists(result):
         os.remove(result)
 
+  @decorators.ClientOnlyTest
   def testCaptureJsonProfile(self):
-    agent = FakeAgent()
-    result = profiler.CaptureProfile(None, [agent], 1, write_json=True)
+    result = profiler.CaptureProfile(self._tracing_options, 1,
+                                     [fake_agent_2], write_json=True)
 
     try:
       self.assertFalse(result.endswith('.html'))
       with open(result) as f:
-        self.assertEquals(f.read(), agent.contents)
+        self.assertEquals(f.read(), 'fake-contents')
     finally:
       if os.path.exists(result):
         os.remove(result)
 
+  @decorators.ClientOnlyTest
   def testCaptureMultipleProfiles(self):
-    agents = [FakeAgent('c1'), FakeAgent('c2')]
-    result = profiler.CaptureProfile(None, agents, 1, write_json=True)
+    result = profiler.CaptureProfile(self._tracing_options, 1,
+                                     [fake_agent_1, fake_agent_2],
+                                     write_json=True)
 
     try:
       self.assertTrue(result.endswith('.zip'))

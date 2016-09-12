@@ -7,9 +7,11 @@ import json
 from profile_chrome import agents_unittest
 from profile_chrome import perf_tracing_agent
 from profile_chrome import ui
+from systrace import decorators
 
 
 class PerfProfilerAgentTest(agents_unittest.BaseAgentTest):
+  @decorators.ClientOnlyTest
   def testGetCategories(self):
     if not perf_tracing_agent.PerfProfilerAgent.IsSupported():
       return
@@ -17,6 +19,9 @@ class PerfProfilerAgentTest(agents_unittest.BaseAgentTest):
         perf_tracing_agent.PerfProfilerAgent.GetCategories(self.device)
     assert 'cycles' in ' '.join(categories)
 
+  # TODO(washingtonp): Try enabling this test for the SimpleperfProfilerAgent,
+  # which will be added later.
+  @decorators.Disabled
   def testTracing(self):
     if not perf_tracing_agent.PerfProfilerAgent.IsSupported():
       return

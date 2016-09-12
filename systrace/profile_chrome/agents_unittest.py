@@ -8,6 +8,7 @@ from profile_chrome import profiler
 
 from devil.android import device_utils
 from devil.android.sdk import intent
+from devil.android.sdk import keyevent
 
 
 class BaseAgentTest(unittest.TestCase):
@@ -17,8 +18,28 @@ class BaseAgentTest(unittest.TestCase):
     self.package_info = profiler.GetSupportedBrowsers()[self.browser]
     self.device = devices[0]
 
-    self.device.ForceStop(self.package_info.package)
+    curr_browser = self.GetChromeProcessID()
+    if curr_browser == None:
+      self.StartBrowser()
+
+  def StartBrowser(self):
+    # Turn on the device screen.
+    self.device.SetScreen(True)
+
+    # Unlock device.
+    self.device.SendKeyEvent(keyevent.KEYCODE_MENU)
+
+    # Start browser.
     self.device.StartActivity(
-        intent.Intent(activity=self.package_info.activity,
-                      package=self.package_info.package),
-        blocking=True)
+      intent.Intent(activity=self.package_info.activity,
+                    package=self.package_info.package,
+                    data='about:blank',
+                    extras={'create_new_tab': True}),
+      blocking=True, force_stop=True)
+
+  def GetChromeProcessID(self):
+    chrome_processes = self.device.GetPids(self.package_info.package)
+    if (self.package_info.package in chrome_processes and
+        len(chrome_processes[self.package_info.package]) > 0):
+      return chrome_processes[self.package_info.package][0]
+    return None

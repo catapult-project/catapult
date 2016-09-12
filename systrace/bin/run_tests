@@ -22,9 +22,8 @@ def main():
   parser.add_option("-d", "--device", dest="device",
                     help="device the test runs on", metavar="DEVICE")
   options, _args = parser.parse_args()  # pylint: disable=unused-variable
-  systrace_package_path = os.path.join(_SYSTRACE_DIR, 'systrace')
   unfiltered_suite = unittest.TestLoader().discover(
-      systrace_package_path,
+      _SYSTRACE_DIR,
       pattern = '*_unittest.py',
       top_level_dir=_SYSTRACE_DIR)
   suite = unittest.TestSuite()
