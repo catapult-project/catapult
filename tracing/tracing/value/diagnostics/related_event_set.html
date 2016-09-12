@@ -96,12 +96,12 @@ tr.exportTo('tr.v.d', function() {
         });
       }
     }
-  }
 
-  RelatedEventSet.fromDict = function(d) {
-    return new RelatedEventSet(d.events.map(
-        event => new tr.v.d.EventRef(event)));
-  };
+    static fromDict(d) {
+      return new RelatedEventSet(d.events.map(
+          event => new tr.v.d.EventRef(event)));
+    }
+  }
 
   tr.v.d.Diagnostic.register(RelatedEventSet, {
     elementName: 'tr-v-ui-related-event-set-span'

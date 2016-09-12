@@ -91,15 +91,15 @@ tr.exportTo('tr.v.d', function() {
       for (var [name, value] of this)
         d.values[name] = value.guid;
     }
-  };
 
-  RelatedValueMap.fromDict = function(d) {
-    var map = new RelatedValueMap();
-    tr.b.iterItems(d.values, function(name, guid) {
-      map.set(name, new tr.v.d.ValueRef(guid));
-    });
-    return map;
-  };
+    static fromDict(d) {
+      var map = new RelatedValueMap();
+      tr.b.iterItems(d.values, function(name, guid) {
+        map.set(name, new tr.v.d.ValueRef(guid));
+      });
+      return map;
+    }
+  }
 
   tr.v.d.Diagnostic.register(RelatedValueMap, {
     elementName: 'tr-v-ui-related-value-map-span'

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('clone', function() {
+    var diagnostics = new tr.v.d.DiagnosticMap();
+    diagnostics.set('generic', new tr.v.d.Generic({a: ['b', 3]}));
+    diagnostics.set('breakdown', new tr.v.d.Breakdown());
+    diagnostics.set('events', new tr.v.d.RelatedEventSet());
+    diagnostics.set('value set', new tr.v.d.RelatedValueSet());
+    diagnostics.set('value map', new tr.v.d.RelatedValueMap());
+    diagnostics.set('composition', new tr.v.d.Composition());
+
+    var clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
+    assert.instanceOf(clone.get('generic'), tr.v.d.Generic);
+    assert.deepEqual(clone.get('generic').value,
+        diagnostics.get('generic').value);
+    assert.instanceOf(clone.get('breakdown'), tr.v.d.Breakdown);
+    assert.instanceOf(clone.get('events'), tr.v.d.RelatedEventSet);
+    assert.instanceOf(clone.get('value set'), tr.v.d.RelatedValueSet);
+    assert.instanceOf(clone.get('value map'), tr.v.d.RelatedValueMap);
+    assert.instanceOf(clone.get('composition'), tr.v.d.Composition);
+  });
+
+  test('requireFromDict', function() {
+    class MissingFromDict extends tr.v.d.Diagnostic { }
+    assert.throws(() => tr.v.d.Diagnostic.register(MissingFromDict));
+
+    class InvalidFromDict extends tr.v.d.Diagnostic {
+      static fromDict() {
+      }
+    }
+    assert.throws(() => tr.v.d.Diagnostic.register(InvalidFromDict));
+  });
+});
+</script>
