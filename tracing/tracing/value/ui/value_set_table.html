@@ -46,6 +46,10 @@ found in the LICENSE file.
       display: block;
       white-space: nowrap;
     }
+
+    #reference_column_container {
+      margin-left: 20px;
+    }
     </style>
 
     <container>
@@ -53,6 +57,8 @@ found in the LICENSE file.
         <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
         <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
         <input id="search" placeholder="Find Value name" on-keyup="onSearch_">
+
+        <span id="reference_column_container"></span>
       </controls>
 
       <tr-ui-b-grouping-table-groupby-picker id="picker">
@@ -164,14 +170,14 @@ tr.exportTo('tr.ui', function() {
       this.columns_ = undefined;
 
       this.updatingContents_ = false;
+      this.displayLabels_ = undefined;
+      this.referenceDisplayLabel_ = undefined;
     },
 
     ready: function() {
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
       this.$.table.addEventListener('selection-changed',
           this.onSelectionChanged_.bind(this));
-      this.$.table.addEventListener('selected-column-changed',
-          this.onSelectedColumnChanged_.bind(this));
       this.addEventListener('requestSelectionChange',
           this.onRelatedValueSelected_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
@@ -224,15 +230,6 @@ tr.exportTo('tr.ui', function() {
       // TODO(benjhayden): remember selected cells and column
       var expansionStates = this.getExpansionStates_(this.rows_);
       this.updateContents_();
-      this.setExpansionStates_(expansionStates, this.rows_);
-    },
-
-    onSelectedColumnChanged_: function() {
-      // Force the table to rebuild the cell values without forgetting which
-      // rows were expanded.
-      // TODO(benjhayden): remember selected cells and column
-      var expansionStates = this.getExpansionStates_(this.rows_);
-      this.$.table.tableRows = this.rows_;
       this.setExpansionStates_(expansionStates, this.rows_);
     },
 
@@ -378,7 +375,48 @@ tr.exportTo('tr.ui', function() {
     set values(values) {
       this.values_ = values;
       this.sourceValues_ = values.sourceValues;
+      this.displayLabels_ = undefined;
+      this.referenceDisplayLabel_ = '';
+
       this.updateContents_();
+    },
+
+    get referenceDisplayLabel() {
+      return this.referenceDisplayLabel_;
+    },
+
+    set referenceDisplayLabel(reference) {
+      this.referenceDisplayLabel_ = reference;
+
+      if (this.updatingContents_)
+        return;
+
+      this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
+        1 + this.displayLabels.indexOf(reference) : undefined;
+
+      // Force the table to rebuild the cell values without forgetting which
+      // rows were expanded.
+      // TODO(benjhayden): remember selected cell
+      var expansionStates = this.getExpansionStates_(this.rows_);
+      this.$.table.tableRows = this.rows_;
+      this.setExpansionStates_(expansionStates, this.rows_);
+    },
+
+    updateReferenceColumnSelector_: function() {
+      Polymer.dom(this.$.reference_column_container).textContent = '';
+
+      if (this.displayLabels.length < 2)
+        return;
+
+      var options = [{value: '', label: 'Select a reference column'}];
+      for (var displayLabel of this.displayLabels)
+        options.push({value: displayLabel, label: displayLabel});
+
+      var settingsKey =
+        'tr-v-ui-value-set-table-reference-display-label';
+      Polymer.dom(this.$.reference_column_container).appendChild(
+          tr.ui.b.createSelector(
+            this, 'referenceDisplayLabel', settingsKey, '', options));
     },
 
     updateGroups_: function() {
@@ -435,6 +473,7 @@ tr.exportTo('tr.ui', function() {
       this.$.table.style.display = '';
       this.$.histogram.style.display = 'none';
 
+      this.updateReferenceColumnSelector_();
       this.updateGroups_();
       this.buildRows_();
       this.buildColumns_();
@@ -444,6 +483,9 @@ tr.exportTo('tr.ui', function() {
       this.$.table.rebuild();
       this.selectValue_();
       this.maybeDisableShowAll_();
+
+      this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
+        1 + this.displayLabels.indexOf(reference) : undefined;
 
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
@@ -671,12 +713,14 @@ tr.exportTo('tr.ui', function() {
     },
 
     get displayLabels() {
-      var startTimesForDisplayLabels = this.startTimesForDisplayLabels;
-      var displayLabels = Object.keys(startTimesForDisplayLabels);
-      displayLabels.sort(function(a, b) {
-        return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];
-      });
-      return displayLabels;
+      if (this.displayLabels_ === undefined) {
+        var startTimesForDisplayLabels = this.startTimesForDisplayLabels;
+        this.displayLabels_ = Object.keys(startTimesForDisplayLabels);
+        this.displayLabels_.sort(function(a, b) {
+          return startTimesForDisplayLabels[a] - startTimesForDisplayLabels[b];
+        });
+      }
+      return this.displayLabels_;
     },
 
     buildColumn_: function(displayLabel) {
@@ -689,7 +733,6 @@ tr.exportTo('tr.ui', function() {
         title: displayLabel,
         align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
         supportsCellSelection: true,
-        selectable: true,
 
         value: function(row) {
           var cell = row.columns[displayLabel];
@@ -700,13 +743,18 @@ tr.exportTo('tr.ui', function() {
             return cell;
 
           if (cell instanceof tr.v.NumericValue) {
-            if (this.$.table.selectedTableColumn &&
-                this.$.table.selectedTableColumn.title !== displayLabel) {
-              var referenceCell = row.columns[
-                this.$.table.selectedTableColumn.title];
+            if (cell.numeric instanceof tr.v.Histogram &&
+                cell.numeric.numValues === 0) {
+              return '(empty)';
+            }
+
+            if (this.referenceDisplayLabel &&
+                this.referenceDisplayLabel !== displayLabel) {
+              var referenceCell = row.columns[this.referenceDisplayLabel];
 
               if (referenceCell instanceof tr.v.NumericValue &&
-                  cell.numeric.unit === referenceCell.numeric.unit) {
+                  cell.numeric.unit === referenceCell.numeric.unit &&
+                  referenceCell.numeric.numValues > 0) {
                 var significance = tr.v.Significance.DONT_CARE;
 
                 if (cell.numeric instanceof tr.v.Histogram &&
@@ -720,11 +768,6 @@ tr.exportTo('tr.ui', function() {
                     {unit: cell.numeric.unit.correspondingDeltaUnit,
                      significance: significance});
               }
-            }
-
-            if (cell.numeric instanceof tr.v.Histogram &&
-                cell.numeric.numValues === 0) {
-              return '(empty)';
             }
 
             return tr.v.ui.createScalarSpan(cell);
@@ -751,11 +794,10 @@ tr.exportTo('tr.ui', function() {
 
           // If a reference column is selected, compare the *differences*
           // between the two cells and their references.
-          if (this.$.table.selectedTableColumn &&
-              this.$.table.selectedTableColumn.title !== displayLabel) {
-            var referenceColumn = this.$.table.selectedTableColumn.title;
-            var referenceCellA = rowA.columns[referenceColumn];
-            var referenceCellB = rowB.columns[referenceColumn];
+          if (this.referenceDisplayLabel &&
+              this.referenceDisplayLabel !== displayLabel) {
+            var referenceCellA = rowA.columns[this.referenceDisplayLabel];
+            var referenceCellB = rowB.columns[this.referenceDisplayLabel];
             if (referenceCellA instanceof tr.v.NumericValue &&
                 referenceCellB instanceof tr.v.NumericValue &&
                 cellA.numeric.unit === referenceCellA.numeric.unit &&

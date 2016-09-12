@@ -1500,24 +1500,29 @@ tr.b.unittest.testSuite(function() {
     table.selectionMode = SelectionMode.CELL;
     this.addHTMLOutput(table);
 
-    var eventCount = 0;
-    table.addEventListener('selected-column-changed', event => ++eventCount);
+    table.selectedTableColumnIndex = 1;
+    var cols = tr.b.findDeepElementMatchingPredicate(table,
+        e => e.tagName === 'COLGROUP').children;
+    assert.isNull(cols[0].getAttribute('selected'));
+    assert.strictEqual(cols[1].getAttribute('selected'), 'true');
+    assert.isNull(cols[2].getAttribute('selected'));
+    assert.strictEqual(1, table.selectedTableColumnIndex);
 
-    assert.throws(function() {
-      table.selectedTableColumn = table.tableColumns[0];
-    });
+    table.selectedTableColumnIndex = undefined;
+    cols = tr.b.findDeepElementMatchingPredicate(table,
+        e => e.tagName === 'COLGROUP').children;
+    assert.isNull(cols[0].getAttribute('selected'));
+    assert.isNull(cols[1].getAttribute('selected'));
+    assert.isNull(cols[2].getAttribute('selected'));
+    assert.isUndefined(table.selectedTableColumnIndex);
 
-    table.selectedTableColumn = table.tableColumns[1];
-    assert.strictEqual(eventCount, 1);
-    assert.strictEqual(table.tableColumns[1], table.selectedTableColumn);
-
-    table.selectedTableColumn = table.tableColumns[2];
-    assert.strictEqual(eventCount, 2);
-    assert.strictEqual(table.tableColumns[2], table.selectedTableColumn);
-
-    table.selectedTableColumn = undefined;
-    assert.strictEqual(eventCount, 3);
-    assert.isUndefined(table.selectedTableColumn);
+    table.selectedTableColumnIndex = 2;
+    cols = tr.b.findDeepElementMatchingPredicate(table,
+        e => e.tagName === 'COLGROUP').children;
+    assert.isNull(cols[0].getAttribute('selected'));
+    assert.isNull(cols[1].getAttribute('selected'));
+    assert.strictEqual(cols[2].getAttribute('selected'), 'true');
+    assert.strictEqual(2, table.selectedTableColumnIndex);
   });
 });
 </script>
