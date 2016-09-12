@@ -315,12 +315,10 @@ class TimelineBasedMeasurement(story_test.StoryTest):
       results.AddValue(
           common_value_helpers.TranslateMreFailure(d, page))
 
-    value_dicts = mre_result.pairs.get('values', [])
-    results.value_set.extend(value_dicts)
-    for d in value_dicts:
-      if common_value_helpers.IsScalarNumericValue(d):
-        results.AddValue(
-            common_value_helpers.TranslateScalarValue(d, page))
+    results.value_set.extend(mre_result.pairs.get('histograms', []))
+
+    for d in mre_result.pairs.get('scalars', []):
+      results.AddValue(common_value_helpers.TranslateScalarValue(d, page))
 
   def _ComputeLegacyTimelineBasedMetrics(self, results, trace_result):
     model = model_module.TimelineModel(trace_result)

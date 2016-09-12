@@ -13,8 +13,6 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v', function() {
-  var SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME = 'summary values';
-
   class ValueSet {
     constructor(opt_values) {
       this.values_ = new Map();
@@ -148,28 +146,6 @@ tr.exportTo('tr.v', function() {
 
     addValue(v) {
       this.addValueInternal_(v);
-
-      // TODO(eakuefner): Do this as a separate telemetry step.
-      if (v.numeric instanceof tr.v.Histogram)
-        for (var s of ValueSet.computeSummaryValuesForNumericValue(v))
-          this.addValueInternal_(s);
-    }
-
-    static computeSummaryValuesForNumericValue(value) {
-      if (!(value instanceof tr.v.NumericValue &&
-            value.numeric instanceof tr.v.Histogram))
-        throw new Error('Tried to compute summary values for non-numeric');
-
-      var summaryValueMap = new tr.v.d.RelatedValueMap();
-      value.diagnostics.set(SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME, summaryValueMap);
-      var options = {description: value.description};
-      var stats = value.numeric.getSummarizedScalarNumericsWithNames();
-      return stats.map(function(stat) {
-        var summaryValue = new tr.v.NumericValue(
-            value.name + '_' + stat.name, stat.scalar, options);
-        summaryValueMap.set(stat.name, summaryValue);
-        return summaryValue;
-      });
     }
   }
 
@@ -221,7 +197,6 @@ tr.exportTo('tr.v', function() {
   };
 
   return {
-    SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME: SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME,
     ValueSet: ValueSet
   };
 });

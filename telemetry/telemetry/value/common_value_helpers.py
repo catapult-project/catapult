@@ -13,8 +13,6 @@ def TranslateMreFailure(mre_failure, page):
 
 
 def TranslateScalarValue(scalar_value, page):
-  assert IsScalarNumericValue(scalar_value)
-
   # This function should not modify scalar_value because it is also held by
   # PageTestResults.value_set.
   scalar_value = copy.deepcopy(scalar_value)
@@ -31,8 +29,6 @@ def TranslateScalarValue(scalar_value, page):
     raise ValueError('Must specify improvement direction for value ' + name)
 
   scalar_value['units'] = unit_parts[0]
-  scalar_value['description'] = scalar_value.get('options', {}).get(
-      'description')
 
   if unit_parts[1] == 'biggerIsBetter':
     scalar_value['improvement_direction'] = improvement_direction.UP
@@ -43,8 +39,3 @@ def TranslateScalarValue(scalar_value, page):
   scalar_value['page_id'] = page.id
   scalar_value['name'] = name
   return scalar.ScalarValue.FromDict(scalar_value, {page.id: page})
-
-
-def IsScalarNumericValue(value_dict):
-  return (value_dict.get('type') == 'numeric' and
-          value_dict['numeric'].get('type') == 'scalar')

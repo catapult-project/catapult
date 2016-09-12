@@ -47,9 +47,7 @@ class TranslateCommonValuesTest(unittest.TestCase):
             'value': 42
         },
         'name': 'foo',
-        'options': {
-            'description': 'desc'
-        }
+        'description': 'desc'
     }
 
     v = common_value_helpers.TranslateScalarValue(scalar_value, p)

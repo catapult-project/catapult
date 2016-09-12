@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.hazardMetric(values, model);
-    assert.equal(7, values.length);
+    assert.equal(1, values.length);
     for (var value of values)
       if (value.numeric instanceof tr.v.Histogram)
         return value;

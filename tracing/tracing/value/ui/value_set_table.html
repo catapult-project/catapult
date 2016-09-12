@@ -143,8 +143,6 @@ tr.exportTo('tr.ui', function() {
       this.values_ = undefined;
       /** @type {!Array.<!tr.v.Value>} */
       this.sourceValues_ = [];
-      /** @type {!Object} */
-      this.summaryValuesByGuid_ = {};
 
       this.rows_ = undefined;
       this.columns_ = undefined;
@@ -338,9 +336,6 @@ tr.exportTo('tr.ui', function() {
 
     addDiagnosticSubRows_: function(value, row, column) {
       for (var [name, diagnostic] of value.diagnostics) {
-        if (name === tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME)
-          continue;
-
         // If a previous |value| had a diagnostic with the same name, then
         // there is already a subRow that should contain this diagnostic.
         var foundSubRow = false;
@@ -366,26 +361,12 @@ tr.exportTo('tr.ui', function() {
       return this.values_;
     },
 
-    findSummaryValues_: function() {
-      this.summaryValuesByGuid_ = {};
-      this.values.map(function(value) {
-        var summaryValueMap = value.diagnostics.get(
-            tr.v.SUMMARY_VALUE_MAP_DIAGNOSTIC_NAME);
-        if (!(summaryValueMap instanceof tr.v.d.RelatedValueMap))
-          return;
-
-        for (var [name, summaryValue] of summaryValueMap)
-          this.summaryValuesByGuid_[summaryValue.guid] = summaryValue;
-      }, this);
-    },
-
     /**
      * @param {!tr.v.ValueSet} values
      */
     set values(values) {
       this.values_ = values;
       this.sourceValues_ = values.sourceValues;
-      this.findSummaryValues_();
       this.updateContents_();
     },
 
@@ -463,8 +444,7 @@ tr.exportTo('tr.ui', function() {
     maybeDisableShowAll_: function() {
       var hiddenValues = 0;
       for (var value of this.values) {
-        if (!this.summaryValuesByGuid_[value.guid] &&
-            this.sourceValues_.indexOf(value) < 0) {
+        if (this.sourceValues_.indexOf(value) < 0) {
           ++hiddenValues;
         }
       }
@@ -581,8 +561,7 @@ tr.exportTo('tr.ui', function() {
           this.values : this.sourceValues_;
       var values = [];
       for (var value of showingValues)
-        if (this.summaryValuesByGuid_[value.guid] === undefined)
-          values.push(value);
+        values.push(value);
 
       var groupingCallbacks = [];
       for (var group of this.$.picker.currentGroups)
@@ -671,9 +650,6 @@ tr.exportTo('tr.ui', function() {
     get startTimesForDisplayLabels() {
       var startTimesForDisplayLabels = {};
       for (var value of this.values) {
-        if (this.summaryValuesByGuid_[value.guid])
-          continue;
-
         var displayLabel = getDisplayLabel(value);
         startTimesForDisplayLabels[displayLabel] = Math.min(
             startTimesForDisplayLabels[displayLabel] || 0,

@@ -374,15 +374,18 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Returns an array of {name: string, scalar: ScalarNumeric} values.
+     * Returns a Map {statisticName: ScalarNumeric}.
+     *
      * Each enabled summary option produces the corresponding value:
      * min, max, count, sum, avg, or std.
      * Each percentile 0.x produces pct_0x0.
      * Each percentile 0.xx produces pct_0xx.
      * Each percentile 0.xxy produces pct_0xx_y.
      * Percentile 1.0 produces pct_100.
+     *
+     * @return {!Map.<string, ScalarNumeric>}
      */
-    getSummarizedScalarNumericsWithNames() {
+    get statisticsScalars() {
       function statNameToKey(stat) {
         switch (stat) {
           case 'std':
@@ -415,34 +418,28 @@ tr.exportTo('tr.v', function() {
         return '0' + str.slice(2);
       }
 
-      var results = [];
+      var results = new Map();
       tr.b.iterItems(this.summaryOptions, function(stat, option) {
         if (!option)
           return;
+
         if (stat === 'percentile') {
           option.forEach(function(percent) {
             var percentile = this.getApproximatePercentile(percent);
-            results.push({
-                name: 'pct_' + percentToString(percent),
-                scalar: new tr.v.ScalarNumeric(this.unit, percentile)
-            });
+            results.set('pct_' + percentToString(percent),
+                new tr.v.ScalarNumeric(this.unit, percentile));
           }, this);
         } else if (stat === 'nans') {
-          results.push({
-            name: 'nans',
-            scalar: new tr.v.ScalarNumeric(
-                tr.b.Unit.byName.count_smallerIsBetter, this.numNans)
-          });
+          results.set('nans', new tr.v.ScalarNumeric(
+              tr.b.Unit.byName.count_smallerIsBetter, this.numNans));
         } else {
           var statUnit = stat === 'count' ?
               tr.b.Unit.byName.count_smallerIsBetter : this.unit;
           var key = statNameToKey(stat);
           var statValue = this.running[key];
+
           if (typeof(statValue) === 'number') {
-            results.push({
-                name: stat,
-                scalar: new tr.v.ScalarNumeric(statUnit, statValue)
-            });
+            results.set(stat, new tr.v.ScalarNumeric(statUnit, statValue));
           }
         }
       }, this);

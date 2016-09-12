@@ -315,13 +315,14 @@ tr.b.unittest.testSuite(function() {
     assert.throws(() => b1.addExponentialBins(8 /* must be > 8 */, 3));
   });
 
-  test('getSummarizedScalarNumericsWithNames', function() {
+  test('statisticsScalars', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
     var n = new tr.v.Histogram(unitlessNumber, boundaries);
 
     n.addSample(50);
     n.addSample(60);
     n.addSample(70);
+    n.addSample('i am not a number');
 
     n.customizeSummaryOptions({
       count: true,
@@ -330,28 +331,36 @@ tr.b.unittest.testSuite(function() {
       sum: true,
       avg: true,
       std: true,
+      nans: true,
       geometricMean: true,
       percentile: [0.5, 1]
     });
 
-    var results = n.getSummarizedScalarNumericsWithNames();
-    var values = {};
-    results.forEach(function(x) {
-      values[x.name] = x.scalar;
-    });
-
-    assert.strictEqual(values.count.value, 3);
-    assert.strictEqual(values.min.value, 50);
-    assert.strictEqual(values.max.value, 70);
-    assert.strictEqual(values.sum.value, 180);
-    assert.strictEqual(values.avg.value, 60);
-    assert.strictEqual(values.std.value, 10);
-    assert.closeTo(values.pct_050.value, 60, 1);
-    assert.closeTo(values.pct_100.value, 70, 1);
-    assert.closeTo(values.geometricMean.value, 59.439, 1e-3);
+    var stats = n.statisticsScalars;
+    assert.strictEqual(stats.get('nans').unit,
+        tr.b.Unit.byName.count_smallerIsBetter);
+    assert.strictEqual(stats.get('nans').value, 1);
+    assert.strictEqual(stats.get('count').unit,
+        tr.b.Unit.byName.count_smallerIsBetter);
+    assert.strictEqual(stats.get('count').value, 3);
+    assert.strictEqual(stats.get('min').unit, n.unit);
+    assert.strictEqual(stats.get('min').value, 50);
+    assert.strictEqual(stats.get('max').unit, n.unit);
+    assert.strictEqual(stats.get('max').value, 70);
+    assert.strictEqual(stats.get('sum').unit, n.unit);
+    assert.strictEqual(stats.get('sum').value, 180);
+    assert.strictEqual(stats.get('avg').unit, n.unit);
+    assert.strictEqual(stats.get('avg').value, 60);
+    assert.strictEqual(stats.get('std').value, 10);
+    assert.strictEqual(stats.get('pct_050').unit, n.unit);
+    assert.closeTo(stats.get('pct_050').value, 60, 1);
+    assert.strictEqual(stats.get('pct_100').unit, n.unit);
+    assert.closeTo(stats.get('pct_100').value, 70, 1);
+    assert.strictEqual(stats.get('geometricMean').unit, n.unit);
+    assert.closeTo(stats.get('geometricMean').value, 59.439, 1e-3);
   });
 
-  test('getSummarizedScalarNumericsWithNamesNoSummaryOptions', function() {
+  test('statisticsScalarsNoSummaryOptions', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
     var n = new tr.v.Histogram(unitlessNumber, boundaries);
 
@@ -369,14 +378,12 @@ tr.b.unittest.testSuite(function() {
       percentile: []
     });
 
-    var results = n.getSummarizedScalarNumericsWithNames('abc');
-    assert.strictEqual(results.length, 0);
+    assert.strictEqual(n.statisticsScalars.size, 0);
   });
 
-  test('getSummarizedScalarNumericsWithNamesEmptyNumericValue', function() {
+  test('statisticsScalarsEmptyNumericValue', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
     var n = new tr.v.Histogram(unitlessNumber, boundaries);
-
     n.customizeSummaryOptions({
       count: true,
       min: true,
@@ -387,24 +394,19 @@ tr.b.unittest.testSuite(function() {
       percentile: [0, 0.01, 0.1, 0.5, 0.995, 1]
     });
 
-    var results = n.getSummarizedScalarNumericsWithNames();
-    var values = {};
-    results.forEach(function(x) {
-      values[x.name] = x.scalar;
-    });
-
-    assert.strictEqual(values.count.value, 0);
-    assert.strictEqual(values.min.value, Infinity);
-    assert.strictEqual(values.max.value, -Infinity);
-    assert.strictEqual(values.sum.value, 0);
-    assert.strictEqual(values.avg, undefined);
-    assert.strictEqual(values.std, undefined);
-    assert.strictEqual(values.pct_000.value, 0);
-    assert.strictEqual(values.pct_001.value, 0);
-    assert.strictEqual(values.pct_010.value, 0);
-    assert.strictEqual(values.pct_050.value, 0);
-    assert.strictEqual(values.pct_099_5.value, 0);
-    assert.strictEqual(values.pct_100.value, 0);
+    var stats = n.statisticsScalars;
+    assert.strictEqual(stats.get('count').value, 0);
+    assert.strictEqual(stats.get('min').value, Infinity);
+    assert.strictEqual(stats.get('max').value, -Infinity);
+    assert.strictEqual(stats.get('sum').value, 0);
+    assert.strictEqual(stats.get('avg'), undefined);
+    assert.strictEqual(stats.get('std'), undefined);
+    assert.strictEqual(stats.get('pct_000').value, 0);
+    assert.strictEqual(stats.get('pct_001').value, 0);
+    assert.strictEqual(stats.get('pct_010').value, 0);
+    assert.strictEqual(stats.get('pct_050').value, 0);
+    assert.strictEqual(stats.get('pct_099_5').value, 0);
+    assert.strictEqual(stats.get('pct_100').value, 0);
   });
 
   test('sampleValues', function() {

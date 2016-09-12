@@ -13,8 +13,10 @@ found in the LICENSE file.
     <tr-ui-b-table id="stats"></tr-ui-b-table>
   </template>
 </dom-module>
+
 <script>
 'use strict';
+// TODO(benjhayden): Rename to histogram-stats-span.
 Polymer({
   is: 'tr-v-ui-numeric-stats-span',
 
@@ -49,13 +51,12 @@ Polymer({
   updateContents_: function() {
     var rows = [];
     if (this.numeric_) {
-      var stats = this.numeric_.getSummarizedScalarNumericsWithNames();
-      stats.forEach(function(stat) {
+      for (var [statName, scalar] of this.numeric_.statisticsScalars) {
         rows.push({
-          name: stat.name,
-          value: stat.scalar
+          name: statName,
+          value: scalar
         });
-      });
+      }
     }
     this.$.stats.tableRows = rows;
     this.$.stats.rebuild();

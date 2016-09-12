@@ -18,22 +18,10 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('addValuesFromDicts', function() {
     var n = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
-    n.addSample(10);
-    n.customizeSummaryOptions({
-      count: true,
-      min: false,
-      max: false,
-      sum: true,
-      avg: false,
-      std: false
-    });
-
     var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
-    assert.lengthOf(values2.getValuesNamed('foo_count'), 1);
-    assert.lengthOf(values2.getValuesNamed('foo_sum'), 1);
   });
 
   test('addValueFromDictsWithSampleDiagnostic', function() {
@@ -50,41 +38,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(dm.size, 1);
     assert.instanceOf(dm.get('bar'), tr.v.d.Generic);
     assert.strictEqual(dm.get('bar').value, 'baz');
-  });
-
-  test('computeSummaryValuesForNumericValue', function() {
-    var n = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber,
-        tr.v.HistogramBinBoundaries.createLinear(0, 100, 100));
-
-    n.addSample(50);
-    n.addSample(60);
-    n.addSample(70);
-
-    n.customizeSummaryOptions({
-      count: true,
-      min: true,
-      max: true,
-      sum: true,
-      avg: true,
-      std: true,
-      percentile: [0.5, 1]
-    });
-
-    var results =
-        tr.v.ValueSet.computeSummaryValuesForNumericValue(
-            new tr.v.NumericValue('abc', n, { description: 'desc' }));
-    var values = {};
-    results.forEach(function(x) {
-      values[x.name] = x.numeric;
-    });
-    assert.strictEqual(values.abc_count.value, 3);
-    assert.strictEqual(values.abc_min.value, 50);
-    assert.strictEqual(values.abc_max.value, 70);
-    assert.strictEqual(values.abc_sum.value, 180);
-    assert.strictEqual(values.abc_avg.value, 60);
-    assert.strictEqual(values.abc_std.value, 10);
-    assert.closeTo(values.abc_pct_050.value, 60, 1);
-    assert.closeTo(values.abc_pct_100.value, 70, 1);
   });
 
   test('relatedValueSetDiagnostic', function() {

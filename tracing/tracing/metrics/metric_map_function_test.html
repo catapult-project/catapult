@@ -55,8 +55,10 @@ tr.b.unittest.testSuite(function() {
 
     var result = new tr.mre.MreResult();
     tr.metrics.metricMapFunction(result, m, {'metrics': ['sampleMetric']});
-    assert.property(result.pairs, 'values');
-    assert.equal(result.pairs.values.length, 7);
+    assert.property(result.pairs, 'histograms');
+    assert.equal(result.pairs.histograms.length, 1);
+    assert.property(result.pairs, 'scalars');
+    assert.equal(result.pairs.scalars.length, 6);
   });
 });
 </script>

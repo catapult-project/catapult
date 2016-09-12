@@ -19,12 +19,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.cpuTimeMetric(values, model);
-    assert.equal(7, values.length);
-    for (var value of values) {
-      if (value.numeric instanceof tr.v.Histogram) {
-        return value.numeric.average;
-      }
-    }
+    return tr.b.getOnlyElement(values).numeric.average;
   }
 
   // There are two slices, each of length 50. The total bounds is 3000.

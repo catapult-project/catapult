@@ -101,8 +101,8 @@ tr.exportTo('tr.v', function() {
 
   /** @constructor */
   function NumericValue(name, numeric, opt_options) {
-    if (!(numeric instanceof tr.v.NumericBase))
-      throw new Error('Expected numeric to be instance of tr.v.NumericBase');
+    if (!(numeric instanceof tr.v.Histogram))
+      throw new Error('Expected numeric to be instance of tr.v.Histogram');
 
     Value.call(this, name, opt_options);
     this.numeric = numeric;
@@ -111,7 +111,7 @@ tr.exportTo('tr.v', function() {
   NumericValue.fromDict = function(d) {
     if (d.numeric === undefined)
       throw new Error('Expected numeric to be provided');
-    var numeric = tr.v.NumericBase.fromDict(d.numeric);
+    var numeric = tr.v.Histogram.fromDict(d.numeric);
     var value = new NumericValue(d.name, numeric, d);
     return value;
   };

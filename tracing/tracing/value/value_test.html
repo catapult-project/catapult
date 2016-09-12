@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/utils.html">
-<link rel="import" href="/tracing/value/numeric.html">
+<link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/value.html">
 
 <script>
@@ -15,7 +15,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('numericValueBasic', function() {
-    var n = new tr.v.ScalarNumeric(tr.b.Unit.byName.sizeInBytes, 314);
+    var n = new tr.v.Histogram(tr.b.Unit.byName.sizeInBytes);
     var v = new tr.v.NumericValue('MyNumeric', n);
     v.shortName = 'n';
     assert.isDefined(v.guid);
@@ -26,7 +26,6 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(v.guid, v2.guid);
     assert.strictEqual(v.name, v2.name);
     assert.strictEqual(v.shortName, v2.shortName);
-    assert.strictEqual(v.numeric.value, v2.numeric.value);
   });
 
   test('genericDiagnostic', function() {

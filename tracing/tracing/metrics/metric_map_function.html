@@ -51,7 +51,20 @@ tr.exportTo('tr.metrics', function() {
     // Values from other iterations, so add IterationInfo to each Value.
     values.map(v => iterationInfo.addToValue(v));
 
-    result.addPair('values', values.valueDicts);
+    result.addPair('histograms', values.valueDicts);
+
+    var scalarDicts = [];
+    for (var value of values) {
+      for (var [statName, scalar] of value.numeric.statisticsScalars) {
+        scalarDicts.push({
+          name: value.name + '_' + statName,
+          numeric: scalar.asDict(),
+          description: value.description,
+        });
+      }
+    }
+
+    result.addPair('scalars', scalarDicts);
   }
 
   tr.mre.FunctionRegistry.register(metricMapFunction);
