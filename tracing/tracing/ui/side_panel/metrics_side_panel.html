@@ -185,7 +185,7 @@ tr.exportTo('tr.ui', function() {
       try {
         var mreResult = new tr.mre.MreResult();
         tr.metrics.metricMapFunction(mreResult, this.model_, options);
-        values.addValuesFromDicts(mreResult.pairs.values);
+        values.addValuesFromDicts(mreResult.pairs.histograms);
       } catch (err) {
         console.warn(
             this.currentMetricName_ +
