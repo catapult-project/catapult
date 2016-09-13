@@ -2,12 +2,16 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from py_trace_event import trace_event
+
 
 class SharedState(object):
   """A class that manages the test state across multiple stories.
   It's styled on unittest.TestCase for handling test setup & teardown logic.
 
   """
+
+  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, test, options, story_set):
     """ This method is styled on unittest.TestCase.setUpClass.

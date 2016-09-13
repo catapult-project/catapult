@@ -4,6 +4,8 @@
 
 import logging
 
+from py_trace_event import trace_event
+
 from telemetry.core import exceptions
 from telemetry.internal.actions import action_runner as action_runner_module
 
@@ -52,6 +54,8 @@ class LegacyPageTest(object):
          results.AddValue(scalar.ScalarValue(
              page, 'body_children', 'count', body_child_count))
   """
+
+  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self,
                needs_browser_restart_after_each_page=False,

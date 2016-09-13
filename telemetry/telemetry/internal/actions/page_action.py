@@ -4,7 +4,10 @@
 
 import re
 
+from py_trace_event import trace_event
+
 from telemetry import decorators
+
 
 GESTURE_SOURCE_DEFAULT = 'DEFAULT'
 GESTURE_SOURCE_MOUSE = 'MOUSE'
@@ -22,6 +25,8 @@ class PageActionFailed(Exception):
 
 class PageAction(object):
   """Represents an action that a user might try to perform to a page."""
+
+  __metaclass__ = trace_event.TracedMetaClass
 
   def WillRunAction(self, tab):
     """Override to do action-specific setup before

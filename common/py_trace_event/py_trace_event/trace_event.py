@@ -88,6 +88,8 @@ if trace_event_impl:
   def trace(name, **kwargs):
     return trace_event_impl.trace(name, **kwargs)
 
+  TracedMetaClass = trace_event_impl.TracedMetaClass
+
   def traced(fn):
     return trace_event_impl.traced(fn)
 

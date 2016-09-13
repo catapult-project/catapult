@@ -3,4 +3,5 @@
 # found in the LICENSE file.
 from log import *
 from decorators import *
+from meta_class import *
 import multiprocessing_shim

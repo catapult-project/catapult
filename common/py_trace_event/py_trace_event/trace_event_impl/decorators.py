@@ -7,18 +7,19 @@ import time
 import functools
 
 import log
+from py_trace_event import trace_time
 
 
 @contextlib.contextmanager
 def trace(name, **kwargs):
   category = "python"
-  start = time.time()
+  start = trace_time.Now()
   args_to_log = {key: repr(value) for key, value in kwargs.iteritems()}
   log.add_trace_event("B", start, category, name, args_to_log)
   try:
     yield
   finally:
-    end = time.time()
+    end = trace_time.Now()
     log.add_trace_event("E", end, category, name)
 
 def traced(*args):
@@ -68,12 +69,12 @@ def traced(*args):
           name: repr(get_arg_value(name, index, default))
           for name, index, default in args_to_log}
 
-      start = time.time()
+      start = trace_time.Now()
       log.add_trace_event("B", start, category, name, arg_values)
       try:
         return func(*args, **kwargs)
       finally:
-        end = time.time()
+        end = trace_time.Now()
         log.add_trace_event("E", end, category, name)
     return traced_function
 

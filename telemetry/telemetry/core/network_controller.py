@@ -2,12 +2,17 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from py_trace_event import trace_event
+
+
 class NetworkController(object):
   """Control network settings and servers to simulate the Web.
 
   Network changes include forwarding device ports to host platform ports.
   Web Page Replay is used to record and replay HTTP/HTTPS responses.
   """
+
+  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, network_controller_backend):
     self._network_controller_backend = network_controller_backend

@@ -24,6 +24,7 @@ from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
 from telemetry.util import matching
 
+
 # Right now, we only have one of each of our power perf bots. This means that
 # all eligible Telemetry benchmarks are run unsharded, which results in very
 # long (12h) cycle times. We'd like to reduce the number of tests that we run
@@ -36,6 +37,7 @@ GOOD_POWER_PERF_BOT_WHITELIST = [
   "Mac Power Dual-GPU Perf",
   "Mac Power Low-End Perf"
 ]
+
 
 DEFAULT_LOG_FORMAT = (
   '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
@@ -375,7 +377,7 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
 
 
 def main(environment, extra_commands=None, **log_config_kwargs):
-  # the log level is set in browser_options
+  # The log level is set in browser_options.
   log_config_kwargs.pop('level', None)
   log_config_kwargs.setdefault('format', DEFAULT_LOG_FORMAT)
   logging.basicConfig(**log_config_kwargs)

@@ -8,6 +8,8 @@ import sys
 import time
 import threading
 
+from py_trace_event import trace_time
+
 from py_utils import lock
 
 
@@ -87,7 +89,7 @@ def _trace_enable(log_file=None):
         tid = os.getpid()
       x = {"ph": "M", "category": "process_argv",
            "pid": os.getpid(), "tid": threading.current_thread().ident,
-           "ts": time.time(),
+           "ts": trace_time.Now(),
            "name": "process_argv", "args": {"argv": sys.argv}}
       _log_file.write("%s\n" % json.dumps(x))
     else:
@@ -164,10 +166,10 @@ def add_trace_event(ph, ts, category, name, args=None):
                       "args": args or {}});
 
 def trace_begin(name, args=None):
-  add_trace_event("B", time.time(), "python", name, args)
+  add_trace_event("B", trace_time.Now(), "python", name, args)
 
 def trace_end(name, args=None):
-  add_trace_event("E", time.time(), "python", name, args)
+  add_trace_event("E", trace_time.Now(), "python", name, args)
 
 def _trace_disable_atexit():
   trace_disable()

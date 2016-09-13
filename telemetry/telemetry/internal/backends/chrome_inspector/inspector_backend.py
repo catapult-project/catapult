@@ -8,6 +8,8 @@ import os
 import socket
 import sys
 
+from py_trace_event import trace_event
+
 from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.backends.chrome_inspector import devtools_http
@@ -43,6 +45,9 @@ class InspectorBackend(object):
   The owner of an instance of this class is responsible for calling
   Disconnect() before disposing of the instance.
   """
+
+  __metaclass__ = trace_event.TracedMetaClass
+
   def __init__(self, app, devtools_client, context, timeout=120):
     self._websocket = inspector_websocket.InspectorWebsocket()
     self._websocket.RegisterDomain(
