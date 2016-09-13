@@ -6,14 +6,13 @@
 
 import json
 import os
-import random
-import string
 import unittest
 
 from systrace import decorators
 from systrace import output_generator
 from systrace import trace_result
 from systrace import update_systrace_trace_viewer
+from systrace import util
 
 
 TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
@@ -52,7 +51,7 @@ class OutputGeneratorTest(unittest.TestCase):
       atrace_data = f.read().replace(" ", "").strip()
       trace_results = [trace_result.TraceResult('systemTraceEvents',
                        atrace_data)]
-      output_file_name = _GenerateRandomString(10)
+      output_file_name = util.generate_random_filename_for_test()
       final_path = output_generator.GenerateHTMLOutput(trace_results,
                                                        output_file_name)
       with open(output_file_name, 'r') as f:
@@ -82,7 +81,7 @@ class OutputGeneratorTest(unittest.TestCase):
       trace_results.append(trace_result.TraceResult(str(trace_name),
                                                     str(data)))
       trace_results_expected.append(str(data).replace(" ", "").strip())
-    output_file_name = _GenerateRandomString(10)
+    output_file_name = util.generate_random_filename_for_test()
     final_path = output_generator.GenerateHTMLOutput(trace_results,
                                                      output_file_name)
     with open(output_file_name, 'r') as f:
@@ -98,7 +97,3 @@ class OutputGeneratorTest(unittest.TestCase):
         self.assertTrue(trace_data in trace_results_expected)
     os.remove(final_path)
     os.remove(update_systrace_trace_viewer.SYSTRACE_TRACE_VIEWER_HTML_FILE)
-
-def _GenerateRandomString(strlen):
-  return ''.join(random.choice(string.ascii_uppercase +
-              string.digits) for _ in range(strlen))

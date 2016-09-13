@@ -23,6 +23,10 @@ def Disabled(func):
   return _SkipTestDecoratorHelper(func, ['win', 'linux', 'mac', 'android'])
 
 
+def LinuxMacTest(func):
+  return _SkipTestDecoratorHelper(func, ['win', 'android'])
+
+
 def _SkipTestDecoratorHelper(func, disabled_strings):
   if not hasattr(func, '_disabled_strings'):
     setattr(func, '_disabled_strings', set(disabled_strings))
