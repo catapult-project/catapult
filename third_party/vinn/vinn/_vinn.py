@@ -8,6 +8,7 @@ import logging
 import os
 import platform
 import shutil
+import stat
 import subprocess
 import sys
 import re
@@ -101,12 +102,21 @@ def _IsValidJsOrHTMLFile(parser, js_file_arg):
 
 
 def _GetD8BinaryPathForPlatform():
+  def _D8Path(*paths):
+    """Join paths and make it executable."""
+    assert isinstance(paths, tuple)
+    exe = os.path.join(_V8_DIR, *paths)
+    st = os.stat(exe)
+    if not st.st_mode & stat.S_IEXEC:
+      os.chmod(exe, st.st_mode | stat.S_IEXEC)
+    return exe
+
   if platform.system() == 'Linux' and platform.machine() == 'x86_64':
-    return os.path.join(_V8_DIR, 'linux', 'x86_64', 'd8')
+    return _D8Path('linux', 'x86_64', 'd8')
   elif platform.system() == 'Darwin' and platform.machine() == 'x86_64':
-    return os.path.join(_V8_DIR, 'mac', 'x86_64', 'd8')
+    return _D8Path('mac', 'x86_64', 'd8')
   elif platform.system() == 'Windows' and platform.machine() == 'AMD64':
-    return os.path.join(_V8_DIR, 'win', 'AMD64', 'd8.exe')
+    return _D8Path('win', 'AMD64', 'd8.exe')
   else:
     raise NotImplementedError(
         'd8 binary for this platform (%s) and architecture (%s) is not yet'
