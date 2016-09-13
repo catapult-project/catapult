@@ -6,23 +6,23 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/column_chart.html">
 <link rel="import" href="/tracing/ui/base/d3.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var BarChart = tr.ui.b.BarChart;
+  var ColumnChart = tr.ui.b.ColumnChart;
 
   // @constructor
-  var NameBarChart = tr.ui.b.define('name-bar-chart', BarChart);
+  var NameBarChart = tr.ui.b.define('name-bar-chart', ColumnChart);
 
   NameBarChart.prototype = {
-    __proto__: BarChart.prototype,
+    __proto__: ColumnChart.prototype,
 
     decorate: function() {
-      BarChart.prototype.decorate.call(this);
+      ColumnChart.prototype.decorate.call(this);
       Polymer.dom(this).classList.remove('bar-chart');
       Polymer.dom(this).classList.add('name-bar-chart');
     },

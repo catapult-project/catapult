@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
-<link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/column_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 
 <dom-module id="tr-v-ui-composition-span">
@@ -23,7 +23,7 @@ Polymer({
 
   created: function() {
     this.diagnostic_ = undefined;
-    this.chart_ = new tr.ui.b.BarChart();
+    this.chart_ = new tr.ui.b.ColumnChart();
     this.chart_.width = 190;
     this.chart_.height = 200;
     this.chart_.isStacked = true;

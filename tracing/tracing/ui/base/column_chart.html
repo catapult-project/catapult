@@ -28,17 +28,17 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   // @constructor
-  var BarChart = tr.ui.b.define('bar-chart', ChartBase2DBrushX);
+  var ColumnChart = tr.ui.b.define('column-chart', ChartBase2DBrushX);
 
-  BarChart.prototype = {
+  ColumnChart.prototype = {
     __proto__: ChartBase2DBrushX.prototype,
 
     decorate: function() {
       ChartBase2DBrushX.prototype.decorate.call(this);
-      Polymer.dom(this).classList.add('bar-chart');
+      Polymer.dom(this).classList.add('column-chart');
 
-      // BarChart allows bars to have arbitrary, non-uniform widths. Bars need
-      // not all be the same width. The width of each bar is automatically
+      // ColumnChart allows bars to have arbitrary, non-uniform widths. Bars
+      // need not all be the same width. The width of each bar is automatically
       // computed from the bar's x-coordinate and that of the next bar, which
       // can not define the width of the last bar. This is the width (in the
       // xScale's domain (as opposed to the xScale's range (which is measured in
@@ -245,7 +245,7 @@ tr.exportTo('tr.ui.b', function() {
   };
 
   return {
-    BarChart: BarChart
+    ColumnChart: ColumnChart
   };
 });
 </script>
