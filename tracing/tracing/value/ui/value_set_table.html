@@ -39,7 +39,7 @@ found in the LICENSE file.
 
     #search {
       max-width: 20em;
-      margin-left: 20px;
+      margin-right: 20px;
     }
 
     controls {
@@ -48,17 +48,16 @@ found in the LICENSE file.
     }
 
     #reference_column_container {
-      margin-left: 20px;
+      margin-right: 20px;
     }
     </style>
 
     <container>
       <controls>
+        <input id="search" placeholder="Find Value name" on-keyup="onSearch_">
+        <span id="reference_column_container"></span>
         <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
         <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
-        <input id="search" placeholder="Find Value name" on-keyup="onSearch_">
-
-        <span id="reference_column_container"></span>
       </controls>
 
       <tr-ui-b-grouping-table-groupby-picker id="picker">
