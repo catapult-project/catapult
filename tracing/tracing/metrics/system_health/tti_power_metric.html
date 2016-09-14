@@ -38,9 +38,9 @@ tr.exportTo('tr.metrics.sh', function() {
     var intervals = [];
     for (var bin of tr.b.getOnlyElement(ttiValues).numeric.allBins)
       for (var diagnostics of bin.diagnosticMaps) {
-        var breakdown = diagnostics.get('breakdown');
+        var info = diagnostics.get('Navigation infos');
         intervals.push(tr.b.Range.fromExplicitRange(
-            breakdown.value.start, breakdown.value.interactive));
+            info.value.start, info.value.interactive));
       }
     return intervals.sort((x, y) => x.min - y.min);
   }

@@ -230,9 +230,7 @@ tr.b.unittest.testSuite(function() {
     var binsWithSampleDiagnosticMaps = numeric.centralBins.filter(
         (bin) => bin.diagnosticMaps.length > 0);
     var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0][
-                                                        'breakdown'];
-    assert.equal(diagnostic.value.start, 200);
-    assert.equal(diagnostic.value.interactive, 15400);
+                                                        'Navigation infos'];
     assert.equal(diagnostic.value.pid, 1984);
   });
 

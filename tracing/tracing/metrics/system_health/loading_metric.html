@@ -23,6 +23,7 @@ tr.exportTo('tr.metrics.sh', function() {
   var INTERACTIVE_WINDOW_SIZE = 5 * 1000;
   var timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
+  var RelatedEventSet = tr.v.d.RelatedEventSet;
 
   // TODO(ksakamoto): This should be a method of tr.model.Event or one of its
   // subclasses.
@@ -45,6 +46,20 @@ tr.exportTo('tr.metrics.sh', function() {
       return undefined;
 
     return chromeHelper.rendererHelpers[largestPid];
+  }
+
+  function createBreakdownDiagnostic(rendererHelper, start, end) {
+    var breakdownDict = rendererHelper.generateTimeBreakdownTree(
+        start, end);
+
+    var breakdownDiagnostic = new tr.v.d.Breakdown();
+    breakdownDiagnostic.colorScheme =
+        tr.v.d.COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER;
+
+    for (var label in breakdownDict) {
+      breakdownDiagnostic.set(label, breakdownDict[label].total);
+    }
+    return breakdownDiagnostic;
   }
 
   /**
@@ -248,11 +263,13 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function addTimeToInteractiveSampleToHistogram(histogram, rendererHelper,
-    navigationStartTime, firstMeaningfulPaint, url) {
+    navigationStart, firstMeaningfulPaint, url) {
     if (shouldIgnoreURL(url))
       return;
+    var navigationStartTime = navigationStart.start;
     var firstInteractive = Infinity;
     var firstInteractiveCandidate = firstMeaningfulPaint;
+    var lastLongTaskEvent = undefined;
     // Find the first interactive point X after firstMeaningfulPaint so that
     // range [X, X + INTERACTIVE_WINDOW_SIZE] contains no
     // 'TaskQueueManager::ProcessTaskFromWorkQueues' slice which takes more than
@@ -273,18 +290,24 @@ tr.exportTo('tr.metrics.sh', function() {
       }
       if (ev.title === 'TaskQueueManager::ProcessTaskFromWorkQueue' &&
           ev.duration > RESPONSIVENESS_THRESHOLD) {
-        firstInteractiveCandidate = ev.end - 50;
+          firstInteractiveCandidate = ev.end - 50;
+          lastLongTaskEvent = ev;
       }
     }
-    var diagnosticDict = rendererHelper.generateTimeBreakdownTree(
-        navigationStartTime, firstInteractive);
-    diagnosticDict.url = url;
-    diagnosticDict.start = navigationStartTime;
-    diagnosticDict.interactive = firstInteractive;
-    diagnosticDict.pid = rendererHelper.pid;
+    var breakdownDiagnostic = createBreakdownDiagnostic(
+        rendererHelper, navigationStartTime, firstInteractive);
+
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
-    histogram.addSample(timeToFirstInteractive,
-        {breakdown: new tr.v.d.Generic(diagnosticDict)});
+    histogram.addSample(
+        timeToFirstInteractive,
+        {
+          "Start": new RelatedEventSet(navigationStart),
+          "Last long task": new RelatedEventSet(lastLongTaskEvent),
+          "Navigation infos": new tr.v.d.Generic(
+              {url: url, pid: rendererHelper.pid,
+               start: navigationStartTime, interactive: firstInteractive}),
+          "Breakdown of [navStart, Interactive]": breakdownDiagnostic,
+        });
   }
 
   /**
@@ -325,13 +348,24 @@ tr.exportTo('tr.metrics.sh', function() {
       var url = snapshot.args.documentLoaderURL;
       if (shouldIgnoreURL(url))
         return;
+
       var timeToFirstMeaningfulPaint =
           fmpMarkerEvent.start - navigationStart.start;
-      var diagnosticDict = rendererHelper.generateTimeBreakdownTree(
-          navigationStart.start, fmpMarkerEvent.start);
-      diagnosticDict.url = url;
+      var extraDiagnostic = {
+          url: url,
+          pid: rendererHelper.pid
+      };
+      var breakdownDiagnostic = createBreakdownDiagnostic(
+          rendererHelper, navigationStart.start, fmpMarkerEvent.start);
       firstMeaningfulPaintHistogram.addSample(timeToFirstMeaningfulPaint,
-          {breakdown: new tr.v.d.Generic(diagnosticDict)});
+          {
+            "Breakdown of [navStart, FMP]": breakdownDiagnostic,
+            "Start": new RelatedEventSet(navigationStart),
+            "End": new RelatedEventSet(fmpMarkerEvent),
+            "Navigation infos": new tr.v.d.Generic(
+                {url: url, pid: rendererHelper.pid,
+                 start: navigationStart.start, fmp: fmpMarkerEvent.start}),
+          });
       return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
     }
 
@@ -360,7 +394,7 @@ tr.exportTo('tr.metrics.sh', function() {
             if (data !== undefined)
               addTimeToInteractiveSampleToHistogram(
                   firstInteractiveHistogram, rendererHelper,
-                  navigationStart.start,
+                  navigationStart,
                   data.firstMeaningfulPaint, data.url);
           }
           navigationStart = navigationStartForThisCandidate;
@@ -375,7 +409,7 @@ tr.exportTo('tr.metrics.sh', function() {
 
         if (data !== undefined)
           addTimeToInteractiveSampleToHistogram(
-              firstInteractiveHistogram, rendererHelper, navigationStart.start,
+              firstInteractiveHistogram, rendererHelper, navigationStart,
               data.firstMeaningfulPaint, data.url);
       }
     }
