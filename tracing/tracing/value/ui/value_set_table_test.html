@@ -24,6 +24,10 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
+  // TODO(benjhayden): Test requestSelectionChange.
+  // TODO(benjhayden): Test search keyup.
+  // TODO(benjhayden): Test referenceDisplayLabel.
+
   test('shortName', function() {
     // One value has |name|='long name' and |shortName|='short name',
     // another value has |name|='short name' to demonstrate the fundamental
@@ -127,9 +131,6 @@ tr.b.unittest.testSuite(function() {
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
     assert.strictEqual(baseTable.tableRows.length, 1);
   });
-
-  // TODO(benjhayden): Test requestSelectionChange.
-  // TODO(benjhayden): Test search keyup.
 
   test('merge_unmergeable', function() {
     var now = new Date().getTime();

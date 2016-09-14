@@ -392,7 +392,7 @@ tr.exportTo('tr.ui', function() {
         return;
 
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
-        1 + this.displayLabels.indexOf(reference) : undefined;
+        1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
 
       // Force the table to rebuild the cell values without forgetting which
       // rows were expanded.
@@ -485,7 +485,7 @@ tr.exportTo('tr.ui', function() {
       this.maybeDisableShowAll_();
 
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
-        1 + this.displayLabels.indexOf(reference) : undefined;
+        1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
 
       tr.b.requestAnimationFrame(function() {
         this.style.width = this.$.table.getBoundingClientRect().width;
