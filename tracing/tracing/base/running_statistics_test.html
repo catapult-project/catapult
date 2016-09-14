@@ -29,6 +29,10 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(Statistics.sum(data), run(data).sum, 1e-6);
     data = [2, 4, 4, 2];
     assert.closeTo(Statistics.sum(data), run(data).sum, 1e-6);
+    data = [Infinity, Infinity, Infinity, 4, 4, Infinity, 1];
+    assert.equal(Statistics.sum(data), run(data).sum, Infinity);
+    data = [-Infinity, -Infinity, 2, -Infinity, 5, -Infinity];
+    assert.equal(Statistics.sum(data), run(data).sum, -Infinity);
   });
 
   test('min', function() {
@@ -65,6 +69,10 @@ tr.b.unittest.testSuite(function() {
     assert.closeTo(Statistics.mean(data), run(data).mean, 1e-6);
     data = [2, 4, 4, 2];
     assert.closeTo(Statistics.mean(data), run(data).mean, 1e-6);
+    data = [Infinity, Infinity, Infinity, 4, 4, Infinity, 1];
+    assert.equal(Statistics.mean(data), run(data).mean, Infinity);
+    data = [-Infinity, -Infinity, 2, -Infinity, 5, -Infinity];
+    assert.equal(Statistics.mean(data), run(data).mean, -Infinity);
   });
 
   test('geometricMean', function() {

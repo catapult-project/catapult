@@ -95,7 +95,14 @@ tr.exportTo('tr.b', function() {
       } else {
         var oldMean = this.mean_;
         var oldVariance = this.variance_;
-        this.mean_ = oldMean + (x - oldMean) / this.count_;
+        // Using the 2nd formula for updating the mean yields better precision
+        // but it doesn't work for the case oldMean is Infinity. Hence we handle
+        // that case separately.
+        if (oldMean === Infinity || oldMean === -Infinity) {
+          this.mean_ = this.sum_ / this.count_;
+        } else {
+          this.mean_ = oldMean + (x - oldMean) / this.count_;
+        }
         this.variance_ = oldVariance + (x - oldMean) * (x - this.mean_);
       }
     }
