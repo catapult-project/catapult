@@ -28,8 +28,8 @@ class ConnectionError(Error):
 
 class DoNothingForwarderFactory(forwarders.ForwarderFactory):
 
-  def Create(self, port_pairs):
-    return DoNothingForwarder(port_pairs)
+  def Create(self, port_pair):
+    return DoNothingForwarder(port_pair)
 
 
 class DoNothingForwarder(forwarders.Forwarder):
@@ -41,37 +41,23 @@ class DoNothingForwarder(forwarders.Forwarder):
   Also, check that all TCP ports support connections.  (Raises ConnectionError.)
   """
 
-  def __init__(self, port_pairs):
-    super(DoNothingForwarder, self).__init__(
-        forwarders.PortPairs(*[
-            forwarders.PortPair(p.local_port, p.remote_port or p.local_port)
-            if p else None for p in port_pairs]))
-    self._CheckPortPairs()
+  def __init__(self, port_pair):
+    super(DoNothingForwarder, self).__init__(port_pair)
+    self._CheckPortPair()
 
-  def _CheckPortPairs(self):
-    # namedtuple._asdict() is a public method. The method starts with an
-    # underscore to avoid conflicts with attribute names.
-    # pylint: disable=protected-access
-    for protocol, port_pair in self._port_pairs._asdict().items():
-      if not port_pair:
-        continue
-      local_port, remote_port = port_pair
-      if local_port != remote_port:
-        raise PortsMismatchError('Local port forwarding is not supported')
-      if protocol == 'dns':
-        logging.debug('Connection test SKIPPED for DNS: %s:%d',
-                      self.host_ip, local_port)
-        continue
-      try:
-        self._WaitForConnectionEstablished(
-            (self.host_ip, local_port), timeout=10)
-        logging.debug(
-            'Connection test succeeded for %s: %s:%d',
-            protocol.upper(), self.host_ip, local_port)
-      except exceptions.TimeoutException:
-        raise ConnectionError(
-            'Unable to connect to %s address: %s:%d',
-            protocol.upper(), self.host_ip, local_port)
+  def _CheckPortPair(self):
+    if self._port_pair.local_port != self._port_pair.remote_port:
+      raise PortsMismatchError('Local port forwarding is not supported')
+    try:
+      self._WaitForConnectionEstablished(
+          (self.host_ip, self._port_pair.local_port), timeout=10)
+      logging.debug(
+          'Connection test succeeded for %s:%d',
+          self.host_ip, self._port_pair.local_port)
+    except exceptions.TimeoutException:
+      raise ConnectionError(
+          'Unable to connect to address: %s:%d',
+          self.host_ip, self._port_pair.local_port)
 
   def _WaitForConnectionEstablished(self, address, timeout):
     def CanConnect():

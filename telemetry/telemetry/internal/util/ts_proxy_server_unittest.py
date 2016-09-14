@@ -24,7 +24,7 @@ class TsProxyServerTest(unittest.TestCase):
   def testSmokeStartingTsProxyServer(self):
     with ts_proxy_server.TsProxyServer() as server:
       self.assertIsNotNone(server.port)
-    with ts_proxy_server.TsProxyServer(37124, 37125) as server:
+    with ts_proxy_server.TsProxyServer(None, 37124, 37125) as server:
       self.assertIsNotNone(server.port)
 
   def testSmokeUpdatingOutboundPorts(self):
