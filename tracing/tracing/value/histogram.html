@@ -66,8 +66,6 @@ tr.exportTo('tr.v', function() {
     }
 
     fromDict(d) {
-      this.range.min = d.min;
-      this.range.max = d.max;
       this.count = d.count;
       for (var map of d.diagnosticMaps)
         this.diagnosticMaps.push(tr.v.d.DiagnosticMap.fromDict(map));
@@ -75,8 +73,6 @@ tr.exportTo('tr.v', function() {
 
     asDict() {
       return {
-        min: this.range.min,
-        max: this.range.max,
         count: this.count,
         diagnosticMaps: this.diagnosticMaps.map(d => d.asDict())
       };
