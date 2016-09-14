@@ -667,6 +667,10 @@ tr.exportTo('tr.ui.b', function() {
       trElement.rowInfo = rowInfo;
       this.customizeTableRow_(rowInfo.userRow, trElement);
 
+      var isBodyRow = tableSection === this.$.body;
+      var isExpandableRow = rowInfo.userRow[this.subRowsPropertyName_] &&
+          rowInfo.userRow[this.subRowsPropertyName_].length;
+
       for (var i = 0; i < this.tableColumns_.length;) {
         var td = this.appendNewElement_(trElement, 'td');
         td.columnIndex = i;
@@ -712,64 +716,59 @@ tr.exportTo('tr.ui.b', function() {
               tr.ui.b.asHTMLOrTextNode(value, this.ownerDocument));
         }
 
-        i += colSpan;
-      }
-
-      var isSelectable = tableSection === this.$.body;
-      var isExpandable = rowInfo.userRow[this.subRowsPropertyName_] &&
-          rowInfo.userRow[this.subRowsPropertyName_].length;
-
-      if (isSelectable || isExpandable) {
-        trElement.addEventListener('click', function(e) {
-          e.stopPropagation();
-          if (e.target.tagName == 'EXPAND-BUTTON') {
-            this.setExpandedForUserRow_(
-                tableSection, rowInfoMap,
-                rowInfo.userRow, !rowInfo.isExpanded);
-            return;
-          }
-
-          function getTD(cur) {
-            if (cur === trElement)
-              throw new Error('woah');
-            if (cur.parentElement === trElement)
-              return cur;
-            return getTD(cur.parentElement);
-          }
-
-          // If the row/cell can be selected and it's not selected yet,
-          // select it.
-          if (isSelectable && this.selectionMode_ !== SelectionMode.NONE) {
-            var shouldSelect = false;
-            var columnIndex = getTD(e.target).columnIndex;
-            switch (this.selectionMode_) {
-              case SelectionMode.ROW:
-                shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
-                break;
-
-              case SelectionMode.CELL:
-                if (this.doesColumnIndexSupportSelection(columnIndex)) {
-                  shouldSelect = this.selectedTableRowInfo_ !== rowInfo ||
-                      this.selectedColumnIndex_ !== columnIndex;
-                }
-                break;
-
-              default:
-                throw new Error('Invalid selection mode ' +
-                    this.selectionMode_);
-            }
-            if (shouldSelect) {
-              this.didTableRowInfoGetClicked_(rowInfo, columnIndex);
+        // Add a click handler for selection and row expansion (if applicable).
+        if (isBodyRow || isExpandableRow) {
+          td.addEventListener('click', function(i, e) {
+            e.stopPropagation();
+            if (e.target.tagName === 'EXPAND-BUTTON') {
+              this.setExpandedForUserRow_(
+                  tableSection, rowInfoMap,
+                  rowInfo.userRow, !rowInfo.isExpanded);
               return;
             }
-          }
 
-          // Otherwise, if the row is expandable, expand/collapse it.
-          if (isExpandable) {
-            this.setExpandedForUserRow_(tableSection, rowInfoMap,
-                rowInfo.userRow, !rowInfo.isExpanded);
-          }
-        }.bind(this));
+            // If the row/cell can be selected and it's not selected yet,
+            // select it.
+            if (isBodyRow && this.selectionMode_ !== SelectionMode.NONE) {
+              var shouldSelect = false;
+              switch (this.selectionMode_) {
+                case SelectionMode.ROW:
+                  shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
+                  break;
+                case SelectionMode.CELL:
+                  if (this.doesColumnIndexSupportSelection(i)) {
+                    shouldSelect = this.selectedTableRowInfo_ !== rowInfo ||
+                        this.selectedColumnIndex_ !== i;
+                  }
+                  break;
+                default:
+                  throw new Error('Invalid selection mode ' +
+                      this.selectionMode_);
+              }
+              if (shouldSelect) {
+                this.didTableRowInfoGetClicked_(rowInfo, i);
+                return;
+              }
+            }
+
+            // Otherwise, if the row is expandable, expand/collapse it.
+            if (isExpandableRow) {
+              this.setExpandedForUserRow_(tableSection, rowInfoMap,
+                  rowInfo.userRow, !rowInfo.isExpanded);
+            }
+          }.bind(this, i));
+        }
+
+        // Add a double-click handler for stepping into a row/cell (if
+        // applicable).
+        if (isBodyRow) {
+          td.addEventListener('dblclick', function(i, e) {
+            e.stopPropagation();
+            this.dispatchStepIntoEvent_(rowInfo, i);
+          }.bind(this, i));
+        }
+
+        i += colSpan;
       }
 
       return rowInfo.htmlNode;
@@ -1098,6 +1097,14 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
+    dispatchStepIntoEvent_: function(rowInfo, columnIndex) {
+      var e = new tr.b.Event('step-into');
+      e.tableRow = rowInfo.userRow;
+      e.tableColumn = this.tableColumns_[columnIndex];
+      e.columnIndex = columnIndex;
+      this.dispatchEvent(e);
+    },
+
     /**
      * If the selectionMode is CELL and a cell is selected,
      * return an object containing the row, column, and value of the selected
@@ -1331,6 +1338,7 @@ tr.exportTo('tr.ui.b', function() {
 
       var code_to_command_names = {
         13: 'ENTER',
+        32: 'SPACE',
         37: 'ARROW_LEFT',
         38: 'ARROW_UP',
         39: 'ARROW_RIGHT',
@@ -1435,13 +1443,18 @@ tr.exportTo('tr.ui.b', function() {
         }
       }
 
-      if (cmdName === 'ENTER') {
+      if (cmdName === 'SPACE') {
         if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
           return;
         if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
           return;
         this.setExpandedForTableRow(rowInfo.userRow, !rowInfo.isExpanded);
         this.focusSelected_();
+        return;
+      }
+
+      if (cmdName === 'ENTER') {
+        this.dispatchStepIntoEvent_(rowInfo, this.selectedColumnIndex_);
         return;
       }
 
