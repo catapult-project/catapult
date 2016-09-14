@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
@@ -279,7 +280,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(span.value, 3.14);
     assert.strictEqual(span.unit, Unit.byName.powerInWatts);
     assert.isUndefined(span.context);
-    assert.isUndefined(span.percentage);
+    assert.isUndefined(span.customContextRange);
     assert.isUndefined(span.warning);
     assert.isFalse(span.rightAlign);
     this.addHTMLOutput(span);
@@ -294,21 +295,24 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(span.value, 2.72);
     assert.strictEqual(span.unit, Unit.byName.energyInJoules);
     assert.isUndefined(span.context);
-    assert.isUndefined(span.percentage);
+    assert.isUndefined(span.customContextRange);
     assert.isUndefined(span.warning);
     assert.isTrue(span.rightAlign);
     this.addHTMLOutput(span);
 
     // Unit and sparkline set via config.
-    var span = tr.v.ui.createScalarSpan(1.62,
-        { unit: Unit.byName.timeStampInMs, total: 3.24 });
+    var span = tr.v.ui.createScalarSpan(1.62, {
+        unit: Unit.byName.timeStampInMs,
+        customContextRange: tr.b.Range.fromExplicitRange(0, 3.24)
+    });
     assert.strictEqual(Polymer.dom(span.$.content).textContent, '1.620 ms');
     assert.strictEqual(span.ownerDocument, document);
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(span.value, 1.62);
     assert.strictEqual(span.unit, Unit.byName.timeStampInMs);
     assert.isUndefined(span.context);
-    assert.strictEqual(span.percentage, 0.5);
+    assert.isTrue(tr.b.Range.fromExplicitRange(0, 3.24).equals(
+        span.customContextRange));
     assert.isUndefined(span.warning);
     assert.isFalse(span.rightAlign);
     this.addHTMLOutput(span);
@@ -328,7 +332,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(span.unit, Unit.byName.sizeInBytesDelta_smallerIsBetter);
     assert.deepEqual(span.context,
         { unitPrefix: tr.b.UnitScale.Binary.KIBI, minimumFractionDigits: 2 });
-    assert.isUndefined(span.percentage);
+    assert.isUndefined(span.customContextRange);
     assert.isUndefined(span.warning);
     assert.isFalse(span.rightAlign);
     this.addHTMLOutput(span);
@@ -342,10 +346,10 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
   });
 
-  test('instantiate_withPercentage', function() {
+  test('instantiate_withCustomContextRange', function() {
     var span = document.createElement('tr-v-ui-scalar-span');
     span.value = new ScalarNumeric(Unit.byName.unitlessNumber, 0.99);
-    span.percentage = 0.66;
+    span.customContextRange = tr.b.Range.fromExplicitRange(0, 3);
     this.addHTMLOutput(span);
   });
 
@@ -397,31 +401,110 @@ tr.b.unittest.testSuite(function() {
     }
   });
 
-  test('displaySparkline', function() {
-    var div = document.createElement('div');
-    div.style.width = '100px';
-    this.addHTMLOutput(div);
+  function checkSparkline(span, expectation) {
+    tr.b.forceAllPendingTasksToRunForTest();
+    var sparklineEl = span.$.sparkline;
+    var computedStyle = getComputedStyle(sparklineEl);
 
-    function addAndCheckScalarSpan(percentage, expectedDisplay, expectedWidth) {
-      var span = tr.v.ui.createScalarSpan(new ScalarNumeric(
-          Unit.byName.timeDurationInMs, 10 * div.children.length));
-      if (percentage !== null)
-        span.percentage = percentage;
-
-      Polymer.dom(div).appendChild(span);
-
-      var computedStyle = getComputedStyle(span.$.sparkline);
-      assert.equal(computedStyle.display, expectedDisplay);
-      assert.equal(parseInt(computedStyle.width), expectedWidth);
+    var expectedDisplay = expectation.display || 'block';
+    assert.strictEqual(computedStyle.display, expectedDisplay);
+    if (expectedDisplay === 'none') {
+      // Test expectation sanity check.
+      assert.notProperty(expectation, 'left');
+      assert.notProperty(expectation, 'width');
+      assert.notProperty(expectation, 'classList');
+      return;
     }
 
-    addAndCheckScalarSpan(null /* no percentage set */, 'none', 0);
-    addAndCheckScalarSpan(undefined, 'none', 0);
-    addAndCheckScalarSpan(0, 'block', 1);
-    addAndCheckScalarSpan(0.05, 'block', 5);
-    addAndCheckScalarSpan(0.5, 'block', 50);
-    addAndCheckScalarSpan(0.95, 'block', 95);
-    addAndCheckScalarSpan(1, 'block', 100);
+    assert.closeTo(parseFloat(computedStyle.left), expectation.left, 0.1);
+    assert.closeTo(parseFloat(computedStyle.width), expectation.width, 0.1);
+    assert.sameMembers(tr.b.asArray(sparklineEl.classList),
+        expectation.classList || []);
+  }
+
+  test('customContextRange', function() {
+    var div = document.createElement('div');
+    div.style.width = '101px';  // One extra pixel for sparkline border.
+    this.addHTMLOutput(div);
+
+    // No custom context range.
+    var span1 = tr.v.ui.createScalarSpan(0, {
+      unit: Unit.byName.timeStampInMs
+    });
+    Polymer.dom(div).appendChild(span1);
+    checkSparkline(span1, {display: 'none'});
+    var span2 = tr.v.ui.createScalarSpan(0, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: undefined
+    });
+    Polymer.dom(div).appendChild(span2);
+    checkSparkline(span2, {display: 'none'});
+    var span3 = tr.v.ui.createScalarSpan(0, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: new tr.b.Range()  // Empty range.
+    });
+    Polymer.dom(div).appendChild(span3);
+    checkSparkline(span3, {display: 'none'});
+
+    var range = tr.b.Range.fromExplicitRange(-15, 15);
+
+    // Values inside custom context range.
+    var span4 = tr.v.ui.createScalarSpan(-15, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span4);
+    checkSparkline(span4, {left: 0, width: 51});
+    var span5 = tr.v.ui.createScalarSpan(-14, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span5);
+    checkSparkline(span5, {left: 3.33, width: 47.67});
+    var span6 = tr.v.ui.createScalarSpan(-10, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span6);
+    checkSparkline(span6, {left: 16.67, width: 34.33});
+    var span7 = tr.v.ui.createScalarSpan(0, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span7);
+    checkSparkline(span7, {left: 50, width: 1});
+    var span8 = tr.v.ui.createScalarSpan(10, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span8);
+    checkSparkline(span8, {left: 50, width: 34.33, classList: ['positive']});
+    var span9 = tr.v.ui.createScalarSpan(14, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span9);
+    checkSparkline(span9, {left: 50, width: 47.67, classList: ['positive']});
+    var span10 = tr.v.ui.createScalarSpan(15, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span10);
+    checkSparkline(span10, {left: 50, width: 51, classList: ['positive']});
+
+    // Values outside custom context range.
+    var span11 = tr.v.ui.createScalarSpan(-20, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span11);
+    checkSparkline(span11, {left: 0, width: 51});
+    var span12 = tr.v.ui.createScalarSpan(20, {
+      unit: Unit.byName.timeStampInMs,
+      customContextRange: range
+    });
+    Polymer.dom(div).appendChild(span12);
+    checkSparkline(span12, {left: 50, width: 51, classList: ['positive']});
   });
 
   test('emptyNumeric', function() {
@@ -432,121 +515,419 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.v.ui.createScalarSpan(value), '');
   });
 
-  test('contextController', function() {
+  test('contextControllerChanges', function() {
     var div = document.createElement('div');
-    div.style.width = '100px';
+    div.style.width = '101px';  // One extra pixel for sparkline border.
     this.addHTMLOutput(div);
 
     div.appendChild(
         document.createElement('tr-v-ui-scalar-context-controller'));
 
-    function createAndAddSpan(value, opt_contextGroup) {
-      var config = opt_contextGroup ?
-          { contextGroup: opt_contextGroup } : undefined;
-      var span = tr.v.ui.createScalarSpan(new ScalarNumeric(
-          Unit.byName.timeDurationInMs, value), config);
-      div.appendChild(span);
-      return span;
-    }
+    var s1 = tr.v.ui.createScalarSpan(10, {
+      unit: Unit.byName.powerInWatts
+    });
+    Polymer.dom(div).appendChild(s1);
+    checkSparkline(s1, {display: 'none'});
 
-    function checkSpan(span, expectedWidth) {
-      tr.b.forceAllPendingTasksToRunForTest();
-      var computedStyle = getComputedStyle(span.$.sparkline);
-      if (expectedWidth === undefined) {
-        assert.strictEqual(computedStyle.display, 'none');
-      } else {
-        assert.strictEqual(computedStyle.display, 'block');
-        assert.strictEqual(parseInt(computedStyle.width), expectedWidth);
-      }
-    }
+    var s2 = tr.v.ui.createScalarSpan(20, {
+      unit: Unit.byName.powerInWatts,
+      contextGroup: 'A'
+    });
+    Polymer.dom(div).appendChild(s2);
+    checkSparkline(s1, {display: 'none'});
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
 
-    var s1 = createAndAddSpan(10);
-    checkSpan(s1, undefined);
+    var s3 = tr.v.ui.createScalarSpan(30, {
+      unit: Unit.byName.powerInWatts,
+      contextGroup: 'A'
+    });
+    Polymer.dom(div).appendChild(s3);
+    checkSparkline(s1, {display: 'none'});
+    checkSparkline(s2, {left: 0, width: 67.67, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
 
-    var s2 = createAndAddSpan(20, 'A');
-    checkSpan(s1, undefined);
-    checkSpan(s2, 100);
-
-    var s3 = createAndAddSpan(30, 'A');
-    checkSpan(s1, undefined);
-    checkSpan(s2, 66);
-    checkSpan(s3, 100);
-
-    var s4 = createAndAddSpan(40, 'B');
-    checkSpan(s1, undefined);
-    checkSpan(s2, 66);
-    checkSpan(s3, 100);
-    checkSpan(s4, 100);
+    var s4 = tr.v.ui.createScalarSpan(40, {
+      unit: Unit.byName.powerInWatts,
+      contextGroup: 'B'
+    });
+    Polymer.dom(div).appendChild(s4);
+    checkSparkline(s1, {display: 'none'});
+    checkSparkline(s2, {left: 0, width: 67.67, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {left: 0, width: 101, classList: ['positive']});
 
     s3.contextGroup = 'B';
-    checkSpan(s1, undefined);
-    checkSpan(s2, 100);
-    checkSpan(s3, 75);
-    checkSpan(s4, 100);
+    checkSparkline(s1, {display: 'none'});
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 76, classList: ['positive']});
+    checkSparkline(s4, {left: 0, width: 101, classList: ['positive']});
 
     s1.setAttribute('context-group', 'A');
-    checkSpan(s1, 50);
-    checkSpan(s2, 100);
-    checkSpan(s3, 75);
-    checkSpan(s4, 100);
+    checkSparkline(s1, {left: 0, width: 51, classList: ['positive']});
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 76, classList: ['positive']});
+    checkSparkline(s4, {left: 0, width: 101, classList: ['positive']});
 
     s1.value = 50;
-    checkSpan(s1, 100);
-    checkSpan(s2, 40);
-    checkSpan(s3, 75);
-    checkSpan(s4, 100);
+    checkSparkline(s1, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s2, {left: 0, width: 41, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 76, classList: ['positive']});
+    checkSparkline(s4, {left: 0, width: 101, classList: ['positive']});
 
-    s1.percentage = 0.3;
-    checkSpan(s1, 30);
-    checkSpan(s2, 40);
-    checkSpan(s3, 75);
-    checkSpan(s4, 100);
+    s1.customContextRange = tr.b.Range.fromExplicitRange(0, 150);
+    checkSparkline(s1, {left: 0, width: 34.33, classList: ['positive']});
+    checkSparkline(s2, {left: 0, width: 41, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 76, classList: ['positive']});
+    checkSparkline(s4, {left: 0, width: 101, classList: ['positive']});
 
     s4.contextGroup = null;
-    checkSpan(s1, 30);
-    checkSpan(s2, 40);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
+    checkSparkline(s1, {left: 0, width: 34.33, classList: ['positive']});
+    checkSparkline(s2, {left: 0, width: 41, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
 
-    s1.percentage = undefined;
-    checkSpan(s1, 100);
-    checkSpan(s2, 40);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
+    s1.customContextRange = undefined;
+    checkSparkline(s1, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s2, {left: 0, width: 41, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
 
     s4.value = 0;
-    checkSpan(s1, 100);
-    checkSpan(s2, 40);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
+    checkSparkline(s1, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s2, {left: 0, width: 41, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
 
     div.removeChild(s1);
-    checkSpan(s2, 100);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
 
     s1.contextGroup = 'B';
-    checkSpan(s2, 100);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
 
     div.appendChild(s1);
-    checkSpan(s2, 100);
-    checkSpan(s3, 60);
-    checkSpan(s4, undefined);
-    checkSpan(s1, 100);
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 61, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
+    checkSparkline(s1, {left: 0, width: 101, classList: ['positive']});
 
     s1.removeAttribute('context-group');
-    checkSpan(s2, 100);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
-    checkSpan(s1, undefined);
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
+    checkSparkline(s1, {display: 'none'});
 
-    s1.percentage = 0.5;
-    checkSpan(s2, 100);
-    checkSpan(s3, 100);
-    checkSpan(s4, undefined);
-    checkSpan(s1, 50);
+    s1.customContextRange = tr.b.Range.fromExplicitRange(0, 100);
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s4, {display: 'none'});
+    checkSparkline(s1, {left: 0, width: 51, classList: ['positive']});
+
+    s3.value = 0;
+    checkSparkline(s2, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(s3, {display: 'none'});
+    checkSparkline(s4, {display: 'none'});
+    checkSparkline(s1, {left: 0, width: 51, classList: ['positive']});
+  });
+
+  test('deltaSparkline_noImprovementDirection', function() {
+    var div = document.createElement('div');
+    div.style.width = '101px';  // One extra pixel for sparkline border.
+    this.addHTMLOutput(div);
+    div.appendChild(
+        document.createElement('tr-v-ui-scalar-context-controller'));
+
+    var span1 = tr.v.ui.createScalarSpan(20971520, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span1);
+    var span2 = tr.v.ui.createScalarSpan(15728640, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span2);
+    var span3 = tr.v.ui.createScalarSpan(12582912, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span3);
+    var span4 = tr.v.ui.createScalarSpan(11534336, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span4);
+    var span5 = tr.v.ui.createScalarSpan(10485760, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span5);
+    var span6 = tr.v.ui.createScalarSpan(9437184, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span6);
+    var span7 = tr.v.ui.createScalarSpan(8388608, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span7);
+    var span8 = tr.v.ui.createScalarSpan(5242880, {
+      unit: Unit.byName.sizeInBytesDelta,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span8);
+
+    // We must check the sparklines *after* all spans are appended because new
+    // values can change the context range.
+    checkSparkline(span1, {left: 0, width: 101, classList: ['positive']});
+    checkSparkline(span2, {left: 0, width: 76, classList: ['positive']});
+    checkSparkline(span3, {left: 0, width: 61, classList: ['positive']});
+    checkSparkline(span4, {left: 0, width: 56, classList: ['positive']});
+    checkSparkline(span5, {left: 0, width: 51, classList: ['positive']});
+    checkSparkline(span6, {left: 0, width: 46, classList: ['positive']});
+    checkSparkline(span7, {left: 0, width: 41, classList: ['positive']});
+    checkSparkline(span8, {left: 0, width: 26, classList: ['positive']});
+  });
+
+  test('deltaSparkline_smallerIsBetter', function() {
+    var div = document.createElement('div');
+    div.style.width = '101px';  // One extra pixel for sparkline border.
+    this.addHTMLOutput(div);
+    div.appendChild(
+        document.createElement('tr-v-ui-scalar-context-controller'));
+
+    var span1 = tr.v.ui.createScalarSpan(5242880, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span1);
+    var span2 = tr.v.ui.createScalarSpan(0, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span2);
+    var span3 = tr.v.ui.createScalarSpan(-3145728, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span3);
+    var span4 = tr.v.ui.createScalarSpan(-4194304, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span4);
+    var span5 = tr.v.ui.createScalarSpan(-5242880, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span5);
+    var span6 = tr.v.ui.createScalarSpan(-6291456, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span6);
+    var span7 = tr.v.ui.createScalarSpan(-7340032, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span7);
+    var span8 = tr.v.ui.createScalarSpan(-15728640, {
+      unit: Unit.byName.sizeInBytesDelta_smallerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span8);
+
+    // We must check the sparklines *after* all spans are appended because new
+    // values can change the context range.
+    checkSparkline(span1,
+        {left: 75, width: 26, classList: ['positive', 'worse']});
+    checkSparkline(span2, {left: 75, width: 1, classList: ['same']});
+    checkSparkline(span3, {left: 60, width: 16, classList: ['better']});
+    checkSparkline(span4, {left: 55, width: 21, classList: ['better']});
+    checkSparkline(span5, {left: 50, width: 26, classList: ['better']});
+    checkSparkline(span6, {left: 45, width: 31, classList: ['better']});
+    checkSparkline(span7, {left: 40, width: 36, classList: ['better']});
+    checkSparkline(span8, {left: 0, width: 76, classList: ['better']});
+  });
+
+  test('deltaSparkline_biggerIsBetter', function() {
+    var div = document.createElement('div');
+    div.style.width = '101px';  // One extra pixel for sparkline border.
+    this.addHTMLOutput(div);
+    div.appendChild(
+        document.createElement('tr-v-ui-scalar-context-controller'));
+
+    var span1 = tr.v.ui.createScalarSpan(0, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span1);
+    var span2 = tr.v.ui.createScalarSpan(-5242880, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span2);
+    var span3 = tr.v.ui.createScalarSpan(-8388608, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span3);
+    var span4 = tr.v.ui.createScalarSpan(-9437184, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span4);
+    var span5 = tr.v.ui.createScalarSpan(-10485760, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span5);
+    var span6 = tr.v.ui.createScalarSpan(-11534336, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span6);
+    var span7 = tr.v.ui.createScalarSpan(-12582912, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span7);
+    var span8 = tr.v.ui.createScalarSpan(-20971520, {
+      unit: Unit.byName.sizeInBytesDelta_biggerIsBetter,
+      contextGroup: 'test'
+    });
+    Polymer.dom(div).appendChild(span8);
+
+    // We must check the sparklines *after* all spans are appended because new
+    // values can change the context range.
+    checkSparkline(span1, {left: 100, width: 1, classList: ['same']});
+    checkSparkline(span2, {left: 75, width: 26, classList: ['worse']});
+    checkSparkline(span3, {left: 60, width: 41, classList: ['worse']});
+    checkSparkline(span4, {left: 55, width: 46, classList: ['worse']});
+    checkSparkline(span5, {left: 50, width: 51, classList: ['worse']});
+    checkSparkline(span6, {left: 45, width: 56, classList: ['worse']});
+    checkSparkline(span7, {left: 40, width: 61, classList: ['worse']});
+    checkSparkline(span8, {left: 0, width: 101, classList: ['worse']});
+  });
+
+  test('classListChanges', function() {
+    var div = document.createElement('div');
+    div.style.width = '200px';
+    this.addHTMLOutput(div);
+
+    var span = tr.v.ui.createScalarSpan(10, {
+      unit: Unit.byName.energyInJoulesDelta_smallerIsBetter,
+      significance: tr.v.Significance.SIGNIFICANT,
+      customContextRange: tr.b.Range.fromExplicitRange(-20, 20)
+    });
+    Polymer.dom(div).appendChild(span);
+
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+        ['positive', 'worse']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList),
+        ['worse']);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+
+    span.significance = tr.v.Significance.DONT_CARE;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+        ['positive', 'worse']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+
+    span.value = -5;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['better']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+
+    span.unit = Unit.byName.energyInJoules;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+
+    span.value = 20;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+
+    span.unit = Unit.byName.energyInJoulesDelta_biggerIsBetter;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+        ['positive', 'better']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+
+    span.significance = tr.v.Significance.INSIGNIFICANT;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+        ['positive', 'better']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+
+    span.unit = Unit.byName.energyInJoulesDelta_smallerIsBetter;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
+        ['positive', 'worse']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+
+    span.unit = Unit.byName.energyInJoulesDelta;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+
+    span.value = 0;
+    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
+    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
+    assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+  });
+
+  test('sparkline_uncentered', function() {
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
+    div.appendChild(
+        document.createElement('tr-v-ui-scalar-context-controller'));
+
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(-1, {
+      unit: Unit.byName.powerInWattsDelta,
+      contextGroup: 'test'
+    }));
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(100, {
+      unit: Unit.byName.powerInWattsDelta,
+      contextGroup: 'test'
+    }));
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(80, {
+      unit: Unit.byName.powerInWattsDelta,
+      contextGroup: 'test'
+    }));
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(60, {
+      unit: Unit.byName.powerInWattsDelta,
+      contextGroup: 'test'
+    }));
+  });
+
+  test('sparkline_centered', function() {
+    var div = document.createElement('div');
+    this.addHTMLOutput(div);
+    div.appendChild(
+        document.createElement('tr-v-ui-scalar-context-controller'));
+
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(-1, {
+      unit: Unit.byName.powerInWattsDelta,
+      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+    }));
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(100, {
+      unit: Unit.byName.powerInWattsDelta,
+      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+    }));
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(80, {
+      unit: Unit.byName.powerInWattsDelta,
+      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+    }));
+    Polymer.dom(div).appendChild(tr.v.ui.createScalarSpan(60, {
+      unit: Unit.byName.powerInWattsDelta,
+      customContextRange: tr.b.Range.fromExplicitRange(-100, 100)
+    }));
   });
 });
 </script>
