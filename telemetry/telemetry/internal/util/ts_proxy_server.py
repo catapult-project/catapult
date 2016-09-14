@@ -37,13 +37,12 @@ class TsProxyServer(object):
   telemetry/third_party/tsproxy/tsproxy.py
   """
 
-  def __init__(self, host_ip=None, http_port=None, https_port=None):
+  def __init__(self, http_port=None, https_port=None):
     """Initialize TsProxyServer.
     """
     self._proc = None
     self._port = None
     self._is_running = False
-    self._host_ip = host_ip
     assert bool(http_port) == bool(https_port)
     self._http_port = http_port
     self._https_port = https_port
@@ -58,11 +57,10 @@ class TsProxyServer(object):
     cmd_line = [sys.executable, _TSPROXY_PATH]
     cmd_line.extend([
         '--port=0'])  # Use port 0 so tsproxy picks a random available port.
-    if self._host_ip:
-      cmd_line.append('--desthost=%s' % self._host_ip)
+
     if self._http_port:
-      cmd_line.append(
-        '--mapports=443:%s,*:%s' % (self._https_port, self._http_port))
+      cmd_line.extend([
+        '--mapports=443:%s,*:%s' % (self._https_port, self._http_port)])
     logging.info('Tsproxy commandline: %r' % cmd_line)
     self._proc = subprocess.Popen(
         cmd_line, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
@@ -89,7 +87,6 @@ class TsProxyServer(object):
 
 
   def _IssueCommand(self, command_string, timeout):
-    logging.info('Issuing command to ts_proxy_server: %s', command_string)
     command_output = []
     self._proc.stdin.write('%s\n' % command_string)
     self._proc.stdin.flush()

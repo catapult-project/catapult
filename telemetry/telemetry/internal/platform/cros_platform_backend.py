@@ -8,6 +8,7 @@ from telemetry import decorators
 from telemetry.core import cros_interface
 from telemetry.core import platform
 from telemetry.core import util
+from telemetry.internal import forwarders
 from telemetry.internal.forwarders import cros_forwarder
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import linux_based_platform_backend
@@ -54,6 +55,17 @@ class CrosPlatformBackend(
     if self._cri.local:
       return port
     return self._cri.GetRemotePort()
+
+  def GetWprPortPairs(self):
+    """Return suitable port pairs to be used for web page replay."""
+    default_local_ports = super(CrosPlatformBackend, self).GetWprPortPairs(
+        ).local_ports
+    return forwarders.PortPairs.Zip(
+        default_local_ports,
+        forwarders.PortSet(
+          http=self.GetRemotePort(default_local_ports.http),
+          https=self.GetRemotePort(default_local_ports.https),
+          dns=None))
 
   def IsThermallyThrottled(self):
     raise NotImplementedError()
