@@ -1472,6 +1472,51 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(table, isB));
   });
 
+  test('userCanModifySortOrder', function() {
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = [
+      {
+        title: 'Name',
+        value: row => row.name
+      },
+      {
+        title: 'colA',
+        value: row => row.a,
+        cmp: (rowA, rowB) => rowA.a - rowB.a
+      },
+      {
+        title: 'colB',
+        value: row => row.b,
+        cmp: (rowA, rowB) => rowA.b - rowB.b
+      }
+    ];
+    table.tableRows = [
+      {name: 'A', a: 42, b: 0},
+      {name: 'B', a: 89, b: 100},
+      {name: 'C', a: 65, b: -273.15}
+    ];
+    table.userCanModifySortOrder = false;
+    table.sortColumnIndex = 2;
+    table.sortDescending = true;
+    table.rebuild();
+    this.addHTMLOutput(table);
+
+    var toggleButton = document.createElement('button');
+    Polymer.dom(toggleButton).textContent =
+        'Toggle table.userCanModifySortOrder';
+    toggleButton.addEventListener('click', function() {
+      table.userCanModifySortOrder = !table.userCanModifySortOrder;
+    });
+    this.addHTMLOutput(toggleButton);
+
+    var unsetButton = document.createElement('button');
+    Polymer.dom(unsetButton).textContent = 'Unset sort order';
+    unsetButton.addEventListener('click', function() {
+      table.sortColumnIndex = undefined;
+    });
+    this.addHTMLOutput(unsetButton);
+  });
+
   test('columnSelection', function() {
     var table = document.createElement('tr-ui-b-table');
     table.tableColumns = [

@@ -232,6 +232,8 @@ tr.exportTo('tr.ui.b', function() {
       this.emptyValue_ = undefined;
       this.subRowsPropertyName_ = 'subRows';
       this.customizeTableRowCallback_ = undefined;
+      this.defaultExpansionStateCallback_ = undefined;
+      this.userCanModifySortOrder_ = true;
     },
 
     ready: function() {
@@ -256,8 +258,11 @@ tr.exportTo('tr.ui.b', function() {
       this.sortDescending_ = false;
       this.columnsWithExpandButtons_ = [];
       this.headerCells_ = [];
+      this.showHeader_ = true;
+      this.emptyValue_ = undefined;
       this.subRowsPropertyName_ = 'subRows';
       this.defaultExpansionStateCallback_ = undefined;
+      this.userCanModifySortOrder_ = true;
     },
 
     get showHeader() {
@@ -396,21 +401,29 @@ tr.exportTo('tr.ui.b', function() {
       return this.tableFooterRows_;
     },
 
+    get userCanModifySortOrder() {
+      return this.userCanModifySortOrder_;
+    },
+
+    set userCanModifySortOrder(userCanModifySortOrder) {
+      var newUserCanModifySortOrder = !!userCanModifySortOrder;
+      if (newUserCanModifySortOrder === this.userCanModifySortOrder_)
+        return
+
+      this.userCanModifySortOrder_ = newUserCanModifySortOrder;
+      this.scheduleRebuildHeaders_();
+    },
+
     set sortColumnIndex(number) {
       if (number === this.sortColumnIndex_)
         return;
 
-      if (number === undefined) {
-        this.sortColumnIndex_ = undefined;
-        this.updateHeaderArrows_();
-        this.dispatchSortingChangedEvent_();
-        return;
+      if (number !== undefined) {
+        if (this.tableColumns_.length <= number)
+          throw new Error('Column number ' + number + ' is out of bounds.');
+        if (!this.tableColumns_[number].cmp)
+          throw new Error('Column ' + number + ' does not have a comparator.');
       }
-
-      if (this.tableColumns_.length <= number)
-        throw new Error('Column number ' + number + ' is out of bounds.');
-      if (!this.tableColumns_[number].cmp)
-        throw new Error('Column ' + number + ' does not have a comparator.');
 
       this.sortColumnIndex_ = number;
       this.updateHeaderArrows_();
@@ -439,31 +452,21 @@ tr.exportTo('tr.ui.b', function() {
 
     updateHeaderArrows_: function() {
       for (var i = 0; i < this.headerCells_.length; i++) {
-        if (!this.tableColumns_[i].cmp) {
-          this.headerCells_[i].sideContent = '';
+        var headerCell = this.headerCells_[i];
+        var isColumnCurrentlySorted = i === this.sortColumnIndex_;
+        if (!this.tableColumns_[i].cmp ||
+            (!this.userCanModifySortOrder_ && !isColumnCurrentlySorted)) {
+          headerCell.sideContent = '';
           continue;
         }
-        if (i !== this.sortColumnIndex_) {
-          this.headerCells_[i].sideContent = UNSORTED_ARROW;
+        if (!isColumnCurrentlySorted) {
+          headerCell.sideContent = UNSORTED_ARROW;
+          headerCell.sideContentDisabled = false;
           continue;
         }
-        this.headerCells_[i].sideContent = this.sortDescending_ ?
-          DESCENDING_ARROW : ASCENDING_ARROW;
-      }
-    },
-
-    sortRows_: function(rows) {
-      rows.sort(function(rowA, rowB) {
-        if (this.sortDescending_)
-          return this.tableColumns_[this.sortColumnIndex_].cmp(
-              rowB.userRow, rowA.userRow);
-        return this.tableColumns_[this.sortColumnIndex_].cmp(
-              rowA.userRow, rowB.userRow);
-      }.bind(this));
-      // Sort expanded sub rows recursively.
-      for (var i = 0; i < rows.length; i++) {
-        if (this.getExpandedForUserRow_(rows[i]))
-          this.sortRows_(rows[i][this.subRowsPropertyName_]);
+        headerCell.sideContent = this.sortDescending_ ?
+            DESCENDING_ARROW : ASCENDING_ARROW;
+        headerCell.sideContentDisabled = !this.userCanModifySortOrder_;
       }
     },
 
@@ -490,17 +493,22 @@ tr.exportTo('tr.ui.b', function() {
         var headerCell = document.createElement('tr-ui-b-table-header-cell');
         headerCell.column = this.tableColumns_[i];
 
-        // If the table can be sorted by this column, attach a tap callback
-        // to the column.
+        // If the table can be sorted by this column and the user can modify
+        // the sort order, attach a tap callback to the column.
         if (this.tableColumns_[i].cmp) {
-          Polymer.dom(td).classList.add('sensitive');
-          headerCell.tapCallback = this.createSortCallback_(i);
-          // Set arrow position, depending on the sortColumnIndex.
-          if (this.sortColumnIndex_ === i)
+          var isColumnCurrentlySorted = i === this.sortColumnIndex_;
+          if (isColumnCurrentlySorted) {
             headerCell.sideContent = this.sortDescending_ ?
-              DESCENDING_ARROW : ASCENDING_ARROW;
-          else
-            headerCell.sideContent = UNSORTED_ARROW;
+                DESCENDING_ARROW : ASCENDING_ARROW;
+            if (!this.userCanModifySortOrder_)
+              headerCell.sideContentDisabled = true;
+          }
+          if (this.userCanModifySortOrder_) {
+            Polymer.dom(td).classList.add('sensitive');
+            if (!isColumnCurrentlySorted)
+              headerCell.sideContent = UNSORTED_ARROW;
+            headerCell.tapCallback = this.createSortCallback_(i);
+          }
         }
 
         Polymer.dom(td).appendChild(headerCell);
@@ -560,6 +568,8 @@ tr.exportTo('tr.ui.b', function() {
 
     createSortCallback_: function(columnNumber) {
       return function() {
+        if (!this.userCanModifySortOrder_)
+          return;
         var previousIndex = this.sortColumnIndex;
         this.sortColumnIndex = columnNumber;
         if (previousIndex !== columnNumber)
@@ -1480,6 +1490,10 @@ tr.exportTo('tr.ui.b', function() {
       margin-left: 5px;
     }
 
+    #side.disabled {
+      color: rgb(140, 140, 140);
+    }
+
     #title:empty, #side:empty {
       display: none;
     }
@@ -1567,6 +1581,14 @@ Polymer({
 
   get sideContent() {
     return Polymer.dom(this.$.side).textContent;
+  },
+
+  set sideContentDisabled(sideContentDisabled) {
+    this.$.side.classList.toggle('disabled', sideContentDisabled);
+  },
+
+  get sideContentDisabled() {
+    return this.$.side.classList.contains('disabled');
   },
 
   set tapCallback(callback) {
