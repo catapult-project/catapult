@@ -65,6 +65,10 @@ tr.exportTo('tr.ui.b', function() {
       var brushRectsSel = brushSel.selectAll('rect').data(brushes);
       brushRectsSel.enter().append('rect');
       brushRectsSel.exit().remove();
+      this.drawBrush_(brushRectsSel);
+    },
+
+    drawBrush_: function(brushRectsSel) {
       brushRectsSel
           .attr('x', function(d) {
               return this.xScale_(d.min);

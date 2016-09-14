@@ -14,7 +14,7 @@ tr.exportTo('tr.ui.b', function() {
   var ColorScheme = tr.b.ColorScheme;
   var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
 
-  function getTextWidth(parentNode, text) {
+  function getSVGTextWidth(parentNode, text) {
     var textNode = document.createElementNS(
         'http://www.w3.org/2000/svg', 'text');
     textNode.setAttributeNS(null, 'x', 0);
@@ -24,7 +24,7 @@ tr.exportTo('tr.ui.b', function() {
     parentNode.appendChild(textNode);
     var widthPx = textNode.getComputedTextLength();
     parentNode.removeChild(textNode);
-    return widthPx + 5;
+    return widthPx;
   }
 
   // @constructor
@@ -170,6 +170,64 @@ tr.exportTo('tr.ui.b', function() {
       return stacks;
     },
 
+    drawHoverValueBox_: function(rect) {
+      var seriesKeys = [...this.seriesByKey_.keys()];
+      var chartAreaSel = d3.select(this.chartAreaElement);
+      chartAreaSel.selectAll('.hover').remove();
+      var keyWidthPx = 0;
+      var keyHeightPx = 0;
+      if (seriesKeys.length > 1) {
+        keyWidthPx = getSVGTextWidth(this.chartAreaElement, rect.key) + 5;
+        keyHeightPx = 16;
+      }
+      var valueWidthPx = getSVGTextWidth(
+          this.chartAreaElement, rect.value) + 5;
+      var valueHeightPx = 16;
+      var hoverLeftPx = rect.leftPx + (rect.widthPx / 2);
+
+      chartAreaSel
+        .append('rect')
+        .attr('class', 'hover')
+        .attr('fill', 'white')
+        .attr('x', hoverLeftPx)
+        .attr('y', rect.topPx)
+        .attr('width', Math.max(keyWidthPx, valueWidthPx))
+        .attr('height', keyHeightPx + valueHeightPx);
+
+      if (seriesKeys.length > 1) {
+        chartAreaSel
+          .append('text')
+          .attr('class', 'hover')
+          .attr('fill', rect.color)
+          .attr('x', hoverLeftPx + 2)
+          .attr('y', rect.topPx + keyHeightPx - 3)
+          .text(rect.key);
+      }
+
+      chartAreaSel
+        .append('text')
+        .attr('class', 'hover')
+        .attr('fill', rect.color)
+        .attr('x', hoverLeftPx + 2)
+        .attr('y', rect.topPx + keyHeightPx + valueHeightPx - 3)
+        .text(rect.value);
+    },
+
+    clearHoverValueBox_: function() {
+      d3.select(this.chartAreaElement).selectAll('.hover').remove();
+    },
+
+    drawRect_: function(rect, sel) {
+      sel.append('rect')
+        .attr('fill', rect.color)
+        .attr('x', rect.leftPx)
+        .attr('y', rect.topPx)
+        .attr('width', rect.widthPx)
+        .attr('height', rect.heightPx)
+        .on('mouseenter', this.drawHoverValueBox_.bind(this, rect))
+        .on('mouseleave', this.clearHoverValueBox_.bind(this));
+    },
+
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
       var chartAreaSel = d3.select(this.chartAreaElement);
@@ -184,68 +242,20 @@ tr.exportTo('tr.ui.b', function() {
         } else {
           width = this.xCushion_;
         }
-        this.getRectsForDatum_(datum, index).forEach(function(rect) {
-          var leftPx = this.xScale_(currentX);
-          var rightPx = this.xScale_(currentX + width);
-          var widthPx = rightPx - leftPx;
-          rectsSel.enter()
-            .append('rect')
-            .attr('fill', rect.color)
-            .attr('x', leftPx)
-            .attr('y', rect.topPx)
-            .attr('width', widthPx)
-            .attr('height', rect.heightPx)
-            .on('mouseenter', function() {
-              chartAreaSel.selectAll('.hover').remove();
-              var keyWidthPx = 0;
-              var keyHeightPx = 0;
-              if (seriesKeys.length > 1) {
-                keyWidthPx = getTextWidth(this.chartAreaElement, rect.key);
-                keyHeightPx = 12;
-              }
-              var valueWidthPx = getTextWidth(
-                  this.chartAreaElement, rect.value);
-              var valueHeightPx = 12;
-              var hoverLeftPx = leftPx + (widthPx / 2);
-
-              chartAreaSel
-                .append('rect')
-                .attr('class', 'hover')
-                .attr('fill', 'white')
-                .attr('x', hoverLeftPx)
-                .attr('y', rect.topPx)
-                .attr('width', Math.max(keyWidthPx, valueWidthPx))
-                .attr('height', keyHeightPx + valueHeightPx);
-
-              if (seriesKeys.length > 1) {
-                chartAreaSel
-                  .append('text')
-                  .attr('class', 'hover')
-                  .attr('fill', rect.color)
-                  .attr('x', hoverLeftPx + 2)
-                  .attr('y', rect.topPx + keyHeightPx - 2)
-                  .text(rect.key);
-              }
-
-              chartAreaSel
-                .append('text')
-                .attr('class', 'hover')
-                .attr('fill', rect.color)
-                .attr('x', hoverLeftPx + 2)
-                .attr('y', rect.topPx + keyHeightPx + valueHeightPx - 2)
-                .text(rect.value);
-            }.bind(this))
-            .on('mouseleave', function() {
-              chartAreaSel.selectAll('.hover').remove();
-            }.bind(this));
-        }, this);
+        for (var rect of this.getRectsForDatum_(datum, index)) {
+          rect.leftPx = this.xScale_(currentX);
+          rect.rightPx = this.xScale_(currentX + width);
+          rect.widthPx = rect.rightPx - rect.leftPx;
+          this.drawRect_(rect, rectsSel.enter());
+        }
       }, this);
       rectsSel.exit().remove();
     }
   };
 
   return {
-    ColumnChart: ColumnChart
+    ColumnChart: ColumnChart,
+    getSVGTextWidth: getSVGTextWidth
   };
 });
 </script>

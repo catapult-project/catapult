@@ -180,24 +180,30 @@ tr.exportTo('tr.ui.b', function() {
       if (this.hideXAxis)
         return;
 
+      this.drawXAxis_(xAxis);
+    },
+
+    drawXAxis_: function(xAxis) {
       xAxis.attr('transform', 'translate(0,' + this.chartAreaSize.height + ')')
         .call(d3.svg.axis()
               .scale(this.xScale_)
               .orient('bottom'));
-      tr.b.requestAnimationFrame(function() {
-        var previousRight = undefined;
-        xAxis.selectAll('.tick')[0].forEach(function(tick) {
-          var currentLeft = tick.transform.baseVal[0].matrix.e;
-          if ((previousRight === undefined) ||
-              (currentLeft > (previousRight + 3))) {
-            var currentWidth = tick.getBBox().width;
-            previousRight = currentLeft + currentWidth;
-          } else {
-            tick.style.opacity = 0;
-          }
-        });
-        xAxis[0][0].style.opacity = 1;
-      }, this);
+      tr.b.requestAnimationFrame(this.drawXAxisTicks_.bind(this, xAxis));
+    },
+
+    drawXAxisTicks_: function(xAxis) {
+      var previousRight = undefined;
+      xAxis.selectAll('.tick')[0].forEach(function(tick) {
+        var currentLeft = tick.transform.baseVal[0].matrix.e;
+        if ((previousRight === undefined) ||
+            (currentLeft > (previousRight + 3))) {
+          var currentWidth = tick.getBBox().width;
+          previousRight = currentLeft + currentWidth;
+        } else {
+          tick.style.opacity = 0;
+        }
+      });
+      xAxis[0][0].style.opacity = 1;
     },
 
     updateDataRange_: function() {
@@ -229,6 +235,10 @@ tr.exportTo('tr.ui.b', function() {
       if (this.hideYAxis)
         return;
 
+      this.drawYAxis_(yAxis);
+    },
+
+    drawYAxis_: function(yAxis) {
       var axisModifier = d3.svg.axis()
         .scale(this.yScale_)
         .orient('left');
@@ -258,30 +268,32 @@ tr.exportTo('tr.ui.b', function() {
 
       yAxis.call(axisModifier);
 
-      tr.b.requestAnimationFrame(function() {
-        var previousTop = undefined;
-        var leftMargin = 0;
-        yAxis.selectAll('.tick')[0].forEach(function(tick) {
-          var bbox = tick.getBBox();
-          leftMargin = Math.max(leftMargin, bbox.width);
-          var currentTop = tick.transform.baseVal[0].matrix.f;
-          var currentBottom = currentTop + bbox.height;
-          if ((previousTop === undefined) ||
-              (previousTop > (currentBottom + 3))) {
-            previousTop = currentTop;
-          } else {
-            tick.style.opacity = 0;
-          }
-        });
+      tr.b.requestAnimationFrame(this.drawYAxisTicks_.bind(this, yAxis));
+    },
 
-        leftMargin = parseInt(Math.ceil(leftMargin));
-        if (leftMargin > this.margin.left) {
-          this.margin.left = leftMargin;
-          this.updateContents_();
+    drawYAxisTicks_: function(yAxis) {
+      var previousTop = undefined;
+      var leftMargin = 0;
+      yAxis.selectAll('.tick')[0].forEach(function(tick) {
+        var bbox = tick.getBBox();
+        leftMargin = Math.max(leftMargin, bbox.width);
+        var currentTop = tick.transform.baseVal[0].matrix.f;
+        var currentBottom = currentTop + bbox.height;
+        if ((previousTop === undefined) ||
+            (previousTop > (currentBottom + 3))) {
+          previousTop = currentTop;
         } else {
-          yAxis[0][0].style.opacity = 1;
+          tick.style.opacity = 0;
         }
-      }, this);
+      });
+
+      leftMargin = parseInt(Math.ceil(leftMargin));
+      if (leftMargin > this.margin.left) {
+        this.margin.left = leftMargin;
+        this.updateContents_();
+      } else {
+        yAxis[0][0].style.opacity = 1;
+      }
     },
 
     updateContents_: function() {
@@ -335,15 +347,27 @@ tr.exportTo('tr.ui.b', function() {
       return dataBySeriesKey;
     },
 
-    getDataPointAtClientPoint_: function(clientX, clientY) {
+    getChartPointAtClientPoint_: function(clientPoint) {
       var rect = this.getBoundingClientRect();
-      var x = clientX - rect.left - this.margin.left;
-      var y = clientY - rect.top - this.margin.top;
-      x = this.xScale_.invert(x);
-      y = this.yScale_.invert(y);
-      x = tr.b.clamp(x, this.xScale_.domain()[0], this.xScale_.domain()[1]);
-      y = tr.b.clamp(y, this.yScale_.domain()[0], this.yScale_.domain()[1]);
-      return {x: x, y: y};
+      return {
+        x: clientPoint.x - rect.left - this.margin.left,
+        y: clientPoint.y - rect.top - this.margin.top
+      };
+    },
+
+    getDataPointAtChartPoint_: function(chartPoint) {
+      return {
+        x: tr.b.clamp(this.xScale_.invert(chartPoint.x),
+               this.xScale_.domain()[0], this.xScale_.domain()[1]),
+        y: tr.b.clamp(this.yScale_.invert(chartPoint.y),
+            this.yScale_.domain()[0], this.yScale_.domain()[1])
+      };
+    },
+
+    getDataPointAtClientPoint_: function(clientX, clientY) {
+      var chartPoint = this.getChartPointAtClientPoint_(
+          {x: clientX, y: clientY});
+      return this.getDataPointAtChartPoint_(chartPoint);
     },
 
     prepareDataEvent_: function(mouseEvent, dataEvent) {
