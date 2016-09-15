@@ -27,6 +27,7 @@ from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
 
+
 COMPLETED, FAILED, PENDING, ABORTED = ('completed', 'failed', 'pending',
                                        'aborted')
 
@@ -125,6 +126,9 @@ def _CheckJob(job, issue_tracker):
   logging.info('Checking job %s for bug %s, with buildbucket_job_id %s',
                job.key.id(), job.bug_id, job.buildbucket_job_id)
 
+  if not _IsBuildBucketJobCompleted(job):
+    logging.info('Not yet COMPLETED.')
+    return
 
   job.CheckFailureFromBuildBucket()
 
@@ -137,14 +141,6 @@ def _CheckJob(job, issue_tracker):
     return
 
   results_data = job.results_data
-  # Skip this check for bisect fyi jobs, because if the job is fails due to
-  # bisect recipe or infra failures then an alert message should be sent to the
-  # team.
-  if (job.job_type != 'bisect-fyi' and (
-      not results_data or results_data.get('status') not in [COMPLETED,
-                                                             FAILED])):
-    logging.info('Not yet COMPLETED/FAILED')
-    return
 
   if job.job_type == 'perf-try':
     logging.info('Sending perf try job mail')
@@ -178,11 +174,14 @@ def _CheckFYIBisectJob(job, issue_tracker):
       job.key.delete()
       return
 
-    if not _IsBisectJobCompleted(job):
-      return
     if not job.results_data:
       raise BisectJobFailure('Bisect job completed, but results data is not '
                              'found, bot might have failed to post results.')
+    # FAILED implies failed or cancelled jobs.
+    if job.status == FAILED:
+      raise BisectJobFailure(
+          _BUILD_FAILURE_REASON.get(
+              job.results_data.get('failure_reason'), 'Unknown'))
     error_message = bisect_fyi.VerifyBisectFYIResults(job)
     _PostSuccessfulResult(job, issue_tracker)
     if not bisect_fyi.IsBugUpdated(job, issue_tracker):
@@ -191,22 +190,13 @@ def _CheckFYIBisectJob(job, issue_tracker):
     error_message = 'Bisect job failed because, %s' % e
   except BugUpdateFailure as e:
     error_message = 'Failed to update bug with bisect results: %s' % e
+  except Exception as e:  # pylint: disable=broad-except
+    error_message = 'Failed to update bug with bisect results: %s' % e
   finally:
-    job_info = buildbucket_service.GetJobStatus(job.buildbucket_job_id)
-    job_info = job_info.get('build', {})
-    if not job.results_data:
-      job.results_data = {}
-    job.results_data['buildbot_log_url'] = str(job_info.get('url'))
-
-
-  # When the job fails before getting to the point where it post bisect results
-  # to the dashboard, the tryjob's results_data is not set.
-  # As a special case for Bisect FYI jobs, we query buildbucket to get the
-  # bisect job's status.
-  if ((job.results_data and job.results_data.get('status') == FAILED) or
-      error_message):
-    job.SetFailed()
-    _SendFYIBisectEmail(job, error_message)
+    if ((job.results_data and job.results_data.get('status') == FAILED) or
+        error_message):
+      job.SetFailed()
+      _SendFYIBisectEmail(job, error_message)
 
 
 def _SendPerfTryJobEmail(job):
@@ -298,6 +288,7 @@ def _IsStale(job):
     return False
   time_since_last_ran = datetime.datetime.now() - job.last_ran_timestamp
   return time_since_last_ran > _STALE_TRYJOB_DELTA
+
 
 def _MapAnomaliesToMergeIntoBug(dest_bug_id, source_bug_id):
   """Maps anomalies from source bug to destination bug.
@@ -421,9 +412,19 @@ def UpdateQuickLog(job):
     job.put()
 
 
-def _IsBisectJobCompleted(job):
-  return _ValidateBuildbucketResponse(
-      buildbucket_service.GetJobStatus(job.buildbucket_job_id))
+def _IsBuildBucketJobCompleted(job):
+  """Checks whether the bisect job is completed."""
+  job_info = buildbucket_service.GetJobStatus(job.buildbucket_job_id)
+  if not job_info:
+    return False
+  data = job_info.get('build', {})
+  # The status of the build can be one of [STARTED, SCHEDULED or COMPLETED]
+  # The buildbucket 'status' fields are documented here:
+  # https://goto.google.com/bb_status
+  if data.get('status') != 'COMPLETED':
+    return False
+
+  return True
 
 
 def _ValidateBuildbucketResponse(job_info):
