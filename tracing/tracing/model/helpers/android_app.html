@@ -33,6 +33,8 @@ tr.exportTo('tr.model.helpers', function() {
 
   var RENDER_THREAD_DRAW_NAME = 'DrawFrame';
   var RENDER_THREAD_INDEP_DRAW_NAME = 'doFrame';
+  var RENDER_THREAD_QUEUE_NAME = 'queueBuffer';
+  var RENDER_THREAD_SWAP_NAME = 'eglSwapBuffers';
   var THREAD_SYNC_NAME = 'syncFrameState';
 
   function getSlicesForThreadTimeRanges(threadTimeRanges) {
@@ -60,20 +62,32 @@ tr.exportTo('tr.model.helpers', function() {
     return new Frame(events, threadTimeRanges, args);
   }
 
-  function findOverlappingDrawFrame(renderThread, time) {
+  function findOverlappingDrawFrame(renderThread, uiDrawSlice) {
     if (!renderThread)
       return undefined;
 
-    var slices = renderThread.sliceGroup.slices;
-    for (var i = 0; i < slices.length; i++) {
-      var slice = slices[i];
-      if (slice.title == RENDER_THREAD_DRAW_NAME &&
-          slice.start <= time &&
-          time <= slice.end) {
-        return slice;
-      }
-    }
-    return undefined;
+    // of all top level renderthread slices, find the one that has a 'sync'
+    // within the uiDrawSlice
+    var overlappingDrawFrame;
+    var slices = tr.b.iterateOverIntersectingIntervals(
+        renderThread.sliceGroup.slices,
+        function(range) { return range.start },
+        function(range) { return range.end },
+        uiDrawSlice.start,
+        uiDrawSlice.end,
+        function(rtDrawSlice) {
+          if (rtDrawSlice.title == RENDER_THREAD_DRAW_NAME) {
+            var rtSyncSlice = rtDrawSlice.findDescendentSlice(THREAD_SYNC_NAME);
+            if (rtSyncSlice &&
+                rtSyncSlice.start >= uiDrawSlice.start &&
+                rtSyncSlice.end <= uiDrawSlice.end) {
+              // sync observed which overlaps ui draw. This means the RT draw
+              // corresponds to the UI draw
+              overlappingDrawFrame = rtDrawSlice;
+            }
+          }
+        });
+    return overlappingDrawFrame;
   }
 
   /**
@@ -124,6 +138,23 @@ tr.exportTo('tr.model.helpers', function() {
     return traversalStart;
   }
 
+  function getRtFrameEndTime(rtDrawSlice) {
+      console.log(rtDrawSlice);
+    // First try and get time that frame is queued:
+    var rtQueueSlice = rtDrawSlice.findDescendentSlice(
+        RENDER_THREAD_QUEUE_NAME);
+    if (rtQueueSlice) {
+      return rtQueueSlice.end;
+    }
+    // failing that, end of swapbuffers:
+    var rtSwapSlice = rtDrawSlice.findDescendentSlice(RENDER_THREAD_SWAP_NAME);
+    if (rtSwapSlice) {
+      return rtSwapSlice.end;
+    }
+    // failing that, end of renderthread frame trace
+    return rtDrawSlice.end;
+  }
+
   function getUiThreadDrivenFrames(app) {
     if (!app.uiThread)
       return [];
@@ -149,7 +180,7 @@ tr.exportTo('tr.model.helpers', function() {
       // on SDK 21+ devices with RenderThread,
       // account for time taken on RenderThread
       var rtDrawSlice = findOverlappingDrawFrame(
-          app.renderThread, slice.end);
+          app.renderThread, slice);
       if (rtDrawSlice) {
         var rtSyncSlice = rtDrawSlice.findDescendentSlice(THREAD_SYNC_NAME);
         if (rtSyncSlice) {
@@ -162,7 +193,7 @@ tr.exportTo('tr.model.helpers', function() {
         threadTimeRanges.push({
           thread: app.renderThread,
           start: rtDrawSlice.start,
-          end: rtDrawSlice.end
+          end: getRtFrameEndTime(rtDrawSlice)
         });
       }
       frames.push(makeFrame(threadTimeRanges, app.surfaceFlinger));
@@ -251,7 +282,7 @@ tr.exportTo('tr.model.helpers', function() {
 
     this.frames_ = undefined;
     this.inputs_ = undefined;
-  };
+  }
 
   AndroidApp.createForProcessIfPossible = function(process, surfaceFlinger) {
     var uiThread = process.getThread(process.pid);

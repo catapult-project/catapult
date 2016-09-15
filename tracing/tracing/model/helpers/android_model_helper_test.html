@@ -75,23 +75,25 @@ tr.b.unittest.testSuite(function() {
     function(model) {
       var uiThread = model.getOrCreateProcess(120).getOrCreateThread(120);
 
-      // UI thread time - 19 (from 10 to 29)
+      // UI thread time - 19 (from 10 to 29, ignored after)
       uiThread.asyncSliceGroup.push(
         newAsyncSliceNamed('deliverInputEvent', 10, 9, uiThread, uiThread));
       uiThread.sliceGroup.pushSlice(newSliceEx(
-          {title: 'performTraversals', start: 20, duration: 10}));
+          {title: 'performTraversals', start: 20, duration: 110}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
-          {title: 'draw', start: 20, duration: 8}));
+          {title: 'draw', start: 20, duration: 108}));
       uiThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'Record View#draw()', start: 20, duration: 8}));
 
-      // RenderThread time - 61 (from 29 to 90)
+      // RenderThread time - 61 (from 29 to 90, ignored after)
       var renderThread = model.getOrCreateProcess(120).getOrCreateThread(200);
       renderThread.name = 'RenderThread';
       renderThread.sliceGroup.pushSlice(newSliceEx(
-          {title: 'DrawFrame', start: 29, duration: 61}));
+          {title: 'DrawFrame', start: 29, duration: 70}));
       renderThread.sliceGroup.pushSlice(newSliceEx(
           {title: 'syncFrameState', start: 29, duration: 1}));
+      renderThread.sliceGroup.pushSlice(newSliceEx(
+          {title: 'queueBuffer', start: 89, duration: 1}));
 
       model.uiThread = uiThread;
       model.renderThread = renderThread;
