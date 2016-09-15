@@ -12,12 +12,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-function getMetricValue(valueSet, name) {
-  for (var value of valueSet)
-    if (value.name === name)
-      return value.numeric.average;
-}
-
 tr.b.unittest.testSuite(function() {
 
   test('ttiPowerMetric_oneInterval', function() {
@@ -101,10 +95,10 @@ tr.b.unittest.testSuite(function() {
 
   // Energy for first load is 20 W * 15.2 s
   // (interval from 0.2 s to 15.4 s)
-  assert.closeTo(
-      getMetricValue(valueSet, 'energy:load'), 304, 0.1);
-  assert.closeTo(
-      getMetricValue(valueSet, 'power:after_load'), 10, 0.01);
+  assert.closeTo(tr.b.getOnlyElement(valueSet.getValuesNamed(
+      'energy:load')).average, 304, 0.1);
+  assert.closeTo(tr.b.getOnlyElement(valueSet.getValuesNamed(
+      'power:after_load')).average, 10, 0.01);
   });
 });
 </script>

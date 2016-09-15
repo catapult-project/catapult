@@ -54,8 +54,10 @@ found in the LICENSE file.
 
     <container>
       <controls>
-        <input id="search" placeholder="Find Value name" on-keyup="onSearch_">
+        <input id="search" placeholder="Find Histogram name" on-keyup="onSearch_">
+
         <span id="reference_column_container"></span>
+
         <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
         <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
       </controls>
@@ -78,7 +80,7 @@ tr.exportTo('tr.ui', function() {
    * Returns a closure that gets a story grouping key label from a Value.
    *
    * @param {string} storyGroupingKey
-   * @return {!function(tr.v.Value):string}
+   * @return {!function(tr.v.Histogram):string}
    */
   function makeStoryGroupingKeyLabelGetter(storyGroupingKey) {
     return v => tr.v.d.IterationInfo.getStoryGroupingKeyLabel(
@@ -109,19 +111,22 @@ tr.exportTo('tr.ui', function() {
   var UNMERGEABLE = '(unmergeable)';
 
   function mergeCells(a, b) {
-    if (a === UNMERGEABLE || b === UNMERGEABLE || !a.numeric || !b.numeric ||
-        !a.numeric.canAddHistogram(b.numeric))
+    if (a === UNMERGEABLE || b === UNMERGEABLE || !a || !b ||
+        !a.canAddHistogram(b))
       return UNMERGEABLE;
-    return a.merge(b);
+    a = a.clone();
+    a.addHistogram(b);
+    return a;
   }
 
   /**
    * Recursively groups |values|.
    * TODO(benjhayden): Use ES6 Maps instead of dictionaries?
    *
-   * @param {!Array.<!tr.v.Value>} values
-   * @param {!Array.<!function(!tr.v.Value):(string|number)>} groupingCallbacks
-   * @return {!(Object|tr.v.Value)}
+   * @param {!Array.<!tr.v.Histogram>} values
+   * @param {!Array.<!function(!tr.v.Histogram):(string|number)>}
+   *   groupingCallbacks
+   * @return {!(Object|tr.v.Histogram)}
    */
   function organizeValues(values, groupingCallbacks, level) {
     if (groupingCallbacks.length === level) {
@@ -162,7 +167,7 @@ tr.exportTo('tr.ui', function() {
       // TODO(benjhayden): Should these all be ValueSets?
       /** @type {undefined|!tr.v.ValueSet} */
       this.values_ = undefined;
-      /** @type {!Array.<!tr.v.Value>} */
+      /** @type {!Array.<!tr.v.Histogram>} */
       this.sourceValues_ = [];
 
       this.rows_ = undefined;
@@ -264,7 +269,7 @@ tr.exportTo('tr.ui', function() {
 
     onRelatedValueSelected_: function(event) {
       var value = event.selection;
-      if (!(value instanceof tr.v.Value))
+      if (!(value instanceof tr.v.Histogram))
         return;
 
       event.stopPropagation();
@@ -327,10 +332,9 @@ tr.exportTo('tr.ui', function() {
       if (row && col && this.columns_)
         cell = row.columns[this.columns_[col].title];
 
-      if ((cell instanceof tr.v.NumericValue) &&
-          (cell.numeric instanceof tr.v.Histogram)) {
+      if (cell instanceof tr.v.Histogram) {
         this.$.histogram.style.display = 'block';
-        this.$.histogram.histogram = cell.numeric;
+        this.$.histogram.histogram = cell;
 
         tr.b.Settings.set(SELECTED_VALUE_SETTINGS_KEY, JSON.stringify({
           row: row.name,
@@ -535,7 +539,7 @@ tr.exportTo('tr.ui', function() {
      */
     buildRow_: function(organizedValues, hierarchy) {
       tr.b.iterItems(organizedValues, function(name, value) {
-        if (value instanceof tr.v.Value) {
+        if (value instanceof tr.v.Histogram) {
           // This recursion base case corresponds to the recursion base case of
           // organizeValues(). The last groupingCallback is getDisplayLabel,
           // which defines the columns of the table.
@@ -724,8 +728,7 @@ tr.exportTo('tr.ui', function() {
 
     buildColumn_: function(displayLabel) {
       function getValueForValue(value) {
-        return value.numeric instanceof tr.v.Histogram ? value.numeric.average :
-          value.numeric.value;
+        return value instanceof tr.v.Histogram ? value.average : value.value;
       }
 
       return {
@@ -741,9 +744,8 @@ tr.exportTo('tr.ui', function() {
           if (cell === UNMERGEABLE)
             return cell;
 
-          if (cell instanceof tr.v.NumericValue) {
-            if (cell.numeric instanceof tr.v.Histogram &&
-                cell.numeric.numValues === 0) {
+          if (cell instanceof tr.v.Histogram) {
+            if (cell.numValues === 0) {
               return '(empty)';
             }
 
@@ -751,20 +753,14 @@ tr.exportTo('tr.ui', function() {
                 this.referenceDisplayLabel !== displayLabel) {
               var referenceCell = row.columns[this.referenceDisplayLabel];
 
-              if (referenceCell instanceof tr.v.NumericValue &&
-                  cell.numeric.unit === referenceCell.numeric.unit &&
-                  referenceCell.numeric.numValues > 0) {
-                var significance = tr.v.Significance.DONT_CARE;
-
-                if (cell.numeric instanceof tr.v.Histogram &&
-                    referenceCell.numeric instanceof tr.v.Histogram) {
-                  significance = cell.numeric.getDifferenceSignificance(
-                      referenceCell.numeric);
-                }
-
+              if (referenceCell instanceof tr.v.Histogram &&
+                  cell.unit === referenceCell.unit &&
+                  referenceCell.numValues > 0) {
+                var significance = cell.getDifferenceSignificance(
+                    referenceCell);
                 return tr.v.ui.createScalarSpan(
                     getValueForValue(cell) - getValueForValue(referenceCell),
-                    {unit: cell.numeric.unit.correspondingDeltaUnit,
+                    {unit: cell.unit.correspondingDeltaUnit,
                      significance: significance});
               }
             }
@@ -783,8 +779,8 @@ tr.exportTo('tr.ui', function() {
         cmp: function(rowA, rowB) {
           var cellA = rowA.columns[displayLabel];
           var cellB = rowB.columns[displayLabel];
-          if (!(cellA instanceof tr.v.NumericValue) ||
-              !(cellB instanceof tr.v.NumericValue)) {
+          if (!(cellA instanceof tr.v.Histogram) ||
+              !(cellB instanceof tr.v.Histogram)) {
             return undefined;
           }
 
@@ -797,10 +793,10 @@ tr.exportTo('tr.ui', function() {
               this.referenceDisplayLabel !== displayLabel) {
             var referenceCellA = rowA.columns[this.referenceDisplayLabel];
             var referenceCellB = rowB.columns[this.referenceDisplayLabel];
-            if (referenceCellA instanceof tr.v.NumericValue &&
-                referenceCellB instanceof tr.v.NumericValue &&
-                cellA.numeric.unit === referenceCellA.numeric.unit &&
-                cellB.numeric.unit === referenceCellB.numeric.unit) {
+            if (referenceCellA instanceof tr.v.Histogram &&
+                referenceCellB instanceof tr.v.Histogram &&
+                cellA.unit === referenceCellA.unit &&
+                cellB.unit === referenceCellB.unit) {
               valueA -= getValueForValue(referenceCellA);
               valueB -= getValueForValue(referenceCellB);
             }

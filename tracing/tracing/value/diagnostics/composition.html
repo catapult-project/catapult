@@ -15,7 +15,7 @@ tr.exportTo('tr.v.d', function() {
     'ChromeUserFriendlyCategory';
 
   /**
-   * Composition encapsulates an additive relationship between NumericValues:
+   * Composition encapsulates an additive relationship between Histograms:
    * the Value that contains this Composition diagnostic is composed of the
    * Values referenced by this Composition diagnostic. Composition is a
    * "breakdown" of its containing Value into its contained Values. This
@@ -39,17 +39,17 @@ tr.exportTo('tr.v.d', function() {
      */
     set(name, value) {
       if (!(value instanceof tr.v.d.ValueRef)) {
-        if (!(value instanceof tr.v.NumericValue))
-          throw new Error('Composition can only contain NumericValues');
+        if (!(value instanceof tr.v.Histogram))
+          throw new Error('Composition can only contain Histograms');
 
         if (value.name.indexOf(name) !== (value.name.length - name.length))
           throw new Error('Composition name must be a suffix of value.name');
 
         if ((this.length > 0) &&
-            (value.numeric.unit !==
-             tr.b.getFirstElement(this)[1].numeric.unit)) {
-          throw new Error('Units mismatch',
-              tr.b.getFirstElement(this)[1].numeric.unit, value.numeric.unit);
+            (value.unit !==
+             tr.b.getFirstElement(this)[1].unit)) {
+          throw new Error('Units mismatch', tr.b.getFirstElement(this)[1].unit,
+              value.unit);
         }
       }
 
@@ -73,9 +73,9 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-    * Build a Composition and its NumericValues from |events|. Group events
-    * using |categoryForEvent|. Add the NumericValues to |values|.
-    * NumericValues' names are prefixed with |namePrefix|. Numerics are built by
+    * Build a Composition and its Histograms from |events|. Group events
+    * using |categoryForEvent|. Add the Histograms to |values|.
+    * Histograms' names are prefixed with |namePrefix|. Numerics are built by
     * |numericBuilder|. The numeric sample for each Event is derived from
     * |opt_sampleForEvent|, which defaults to event.cpuSelfTime. The caller must
     * add the result Composition to their Value's diagnostics.
@@ -103,13 +103,13 @@ tr.exportTo('tr.v.d', function() {
         var eventCategory = categoryForEvent.call(opt_this, event);
         var value = composition.get(eventCategory);
         if (value === undefined) {
-          value = new tr.v.NumericValue(namePrefix + eventCategory,
-              new tr.v.Histogram(unit, opt_binBoundaries));
-          values.addValue(value);
+          value = new tr.v.Histogram(
+              namePrefix + eventCategory, unit, opt_binBoundaries);
+          values.addHistogram(value);
           composition.set(eventCategory, value);
         }
 
-        value.numeric.addSample(sample,
+        value.addSample(sample,
             {relatedEvents: new tr.v.d.RelatedEventSet([event])});
       }
       return composition;

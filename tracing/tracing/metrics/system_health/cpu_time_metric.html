@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -58,16 +57,11 @@ tr.exportTo('tr.metrics.sh', function() {
     var unit = tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
     var boundaries = tr.v.HistogramBinBoundaries
       .createExponential(1, 100000, 200)
-    var cpuTimeNumeric = new tr.v.Histogram(unit, boundaries);
+    var cpuTimeNumeric = new tr.v.Histogram('cpu_time', unit, boundaries);
+    cpuTimeNumeric.description =
+      'Total CPU time on all Chrome processes, per second of clock time.';
     cpuTimeNumeric.addSample(normalizedAllProcessCpuTime);
-
-    var options = {
-      description: 'Total CPU time on all Chrome processes, per second of ' +
-                   'clock time.'
-    };
-    var threadTimesValue = new tr.v.NumericValue(
-        'cpu_time', cpuTimeNumeric, options);
-    values.addValue(threadTimesValue);
+    values.addHistogram(cpuTimeNumeric);
   }
 
   tr.metrics.MetricRegistry.register(cpuTimeMetric, {
@@ -79,4 +73,3 @@ tr.exportTo('tr.metrics.sh', function() {
   };
 });
 </script>
-

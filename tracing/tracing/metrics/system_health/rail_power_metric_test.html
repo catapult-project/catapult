@@ -17,13 +17,13 @@ found in the LICENSE file.
 function getMetricValueSum(values, name) {
   for (var value of values)
     if (value.name === name)
-      return value.numeric.sum;
+      return value.sum;
 }
 
 function getMetricValueAvg(values, name) {
   for (var value of values)
     if (value.name === name)
-      return value.numeric.average;
+      return value.average;
 }
 
 tr.b.unittest.testSuite(function() {

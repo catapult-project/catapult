@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/long_tasks_metric.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -124,10 +123,10 @@ tr.exportTo('tr.metrics.sh', function() {
     if (overallHazard === undefined)
       overallHazard = 0;
 
-    var hist = new tr.v.Histogram(
+    var hist = new tr.v.Histogram('hazard',
         tr.b.Unit.byName.normalizedPercentage_smallerIsBetter);
     hist.addSample(overallHazard);
-    values.addValue(new tr.v.NumericValue('hazard', hist));
+    values.addHistogram(hist);
   }
 
   tr.metrics.MetricRegistry.register(hazardMetric);

@@ -8,21 +8,24 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
   function webviewStartupMetric(values, model) {
-    var startupWallHist = new tr.v.Histogram(
+    var startupWallHist = new tr.v.Histogram('webview_startup_wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    var startupCPUHist = new tr.v.Histogram(
+    startupWallHist.description = 'WebView startup wall time';
+    var startupCPUHist = new tr.v.Histogram('webview_startup_cpu_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    var loadWallHist = new tr.v.Histogram(
+    startupCPUHist.description = 'WebView startup CPU time';
+    var loadWallHist = new tr.v.Histogram('webview_url_load_wall_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
-    var loadCPUHist = new tr.v.Histogram(
+    loadWallHist.description = 'WebView blank URL load wall time';
+    var loadCPUHist = new tr.v.Histogram('webview_url_load_cpu_time',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter);
+    loadCPUHist.description = 'WebView blank URL load CPU time';
 
     // TODO(alexandermont): Only iterate over the processes and threads that
     // could contain these events.
@@ -47,14 +50,10 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    values.addValue(new tr.v.NumericValue('webview_startup_wall_time',
-        startupWallHist, {description: 'WebView startup wall time'}));
-    values.addValue(new tr.v.NumericValue('webview_startup_cpu_time',
-        startupCPUHist, {description: 'WebView startup CPU time'}));
-    values.addValue(new tr.v.NumericValue('webview_url_load_wall_time',
-        loadWallHist, {description: 'WebView blank URL load wall time'}));
-    values.addValue(new tr.v.NumericValue('webview_url_load_cpu_time',
-        loadCPUHist, {description: 'WebView blank URL load CPU time'}));
+    values.addHistogram(startupWallHist);
+    values.addHistogram(startupCPUHist);
+    values.addHistogram(loadWallHist);
+    values.addHistogram(loadCPUHist);
   }
 
   tr.metrics.MetricRegistry.register(webviewStartupMetric);

@@ -24,7 +24,7 @@ tr.b.unittest.testSuite(function() {
 
     // Check that the boundaries can be used multiple times.
     for (var i = 0; i < 3; i++) {
-      var numeric = new tr.v.Histogram(expectedUnit, boundaries);
+      var numeric = new tr.v.Histogram('', expectedUnit, boundaries);
       assert.instanceOf(numeric, tr.v.Histogram);
       assert.strictEqual(numeric.unit, expectedUnit);
       assert.strictEqual(numeric.numValues, 0);
@@ -40,12 +40,12 @@ tr.b.unittest.testSuite(function() {
 
   test('significance', function() {
     assert.strictEqual(
-        new tr.v.Histogram(unitlessNumber).getDifferenceSignificance(
-        new tr.v.Histogram(unitlessNumber)), tr.v.Significance.DONT_CARE);
+        new tr.v.Histogram('', unitlessNumber).getDifferenceSignificance(
+        new tr.v.Histogram('', unitlessNumber)), tr.v.Significance.DONT_CARE);
 
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 10);
-    var numericA = new tr.v.Histogram(unitlessNumber_sIB, boundaries);
-    var numericB = new tr.v.Histogram(unitlessNumber_sIB, boundaries);
+    var numericA = new tr.v.Histogram('', unitlessNumber_sIB, boundaries);
+    var numericB = new tr.v.Histogram('', unitlessNumber_sIB, boundaries);
     for (var i = 0; i < 100; ++i) {
       numericA.addSample(i);
       numericB.addSample(i * 0.85);
@@ -62,7 +62,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('numericBasic', function() {
-    var n = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
+    var n = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     assert.equal(n.getBinForValue(250).range.min, 200);
     assert.equal(n.getBinForValue(250).range.max, 300);
 
@@ -88,7 +88,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('numericNans', function() {
-    var n = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
+    var n = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
     n.addSample(undefined, {foo: new tr.v.d.Generic('b')});
     n.addSample(NaN, {'foo': new tr.v.d.Generic('c')});
@@ -105,8 +105,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addHistogramsValid', function() {
-    var n0 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
-    var n1 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
+    var n0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    var n1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
 
     n0.addSample(-1, {foo: new tr.v.d.Generic('a0')});
     n0.addSample(0, {foo: new tr.v.d.Generic('b0')});
@@ -166,11 +166,11 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addHistogramsInvalid', function() {
-    var n0 = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs,
+    var n0 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10));
-    var n1 = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs,
+    var n1 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1001, 10));
-    var n2 = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs,
+    var n2 = new tr.v.Histogram('', tr.b.Unit.byName.timeDurationInMs,
         tr.v.HistogramBinBoundaries.createLinear(0, 1000, 11));
 
     assert.isFalse(n0.canAddHistogram(n1));
@@ -185,14 +185,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('addHistogramWithNonDiagnosticMapThrows', function() {
-    var n = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
+    var n = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     assert.throws(n.addSample.bind(42, 'foo'), Error);
   });
 
   test('numericPercentile', function() {
     function check(array, min, max, bins, precision) {
       var boundaries = tr.v.HistogramBinBoundaries.createLinear(min, max, bins);
-      var n = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs, boundaries);
+      var n = new tr.v.Histogram(
+          '', tr.b.Unit.byName.timeDurationInMs, boundaries);
       array.forEach((x) => n.addSample(x, {foo: new tr.v.d.Generic('x')}));
       [0.25, 0.5, 0.75, 0.8, 0.95, 0.99].forEach(function(percent) {
         var expected = tr.b.Statistics.percentile(array, percent);
@@ -317,7 +318,7 @@ tr.b.unittest.testSuite(function() {
 
   test('statisticsScalars', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    var n = new tr.v.Histogram(unitlessNumber, boundaries);
+    var n = new tr.v.Histogram('', unitlessNumber, boundaries);
 
     n.addSample(50);
     n.addSample(60);
@@ -362,7 +363,7 @@ tr.b.unittest.testSuite(function() {
 
   test('statisticsScalarsNoSummaryOptions', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    var n = new tr.v.Histogram(unitlessNumber, boundaries);
+    var n = new tr.v.Histogram('', unitlessNumber, boundaries);
 
     n.addSample(50);
     n.addSample(60);
@@ -383,7 +384,7 @@ tr.b.unittest.testSuite(function() {
 
   test('statisticsScalarsEmptyNumericValue', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 100);
-    var n = new tr.v.Histogram(unitlessNumber, boundaries);
+    var n = new tr.v.Histogram('', unitlessNumber, boundaries);
     n.customizeSummaryOptions({
       count: true,
       min: true,
@@ -410,8 +411,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('sampleValues', function() {
-    var n0 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
-    var n1 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
+    var n0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+    var n1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     // maxNumSampleValues defaults to numBins * 10, which, including the
     // underflowBin and overflowBin plus this builder's 10 central bins,
     // is 12 * 10.
@@ -438,43 +439,11 @@ tr.b.unittest.testSuite(function() {
       n0.addSample(i);
     assert.strictEqual(n0.sampleValues.length, n0.maxNumSampleValues);
 
-    var n3 = new tr.v.Histogram(unitlessNumber, TEST_BOUNDARIES);
+    var n3 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     n3.maxNumSampleValues = 10;
     for (var i = 0; i < 100; ++i)
       n3.addSample(i);
     assert.strictEqual(n3.sampleValues.length, 10);
-  });
-
-  test('mergeScalarNumerics', function() {
-    var scalarA = new tr.v.ScalarNumeric(tr.b.Unit.byName.timeDurationInMs, 10);
-    var scalarB = new tr.v.ScalarNumeric(tr.b.Unit.byName.timeDurationInMs, 20);
-
-    var numeric = scalarA.merge(scalarB);
-    assert.instanceOf(numeric, tr.v.Histogram);
-    assert.strictEqual(numeric.maxNumSampleValues, 1000);
-    assert.strictEqual(numeric.numValues, 2);
-    assert.strictEqual(numeric.numNans, 0);
-    assert.lengthOf(numeric.sampleValues, 2);
-    assert.lengthOf(numeric.allBins, 4);
-
-    scalarB.value = scalarA.value;
-    numeric = scalarA.merge(scalarB);
-    assert.instanceOf(numeric, tr.v.Histogram);
-    assert.strictEqual(numeric.maxNumSampleValues, 1000);
-    assert.strictEqual(numeric.numValues, 2);
-    assert.strictEqual(numeric.numNans, 0);
-    assert.lengthOf(numeric.sampleValues, 2);
-    assert.lengthOf(numeric.allBins, 4);
-
-    scalarA.value = 'i am not a number';
-    scalarB.value = 'i am also not a number';
-    numeric = scalarA.merge(scalarB);
-    assert.instanceOf(numeric, tr.v.Histogram);
-    assert.strictEqual(numeric.maxNumSampleValues, 1000);
-    assert.strictEqual(numeric.numValues, 0);
-    assert.strictEqual(numeric.numNans, 2);
-    assert.lengthOf(numeric.sampleValues, 2);
-    assert.lengthOf(numeric.allBins, 4);
   });
 });
 </script>

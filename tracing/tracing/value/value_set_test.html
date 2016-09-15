@@ -17,24 +17,24 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('addValuesFromDicts', function() {
-    var n = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
-    var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
+    var n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
+    var values = new tr.v.ValueSet([n]);
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
   });
 
   test('addValueFromDictsWithSampleDiagnostic', function() {
-    var n = new tr.v.Histogram(tr.b.Unit.byName.count);
+    var n = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
     n.addSample(10, {bar: new tr.v.d.Generic('baz')});
 
-    var values = new tr.v.ValueSet([new tr.v.NumericValue('foo', n)]);
+    var values = new tr.v.ValueSet([n]);
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
     var v = values2.getValuesNamed('foo')[0];
-    assert.lengthOf(v.numeric.getBinForValue(10).diagnosticMaps, 1);
-    var dm = v.numeric.getBinForValue(10).diagnosticMaps[0];
+    assert.lengthOf(v.getBinForValue(10).diagnosticMaps, 1);
+    var dm = v.getBinForValue(10).diagnosticMaps[0];
     assert.strictEqual(dm.size, 1);
     assert.instanceOf(dm.get('bar'), tr.v.d.Generic);
     assert.strictEqual(dm.get('bar').value, 'baz');
@@ -42,9 +42,9 @@ tr.b.unittest.testSuite(function() {
 
   test('relatedValueSetDiagnostic', function() {
     var unit = tr.b.Unit.byName.unitlessNumber;
-    var a = new tr.v.NumericValue('a', new tr.v.Histogram(unit));
-    var b = new tr.v.NumericValue('b', new tr.v.Histogram(unit));
-    var c = new tr.v.NumericValue('c', new tr.v.Histogram(unit));
+    var a = new tr.v.Histogram('a', unit);
+    var b = new tr.v.Histogram('b', unit);
+    var c = new tr.v.Histogram('c', unit);
     a.diagnostics.set('rvs', new tr.v.d.RelatedValueSet([b, c]));
 
     // Don't serialize c just yet.
@@ -61,14 +61,14 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(a2, 1);
     a2 = a2[0];
     assert.strictEqual(a2.guid, a.guid);
-    assert.instanceOf(a2, tr.v.Value);
+    assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
     var b2 = values2.getValuesNamed('b');
     assert.lengthOf(b2, 1);
     b2 = b2[0];
     assert.strictEqual(b2.guid, b.guid);
-    assert.instanceOf(b2, tr.v.Value);
+    assert.instanceOf(b2, tr.v.Histogram);
     assert.notStrictEqual(b2, b);
 
     var rvs2 = a2.diagnostics.get('rvs');
@@ -107,9 +107,9 @@ tr.b.unittest.testSuite(function() {
 
   test('relatedValueMapDiagnostic', function() {
     var unit = tr.b.Unit.byName.unitlessNumber;
-    var a = new tr.v.NumericValue('a', new tr.v.Histogram(unit));
-    var b = new tr.v.NumericValue('b', new tr.v.Histogram(unit));
-    var c = new tr.v.NumericValue('c', new tr.v.Histogram(unit));
+    var a = new tr.v.Histogram('a', unit);
+    var b = new tr.v.Histogram('b', unit);
+    var c = new tr.v.Histogram('c', unit);
     var rvm = new tr.v.d.RelatedValueMap();
     rvm.set('y', b);
     rvm.set('z', c);
@@ -129,14 +129,14 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(a2, 1);
     a2 = a2[0];
     assert.strictEqual(a2.guid, a.guid);
-    assert.instanceOf(a2, tr.v.Value);
+    assert.instanceOf(a2, tr.v.Histogram);
     assert.notStrictEqual(a2, a);
 
     var b2 = values2.getValuesNamed('b');
     assert.lengthOf(b2, 1);
     b2 = b2[0];
     assert.strictEqual(b2.guid, b.guid);
-    assert.instanceOf(b2, tr.v.Value);
+    assert.instanceOf(b2, tr.v.Histogram);
     assert.notStrictEqual(b2, b);
 
     var rvm2 = a2.diagnostics.get('rvm');
@@ -157,7 +157,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(c2, 1);
     c2 = c2[0];
     assert.strictEqual(c2.guid, c.guid);
-    assert.instanceOf(c2, tr.v.Value);
+    assert.instanceOf(c2, tr.v.Histogram);
     assert.notStrictEqual(c2, c);
 
     // b2 should still be in a2's RelatedValueMap.
@@ -169,17 +169,15 @@ tr.b.unittest.testSuite(function() {
 
   test('sourceValuesWithSampleDiagnostic', function() {
     var unit = tr.b.Unit.byName.unitlessNumber;
-    var aHist = new tr.v.Histogram(unit);
+    var aHist = new tr.v.Histogram('a', unit);
     aHist.addSample(1);
-    var a = new tr.v.NumericValue('a', aHist);
 
-    var numeric = new tr.v.Histogram(tr.b.Unit.byName.unitlessNumber);
-    numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([a])});
-    var b = new tr.v.NumericValue('b', numeric);
+    var numeric = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
+    numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([aHist])});
 
-    var values = new tr.v.ValueSet([a, b]);
+    var values = new tr.v.ValueSet([aHist, numeric]);
     assert.lengthOf(values.sourceValues, 1);
-    assert.strictEqual(values.sourceValues[0], b);
+    assert.strictEqual(values.sourceValues[0], numeric);
   });
 });
 </script>

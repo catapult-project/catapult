@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(values.getValuesNamed('cpu:percent:chrome'), 1);
     assert.lengthOf(values.getValuesNamed('cpu:percent:crudd'), 1);
     var chromeValue = values.getValuesNamed('cpu:percent:chrome')[0];
-    var chromeStatistics = chromeValue.numeric.running;
+    var chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 1);
     assert.closeTo(chromeStatistics.mean, 0.011, 1e-5);
     assert.closeTo(chromeStatistics.max, 0.011, 1e-5);
@@ -107,7 +107,7 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(values.getValuesNamed('cpu:percent:crudd'), 1);
     assert.lengthOf(values.getValuesNamed('cpu:percent:mnp_logger'), 1);
     var chromeValue = values.getValuesNamed('cpu:percent:chrome')[0];
-    var chromeStatistics = chromeValue.numeric.running;
+    var chromeStatistics = chromeValue.running;
     assert.strictEqual(chromeStatistics.count, 2);
     assert.closeTo(chromeStatistics.mean, 0.0075, 1e-5);
     assert.strictEqual(chromeStatistics.max, 0.008);

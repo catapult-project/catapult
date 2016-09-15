@@ -13,7 +13,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/timed_event.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -108,8 +107,8 @@ tr.exportTo('tr.metrics.sh', function() {
     .addLinearBins(3e3, 20) // 100ms step to 3s
     .addExponentialBins(20e3, 20);
 
-  function createHistogram() {
-    var histogram = new tr.v.Histogram(
+  function createHistogram(name) {
+    var histogram = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, FIRST_PAINT_BOUNDARIES);
     histogram.customizeSummaryOptions({
       avg: true,
@@ -234,9 +233,10 @@ tr.exportTo('tr.metrics.sh', function() {
     var navigationStartFinder = new NavigationStartFinder(rendererHelper);
 
     for (var metric of METRICS) {
-      var histogram = createHistogram();
+      var histogram = createHistogram(metric.valueName);
+      histogram.description = metric.description;
       var targetEvents = findAllUserTimingEvents(rendererHelper, metric.title);
-     for (var ev of targetEvents) {
+      for (var ev of targetEvents) {
         if (isTelemetryInternalEvent(ev))
           continue;
         var frameIdRef = ev.args['frame'];
@@ -257,8 +257,7 @@ tr.exportTo('tr.metrics.sh', function() {
         var timeToEvent = ev.start - navigationStartEvent.start;
         histogram.addSample(timeToEvent, {url: new tr.v.d.Generic(url)});
       }
-      values.addValue(new tr.v.NumericValue(metric.valueName, histogram,
-          {description: metric.description}));
+      values.addHistogram(histogram);
     }
   }
 
@@ -336,8 +335,12 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.model.helpers.ChromeModelHelper);
     var rendererHelper = findTargetRendererHelper(chromeHelper);
     var navigationStartFinder = new NavigationStartFinder(rendererHelper);
-    var firstMeaningfulPaintHistogram = createHistogram();
-    var firstInteractiveHistogram = createHistogram();
+    var firstMeaningfulPaintHistogram = createHistogram(
+        'timeToFirstMeaningfulPaint');
+    firstMeaningfulPaintHistogram.description =
+      'time to first meaningful paint';
+    var firstInteractiveHistogram = createHistogram('timeToFirstInteractive');
+    firstInteractiveHistogram.description = 'time to first interactive';
 
     function addFirstMeaningfulPaintSampleToHistogram(
         frameIdRef, navigationStart, fmpMarkerEvent) {
@@ -414,12 +417,8 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    values.addValue(new tr.v.NumericValue(
-        'timeToFirstMeaningfulPaint', firstMeaningfulPaintHistogram,
-        { description: 'time to first meaningful paint' }));
-    values.addValue(new tr.v.NumericValue(
-        'timeToFirstInteractive', firstInteractiveHistogram,
-        { description: 'time to first interactive' }));
+    values.addHistogram(firstMeaningfulPaintHistogram);
+    values.addHistogram(firstInteractiveHistogram);
   }
 
   function loadingMetric(values, model) {

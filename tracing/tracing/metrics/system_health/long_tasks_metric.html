@@ -5,12 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import"
-    href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -74,10 +72,11 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function longTasksMetric(values, model, opt_options) {
     var rangeOfInterest = opt_options ? opt_options.rangeOfInterest : undefined;
-    var longTaskNumeric = new
-      tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-          tr.v.HistogramBinBoundaries.createLinear(
-              LONG_TASK_MS, LONGEST_TASK_MS, 40));
+    var longTaskNumeric = new tr.v.Histogram('long tasks',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        tr.v.HistogramBinBoundaries.createLinear(
+            LONG_TASK_MS, LONGEST_TASK_MS, 40));
+    longTaskNumeric.description = 'durations of long tasks';
     var slices = new tr.model.EventSet();
     iterateRendererMainThreads(model, function(thread) {
       iterateLongTopLevelTasksOnThreadInRange(
@@ -88,10 +87,7 @@ tr.exportTo('tr.metrics.sh', function() {
             slices.addEventSet(task.descendentSlices);
           });
     });
-    var options = {description: 'durations of long tasks'};
-    var longTaskValue = new tr.v.NumericValue(
-        'long tasks', longTaskNumeric, options);
-    values.addValue(longTaskValue);
+    values.addHistogram(longTaskNumeric);
 
     var sampleForEvent = undefined;
     var composition = tr.v.d.Composition.buildFromEvents(

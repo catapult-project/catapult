@@ -29,8 +29,8 @@ tr.b.unittest.testSuite(function() {
     var powerEntries = valueSet.valueDicts.filter(
         (dict) => dict.name === 'energy_consumed_per_frame');
     var powerEntry = tr.b.getOnlyElement(powerEntries);
-    assert.equal(powerEntry.numeric.centralBins[0].count, 5);
-    assert.closeTo(powerEntry.numeric.running.sum, 0.0172, 1e-4);
+    assert.equal(powerEntry.centralBins[0].count, 5);
+    assert.closeTo(powerEntry.running.sum, 0.0172, 1e-4);
   });
 
   test('powerMetric_oneFrame', function() {
@@ -49,8 +49,8 @@ tr.b.unittest.testSuite(function() {
     var powerEntries = valueSet.valueDicts.filter(
         (dict) => dict.name === 'energy_consumed_per_frame');
     var powerEntry = tr.b.getOnlyElement(powerEntries);
-    assert.equal(powerEntry.numeric.centralBins[0].count, 1);
-    assert.closeTo(powerEntry.numeric.running.sum, 0.0011, 1e-4);
+    assert.equal(powerEntry.centralBins[0].count, 1);
+    assert.closeTo(powerEntry.running.sum, 0.0011, 1e-4);
   });
 
   test('powerMetric_noPowerSeries', function() {

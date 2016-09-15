@@ -86,14 +86,13 @@ Polymer({
         dataSeries.color = color;
       }
 
-      if (value instanceof tr.v.NumericValue) {
+      if (value instanceof tr.v.Histogram) {
         dataSeries.target = value;
-        if (value.numeric instanceof tr.v.ScalarNumeric)
-          data[name] = value.numeric.value;
-        else if (value.numeric instanceof tr.v.Histogram)
-          data[name] = value.numeric.sum;
+        data[name] = value.sum;
       } else if (typeof value === 'number') {
         data[name] = value;
+      } else {
+        throw new Error('unsupported value ' + value);
       }
     }
     this.chart_.data = [data];

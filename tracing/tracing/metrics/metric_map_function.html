@@ -55,7 +55,7 @@ tr.exportTo('tr.metrics', function() {
 
     var scalarDicts = [];
     for (var value of values) {
-      for (var [statName, scalar] of value.numeric.statisticsScalars) {
+      for (var [statName, scalar] of value.statisticsScalars) {
         scalarDicts.push({
           name: value.name + '_' + statName,
           numeric: scalar.asDict(),

@@ -14,7 +14,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -770,22 +769,21 @@ tr.exportTo('tr.metrics.sh', function() {
     var name = nameParts.join(':');
 
     // Build the underlying histogram for the memory value.
-    var histogram = new tr.v.Histogram(unitlessNumber_smallerIsBetter,
+    var histogram = new tr.v.Histogram(name, unitlessNumber_smallerIsBetter,
         BOUNDARIES_FOR_UNIT_MAP.get(unitlessNumber_smallerIsBetter));
     histogram.addSample(levelOfDetailDumpCount);
 
     // Build the options for the memory value.
-    var description = [
+    histogram.description = [
       'total number of',
       levelOfDetailName || 'all',
       'memory dumps added by',
       convertBrowserNameToUserFriendlyName(browserName),
       'to the trace'
     ].join(' ');
-    var options = { description: description };
 
     // Report the memory value.
-    values.addValue(new tr.v.NumericValue(name, histogram, options));
+    values.addHistogram(histogram);
   }
 
   /**
@@ -1094,18 +1092,17 @@ tr.exportTo('tr.metrics.sh', function() {
     var name = nameParts.join(':');
 
     // Build the underlying numeric for the memory value.
-    var numeric = buildMemoryNumericFromNode(componentNode, unit);
+    var numeric = buildMemoryNumericFromNode(name, componentNode, unit);
 
     // Build the options for the memory value.
-    var description = [
+    numeric.description = [
       descriptionPrefixBuilder(componentPath, processName),
       'in',
       convertBrowserNameToUserFriendlyName(browserName)
     ].join(' ');
-    var options = { description: description };
 
     // Report the memory value.
-    values.addValue(new tr.v.NumericValue(name, numeric, options));
+    values.addHistogram(numeric);
 
     // Recursively report memory values for sub-components.
     var depth = componentPath.length;
@@ -1123,8 +1120,9 @@ tr.exportTo('tr.metrics.sh', function() {
    * Create a memory tr.v.Histogram with |unit| and add all total values in
    * |node| to it.
    */
-  function buildMemoryNumericFromNode(node, unit) {
-    var histogram = new tr.v.Histogram(unit, BOUNDARIES_FOR_UNIT_MAP.get(unit));
+  function buildMemoryNumericFromNode(name, node, unit) {
+    var histogram = new tr.v.Histogram(
+        name, unit, BOUNDARIES_FOR_UNIT_MAP.get(unit));
     node.values.forEach(v => histogram.addSample(v.total));
     return histogram;
   }

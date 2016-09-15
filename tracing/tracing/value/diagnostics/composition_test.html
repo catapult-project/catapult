@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/value/diagnostics/composition.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
 <script>
@@ -55,27 +54,27 @@ tr.b.unittest.testSuite(function() {
 
     assert.lengthOf(composition, 2);
     var scriptValue = values.getValuesNamed('foo-script_execute')[0];
-    assert.instanceOf(scriptValue, tr.v.NumericValue);
+    assert.instanceOf(scriptValue, tr.v.Histogram);
     assert.strictEqual(scriptValue, composition.get('script_execute'));
-    assert.lengthOf(scriptValue.numeric.centralBins[1].diagnosticMaps, 1);
+    assert.lengthOf(scriptValue.centralBins[1].diagnosticMaps, 1);
     events = [...events];
-    var relatedEvents = scriptValue.numeric.centralBins[1].diagnosticMaps[0]
+    var relatedEvents = scriptValue.centralBins[1].diagnosticMaps[0]
         .get('relatedEvents');
     assert.lengthOf(relatedEvents, 1);
     assert.strictEqual(events[0], [...relatedEvents][0]);
-    assert.lengthOf(scriptValue.numeric.centralBins[2].diagnosticMaps, 1);
+    assert.lengthOf(scriptValue.centralBins[2].diagnosticMaps, 1);
     assert.lengthOf(
-        scriptValue.numeric.centralBins[2].diagnosticMaps[0]
+        scriptValue.centralBins[2].diagnosticMaps[0]
         .get('relatedEvents'), 1);
     assert.strictEqual(events[1],
-        [...scriptValue.numeric.centralBins[2].diagnosticMaps[0]
+        [...scriptValue.centralBins[2].diagnosticMaps[0]
         .get('relatedEvents')][0]);
 
     var styleValue = values.getValuesNamed('foo-style')[0];
-    assert.instanceOf(styleValue, tr.v.NumericValue);
+    assert.instanceOf(styleValue, tr.v.Histogram);
     assert.strictEqual(styleValue, composition.get('style'));
-    assert.lengthOf(styleValue.numeric.centralBins[3].diagnosticMaps, 1);
-    relatedEvents = styleValue.numeric.centralBins[3].diagnosticMaps[0]
+    assert.lengthOf(styleValue.centralBins[3].diagnosticMaps, 1);
+    relatedEvents = styleValue.centralBins[3].diagnosticMaps[0]
         .get('relatedEvents');
     assert.lengthOf(relatedEvents, 1);
     assert.strictEqual(events[2], [...relatedEvents][0]);

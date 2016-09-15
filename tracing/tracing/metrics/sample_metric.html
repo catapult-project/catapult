@@ -8,14 +8,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
   function sampleMetric(values, model) {
-    var hist = new tr.v.Histogram(tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
+    var hist = new tr.v.Histogram(
+        'foo', tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
     hist.addSample(9);
     hist.addSample(91, {bar: new tr.v.d.Generic({hello: 42})});
 
@@ -33,7 +33,7 @@ tr.exportTo('tr.metrics', function() {
     tr.b.iterItems(model.processes, function(pid, process) {
     });
 
-    values.addValue(new tr.v.NumericValue('foo', hist));
+    values.addHistogram(hist);
   }
 
   tr.metrics.MetricRegistry.register(sampleMetric);

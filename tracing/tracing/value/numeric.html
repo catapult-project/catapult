@@ -23,32 +23,6 @@ tr.exportTo('tr.v', function() {
       this.unit = unit;
     }
 
-    merge(other) {
-      if (this.unit !== other.unit)
-        throw new Error('Merging Numerics with different units');
-
-      // Two Numerics that were built with the same boundaries
-      // can be merged using addHistogram().
-      if (this instanceof tr.v.Histogram && other instanceof tr.v.Histogram &&
-          this.canAddHistogram(other)) {
-        var result = this.clone();
-        result.addHistogram(other.clone());
-        return result;
-      }
-
-      // Either a Scalar and a Histogram, or two Scalars...
-      // or two Numerics that were not built with the same boundaries should be
-      // built from their raw samples.
-      var samples = [];
-      this.sampleValuesInto(samples);
-      other.sampleValuesInto(samples);
-      return tr.v.Histogram.buildFromSamples(this.unit, samples);
-    }
-
-    sampleValuesInto(samples) {
-      throw new Error('Not implemented');
-    }
-
     asDict() {
       var d = {
         unit: this.unit.asJSON()
@@ -61,9 +35,6 @@ tr.exportTo('tr.v', function() {
     static fromDict(d) {
       if (d.type === 'scalar')
         return ScalarNumeric.fromDict(d);
-
-      if (d.type === 'numeric')
-        return tr.v.Histogram.fromDict(d);
 
       throw new Error('Not implemented');
     }
@@ -94,10 +65,6 @@ tr.exportTo('tr.v', function() {
         d.value = 'NaN';
       else
         d.value = this.value;
-    }
-
-    sampleValuesInto(samples) {
-      samples.push(this.value);
     }
 
     toString() {

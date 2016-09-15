@@ -19,7 +19,7 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.cpuTimeMetric(values, model);
-    return tr.b.getOnlyElement(values).numeric.average;
+    return tr.b.getOnlyElement(values).average;
   }
 
   // There are two slices, each of length 50. The total bounds is 3000.

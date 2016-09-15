@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -19,7 +18,7 @@ tr.exportTo('tr.v', function() {
 
       if (opt_values !== undefined)
         for (var value of opt_values)
-          this.addValue(value);
+          this.addHistogram(value);
     }
 
     get valueDicts() {
@@ -44,7 +43,7 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * @param {!function(!tr.v.Value):*} callback
+     * @param {!function(!tr.v.Histogram):*} callback
      * @param {*=} opt_this
      */
     map(callback, opt_this) {
@@ -59,7 +58,7 @@ tr.exportTo('tr.v', function() {
      */
     addValuesFromDicts(dicts) {
       for (var dict of dicts)
-        this.addValueInternal_(tr.v.Value.fromDict(dict));
+        this.addHistogram(tr.v.Histogram.fromDict(dict));
 
       // Now resolve the RelatedValueSet references between values.
       // This resolution process must wait until all new values are added in
@@ -78,15 +77,12 @@ tr.exportTo('tr.v', function() {
         }
 
         // In addition to Values, we must also look inside of Histogram samples.
-        if (value instanceof tr.v.NumericValue &&
-            value.numeric instanceof tr.v.Histogram) {
-          for (var bin of value.numeric.allBins) {
-            for (var dm of bin.diagnosticMaps) {
-              for (var [name, diagnostic] of dm) {
-                if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
-                    (diagnostic instanceof tr.v.d.RelatedValueMap)) {
-                  diagnostic.resolve(this);
-                }
+        for (var bin of value.allBins) {
+          for (var dm of bin.diagnosticMaps) {
+            for (var [name, diagnostic] of dm) {
+              if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
+                  (diagnostic instanceof tr.v.d.RelatedValueMap)) {
+                diagnostic.resolve(this);
               }
             }
           }
@@ -98,13 +94,13 @@ tr.exportTo('tr.v', function() {
      * Find the Values that are not contained in any other Values'
      * RelatedValueSet or RelatedValueMap diagnostics.
      *
-     * @return {!Array.<!tr.v.Value>}
+     * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceValues() {
       var sourceValues = new Map(this.values_);
-      // If a Value is in a RelatedValueSet or RelatedValueMap, which can be
+      // If a Histogram is in a RelatedValueSet or RelatedValueMap, which can be
       // owned either by Values or by numeric samples, then it is not a
-      // source Value.
+      // source Histogram.
       function deleteSourceValues(diagnosticMap) {
         for (var [name, diagnostic] of diagnosticMap) {
           if (diagnostic instanceof tr.v.d.RelatedValueSet)
@@ -116,36 +112,29 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      this.map(function(value) {
-        deleteSourceValues(value.diagnostics);
-        if ((value instanceof tr.v.NumericValue) &&
-            (value.numeric instanceof tr.v.Histogram)) {
-          for (var b of value.numeric.allBins) {
-            for (var dm of b.diagnosticMaps) {
-              // TODO(eakuefner): Rewrite this as a for-of loop once
-              // https://github.com/catapult-project/catapult/issues/2678 is
-              // fixed.
-              deleteSourceValues(dm);
-            }
+      for (var hist of this) {
+        deleteSourceValues(hist.diagnostics);
+        for (var b of hist.allBins) {
+          for (var dm of b.diagnosticMaps) {
+            deleteSourceValues(dm);
           }
         }
-      });
+      }
       return [...sourceValues.values()];
     }
 
     getValuesNamed(name) {
-      return this.toArray().filter(v => v.name == name);
+      return this.toArray().filter(h => h.name === name);
     }
 
-    addValueInternal_(v) {
-      if (this.values_.get(v.guid))
-        throw new Error('Tried to add same value twice');
+    /**
+     * @param {!tr.v.Histogram} h
+     */
+    addHistogram(h) {
+      if (this.values_.get(h.guid))
+        throw new Error('Cannot add same Histogram twice');
 
-      this.values_.set(v.guid, v);
-    }
-
-    addValue(v) {
-      this.addValueInternal_(v);
+      this.values_.set(h.guid, h);
     }
   }
 

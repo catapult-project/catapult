@@ -10,22 +10,21 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/composition_span.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantiate_Composition', function() {
-    var foo = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs);
-    var bar = new tr.v.Histogram(tr.b.Unit.byName.timeDurationInMs);
+    var foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
+    var bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
     for (var i = 0; i < 1e2; ++i) {
       foo.addSample(Math.random());
       bar.addSample(Math.random());
     }
     var composition = new tr.v.d.Composition();
-    composition.add(new tr.v.NumericValue('foo', foo));
-    composition.add(new tr.v.NumericValue('bar', bar));
+    composition.add(foo);
+    composition.add(bar);
     var span = tr.v.ui.createDiagnosticSpan(composition);
     assert.strictEqual('TR-V-UI-COMPOSITION-SPAN', span.tagName);
     this.addHTMLOutput(span);

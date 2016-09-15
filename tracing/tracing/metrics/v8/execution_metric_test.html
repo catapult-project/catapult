@@ -65,7 +65,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.v8.executionMetric(values, model);
 
     var value = values.getValuesNamed('v8_execution_wall_total')[0];
-    assert.closeTo(value.numeric.running.sum, 0.1, 1e-5);
+    assert.closeTo(value.running.sum, 0.1, 1e-5);
   });
 });
 </script>

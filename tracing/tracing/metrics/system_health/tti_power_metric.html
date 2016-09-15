@@ -11,7 +11,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -36,7 +35,7 @@ tr.exportTo('tr.metrics.sh', function() {
     tr.metrics.sh.loadingMetric(values, model);
     var ttiValues = values.getValuesNamed('timeToFirstInteractive');
     var intervals = [];
-    for (var bin of tr.b.getOnlyElement(ttiValues).numeric.allBins)
+    for (var bin of tr.b.getOnlyElement(ttiValues).allBins)
       for (var diagnostics of bin.diagnosticMaps) {
         var info = diagnostics.get('Navigation infos');
         intervals.push(tr.b.Range.fromExplicitRange(
@@ -51,8 +50,9 @@ tr.exportTo('tr.metrics.sh', function() {
 
     var intervals = getNavigationTTIIntervals(model);
     var lastLoadTime = 0;
-    var loadHistogram = new tr.v.Histogram(
+    var loadHistogram = new tr.v.Histogram('energy:load',
         tr.b.Unit.byName.energyInJoules_smallerIsBetter);
+    loadHistogram.description = 'Energy consumed in page loads';
     loadHistogram.customizeSummaryOptions({
         avg: false,
         count: false,
@@ -67,16 +67,16 @@ tr.exportTo('tr.metrics.sh', function() {
       loadHistogram.addSample(energyInJ);
       lastLoadTime = interval.max;
     }
-    values.addValue(new tr.v.NumericValue('energy:load',
-        loadHistogram, {description: 'Energy consumed in page loads'}));
+    values.addHistogram(loadHistogram);
     var afterLoadEnergyInJ = model.device.powerSeries.getEnergyConsumedInJ(
         lastLoadTime, model.bounds.max);
     var afterLoadTimeInMs = model.bounds.max - lastLoadTime;
     var afterLoadTimeInS = tr.b.convertUnit(afterLoadTimeInMs,
         tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
     var afterLoadPowerInW = afterLoadEnergyInJ / afterLoadTimeInS;
-    var afterLoadHistogram = new tr.v.Histogram(
+    var afterLoadHistogram = new tr.v.Histogram('power:after_load',
         tr.b.Unit.byName.powerInWatts_smallerIsBetter);
+    afterLoadHistogram.description = 'Average power after load';
     afterLoadHistogram.customizeSummaryOptions({
         avg: false,
         count: false,
@@ -86,9 +86,7 @@ tr.exportTo('tr.metrics.sh', function() {
         sum: false,
     });
     afterLoadHistogram.addSample(afterLoadPowerInW);
-    values.addValue(new tr.v.NumericValue(
-      'power:after_load', afterLoadHistogram,
-      {description: 'Average power after load'}));
+    values.addHistogram(afterLoadHistogram);
   }
 
   tr.metrics.MetricRegistry.register(ttiPowerMetric);

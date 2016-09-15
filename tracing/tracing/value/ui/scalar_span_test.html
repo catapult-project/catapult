@@ -509,10 +509,6 @@ tr.b.unittest.testSuite(function() {
 
   test('emptyNumeric', function() {
     assert.strictEqual(tr.v.ui.createScalarSpan(), '');
-
-    var value = new tr.v.NumericValue(
-        'foo', new tr.v.Histogram(tr.b.Unit.byName.count));
-    assert.strictEqual(tr.v.ui.createScalarSpan(value), '');
   });
 
   test('contextControllerChanges', function() {

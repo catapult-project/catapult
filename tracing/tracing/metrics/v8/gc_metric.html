@@ -10,7 +10,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/v8/utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -47,8 +46,8 @@ tr.exportTo('tr.metrics.v8', function() {
   var CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 20, 200)
     .addExponentialBins(200, 100);
 
-  function createNumericForTopEventTime() {
-    var n = new tr.v.Histogram(
+  function createNumericForTopEventTime(name) {
+    var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
         avg: true,
@@ -61,8 +60,8 @@ tr.exportTo('tr.metrics.v8', function() {
     return n;
   }
 
-  function createNumericForSubEventTime() {
-    var n = new tr.v.Histogram(
+  function createNumericForSubEventTime(name) {
+    var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
         avg: true,
@@ -76,8 +75,8 @@ tr.exportTo('tr.metrics.v8', function() {
     return n;
   }
 
-  function createNumericForIdleTime() {
-    var n = new tr.v.Histogram(
+  function createNumericForIdleTime(name) {
+    var n = new tr.v.Histogram(name,
         timeDurationInMs_smallerIsBetter, CUSTOM_BOUNDARIES);
     n.customizeSummaryOptions({
         avg: true,
@@ -91,8 +90,8 @@ tr.exportTo('tr.metrics.v8', function() {
     return n;
   }
 
-  function createPercentage(numerator, denominator, unit) {
-    var hist = new tr.v.Histogram(unit);
+  function createPercentage(name, numerator, denominator, unit) {
+    var hist = new tr.v.Histogram(name, unit);
     if (denominator === 0)
       hist.addSample(0);
     else
@@ -132,11 +131,11 @@ tr.exportTo('tr.metrics.v8', function() {
       isNotForcedTopGarbageCollectionEvent,
       tr.metrics.v8.utils.topGarbageCollectionEventName,
       function(name, events) {
-        var cpuDuration = createNumericForTopEventTime();
+        var cpuDuration = createNumericForTopEventTime(name);
         events.forEach(function(event) {
           cpuDuration.addSample(event.cpuDuration);
         });
-        values.addValue(new tr.v.NumericValue(name, cpuDuration));
+        values.addHistogram(cpuDuration);
       }
     );
   }
@@ -150,11 +149,11 @@ tr.exportTo('tr.metrics.v8', function() {
       isNotForcedTopGarbageCollectionEvent,
       event => 'v8-gc-total',
       function(name, events) {
-        var cpuDuration = createNumericForTopEventTime();
+        var cpuDuration = createNumericForTopEventTime(name);
         events.forEach(function(event) {
           cpuDuration.addSample(event.cpuDuration);
         });
-        values.addValue(new tr.v.NumericValue(name, cpuDuration));
+        values.addHistogram(cpuDuration);
       }
     );
   }
@@ -168,11 +167,11 @@ tr.exportTo('tr.metrics.v8', function() {
       isNotForcedSubGarbageCollectionEvent,
       tr.metrics.v8.utils.subGarbageCollectionEventName,
       function(name, events) {
-        var cpuDuration = createNumericForSubEventTime();
+        var cpuDuration = createNumericForSubEventTime(name);
         events.forEach(function(event) {
           cpuDuration.addSample(event.cpuDuration);
         });
-        values.addValue(new tr.v.NumericValue(name, cpuDuration));
+        values.addHistogram(cpuDuration);
       }
     );
   }
@@ -212,8 +211,9 @@ tr.exportTo('tr.metrics.v8', function() {
   function addIdleTimes(values, model, name, events) {
     var cpuDuration = createNumericForIdleTime();
     var insideIdle = createNumericForIdleTime();
-    var outsideIdle = createNumericForIdleTime();
-    var idleDeadlineOverrun = createNumericForIdleTime();
+    var outsideIdle = createNumericForIdleTime(name + '_outside_idle');
+    var idleDeadlineOverrun = createNumericForIdleTime(
+        name + '_idle_deadline_overrun');
     events.forEach(function(event) {
       var idleTask = tr.metrics.v8.utils.findParent(
           event, tr.metrics.v8.utils.isIdleTask);
@@ -238,16 +238,12 @@ tr.exportTo('tr.metrics.v8', function() {
       outsideIdle.addSample(event.cpuDuration - inside);
       idleDeadlineOverrun.addSample(overrun);
     });
-    values.addValue(new tr.v.NumericValue(
-        name + '_idle_deadline_overrun',
-        idleDeadlineOverrun));
-    values.addValue(new tr.v.NumericValue(
-        name + '_outside_idle', outsideIdle));
-    var percentage = createPercentage(insideIdle.sum,
+    values.addHistogram(idleDeadlineOverrun);
+    values.addHistogram(outsideIdle);
+    var percentage = createPercentage(name + '_percentage_idle', insideIdle.sum,
                                       cpuDuration.sum,
                                       percentage_biggerIsBetter);
-    values.addValue(new tr.v.NumericValue(
-        name + '_percentage_idle', percentage));
+    values.addHistogram(percentage);
   }
 
 
@@ -290,11 +286,10 @@ tr.exportTo('tr.metrics.v8', function() {
       }
       cpuDurationTotal += event.cpuDuration;
     });
-    var percentage = createPercentage(cpuDurationInV8Execute,
-                                      cpuDurationTotal,
-                                      percentage_smallerIsBetter);
-    values.addValue(new tr.v.NumericValue(
-        name + '_percentage_in_v8_execute', percentage));
+    var percentage = createPercentage(
+        name + '_percentage_in_v8_execute', cpuDurationInV8Execute,
+        cpuDurationTotal, percentage_smallerIsBetter);
+    values.addHistogram(percentage);
   }
 
   function addV8ExecuteMutatorUtilization(values, model) {
@@ -321,16 +316,16 @@ tr.exportTo('tr.metrics.v8', function() {
           var mutatorUtilization = tr.metrics.v8.utils.mutatorUtilization(
               0, time, WINDOW_SIZE_MS, pauses);
           [0.90, 0.95, 0.99].forEach(function(percent) {
-            var hist = new tr.v.Histogram(percentage_biggerIsBetter);
-            hist.addSample(mutatorUtilization.percentile(1.0 - percent));
-            values.addValue(new tr.v.NumericValue(
+            var hist = new tr.v.Histogram(
                 'v8-execute-mutator-utilization_pct_0' + percent * 100,
-                hist));
+                percentage_biggerIsBetter);
+            hist.addSample(mutatorUtilization.percentile(1.0 - percent));
+            values.addHistogram(hist);
           });
-          var hist = new tr.v.Histogram(percentage_biggerIsBetter);
+          var hist = new tr.v.Histogram(
+              'v8-execute-mutator-utilization_min', percentage_biggerIsBetter);
           hist.addSample(mutatorUtilization.min);
-          values.addValue(new tr.v.NumericValue(
-              'v8-execute-mutator-utilization_min', hist));
+          values.addHistogram(hist);
         }
     );
   }

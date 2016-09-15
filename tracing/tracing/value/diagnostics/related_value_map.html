@@ -20,33 +20,33 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-     * Lookup a Value by name. Returns undefined if |name| is not found.
+     * Lookup a Histogram by name. Returns undefined if |name| is not found.
      *
      * @param {string} name
-     * @return {!tr.v.d.ValueRef|!tr.v.Value|undefined}
+     * @return {!tr.v.d.ValueRef|!tr.v.Histogram|undefined}
      */
     get(name) {
       return this.valuesByName_.get(name);
     }
 
     /**
-     * Add a Value by an explicit name to this map.
+     * Add a Histogram by an explicit name to this map.
      *
      * @param {string} name
-     * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
+     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} value
      */
     set(name, value) {
-      if (!(value instanceof tr.v.Value) &&
+      if (!(value instanceof tr.v.Histogram) &&
           !(value instanceof tr.v.d.ValueRef))
-        throw new Error('Must be instanceof Value or ValueRef: ' + value);
+        throw new Error('Must be instanceof Histogram or ValueRef: ' + value);
 
       this.valuesByName_.set(name, value);
     }
 
     /**
-     * Add a Value implicitly by its own name to this map.
+     * Add a Histogram implicitly by its own name to this map.
      *
-     * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
+     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} value
      */
     add(value) {
       this.set(value.name, value);
@@ -79,10 +79,10 @@ tr.exportTo('tr.v.d', function() {
 
         var guid = value.guid;
         value = valueSet.lookup(guid);
-        if (value instanceof tr.v.Value)
+        if (value instanceof tr.v.Histogram)
           this.valuesByName_.set(name, value);
         else if (opt_required)
-          throw new Error('Unable to find Value ' + guid);
+          throw new Error('Unable to find Histogram ' + guid);
       }
     }
 

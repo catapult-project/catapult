@@ -94,9 +94,8 @@ tr.exportTo('tr.v', function() {
    * @param {!tr.b.Unit} unit
    * @param {!tr.v.HistogramBinBoundaries=} opt_binBoundaries
    */
-  class Histogram extends tr.v.NumericBase {
-    constructor(unit, opt_binBoundaries) {
-      super(unit);
+  class Histogram {
+    constructor(name, unit, opt_binBoundaries) {
 
       var binBoundaries = opt_binBoundaries;
       if (!binBoundaries) {
@@ -104,13 +103,23 @@ tr.exportTo('tr.v', function() {
         binBoundaries = DEFAULT_BOUNDARIES_FOR_UNIT.get(baseUnit.unitName);
       }
 
+      // If this Histogram is being deserialized, then its guid will be set by
+      // fromDict().
+      // If this Histogram is being computed by a metric, then its guid will be
+      // allocated the first time the guid is gotten by asDict().
+      this.guid_ = undefined;
+
       this.allBins = [];
       this.centralBins = [];
+      this.description = '';
+      this.diagnostics = new tr.v.d.DiagnosticMap();
       this.maxCount_ = 0;
+      this.name_ = name;
       this.nanDiagnosticMaps = [];
       this.numNans = 0;
       this.running = new tr.b.RunningStatistics();
       this.sampleValues_ = [];
+      this.shortName = undefined;
       this.summaryOptions = {
         count: true,
         sum: true,
@@ -122,6 +131,7 @@ tr.exportTo('tr.v', function() {
         nans: false,
         percentile: []
       };
+      this.unit = unit;
 
       this.underflowBin = new HistogramBin(tr.b.Range.fromExplicitRange(
           -Number.MAX_VALUE, binBoundaries.minBinBoundary));
@@ -139,10 +149,33 @@ tr.exportTo('tr.v', function() {
       this.maxNumSampleValues = this.allBins.length * 10;
     }
 
+    get name() {
+      return this.name_;
+    }
+
+    get guid() {
+      if (this.guid_ === undefined)
+        this.guid_ = tr.b.GUID.allocateUUID4();
+
+      return this.guid_;
+    }
+
+    set guid(guid) {
+      if (this.guid_ !== undefined)
+        throw new Error('Cannot reset guid');
+
+      this.guid_ = guid;
+    }
+
     static fromDict(d) {
       var boundaries = HistogramBinBoundaries.createWithBoundaries(
           d.binBoundaries);
-      var n = new Histogram(tr.b.Unit.fromJSON(d.unit), boundaries);
+      var n = new Histogram(d.name, tr.b.Unit.fromJSON(d.unit), boundaries);
+      n.guid = d.guid;
+      n.shortName = d.shortName;
+      n.description = d.description;
+      n.diagnostics.addDicts(d.diagnostics);
+
       n.underflowBin.fromDict(d.underflowBin);
       for (var i = 0; i < d.centralBins.length; ++i)
         n.centralBins[i].fromDict(d.centralBins[i]);
@@ -460,7 +493,11 @@ tr.exportTo('tr.v', function() {
 
     asDict() {
       return {
-        type: 'numeric',
+        name: this.name,
+        guid: this.guid,
+        shortName: this.shortName,
+        description: this.description,
+        diagnostics: this.diagnostics.asDict(),
         unit: this.unit.asJSON(),
         binBoundaries: this.binBoundaries,
 

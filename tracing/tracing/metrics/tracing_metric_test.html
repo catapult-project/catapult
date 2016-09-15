@@ -30,7 +30,7 @@ tr.b.unittest.testSuite(function() {
 
   function checkDurationValue(allValues, metricName, expected) {
     var value = tr.b.getOnlyElement(allValues.getValuesNamed(metricName));
-    assert.closeTo(1000 * value.numeric.average, expected, 0.1);
+    assert.closeTo(1000 * value.average, expected, 0.1);
   }
 
   test('hasEventSizesInBytes', function() {
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     var eventStringSize = getEventStringSize(events, [0, 1]);
     var value = tr.b.getOnlyElement(allValues.getValuesNamed(
         'Total trace size in bytes'));
-    assert.strictEqual(value.numeric.average, eventStringSize);
+    assert.strictEqual(value.average, eventStringSize);
   });
 
   test('maxValuePerSec', function() {
@@ -83,12 +83,12 @@ tr.b.unittest.testSuite(function() {
     var maxEventCountPerSec = 3;
     var value = tr.b.getOnlyElement(allValues.getValuesNamed(
         'Max number of events per second'));
-    assert.strictEqual(value.numeric.average, maxEventCountPerSec);
+    assert.strictEqual(value.average, maxEventCountPerSec);
 
     var maxEventBytesPerSec = getEventStringSize(events, [2, 3, 5]);
     value = tr.b.getOnlyElement(allValues.getValuesNamed(
         'Max event size in bytes per second'));
-    assert.strictEqual(value.numeric.average, maxEventBytesPerSec);
+    assert.strictEqual(value.average, maxEventBytesPerSec);
   });
 
   test('diagnostics', function() {
@@ -104,12 +104,6 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.tracingMetric(allValues, model);
 
     for (var value of allValues) {
-      // TODO(benjhayden): Remove this after statistics scalars are moved to
-      // python.
-      if (!(value instanceof tr.v.NumericValue) ||
-          !(value.numeric instanceof tr.v.Histogram))
-        continue;
-
       var d = value.diagnostics.get('category_with_max_event_size').value;
       assert.strictEqual(d.name, 'foo');
       assert.strictEqual(d.size_in_bytes, getEventStringSize(
@@ -147,10 +141,10 @@ tr.b.unittest.testSuite(function() {
             (acc, slice) => acc + JSON.stringify(slice).length, 0);
     var totalSizeValue = tr.b.getOnlyElement(allValues.getValuesNamed(
         'Total trace size of memory-infra dumps in bytes'));
-    assert.strictEqual(totalSizeValue.numeric.average, memoryCategorySize);
+    assert.strictEqual(totalSizeValue.average, memoryCategorySize);
     var sizePerDumpValue = tr.b.getOnlyElement(allValues.getValuesNamed(
         'Average trace size of memory-infra dumps in bytes'));
-    assert.strictEqual(sizePerDumpValue.numeric.average, memoryCategorySize);
+    assert.strictEqual(sizePerDumpValue.average, memoryCategorySize);
 
     checkDurationValue(allValues,
         'Average CPU overhead of mdp1 per OnMemoryDump call', 6.5);

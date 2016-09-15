@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -16,32 +15,32 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('FindMetricByName', function() {
     function sampleMetricA(values, model) {
-      var n1 = new tr.v.Histogram(tr.b.Unit.byName.count);
+      var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
       n1.addSample(1);
-      values.addValue(new tr.v.NumericValue('foo', n1));
+      values.addHistogram(n1);
     }
     tr.metrics.MetricRegistry.register(sampleMetricA);
 
     function sampleMetricB(values, model) {
-      var n1 = new tr.v.Histogram(tr.b.Unit.byName.count);
-      var n2 = new tr.v.Histogram(tr.b.Unit.byName.count);
+      var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
+      var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
       n1.addSample(1);
       n2.addSample(2);
-      values.addValue(new tr.v.NumericValue('foo', n1));
-      values.addValue(new tr.v.NumericValue('bar', n2));
+      values.addHistogram(n1);
+      values.addHistogram(n2);
     }
     tr.metrics.MetricRegistry.register(sampleMetricB);
 
     function sampleMetricC(values, model) {
-      var n1 = new tr.v.Histogram(tr.b.Unit.byName.count);
-      var n2 = new tr.v.Histogram(tr.b.Unit.byName.count);
-      var n3 = new tr.v.Histogram(tr.b.Unit.byName.count);
+      var n1 = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
+      var n2 = new tr.v.Histogram('bar', tr.b.Unit.byName.count);
+      var n3 = new tr.v.Histogram('baz', tr.b.Unit.byName.count);
       n1.addSample(1);
       n2.addSample(2);
       n3.addSample(3);
-      values.addValue(new tr.v.NumericValue('foo', n1));
-      values.addValue(new tr.v.NumericValue('bar', n2));
-      values.addValue(new tr.v.NumericValue('baz', n3));
+      values.addHistogram(n1);
+      values.addHistogram(n2);
+      values.addHistogram(n3);
     }
     tr.metrics.MetricRegistry.register(sampleMetricC);
 

@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/system_health/utils.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -42,13 +41,12 @@ tr.exportTo('tr.metrics.sh', function() {
           targetDomain = domain.toLowerCase();
       }
 
-      var hist = new tr.v.Histogram(
+      var hist = new tr.v.Histogram('clock_sync_latency_' + targetDomain,
           tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
           tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 30));
+      hist.description = 'Clock sync latency for domain ' + targetDomain;
       hist.addSample(latency);
-      values.addValue(new tr.v.NumericValue(
-          'clock_sync_latency_' + targetDomain, hist,
-          {description: 'Clock sync latency for domain ' + targetDomain}));
+      values.addHistogram(hist);
     }
   }
 

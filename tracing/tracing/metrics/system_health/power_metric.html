@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -21,9 +20,11 @@ tr.exportTo('tr.metrics.sh', function() {
       tr.b.UnitScale.Metric.NONE, tr.b.UnitScale.Metric.MILLI);
 
   function energyConsumedPerFrame(valueList, model) {
-    var frameEnergyConsumedInJ = new tr.v.Histogram(
+    var frameEnergyConsumedInJ = new tr.v.Histogram('energy_consumed_per_frame',
         tr.b.Unit.byName.energyInJoules_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 0.5, 20));
+    frameEnergyConsumedInJ.description =
+      'Energy consumption per frame in joules';
 
     var frameStartTs = parseFloat(model.device.powerSeries.samples[0].start);
     while (model.device.powerSeries.getSamplesWithinRange(
@@ -34,9 +35,7 @@ tr.exportTo('tr.metrics.sh', function() {
       frameEnergyConsumedInJ.addSample(currentFrameEnergy);
     }
 
-    valueList.addValue(new tr.v.NumericValue(
-        'energy_consumed_per_frame', frameEnergyConsumedInJ,
-        {description: 'Energy consumption per frame in joules'}));
+    valueList.addHistogram(frameEnergyConsumedInJ);
   }
 
   function powerMetric(valueList, model) {

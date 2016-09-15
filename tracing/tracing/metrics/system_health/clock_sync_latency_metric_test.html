@@ -44,8 +44,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.isDefined(battorValue);
     assert.isDefined(winQpcValue);
-    assert.closeTo(battorValue.numeric.average, 3.0, 1e-5);
-    assert.closeTo(winQpcValue.numeric.average, 6.0, 1e-5);
+    assert.closeTo(battorValue.average, 3.0, 1e-5);
+    assert.closeTo(winQpcValue.average, 6.0, 1e-5);
   });
 
   test('clockSyncLatencyMetric_noTelemetry', function() {

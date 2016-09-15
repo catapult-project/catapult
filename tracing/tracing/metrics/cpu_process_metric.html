@@ -7,7 +7,6 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -48,7 +47,7 @@ tr.exportTo('tr.metrics.sh', function() {
      for (var [processName, processData] of processSums.entries()) {
        if (!(processNumerics.has(processName))) {
          processNumerics.set(processName, {
-           numeric: new tr.v.Histogram(
+           numeric: new tr.v.Histogram('cpu:percent:' + processName,
              tr.b.Unit.byName.normalizedPercentage_smallerIsBetter),
            paths: new Set()
          });
@@ -65,7 +64,7 @@ tr.exportTo('tr.metrics.sh', function() {
   function cpuProcessMetric(values, model) {
     var snapshots = getCpuSnapshotsFromModel(model);
     var processNumerics = buildNumericsFromSnapshots(snapshots);
-    for (var [processName, processData] of processNumerics.entries()) {
+    for (var [processName, processData] of processNumerics) {
       var numeric = processData.numeric;
       // Treat missing snapshots as zeros. A process is missing from a snapshots
       // when its CPU usage was below minimum threshold when the snapshot was
@@ -73,10 +72,9 @@ tr.exportTo('tr.metrics.sh', function() {
       var missingSnapshotCount = snapshots.length - numeric.numValues;
       for (var i = 0; i < missingSnapshotCount; i++)
         numeric.addSample(0);
-      var value = new tr.v.NumericValue('cpu:percent:' + processName, numeric);
-      value.diagnostics.set('paths', new
+      numeric.diagnostics.set('paths', new
           tr.v.d.Generic([...processData.paths]));
-      values.addValue(value);
+      values.addHistogram(numeric);
     }
   }
 

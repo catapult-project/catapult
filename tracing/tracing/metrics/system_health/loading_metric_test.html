@@ -38,7 +38,8 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = values.valueDicts[0].numeric;
+    var numeric = tr.b.getOnlyElement(values.getValuesNamed(
+        'timeToFirstContentfulPaint'));
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
   });
@@ -101,7 +102,8 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var numeric = values.valueDicts[0].numeric;
+    var numeric = tr.b.getOnlyElement(values.getValuesNamed(
+        'timeToFirstContentfulPaint'));
     assert.equal(1, numeric.running.count);
     assert.equal(400, numeric.running.mean);
   });
@@ -138,9 +140,8 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var ttfmpEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'timeToFirstMeaningfulPaint');
-    var numeric = ttfmpEntries[0].numeric;
+    var numeric = tr.b.getOnlyElement(values.getValuesNamed(
+        'timeToFirstMeaningfulPaint'));
     assert.equal(1, numeric.running.count);
     assert.equal(800, numeric.running.mean);
   });
@@ -222,15 +223,16 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var ttiEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'timeToFirstInteractive');
-    var numeric = ttiEntries[0].numeric;
+    var numeric = tr.b.getOnlyElement(values.getValuesNamed(
+        'timeToFirstInteractive'));
     assert.equal(1, numeric.running.count);
     assert.equal(15200, numeric.running.mean);
-    var binsWithSampleDiagnosticMaps = numeric.centralBins.filter(
-        (bin) => bin.diagnosticMaps.length > 0);
-    var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0][
-                                                        'Navigation infos'];
+    var binsWithSampleDiagnosticMaps = numeric.allBins.filter(
+        bin => bin.diagnosticMaps.length > 0);
+    var diagnostic = binsWithSampleDiagnosticMaps[0].diagnosticMaps[0].get(
+                                                        'Navigation infos');
+    assert.equal(diagnostic.value.start, 200);
+    assert.equal(diagnostic.value.interactive, 15400);
     assert.equal(diagnostic.value.pid, 1984);
   });
 
@@ -326,9 +328,8 @@ tr.b.unittest.testSuite(function() {
     });
     var values = new tr.v.ValueSet();
     tr.metrics.sh.loadingMetric(values, model);
-    var ttiEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'timeToFirstInteractive');
-    var numeric = ttiEntries[0].numeric;
+    var numeric = tr.b.getOnlyElement(values.getValuesNamed(
+        'timeToFirstInteractive'));
     assert.equal(2, numeric.running.count);
     assert.equal(4000, numeric.running.min);
     assert.equal(15200, numeric.running.max);

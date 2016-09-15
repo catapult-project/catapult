@@ -55,7 +55,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.responsivenessMetric(valueList, model);
     var value = tr.b.getOnlyElement(valueList.getValuesNamed(
         'animation throughput'));
-    assert.strictEqual(value.numeric.numValues, 0);
+    assert.strictEqual(value.numValues, 0);
   });
 
   test('animationThroughputFramesAndNoFrames', function() {
@@ -64,7 +64,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.responsivenessMetric(valueList, model);
     var value = tr.b.getOnlyElement(valueList.getValuesNamed(
         'animation throughput'));
-    assert.strictEqual(value.numeric.average, 20);
+    assert.strictEqual(value.average, 20);
   });
 });
 </script>

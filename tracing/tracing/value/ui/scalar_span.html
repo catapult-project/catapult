@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/scalar_context_controller.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -22,7 +21,7 @@ tr.exportTo('tr.v.ui', function() {
   };
 
   /**
-   * @param {(undefined|!tr.v.NumericValue|!tr.v.Histogram)} value
+   * @param {undefined|tr.v.ScalarNumeric|tr.v.Histogram} value
    * @param {Object=} opt_config
    * @param {!tr.b.Range=} opt_config.customContextRange
    * @param {boolean=} opt_config.rightAlign
@@ -39,11 +38,6 @@ tr.exportTo('tr.v.ui', function() {
     var ownerDocument = config.ownerDocument || document;
 
     var span = ownerDocument.createElement('tr-v-ui-scalar-span');
-
-    if (value instanceof tr.v.NumericValue) {
-      value = value.numeric;
-      config.unit = value.unit;
-    }
 
     var numericValue;
     if (value instanceof tr.v.ScalarNumeric) {

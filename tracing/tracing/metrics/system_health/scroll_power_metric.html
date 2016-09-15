@@ -8,7 +8,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -17,12 +16,15 @@ tr.exportTo('tr.metrics.sh', function() {
   function scrollPowerMetric(values, model) {
     if (!model.device.powerSeries)
       return;
-    var timeHist = new tr.v.Histogram(
+    var timeHist = new tr.v.Histogram('time:scroll',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter)
-    var energyHist = new tr.v.Histogram(
+    timeHist.description = 'Time spent in scrolling';
+    var energyHist = new tr.v.Histogram('energy:scroll',
         tr.b.Unit.byName.energyInJoules_smallerIsBetter)
-    var powerHist = new tr.v.Histogram(
+    energyHist.description = 'Energy consumed by scrolling';
+    var powerHist = new tr.v.Histogram('power:scroll',
         tr.b.Unit.byName.powerInWatts_smallerIsBetter)
+    powerHist.description = 'Energy consumption rate in scrolling';
 
     timeHist.customizeSummaryOptions({
       avg: false,
@@ -66,14 +68,9 @@ tr.exportTo('tr.metrics.sh', function() {
       }
     }
 
-    values.addValue(new tr.v.NumericValue('time:scroll',
-        timeHist, {description: 'Time spent in scrolling'}));
-
-    values.addValue(new tr.v.NumericValue('energy:scroll',
-        energyHist, {description: 'Energy consumed by scrolling'}));
-
-    values.addValue(new tr.v.NumericValue('power:scroll',
-        powerHist, {description: 'Energy consumption rate in scrolling'}));
+    values.addHistogram(timeHist);
+    values.addHistogram(energyHist);
+    values.addHistogram(powerHist);
   }
 
   tr.metrics.MetricRegistry.register(scrollPowerMetric);

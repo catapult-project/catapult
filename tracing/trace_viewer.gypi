@@ -512,7 +512,6 @@
       'tracing/value/ui/scalar_span.html',
       'tracing/value/ui/value_set_table.html',
       'tracing/value/ui/value_set_view.html',
-      'tracing/value/value.html',
       'tracing/value/value_set.html',
     ],
     'tracing_img_files': [

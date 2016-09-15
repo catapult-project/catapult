@@ -66,28 +66,28 @@ tr.b.unittest.testSuite(function() {
       var actual = run(slices);
 
       var value = tr.b.getOnlyElement(actual.getValuesNamed(telemetryName));
-      assert.strictEqual(value.numeric.running.sum, 100);
-      assert.strictEqual(value.numeric.numValues, 1);
-      assert.strictEqual(value.numeric.average, 100);
-      assert.strictEqual(value.numeric.running.max, 100);
-      assert.closeTo(value.numeric.getApproximatePercentile(0.90), 100, 1);
+      assert.strictEqual(value.running.sum, 100);
+      assert.strictEqual(value.numValues, 1);
+      assert.strictEqual(value.average, 100);
+      assert.strictEqual(value.running.max, 100);
+      assert.closeTo(value.getApproximatePercentile(0.90), 100, 1);
 
       value = tr.b.getOnlyElement(actual.getValuesNamed(
           telemetryName + '_idle_deadline_overrun'));
-      assert.strictEqual(value.numeric.running.sum, 0);
-      assert.strictEqual(value.numeric.numValues, 1);
-      assert.strictEqual(value.numeric.average, 0);
-      assert.strictEqual(value.numeric.running.max, 0);
+      assert.strictEqual(value.running.sum, 0);
+      assert.strictEqual(value.numValues, 1);
+      assert.strictEqual(value.average, 0);
+      assert.strictEqual(value.running.max, 0);
 
       value = tr.b.getOnlyElement(actual.getValuesNamed(
           telemetryName + '_outside_idle'));
-      assert.strictEqual(value.numeric.running.sum, 100);
-      assert.strictEqual(value.numeric.numValues, 1);
-      assert.strictEqual(value.numeric.average, 100);
+      assert.strictEqual(value.running.sum, 100);
+      assert.strictEqual(value.numValues, 1);
+      assert.strictEqual(value.average, 100);
 
       value = tr.b.getOnlyElement(actual.getValuesNamed(
           telemetryName + '_percentage_idle'));
-      assert.strictEqual(value.numeric.average, 0);
+      assert.strictEqual(value.average, 0);
     });
   });
 
@@ -108,26 +108,26 @@ tr.b.unittest.testSuite(function() {
 
     var value = tr.b.getOnlyElement(actual.getValuesNamed(
           'v8-gc-latency-mark-compactor'));
-    assert.strictEqual(value.numeric.running.sum, 80);
-    assert.strictEqual(value.numeric.numValues, 1);
-    assert.strictEqual(value.numeric.average, 80);
-    assert.strictEqual(value.numeric.running.max, 80);
+    assert.strictEqual(value.running.sum, 80);
+    assert.strictEqual(value.numValues, 1);
+    assert.strictEqual(value.average, 80);
+    assert.strictEqual(value.running.max, 80);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_idle_deadline_overrun'));
-    assert.strictEqual(value.numeric.running.sum, 0);
-    assert.strictEqual(value.numeric.average, 0);
-    assert.strictEqual(value.numeric.running.max, 0);
+    assert.strictEqual(value.running.sum, 0);
+    assert.strictEqual(value.average, 0);
+    assert.strictEqual(value.running.max, 0);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_outside_idle'));
-    assert.strictEqual(value.numeric.running.sum, 0);
-    assert.strictEqual(value.numeric.average, 0);
-    assert.strictEqual(value.numeric.running.max, 0);
+    assert.strictEqual(value.running.sum, 0);
+    assert.strictEqual(value.average, 0);
+    assert.strictEqual(value.running.max, 0);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_percentage_idle'));
-    assert.strictEqual(value.numeric.average, 1);
+    assert.strictEqual(value.average, 1);
   });
 
   test('idleTimeOverrun', function() {
@@ -147,26 +147,26 @@ tr.b.unittest.testSuite(function() {
 
     var value = tr.b.getOnlyElement(actual.getValuesNamed(
           'v8-gc-latency-mark-compactor'));
-    assert.strictEqual(value.numeric.running.sum, 80);
-    assert.strictEqual(value.numeric.numValues, 1);
-    assert.strictEqual(value.numeric.average, 80);
-    assert.strictEqual(value.numeric.running.max, 80);
+    assert.strictEqual(value.running.sum, 80);
+    assert.strictEqual(value.numValues, 1);
+    assert.strictEqual(value.average, 80);
+    assert.strictEqual(value.running.max, 80);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_idle_deadline_overrun'));
-    assert.strictEqual(value.numeric.running.sum, 70);
-    assert.strictEqual(value.numeric.average, 70);
-    assert.strictEqual(value.numeric.running.max, 70);
+    assert.strictEqual(value.running.sum, 70);
+    assert.strictEqual(value.average, 70);
+    assert.strictEqual(value.running.max, 70);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_outside_idle'));
-    assert.strictEqual(value.numeric.running.sum, 70);
-    assert.strictEqual(value.numeric.average, 70);
-    assert.strictEqual(value.numeric.running.max, 70);
+    assert.strictEqual(value.running.sum, 70);
+    assert.strictEqual(value.average, 70);
+    assert.strictEqual(value.running.max, 70);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_percentage_idle'));
-    assert.closeTo(value.numeric.average, 1 / 8, 1e-6);
+    assert.closeTo(value.average, 1 / 8, 1e-6);
   });
 
   test('subEvents', function() {
@@ -184,9 +184,9 @@ tr.b.unittest.testSuite(function() {
     var actual = run(slices);
     var telemetryName = 'v8-gc-latency-mark-compactor-mark';
     var value = tr.b.getOnlyElement(actual.getValuesNamed(telemetryName));
-    assert.strictEqual(value.numeric.average, 80);
-    assert.strictEqual(value.numeric.running.max, 80);
-    assert.closeTo(value.numeric.getApproximatePercentile(0.90), 80, 1);
+    assert.strictEqual(value.average, 80);
+    assert.strictEqual(value.running.max, 80);
+    assert.closeTo(value.getApproximatePercentile(0.90), 80, 1);
   });
 
   test('total', function() {
@@ -204,26 +204,26 @@ tr.b.unittest.testSuite(function() {
     var actual = run(slices);
 
     var value = tr.b.getOnlyElement(actual.getValuesNamed('v8-gc-total'));
-    assert.strictEqual(value.numeric.running.sum, 180);
-    assert.strictEqual(value.numeric.numValues, 2);
-    assert.strictEqual(value.numeric.average, 90);
-    assert.strictEqual(value.numeric.running.max, 100);
+    assert.strictEqual(value.running.sum, 180);
+    assert.strictEqual(value.numValues, 2);
+    assert.strictEqual(value.average, 90);
+    assert.strictEqual(value.running.max, 100);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-total_idle_deadline_overrun'));
-    assert.strictEqual(value.numeric.running.sum, 0);
-    assert.strictEqual(value.numeric.average, 0);
-    assert.strictEqual(value.numeric.running.max, 0);
+    assert.strictEqual(value.running.sum, 0);
+    assert.strictEqual(value.average, 0);
+    assert.strictEqual(value.running.max, 0);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-total_outside_idle'));
-    assert.strictEqual(value.numeric.running.sum, 180);
-    assert.strictEqual(value.numeric.average, 90);
-    assert.strictEqual(value.numeric.running.max, 100);
+    assert.strictEqual(value.running.sum, 180);
+    assert.strictEqual(value.average, 90);
+    assert.strictEqual(value.running.max, 100);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-total_percentage_idle'));
-    assert.strictEqual(value.numeric.average, 0);
+    assert.strictEqual(value.average, 0);
   });
 
   test('percentageInV8Execute', function() {
@@ -246,7 +246,7 @@ tr.b.unittest.testSuite(function() {
     var actual = run(slices);
     var value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-gc-latency-mark-compactor_percentage_in_v8_execute'));
-    assert.strictEqual(value.numeric.average,
+    assert.strictEqual(value.average,
         (190 - 110) / ((190 - 110) + (220 - 210)));
   });
 
@@ -277,12 +277,12 @@ tr.b.unittest.testSuite(function() {
 
     var value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-execute-mutator-utilization_pct_095'));
-    assert.closeTo(value.numeric.average,
+    assert.closeTo(value.average,
         mutatorUtilization.percentile(1 - 0.95), 1e-2);
 
     value = tr.b.getOnlyElement(actual.getValuesNamed(
         'v8-execute-mutator-utilization_pct_099'));
-    assert.closeTo(value.numeric.average,
+    assert.closeTo(value.average,
         mutatorUtilization.percentile(1 - 0.99), 1e-2);
  });
 });

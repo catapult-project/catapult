@@ -24,12 +24,12 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-     * @param {!(tr.v.d.ValueRef|tr.v.Value)} v
+     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} v
      */
     add(value) {
-      if (!(value instanceof tr.v.Value) &&
+      if (!(value instanceof tr.v.Histogram) &&
           !(value instanceof tr.v.d.ValueRef))
-        throw new Error('Must be instanceof Value or ValueRef: ' + value);
+        throw new Error('Must be instanceof Histogram or ValueRef: ' + value);
 
       if (this.valuesByGuid_.get(value.guid))
         throw new Error('Tried to add same value twice');
@@ -67,10 +67,10 @@ tr.exportTo('tr.v.d', function() {
           continue;
 
         value = valueSet.lookup(guid);
-        if (value instanceof tr.v.Value)
+        if (value instanceof tr.v.Histogram)
           this.valuesByGuid_.set(guid, value);
         else if (opt_required)
-          throw new Error('Unable to find Value ' + guid);
+          throw new Error('Unable to find Histogram ' + guid);
       }
     }
 

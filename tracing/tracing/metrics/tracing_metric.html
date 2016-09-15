@@ -9,7 +9,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -27,10 +26,10 @@ tr.exportTo('tr.metrics', function() {
       1, 1e5, 30);
 
   function addTimeDurationValue(valueName, duration, allValues) {
-    var hist = new tr.v.Histogram(
+    var hist = new tr.v.Histogram(valueName,
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TIME_BOUNDARIES);
     hist.addSample(duration);
-    allValues.addValue(new tr.v.NumericValue(valueName, hist));
+    allValues.addHistogram(hist);
   }
 
   // Adds values specific to memory-infra dumps.
@@ -80,18 +79,16 @@ tr.exportTo('tr.metrics', function() {
     var memoryInfraEventsSize =
         categoryNamesToTotalEventSizes.get(MEMORY_INFRA_TRACING_CATEGORY);
     var memoryInfraTraceBytesValue = new tr.v.Histogram(
+        'Total trace size of memory-infra dumps in bytes',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     memoryInfraTraceBytesValue.addSample(memoryInfraEventsSize);
-    values.addValue(new tr.v.NumericValue(
-        'Total trace size of memory-infra dumps in bytes',
-        memoryInfraTraceBytesValue));
+    values.addHistogram(memoryInfraTraceBytesValue);
 
     var traceBytesPerDumpValue = new tr.v.Histogram(
+        'Average trace size of memory-infra dumps in bytes',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     traceBytesPerDumpValue.addSample(memoryInfraEventsSize / memoryDumpCount);
-    values.addValue(new tr.v.NumericValue(
-        'Average trace size of memory-infra dumps in bytes',
-        traceBytesPerDumpValue));
+    values.addHistogram(traceBytesPerDumpValue);
   }
 
   function tracingMetric(values, model) {
@@ -162,14 +159,16 @@ tr.exportTo('tr.metrics', function() {
     var categoryWithMaxEventBytes = maxCatNameAndBytes[0];
 
     var maxEventCountPerSecValue = new tr.v.Histogram(
+        'Max number of events per second',
       tr.b.Unit.byName.count_smallerIsBetter, COUNT_BOUNDARIES);
     maxEventCountPerSecValue.addSample(maxEventCountPerSec);
 
     var maxEventBytesPerSecValue = new tr.v.Histogram(
+        'Max event size in bytes per second',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     maxEventBytesPerSecValue.addSample(maxEventBytesPerSec);
 
-    var totalTraceBytesValue = new tr.v.Histogram(
+    var totalTraceBytesValue = new tr.v.Histogram('Total trace size in bytes',
         tr.b.Unit.byName.sizeInBytes_smallerIsBetter, BYTE_BOUNDARIES);
     totalTraceBytesValue.addSample(totalTraceBytes);
 
@@ -178,23 +177,17 @@ tr.exportTo('tr.metrics', function() {
       size_in_bytes: maxEventBytesPerCategory
     };
 
-    var totalBytes = new tr.v.NumericValue(
-        'Total trace size in bytes', totalTraceBytesValue);
-    totalBytes.diagnostics.set(
+    totalTraceBytesValue.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
-    values.addValue(totalBytes);
+    values.addHistogram(totalTraceBytesValue);
 
-    var peakEvents = new tr.v.NumericValue(
-        'Max number of events per second', maxEventCountPerSecValue);
-    peakEvents.diagnostics.set(
+    maxEventCountPerSecValue.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
-    values.addValue(peakEvents);
+    values.addHistogram(maxEventCountPerSecValue);
 
-    var peakBytes = new tr.v.NumericValue(
-        'Max event size in bytes per second', maxEventBytesPerSecValue);
-    peakBytes.diagnostics.set(
+    maxEventBytesPerSecValue.diagnostics.set(
         'category_with_max_event_size', new tr.v.d.Generic(biggestCategory));
-    values.addValue(peakBytes);
+    values.addHistogram(maxEventBytesPerSecValue);
 
     addMemoryInfraValues(values, model, categoryNamesToTotalEventSizes);
   }

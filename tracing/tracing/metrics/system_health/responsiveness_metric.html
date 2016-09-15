@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
 <link rel="import" href="/tracing/model/user_model/response_expectation.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value.html">
 
 <script>
 'use strict';
@@ -60,17 +59,18 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {!Object=} opt_options
    */
   function responsivenessMetric(values, model, opt_options) {
-    var responseNumeric = new tr.v.Histogram(
+    var responseNumeric = new tr.v.Histogram('response latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(100, 1e3, 50));
-    var throughputNumeric = new tr.v.Histogram(
+    var throughputNumeric = new tr.v.Histogram('animation throughput',
         tr.b.Unit.byName.unitlessNumber_biggerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(10, 60, 10));
     var frameTimeDiscrepancyNumeric = new tr.v.Histogram(
+        'animation frameTimeDiscrepancy',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 50).
           addExponentialBins(1e4, 10));
-    var latencyNumeric = new tr.v.Histogram(
+    var latencyNumeric = new tr.v.Histogram('animation latency',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
         tr.v.HistogramBinBoundaries.createLinear(0, 300, 60));
 
@@ -136,15 +136,10 @@ tr.exportTo('tr.metrics.sh', function() {
       });
     });
 
-    values.addValue(new tr.v.NumericValue(
-        'response latency', responseNumeric));
-    values.addValue(new tr.v.NumericValue(
-        'animation throughput', throughputNumeric));
-    values.addValue(new tr.v.NumericValue(
-        'animation frameTimeDiscrepancy',
-        frameTimeDiscrepancyNumeric));
-    values.addValue(new tr.v.NumericValue(
-        'animation latency', latencyNumeric));
+    values.addHistogram(responseNumeric);
+    values.addHistogram(throughputNumeric);
+    values.addHistogram(frameTimeDiscrepancyNumeric);
+    values.addHistogram(latencyNumeric);
   }
 
   tr.metrics.MetricRegistry.register(responsivenessMetric, {
