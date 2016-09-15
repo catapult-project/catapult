@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/dashboard/elements/chart-legend-tooltip.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var testOptions = {
+    setUp: function() {
+    },
+    tearDown: function() {
+    }
+  };
+
+  test('instantiate', function() {
+    var legend_tooltip = document.createElement('chart-legend-tooltip');
+    legend_tooltip.description = 'Amazing description.';
+    legend_tooltip.direction = 'Lower';
+    legend_tooltip.path = 'Master/bot/test.suite/metric';
+    legend_tooltip.units = 'us';
+
+    var container = document.createElement('div');
+    var text = document.createElement('span');
+    Polymer.dom(text).textContent =
+      'this_is_a_long_mertric_name';
+    Polymer.dom(container).appendChild(text);
+    Polymer.dom(container).appendChild(legend_tooltip);
+
+    this.addHTMLOutput(container);
+    document.getElementById('info').click();
+    }, testOptions);
+});
+</script>
