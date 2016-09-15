@@ -183,17 +183,21 @@ def _GenerateBrowserProfile(number_of_tabs):
   options = options_for_unittests.GetCopy()
   options.browser_options.output_profile_path = profile_dir
   browser_to_create = browser_finder.FindBrowser(options)
-  with browser_to_create.Create(options) as browser:
-    browser.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
-    blank_file_path = os.path.join(path.GetUnittestDataDir(), 'blank.html')
-    blank_url = browser.platform.http_server.UrlOf(blank_file_path)
-    browser.foreground_tab.Navigate(blank_url)
-    browser.foreground_tab.WaitForDocumentReadyStateToBeComplete()
-    for _ in xrange(number_of_tabs - 1):
-      tab = browser.tabs.New()
-      tab.Navigate(blank_url)
-      tab.WaitForDocumentReadyStateToBeComplete()
-  return profile_dir
+  browser_to_create.platform.network_controller.InitializeIfNeeded()
+  try:
+    with browser_to_create.Create(options) as browser:
+      browser.platform.SetHTTPServerDirectories(path.GetUnittestDataDir())
+      blank_file_path = os.path.join(path.GetUnittestDataDir(), 'blank.html')
+      blank_url = browser.platform.http_server.UrlOf(blank_file_path)
+      browser.foreground_tab.Navigate(blank_url)
+      browser.foreground_tab.WaitForDocumentReadyStateToBeComplete()
+      for _ in xrange(number_of_tabs - 1):
+        tab = browser.tabs.New()
+        tab.Navigate(blank_url)
+        tab.WaitForDocumentReadyStateToBeComplete()
+    return profile_dir
+  finally:
+    browser_to_create.platform.network_controller.Close()
 
 
 class BrowserCreationTest(unittest.TestCase):
@@ -233,6 +237,7 @@ class BrowserRestoreSessionTest(unittest.TestCase):
         ['--restore-last-session'])
     cls._options.browser_options.profile_dir = cls._profile_dir
     cls._browser_to_create = browser_finder.FindBrowser(cls._options)
+    cls._browser_to_create.platform.network_controller.InitializeIfNeeded()
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('chromeos', 'win', 'mac')
@@ -251,6 +256,7 @@ class BrowserRestoreSessionTest(unittest.TestCase):
 
   @classmethod
   def tearDownClass(cls):
+    cls._browser_to_create.platform.network_controller.Close()
     shutil.rmtree(cls._profile_dir)
 
 
@@ -263,10 +269,14 @@ class TestBrowserOperationDoNotLeakTempFiles(unittest.TestCase):
     browser_to_create = browser_finder.FindBrowser(options)
     self.assertIsNotNone(browser_to_create)
     before_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
-    with browser_to_create.Create(options) as browser:
-      tab = browser.tabs.New()
-      tab.Navigate('about:blank')
-      self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
-    after_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
-    self.assertEqual(before_browser_run_temp_dir_content,
-                     after_browser_run_temp_dir_content)
+    browser_to_create.platform.network_controller.InitializeIfNeeded()
+    try:
+      with browser_to_create.Create(options) as browser:
+        tab = browser.tabs.New()
+        tab.Navigate('about:blank')
+        self.assertEquals(2, tab.EvaluateJavaScript('1 + 1'))
+      after_browser_run_temp_dir_content = os.listdir(tempfile.tempdir)
+      self.assertEqual(before_browser_run_temp_dir_content,
+                       after_browser_run_temp_dir_content)
+    finally:
+      browser_to_create.platform.network_controller.Close()

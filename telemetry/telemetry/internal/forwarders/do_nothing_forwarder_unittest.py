@@ -28,44 +28,21 @@ class TestErrorDoNothingForwarder(do_nothing_forwarder.DoNothingForwarder):
 
 
 class CheckPortPairsTest(unittest.TestCase):
-  def testChecksOnlyHttpHttps(self):
-    port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(80, 80),
-        https=forwarders.PortPair(443, 443),
-        dns=forwarders.PortPair(53, 53))
-    f = TestDoNothingForwarder(port_pairs)
+  def testBasicCheck(self):
+    port_pair = forwarders.PortPair(80, 80)
+    f = TestDoNothingForwarder(port_pair)
     expected_connected_addresses = [
         ('127.0.0.1', 80),
-        ('127.0.0.1', 443),
-        # Port 53 is skipped because it is UDP and does not support connections.
-        ]
-    self.assertEqual(expected_connected_addresses, f.connected_addresses)
-
-  def testNoDnsStillChecksHttpHttps(self):
-    port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(5566, 5566),
-        https=forwarders.PortPair(7788, 7788),
-        dns=None)
-    f = TestDoNothingForwarder(port_pairs)
-    expected_connected_addresses = [
-        ('127.0.0.1', 5566),
-        ('127.0.0.1', 7788),
         ]
     self.assertEqual(expected_connected_addresses, f.connected_addresses)
 
   def testPortMismatchRaisesPortsMismatchError(self):
     # The do_nothing_forward cannot forward from one port to another.
-    port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(80, 80),
-        https=forwarders.PortPair(8443, 443),
-        dns=None)
+    port_pair = forwarders.PortPair(80, 81)
     with self.assertRaises(do_nothing_forwarder.PortsMismatchError):
-      TestDoNothingForwarder(port_pairs)
+      TestDoNothingForwarder(port_pair)
 
   def testConnectionTimeoutRaisesConnectionError(self):
-    port_pairs = forwarders.PortPairs(
-        http=forwarders.PortPair(80, 80),
-        https=forwarders.PortPair(8443, 443),
-        dns=None)
+    port_pair = forwarders.PortPair(80, 80)
     with self.assertRaises(do_nothing_forwarder.ConnectionError):
-      TestErrorDoNothingForwarder(port_pairs)
+      TestErrorDoNothingForwarder(port_pair)
