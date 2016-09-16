@@ -15,35 +15,41 @@ tr.exportTo('tr.v.d', function() {
     'ChromeUserFriendlyCategory';
 
   /**
-   * Composition encapsulates an additive relationship between Histograms:
-   * the Value that contains this Composition diagnostic is composed of the
-   * Values referenced by this Composition diagnostic. Composition is a
-   * "breakdown" of its containing Value into its contained Values. This
+   * RelatedHistogramBreakdown encapsulates an additive relationship between
+   * Histograms: the Histogram that contains this RelatedHistogramBreakdown
+   * diagnostic is composed of the Histograms referenced by this
+   * RelatedHistogramBreakdown diagnostic. RelatedHistogramBreakdown is a
+   * "breakdown" of its containing Histogram into its contained Histograms. This
    * additive relationship can apply to groups of other things besides Events,
-   * such as memory allocations. Compositions over groups of Events is expected
-   * to be the most common way of building Compositions, though it is not the
-   * only way. See buildFromEvents() for an example of how to build a
-   * Composition from an EventSet and a grouping function.
+   * such as memory allocations. RelatedHistogramBreakdowns over groups of
+   * Events is expected to be the most common way of building
+   * RelatedHistogramBreakdowns, though it is not the only way. See
+   * buildFromEvents() for an example of how to build a
+   * RelatedHistogramBreakdown from an EventSet and a grouping function.
    */
-  class Composition extends tr.v.d.RelatedValueMap {
+  class RelatedHistogramBreakdown extends tr.v.d.RelatedValueMap {
     constructor() {
       super();
       this.colorScheme = undefined;
     }
 
     /**
-     * Add a Value by an explicit name to this map.
+     * Add a Histogram by an explicit name to this map.
      *
      * @param {string} name
-     * @param {!(tr.v.d.ValueRef|tr.v.Value)} value
+     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} value
      */
     set(name, value) {
       if (!(value instanceof tr.v.d.ValueRef)) {
-        if (!(value instanceof tr.v.Histogram))
-          throw new Error('Composition can only contain Histograms');
+        if (!(value instanceof tr.v.Histogram)) {
+          throw new Error(
+              'RelatedHistogramBreakdown can only contain Histograms');
+        }
 
-        if (value.name.indexOf(name) !== (value.name.length - name.length))
-          throw new Error('Composition name must be a suffix of value.name');
+        if (value.name.indexOf(name) !== (value.name.length - name.length)) {
+          throw new Error(
+              'RelatedHistogramBreakdown name must be a suffix of value.name');
+        }
 
         if ((this.length > 0) &&
             (value.unit !==
@@ -63,22 +69,23 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      var composition = new Composition();
+      var diagnostic = new RelatedHistogramBreakdown();
       tr.b.iterItems(d.values, function(name, guid) {
-        composition.set(name, new tr.v.d.ValueRef(guid));
+        diagnostic.set(name, new tr.v.d.ValueRef(guid));
       });
       if (d.colorScheme)
-        composition.colorScheme = d.colorScheme;
-      return composition;
+        diagnostic.colorScheme = d.colorScheme;
+      return diagnostic;
     }
 
     /**
-    * Build a Composition and its Histograms from |events|. Group events
-    * using |categoryForEvent|. Add the Histograms to |values|.
-    * Histograms' names are prefixed with |namePrefix|. Numerics are built by
-    * |numericBuilder|. The numeric sample for each Event is derived from
-    * |opt_sampleForEvent|, which defaults to event.cpuSelfTime. The caller must
-    * add the result Composition to their Value's diagnostics.
+    * Build a RelatedHistogramBreakdown and its Histograms from |events|.  Group
+    * events using |categoryForEvent|. Add the Histograms to |values|.
+    * Histograms' names are prefixed with |namePrefix|. Histograms are built
+    * with |opt_binBoundaries|. The numeric sample for each Event is derived
+    * from |opt_sampleForEvent|, which defaults to event.cpuSelfTime. The caller
+    * must add the result RelatedHistogramBreakdown to their Histogram's
+    * diagnostics.
     *
     * @param {!tr.v.ValueSet} values
     * @param {string} namePrefix
@@ -88,42 +95,42 @@ tr.exportTo('tr.v.d', function() {
     * @param {!function(!tr.model.Event):number=} opt_sampleForEvent
     * @param {!tr.v.HistogramBinBoundaries=} opt_binBoundaries
     * @param {*=} opt_this
-    * @return {!Composition}
+    * @return {!RelatedHistogramBreakdown}
     */
     static buildFromEvents(values, namePrefix, events, categoryForEvent, unit,
         opt_sampleForEvent, opt_binBoundaries, opt_this) {
       var sampleForEvent = opt_sampleForEvent || ((event) => event.cpuSelfTime);
 
-      var composition = new Composition();
+      var diagnostic = new RelatedHistogramBreakdown();
       for (var event of events) {
         var sample = sampleForEvent.call(opt_this, event);
         if (sample === undefined)
           continue;
 
         var eventCategory = categoryForEvent.call(opt_this, event);
-        var value = composition.get(eventCategory);
+        var value = diagnostic.get(eventCategory);
         if (value === undefined) {
           value = new tr.v.Histogram(
               namePrefix + eventCategory, unit, opt_binBoundaries);
           values.addHistogram(value);
-          composition.set(eventCategory, value);
+          diagnostic.set(eventCategory, value);
         }
 
         value.addSample(sample,
             {relatedEvents: new tr.v.d.RelatedEventSet([event])});
       }
-      return composition;
+      return diagnostic;
     }
   }
 
-  tr.v.d.Diagnostic.register(Composition, {
-    elementName: 'tr-v-ui-composition-span'
+  tr.v.d.Diagnostic.register(RelatedHistogramBreakdown, {
+    elementName: 'tr-v-ui-breakdown-span'
   });
 
   return {
     COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER:
       COLOR_SCHEME_CHROME_USER_FRIENDLY_CATEGORY_DRIVER,
-    Composition: Composition
+    RelatedHistogramBreakdown: RelatedHistogramBreakdown
   };
 });
 </script>

@@ -19,7 +19,8 @@ tr.b.unittest.testSuite(function() {
     diagnostics.set('events', new tr.v.d.RelatedEventSet());
     diagnostics.set('value set', new tr.v.d.RelatedValueSet());
     diagnostics.set('value map', new tr.v.d.RelatedValueMap());
-    diagnostics.set('composition', new tr.v.d.Composition());
+    diagnostics.set('histogram breakdown',
+        new tr.v.d.RelatedHistogramBreakdown());
 
     var clone = tr.v.d.DiagnosticMap.fromDict(diagnostics.asDict());
     assert.instanceOf(clone.get('generic'), tr.v.d.Generic);
@@ -29,7 +30,8 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(clone.get('events'), tr.v.d.RelatedEventSet);
     assert.instanceOf(clone.get('value set'), tr.v.d.RelatedValueSet);
     assert.instanceOf(clone.get('value map'), tr.v.d.RelatedValueMap);
-    assert.instanceOf(clone.get('composition'), tr.v.d.Composition);
+    assert.instanceOf(clone.get('histogram breakdown'),
+        tr.v.d.RelatedHistogramBreakdown);
   });
 
   test('requireFromDict', function() {

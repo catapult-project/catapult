@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/column_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 
-<dom-module id="tr-v-ui-composition-span">
+<dom-module id="tr-v-ui-breakdown-span">
   <template>
     <div id="container"></div>
     <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
@@ -19,7 +19,7 @@ found in the LICENSE file.
 <script>
 'use strict';
 Polymer({
-  is: 'tr-v-ui-composition-span',
+  is: 'tr-v-ui-breakdown-span',
 
   created: function() {
     this.diagnostic_ = undefined;

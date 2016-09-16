@@ -6,7 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
-<link rel="import" href="/tracing/value/diagnostics/composition.html">
+<link rel="import" href="/tracing/value/diagnostics/related_histogram_breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/ui/composition_span.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
@@ -22,11 +22,11 @@ tr.b.unittest.testSuite(function() {
       foo.addSample(Math.random());
       bar.addSample(Math.random());
     }
-    var composition = new tr.v.d.Composition();
-    composition.add(foo);
-    composition.add(bar);
-    var span = tr.v.ui.createDiagnosticSpan(composition);
-    assert.strictEqual('TR-V-UI-COMPOSITION-SPAN', span.tagName);
+    var breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    breakdown.add(foo);
+    breakdown.add(bar);
+    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 
@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
     breakdown.set('script', 42);
     breakdown.set('style', 57);
     var span = tr.v.ui.createDiagnosticSpan(breakdown);
-    assert.strictEqual('TR-V-UI-COMPOSITION-SPAN', span.tagName);
+    assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
 });

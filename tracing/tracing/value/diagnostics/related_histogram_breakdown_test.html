@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/extras/chrome/chrome_user_friendly_category_driver.html">
 <link rel="import" href="/tracing/model/event_set.html">
-<link rel="import" href="/tracing/value/diagnostics/composition.html">
+<link rel="import" href="/tracing/value/diagnostics/related_histogram_breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
@@ -47,16 +47,16 @@ tr.b.unittest.testSuite(function() {
     ]);
 
     var sampleForEvent = undefined;
-    var composition = tr.v.d.Composition.buildFromEvents(
+    var diagnostic = tr.v.d.RelatedHistogramBreakdown.buildFromEvents(
         values, 'foo-', events,
         tr.e.chrome.ChromeUserFriendlyCategoryDriver.fromEvent,
         tr.b.Unit.byName.timeDurationInMs, sampleForEvent, TEST_BOUNDARIES);
 
-    assert.lengthOf(composition, 2);
+    assert.lengthOf(diagnostic, 2);
     var scriptValue = values.getValuesNamed('foo-script_execute')[0];
     assert.instanceOf(scriptValue, tr.v.Histogram);
-    assert.strictEqual(scriptValue, composition.get('script_execute'));
     assert.lengthOf(scriptValue.centralBins[1].diagnosticMaps, 1);
+    assert.strictEqual(scriptValue, diagnostic.get('script_execute'));
     events = [...events];
     var relatedEvents = scriptValue.centralBins[1].diagnosticMaps[0]
         .get('relatedEvents');
@@ -72,10 +72,10 @@ tr.b.unittest.testSuite(function() {
 
     var styleValue = values.getValuesNamed('foo-style')[0];
     assert.instanceOf(styleValue, tr.v.Histogram);
-    assert.strictEqual(styleValue, composition.get('style'));
     assert.lengthOf(styleValue.centralBins[3].diagnosticMaps, 1);
     relatedEvents = styleValue.centralBins[3].diagnosticMaps[0]
         .get('relatedEvents');
+    assert.strictEqual(styleValue, diagnostic.get('style'));
     assert.lengthOf(relatedEvents, 1);
     assert.strictEqual(events[2], [...relatedEvents][0]);
   });
