@@ -172,7 +172,6 @@ tr.exportTo('tr.ui', function() {
         return;
       }
 
-      var values = new tr.v.ValueSet();
       var options = {metrics: [this.currentMetricName_]};
 
       if (this.currentMetricTypeInfo_ &&
@@ -183,9 +182,7 @@ tr.exportTo('tr.ui', function() {
 
       var startDate = new Date();
       try {
-        var mreResult = new tr.mre.MreResult();
-        tr.metrics.metricMapFunction(mreResult, this.model_, options);
-        values.addValuesFromDicts(mreResult.pairs.histograms);
+        var values = tr.metrics.runMetrics(this.model_, options);
       } catch (err) {
         console.warn(
             this.currentMetricName_ +
@@ -200,11 +197,6 @@ tr.exportTo('tr.ui', function() {
         this.metricLatenciesMs_.shift();
 
       this.recomputeButton_.style.background = '';
-
-      if (values.length === 0) {
-        Polymer.dom(this.$.error).textContent = 'zero values';
-        return;
-      }
 
       this.$.results.style.display = '';
       this.$.results.values = values;

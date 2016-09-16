@@ -15,13 +15,14 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics', function() {
   /**
-   * @param {!tr.mre.MreResult} result
    * @param {!tr.model.Model} model
    * @param {!Object} options
+   * @param {!Array.<string>} options.metrics
+   * @return {!tr.v.ValueSet}
    */
-  function metricMapFunction(result, model, options) {
+  function runMetrics(model, options) {
     if (options === undefined)
-      throw new Error('Expected an options dict.');
+      throw new Error('Options are required.');
 
     var metricNames = options.metrics;
     if (!metricNames)
@@ -36,6 +37,14 @@ tr.exportTo('tr.metrics', function() {
       metric.constructor(values, model, options);
     }
 
+    return values;
+  }
+
+  /**
+   * @param {!tr.v.ValueSet} values
+   * @param {!tr.model.Model} model
+   */
+  function addIterationInfo(values, model) {
     var iterationInfo = new tr.v.d.IterationInfo();
     for (var metadata of model.metadata) {
       if (!metadata.value)
@@ -47,9 +56,20 @@ tr.exportTo('tr.metrics', function() {
       if (metadata.value['os-version'])
         iterationInfo.addInfo(metadata.value);
     }
-    // Values can be separated from their ValueSet and mixed into ValueSets with
-    // Values from other iterations, so add IterationInfo to each Value.
+    // Values can be separated from their ValueSet and mixed into ValueSets
+    // with Values from other iterations, so add IterationInfo to each Value.
     values.map(v => iterationInfo.addToValue(v));
+  }
+
+  /**
+   * @param {!tr.mre.MreResult} result
+   * @param {!tr.model.Model} model
+   * @param {!Object} options
+   * @param {!Array.<string>} options.metrics
+   */
+  function metricMapFunction(result, model, options) {
+    var values = runMetrics(model, options);
+    addIterationInfo(values, model);
 
     result.addPair('histograms', values.valueDicts);
 
@@ -63,14 +83,14 @@ tr.exportTo('tr.metrics', function() {
         });
       }
     }
-
     result.addPair('scalars', scalarDicts);
   }
 
   tr.mre.FunctionRegistry.register(metricMapFunction);
 
   return {
-    metricMapFunction: metricMapFunction
+    metricMapFunction: metricMapFunction,
+    runMetrics: runMetrics
   };
 });
 </script>

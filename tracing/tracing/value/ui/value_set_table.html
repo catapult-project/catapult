@@ -21,9 +21,9 @@ found in the LICENSE file.
       display: block;
     }
 
-    container {
-      display: inline-flex;
+    #container {
       flex-direction: column;
+      display: none;
     }
 
     table-container {
@@ -37,30 +37,35 @@ found in the LICENSE file.
       display: none;
     }
 
+    #zero {
+      color: red;
+    }
+
     #search {
       max-width: 20em;
       margin-right: 20px;
     }
 
-    controls {
-      display: block;
+    #controls {
       white-space: nowrap;
     }
 
-    #reference_column_container {
+    #reference_column_container * {
       margin-right: 20px;
     }
     </style>
 
-    <container>
-      <controls>
+    <div id="zero">zero values</div>
+
+    <div id="container">
+      <div id="controls">
         <input id="search" placeholder="Find Histogram name" on-keyup="onSearch_">
 
         <span id="reference_column_container"></span>
 
         <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
         <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
-      </controls>
+      </div>
 
       <tr-ui-b-grouping-table-groupby-picker id="picker">
       </tr-ui-b-grouping-table-groupby-picker>
@@ -69,7 +74,7 @@ found in the LICENSE file.
         <tr-ui-b-table id="table"/>
       </table-container>
       <tr-v-ui-histogram-span id="histogram"/>
-    </container>
+    </div>
   </template>
 </dom-module>
 
@@ -77,7 +82,7 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.ui', function() {
   /**
-   * Returns a closure that gets a story grouping key label from a Value.
+   * Returns a closure that gets a story grouping key label from a Histogram.
    *
    * @param {string} storyGroupingKey
    * @return {!function(tr.v.Histogram):string}
@@ -187,7 +192,7 @@ tr.exportTo('tr.ui', function() {
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
       this.$.picker.settingsKey = 'tr-v-ui-value-set-table-groupby-picker';
 
-      this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS;
+      this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
       this.$.picker.defaultGroupKeys = [
         tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
         tr.v.ValueSet.GROUPINGS.STORY_NAME.key];
@@ -196,9 +201,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set groupingKeys(keys) {
-      var availableGroupKeys = new Set(this.possibleGroupingKeys);
-      this.$.picker.currentGroupKeys = keys.filter(
-          k => availableGroupKeys.has(k));
+      this.$.picker.currentGroupKeys = keys;
     },
 
     get groupingKeys() {
@@ -377,7 +380,7 @@ tr.exportTo('tr.ui', function() {
      */
     set values(values) {
       this.values_ = values;
-      this.sourceValues_ = values.sourceValues;
+      this.sourceValues_ = values ? values.sourceValues : [];
       this.displayLabels_ = undefined;
       this.referenceDisplayLabel_ = '';
 
@@ -423,12 +426,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     updateGroups_: function() {
-      var groups = this.$.picker.possibleGroups.filter(function(group) {
-        // Remove all storyGroupingKey groups.
-        // They will be added back later if they are needed.
-        if (group.key.indexOf('storyGroupingKey_') === 0)
-          return false;
-
+      var groups = DEFAULT_POSSIBLE_GROUPS.filter(function(group) {
         // Remove groups for which there is only one value, except
         // HISTOGRAM_NAME.
         if (group.key === tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key)
@@ -437,13 +435,14 @@ tr.exportTo('tr.ui', function() {
         var values = new Set();
         for (var value of this.values_) {
           value = group.dataFn(value);
-          if (value)
-            values.add(value);
-        }
-        if (values.size <= 1)
-          return false;
+          if (!value)
+            continue;
 
-        return true;  // Keep this grouping.
+          values.add(value);
+          if (values.size > 1)
+            return true;
+        }
+        return false;  // Prune this grouping.
       }, this);
 
       // Add all storyGroupingKey groups for the current values.
@@ -459,20 +458,26 @@ tr.exportTo('tr.ui', function() {
       // |set groupingKeys| filter out the keys that are no longer in
       // possibleGroups.
       var groupingKeys = this.groupingKeys;
-      this.groupingKeys = [];
       this.$.picker.possibleGroups = groups;
-      this.groupingKeys = groupingKeys;
+      this.$.picker.currentGroupKeys = groupingKeys;
 
       this.$.picker.style.display = (groups.length === 1) ? 'none' : '';
     },
 
     updateContents_: function() {
-      if (!this.values_ || this.updatingContents_)
+      if (this.updatingContents_)
         return;
+
+      if (!this.values_ || (this.values_.length === 0)) {
+        this.$.container.style.display = '';
+        this.$.zero.style.display = '';
+        return;
+      }
 
       this.updatingContents_ = true;
 
-      this.style.width = '';
+      this.$.zero.style.display = 'none';
+      this.$.container.style.display = 'block';
       this.$.table.style.display = '';
       this.$.histogram.style.display = 'none';
 
@@ -490,22 +495,27 @@ tr.exportTo('tr.ui', function() {
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
         1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
 
-      tr.b.requestAnimationFrame(function() {
-        this.style.width = this.$.table.getBoundingClientRect().width;
-      }, this);
-
       this.updatingContents_ = false;
     },
 
     maybeDisableShowAll_: function() {
-      var hiddenValues = 0;
+      var allValuesAreSource = true;
       for (var value of this.values) {
         if (this.sourceValues_.indexOf(value) < 0) {
-          ++hiddenValues;
+          allValuesAreSource = false;
+          break;
         }
       }
-      this.$.show_all.checked = (hiddenValues === 0);
-      this.$.show_all.disabled = (hiddenValues === 0);
+
+      // Disable show_all if hiddenValues is 0.
+      // Re-enable show_all if hiddenValues changes from 0.
+      this.$.show_all.disabled = allValuesAreSource;
+
+      // Check show_all if it is disabled.
+      // Do not automatically uncheck show_all.
+      if (this.$.show_all.disabled) {
+        this.$.show_all.checked = true;
+      }
     },
 
     selectValue_: function() {
@@ -556,7 +566,8 @@ tr.exportTo('tr.ui', function() {
           }
 
           var row = hierarchy[hierarchy.length - 1];
-          this.addDiagnosticSubRows_(value, row, name);
+          if (row)
+            this.addDiagnosticSubRows_(value, row, name);
         } else if (value === UNMERGEABLE) {
           var row = hierarchy[hierarchy.length - 1];
           if (row)

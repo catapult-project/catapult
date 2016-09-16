@@ -28,6 +28,42 @@ tr.b.unittest.testSuite(function() {
   // TODO(benjhayden): Test search keyup.
   // TODO(benjhayden): Test referenceDisplayLabel.
 
+  test('implicitUndefinedValues', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    this.addHTMLOutput(table);
+    assert.strictEqual('block', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.textContent === 'zero values')).display);
+    assert.strictEqual('none', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.id === 'container')).display);
+  });
+
+  test('explicitUndefinedValues', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    table.values = undefined;
+    this.addHTMLOutput(table);
+    assert.strictEqual('block', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.textContent === 'zero values')).display);
+    assert.strictEqual('none', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.id === 'container')).display);
+  });
+
+  test('emptyValues', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+    table.values = values;
+    this.addHTMLOutput(table);
+    assert.strictEqual('block', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.textContent === 'zero values')).display);
+    assert.strictEqual('none', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.id === 'container')).display);
+  });
+
   test('shortName', function() {
     // One value has |name|='long name' and |shortName|='short name',
     // another value has |name|='short name' to demonstrate the fundamental
@@ -61,6 +97,12 @@ tr.b.unittest.testSuite(function() {
     table.values = values;
     this.addHTMLOutput(table);
 
+    assert.strictEqual('none', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.textContent === 'zero values')).display);
+    assert.strictEqual('block', getComputedStyle(
+        tr.b.findDeepElementMatchingPredicate(
+            table, e => e.id === 'container')).display);
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
           table, e => e.textContent === 'short name'));
     assert.isUndefined(tr.b.findDeepElementMatchingPredicate(
