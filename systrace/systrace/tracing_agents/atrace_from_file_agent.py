@@ -25,9 +25,9 @@ def try_create_agent(options):
 
 
 class AtraceFromFileConfig(tracing_agents.TracingConfig):
-  def __init__(self, fix_circular, from_file):
+  def __init__(self, from_file):
     tracing_agents.TracingConfig.__init__(self)
-    self.fix_circular = fix_circular
+    self.fix_circular = True
     self.from_file = from_file
 
 def add_options(parser): # pylint: disable=unused-argument
@@ -36,7 +36,7 @@ def add_options(parser): # pylint: disable=unused-argument
   return None
 
 def get_config(options):
-  return AtraceFromFileConfig(options.fix_circular, options.from_file)
+  return AtraceFromFileConfig(options.from_file)
 
 
 class AtraceFromFileAgent(tracing_agents.TracingAgent):
@@ -44,7 +44,6 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
     super(AtraceFromFileAgent, self).__init__()
     self._filename = os.path.expanduser(options.from_file)
     self._trace_data = False
-    self._fix_circular_traces = options.fix_circular
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, config, timeout=None):
@@ -73,10 +72,10 @@ class AtraceFromFileAgent(tracing_agents.TracingAgent):
     data = re.sub(ADB_IGNORE_REGEXP, '', result[data_start:])
     return self._preprocess_data(data)
 
+  # pylint: disable=no-self-use
   def _preprocess_data(self, data):
     # TODO: add fix_threads and fix_tgids options back in here
     # once we embed the dump data in the file (b/27504068)
     data = atrace_agent.strip_and_decompress_trace(data)
-    if self._fix_circular_traces:
-      data = atrace_agent.fix_circular_traces(data)
+    data = atrace_agent.fix_circular_traces(data)
     return data

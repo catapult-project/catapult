@@ -4,7 +4,6 @@
 
 import time
 
-from devil.android.constants import chrome
 from profile_chrome import chrome_startup_tracing_agent
 from profile_chrome import chrome_tracing_agent
 from profile_chrome import ui
@@ -57,19 +56,6 @@ def _GetResults(trace_results, controller, output, compress, write_json,
       f.write(trace_results[0].raw_data)
 
   return result
-
-
-def GetSupportedBrowsers():
-  """Returns the package names of all supported browsers."""
-  # Add aliases for backwards compatibility.
-  supported_browsers = {
-    'stable': chrome.PACKAGE_INFO['chrome_stable'],
-    'beta': chrome.PACKAGE_INFO['chrome_beta'],
-    'dev': chrome.PACKAGE_INFO['chrome_dev'],
-    'build': chrome.PACKAGE_INFO['chrome'],
-  }
-  supported_browsers.update(chrome.PACKAGE_INFO)
-  return supported_browsers
 
 
 def CaptureProfile(options, interval, modules, output=None,

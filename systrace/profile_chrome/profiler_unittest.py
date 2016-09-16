@@ -18,7 +18,7 @@ class ProfilerTest(unittest.TestCase):
   def setUp(self):
     ui.EnableTestMode()
     self._tracing_options = tracing_controller.TracingControllerConfig(None,
-        None, None, None, None, None, None, None, None, None)
+        None, None, None, None, None, None, None, None)
 
   @decorators.ClientOnlyTest
   def testCaptureBasicProfile(self):

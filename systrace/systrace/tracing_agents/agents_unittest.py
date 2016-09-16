@@ -4,7 +4,7 @@
 
 import unittest
 
-from profile_chrome import profiler
+from systrace import util
 
 from devil.android import device_utils
 from devil.android.sdk import intent
@@ -15,7 +15,7 @@ class BaseAgentTest(unittest.TestCase):
   def setUp(self):
     devices = device_utils.DeviceUtils.HealthyDevices()
     self.browser = 'stable'
-    self.package_info = profiler.GetSupportedBrowsers()[self.browser]
+    self.package_info = util.get_supported_browsers()[self.browser]
     self.device = devices[0]
 
     curr_browser = self.GetChromeProcessID()

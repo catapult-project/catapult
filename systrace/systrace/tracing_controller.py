@@ -269,13 +269,12 @@ def CreateAgentsWithConfig(options, modules):
 
 
 class TracingControllerConfig(tracing_agents.TracingConfig):
-  def __init__(self, output_file, trace_time, list_categories, write_json,
+  def __init__(self, output_file, trace_time, write_json,
                link_assets, asset_dir, timeout, collection_timeout,
                device_serial_number, target):
     tracing_agents.TracingConfig.__init__(self)
     self.output_file = output_file
     self.trace_time = trace_time
-    self.list_categories = list_categories
     self.write_json = write_json
     self.link_assets = link_assets
     self.asset_dir = asset_dir
@@ -287,12 +286,12 @@ class TracingControllerConfig(tracing_agents.TracingConfig):
 
 def GetControllerConfig(options):
   return TracingControllerConfig(options.output_file, options.trace_time,
-                                 options.list_categories, options.write_json,
+                                 options.write_json,
                                  options.link_assets, options.asset_dir,
                                  options.timeout, options.collection_timeout,
                                  options.device_serial_number, options.target)
 
 def GetChromeStartupControllerConfig(options):
-  return TracingControllerConfig(None, options.trace_time, None,
+  return TracingControllerConfig(None, options.trace_time,
                                  options.write_json, None, None, None, None,
                                  None, None)

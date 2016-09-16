@@ -2,9 +2,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from profile_chrome import agents_unittest
 from profile_chrome import ddms_tracing_agent
 from systrace import decorators
+from systrace.tracing_agents import agents_unittest
 
 
 class DdmsAgentTest(agents_unittest.BaseAgentTest):

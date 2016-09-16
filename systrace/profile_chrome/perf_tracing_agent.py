@@ -239,7 +239,6 @@ def add_options(parser):
                      'the available sample types.', action='callback',
                      default='', callback=_OptionalValueCallback('cycles'),
                      metavar='PERF_CATEGORIES', dest='perf_categories')
-  parser.add_option_group(options)
   return options
 
 def get_config(options):

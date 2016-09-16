@@ -5,8 +5,8 @@
 import json
 
 from profile_chrome import chrome_tracing_agent
-from profile_chrome import agents_unittest
 from systrace import decorators
+from systrace.tracing_agents import agents_unittest
 
 
 class ChromeAgentTest(agents_unittest.BaseAgentTest):

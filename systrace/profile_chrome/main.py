@@ -15,14 +15,16 @@ from profile_chrome import ddms_tracing_agent
 from profile_chrome import flags
 from profile_chrome import perf_tracing_agent
 from profile_chrome import profiler
-from profile_chrome import atrace_tracing_agent
 from profile_chrome import ui
+from systrace import util
+from systrace.tracing_agents import atrace_agent
 
 from devil.android import device_utils
+from devil.android.sdk import adb_wrapper
 
 
 _PROFILE_CHROME_AGENT_MODULES = [chrome_tracing_agent, ddms_tracing_agent,
-                                 perf_tracing_agent, atrace_tracing_agent]
+                                 perf_tracing_agent, atrace_agent]
 
 
 def _CreateOptionParser():
@@ -30,7 +32,9 @@ def _CreateOptionParser():
                                  'from Android browsers. See http://dev.'
                                  'chromium.org/developers/how-tos/trace-event-'
                                  'profiling-tool for detailed instructions for '
-                                 'profiling.')
+                                 'profiling.', conflict_handler='resolve')
+
+  parser = util.get_main_options(parser)
 
   timed_options = optparse.OptionGroup(parser, 'Timed tracing')
   timed_options.add_option('-t', '--time', help='Profile for N seconds and '
@@ -49,7 +53,7 @@ def _CreateOptionParser():
 
   parser.add_option_group(flags.OutputOptions(parser))
 
-  browsers = sorted(profiler.GetSupportedBrowsers().keys())
+  browsers = sorted(util.get_supported_browsers().keys())
   parser.add_option('-b', '--browser', help='Select among installed browsers. '
                     'One of ' + ', '.join(browsers) + ', "stable" is used by '
                     'default.', type='choice', choices=browsers,
@@ -58,10 +62,6 @@ def _CreateOptionParser():
                     action='store_true')
   parser.add_option('-z', '--compress', help='Compress the resulting trace '
                     'with gzip. ', action='store_true')
-  parser.add_option('-d', '--device', help='The Android device ID to use, '
-                    'defaults to the value of ANDROID_SERIAL environment '
-                    'variable. If not specified, only 0 or 1 connected '
-                    'devices are supported.', dest='device_serial_number')
 
   # Add options from profile_chrome agents.
   for module in _PROFILE_CHROME_AGENT_MODULES:
@@ -85,24 +85,19 @@ When in doubt, just try out --trace-frame-viewer.
   if options.verbose:
     logging.getLogger().setLevel(logging.DEBUG)
 
+  if not options.device_serial_number:
+    devices = [a.GetDeviceSerial() for a in adb_wrapper.AdbWrapper.Devices()]
+    if len(devices) == 0:
+      raise RuntimeError('No ADB devices connected.')
+    elif len(devices) >= 2:
+      raise RuntimeError('Multiple devices connected, serial number required')
+    options.device_serial_number = devices[0]
   device = device_utils.DeviceUtils.HealthyDevices(device_arg=
       options.device_serial_number)[0]
-  package_info = profiler.GetSupportedBrowsers()[options.browser]
+  package_info = util.get_supported_browsers()[options.browser]
 
   options.device = device
   options.package_info = package_info
-
-  # Add options that are present in Systrace but not in profile_chrome (since
-  # they both use the same tracing controller).
-  # TODO(washingtonp): Once Systrace uses all of the profile_chrome agents,
-  # manually setting these options will no longer be necessary and should be
-  # removed.
-  options.list_categories = None
-  options.link_assets = None
-  options.asset_dir = None
-  options.timeout = None
-  options.collection_timeout = None
-  options.target = None
 
   if options.chrome_categories in ['list', 'help']:
     ui.PrintMessage('Collecting record categories list...', eol='')
@@ -124,8 +119,8 @@ When in doubt, just try out --trace-frame-viewer.
     return 0
 
   if options.atrace_categories in ['list', 'help']:
-    ui.PrintMessage('\n'.join(
-        atrace_tracing_agent.AtraceAgent.GetCategories(device)))
+    atrace_agent.list_categories(atrace_agent.get_config(options))
+    print '\n'
     return 0
 
   if (perf_tracing_agent.PerfProfilerAgent.IsSupported() and

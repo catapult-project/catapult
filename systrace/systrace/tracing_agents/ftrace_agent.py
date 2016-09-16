@@ -100,15 +100,11 @@ def list_categories(_):
 
 
 class FtraceConfig(tracing_agents.TracingConfig):
-  def __init__(self, ftrace_categories, target, trace_buf_size, fix_threads,
-               fix_tgids, fix_circular):
+  def __init__(self, ftrace_categories, target, trace_buf_size):
     tracing_agents.TracingConfig.__init__(self)
     self.ftrace_categories = ftrace_categories
     self.target = target
     self.trace_buf_size = trace_buf_size
-    self.fix_threads = fix_threads
-    self.fix_tgids = fix_tgids
-    self.fix_circular = fix_circular
 
 
 def add_options(parser):
@@ -121,8 +117,7 @@ def add_options(parser):
 
 def get_config(options):
   return FtraceConfig(options.ftrace_categories, options.target,
-                      options.trace_buf_size, options.fix_threads,
-                      options.fix_tgids, options.fix_circular)
+                      options.trace_buf_size)
 
 
 class FtraceAgent(tracing_agents.TracingAgent):
@@ -195,12 +190,6 @@ class FtraceAgent(tracing_agents.TracingAgent):
     self._fio.writeFile(FT_TRACE_ON, '0')
     for category in self._categories:
       self._category_disable(category)
-    if self._config.fix_threads:
-      print "WARN: thread name fixing is not yet supported."
-    if self._config.fix_tgids:
-      print "WARN: tgid fixing is not yet supported."
-    if self._config.fix_circular:
-      print "WARN: circular buffer fixups are not yet supported."
     return True
 
   @py_utils.Timeout(tracing_agents.GET_RESULTS_TIMEOUT)

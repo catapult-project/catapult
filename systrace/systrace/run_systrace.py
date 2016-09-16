@@ -41,6 +41,7 @@ if _SYSTRACE_DIR not in sys.path:
 from devil import devil_env
 from devil.android.sdk import adb_wrapper
 from systrace import systrace_runner
+from systrace import util
 from systrace.tracing_agents import atrace_agent
 from systrace.tracing_agents import atrace_from_file_agent
 from systrace.tracing_agents import battor_trace_agent
@@ -48,12 +49,6 @@ from systrace.tracing_agents import ftrace_agent
 
 ALL_MODULES = [atrace_agent, atrace_from_file_agent,
                battor_trace_agent, ftrace_agent]
-
-
-def _get_default_serial():
-  if 'ANDROID_SERIAL' in os.environ:
-    return os.environ['ANDROID_SERIAL']
-  return None
 
 
 def parse_options(argv):
@@ -65,53 +60,13 @@ def parse_options(argv):
   """
   usage = 'Usage: %prog [options] [category1 [category2 ...]]'
   desc = 'Example: %prog -b 32768 -t 15 gfx input view sched freq'
-  parser = optparse.OptionParser(usage=usage, description=desc)
-  parser.add_option('-o', dest='output_file', help='write trace output to FILE',
-                    default=None, metavar='FILE')
-  parser.add_option('-t', '--time', dest='trace_time', type='int',
-                    help='trace for N seconds', metavar='N')
+  parser = optparse.OptionParser(usage=usage, description=desc,
+                                 conflict_handler='resolve')
+  parser = util.get_main_options(parser)
+
   parser.add_option('-l', '--list-categories', dest='list_categories',
                     default=False, action='store_true',
                     help='list the available categories and exit')
-  parser.add_option('-j', '--json', dest='write_json',
-                    default=False, action='store_true',
-                    help='write a JSON file')
-  parser.add_option('--link-assets', dest='link_assets', default=False,
-                    action='store_true',
-                    help='(deprecated)')
-  parser.add_option('--from-file', dest='from_file', action='store',
-                    help='read the trace from a file (compressed) rather than'
-                    'running a live trace')
-  parser.add_option('--asset-dir', dest='asset_dir', default='trace-viewer',
-                    type='string', help='(deprecated)')
-  parser.add_option('-e', '--serial', dest='device_serial_number',
-                    default=_get_default_serial(),
-                    type='string', help='adb device serial number')
-  parser.add_option('--target', dest='target', default='android', type='string',
-                    help='chose tracing target (android or linux)')
-  parser.add_option('--timeout', dest='timeout', type='int',
-                    help='timeout for start and stop tracing (seconds)')
-  parser.add_option('--collection-timeout', dest='collection_timeout',
-                    type='int', help='timeout for data collection (seconds)')
-
-  atrace_ftrace_options = optparse.OptionGroup(parser,
-                                               'Atrace and Ftrace options')
-  atrace_ftrace_options.add_option('-b', '--buf-size', dest='trace_buf_size',
-                                   type='int', help='use a trace buffer size '
-                                   ' of N KB', metavar='N')
-  atrace_ftrace_options.add_option('--no-fix-threads', dest='fix_threads',
-                                   default=True, action='store_false',
-                                   help='don\'t fix missing or truncated '
-                                   'thread names')
-  atrace_ftrace_options.add_option('--no-fix-tgids', dest='fix_tgids',
-                                   default=True, action='store_false',
-                                   help='Do not run extra commands to restore'
-                                   ' missing thread to thread group id '
-                                   'mappings.')
-  atrace_ftrace_options.add_option('--no-fix-circular', dest='fix_circular',
-                                   default=True, action='store_false',
-                                   help='don\'t fix truncated circular traces')
-  parser.add_option_group(atrace_ftrace_options)
 
   # Add the other agent parsing options to the parser. For Systrace on the
   # command line, all agents are added. For Android, only the compatible agents

@@ -4,10 +4,10 @@
 
 import json
 
-from profile_chrome import agents_unittest
 from profile_chrome import perf_tracing_agent
 from profile_chrome import ui
 from systrace import decorators
+from systrace.tracing_agents import agents_unittest
 
 
 class PerfProfilerAgentTest(agents_unittest.BaseAgentTest):
