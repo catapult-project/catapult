@@ -179,15 +179,15 @@ tr.exportTo('tr.ui.e.v8', function() {
     set slices(slices) {
       var groups = new Array(
         new GroupedEntry('Total'),
-        new GroupedEntry('API', /.*API.*/),
-        new GroupedEntry('Callback', /.*Callback$/),
-        new GroupedEntry('Compile', /.*Compile.*/),
-        new GroupedEntry('GC', /GC|AllocateInTargetSpace/),
         new GroupedEntry('IC', /.*IC.*/),
-        new GroupedEntry('JavaScript', /JS_Execution/),
         new GroupedEntry('Optimize',
                          /StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*/),
+        new GroupedEntry('Compile', /.*Compile.*/),
         new GroupedEntry('Parse', /.*Parse.*/),
+        new GroupedEntry('Callback', /.*Callback$/),
+        new GroupedEntry('API', /.*API.*/),
+        new GroupedEntry('GC', /GC|AllocateInTargetSpace/),
+        new GroupedEntry('JavaScript', /JS_Execution/),
         new GroupedEntry('Runtime', /.*/)
       );
 
