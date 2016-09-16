@@ -114,9 +114,7 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(len(v), 1)
 
   # Fails on chromeos: crbug.com/483212
-  # Fails on mac, likely due to infra issue:
-  #   https://github.com/catapult-project/catapult/issues/2804
-  @decorators.Disabled('chromeos', 'mac')
+  @decorators.Disabled('chromeos')
   @decorators.Isolated
   def testTBM2ForSmoke(self):
     ps = self.CreateEmptyPageSet()
