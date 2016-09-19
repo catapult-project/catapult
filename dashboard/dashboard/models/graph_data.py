@@ -339,6 +339,11 @@ class LastAddedRevision(ndb.Model):
   contention issues (Frequent update of entity within the same group).  This
   property is updated very frequent in /add_point.
   """
+  # Our access patterns don't generally involve the same LastAddedRevision being
+  # accessed again and again across multiple requests. Don't put them into
+  # memcache when accessed by default. For more info, see:
+  # https://cloud.google.com/appengine/docs/python/ndb/cache
+  _use_memcache = False
   revision = ndb.IntegerProperty(indexed=False)
 
 
