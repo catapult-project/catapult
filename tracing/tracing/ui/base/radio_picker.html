@@ -97,12 +97,12 @@ Polymer({
   },
 
   select: function(key) {
-    if (key === undefined)
+    if (key === undefined || key === this.selectedKey_)
       return;
-   if (this.radio_buttons_ == undefined) {
+    if (this.radio_buttons_ === undefined) {
       this.selectedKey_ = key;
       return;
-   }
+    }
     if (!(key in this.radio_buttons_))
       throw new Error(key + ' does not exists');
     // Unselect the previous radio, update the key & select the new one.
@@ -112,6 +112,8 @@ Polymer({
     tr.b.Settings.set(this.settingsKey_, this.selectedKey_);
     if (this.selectedKey_ !== undefined)
       this.radio_buttons_[this.selectedKey_].checked = true;
+
+    this.dispatchEvent(new tr.b.Event('change', false));
   },
 
   get selectedKey() {

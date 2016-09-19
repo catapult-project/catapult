@@ -83,7 +83,24 @@ tr.b.unittest.testSuite(function() {
     assert.equal(rp2.selectedKey, 'Boeing');
   });
 
-
-
+  test('changeEventFired', function() {
+    var items = [
+      {key: 'Toyota', label: 'I want to drive Toyota'},
+      {key: 'Boeing', label: 'I want to fly'},
+      {key: 'Submarine', label: 'I want to swim'}
+    ];
+    var rp = document.createElement('tr-ui-b-radio-picker');
+    rp.items = items;
+    this.addHTMLOutput(rp);
+    rp.select('Boeing');
+    assert.equal(rp.selectedKey, 'Boeing');
+    var fired = false;
+    rp.addEventListener('change', function(e) {
+      fired = true;
+      assert.equal('Toyota', e.target.selectedKey);
+    });
+    rp.select('Toyota');
+    assert.isTrue(fired);
+  });
 });
 </script>
