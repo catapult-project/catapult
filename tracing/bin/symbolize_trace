@@ -33,7 +33,11 @@ TRACE_EVENT_PHASE_MEMORY_DUMP = 'v'
 # as well as L+ (/data/app/<>/lib/<>/lib.so). Library name is available
 # via 'name' group.
 ANDROID_PATH_MATCHER = re.compile(
-    r'^/data/(?:app/[^/]+/lib/[^/]+/|app-lib/[^/]+/)(?P<name>.*\.so)')
+    r'^/data/(?:'
+      r'app/[^/]+/lib/[^/]+/|'
+      r'app-lib/[^/]+/|'
+      r'data/[^/]+/incremental-install-files/lib/'
+    r')(?P<name>.*\.so)')
 
 # Subpath of output path where unstripped libraries are stored.
 ANDROID_UNSTRIPPED_SUBPATH = 'lib.unstripped'
@@ -238,6 +242,7 @@ class SymbolizableFile(object):
   """
   def __init__(self, file_path):
     self.path = file_path
+    self.symbolizable_path = file_path # path to use for symbolization
     self.frames_by_address = collections.defaultdict(list)
 
 
@@ -280,16 +285,16 @@ def SymbolizeFiles(symfiles, addr2line_path):
         symfile.path if symfile.path else 'unnamed')
 
     problem = None
-    if not os.path.isabs(symfile.path):
+    if not os.path.isabs(symfile.symbolizable_path):
       problem = 'not a file'
-    elif not os.path.isfile(symfile.path):
+    elif not os.path.isfile(symfile.symbolizable_path):
       problem = "file doesn't exist"
-    elif not IsSymbolizableFile(symfile.path):
+    elif not IsSymbolizableFile(symfile.symbolizable_path):
       problem = 'file is not symbolizable'
     if problem:
       _SubPrintf("Won't symbolize {} PCs for '{}': {}.",
                  len(symfile.frames_by_address),
-                 symfile.path,
+                 symfile.symbolizable_path,
                  problem)
       for frames in symfile.frames_by_address.itervalues():
         for frame in frames:
@@ -305,7 +310,7 @@ def SymbolizeFiles(symfiles, addr2line_path):
       for frame in frames:
         frame.name = symbolized_name
 
-    symbolizer = elf_symbolizer.ELFSymbolizer(symfile.path,
+    symbolizer = elf_symbolizer.ELFSymbolizer(symfile.symbolizable_path,
                                               addr2line_path,
                                               _SymbolizerCallback,
                                               inlines=True)
@@ -336,7 +341,13 @@ def RemapAndroidFiles(symfiles, output_path):
     match = ANDROID_PATH_MATCHER.match(symfile.path)
     if match:
       name = match.group('name')
-      symfile.path = os.path.join(output_path, ANDROID_UNSTRIPPED_SUBPATH, name)
+      symfile.symbolizable_path = os.path.join(
+          output_path, ANDROID_UNSTRIPPED_SUBPATH, name)
+    else:
+      # Clobber file path to trigger "not a file" problem in SymbolizeFiles().
+      # Without this, files won't be symbolized with "file not found" problem,
+      # which is not accurate.
+      symfile.symbolizable_path = 'android://{}'.format(symfile.path)
 
 
 # Suffix used for backup files.
