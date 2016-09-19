@@ -357,6 +357,12 @@ class Row(internal_only_model.InternalOnlyModel, ndb.Expando):
         characters, '0-9' and '.'.
     a_: Annotation such as a_chrome_bugid or a_gasp_anomaly. StringProperty.
   """
+  # Our access patterns don't generally involve the same Row being
+  # accessed again and again across multiple requests. Don't put them into
+  # memcache when accessed by default. For more info, see:
+  # https://cloud.google.com/appengine/docs/python/ndb/cache
+  _use_memcache = False
+
   # Don't index by default (only explicitly indexed properties are indexed).
   _default_indexed = False
   internal_only = ndb.BooleanProperty(default=False, indexed=True)
