@@ -150,6 +150,15 @@ The types of Diagnostics are
    consumed by the metric that produced the Histogram, such as the benchmark
    name, story name, benchmark start timestamp, OS version, Chrome version, etc.
    Visually, IterationInfos are displayed as a table.
+ * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
+   Metrics must not use this, since it is incapable of being merged. It is
+   mentioned here for completeness. It wraps a ScalarNumeric, which is just a
+   unitted number. This is only to allow Histograms in other parts of the trace
+   viewer to display number sample diagnostics more intelligently than Generic
+   can. If a metric wants to display number sample diagnostics intelligently,
+   then it should use RelatedValueSet or RelatedValueMap; if it does not want to
+   monitor changes in those numbers, then the TBM2 maintainers can add a
+   HistogramDiagnostic that supports merging.
 
 
 Consumers of Histograms

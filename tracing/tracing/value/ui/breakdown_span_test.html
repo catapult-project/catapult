@@ -8,14 +8,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
 <link rel="import" href="/tracing/value/diagnostics/related_histogram_breakdown.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/ui/composition_span.html">
+<link rel="import" href="/tracing/value/ui/breakdown_span.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  test('instantiate_Composition', function() {
+  test('instantiate_RelatedHistogramBreakdown', function() {
     var foo = new tr.v.Histogram('foo', tr.b.Unit.byName.timeDurationInMs);
     var bar = new tr.v.Histogram('bar', tr.b.Unit.byName.timeDurationInMs);
     for (var i = 0; i < 1e2; ++i) {

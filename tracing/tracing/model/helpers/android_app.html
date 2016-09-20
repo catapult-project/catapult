@@ -139,7 +139,6 @@ tr.exportTo('tr.model.helpers', function() {
   }
 
   function getRtFrameEndTime(rtDrawSlice) {
-      console.log(rtDrawSlice);
     // First try and get time that frame is queued:
     var rtQueueSlice = rtDrawSlice.findDescendentSlice(
         RENDER_THREAD_QUEUE_NAME);

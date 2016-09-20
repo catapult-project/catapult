@@ -7,14 +7,11 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/unit.html">
-<link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.v', function() {
-  var MAX_DIAGNOSTIC_MAPS = 16;
-
   class NumericBase {
     constructor(unit) {
       if (!(unit instanceof tr.b.Unit))
