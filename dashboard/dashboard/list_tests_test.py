@@ -29,6 +29,7 @@ class ListTestsTest(testing_common.TestCase):
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
+    self.PatchDatastoreHooksRequest()
 
   def _AddSampleData(self):
     testing_common.AddTests(

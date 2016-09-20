@@ -21,6 +21,7 @@ class UtilsTest(testing_common.TestCase):
     super(UtilsTest, self).setUp()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
+    self.PatchDatastoreHooksRequest()
 
   def _AssertMatches(self, test_path, pattern):
     """Asserts that a test path matches a pattern with MatchesPattern."""

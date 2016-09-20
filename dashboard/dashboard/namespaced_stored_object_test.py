@@ -15,6 +15,7 @@ class NamespacedStoredObjectTest(testing_common.TestCase):
     super(NamespacedStoredObjectTest, self).setUp()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
+    self.PatchDatastoreHooksRequest()
 
   def tearDown(self):
     super(NamespacedStoredObjectTest, self).tearDown()

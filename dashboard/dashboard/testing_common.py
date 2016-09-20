@@ -11,6 +11,7 @@ import os
 import re
 import unittest
 import urllib
+import webapp2
 
 from google.appengine.api import users
 from google.appengine.ext import deferred
@@ -89,6 +90,13 @@ class TestCase(unittest.TestCase):
 
   def SetCurrentUser(self, email, user_id='123456', is_admin=False):
     """Sets the user in the environment in the current testbed."""
+    try:
+      request = webapp2.get_request()
+      if 'privileged_cached' in request.registry:
+        del request.registry['privileged_cached']
+    except AssertionError:
+      # webapp2.get_request() not patched for this test.
+      pass
     self.testbed.setup_env(
         user_is_admin=('1' if is_admin else '0'),
         user_email=email,
