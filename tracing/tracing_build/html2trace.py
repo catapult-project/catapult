@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import base64
-import codecs
 import gzip
 import json
 import re
@@ -20,13 +19,23 @@ TRACE_DATA_START_LINE_RE = re.compile(
 TRACE_DATA_END_LINE_RE = re.compile(r'^<\/\s*script>$')
 
 
-def CopyTraceDataFromHTMLFilePath(html_path, trace_path, gzipped_output=False):
+def IsHTMLTrace(trace_file_handle):
+  trace_file_handle.seek(0)
+  for line in trace_file_handle:
+    line = line.strip()
+    if not line:
+      continue
+    return line == '<!DOCTYPE html>'
+
+
+def CopyTraceDataFromHTMLFilePath(html_file_handle, trace_path,
+                                  gzipped_output=False):
   """Copies trace data from an existing HTML file into new trace file(s).
 
-  If |html_path| doesn't contain any trace data blocks, this function throws an
-  exception. If |html_path| contains more than one trace data block, the first
-  block will be extracted into |trace_path| and the rest will be extracted
-  into separate files |trace_path|.1, |trace_path|.2, etc.
+  If |html_file_handle| doesn't contain any trace data blocks, this function
+  throws an exception. If |html_file_handle| contains more than one trace data
+  block, the first block will be extracted into |trace_path| and the rest will
+  be extracted into separate files |trace_path|.1, |trace_path|.2, etc.
 
   The contents of each trace data block is decoded and, if |gzipped_output| is
   false, inflated before it's stored in a trace file.
@@ -34,7 +43,7 @@ def CopyTraceDataFromHTMLFilePath(html_path, trace_path, gzipped_output=False):
   This function returns a list of paths of the saved trace files ([|trace_path|,
   |trace_path|.1, |trace_path|.2, ...]).
   """
-  trace_data_list = _ExtractTraceDataFromHTMLFile(html_path,
+  trace_data_list = _ExtractTraceDataFromHTMLFile(html_file_handle,
                                                   unzip_data=not gzipped_output)
   saved_paths = []
   for i, trace_data in enumerate(trace_data_list):
@@ -45,14 +54,15 @@ def CopyTraceDataFromHTMLFilePath(html_path, trace_path, gzipped_output=False):
   return saved_paths
 
 
-def ReadTracesFromHTMLFilePath(html_path):
+def ReadTracesFromHTMLFilePath(html_file_handle):
   """Returns a list of inflated JSON traces extracted from an HTML file."""
-  return map(json.load, _ExtractTraceDataFromHTMLFile(html_path))
+  return map(json.load, _ExtractTraceDataFromHTMLFile(html_file_handle))
 
 
-def _ExtractTraceDataFromHTMLFile(html_path, unzip_data=True):
-  with codecs.open(html_path, mode='r', encoding='utf-8') as html_file:
-    lines = html_file.readlines()
+def _ExtractTraceDataFromHTMLFile(html_file_handle, unzip_data=True):
+  assert IsHTMLTrace(html_file_handle)
+  html_file_handle.seek(0)
+  lines = html_file_handle.readlines()
 
   start_indices = [i for i in xrange(len(lines))
                    if TRACE_DATA_START_LINE_RE.match(lines[i])]

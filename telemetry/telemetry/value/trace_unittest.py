@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import codecs
 import os
 import shutil
 import tempfile
@@ -129,8 +130,8 @@ class ValueTest(TestBase):
     chrome_seen = False
     tabs_seen = False
     try:
-      trace_files = html2trace.CopyTraceDataFromHTMLFilePath(v.filename,
-                                                             temp_path)
+      with codecs.open(v.filename, mode='r', encoding='utf-8') as f:
+        trace_files = html2trace.CopyTraceDataFromHTMLFilePath(f, temp_path)
       for f in trace_files:
         with open(f, 'r') as trace_file:
           d = trace_file.read()
