@@ -3,7 +3,6 @@
 # found in the LICENSE file.
 
 import unittest
-import webapp2
 
 from google.appengine.ext import ndb
 
@@ -176,13 +175,6 @@ class DatastoreHooksTest(testing_common.TestCase):
       self.assertEqual(1, len(sheriffs))
       self.assertEqual('external', sheriffs[0].key.string_id())
       self.assertEqual('foo@chromium.org', sheriffs[0].email)
-    request = webapp2.get_request()
-    if request.registry.get('single_privileged') is not None:
-      self.assertIsNone(request.registry.get('privileged_cached'))
-    elif include_internal:
-      self.assertTrue(request.registry.get('privileged_cached'))
-    else:
-      self.assertFalse(request.registry.get('privileged_cached'))
 
   def testQuery_NoUser_InternalOnlyNotFetched(self):
     self.UnsetCurrentUser()
@@ -268,13 +260,6 @@ class DatastoreHooksTest(testing_common.TestCase):
     self.UnsetCurrentUser()
     datastore_hooks.SetPrivilegedRequest()
     self._CheckGet(include_internal=True)
-
-  def testGet_CachedPrivilege(self):
-    request = webapp2.get_request()
-    request.registry['privileged_cached'] = True
-    self._CheckGet(include_internal=True)
-    request.registry['privileged_cached'] = False
-    self._CheckGet(include_internal=False)
 
 
 if __name__ == '__main__':

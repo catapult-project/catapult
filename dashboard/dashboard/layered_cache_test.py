@@ -29,7 +29,6 @@ class LayeredCacheTest(testing_common.TestCase):
     self.UnsetCurrentUser()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     testing_common.SetIsInternalUser('foo@chromium.org', False)
-    self.PatchDatastoreHooksRequest()
 
   def testSetAndGet(self):
     self.SetCurrentUser('internal@chromium.org')

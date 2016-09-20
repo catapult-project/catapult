@@ -73,8 +73,13 @@ def CancelSinglePrivilegedRequest():
   request.registry['single_privileged'] = False
 
 
-def _IsServicingPrivilegedRequest(request):
+def _IsServicingPrivilegedRequest():
   """Checks whether the request is considered privileged."""
+  try:
+    request = webapp2.get_request()
+  except AssertionError:
+    # This happens in unit tests, when code gets called outside of a request.
+    return False
   path = getattr(request, 'path', '')
   if path.startswith('/mapreduce'):
     return True
@@ -83,6 +88,9 @@ def _IsServicingPrivilegedRequest(request):
   if path.startswith('/_ah/pipeline/'):
     return True
   if request.registry.get('privileged', False):
+    return True
+  if request.registry.get('single_privileged', False):
+    request.registry['single_privileged'] = False
     return True
   whitelist = utils.GetIpWhitelist()
   if whitelist and hasattr(request, 'remote_addr'):
@@ -100,41 +108,13 @@ def IsUnalteredQueryPermitted():
   Returns:
     True for users with google.com emails and privileged requests.
   """
-  try:
-    request = webapp2.get_request()
-  except AssertionError:
-    # This happens in unit tests, when code gets called outside of a request.
-    return True
-
-  cached_privileged = request.registry.get('privileged_cached', None)
-  if cached_privileged == True or cached_privileged == False:
-    return cached_privileged
-
-  privileged = False
-  new_cached_privileged = None
   if utils.IsInternalUser():
-    privileged = True
-    new_cached_privileged = True
-  elif users.is_current_user_admin():
+    return True
+  if users.is_current_user_admin():
     # It's possible to be an admin with a non-internal account; For example,
     # the default login for dev appserver instances is test@example.com.
-    privileged = True
-    new_cached_privileged = True
-  elif request.registry.get('single_privileged', False):
-    # This request was set to privileged for just one single query. Allow
-    # that query and then reset.
-    privileged = True
-    request.registry['single_privileged'] = False
-    # DO NOT CACHE the result of a SINGLE privilege elevation.
-    new_cached_privileged = None
-  else:
-    privileged = _IsServicingPrivilegedRequest(request)
-    new_cached_privileged = privileged
-
-  if new_cached_privileged != None:
-    request.registry['privileged_cached'] = new_cached_privileged
-
-  return privileged
+    return True
+  return _IsServicingPrivilegedRequest()
 
 
 def GetNamespace():

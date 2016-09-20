@@ -279,7 +279,6 @@ class StartBisectTest(testing_common.TestCase):
     app = webapp2.WSGIApplication(
         [('/start_try_job', start_try_job.StartBisectHandler)])
     self.testapp = webtest.TestApp(app)
-    self.PatchDatastoreHooksRequest()
     namespaced_stored_object.Set(
         can_bisect.BISECT_BOT_MAP_KEY,
         {

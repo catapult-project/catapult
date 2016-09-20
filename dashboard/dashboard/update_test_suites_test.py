@@ -28,7 +28,6 @@ class ListTestSuitesTest(testing_common.TestCase):
     datastore_hooks.InstallHooks()
     testing_common.SetIsInternalUser('internal@chromium.org', True)
     self.UnsetCurrentUser()
-    self.PatchDatastoreHooksRequest()
 
   def testFetchCachedTestSuites_NotEmpty(self):
     # If the cache is set, then whatever's there is returned.
@@ -68,8 +67,6 @@ class ListTestSuitesTest(testing_common.TestCase):
         })
 
   def testPost_ForcesCacheUpdate(self):
-    request = webapp2.get_request()
-    request.registry['privileged_cached'] = False
     key = update_test_suites._NamespaceKey(
         update_test_suites._LIST_SUITES_CACHE_KEY)
     stored_object.Set(key, {'foo': 'bar'})
