@@ -481,6 +481,7 @@ def _GuessBrowserName(bisect_bot):
   return default
 
 
+# TODO(eakuefner): Make bisect work with value-level summaries and delete this.
 def GuessMetric(test_path):
   """Returns a "metric" string to use in the bisect config.
 
@@ -488,41 +489,12 @@ def GuessMetric(test_path):
     test_path: The slash-separated test path used by the dashboard.
 
   Returns:
-    A "metric" string of the form "chart/trace". If there is an
-    interaction record name, then it is included in the chart name;
-    if we're looking at the summary result, then the trace name is
-    the chart name.
+    A 2- or 3-part test name, with duplication to accommodate bisect.
   """
-  chart = None
-  trace = None
-  parts = test_path.split('/')
-  if len(parts) == 4:
-    # master/bot/benchmark/chart
-    chart = parts[3]
-  elif len(parts) == 5 and _HasChildTest(test_path):
-    # master/bot/benchmark/chart/interaction
-    # Here we're assuming that this test is a Telemetry test that uses
-    # interaction labels, and we're bisecting on the summary metric.
-    # Seeing whether there is a child test is a naive way of guessing
-    # whether this is a story-level test or interaction-level test with
-    # story-level children.
-    # TODO(qyearsley): When a more reliable way of telling is available
-    # (e.g. a property on the TestMetadata entity), use that instead.
-    chart = '%s-%s' % (parts[4], parts[3])
-  elif len(parts) == 5:
-    # master/bot/benchmark/chart/trace
-    chart = parts[3]
-    trace = parts[4]
-  elif len(parts) == 6:
-    # master/bot/benchmark/chart/interaction/trace
-    chart = '%s-%s' % (parts[4], parts[3])
-    trace = parts[5]
-  else:
-    logging.error('Cannot guess metric for test %s', test_path)
-
-  if trace is None:
-    trace = chart
-  return '%s/%s' % (chart, trace)
+  metric_path = '/'.join(test_path.split('/')[3:])
+  if metric_path.count('/') == 0:
+    metric_path += '/' + metric_path
+  return metric_path
 
 
 def _HasChildTest(test_path):

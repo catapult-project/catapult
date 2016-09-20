@@ -940,14 +940,6 @@ class StartBisectTest(testing_common.TestCase):
         'chart/chart',
         start_try_job.GuessMetric('M/b/benchmark/chart'))
 
-  def testGuessMetric_SummaryMetricWithTIRLabel(self):
-    testing_common.AddTests(
-        ['M'], ['b'],
-        {'benchmark': {'chart': {'tir_label': {'page': {}}}}})
-    self.assertEqual(
-        'tir_label-chart/tir_label-chart',
-        start_try_job.GuessMetric('M/b/benchmark/chart/tir_label'))
-
 
 if __name__ == '__main__':
   unittest.main()
