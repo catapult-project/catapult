@@ -7,15 +7,246 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/power_metric.html">
+<link rel="import" href="/tracing/model/user_model/idle_expectation.html">
+<link rel="import" href="/tracing/model/user_model/load_expectation.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
 
+function getMetricValueSum(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return value.sum;
+}
+
+function getMetricValueAvg(values, name) {
+  for (var value of values)
+    if (value.name === name)
+      return value.average;
+}
+
 tr.b.unittest.testSuite(function() {
-  test('powerMetric_multipleFrames', function() {
+  test('powerMetric_noPowerSeries', function() {
     var model = new tr.Model();
     var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    tr.metrics.sh.powerMetric(valueSet, model);
+    assert.lengthOf(valueSet, 0);
+  });
+
+  test('powerMetric_generic_oneStageEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 500, 500));
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.equal(getMetricValueSum(valueSet,
+        'successful_load:time'), 500);
+    assert.equal(getMetricValueSum(valueSet,
+        'idle:time'), 500);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'successful_load:energy'), 125, 0.5);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'idle:energy'), 375, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'successful_load:power'), 250, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'idle:power'), 750, 0.5);
+  });
+
+  test('powerMetric_generic_multipleStagesEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 200, 300));
+    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 500, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 700, 300));
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.equal(getMetricValueSum(valueSet,
+        'successful_load:time'), 400);
+    assert.equal(getMetricValueSum(valueSet,
+        'idle:time'), 600);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'successful_load:energy'), 140, 0.5);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'idle:energy'), 360, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'successful_load:power'), 350, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'idle:power'), 600, 0.5);
+  });
+
+  test('powerMetric_loading_oneInterval', function() {
+    // Interval of load is [200, 15400].
+    // Trace goes until 22150.
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1984);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9180,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9350,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 11150,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 12550,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 14950,
+        duration: 500,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 22150,
+        duration: 10,
+      }));
+
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 15400; i++)
+        model.device.powerSeries.addPowerSample(i.toString(), '20');
+      for (var i = 15401; i <= 22160; i++)
+        model.device.powerSeries.addPowerSample(i.toString(), '10');
+    });
+
+  var valueSet = new tr.v.ValueSet();
+  tr.metrics.sh.powerMetric(valueSet, model);
+  // Energy for first load is 20 W * 15.2 s
+  // (interval from 0.2 s to 15.4 s)
+  assert.closeTo(
+      getMetricValueAvg(valueSet, 'load:energy'), 304, 0.1);
+  assert.closeTo(
+      getMetricValueAvg(valueSet, 'after_load:power'), 10, 0.01);
+  });
+
+  test('powerMetric_scroll_oneStageEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Scroll", 0, 500));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 500, 500));
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.equal(getMetricValueSum(valueSet,
+        'scroll:time'), 500);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'scroll:energy'), 125, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'scroll:power'), 250, 0.5);
+  });
+
+  test('powerMetric_scroll_multipleStagesEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Scroll", 0, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 200, 300));
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Touch, Scroll, Tap", 500, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 700, 300));
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.equal(getMetricValueSum(valueSet,
+        'scroll:time'), 400);
+    assert.closeTo(getMetricValueSum(valueSet,
+        'scroll:energy'), 140, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'scroll:power'), 350, 0.5);
+  });
+
+  test('powerMetric_frameBased_multipleFrames', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Video", 1, 70));
     model.device.powerSeries = new tr.model.PowerSeries(model.device);
     // We want values in different frames, so they must go up by more than 16.66
     // milliseconds.
@@ -26,16 +257,20 @@ tr.b.unittest.testSuite(function() {
     model.device.powerSeries.addPowerSample('53', '.4');
     model.device.powerSeries.addPowerSample('70', '.5');
     tr.metrics.sh.powerMetric(valueSet, model);
-    var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name === 'energy_consumed_per_frame');
-    var powerEntry = tr.b.getOnlyElement(powerEntries);
-    assert.equal(powerEntry.centralBins[0].count, 5);
-    assert.closeTo(powerEntry.running.sum, 0.0172, 1e-4);
+    assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
+        0.00344, 1e-4)
+    assert.closeTo(getMetricValueSum(valueSet, 'per_frame:energy'),
+        0.0172, 1e-4)
   });
 
-  test('powerMetric_oneFrame', function() {
+  test('powerMetric_frameBased_oneFrame', function() {
     var model = new tr.Model();
     var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Video", 1, 6));
     model.device.powerSeries = new tr.model.PowerSeries(model.device);
     // We want values in the same frame, so they must go up by less than 16.66
     // milliseconds.
@@ -46,20 +281,11 @@ tr.b.unittest.testSuite(function() {
     model.device.powerSeries.addPowerSample('5', '.4');
     model.device.powerSeries.addPowerSample('6', '.5');
     tr.metrics.sh.powerMetric(valueSet, model);
-    var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name === 'energy_consumed_per_frame');
-    var powerEntry = tr.b.getOnlyElement(powerEntries);
-    assert.equal(powerEntry.centralBins[0].count, 1);
-    assert.closeTo(powerEntry.running.sum, 0.0011, 1e-4);
+    assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
+        0.0011, 1e-4)
+    assert.closeTo(getMetricValueSum(valueSet, 'per_frame:energy'),
+        0.0011, 1e-4)
   });
 
-  test('powerMetric_noPowerSeries', function() {
-    var model = new tr.Model();
-    var valueSet = new tr.v.ValueSet();
-    tr.metrics.sh.powerMetric(valueSet, model);
-    var powerEntries = valueSet.valueDicts.filter(
-        (dict) => dict.name === 'energy_consumed_per_frame');
-    assert.lengthOf(powerEntries, 0);
-  });
 });
 </script>
