@@ -17,7 +17,7 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('basic', function() {
-    var m = tr.c.TestUtils.newModelWithEvents([g_gpu_state_trace]);
+    var m = tr.c.TestUtils.newModelWithEvents([g_gpuStateTrace]);
     var p = tr.b.dictionaryValues(m.processes)[0];
 
     var instance = p.objects.getAllInstancesNamed('gpu::State')[0];

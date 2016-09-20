@@ -16,11 +16,11 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var Base64 = tr.b.Base64;
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
-  var original_data =
+  var ORIGINAL_DATA =
       '[{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo","tid":53,' +
       '"ph":"B"},{"name":"a","args":{},"pid":52,"ts":520,"cat":"foo",' +
       '"tid":53,"ph":"E"}]\n';
-  var gzip_data_base64 =
+  var GZIP_DATA_BASE_64 =
       'H4sICHr4HVIAA3RyYWNlAIuuVspLzE1VslJKVNJRSixKL1ayqq7VUSrITFGy' +
       'MjXSUSopBtEGOkrJiSVAVWn5+UB1JWBZY6CyDKCYk1KtDhWMcVWqjeUCALak' +
       'EH+QAAAA';
@@ -32,29 +32,29 @@ tr.b.unittest.testSuite(function() {
 
   test('inflateString', function() {
     // Test inflating the data from a string.
-    var gzip_data = Base64.atob(gzip_data_base64);
-    var importer = new tr.e.importer.GzipImporter(null, gzip_data);
-    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
-    assert.equal(importer.extractSubtraces()[0], original_data);
+    var gzipData = Base64.atob(GZIP_DATA_BASE_64);
+    var importer = new tr.e.importer.GzipImporter(null, gzipData);
+    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzipData));
+    assert.equal(importer.extractSubtraces()[0], ORIGINAL_DATA);
   });
 
   test('inflateArrayBuffer', function() {
     // Test inflating the data from an ArrayBuffer.
-    var gzip_data = Base64.atob(gzip_data_base64);
-    var buffer = new ArrayBuffer(gzip_data.length);
+    var gzipData = Base64.atob(GZIP_DATA_BASE_64);
+    var buffer = new ArrayBuffer(gzipData.length);
     var view = new Uint8Array(buffer);
-    for (var i = 0; i < gzip_data.length; i++)
-      view[i] = gzip_data.charCodeAt(i);
+    for (var i = 0; i < gzipData.length; i++)
+      view[i] = gzipData.charCodeAt(i);
     var importer = new tr.e.importer.GzipImporter(null, buffer);
     assert.isTrue(tr.e.importer.GzipImporter.canImport(buffer));
-    assert.equal(importer.extractSubtraces()[0], original_data);
+    assert.equal(importer.extractSubtraces()[0], ORIGINAL_DATA);
   });
 
   test('import', function() {
-    var gzip_data = Base64.atob(gzip_data_base64);
-    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzip_data));
+    var gzipData = Base64.atob(GZIP_DATA_BASE_64);
+    assert.isTrue(tr.e.importer.GzipImporter.canImport(gzipData));
 
-    var model = tr.c.TestUtils.newModelWithEvents(gzip_data);
+    var model = tr.c.TestUtils.newModelWithEvents(gzipData);
     var threads = model.getAllThreads();
     assert.equal(threads.length, 1);
 
@@ -102,4 +102,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

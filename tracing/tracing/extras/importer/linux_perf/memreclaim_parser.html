@@ -122,7 +122,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (!event)
         return false;
 
-      var nr_reclaimed = parseInt(event[1]);
+      var nrReclaimed = parseInt(event[1]);
       var tgid = parseInt(eventBase.tgid);
 
       var kthread = this.importer.getOrCreateKernelThread(
@@ -135,7 +135,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             {
               order: kthread.order,
               gfp: kthread.gfp,
-              nr_reclaimed: nr_reclaimed
+              nr_reclaimed: nrReclaimed
             });
       }
       kthread.openSliceTS = undefined;

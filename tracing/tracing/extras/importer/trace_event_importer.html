@@ -328,14 +328,14 @@ tr.exportTo('tr.e.importer', function() {
      * 'C' phase events.
      */
     processCounterEvent: function(event) {
-      var ctr_name;
+      var ctrName;
       if (event.id !== undefined)
-        ctr_name = event.name + '[' + event.id + ']';
+        ctrName = event.name + '[' + event.id + ']';
       else
-        ctr_name = event.name;
+        ctrName = event.name;
 
       var ctr = this.model_.getOrCreateProcess(event.pid)
-          .getOrCreateCounter(event.cat, ctr_name);
+          .getOrCreateCounter(event.cat, ctrName);
       var reservedColorId = event.cname ? getEventColor(event) : undefined;
 
       // Initialize the counter's series fields if needed.
@@ -1626,13 +1626,13 @@ tr.exportTo('tr.e.importer', function() {
                 eventStateEntry.event.cat,
                 eventStateEntry.event.name);
 
-          var thread_start = undefined;
-          var thread_duration = undefined;
+          var threadStart = undefined;
+          var threadDuration = undefined;
           if (startState.event.tts && startState.event.use_async_tts) {
-            thread_start = this.toModelTimeFromUs_(startState.event.tts);
+            threadStart = this.toModelTimeFromUs_(startState.event.tts);
             if (endState.event.tts) {
-              var thread_end = this.toModelTimeFromUs_(endState.event.tts);
-              thread_duration = thread_end - thread_start;
+              var threadEnd = this.toModelTimeFromUs_(endState.event.tts);
+              threadDuration = threadEnd - threadStart;
             }
           }
 
@@ -1644,8 +1644,8 @@ tr.exportTo('tr.e.importer', function() {
             sliceArgs,
             this.toModelTimeFromUs_(endState.event.ts - startState.event.ts),
             isTopLevel,
-            thread_start,
-            thread_duration,
+            threadStart,
+            threadDuration,
             startState.event.argsStripped);
 
           slice.startThread = startState.thread;

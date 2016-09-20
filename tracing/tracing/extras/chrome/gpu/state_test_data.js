@@ -4,7 +4,7 @@
 
 'use strict';
 
-var g_gpu_state_trace = [
+var g_gpuStateTrace = [
   {
     'cat': 'disabled-by-default-gpu.debug',
     'pid': 23969,

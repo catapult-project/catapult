@@ -74,25 +74,25 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return slice.subSlices[0];
     }
     var kthread = trans.calling_kthread.thread;
-    var internal_slice = kthread.sliceGroup.pushCompleteSlice('binder',
+    var internalSlice = kthread.sliceGroup.pushCompleteSlice('binder',
                              slice.title,
                              ts, .001, 0, 0,
                              slice.args);
 
-    internal_slice.title = slice.title;
-    internal_slice.id = slice.id;
-    internal_slice.colorId = slice.colorId;
-    slice.subSlices.push(internal_slice);
-    return internal_slice;
+    internalSlice.title = slice.title;
+    internalSlice.id = slice.id;
+    internalSlice.colorId = slice.colorId;
+    slice.subSlices.push(internalSlice);
+    return internalSlice;
   }
 
-  function generateBinderArgsForSlice(trans, c_threadName) {
+  function generateBinderArgsForSlice(trans, cThreadName) {
     return {
       'Transaction Id': trans.transaction_key,
       'Destination Node': trans.dest_node,
       'Destination Process': trans.dest_proc,
       'Destination Thread': trans.dest_thread,
-      'Destination Name': c_threadName,
+      'Destination Name': cThreadName,
       'Reply transaction?': trans.is_reply_transaction,
       'Flags': trans.flags + ' ' +
            binderFlagsToHuman(trans.flags),
@@ -106,7 +106,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   }
 
   /** @constructor */
-  function BinderTransaction(events, calling_pid, calling_ts, calling_kthread) {
+  function BinderTransaction(events, callingPid, callingTs, callingKthread) {
     this.transaction_key = parseInt(events[1]);
     this.dest_node = parseInt(events[2]);
     this.dest_proc = parseInt(events[3]);
@@ -117,9 +117,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     this.flags = events[6];
     this.code = events[7];
-    this.calling_pid = calling_pid;
-    this.calling_ts = calling_ts;
-    this.calling_kthread = calling_kthread;
+    this.calling_pid = callingPid;
+    this.calling_ts = callingTs;
+    this.calling_kthread = callingKthread;
   }
 
 
@@ -166,10 +166,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     binderLocked: function(eventName, cpuNumber, pid, ts, eventBase) {
-      var binder_thread = isBinderThread(eventBase.threadName);
+      var binderThread = isBinderThread(eventBase.threadName);
       var tgid, name;
-      var as_slice;
-      var need_push = false;
       var kthread, rthread;
 
       tgid = parseInt(eventBase.tgid);
@@ -339,20 +337,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
        * it and are now sending a transaction.
        * The transaction could be a response, or it could be recursive.
        */
-      var prior_receive = this.getPriorReceiveOnPID(pid);
+      var priorReceive = this.getPriorReceiveOnPID(pid);
 
-      if (prior_receive !== false) {
-        return this.modelPriorReceive(prior_receive, ts, pid, tgid, kthread,
+      if (priorReceive !== false) {
+        return this.modelPriorReceive(priorReceive, ts, pid, tgid, kthread,
             trans, args, event);
       }
       /**
        * This Thread has an already established recursive slice. We will now
        * either complete the entire transaction, OR do more recursive calls.
        */
-      var recursive_trans = this.getRecursiveTransactionNeedingCompletion(pid);
+      var recursiveTrans = this.getRecursiveTransactionNeedingCompletion(pid);
 
-      if (recursive_trans !== false)
-        return this.modelRecursiveTransactions(recursive_trans, ts, pid,
+      if (recursiveTrans !== false)
+        return this.modelRecursiveTransactions(recursiveTrans, ts, pid,
             kthread, trans, args);
 
       /**
@@ -397,45 +395,45 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          * We need to scale the slice up to the current ts and finish
          * creating some flows.
          */
-        var sync_trans = syncComplete[0];
-        var sync_slice = sync_trans.slice;
-        var response_trans = syncComplete[1];
-        var response_slice = response_trans.slice;
+        var syncTrans = syncComplete[0];
+        var syncSlice = syncTrans.slice;
+        var responseTrans = syncComplete[1];
+        var responseSlice = responseTrans.slice;
 
-        sync_slice.duration = ts - sync_slice.start;
+        syncSlice.duration = ts - syncSlice.start;
         /** These calls are a little hack that places a very small slice at
          *  the end of the sync slice and the response slice. This allows us
          *  to hook flow events (arrows) from the start to the end of the
          *  slices.
          */
-        var sync_internal = doInternalSlice(sync_trans, sync_slice, ts);
-        var response_ts = response_slice.start + response_slice.duration;
-        var response_internal = doInternalSlice(response_trans,
-            response_slice, response_ts);
+        var syncInternal = doInternalSlice(syncTrans, syncSlice, ts);
+        var responseTs = responseSlice.start + responseSlice.duration;
+        var responseInternal = doInternalSlice(responseTrans,
+            responseSlice, responseTs);
 
-        if (response_slice.outFlowEvents.length === 0 ||
-            sync_slice.inFlowEvents.length === 0) {
-          var flow = this.generateFlow(response_internal, sync_internal,
-              response_trans, sync_trans);
+        if (responseSlice.outFlowEvents.length === 0 ||
+            syncSlice.inFlowEvents.length === 0) {
+          var flow = this.generateFlow(responseInternal, syncInternal,
+              responseTrans, syncTrans);
 
-          sync_slice.inFlowEvents.push(flow);
-          response_slice.outFlowEvents.push(flow);
+          syncSlice.inFlowEvents.push(flow);
+          responseSlice.outFlowEvents.push(flow);
           this.model_.flowEvents.push(flow);
         }
         // Move flow arrows -- but not the first one.
-        for (var i = 1; i < sync_slice.inFlowEvents.length; i++) {
-          sync_slice.inFlowEvents[i].duration =
-              ts - sync_slice.inFlowEvents[i].start;
+        for (var i = 1; i < syncSlice.inFlowEvents.length; i++) {
+          syncSlice.inFlowEvents[i].duration =
+              ts - syncSlice.inFlowEvents[i].start;
         }
         return true;
       }
 
-      var tr_for_recv = this.getTransactionWaitingForRecv(transactionkey);
+      var trForRecv = this.getTransactionWaitingForRecv(transactionkey);
 
-      if (tr_for_recv !== false) {
-        if (!tr_for_recv.expect_reply) {
+      if (trForRecv !== false) {
+        if (!trForRecv.expect_reply) {
           // This is an async call place an Async slice.
-          var args = generateBinderArgsForSlice(tr_for_recv,
+          var args = generateBinderArgsForSlice(trForRecv,
               eventBase.threadName);
           var slice = kthread.thread.sliceGroup.
               pushCompleteSlice('binder',
@@ -443,19 +441,19 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               ts, .03, 0, 0,
               args);
 
-          var fake_event = [0, 0, 0, 0, 0, 0, 0];
-          var fake_trans = new BinderTransaction(fake_event, pid, ts, kthread);
-          var flow = this.generateFlow(tr_for_recv.slice, slice,
-              tr_for_recv, fake_trans);
+          var fakeEvent = [0, 0, 0, 0, 0, 0, 0];
+          var fakeTrans = new BinderTransaction(fakeEvent, pid, ts, kthread);
+          var flow = this.generateFlow(trForRecv.slice, slice,
+              trForRecv, fakeTrans);
 
           this.model_.flowEvents.push(flow);
-          tr_for_recv.slice.title = 'binder transaction async';
-          tr_for_recv.slice.duration = .03;
+          trForRecv.slice.title = 'binder transaction async';
+          trForRecv.slice.duration = .03;
           return true;
         }
         // Setup prior receive.
-        tr_for_recv.slice.title = 'binder transaction';
-        this.setCurrentReceiveOnPID(pid, [ts, tr_for_recv]);
+        trForRecv.slice.title = 'binder transaction';
+        this.setCurrentReceiveOnPID(pid, [ts, trForRecv]);
         return true;
       }
       /** This case is when we received an ack for a transaction we have
@@ -470,16 +468,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     modelRecursiveTransactions: function(recursive_trans, ts, pid, kthread,
                                          trans, args) {
 
-      var recursive_slice = recursive_trans[1].slice;
-      var orig_slice = recursive_trans[0].slice;
-      recursive_slice.duration = ts - recursive_slice.start;
-      trans.slice = recursive_slice;
+      var recursiveSlice = recursive_trans[1].slice;
+      var origSlice = recursive_trans[0].slice;
+      recursiveSlice.duration = ts - recursiveSlice.start;
+      trans.slice = recursiveSlice;
 
       if (trans.is_reply_transaction) {
         /* Case one:
          * This transaction is finally the reply of the recursion.
          */
-        orig_slice.duration = ts - orig_slice.start;
+        origSlice.duration = ts - origSlice.start;
         this.addSyncTransNeedingCompletion(trans.transaction_key,
              recursive_trans);
 
@@ -502,15 +500,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return true;
     },
 
-    modelPriorReceive: function(prior_receive, ts, pid, tgid, kthread, trans,
+    modelPriorReceive: function(priorReceive, ts, pid, tgid, kthread, trans,
                                 args, event) {
-      var callee_slice = prior_receive[1].slice;
-      var callee_trans = prior_receive[1];
-      var recv_ts = prior_receive[0];
+      var calleeSlice = priorReceive[1].slice;
+      var calleeTrans = priorReceive[1];
+      var recvTs = priorReceive[0];
       var slice = kthread.thread.sliceGroup.pushCompleteSlice('binder',
-          '', recv_ts, ts - recv_ts, 0, 0, args);
+          '', recvTs, ts - recvTs, 0, 0, args);
 
-      var flow = this.generateFlow(callee_slice, slice, callee_trans, trans);
+      var flow = this.generateFlow(calleeSlice, slice, calleeTrans, trans);
       this.model_.flowEvents.push(flow);
       trans.slice = slice;
 
@@ -523,7 +521,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          * a sync transaction.
          */
         this.addSyncTransNeedingCompletion(trans.transaction_key,
-            [callee_trans, trans]);
+            [calleeTrans, trans]);
       } else {
         /**
          * Recursive calls and or calls around, either way it's not
@@ -542,8 +540,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           slice = kthread.thread.sliceGroup.
           pushCompleteSlice('binder',
               'binder transaction',
-              recv_ts,
-              (ts - recv_ts), 0,
+              recvTs,
+              (ts - recvTs), 0,
               0, args);
 
           /* could be a async trans if so set the length to be a small one */
@@ -563,7 +561,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           }
           trans1.slice = slice;
           this.addRecursiveSyncTransNeedingCompletion(pid,
-              [callee_trans, trans]);
+              [calleeTrans, trans]);
           this.addTransactionWaitingForRecv(trans.transaction_key, trans1);
       }
       return true;
@@ -642,12 +640,12 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       this.transWaitingRecv[transactionkey] = transaction;
     },
 
-    generateFlow: function(from, to, from_trans, to_trans) {
+    generateFlow: function(from, to, fromTrans, toTrans) {
       var title = 'Transaction from : ' +
-        this.pid2name(from_trans.calling_pid) +
-        ' From PID: ' + from_trans.calling_pid + ' to pid: ' +
-        to_trans.calling_pid +
-        ' Thread Name: ' + this.pid2name(to_trans.calling_pid);
+        this.pid2name(fromTrans.calling_pid) +
+        ' From PID: ' + fromTrans.calling_pid + ' to pid: ' +
+        toTrans.calling_pid +
+        ' Thread Name: ' + this.pid2name(toTrans.calling_pid);
 
       var ts = from.start;
       var flow = new tr.model.FlowEvent('binder', 'binder',
