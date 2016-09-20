@@ -664,9 +664,18 @@ class AndroidPlatformBackend(
     Args:
       number_of_lines: Number of lines of log to return.
     """
-    return '\n'.join(self._device.RunShellCommand(
+    def decode_line(line):
+      try:
+        uline = unicode(line, encoding='utf-8')
+        return uline.encode('ascii', 'backslashreplace')
+      except Exception:
+        logging.error('Error encoding UTF-8 logcat line as ASCII.')
+        return '<MISSING LOGCAT LINE: FAILED TO ENCODE>'
+
+    logcat_output = self._device.RunShellCommand(
         ['logcat', '-d', '-t', str(number_of_lines)],
-        check_return=True, large_output=True))
+        check_return=True, large_output=True)
+    return '\n'.join(decode_line(l) for l in logcat_output)
 
   def GetStandardOutput(self):
     return 'Cannot get standard output on Android'
