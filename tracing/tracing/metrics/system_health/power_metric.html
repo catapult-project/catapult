@@ -124,17 +124,21 @@ tr.exportTo('tr.metrics.sh', function() {
 
   /**
    * Stores the power data in data into the given histograms for time, energy,
-   * and power.
+   * and power. If a histogram is undefined then the corresponding type of
+   * data is not stored.
    *
    * @param {!Object} data - Power data (obtained from getPowerData_)
-   * @param {!tr.v.Histogram} timeHist - Histogram to store time data.
-   * @param {!tr.v.Histogram} energyHist - Histogram to store energy data.
-   * @param {!tr.v.Histogram} powerHist - Histogram to store power data.
+   * @param {tr.v.Histogram} timeHist - Histogram to store time data.
+   * @param {tr.v.Histogram} energyHist - Histogram to store energy data.
+   * @param {tr.v.Histogram} powerHist - Histogram to store power data.
    */
   function storePowerData_(data, timeHist, energyHist, powerHist) {
-    timeHist.addSample(data.duration);
-    energyHist.addSample(data.energy);
-    powerHist.addSample(data.power);
+    if (timeHist !== undefined)
+      timeHist.addSample(data.duration);
+    if (energyHist !== undefined)
+      energyHist.addSample(data.energy);
+    if (powerHist !== undefined)
+      powerHist.addSample(data.power);
   }
 
   function createHistograms_(model, values) {
@@ -165,6 +169,12 @@ tr.exportTo('tr.metrics.sh', function() {
     hists.loadEnergyHist = makeEnergyHistogram_(values, 'load', 'page loads');
     hists.afterLoadPowerHist = makePowerHistogram_(values, 'after_load',
         'period after load');
+
+    // Metrics for video. A video stage is any stage with the string "Video"
+    // in its name. Histograms for video metrics contain one sample for each
+    // video stage. Only power metrics are available for video stages.
+    hists.videoPowerHist = makePowerHistogram_(values, 'video',
+        'video playback')
 
     // Frame based power metric.
     hists.frameEnergyHist = makeEnergyHistogram_(values, 'per_frame',
@@ -212,6 +222,10 @@ tr.exportTo('tr.metrics.sh', function() {
       storePowerData_(data, hists.scrollTimeHist,
           hists.scrollEnergyHist, hists.scrollPowerHist);
     }
+
+    // If this is a video stage, add the sample for the video metrics.
+    if (exp.title.indexOf("Video") !== -1)
+      storePowerData_(data, undefined, undefined, hists.videoPowerHist)
   }
 
   /**

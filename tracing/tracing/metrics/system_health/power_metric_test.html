@@ -287,5 +287,48 @@ tr.b.unittest.testSuite(function() {
         0.0011, 1e-4)
   });
 
+  test('powerMetric_video_oneStageEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain';
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Video", 0, 500));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 500, 500));
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.closeTo(getMetricValueAvg(valueSet, 'video:power'), 250, 0.5);
+  });
+
+  test('powerMetric_video_multipleStagesEachType', function() {
+    var model = new tr.Model();
+    var valueSet = new tr.v.ValueSet();
+    var rendererProcess = model.getOrCreateProcess(1234);
+    var mainThread = rendererProcess.getOrCreateThread(1);
+    mainThread.name = 'CrRendererMain'
+    model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    for (var i = 0; i <= 1000; i++) {
+        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+    }
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Video", 0, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 200, 300));
+    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+        model, "Video", 500, 200));
+    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+        model, 700, 300));
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.closeTo(getMetricValueAvg(valueSet, 'video:power'), 350, 0.5);
+  });
+
+
 });
 </script>
