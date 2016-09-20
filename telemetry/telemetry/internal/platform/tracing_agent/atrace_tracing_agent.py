@@ -29,11 +29,12 @@ class AtraceTracingAgent(tracing_agent.TracingAgent):
     app_name = (','.join(config.atrace_config.app_name) if
         isinstance(config.atrace_config.app_name, list) else
         config.atrace_config.app_name)
-    self._config = atrace_agent.AtraceConfig(config.atrace_config.categories,
-                                             None, None, app_name, True, True,
-                                             True, True, None, None,
-                                             str(self._device), None,
-                                             'android')
+    self._config = atrace_agent.AtraceConfig(
+        config.atrace_config.categories,
+        trace_buf_size=None, kfuncs=None, app_name=app_name,
+        compress_trace_data=True, boot=True, from_file=True,
+        device_serial_number=str(self._device), trace_time=None,
+        target='android')
     return self._atrace_agent.StartAgentTracing(self._config, timeout)
 
   def StopAgentTracing(self):
