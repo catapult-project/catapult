@@ -92,14 +92,12 @@ tr.exportTo('tr.ui', function() {
         v, storyGroupingKey);
   }
 
-  var getDisplayLabel = tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL.dataFn;
+  var getDisplayLabel = tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL.callback;
 
   var DEFAULT_POSSIBLE_GROUPS = [];
-  DEFAULT_POSSIBLE_GROUPS.push({
-    key: tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
-    label: tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.label,
-    dataFn: v => v.shortName || v.name
-  });
+  DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
+      tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
+      h => h.shortName || h.name));
 
   tr.b.iterItems(tr.v.ValueSet.GROUPINGS, function(name, group) {
     // DISPLAY_LABEL is used to define the columns, so don't allow grouping
@@ -122,38 +120,6 @@ tr.exportTo('tr.ui', function() {
     a = a.clone();
     a.addHistogram(b);
     return a;
-  }
-
-  /**
-   * Recursively groups |values|.
-   * TODO(benjhayden): Use ES6 Maps instead of dictionaries?
-   *
-   * @param {!Array.<!tr.v.Histogram>} values
-   * @param {!Array.<!function(!tr.v.Histogram):(string|number)>}
-   *   groupingCallbacks
-   * @return {!(Object|tr.v.Histogram)}
-   */
-  function organizeValues(values, groupingCallbacks, level) {
-    if (groupingCallbacks.length === level) {
-      // Recursion base case! Merge all remaining values.
-      // Be careful to retain the clone() semantics instead of in-place merging.
-      return values.reduce(mergeCells);
-    }
-
-    // Group the values by the current grouping.
-    var groupedValues = tr.b.group(values, groupingCallbacks[level]);
-
-    // Skip this grouping level if it contains only a single group,
-    // but never skip the zeroth grouping level (value name) nor the last
-    // (displayLabel).
-    if (level > 0 && level < (groupingCallbacks.length - 1) &&
-        tr.b.dictionaryLength(groupedValues) === 1) {
-      return organizeValues(values, groupingCallbacks, level + 1);
-    }
-
-    // Recursively group groupedValues.
-    return tr.b.mapItems(groupedValues, (key, groupValues) => organizeValues(
-        groupValues, groupingCallbacks, level + 1));
   }
 
   Polymer({
@@ -434,7 +400,7 @@ tr.exportTo('tr.ui', function() {
 
         var values = new Set();
         for (var value of this.values_) {
-          value = group.dataFn(value);
+          value = group.callback(value);
           if (!value)
             continue;
 
@@ -447,11 +413,10 @@ tr.exportTo('tr.ui', function() {
 
       // Add all storyGroupingKey groups for the current values.
       for (var storyGroupingKey of this.storyGroupingKeys) {
-        groups.push({
-          key: 'storyGroupingKey_' + storyGroupingKey,
-          label: storyGroupingKey,
-          dataFn: makeStoryGroupingKeyLabelGetter(storyGroupingKey)
-        });
+        groups.push(new tr.v.HistogramGrouping(
+          'storyGroupingKey_' + storyGroupingKey,
+          makeStoryGroupingKeyLabelGetter(storyGroupingKey),
+          storyGroupingKey));
       }
 
       // Save and restore current grouping keys in order to let
@@ -499,16 +464,11 @@ tr.exportTo('tr.ui', function() {
     },
 
     maybeDisableShowAll_: function() {
-      var allValuesAreSource = true;
-      for (var value of this.values) {
-        if (this.sourceValues_.indexOf(value) < 0) {
-          allValuesAreSource = false;
-          break;
-        }
-      }
+      var allValuesAreSource = !this.values ||
+          (this.values.length === this.sourceValues_.length);
 
-      // Disable show_all if hiddenValues is 0.
-      // Re-enable show_all if hiddenValues changes from 0.
+      // Disable show_all if all values are sourceValues.
+      // Re-enable show_all if this changes.
       this.$.show_all.disabled = allValuesAreSource;
 
       // Check show_all if it is disabled.
@@ -548,35 +508,37 @@ tr.exportTo('tr.ui', function() {
      * @param {!Array.<!Object>} hierarchy
      */
     buildRow_: function(organizedValues, hierarchy) {
-      tr.b.iterItems(organizedValues, function(name, value) {
-        if (value instanceof tr.v.Histogram) {
+      for (var [name, values] of organizedValues) {
+        if (values instanceof Array) {
           // This recursion base case corresponds to the recursion base case of
-          // organizeValues(). The last groupingCallback is getDisplayLabel,
-          // which defines the columns of the table.
+          // groupHistogramsRecursively(). The last groupingCallback is always
+          // getDisplayLabel, which defines the columns of the table and is
+          // unskippable.
+          for (var value of values) {
+            // Merge Values up the grouping hierarchy.
+            for (var row of hierarchy) {
+              if (!row.description)
+                row.description = value.description;
 
-          // Merge Values up the grouping hierarchy.
-          for (var row of hierarchy) {
-            if (row.description === undefined)
-              row.description = value.description;
-
-            if (row.columns[name])
-              row.columns[name] = mergeCells(value, row.columns[name]);
-            else
-              row.columns[name] = value;
+              if (row.columns[name])
+                row.columns[name] = mergeCells(value, row.columns[name]);
+              else
+                row.columns[name] = value;
+            }
           }
 
-          var row = hierarchy[hierarchy.length - 1];
-          if (row)
-            this.addDiagnosticSubRows_(value, row, name);
-        } else if (value === UNMERGEABLE) {
-          var row = hierarchy[hierarchy.length - 1];
-          if (row)
-            row.columns[name] = value;
-        } else {
-          // |value| is actually a nested organizedValues.
+          // TODO(benjhayden) Delete this after histograms are in cells.
+          if (values.length === 1) {
+            var row = hierarchy[hierarchy.length - 1];
+            if (row) {
+              this.addDiagnosticSubRows_(values[0], row, name);
+            }
+          }
+        } else if (values instanceof Map) {
+          // |values| is actually a nested organizedValues.
           var row = {name: name, subRows: [], columns: {}};
           hierarchy.push(row);
-          this.buildRow_(value, hierarchy);
+          this.buildRow_(values, hierarchy);
           hierarchy.pop();
 
           if (hierarchy.length === 0)
@@ -584,7 +546,7 @@ tr.exportTo('tr.ui', function() {
           else
             hierarchy[hierarchy.length - 1].subRows.push(row);
         }
-      }, this);
+      }
     },
 
     get storyGroupingKeys() {
@@ -624,19 +586,31 @@ tr.exportTo('tr.ui', function() {
      * @return {!Object}
      */
     get organizedValues_() {
-      var showingValues = this.$.show_all.checked ?
-          this.values : this.sourceValues_;
-      var values = [];
-      for (var value of showingValues)
-        values.push(value);
+      var showingValueSet = this.$.show_all.checked ?
+          this.values : new tr.v.ValueSet(this.sourceValues_);
 
-      var groupingCallbacks = [];
-      for (var group of this.$.picker.currentGroups)
-        groupingCallbacks.push(group.dataFn);
+      var groupings = this.$.picker.currentGroups.slice();
+      groupings.push(tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL);
 
-      groupingCallbacks.push(getDisplayLabel);
+      function canSkipGrouping(grouping, groupedHistograms) {
+        // Never skip meaningful groupings.
+        if (groupedHistograms.size > 1)
+          return false;
 
-      return organizeValues(values, groupingCallbacks, 0);
+        // Never skip the zero-th grouping.
+        if (grouping.key === groupings[0].key)
+          return false;
+
+        // Never skip the grouping that defines the table columns.
+        if (grouping.key === tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL.key)
+          return false;
+
+        // Skip meaningless groupings.
+        return true;
+      }
+
+      return showingValueSet.groupHistogramsRecursively(
+          groupings, canSkipGrouping);
     },
 
     /* this.rows_ will look something like

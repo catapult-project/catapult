@@ -12,6 +12,23 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v', function() {
+  /*
+   * See ValueSet.groupHistogramsRecursively() and
+   * tr-ui-b-grouping-table-groupby-picker.
+   */
+  class HistogramGrouping {
+    /**
+     * @param {string} key
+     * @param {!function(!tr.v.Histogram):string} callback
+     * @param {string=} opt_label
+     */
+    constructor(key, callback, opt_label) {
+      this.key = key;
+      this.callback = callback;
+      this.label = opt_label || key;
+    }
+  }
+
   class ValueSet {
     constructor(opt_values) {
       this.values_ = new Map();
@@ -136,56 +153,78 @@ tr.exportTo('tr.v', function() {
 
       this.values_.set(h.guid, h);
     }
+
+    /**
+     * Return a nested Map, whose keys are strings and leaf values are Arrays of
+     * Histograms.
+     * See GROUPINGS for example |groupings|.
+     * Groupings are skipped when |opt_skipGroupingCallback| is specified and
+     * returns true.
+     *
+     * @typedef {!Array.<tr.v.Histogram>} HistogramArray
+     * @typedef {!Map.<string,!(HistogramArray|HistogramArrayMap)>}
+     *   HistogramArrayMap
+     * @typedef {!Map.<string,!HistogramArray>} LeafHistogramArrayMap
+     *
+     * @param {!Array.<!tr.v.HistogramGrouping>} groupings
+     * @param {!function(!Grouping, !LeafHistogramArrayMap):boolean=}
+     *   opt_skipGroupingCallback
+     *
+     * @return {!(HistogramArray|HistogramArrayMap)}
+     */
+    groupHistogramsRecursively(groupings, opt_skipGroupingCallback) {
+      function recurse(histograms, level) {
+        if (level === groupings.length) {
+          return histograms;  // recursion base case
+        }
+
+        var grouping = groupings[level]
+        var groupedHistograms = tr.b.groupIntoMap(
+            histograms, grouping.callback);
+
+        if (opt_skipGroupingCallback && opt_skipGroupingCallback(
+              grouping, groupedHistograms)) {
+          return recurse(histograms, level + 1);
+        }
+
+        for (var [key, group] of groupedHistograms) {
+          groupedHistograms.set(key, recurse(group, level + 1));
+        }
+
+        return groupedHistograms;
+      }
+
+      return recurse(this.toArray(), 0);
+    }
   }
 
   // This does not contain storyGroupingKeys!
   ValueSet.GROUPINGS = {
-    HISTOGRAM_NAME: {
-      key: 'histogramName',
-      label: 'name',
-      dataFn: v => v.name
-    },
+    HISTOGRAM_NAME: new HistogramGrouping('name', h => h.name),
 
-    BENCHMARK_NAME: {
-      key: 'benchmarkName',
-      label: 'benchmark',
-      dataFn: v => tr.v.d.IterationInfo.getField(v, 'benchmarkName', '')
-    },
+    BENCHMARK_NAME: new HistogramGrouping('benchmark',
+        h => tr.v.d.IterationInfo.getField(h, 'benchmarkName', '')),
 
-    BENCHMARK_START: {
-      key: 'benchmarkStart',
-      label: 'time',
-      dataFn: v => tr.v.d.IterationInfo.getField(v, 'benchmarkStartString', '')
-    },
+    BENCHMARK_START: new HistogramGrouping('time',
+        h => tr.v.d.IterationInfo.getField(h, 'benchmarkStartString', '')),
 
-    STORYSET_REPEAT: {
-      key: 'storysetRepeat',
-      label: 'storyset repeat',
-      dataFn: v => tr.v.d.IterationInfo.getField(
-          v, 'storysetRepeatCounterLabel', 0)
-    },
+    STORYSET_REPEAT: new HistogramGrouping('storyset repeat',
+        h => tr.v.d.IterationInfo.getField(
+            h, 'storysetRepeatCounterLabel', 0)),
 
-    STORY_REPEAT: {
-      key: 'storyRepeat',
-      label: 'story repeat',
-      dataFn: v => tr.v.d.IterationInfo.getField(
-          v, 'storyRepeatCounterLabel', 0)
-    },
+    STORY_REPEAT: new HistogramGrouping('story repeat',
+        h => tr.v.d.IterationInfo.getField(
+            h, 'storyRepeatCounterLabel', 0)),
 
-    STORY_NAME: {
-      key: 'storyName',
-      label: 'story',
-      dataFn: v => tr.v.d.IterationInfo.getField(v, 'storyDisplayName', '')
-    },
+    STORY_NAME: new HistogramGrouping('story',
+        h => tr.v.d.IterationInfo.getField(h, 'storyDisplayName', '')),
 
-    DISPLAY_LABEL: {
-      key: 'displayLabel',
-      label: 'label',
-      dataFn: v => tr.v.d.IterationInfo.getField(v, 'displayLabel', 'Value')
-    }
+    DISPLAY_LABEL: new HistogramGrouping('label',
+        h => tr.v.d.IterationInfo.getField(h, 'displayLabel', 'Value'))
   };
 
   return {
+    HistogramGrouping: HistogramGrouping,
     ValueSet: ValueSet
   };
 });

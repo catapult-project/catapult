@@ -16,6 +16,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  // TODO(benjhayden): Test groupHistogramsRecursively.
+
   test('addValuesFromDicts', function() {
     var n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
     var values = new tr.v.ValueSet([n]);
