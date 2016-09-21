@@ -214,11 +214,6 @@ triaging functionality in the chart.
         var len = values.length;
         var sum = values.reduce(function(v1, v2) { return v1 + v2;}, 0);
         return sum / len;
-        var squaredDevianceSum = values.reduce(
-            function(v1, v2) {return v1 + Math.pow(v2 - mean, 2);}, 0);
-        var variance = squaredDevianceSum / len;
-        var std = Math.sqrt(variance);
-        return {mean: mean, std: std};
       }
 
       /**
@@ -285,7 +280,7 @@ triaging functionality in the chart.
           return d.toLocaleString();
         }
         return null;
-      };
+      }
 
       /**
        * Returns a string to display, given a string that contains a
@@ -308,7 +303,7 @@ triaging functionality in the chart.
           return d;
         }
         return rev;
-      };
+      }
 
       /**
        * Formats numbers in a human-readable way.
@@ -322,7 +317,7 @@ triaging functionality in the chart.
           maximumSignificantDigits: 6
         };
         return num.toLocaleString('en-US', options);
-      };
+      }
 
       /**
        * Deep compares two dictionary parameters.
@@ -343,7 +338,7 @@ triaging functionality in the chart.
           return [k, param2[k]];
         });
         return JSON.stringify(param1) == JSON.stringify(param2);
-      };
+      }
 
       function arrayUnique(array) {
         var dict = {};
@@ -351,7 +346,7 @@ triaging functionality in the chart.
           dict[item] = true;
         });
         return Object.keys(dict);
-      };
+      }
 
       Polymer({
 
@@ -746,7 +741,7 @@ triaging functionality in the chart.
         },
 
         jsonHasData: function(json) {
-          if (!'data' in json) {
+          if (!('data' in json)) {
             return;
           }
           var seriesIndices = Object.keys(json.data);
@@ -2102,6 +2097,7 @@ triaging functionality in the chart.
          */
         hideTooltipEvenIfSticky: function() {
           this.stickyTooltip = false;
+          this.currentItem = null;
           this.hideTooltip();
         },
 

@@ -31,16 +31,29 @@ tr.b.unittest.testSuite(function() {
     }
   };
 
+  var REVISION_INFO = {
+    r_commit_pos: {
+      name: 'Chromium Commit Position',
+      url: 'http://test-results.appspot.com/revision_range?start={{R1}}&end={{R2}}' // @supress longLineCheck
+    }
+  };
+
+  function createChart() {
+    var chart = document.createElement('chart-container');
+    chart.set('revisionInfo', REVISION_INFO);
+    return chart;
+  }
+
   test('instantiate basic', function() {
     testing_common.mockChartJson(dromaeo_charts);
-    var chart = document.createElement('chart-container');
+    var chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeo_charts.graphParams);
   }, testOptions);
 
   test('data is loaded when a series group is added', function() {
     testing_common.mockChartJson(dromaeo_charts);
-    var chart = document.createElement('chart-container');
+    var chart = createChart();
     chart.addSeriesGroup(dromaeo_charts.graphParams);
     this.addHTMLOutput(chart);
     assert.equal(chart.getDataForFlot().length, 3);
@@ -52,7 +65,7 @@ tr.b.unittest.testSuite(function() {
       graphJson['annotations']['0'][annotation]['timestamp'] -= 8 * 86400000;
     }
     testing_common.mockChartJson(dromaeo_charts, graphJson);
-    var chart = document.createElement('chart-container');
+    var chart = createChart();
     this.addHTMLOutput(chart);
     chart.addSeriesGroup(dromaeo_charts.graphParams);
 
