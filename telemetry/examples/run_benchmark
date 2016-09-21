@@ -7,10 +7,11 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from telemetry import benchmark_runner
+from telemetry import project_config
 
 def main():
   top_level_dir = os.path.dirname(__file__)
-  config = benchmark_runner.ProjectConfig(
+  config = project_config.ProjectConfig(
       top_level_dir=top_level_dir,
       benchmark_dirs=[os.path.join(top_level_dir, 'benchmarks')])
   return benchmark_runner.main(config)
