@@ -155,7 +155,7 @@ class TriageBugs(object):
     comment = cls._RecoveredBugComment(bug_id)
 
     issue_tracker = issue_tracker_service.IssueTrackerService(
-        utils.ServiceAccountHttp())
+        additional_credentials=utils.ServiceAccountCredentials())
     issue_tracker.AddBugComment(bug_id, comment)
 
   @classmethod

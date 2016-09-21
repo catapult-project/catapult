@@ -181,7 +181,6 @@ def _MockBuildBucketResponse(result, updated_ts, status='COMPLETED'):
 # In this class, we patch apiclient.discovery.build so as to not make network
 # requests, which are normally made when the IssueTrackerService is initialized.
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
-@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class UpdateBugWithResultsTest(testing_common.TestCase):
 
@@ -273,7 +272,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual(12345, pending_jobs[0].bug_id)
     self.assertEqual('completed', pending_jobs[0].status)
 
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -490,7 +489,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(0, len(messages))
 
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -530,7 +529,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(1, len(messages))
 
-  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
