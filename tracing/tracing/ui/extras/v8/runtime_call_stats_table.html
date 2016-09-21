@@ -66,9 +66,9 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
   };
 
-  var GroupedEntry = function(name, match_regex) {
+  var GroupedEntry = function(name, matchRegex) {
     Entry.call(this, name, 0, 0);
-    this.regex_ = match_regex;
+    this.regex_ = matchRegex;
     this.entries_ = new Map();
   };
 

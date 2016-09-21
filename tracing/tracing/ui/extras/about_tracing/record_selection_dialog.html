@@ -469,17 +469,17 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       }
 
       var categories = this.unselectedCategories_();
-      var categories_length = categories.length;
-      var negated_categories = [];
-      for (var i = 0; i < categories_length; ++i) {
+      var categoriesLength = categories.length;
+      var negatedCategories = [];
+      for (var i = 0; i < categoriesLength; ++i) {
         // Skip any category with a , as it will cause issues when we negate.
         // Both sides should have been added as separate categories, these can
         // only come from settings.
         if (categories[i].match(/,/))
           continue;
-        negated_categories.push('-' + categories[i]);
+        negatedCategories.push('-' + categories[i]);
       }
-      categories = negated_categories.join(',');
+      categories = negatedCategories.join(',');
 
       var disabledCategories = this.enabledDisabledByDefaultCategories_();
       disabledCategories = disabledCategories.join(',');
@@ -503,9 +503,9 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     collectInputs_: function(inputs, isChecked) {
-      var inputs_length = inputs.length;
+      var inputsLength = inputs.length;
       var categories = [];
-      for (var i = 0; i < inputs_length; ++i) {
+      for (var i = 0; i < inputsLength; ++i) {
         var input = inputs[i];
         if (input.checked === isChecked)
           categories.push(input.value);
@@ -533,8 +533,8 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
     },
 
     buildInputs_: function(inputs, checkedDefault, parent) {
-      var inputs_length = inputs.length;
-      for (var i = 0; i < inputs_length; i++) {
+      var inputsLength = inputs.length;
+      for (var i = 0; i < inputsLength; i++) {
         var category = inputs[i];
 
         var inputEl = document.createElement('input');

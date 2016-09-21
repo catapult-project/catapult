@@ -537,12 +537,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       // Then create a new selector and replace the old one.
-      var new_selector = tr.ui.b.createSelector(
+      var newSelector = tr.ui.b.createSelector(
           this, 'howToShowTiles',
           'layerView.howToShowTiles', 'none',
           data);
-      this.controls_.replaceChild(new_selector, this.tileRectsSelector_);
-      this.tileRectsSelector_ = new_selector;
+      this.controls_.replaceChild(newSelector, this.tileRectsSelector_);
+      this.tileRectsSelector_ = newSelector;
     },
 
     computePictureLoadingStatus_: function() {

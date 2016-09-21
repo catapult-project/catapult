@@ -20,13 +20,13 @@ tr.b.unittest.testSuite(function() {
   var Task = tr.b.Task;
 
   test('instantiate', function() {
-    var num_threads = 500;
+    var numThreads = 500;
     var model = tr.c.TestUtils.newModelWithEvents([], {
       shiftWorldToZero: false,
       pruneContainers: false,
       customizeModelCallback: function(model) {
         var p100 = model.getOrCreateProcess(100);
-        for (var i = 0; i < num_threads; i++) {
+        for (var i = 0; i < numThreads; i++) {
           var t = p100.getOrCreateThread(101 + i);
           if (i % 2 == 0) {
             t.sliceGroup.beginSlice('cat', 'a', 100);

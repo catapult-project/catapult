@@ -1336,7 +1336,7 @@ tr.exportTo('tr.ui.b', function() {
       if (this.selectedTableRowInfo_ === undefined)
         return;
 
-      var code_to_command_names = {
+      var CODE_TO_COMMAND_NAMES = {
         13: 'ENTER',
         32: 'SPACE',
         37: 'ARROW_LEFT',
@@ -1344,7 +1344,7 @@ tr.exportTo('tr.ui.b', function() {
         39: 'ARROW_RIGHT',
         40: 'ARROW_DOWN'
       };
-      var cmdName = code_to_command_names[e.keyCode];
+      var cmdName = CODE_TO_COMMAND_NAMES[e.keyCode];
       if (cmdName === undefined)
         return;
 

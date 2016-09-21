@@ -37,7 +37,7 @@ tr.b.unittest.testSuite(function() {
       new tr.model.Alert(ALERT_INFO_2, 3)
     ];
 
-    var predicted_alerts = new tr.model.EventSet([alerts[0], alerts[1]]);
+    var predictedAlerts = new tr.model.EventSet([alerts[0], alerts[1]]);
     panel.model = createModelWithAlerts(alerts);
     panel.style.height = '100px';
     this.addHTMLOutput(panel);
@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     var selectionChanged = false;
     panel.addEventListener('requestSelectionChange', function(e) {
       selectionChanged = true;
-      assert.isTrue(e.selection.equals(predicted_alerts));
+      assert.isTrue(e.selection.equals(predictedAlerts));
     });
     panel.selectAlertsOfType(ALERT_INFO_1.title);
 
@@ -56,6 +56,6 @@ tr.b.unittest.testSuite(function() {
     var m = new tr.Model();
     m.alerts = alerts;
     return m;
-  };
+  }
 });
 </script>

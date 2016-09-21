@@ -13,7 +13,8 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var unitlessNumber = tr.b.Unit.byName.unitlessNumber;
-  var unitlessNumber_sIB = tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
+  var unitlessNumber_smallerIsBetter =
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
 
   var TEST_BOUNDARIES = tr.v.HistogramBinBoundaries.createLinear(0, 1000, 10);
 
@@ -44,8 +45,10 @@ tr.b.unittest.testSuite(function() {
         new tr.v.Histogram('', unitlessNumber)), tr.v.Significance.DONT_CARE);
 
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 10);
-    var numericA = new tr.v.Histogram('', unitlessNumber_sIB, boundaries);
-    var numericB = new tr.v.Histogram('', unitlessNumber_sIB, boundaries);
+    var numericA = new tr.v.Histogram(
+        '', unitlessNumber_smallerIsBetter, boundaries);
+    var numericB = new tr.v.Histogram(
+        '', unitlessNumber_smallerIsBetter, boundaries);
     for (var i = 0; i < 100; ++i) {
       numericA.addSample(i);
       numericB.addSample(i * 0.85);

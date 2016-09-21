@@ -85,40 +85,40 @@ tr.exportTo('tr.ui.b', function() {
   // Care of bckenney@ via
   // http://extremelysatisfactorytotalitarianism.com/blog/?p=2120
   function drawTexturedTriangle(ctx, img, p0, p1, p2, t0, t1, t2) {
-    var tmp_p0 = [p0[0], p0[1]];
-    var tmp_p1 = [p1[0], p1[1]];
-    var tmp_p2 = [p2[0], p2[1]];
-    var tmp_t0 = [t0[0], t0[1]];
-    var tmp_t1 = [t1[0], t1[1]];
-    var tmp_t2 = [t2[0], t2[1]];
+    var tmpP0 = [p0[0], p0[1]];
+    var tmpP1 = [p1[0], p1[1]];
+    var tmpP2 = [p2[0], p2[1]];
+    var tmpT0 = [t0[0], t0[1]];
+    var tmpT1 = [t1[0], t1[1]];
+    var tmpT2 = [t2[0], t2[1]];
 
     ctx.beginPath();
-    ctx.moveTo(tmp_p0[0], tmp_p0[1]);
-    ctx.lineTo(tmp_p1[0], tmp_p1[1]);
-    ctx.lineTo(tmp_p2[0], tmp_p2[1]);
+    ctx.moveTo(tmpP0[0], tmpP0[1]);
+    ctx.lineTo(tmpP1[0], tmpP1[1]);
+    ctx.lineTo(tmpP2[0], tmpP2[1]);
     ctx.closePath();
 
-    tmp_p1[0] -= tmp_p0[0];
-    tmp_p1[1] -= tmp_p0[1];
-    tmp_p2[0] -= tmp_p0[0];
-    tmp_p2[1] -= tmp_p0[1];
+    tmpP1[0] -= tmpP0[0];
+    tmpP1[1] -= tmpP0[1];
+    tmpP2[0] -= tmpP0[0];
+    tmpP2[1] -= tmpP0[1];
 
-    tmp_t1[0] -= tmp_t0[0];
-    tmp_t1[1] -= tmp_t0[1];
-    tmp_t2[0] -= tmp_t0[0];
-    tmp_t2[1] -= tmp_t0[1];
+    tmpT1[0] -= tmpT0[0];
+    tmpT1[1] -= tmpT0[1];
+    tmpT2[0] -= tmpT0[0];
+    tmpT2[1] -= tmpT0[1];
 
-    var det = 1 / (tmp_t1[0] * tmp_t2[1] - tmp_t2[0] * tmp_t1[1]),
+    var det = 1 / (tmpT1[0] * tmpT2[1] - tmpT2[0] * tmpT1[1]),
 
         // linear transformation
-        a = (tmp_t2[1] * tmp_p1[0] - tmp_t1[1] * tmp_p2[0]) * det,
-        b = (tmp_t2[1] * tmp_p1[1] - tmp_t1[1] * tmp_p2[1]) * det,
-        c = (tmp_t1[0] * tmp_p2[0] - tmp_t2[0] * tmp_p1[0]) * det,
-        d = (tmp_t1[0] * tmp_p2[1] - tmp_t2[0] * tmp_p1[1]) * det,
+        a = (tmpT2[1] * tmpP1[0] - tmpT1[1] * tmpP2[0]) * det,
+        b = (tmpT2[1] * tmpP1[1] - tmpT1[1] * tmpP2[1]) * det,
+        c = (tmpT1[0] * tmpP2[0] - tmpT2[0] * tmpP1[0]) * det,
+        d = (tmpT1[0] * tmpP2[1] - tmpT2[0] * tmpP1[1]) * det,
 
         // translation
-        e = tmp_p0[0] - a * tmp_t0[0] - c * tmp_t0[1],
-        f = tmp_p0[1] - b * tmp_t0[0] - d * tmp_t0[1];
+        e = tmpP0[0] - a * tmpT0[0] - c * tmpT0[1],
+        f = tmpP0[1] - b * tmpT0[0] - d * tmpT0[1];
 
     ctx.save();
     ctx.transform(a, b, c, d, e, f);
@@ -128,8 +128,8 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   function drawTriangleSub(
-      ctx, img, p0, p1, p2, t0, t1, t2, opt_recursion_depth) {
-    var depth = opt_recursion_depth || 0;
+      ctx, img, p0, p1, p2, t0, t1, t2, opt_recursionDepth) {
+    var depth = opt_recursionDepth || 0;
 
     // We may subdivide if we are not at the limit of recursion.
     var subdivisionIndex = 0;
@@ -232,16 +232,16 @@ tr.exportTo('tr.ui.b', function() {
   }
 
   // Created to avoid creating garbage when doing bulk transforms.
-  var tmp_vec4 = vec4.create();
+  var tmpVec4 = vec4.create();
   function transform(transformed, point, matrix, viewport) {
-    vec4.set(tmp_vec4, point[0], point[1], 0, 1);
-    vec4.transformMat4(tmp_vec4, tmp_vec4, matrix);
+    vec4.set(tmpVec4, point[0], point[1], 0, 1);
+    vec4.transformMat4(tmpVec4, tmpVec4, matrix);
 
-    var w = tmp_vec4[3];
+    var w = tmpVec4[3];
     if (w < 1e-6) w = 1e-6;
 
-    transformed[0] = ((tmp_vec4[0] / w) + 1) * viewport.width / 2;
-    transformed[1] = ((tmp_vec4[1] / w) + 1) * viewport.height / 2;
+    transformed[0] = ((tmpVec4[0] / w) + 1) * viewport.width / 2;
+    transformed[1] = ((tmpVec4[1] / w) + 1) * viewport.height / 2;
     transformed[2] = w;
   }
 
@@ -341,22 +341,22 @@ tr.exportTo('tr.ui.b', function() {
     }
   }
 
-  var tmp_p1 = vec3.create();
-  var tmp_p2 = vec3.create();
-  var tmp_p3 = vec3.create();
-  var tmp_p4 = vec3.create();
+  var tmpP1 = vec3.create();
+  var tmpP2 = vec3.create();
+  var tmpP3 = vec3.create();
+  var tmpP4 = vec3.create();
   function transformAndProcessQuads(
       matrix, viewport, quads, numPasses, handleQuadFunc, opt_arg1, opt_arg2) {
 
     for (var passNumber = 0; passNumber < numPasses; passNumber++) {
       for (var i = 0; i < quads.length; i++) {
         var quad = quads[i];
-        transform(tmp_p1, quad.p1, matrix, viewport);
-        transform(tmp_p2, quad.p2, matrix, viewport);
-        transform(tmp_p3, quad.p3, matrix, viewport);
-        transform(tmp_p4, quad.p4, matrix, viewport);
+        transform(tmpP1, quad.p1, matrix, viewport);
+        transform(tmpP2, quad.p2, matrix, viewport);
+        transform(tmpP3, quad.p3, matrix, viewport);
+        transform(tmpP4, quad.p4, matrix, viewport);
         handleQuadFunc(passNumber, quad,
-                       tmp_p1, tmp_p2, tmp_p3, tmp_p4,
+                       tmpP1, tmpP2, tmpP3, tmpP4,
                        opt_arg1, opt_arg2);
       }
     }

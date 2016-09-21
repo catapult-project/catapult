@@ -27,13 +27,13 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('subgroup', function() {
-    var s_device = new GpuAsyncSlice('disabled-by-default-gpu.device', 'gpu1',
+    var sDevice = new GpuAsyncSlice('disabled-by-default-gpu.device', 'gpu1',
                                      7, 0, {'channel': 'test_channel1'});
 
     var s_service = new GpuAsyncSlice('disabled-by-default-gpu.service', 'gpu2',
                                       7, 0, {'channel': 'test_channel2'});
 
-    assert.equal(s_device.viewSubGroupTitle, 'Device.test_channel1');
+    assert.equal(sDevice.viewSubGroupTitle, 'Device.test_channel1');
     assert.equal(s_service.viewSubGroupTitle, 'Service.test_channel2');
   });
 
