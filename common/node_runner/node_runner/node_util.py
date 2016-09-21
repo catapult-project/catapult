@@ -63,8 +63,15 @@ def GetNodeModulesPath():
 
 
 def RunEslint(filenames=None):
-  cmd = [GetNodePath(), os.path.join(
-      GetNodeModulesPath(), 'eslint', 'bin', 'eslint.js'), '--color']
+  cmd = [
+      GetNodePath(),
+      os.path.join(GetNodeModulesPath(), 'eslint', 'bin', 'eslint.js'),
+      '--color',
+      '--config',
+      os.path.join(py_utils.GetCatapultDir(), 'common', 'eslint', '.eslintrc'),
+      '--rulesdir',
+      os.path.join(py_utils.GetCatapultDir(), 'common', 'eslint', 'rules')
+  ]
   if filenames:
     cmd += filenames
   try:

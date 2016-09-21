@@ -9,6 +9,9 @@
       "block-scoped-var": "off",
       "brace-style": "off",
       "camelcase": "off",
+      "catapult-camelcase": ["error", {
+        "properties": "never"
+      }],
       "comma-dangle": "off",
       "comma-spacing": "off",
       "curly": "off",
