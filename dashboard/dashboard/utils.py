@@ -345,7 +345,7 @@ def ServiceAccountHttp():
       scope=EMAIL_SCOPE)
 
   http = httplib2.Http()
-  credentials.authorize(http)
+  http.authorize(credentials)
   return http
 
 
