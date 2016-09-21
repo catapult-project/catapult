@@ -13,13 +13,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  var emojiPrefix = String.fromCharCode(55357);
-  var Emoji = {
-    GRINNING_FACE: emojiPrefix + String.fromCharCode(56835),
-    NEUTRAL_FACE: emojiPrefix + String.fromCharCode(56848),
-    CONFOUNDED_FACE: emojiPrefix + String.fromCharCode(56854)
-  };
-
   /**
    * @param {undefined|tr.v.ScalarNumeric|tr.v.Histogram} value
    * @param {Object=} opt_config
@@ -77,7 +70,6 @@ tr.exportTo('tr.v.ui', function() {
   }
 
   return {
-    Emoji: Emoji,
     createScalarSpan: createScalarSpan
   };
 });
@@ -92,17 +84,7 @@ tr.exportTo('tr.v.ui', function() {
       /* Limit the sparkline's negative z-index to the span only. */
       isolation: isolate;
     }
-    #content.right-align {
-      text-align: right;
-      position: relative;
-      display: block;
-    }
-    #significance.better, #content.better {
-      color: green;
-    }
-    #significance.worse, #content.worse {
-      color: red;
-    }
+
     #sparkline {
       width: 0%;
       position: absolute;
@@ -132,19 +114,83 @@ tr.exportTo('tr.v.ui', function() {
       background-color: hsla(0, 100%, 88%, .75);
       border-color: hsl(0, 100%, 80%);
     }
-    #warning {
-      margin-left: 4px;
-      font-size: 66%;
+
+    #content.right-align {
+      text-align: right;
+      position: relative;
+      display: block;
     }
-    #significance {
-      font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", Times, Symbola, Aegyptus, Code2000, Code2001, Code2002, Musica, serif, LastResort;
-      font-size: 13pt;
+    #content.better {
+      color: green;
+    }
+    #content.worse {
+      color: red;
+    }
+
+    #significance svg {
+      display: none;
+      height: 1em;
+      vertical-align: text-top;
+      stroke-width: 4;
+      fill: rgba(0, 0, 0, 0);
+    }
+    #significance #insignificant {
+      stroke: black;
+    }
+    #significance #significantly_better {
+      stroke: green;
+    }
+    #significance #significantly_worse {
+      stroke: red;
+    }
+
+    #warning {
+      display: none;
+      margin-left: 4px;
+      height: 1em;
+      vertical-align: text-top;
+      stroke-width: 0;
+    }
+    #warning path {
+      fill: rgb(255, 185, 185);
+    }
+    #warning rect {
+      fill: red;
     }
     </style>
+
     <span id="sparkline"></span>
+
     <span id="content"></span>
-    <span id="significance"></span>
-    <span id="warning" style="display:none">&#9888;</span>
+
+    <span id="significance">
+      <svg viewbox="0 0 128 128" id="insignificant">
+        <circle r="60" cx="64" cy="64"/>
+        <circle r="4" cx="44" cy="44"/>
+        <circle r="4" cx="84" cy="44"/>
+        <line x1="36" x2="92" y1="80" y2="80"/>
+      </svg>
+
+      <svg viewbox="0 0 128 128" id="significantly_better">
+        <circle r="60" cx="64" cy="64"/>
+        <circle r="4" cx="44" cy="44"/>
+        <circle r="4" cx="84" cy="44"/>
+        <path d="M 28 64 Q 64 128 100 64"/>
+      </svg>
+
+      <svg viewbox="0 0 128 128" id="significantly_worse">
+        <circle r="60" cx="64" cy="64"/>
+        <circle r="4" cx="44" cy="44"/>
+        <circle r="4" cx="84" cy="44"/>
+        <path d="M 36 96 Q 64 48 92 96"/>
+      </svg>
+    </span>
+
+    <svg viewbox="0 0 128 128" id="warning">
+      <path d="M 64 0 L 128 128 L 0 128 L 64 0"/>
+      <rect x="60" width="8" y="0" height="84"/>
+      <rect x="60" width="8" y="100" height="24"/>
+    </svg>
   </template>
 </dom-module>
 <script>
@@ -394,14 +440,13 @@ Polymer({
   },
 
   updateContents_: function() {
-    Polymer.dom(this.$.significance).textContent = '';
     Polymer.dom(this.$.content).textContent = '';
     Polymer.dom(this.$.content).classList.remove('better');
     Polymer.dom(this.$.content).classList.remove('worse');
     Polymer.dom(this.$.content).classList.remove('same');
-    Polymer.dom(this.$.significance).classList.remove('better');
-    Polymer.dom(this.$.significance).classList.remove('worse');
-    Polymer.dom(this.$.significance).classList.remove('same');
+    this.$.insignificant.style.display = '';
+    this.$.significantly_better.style.display = '';
+    this.$.significantly_worse.style.display = '';
 
     if (this.unit_ === undefined)
       return;
@@ -413,31 +458,28 @@ Polymer({
   },
 
   updateDelta_: function() {
-    if (!this.unit_.isDelta) {
+    var changeClass = this.changeClassName_;
+    if (!changeClass) {
       this.$.significance.style.display = 'none';
-      return;
+      return;  // Not a delta or we don't care.
     }
 
-    this.$.significance.style.display = '';
+    this.$.significance.style.display = 'inline';
 
-    var changeClass = this.changeClassName_;
-    if (!changeClass)
-      return;  // Not a delta or we don't care.
-
-    var emoji, title;
+    var title;
     switch (changeClass) {
       case 'better':
-        emoji = tr.v.ui.Emoji.GRINNING_FACE;
         title = 'improvement';
         break;
+
       case 'worse':
-        emoji = tr.v.ui.Emoji.CONFOUNDED_FACE;
         title = 'regression';
         break;
+
       case 'same':
-        emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
         title = 'no change';
         break;
+
       default:
         throw new Error('Unknown change class: ' + changeClass);
     }
@@ -448,28 +490,28 @@ Polymer({
 
     switch (this.significance) {
       case tr.v.Significance.DONT_CARE:
-        emoji = '';
-        changeClass = 'same';
         break;
 
       case tr.v.Significance.INSIGNIFICANT:
         if (changeClass !== 'same')
           title = 'insignificant ' + title;
-        emoji = tr.v.ui.Emoji.NEUTRAL_FACE;
+        this.$.insignificant.style.display = 'inline';
         changeClass = 'same';
         break;
 
       case tr.v.Significance.SIGNIFICANT:
         if (changeClass === 'same')
           throw new Error('How can no change be significant?');
+        this.$['significantly_' + changeClass].style.display = 'inline';
         title = 'significant ' + title;
         break;
+
+      default:
+        throw new Error('Unknown significance ' + this.significance);
     }
 
-    Polymer.dom(this.$.significance).textContent = emoji;
     this.$.significance.title = title;
     this.$.content.title = title;
-    Polymer.dom(this.$.significance).classList.add(changeClass);
   },
 
   get changeClassName_() {
@@ -479,14 +521,17 @@ Polymer({
     switch (this.unit_.improvementDirection) {
       case tr.b.ImprovementDirection.DONT_CARE:
         return undefined;
+
       case tr.b.ImprovementDirection.BIGGER_IS_BETTER:
         if (this.value === 0)
           return 'same';
         return this.value > 0 ? 'better' : 'worse';
+
       case tr.b.ImprovementDirection.SMALLER_IS_BETTER:
         if (this.value === 0)
           return 'same';
         return this.value < 0 ? 'better' : 'worse';
+
       default:
         throw new Error('Unknown improvement direction: ' +
             this.unit_.improvementDirection);
@@ -502,10 +547,10 @@ Polymer({
     var warningEl = this.$.warning;
     if (this.warning_) {
       warningEl.title = warning;
-      warningEl.style.display = '';
+      warningEl.style.display = 'inline';
     } else {
       warningEl.title = '';
-      warningEl.style.display = 'none';
+      warningEl.style.display = '';
     }
   },
 

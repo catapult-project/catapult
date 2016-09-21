@@ -37,10 +37,13 @@ tr.b.unittest.testSuite(function() {
       assert.strictEqual(span.$.content.title, options.expectedTitle);
 
     if (options.significance !== undefined) {
-      assert.strictEqual(Polymer.dom(span.$.significance).textContent,
-          options.expectedEmoji);
-      assert.strictEqual(window.getComputedStyle(span.$.significance).color,
-          options.expectedEmojiColor || 'rgb(0, 0, 0)');
+      assert.strictEqual(span.$.insignificant.style.display,
+          options.expectedEmoji === 'insignificant' ? 'inline' : '');
+      assert.strictEqual(span.$.significantly_better.style.display,
+          options.expectedEmoji === 'significantly_better' ? 'inline' : '');
+      assert.strictEqual(span.$.significantly_worse.style.display,
+          options.expectedEmoji === 'significantly_worse' ? 'inline' : '');
+
       if (options.expectedTitle)
         assert.strictEqual(span.$.significance.title, options.expectedTitle);
     }
@@ -61,7 +64,7 @@ tr.b.unittest.testSuite(function() {
 
     checkScalarSpan(this, 0, countSIBD, zero, {
       significance: tr.v.Significance.INSIGNIFICANT,
-      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'no change'
     });
@@ -77,7 +80,7 @@ tr.b.unittest.testSuite(function() {
 
     checkScalarSpan(this, 0, countBIBD, zero, {
       significance: tr.v.Significance.INSIGNIFICANT,
-      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'no change'
     });
@@ -95,7 +98,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, 1, countSIBD, '+1', {
       significance: tr.v.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
-      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'insignificant regression'
     });
@@ -103,7 +106,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, 1, countSIBD, '+1', {
       significance: tr.v.Significance.SIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
-      expectedEmoji: tr.v.ui.Emoji.CONFOUNDED_FACE,
+      expectedEmoji: 'significantly_worse',
       expectedEmojiColor: 'rgb(255, 0, 0)',
       expectedTitle: 'significant regression'
     });
@@ -118,7 +121,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, 1, countBIBD, '+1', {
       significance: tr.v.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
-      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'insignificant improvement'
     });
@@ -126,7 +129,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, 1, countBIBD, '+1', {
       significance: tr.v.Significance.SIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
-      expectedEmoji: tr.v.ui.Emoji.GRINNING_FACE,
+      expectedEmoji: 'significantly_better',
       expectedEmojiColor: 'rgb(0, 128, 0)',
       expectedTitle: 'significant improvement'
     });
@@ -142,7 +145,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, -1, countSIBD, '-1', {
       expectedColor: 'rgb(0, 128, 0)',
       significance: tr.v.Significance.INSIGNIFICANT,
-      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'insignificant improvement'
     });
@@ -150,7 +153,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, -1, countSIBD, '-1', {
       expectedColor: 'rgb(0, 128, 0)',
       significance: tr.v.Significance.SIGNIFICANT,
-      expectedEmoji: tr.v.ui.Emoji.GRINNING_FACE,
+      expectedEmoji: 'significantly_better',
       expectedEmojiColor: 'rgb(0, 128, 0)',
       expectedTitle: 'significant improvement'
     });
@@ -164,7 +167,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, -1, countBIBD, '-1', {
       expectedColor: 'rgb(255, 0, 0)',
       significance: tr.v.Significance.INSIGNIFICANT,
-      expectedEmoji: tr.v.ui.Emoji.NEUTRAL_FACE,
+      expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'insignificant regression'
     });
@@ -172,7 +175,7 @@ tr.b.unittest.testSuite(function() {
     checkScalarSpan(this, -1, countBIBD, '-1', {
       expectedColor: 'rgb(255, 0, 0)',
       significance: tr.v.Significance.SIGNIFICANT,
-      expectedEmoji: tr.v.ui.Emoji.CONFOUNDED_FACE,
+      expectedEmoji: 'significantly_worse',
       expectedEmojiColor: 'rgb(255, 0, 0)',
       expectedTitle: 'significant regression'
     });
@@ -369,6 +372,36 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
   });
 
+  test('deltaAndNonDeltaHaveSimilarHeights', function() {
+    var spanA = document.createElement('tr-v-ui-scalar-span');
+    spanA.setValueAndUnit(400, Unit.byName.timeDurationInMs);
+
+    var spanB = document.createElement('tr-v-ui-scalar-span');
+    spanB.setValueAndUnit(400, Unit.byName.timeDurationInMsDelta);
+
+    var spanC = document.createElement('tr-v-ui-scalar-span');
+    spanC.setValueAndUnit(
+        400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
+    spanC.significance = tr.v.Significance.SIGNIFICANT;
+
+    var overall = document.createElement('div');
+    overall.style.display = 'flex';
+    // These spans must be on separate lines so that Chrome has the option of
+    // making their heights different. The point of the test is that Chrome
+    // shouldn't have to make their heights different even when it could.
+    overall.style.flexDirection = 'column';
+    Polymer.dom(overall).appendChild(spanA);
+    Polymer.dom(overall).appendChild(spanB);
+    Polymer.dom(overall).appendChild(spanC);
+    this.addHTMLOutput(overall);
+
+    var rectA = spanA.getBoundingClientRect();
+    var rectB = spanB.getBoundingClientRect();
+    var rectC = spanC.getBoundingClientRect();
+    assert.strictEqual(rectA.height, rectB.height);
+    assert.strictEqual(rectC.height, rectB.height);
+  });
+
   test('warningAndNonWarningHaveSimilarHeights', function() {
     var spanA = document.createElement('tr-v-ui-scalar-span');
     spanA.setValueAndUnit(400, Unit.byName.timeDurationInMs);
@@ -379,10 +412,17 @@ tr.b.unittest.testSuite(function() {
 
     var overall = document.createElement('div');
     overall.style.display = 'flex';
+    // These spans must be on separate lines so that Chrome has the option of
+    // making their heights different. The point of the test is that Chrome
+    // shouldn't have to make their heights different even when it could.
+    overall.style.flexDirection = 'column';
     Polymer.dom(overall).appendChild(spanA);
-    spanB.style.marginLeft = '4px';
     Polymer.dom(overall).appendChild(spanB);
     this.addHTMLOutput(overall);
+
+    var rectA = spanA.getBoundingClientRect();
+    var rectB = spanB.getBoundingClientRect();
+    assert.strictEqual(rectA.height, rectB.height);
   });
 
   test('respectCurrentDisplayUnit', function() {
@@ -822,59 +862,46 @@ tr.b.unittest.testSuite(function() {
     });
     Polymer.dom(div).appendChild(span);
 
-    assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
-        ['positive', 'worse']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList),
-        ['worse']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
 
     span.significance = tr.v.Significance.DONT_CARE;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'worse']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
 
     span.value = -5;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['better']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
 
     span.unit = Unit.byName.energyInJoules;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
 
     span.value = 20;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
 
     span.unit = Unit.byName.energyInJoulesDelta_biggerIsBetter;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'better']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
 
     span.significance = tr.v.Significance.INSIGNIFICANT;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'better']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
 
     span.unit = Unit.byName.energyInJoulesDelta_smallerIsBetter;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'worse']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), ['same']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
 
     span.unit = Unit.byName.energyInJoulesDelta;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
 
     span.value = 0;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
-    assert.sameMembers(tr.b.asArray(span.$.significance.classList), []);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
   });
 
