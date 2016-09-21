@@ -46,6 +46,42 @@ class MapSingleTraceTests(unittest.TestCase):
     r = result.pairs['result']
     self.assertEquals(r['numProcesses'], 1)
 
+
+  def testProcessingGiantTrace(self):
+    # Populate a string trace of 2 million events.
+    trace_events = ['[']
+    for i in xrange(2000000):
+      trace_events.append(
+          '{"pid": 1, "tid": %i, "ph": "X", "name": "a", "cat": "c",'
+          '"ts": %i, "dur": 1, "args": {}},' %  (i % 5, 2 * i))
+    trace_events.append('{}]')
+    trace_data = ''.join(trace_events)
+    trace_handle = file_handle.InMemoryFileHandle(
+        '/a.json', trace_data)
+
+    with map_single_trace.TemporaryMapScript("""
+      tr.mre.FunctionRegistry.register(
+          function MyMapFunction(result, model) {
+            var canonicalUrl = model.canonicalUrl;
+            var numEvents = 0;
+            for (var e of model.getProcess(1).getDescendantEvents()) {
+              numEvents++;
+            }
+            result.addPair('result', {
+                numEvents: numEvents
+              });
+          });
+    """) as map_script:
+      result = map_single_trace.MapSingleTrace(trace_handle,
+                                               _Handle(map_script.filename))
+
+    self.assertFalse(result.failures,
+                     msg='\n'.join(str(f) for f in result.failures))
+    r = result.pairs['result']
+    self.assertEquals(r['numEvents'], 2000000)
+
+
+
   def testTraceDidntImport(self):
     trace_string = 'This is intentionally not a trace-formatted string.'
     trace_handle = file_handle.InMemoryFileHandle(

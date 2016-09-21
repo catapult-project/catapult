@@ -95,8 +95,11 @@ def MapSingleTrace(trace_handle,
       js_args.append(json.dumps(extra_import_options))
 
     res = vinn.RunFile(
-        _MAP_SINGLE_TRACE_CMDLINE_PATH, source_paths=all_source_paths,
-        js_args=js_args)
+        _MAP_SINGLE_TRACE_CMDLINE_PATH,
+        source_paths=all_source_paths,
+        js_args=js_args,
+        # Use 8gb heap space to make sure we don't OOM'ed on big trace.
+        v8_args=['--max-old-space-size=8192'])
 
   if res.returncode != 0:
     sys.stderr.write(res.stdout)
