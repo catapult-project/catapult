@@ -220,7 +220,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet(self):
     # Put succeeded, failed, staled, and not yet finished jobs in the
@@ -282,7 +282,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       'AddBugComment', mock.MagicMock(return_value=False))
   @mock.patch('logging.error')
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_FailsToUpdateBug_LogsErrorAndMovesOn(self, mock_logging_error):
     # Put a successful job and a failed job with partial results.
@@ -310,7 +310,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_BisectCulpritHasAuthor_AssignsAuthor(self, mock_update_bug):
     # When a bisect has a culprit for a perf regression,
@@ -331,7 +331,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_FailedRevisionResponse(self, mock_add_bug):
     # When a Rietveld CL link fails to respond, only update CL owner in CC
@@ -358,7 +358,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock())
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_PositiveResult_StoresCommitHash(self):
     self._AddTryJob(12345, 'started', 'win_perf',
@@ -375,7 +375,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock())
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_NegativeResult_DoesNotStoreCommitHash(self):
     sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
@@ -428,7 +428,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_InternalOnlyTryJob_AddsInternalOnlyBugLabel(
       self, mock_update_bug):
@@ -449,7 +449,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_FailedTryJob_UpdatesBug(
       self, mock_update_bug):
@@ -629,7 +629,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
   @mock.patch.object(
-      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
   def testGet_PostResult_WithoutBugEntity(
       self, mock_update_bug):

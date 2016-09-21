@@ -126,7 +126,7 @@ def _CheckJob(job, issue_tracker):
   logging.info('Checking job %s for bug %s, with buildbucket_job_id %s',
                job.key.id(), job.bug_id, job.buildbucket_job_id)
 
-  if not _IsBuildBucketJobCompleted(job):
+  if not _IsJobCompleted(job):
     logging.info('Not yet COMPLETED.')
     return
 
@@ -412,8 +412,17 @@ def UpdateQuickLog(job):
     job.put()
 
 
-def _IsBuildBucketJobCompleted(job):
+def _IsJobCompleted(job):
   """Checks whether the bisect job is completed."""
+  # Perf try jobs triggered by dashboard still not using buildbucket APIs.
+  # https://github.com/catapult-project/catapult/issues/2817
+  if not job.buildbucket_job_id:
+    if (job.results_data and
+        job.results_data.get('status') in [COMPLETED, FAILED]):
+      return True
+    else:
+      return False
+
   job_info = buildbucket_service.GetJobStatus(job.buildbucket_job_id)
   if not job_info:
     return False
