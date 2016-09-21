@@ -112,7 +112,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processCodeCreateEvent_: function(type, kind, address, size, name,
-                                      maybe_func) {
+                                      maybeFunc) {
       function parseState(s) {
         switch (s) {
           case '': return CodeMap.CodeState.COMPILED;
@@ -122,9 +122,9 @@ tr.exportTo('tr.e.importer.v8', function() {
         throw new Error('unknown code state: ' + s);
       }
 
-      if (maybe_func.length) {
-        var funcAddr = parseInt(maybe_func[0]);
-        var state = parseState(maybe_func[1]);
+      if (maybeFunc.length) {
+        var funcAddr = parseInt(maybeFunc[0]);
+        var state = parseState(maybeFunc[1]);
         var func = this.code_map_.findDynamicEntryByStartAddress(funcAddr);
         if (!func) {
           func = new FunctionEntry(name);
@@ -146,9 +146,9 @@ tr.exportTo('tr.e.importer.v8', function() {
           this.code_map_.addCode(address, entry);
         }
       } else {
-        var code_entry = new CodeEntry(size, name);
-        code_entry.kind = kind;
-        this.code_map_.addCode(address, code_entry);
+        var codeEntry = new CodeEntry(size, name);
+        codeEntry.kind = kind;
+        this.code_map_.addCode(address, codeEntry);
       }
     },
 
@@ -161,27 +161,27 @@ tr.exportTo('tr.e.importer.v8', function() {
     },
 
     processSharedLibrary_: function(name, start, end) {
-      var code_entry = new CodeEntry(end - start, name,
+      var codeEntry = new CodeEntry(end - start, name,
                                      CodeEntry.TYPE.SHARED_LIB);
-      code_entry.kind = -3;  // External code kind.
+      codeEntry.kind = -3;  // External code kind.
       for (var i = 0; i < kV8BinarySuffixes.length; i++) {
         var suffix = kV8BinarySuffixes[i];
         if (name.indexOf(suffix, name.length - suffix.length) >= 0) {
-          code_entry.kind = -1;  // V8 runtime code kind.
+          codeEntry.kind = -1;  // V8 runtime code kind.
           break;
         }
       }
-      this.code_map_.addLibrary(start, code_entry);
+      this.code_map_.addLibrary(start, codeEntry);
     },
 
     processCppSymbol_: function(address, size, name) {
-      var code_entry = new CodeEntry(size, name, CodeEntry.TYPE.CPP);
-      code_entry.kind = -1;
-      this.code_map_.addStaticCode(address, code_entry);
+      var codeEntry = new CodeEntry(size, name, CodeEntry.TYPE.CPP);
+      codeEntry.kind = -1;
+      this.code_map_.addStaticCode(address, codeEntry);
     },
 
-    processTickEvent_: function(pc, startInUs, is_external_callback,
-                                tos_or_external_callback, vmstate, stack) {
+    processTickEvent_: function(pc, startInUs, isExternalCallback,
+                                tosOrExternalCallback, vmstate, stack) {
 
       var startInMs = tr.b.convertUnit(startInUs,
           tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
@@ -213,22 +213,22 @@ tr.exportTo('tr.e.importer.v8', function() {
         return fullStack;
       }
 
-      if (is_external_callback) {
+      if (isExternalCallback) {
         // Don't use PC when in external callback code, as it can point
         // inside callback's code, and we will erroneously report
-        // that a callback calls itself. Instead use tos_or_external_callback,
+        // that a callback calls itself. Instead use tosOrExternalCallback,
         // as simply resetting PC will produce unaccounted ticks.
-        pc = tos_or_external_callback;
-        tos_or_external_callback = 0;
-      } else if (tos_or_external_callback) {
+        pc = tosOrExternalCallback;
+        tosOrExternalCallback = 0;
+      } else if (tosOrExternalCallback) {
         // Find out, if top of stack was pointing inside a JS function
         // meaning that we have encountered a frameless invocation.
-        var funcEntry = this.code_map_.findEntry(tos_or_external_callback);
+        var funcEntry = this.code_map_.findEntry(tosOrExternalCallback);
         if (!funcEntry || !funcEntry.isJSFunction || !funcEntry.isJSFunction())
-          tos_or_external_callback = 0;
+          tosOrExternalCallback = 0;
       }
 
-      var processedStack = processStack(pc, tos_or_external_callback, stack);
+      var processedStack = processStack(pc, tosOrExternalCallback, stack);
       var lastStackFrame = this.root_stack_frame_;
       // v8 log stacks are inverted, leaf first and the root at the end.
       processedStack = processedStack.reverse();
@@ -272,7 +272,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       }
     },
 
-    processDistortion_: function(distortion_in_picoseconds) {
+    processDistortion_: function(distortionInPicoseconds) {
       // Do nothing.
     },
 

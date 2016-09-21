@@ -86,38 +86,38 @@ tr.exportTo('tr.e.importer', function() {
     var id2 = getByte();
     if (id1 !== GZIP_HEADER_ID1 || id2 !== GZIP_HEADER_ID2)
       throw new Error('Not gzip data');
-    var compression_method = getByte();
-    if (compression_method !== GZIP_DEFLATE_COMPRESSION)
-      throw new Error('Unsupported compression method: ' + compression_method);
+    var compressionMethod = getByte();
+    if (compressionMethod !== GZIP_DEFLATE_COMPRESSION)
+      throw new Error('Unsupported compression method: ' + compressionMethod);
     var flags = getByte();
-    var have_header_crc = flags & (1 << 1);
-    var have_extra_fields = flags & (1 << 2);
-    var have_file_name = flags & (1 << 3);
-    var have_comment = flags & (1 << 4);
+    var haveHeaderCrc = flags & (1 << 1);
+    var haveExtraFields = flags & (1 << 2);
+    var haveFileName = flags & (1 << 3);
+    var haveComment = flags & (1 << 4);
 
     // Skip modification time, extra flags and OS.
     skipBytes(4 + 1 + 1);
 
     // Skip remaining fields before compressed data.
-    if (have_extra_fields) {
-      var bytes_to_skip = getWord();
-      skipBytes(bytes_to_skip);
+    if (haveExtraFields) {
+      var bytesToSkip = getWord();
+      skipBytes(bytesToSkip);
     }
-    if (have_file_name)
+    if (haveFileName)
       skipZeroTerminatedString();
-    if (have_comment)
+    if (haveComment)
       skipZeroTerminatedString();
-    if (have_header_crc)
+    if (haveHeaderCrc)
       getWord();
 
     // Inflate the data using jszip.
-    var inflated_data =
+    var inflatedData =
         JSZip.compressions['DEFLATE'].uncompress(data.subarray(position));
-    var string = GzipImporter.transformToString(inflated_data);
+    var string = GzipImporter.transformToString(inflatedData);
 
-    if (inflated_data.length > 0 && string.length === 0) {
+    if (inflatedData.length > 0 && string.length === 0) {
       throw new RangeError('Inflated gzip data too long to fit into a string' +
-          ' (' + inflated_data.length + ').');
+          ' (' + inflatedData.length + ').');
     }
 
     return string;

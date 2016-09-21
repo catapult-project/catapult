@@ -549,10 +549,11 @@ tr.exportTo('tr', function() {
       this.patchupsToApply_ = unresolved;
     },
 
-    replacePIDRefsInPatchups: function(old_pid_ref, new_pid_ref) {
+    replacePIDRefsInPatchups: function(oldPidRef, newPidRef) {
       this.patchupsToApply_.forEach(function(patchup) {
-        if (patchup.pidRef === old_pid_ref)
-          patchup.pidRef = new_pid_ref;
+        if (patchup.pidRef === oldPidRef) {
+          patchup.pidRef = newPidRef;
+        }
       });
     },
 

@@ -41,9 +41,9 @@ tr.exportTo('tr.importer', function() {
         var i = 0;
         assert.lengthOf(model.userModel.expectations,
             this.expectedIRs_.length);
-        var actualUE_iterator = model.userModel.expectations[Symbol.iterator]();
+        var actualUEIterator = model.userModel.expectations[Symbol.iterator]();
         for (var expectedIR of this.expectedIRs_) {
-          var actualUE = actualUE_iterator.next();
+          var actualUE = actualUEIterator.next();
           assert.equal(false, actualUE.done);
           var at = 'IRs[' + (i++) + '].';
           assert.equal(expectedIR.title, actualUE.value.title, at + 'title');

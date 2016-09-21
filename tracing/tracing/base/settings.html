@@ -21,7 +21,7 @@ tr.exportTo('tr.b', function() {
    */
   function Settings() {
     return Settings;
-  };
+  }
 
   if (tr.b.unittest && tr.b.unittest.TestRunner) {
     tr.b.unittest.TestRunner.addEventListener(
@@ -38,8 +38,8 @@ tr.exportTo('tr.b', function() {
     return SessionSettings;
   }
 
-  function AddStaticStorageFunctionsToClass_(input_class, storage) {
-    input_class.storage_ = storage;
+  function AddStaticStorageFunctionsToClass_(inputClass, storage) {
+    inputClass.storage_ = storage;
 
     /**
      * Get the setting with the given name.
@@ -50,9 +50,9 @@ tr.exportTo('tr.b', function() {
      * with this namespace, e.g. "categories.settingName". This is useful for
      * a set of related settings.
      */
-    input_class.get = function(key, opt_default, opt_namespace) {
-      key = input_class.namespace_(key, opt_namespace);
-      var rawVal = input_class.storage_.getItem(key);
+    inputClass.get = function(key, opt_default, opt_namespace) {
+      key = inputClass.namespace_(key, opt_namespace);
+      var rawVal = inputClass.storage_.getItem(key);
       if (rawVal === null || rawVal === undefined)
         return opt_default;
 
@@ -62,10 +62,10 @@ tr.exportTo('tr.b', function() {
       try {
         return JSON.parse(rawVal).value;
       } catch (e) {
-        input_class.storage_.removeItem(key);
+        inputClass.storage_.removeItem(key);
         return opt_default;
       }
-    };
+    }
 
     /**
      * Set the setting with the given name to the given value.
@@ -76,12 +76,12 @@ tr.exportTo('tr.b', function() {
      * with this namespace, e.g. "categories.settingName". This is useful for
      * a set of related settings.
      */
-    input_class.set = function(key, value, opt_namespace) {
+    inputClass.set = function(key, value, opt_namespace) {
       if (value === undefined)
         throw new Error('Settings.set: value must not be undefined');
       var v = JSON.stringify({value: value});
-      input_class.storage_.setItem(
-          input_class.namespace_(key, opt_namespace), v);
+      inputClass.storage_.setItem(
+          inputClass.namespace_(key, opt_namespace), v);
     };
 
     /**
@@ -91,51 +91,51 @@ tr.exportTo('tr.b', function() {
      * @param {string=} opt_namespace If set, only return settings which
      * begin with this prefix.
      */
-    input_class.keys = function(opt_namespace) {
+    inputClass.keys = function(opt_namespace) {
       var result = [];
       opt_namespace = opt_namespace || '';
-      for (var i = 0; i < input_class.storage_.length; i++) {
-        var key = input_class.storage_.key(i);
-        if (input_class.isnamespaced_(key, opt_namespace))
-          result.push(input_class.unnamespace_(key, opt_namespace));
+      for (var i = 0; i < inputClass.storage_.length; i++) {
+        var key = inputClass.storage_.key(i);
+        if (inputClass.isnamespaced_(key, opt_namespace))
+          result.push(inputClass.unnamespace_(key, opt_namespace));
       }
       return result;
     };
 
-    input_class.isnamespaced_ = function(key, opt_namespace) {
-      return key.indexOf(input_class.normalize_(opt_namespace)) == 0;
+    inputClass.isnamespaced_ = function(key, opt_namespace) {
+      return key.indexOf(inputClass.normalize_(opt_namespace)) == 0;
     };
 
-    input_class.namespace_ = function(key, opt_namespace) {
-      return input_class.normalize_(opt_namespace) + key;
+    inputClass.namespace_ = function(key, opt_namespace) {
+      return inputClass.normalize_(opt_namespace) + key;
     };
 
-    input_class.unnamespace_ = function(key, opt_namespace) {
-      return key.replace(input_class.normalize_(opt_namespace), '');
+    inputClass.unnamespace_ = function(key, opt_namespace) {
+      return key.replace(inputClass.normalize_(opt_namespace), '');
     };
 
     /**
      * All settings are prefixed with a global namespace to avoid collisions.
-     * input_class may also be namespaced with an additional prefix passed into
+     * inputClass may also be namespaced with an additional prefix passed into
      * the get, set, and keys methods in order to group related settings.
      * This method makes sure the two namespaces are always set properly.
      */
-    input_class.normalize_ = function(opt_namespace) {
-      return input_class.NAMESPACE + (opt_namespace ? opt_namespace + '.' : '');
+    inputClass.normalize_ = function(opt_namespace) {
+      return inputClass.NAMESPACE + (opt_namespace ? opt_namespace + '.' : '');
     };
 
-    input_class.setAlternativeStorageInstance = function(instance) {
-      input_class.storage_ = instance;
+    inputClass.setAlternativeStorageInstance = function(instance) {
+      inputClass.storage_ = instance;
     };
 
-    input_class.getAlternativeStorageInstance = function() {
-      if (!tr.isHeadless && input_class.storage_ === localStorage)
+    inputClass.getAlternativeStorageInstance = function() {
+      if (!tr.isHeadless && inputClass.storage_ === localStorage)
         return undefined;
-      return input_class.storage_;
+      return inputClass.storage_;
     };
 
-    input_class.NAMESPACE = 'trace-viewer';
-  };
+    inputClass.NAMESPACE = 'trace-viewer';
+  }
 
   function HeadlessStorage() {
     this.length = 0;

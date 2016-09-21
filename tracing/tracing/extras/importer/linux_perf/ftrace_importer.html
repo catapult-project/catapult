@@ -61,7 +61,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     this.model_ = model;
     this.events_ = events;
     this.wakeups_ = [];
-    this.blocked_reasons_ = [];
+    this.blockedReasons_ = [];
     this.kernelThreadStates_ = {};
     this.buildMapFromLinuxPidsToThreads_();
     this.lines_ = [];
@@ -177,7 +177,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (lineREWithLegacyFmt.test(line))
       return lineParserWithLegacyFmt;
     return undefined;
-  };
+  }
   TestExports.autoDetectLineParser = autoDetectLineParser;
 
   /**
@@ -212,14 +212,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   };
 
   FTraceImporter._extractEventsFromSystraceHTML = function(
-      incoming_events, produce_result) {
+      incomingEvents, produceResult) {
     var failure = {ok: false};
-    if (produce_result === undefined)
-      produce_result = true;
+    if (produceResult === undefined)
+      produceResult = true;
 
-    if (/^<!DOCTYPE html>/.test(incoming_events) == false)
+    if (/^<!DOCTYPE html>/.test(incomingEvents) == false)
       return failure;
-    var r = new tr.importer.SimpleLineReader(incoming_events);
+    var r = new tr.importer.SimpleLineReader(incomingEvents);
 
     // Try to find the data...
     if (!r.advanceToLineMatching(/^  <script>$/))
@@ -227,15 +227,15 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (!r.advanceToLineMatching(/^  var linuxPerfData = "\\$/))
       return failure;
 
-    var events_begin_at_line = r.curLineNumber + 1;
+    var eventsBeginAtLine = r.curLineNumber + 1;
     r.beginSavingLines();
     if (!r.advanceToLineMatching(/^  <\/script>$/))
       return failure;
 
-    var raw_events = r.endSavingLinesAndGetResult();
+    var rawEvents = r.endSavingLinesAndGetResult();
 
     // Drop off first and last event as it contains the tag.
-    raw_events = raw_events.slice(1, raw_events.length - 1);
+    rawEvents = rawEvents.slice(1, rawEvents.length - 1);
 
     if (!r.advanceToLineMatching(/^<\/body>$/))
       return failure;
@@ -253,14 +253,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     // Strip off escaping in the file needed to preserve linebreaks.
     var events = [];
-    if (produce_result) {
-      for (var i = 0; i < raw_events.length; i++) {
-        var event = raw_events[i];
+    if (produceResult) {
+      for (var i = 0; i < rawEvents.length; i++) {
+        var event = rawEvents[i];
         event = stripSuffix(event, '\\n\\');
         events.push(event);
       }
     } else {
-      events = [raw_events[raw_events.length - 1]];
+      events = [rawEvents[rawEvents.length - 1]];
     }
 
     // Last event ends differently. Strip that off too,
@@ -272,20 +272,20 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     events[events.length - 1] = newLastEvent;
 
     return {ok: true,
-      lines: produce_result ? events : undefined,
-      events_begin_at_line: events_begin_at_line};
+      lines: produceResult ? events : undefined,
+      eventsBeginAtLine: eventsBeginAtLine};
   };
 
   FTraceImporter._extractEventsFromSystraceMultiHTML = function(
-      incoming_events, produce_result) {
+      incomingEvents, produceResult) {
     var failure = {ok: false};
-    if (produce_result === undefined)
-      produce_result = true;
+    if (produceResult === undefined)
+      produceResult = true;
 
-    if (new RegExp('^<!DOCTYPE HTML>', 'i').test(incoming_events) == false)
+    if (new RegExp('^<!DOCTYPE HTML>', 'i').test(incomingEvents) == false)
       return failure;
 
-    var r = new tr.importer.SimpleLineReader(incoming_events);
+    var r = new tr.importer.SimpleLineReader(incomingEvents);
 
     // Try to find the Linux perf trace in any of the trace-data tags
     var events = [];
@@ -294,7 +294,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
           /^  <script class="trace-data" type="application\/text">$/))
         return failure;
 
-      var events_begin_at_line = r.curLineNumber + 1;
+      var eventsBeginAtLine = r.curLineNumber + 1;
 
       r.beginSavingLines();
       if (!r.advanceToLineMatching(/^  <\/script>$/))
@@ -312,8 +312,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       return failure;
 
     return {ok: true,
-      lines: produce_result ? events : undefined,
-      events_begin_at_line: events_begin_at_line};
+      lines: produceResult ? events : undefined,
+      eventsBeginAtLine: eventsBeginAtLine};
   };
 
   FTraceImporter.prototype = {
@@ -456,7 +456,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       // pids, which identify threads.  The rest of trace-viewer refers to
       // these as tids, so the change of nomenclature happens in the following
       // construction of the wakeup object.
-      this.blocked_reasons_.push({ts: ts, tid: pid, iowait: iowait,
+      this.blockedReasons_.push({ts: ts, tid: pid, iowait: iowait,
                                   caller: caller});
     },
 
@@ -510,8 +510,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         thread.tempWakeups = thread.tempWakeups || [];
         thread.tempWakeups.push(wakeup);
       }
-      for (var i in this.blocked_reasons_) {
-        var reason = this.blocked_reasons_[i];
+      for (var i in this.blockedReasons_) {
+        var reason = this.blockedReasons_[i];
         var thread = this.threadsByLinuxPid[reason.tid];
         if (!thread)
           continue;
@@ -576,14 +576,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               wakeup = w;
             }
           }
-          var blocked_reason = undefined;
+          var blockedReason = undefined;
           while (reasons.length && reasons[0].ts < prevSlice.end) {
             var r = reasons.shift();
           }
           if (wakeup !== undefined &&
               reasons.length &&
               reasons[0].ts < wakeup.ts) {
-            blocked_reason = reasons.shift();
+            blockedReason = reasons.shift();
           }
 
           // Push a sleep slice onto the slices list, interrupting it with a
@@ -593,11 +593,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
               midDuration = wakeup.ts - prevSlice.end;
             }
 
-            if (blocked_reason !== undefined) {
+            if (blockedReason !== undefined) {
               var args = {
-                'kernel callsite when blocked:' : blocked_reason.caller
+                'kernel callsite when blocked:' : blockedReason.caller
               };
-              if (blocked_reason.iowait) {
+              if (blockedReason.iowait) {
                 switch (state) {
                   case SCHEDULING_STATE.UNINTR_SLEEP:
                     state = SCHEDULING_STATE.UNINTR_SLEEP_IO;

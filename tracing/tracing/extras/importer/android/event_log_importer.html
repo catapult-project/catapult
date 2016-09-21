@@ -230,13 +230,13 @@ tr.exportTo('tr.e.importer.android', function() {
       // The Android event log will eventually contain the year once this
       // CL is in a release:
       // https://android-review.googlesource.com/#/c/168900
-      var first_realtime_ts = this.model_.bounds.min -
+      var firstRealtimeTs = this.model_.bounds.min -
           this.model_.realtime_to_monotonic_offset_ms;
-      var year = new Date(first_realtime_ts).getFullYear();
+      var year = new Date(firstRealtimeTs).getFullYear();
       var ts = match[1].substring(0, 5) + '-' + year + ' ' +
           match[1].substring(5, match[1].length);
 
-      var monotonic_ts = Date.parse(ts) +
+      var monotonicTs = Date.parse(ts) +
           this.model_.realtime_to_monotonic_offset_ms;
 
       var pid = match[2];
@@ -246,37 +246,37 @@ tr.exportTo('tr.e.importer.android', function() {
       if (action === 'am_create_activity') {
         match = amCreateRE.exec(data);
         if (match && match.length >= 2) {
-          this.handleCreateActivity(monotonic_ts,
+          this.handleCreateActivity(monotonicTs,
               this.getFullActivityName(match[1]));
         }
       } else if (action === 'am_focused_activity') {
         match = amFocusedRE.exec(data);
         if (match && match.length >= 2) {
-          this.handleFocusActivity(monotonic_ts,
+          this.handleFocusActivity(monotonicTs,
               this.getProcName(match[1]), this.getFullActivityName(match[1]));
         }
       } else if (action === 'am_proc_start') {
         match = amProcStartRE.exec(data);
         if (match && match.length >= 2) {
-          this.handleProcStartForActivity(monotonic_ts,
+          this.handleProcStartForActivity(monotonicTs,
               this.getFullActivityName(match[1]));
         }
       } else if (action === 'am_on_resume_called') {
         match = amOnResumeRE.exec(data);
         if (match && match.length >= 2)
-          this.handleOnResumeCalled(monotonic_ts, pid, match[1]);
+          this.handleOnResumeCalled(monotonicTs, pid, match[1]);
       } else if (action === 'am_on_paused_called') {
         match = amOnPauseRE.exec(data);
         if (match && match.length >= 2)
-          this.handleOnPauseCalled(monotonic_ts, match[1]);
+          this.handleOnPauseCalled(monotonicTs, match[1]);
       } else if (action === 'am_activity_launch_time') {
         match = amLaunchTimeRE.exec(data);
-        this.handleLaunchTime(monotonic_ts,
+        this.handleLaunchTime(monotonicTs,
             this.getFullActivityName(match[1]), match[2]);
       } else if (action === 'am_destroy_activity') {
         match = amDestroyRE.exec(data);
         if (match && match.length == 2) {
-          this.handleDestroyActivity(monotonic_ts,
+          this.handleDestroyActivity(monotonicTs,
              this.getFullActivityName(match[1]));
         }
       }

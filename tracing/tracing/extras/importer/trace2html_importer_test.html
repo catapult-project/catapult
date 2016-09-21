@@ -15,7 +15,7 @@ tr.b.unittest.testSuite(function() {
   var Base64 = tr.b.Base64;
 
   test('simple', function() {
-    var html_lines = [
+    var htmlLines = [
       '<!DOCTYPE html>',
       '<script id="viewer-data" type="application/json">',
       Base64.btoa('hello'),
@@ -25,11 +25,11 @@ tr.b.unittest.testSuite(function() {
       '<\/script>',
       '</html>'
     ];
-    var html_text = html_lines.join('\n');
-    assert.isTrue(tr.e.importer.Trace2HTMLImporter.canImport(html_text));
+    var htmlText = htmlLines.join('\n');
+    assert.isTrue(tr.e.importer.Trace2HTMLImporter.canImport(htmlText));
 
     var m = new tr.Model();
-    var imp = new tr.e.importer.Trace2HTMLImporter(m, html_text);
+    var imp = new tr.e.importer.Trace2HTMLImporter(m, htmlText);
     var subTracesAsBuffers = imp.extractSubtraces();
     var subTracesAsStrings = subTracesAsBuffers.map(function(buffer) {
       var str = '';

@@ -16,11 +16,11 @@ function discoverMetrics(args) {
   }
 
   var metrics = tr.metrics.MetricRegistry.getAllRegisteredTypeInfos();
-  var discovered_metric_names = [];
+  var discoveredMetricNames = [];
   for (var i = 0; i < metrics.length; i++) {
-    discovered_metric_names.push(metrics[i].constructor.name);
+    discoveredMetricNames.push(metrics[i].constructor.name);
   }
-  console.log(JSON.stringify(discovered_metric_names));
+  console.log(JSON.stringify(discoveredMetricNames));
   return 0;
 }
 

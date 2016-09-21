@@ -253,7 +253,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      *  binder object from B. This function adds outstanding non-complete
      *  transactions to a stack on thread B.
      *
-     * Case Four: 'recursive_trans'
+     * Case Four: 'recursiveTrans'
      *  This case follows Like above:
      *  A sent binder_transaction
      *  B got binder_transaction_received
@@ -465,11 +465,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     },
 
     // helper functions
-    modelRecursiveTransactions: function(recursive_trans, ts, pid, kthread,
+    modelRecursiveTransactions: function(recursiveTrans, ts, pid, kthread,
                                          trans, args) {
 
-      var recursiveSlice = recursive_trans[1].slice;
-      var origSlice = recursive_trans[0].slice;
+      var recursiveSlice = recursiveTrans[1].slice;
+      var origSlice = recursiveTrans[0].slice;
       recursiveSlice.duration = ts - recursiveSlice.start;
       trans.slice = recursiveSlice;
 
@@ -479,9 +479,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
          */
         origSlice.duration = ts - origSlice.start;
         this.addSyncTransNeedingCompletion(trans.transaction_key,
-             recursive_trans);
+             recursiveTrans);
 
-        if (isReplyToOrigin(recursive_trans[0], trans))
+        if (isReplyToOrigin(recursiveTrans[0], trans))
           this.removeRecursiveTransaction(pid);
       } else {
         /**

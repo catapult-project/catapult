@@ -30,11 +30,11 @@ tr.b.unittest.testSuite(function() {
     var sDevice = new GpuAsyncSlice('disabled-by-default-gpu.device', 'gpu1',
                                      7, 0, {'channel': 'test_channel1'});
 
-    var s_service = new GpuAsyncSlice('disabled-by-default-gpu.service', 'gpu2',
+    var sService = new GpuAsyncSlice('disabled-by-default-gpu.service', 'gpu2',
                                       7, 0, {'channel': 'test_channel2'});
 
     assert.equal(sDevice.viewSubGroupTitle, 'Device.test_channel1');
-    assert.equal(s_service.viewSubGroupTitle, 'Service.test_channel2');
+    assert.equal(sService.viewSubGroupTitle, 'Service.test_channel2');
   });
 
   test('import', function() {

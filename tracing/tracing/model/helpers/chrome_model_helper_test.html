@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('getFrametime', function() {
-    var frame_ts;
+    var frameTs;
     var events = [];
     // Browser process 3507
     events.push({'cat' : '__metadata', 'pid' : 3507, 'tid' : 3507, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'CrBrowserMain'}}); // @suppress longLineCheck
@@ -59,27 +59,27 @@ tr.b.unittest.testSuite(function() {
     // Compositor thread 3511
     events.push({'cat' : '__metadata', 'pid' : 3509, 'tid' : 3511, 'ts' : 0, 'ph' : 'M', 'name' : 'thread_name', 'args' : {'name' : 'Compositor'}}); // @suppress longLineCheck
 
-    frame_ts = 0;
+    frameTs = 0;
     // Add impl rendering stats for browser process 3507
     for (var i = 0; i < 10; i++) {
-      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid' : 3507, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
-      frame_ts += 16000 + 1000 * (i % 2);
+      events.push({'cat' : 'benchmark', 'pid' : 3507, 'tid' : 3507, 'ts' : frameTs, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frameTs += 16000 + 1000 * (i % 2);
     }
 
-    frame_ts = 0;
+    frameTs = 0;
     // Add main rendering stats for renderer process 3508
     for (var i = 0; i < 10; i++) {
-      events.push({'cat' : 'benchmark', 'pid' : 3508, 'tid' : 3508, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
-      frame_ts += 16000 + 1000 * (i % 2);
+      events.push({'cat' : 'benchmark', 'pid' : 3508, 'tid' : 3508, 'ts' : frameTs, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frameTs += 16000 + 1000 * (i % 2);
     }
     events.push({'cat' : 'benchmark', 'pid' : 3508, 'tid' : 3510, 'ts' : 1600, 'ph' : 'i', 'name' : 'KeepAlive', 's' : 't'}); // @suppress longLineCheck
 
-    frame_ts = 0;
+    frameTs = 0;
     // Add impl and main rendering stats for renderer process 3509
     for (var i = 0; i < 10; i++) {
-      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3511, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
-      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3509, 'ts' : frame_ts, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
-      frame_ts += 16000 + 1000 * (i % 2);
+      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3511, 'ts' : frameTs, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::ImplThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      events.push({'cat' : 'benchmark', 'pid' : 3509, 'tid' : 3509, 'ts' : frameTs, 'ph' : 'i', 'name' : 'BenchmarkInstrumentation::MainThreadRenderingStats', 's' : 't'}); // @suppress longLineCheck
+      frameTs += 16000 + 1000 * (i % 2);
     }
 
     var m = tr.c.TestUtils.newModelWithEvents([events]);

@@ -47,10 +47,10 @@ tr.b.unittest.testSuite(function() {
       'Binder_8-1735  ( 1022) [001] ...1  1735.472849: mm_vmscan_direct_reclaim_end: nr_reclaimed=47', // @suppress longLineCheck
       'Binder_8-1735  ( 1022) [001] ...1  1735.473002: mm_vmscan_direct_reclaim_begin: order=3 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|0x2', // @suppress longLineCheck
       'Binder_8-1735  ( 1022) [001] ...1  1735.474859: mm_vmscan_direct_reclaim_end: nr_reclaimed=48', // @suppress longLineCheck
-      'touch_fusion-88    (   88) [000] ...1  1736.510656: mm_vmscan_direct_reclaim_begin: order=2 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|GFP_COMP|GFP_NOMEMALLOC|GFP_KMEMCG', // @suppress longLineCheck
-      'touch_fusion-88    (   88) [000] ...1  1736.517616: mm_vmscan_direct_reclaim_end: nr_reclaimed=34', // @suppress longLineCheck
-      'touch_fusion-88    (   88) [000] ...1  1736.527061: mm_vmscan_direct_reclaim_begin: order=2 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|GFP_COMP|GFP_NOMEMALLOC|GFP_KMEMCG', // @suppress longLineCheck
-      'touch_fusion-88    (   88) [000] ...1  1736.530857: mm_vmscan_direct_reclaim_end: nr_reclaimed=39'// @suppress longLineCheck
+      'touchFusion-88    (   88) [000] ...1  1736.510656: mm_vmscan_direct_reclaim_begin: order=2 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|GFP_COMP|GFP_NOMEMALLOC|GFP_KMEMCG', // @suppress longLineCheck
+      'touchFusion-88    (   88) [000] ...1  1736.517616: mm_vmscan_direct_reclaim_end: nr_reclaimed=34', // @suppress longLineCheck
+      'touchFusion-88    (   88) [000] ...1  1736.527061: mm_vmscan_direct_reclaim_begin: order=2 may_writepage=1 gfp_flags=GFP_KERNEL|GFP_NOWARN|GFP_COMP|GFP_NOMEMALLOC|GFP_KMEMCG', // @suppress longLineCheck
+      'touchFusion-88    (   88) [000] ...1  1736.530857: mm_vmscan_direct_reclaim_end: nr_reclaimed=39'// @suppress longLineCheck
     ];
 
     var m = newModel(lines.join('\n'));
@@ -60,21 +60,21 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(threads.length, 3);
 
-    var Binder_8 = threads[0];
-    var touch_fusion = threads[1];
+    var Binder8 = threads[0];
+    var touchFusion = threads[1];
     var RenderThread = threads[2];
 
     /* make sure there are the expected amount of slices per thread */
-    assert.equal(Binder_8.sliceGroup.length, 2);
-    assert.equal(touch_fusion.sliceGroup.length, 2);
+    assert.equal(Binder8.sliceGroup.length, 2);
+    assert.equal(touchFusion.sliceGroup.length, 2);
     assert.equal(RenderThread.sliceGroup.length, 4);
 
     /* make sure the slices have information to display to the
      * user when selected
      */
 
-    var iterate_me = [Binder_8, touch_fusion, RenderThread];
-    iterate_me.forEach(function(thread) {
+    var iterateMe = [Binder8, touchFusion, RenderThread];
+    iterateMe.forEach(function(thread) {
       for (var i = 0; i < thread.sliceGroup.length; i++) {
         assert.equal(thread.sliceGroup.slices[i].args !== undefined, true);
       }

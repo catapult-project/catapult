@@ -150,8 +150,8 @@ tr.exportTo('tr.b', function() {
           this.a);
     },
 
-    lighten: function(k, opt_max_l) {
-      var max_l = opt_max_l !== undefined ? opt_max_l : 1.0;
+    lighten: function(k, opt_maxL) {
+      var maxL = opt_maxL !== undefined ? opt_maxL : 1.0;
       var hsl = this.toHSL();
       hsl.l = clamp01(hsl.l + k);
       return Color.fromHSL(hsl);

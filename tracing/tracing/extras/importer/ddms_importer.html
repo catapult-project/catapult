@@ -35,9 +35,9 @@ tr.exportTo('tr.e.importer.ddms', function() {
   var kTraceRecordSizeSingleClock = 10;  // using v2
   var kTraceRecordSizeDualClock = 14;  // using v3 with two timestamps
 
-  function Reader(string_payload) {
+  function Reader(stringPayload) {
     this.position_ = 0;
-    this.data_ = JSZip.utils.transformTo('uint8array', string_payload);
+    this.data_ = JSZip.utils.transformTo('uint8array', stringPayload);
   }
 
   Reader.prototype = {
@@ -69,9 +69,9 @@ tr.exportTo('tr.e.importer.ddms', function() {
       // Javascript isn't able to manage 64-bit numeric values.
       var low = this.uint32();
       var high = this.uint32();
-      var low_str = ('0000000' + low.toString(16)).substr(-8);
-      var high_str = ('0000000' + high.toString(16)).substr(-8);
-      var result = high_str + low_str;
+      var lowStr = ('0000000' + low.toString(16)).substr(-8);
+      var highStr = ('0000000' + high.toString(16)).substr(-8);
+      var result = highStr + lowStr;
       return result;
     },
 
@@ -176,10 +176,10 @@ tr.exportTo('tr.e.importer.ddms', function() {
       threads.forEach(this.parseThread.bind(this));
     },
 
-    parseThread: function(thread_line) {
-      var tid = thread_line.slice(0, thread_line.indexOf('\t'));
+    parseThread: function(threadLine) {
+      var tid = threadLine.slice(0, threadLine.indexOf('\t'));
       var thread = this.getTid(parseInt(tid));
-      thread.name = thread_line.slice(thread_line.indexOf('\t') + 1);
+      thread.name = threadLine.slice(threadLine.indexOf('\t') + 1);
     },
 
     getTid: function(tid) {
@@ -195,8 +195,8 @@ tr.exportTo('tr.e.importer.ddms', function() {
       methods.forEach(this.parseMethod.bind(this));
     },
 
-    parseMethod: function(method_line) {
-      var data = method_line.split('\t');
+    parseMethod: function(methodLine) {
+      var data = methodLine.split('\t');
       var methodId = parseInt(data[0]);
       var methodName = data[1] + '.' + data[2] + data[3];
       this.addMethod(methodId, methodName);

@@ -107,14 +107,14 @@ tr.b.unittest.testSuite(function() {
     assert.equal(thread.sliceGroup.length, 2);
 
     /* check flow events for service manager */
-    var main_slice = thread.sliceGroup.slices[0];
-    assert.equal(main_slice.inFlowEvents.length, 1);
-    assert.equal(main_slice.outFlowEvents.length, 1);
-    var internal_slice = thread.sliceGroup.slices[1];
-    assert.equal(internal_slice.outFlowEvents.length, 1);
+    var mainSlice = thread.sliceGroup.slices[0];
+    assert.equal(mainSlice.inFlowEvents.length, 1);
+    assert.equal(mainSlice.outFlowEvents.length, 1);
+    var internalSlice = thread.sliceGroup.slices[1];
+    assert.equal(internalSlice.outFlowEvents.length, 1);
 
     /* check name of slice */
-    assert.equal(main_slice.title, 'binder reply');
+    assert.equal(mainSlice.title, 'binder reply');
 
     /* check binderLibTest */
     thread = threads[1];
@@ -124,13 +124,13 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(2, thread.sliceGroup.length);
 
-    main_slice = thread.sliceGroup.slices[0];
-    assert.equal(main_slice.inFlowEvents.length, 1);
-    assert.equal(main_slice.outFlowEvents.length, 1);
-    internal_slice = thread.sliceGroup.slices[1];
-    assert.equal(internal_slice.inFlowEvents.length, 1);
+    mainSlice = thread.sliceGroup.slices[0];
+    assert.equal(mainSlice.inFlowEvents.length, 1);
+    assert.equal(mainSlice.outFlowEvents.length, 1);
+    internalSlice = thread.sliceGroup.slices[1];
+    assert.equal(internalSlice.inFlowEvents.length, 1);
 
-    assert.equal(main_slice.title, 'binder transaction');
+    assert.equal(mainSlice.title, 'binder transaction');
 
     /* check Binder_4 */
     thread = threads[2];
@@ -139,13 +139,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(thread.name, 'Binder_4');
     assert.equal(2, thread.sliceGroup.length);
 
-    main_slice = thread.sliceGroup.slices[0];
-    assert.equal(main_slice.inFlowEvents.length, 1);
-    assert.equal(main_slice.outFlowEvents.length, 1);
-    internal_slice = thread.sliceGroup.slices[1];
-    assert.equal(internal_slice.outFlowEvents.length, 1);
+    mainSlice = thread.sliceGroup.slices[0];
+    assert.equal(mainSlice.inFlowEvents.length, 1);
+    assert.equal(mainSlice.outFlowEvents.length, 1);
+    internalSlice = thread.sliceGroup.slices[1];
+    assert.equal(internalSlice.outFlowEvents.length, 1);
 
-    assert.equal(main_slice.title, 'binder reply');
+    assert.equal(mainSlice.title, 'binder reply');
 
     /* check last binderLibTest with recursive slices */
     thread = threads[3];
@@ -154,29 +154,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(thread.name, 'binderLibTest');
     assert.equal(6, thread.sliceGroup.length);
 
-    main_slice = thread.sliceGroup.slices[0];
-    assert.equal(main_slice.inFlowEvents.length, 1);
-    assert.equal(main_slice.outFlowEvents.length, 1);
-    internal_slice = thread.sliceGroup.slices[5];
-    assert.equal(internal_slice.outFlowEvents.length, 1);
+    mainSlice = thread.sliceGroup.slices[0];
+    assert.equal(mainSlice.inFlowEvents.length, 1);
+    assert.equal(mainSlice.outFlowEvents.length, 1);
+    internalSlice = thread.sliceGroup.slices[5];
+    assert.equal(internalSlice.outFlowEvents.length, 1);
 
-    assert.equal(main_slice.title, 'binder reply');
+    assert.equal(mainSlice.title, 'binder reply');
 
     var recursive = thread.sliceGroup.slices[1];
-    var recursive_internal = thread.sliceGroup.slices[2];
+    var recursiveInternal = thread.sliceGroup.slices[2];
     assert.equal(recursive.inFlowEvents.length, 1);
     assert.equal(recursive.outFlowEvents.length, 1);
-    assert.equal(recursive_internal.inFlowEvents.length, 1);
+    assert.equal(recursiveInternal.inFlowEvents.length, 1);
 
     assert.equal(recursive.title, 'binder transaction');
 
     /* check second recursive slice and internal */
 
     var recursive = thread.sliceGroup.slices[3];
-    var recursive_internal = thread.sliceGroup.slices[4];
+    var recursiveInternal = thread.sliceGroup.slices[4];
     assert.equal(recursive.inFlowEvents.length, 1);
     assert.equal(recursive.outFlowEvents.length, 1);
-    assert.equal(recursive_internal.inFlowEvents.length, 1);
+    assert.equal(recursiveInternal.inFlowEvents.length, 1);
 
     assert.equal(recursive.title, 'binder transaction');
   });
@@ -222,4 +222,3 @@ tr.b.unittest.testSuite(function() {
 });
 
 </script>
-

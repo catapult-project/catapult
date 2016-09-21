@@ -32,7 +32,7 @@ tr.exportTo('tr.model.helpers', function() {
         process.labels[0] === 'chrome://tracing';
     if (!process.name)
       process.name = ChromeRendererHelper.PROCESS_NAME;
-  };
+  }
 
   ChromeRendererHelper.PROCESS_NAME = 'Renderer';
 
@@ -114,23 +114,23 @@ tr.exportTo('tr.model.helpers', function() {
             range.findExplicitIntersectionDuration(event.start, event.end) /
             event.duration;
         }
-        var v8_runtime = event.args['runtime-call-stat'];
-        if (v8_runtime !== undefined) {
+        var v8Runtime = event.args['runtime-call-stat'];
+        if (v8Runtime !== undefined) {
           try {
-            var v8_runtime_object = JSON.parse(v8_runtime);
-            for (var runtime_call in v8_runtime_object) {
-              if (v8_runtime_object[runtime_call].length == 2) {
-                if (breakdownMap['v8_runtime'].events[runtime_call] ===
+            var v8RuntimeObject = JSON.parse(v8Runtime);
+            for (var runtimeCall in v8RuntimeObject) {
+              if (v8RuntimeObject[runtimeCall].length == 2) {
+                if (breakdownMap['v8_runtime'].events[runtimeCall] ===
                     undefined) {
-                  breakdownMap['v8_runtime'].events[runtime_call] = 0;
+                  breakdownMap['v8_runtime'].events[runtimeCall] = 0;
                 }
                 // V8 Runtime Call Stats data is in us, while the
                 // breakdown tree timing is in ms.
-                var runtime_time = v8_runtime_object[runtime_call][1] *
+                var runtimeTime = v8RuntimeObject[runtimeCall][1] *
                                    wallTimeIntersectionRatio / 1000;
-                breakdownMap['v8_runtime'].total += runtime_time;
-                breakdownMap['v8_runtime'].events[runtime_call] +=
-                     runtime_time;
+                breakdownMap['v8_runtime'].total += runtimeTime;
+                breakdownMap['v8_runtime'].events[runtimeCall] +=
+                     runtimeTime;
               }
             }
           } catch (e) {

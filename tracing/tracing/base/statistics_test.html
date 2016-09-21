@@ -19,27 +19,27 @@ tr.b.unittest.testSuite(function() {
   function relax(samples, opt_iterations) {
     opt_iterations = opt_iterations || 10;
     for (var i = 0; i < opt_iterations; i++) {
-      var voronoi_boundaries = [];
+      var voronoiBoundaries = [];
       for (var j = 1; j < samples.length; j++)
-        voronoi_boundaries.push((samples[j] + samples[j - 1]) * 0.5);
+        voronoiBoundaries.push((samples[j] + samples[j - 1]) * 0.5);
 
-      var relaxed_samples = [];
-      relaxed_samples.push(samples[0]);
+      var relaxedSamples = [];
+      relaxedSamples.push(samples[0]);
       for (var j = 1; j < samples.length - 1; j++) {
-        relaxed_samples.push(
-            (voronoi_boundaries[j - 1] + voronoi_boundaries[j]) * 0.5);
+        relaxedSamples.push(
+            (voronoiBoundaries[j - 1] + voronoiBoundaries[j]) * 0.5);
       }
-      relaxed_samples.push(samples[samples.length - 1]);
-      samples = relaxed_samples;
+      relaxedSamples.push(samples[samples.length - 1]);
+      samples = relaxedSamples;
     }
     return samples;
   }
 
-  function createRandomSamples(num_samples) {
+  function createRandomSamples(numSamples) {
     var samples = [];
     var position = 0.0;
     samples.push(position);
-    for (var i = 1; i < num_samples; i++) {
+    for (var i = 1; i < numSamples; i++) {
       position += Math.random();
       samples.push(position);
     }
@@ -345,9 +345,9 @@ tr.b.unittest.testSuite(function() {
       var samples = createRandomSamples(10);
       var samples = Statistics.normalizeSamples(samples).normalized_samples;
       var d = Statistics.discrepancy(samples);
-      var relaxed_samples = relax(samples);
-      var d_relaxed = Statistics.discrepancy(relaxed_samples);
-      assert.isBelow(d_relaxed, d);
+      var relaxedSamples = relax(samples);
+      var dRelaxed = Statistics.discrepancy(relaxedSamples);
+      assert.isBelow(dRelaxed, d);
     }
   });
 
@@ -392,43 +392,43 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('timestampsDiscrepancy', function() {
-    var time_stamps = [];
-    var d_abs = Statistics.timestampsDiscrepancy(time_stamps, true);
-    assert.equal(d_abs, 0.0);
+    var timestamps = [];
+    var dAbs = Statistics.timestampsDiscrepancy(timestamps, true);
+    assert.equal(dAbs, 0.0);
 
-    time_stamps = [4];
-    d_abs = Statistics.timestampsDiscrepancy(time_stamps, true);
-    assert.equal(d_abs, 0.5);
+    timestamps = [4];
+    dAbs = Statistics.timestampsDiscrepancy(timestamps, true);
+    assert.equal(dAbs, 0.5);
 
-    var time_stamps_a = [0, 1, 2, 3, 5, 6];
-    var time_stamps_b = [0, 1, 2, 3, 5, 7];
-    var time_stamps_c = [0, 2, 3, 4];
-    var time_stamps_d = [0, 2, 3, 4, 5];
-
-
-    var d_abs_a = Statistics.timestampsDiscrepancy(time_stamps_a, true);
-    var d_abs_b = Statistics.timestampsDiscrepancy(time_stamps_b, true);
-    var d_abs_c = Statistics.timestampsDiscrepancy(time_stamps_c, true);
-    var d_abs_d = Statistics.timestampsDiscrepancy(time_stamps_d, true);
-    var d_rel_a = Statistics.timestampsDiscrepancy(time_stamps_a, false);
-    var d_rel_b = Statistics.timestampsDiscrepancy(time_stamps_b, false);
-    var d_rel_c = Statistics.timestampsDiscrepancy(time_stamps_c, false);
-    var d_rel_d = Statistics.timestampsDiscrepancy(time_stamps_d, false);
+    var timestampsA = [0, 1, 2, 3, 5, 6];
+    var timestampsB = [0, 1, 2, 3, 5, 7];
+    var timestampsC = [0, 2, 3, 4];
+    var timestampsD = [0, 2, 3, 4, 5];
 
 
-    assert.isBelow(d_abs_a, d_abs_b);
-    assert.isBelow(d_rel_a, d_rel_b);
-    assert.isBelow(d_rel_d, d_rel_c);
-    assert.closeTo(d_abs_d, d_abs_c, 0.0001);
+    var dAbsA = Statistics.timestampsDiscrepancy(timestampsA, true);
+    var dAbsB = Statistics.timestampsDiscrepancy(timestampsB, true);
+    var dAbsC = Statistics.timestampsDiscrepancy(timestampsC, true);
+    var dAbsD = Statistics.timestampsDiscrepancy(timestampsD, true);
+    var dRelA = Statistics.timestampsDiscrepancy(timestampsA, false);
+    var dRelB = Statistics.timestampsDiscrepancy(timestampsB, false);
+    var dRelC = Statistics.timestampsDiscrepancy(timestampsC, false);
+    var dRelD = Statistics.timestampsDiscrepancy(timestampsD, false);
+
+
+    assert.isBelow(dAbsA, dAbsB);
+    assert.isBelow(dRelA, dRelB);
+    assert.isBelow(dRelD, dRelC);
+    assert.closeTo(dAbsD, dAbsC, 0.0001);
   });
 
   test('discrepancyMultipleRanges', function() {
     var samples = [[0.0, 1.2, 2.3, 3.3], [6.3, 7.5, 8.4], [4.2, 5.4, 5.9]];
-    var d_0 = Statistics.timestampsDiscrepancy(samples[0]);
-    var d_1 = Statistics.timestampsDiscrepancy(samples[1]);
-    var d_2 = Statistics.timestampsDiscrepancy(samples[2]);
+    var d0 = Statistics.timestampsDiscrepancy(samples[0]);
+    var d1 = Statistics.timestampsDiscrepancy(samples[1]);
+    var d2 = Statistics.timestampsDiscrepancy(samples[2]);
     var d = Statistics.timestampsDiscrepancy(samples);
-    assert.equal(d, Math.max(d_0, d_1, d_2));
+    assert.equal(d, Math.max(d0, d1, d2));
   });
 
   /**
@@ -440,8 +440,8 @@ tr.b.unittest.testSuite(function() {
       var samples = createRandomSamples(10);
       samples = Statistics.normalizeSamples(samples).normalized_samples;
       var d = Statistics.discrepancy(samples);
-      var d_approx = Statistics.discrepancy(samples, 500);
-      assert.closeTo(d, d_approx, 0.01);
+      var dApprox = Statistics.discrepancy(samples, 500);
+      assert.closeTo(d, dApprox, 0.01);
     }
   });
 
@@ -454,16 +454,16 @@ tr.b.unittest.testSuite(function() {
     d = Statistics.durationsDiscrepancy(durations);
     assert.equal(d, 4.0);
 
-    var durations_a = [1, 1, 1, 1, 1];
-    var durations_b = [1, 1, 2, 1, 1];
-    var durations_c = [1, 2, 1, 2, 1];
+    var durationsA = [1, 1, 1, 1, 1];
+    var durationsB = [1, 1, 2, 1, 1];
+    var durationsC = [1, 2, 1, 2, 1];
 
-    var d_a = Statistics.durationsDiscrepancy(durations_a);
-    var d_b = Statistics.durationsDiscrepancy(durations_b);
-    var d_c = Statistics.durationsDiscrepancy(durations_c);
+    var dA = Statistics.durationsDiscrepancy(durationsA);
+    var dB = Statistics.durationsDiscrepancy(durationsB);
+    var dC = Statistics.durationsDiscrepancy(durationsC);
 
-    assert.isBelow(d_a, d_b);
-    assert.isBelow(d_b, d_c);
+    assert.isBelow(dA, dB);
+    assert.isBelow(dB, dC);
   });
 
   test('uniformlySampleStream', function() {

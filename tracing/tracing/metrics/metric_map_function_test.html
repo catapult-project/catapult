@@ -15,7 +15,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var test_utils = tr.c.TestUtils;
+  var TestUtils = tr.c.TestUtils;
   var ThreadSlice = tr.model.ThreadSlice;
 
   test('metricMapTest', function() {
@@ -23,19 +23,19 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'E'}
     ];
-    var m = test_utils.newModelWithEvents(JSON.stringify(events), {
+    var m = TestUtils.newModelWithEvents(JSON.stringify(events), {
       shiftWorldToZero: false,
       pruneEmptyContainers: false,
       trackDetailedModelStats: true,
       customizeModelCallback: function(m) {
         var p1 = m.getOrCreateProcess(1);
         var t2 = p1.getOrCreateThread(2);
-        var t2_s1 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
           type: ThreadSlice,
           name: 'some_slice',
           start: 0, end: 10
         }));
-        var t2_s2 = t2.sliceGroup.pushSlice(test_utils.newSliceEx({
+        t2.sliceGroup.pushSlice(TestUtils.newSliceEx({
           type: ThreadSlice,
           name: 'some_slice',
           start: 20, end: 30

@@ -43,7 +43,7 @@ tr.exportTo('tr.metrics', function() {
     var overheadByProvider = {};
     tr.b.iterItems(model.processes, function(pid, process) {
       tr.b.iterItems(process.threads, function(tid, thread) {
-        tr.b.iterItems(thread.sliceGroup.slices, function(slice_id, slice) {
+        tr.b.iterItems(thread.sliceGroup.slices, (unusedSliceId, slice) => {
           if (slice.category !== MEMORY_INFRA_TRACING_CATEGORY)
             return;
           totalOverhead += slice.duration;

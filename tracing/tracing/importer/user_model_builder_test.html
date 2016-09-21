@@ -14,11 +14,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
-  var chrome_test_utils = tr.e.chrome.ChromeTestUtils;
+  var ChromeTestUtils = tr.e.chrome.ChromeTestUtils;
   var UserExpectationVerifier = tr.importer.UserExpectationVerifier;
 
   function addFrameEventForInput(model, event) {
-    var frame = chrome_test_utils.addFrameEvent(model,
+    var frame = ChromeTestUtils.addFrameEvent(model,
         {start: event.start, end: event.end, isTopLevel: true});
     model.flowEvents.push(tr.c.TestUtils.newFlowEventEx({
       id: event.id,
@@ -43,10 +43,10 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 0, end: 100, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 200, end: 300, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 210, end: 220});
+      ChromeTestUtils.addFrameEvent(model, {start: 210, end: 220});
     };
     verifier.expectedIRs = [
       {title: 'Video Animation', start: 0, end: 100, eventCount: 2},
@@ -61,10 +61,10 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 0, end: 200, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 100, end: 300, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 210, end: 220});
+      ChromeTestUtils.addFrameEvent(model, {start: 210, end: 220});
     };
     verifier.expectedIRs = [
       {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
@@ -77,10 +77,10 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 0, end: 300, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
+      ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'VideoPlayback', start: 100, end: 200, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 110, end: 120});
+      ChromeTestUtils.addFrameEvent(model, {start: 110, end: 120});
     };
     verifier.expectedIRs = [
       {title: 'Video Animation', start: 0, end: 300, eventCount: 4},
@@ -91,17 +91,17 @@ tr.b.unittest.testSuite(function() {
   test('slowMouseMoveResponses', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(
+      ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_DOWN, {start: 0, end: 10});
-      var mouseMove = chrome_test_utils.addInputEvent(
+      var mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 10, end: 20, id: '0x100'});
       addFrameEventForInput(model, mouseMove);
 
-      mouseMove = chrome_test_utils.addInputEvent(
+      mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 70, end: 80, id: '0x101'});
       addFrameEventForInput(model, mouseMove);
 
-      mouseMove = chrome_test_utils.addInputEvent(
+      mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 130, end: 140, id: '0x102'});
       addFrameEventForInput(model, mouseMove);
     };
@@ -119,15 +119,15 @@ tr.b.unittest.testSuite(function() {
   test('mouseEventResponses', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      var mouseDown = chrome_test_utils.addInputEvent(
+      var mouseDown = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_DOWN, {start: 0, end: 50, id: '0x100'});
       addFrameEventForInput(model, mouseDown);
 
-      var mouseUp = chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
+      var mouseUp = ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
           {start: 50, end: 100, id: '0x101'});
       addFrameEventForInput(model, mouseUp);
 
-      var mouseMove = chrome_test_utils.addInputEvent(
+      var mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 200, end: 250, id: '0x102'});
       addFrameEventForInput(model, mouseMove);
     };
@@ -143,9 +143,9 @@ tr.b.unittest.testSuite(function() {
   test('mouseEventsIgnored', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 0, end: 50});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
           {start: 50, end: 100});
     };
     verifier.expectedIRs = [
@@ -179,9 +179,9 @@ tr.b.unittest.testSuite(function() {
   test('stillLoading', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
-      chrome_test_utils.addNavigationStartEvent(model, {start: 10});
-      chrome_test_utils.addFrameEvent(model, {start: 19, end: 20});
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
+      ChromeTestUtils.addNavigationStartEvent(model, {start: 10});
+      ChromeTestUtils.addFrameEvent(model, {start: 19, end: 20});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1},
@@ -193,16 +193,16 @@ tr.b.unittest.testSuite(function() {
   test('overlappingIdleAndLoadCollectUnassociatedEvents', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
-      chrome_test_utils.addNavigationStartEvent(model, {start: 10});
-      chrome_test_utils.addFirstContentfulPaintEvent(model, {start: 30});
-      chrome_test_utils.addFrameEvent(model, {start: 35, end: 40});
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
+      ChromeTestUtils.addNavigationStartEvent(model, {start: 10});
+      ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 30});
+      ChromeTestUtils.addFrameEvent(model, {start: 35, end: 40});
       // 3 Idle events.
-      chrome_test_utils.addRenderingEvent(model, {start: 5, end: 15});
-      chrome_test_utils.addRenderingEvent(model, {start: 11, end: 15});
-      chrome_test_utils.addRenderingEvent(model, {start: 13, end: 15});
+      ChromeTestUtils.addRenderingEvent(model, {start: 5, end: 15});
+      ChromeTestUtils.addRenderingEvent(model, {start: 11, end: 15});
+      ChromeTestUtils.addRenderingEvent(model, {start: 13, end: 15});
       // 1 Idle event.
-      chrome_test_utils.addRenderingEvent(model, {start: 35, end: 36});
+      ChromeTestUtils.addRenderingEvent(model, {start: 35, end: 36});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 4},
@@ -218,66 +218,66 @@ tr.b.unittest.testSuite(function() {
     // measurmt-traces/mobile/cnet_fling_up_fling_down_motox_2013.json
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 919, end: 998});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
           {start: 919, end: 1001});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 919, end: 1001});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 974, end: 1020});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 974, end: 1020});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 974, end: 1040});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 1039, end: 1040, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 974, end: 1054});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 990, end: 1021});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 990, end: 1052});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 1051, end: 1052, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1006, end: 1021});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1022, end: 1036});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1022, end: 1052});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1038, end: 1049});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1038, end: 1068});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 1067, end: 1068, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 1046, end: 1050});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 1046, end: 1077});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 1432, end: 2238});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
           {start: 1432, end: 2241});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1516, end: 2605});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 1532, end: 2274});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1532, end: 2294});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 2293, end: 2294, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1549, end: 2310});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 2309, end: 2310, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 1627, end: 2275});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 1627, end: 2310});
-      chrome_test_utils.addFrameEvent(model, {start: 2990, end: 3000});
+      ChromeTestUtils.addFrameEvent(model, {start: 2990, end: 3000});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 919, eventCount: 1},
@@ -300,9 +300,9 @@ tr.b.unittest.testSuite(function() {
   test('keyboardEvents', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.KEY_DOWN_RAW,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.KEY_DOWN_RAW,
           {start: 0, end: 45});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.CHAR,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.CHAR,
           {start: 10, end: 50});
     };
     verifier.expectedIRs = [
@@ -314,11 +314,11 @@ tr.b.unittest.testSuite(function() {
   test('mouseResponses', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.CLICK,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.CLICK,
           {start: 0, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.CONTEXT_MENU,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.CONTEXT_MENU,
           {start: 200, end: 300});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 400, end: 500});
     };
     verifier.expectedIRs = [
@@ -335,31 +335,31 @@ tr.b.unittest.testSuite(function() {
   test('mouseWheelAnimation', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 0, end: 20});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 19, end: 20, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 16, end: 36});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 35, end: 36, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 55, end: 75});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 74, end: 75, isTopLevel: true});
 
       // This threshold uses both events' start times, not end...start.
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 100, end: 150});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 149, end: 150, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 141, end: 191});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 190, end: 191, isTopLevel: true});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_WHEEL,
           {start: 182, end: 200});
-      chrome_test_utils.addFrameEvent(model,
+      ChromeTestUtils.addFrameEvent(model,
           {start: 199, end: 200, isTopLevel: true});
     };
     verifier.expectedIRs = [
@@ -380,9 +380,9 @@ tr.b.unittest.testSuite(function() {
   test('mouseDownUpResponse', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_DOWN,
           {start: 0, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_UP,
           {start: 200, end: 210});
     };
     verifier.expectedIRs = [
@@ -395,7 +395,7 @@ tr.b.unittest.testSuite(function() {
   test('ignoreLoneMouseMoves', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.MOUSE_MOVE,
           {start: 0, end: 100});
     };
     verifier.expectedIRs = [
@@ -407,15 +407,15 @@ tr.b.unittest.testSuite(function() {
   test('mouseDrags', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(
+      ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_DOWN, {start: 0, end: 100});
-      var mouseMove = chrome_test_utils.addInputEvent(
+      var mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 200, end: 215});
       addFrameEventForInput(model, mouseMove);
-      mouseMove = chrome_test_utils.addInputEvent(
+      mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 210, end: 220});
       addFrameEventForInput(model, mouseMove);
-      mouseMove = chrome_test_utils.addInputEvent(
+      mouseMove = ChromeTestUtils.addInputEvent(
           model, INPUT_TYPE.MOUSE_MOVE, {start: 221, end: 240});
       addFrameEventForInput(model, mouseMove);
     };
@@ -430,31 +430,31 @@ tr.b.unittest.testSuite(function() {
   test('twoScrollsNoFling', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 0, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 20, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 40, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 60, end: 150});
-      chrome_test_utils.addFrameEvent(model, {start: 149, end: 150});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addFrameEvent(model, {start: 149, end: 150});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 70, end: 150});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_END,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_END,
           {start: 80, end: 150});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 300, end: 400});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 320, end: 400});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 330, end: 450});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 340, end: 450});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 350, end: 500});
-      chrome_test_utils.addFrameEvent(model, {start: 499, end: 500});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_END,
+      ChromeTestUtils.addFrameEvent(model, {start: 499, end: 500});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_END,
           {start: 360, end: 500});
     };
     verifier.expectedIRs = [
@@ -474,20 +474,20 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 18, end: 19});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 38, end: 39});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 58, end: 59});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
     };
     verifier.expectedIRs = [
@@ -501,35 +501,35 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 18, end: 19});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 38, end: 39});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 58, end: 59});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 218, end: 19});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 238, end: 39});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 258, end: 59});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
     verifier.expectedIRs = [
@@ -545,26 +545,26 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 18, end: 19});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 38, end: 39});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 58, end: 59});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
     verifier.expectedIRs = [
@@ -579,17 +579,17 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 20, end: 22});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 40, end: 42});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 60, end: 62});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 220, end: 222});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 240, end: 242});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'DrawingBuffer::prepareMailbox', start: 260, end: 262});
     };
     verifier.expectedIRs = [
@@ -604,10 +604,10 @@ tr.b.unittest.testSuite(function() {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'PageAnimator::serviceScriptedAnimations',
           start: 0, end: 2}));
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 20, end: 22});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
           title: 'PageAnimator::serviceScriptedAnimations',
           start: 40, end: 42});
     };
@@ -622,7 +622,7 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'DrawingBuffer::prepareMailbox', start: 0, end: 2}));
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
         title: 'PageAnimator::serviceScriptedAnimations',
         start: 4, end: 6});
     };
@@ -641,13 +641,13 @@ tr.b.unittest.testSuite(function() {
     verifier.customizeModelCallback = function(model) {
       model.rendererMain.asyncSliceGroup.push(tr.c.TestUtils.newAsyncSliceEx(
           {title: 'Animation', start: 0, end: 130, isTopLevel: true}));
-      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
+      ChromeTestUtils.addEvent(model.rendererMain, {
         title: 'Animation', start: 131, end: 200, isTopLevel: true});
-      chrome_test_utils.addFrameEvent(model, {start: 150, end: 160});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addFrameEvent(model, {start: 150, end: 160});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 150, end: 180});
-      chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
+      ChromeTestUtils.addFrameEvent(model, {start: 290, end: 300});
     };
     verifier.expectedIRs = [
       {title: 'CSS Animation', start: 0, end: 200, eventCount: 4},
@@ -671,15 +671,15 @@ tr.b.unittest.testSuite(function() {
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 300, args: {data: {state: 'running'}}}));
       model.rendererMain.asyncSliceGroup.push(animationA);
-      chrome_test_utils.addFrameEvent(model, {start: 50, end: 60});
-      chrome_test_utils.addFrameEvent(model, {start: 150, end: 160});
-      chrome_test_utils.addFrameEvent(model, {start: 250, end: 260});
-      chrome_test_utils.addFrameEvent(model, {start: 350, end: 360});
-      chrome_test_utils.addFrameEvent(model, {start: 450, end: 460});
+      ChromeTestUtils.addFrameEvent(model, {start: 50, end: 60});
+      ChromeTestUtils.addFrameEvent(model, {start: 150, end: 160});
+      ChromeTestUtils.addFrameEvent(model, {start: 250, end: 260});
+      ChromeTestUtils.addFrameEvent(model, {start: 350, end: 360});
+      ChromeTestUtils.addFrameEvent(model, {start: 450, end: 460});
       // We include a frame event off the end of the top level animation slice
       // so we can test that it correctly stops the AnimationExpectation
       // at the end of the top-level event, not tne end of the whole trace,
-      chrome_test_utils.addFrameEvent(model, {start: 1050, end: 1060});
+      ChromeTestUtils.addFrameEvent(model, {start: 1050, end: 1060});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 100, eventCount: 1},
@@ -697,9 +697,9 @@ tr.b.unittest.testSuite(function() {
       // If a top-level Animation async slice does not have state-change instant
       // subSlices, then assume that the animation was running throughout the
       // async slice.
-      chrome_test_utils.addEvent(model.rendererMain, {
+      ChromeTestUtils.addEvent(model.rendererMain, {
         title: 'Animation', start: 181, end: 250, isTopLevel: true});
-      chrome_test_utils.addFrameEvent(model, {start: 200, end: 240});
+      ChromeTestUtils.addFrameEvent(model, {start: 200, end: 240});
 
       // Animation ranges should be merged if there is less than 32ms dead time
       // between them.
@@ -724,8 +724,8 @@ tr.b.unittest.testSuite(function() {
       animationA.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 350, args: {data: {state: 'idle'}}}));
       model.rendererMain.asyncSliceGroup.push(animationA);
-      chrome_test_utils.addFrameEvent(model, {start: 80, end: 90});
-      chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
+      ChromeTestUtils.addFrameEvent(model, {start: 80, end: 90});
+      ChromeTestUtils.addFrameEvent(model, {start: 290, end: 300});
 
       // An animation without a frame event isn't really an animation.
       var animationC = tr.c.TestUtils.newAsyncSliceEx(
@@ -743,8 +743,8 @@ tr.b.unittest.testSuite(function() {
       animationB.subSlices.push(tr.c.TestUtils.newInstantEvent(
           {title: 'Animation', start: 382, args: {data: {state: 'running'}}}));
       model.rendererMain.asyncSliceGroup.push(animationB);
-      chrome_test_utils.addFrameEvent(model, {start: 10, end: 20});
-      chrome_test_utils.addFrameEvent(model, {start: 390, end: 400});
+      ChromeTestUtils.addFrameEvent(model, {start: 10, end: 20});
+      ChromeTestUtils.addFrameEvent(model, {start: 390, end: 400});
     };
     verifier.expectedIRs = [
       {title: 'CSS Animation', start: 0, end: 350, eventCount: 16},
@@ -757,11 +757,11 @@ tr.b.unittest.testSuite(function() {
   test('flingThatIsntstopped', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 32, end: 100});
-      chrome_test_utils.addFlingAnimationEvent(model, {start: 38, end: 200});
-      chrome_test_utils.addFrameEvent(model, {start: 199, end: 200});
-      chrome_test_utils.addFrameEvent(model, {start: 290, end: 300});
+      ChromeTestUtils.addFlingAnimationEvent(model, {start: 38, end: 200});
+      ChromeTestUtils.addFrameEvent(model, {start: 199, end: 200});
+      ChromeTestUtils.addFrameEvent(model, {start: 290, end: 300});
     };
     verifier.expectedIRs = [
       {title: 'Fling Animation', start: 32, end: 200, eventCount: 3},
@@ -773,12 +773,12 @@ tr.b.unittest.testSuite(function() {
   test('flingThatIsStopped', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 32, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
           {start: 105, end: 150});
-      chrome_test_utils.addFrameEvent(model, {start: 104, end: 105});
-      chrome_test_utils.addFrameEvent(model, {start: 149, end: 150});
+      ChromeTestUtils.addFrameEvent(model, {start: 104, end: 105});
+      ChromeTestUtils.addFrameEvent(model, {start: 149, end: 150});
     };
     verifier.expectedIRs = [
       {title: 'Fling Animation', start: 32, end: 105, eventCount: 3},
@@ -791,23 +791,23 @@ tr.b.unittest.testSuite(function() {
     // measurmt-traces/mobile/facebook_obama_scroll_dialog_box.html
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 0, end: 30});
-      chrome_test_utils.addFrameEvent(model, {start: 40, end: 41});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addFrameEvent(model, {start: 40, end: 41});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 100, end: 130});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
           {start: 100, end: 130});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 110, end: 140});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 170, end: 180});
-      chrome_test_utils.addFrameEvent(model, {start: 150, end: 151});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addFrameEvent(model, {start: 150, end: 151});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 200, end: 210});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 200, end: 220});
-      chrome_test_utils.addFrameEvent(model, {start: 230, end: 240});
+      ChromeTestUtils.addFrameEvent(model, {start: 230, end: 240});
     };
     verifier.expectedIRs = [
       {title: 'Fling Animation', start: 0, end: 100, eventCount: 3},
@@ -822,8 +822,8 @@ tr.b.unittest.testSuite(function() {
   test('load', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addNavigationStartEvent(model, {start: 0});
-      chrome_test_utils.addFirstContentfulPaintEvent(model, {start: 20});
+      ChromeTestUtils.addNavigationStartEvent(model, {start: 0});
+      ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 20});
     };
     verifier.expectedIRs = [
       {title: 'Successful Load', start: 0, end: 20, eventCount: 0}
@@ -834,11 +834,11 @@ tr.b.unittest.testSuite(function() {
   test('loadStartup', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addRenderingEvent(model, {start: 2, end: 3});
-      chrome_test_utils.addCreateThreadsEvent(model, {start: 5, end: 10});
+      ChromeTestUtils.addRenderingEvent(model, {start: 2, end: 3});
+      ChromeTestUtils.addCreateThreadsEvent(model, {start: 5, end: 10});
       // Throw an second one in there, just to try to confuse the algo.
-      chrome_test_utils.addCreateThreadsEvent(model, {start: 25, end: 30});
-      chrome_test_utils.addFrameEvent(model, {start: 11, end: 20});
+      ChromeTestUtils.addCreateThreadsEvent(model, {start: 25, end: 30});
+      ChromeTestUtils.addFrameEvent(model, {start: 11, end: 20});
     };
     verifier.expectedIRs = [
       {title: 'Startup', start: 2, end: 20, eventCount: 3},
@@ -850,7 +850,7 @@ tr.b.unittest.testSuite(function() {
   test('totalIdle', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 10, eventCount: 1}
@@ -861,10 +861,10 @@ tr.b.unittest.testSuite(function() {
   test('multipleIdles', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 1});
-      chrome_test_utils.addNavigationStartEvent(model, {start: 1});
-      chrome_test_utils.addFirstContentfulPaintEvent(model, {start: 4});
-      chrome_test_utils.addFrameEvent(model, {start: 12, end: 13});
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 1});
+      ChromeTestUtils.addNavigationStartEvent(model, {start: 1});
+      ChromeTestUtils.addFirstContentfulPaintEvent(model, {start: 4});
+      ChromeTestUtils.addFrameEvent(model, {start: 12, end: 13});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1, eventCount: 1},
@@ -877,9 +877,9 @@ tr.b.unittest.testSuite(function() {
   test('touchStartTouchEndTap', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 0, end: 10});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 200, end: 210});
     };
     verifier.expectedIRs = [
@@ -892,15 +892,15 @@ tr.b.unittest.testSuite(function() {
   test('touchMoveResponseAnimation', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 0, end: 10});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 50, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 70, end: 150});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 200, end: 300});
-      chrome_test_utils.addFrameEvent(model, {start: 299, end: 300});
+      ChromeTestUtils.addFrameEvent(model, {start: 299, end: 300});
     };
     verifier.expectedIRs = [
       {title: 'Touch Response', start: 0, end: 100, eventCount: 2,
@@ -913,11 +913,11 @@ tr.b.unittest.testSuite(function() {
   test('tapEvents', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP,
           {start: 0, end: 50});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 300, end: 310});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP,
           {start: 320, end: 350});
     };
     verifier.expectedIRs = [
@@ -931,9 +931,9 @@ tr.b.unittest.testSuite(function() {
   test('tapAndTapCancelResponses', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 0, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 300, end: 350});
     };
     verifier.expectedIRs = [
@@ -947,9 +947,9 @@ tr.b.unittest.testSuite(function() {
   test('tapCancelResponse', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 0, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 150, end: 200});
     };
     verifier.expectedIRs = [
@@ -961,26 +961,26 @@ tr.b.unittest.testSuite(function() {
   test('pinchResponseAnimation', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
           {start: 100, end: 150});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
           {start: 130, end: 160});
-      chrome_test_utils.addFrameEvent(model, {start: 159, end: 160});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+      ChromeTestUtils.addFrameEvent(model, {start: 159, end: 160});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
           {start: 140, end: 200});
-      chrome_test_utils.addFrameEvent(model, {start: 199, end: 200});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+      ChromeTestUtils.addFrameEvent(model, {start: 199, end: 200});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
           {start: 150, end: 205});
-      chrome_test_utils.addFrameEvent(model, {start: 204, end: 205});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+      ChromeTestUtils.addFrameEvent(model, {start: 204, end: 205});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
           {start: 210, end: 220});
-      chrome_test_utils.addFrameEvent(model, {start: 219, end: 220});
+      ChromeTestUtils.addFrameEvent(model, {start: 219, end: 220});
       // pause > 200ms
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
           {start: 421, end: 470});
-      chrome_test_utils.addFrameEvent(model, {start: 469, end: 470});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_END,
+      ChromeTestUtils.addFrameEvent(model, {start: 469, end: 470});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_END,
           {start: 460, end: 500});
     };
     verifier.expectedIRs = [
@@ -998,17 +998,17 @@ tr.b.unittest.testSuite(function() {
     // measurmt-traces/mobile/google_io_instrument_strumming.json
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 0, end: 20});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 40, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 50, end: 120});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 80, end: 150});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 180, end: 200});
-      chrome_test_utils.addFrameEvent(model, {start: 199, end: 200});
+      ChromeTestUtils.addFrameEvent(model, {start: 199, end: 200});
     };
     verifier.expectedIRs = [
       {title: 'Touch Response', start: 0, end: 100, eventCount: 2,
@@ -1023,44 +1023,44 @@ tr.b.unittest.testSuite(function() {
   test('pinchFlingTapTouchEventsOverlap', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addFrameEvent(model, {start: 0, end: 10});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addFrameEvent(model, {start: 0, end: 10});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 20, end: 50});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 20, end: 30});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_CANCEL,
           {start: 20, end: 50});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 60, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 60, end: 110});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_BEGIN,
           {start: 60, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 65, end: 75});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 70, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.PINCH_UPDATE,
           {start: 70, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 75, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 80, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 85, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 75, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 150, end: 200});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 150, end: 200});
-      chrome_test_utils.addFrameEvent(model, {start: 199, end: 200});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addFrameEvent(model, {start: 199, end: 200});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 180, end: 210});
-      chrome_test_utils.addFrameEvent(model, {start: 209, end: 210});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addFrameEvent(model, {start: 209, end: 210});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 190, end: 210});
-      chrome_test_utils.addFrameEvent(model, {start: 215, end: 220});
+      ChromeTestUtils.addFrameEvent(model, {start: 215, end: 220});
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 1},
@@ -1076,14 +1076,14 @@ tr.b.unittest.testSuite(function() {
   test('scrollThenFling', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 0, end: 40});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 50, end: 100});
-      chrome_test_utils.addFrameEvent(model, {start: 99, end: 100});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addFrameEvent(model, {start: 99, end: 100});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 80, end: 100});
-      chrome_test_utils.addFrameEvent(model, {start: 190, end: 200});
+      ChromeTestUtils.addFrameEvent(model, {start: 190, end: 200});
     };
     verifier.expectedIRs = [
       {title: 'Scroll Animation', start: 0, end: 100, eventCount: 3},
@@ -1099,46 +1099,46 @@ tr.b.unittest.testSuite(function() {
   test('flingHNToRest', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addEvent(model.browserMain,
+      ChromeTestUtils.addEvent(model.browserMain,
           {title: 'model start', start: 0, end: 1});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_START,
           {start: 1274, end: 1297});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_DOWN,
           {start: 1274, end: 1305});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1343, end: 1350});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1359, end: 1366});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP_CANCEL,
           {start: 1359, end: 1366});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_BEGIN,
           {start: 1359, end: 1367});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1359, end: 1387});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1375, end: 1385});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1375, end: 1416});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1389, end: 1404});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1389, end: 1429});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1405, end: 1418});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1405, end: 1449});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 1419, end: 1432});
-      chrome_test_utils.addFrameEvent(model, {start: 1431, end: 1432});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
+      ChromeTestUtils.addFrameEvent(model, {start: 1431, end: 1432});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.SCROLL_UPDATE,
           {start: 1419, end: 1474});
-      chrome_test_utils.addFrameEvent(model, {start: 1473, end: 1474});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
+      ChromeTestUtils.addFrameEvent(model, {start: 1473, end: 1474});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_END,
           {start: 1427, end: 1435});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.FLING_START,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.FLING_START,
           {start: 1427, end: 1474});
-      chrome_test_utils.addFlingAnimationEvent(model, {start: 1440, end: 2300});
-      chrome_test_utils.addEvent(model.browserMain,
+      ChromeTestUtils.addFlingAnimationEvent(model, {start: 1440, end: 2300});
+      ChromeTestUtils.addEvent(model.browserMain,
           {title: 'model end', start: 3184, end: 3185});
     };
     verifier.expectedIRs = [
@@ -1157,14 +1157,14 @@ tr.b.unittest.testSuite(function() {
   test('TapResponseOverlappingTouchAnimation', function() {
     var verifier = new UserExpectationVerifier();
     verifier.customizeModelCallback = function(model) {
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 0, end: 10});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 5, end: 15});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TOUCH_MOVE,
           {start: 10, end: 20});
-      chrome_test_utils.addFrameEvent(model, {start: 19, end: 20});
-      chrome_test_utils.addInputEvent(model, INPUT_TYPE.TAP,
+      ChromeTestUtils.addFrameEvent(model, {start: 19, end: 20});
+      ChromeTestUtils.addInputEvent(model, INPUT_TYPE.TAP,
           {start: 15, end: 100});
     };
     verifier.expectedIRs = [

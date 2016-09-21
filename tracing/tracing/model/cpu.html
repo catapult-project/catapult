@@ -47,7 +47,7 @@ tr.exportTo('tr.model', function() {
     // Name and arguments of the last active thread.
     this.lastActiveName_ = undefined;
     this.lastActiveArgs_ = undefined;
-  };
+  }
 
   Cpu.prototype = {
     __proto__: tr.model.EventContainer.prototype,
@@ -163,16 +163,16 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
-     * Closes the thread running on the CPU. |end_timestamp| is the timestamp
+     * Closes the thread running on the CPU. |endTimestamp| is the timestamp
      * at which the thread was unscheduled. |args| is merged with the arguments
      * specified when the thread was initially scheduled.
      */
-    closeActiveThread: function(end_timestamp, args) {
+    closeActiveThread: function(endTimestamp, args) {
       // Don't generate a slice if the last active thread is the idle task.
       if (this.lastActiveThread_ == undefined || this.lastActiveThread_ == 0)
         return;
 
-      if (end_timestamp < this.lastActiveTimestamp_) {
+      if (endTimestamp < this.lastActiveTimestamp_) {
         throw new Error('The end timestamp of a thread running on CPU ' +
                         this.cpuNumber + ' is before its start timestamp.');
       }
@@ -183,7 +183,7 @@ tr.exportTo('tr.model', function() {
         this.lastActiveArgs_[key] = args[key];
       }
 
-      var duration = end_timestamp - this.lastActiveTimestamp_;
+      var duration = endTimestamp - this.lastActiveTimestamp_;
       var slice = new tr.model.CpuSlice(
           '', this.lastActiveName_,
           ColorScheme.getColorIdForGeneralPurposeString(this.lastActiveName_),
@@ -200,16 +200,16 @@ tr.exportTo('tr.model', function() {
       this.lastActiveArgs_ = undefined;
     },
 
-    switchActiveThread: function(timestamp, old_thread_args, new_thread_id,
-                                 new_thread_name, new_thread_args) {
+    switchActiveThread: function(timestamp, oldThreadArgs, newThreadId,
+                                 newThreadName, newThreadArgs) {
       // Close the previous active thread and generate a slice.
-      this.closeActiveThread(timestamp, old_thread_args);
+      this.closeActiveThread(timestamp, oldThreadArgs);
 
       // Keep track of the new thread.
       this.lastActiveTimestamp_ = timestamp;
-      this.lastActiveThread_ = new_thread_id;
-      this.lastActiveName_ = new_thread_name;
-      this.lastActiveArgs_ = new_thread_args;
+      this.lastActiveThread_ = newThreadId;
+      this.lastActiveName_ = newThreadName;
+      this.lastActiveArgs_ = newThreadArgs;
     },
 
     /**

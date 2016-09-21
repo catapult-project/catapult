@@ -17,31 +17,30 @@ tr.b.unittest.testSuite(function() {
 
   test('groupByTimestamp', function() {
     var counter = new Counter();
-    var s0 = counter.addSeries(new CounterSeries('x', 0));
-    var s1 = counter.addSeries(new CounterSeries('y', 1));
+    var slice0 = counter.addSeries(new CounterSeries('x', 0));
+    var slice1 = counter.addSeries(new CounterSeries('y', 1));
 
-    var s0_0 = s0.addCounterSample(0, 100);
-    var s0_1 = s1.addCounterSample(0, 200);
-    var s1_0 = s0.addCounterSample(1, 100);
-    var s1_1 = s1.addCounterSample(1, 200);
+    var slice0Sample0 = slice0.addCounterSample(0, 100);
+    var slice0Sample1 = slice1.addCounterSample(0, 200);
+    var slice1Sample0 = slice0.addCounterSample(1, 100);
+    var slice1Sample1 = slice1.addCounterSample(1, 200);
 
-    var groups = CounterSample.groupByTimestamp([s0_1, s0_0,
-                                                 s1_1, s1_0]);
+    var groups = CounterSample.groupByTimestamp([slice0Sample1, slice0Sample0,
+                                                 slice1Sample1, slice1Sample0]);
     assert.equal(groups.length, 2);
-    assert.deepEqual(groups[0], [s0_0, s0_1]);
-    assert.deepEqual(groups[1], [s1_0, s1_1]);
+    assert.deepEqual(groups[0], [slice0Sample0, slice0Sample1]);
+    assert.deepEqual(groups[1], [slice1Sample0, slice1Sample1]);
   });
 
   test('getSampleIndex', function() {
     var ctr = new Counter(null, 0, '', 'myCounter');
-    var s0 = new CounterSeries('a', 0);
-    ctr.addSeries(s0);
+    var slice0 = new CounterSeries('a', 0);
+    ctr.addSeries(slice0);
 
-    var s0_0 = s0.addCounterSample(0, 0);
-    var s0_1 = s0.addCounterSample(1, 100);
-    assert.equal(s0_0.getSampleIndex(), 0);
-    assert.equal(s0_1.getSampleIndex(), 1);
+    var slice0Sample0 = slice0.addCounterSample(0, 0);
+    var slice0Sample1 = slice0.addCounterSample(1, 100);
+    assert.equal(slice0Sample0.getSampleIndex(), 0);
+    assert.equal(slice0Sample1.getSampleIndex(), 1);
   });
 });
 </script>
-

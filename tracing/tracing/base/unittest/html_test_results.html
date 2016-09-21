@@ -457,10 +457,10 @@ tr.exportTo('tr.b.unittest', function() {
       };
     },
 
-    notifyTestResultToDevServer_: function(result, extra_msg) {
+    notifyTestResultToDevServer_: function(result, extraMsg) {
       var req = new XMLHttpRequest();
       var testName = this.currentTestCaseResult_.testCase.fullyQualifiedName;
-      var data = result + '  ' + testName + ' ' + (extra_msg || '');
+      var data = result + '  ' + testName + ' ' + (extraMsg || '');
       tr.b.postAsync('/tracing/notify_test_result', data);
     },
 

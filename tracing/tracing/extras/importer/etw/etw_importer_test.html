@@ -40,13 +40,13 @@ tr.b.unittest.testSuite(function() {
     var model = 'dummy';
     var events = ['events'];
     var importer = new tr.e.importer.etw.EtwImporter(model, events);
-    var dummy_handler = function() {};
+    var dummyHandler = function() {};
 
     // The handler must not exists.
     assert.isUndefined(importer.getEventHandler('ABCDEF', 2));
 
     // Register an event handler for guid: ABCDEF and opcode: 2.
-    importer.registerEventHandler('ABCDEF', 2, dummy_handler);
+    importer.registerEventHandler('ABCDEF', 2, dummyHandler);
 
     // The handler exists now, must find it.
     assert.isDefined(importer.getEventHandler('ABCDEF', 2));
@@ -59,24 +59,24 @@ tr.b.unittest.testSuite(function() {
     var model = 'dummy';
     var events = [];
     var importer = new tr.e.importer.etw.EtwImporter(model, events);
-    var handler_called = false;
-    var dummy_handler = function() { handler_called = true; return true; };
+    var handlerCalled = false;
+    var dummyHandler = function() { handlerCalled = true; return true; };
 
     // Register a valid handler.
-    importer.registerEventHandler('aaaa', 42, dummy_handler);
+    importer.registerEventHandler('aaaa', 42, dummyHandler);
 
     // Try to parse an invalid event with missing fields.
-    var incomplet_event = { guid: 'aaaa', 'op': 42, 'ver': 0 };
-    assert.isFalse(importer.parseEvent(incomplet_event));
-    assert.isFalse(handler_called);
+    var incompleteEvent = { guid: 'aaaa', 'op': 42, 'ver': 0 };
+    assert.isFalse(importer.parseEvent(incompleteEvent));
+    assert.isFalse(handlerCalled);
 
     // Try to parse a valid event.
-    var valid_event = {
+    var validEvent = {
       guid: 'aaaa', 'op': 42, 'ver': 0, 'cpu': 0, 'ts': 0,
       'payload': Base64.btoa('0')
     };
-    assert.isTrue(importer.parseEvent(valid_event));
-    assert.isTrue(handler_called);
+    assert.isTrue(importer.parseEvent(validEvent));
+    assert.isTrue(handlerCalled);
   });
 
   test('resetTooSmall', function() {
@@ -288,4 +288,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

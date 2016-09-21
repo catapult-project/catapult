@@ -62,17 +62,17 @@ tr.exportTo('tr.e.importer.etw', function() {
    */
   function Decoder() {
     this.payload_ = new DataView(new ArrayBuffer(256));
-  };
+  }
 
   Decoder.prototype = {
     __proto__: Object.prototype,
 
-    reset: function(base64_payload) {
-      var decoded_size = tr.b.Base64.getDecodedBufferLength(base64_payload);
-      if (decoded_size > this.payload_.byteLength)
-        this.payload_ = new DataView(new ArrayBuffer(decoded_size));
+    reset: function(base64Payload) {
+      var decodedSize = tr.b.Base64.getDecodedBufferLength(base64Payload);
+      if (decodedSize > this.payload_.byteLength)
+        this.payload_ = new DataView(new ArrayBuffer(decodedSize));
 
-      tr.b.Base64.DecodeToTypedArray(base64_payload, this.payload_);
+      tr.b.Base64.DecodeToTypedArray(base64Payload, this.payload_);
       this.position_ = 0;
     },
 
@@ -102,9 +102,9 @@ tr.exportTo('tr.e.importer.etw', function() {
       // Javascript isn't able to manage 64-bit numeric values.
       var low = this.decodeUInt32();
       var high = this.decodeUInt32();
-      var low_str = ('0000000' + low.toString(16)).substr(-8);
-      var high_str = ('0000000' + high.toString(16)).substr(-8);
-      var result = high_str + low_str;
+      var lowStr = ('0000000' + low.toString(16)).substr(-8);
+      var highStr = ('0000000' + high.toString(16)).substr(-8);
+      var result = highStr + lowStr;
       return result;
     },
 
@@ -159,7 +159,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeFixedW16String: function(length) {
-      var old_position = this.position_;
+      var oldPosition = this.position_;
       var str = '';
       for (var i = 0; i < length; i++) {
         var c = this.decodeUInt16();
@@ -169,7 +169,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       // Move the position after the fixed buffer (i.e. wchar[length]).
-      this.position_ = old_position + 2 * length;
+      this.position_ = oldPosition + 2 * length;
       return str;
     },
 
@@ -382,20 +382,20 @@ tr.exportTo('tr.e.importer.etw', function() {
           event.hasOwnProperty('payload') &&
           event.guid === kThreadGuid &&
           event.op == kThreadDCStartOpcode) {
-        var decoded_size = tr.b.Base64.getDecodedBufferLength(event.payload);
+        var decodedSize = tr.b.Base64.getDecodedBufferLength(event.payload);
 
         if (event.ver == 1) {
-          if (decoded_size >= 52)
+          if (decodedSize >= 52)
             this.is64bit_ = true;
           else
             this.is64bit_ = false;
         } else if (event.ver == 2) {
-          if (decoded_size >= 64)
+          if (decodedSize >= 64)
             this.is64bit_ = true;
           else
             this.is64bit_ = false;
         } else if (event.ver == 3) {
-          if (decoded_size >= 60)
+          if (decodedSize >= 60)
             this.is64bit_ = true;
           else
             this.is64bit_ = false;
