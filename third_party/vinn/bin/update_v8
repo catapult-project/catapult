@@ -34,12 +34,13 @@ V8_DST_PATH = os.path.join(V8_PATH, '{os}', '{arch}')
 V8_README_PATH = os.path.join(V8_PATH, 'README.chromium')
 
 V8_CHECKOUT_BINARY_PATH = os.path.join(
-    '{v8_root}', 'v8', 'out', 'Release', 'd8')
+    '{v8_root}', 'v8', '{out}', 'Release', 'd8')
 V8_GENERATE_GYP_CMD = (sys.executable + ' ' +
                        os.path.join('gypfiles', 'gyp_v8') +
-                       ' -Dtarget_arch={arch}')
-V8_COMPILE_CMD = 'ninja -j 100 -C {0} d8'.format(os.path.join('out', 'Release'))
-V8_STRIP_CMD = 'strip -x {0}'.format(os.path.join('out', 'Release', 'd8'))
+                       ' -Dtarget_arch={arch}' +
+                       ' -Goutput_dir={out}')
+V8_COMPILE_CMD = 'ninja -j 100 -C {out} d8'
+V8_STRIP_CMD = '{strip} -x {d8}'
 
 VALID_CHANNEL_LIST = ['stable', 'canary', 'beta', 'dev']
 # Dict from the acceptable return values for Python's platform.system() to the
@@ -125,16 +126,40 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
         if not 'GYP_DEFINES' in os.environ:
           os.environ['GYP_DEFINES'] = ''
         os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
+        os.environ['GYP_DEFINES'] += ' icu_use_data_file_flag=0'
         os.environ['GYP_GENERATORS'] = 'ninja'
         ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
         _RunCommand(
-            V8_GENERATE_GYP_CMD.format(arch=ninja_arch))
-        _RunCommand(V8_COMPILE_CMD)
+            V8_GENERATE_GYP_CMD.format(arch=ninja_arch, out='out'))
+        _RunCommand(
+            V8_COMPILE_CMD.format(out=os.path.join('out', 'Release')))
+
         if target_os in ['linux', 'mac']:
-          _RunCommand(V8_STRIP_CMD)
+          _RunCommand(
+              V8_STRIP_CMD.format(strip='strip',
+                                  d8=os.path.join('out', 'Release', 'd8')))
+
+        # Build the cross compiled version for ARM for direct testing on
+        # Chrome OS devices. For now we build 32-bit only for both armv7l
+        # and aarch64.
+        if (target_os == 'linux' and
+            os.path.isfile('/usr/bin/arm-linux-gnueabihf-gcc')):
+
+          os.environ['GYP_DEFINES'] = ''
+          os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
+          os.environ['GYP_DEFINES'] += ' icu_use_data_file_flag=0'
+          os.environ['GYP_DEFINES'] += ' v8_use_snapshot=0'
+          _RunCommand(
+              V8_GENERATE_GYP_CMD.format(arch='arm', out='out_arm'))
+          _RunCommand(
+              V8_COMPILE_CMD.format(out=os.path.join('out_arm', 'Release')))
+          _RunCommand(
+              V8_STRIP_CMD.format(strip='arm-linux-gnueabihf-strip',
+                                  d8=os.path.join('out_arm', 'Release', 'd8')))
 
     # Copy the d8 binary into place.
-    d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path)
+    d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path,
+                                                out='out')
     d8_dst_dir = V8_DST_PATH.format(os=target_os, arch=target_arch)
 
     # Append .exe extension on win
@@ -148,6 +173,13 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
         if f.endswith('.dll'):
           lib_path = os.path.join(d8_dir_src, f)
           shutil.copy(lib_path, d8_dst_dir)
+
+    # If the 32-bit ARM d8 binary exists, use it for both aarch64 and armv7l
+    arm_d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path,
+                                                    out='out_arm')
+    if os.path.isfile(arm_d8_bin_src):
+        shutil.copy(arm_d8_bin_src,
+                    V8_DST_PATH.format(os=target_os, arch='arm'))
 
 def UpdateReadmeFile(v8_version, target_os):
   """Updates the V8 version number in the V8 README.chromium file."""
