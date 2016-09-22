@@ -68,6 +68,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",
                                         running=True,
+                                        discovery=True,
                                         skip=['-d', '-v', '--verbose'])
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for reporting the results",
