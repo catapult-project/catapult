@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/guid.html">
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/selectable_item.html">
 <link rel="import" href="/tracing/model/selection_state.html">
@@ -44,6 +45,12 @@ tr.exportTo('tr.model', function() {
 
     get stableId() {
       return undefined;
+    },
+
+    get range() {
+      var range = new tr.b.Range();
+      this.addBoundsToRange(range);
+      return range;
     },
 
     // Empty by default. Lazily initialized on an instance in
