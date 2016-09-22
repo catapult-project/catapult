@@ -21,6 +21,39 @@ def _GetProcessStartTime(pid):
   return psutil.Process(pid).create_time
 
 
+def _LogMapFailureDiagnostics(device):
+  # The host forwarder daemon logs to /tmp/host_forwarder_log, so print the end
+  # of that.
+  try:
+    with open('/tmp/host_forwarder_log') as host_forwarder_log:
+      logging.info('Last 50 lines of the host forwarder daemon log:')
+      for line in host_forwarder_log.read().splitlines()[-50:]:
+        logging.info('    %s', line)
+  except Exception: # pylint: disable=broad-except
+    # Grabbing the host forwarder log is best-effort. Ignore all errors.
+    logging.warning('Failed to get the contents of host_forwarder_log.')
+
+  # The device forwarder daemon logs to the logcat, so print the end of that.
+  try:
+    logging.info('Last 50 lines of logcat:')
+    for logcat_line in device.adb.Logcat(dump=True)[-50:]:
+      logging.info('    %s', logcat_line)
+  except device_errors.CommandFailedError:
+    # Grabbing the device forwarder log is also best-effort. Ignore all errors.
+    logging.warning('Failed to get the contents of the logcat.')
+
+  # Log alive device forwarders.
+  try:
+    ps_out = device.RunShellCommand(['ps'], check_return=True)
+    logging.info('Currently running device_forwarders:')
+    for line in ps_out:
+      if 'device_forwarder' in line:
+        logging.info('    %s', line)
+  except device_errors.CommandFailedError:
+    logging.warning('Failed to list currently running device_forwarder '
+                    'instances.')
+
+
 class _FileLock(object):
   """With statement-aware implementation of a file lock.
 
@@ -105,13 +138,13 @@ class Forwarder(object):
                 'Make sure you have built host_forwarder.')
           else: raise
         if exit_code != 0:
-          Forwarder._KillDeviceLocked(device, tool)
-          # Log alive forwarders
-          ps_out = device.RunShellCommand(['ps'])
-          logging.info('Currently running device_forwarders:')
-          for line in ps_out:
-            if 'device_forwarder' in line:
-              logging.info('    %s', line)
+          try:
+            Forwarder._KillDeviceLocked(device, tool)
+          except device_errors.CommandFailedError:
+            # We don't want the failure to kill the device forwarder to
+            # supersede the original failure to map.
+            pass
+          _LogMapFailureDiagnostics(device)
           raise HostForwarderError(
               '%s exited with %d:\n%s' % (instance._host_forwarder_path,
                                           exit_code, '\n'.join(output)))
