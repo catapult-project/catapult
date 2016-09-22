@@ -137,7 +137,7 @@ tr.exportTo('tr.v', function() {
           }
         }
       }
-      return [...sourceValues.values()];
+      return new ValueSet([...sourceValues.values()]);
     }
 
     getValuesNamed(name) {

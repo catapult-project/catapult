@@ -6,41 +6,58 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/ui/base/column_chart.html">
+<link rel="import" href="/tracing/ui/base/bar_chart.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
-<link rel="import" href="/tracing/value/ui/numeric_stats_span.html">
-<link rel="import" href="/tracing/value/ui/scalar_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_map_table.html">
 
 <dom-module id='tr-v-ui-histogram-span'>
   <template>
     <style>
-      #container {
-        display: flex;
-        flex-direction: row;
-      }
+    #container {
+      display: flex;
+      flex-direction: row;
+    }
+    #chart {
+      flex-grow: 1;
+    }
+    #chart svg {
+      display: block;
+    }
     </style>
 
     <div id="container">
       <div id="chart"></div>
-      <tr-v-ui-numeric-stats-span id="stats"></tr-v-ui-numeric-stats-span>
+      <div id="stats_container">
+        <tr-v-ui-scalar-map-table id="stats"></tr-v-ui-scalar-map-table>
+      </div>
     </div>
 
-    <tr-v-ui-diagnostic-map-table id="diagnostic_map_table"></tr-v-ui-diagnostic-map-table>
+    <tr-v-ui-diagnostic-map-table id="histogram_diagnostics"></tr-v-ui-diagnostic-map-table>
+    <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
   </template>
 </dom-module>
+
 <script>
 'use strict';
+
+var DELTA = String.fromCharCode(916);
+
+var ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
 
 Polymer({
   is: 'tr-v-ui-histogram-span',
 
   created: function() {
     this.histogram_ = undefined;
-    this.chart_ = new tr.ui.b.ColumnChart();
-    this.chart_.width = 400;
+    this.referenceHistogram_ = undefined;
+    this.chart_ = new tr.ui.b.BarChart();
+    this.chart_.width = 300;
     this.chart_.height = 200;
-    this.chart_.margin.right = 2;
+    this.chart_.margin.top = 20;
+    this.chart_.margin.bottom = 28;
+    this.chart_.margin.left = 30;
+    this.chart_.margin.right = 30;
     this.mouseDownBin_ = undefined;
     this.brushedBins_ = [];
     this.chart_.addEventListener('item-mousedown',
@@ -50,7 +67,6 @@ Polymer({
     this.chart_.addEventListener('item-mouseup',
         this.onMouseUp_.bind(this));
     this.chart_.hideLegend = true;
-    this.chart_.margin.right = 0;
   },
 
   ready: function() {
@@ -133,12 +149,12 @@ Polymer({
         maps.push(map);
 
     if (maps.length === 0) {
-      this.$.diagnostic_map_table.style.display = 'none';
+      this.$.sample_diagnostics.style.display = 'none';
       return;
     }
 
-    this.$.diagnostic_map_table.diagnosticMaps = maps;
-    this.$.diagnostic_map_table.style.display = 'block';
+    this.$.sample_diagnostics.diagnosticMaps = maps;
+    this.$.sample_diagnostics.style.display = 'block';
   },
 
   get histogram() {
@@ -146,8 +162,66 @@ Polymer({
   },
 
   set histogram(histogram) {
+    if (histogram === this.histogram_) {
+      return;
+    }
     this.histogram_ = histogram;
     this.updateContents_();
+  },
+
+  get referenceHistogram() {
+    return this.referenceHistogram_;
+  },
+
+  set referenceHistogram(histogram) {
+    if (histogram === this.referenceHistogram_) {
+      return;
+    }
+    this.referenceHistogram_ = histogram;
+    if (this.histogram) {
+      this.updateContents_();
+    }
+  },
+
+  getDeltaScalars_: function(scalarMap) {
+    if (!(this.referenceHistogram instanceof tr.v.Histogram) ||
+        (this.histogram.unit !== this.referenceHistogram.unit) ||
+        (this.histogram.numValues === 0) &&
+        (this.referenceHistogram.numValues === 0)) {
+      return;
+    }
+
+    var absDeltaAvg = this.histogram.average -
+      this.referenceHistogram.average;
+    scalarMap.set(ABS_DELTA_AVG_NAME, new tr.v.ScalarNumeric(
+        this.histogram.unit.correspondingDeltaUnit,
+        absDeltaAvg));
+
+    var suffix = tr.b.Unit.nameSuffixForImprovementDirection(
+        this.histogram.unit.improvementDirection);
+
+    scalarMap.set('%' + DELTA + 'avg', new tr.v.ScalarNumeric(
+        tr.b.Unit.byName['normalizedPercentageDelta' + suffix],
+        absDeltaAvg / this.referenceHistogram.average));
+
+    scalarMap.set('z-score', new tr.v.ScalarNumeric(
+        tr.b.Unit.byName['sigmaDelta' + suffix],
+        absDeltaAvg / this.referenceHistogram.standardDeviation));
+
+    var mwu = tr.b.Statistics.mwu(
+        this.histogram.sampleValues, this.referenceHistogram.sampleValues);
+    scalarMap.set('p-value', new tr.v.ScalarNumeric(
+        tr.b.Unit.byName.unitlessNumber,
+        mwu.p));
+
+    scalarMap.set('U', new tr.v.ScalarNumeric(
+        tr.b.Unit.byName.unitlessNumber,
+        mwu.U));
+
+    if (this.histogram.unit.improvementDirection !==
+        tr.b.ImprovementDirection.DONT_CARE) {
+      this.$.stats.setSignificanceForKey(ABS_DELTA_AVG_NAME, mwu.significance);
+    }
   },
 
   set isYLogScale(logScale) {
@@ -156,42 +230,50 @@ Polymer({
 
   updateContents_: function() {
     this.$.chart.style.display = this.histogram_ ? '' : 'none';
-    this.$.diagnostic_map_table.style.display = 'none';
-    this.$.stats.numeric = this.histogram_;
+    this.$.sample_diagnostics.style.display = 'none';
     this.brushedBins_ = [];
     if (!this.histogram_)
       return;
 
-    if (this.histogram_.numValues <= 1) {
-      this.$.container.style.display = 'none';
-      // Don't return! Still do the updateDiagnostics_(occupiedBins) below!
-    } else {
-      this.$.container.style.display = '';
-      var maximumBinValue = tr.b.Statistics.max(
-          this.histogram_.allBins, (bin) => bin.count);
-      var chartData = [];
-      var binWidth = this.histogram_.centralBins[0].range.range;
-      this.histogram_.allBins.forEach(function(bin) {
-        var x = bin.range.min;
-        if (x === -Number.MAX_VALUE) {
-          if (!bin.count)
-            return;
-          x = bin.range.max - binWidth;
-        }
-        chartData.push({x: x, y: bin.count});
-      });
-      chartData.sort((x, y) => x.x - y.x);
-      this.chart_.data = chartData;
-      this.chart_.brushedRange = new tr.b.Range();
-    }
+    this.$.container.style.display = '';
 
-    var occupiedBins = [];
-    for (var bin of this.histogram.allBins) {
-      if (bin.count > 0)
-        occupiedBins.push(bin);
+    var scalarMap = new Map();
+    this.getDeltaScalars_(scalarMap);
+    for (var [name, scalar] of this.histogram_.statisticsScalars) {
+      scalarMap.set(name, scalar);
     }
-    if (occupiedBins.length === 1)
-      this.updateDiagnostics_(occupiedBins);
+    this.$.stats.scalarMap = scalarMap;
+
+    this.chart_.xAxisLabel = '#';
+    this.chart_.yAxisLabel = this.histogram.unit.unitString;
+
+    this.chart_.height = Math.max(200,
+        this.$.stats.getBoundingClientRect().height);
+
+    var maximumBinValue = tr.b.Statistics.max(
+        this.histogram_.allBins, bin => bin.count);
+    var chartData = [];
+    var binWidth = this.histogram_.centralBins[0].range.range;
+    this.histogram_.allBins.forEach(function(bin) {
+      var x = bin.range.min;
+      if (x === -Number.MAX_VALUE) {
+        if (!bin.count)
+          return;
+        x = bin.range.max - binWidth;
+      }
+      chartData.push({x: x, y: bin.count});
+    });
+    chartData.sort((x, y) => x.x - y.x);
+    this.chart_.data = chartData;
+    this.chart_.brushedRange = new tr.b.Range();
+
+    if (this.histogram_.diagnostics.size > 0) {
+      this.$.histogram_diagnostics.diagnosticMaps = [
+        this.histogram_.diagnostics];
+      this.$.histogram_diagnostics.style.display = 'block';
+    } else {
+      this.$.histogram_diagnostics.style.display = 'none';
+    }
   }
 });
 </script>

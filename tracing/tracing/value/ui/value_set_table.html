@@ -14,6 +14,76 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
+<dom-module id="tr-v-ui-value-set-table-cell">
+  <template>
+    <style>
+    :host {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #missing, #empty, #unmergeable, #scalar {
+      flex-grow: 1;
+    }
+
+    svg {
+      height: 1em;
+    }
+
+    #open_histogram {
+      margin-left: 4px;
+      stroke-width: 0;
+      stroke: blue;
+      fill: blue;
+    }
+    :host(:hover) #open_histogram {
+      background: blue;
+      stroke: white;
+      fill: white;
+    }
+
+    #scalar {
+      flex-grow: 1;
+      white-space: nowrap;
+    }
+
+    #histogram {
+      flex-grow: 1;
+    }
+
+    #close_histogram line {
+      stroke-width: 18;
+      stroke: black;
+    }
+    #close_histogram:hover {
+      background: black;
+    }
+    #close_histogram:hover line {
+      stroke: white;
+    }
+    </style>
+
+    <span id="missing">(missing)</span>
+    <span id="empty">(empty)</span>
+    <span id="unmergeable">(unmergeable)</span>
+
+    <tr-v-ui-scalar-span id="scalar" on-click="openHistogram_"></tr-v-ui-scalar-span>
+
+    <svg viewbox="0 0 128 128" id="open_histogram" on-click="openHistogram_">
+      <rect x="16" y="24" width="32" height="16"/>
+      <rect x="16" y="56" width="96" height="16"/>
+      <rect x="16" y="88" width="64" height="16"/>
+    </svg>
+
+    <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
+
+    <svg viewbox="0 0 128 128" id="close_histogram" on-click="closeHistogram_">
+      <line x1="28" y1="28" x2="100" y2="100"/>
+      <line x1="28" y1="100" x2="100" y2="28"/>
+    </svg>
+  </template>
+</dom-module>
+
 <dom-module id="tr-v-ui-value-set-table">
   <template>
     <style>
@@ -73,7 +143,6 @@ found in the LICENSE file.
       <table-container>
         <tr-ui-b-table id="table"/>
       </table-container>
-      <tr-v-ui-histogram-span id="histogram"/>
     </div>
   </template>
 </dom-module>
@@ -108,19 +177,132 @@ tr.exportTo('tr.ui', function() {
       DEFAULT_POSSIBLE_GROUPS.push(group);
   });
 
-  var SELECTED_VALUE_SETTINGS_KEY = 'tr-v-ui-value-set-table-value';
   var SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-value-set-table-show-all';
 
   var UNMERGEABLE = '(unmergeable)';
 
-  function mergeCells(a, b) {
-    if (a === UNMERGEABLE || b === UNMERGEABLE || !a || !b ||
-        !a.canAddHistogram(b))
-      return UNMERGEABLE;
-    a = a.clone();
-    a.addHistogram(b);
-    return a;
-  }
+  Polymer({
+    is: 'tr-v-ui-value-set-table-cell',
+
+    created: function() {
+      this.histogram_ = undefined;
+      this.referenceHistogram_ = undefined;
+    },
+
+    ready: function() {
+      this.addEventListener('click', this.onClick_.bind(this));
+    },
+
+    onClick_: function(event) {
+      // Since the value-set-table's table doesn't support any kind of
+      // selection, clicking anywhere within a row that has subRows will
+      // expand/collapse that row, which can relayout the table and move things
+      // around. Prevent table relayout by preventing the tr-ui-b-table from
+      // receiving the click event.
+      event.stopPropagation();
+    },
+
+    get histogram() {
+      return this.histogram_;
+    },
+
+    /**
+     * @param {undefined|string|!tr.v.Histogram} h
+     */
+    set histogram(h) {
+      this.histogram_ = h;
+      this.updateContents_();
+    },
+
+    /**
+     * @param {undefined|string|!tr.v.Histogram} rh
+     */
+    set referenceHistogram(rh) {
+      this.referenceHistogram_ = rh;
+      this.updateContents_();
+    },
+
+    get referenceHistogram() {
+      return this.referenceHistogram_;
+    },
+
+    get isHistogramOpen() {
+      return this.$.histogram.style.display === 'block';
+    },
+
+    set isHistogramOpen(open) {
+      // Unfortunately, we can't use a css attribute for this since this stuff
+      // is tied up in all the possible states of this.histogram. See
+      // updateContents_().
+
+      this.$.scalar.style.display = open ? 'none' : 'block';
+      this.$.open_histogram.style.display = open ? 'none' : 'block';
+
+      this.$.close_histogram.style.display = open ? 'block' : 'none';
+      this.$.histogram.style.display = open ? 'block' : 'none';
+
+      if (open) {
+        // Wait to pass the Histogram to the histogram-span until it's displayed
+        // so that it can size its BarChart appropriately.
+        this.$.histogram.referenceHistogram = this.referenceHistogram;
+        this.$.histogram.histogram = this.histogram;
+      }
+    },
+
+    openHistogram_: function() {
+      this.isHistogramOpen = true;
+    },
+
+    closeHistogram_: function() {
+      this.isHistogramOpen = false;
+    },
+
+    updateContents_: function() {
+      this.$.empty.style.display = 'none';
+      this.$.unmergeable.style.display = 'none';
+      this.$.scalar.style.display = 'none';
+
+      this.$.histogram.style.display = 'none';
+      this.$.close_histogram.style.display = 'none';
+
+      if (!this.histogram) {
+        this.$.missing.style.display = 'block';
+        return;
+      }
+
+      this.$.missing.style.display = 'none';
+
+      if (this.histogram === UNMERGEABLE) {
+        this.$.unmergeable.style.display = 'block';
+        return;
+      }
+
+      if (!(this.histogram instanceof tr.v.Histogram)) {
+        throw new Error('Invalid Histogram: ' + this.histogram);
+      }
+
+      if (this.histogram.numValues === 0) {
+        this.$.empty.style.display = 'block';
+        return;
+      }
+
+      this.$.open_histogram.style.display = 'block';
+      this.$.scalar.style.display = 'block';
+
+      if ((this.referenceHistogram instanceof tr.v.Histogram) &&
+          (this.histogram.unit === this.referenceHistogram.unit) &&
+          (this.referenceHistogram.numValues > 0)) {
+        this.$.scalar.setValueAndUnit(
+            this.histogram.average - this.referenceHistogram.average,
+            this.histogram.unit.correspondingDeltaUnit);
+        this.$.scalar.significance = this.histogram.getDifferenceSignificance(
+            this.referenceHistogram);
+      } else {
+        this.$.scalar.setValueAndUnit(
+            this.histogram.average, this.histogram.unit);
+      }
+    }
+  });
 
   Polymer({
     is: 'tr-v-ui-value-set-table',
@@ -135,11 +317,11 @@ tr.exportTo('tr.ui', function() {
     },
 
     created: function() {
-      // TODO(benjhayden): Should these all be ValueSets?
       /** @type {undefined|!tr.v.ValueSet} */
       this.values_ = undefined;
-      /** @type {!Array.<!tr.v.Histogram>} */
-      this.sourceValues_ = [];
+
+      /** @type {undefined|!tr.v.ValueSet} */
+      this.sourceValues_ = undefined;
 
       this.rows_ = undefined;
       this.columns_ = undefined;
@@ -150,9 +332,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     ready: function() {
-      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.CELL;
-      this.$.table.addEventListener('selection-changed',
-          this.onSelectionChanged_.bind(this));
+      this.$.table.zebra = true;
       this.addEventListener('requestSelectionChange',
           this.onRelatedValueSelected_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
@@ -186,13 +366,12 @@ tr.exportTo('tr.ui', function() {
           this.possibleGroupingKeys.length > 0) {
         this.$.picker.currentGroupKeys = [this.$.picker.possibleGroups[0].key];
       }
-      // TODO(benjhayden): remember selected cells and column
       var expansionStates = undefined;
       if (this.rows_)
-        expansionStates = this.getExpansionStates_(this.rows_);
+        expansionStates = this.getExpansionStates_();
       this.updateContents_();
       if (expansionStates)
-        this.setExpansionStates_(expansionStates, this.rows_);
+        this.setExpansionStates_(expansionStates);
     },
 
     onShowAllChange_: function() {
@@ -200,31 +379,67 @@ tr.exportTo('tr.ui', function() {
         return;
 
       tr.b.Settings.set(SHOW_ALL_SETTINGS_KEY, this.$.show_all.checked);
-      // TODO(benjhayden): remember selected cells and column
-      var expansionStates = this.getExpansionStates_(this.rows_);
+      var expansionStates = this.getExpansionStates_();
       this.updateContents_();
-      this.setExpansionStates_(expansionStates, this.rows_);
+      this.setExpansionStates_(expansionStates);
     },
 
-    getExpansionStates_: function(rows) {
-      var states = {};
-      for (var i = 0; i < rows.length; ++i) {
-        var row = rows[i];
-        if (row.subRows && row.subRows.length &&
-            this.$.table.getExpandedForTableRow(row)) {
-          states[i] = this.getExpansionStates_(row.subRows);
+    getExpansionStates_: function() {
+      var table = this.$.table;
+      function recurse(row) {
+        var rowStates = {
+          expanded: table.getExpandedForTableRow(row),
+          cells: new Map(),
+          subRows: new Map()
+        };
+
+        tr.b.iterItems(row.cells, function(displayLabel, cell) {
+          if (cell.isHistogramOpen) {
+            rowStates.cells.set(displayLabel, true);
+          }
+        });
+
+        if (rowStates.expanded) {
+          for (var i = 0; i < row.subRows.length; ++i) {
+            rowStates.subRows.set(i, recurse(row.subRows[i]));
+          }
         }
+        return rowStates;
+      }
+
+      var states = new Map();
+      for (var i = 0; i < this.rows_.length; ++i) {
+        states.set(i, recurse(this.rows_[i]));
       }
       return states;
     },
 
-    setExpansionStates_: function(states, rows) {
-      for (var i = 0; i < rows.length; ++i) {
-        if (states[i] && rows[i] && rows[i].subRows &&
-            rows[i].subRows.length > 0) {
-          this.$.table.setExpandedForTableRow(rows[i], true);
-          this.setExpansionStates_(states[i], rows[i].subRows);
+    setExpansionStates_: function(states) {
+      var table = this.$.table;
+      function recurse(row, rowStates) {
+        if (rowStates.expanded) {
+          table.setExpandedForTableRow(row, true);
         }
+
+        for (var [displayLabel, value] of rowStates.cells) {
+          var cell = row.cells[displayLabel];
+          if (cell) {
+            cell.isHistogramOpen = value;
+          }
+        }
+        for (var [key, value] of rowStates.subRows) {
+          var subRow = row.subRows[key];
+          recurse(subRow, value);
+        }
+      }
+
+      for (var i = 0; i < this.rows_.length; ++i) {
+        var rowStates = states.get(i);
+        if (rowStates === undefined) {
+          continue;
+        }
+        var row = this.rows_[i];
+        recurse(row, rowStates);
       }
     },
 
@@ -262,8 +477,7 @@ tr.exportTo('tr.ui', function() {
             this.$.table.setExpandedForTableRow(hirow, true);
           }
           found = true;
-          this.$.table.selectedTableRow = row;
-          this.$.table.selectedColumnIndex = columnIndex;
+          row.cells[displayLabel].isHistogramOpen = true;
           return;
         }
         if (!row.subRows)
@@ -279,11 +493,6 @@ tr.exportTo('tr.ui', function() {
 
       // Search hidden values for |value|.
       for (var test of this.values) {
-        // Skip values that are already displayed -- we would have found them
-        // in search() above.
-        if (this.sourceValues_.indexOf(test) >= 0)
-          continue;
-
         if (test === value) {
           found = true;
           this.$.show_all.checked = true;
@@ -291,49 +500,6 @@ tr.exportTo('tr.ui', function() {
           this.onRelatedValueSelected_(event);
           break;
         }
-      }
-    },
-
-    onSelectionChanged_: function() {
-      var row = this.$.table.selectedTableRow;
-      var col = this.$.table.selectedColumnIndex;
-      var cell = undefined;
-      if (row && col && this.columns_)
-        cell = row.columns[this.columns_[col].title];
-
-      if (cell instanceof tr.v.Histogram) {
-        this.$.histogram.style.display = 'block';
-        this.$.histogram.histogram = cell;
-
-        tr.b.Settings.set(SELECTED_VALUE_SETTINGS_KEY, JSON.stringify({
-          row: row.name,
-          column: this.columns_[col].title
-        }));
-      } else {
-        this.$.histogram.style.display = 'none';
-      }
-    },
-
-    addDiagnosticSubRows_: function(value, row, column) {
-      for (var [name, diagnostic] of value.diagnostics) {
-        // If a previous |value| had a diagnostic with the same name, then
-        // there is already a subRow that should contain this diagnostic.
-        var foundSubRow = false;
-        for (var subRow of row.subRows) {
-          if (subRow.name === name) {
-            foundSubRow = true;
-            subRow.columns[column] = diagnostic;
-            continue;
-          }
-        }
-        if (foundSubRow)
-          continue;
-
-        // This is the first time that a diagnostic with this name has been
-        // seen for Values whose name is |value.name|, so create a new subRow.
-        var subRow = {name: name, columns: {}};
-        subRow.columns[column] = diagnostic;
-        row.subRows.push(subRow);
       }
     },
 
@@ -346,10 +512,10 @@ tr.exportTo('tr.ui', function() {
      */
     set values(values) {
       this.values_ = values;
-      this.sourceValues_ = values ? values.sourceValues : [];
+      this.sourceValues_ = values ? values.sourceValues : new tr.v.ValueSet();
       this.displayLabels_ = undefined;
-      this.referenceDisplayLabel_ = '';
-
+      this.referenceDisplayLabel_ = undefined;
+      this.maybeDisableShowAll_();
       this.updateContents_();
     },
 
@@ -368,10 +534,9 @@ tr.exportTo('tr.ui', function() {
 
       // Force the table to rebuild the cell values without forgetting which
       // rows were expanded.
-      // TODO(benjhayden): remember selected cell
-      var expansionStates = this.getExpansionStates_(this.rows_);
+      var expansionStates = this.getExpansionStates_();
       this.$.table.tableRows = this.rows_;
-      this.setExpansionStates_(expansionStates, this.rows_);
+      this.setExpansionStates_(expansionStates);
     },
 
     updateReferenceColumnSelector_: function() {
@@ -444,7 +609,6 @@ tr.exportTo('tr.ui', function() {
       this.$.zero.style.display = 'none';
       this.$.container.style.display = 'block';
       this.$.table.style.display = '';
-      this.$.histogram.style.display = 'none';
 
       this.updateReferenceColumnSelector_();
       this.updateGroups_();
@@ -454,8 +618,6 @@ tr.exportTo('tr.ui', function() {
       this.$.table.tableRows = this.rows_;
       this.$.table.sortColumnIndex = 0;
       this.$.table.rebuild();
-      this.selectValue_();
-      this.maybeDisableShowAll_();
 
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
         1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
@@ -478,28 +640,6 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    selectValue_: function() {
-      var selectedValue = tr.b.Settings.get(
-          SELECTED_VALUE_SETTINGS_KEY, undefined);
-      if (selectedValue) {
-        selectedValue = JSON.parse(selectedValue);
-        for (var row of this.rows_) {
-          if (row.name === selectedValue.row) {
-            for (var coli = 1; coli < this.columns_.length; ++coli) {
-              var column = this.columns_[coli];
-              if (column.title === selectedValue.column) {
-                this.$.table.selectedTableRow = row;
-                this.$.table.selectedColumnIndex = coli;
-                return;
-              }
-            }
-          }
-        }
-      }
-      this.$.table.selectedTableRow = this.rows_[0];
-      this.$.table.selectedColumnIndex = 1;
-    },
-
     /**
      * Build table rows recursively from organized Values. The recursion stack
      * of subRows is maintained in |hierarchy|.
@@ -517,26 +657,41 @@ tr.exportTo('tr.ui', function() {
           for (var value of values) {
             // Merge Values up the grouping hierarchy.
             for (var row of hierarchy) {
-              if (!row.description)
+              if (!row.description) {
                 row.description = value.description;
+              }
 
-              if (row.columns[name])
-                row.columns[name] = mergeCells(value, row.columns[name]);
-              else
+              if (!row.columns[name]) {
                 row.columns[name] = value;
-            }
-          }
+                continue;
+              }
+              if (row.columns[name] === UNMERGEABLE) {
+                continue;
+              }
+              if (!row.columns[name].canAddHistogram(value)) {
+                row.columns[name] = UNMERGEABLE;
+                continue;
+              }
 
-          // TODO(benjhayden) Delete this after histograms are in cells.
-          if (values.length === 1) {
-            var row = hierarchy[hierarchy.length - 1];
-            if (row) {
-              this.addDiagnosticSubRows_(values[0], row, name);
+              // Create a new Histogram with a new uuid instead of cloning
+              // either |value| or |row.columns[name]| so that we don't clone
+              // either Histogram's diagnostics.
+              // |value.name| might not necessarily equal |row.columns[name]|,
+              // but that shouldn't matter for this dom-module.
+              // TODO(eakuefner) When MergedFrom diagnostic lands, only create a
+              // new Histogram if |row.columns[name]| doesn't have it so that we
+              // don't create new Histograms unnecessarily.
+              var merged = new tr.v.Histogram(value.name, value.unit,
+                  tr.v.HistogramBinBoundaries.createWithBoundaries(
+                      value.binBoundaries));
+              merged.addHistogram(row.columns[name]);
+              merged.addHistogram(value);
+              row.columns[name] = merged;
             }
           }
         } else if (values instanceof Map) {
           // |values| is actually a nested organizedValues.
-          var row = {name: name, subRows: [], columns: {}};
+          var row = {name: name, subRows: [], columns: {}, cells: {}};
           hierarchy.push(row);
           this.buildRow_(values, hierarchy);
           hierarchy.pop();
@@ -587,7 +742,7 @@ tr.exportTo('tr.ui', function() {
      */
     get organizedValues_() {
       var showingValueSet = this.$.show_all.checked ?
-          this.values : new tr.v.ValueSet(this.sourceValues_);
+          this.values : this.sourceValues_;
 
       var groupings = this.$.picker.currentGroups.slice();
       groupings.push(tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL);
@@ -712,56 +867,22 @@ tr.exportTo('tr.ui', function() {
     },
 
     buildColumn_: function(displayLabel) {
-      function getValueForValue(value) {
-        return value instanceof tr.v.Histogram ? value.average : value.value;
-      }
-
       return {
         title: displayLabel,
         align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
-        supportsCellSelection: true,
 
-        value: function(row) {
-          var cell = row.columns[displayLabel];
-          if (cell === undefined)
-            return '(missing)';
-
-          if (cell === UNMERGEABLE)
-            return cell;
-
-          if (cell instanceof tr.v.Histogram) {
-            if (cell.numValues === 0) {
-              return '(empty)';
-            }
-
-            if (this.referenceDisplayLabel &&
-                this.referenceDisplayLabel !== displayLabel) {
-              var referenceCell = row.columns[this.referenceDisplayLabel];
-
-              if (referenceCell instanceof tr.v.Histogram &&
-                  cell.unit === referenceCell.unit &&
-                  referenceCell.numValues > 0) {
-                var significance = cell.getDifferenceSignificance(
-                    referenceCell);
-                return tr.v.ui.createScalarSpan(
-                    getValueForValue(cell) - getValueForValue(referenceCell),
-                    {unit: cell.unit.correspondingDeltaUnit,
-                     significance: significance});
-              }
-            }
-
-            return tr.v.ui.createScalarSpan(cell);
+        value: row => {
+          var cell = document.createElement('tr-v-ui-value-set-table-cell');
+          cell.histogram = row.columns[displayLabel];
+          if (this.referenceDisplayLabel &&
+              this.referenceDisplayLabel !== displayLabel) {
+            cell.referenceHistogram = row.columns[this.referenceDisplayLabel];
           }
-          if (cell instanceof tr.v.d.Diagnostic) {
-            var span = tr.v.ui.createDiagnosticSpan(cell);
-            span.addEventListener('click', (event) => event.stopPropagation());
-            span.style.textAlign = 'left';
-            return span;
-          }
-          throw new Error('Invalid cell', cell);
-        }.bind(this),
+          row.cells[displayLabel] = cell;
+          return cell;
+        },
 
-        cmp: function(rowA, rowB) {
+        cmp: (rowA, rowB) => {
           var cellA = rowA.columns[displayLabel];
           var cellB = rowB.columns[displayLabel];
           if (!(cellA instanceof tr.v.Histogram) ||
@@ -769,10 +890,10 @@ tr.exportTo('tr.ui', function() {
             return undefined;
           }
 
-          var valueA = getValueForValue(cellA);
-          var valueB = getValueForValue(cellB);
+          var valueA = cellA.average;
+          var valueB = cellB.average;
 
-          // If a reference column is selected, compare the *differences*
+          // If a reference column is selected, compare the absolute deltas
           // between the two cells and their references.
           if (this.referenceDisplayLabel &&
               this.referenceDisplayLabel !== displayLabel) {
@@ -782,13 +903,13 @@ tr.exportTo('tr.ui', function() {
                 referenceCellB instanceof tr.v.Histogram &&
                 cellA.unit === referenceCellA.unit &&
                 cellB.unit === referenceCellB.unit) {
-              valueA -= getValueForValue(referenceCellA);
-              valueB -= getValueForValue(referenceCellB);
+              valueA -= referenceCellA.average;
+              valueB -= referenceCellB.average;
             }
           }
 
           return valueA - valueB;
-        }.bind(this)
+        }
       };
     },
 
@@ -796,15 +917,14 @@ tr.exportTo('tr.ui', function() {
       this.columns_ = [
         {
           title: 'Name',
-          align: tr.ui.b.TableFormat.ColumnAlignment.LEFT,
-          supportsCellSelection: false,
 
           value: function(row) {
             var nameEl = document.createElement('span');
             Polymer.dom(nameEl).textContent = row.name;
-            if (row.description)
+            if (row.description) {
               nameEl.title = row.description;
-            nameEl.style.textOverflow = 'ellipsis';
+            }
+            nameEl.style.whiteSpace = 'nowrap';
             return nameEl;
           },
 
@@ -812,8 +932,9 @@ tr.exportTo('tr.ui', function() {
         }
       ];
 
-      for (var displayLabel of this.displayLabels)
+      for (var displayLabel of this.displayLabels) {
         this.columns_.push(this.buildColumn_(displayLabel));
+      }
     }
   });
 

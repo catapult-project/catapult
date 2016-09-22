@@ -57,46 +57,46 @@ tr.b.unittest.testSuite(function() {
     var zero = String.fromCharCode(177) + '0';
 
     checkScalarSpan(this, 0, countSIBD, zero, {
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedTitle: 'no change',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 0, countSIBD, zero, {
-      significance: tr.v.Significance.INSIGNIFICANT,
       expectedEmoji: 'insignificant',
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'no change'
     });
 
     assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
-      {significance: tr.v.Significance.SIGNIFICANT}));
+      {significance: tr.b.Statistics.Significance.SIGNIFICANT}));
 
     checkScalarSpan(this, 0, countBIBD, zero, {
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedTitle: 'no change',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 0, countBIBD, zero, {
-      significance: tr.v.Significance.INSIGNIFICANT,
       expectedEmoji: 'insignificant',
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'no change'
     });
 
     assert.throws(() => checkScalarSpan(this, 0, countSIBD, zero,
-      {significance: tr.v.Significance.SIGNIFICANT}));
+      {significance: tr.b.Statistics.Significance.SIGNIFICANT}));
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedColor: 'rgb(255, 0, 0)',
       expectedTitle: 'regression',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
-      significance: tr.v.Significance.INSIGNIFICANT,
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
@@ -104,7 +104,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, 1, countSIBD, '+1', {
-      significance: tr.v.Significance.SIGNIFICANT,
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
       expectedEmoji: 'significantly_worse',
       expectedEmojiColor: 'rgb(255, 0, 0)',
@@ -112,14 +112,14 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, 1, countBIBD, '+1', {
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedColor: 'rgb(0, 128, 0)',
       expectedTitle: 'improvement',
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countBIBD, '+1', {
-      significance: tr.v.Significance.INSIGNIFICANT,
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
@@ -127,7 +127,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, 1, countBIBD, '+1', {
-      significance: tr.v.Significance.SIGNIFICANT,
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: 'significantly_better',
       expectedEmojiColor: 'rgb(0, 128, 0)',
@@ -135,7 +135,7 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, -1, countSIBD, '-1', {
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedColor: 'rgb(0, 128, 0)',
       expectedEmoji: '',
       expectedEmojiColor: '',
@@ -143,16 +143,16 @@ tr.b.unittest.testSuite(function() {
     });
 
     checkScalarSpan(this, -1, countSIBD, '-1', {
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
-      significance: tr.v.Significance.INSIGNIFICANT,
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'insignificant improvement'
     });
 
     checkScalarSpan(this, -1, countSIBD, '-1', {
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(0, 128, 0)',
-      significance: tr.v.Significance.SIGNIFICANT,
       expectedEmoji: 'significantly_better',
       expectedEmojiColor: 'rgb(0, 128, 0)',
       expectedTitle: 'significant improvement'
@@ -160,21 +160,21 @@ tr.b.unittest.testSuite(function() {
 
     checkScalarSpan(this, -1, countBIBD, '-1', {
       expectedColor: 'rgb(255, 0, 0)',
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countBIBD, '-1', {
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
-      significance: tr.v.Significance.INSIGNIFICANT,
       expectedEmoji: 'insignificant',
       expectedEmojiColor: 'rgb(0, 0, 0)',
       expectedTitle: 'insignificant regression'
     });
 
     checkScalarSpan(this, -1, countBIBD, '-1', {
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       expectedColor: 'rgb(255, 0, 0)',
-      significance: tr.v.Significance.SIGNIFICANT,
       expectedEmoji: 'significantly_worse',
       expectedEmojiColor: 'rgb(255, 0, 0)',
       expectedTitle: 'significant regression'
@@ -182,37 +182,37 @@ tr.b.unittest.testSuite(function() {
 
     checkScalarSpan(this, 1, countD, '+1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countD, '+1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.v.Significance.INSIGNIFICANT,
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, 1, countD, '+1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.v.Significance.SIGNIFICANT,
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countD, '-1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.v.Significance.DONT_CARE,
+      significance: tr.b.Statistics.Significance.DONT_CARE,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countD, '-1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.v.Significance.INSIGNIFICANT,
+      significance: tr.b.Statistics.Significance.INSIGNIFICANT,
       expectedEmoji: ''
     });
 
     checkScalarSpan(this, -1, countD, '-1', {
       expectedColor: 'rgb(0, 0, 0)',
-      significance: tr.v.Significance.SIGNIFICANT,
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       expectedEmoji: ''
     });
   });
@@ -382,7 +382,7 @@ tr.b.unittest.testSuite(function() {
     var spanC = document.createElement('tr-v-ui-scalar-span');
     spanC.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
-    spanC.significance = tr.v.Significance.SIGNIFICANT;
+    spanC.significance = tr.b.Statistics.Significance.SIGNIFICANT;
 
     var overall = document.createElement('div');
     overall.style.display = 'flex';
@@ -857,14 +857,14 @@ tr.b.unittest.testSuite(function() {
 
     var span = tr.v.ui.createScalarSpan(10, {
       unit: Unit.byName.energyInJoulesDelta_smallerIsBetter,
-      significance: tr.v.Significance.SIGNIFICANT,
+      significance: tr.b.Statistics.Significance.SIGNIFICANT,
       customContextRange: tr.b.Range.fromExplicitRange(-20, 20)
     });
     Polymer.dom(div).appendChild(span);
 
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
 
-    span.significance = tr.v.Significance.DONT_CARE;
+    span.significance = tr.b.Statistics.Significance.DONT_CARE;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'worse']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
@@ -886,7 +886,7 @@ tr.b.unittest.testSuite(function() {
         ['positive', 'better']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
 
-    span.significance = tr.v.Significance.INSIGNIFICANT;
+    span.significance = tr.b.Statistics.Significance.INSIGNIFICANT;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'better']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);

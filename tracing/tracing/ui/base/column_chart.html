@@ -14,19 +14,6 @@ tr.exportTo('tr.ui.b', function() {
   var ColorScheme = tr.b.ColorScheme;
   var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
 
-  function getSVGTextWidth(parentNode, text) {
-    var textNode = document.createElementNS(
-        'http://www.w3.org/2000/svg', 'text');
-    textNode.setAttributeNS(null, 'x', 0);
-    textNode.setAttributeNS(null, 'y', 0);
-    textNode.setAttributeNS(null, 'fill', 'black');
-    textNode.appendChild(document.createTextNode(text));
-    parentNode.appendChild(textNode);
-    var widthPx = textNode.getComputedTextLength();
-    parentNode.removeChild(textNode);
-    return widthPx;
-  }
-
   // @constructor
   var ColumnChart = tr.ui.b.define('column-chart', ChartBase2DBrushX);
 
@@ -177,10 +164,11 @@ tr.exportTo('tr.ui.b', function() {
       var keyWidthPx = 0;
       var keyHeightPx = 0;
       if (seriesKeys.length > 1) {
-        keyWidthPx = getSVGTextWidth(this.chartAreaElement, rect.key) + 5;
+        keyWidthPx = tr.ui.b.getSVGTextWidth(
+            this.chartAreaElement, rect.key) + 5;
         keyHeightPx = 16;
       }
-      var valueWidthPx = getSVGTextWidth(
+      var valueWidthPx = tr.ui.b.getSVGTextWidth(
           this.chartAreaElement, rect.value) + 5;
       var valueHeightPx = 16;
       var hoverLeftPx = rect.leftPx + (rect.widthPx / 2);
@@ -255,7 +243,6 @@ tr.exportTo('tr.ui.b', function() {
 
   return {
     ColumnChart: ColumnChart,
-    getSVGTextWidth: getSVGTextWidth
   };
 });
 </script>

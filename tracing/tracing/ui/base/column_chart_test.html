@@ -64,6 +64,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_singleSeries', function() {
     var chart = new tr.ui.b.ColumnChart();
+    chart.xAxisLabel = 'ms';
+    chart.yAxisLabel = '#';
     chart.width = 400;
     chart.height = 200;
     chart.chartTitle = 'Chart title';

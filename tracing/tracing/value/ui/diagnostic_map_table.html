@@ -56,7 +56,11 @@ found in the LICENSE file.
         return {
           title: title,
           value: function(map) {
-            return tr.v.ui.createDiagnosticSpan(map.get(title));
+            var diagnostic = map.get(title);
+            if (!diagnostic)
+              return '';
+
+            return tr.v.ui.createDiagnosticSpan(diagnostic);
           }
         };
       }

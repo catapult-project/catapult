@@ -53,8 +53,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet([a, b]);
 
     var sourceValues = values.sourceValues;
-    assert.lengthOf(sourceValues, 1);
-    assert.strictEqual(sourceValues[0], a);
+    assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
 
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
@@ -121,8 +120,7 @@ tr.b.unittest.testSuite(function() {
     var values = new tr.v.ValueSet([a, b]);
 
     var sourceValues = values.sourceValues;
-    assert.lengthOf(sourceValues, 1);
-    assert.strictEqual(sourceValues[0], a);
+    assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
 
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
@@ -178,8 +176,7 @@ tr.b.unittest.testSuite(function() {
     numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([aHist])});
 
     var values = new tr.v.ValueSet([aHist, numeric]);
-    assert.lengthOf(values.sourceValues, 1);
-    assert.strictEqual(values.sourceValues[0], numeric);
+    assert.strictEqual(tr.b.getOnlyElement(values.sourceValues), numeric);
   });
 });
 </script>

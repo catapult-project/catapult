@@ -20,16 +20,6 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   var MAX_DIAGNOSTIC_MAPS = 16;
 
-  // p-values less than this indicate statistical significance.
-  var DEFAULT_ALPHA = 0.05;
-
-  /** @enum */
-  var Significance = {
-    DONT_CARE: -1,
-    INSIGNIFICANT: 0,
-    SIGNIFICANT: 1
-  };
-
   var DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
   class HistogramBin {
@@ -96,7 +86,6 @@ tr.exportTo('tr.v', function() {
    */
   class Histogram {
     constructor(name, unit, opt_binBoundaries) {
-
       var binBoundaries = opt_binBoundaries;
       if (!binBoundaries) {
         var baseUnit = unit.baseUnit ? unit.baseUnit : unit;
@@ -121,11 +110,11 @@ tr.exportTo('tr.v', function() {
       this.sampleValues_ = [];
       this.shortName = undefined;
       this.summaryOptions = {
-        count: true,
-        sum: true,
         avg: true,
         geometricMean: false,
         std: true,
+        count: true,
+        sum: true,
         min: true,
         max: true,
         nans: false,
@@ -232,6 +221,10 @@ tr.exportTo('tr.v', function() {
       return this.running.mean;
     }
 
+    get standardDeviation() {
+      return this.running.stddev;
+    }
+
     get geometricMean() {
       return this.running.geometricMean;
     }
@@ -253,7 +246,7 @@ tr.exportTo('tr.v', function() {
      *
      * @param {!tr.v.Histogram} other
      * @param {number=} opt_alpha
-     * @return {!tr.v.Significance}
+     * @return {!tr.b.Statistics.Significance}
      */
     getDifferenceSignificance(other, opt_alpha) {
       if (this.unit !== other.unit)
@@ -261,16 +254,15 @@ tr.exportTo('tr.v', function() {
 
       if (this.unit.improvementDirection ===
           tr.b.ImprovementDirection.DONT_CARE) {
-        return tr.v.Significance.DONT_CARE;
+        return tr.b.Statistics.Significance.DONT_CARE;
       }
 
       if (!(other instanceof Histogram))
         throw new Error('Unable to compute a p-value');
 
-      var mwu = tr.b.Statistics.mwu.test(this.sampleValues, other.sampleValues);
-      if (mwu.p < (opt_alpha || DEFAULT_ALPHA))
-        return tr.v.Significance.SIGNIFICANT;
-      return tr.v.Significance.INSIGNIFICANT;
+      var testResult = tr.b.Statistics.mwu(
+          this.sampleValues, other.sampleValues, opt_alpha);
+      return testResult.significance;
     }
 
     /*
@@ -372,8 +364,9 @@ tr.exportTo('tr.v', function() {
      * @param {!tr.v.Histogram} other
      */
     addHistogram(other) {
-      if (!this.canAddHistogram(other))
-        throw new Error('Merging incompatible Numerics.');
+      if (!this.canAddHistogram(other)) {
+        throw new Error('Merging incompatible Histograms');
+      }
 
       tr.b.Statistics.mergeSampledStreams(this.nanDiagnosticMaps, this.numNans,
           other.nanDiagnosticMaps, other.numNans, MAX_DIAGNOSTIC_MAPS);
@@ -774,7 +767,6 @@ tr.exportTo('tr.v', function() {
       HistogramBinBoundaries.createExponential(1, 1e3, 20));
 
   return {
-    Significance: Significance,
     Histogram: Histogram,
     HistogramBinBoundaries: HistogramBinBoundaries,
   };

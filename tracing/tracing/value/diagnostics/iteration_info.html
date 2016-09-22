@@ -23,9 +23,9 @@ tr.exportTo('tr.v.d', function() {
       this.productVersion_ = '';
       this.storyDisplayName_ = '';
       this.storyGroupingKeys_ = {};
-      this.storyRepeatCounter_ = 0;
+      this.storyRepeatCounter_ = undefined;
       this.storyUrl_ = '';
-      this.storysetRepeatCounter_ = 0;
+      this.storysetRepeatCounter_ = undefined;
 
       if (opt_info)
         this.addInfo(opt_info);
@@ -54,11 +54,11 @@ tr.exportTo('tr.v.d', function() {
         this.storyDisplayName_ = info.storyDisplayName;
       if (info.storyGroupingKeys)
         this.storyGroupingKeys_ = info.storyGroupingKeys;
-      if (info.storyRepeatCounter)
+      if (info.storyRepeatCounter !== undefined)
         this.storyRepeatCounter_ = info.storyRepeatCounter;
       if (info.storyUrl)
         this.storyUrl_ = info.storyUrl;
-      if (info.storysetRepeatCounter)
+      if (info.storysetRepeatCounter !== undefined)
         this.storysetRepeatCounter_ = info.storysetRepeatCounter;
 
       // From platform tracing metadata

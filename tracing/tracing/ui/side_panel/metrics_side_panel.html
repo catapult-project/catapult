@@ -29,7 +29,9 @@ found in the LICENSE file.
     </style>
 
     <top-left-controls id="top_left_controls"></top-left-controls>
+
     <tr-v-ui-value-set-view id="results"></tr-v-ui-value-set-view>
+
     <div id="error"></div>
   </template>
 </dom-module>
@@ -163,7 +165,6 @@ tr.exportTo('tr.ui', function() {
     },
 
     updateContents_: function() {
-      this.style.width = '';
       Polymer.dom(this.$.error).textContent = '';
       this.$.results.style.display = 'none';
 
@@ -200,11 +201,6 @@ tr.exportTo('tr.ui', function() {
 
       this.$.results.style.display = '';
       this.$.results.values = values;
-
-      tr.b.requestAnimationFrame(function() {
-        var width = this.$.results.getBoundingClientRect().width + 15;
-        this.style.width = width + 'px';
-      }, this);
     }
   });
 

@@ -34,6 +34,26 @@ found in the LICENSE file.
 
 <script>
 'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  function getSVGTextWidth(parentNode, text) {
+    var textNode = document.createElementNS(
+        'http://www.w3.org/2000/svg', 'text');
+    textNode.setAttributeNS(null, 'x', 0);
+    textNode.setAttributeNS(null, 'y', 0);
+    textNode.setAttributeNS(null, 'fill', 'black');
+    textNode.appendChild(document.createTextNode(text));
+    parentNode.appendChild(textNode);
+    var widthPx = textNode.getComputedTextLength();
+    parentNode.removeChild(textNode);
+    return widthPx;
+  }
+
+  return {
+    getSVGTextWidth: getSVGTextWidth
+  };
+});
+
 Polymer({
   is: 'tr-ui-b-chart-legend-key',
 

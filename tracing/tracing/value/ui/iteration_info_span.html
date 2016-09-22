@@ -49,26 +49,41 @@ Polymer({
       return;
     }
 
-    var rows = [
-      ['benchmark name', this.diagnostic.benchmarkName],
-      ['benchmark start', this.diagnostic.benchmarkStartString],
-      ['url', this.diagnostic.storyUrl],
-      ['story', this.diagnostic.storyDisplayName],
-      ['storyset repeat', this.diagnostic.storysetRepeatCounter],
-      ['story repeat', this.diagnostic.storyRepeatCounter],
-    ];
+    var rows = [];
 
-    if (this.diagnostic.label)
+    if (this.diagnostic.osVersion) {
+      rows.push(['OS version', this.diagnostic.osVersion]);
+    }
+    if (this.diagnostic.productVersion) {
+      rows.push(['product version', this.diagnostic.productVersion]);
+    }
+    if (this.diagnostic.benchmarkName) {
+      rows.push(['benchmark name', this.diagnostic.benchmarkName]);
+    }
+    if (this.diagnostic.benchmarkStart) {
+      rows.push(['benchmark start', this.diagnostic.benchmarkStartString]);
+    }
+    if (this.diagnostic.storyUrl) {
+      rows.push(['url', this.diagnostic.storyUrl]);
+    }
+    if (this.diagnostic.storyDisplayName) {
+      rows.push(['story', this.diagnostic.storyDisplayName]);
+    }
+    if (this.diagnostic.storysetRepeatCounter !== undefined) {
+      rows.push(['storyset repeat', this.diagnostic.storysetRepeatCounter]);
+    }
+    if (this.diagnostic.storyRepeatCounter !== undefined) {
+      rows.push(['story repeat', this.diagnostic.storyRepeatCounter]);
+    }
+    if (this.diagnostic.label) {
       rows.push(['label', this.diagnostic.label]);
-
+    }
     if (this.diagnostic.storyGroupingKeys &&
         (tr.b.dictionaryLength(this.diagnostic.storyGroupingKeys) > 0)) {
       var gov = document.createElement('tr-ui-a-generic-object-view');
       gov.object = this.diagnostic.storyGroupingKeys;
       rows.push(['grouping keys', gov]);
     }
-
-    rows.sort((x, y) => x[0].localeCompare(y[0]));
     this.$.table.tableRows = rows;
   }
 });

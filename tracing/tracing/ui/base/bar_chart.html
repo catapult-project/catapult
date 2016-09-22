@@ -42,19 +42,22 @@ tr.exportTo('tr.ui.b', function() {
     drawBrush_: function(brushRectsSel) {
       brushRectsSel
         .attr('x', 0)
-        .attr('y', function(d) {
-          return this.chartAreaSize.height - this.verticalScale_(d.min);
-        }.bind(this))
         .attr('width', this.chartAreaSize.width)
+        .attr('y', function(d) {
+          return this.verticalScale_(d.max);
+        }.bind(this))
         .attr('height', function(d) {
-          return (this.chartAreaSize.height - this.verticalScale_(d.max)) -
-            (this.chartAreaSize.height - this.verticalScale_(d.min));
+          return this.verticalScale_(d.min) - this.verticalScale_(d.max);
         }.bind(this));
     },
 
-    getDataPointAtChartPoint_: function(p) {
+    getDataPointAtChartPoint_: function(chartPoint) {
+      var flippedPoint = {
+        x: this.chartAreaSize.height - chartPoint.y,
+        y: this.chartAreaSize.width - chartPoint.x
+      };
       return ColumnChart.prototype.getDataPointAtChartPoint_.call(
-          this, {x: p.y, y: p.x});
+          this, flippedPoint);
     },
 
     drawXAxis_: function(xAxis) {
@@ -62,7 +65,6 @@ tr.exportTo('tr.ui.b', function() {
         .call(d3.svg.axis()
               .scale(this.horizontalScale_)
               .orient('bottom'));
-      this.drawXAxisTicks_(xAxis);
     },
 
     drawYAxis_: function(yAxis) {
@@ -70,7 +72,6 @@ tr.exportTo('tr.ui.b', function() {
         .scale(this.verticalScale_)
         .orient('left');
       yAxis.call(axisModifier);
-      this.drawYAxisTicks_(yAxis);
     },
 
     drawHoverValueBox_: function(rect) {
@@ -118,12 +119,12 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawRect_: function(rect, sel) {
-      // Rotate |rect| 90 degrees counter-clockwise.
+      // Flip |rect| around |y=x|.
       var colRect = {
         key: rect.key,
         value: rect.value,
         color: rect.color,
-        topPx: rect.leftPx,
+        topPx: this.chartAreaSize.height - rect.leftPx - rect.widthPx,
         leftPx: this.chartAreaSize.width - rect.topPx - rect.heightPx,
         widthPx: rect.heightPx,
         heightPx: rect.widthPx,

@@ -112,6 +112,10 @@ tr.exportTo('tr.ui.tracks', function() {
       var visibleChildTracks =
           tr.b.asArray(this.children).filter(this.visibleFilter_);
 
+      if (visibleChildTracks.length === 0) {
+        return;
+      }
+
       var thisBounds = this.getBoundingClientRect();
 
       var firstChildTrackBounds = visibleChildTracks[0].getBoundingClientRect();

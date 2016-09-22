@@ -57,6 +57,31 @@ tr.exportTo('tr.b', function() {
       return this.jsonName;
     },
 
+    get unitString() {
+      // TODO(benjhayden): Refactor with format() and test.
+      var formatSpec = this.formatSpec_;
+      if (typeof formatSpec === 'function')
+        formatSpec = formatSpec();
+      if (!formatSpec.unit) {
+        return '';
+      }
+
+      var unitString = '';
+      var unitPrefix = formatSpec.unitPrefix;
+      if (unitPrefix !== undefined) {
+        var selectedPrefix;
+        if (unitPrefix instanceof Array) {
+          selectedPrefix = unitPrefix[0];
+        } else {
+          selectedPrefix = unitPrefix;
+        }
+        unitString += selectedPrefix.symbol || '';
+      }
+      unitString += formatSpec.unit;
+
+      return unitString;
+    },
+
     format: function(value, opt_context) {
       var context = opt_context || {};
       var formatSpec = this.formatSpec_;
@@ -224,21 +249,23 @@ tr.exportTo('tr.b', function() {
     definedUnits.forEach(u => u.baseUnit = baseUnit);
   };
 
-  Unit.defineUnitVariant_ = function(params, isDelta, improvementDirection) {
-    var nameSuffix = isDelta ? 'Delta' : '';
+  Unit.nameSuffixForImprovementDirection = function(improvementDirection) {
     switch (improvementDirection) {
       case ImprovementDirection.DONT_CARE:
-        break;
+        return '';
       case ImprovementDirection.BIGGER_IS_BETTER:
-        nameSuffix += '_biggerIsBetter';
-        break;
+        return '_biggerIsBetter';
       case ImprovementDirection.SMALLER_IS_BETTER:
-        nameSuffix += '_smallerIsBetter';
-        break;
+        return '_smallerIsBetter';
       default:
         throw new Error(
             'Unknown improvement direction: ' + improvementDirection);
     }
+  };
+
+  Unit.defineUnitVariant_ = function(params, isDelta, improvementDirection) {
+    var nameSuffix = isDelta ? 'Delta' : '';
+    nameSuffix += Unit.nameSuffixForImprovementDirection(improvementDirection);
 
     var unitName = params.baseUnitName + nameSuffix;
     var jsonName = params.baseJsonName + nameSuffix;
@@ -337,6 +364,16 @@ tr.exportTo('tr.b', function() {
     formatSpec: {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
+    }
+  });
+
+  Unit.define({
+    baseUnitName: 'sigma',
+    baseJsonName: 'sigma',
+    formatSpec: {
+      unit: String.fromCharCode(963),
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1
     }
   });
 

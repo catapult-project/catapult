@@ -11,6 +11,7 @@ found in the LICENSE file.
 
 <script>
 'use strict';
+
 // In node, the script-src for mannwhitneyu above brings in mannwhitneyui
 // into a module, instead of into the global scope. Whereas this file
 // assumes that mannwhitneyu is in the global scope. So, in Node only, we
@@ -30,6 +31,9 @@ found in the LICENSE file.
 
 <script>
 'use strict';
+
+// TODO(charliea): Remove:
+/* eslint-disable catapult-camelcase */
 
 tr.exportTo('tr.b', function() {
   var identity = x => x;
@@ -776,7 +780,37 @@ tr.exportTo('tr.b', function() {
       return new Statistics.LogNormalDistribution(location, shape);
   };
 
-  Statistics.mwu = mannwhitneyu;
+  // p-values less than this indicate statistical significance.
+  Statistics.DEFAULT_ALPHA = 0.05;
+
+  /** @enum */
+  Statistics.Significance = {
+    INSIGNIFICANT: -1,
+    DONT_CARE: 0,
+    SIGNIFICANT: 1
+  };
+
+  /**
+   * @typedef {Object} HypothesisTestResult
+   * @property {number} p
+   * @property {number} U
+   * @property {!tr.b.Statistics.Significance} significance
+   */
+
+  /**
+   * @param {!Array.<number>} a
+   * @param {!Array.<number>} b
+   * @param {number=} opt_alpha
+   * @return {!HypothesisTestResult}
+   */
+  Statistics.mwu = function(a, b, opt_alpha) {
+    var result = mannwhitneyu.test(a, b);
+    var alpha = opt_alpha || Statistics.DEFAULT_ALPHA;
+    result.significance = (result.p < alpha) ?
+      Statistics.Significance.SIGNIFICANT :
+      Statistics.Significance.INSIGNIFICANT;
+    return result;
+  };
 
   return {
     Statistics: Statistics

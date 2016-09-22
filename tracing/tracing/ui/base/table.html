@@ -171,6 +171,10 @@ tr.exportTo('tr.ui.b', function() {
         border-top: 1px solid #ffffff;
       }
 
+      :host([zebra]) table tbody tr:nth-child(even) {
+        background-color: #f4f4f4;
+      }
+
       expand-button {
         -webkit-user-select: none;
         display: inline-block;
@@ -263,6 +267,18 @@ tr.exportTo('tr.ui.b', function() {
       this.subRowsPropertyName_ = 'subRows';
       this.defaultExpansionStateCallback_ = undefined;
       this.userCanModifySortOrder_ = true;
+    },
+
+    set zebra(zebra) {
+      if (zebra) {
+        this.setAttribute('zebra', true);
+      } else {
+        this.removeAttribute('zebra');
+      }
+    },
+
+    get zebra() {
+      return this.getAttribute('zebra');
     },
 
     get showHeader() {

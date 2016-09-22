@@ -42,6 +42,8 @@ tr.exportTo('tr.ui.b', function() {
       this.hideXAxis_ = false;
       this.hideYAxis_ = false;
       this.data_ = [];
+      this.xAxisLabel_ = '';
+      this.yAxisLabel_ = '';
 
       d3.select(this.chartAreaElement)
           .append('g')
@@ -51,6 +53,22 @@ tr.exportTo('tr.ui.b', function() {
           .attr('id', 'series');
 
       this.addEventListener('mousedown', this.onMouseDown_.bind(this));
+    },
+
+    get xAxisLabel() {
+      return this.xAxisLabel_;
+    },
+
+    set xAxisLabel(label) {
+      this.xAxisLabel_ = label;
+    },
+
+    get yAxisLabel() {
+      return this.yAxisLabel_;
+    },
+
+    set yAxisLabel(label) {
+      this.yAxisLabel_ = label;
     },
 
     get hideXAxis() {
@@ -181,6 +199,13 @@ tr.exportTo('tr.ui.b', function() {
         return;
 
       this.drawXAxis_(xAxis);
+
+      var label = xAxis.append('text').attr('class', 'label');
+
+      tr.b.requestAnimationFrame(() => {
+        this.drawXAxisTicks_(xAxis);
+        this.drawXAxisLabel_(label);
+      });
     },
 
     drawXAxis_: function(xAxis) {
@@ -188,7 +213,13 @@ tr.exportTo('tr.ui.b', function() {
         .call(d3.svg.axis()
               .scale(this.xScale_)
               .orient('bottom'));
-      tr.b.requestAnimationFrame(this.drawXAxisTicks_.bind(this, xAxis));
+    },
+
+    drawXAxisLabel_: function(label) {
+      label
+        .attr('x', this.chartAreaSize.width + 16)
+        .attr('y', 8)
+        .text(this.xAxisLabel);
     },
 
     drawXAxisTicks_: function(xAxis) {
@@ -236,6 +267,13 @@ tr.exportTo('tr.ui.b', function() {
         return;
 
       this.drawYAxis_(yAxis);
+
+      var label = yAxis.append('text').attr('class', 'label');
+
+      tr.b.requestAnimationFrame(() => {
+        this.drawYAxisTicks_(yAxis);
+        this.drawYAxisLabel_(label);
+      });
     },
 
     drawYAxis_: function(yAxis) {
@@ -267,8 +305,15 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       yAxis.call(axisModifier);
+    },
 
-      tr.b.requestAnimationFrame(this.drawYAxisTicks_.bind(this, yAxis));
+    drawYAxisLabel_: function(label) {
+      var labelWidthPx = Math.ceil(tr.ui.b.getSVGTextWidth(
+            this.chartAreaElement, this.yAxisLabel));
+      label
+        .attr('x', -labelWidthPx)
+        .attr('y', -8)
+        .text(this.yAxisLabel);
     },
 
     drawYAxisTicks_: function(yAxis) {

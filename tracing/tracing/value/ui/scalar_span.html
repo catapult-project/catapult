@@ -19,7 +19,7 @@ tr.exportTo('tr.v.ui', function() {
    * @param {!tr.b.Range=} opt_config.customContextRange
    * @param {boolean=} opt_config.rightAlign
    * @param {!tr.b.Unit=} opt_config.unit
-   * @param {tr.v.Significance=} opt_config.significance
+   * @param {tr.b.Statistics.Significance=} opt_config.significance
    * @param {string=} opt_config.contextGroup
    * @return {(string|!HTMLElement)}
    */
@@ -221,7 +221,7 @@ Polymer({
     this.context_ = undefined;
 
     this.warning_ = undefined;
-    this.significance_ = tr.v.Significance.DONT_CARE;
+    this.significance_ = tr.b.Statistics.Significance.DONT_CARE;
 
     // To avoid unnecessary DOM traversal, search for the context controller
     // only when necessary (when the span is attached and has a context group).
@@ -489,17 +489,17 @@ Polymer({
     Polymer.dom(this.$.content).classList.add(changeClass);
 
     switch (this.significance) {
-      case tr.v.Significance.DONT_CARE:
+      case tr.b.Statistics.Significance.DONT_CARE:
         break;
 
-      case tr.v.Significance.INSIGNIFICANT:
+      case tr.b.Statistics.Significance.INSIGNIFICANT:
         if (changeClass !== 'same')
           title = 'insignificant ' + title;
         this.$.insignificant.style.display = 'inline';
         changeClass = 'same';
         break;
 
-      case tr.v.Significance.SIGNIFICANT:
+      case tr.b.Statistics.Significance.SIGNIFICANT:
         if (changeClass === 'same')
           throw new Error('How can no change be significant?');
         this.$['significantly_' + changeClass].style.display = 'inline';

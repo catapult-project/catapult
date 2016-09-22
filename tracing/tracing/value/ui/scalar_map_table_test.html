@@ -6,24 +6,24 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/ui/numeric_stats_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_map_table.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantiate', function() {
-    var span = document.createElement('tr-v-ui-numeric-stats-span');
+    var span = document.createElement('tr-v-ui-scalar-map-table');
 
-    var numeric = new tr.v.Histogram('', tr.b.Unit.byName.count);
+    var histogram = new tr.v.Histogram('', tr.b.Unit.byName.energyInJoules);
     for (var i = 0; i < 1e2; ++i) {
-      numeric.addSample(Math.random() * 1000);
+      histogram.addSample(Math.random() * 1000);
     }
 
-    numeric.addSample('foo');
-    numeric.customizeSummaryOptions({nans: true});
+    histogram.addSample('foo');
+    histogram.customizeSummaryOptions({nans: true});
 
-    span.numeric = numeric;
+    span.scalarMap = histogram.statisticsScalars;
     this.addHTMLOutput(span);
   });
 });
