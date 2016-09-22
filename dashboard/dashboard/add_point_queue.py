@@ -77,8 +77,6 @@ class AddPointQueueHandler(request_handler.RequestHandler):
     for test_key in monitored_test_keys:
       if not _IsRefBuild(test_key):
         find_anomalies.ProcessTest(test_key)
-      else:
-        logging.warn('Ref data marked as monitored: %s', str(test_key))
 
 
 def _PrewarmGets(data):
