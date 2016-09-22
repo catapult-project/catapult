@@ -43,18 +43,23 @@ class NetworkControllerBackend(object):
     self._wpr_server = None
     self._ts_proxy_server = None
     self._port_pair = None
+    self._use_live_traffic = None
 
-  def InitializeIfNeeded(self):
+  def InitializeIfNeeded(self, use_live_traffic):
     """
     This may, e.g., install test certificates and perform any needed setup
     on the target platform.
 
     After network interactions are over, clients should call the Close method.
     """
+    if self._use_live_traffic is None:
+      self._use_live_traffic = use_live_traffic
+    assert self._use_live_traffic == use_live_traffic, (
+        'inconsistent state of use_live_traffic')
     assert bool(self._ts_proxy_server) == bool(self._forwarder)
     if self._ts_proxy_server:
       return
-    local_port = self._StartTsProxyServer()
+    local_port = self._StartTsProxyServer(self._use_live_traffic)
     self._forwarder = self._platform_backend.forwarder_factory.Create(
         self._platform_backend.GetPortPairForForwarding(local_port))
 
@@ -95,7 +100,6 @@ class NetworkControllerBackend(object):
           wpr_modes.WPR_RECORD.
       extra_wpr_args: an list of extra arguments for web page replay.
     """
-    self.InitializeIfNeeded()
     assert not self.is_open, 'Network controller is already open'
     self._wpr_mode = wpr_mode
     self._extra_wpr_args = extra_wpr_args
@@ -258,9 +262,12 @@ class NetworkControllerBackend(object):
           '--https_root_ca_cert_path=%s' % self._wpr_ca_cert_path])
     return wpr_args
 
-  def _StartTsProxyServer(self):
+  def _StartTsProxyServer(self, use_live_traffic):
     assert not self._ts_proxy_server, 'ts_proxy_server is already started'
-    self._ts_proxy_server = ts_proxy_server.TsProxyServer(host_ip=self.host_ip)
+    host_ip = None
+    if not use_live_traffic:
+      host_ip = self.host_ip
+    self._ts_proxy_server = ts_proxy_server.TsProxyServer(host_ip=host_ip)
     self._ts_proxy_server.StartServer()
     return self._ts_proxy_server.port
 

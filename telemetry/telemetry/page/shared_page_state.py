@@ -93,9 +93,12 @@ class SharedPageState(story.SharedState):
     else:
       wpr_mode = wpr_modes.WPR_REPLAY
 
+    use_live_traffic = wpr_mode == wpr_modes.WPR_OFF
+
     if self.platform.network_controller.is_open:
       self.platform.network_controller.Close()
-    self.platform.network_controller.InitializeIfNeeded()
+    self.platform.network_controller.InitializeIfNeeded(
+        use_live_traffic=use_live_traffic)
     self.platform.network_controller.Open(wpr_mode,
                                           browser_options.extra_wpr_args)
 

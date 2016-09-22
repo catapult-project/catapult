@@ -292,9 +292,10 @@ class _FakeNetworkController(object):
     self.extra_wpr_args = None
     self.is_replay_active = False
     self.is_open = False
+    self.use_live_traffic = None
 
-  def InitializeIfNeeded(self):
-    pass
+  def InitializeIfNeeded(self, use_live_traffic):
+    self.use_live_traffic = use_live_traffic
 
   def Open(self, wpr_mode, extra_wpr_args):
     self.wpr_mode = wpr_mode
