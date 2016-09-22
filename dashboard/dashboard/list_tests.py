@@ -205,9 +205,10 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   """
   property_names = [
       'master_name', 'bot_name', 'suite_name', 'test_part1_name',
-      'test_part2_name', 'test_part3_name', 'test_part4_name']
+      'test_part2_name', 'test_part3_name', 'test_part4_name',
+      'test_part5_name']
   pattern_parts = pattern.split('/')
-  if len(pattern_parts) > 7:
+  if len(pattern_parts) > 8:
     return []
 
   # Below, we first build a list of (property_name, value) pairs to filter on.
@@ -215,7 +216,7 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   for index, part in enumerate(pattern_parts):
     if '*' not in part:
       query_filters.append((property_names[index], part))
-  for index in range(len(pattern_parts), 7):
+  for index in range(len(pattern_parts), 8):
     # Tests longer than the desired pattern will have non-empty property names,
     # so they can be filtered out by matching against an empty string.
     query_filters.append((property_names[index], ''))

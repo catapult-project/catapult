@@ -250,6 +250,13 @@ class TestMetadata(internal_only_model.CreateHookInternalOnlyModel):
       return ''
     return parts[6]
 
+  @ndb.ComputedProperty
+  def test_part5_name(self):
+    parts = self.key.id().split('/')
+    if len(parts) < 8:
+      return ''
+    return parts[7]
+
   @classmethod
   def _GetMasterBotSuite(cls, key):
     if not key:

@@ -289,6 +289,7 @@ indexes:
   - name: test_part2_name
   - name: test_part3_name
   - name: test_part4_name
+  - name: test_part5_name
 - kind: TestMetadata
   properties:
   - name: internal_only
@@ -299,3 +300,4 @@ indexes:
   - name: test_part2_name
   - name: test_part3_name
   - name: test_part4_name
+  - name: test_part5_name
