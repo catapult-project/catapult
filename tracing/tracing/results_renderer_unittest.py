@@ -32,6 +32,7 @@ class ResultsRendererTest(unittest.TestCase):
     return self.output_stream.read()
 
   def tearDown(self):
+    self.output_stream.close()
     os.remove(self.output_file)
 
   def testBasic(self):
