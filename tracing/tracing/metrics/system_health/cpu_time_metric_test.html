@@ -13,12 +13,12 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  function computeCpuTime(customizeModelCallback) {
+  function computeCpuTime(customizeModelCallback, opt_options) {
     var model = tr.c.TestUtils.newModel(function(model) {
       customizeModelCallback(model);
     });
     var values = new tr.v.ValueSet();
-    tr.metrics.sh.cpuTimeMetric(values, model);
+    tr.metrics.sh.cpuTimeMetric(values, model, opt_options);
     return tr.b.getOnlyElement(values).average;
   }
 
@@ -47,7 +47,37 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: sliceDuration,
       }));
     });
-    assert.closeTo(value, 33.33, 0.1);
+    assert.closeTo(value, 0.033, 0.001);
+  });
+
+  // Makes sure that rangeOfInterest works correctly.
+  test('cpuTimeMetric_oneProcess_rangeOfInterest', function() {
+    var sliceDuration = 50;
+    var totalDuration = 3000;
+    var rangeOfInterest = new tr.b.Range.fromExplicitRange(-10, 30);
+    var options = {}
+    options.rangeOfInterest = rangeOfInterest
+    var value = computeCpuTime(function(model) {
+      model.rendererProcess = model.getOrCreateProcess(2);
+      model.rendererMain = model.rendererProcess.getOrCreateThread(3);
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: sliceDuration,
+        cpuStart: 0,
+        cpuDuration: sliceDuration,
+      }));
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: totalDuration - sliceDuration,
+        duration: sliceDuration,
+        cpuStart: totalDuration - sliceDuration,
+        cpuDuration: sliceDuration,
+      }));
+    }, options);
+    assert.closeTo(value, 0.75, 0.001);
   });
 
   // Process 1: There are two slices, each of length 50. The total bounds is
@@ -87,7 +117,7 @@ tr.b.unittest.testSuite(function() {
         cpuDuration: sliceDuration,
       }));
     });
-    assert.closeTo(value, 50.0, 0.1);
+    assert.closeTo(value, 0.05, 0.001);
   });
 });
 </script>
