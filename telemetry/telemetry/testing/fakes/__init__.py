@@ -294,7 +294,7 @@ class _FakeNetworkController(object):
     self.is_open = False
     self.use_live_traffic = None
 
-  def InitializeIfNeeded(self, use_live_traffic):
+  def InitializeIfNeeded(self, use_live_traffic=False):
     self.use_live_traffic = use_live_traffic
 
   def Open(self, wpr_mode, extra_wpr_args):
