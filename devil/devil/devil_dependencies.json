@@ -66,11 +66,11 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
         "android_armeabi-v7a": {
-          "cloud_storage_hash": "de54e23327cc04ef7009fe697227617c7eeb1b2e",
+          "cloud_storage_hash": "d230566ce48864c1d496eafe9b36a4c16507693a",
           "download_path": "../bin/deps/android/armeabi-v7a/bin/forwarder_device"
         },
         "android_arm64-v8a": {
-          "cloud_storage_hash": "67b496f6d3ec6371393c2a8f4f403fdb27f5d091",
+          "cloud_storage_hash": "989d9ccddf4b058dc9cd609e36d63e155bc85cda",
           "download_path": "../bin/deps/android/arm64-v8a/bin/forwarder_device"
         }
       }
@@ -80,7 +80,7 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "02a1854adc15cc9e438f4ecfad2af058bd44fa7e",
+          "cloud_storage_hash": "bd95d557667a657b7cbc7c95ae99a36cf0858344",
           "download_path": "../bin/deps/linux2/x86_64/forwarder_host"
         }
       }
