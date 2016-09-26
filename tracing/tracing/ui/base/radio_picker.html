@@ -10,9 +10,18 @@ found in the LICENSE file.
 <dom-module id='tr-ui-b-radio-picker'>
   <template>
     <style>
+    :host([vertical]) #container {
+      flex-direction: column;
+    }
+    :host(:not[vertical]) #container {
+      flex-direction: row;
+    }
     #container {
       display: flex;
-      flex-direction: column;
+    }
+    #container > div {
+      padding-left: 1em;
+      padding-bottom: 0.5em;
     }
     </style>
     <div id="container"></div>
@@ -39,6 +48,17 @@ Polymer({
     this.isReady_ = true;
     this.maybeInit_();
     this.maybeRenderRadioButtons_();
+  },
+
+  get vertical() {
+    return this.getAttribute('vertical');
+  },
+
+  set vertical(vertical) {
+    if (vertical)
+      this.setAttribute('vertical', true);
+    else
+      this.removeAttribute('vertical');
   },
 
   get settingsKey() {

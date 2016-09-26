@@ -102,5 +102,21 @@ tr.b.unittest.testSuite(function() {
     rp.select('Toyota');
     assert.isTrue(fired);
   });
+
+  test('verticalAttribute', function() {
+    var items = [
+      {key: 'Toyota', label: 'I want to drive Toyota'},
+      {key: 'Boeing', label: 'I want to fly'},
+      {key: 'Submarine', label: 'I want to swim'}
+    ];
+    var rp = document.createElement('tr-ui-b-radio-picker');
+    rp.items = items;
+    this.addHTMLOutput(rp);
+    assert.isNull(rp.getAttribute('vertical'));
+    rp.vertical = true;
+    assert.equal(rp.getAttribute('vertical'), 'true');
+    rp.vertical = false;
+    assert.isNull(rp.getAttribute('vertical'));
+  });
 });
 </script>
