@@ -31,6 +31,9 @@ class PopenMock(object):
   def poll(self):
     pass
 
+  def kill(self):
+    pass
+
 
 class IsBattOrConnectedTest(unittest.TestCase):
   def setUp(self):

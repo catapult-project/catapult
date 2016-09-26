@@ -262,6 +262,7 @@ class BattorWrapper(object):
     status = self._SendBattorCommandImpl(cmd)
 
     if check_return and not 'Done.' in status:
+      self.KillBattOrShell()
       self._UploadSerialLogToCloudStorage()
       self._serial_log_file = None
       raise battor_error.BattorError(
