@@ -164,6 +164,7 @@ tr.exportTo('tr.v.ui', function() {
     <span id="content"></span>
 
     <span id="significance">
+      <!-- Neutral face -->
       <svg viewbox="0 0 128 128" id="insignificant">
         <circle r="60" cx="64" cy="64"/>
         <circle r="4" cx="44" cy="44"/>
@@ -171,6 +172,7 @@ tr.exportTo('tr.v.ui', function() {
         <line x1="36" x2="92" y1="80" y2="80"/>
       </svg>
 
+      <!-- Smiling face -->
       <svg viewbox="0 0 128 128" id="significantly_better">
         <circle r="60" cx="64" cy="64"/>
         <circle r="4" cx="44" cy="44"/>
@@ -178,6 +180,7 @@ tr.exportTo('tr.v.ui', function() {
         <path d="M 28 64 Q 64 128 100 64"/>
       </svg>
 
+      <!-- Frowning face -->
       <svg viewbox="0 0 128 128" id="significantly_worse">
         <circle r="60" cx="64" cy="64"/>
         <circle r="4" cx="44" cy="44"/>
@@ -485,7 +488,7 @@ Polymer({
     }
 
     // Set the content class separately from the significance class so that
-    // NEUTRAL_FACE is always a neutral color.
+    // the Neutral face is always a neutral color.
     Polymer.dom(this.$.content).classList.add(changeClass);
 
     switch (this.significance) {

@@ -22,6 +22,15 @@ tr.b.unittest.testSuite(function() {
   var Unit = tr.b.Unit;
   var THIS_DOC = document.currentScript.ownerDocument;
 
+  function checkSignificance(span, expectedSignificance) {
+    assert.strictEqual(span.$.insignificant.style.display,
+        expectedSignificance === 'insignificant' ? 'inline' : '');
+    assert.strictEqual(span.$.significantly_better.style.display,
+        expectedSignificance === 'significantly_better' ? 'inline' : '');
+    assert.strictEqual(span.$.significantly_worse.style.display,
+        expectedSignificance === 'significantly_worse' ? 'inline' : '');
+  }
+
   function checkScalarSpan(test, value, unit, expectedContent, opt_options) {
     var options = opt_options || {};
     var span = tr.v.ui.createScalarSpan(new tr.v.ScalarNumeric(unit, value),
@@ -33,19 +42,15 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(window.getComputedStyle(span.$.content).color,
         options.expectedColor || 'rgb(0, 0, 0)');
 
-    if (options.expectedTitle)
+    if (options.expectedTitle) {
       assert.strictEqual(span.$.content.title, options.expectedTitle);
+    }
 
     if (options.significance !== undefined) {
-      assert.strictEqual(span.$.insignificant.style.display,
-          options.expectedEmoji === 'insignificant' ? 'inline' : '');
-      assert.strictEqual(span.$.significantly_better.style.display,
-          options.expectedEmoji === 'significantly_better' ? 'inline' : '');
-      assert.strictEqual(span.$.significantly_worse.style.display,
-          options.expectedEmoji === 'significantly_worse' ? 'inline' : '');
-
-      if (options.expectedTitle)
+      checkSignificance(span, options.expectedEmoji);
+      if (options.expectedTitle) {
         assert.strictEqual(span.$.significance.title, options.expectedTitle);
+      }
     }
   }
 
@@ -375,14 +380,29 @@ tr.b.unittest.testSuite(function() {
   test('deltaAndNonDeltaHaveSimilarHeights', function() {
     var spanA = document.createElement('tr-v-ui-scalar-span');
     spanA.setValueAndUnit(400, Unit.byName.timeDurationInMs);
+    checkSignificance(spanA, '');
 
     var spanB = document.createElement('tr-v-ui-scalar-span');
     spanB.setValueAndUnit(400, Unit.byName.timeDurationInMsDelta);
+    checkSignificance(spanB, '');
 
     var spanC = document.createElement('tr-v-ui-scalar-span');
     spanC.setValueAndUnit(
         400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
     spanC.significance = tr.b.Statistics.Significance.SIGNIFICANT;
+    checkSignificance(spanC, 'significantly_worse');
+
+    var spanD = document.createElement('tr-v-ui-scalar-span');
+    spanD.setValueAndUnit(
+        400, Unit.byName.timeDurationInMsDelta_biggerIsBetter);
+    spanD.significance = tr.b.Statistics.Significance.SIGNIFICANT;
+    checkSignificance(spanD, 'significantly_better');
+
+    var spanE = document.createElement('tr-v-ui-scalar-span');
+    spanE.setValueAndUnit(
+        400, Unit.byName.timeDurationInMsDelta_smallerIsBetter);
+    spanE.significance = tr.b.Statistics.Significance.INSIGNIFICANT;
+    checkSignificance(spanE, 'insignificant');
 
     var overall = document.createElement('div');
     overall.style.display = 'flex';
@@ -393,13 +413,15 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(overall).appendChild(spanA);
     Polymer.dom(overall).appendChild(spanB);
     Polymer.dom(overall).appendChild(spanC);
+    Polymer.dom(overall).appendChild(spanD);
+    Polymer.dom(overall).appendChild(spanE);
     this.addHTMLOutput(overall);
 
-    var rectA = spanA.getBoundingClientRect();
-    var rectB = spanB.getBoundingClientRect();
-    var rectC = spanC.getBoundingClientRect();
-    assert.strictEqual(rectA.height, rectB.height);
-    assert.strictEqual(rectC.height, rectB.height);
+    var expectedHeight = spanA.getBoundingClientRect().height;
+    assert.strictEqual(expectedHeight, spanB.getBoundingClientRect().height);
+    assert.strictEqual(expectedHeight, spanC.getBoundingClientRect().height);
+    assert.strictEqual(expectedHeight, spanD.getBoundingClientRect().height);
+    assert.strictEqual(expectedHeight, spanE.getBoundingClientRect().height);
   });
 
   test('warningAndNonWarningHaveSimilarHeights', function() {
@@ -863,46 +885,56 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(div).appendChild(span);
 
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+    checkSignificance(span, 'significantly_worse');
 
     span.significance = tr.b.Statistics.Significance.DONT_CARE;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'worse']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+    checkSignificance(span, '');
 
     span.value = -5;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['better']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+    checkSignificance(span, '');
 
     span.unit = Unit.byName.energyInJoules;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    checkSignificance(span, '');
 
     span.value = 20;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    checkSignificance(span, '');
 
     span.unit = Unit.byName.energyInJoulesDelta_biggerIsBetter;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'better']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+    checkSignificance(span, '');
 
     span.significance = tr.b.Statistics.Significance.INSIGNIFICANT;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'better']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['better']);
+    checkSignificance(span, 'insignificant');
 
     span.unit = Unit.byName.energyInJoulesDelta_smallerIsBetter;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList),
         ['positive', 'worse']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), ['worse']);
+    checkSignificance(span, 'insignificant');
 
     span.unit = Unit.byName.energyInJoulesDelta;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), ['positive']);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    checkSignificance(span, '');
 
     span.value = 0;
     assert.sameMembers(tr.b.asArray(span.$.sparkline.classList), []);
     assert.sameMembers(tr.b.asArray(span.$.content.classList), []);
+    checkSignificance(span, '');
   });
 
   test('sparkline_uncentered', function() {

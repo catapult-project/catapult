@@ -121,10 +121,53 @@ Line.prototype = {
 
 ## Blocks
 
-See the [Blocks section of the airbnb style
-guide](https://github.com/airbnb/javascript#blocks). Those recommendations match
-the internal Google Javascript style guide, which is more up to date than the
-public Google Javascript style guide.
+From the [Blocks section of the airbnb style
+guide](https://github.com/airbnb/javascript#blocks):
+Use braces with all multi-line blocks.
+
+```javascript
+// bad
+if (test)
+  return false;
+
+// good
+if (test) return false;
+
+// good
+if (test) {
+  return false;
+}
+
+// bad
+function foo() { return false; }
+
+// good
+function bar() {
+  return false;
+}
+```
+
+If you're using multi-line blocks with `if` and `else`, put `else` on the same
+line as your `if` block's closing brace.
+
+```javascript
+// bad
+if (test) {
+  thing1();
+  thing2();
+}
+else {
+  thing3();
+}
+
+// good
+if (test) {
+  thing1();
+  thing2();
+} else {
+  thing3();
+}
+```
 
 ## Polymer elements
 The `<script>` block for the Polymer element can go either inside or outside of

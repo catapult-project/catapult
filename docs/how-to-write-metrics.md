@@ -71,6 +71,8 @@ and whistles that are particularly useful for TBM2 metrics.
    [Unit](/tracing/tracing/value/unit.html)
  * JSON serialization with asDict()/fromDict()
  * Build custom bin boundaries with HistogramBinBoundaries
+ * Underflow and overflow bins for samples outside of the range of the central
+   bins
  * Compute statistics such as average, stddev, sum, and percentiles
  * Customize which statistics are serialized with customizeSummaryOptions()
  * Count non-numeric samples
