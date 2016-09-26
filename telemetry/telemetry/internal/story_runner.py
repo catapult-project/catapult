@@ -280,6 +280,7 @@ def RunBenchmark(benchmark, finder_options):
   """
   benchmark.CustomizeBrowserOptions(finder_options.browser_options)
 
+  benchmark_metadata = benchmark.GetMetadata()
   possible_browser = browser_finder.FindBrowser(finder_options)
   if possible_browser and benchmark.ShouldDisable(possible_browser):
     logging.warning('%s is disabled on the selected browser', benchmark.Name())
@@ -289,6 +290,14 @@ def RunBenchmark(benchmark, finder_options):
     else:
       logging.warning(
           'Try --also-run-disabled-tests to force the benchmark to run.')
+      # If chartjson is specified, this will print a dict indicating the
+      # benchmark name and disabled state.  crrev.com/2265423005 will update
+      # this return value once this logic is plumbed through the recipe.
+      with results_options.CreateResults(
+          benchmark_metadata, finder_options,
+          benchmark.ValueCanBeAddedPredicate, benchmark_enabled=False
+          ) as results:
+        results.PrintSummary()
       return 1
 
   pt = benchmark.CreatePageTest(finder_options)
@@ -317,10 +326,10 @@ def RunBenchmark(benchmark, finder_options):
       not benchmark.IsShouldTearDownStateAfterEachStoryRunOverriden()):
     should_tear_down_state_after_each_story_run = False
 
-  benchmark_metadata = benchmark.GetMetadata()
+
   with results_options.CreateResults(
       benchmark_metadata, finder_options,
-      benchmark.ValueCanBeAddedPredicate) as results:
+      benchmark.ValueCanBeAddedPredicate, benchmark_enabled=True) as results:
     try:
       Run(pt, stories, finder_options, results, benchmark.max_failures,
           should_tear_down_state_after_each_story_run,

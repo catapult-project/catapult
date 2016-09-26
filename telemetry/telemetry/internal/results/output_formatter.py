@@ -33,6 +33,13 @@ class OutputFormatter(object):
     """
     raise NotImplementedError()
 
+  def FormatDisabled(self):
+    """Formats disabled results into the output stream.
+
+    This will be called once when a benchmark is run but disabled.
+    """
+    pass
+
   @property
   def output_stream(self):
     return self._output_stream

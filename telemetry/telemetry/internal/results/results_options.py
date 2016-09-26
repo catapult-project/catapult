@@ -114,7 +114,8 @@ def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
 
 
 def CreateResults(benchmark_metadata, options,
-                  value_can_be_added_predicate=lambda v, is_first: True):
+                  value_can_be_added_predicate=lambda v, is_first: True,
+                  benchmark_enabled=True):
   """
   Args:
     options: Contains the options specified in AddResultsOptions.
@@ -167,7 +168,8 @@ def CreateResults(benchmark_metadata, options,
   results = page_test_results.PageTestResults(
       output_formatters=output_formatters, progress_reporter=reporter,
       output_dir=options.output_dir,
-      value_can_be_added_predicate=value_can_be_added_predicate)
+      value_can_be_added_predicate=value_can_be_added_predicate,
+      benchmark_enabled=benchmark_enabled)
 
   results.iteration_info.benchmark_name = benchmark_metadata.name
   results.iteration_info.benchmark_start_ms = time.time() * 1000.0

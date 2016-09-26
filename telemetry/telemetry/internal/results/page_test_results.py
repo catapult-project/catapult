@@ -110,7 +110,8 @@ class IterationInfo(object):
 class PageTestResults(object):
   def __init__(self, output_formatters=None,
                progress_reporter=None, trace_tag='', output_dir=None,
-               value_can_be_added_predicate=lambda v, is_first: True):
+               value_can_be_added_predicate=lambda v, is_first: True,
+               benchmark_enabled=True):
     """
     Args:
       output_formatters: A list of output formatters. The output
@@ -155,6 +156,9 @@ class PageTestResults(object):
     self._value_set = []
 
     self._iteration_info = IterationInfo()
+
+    # State of the benchmark this set of results represents.
+    self._benchmark_enabled = benchmark_enabled
 
   @property
   def iteration_info(self):
@@ -276,6 +280,7 @@ class PageTestResults(object):
 
   def AddValue(self, value):
     assert self._current_page_run, 'Not currently running test.'
+    assert self._benchmark_enabled, 'Cannot add value to disabled results'
     self._ValidateValue(value)
     is_first_result = (
       self._current_page_run.story not in self._all_stories)
@@ -324,15 +329,19 @@ class PageTestResults(object):
     assert value.IsMergableWith(representative_value)
 
   def PrintSummary(self):
-    self._progress_reporter.DidFinishAllTests(self)
+    if self._benchmark_enabled:
+      self._progress_reporter.DidFinishAllTests(self)
 
-    # Only serialize the trace if output_format is json.
-    if (self._output_dir and
-        any(isinstance(o, json_output_formatter.JsonOutputFormatter)
-            for o in self._output_formatters)):
-      self._SerializeTracesToDirPath(self._output_dir)
-    for output_formatter in self._output_formatters:
-      output_formatter.Format(self)
+      # Only serialize the trace if output_format is json.
+      if (self._output_dir and
+          any(isinstance(o, json_output_formatter.JsonOutputFormatter)
+              for o in self._output_formatters)):
+        self._SerializeTracesToDirPath(self._output_dir)
+      for output_formatter in self._output_formatters:
+        output_formatter.Format(self)
+    else:
+      for output_formatter in self._output_formatters:
+        output_formatter.FormatDisabled(self)
 
   def FindValues(self, predicate):
     """Finds all values matching the specified predicate.
