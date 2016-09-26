@@ -832,11 +832,16 @@ tr.exportTo('tr.ui.analysis', function() {
       var titleColumn = new AllocatorDumpNameColumn();
       titleColumn.width = '200px';
 
-      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'numericCells', this.aggregationMode_, NUMERIC_COLUMN_RULES);
-      var diagnosticColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'diagnosticCells', this.aggregationMode_,
-          DIAGNOSTIC_COLUMN_RULES);
+      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'numericCells',
+        aggregationMode: this.aggregationMode_,
+        rules: NUMERIC_COLUMN_RULES
+      });
+      var diagnosticColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'diagnosticCells',
+        aggregationMode: this.aggregationMode_,
+        rules: DIAGNOSTIC_COLUMN_RULES
+      });
       var fieldColumns = numericColumns.concat(diagnosticColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(fieldColumns);
 

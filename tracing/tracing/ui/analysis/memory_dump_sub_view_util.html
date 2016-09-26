@@ -135,6 +135,7 @@ tr.exportTo('tr.ui.analysis', function() {
   function MemoryColumn(name, cellPath, aggregationMode) {
     this.name = name;
     this.cellPath = cellPath;
+    this.shouldSetContextGroup = false;
 
     // See MemoryColumn.AggregationMode enum in this file.
     this.aggregationMode = aggregationMode;
@@ -193,15 +194,26 @@ tr.exportTo('tr.ui.analysis', function() {
    *      [least important, right in the resulting table]
    *
    * where columns will be sorted alphabetically within each group.
+   *
+   * @param {!Array.<!Object>} rows
+   * @param {!Object} config
+   * @param {string} config.cellKey
+   * @param {!MemoryColumn.AggregationMode=} config.aggregationMode
+   * @param {!Array.<!{
+   *            condition: (string|!RegExp)=,
+   *            importance: number,
+   *            columnConstructor: !function(new: MemoryColumn, ...)=,
+   *            shouldSetContextGroup: boolean=
+   *        }>} config.rules
    */
-  MemoryColumn.fromRows = function(rows, cellKey, aggregationMode, rules) {
+  MemoryColumn.fromRows = function(rows, config) {
     // Recursively find the names of all cells of the rows (and their sub-rows).
     var cellNames = new Set();
     function gatherCellNames(rows) {
       rows.forEach(function(row) {
         if (row === undefined)
           return;
-        var fieldCells = row[cellKey];
+        var fieldCells = row[config.cellKey];
         if (fieldCells !== undefined) {
           tr.b.iterItems(fieldCells, function(fieldName, fieldCell) {
             if (fieldCell === undefined || fieldCell.fields === undefined)
@@ -220,10 +232,11 @@ tr.exportTo('tr.ui.analysis', function() {
     // their importance.
     var positions = [];
     cellNames.forEach(function(cellName) {
-      var cellPath = [cellKey, cellName];
-      var matchingRule = MemoryColumn.findMatchingRule(cellName, rules);
+      var cellPath = [config.cellKey, cellName];
+      var matchingRule = MemoryColumn.findMatchingRule(cellName, config.rules);
       var constructor = matchingRule.columnConstructor;
-      var column = new constructor(cellName, cellPath, aggregationMode);
+      var column = new constructor(cellName, cellPath, config.aggregationMode);
+      column.shouldSetContextGroup = !!config.shouldSetContextGroup;
       positions.push({
         importance: matchingRule.importance,
         column: column
@@ -727,8 +740,14 @@ tr.exportTo('tr.ui.analysis', function() {
 
     formatSingleField: function(numeric) {
       var formattingContext = this.getFormattingContext(numeric.unit);
-      var config = formattingContext !== undefined ?
-          { context: formattingContext } : undefined;
+      var contextGroup = this.shouldSetContextGroup ? this.name : undefined;
+      var config = undefined;
+      if (formattingContext || contextGroup) {
+        config = {
+          context: formattingContext,
+          contextGroup: contextGroup
+        };
+      }
       return tr.v.ui.createScalarSpan(numeric, config);
     },
 

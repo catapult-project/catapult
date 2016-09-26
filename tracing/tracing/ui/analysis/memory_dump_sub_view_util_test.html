@@ -136,18 +136,6 @@ tr.b.unittest.testSuite(function() {
     ];
   }
 
-  function checkMemoryColumn(column, expectedName, expectedTitle,
-      expectedAggregationMode, testRow, expectedCell, expectedType) {
-    assert.strictEqual(column.name, expectedName);
-    if (typeof expectedTitle === 'function')
-      expectedTitle(column.title);
-    else
-      assert.strictEqual(column.title, expectedTitle);
-    assert.strictEqual(column.aggregationMode, expectedAggregationMode);
-    assert.strictEqual(column.cell(testRow), expectedCell);
-    assert.instanceOf(column, expectedType);
-  }
-
   function checkCellValue(
       test, value, expectedText, expectedColor, opt_expectedInfos) {
     var expectedInfos = opt_expectedInfos || [];
@@ -285,27 +273,49 @@ tr.b.unittest.testSuite(function() {
     ];
 
     var rows = buildTestRows();
-    var columns = MemoryColumn.fromRows(rows, 'fields', AggregationMode.MAX,
-        rules);
+    var columns = MemoryColumn.fromRows(rows, {
+      cellKey: 'fields',
+      aggregationMode: AggregationMode.MAX,
+      rules: rules,
+      shouldSetContextGroup: true
+    });
     assert.lengthOf(columns, 4);
 
     var pageSizeColumn = columns[0];
-    checkMemoryColumn(pageSizeColumn, 'page_size', 'MockColumn0',
-        AggregationMode.MAX, {fields: {page_size: 'large'}}, 'large',
-        MockColumn0);
+    assert.strictEqual(pageSizeColumn.name, 'page_size');
+    assert.strictEqual(pageSizeColumn.title, 'MockColumn0');
+    assert.strictEqual(pageSizeColumn.aggregationMode, AggregationMode.MAX);
+    assert.strictEqual(pageSizeColumn.cell({fields: {page_size: 'large'}}),
+        'large');
+    assert.isTrue(pageSizeColumn.shouldSetContextGroup);
+    assert.instanceOf(pageSizeColumn, MockColumn0);
 
     var mixedColumn = columns[1];
-    checkMemoryColumn(mixedColumn, 'mixed', 'MockColumn2', AggregationMode.MAX,
-        {fields: {mixed: 89}}, 89, MockColumn2);
+    assert.strictEqual(mixedColumn.name, 'mixed');
+    assert.strictEqual(mixedColumn.title, 'MockColumn2');
+    assert.strictEqual(mixedColumn.aggregationMode, AggregationMode.MAX);
+    assert.strictEqual(mixedColumn.cell({fields: {mixed: 89}}), 89);
+    assert.isTrue(mixedColumn.shouldSetContextGroup);
+    assert.instanceOf(mixedColumn, MockColumn2);
 
     var mixed2Column = columns[2];
-    checkMemoryColumn(mixed2Column, 'mixed2', 'MockColumn2',
-        AggregationMode.MAX, {fields: {mixed2: 'invalid'}}, 'invalid',
-        MemoryColumn);
+    assert.strictEqual(mixed2Column.name, 'mixed2');
+    assert.strictEqual(mixed2Column.title, 'MockColumn2');
+    assert.strictEqual(mixed2Column.aggregationMode, AggregationMode.MAX);
+    assert.strictEqual(mixed2Column.cell({fields: {mixed2: 'invalid'}}),
+        'invalid');
+    assert.isTrue(mixed2Column.shouldSetContextGroup);
+    assert.instanceOf(mixed2Column, MockColumn2);
 
     var cpuTemperatureColumn = columns[3];
-    checkMemoryColumn(cpuTemperatureColumn, 'cpu_temperature', 'MockColumn1',
-        AggregationMode.MAX, {fields: {cpu_temperature: 42}}, 42, MockColumn1);
+    assert.strictEqual(cpuTemperatureColumn.name, 'cpu_temperature');
+    assert.strictEqual(cpuTemperatureColumn.title, 'MockColumn1');
+    assert.strictEqual(cpuTemperatureColumn.aggregationMode,
+        AggregationMode.MAX);
+    assert.strictEqual(
+        cpuTemperatureColumn.cell({fields: {cpu_temperature: 42}}), 42);
+    assert.isTrue(cpuTemperatureColumn.shouldSetContextGroup);
+    assert.instanceOf(cpuTemperatureColumn, MockColumn1);
   });
 
   test('checkMemoryColumn_spaceEqually', function() {
@@ -786,18 +796,23 @@ tr.b.unittest.testSuite(function() {
         undefined /* aggregation mode */);
     var value = c.formatSingleField(new ScalarNumeric(
         tr.b.Unit.byName.unitlessNumber_smallerIsBetter, 123));
-    assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
-    assert.equal(value.value, 123);
-    assert.equal(value.unit, tr.b.Unit.byName.unitlessNumber_smallerIsBetter);
+    assert.strictEqual(value.tagName, 'TR-V-UI-SCALAR-SPAN');
+    assert.strictEqual(value.value, 123);
+    assert.strictEqual(value.unit,
+        tr.b.Unit.byName.unitlessNumber_smallerIsBetter);
+    assert.isUndefined(value.contextGroup);
     this.addHTMLOutput(value);
 
     var c = new NumericMemoryColumn('bytes_column', ['x'],
         undefined /* aggregation mode */);
+    c.shouldSetContextGroup = true;
     var value = c.formatSingleField(new ScalarNumeric(
         sizeInBytes_smallerIsBetter, 456));
-    assert.equal(value.tagName, 'TR-V-UI-SCALAR-SPAN');
-    assert.equal(value.value, 456);
-    assert.equal(value.unit, tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
+    assert.strictEqual(value.tagName, 'TR-V-UI-SCALAR-SPAN');
+    assert.strictEqual(value.value, 456);
+    assert.strictEqual(value.unit,
+        tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
+    assert.strictEqual(value.contextGroup, 'bytes_column');
     this.addHTMLOutput(value);
   });
 

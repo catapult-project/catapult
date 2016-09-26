@@ -475,8 +475,11 @@ tr.exportTo('tr.ui.analysis', function() {
       var titleColumn = new HeapDumpNodeTitleColumn('Stack frame');
       titleColumn.width = '500px';
 
-      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'cells', this.aggregationMode_, COLUMN_RULES);
+      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'cells',
+        aggregationMode: this.aggregationMode_,
+        rules: COLUMN_RULES
+      });
       tr.ui.analysis.MemoryColumn.spaceEqually(numericColumns);
 
       var columns = [titleColumn].concat(numericColumns);

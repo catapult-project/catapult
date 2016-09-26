@@ -688,13 +688,17 @@ tr.exportTo('tr.ui.analysis', function() {
       var titleColumn = new ProcessNameColumn();
       titleColumn.width = '200px';
 
-      var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'usedMemoryCells', this.aggregationMode_,
-          UsedMemoryColumn.RULES);
+      var usedMemorySizeColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'usedMemoryCells',
+        aggregationMode: this.aggregationMode_,
+        rules: UsedMemoryColumn.RULES
+      });
 
-      var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'allocatorCells', this.aggregationMode_,
-          AllocatorColumn.RULES);
+      var allocatorSizeColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'allocatorCells',
+        aggregationMode: this.aggregationMode_,
+        rules: AllocatorColumn.RULES
+      });
 
       var sizeColumns = usedMemorySizeColumns.concat(allocatorSizeColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(sizeColumns);

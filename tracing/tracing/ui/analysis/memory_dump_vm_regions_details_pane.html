@@ -364,10 +364,16 @@ tr.exportTo('tr.ui.analysis', function() {
       var titleColumn = new tr.ui.analysis.TitleColumn('Mapped file');
       titleColumn.width = '200px';
 
-      var constantColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'constantCells', undefined, CONSTANT_COLUMN_RULES);
-      var variableColumns = tr.ui.analysis.MemoryColumn.fromRows(
-          rows, 'variableCells', this.aggregationMode_, VARIABLE_COLUMN_RULES);
+      var constantColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'constantCells',
+        aggregationMode: undefined,
+        rules: CONSTANT_COLUMN_RULES
+      });
+      var variableColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'variableCells',
+        aggregationMode: this.aggregationMode_,
+        rules: VARIABLE_COLUMN_RULES
+      });
       var fieldColumns = constantColumns.concat(variableColumns);
       tr.ui.analysis.MemoryColumn.spaceEqually(fieldColumns);
 
