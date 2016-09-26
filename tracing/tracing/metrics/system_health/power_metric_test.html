@@ -184,7 +184,11 @@ tr.b.unittest.testSuite(function() {
   assert.closeTo(
       getMetricValueAvg(valueSet, 'load:energy'), 304, 0.1);
   assert.closeTo(
+      getMetricValueAvg(valueSet, 'load:time'), 15200, 0.1);
+  assert.closeTo(
       getMetricValueAvg(valueSet, 'after_load:power'), 10, 0.01);
+  assert.closeTo(
+      getMetricValueAvg(valueSet, 'after_load:time'), 6760, 0.1);
   });
 
   test('powerMetric_scroll_oneStageEachType', function() {
