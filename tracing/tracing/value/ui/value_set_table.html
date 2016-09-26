@@ -109,6 +109,12 @@ found in the LICENSE file.
 
     #zero {
       color: red;
+      /* value-set-table is used by both metrics-side-panel and results2.html.
+       * This font-size rule has no effect in results2.html, but improves
+       * legibility in the metrics-side-panel, which sets font-size in order to
+       * make this table denser.
+       */
+      font-size: initial;
     }
 
     #search {
