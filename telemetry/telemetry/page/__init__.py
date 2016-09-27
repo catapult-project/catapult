@@ -155,10 +155,6 @@ class Page(story.Story):
   def __str__(self):
     return self.url
 
-  def AddCustomizeBrowserOptions(self, options):
-    """ Inherit page overrides this to add customized browser options."""
-    pass
-
   @property
   def _scheme(self):
     return urlparse.urlparse(self.url).scheme
