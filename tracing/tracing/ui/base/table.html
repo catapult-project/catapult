@@ -79,10 +79,14 @@ tr.exportTo('tr.ui.b', function() {
         vertical-align: top;
       }
 
-      tr:focus,
-      td:focus {
-        outline: 1px dotted rgba(0,0,0,0.1);
-        outline-offset: 0;
+      table > tbody:focus {
+        outline: none;
+      }
+      table > tbody:focus[selection-mode="row"] > tr[selected],
+      table > tbody:focus[selection-mode="cell"] > tr > td[selected],
+      table > tbody:focus > tr.empty-row > td {
+        outline: 1px dotted #666666;
+        outline-offset: -1px;
       }
 
       button.toggle-button {
@@ -241,6 +245,8 @@ tr.exportTo('tr.ui.b', function() {
     ready: function() {
       this.$.body.addEventListener(
           'keydown', this.onKeyDown_.bind(this), true);
+      this.$.body.addEventListener(
+          'focus', this.onFocus_.bind(this), true);
     },
 
     clear: function() {
@@ -395,7 +401,6 @@ tr.exportTo('tr.ui.b', function() {
     set tableRows(rows) {
       this.selectedTableRowInfo_ = undefined;
       this.selectedColumnIndex_ = undefined;
-      this.maybeUpdateSelectedRow_();
       this.tableRows_ = rows;
       this.tableRowsInfo_ = new WeakMap();
       this.scheduleRebuildBody_();
@@ -625,7 +630,6 @@ tr.exportTo('tr.ui.b', function() {
           Polymer.dom(tableSection).insertBefore(
               htmlNode, nextSiblingOfLastAdded);
         }
-        this.updateTabIndexForTableRowNode_(htmlNode);
 
         lastAddedRow = htmlNode;
         if (!rowInfo.isExpanded)
@@ -772,6 +776,13 @@ tr.exportTo('tr.ui.b', function() {
             }
           }.bind(this, i));
         }
+
+        td.addEventListener('mousedown', function(e) {
+          // Prevent automatically focusing on the table upon clicking on the
+          // table. Explicitly focus on it when appropriate (upon clicking on a
+          // selectable row/cell) instead.
+          e.preventDefault();
+        });
 
         // Add a double-click handler for stepping into a row/cell (if
         // applicable).
@@ -1054,23 +1065,46 @@ tr.exportTo('tr.ui.b', function() {
       this.setHighlightStyle_('cell-highlight-style',
           this.resolvedCellHighlightStyle);
 
-      for (var i = 0; i < Polymer.dom(this.$.body).children.length; i++) {
-        this.updateTabIndexForTableRowNode_(
-            Polymer.dom(this.$.body).children[i]);
+      this.removeSelectedState_();
+
+      switch (this.selectionMode_) {
+        case SelectionMode.ROW:
+          // TODO: Replace this.selectionMode_ with a proper Polymer attribute.
+          Polymer.dom(this.$.body).setAttribute('selection-mode', 'row');
+          Polymer.dom(this.$.body).setAttribute('tabindex', 0);
+          this.selectedColumnIndex_ = undefined;
+          break;
+        case SelectionMode.CELL:
+          Polymer.dom(this.$.body).setAttribute('selection-mode', 'cell');
+          Polymer.dom(this.$.body).setAttribute('tabindex', 0);
+          if (this.selectedTableRowInfo_ &&
+              this.selectedColumnIndex_ === undefined) {
+            var i = this.getFirstSelectableColumnIndex_();
+            if (i === -1) {
+              // No column is selectable.
+              this.selectedTableRowInfo_ = undefined;
+            } else {
+              this.selectedColumnIndex_ = i;
+            }
+          }
+          break;
+        case SelectionMode.NONE:
+          Polymer.dom(this.$.body).removeAttribute('selection-mode');
+          Polymer.dom(this.$.body).removeAttribute('tabindex');
+          this.$.body.blur();  // Remove focus (if applicable).
+          this.selectedTableRowInfo_ = undefined;
+          this.selectedColumnIndex_ = undefined;
+          break;
+        default:
+          throw new Error('Invalid selection mode ' + this.selectionMode_);
       }
+
       this.maybeUpdateSelectedRow_();
     },
 
     maybeUpdateSelectedRow_: function() {
       if (this.selectedTableRowInfo_ === undefined)
         return;
-
-      // Selection may be off.
-      if (this.selectionMode_ === SelectionMode.NONE) {
-        this.removeSelectedState_();
-        this.selectedTableRowInfo_ = undefined;
-        return;
-      }
 
       // selectedUserRow may not be visible
       function isVisible(rowInfo) {
@@ -1091,6 +1125,8 @@ tr.exportTo('tr.ui.b', function() {
       this.selectedTableRowInfo_ = curRowInfo;
       if (this.selectedTableRowInfo_)
         this.updateSelectedState_();
+      else
+        this.selectedColumnIndex_ = undefined;
     },
 
     didTableRowInfoGetClicked_: function(rowInfo, columnIndex) {
@@ -1108,6 +1144,7 @@ tr.exportTo('tr.ui.b', function() {
         case SelectionMode.ROW:
           if (this.selectedTableRowInfo_ !== rowInfo)
             this.selectedTableRow = rowInfo.userRow;
+          this.$.body.focus();
       }
     },
 
@@ -1203,11 +1240,9 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       var e = this.prepareToChangeSelection_();
-      this.selectedTableRowInfo_ = rowInfo;
 
-      if (this.selectedTableRowInfo_ === undefined) {
+      if (!rowInfo) {
         this.selectedColumnIndex_ = undefined;
-        this.removeSelectedState_();
       } else {
         switch (this.selectionMode_) {
           case SelectionMode.ROW:
@@ -1217,7 +1252,7 @@ tr.exportTo('tr.ui.b', function() {
           case SelectionMode.CELL:
             if (this.selectedColumnIndex_ === undefined) {
               var i = this.getFirstSelectableColumnIndex_();
-              if (i == -1)
+              if (i === -1)
                 throw new Error('Cannot find a selectable column.');
               this.selectedColumnIndex_ = i;
             }
@@ -1226,26 +1261,11 @@ tr.exportTo('tr.ui.b', function() {
           default:
             throw new Error('Invalid selection mode ' + this.selectionMode_);
         }
-        this.updateSelectedState_();
       }
 
+      this.selectedTableRowInfo_ = rowInfo;
+      this.updateSelectedState_();
       this.dispatchEvent(e);
-    },
-
-    updateTabIndexForTableRowNode_: function(row) {
-      if (this.selectionMode_ === SelectionMode.ROW)
-        row.tabIndex = 0;
-      else
-        Polymer.dom(row).removeAttribute('tabIndex');
-
-      var enableCellTab = this.selectionMode_ === SelectionMode.CELL;
-      for (var i = 0; i < this.tableColumns_.length; i++) {
-        var cell = Polymer.dom(row).children[i];
-        if (enableCellTab && this.doesColumnIndexSupportSelection(i))
-          cell.tabIndex = 0;
-        else
-          Polymer.dom(cell).removeAttribute('tabIndex');
-      }
     },
 
     prepareToChangeSelection_: function() {
@@ -1336,18 +1356,21 @@ tr.exportTo('tr.ui.b', function() {
         throw new Error('Selection is not supported on this column');
 
       var e = this.prepareToChangeSelection_();
-      this.selectedColumnIndex_ = selectedColumnIndex;
-      if (this.selectedColumnIndex_ === undefined)
+      if (this.selectedColumnIndex_ === undefined) {
         this.selectedTableRowInfo_ = undefined;
+      } else if (!this.selectedTableRowInfo_) {
+        if (this.tableRows_.length === 0)
+          throw new Error('No available row to be selected');
+        this.selectedTableRowInfo_ =
+            this.tableRowsInfo_.get(this.tableRows_[0]);
+      }
+      this.selectedColumnIndex_ = selectedColumnIndex;
       this.updateSelectedState_();
-
       this.dispatchEvent(e);
     },
 
     onKeyDown_: function(e) {
       if (this.selectionMode_ === SelectionMode.NONE)
-        return;
-      if (this.selectedTableRowInfo_ === undefined)
         return;
 
       var CODE_TO_COMMAND_NAMES = {
@@ -1367,120 +1390,192 @@ tr.exportTo('tr.ui.b', function() {
       this.performKeyCommand_(cmdName);
     },
 
+    onFocus_: function(e) {
+      if (this.selectionMode_ === SelectionMode.NONE ||
+          this.selectedTableRowInfo_ ||
+          this.tableRows_.length === 0) {
+        return;
+      }
+
+      if (this.selectionMode_ === SelectionMode.CELL &&
+          this.getFirstSelectableColumnIndex_() === -1) {
+        // If there are no selectable columns in cell selection mode, don't do
+        // anything.
+        return;
+      }
+
+      this.selectedTableRow = this.tableRows_[0];
+    },
+
+    focus: function() {
+      this.$.body.focus();
+    },
+
+    blur: function() {
+      this.$.body.blur();
+    },
+
+    get isFocused() {
+      return this.root.activeElement === this.$.body;
+    },
+
     performKeyCommand_: function(cmdName) {
       this.rebuildIfNeeded_();
 
-      var rowInfo = this.selectedTableRowInfo_;
-      var htmlNode = rowInfo.htmlNode;
-      if (cmdName === 'ARROW_UP') {
-        var prev = htmlNode.previousElementSibling;
-        if (prev) {
-          tr.ui.b.scrollIntoViewIfNeeded(prev);
-          this.selectedTableRow = prev.rowInfo.userRow;
-          this.focusSelected_();
+      switch (cmdName) {
+        case 'ARROW_UP':
+          this.selectPreviousOrFirstRowIfPossible_();
           return;
-        }
-        return;
-      }
 
-      if (cmdName === 'ARROW_DOWN') {
-        var next = htmlNode.nextElementSibling;
-        if (next) {
-          tr.ui.b.scrollIntoViewIfNeeded(next);
-          this.selectedTableRow = next.rowInfo.userRow;
-          this.focusSelected_();
+        case 'ARROW_DOWN':
+          this.selectNextOrFirstRowIfPossible_();
           return;
-        }
-        return;
-      }
 
-      if (cmdName === 'ARROW_RIGHT') {
-        switch (this.selectionMode_) {
-          case SelectionMode.ROW:
-            if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+        case 'ARROW_RIGHT':
+          switch (this.selectionMode_) {
+            case SelectionMode.NONE:
+              return;  // No action.
+            case SelectionMode.ROW:
+              this.expandRowAndSelectChildRowIfPossible_();
               return;
-            if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+            case SelectionMode.CELL:
+              this.selectNextSelectableCellToTheRightIfPossible_();
               return;
+            default:
+              throw new Error('Invalid selection mode ' + this.selectionMode_);
+          }
 
-            if (!rowInfo.isExpanded)
-              this.setExpandedForTableRow(rowInfo.userRow, true);
-            this.selectedTableRow =
-              htmlNode.nextElementSibling.rowInfo.userRow;
-            this.focusSelected_();
-            return;
-
-          case SelectionMode.CELL:
-            var newIndex = this.selectedColumnIndex_ + 1;
-            if (newIndex >= this.tableColumns_.length)
+        case 'ARROW_LEFT':
+          switch (this.selectionMode_) {
+            case SelectionMode.NONE:
+              return;  // No action.
+            case SelectionMode.ROW:
+              this.collapseRowOrSelectParentRowIfPossible_();
               return;
-            if (!this.doesColumnIndexSupportSelection(newIndex))
+            case SelectionMode.CELL:
+              this.selectNextSelectableCellToTheLeftIfPossible_();
               return;
-            this.selectedColumnIndex = newIndex;
-            this.focusSelected_();
-            return;
+            default:
+              throw new Error('Invalid selection mode ' + this.selectionMode_);
+          }
 
-          default:
-            throw new Error('Invalid selection mode ' + this.selectionMode_);
-        }
-      }
-
-      if (cmdName === 'ARROW_LEFT') {
-        switch (this.selectionMode_) {
-          case SelectionMode.ROW:
-            if (rowInfo.isExpanded) {
-              this.setExpandedForTableRow(rowInfo.userRow, false);
-              this.focusSelected_();
-              return;
-            }
-
-            // Not expanded. Select parent...
-            var parentRowInfo = rowInfo.parentRowInfo;
-            if (parentRowInfo) {
-              this.selectedTableRow = parentRowInfo.userRow;
-              this.focusSelected_();
-              return;
-            }
-            return;
-
-          case SelectionMode.CELL:
-            var newIndex = this.selectedColumnIndex_ - 1;
-            if (newIndex < 0)
-              return;
-            if (!this.doesColumnIndexSupportSelection(newIndex))
-              return;
-            this.selectedColumnIndex = newIndex;
-            this.focusSelected_();
-            return;
-
-          default:
-            throw new Error('Invalid selection mode ' + this.selectionMode_);
-        }
-      }
-
-      if (cmdName === 'SPACE') {
-        if (rowInfo.userRow[this.subRowsPropertyName_] === undefined)
+        case 'SPACE':
+          this.toggleRowExpansionStateIfPossible_();
           return;
-        if (rowInfo.userRow[this.subRowsPropertyName_].length === 0)
+
+        case 'ENTER':
+          this.stepIntoSelectionIfPossible_();
           return;
-        this.setExpandedForTableRow(rowInfo.userRow, !rowInfo.isExpanded);
-        this.focusSelected_();
-        return;
-      }
 
-      if (cmdName === 'ENTER') {
-        this.dispatchStepIntoEvent_(rowInfo, this.selectedColumnIndex_);
-        return;
+        default:
+          throw new Error('Unrecognized command ' + cmdName);
       }
-
-      throw new Error('Unrecognized command ' + cmdName);
     },
 
-    focusSelected_: function() {
+    selectPreviousOrFirstRowIfPossible_: function() {
+      var prev = this.selectedTableRowInfo_ ?
+          this.selectedTableRowInfo_.htmlNode.previousElementSibling :
+          this.$.body.firstChild;
+      if (!prev)
+        return;
+      if (this.selectionMode_ === SelectionMode.CELL &&
+          this.getFirstSelectableColumnIndex_() === -1) {
+        // If there are no selectable columns in cell selection mode, don't do
+        // anything.
+        return;
+      }
+      tr.ui.b.scrollIntoViewIfNeeded(prev);
+      this.selectedTableRow = prev.rowInfo.userRow;
+    },
+
+    selectNextOrFirstRowIfPossible_: function() {
+      this.getFirstSelectableColumnIndex_
+      var next = this.selectedTableRowInfo_ ?
+          this.selectedTableRowInfo_.htmlNode.nextElementSibling :
+          this.$.body.firstChild;
+      if (!next)
+        return;
+      if (this.selectionMode_ === SelectionMode.CELL &&
+          this.getFirstSelectableColumnIndex_() === -1) {
+        // If there are no selectable columns in cell selection mode, don't do
+        // anything.
+        return;
+      }
+      tr.ui.b.scrollIntoViewIfNeeded(next);
+      this.selectedTableRow = next.rowInfo.userRow;
+    },
+
+    expandRowAndSelectChildRowIfPossible_: function() {
+      var selectedRowInfo = this.selectedTableRowInfo_;
+      if (!selectedRowInfo ||
+          selectedRowInfo.userRow[this.subRowsPropertyName_] === undefined ||
+          selectedRowInfo.userRow[this.subRowsPropertyName_].length === 0) {
+        return;
+      }
+      if (!selectedRowInfo.isExpanded)
+        this.setExpandedForTableRow(selectedRowInfo.userRow, true);
+      this.selectedTableRow =
+          selectedRowInfo.htmlNode.nextElementSibling.rowInfo.userRow;
+    },
+
+    collapseRowOrSelectParentRowIfPossible_: function() {
+      var selectedRowInfo = this.selectedTableRowInfo_;
+      if (!selectedRowInfo)
+        return;
+      if (selectedRowInfo.isExpanded) {
+        // If the node is expanded, collapse it.
+        this.setExpandedForTableRow(selectedRowInfo.userRow, false);
+      } else {
+        // If the node is not expanded, select its parent.
+        var parentRowInfo = selectedRowInfo.parentRowInfo;
+        if (parentRowInfo)
+          this.selectedTableRow = parentRowInfo.userRow;
+      }
+    },
+
+    selectNextSelectableCellToTheRightIfPossible_: function() {
+      if (!this.selectedTableRowInfo_ ||
+          this.selectedColumnIndex_ === undefined) {
+        return;
+      }
+      for (var i = this.selectedColumnIndex_ + 1; i < this.tableColumns_.length;
+           i++) {
+        if (this.doesColumnIndexSupportSelection(i)) {
+          this.selectedColumnIndex = i;
+          return;
+        }
+      }
+    },
+
+    selectNextSelectableCellToTheLeftIfPossible_: function() {
+      if (!this.selectedTableRowInfo_ ||
+          this.selectedColumnIndex_ === undefined) {
+        return;
+      }
+      for (var i = this.selectedColumnIndex_ - 1; i >= 0; i--) {
+        if (this.doesColumnIndexSupportSelection(i)) {
+          this.selectedColumnIndex = i;
+          return;
+        }
+      }
+    },
+
+    toggleRowExpansionStateIfPossible_: function() {
+      var selectedRowInfo = this.selectedTableRowInfo_;
+      if (!selectedRowInfo ||
+          selectedRowInfo.userRow[this.subRowsPropertyName_] === undefined ||
+          selectedRowInfo.userRow[this.subRowsPropertyName_].length === 0) {
+        return;
+      }
+      this.setExpandedForTableRow(selectedRowInfo.userRow,
+          !selectedRowInfo.isExpanded);
+    },
+
+    stepIntoSelectionIfPossible_: function() {
       if (!this.selectedTableRowInfo_)
         return;
-      var node = this.getSelectableNodeGivenTableRowNode_(
-          this.selectedTableRowInfo_.htmlNode);
-      node.focus();
+      this.dispatchStepIntoEvent_(this.selectedTableRowInfo_,
+          this.selectedColumnIndex_);
     },
 
     dispatchSortingChangedEvent_: function() {

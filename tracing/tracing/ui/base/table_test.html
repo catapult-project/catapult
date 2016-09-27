@@ -704,7 +704,7 @@ tr.b.unittest.testSuite(function() {
     var r2 = table.$.body.children[2];
     assert.equal(r2.rowInfo.userRow, rows[0].subRows[2]);
 
-    assert.isFalse(r0.hasAttribute('tabIndex'));
+    assert.isFalse(table.$.body.hasAttribute('tabindex'));
   });
 
   function createSimpleOneColumnNestedTable() {
@@ -754,6 +754,69 @@ tr.b.unittest.testSuite(function() {
     return table;
   }
 
+  function createMultiColumnNestedTable() {
+    var table = document.createElement('tr-ui-b-table');
+
+    var columns = [
+      {
+        title: 'Title',
+        value: function(row) { return row.value; },
+        cmp: function(rowA, rowB) {
+          return rowA.value.toString().localeCompare(
+              rowB.value.toString());
+        },
+        width: '150px',
+        supportsCellSelection: false
+      },
+      {
+        title: 'A',
+        value: function(row) { return row.a; },
+        width: '25%'
+      },
+      {
+        title: 'B',
+        value: function(row) { return row.b; },
+        width: '25%'
+      },
+      {
+        title: 'C',
+        value: function(row) { return row.c; },
+        width: '25%',
+        supportsCellSelection: false
+      },
+      {
+        title: 'D',
+        value: function(row) { return row.d; },
+        width: '25%'
+      }
+    ];
+
+    var rows = [
+      {
+        value: 'R1',
+        a: 1, b: 2, c: 3, d: 4,
+        subRows: [
+          {
+            value: 'R1.1',
+            a: 2, b: 3, c: 4, d: 1,
+          },
+          {
+            value: 'R1.2',
+            a: 3, b: 4, c: 1, d: 2,
+          }
+        ]
+      },
+      {
+        value: 'R2',
+        a: 3, b: 4, c: 1, d: 2
+      }
+    ];
+
+    table.tableColumns = columns;
+    table.tableRows = rows;
+    return table;
+  }
+
   test('expandAfterRebuild', function() {
     var table = createSimpleOneColumnNestedTable();
     table.rebuild();
@@ -771,32 +834,38 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('tableSelection', function() {
-    var table = createSimpleOneColumnNestedTable();
+    var table = createMultiColumnNestedTable();
     var rows = table.tableRows;
 
     table.selectionMode = SelectionMode.ROW;
     table.selectedTableRow = rows[0];
+    assert.isUndefined(table.selectedColumnIndex);
 
     table.setExpandedForTableRow(rows[0], true);
     table.selectedTableRow = rows[0].subRows[1];
-    assert.equal(table.selectedTableRow, rows[0].subRows[1]);
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[1]);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    table.selectionMode = SelectionMode.CELL;
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[1]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
 
     table.setExpandedForTableRow(rows[0], false);
-    assert.equal(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
 
     table.selectionMode = SelectionMode.NONE;
-    assert.equal(table.selectedTableRow, undefined);
+    assert.strictEqual(table.selectedTableRow, undefined);
 
     table.selectionMode = SelectionMode.ROW;
     table.setExpandedForTableRow(rows[0].subRows[1], true);
     this.addHTMLOutput(table);
 
-    var r0 = table.$.body.children[0];
-    assert.isTrue(r0.hasAttribute('tabIndex'));
+    assert.isTrue(table.$.body.hasAttribute('tabindex'));
   });
 
 
-  test('keyMovement', function() {
+  test('keyMovement_rows', function() {
     var table = createSimpleOneColumnNestedTable();
     table.selectionMode = SelectionMode.ROW;
     this.addHTMLOutput(table);
@@ -848,6 +917,301 @@ tr.b.unittest.testSuite(function() {
     table.performKeyCommand_('ARROW_RIGHT');
     assert.equal(table.selectedTableRow, rows[1]);
     assert.isFalse(table.getExpandedForTableRow(rows[1]));
+  });
+
+  test('keyMovement_cells', function() {
+    var table = createMultiColumnNestedTable();
+    table.selectionMode = SelectionMode.CELL;
+    this.addHTMLOutput(table);
+
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    var rows = table.tableRows;
+    table.selectedTableRow = rows[1];
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.strictEqual(table.selectedTableRow, rows[1]);
+    // No-op (leftmost selectable cell already selected).
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    table.performKeyCommand_('ARROW_UP');
+    // No-op (top row already selected).
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    table.performKeyCommand_('ARROW_UP');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 2);
+    // Right arrow should NOT expand nested rows in cell selection mode.
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 4);
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_RIGHT');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    // No-op (rightmost selectable cell already selected).
+    assert.strictEqual(table.selectedColumnIndex, 4);
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('SPACE');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 4);
+    // Space on collapsed row should expand it.
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_DOWN');
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 4);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_LEFT');
+    // Left arrow should NOT move to parent row.
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 2);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.strictEqual(table.selectedTableRow, rows[0].subRows[0]);
+    // No-op (leftmost selectable cell already selected).
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_UP');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_LEFT');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    // No-op (leftmost selectable cell already selected).
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    // Left arrow should NOT collapse nested rows in cell selection mode.
+    assert.isTrue(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('SPACE');
+    assert.strictEqual(table.selectedTableRow, rows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    // Space on expanded row should collapse it.
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_DOWN');
+    assert.strictEqual(table.selectedTableRow, rows[1]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+
+    table.performKeyCommand_('ARROW_DOWN');
+    // No-op (bottom row already selected).
+    assert.strictEqual(table.selectedTableRow, rows[1]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+    assert.isFalse(table.getExpandedForTableRow(rows[0]));
+  });
+
+  test('focus_empty', function() {
+    var table = createSimpleOneColumnNestedTable();
+    table.tableRows = [];
+    table.emptyValue = 'This table is left intentionally empty';
+    this.addHTMLOutput(table);
+
+    assert.isFalse(table.$.body.hasAttribute('tabindex'));
+    assert.isFalse(table.isFocused);
+
+    for (var selectionMode of [SelectionMode.ROW, SelectionMode.CELL]) {
+      table.selectionMode = selectionMode;
+      assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+      assert.isFalse(table.isFocused);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Manually focus.
+      table.focus();
+      assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+      assert.isTrue(table.isFocused);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Manually unfocus.
+      table.blur();
+      assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+      assert.isFalse(table.isFocused);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Manually focus again.
+      table.focus();
+      assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+      assert.isTrue(table.isFocused);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+
+      // Unfocus via removing selection mode.
+      table.selectionMode = SelectionMode.NONE;
+      assert.isFalse(table.$.body.hasAttribute('tabindex'));
+      assert.isFalse(table.isFocused);
+      assert.isUndefined(table.selectedTableRow);
+      assert.isUndefined(table.selectedColumnIndex);
+    }
+
+    // Re-enable selection mode (for interactive testing).
+    table.selectionMode = SelectionMode.ROW;
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+  });
+
+  test('focus_rows', function() {
+    var table = createSimpleOneColumnNestedTable();
+    table.selectionMode = SelectionMode.ROW;
+    this.addHTMLOutput(table);
+
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Manually focus.
+    table.focus();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Manually unfocus.
+    table.blur();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Trigger focus via clicking.
+    table.$.body.children[1].children[0].click();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[1]);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Unfocus via removing selection mode.
+    table.selectionMode = SelectionMode.NONE;
+    assert.isFalse(table.$.body.hasAttribute('tabindex'));
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Re-enable selection mode.
+    table.selectionMode = SelectionMode.ROW;
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Manually focus again (for interactive testing).
+    table.focus();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.isUndefined(table.selectedColumnIndex);
+  });
+
+  test('focus_cells', function() {
+    var table = createMultiColumnNestedTable();
+    table.selectionMode = SelectionMode.CELL;
+    this.addHTMLOutput(table);
+
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Manually focus.
+    table.focus();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    // Manually unfocus.
+    table.blur();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    // Trigger focus via clicking.
+    table.$.body.children[1].children[4].click();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[1]);
+    assert.strictEqual(table.selectedColumnIndex, 4);
+
+    // Unfocus via removing selection mode.
+    table.selectionMode = SelectionMode.NONE;
+    assert.isFalse(table.$.body.hasAttribute('tabindex'));
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Re-enable selection mode.
+    table.selectionMode = SelectionMode.CELL;
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Clicking on an unselectable cell should NOT trigger focus.
+    table.$.body.children[1].children[0].click();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Manually focus again (for interactive testing).
+    table.focus();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+  });
+
+  test('focus_allCellsUnselectable', function() {
+    var table = createMultiColumnNestedTable();
+    table.selectionMode = SelectionMode.CELL;
+    for (var c of table.tableColumns)
+      c.supportsCellSelection = false;
+    table.tableColumns = table.tableColumns;
+    this.addHTMLOutput(table);
+
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Manually focus (no automatic selection).
+    table.focus();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Trigger focus via clicking (no selection).
+    table.$.body.children[1].children[2].click();
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isTrue(table.isFocused);
+    assert.isUndefined(table.selectedTableRow);
+    assert.isUndefined(table.selectedColumnIndex);
   });
 
   test('RightArrowKeyWhenTableSorted', function() {
