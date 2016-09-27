@@ -97,7 +97,8 @@ class FileBugHandler(request_handler.RequestHandler):
         'description': description,
         'labels': labels,
         'components': components,
-        'owner': users.get_current_user(),
+        'owner': '',
+        'cc': users.get_current_user(),
     })
 
   def _CreateBug(self, summary, description, labels, components, urlsafe_keys):
@@ -128,11 +129,14 @@ class FileBugHandler(request_handler.RequestHandler):
       })
       return
 
+    cc = self.request.get('cc')
+
     http = oauth2_decorator.DECORATOR.http()
     service = issue_tracker_service.IssueTrackerService(http=http)
 
     bug_id = service.NewBug(
-        summary, description, labels=labels, components=components, owner=owner)
+        summary, description, labels=labels, components=components, owner=owner,
+        cc=cc)
     if not bug_id:
       self.RenderHtml('bug_result.html', {'error': 'Error creating bug!'})
       return

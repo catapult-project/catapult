@@ -122,7 +122,7 @@ class IssueTrackerService(object):
     return False
 
   def NewBug(self, title, description, labels=None, components=None,
-             owner=None):
+             owner=None, cc=None):
     """Creates a new bug.
 
     Args:
@@ -131,6 +131,7 @@ class IssueTrackerService(object):
       labels: Starting labels for the bug.
       components: Starting components for the bug.
       owner: Starting owner account name.
+      cc: CSV of email addresses to CC on the bug.
 
     Returns:
       The new bug ID if successfully created, or None.
@@ -141,10 +142,12 @@ class IssueTrackerService(object):
         'description': description,
         'labels': labels or [],
         'components': components or [],
-        'status': 'Assigned',
+        'status': 'Assigned' if owner else 'Untriaged',
     }
     if owner:
       body['owner'] = {'name': owner}
+    if cc:
+      body['cc'] = [{'name': account} for account in cc.split(',') if account]
     return self._MakeCreateRequest(body)
 
   def _MakeCreateRequest(self, body):

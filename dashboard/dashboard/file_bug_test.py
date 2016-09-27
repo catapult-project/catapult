@@ -109,6 +109,8 @@ class FileBugTest(testing_common.TestCase):
     response = self.testapp.get(
         '/file_bug?summary=s&description=d&keys=%s' % alert_keys[0].urlsafe())
     self.assertEqual(1, len(response.html('form')))
+    self.assertIn('<input name="cc" type="text" value="foo@chromium.org">',
+                  str(response.html('form')[0]))
 
   def testInternalBugLabel(self):
     # If any of the alerts are marked as internal-only, which should happen

@@ -89,7 +89,8 @@ class IssueTrackerServiceTest(testing_common.TestCase):
   def testNewBug_UsesExpectedParams(self):
     service = issue_tracker_service.IssueTrackerService()
     service._MakeCreateRequest = mock.Mock()
-    service.NewBug('Bug title', 'body', owner='someone@chromium.org')
+    service.NewBug('Bug title', 'body', owner='someone@chromium.org',
+                   cc='somebody@chromium.org,nobody@chromium.org')
     service._MakeCreateRequest.assert_called_with(
         {
             'title': 'Bug title',
@@ -99,6 +100,25 @@ class IssueTrackerServiceTest(testing_common.TestCase):
             'components': [],
             'status': 'Assigned',
             'owner': {'name': 'someone@chromium.org'},
+            'cc': [{'name': 'somebody@chromium.org'},
+                   {'name': 'nobody@chromium.org'}],
+        })
+
+  def testNewBug_UsesExpectedParamsSansOwner(self):
+    service = issue_tracker_service.IssueTrackerService(mock.MagicMock())
+    service._MakeCreateRequest = mock.Mock()
+    service.NewBug('Bug title', 'body',
+                   cc='somebody@chromium.org,nobody@chromium.org')
+    service._MakeCreateRequest.assert_called_with(
+        {
+            'title': 'Bug title',
+            'summary': 'Bug title',
+            'description': 'body',
+            'labels': [],
+            'components': [],
+            'status': 'Untriaged',
+            'cc': [{'name': 'somebody@chromium.org'},
+                   {'name': 'nobody@chromium.org'}],
         })
 
   def testMakeCommentRequest_UserDoesNotExist_RetryMakeCommentRequest(self):
