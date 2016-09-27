@@ -141,8 +141,10 @@ tr.exportTo('tr.v.ui', function() {
     _markGroupDirtyAndScheduleUpdate: function(group) {
       var alreadyDirty = this.dirtyGroups_.size > 0;
       this.dirtyGroups_.add(group);
-      if (!alreadyDirty)
-        tr.b.requestAnimationFrame(this.updateContext.bind(this));
+      if (!alreadyDirty) {
+        tr.b.requestAnimationFrameInThisFrameIfPossible(
+            this.updateContext, this);
+      }
     },
 
     updateContext: function() {

@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel='import' href='/tracing/base/iteration_helpers.html'>
 <link rel='import' href='/tracing/base/multi_dimensional_view.html'>
-<link rel="import" href="/tracing/base/unit.html">
+<link rel='import' href='/tracing/base/unit.html'>
 <link rel='import' href='/tracing/core/test_utils.html'>
 <link rel='import' href='/tracing/model/heap_dump.html'>
 <link rel='import' href='/tracing/model/memory_dump_test_utils.html'>
@@ -26,10 +26,10 @@ tr.b.unittest.testSuite(function() {
   var TOP_DOWN_HEAVY_VIEW = ViewType.TOP_DOWN_HEAVY_VIEW;
   var BOTTOM_UP_HEAVY_VIEW = ViewType.BOTTOM_UP_HEAVY_VIEW;
   var HeapDump = tr.model.HeapDump;
-  var RowDimension = tr.ui.analysis.RowDimension;
-  var ROOT = RowDimension.ROOT;
-  var STACK_FRAME = RowDimension.STACK_FRAME;
-  var OBJECT_TYPE = RowDimension.OBJECT_TYPE;
+  var HeapDetailsRowDimension = tr.ui.analysis.HeapDetailsRowDimension;
+  var ROOT = HeapDetailsRowDimension.ROOT;
+  var STACK_FRAME = HeapDetailsRowDimension.STACK_FRAME;
+  var OBJECT_TYPE = HeapDetailsRowDimension.OBJECT_TYPE;
   var TitleColumn = tr.ui.analysis.TitleColumn;
   var NumericMemoryColumn = tr.ui.analysis.NumericMemoryColumn;
   var AggregationMode = tr.ui.analysis.MemoryColumn.AggregationMode;
@@ -185,14 +185,14 @@ tr.b.unittest.testSuite(function() {
         displayExpectations.infoText);
     assert.strictEqual(isElementDisplayed(viewEl.$.info_bar),
         displayExpectations.infoBar);
-    assert.strictEqual(isElementDisplayed(viewEl.$.table),
-        displayExpectations.tableAndSelector);
+    assert.strictEqual(isElementDisplayed(viewEl.$.split_view),
+        displayExpectations.tableAndSplitView);
     assert.strictEqual(isElementDisplayed(viewEl.$.view_mode_container),
-        displayExpectations.tableAndSelector);
+        displayExpectations.tableAndSplitView);
   }
 
   var EXPECTED_COLUMNS_WITHOUT_COUNT = [
-    { title: 'Stack frame', type: TitleColumn, noAggregation: true },
+    { title: 'Current path', type: TitleColumn, noAggregation: true },
     { title: 'Size', type: NumericMemoryColumn }
   ];
 
@@ -201,184 +201,92 @@ tr.b.unittest.testSuite(function() {
     { title: 'Average size per allocation', type: NumericMemoryColumn }
   ]);
 
-  function checkRow(columns, row, expectedDimension, expectedTitle,
-      expectedSizes, expectedCounts, expectedAverageSizes,
-      expectedDefinedValues) {
-    var formattedTitle = columns[0].formatTitle(row);
-    switch (expectedDimension) {
-      case ROOT:
-        assert.equal(formattedTitle, expectedTitle);
-        break;
+  var EXPECTED_CELLS = ['Size', 'Count', 'Average size per allocation'];
 
-      case STACK_FRAME:
-      case OBJECT_TYPE:
-        assert.lengthOf(Polymer.dom(formattedTitle).childNodes, 2);
-        assert.strictEqual(
-            Polymer.dom(formattedTitle).childNodes[0].textContent,
-            expectedDimension === STACK_FRAME ? '\u0192' : '\u24C9');
-        assert.strictEqual(
-            Polymer.dom(formattedTitle).childNodes[1].textContent,
-            expectedTitle);
-        break;
+  function checkNode(node, expectedNodeStructure, expectedParentNode) {
+    assert.strictEqual(node.title, expectedNodeStructure.title);
+    assert.strictEqual(node.dimension, expectedNodeStructure.dimension);
+    assert.strictEqual(node.parentNode, expectedParentNode);
 
-      default:
-        throw new Error('Invalid expected dimension: ' + expectedDimension);
+    // Check that there AREN'T any cells that we are NOT expecting.
+    var cells = node.cells;
+    assert.includeMembers(EXPECTED_CELLS, Object.keys(cells));
+
+    var sizeCell = cells['Size'];
+    var sizeFields = sizeCell ? sizeCell.fields : undefined;
+    checkSizeNumericFields(sizeFields, undefined, expectedNodeStructure.size);
+
+    var countCell = cells['Count'];
+    var countFields = countCell ? countCell.fields : undefined;
+    checkNumericFields(countFields, undefined, expectedNodeStructure.count,
+        count_smallerIsBetter);
+
+    var averageSizeCell = cells['Average size per allocation'];
+    var averageSizeFields = averageSizeCell ? averageSizeCell.fields :
+        undefined;
+    checkSizeNumericFields(averageSizeFields, undefined,
+        expectedNodeStructure.averageSize);
+
+    assert.strictEqual(node.childNodes.size, 2);
+
+    // If |expectedNodeStructure.children| is undefined, check that there are
+    // no child nodes.
+    if (!expectedNodeStructure.children) {
+      assert.lengthOf(node.childNodes.get(STACK_FRAME), 0);
+      assert.lengthOf(node.childNodes.get(OBJECT_TYPE), 0);
+      return;
     }
 
-    checkSizeNumericFields(row, columns[1], expectedSizes);
-    if (expectedCounts !== undefined) {
-      // Test sanity check.
-      assert.lengthOf(expectedCounts, expectedSizes.length);
-      assert.lengthOf(expectedAverageSizes, expectedSizes.length);
-
-      checkNumericFields(row, columns[2], expectedCounts,
-          count_smallerIsBetter);
-      checkSizeNumericFields(row, columns[3], expectedAverageSizes);
-    } else {
-      // Test sanity check.
-      assert.lengthOf(columns, EXPECTED_COLUMNS_WITHOUT_COUNT.length);
-      assert.isUndefined(expectedAverageSizes);
+    // If |expectedNodeStructure.children| is just a number, check total number
+    // of child nodes.
+    if (typeof expectedNodeStructure.children === 'number') {
+      assert.strictEqual(expectedNodeStructure.children,
+          node.childNodes.get(STACK_FRAME).length +
+          node.childNodes.get(OBJECT_TYPE).length);
+      return;
     }
 
-    var actualDefinedValues = new Array(row.contexts.length);
-    for (var i = 0; i < row.contexts.length; i++)
-      actualDefinedValues[i] = row.contexts[i] !== undefined;
-    assert.deepEqual(actualDefinedValues, expectedDefinedValues);
+    // Check child nodes wrt both dimensions.
+    checkNodes(node.childNodes.get(STACK_FRAME),
+        expectedNodeStructure.children.filter(c => c.dimension === STACK_FRAME),
+        node);
+    checkNodes(node.childNodes.get(OBJECT_TYPE),
+        expectedNodeStructure.children.filter(c => c.dimension === OBJECT_TYPE),
+        node);
   }
 
-  function checkRows(columns, rows, expectedStructure) {
-    if (expectedStructure === undefined) {
-      assert.isUndefined(rows);
-      return;
-    }
-
-    if (typeof expectedStructure === 'number') {
-      assert.lengthOf(rows, expectedStructure);
-      return;
-    }
-
-    assert.lengthOf(rows, expectedStructure.length);
+  function checkNodes(nodes, expectedStructure, expectedParentNode) {
+    assert.lengthOf(nodes, expectedStructure.length);
     for (var i = 0; i < expectedStructure.length; i++) {
-      var row = rows[i];
-      var expectedRowStructure = expectedStructure[i];
-      checkRow(columns, row, expectedRowStructure.dimension,
-          expectedRowStructure.title, expectedRowStructure.size,
-          expectedRowStructure.count, expectedRowStructure.averageSize,
-          expectedRowStructure.defined);
-      checkRows(columns, row.subRows, expectedRowStructure.children);
+      checkNode(nodes[i], expectedStructure[i], expectedParentNode);
     }
   }
 
-  function checkTable(viewEl, expectedConfig, expectedStructure) {
+  function checkSplitView(viewEl, expectedConfig, expectedStructure) {
     checkDisplayedElements(viewEl, {
       infoText: false,
-      tableAndSelector: true,
+      tableAndSplitView: true,
       infoBar: !!expectedConfig.expectedInfoBarDisplayed
     });
-    var table = viewEl.$.table;
-    var columns = table.tableColumns;
-    var rows = table.tableRows;
+
+    // Both the split view and breakdown view should be displaying the same
+    // node.
+    var selectedNode = viewEl.$.path_view.selectedNode;
+    assert.strictEqual(viewEl.$.breakdown_view.displayedNode, selectedNode);
+    checkNodes([selectedNode], expectedStructure,
+        undefined /* expectedParentNode */);
+
+    // TODO: Add proper tests for tr-ui-a-memory-dump-heap-details-path-view
+    // and tr-ui-a-memory-dump-heap-details-breakdown-view.
     var expectedColumns = expectedConfig.expectedCountColumns ?
         EXPECTED_COLUMNS_WITH_COUNT : EXPECTED_COLUMNS_WITHOUT_COUNT;
-    checkColumns(columns, expectedColumns,
+    checkColumns(viewEl.$.path_view.$.table.tableColumns, expectedColumns,
         expectedConfig.expectedAggregationMode);
-    checkRows(columns, rows, expectedStructure);
   }
 
   function changeView(viewEl, viewType) {
     tr.b.findDeepElementMatching(viewEl, 'select').selectedValue = viewType;
     viewEl.rebuild();
-  }
-
-  /**
-   * Helper function for generating the expected structures of heap details
-   * pane tables. Given a table, this function generates its structure.
-   *
-   * This avoids the need to write such structures manually, which is very
-   * tedious. However, the correctness of the generated structures needs to be
-   * verified by the developer! Maximum line length must also be enforced
-   * manually.
-   */
-  function printTable(test, viewEl) {
-    var generator = new tr.c.TestUtils.SourceGenerator();
-
-    function formatRows(rows) {
-      generator.formatMultiLineList(rows, function(row) {
-        generator.push('{');
-        generator.indentBlock(2, true /* break line */, function() {
-          generator.push('dimension: ');
-          for (var dimensionTitle in RowDimension) {
-            if (row.dimension === RowDimension[dimensionTitle]) {
-              generator.push(dimensionTitle);
-              break;
-            }
-          }
-          generator.push(',');
-          generator.breakLine();
-
-          generator.push('title: \'', row.title, '\',');
-          generator.breakLine();
-
-
-          var sizeFields = row.cells['Size'].fields;
-          generator.push('size: ');
-          generator.formatSingleLineList(sizeFields, function(field) {
-            generator.push(
-                field === undefined ? 'undefined' : String(field.value));
-          });
-          generator.push(',');
-          generator.breakLine();
-
-          if (row.cells['Count'] !== undefined) {
-            var countFields = row.cells['Count'].fields;
-            generator.push('count: ');
-            generator.formatSingleLineList(countFields, function(field) {
-              generator.push(
-                  field === undefined ? 'undefined' : String(field.value));
-            });
-            generator.push(',');
-            generator.breakLine();
-
-            generator.push('averageSize: ');
-            generator.formatSingleLineList(row.cells['Average size'].fields,
-                function(field, index) {
-                  if (field === undefined) {
-                    generator.push('undefined');
-                  } else if (field.value === 0) {
-                    generator.push('0');
-                  } else {
-                    generator.push(String(sizeFields[index].value) + ' / ' +
-                        String(countFields[index].value));
-                  }
-                });
-            generator.push(',');
-            generator.breakLine();
-          }
-
-          generator.push('defined: ');
-          generator.formatSingleLineList(sizeFields, function(field) {
-            generator.push(String(field !== undefined));
-          });
-
-          if (row.subRows && row.subRows.length > 0) {
-            generator.push(',');
-            generator.breakLine();
-            generator.push('children: ');
-            formatRows(row.subRows);
-          }
-        });
-        generator.breakLine();
-        generator.push('}');
-      });
-    }
-
-    generator.indentBlock(8, false /* don't break line */,
-        formatRows.bind(null, viewEl.$.table.tableRows));
-
-    tr.c.TestUtils.addSourceListing(test, generator.build());
-
-    throw new Error('This error is thrown to prevent accidentally ' +
-        'checking in a test which calls this function.');
   }
 
   test('instantiate_empty', function() {
@@ -388,7 +296,7 @@ tr.b.unittest.testSuite(function() {
           // Check that the info text is shown.
           checkDisplayedElements(viewEl, {
             infoText: true,
-            tableAndSelector: false,
+            tableAndSplitView: false,
             infoBar: false
           });
         });
@@ -405,7 +313,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     // Top-down tree view (default).
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { /* empty expectedConfig */ },
         [
           {
@@ -417,7 +325,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { expectedInfoBarDisplayed: true },
         [
           {
@@ -429,7 +337,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     changeView(viewEl, BOTTOM_UP_HEAVY_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { expectedInfoBarDisplayed: true },
         [
           {
@@ -453,7 +361,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     // Top-down tree view (default).
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { /* empty expectedConfig */ },
         [
           {
@@ -761,7 +669,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     changeView(viewEl, BOTTOM_UP_HEAVY_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { expectedInfoBarDisplayed: true },
         [
           {
@@ -1541,7 +1449,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { expectedInfoBarDisplayed: true }, [
           {
             dimension: ROOT,
@@ -2331,7 +2239,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         {
           expectedAggregationMode: AggregationMode.DIFF,
           expectedInfoBarDisplayed: true,
@@ -3567,7 +3475,7 @@ tr.b.unittest.testSuite(function() {
         ]);
 
     changeView(viewEl, TOP_DOWN_TREE_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         {
           expectedAggregationMode: AggregationMode.DIFF,
           expectedCountColumns: true
@@ -4047,7 +3955,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     changeView(viewEl, TOP_DOWN_HEAVY_VIEW);
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         {
           expectedAggregationMode: AggregationMode.MAX,
           expectedInfoBarDisplayed: true
@@ -4075,7 +3983,7 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
 
     // Top-down tree view (default).
-    checkTable(viewEl,
+    checkSplitView(viewEl,
         { expectedAggregationMode: AggregationMode.DIFF },
         [
           {

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.analysis', function() {
+
+  var LATIN_SMALL_LETTER_F_WITH_HOOK = String.fromCharCode(0x0192);
+  var CIRCLED_LATIN_CAPITAL_LETTER_T = String.fromCharCode(0x24C9);
+
+  /** @{enum} */
+  var HeapDetailsRowDimension = {
+    ROOT: {},
+    STACK_FRAME: {
+      label: 'Stack frame',
+      symbol: LATIN_SMALL_LETTER_F_WITH_HOOK,
+      color: 'heap_dump_stack_frame'
+    },
+    OBJECT_TYPE: {
+      label: 'Object type',
+      symbol: CIRCLED_LATIN_CAPITAL_LETTER_T,
+      color: 'heap_dump_object_type'
+    }
+  };
+
+  /** @{constructor} */
+  function HeapDetailsTitleColumn(title) {
+    tr.ui.analysis.TitleColumn.call(this, title);
+  }
+
+  HeapDetailsTitleColumn.prototype = {
+    __proto__: tr.ui.analysis.TitleColumn.prototype,
+
+    formatTitle: function(row) {
+      if (row.dimension === HeapDetailsRowDimension.ROOT)
+        return row.title;
+
+      var symbolEl = document.createElement('span');
+      Polymer.dom(symbolEl).textContent = row.dimension.symbol;
+      symbolEl.title = row.dimension.label;
+      symbolEl.style.color = tr.b.ColorScheme.getColorForReservedNameAsString(
+          row.dimension.color);
+      symbolEl.style.paddingRight = '4px';
+      symbolEl.style.cursor = 'help';
+      symbolEl.style.fontWeight = 'bold';
+
+      var titleEl = document.createElement('span');
+      Polymer.dom(titleEl).appendChild(symbolEl);
+      Polymer.dom(titleEl).appendChild(document.createTextNode(row.title));
+
+      return titleEl;
+    }
+  };
+
+  /** @constructor */
+  function AllocationCountColumn(name, cellPath, aggregationMode) {
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
+        this, name, cellPath, aggregationMode);
+  }
+
+  AllocationCountColumn.prototype = {
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
+
+    getFormattingContext: function(unit) {
+      return { minimumFractionDigits: 0 };
+    }
+  };
+
+  var HEAP_DETAILS_COLUMN_RULES = [
+    {
+      condition: 'Size',
+      importance: 3,
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
+    },
+    {
+      condition: 'Count',
+      importance: 2,
+      columnConstructor: AllocationCountColumn
+    },
+    {
+      condition: 'Average size per allocation',
+      importance: 1,
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
+    },
+    {
+      importance: 0,
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
+    }
+  ];
+
+  return {
+    HeapDetailsRowDimension: HeapDetailsRowDimension,
+    HeapDetailsTitleColumn: HeapDetailsTitleColumn,
+    AllocationCountColumn: AllocationCountColumn,
+    HEAP_DETAILS_COLUMN_RULES: HEAP_DETAILS_COLUMN_RULES
+  };
+});
+</script>

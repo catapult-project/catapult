@@ -8,12 +8,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
-<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_breakdown_view.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_path_view.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_util.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/info_bar.html">
-<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/numeric.html">
 
 <dom-module id='tr-ui-a-memory-dump-heap-details-pane'>
@@ -38,7 +40,7 @@ found in the LICENSE file.
       #label {
         flex: 1 1 auto;
         padding: 8px;
-        font-size:  15px;
+        font-size: 15px;
         font-weight: bold;
       }
 
@@ -62,11 +64,24 @@ found in the LICENSE file.
         text-align: center;
       }
 
-      #table {
+      #split_view {
         display: none;  /* Hide until memory allocator dumps are set. */
         flex: 1 0 auto;
         align-self: stretch;
-        font-size: 12px;
+        flex-direction: row;
+      }
+
+      #path_view {
+        width: 50%;
+      }
+
+      #breakdown_view {
+        flex: 1 1 auto;
+        width: 0;
+      }
+
+      #path_view, #breakdown_view {
+        overflow-x: auto;  /* Show scrollbar if necessary. */
       }
     </style>
     <div id="header">
@@ -79,8 +94,16 @@ found in the LICENSE file.
     <div id="contents">
       <tr-ui-b-info-bar id="info_bar" class="info-bar-hidden">
       </tr-ui-b-info-bar>
+
       <div id="info_text">No heap dump selected</div>
-      <tr-ui-b-table id="table"></tr-ui-b-table>
+
+      <div id="split_view">
+        <tr-ui-a-memory-dump-heap-details-path-view id="path_view">
+        </tr-ui-a-memory-dump-heap-details-path-view>
+        <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
+        <tr-ui-a-memory-dump-heap-details-breakdown-view id="breakdown_view">
+        </tr-ui-a-memory-dump-heap-details-breakdown-view>
+      </div>
     </div>
   </template>
 </dom-module>
@@ -96,94 +119,148 @@ tr.exportTo('tr.ui.analysis', function() {
   var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
   var TotalState = tr.b.MultiDimensionalViewNode.TotalState;
 
-  /** @{enum} */
-  var RowDimension = {
-    ROOT: -1,
-    STACK_FRAME: 0,
-    OBJECT_TYPE: 1
-  };
-
-  var LATIN_SMALL_LETTER_F_WITH_HOOK = String.fromCharCode(0x0192);
-  var CIRCLED_LATIN_CAPITAL_LETTER_T = String.fromCharCode(0x24C9);
-
   /** @{constructor} */
-  function HeapDumpNodeTitleColumn(title) {
-    tr.ui.analysis.TitleColumn.call(this, title);
+  function HeapDumpTreeNode(
+      stackFrameNodes, dimension, title, heavyView, parentNode) {
+    this.dimension = dimension;
+    this.title = title;
+    this.parentNode = parentNode;
+
+    this.heavyView_ = heavyView;
+    this.stackFrameNodes_ = stackFrameNodes;
+    this.lazyCells_ = undefined;
+    this.lazyChildNodes_ = undefined;
   }
 
-  HeapDumpNodeTitleColumn.prototype = {
-    __proto__: tr.ui.analysis.TitleColumn.prototype,
-
-    formatTitle: function(row) {
-      var title = row.title;
-      var dimension = row.dimension;
-      switch (dimension) {
-        case RowDimension.ROOT:
-          return title;
-
-        case RowDimension.STACK_FRAME:
-        case RowDimension.OBJECT_TYPE:
-          return this.formatSubRow_(title, dimension);
-
-        default:
-          throw new Error('Invalid row dimension: ' + row.dimension);
-      }
-    },
-
-    cmp: function(rowA, rowB) {
-      if (rowA.dimension !== rowB.dimension)
-        return rowA.dimension - rowB.dimension;
-      return tr.ui.analysis.TitleColumn.prototype.cmp.call(this, rowA, rowB);
-    },
-
-    formatSubRow_: function(title, dimension) {
-      var titleEl = document.createElement('span');
-
-      var symbolEl = document.createElement('span');
-      var symbolColorName;
-      if (dimension === RowDimension.STACK_FRAME) {
-        Polymer.dom(symbolEl).textContent = LATIN_SMALL_LETTER_F_WITH_HOOK;
-        symbolEl.title = 'Stack frame';
-        symbolColorName = 'heap_dump_stack_frame';
+  HeapDumpTreeNode.prototype = {
+    get minDisplayedTotalState_() {
+      if (this.heavyView_) {
+        // Show lower-bound and exact values in heavy views.
+        return TotalState.LOWER_BOUND;
       } else {
-        Polymer.dom(symbolEl).textContent = CIRCLED_LATIN_CAPITAL_LETTER_T;
-        symbolEl.title = 'Object type';
-        symbolColorName = 'heap_dump_object_type';
+        // Show only exact values in tree view.
+        return TotalState.EXACT;
       }
-      symbolEl.style.color =
-          tr.b.ColorScheme.getColorForReservedNameAsString(symbolColorName);
-      symbolEl.style.paddingRight = '4px';
-      symbolEl.style.cursor = 'help';
-      symbolEl.style.weight = 'bold';
-      Polymer.dom(titleEl).appendChild(symbolEl);
+    },
 
-      Polymer.dom(titleEl).appendChild(document.createTextNode(title));
+    get childNodes() {
+      if (!this.lazyChildNodes_) {
+        this.lazyChildNodes_ = new Map();
+        this.addDimensionChildNodes_(
+            tr.ui.analysis.HeapDetailsRowDimension.STACK_FRAME, 0);
+        this.addDimensionChildNodes_(
+            tr.ui.analysis.HeapDetailsRowDimension.OBJECT_TYPE, 1);
+        this.releaseStackFrameNodesIfPossible_();
+      }
+      return this.lazyChildNodes_;
+    },
 
-      return titleEl;
+    get cells() {
+      if (!this.lazyCells_) {
+        this.addCells_();
+        this.releaseStackFrameNodesIfPossible_();
+      }
+      return this.lazyCells_;
+    },
+
+    releaseStackFrameNodesIfPossible_: function() {
+      if (this.lazyCells_ && this.lazyChildNodes_) {
+        // Don't unnecessarily hold a reference to the stack frame nodes when
+        // we don't need them anymore.
+        this.stackFrameNodes_ = undefined;
+      }
+    },
+
+    addDimensionChildNodes_: function(dimension, dimensionIndex) {
+      // Child title -> Timestamp (list index) -> Child
+      // MultiDimensionalViewNode.
+      var dimensionChildTitleToStackFrameNodes = tr.b.invertArrayOfDicts(
+          this.stackFrameNodes_,
+          node => this.convertStackFrameNodeDimensionToChildDict_(
+              node, dimensionIndex));
+
+      // Child title (list index) -> Child HeapDumpTreeNode.
+      var dimensionChildNodes = [];
+      tr.b.iterItems(dimensionChildTitleToStackFrameNodes,
+          function(childTitle, childStackFrameNodes) {
+            dimensionChildNodes.push(new HeapDumpTreeNode(childStackFrameNodes,
+                dimension, childTitle, this.heavyView_, this));
+          }, this);
+      this.lazyChildNodes_.set(dimension, dimensionChildNodes);
+    },
+
+    convertStackFrameNodeDimensionToChildDict_: function(
+        stackFrameNode, dimensionIndex) {
+      var childDict = {};
+
+      var displayedChildrenTotalSize = 0;
+      var displayedChildrenTotalCount = 0;
+      var hasDisplayedChildren = false;
+      var allDisplayedChildrenHaveDisplayedCounts = true;
+      for (var child of stackFrameNode.children[dimensionIndex].values()) {
+        if (child.values[0].totalState < this.minDisplayedTotalState_)
+          continue;
+        if (child.values[1].totalState < this.minDisplayedTotalState_)
+          allDisplayedChildrenHaveDisplayedCounts = false;
+        childDict[child.title[dimensionIndex]] = child;
+        displayedChildrenTotalSize += child.values[0].total;
+        displayedChildrenTotalCount += child.values[1].total;
+        hasDisplayedChildren = true;
+      }
+
+      var nodeTotalSize = stackFrameNode.values[0].total;
+      var nodeTotalCount = stackFrameNode.values[1].total;
+
+      // Add '<other>' node if necessary in tree-view.
+      var hasUnclassifiedSizeOrCount =
+          displayedChildrenTotalSize < nodeTotalSize ||
+          displayedChildrenTotalCount < nodeTotalCount;
+      if (!this.heavyView_ && hasUnclassifiedSizeOrCount &&
+          hasDisplayedChildren) {
+        var otherTitle = stackFrameNode.title.slice();
+        otherTitle[dimensionIndex] = '<other>';
+        var otherNode = new tr.b.MultiDimensionalViewNode(otherTitle, 2);
+        childDict[otherTitle[dimensionIndex]] = otherNode;
+
+        // '<other>' node size.
+        otherNode.values[0].total = nodeTotalSize - displayedChildrenTotalSize;
+        otherNode.values[0].totalState = this.minDisplayedTotalState_;
+
+        // '<other>' node allocation count.
+        otherNode.values[1].total =
+            nodeTotalCount - displayedChildrenTotalCount;
+        // Don't show allocation count of the '<other>' node if there is a
+        // displayed child node that did NOT display allocation count.
+        otherNode.values[1].totalState =
+            allDisplayedChildrenHaveDisplayedCounts ?
+                this.minDisplayedTotalState_ : TotalState.NOT_PROVIDED;
+      }
+
+      return childDict;
+    },
+
+    addCells_: function() {
+      // Transform a chronological list of heap stack frame tree nodes into a
+      // dictionary of cells (where each cell contains a chronological list
+      // of the values of its numeric).
+      this.lazyCells_ = tr.ui.analysis.createCells(this.stackFrameNodes_,
+          function(stackFrameNode) {
+            var size = stackFrameNode.values[0].total;
+            var numerics = {
+              'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, size)
+            };
+            var countValue = stackFrameNode.values[1];
+            if (countValue.totalState >= this.minDisplayedTotalState_) {
+              var count = countValue.total;
+              numerics['Count'] = new ScalarNumeric(
+                  count_smallerIsBetter, count);
+              numerics['Average size per allocation'] = new ScalarNumeric(
+                  sizeInBytes_smallerIsBetter, count === 0 ? 0 : size / count);
+            }
+            return numerics;
+          }, this);
     }
   };
-
-  var COLUMN_RULES = [
-    {
-      condition: 'Size',
-      importance: 3,
-      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
-    },
-    {
-      condition: 'Count',
-      importance: 2,
-      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
-    },
-    {
-      condition: 'Average size per allocation',
-      importance: 1,
-      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
-    },
-    {
-      importance: 0,
-      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
-    }
-  ];
 
   Polymer({
     is: 'tr-ui-a-memory-dump-heap-details-pane',
@@ -191,12 +268,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
     created: function() {
       this.heapDumps_ = undefined;
-      this.aggregationMode_ = undefined;
       this.viewMode_ = undefined;
+      this.aggregationMode_ = undefined;
     },
 
     ready: function() {
-      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.info_bar.message = 'Note: Values displayed in the heavy view ' +
           'are lower bounds (except for the root).';
 
@@ -211,15 +287,30 @@ tr.exportTo('tr.ui.analysis', function() {
                 },
                 {
                   label: 'Top-down (Heavy)',
-                  value: MultiDimensionalViewBuilder.ViewType
-                      .TOP_DOWN_HEAVY_VIEW
+                  value:
+                      MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW
                 },
                 {
                   label: 'Bottom-up (Heavy)',
-                  value: MultiDimensionalViewBuilder.ViewType
-                      .BOTTOM_UP_HEAVY_VIEW
+                  value:
+                      MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW
                 }
               ]));
+
+      this.$.drag_handle.target = this.$.path_view;
+      this.$.drag_handle.horizontal = false;
+
+      // If the user selects a node in the path view, show its children in the
+      // breakdown view.
+      this.$.path_view.addEventListener('selected-node-changed', (function(e) {
+        this.$.breakdown_view.displayedNode = this.$.path_view.selectedNode;
+      }).bind(this));
+
+      // If the user double-clicks on a node in the breakdown view, select the
+      // node in the path view.
+      this.$.breakdown_view.addEventListener('enter-node', (function(e) {
+        this.$.path_view.selectedNode = e.node;
+      }).bind(this));
     },
 
     /**
@@ -246,7 +337,8 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuild_();
+      this.$.path_view.aggregationMode = aggregationMode;
+      this.$.breakdown_view.aggregationMode = aggregationMode;
     },
 
     get aggregationMode() {
@@ -277,31 +369,39 @@ tr.exportTo('tr.ui.analysis', function() {
           this.heapDumps_.length === 0) {
         // Show the info text (hide the table and the view mode selector).
         this.$.info_text.style.display = 'block';
-        this.$.table.style.display = 'none';
+        this.$.split_view.style.display = 'none';
         this.$.view_mode_container.style.display = 'none';
         this.$.info_bar.visible = false;
-
-        this.$.table.clear();
-        this.$.table.rebuild();
+        this.$.path_view.selectedNode = undefined;
         return;
       }
 
       // Show the table and the view mode selector (hide the info text).
       this.$.info_text.style.display = 'none';
-      this.$.table.style.display = 'block';
+      this.$.split_view.style.display = 'flex';
       this.$.view_mode_container.style.display = 'block';
 
       // Show the info bar if in heavy view mode.
       this.$.info_bar.visible = this.heavyView;
 
-      var stackFrameTrees = this.createStackFrameTrees_(this.heapDumps_);
-      var rows = this.createRows_(stackFrameTrees);
-      var columns = this.createColumns_(rows);
+      this.$.path_view.selectedNode = this.createHeapTree_();
+      this.$.path_view.rebuild();
+      this.$.breakdown_view.rebuild();
+    },
 
-      this.$.table.tableRows = rows;
-      this.$.table.tableColumns = columns;
-      this.$.table.rebuild();
-      tr.ui.analysis.expandTableRowsRecursively(this.$.table);
+    createHeapTree_: function() {
+      var definedHeapDump = tr.b.findFirstInArray(this.heapDumps_);
+      if (definedHeapDump === undefined)
+        return undefined;
+
+      // The title of the root node is the name of the allocator.
+      var rootRowTitle = definedHeapDump.allocatorName;
+
+      var stackFrameTrees = this.createStackFrameTrees_(this.heapDumps_);
+
+      return new HeapDumpTreeNode(stackFrameTrees,
+          tr.ui.analysis.HeapDetailsRowDimension.ROOT, rootRowTitle,
+          this.heavyView);
     },
 
     createStackFrameTrees_: function(heapDumps) {
@@ -330,151 +430,9 @@ tr.exportTo('tr.ui.analysis', function() {
 
         return builder.buildView(this.viewMode);
       }, this);
-    },
-
-    createRows_: function(stackFrameTrees) {
-      var definedHeapDump = tr.b.findFirstInArray(this.heapDumps);
-      if (definedHeapDump === undefined)
-        return [];
-
-      // The title of the root row is the name of the allocator.
-      var rootRowTitle = definedHeapDump.allocatorName;
-      return [this.createHeapRowRecursively_(
-          stackFrameTrees, RowDimension.ROOT, rootRowTitle)];
-    },
-
-    createHeapRowRecursively_: function(nodes, dimension, title) {
-      // Transform a chronological list of stack frame tree nodes into a
-      // dictionary of cells (where each cell contains a chronological list
-      // of the values of its numeric).
-      var cells = tr.ui.analysis.createCells(nodes, function(node) {
-        var size = node.values[0].total;
-        var row = {
-          'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, size)
-        };
-        var countValue = node.values[1];
-        if (countValue.totalState >= this.minDisplayedTotalState_) {
-          var count = countValue.total;
-          row['Count'] = new ScalarNumeric(count_smallerIsBetter, count);
-          row['Average size per allocation'] = new ScalarNumeric(
-              sizeInBytes_smallerIsBetter, count === 0 ? 0 : size / count);
-        }
-        return row;
-      }, this);
-
-      var row = {
-        dimension: dimension,
-        title: title,
-        contexts: nodes,
-        cells: cells
-      };
-
-      // Recursively create sub-rows for children (if applicable).
-      var stackFrameSubRows = this.createHeapDimensionSubRowsRecursively_(
-          nodes, RowDimension.STACK_FRAME);
-      var objectTypeSubRows = this.createHeapDimensionSubRowsRecursively_(
-          nodes, RowDimension.OBJECT_TYPE);
-      var subRows = stackFrameSubRows.concat(objectTypeSubRows);
-      if (subRows.length > 0)
-        row.subRows = subRows;
-
-      return row;
-    },
-
-    get minDisplayedTotalState_() {
-      if (this.heavyView) {
-        // Show lower-bound and exact values in heavy views.
-        return TotalState.LOWER_BOUND;
-      } else {
-        // Show only exact values in tree view.
-        return TotalState.EXACT;
-      }
-    },
-
-    createHeapDimensionSubRowsRecursively_: function(nodes, dimension) {
-      // Sub-row name (list index) -> Timestamp (list index) -> Child
-      // MultiDimensionalViewNode.
-      var dimensionGroupedChildNodes = tr.b.dictionaryValues(
-          tr.b.invertArrayOfDicts(nodes, function(node) {
-            var childDict = {};
-            var displayedChildrenTotalSize = 0;
-            var displayedChildrenTotalCount = 0;
-            var hasDisplayedChildren = false;
-            var allDisplayedChildrenHaveDisplayedCounts = true;
-            for (var child of node.children[dimension].values()) {
-              if (child.values[0].totalState < this.minDisplayedTotalState_)
-                continue;
-              if (child.values[1].totalState < this.minDisplayedTotalState_)
-                allDisplayedChildrenHaveDisplayedCounts = false;
-              childDict[child.title[dimension]] = child;
-              displayedChildrenTotalSize += child.values[0].total;
-              displayedChildrenTotalCount += child.values[1].total;
-              hasDisplayedChildren = true;
-            }
-
-            var nodeTotalSize = node.values[0].total;
-            var nodeTotalCount = node.values[1].total;
-
-            // Add '<other>' node if necessary in tree-view.
-            var hasUnclassifiedSizeOrCount =
-                displayedChildrenTotalSize < nodeTotalSize ||
-                displayedChildrenTotalCount < nodeTotalCount;
-            if (!this.heavyView && hasUnclassifiedSizeOrCount &&
-                hasDisplayedChildren) {
-              var otherTitle = node.title.slice();
-              otherTitle[dimension] = '<other>';
-              childDict['<other>'] = {
-                title: otherTitle,
-                values: [
-                  {
-                    self: 0,
-                    total: nodeTotalSize - displayedChildrenTotalSize,
-                    totalState: this.minDisplayedTotalState_
-                  },
-                  {
-                    self: 0,
-                    total: nodeTotalCount - displayedChildrenTotalCount,
-                    // Don't show allocation count of the '<other>' node if
-                    // there is a displayed child node that did NOT display
-                    // allocation count.
-                    totalState: allDisplayedChildrenHaveDisplayedCounts ?
-                        this.minDisplayedTotalState_ : TotalState.NOT_PROVIDED
-                  }
-                ],
-                children: [new Map(), new Map()]
-              };
-            }
-
-            return childDict;
-          }, this));
-
-      // Sub-row name (list index) -> Sub-row.
-      return dimensionGroupedChildNodes.map(function(subRowNodes) {
-        var subRowTitle = tr.b.findFirstInArray(subRowNodes).title[dimension];
-        return this.createHeapRowRecursively_(
-            subRowNodes, dimension, subRowTitle);
-      }, this);
-    },
-
-    createColumns_: function(rows) {
-      var titleColumn = new HeapDumpNodeTitleColumn('Stack frame');
-      titleColumn.width = '500px';
-
-      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
-        cellKey: 'cells',
-        aggregationMode: this.aggregationMode_,
-        rules: COLUMN_RULES
-      });
-      tr.ui.analysis.MemoryColumn.spaceEqually(numericColumns);
-
-      var columns = [titleColumn].concat(numericColumns);
-      return columns;
     }
-  });
+   });
 
-  return {
-    // Exported for testing.
-    RowDimension: RowDimension
-  };
+  return {};
 });
 </script>

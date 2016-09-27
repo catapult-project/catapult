@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/color_scheme.html">
+<link rel="import" href="/tracing/base/event.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_util.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
+<link rel="import" href="/tracing/ui/analysis/rebuildable_behavior.html">
+<link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/tab_view.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/ui/scalar_context_controller.html">
+
+<dom-module id='tr-ui-a-memory-dump-heap-details-breakdown-view'>
+  <template>
+    <tr-ui-b-tab-view id="tabs"></tr-ui-b-tab-view>
+  </template>
+</dom-module>
+
+<dom-module id='tr-ui-a-memory-dump-heap-details-breakdown-view-tab'>
+  <template>
+    <style>
+      #info_text {
+        padding: 8px;
+        color: #666;
+        font-style: italic;
+        text-align: center;
+      }
+    </style>
+    <tr-v-ui-scalar-context-controller></tr-v-ui-scalar-context-controller>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+    <div id="info_text"></div>
+  </template>
+</dom-module>
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.analysis', function() {
+
+  Polymer({
+    is: 'tr-ui-a-memory-dump-heap-details-breakdown-view',
+    behaviors: [tr.ui.analysis.RebuildableBehavior],
+
+    created: function() {
+      this.displayedNode_ = undefined;
+    },
+
+    ready: function() {
+      this.scheduleRebuild_();
+    },
+
+    get displayedNode() {
+      return this.displayedNode_;
+    },
+
+    set displayedNode(node) {
+      this.displayedNode_ = node;
+      this.scheduleRebuild_();
+    },
+
+    get aggregationMode() {
+      return this.aggregationMode_;
+    },
+
+    set aggregationMode(aggregationMode) {
+      this.aggregationMode_ = aggregationMode;
+      for (var tab of this.$.tabs.tabs)
+        tab.aggregationMode = aggregationMode;
+    },
+
+    onRebuild_: function() {
+      var previouslySelectedTab = this.$.tabs.selectedSubView;
+      var previouslySelectedTabFocused = false;
+      var previouslySelectedDimension = undefined;
+      if (previouslySelectedTab) {
+        previouslySelectedTabFocused = previouslySelectedTab.isFocused;
+        previouslySelectedDimension = previouslySelectedTab.dimension;
+      }
+
+      this.$.tabs.clearSubViews();
+
+      if (this.displayedNode_ === undefined) {
+        this.$.tabs.label = 'No heap node provided.';
+        return;
+      }
+
+      for (var [dimension, children] of this.displayedNode_.childNodes) {
+        var tab = document.createElement(
+            'tr-ui-a-memory-dump-heap-details-breakdown-view-tab');
+        tab.aggregationMode = this.aggregationMode_;
+        tab.dimension = dimension;
+        tab.nodes = children;
+        this.$.tabs.addSubView(tab);
+        tab.rebuild();
+        if (dimension === previouslySelectedDimension) {
+          this.$.tabs.selectedSubView = tab;
+          if (previouslySelectedTabFocused)
+            tab.focus();
+        }
+      }
+
+      if (this.$.tabs.tabs.length > 0)
+        this.$.tabs.label = 'Break selected node further by:';
+      else
+        this.$.tabs.label = 'Selected node cannot be broken down any further.';
+    }
+  });
+
+  Polymer({
+    is: 'tr-ui-a-memory-dump-heap-details-breakdown-view-tab',
+    behaviors: [tr.ui.analysis.RebuildableBehavior],
+
+    created: function() {
+      this.dimension_ = undefined;
+      this.nodes_ = undefined;
+      this.aggregationMode_ = undefined;
+    },
+
+    ready: function() {
+      this.$.table.addEventListener('step-into', function(tableEvent) {
+        var viewEvent = new tr.b.Event('enter-node');
+        viewEvent.node = tableEvent.tableRow;
+        this.dispatchEvent(viewEvent);
+      }.bind(this));
+    },
+
+    get dimension() {
+      return this.dimension_;
+    },
+
+    set dimension(dimension) {
+      this.dimension_ = dimension;
+      this.scheduleRebuild_();
+    },
+
+    get nodes() {
+      return this.nodes_;
+    },
+
+    set nodes(nodes) {
+      this.nodes_ = nodes;
+      this.scheduleRebuild_();
+    },
+
+    get dimensionLabel_() {
+      if (this.dimension_ === undefined)
+        return '(undefined)'
+      return this.dimension_.label;
+    },
+
+    get tabLabel() {
+      var nodeCount = 0;
+      if (this.nodes_)
+        nodeCount = this.nodes_.length;
+      return this.dimensionLabel_ + ' (' + nodeCount + ')';
+    },
+
+    get tabIcon() {
+      if (this.dimension_ === undefined ||
+          this.dimension_ === tr.ui.analysis.HeapDetailsRowDimension.ROOT) {
+        return undefined;
+      }
+      return {
+        text: this.dimension_.symbol,
+        style: 'color: ' + tr.b.ColorScheme.getColorForReservedNameAsString(
+            this.dimension_.color) + ';'
+      };
+    },
+
+    get aggregationMode() {
+      return this.aggregationMode_;
+    },
+
+    set aggregationMode(aggregationMode) {
+      this.aggregationMode_ = aggregationMode;
+      this.scheduleRebuild_();
+    },
+
+    focus: function() {
+      this.$.table.focus();
+    },
+
+    blur: function() {
+      this.$.table.blur();
+    },
+
+    get isFocused() {
+      return this.$.table.isFocused;
+    },
+
+    onRebuild_: function() {
+      if (this.nodes_ === undefined || this.nodes_.length === 0) {
+        this.$.table.clear();
+        this.$.table.style.display = 'none';
+        this.$.info_text.style.display = 'block';
+        this.$.info_text.textContent = 'Cannot break down by ' +
+            this.dimensionLabel_.toLowerCase() + ' any further.';
+        return;
+      }
+
+      this.$.table.style.display = 'block';
+      this.$.info_text.style.display = 'none';
+      this.$.info_text.textContent = '';
+
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.table.tableRows = this.nodes_;
+      this.$.table.tableColumns = this.createColumns_(this.nodes_);
+      this.$.table.rebuild();
+    },
+
+    createColumns_: function(rows) {
+      var titleColumn = new tr.ui.analysis.HeapDetailsTitleColumn(
+          this.tabLabel);
+      titleColumn.width = '200px';
+
+      var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
+        cellKey: 'cells',
+        aggregationMode: this.aggregationMode_,
+        rules: tr.ui.analysis.HEAP_DETAILS_COLUMN_RULES,
+        shouldSetContextGroup: true
+      });
+      tr.ui.analysis.MemoryColumn.spaceEqually(numericColumns);
+
+      var columns = [titleColumn].concat(numericColumns);
+      return columns;
+    }
+  });
+
+  return {};
+});
+</script>
