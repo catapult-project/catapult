@@ -173,7 +173,9 @@ def Main(argv):
       arch, os_name = dependency_util.GetOSAndArchForCurrentDesktopPlatform()
       chrome_path, version = chrome_manager.FetchPathWithVersion(
           'chrome_%s' % channel, arch, os_name)
+      print 'Finished fetching the chrome binary to %s' % chrome_path
       if xvfb.ShouldStartXvfb():
+        print 'Starting xvfb...'
         xvfb_process = xvfb.StartXvfb()
       chrome_info = 'version %s from channel %s' % (version, channel)
     chrome_command = [
