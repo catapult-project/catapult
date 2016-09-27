@@ -73,6 +73,22 @@ Polymer({
     Polymer.dom(this.$.chart).appendChild(this.chart_);
   },
 
+  get chartWidth() {
+    return this.chart_.width;
+  },
+
+  set chartWidth(width) {
+    this.chart_.width = width;
+  },
+
+  get chartHeight() {
+    return this.chart_.height;
+  },
+
+  set chartHeight(height) {
+    this.chart_.height = height;
+  },
+
   get brushedBins() {
     return this.brushedBins_;
   },
@@ -247,6 +263,10 @@ Polymer({
     this.chart_.xAxisLabel = '#';
     this.chart_.yAxisLabel = this.histogram.unit.unitString;
 
+    // https://github.com/catapult-project/catapult/issues/2859
+    // TODO(benjhayden) Compute chart_.height more intelligently:
+    // consider number of bins; |set chartHeight| should override this logic
+    // even when called before |set histogram|.
     this.chart_.height = Math.max(200,
         this.$.stats.getBoundingClientRect().height);
 
