@@ -20,8 +20,8 @@ tr.b.unittest.testSuite(function() {
 
   function checkBoundaries(boundaries, expectedMinBoundary, expectedMaxBoundary,
       expectedUnit, expectedBinRanges) {
-    assert.strictEqual(boundaries.minBinBoundary, expectedMinBoundary);
-    assert.strictEqual(boundaries.maxBinBoundary, expectedMaxBoundary);
+    assert.strictEqual(boundaries.range.min, expectedMinBoundary);
+    assert.strictEqual(boundaries.range.max, expectedMaxBoundary);
 
     // Check that the boundaries can be used multiple times.
     for (var i = 0; i < 3; i++) {
@@ -38,6 +38,58 @@ tr.b.unittest.testSuite(function() {
       }
     }
   }
+
+  test('serialization', function() {
+    // Ensure that serialized Histograms don't take up too much more space than
+    // necessary.
+    var hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
+
+    // You can change these numbers, but when you do, please explain in your CL
+    // description why they changed.
+    var dict = hist.asDict();
+    assert.strictEqual(107, JSON.stringify(dict).length);
+    assert.isUndefined(dict.centralBins);
+    assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+
+    hist.addSample(100);
+    dict = hist.asDict();
+    assert.strictEqual(202, JSON.stringify(dict).length);
+    assert.isUndefined(dict.centralBins.length);
+    assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+
+    hist.addSample(100);
+    dict = hist.asDict();
+    // SAMPLE_VALUES grew by "100,"
+    assert.strictEqual(206, JSON.stringify(dict).length);
+    assert.isUndefined(dict.centralBins.length);
+    assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+
+    hist.addSample(271, {foo: new tr.v.d.Generic('bar')});
+    dict = hist.asDict();
+    assert.strictEqual(266, JSON.stringify(dict).length);
+    assert.isUndefined(dict.centralBins.length);
+    assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+
+    // Add samples to most bins so that centralBinsArray is more efficient than
+    // centralBinsDict.
+    for (var i = 10; i < 100; ++i) {
+      hist.addSample(10 * i);
+    }
+    dict = hist.asDict();
+    assert.strictEqual(687, JSON.stringify(hist.asDict()).length);
+    assert.lengthOf(dict.centralBins, 10);
+    assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+
+    // Lowering maxNumSampleValues takes a random sub-sample of the existing
+    // sampleValues. We have deliberately set all samples to 3-digit numbers so
+    // that the serialized size is constant regardless of which samples are
+    // retained.
+    hist.maxNumSampleValues = 10;
+    dict = hist.asDict();
+    assert.strictEqual(379, JSON.stringify(dict).length);
+    assert.lengthOf(dict.centralBins, 10);
+    assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
+  });
 
   test('significance', function() {
     var boundaries = tr.v.HistogramBinBoundaries.createLinear(0, 100, 10);
@@ -340,6 +392,9 @@ tr.b.unittest.testSuite(function() {
       geometricMean: true,
       percentile: [0.5, 1]
     });
+
+    // Test round-tripping summaryOptions.
+    n = n.clone();
 
     var stats = n.statisticsScalars;
     assert.strictEqual(stats.get('nans').unit,

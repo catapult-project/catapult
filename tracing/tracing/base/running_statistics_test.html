@@ -183,8 +183,13 @@ tr.b.unittest.testSuite(function() {
     var data = [1, 2, 3];
     var dict = run(data).asDict();
     var cloneDict = RunningStatistics.fromDict(dict).asDict();
-    for (var field in dict)
+    for (var field = 0; field < dict.length; ++field) {
       assert.closeTo(dict[field], cloneDict[field], 1e-6);
+    }
+
+    // You can change this number, but when you do, please explain in your CL
+    // description why it changed.
+    assert.strictEqual(32, JSON.stringify(dict).length);
   });
 });
 </script>

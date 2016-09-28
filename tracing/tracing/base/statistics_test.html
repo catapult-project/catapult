@@ -469,6 +469,14 @@ tr.b.unittest.testSuite(function() {
     assert.isBelow(dB, dC);
   });
 
+  test('uniformlySampleArray', function() {
+    var samples = ['A', 'B', 'C', 'D', 'E'];
+    for (var i = samples.length; i >= 0; --i) {
+      Statistics.uniformlySampleArray(samples, i);
+      assert.lengthOf(samples, i);
+    }
+  });
+
   test('uniformlySampleStream', function() {
     var samples = [];
     Statistics.uniformlySampleStream(samples, 1, 'A', 5);
@@ -565,6 +573,5 @@ tr.b.unittest.testSuite(function() {
     results = Statistics.mwu(normallyDistributedSample, emptySample);
     assert(!results.p);
   });
-
 });
 </script>

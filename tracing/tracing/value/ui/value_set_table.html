@@ -687,9 +687,7 @@ tr.exportTo('tr.ui', function() {
               // TODO(eakuefner) When MergedFrom diagnostic lands, only create a
               // new Histogram if |row.columns[name]| doesn't have it so that we
               // don't create new Histograms unnecessarily.
-              var merged = new tr.v.Histogram(value.name, value.unit,
-                  tr.v.HistogramBinBoundaries.createWithBoundaries(
-                      value.binBoundaries));
+              var merged = value.cloneEmpty();
               merged.addHistogram(row.columns[name]);
               merged.addHistogram(value);
               row.columns[name] = merged;

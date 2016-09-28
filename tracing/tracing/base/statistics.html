@@ -419,6 +419,23 @@ tr.exportTo('tr.b', function() {
       timestamps, opt_absolute, opt_locationCount);
   };
 
+  /**
+   * Modifies |samples| in-place to reduce its length down to |count|.
+   *
+   * @param {!Array} samples
+   * @param {number} count
+   * @return {!Array}
+   */
+  Statistics.uniformlySampleArray = function(samples, count) {
+    if (samples.length <= count) {
+      return samples;
+    }
+    while (samples.length > count) {
+      var i = parseInt(Math.random() * samples.length);
+      samples.splice(i, 1);
+    }
+    return samples;
+  };
 
   /**
    * A mechanism to uniformly sample elements from an arbitrary long stream.

@@ -138,26 +138,37 @@ tr.exportTo('tr.b', function() {
     }
 
     asDict() {
-      return {
-        mean: this.mean,
-        meanlogs: this.meanlogs_,
-        count: this.count,
-        max: this.max,
-        min: this.min,
-        sum: this.sum,
-        variance: this.variance_
-      };
+      if (!this.count) {
+        return [];
+      }
+      // It's more efficient to serialize these fields in an array. If you
+      // add any other fields, you should re-evaluate whether it would be more
+      // efficient to serialize as a dict.
+      return [
+        this.count_,
+        this.max_,
+        this.meanlogs_,
+        this.mean_,
+        this.min_,
+        this.sum_,
+        this.variance_,
+      ];
     }
 
-    static fromDict(d) {
+    static fromDict(dict) {
       var result = new RunningStatistics();
-      result.mean_ = d.mean;
-      result.count_ = d.count;
-      result.max_ = d.max;
-      result.min_ = d.min;
-      result.sum_ = d.sum;
-      result.variance_ = d.variance;
-      result.meanlogs_ = d.meanlogs;
+      if (dict.length != 7) {
+        return result;
+      }
+      [
+        result.count_,
+        result.max_,
+        result.meanlogs_,
+        result.mean_,
+        result.min_,
+        result.sum_,
+        result.variance_,
+      ] = dict;
       return result;
     }
   }
