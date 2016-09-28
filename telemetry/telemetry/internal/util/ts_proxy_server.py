@@ -113,6 +113,12 @@ class TsProxyServer(object):
     self._IssueCommand('set mapports 443:%i,*:%i' % (https_port, http_port),
                        timeout)
 
+  def UpdateTrafficSettings(self, round_trip_latency_ms=0,
+      download_bandwidth_kbps=0, upload_bandwidth_kbps=0, timeout=5):
+    self._IssueCommand('set rtt %s' % round_trip_latency_ms, timeout)
+    self._IssueCommand('set inkbps %s' % download_bandwidth_kbps, timeout)
+    self._IssueCommand('set outkbps %s' % upload_bandwidth_kbps, timeout)
+
   def StopServer(self):
     """Stop TsProxy Server."""
     if not self._is_running:

@@ -274,3 +274,7 @@ class NetworkControllerBackend(object):
   @property
   def forwarder(self):
     return self._forwarder
+
+  @property
+  def ts_proxy_server(self):
+    return self._ts_proxy_server

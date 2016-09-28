@@ -32,8 +32,17 @@ class TsProxyServerTest(unittest.TestCase):
       self.assertIsNotNone(server.port)
       server.UpdateOutboundPorts(31242, 14220)
 
-  def testSmokeUpdatingOutboundPortsInvalid(self):
+  def testSmokeUpdateOutboundPortsInvalid(self):
     with ts_proxy_server.TsProxyServer() as server:
       self.assertIsNotNone(server.port)
       with self.assertRaises(AssertionError):
         server.UpdateOutboundPorts(31242, 'abcde')
+
+  def testSmokeUpdateTrafficSettings(self):
+    with ts_proxy_server.TsProxyServer() as server:
+      server.UpdateTrafficSettings(round_trip_latency_ms=100)
+      server.UpdateTrafficSettings(download_bandwidth_kbps=5000)
+      server.UpdateTrafficSettings(upload_bandwidth_kbps=2000)
+      server.UpdateTrafficSettings(
+          round_trip_latency_ms=200, download_bandwidth_kbps=500,
+          upload_bandwidth_kbps=2000)

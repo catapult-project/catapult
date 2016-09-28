@@ -16,6 +16,7 @@ from telemetry.internal.platform.profiler import profiler_finder
 from telemetry.internal.util import exception_formatter
 from telemetry.internal.util import file_handle
 from telemetry.page import cache_temperature
+from telemetry.page import traffic_setting
 from telemetry.page import legacy_page_test
 from telemetry import story
 from telemetry.util import screenshot
@@ -246,8 +247,13 @@ class SharedPageState(story.SharedState):
       if started_browser:
         self.browser.tabs[0].WaitForDocumentReadyStateToBeComplete()
 
+    # Reset traffic shaping to speed up cache temperature setup.
+    self.platform.network_controller.UpdateTrafficSettings(0, 0, 0)
     cache_temperature.EnsurePageCacheTemperature(
         self._current_page, self.browser, self._previous_page)
+    if self._current_page.traffic_setting != traffic_setting.NONE:
+      # TODO(kouhei): fill in appropriate traffic shaping data.
+      raise NotImplementedError()
 
     # Start profiling if needed.
     if self._finder_options.profiler:

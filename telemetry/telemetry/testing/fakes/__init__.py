@@ -297,6 +297,10 @@ class _FakeNetworkController(object):
   def InitializeIfNeeded(self, use_live_traffic=False):
     self.use_live_traffic = use_live_traffic
 
+  def UpdateTrafficSettings(self, round_trip_latency_ms=None,
+      download_bandwidth_kbps=None, upload_bandwidth_kbps=None):
+    pass
+
   def Open(self, wpr_mode, extra_wpr_args):
     self.wpr_mode = wpr_mode
     self.extra_wpr_args = extra_wpr_args
