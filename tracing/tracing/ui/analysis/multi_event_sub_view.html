@@ -85,6 +85,7 @@ tr.exportTo('tr.ui.analysis', function() {
         tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
     }
     diagnostics['args'] = new tr.v.d.Generic(slice.args);
+    diagnostics['event'] = new tr.v.d.RelatedEventSet(slice);
     return diagnostics;
   }
 
@@ -153,6 +154,7 @@ tr.exportTo('tr.ui.analysis', function() {
           return value[selectedKey];
         });
 
+      if (leftBoundary === rightBoundary) rightBoundary += 1;
       var histogram = new tr.v.Histogram(
         '',
         tr.b.Unit.byName.timeDurationInMs,
