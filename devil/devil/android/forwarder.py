@@ -343,6 +343,12 @@ class Forwarder(object):
         check_return=True)
     self._initialized_devices.add(device_serial)
 
+  @staticmethod
+  def KillHost():
+    """Kills the forwarder process running on the host."""
+    with _FileLock(Forwarder._LOCK_PATH):
+      Forwarder._GetInstanceLocked(None)._KillHostLocked()
+
   def _KillHostLocked(self):
     """Kills the forwarder process running on the host.
 
@@ -358,6 +364,19 @@ class Forwarder(object):
         raise HostForwarderError(
             '%s exited with %d:\n%s' % (self._host_forwarder_path, exit_code,
                                         '\n'.join(output)))
+
+  @staticmethod
+  def KillDevice(device, tool=None):
+    """Kills the forwarder process running on the device.
+
+    Args:
+      device: Instance of DeviceUtils for talking to the device.
+      tool: Wrapper tool (e.g. valgrind) that can be used to execute the device
+            forwarder (see valgrind_tools.py).
+    """
+    with _FileLock(Forwarder._LOCK_PATH):
+      Forwarder._GetInstanceLocked(None)._KillDeviceLocked(
+          device, tool or base_tool.BaseTool())
 
   @staticmethod
   def _KillDeviceLocked(device, tool):
