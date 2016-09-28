@@ -337,6 +337,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       return ''
 
   def _GetAllCrashpadMinidumps(self):
+    if not self._tmp_minidump_dir:
+      logging.warning('No _tmp_minidump_dir; browser already closed?')
+      return None
     os_name = self.browser.platform.GetOSName()
     arch_name = self.browser.platform.GetArchName()
     try:
@@ -406,6 +409,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return None
 
   def _GetBreakPadMinidumpPaths(self):
+    if not self._tmp_minidump_dir:
+      logging.warning('No _tmp_minidump_dir; browser already closed?')
+      return None
     return glob.glob(os.path.join(self._tmp_minidump_dir, '*.dmp'))
 
   def _GetMostRecentMinidump(self):
@@ -530,7 +536,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if dumps:
         logging.info('Found minidump via globbing in minidump dir')
         return dumps
-      return None
+      return []
 
   def GetAllUnsymbolizedMinidumpPaths(self):
     minidump_paths = set(self.GetAllMinidumpPaths())
