@@ -95,7 +95,7 @@ class BattorWrapper(object):
       _battor_agent_binary: Path to the BattOr agent binary used to communicate
         with the BattOr.
       _tracing: A bool saying if tracing has been started.
-      _battor_shell: A subprocess running the bator_agent_binary
+      _battor_shell: A subprocess running the battor_agent_binary
       _trace_results_path: Path to BattOr trace results file.
       _serial_log_bucket: Cloud storage bucket to which BattOr agent serial logs
         are uploaded on failure.
