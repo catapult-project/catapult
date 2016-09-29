@@ -5,10 +5,14 @@
 import os
 import unittest
 
+from telemetry import benchmark
 from telemetry import story
 from telemetry.internal.results import base_test_results_unittest
+from telemetry.internal.results import chart_json_output_formatter
+from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
+from telemetry.testing import stream
 from telemetry.timeline import trace_data
 from telemetry.value import failure
 from telemetry.value import histogram
@@ -16,6 +20,7 @@ from telemetry.value import improvement_direction
 from telemetry.value import scalar
 from telemetry.value import skip
 from telemetry.value import trace
+
 
 class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
   def setUp(self):
@@ -353,6 +358,22 @@ class PageTestResultsTest(base_test_results_unittest.BaseTestResultsUnittest):
 
     results.CleanUp()
     self.assertFalse(results.FindAllTraceValues())
+
+  def testPrintSummaryDisabledResults(self):
+    output_stream = stream.TestOutputStream()
+    output_formatters = []
+    benchmark_metadata = benchmark.BenchmarkMetadata(
+      'benchmark_name', 'benchmark_description')
+    output_formatters.append(
+        chart_json_output_formatter.ChartJsonOutputFormatter(
+            output_stream, benchmark_metadata))
+    output_formatters.append(json_output_formatter.JsonOutputFormatter(
+        output_stream, benchmark_metadata))
+    results = page_test_results.PageTestResults(
+        output_formatters=output_formatters, benchmark_enabled=False)
+    results.PrintSummary()
+    self.assertEquals(output_stream.output_data,
+      "{\n  \"enabled\": false,\n  \"benchmark_name\": \"benchmark_name\"\n}\n")
 
 
 class PageTestResultsFilterTest(unittest.TestCase):

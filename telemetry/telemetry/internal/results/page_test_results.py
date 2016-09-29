@@ -341,7 +341,7 @@ class PageTestResults(object):
         output_formatter.Format(self)
     else:
       for output_formatter in self._output_formatters:
-        output_formatter.FormatDisabled(self)
+        output_formatter.FormatDisabled()
 
   def FindValues(self, predicate):
     """Finds all values matching the specified predicate.
