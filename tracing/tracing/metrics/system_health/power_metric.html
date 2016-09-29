@@ -238,17 +238,19 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function computeLoadingMetric_(model, hists) {
     var intervals = getNavigationTTIIntervals_(model);
-    var lastLoadTime = 0;
+    var lastLoadTime = undefined;
     for (var interval of intervals) {
       var loadData = getPowerData_(model, interval.min, interval.max);
       storePowerData_(loadData, hists.loadTimeHist, hists.loadEnergyHist,
           undefined);
-      lastLoadTime = Math.max(lastLoadTime, interval.max);
+      lastLoadTime = (lastLoadTime == undefined ? interval.max :
+          Math.max(lastLoadTime, interval.max));
     }
-    var afterLoadData = getPowerData_(model, lastLoadTime, model.bounds.max);
-    storePowerData_(afterLoadData, hists.afterLoadTimeHist,
-        undefined, hists.afterLoadPowerHist);
-    hists.afterLoadPowerHist.addSample(afterLoadData.power);
+    if (lastLoadTime !== undefined) {
+      var afterLoadData = getPowerData_(model, lastLoadTime, model.bounds.max);
+      storePowerData_(afterLoadData, hists.afterLoadTimeHist,
+          undefined, hists.afterLoadPowerHist);
+    }
   }
 
   /**
