@@ -133,7 +133,8 @@ When in doubt, just try out --trace-frame-viewer.
     ui.PrintMessage('Time interval or continuous tracing should be specified.')
     return 1
 
-  if options.chrome_categories and 'webview' in options.atrace_categories:
+  if (options.chrome_categories and options.atrace_categories and
+      'webview' in options.atrace_categories):
     logging.warning('Using the "webview" category in atrace together with '
                     'Chrome tracing results in duplicate trace events.')
 
