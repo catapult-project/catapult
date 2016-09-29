@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
@@ -133,12 +134,9 @@ tr.exportTo('tr.metrics.sh', function() {
    * @param {tr.v.Histogram} powerHist - Histogram to store power data.
    */
   function storePowerData_(data, timeHist, energyHist, powerHist) {
-    if (timeHist !== undefined)
-      timeHist.addSample(data.duration);
-    if (energyHist !== undefined)
-      energyHist.addSample(data.energy);
-    if (powerHist !== undefined)
-      powerHist.addSample(data.power);
+    if (timeHist !== undefined) timeHist.addSample(data.duration);
+    if (energyHist !== undefined) energyHist.addSample(data.energy);
+    if (powerHist !== undefined) powerHist.addSample(data.power);
   }
 
   function createHistograms_(model, values) {
@@ -211,9 +209,11 @@ tr.exportTo('tr.metrics.sh', function() {
    * purposes. This function only keeps track of metrics that are based
    * on the start and end time of the RAIL stages.
    */
-  function processInteractionRecord_(exp, model, hists) {
+  function processInteractionRecord_(exp, model, hists, chromeBounds) {
     var currTitle = exp.title.toLowerCase().replace(' ', '_');
-    var data = getPowerData_(model, exp.start, exp.end);
+    var interval = tr.b.Range.fromExplicitRange(exp.start, exp.end)
+        .findIntersection(chromeBounds);
+    var data = getPowerData_(model, interval.min, interval.max);
 
     // Add the samples for the "generic" RAIL stage metrics.
     storePowerData_(data, hists.railStageToTimeHist.get(currTitle),
@@ -227,8 +227,9 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     // If this is a video stage, add the sample for the video metrics.
-    if (exp.title.indexOf("Video") !== -1)
+    if (exp.title.indexOf("Video") !== -1) {
       storePowerData_(data, undefined, undefined, hists.videoPowerHist)
+    }
   }
 
   /**
@@ -236,10 +237,11 @@ tr.exportTo('tr.metrics.sh', function() {
    * in |hists|. Note that this is not in processInteractionRecord_ because
    * the loading metric intervals don't correspond exactly to the RAIL stages.
    */
-  function computeLoadingMetric_(model, hists) {
-    var intervals = getNavigationTTIIntervals_(model);
+  function computeLoadingMetric_(model, hists, chromeBounds) {
+    var ttiIntervals = getNavigationTTIIntervals_(model);
     var lastLoadTime = undefined;
-    for (var interval of intervals) {
+    for (var ttiInterval of ttiIntervals) {
+      var interval = ttiInterval.findIntersection(chromeBounds);
       var loadData = getPowerData_(model, interval.min, interval.max);
       storePowerData_(loadData, hists.loadTimeHist, hists.loadEnergyHist,
           undefined);
@@ -247,7 +249,7 @@ tr.exportTo('tr.metrics.sh', function() {
           Math.max(lastLoadTime, interval.max));
     }
     if (lastLoadTime !== undefined) {
-      var afterLoadData = getPowerData_(model, lastLoadTime, model.bounds.max);
+      var afterLoadData = getPowerData_(model, lastLoadTime, chromeBounds.max);
       storePowerData_(afterLoadData, hists.afterLoadTimeHist,
           undefined, hists.afterLoadPowerHist);
     }
@@ -256,29 +258,72 @@ tr.exportTo('tr.metrics.sh', function() {
   /**
    * Compute the per-frame power metrics and put the results in |hists|.
    */
-  function computeFrameBasedPowerMetric_(model, hists) {
+  function computeFrameBasedPowerMetric_(model, hists, chromeBounds) {
     model.device.powerSeries.updateBounds();
-    var currentTime = model.device.powerSeries.bounds.min;
-    while (currentTime < model.device.powerSeries.bounds.max) {
+    var currentTime = chromeBounds.min;
+    while (currentTime < chromeBounds.max) {
       var frameData = getPowerData_(model, currentTime, currentTime + FRAME_MS);
       hists.frameEnergyHist.addSample(frameData.energy);
       currentTime += FRAME_MS;
     }
   }
 
+  function getChromeBounds(model) {
+    var chromeBounds = new tr.b.Range();
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    for (var pid in chromeHelper.browserHelpers) {
+      chromeBounds.addRange(chromeHelper.browserHelpers[pid].mainThread.bounds);
+    }
+    for (var pid in chromeHelper.rendererHelpers) {
+      chromeBounds.addRange(
+          chromeHelper.rendererHelpers[pid].mainThread.bounds);
+    }
+    return chromeBounds;
+  }
 
   function powerMetric(values, model) {
-    if (!model.device.powerSeries)
+    // Fail gracefully if there's no Chrome trace available.
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    if (chromeHelper === undefined) {
+      console.error('Power metric error: no Chrome trace.');
       return;
+    }
 
+    // Fail gracefully if there's no power series available.
+    if (!model.device.powerSeries) {
+      console.error('Power metric error: no power series available.');
+      return;
+    }
+
+    // Fail gracefully if the power series doesn't cover the entire trace.
+    // (add 1 ms grace period at each end)
+    var chromeBounds = getChromeBounds(model);
+    if (chromeBounds.min == undefined || chromeBounds.max == undefined) {
+      console.error('Power metric error: unable to determine bounds of ' +
+          'Chrome trace (possibly no events in Chrome trace).');
+      return;
+    }
+    if (model.device.powerSeries.bounds.min >= chromeBounds.min + 1.0) {
+      console.error('Power metric error: power series starts after beginning ' +
+          'of Chrome trace.');
+      return;
+    }
+    if (model.device.powerSeries.bounds.max <= chromeBounds.max - 1.0) {
+      console.error('Power metric error: power series ends before end of ' +
+          'Chrome trace.');
+      return;
+    }
     var hists = createHistograms_(model, values);
-    for(var exp of model.userModel.expectations)
-      processInteractionRecord_(exp, model, hists);
+    for(var exp of model.userModel.expectations) {
+      processInteractionRecord_(exp, model, hists, chromeBounds);
+    }
 
     // The following two metrics aren't based directly on the IR intervals,
     // and so need to be computed outside the processInteractionRecord_ loop.
-    computeLoadingMetric_(model, hists);
-    computeFrameBasedPowerMetric_(model, hists);
+    computeLoadingMetric_(model, hists, chromeBounds);
+    computeFrameBasedPowerMetric_(model, hists, chromeBounds);
   }
 
   tr.metrics.MetricRegistry.register(powerMetric);
