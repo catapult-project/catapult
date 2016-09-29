@@ -8,6 +8,8 @@ import re
 
 from devil.android import device_errors
 
+logger = logging.getLogger(__name__)
+
 
 class PerfControl(object):
   """Provides methods for setting the performance mode of a device."""
@@ -23,7 +25,7 @@ class PerfControl(object):
         if self._CPU_FILE_PATTERN.match(filename)]
     assert self._cpu_files, 'Failed to detect CPUs.'
     self._cpu_file_list = ' '.join(self._cpu_files)
-    logging.info('CPUs found: %s', self._cpu_file_list)
+    logger.info('CPUs found: %s', self._cpu_file_list)
     self._have_mpdecision = self._device.FileExists('/system/bin/mpdecision')
 
   def SetHighPerfMode(self):
@@ -32,10 +34,10 @@ class PerfControl(object):
       self._device.EnableRoot()
     except device_errors.CommandFailedError:
       message = 'Need root for performance mode. Results may be NOISY!!'
-      logging.warning(message)
+      logger.warning(message)
       # Add an additional warning at exit, such that it's clear that any results
       # may be different/noisy (due to the lack of intended performance mode).
-      atexit.register(logging.warning, message)
+      atexit.register(logger.warning, message)
       return
 
     product_model = self._device.product_model
@@ -43,12 +45,12 @@ class PerfControl(object):
     if 'Nexus 4' == product_model:
       self._ForceAllCpusOnline(True)
       if not self._AllCpusAreOnline():
-        logging.warning('Failed to force CPUs online. Results may be NOISY!')
+        logger.warning('Failed to force CPUs online. Results may be NOISY!')
       self._SetScalingGovernorInternal('performance')
     elif 'Nexus 5' == product_model:
       self._ForceAllCpusOnline(True)
       if not self._AllCpusAreOnline():
-        logging.warning('Failed to force CPUs online. Results may be NOISY!')
+        logger.warning('Failed to force CPUs online. Results may be NOISY!')
       self._SetScalingGovernorInternal('performance')
       self._SetScalingMaxFreq(1190400)
       self._SetMaxGpuClock(200000000)
@@ -111,9 +113,9 @@ class PerfControl(object):
             path=path, value=value))
     cpus = ' '.join(cpu for (cpu, _, status) in results if status == 0)
     if cpus:
-      logging.info('Successfully set %s to %r on: %s', path, value, cpus)
+      logger.info('Successfully set %s to %r on: %s', path, value, cpus)
     else:
-      logging.warning('Failed to set %s to %r on any cpus', path, value)
+      logger.warning('Failed to set %s to %r on any cpus', path, value)
 
   def _SetScalingGovernorInternal(self, value):
     self._WriteEachCpuFile('cpufreq/scaling_governor', value)
@@ -153,7 +155,7 @@ class PerfControl(object):
       self._device.RunShellCommand(cmd, check_return=True, as_root=True)
 
     if not self._have_mpdecision and not self._AllCpusAreOnline():
-      logging.warning('Unexpected cpu hot plugging detected.')
+      logger.warning('Unexpected cpu hot plugging detected.')
 
     if force_online:
       self._ForEachCpu('echo 1 > "$CPU/online"')

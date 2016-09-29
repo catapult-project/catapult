@@ -49,6 +49,8 @@ from devil.utils import reraiser_thread
 from devil.utils import timeout_retry
 from devil.utils import zip_utils
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 
@@ -184,7 +186,7 @@ def RestartServer():
   adb_wrapper.AdbWrapper.KillServer()
   if not timeout_retry.WaitFor(adb_killed, wait_period=1, max_tries=5):
     # TODO(perezju): raise an exception after fixng http://crbug.com/442319
-    logging.warning('Failed to kill adb server')
+    logger.warning('Failed to kill adb server')
   adb_wrapper.AdbWrapper.StartServer()
   if not timeout_retry.WaitFor(adb_started, wait_period=1, max_tries=5):
     raise device_errors.CommandFailedError('Failed to start adb server')
@@ -342,7 +344,7 @@ class DeviceUtils(object):
     try:
       return self.adb.GetState() == 'device'
     except base_error.BaseError as exc:
-      logging.info('Failed to get state: %s', exc)
+      logger.info('Failed to get state: %s', exc)
       return False
 
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -547,7 +549,7 @@ class DeviceUtils(object):
         if dataDir:
           return dataDir
     except device_errors.CommandFailedError:
-      logging.exception('Could not find data directory for %s', package)
+      logger.exception('Could not find data directory for %s', package)
     return None
 
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -698,7 +700,7 @@ class DeviceUtils(object):
       all_apks += split_select.SelectSplits(
         self, base_apk.path, split_apks, allow_cached_props=allow_cached_props)
       if len(all_apks) == 1:
-        logging.warning('split-select did not select any from %s', split_apks)
+        logger.warning('split-select did not select any from %s', split_apks)
 
     package_name = base_apk.GetPackageName()
     device_apk_paths = self._GetApplicationPathsInternal(package_name)
@@ -708,11 +710,11 @@ class DeviceUtils(object):
     if not device_apk_paths:
       apks_to_install = all_apks
     elif len(device_apk_paths) > 1 and not split_apks:
-      logging.warning(
+      logger.warning(
           'Installing non-split APK when split APK was previously installed')
       apks_to_install = all_apks
     elif len(device_apk_paths) == 1 and split_apks:
-      logging.warning(
+      logger.warning(
           'Installing split APK when non-split APK was previously installed')
       apks_to_install = all_apks
     else:
@@ -720,7 +722,7 @@ class DeviceUtils(object):
         apks_to_install, host_checksums = (
             self._ComputeStaleApks(package_name, all_apks))
       except EnvironmentError as e:
-        logging.warning('Error calculating md5: %s', e)
+        logger.warning('Error calculating md5: %s', e)
         apks_to_install, host_checksums = all_apks, None
       if apks_to_install and not reinstall:
         self.Uninstall(package_name)
@@ -870,16 +872,16 @@ class DeviceUtils(object):
       else:
         with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
           self._WriteFileWithPush(script.name, cmd)
-          logging.info('Large shell command will be run from file: %s ...',
-                       cmd[:self._MAX_ADB_COMMAND_LENGTH])
+          logger.info('Large shell command will be run from file: %s ...',
+                      cmd[:self._MAX_ADB_COMMAND_LENGTH])
           return handle_check_return('sh %s' % script.name_quoted)
 
     def handle_large_output(cmd, large_output_mode):
       if large_output_mode:
         with device_temp_file.DeviceTempFile(self.adb) as large_output_file:
           cmd = '( %s )>%s' % (cmd, large_output_file.name)
-          logging.debug('Large output mode enabled. Will write output to '
-                        'device and read results from file.')
+          logger.debug('Large output mode enabled. Will write output to '
+                       'device and read results from file.')
           handle_large_command(cmd)
           return self.ReadFile(large_output_file.name, force_pull=True)
       else:
@@ -887,10 +889,10 @@ class DeviceUtils(object):
           return handle_large_command(cmd)
         except device_errors.AdbCommandFailedError as exc:
           if exc.status is None:
-            logging.error(_FormatPartialOutputError(exc.output))
-            logging.warning('Attempting to run in large_output mode.')
-            logging.warning('Use RunShellCommand(..., large_output=True) for '
-                            'shell commands that expect a lot of output.')
+            logger.error(_FormatPartialOutputError(exc.output))
+            logger.warning('Attempting to run in large_output mode.')
+            logger.warning('Use RunShellCommand(..., large_output=True) for '
+                           'shell commands that expect a lot of output.')
             return handle_large_output(cmd, True)
           else:
             raise
@@ -932,7 +934,7 @@ class DeviceUtils(object):
     pipestatus_line = output[-1]
 
     if not pipestatus_line.startswith(PIPESTATUS_LEADER):
-      logging.error('Pipe exit statuses of shell script missing.')
+      logger.error('Pipe exit statuses of shell script missing.')
       raise device_errors.AdbShellCommandFailedError(
           script, output, status=None,
           device_serial=self.serial)
@@ -987,11 +989,11 @@ class DeviceUtils(object):
         raise device_errors.CommandFailedError(
             'No process "%s"' % process_name, str(self))
 
-    logging.info(
+    logger.info(
         'KillAll(%r, ...) attempting to kill the following:', process_name)
     for name, ids in procs_pids.iteritems():
       for i in ids:
-        logging.info('  %05s %s', str(i), name)
+        logger.info('  %05s %s', str(i), name)
 
     cmd = ['kill', '-%d' % signum] + sorted(pids)
     self.RunShellCommand(cmd, as_root=as_root, check_return=True)
@@ -1278,7 +1280,7 @@ class DeviceUtils(object):
           calculate_host_checksums,
           calculate_device_checksums))
     except EnvironmentError as e:
-      logging.warning('Error calculating md5: %s', e)
+      logger.warning('Error calculating md5: %s', e)
       return ([(host_path, device_path)], [], [], lambda: 0)
 
     to_push = []
@@ -1374,7 +1376,7 @@ class DeviceUtils(object):
           install_commands.InstallCommands(self)
         self._commands_installed = True
       except device_errors.CommandFailedError as e:
-        logging.warning('unzip not available: %s', str(e))
+        logger.warning('unzip not available: %s', str(e))
         self._commands_installed = False
     return self._commands_installed
 
@@ -1630,7 +1632,7 @@ class DeviceUtils(object):
         if m.group('filename') not in ['.', '..']:
           entries.append(m.groupdict())
       else:
-        logging.info('Skipping: %s', line)
+        logger.info('Skipping: %s', line)
 
     return entries
 
@@ -2139,12 +2141,12 @@ class DeviceUtils(object):
     try:
       result.update(self._GetMemoryUsageForPidFromSmaps(pid))
     except device_errors.CommandFailedError:
-      logging.exception('Error getting memory usage from smaps')
+      logger.exception('Error getting memory usage from smaps')
 
     try:
       result.update(self._GetMemoryUsageForPidFromStatus(pid))
     except device_errors.CommandFailedError:
-      logging.exception('Error getting memory usage from status')
+      logger.exception('Error getting memory usage from status')
 
     return result
 
@@ -2171,13 +2173,13 @@ class DeviceUtils(object):
     if not match:
       return None
     package = match.group(2)
-    logging.warning('Trying to dismiss %s dialog for %s', *match.groups())
+    logger.warning('Trying to dismiss %s dialog for %s', *match.groups())
     self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
     self.SendKeyEvent(keyevent.KEYCODE_DPAD_RIGHT)
     self.SendKeyEvent(keyevent.KEYCODE_ENTER)
     match = _FindFocusedWindow()
     if match:
-      logging.error('Still showing a %s dialog for %s', *match.groups())
+      logger.error('Still showing a %s dialog for %s', *match.groups())
     return package
 
   def _GetMemoryUsageForPidFromSmaps(self, pid):
@@ -2262,7 +2264,7 @@ class DeviceUtils(object):
     self._EnsureCacheInitialized()
     given_token = obj.get('token')
     if not given_token or self._cache['prev_token'] != given_token:
-      logging.warning('Stale cache detected. Not using it.')
+      logger.warning('Stale cache detected. Not using it.')
       return False
 
     self._cache['package_apk_paths'] = obj.get('package_apk_paths', {})
@@ -2375,7 +2377,7 @@ class DeviceUtils(object):
 
     def blacklisted(serial):
       if serial in blacklisted_devices:
-        logging.warning('Device %s is blacklisted.', serial)
+        logger.warning('Device %s is blacklisted.', serial)
         return True
       return False
 
@@ -2395,7 +2397,7 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):
-    logging.info('Restarting adbd on device.')
+    logger.info('Restarting adbd on device.')
     with device_temp_file.DeviceTempFile(self.adb, suffix='.sh') as script:
       self.WriteFile(script.name, _RESTART_ADBD_SCRIPT)
       self.RunShellCommand(['source', script.name], as_root=True)
@@ -2407,7 +2409,7 @@ class DeviceUtils(object):
     # the permission model.
     if not permissions or self.build_version_sdk < version_codes.MARSHMALLOW:
       return
-    logging.info('Setting permissions for %s.', package)
+    logger.info('Setting permissions for %s.', package)
     permissions = [p for p in permissions if p not in _PERMISSIONS_BLACKLIST]
     if ('android.permission.WRITE_EXTERNAL_STORAGE' in permissions
         and 'android.permission.READ_EXTERNAL_STORAGE' not in permissions):
@@ -2416,10 +2418,10 @@ class DeviceUtils(object):
     if cmd:
       output = self.RunShellCommand(cmd, check_return=True)
       if output:
-        logging.warning('Possible problem when granting permissions. Blacklist '
-                        'may need to be updated.')
+        logger.warning('Possible problem when granting permissions. Blacklist '
+                       'may need to be updated.')
         for line in output:
-          logging.warning('  %s', line)
+          logger.warning('  %s', line)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def IsScreenOn(self, timeout=None, retries=None):
@@ -2465,7 +2467,7 @@ class DeviceUtils(object):
       return self.IsScreenOn() == on
 
     if screen_test():
-      logging.info('Screen already in expected state.')
+      logger.info('Screen already in expected state.')
       return
     self.RunShellCommand('input keyevent 26')
     timeout_retry.WaitFor(screen_test, wait_period=1)

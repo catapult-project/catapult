@@ -12,6 +12,8 @@ import os
 import socket
 import traceback
 
+logger = logging.getLogger(__name__)
+
 # The net test server is started from port 10201.
 _TEST_SERVER_PORT_FIRST = 10201
 _TEST_SERVER_PORT_LAST = 30000
@@ -36,7 +38,7 @@ def ResetTestServerPortAllocation():
       fp.write('%d' % _TEST_SERVER_PORT_FIRST)
     return True
   except Exception:  # pylint: disable=broad-except
-    logging.exception('Error while resetting port allocation')
+    logger.exception('Error while resetting port allocation')
   return False
 
 
@@ -68,16 +70,16 @@ def AllocateTestServerPort():
         fp.seek(0, os.SEEK_SET)
         fp.write('%d' % (port + 1))
   except Exception:  # pylint: disable=broad-except
-    logging.exception('Error while allocating port')
+    logger.exception('Error while allocating port')
   finally:
     if fp_lock:
       fcntl.flock(fp_lock, fcntl.LOCK_UN)
       fp_lock.close()
   if port:
-    logging.info('Allocate port %d for test server.', port)
+    logger.info('Allocate port %d for test server.', port)
   else:
-    logging.error('Could not allocate port for test server. '
-                  'List of ports tried: %s', str(ports_tried))
+    logger.error('Could not allocate port for test server. '
+                 'List of ports tried: %s', str(ports_tried))
   return port
 
 

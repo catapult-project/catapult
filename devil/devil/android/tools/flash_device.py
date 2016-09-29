@@ -18,6 +18,8 @@ from devil.android.tools import script_common
 from devil.constants import exit_codes
 from devil.utils import run_tests_helper
 
+logger = logging.getLogger(__name__)
+
 
 def main():
   parser = argparse.ArgumentParser()
@@ -35,9 +37,9 @@ def main():
   if args.blacklist_file:
     blacklist = device_blacklist.Blacklist(args.blacklist_file).Read()
     if blacklist:
-      logging.critical('Device(s) in blacklist, not flashing devices:')
+      logger.critical('Device(s) in blacklist, not flashing devices:')
       for key in blacklist:
-        logging.critical('  %s', key)
+        logger.critical('  %s', key)
       return exit_codes.INFRA
 
   flashed_devices = []
@@ -49,18 +51,18 @@ def main():
       fastboot.FlashDevice(args.build_path, wipe=args.wipe)
       flashed_devices.append(device)
     except Exception:  # pylint: disable=broad-except
-      logging.exception('Device %s failed to flash.', str(device))
+      logger.exception('Device %s failed to flash.', str(device))
       failed_devices.append(device)
 
   devices = script_common.GetDevices(args.devices, args.blacklist_file)
   device_utils.DeviceUtils.parallel(devices).pMap(flash)
 
   if flashed_devices:
-    logging.info('The following devices were flashed:')
-    logging.info('  %s', ' '.join(str(d) for d in flashed_devices))
+    logger.info('The following devices were flashed:')
+    logger.info('  %s', ' '.join(str(d) for d in flashed_devices))
   if failed_devices:
-    logging.critical('The following devices failed to flash:')
-    logging.critical('  %s', ' '.join(str(d) for d in failed_devices))
+    logger.critical('The following devices failed to flash:')
+    logger.critical('  %s', ' '.join(str(d) for d in failed_devices))
     return exit_codes.INFRA
   return 0
 

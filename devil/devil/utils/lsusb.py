@@ -7,6 +7,8 @@ import re
 
 from devil.utils import cmd_helper
 
+logger = logging.getLogger(__name__)
+
 _COULDNT_OPEN_ERROR_RE = re.compile(r'Couldn\'t open device.*')
 _INDENTATION_RE = re.compile(r'^( *)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}): (.*)')
@@ -34,10 +36,10 @@ def _lsusbv_on_device(bus_id, dev_id):
     m = _LSUSB_BUS_DEVICE_RE.match(line)
     if m:
       if m.group(1) != bus_id:
-        logging.warning(
+        logger.warning(
             'Expected bus_id value: %r, seen %r', bus_id, m.group(1))
       if m.group(2) != dev_id:
-        logging.warning(
+        logger.warning(
             'Expected dev_id value: %r, seen %r', dev_id, m.group(2))
       device['desc'] = m.group(3)
       continue
@@ -48,7 +50,7 @@ def _lsusbv_on_device(bus_id, dev_id):
 
     depth = 1 + len(indent_match.group(1)) / 2
     if depth > len(depth_stack):
-      logging.error(
+      logger.error(
           'lsusb parsing error: unexpected indentation: "%s"', line)
       continue
 
@@ -74,7 +76,7 @@ def _lsusbv_on_device(bus_id, dev_id):
       depth_stack.append(new_entry)
       continue
 
-    logging.error('lsusb parsing error: unrecognized line: "%s"', line)
+    logger.error('lsusb parsing error: unrecognized line: "%s"', line)
 
   return device
 
@@ -92,7 +94,7 @@ def lsusb():
         devices.append(_lsusbv_on_device(bus_num, dev_num))
       except cmd_helper.TimeoutError:
         # Will be blacklisted if it is in expected device file, but times out.
-        logging.info('lsusb -v %s:%s timed out.', bus_num, dev_num)
+        logger.info('lsusb -v %s:%s timed out.', bus_num, dev_num)
   return devices
 
 def raw_lsusb():

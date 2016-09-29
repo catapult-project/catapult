@@ -13,6 +13,8 @@ import posixpath
 
 from xml.etree import ElementTree
 
+logger = logging.getLogger(__name__)
+
 
 _XML_DECLARATION = "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n"
 
@@ -388,4 +390,4 @@ class SharedPrefs(object):
     if old_value != value:
       pref.set(value)
       self._changed = True
-      logging.info('Setting property: %s', pref)
+      logger.info('Setting property: %s', pref)

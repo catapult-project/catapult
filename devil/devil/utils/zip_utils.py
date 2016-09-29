@@ -6,6 +6,8 @@ import logging
 import os
 import zipfile
 
+logger = logging.getLogger(__name__)
+
 
 def WriteToZipFile(zip_file, path, arc_path):
   """Recursively write |path| to |zip_file| as |arc_path|.
@@ -18,14 +20,14 @@ def WriteToZipFile(zip_file, path, arc_path):
   if os.path.isdir(path):
     for dir_path, _, file_names in os.walk(path):
       dir_arc_path = os.path.join(arc_path, os.path.relpath(dir_path, path))
-      logging.debug('dir:  %s -> %s', dir_path, dir_arc_path)
+      logger.debug('dir:  %s -> %s', dir_path, dir_arc_path)
       zip_file.write(dir_path, dir_arc_path, zipfile.ZIP_STORED)
       for f in file_names:
         file_path = os.path.join(dir_path, f)
         file_arc_path = os.path.join(dir_arc_path, f)
-        logging.debug('file: %s -> %s', file_path, file_arc_path)
+        logger.debug('file: %s -> %s', file_path, file_arc_path)
         zip_file.write(file_path, file_arc_path, zipfile.ZIP_DEFLATED)
   else:
-    logging.debug('file: %s -> %s', path, arc_path)
+    logger.debug('file: %s -> %s', path, arc_path)
     zip_file.write(path, arc_path, zipfile.ZIP_DEFLATED)
 

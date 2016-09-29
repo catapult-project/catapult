@@ -6,6 +6,8 @@ import logging
 
 from devil.android import device_errors
 
+logger = logging.getLogger(__name__)
+
 
 class FlagChanger(object):
   """Changes the flags Chrome runs with.
@@ -113,7 +115,7 @@ class FlagChanger(object):
   def _UpdateCommandLineFile(self):
     """Writes out the command line to the file, or removes it if empty."""
     current_flags = list(self._state_stack[-1])
-    logging.info('Current flags: %s', current_flags)
+    logger.info('Current flags: %s', current_flags)
     # Root is not required to write to /data/local/tmp/.
     use_root = '/data/local/tmp/' not in self._cmdline_file
     if current_flags:
@@ -174,7 +176,7 @@ class FlagChanger(object):
     # Tack on the last flag.
     if not current_flag:
       if within_quotations:
-        logging.warn('Unterminated quoted argument: ' + line)
+        logger.warn('Unterminated quoted argument: ' + line)
     else:
       tokenized_flags.append(current_flag)
 

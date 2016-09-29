@@ -8,6 +8,8 @@ import os
 import threading
 import time
 
+logger = logging.getLogger(__name__)
+
 
 class Blacklist(object):
 
@@ -30,11 +32,11 @@ class Blacklist(object):
         with open(self._path, 'r') as f:
           blacklist = json.load(f)
       except (IOError, ValueError) as e:
-        logging.warning('Unable to read blacklist: %s', str(e))
+        logger.warning('Unable to read blacklist: %s', str(e))
         os.remove(self._path)
 
       if not isinstance(blacklist, dict):
-        logging.warning('Ignoring %s: %s (a dict was expected instead)',
+        logger.warning('Ignoring %s: %s (a dict was expected instead)',
                         self._path, blacklist)
         blacklist = dict()
 
@@ -63,7 +65,7 @@ class Blacklist(object):
         'reason': reason,
     }
     device_dicts = {device: event_info for device in devices}
-    logging.info('Adding %s to blacklist %s for reason: %s',
+    logger.info('Adding %s to blacklist %s for reason: %s',
                  ','.join(devices), self._path, reason)
     with self._blacklist_lock:
       blacklist = self.Read()
@@ -72,7 +74,7 @@ class Blacklist(object):
 
   def Reset(self):
     """Erases the blacklist file if it exists."""
-    logging.info('Resetting blacklist %s', self._path)
+    logger.info('Resetting blacklist %s', self._path)
     with self._blacklist_lock:
       if os.path.exists(self._path):
         os.remove(self._path)

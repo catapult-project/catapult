@@ -26,6 +26,8 @@ from devil.utils import lsusb
 from devil.utils import reset_usb  # pylint: disable=unused-import
 from devil.utils import run_tests_helper
 
+logger = logging.getLogger(__name__)
+
 
 def KillAllAdb():
   def get_all_adb():
@@ -39,15 +41,15 @@ def KillAllAdb():
   for sig in [signal.SIGTERM, signal.SIGQUIT, signal.SIGKILL]:
     for p in get_all_adb():
       try:
-        logging.info('kill %d %d (%s [%s])', sig, p.pid, p.name,
-                     ' '.join(p.cmdline))
+        logger.info('kill %d %d (%s [%s])', sig, p.pid, p.name,
+                    ' '.join(p.cmdline))
         p.send_signal(sig)
       except (psutil.NoSuchProcess, psutil.AccessDenied):
         pass
   for p in get_all_adb():
     try:
-      logging.error('Unable to kill %d (%s [%s])', p.pid, p.name,
-                    ' '.join(p.cmdline))
+      logger.error('Unable to kill %d (%s [%s])', p.pid, p.name,
+                   ' '.join(p.cmdline))
     except (psutil.NoSuchProcess, psutil.AccessDenied):
       pass
 
@@ -55,7 +57,7 @@ def KillAllAdb():
 def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
   if device_status.IsBlacklisted(device.adb.GetDeviceSerial(),
                                  blacklist):
-    logging.debug('%s is blacklisted, skipping recovery.', str(device))
+    logger.debug('%s is blacklisted, skipping recovery.', str(device))
     return
 
   if should_reboot(device):
@@ -63,26 +65,26 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
       device.WaitUntilFullyBooted(retries=0)
     except (device_errors.CommandTimeoutError,
             device_errors.CommandFailedError):
-      logging.exception('Failure while waiting for %s. '
-                        'Attempting to recover.', str(device))
+      logger.exception('Failure while waiting for %s. '
+                       'Attempting to recover.', str(device))
     try:
       try:
         device.Reboot(block=False, timeout=5, retries=0)
       except device_errors.CommandTimeoutError:
-        logging.warning('Timed out while attempting to reboot %s normally.'
-                        'Attempting alternative reboot.', str(device))
+        logger.warning('Timed out while attempting to reboot %s normally.'
+                       'Attempting alternative reboot.', str(device))
         # The device drops offline before we can grab the exit code, so
         # we don't check for status.
         device.adb.Root()
         device.adb.Shell('echo b > /proc/sysrq-trigger', expect_status=None,
                          timeout=5, retries=0)
     except device_errors.CommandFailedError:
-      logging.exception('Failed to reboot %s.', str(device))
+      logger.exception('Failed to reboot %s.', str(device))
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()],
                          reason='reboot_failure')
     except device_errors.CommandTimeoutError:
-      logging.exception('Timed out while rebooting %s.', str(device))
+      logger.exception('Timed out while rebooting %s.', str(device))
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()],
                          reason='reboot_timeout')
@@ -91,12 +93,12 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
       device.WaitUntilFullyBooted(
           retries=0, timeout=device.REBOOT_DEFAULT_TIMEOUT)
     except device_errors.CommandFailedError:
-      logging.exception('Failure while waiting for %s.', str(device))
+      logger.exception('Failure while waiting for %s.', str(device))
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()],
                          reason='reboot_failure')
     except device_errors.CommandTimeoutError:
-      logging.exception('Timed out while waiting for %s.', str(device))
+      logger.exception('Timed out while waiting for %s.', str(device))
       if blacklist:
         blacklist.Extend([device.adb.GetDeviceSerial()],
                          reason='reboot_timeout')
@@ -124,15 +126,15 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
       status['serial'] for status in statuses
       if status['blacklisted']))
 
-  logging.debug('Should restart USB for:')
+  logger.debug('Should restart USB for:')
   for d in should_restart_usb:
-    logging.debug('  %s', d)
-  logging.debug('Should restart ADB for:')
+    logger.debug('  %s', d)
+  logger.debug('Should restart ADB for:')
   for d in should_restart_adb:
-    logging.debug('  %s', d)
-  logging.debug('Should reboot:')
+    logger.debug('  %s', d)
+  logger.debug('Should reboot:')
   for d in should_reboot_device:
-    logging.debug('  %s', d)
+    logger.debug('  %s', d)
 
   if blacklist:
     blacklist.Reset()
@@ -146,14 +148,14 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
       if enable_usb_reset:
         reset_usb.reset_android_usb(serial)
       else:
-        logging.warning('USB reset disabled for %s (crbug.com/642914)',
-                        serial)
+        logger.warning('USB reset disabled for %s (crbug.com/642914)',
+                       serial)
     except IOError:
-      logging.exception('Unable to reset USB for %s.', serial)
+      logger.exception('Unable to reset USB for %s.', serial)
       if blacklist:
         blacklist.Extend([serial], reason='USB failure')
     except device_errors.DeviceUnreachableError:
-      logging.exception('Unable to reset USB for %s.', serial)
+      logger.exception('Unable to reset USB for %s.', serial)
       if blacklist:
         blacklist.Extend([serial], reason='offline')
 

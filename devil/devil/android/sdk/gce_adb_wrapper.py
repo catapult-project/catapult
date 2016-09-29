@@ -18,6 +18,8 @@ from devil.android import device_errors
 from devil.android.sdk import adb_wrapper
 from devil.utils import cmd_helper
 
+logger = logging.getLogger(__name__)
+
 
 class GceAdbWrapper(adb_wrapper.AdbWrapper):
 
@@ -113,7 +115,7 @@ class GceAdbWrapper(adb_wrapper.AdbWrapper):
     try:
       adb_wrapper.VerifyLocalFileExists(local)
     except (subprocess.CalledProcessError, IOError):
-      logging.exception('Error when pulling files from android instance.')
+      logger.exception('Error when pulling files from android instance.')
       raise device_errors.AdbCommandFailedError(
           cmd, 'File not reachable on host: %s' % local,
           device_serial=str(self))

@@ -24,6 +24,8 @@ from py_utils import lock
 # TODO(nedn, jbudorick): figure out a way to get rid of this ugly hack.
 from py_utils import cloud_storage_global_lock  # pylint: disable=unused-import
 
+logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
+
 
 PUBLIC_BUCKET = 'chromium-telemetry'
 PARTNER_BUCKET = 'chrome-partner-telemetry'
@@ -167,7 +169,7 @@ def IsNetworkIOEnabled():
   disable_cloud_storage_env_val = os.getenv(DISABLE_CLOUD_STORAGE_IO)
 
   if disable_cloud_storage_env_val and disable_cloud_storage_env_val != '1':
-    logging.error(
+    logger.error(
         'Unsupported value of environment variable '
         'DISABLE_CLOUD_STORAGE_IO. Expected None or \'1\' but got %s.',
         disable_cloud_storage_env_val)
@@ -192,7 +194,7 @@ def Exists(bucket, remote_path):
 def Move(bucket1, bucket2, remote_path):
   url1 = 'gs://%s/%s' % (bucket1, remote_path)
   url2 = 'gs://%s/%s' % (bucket2, remote_path)
-  logging.info('Moving %s to %s', url1, url2)
+  logger.info('Moving %s to %s', url1, url2)
   _RunCommand(['mv', url1, url2])
 
 
@@ -210,13 +212,13 @@ def Copy(bucket_from, bucket_to, remote_path_from, remote_path_to):
   """
   url1 = 'gs://%s/%s' % (bucket_from, remote_path_from)
   url2 = 'gs://%s/%s' % (bucket_to, remote_path_to)
-  logging.info('Copying %s to %s', url1, url2)
+  logger.info('Copying %s to %s', url1, url2)
   _RunCommand(['cp', url1, url2])
 
 
 def Delete(bucket, remote_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.info('Deleting %s', url)
+  logger.info('Deleting %s', url)
   _RunCommand(['rm', url])
 
 
@@ -231,7 +233,7 @@ _CLOUD_STORAGE_GLOBAL_LOCK = os.path.join(
 
 @contextlib.contextmanager
 def _FileLock(base_path):
-  logging.info('Try to lock %s', base_path)
+  logger.info('Try to lock %s', base_path)
   pseudo_lock_path = '%s.pseudo_lock' % base_path
   _CreateDirectoryIfNecessary(os.path.dirname(pseudo_lock_path))
 
@@ -246,7 +248,7 @@ def _FileLock(base_path):
   # to make sure that there is no race condition on creating the file.
   with open(_CLOUD_STORAGE_GLOBAL_LOCK) as global_file:
     with lock.FileLock(global_file, lock.LOCK_EX):
-      logging.info(
+      logger.info(
           'Global file lock acquired, try to create pseudo_lock_path: %s',
           pseudo_lock_path)
       fd = open(pseudo_lock_path, 'w')
@@ -257,9 +259,9 @@ def _FileLock(base_path):
     lock.ReleaseFileLock(fd)
     try:
       fd.close()
-      logging.info('Try to remove pseudo_lock_path: %s', pseudo_lock_path)
+      logger.info('Try to remove pseudo_lock_path: %s', pseudo_lock_path)
       os.remove(pseudo_lock_path)
-      logging.info('Done locking %s', base_path)
+      logger.info('Done locking %s', base_path)
     except OSError:
       # We don't care if the pseudo-lock gets removed elsewhere before we have
       # a chance to do so.
@@ -273,7 +275,7 @@ def _CreateDirectoryIfNecessary(directory):
 
 def _GetLocked(bucket, remote_path, local_path):
   url = 'gs://%s/%s' % (bucket, remote_path)
-  logging.info('Downloading %s to %s', url, local_path)
+  logger.info('Downloading %s to %s', url, local_path)
   _CreateDirectoryIfNecessary(os.path.dirname(local_path))
   with tempfile.NamedTemporaryFile(
       dir=os.path.dirname(local_path),
@@ -284,7 +286,7 @@ def _GetLocked(bucket, remote_path, local_path):
       try:
         _RunCommand(['cp', url, partial_download_path.name])
       except ServerError:
-        logging.info('Cloud Storage server error, retrying download')
+        logger.info('Cloud Storage server error, retrying download')
         _RunCommand(['cp', url, partial_download_path.name])
       shutil.move(partial_download_path.name, local_path)
     finally:
@@ -311,7 +313,7 @@ def Insert(bucket, remote_path, local_path, publicly_readable=False):
     command_and_args += ['-a', 'public-read']
     extra_info = ' (publicly readable)'
   command_and_args += [local_path, url]
-  logging.info('Uploading %s to %s%s', local_path, url, extra_info)
+  logger.info('Uploading %s to %s%s', local_path, url, extra_info)
   _RunCommand(command_and_args)
   return 'https://console.developers.google.com/m/cloudstorage/b/%s/o/%s' % (
       bucket, remote_path)
@@ -350,7 +352,7 @@ def GetIfChanged(file_path, bucket):
   with _FileLock(file_path):
     hash_path = file_path + '.sha1'
     if not os.path.exists(hash_path):
-      logging.warning('Hash file not found: %s', hash_path)
+      logger.warning('Hash file not found: %s', hash_path)
       return False
 
     expected_hash = ReadHash(hash_path)

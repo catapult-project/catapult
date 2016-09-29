@@ -17,6 +17,8 @@ from devil.android import device_errors
 from devil.android.sdk import fastboot
 from devil.utils import timeout_retry
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 _FASTBOOT_REBOOT_TIMEOUT = 10 * _DEFAULT_TIMEOUT
@@ -163,11 +165,11 @@ class FastbootUtils(object):
             elif board_name:
               return False
             else:
-              logging.warning('No board type found in %s.',
-                              self._BOARD_VERIFICATION_FILE)
+              logger.warning('No board type found in %s.',
+                             self._BOARD_VERIFICATION_FILE)
     else:
-      logging.warning('%s not found. Unable to use it to verify device.',
-                      self._BOARD_VERIFICATION_FILE)
+      logger.warning('%s not found. Unable to use it to verify device.',
+                     self._BOARD_VERIFICATION_FILE)
 
     zip_regex = re.compile(r'.*%s.*\.zip' % re.escape(self._board))
     for f in files:
@@ -192,9 +194,9 @@ class FastbootUtils(object):
     """
     if not self._VerifyBoard(directory):
       if force:
-        logging.warning('Could not verify build is meant to be installed on '
-                        'the current device type, but force flag is set. '
-                        'Flashing device. Possibly dangerous operation.')
+        logger.warning('Could not verify build is meant to be installed on '
+                       'the current device type, but force flag is set. '
+                       'Flashing device. Possibly dangerous operation.')
       else:
         raise device_errors.CommandFailedError(
             'Could not verify build is meant to be installed on the current '
@@ -205,10 +207,10 @@ class FastbootUtils(object):
     partitions = flash_image_files.keys()
     for partition in partitions:
       if _KNOWN_PARTITIONS[partition].get('wipe_only') and not wipe:
-        logging.info(
+        logger.info(
             'Not flashing in wipe mode. Skipping partition %s.', partition)
       else:
-        logging.info(
+        logger.info(
             'Flashing %s with %s', partition, flash_image_files[partition])
         self.fastboot.Flash(partition, flash_image_files[partition])
         if _KNOWN_PARTITIONS[partition].get('restart', False):

@@ -4,6 +4,8 @@
 
 import logging
 
+logger = logging.getLogger(__name__)
+
 
 class OmapThrottlingDetector(object):
   """Class to detect and track thermal throttling on an OMAP 4."""
@@ -101,32 +103,32 @@ class ThermalThrottle(object):
     for line in log:
       if self._detector.BecameThrottled(line):
         if not self._throttled:
-          logging.warning('>>> Device %s thermally throttled', serial_number)
+          logger.warning('>>> Device %s thermally throttled', serial_number)
         self._throttled = True
         has_been_throttled = True
       elif self._detector.BecameUnthrottled(line):
         if self._throttled:
-          logging.warning('>>> Device %s thermally unthrottled', serial_number)
+          logger.warning('>>> Device %s thermally unthrottled', serial_number)
         self._throttled = False
         has_been_throttled = True
       temperature = self._detector.GetThrottlingTemperature(line)
       if temperature is not None:
-        logging.info(u'Device %s thermally throttled at %3.1f%sC',
-                     serial_number, temperature, degree_symbol)
+        logger.info(u'Device %s thermally throttled at %3.1f%sC',
+                    serial_number, temperature, degree_symbol)
 
-    if logging.getLogger().isEnabledFor(logging.DEBUG):
+    if logger.isEnabledFor(logging.DEBUG):
       # Print current temperature of CPU SoC.
       temperature = self._detector.GetCurrentTemperature()
       if temperature is not None:
-        logging.debug(u'Current SoC temperature of %s = %3.1f%sC',
-                      serial_number, temperature, degree_symbol)
+        logger.debug(u'Current SoC temperature of %s = %3.1f%sC',
+                     serial_number, temperature, degree_symbol)
 
       # Print temperature of battery, to give a system temperature
       dumpsys_log = self._device.RunShellCommand('dumpsys battery')
       for line in dumpsys_log:
         if 'temperature' in line:
           btemp = float([s for s in line.split() if s.isdigit()][0]) / 10.0
-          logging.debug(u'Current battery temperature of %s = %3.1f%sC',
-                        serial_number, btemp, degree_symbol)
+          logger.debug(u'Current battery temperature of %s = %3.1f%sC',
+                       serial_number, btemp, degree_symbol)
 
     return has_been_throttled

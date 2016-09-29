@@ -4,6 +4,8 @@
 
 import logging
 
+logger = logging.getLogger(__name__)
+
 _LOCK_SCREEN_SETTINGS_PATH = '/data/system/locksettings.db'
 _ALTERNATE_LOCK_SCREEN_SETTINGS_PATH = (
     '/data/data/com.android.providers.settings/databases/settings.db')
@@ -205,9 +207,9 @@ def ConfigureContentSettings(device, desired_settings):
     settings = ContentSettings(table, device)
     for key, value in key_value:
       settings[key] = value
-    logging.info('\n%s %s', table, (80 - len(table)) * '-')
+    logger.info('\n%s %s', table, (80 - len(table)) * '-')
     for key, value in sorted(settings.iteritems()):
-      logging.info('\t%s: %s', key, value)
+      logger.info('\t%s: %s', key, value)
 
 
 def SetLockScreenSettings(device):
@@ -230,8 +232,8 @@ def SetLockScreenSettings(device):
     Exception if the setting was not properly set.
   """
   if device.build_type not in _COMPATIBLE_BUILD_TYPES:
-    logging.warning('Unable to disable lockscreen on %s builds.',
-                    device.build_type)
+    logger.warning('Unable to disable lockscreen on %s builds.',
+                   device.build_type)
     return
 
   def get_lock_settings(table):
@@ -251,7 +253,7 @@ def SetLockScreenSettings(device):
     columns = ['name', 'value']
     generate_values = lambda k, v: [k, v]
   else:
-    logging.warning('Unable to find database file to set lock screen settings.')
+    logger.warning('Unable to find database file to set lock screen settings.')
     return
 
   for table, key, value in locksettings:
@@ -271,5 +273,5 @@ commit transaction;""" % {
     output_msg = device.RunShellCommand('sqlite3 %s "%s"' % (db, cmd),
                                         as_root=True)
     if output_msg:
-      logging.info(' '.join(output_msg))
+      logger.info(' '.join(output_msg))
 

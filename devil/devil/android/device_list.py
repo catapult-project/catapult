@@ -8,6 +8,8 @@ import json
 import logging
 import os
 
+logger = logging.getLogger(__name__)
+
 
 def GetPersistentDeviceList(file_name):
   """Returns a list of devices.
@@ -18,7 +20,7 @@ def GetPersistentDeviceList(file_name):
   Returns: List of device serial numbers that were on the bot.
   """
   if not os.path.isfile(file_name):
-    logging.warning('Device file %s doesn\'t exist.', file_name)
+    logger.warning("Device file %s doesn't exist.", file_name)
     return []
 
   try:
@@ -26,11 +28,11 @@ def GetPersistentDeviceList(file_name):
       devices = json.load(f)
     if not isinstance(devices, list) or not all(isinstance(d, basestring)
                                                 for d in devices):
-      logging.warning('Unrecognized device file format: %s', devices)
+      logger.warning('Unrecognized device file format: %s', devices)
       return []
     return [d for d in devices if d != '(error)']
   except ValueError:
-    logging.exception(
+    logger.exception(
         'Error reading device file %s. Falling back to old format.', file_name)
 
   # TODO(bpastene) Remove support for old unstructured file format.

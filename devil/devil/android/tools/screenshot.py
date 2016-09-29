@@ -16,6 +16,8 @@ if __name__ == '__main__':
 from devil.android import device_utils
 from devil.android.tools import script_common
 
+logger = logging.getLogger(__name__)
+
 
 def main():
   # Parse options.

@@ -4,6 +4,7 @@
 
 import contextlib
 import json
+import logging
 import os
 import platform
 import sys
@@ -155,6 +156,23 @@ def GetPlatform(arch=None, device=None):
   if device:
     return 'android_%s' % (arch or device.product_cpu_abi)
   return '%s_%s' % (sys.platform, platform.machine())
+
+
+def InitializeLogging(log_level, formatter=None, handler=None):
+  formatter = formatter or logging.Formatter('%(threadName)-4s  %(message)s')
+  handler = handler or logging.StreamHandler(sys.stdout)
+  handler.setFormatter(formatter)
+
+  devil_logger = logging.getLogger('devil')
+  devil_logger.setLevel(log_level)
+  devil_logger.propagate = False
+  devil_logger.addHandler(handler)
+
+  import py_utils.cloud_storage
+  lock_logger = py_utils.cloud_storage.logger
+  lock_logger.setLevel(log_level)
+  lock_logger.propagate = False
+  lock_logger.addHandler(handler)
 
 
 config = _Environment()

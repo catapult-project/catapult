@@ -12,6 +12,8 @@ import time
 from devil.utils import reraiser_thread
 from devil.utils import watchdog_timer
 
+logger = logging.getLogger(__name__)
+
 
 class TimeoutRetryThreadGroup(reraiser_thread.ReraiserThreadGroup):
 
@@ -102,7 +104,7 @@ def WaitFor(condition, wait_period=5, max_tries=None):
     if timeout_thread_group:
       # pylint: disable=no-member
       msg.append('(%.1fs)' % timeout_thread_group.GetElapsedTime())
-    logging.info(' '.join(msg))
+    logger.info(' '.join(msg))
     if result:
       return result
     if timeout_thread_group:
@@ -156,7 +158,7 @@ def Run(func, timeout, retries, args=None, kwargs=None, desc=None,
         thread_group.JoinAll(watcher=thread_group.GetWatcher(), timeout=60,
                              error_log_func=error_log_func)
         if thread_group.IsAlive():
-          logging.info('Still working on %s', desc)
+          logger.info('Still working on %s', desc)
         else:
           return thread_group.GetAllReturnValues()[0]
     except reraiser_thread.TimeoutError as e:

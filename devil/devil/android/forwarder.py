@@ -16,6 +16,8 @@ from devil.android.constants import file_system
 from devil.android.valgrind_tools import base_tool
 from devil.utils import cmd_helper
 
+logger = logging.getLogger(__name__)
+
 
 def _GetProcessStartTime(pid):
   return psutil.Process(pid).create_time
@@ -26,32 +28,32 @@ def _LogMapFailureDiagnostics(device):
   # of that.
   try:
     with open('/tmp/host_forwarder_log') as host_forwarder_log:
-      logging.info('Last 50 lines of the host forwarder daemon log:')
+      logger.info('Last 50 lines of the host forwarder daemon log:')
       for line in host_forwarder_log.read().splitlines()[-50:]:
-        logging.info('    %s', line)
+        logger.info('    %s', line)
   except Exception: # pylint: disable=broad-except
     # Grabbing the host forwarder log is best-effort. Ignore all errors.
-    logging.warning('Failed to get the contents of host_forwarder_log.')
+    logger.warning('Failed to get the contents of host_forwarder_log.')
 
   # The device forwarder daemon logs to the logcat, so print the end of that.
   try:
-    logging.info('Last 50 lines of logcat:')
+    logger.info('Last 50 lines of logcat:')
     for logcat_line in device.adb.Logcat(dump=True)[-50:]:
-      logging.info('    %s', logcat_line)
+      logger.info('    %s', logcat_line)
   except device_errors.CommandFailedError:
     # Grabbing the device forwarder log is also best-effort. Ignore all errors.
-    logging.warning('Failed to get the contents of the logcat.')
+    logger.warning('Failed to get the contents of the logcat.')
 
   # Log alive device forwarders.
   try:
     ps_out = device.RunShellCommand(['ps'], check_return=True)
-    logging.info('Currently running device_forwarders:')
+    logger.info('Currently running device_forwarders:')
     for line in ps_out:
       if 'device_forwarder' in line:
-        logging.info('    %s', line)
+        logger.info('    %s', line)
   except device_errors.CommandFailedError:
-    logging.warning('Failed to list currently running device_forwarder '
-                    'instances.')
+    logger.warning('Failed to list currently running device_forwarder '
+                   'instances.')
 
 
 class _FileLock(object):
@@ -125,7 +127,7 @@ class Forwarder(object):
            '--serial-id=' + device_serial,
            '--map', str(device_port), str(host_port)]
           for device_port, host_port in port_pairs]
-      logging.info('Forwarding using commands: %s', redirection_commands)
+      logger.info('Forwarding using commands: %s', redirection_commands)
 
       for redirection_command in redirection_commands:
         try:
@@ -158,8 +160,8 @@ class Forwarder(object):
         serial_with_port = (device_serial, device_port)
         instance._device_to_host_port_map[serial_with_port] = host_port
         instance._host_to_device_port_map[host_port] = serial_with_port
-        logging.info('Forwarding device port: %d to host port: %d.',
-                     device_port, host_port)
+        logger.info('Forwarding device port: %d to host port: %d.',
+                    device_port, host_port)
 
   @staticmethod
   def UnmapDevicePort(device_port, device):
@@ -258,16 +260,16 @@ class Forwarder(object):
     serial = str(device)
     serial_with_port = (serial, device_port)
     if not serial_with_port in instance._device_to_host_port_map:
-      logging.error('Trying to unmap non-forwarded port %d', device_port)
+      logger.error('Trying to unmap non-forwarded port %d', device_port)
       return
     redirection_command = ['--adb=' + devil_env.config.FetchPath('adb'),
                            '--serial-id=' + serial,
                            '--unmap', str(device_port)]
-    logging.info('Undo forwarding using command: %s', redirection_command)
+    logger.info('Undo forwarding using command: %s', redirection_command)
     (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
         [instance._host_forwarder_path] + redirection_command)
     if exit_code != 0:
-      logging.error(
+      logger.error(
           '%s exited with %d:\n%s',
           instance._host_forwarder_path, exit_code, '\n'.join(output))
     host_port = instance._device_to_host_port_map[serial_with_port]
@@ -325,7 +327,7 @@ class Forwarder(object):
     try:
       Forwarder._KillDeviceLocked(device, tool)
     except device_errors.CommandFailedError:
-      logging.warning('Failed to kill device forwarder. Rebooting.')
+      logger.warning('Failed to kill device forwarder. Rebooting.')
       device.Reboot()
     forwarder_device_path_on_host = devil_env.config.FetchPath(
         'forwarder_device', device=device)
@@ -354,8 +356,8 @@ class Forwarder(object):
 
     Note that the global lock must be acquired before calling this method.
     """
-    logging.info('Killing host_forwarder.')
-    (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
+    logger.info('Killing host_forwarder.')
+    (exit_code, _o, _e) = cmd_helper.GetCmdStatusOutputAndError(
         [self._host_forwarder_path, '--kill-server'])
     if exit_code != 0:
       (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
@@ -389,7 +391,7 @@ class Forwarder(object):
       tool: Wrapper tool (e.g. valgrind) that can be used to execute the device
             forwarder (see valgrind_tools.py).
     """
-    logging.info('Killing device_forwarder.')
+    logger.info('Killing device_forwarder.')
     Forwarder._instance._initialized_devices.discard(str(device))
     if not device.FileExists(Forwarder._DEVICE_FORWARDER_PATH):
       return

@@ -27,6 +27,8 @@ from devil.constants import exit_codes
 from devil.utils import lsusb
 from devil.utils import run_tests_helper
 
+logger = logging.getLogger(__name__)
+
 _RE_DEVICE_ID = re.compile(r'Device ID = (\d+)')
 
 
@@ -42,7 +44,7 @@ def _BatteryStatus(device, blacklist):
     battery_level = int(battery_info.get('level', 100))
 
     if battery_level < 15:
-      logging.error('Critically low battery level (%d)', battery_level)
+      logger.error('Critically low battery level (%d)', battery_level)
       battery = battery_utils.BatteryUtils(device)
       if not battery.GetCharging():
         battery.SetCharging(True)
@@ -50,8 +52,8 @@ def _BatteryStatus(device, blacklist):
         blacklist.Extend([device.adb.GetDeviceSerial()], reason='low_battery')
 
   except device_errors.CommandFailedError:
-    logging.exception('Failed to get battery information for %s',
-                      str(device))
+    logger.exception('Failed to get battery information for %s',
+                     str(device))
 
   return battery_info
 
@@ -65,7 +67,7 @@ def _IMEISlice(device):
       if m:
         imei_slice = m.group(1)[-6:]
   except device_errors.CommandFailedError:
-    logging.exception('Failed to get IMEI slice for %s', str(device))
+    logger.exception('Failed to get IMEI slice for %s', str(device))
 
   return imei_slice
 
@@ -129,7 +131,7 @@ def DeviceStatus(devices, blacklist):
 
           if (device.product_name == 'mantaray' and
               battery_info.get('AC powered', None) != 'true'):
-            logging.error('Mantaray device not connected to AC power.')
+            logger.error('Mantaray device not connected to AC power.')
 
           device_status.update({
             'ro.build.product': build_product,
@@ -142,14 +144,14 @@ def DeviceStatus(devices, blacklist):
           })
 
         except device_errors.CommandFailedError:
-          logging.exception('Failure while getting device status for %s.',
-                            str(device))
+          logger.exception('Failure while getting device status for %s.',
+                           str(device))
           if blacklist:
             blacklist.Extend([serial], reason='status_check_failure')
 
         except device_errors.CommandTimeoutError:
-          logging.exception('Timeout while getting device status for %s.',
-                            str(device))
+          logger.exception('Timeout while getting device status for %s.',
+                           str(device))
           if blacklist:
             blacklist.Extend([serial], reason='status_check_timeout')
 
@@ -169,23 +171,23 @@ def DeviceStatus(devices, blacklist):
 def _LogStatuses(statuses):
   # Log the state of all devices.
   for status in statuses:
-    logging.info(status['serial'])
+    logger.info(status['serial'])
     adb_status = status.get('adb_status')
     blacklisted = status.get('blacklisted')
-    logging.info('  USB status: %s',
-                 'online' if status.get('usb_status') else 'offline')
-    logging.info('  ADB status: %s', adb_status)
-    logging.info('  Blacklisted: %s', str(blacklisted))
+    logger.info('  USB status: %s',
+                'online' if status.get('usb_status') else 'offline')
+    logger.info('  ADB status: %s', adb_status)
+    logger.info('  Blacklisted: %s', str(blacklisted))
     if adb_status == 'device' and not blacklisted:
-      logging.info('  Device type: %s', status.get('ro.build.product'))
-      logging.info('  OS build: %s', status.get('ro.build.id'))
-      logging.info('  OS build fingerprint: %s',
-                   status.get('ro.build.fingerprint'))
-      logging.info('  Battery state:')
+      logger.info('  Device type: %s', status.get('ro.build.product'))
+      logger.info('  OS build: %s', status.get('ro.build.id'))
+      logger.info('  OS build fingerprint: %s',
+                  status.get('ro.build.fingerprint'))
+      logger.info('  Battery state:')
       for k, v in status.get('battery', {}).iteritems():
-        logging.info('    %s: %s', k, v)
-      logging.info('  IMEI slice: %s', status.get('imei_slice'))
-      logging.info('  WiFi IP: %s', status.get('wifi_ip'))
+        logger.info('    %s: %s', k, v)
+      logger.info('  IMEI slice: %s', status.get('imei_slice'))
+      logger.info('  WiFi IP: %s', status.get('wifi_ip'))
 
 
 def _WriteBuildbotFile(file_path, statuses):
@@ -224,13 +226,13 @@ def GetExpectedDevices(known_devices_files):
       if os.path.exists(path):
         expected_devices.update(device_list.GetPersistentDeviceList(path))
       else:
-        logging.warning('Could not find known devices file: %s', path)
+        logger.warning('Could not find known devices file: %s', path)
   except IOError:
-    logging.warning('Problem reading %s, skipping.', path)
+    logger.warning('Problem reading %s, skipping.', path)
 
-  logging.info('Expected devices:')
+  logger.info('Expected devices:')
   for device in expected_devices:
-    logging.info('  %s', device)
+    logger.info('  %s', device)
   return expected_devices
 
 
@@ -303,7 +305,7 @@ def main():
 
   # If all devices failed, or if there are no devices, it's an infra error.
   if not live_devices:
-    logging.error('No available devices.')
+    logger.error('No available devices.')
   return 0 if live_devices else exit_codes.INFRA
 
 

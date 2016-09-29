@@ -20,6 +20,8 @@ try:
 except ImportError:
   fcntl = None
 
+logger = logging.getLogger(__name__)
+
 _SafeShellChars = frozenset(string.ascii_letters + string.digits + '@%_-+=:,./')
 
 
@@ -116,7 +118,7 @@ def RunCmd(args, cwd=None):
   Returns:
     Return code from the command execution.
   """
-  logging.info(str(args) + ' ' + (cwd or ''))
+  logger.info(str(args) + ' ' + (cwd or ''))
   return Call(args, cwd=cwd)
 
 
@@ -150,7 +152,7 @@ def _ValidateAndLogCommand(args, cwd, shell):
     cwd = ''
   else:
     cwd = ':' + cwd
-  logging.info('[host]%s> %s', cwd, args)
+  logger.info('[host]%s> %s', cwd, args)
   return args
 
 
@@ -172,9 +174,9 @@ def GetCmdStatusAndOutput(args, cwd=None, shell=False):
       args, cwd=cwd, shell=shell)
 
   if stderr:
-    logging.critical('STDERR: %s', stderr)
-  logging.debug('STDOUT: %s%s', stdout[:4096].rstrip(),
-                '<truncated>' if len(stdout) > 4096 else '')
+    logger.critical('STDERR: %s', stderr)
+  logger.debug('STDOUT: %s%s', stdout[:4096].rstrip(),
+               '<truncated>' if len(stdout) > 4096 else '')
   return (status, stdout)
 
 
@@ -273,8 +275,8 @@ def GetCmdStatusAndOutputWithTimeout(args, timeout, cwd=None, shell=False,
     raise TimeoutError(output.getvalue())
 
   str_output = output.getvalue()
-  logging.debug('STDOUT+STDERR: %s%s', str_output[:4096].rstrip(),
-                '<truncated>' if len(str_output) > 4096 else '')
+  logger.debug('STDOUT+STDERR: %s%s', str_output[:4096].rstrip(),
+               '<truncated>' if len(str_output) > 4096 else '')
   return process.returncode, str_output
 
 

@@ -27,6 +27,8 @@ from devil.utils import timeout_retry
 with devil_env.SysPath(devil_env.DEPENDENCY_MANAGER_PATH):
   import dependency_manager  # pylint: disable=import-error
 
+logger = logging.getLogger(__name__)
+
 
 ADB_KEYS_FILE = '/data/misc/adb/adb_keys'
 
@@ -319,7 +321,7 @@ class AdbWrapper(object):
   def IsServerOnline(cls):
     status, output = cmd_helper.GetCmdStatusAndOutput(['pgrep', 'adb'])
     output = [int(x) for x in output.split()]
-    logging.info('PIDs for adb found: %r', output)
+    logger.info('PIDs for adb found: %r', output)
     return status == 0
   # pylint: enable=unused-argument
 
@@ -485,7 +487,7 @@ class AdbWrapper(object):
       try:
         status = int(output[output_end + 1:])
       except ValueError:
-        logging.warning('exit status of shell command %r missing.', command)
+        logger.warning('exit status of shell command %r missing.', command)
         raise device_errors.AdbShellCommandFailedError(
             command, output, status=None, device_serial=self._device_serial)
       output = output[:output_end]

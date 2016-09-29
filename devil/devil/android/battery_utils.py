@@ -17,6 +17,8 @@ from devil.android import device_utils
 from devil.android.sdk import version_codes
 from devil.utils import timeout_retry
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_TIMEOUT = 30
 _DEFAULT_RETRIES = 3
 
@@ -214,8 +216,8 @@ class BatteryUtils(object):
     if package not in self._cache['uids']:
       self.GetPowerData()
       if package not in self._cache['uids']:
-        logging.warning('No UID found for %s. Can\'t get network data.',
-                        package)
+        logger.warning('No UID found for %s. Can\'t get network data.',
+                       package)
         return None
 
     network_data_path = '/proc/uid_stat/%s/' % self._cache['uids'][package]
@@ -224,12 +226,12 @@ class BatteryUtils(object):
     # If ReadFile throws exception, it means no network data usage file for
     # package has been recorded. Return 0 sent and 0 received.
     except device_errors.AdbShellCommandFailedError:
-      logging.warning('No sent data found for package %s', package)
+      logger.warning('No sent data found for package %s', package)
       send_data = 0
     try:
       recv_data = int(self._device.ReadFile(network_data_path + 'tcp_rcv'))
     except device_errors.AdbShellCommandFailedError:
-      logging.warning('No received data found for package %s', package)
+      logger.warning('No received data found for package %s', package)
       recv_data = 0
     return (send_data, recv_data)
 
@@ -311,10 +313,10 @@ class BatteryUtils(object):
         ['dumpsys', 'battery'], check_return=True)[1:]:
       # If usb charging has been disabled, an extra line of header exists.
       if 'UPDATES STOPPED' in line:
-        logging.warning('Dumpsys battery not receiving updates. '
-                        'Run dumpsys battery reset if this is in error.')
+        logger.warning('Dumpsys battery not receiving updates. '
+                       'Run dumpsys battery reset if this is in error.')
       elif ':' not in line:
-        logging.warning('Unknown line found in dumpsys battery: "%s"', line)
+        logger.warning('Unknown line found in dumpsys battery: "%s"', line)
       else:
         k, v = line.split(':', 1)
         result[k.strip()] = v.strip()
@@ -428,12 +430,12 @@ class BatteryUtils(object):
       raise ValueError('Discharge amount(%s) must be between 1 and 99'
                        % percent)
     if battery_level is None:
-      logging.warning('Unable to find current battery level. Cannot discharge.')
+      logger.warning('Unable to find current battery level. Cannot discharge.')
       return
     # Do not discharge if it would make battery level too low.
     if percent >= battery_level - 10:
-      logging.warning('Battery is too low or discharge amount requested is too '
-                      'high. Cannot discharge phone %s percent.', percent)
+      logger.warning('Battery is too low or discharge amount requested is too '
+                     'high. Cannot discharge phone %s percent.', percent)
       return
 
     self._HardwareSetCharging(False)
@@ -441,7 +443,7 @@ class BatteryUtils(object):
     def device_discharged():
       self._HardwareSetCharging(True)
       current_level = int(self.GetBatteryInfo().get('level'))
-      logging.info('current battery level: %s', current_level)
+      logger.info('current battery level: %s', current_level)
       if battery_level - current_level >= percent:
         return True
       self._HardwareSetCharging(False)
@@ -466,10 +468,10 @@ class BatteryUtils(object):
     def device_charged():
       battery_level = self.GetBatteryInfo().get('level')
       if battery_level is None:
-        logging.warning('Unable to find current battery level.')
+        logger.warning('Unable to find current battery level.')
         battery_level = 100
       else:
-        logging.info('current battery level: %s', battery_level)
+        logger.info('current battery level: %s', battery_level)
         battery_level = int(battery_level)
 
       # Use > so that it will not reset if charge is going down.
@@ -497,10 +499,10 @@ class BatteryUtils(object):
     def cool_device():
       temp = self.GetBatteryInfo().get('temperature')
       if temp is None:
-        logging.warning('Unable to find current battery temperature.')
+        logger.warning('Unable to find current battery temperature.')
         temp = 0
       else:
-        logging.info('Current battery temperature: %s', temp)
+        logger.info('Current battery temperature: %s', temp)
       if int(temp) <= target_temp:
         return True
       else:
@@ -510,8 +512,8 @@ class BatteryUtils(object):
 
     self._DiscoverDeviceProfile()
     self.EnableBatteryUpdates()
-    logging.info('Waiting for the device to cool down to %s (0.1 C)',
-                 target_temp)
+    logger.info('Waiting for the device to cool down to %s (0.1 C)',
+                target_temp)
     timeout_retry.WaitFor(cool_device, wait_period=wait_period)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -525,7 +527,7 @@ class BatteryUtils(object):
       retries: number of retries
     """
     if self.GetCharging() == enabled:
-      logging.warning('Device charging already in expected state: %s', enabled)
+      logger.warning('Device charging already in expected state: %s', enabled)
       return
 
     self._DiscoverDeviceProfile()
@@ -533,15 +535,15 @@ class BatteryUtils(object):
       if self._cache['profile']['enable_command']:
         self._HardwareSetCharging(enabled)
       else:
-        logging.info('Unable to enable charging via hardware. '
-                     'Falling back to software enabling.')
+        logger.info('Unable to enable charging via hardware. '
+                    'Falling back to software enabling.')
         self.EnableBatteryUpdates()
     else:
       if self._cache['profile']['enable_command']:
         self._ClearPowerData()
         self._HardwareSetCharging(enabled)
       else:
-        logging.info('Unable to disable charging via hardware. '
+        logger.info('Unable to disable charging via hardware. '
                      'Falling back to software disabling.')
         self.DisableBatteryUpdates()
 
@@ -613,8 +615,8 @@ class BatteryUtils(object):
         but fails.
     """
     if self._device.build_version_sdk < version_codes.LOLLIPOP:
-      logging.warning('Dumpsys power data only available on 5.0 and above. '
-                      'Cannot clear power data.')
+      logger.warning('Dumpsys power data only available on 5.0 and above. '
+                     'Cannot clear power data.')
       return False
 
     self._device.RunShellCommand(

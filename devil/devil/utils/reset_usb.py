@@ -13,6 +13,8 @@ from devil.android import device_errors
 from devil.utils import lsusb
 from devil.utils import run_tests_helper
 
+logger = logging.getLogger(__name__)
+
 _INDENTATION_RE = re.compile(r'^( *)')
 _LSUSB_BUS_DEVICE_RE = re.compile(r'^Bus (\d{3}) Device (\d{3}):')
 _LSUSB_ENTRY_RE = re.compile(r'^ *([^ ]+) +([^ ]+) *([^ ].*)?$')
@@ -25,7 +27,7 @@ def reset_usb(bus, device):
   """Reset the USB device with the given bus and device."""
   usb_file_path = '/dev/bus/usb/%03d/%03d' % (bus, device)
   with open(usb_file_path, 'w') as usb_file:
-    logging.debug('fcntl.ioctl(%s, %d)', usb_file_path, _USBDEVFS_RESET)
+    logger.debug('fcntl.ioctl(%s, %d)', usb_file_path, _USBDEVFS_RESET)
     fcntl.ioctl(usb_file, _USBDEVFS_RESET)
 
 
@@ -63,13 +65,15 @@ def _reset_all_matching(condition):
         reset_usb(bus, device)
         serial = lsusb.get_lsusb_serial(device_info)
         if serial:
-          logging.info('Reset USB device (bus: %03d, device: %03d, serial: %s)',
+          logger.info(
+              'Reset USB device (bus: %03d, device: %03d, serial: %s)',
               bus, device, serial)
         else:
-          logging.info('Reset USB device (bus: %03d, device: %03d)',
+          logger.info(
+              'Reset USB device (bus: %03d, device: %03d)',
               bus, device)
       except IOError:
-        logging.error(
+        logger.error(
             'Failed to reset USB device (bus: %03d, device: %03d)',
             bus, device)
 
