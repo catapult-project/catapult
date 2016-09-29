@@ -293,6 +293,11 @@ class DeviceUtils(object):
 
     self._ClearCache()
 
+  @property
+  def serial(self):
+    """Returns the device serial."""
+    return self.adb.GetDeviceSerial()
+
   def __eq__(self, other):
     """Checks whether |other| refers to the same device as |self|.
 
@@ -302,7 +307,7 @@ class DeviceUtils(object):
     Returns:
       Whether |other| refers to the same device as |self|.
     """
-    return self.adb.GetDeviceSerial() == str(other)
+    return self.serial == str(other)
 
   def __lt__(self, other):
     """Compares two instances of DeviceUtils.
@@ -314,11 +319,11 @@ class DeviceUtils(object):
     Returns:
       Whether |self| is less than |other|.
     """
-    return self.adb.GetDeviceSerial() < other.adb.GetDeviceSerial()
+    return self.serial < other.serial
 
   def __str__(self):
     """Returns the device serial."""
-    return self.adb.GetDeviceSerial()
+    return self.serial
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def IsOnline(self, timeout=None, retries=None):
@@ -783,7 +788,7 @@ class DeviceUtils(object):
       raise device_errors.DeviceVersionError(
           ('Requires SDK level %s, device is SDK level %s' %
            (required_sdk_level, self.build_version_sdk)),
-           device_serial=self.adb.GetDeviceSerial())
+           device_serial=self.serial)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RunShellCommand(self, cmd, check_return=False, cwd=None, env=None,
@@ -930,7 +935,7 @@ class DeviceUtils(object):
       logging.error('Pipe exit statuses of shell script missing.')
       raise device_errors.AdbShellCommandFailedError(
           script, output, status=None,
-          device_serial=self.adb.GetDeviceSerial())
+          device_serial=self.serial)
 
     output = output[:-1]
     statuses = [
@@ -938,7 +943,7 @@ class DeviceUtils(object):
     if any(statuses):
       raise device_errors.AdbShellCommandFailedError(
           script, output, status=statuses,
-          device_serial=self.adb.GetDeviceSerial())
+          device_serial=self.serial)
     return output
 
   @decorators.WithTimeoutAndRetriesFromInstance()
@@ -2105,7 +2110,7 @@ class DeviceUtils(object):
     """
     if not host_path:
       host_path = os.path.abspath('screenshot-%s-%s.png' % (
-          self.adb.GetDeviceSerial(), _GetTimeStamp()))
+          self.serial, _GetTimeStamp()))
     with device_temp_file.DeviceTempFile(self.adb, suffix='.png') as device_tmp:
       self.RunShellCommand(['/system/bin/screencap', '-p', device_tmp.name],
                            check_return=True)
