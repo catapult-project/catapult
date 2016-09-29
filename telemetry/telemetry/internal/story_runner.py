@@ -282,7 +282,8 @@ def RunBenchmark(benchmark, finder_options):
 
   benchmark_metadata = benchmark.GetMetadata()
   possible_browser = browser_finder.FindBrowser(finder_options)
-  if possible_browser and benchmark.ShouldDisable(possible_browser):
+  if (possible_browser and
+    not decorators.IsBenchmarkEnabled(benchmark, possible_browser)):
     logging.warning('%s is disabled on the selected browser', benchmark.Name())
     if finder_options.run_disabled_tests:
       logging.warning(

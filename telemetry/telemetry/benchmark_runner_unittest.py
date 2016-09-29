@@ -85,10 +85,11 @@ class BenchmarkRunnerUnittest(unittest.TestCase):
     with mock.patch('telemetry.benchmark_runner.decorators') as mock_module:
       def FakeIsEnabled(benchmark_class, _):
         if benchmark_class is BenchmarkFoo:
-          return True, None
+          return True
         else:
-          return False, 'Only supported BenchmarkFoo'
-      mock_module.IsEnabled = FakeIsEnabled
+          return False
+
+      mock_module.IsBenchmarkEnabled = FakeIsEnabled
       benchmark_runner.PrintBenchmarkList(
         [BenchmarkFoo, BenchmarkBar], self._mock_possible_browser, self._stream)
       self.assertEquals(expected_printed_stream, self._stream.output_data)

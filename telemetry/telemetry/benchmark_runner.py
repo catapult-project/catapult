@@ -46,8 +46,7 @@ DEFAULT_LOG_FORMAT = (
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
   return (issubclass(benchmark_class, benchmark.Benchmark) and
-          not benchmark_class.ShouldDisable(possible_browser) and
-          decorators.IsEnabled(benchmark_class, possible_browser)[0])
+          decorators.IsBenchmarkEnabled(benchmark_class, possible_browser))
 
 
 def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
