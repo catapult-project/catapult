@@ -24,7 +24,56 @@ def _lsusbv_on_device(bus_id, dev_id):
   device = {'bus': bus_id, 'device': dev_id}
   depth_stack = [device]
 
-  # TODO(jbudorick): Add documentation for parsing.
+  # This builds a nested dict -- a tree, basically -- that corresponds
+  # to the lsusb output. It looks first for a line containing
+  #
+  #   "Bus <bus number> Device <device number>: ..."
+  #
+  # and uses that to create the root node. It then parses all remaining
+  # lines as a tree, with the indentation level determining the
+  # depth of the new node.
+  #
+  # This expects two kinds of lines:
+  #   - "groups", which take the form
+  #       "<Group name>:"
+  #     and typically have children, and
+  #   - "entries", which take the form
+  #       "<entry name>   <entry value>  <possible entry description>"
+  #     and typically do not have children (but can).
+  #
+  # This maintains a stack containing all current ancestor nodes in
+  # order to add new nodes to the proper place in the tree.
+  # The stack is added to when a new node is parsed. Nodes are removed
+  # from the stack when they are either at the same indentation level as
+  # or a deeper indentation level than the current line.
+  #
+  # e.g. the following lsusb output:
+  #
+  # Bus 123 Device 456: School bus
+  # Device Descriptor:
+  #   bDeviceClass 5 Actual School Bus
+  #   Configuration Descriptor:
+  #     bLength 20 Rows
+  #
+  # would produce the following dict:
+  #
+  # {
+  #   'bus': 123,
+  #   'device': 456,
+  #   'desc': 'School bus',
+  #   'Device Descriptor': {
+  #     'bDeviceClass': {
+  #       '_value': '5',
+  #       '_desc': 'Actual School Bus',
+  #     },
+  #     'Configuration Descriptor': {
+  #       'bLength': {
+  #         '_value': '20',
+  #         '_desc': 'Rows',
+  #       },
+  #     },
+  #   }
+  # }
   for line in raw_output.splitlines():
     # Ignore blank lines.
     if not line:
@@ -44,16 +93,21 @@ def _lsusbv_on_device(bus_id, dev_id):
       device['desc'] = m.group(3)
       continue
 
+    # Skip any lines that aren't indented, as they're not part of the
+    # device descriptor.
     indent_match = _INDENTATION_RE.match(line)
     if not indent_match:
       continue
 
+    # Determine the indentation depth.
     depth = 1 + len(indent_match.group(1)) / 2
     if depth > len(depth_stack):
       logger.error(
           'lsusb parsing error: unexpected indentation: "%s"', line)
       continue
 
+    # Pop everything off the depth stack that isn't a parent of
+    # this element.
     while depth < len(depth_stack):
       depth_stack.pop()
 
@@ -106,6 +160,15 @@ def get_lsusb_serial(device):
   except KeyError:
     return None
 
+def _is_android_device(device):
+  try:
+    # Hubs are not android devices.
+    if device['Device Descriptor']['bDeviceClass']['_value'] == '9':
+      return False
+  except KeyError:
+    pass
+  return get_lsusb_serial(device) is not None
+
 def get_android_devices():
-  return [serial for serial in (get_lsusb_serial(d) for d in lsusb())
-          if serial]
+  android_devices = (d for d in lsusb() if _is_android_device(d))
+  return [get_lsusb_serial(d) for d in android_devices]
