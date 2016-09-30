@@ -9,7 +9,7 @@ mapreduce:
     handler: dashboard.mr.DeprecateTestsMapper
     params:
     - name: entity_kind
-      default: dashboard.models.graph_data.Test
+      default: dashboard.models.graph_data.TestMetadata
     - name: filter
       value: has_rows=True
 
@@ -19,4 +19,4 @@ mapreduce:
     handler: dashboard.mr.SaveAllMapper
     params:
     - name: entity_kind
-      default: dashboard.models.graph_data.Test
+      default: dashboard.models.graph_data.TestMetadata
