@@ -284,22 +284,21 @@ def RunBenchmark(benchmark, finder_options):
   possible_browser = browser_finder.FindBrowser(finder_options)
   if (possible_browser and
     not decorators.IsBenchmarkEnabled(benchmark, possible_browser)):
-    logging.warning('%s is disabled on the selected browser', benchmark.Name())
+    print '%s is disabled on the selected browser' % benchmark.Name()
     if finder_options.run_disabled_tests:
-      logging.warning(
-          'Running benchmark anyway due to: --also-run-disabled-tests')
+      print 'Running benchmark anyway due to: --also-run-disabled-tests'
     else:
-      logging.warning(
-          'Try --also-run-disabled-tests to force the benchmark to run.')
+      print 'Try --also-run-disabled-tests to force the benchmark to run.'
       # If chartjson is specified, this will print a dict indicating the
-      # benchmark name and disabled state.  crrev.com/2265423005 will update
-      # this return value once this logic is plumbed through the recipe.
+      # benchmark name and disabled state.
       with results_options.CreateResults(
           benchmark_metadata, finder_options,
           benchmark.ValueCanBeAddedPredicate, benchmark_enabled=False
           ) as results:
         results.PrintSummary()
-      return 1
+      # When a disabled benchmark is run we now want to return success since
+      # we are no longer filtering these out in the buildbot recipes.
+      return 0
 
   pt = benchmark.CreatePageTest(finder_options)
   pt.__name__ = benchmark.__class__.__name__

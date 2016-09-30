@@ -129,9 +129,6 @@ class SharedPageState(story.SharedState):
     if not enabled and not finder_options.run_disabled_tests:
       logging.warning(msg)
       logging.warning('You are trying to run a disabled test.')
-      logging.warning(
-          'Pass --also-run-disabled-tests to squelch this message.')
-      sys.exit(0)
 
     if possible_browser.IsRemote():
       possible_browser.RunRemote()
