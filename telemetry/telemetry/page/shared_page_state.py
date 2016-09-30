@@ -249,8 +249,11 @@ class SharedPageState(story.SharedState):
     cache_temperature.EnsurePageCacheTemperature(
         self._current_page, self.browser, self._previous_page)
     if self._current_page.traffic_setting != traffic_setting.NONE:
-      # TODO(kouhei): fill in appropriate traffic shaping data.
-      raise NotImplementedError()
+      s = traffic_setting.NETWORK_CONFIGS[self._current_page.traffic_setting]
+      self.platform.network_controller.UpdateTrafficSettings(
+          round_trip_latency_ms=s.round_trip_latency_ms,
+          download_bandwidth_kbps=s.download_bandwidth_kbps,
+          upload_bandwidth_kbps=s.upload_bandwidth_kbps)
 
     # Start profiling if needed.
     if self._finder_options.profiler:

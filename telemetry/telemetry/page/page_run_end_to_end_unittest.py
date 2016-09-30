@@ -8,6 +8,7 @@ import shutil
 import sys
 import StringIO
 import tempfile
+import time
 import unittest
 
 from telemetry import benchmark
@@ -24,6 +25,7 @@ from telemetry.internal.util import exception_formatter
 from telemetry.page import page as page_module
 from telemetry.page import legacy_page_test
 from telemetry.page import shared_page_state
+from telemetry.page import traffic_setting as traffic_setting_module
 from telemetry.util import image_util
 from telemetry.testing import fakes
 from telemetry.testing import options_for_unittests
@@ -319,6 +321,47 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     SetUpStoryRunnerArguments(options)
     results = results_options.CreateResults(EmptyMetadataForTest(), options)
     story_runner.Run(test, story_set, options, results)
+
+  def testTrafficSettings(self):
+    story_set = story.StorySet()
+    slow_page = page_module.Page(
+        'file://green_rect.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='slow',
+        traffic_setting=traffic_setting_module.REGULAR_2G)
+    fast_page = page_module.Page(
+        'file://green_rect.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='fast',
+        traffic_setting=traffic_setting_module.WIFI)
+    story_set.AddStory(slow_page)
+    story_set.AddStory(fast_page)
+
+    latencies_by_page_in_ms = {}
+
+    class MeasureLatency(legacy_page_test.LegacyPageTest):
+      def __init__(self):
+        super(MeasureLatency, self).__init__()
+        self._will_navigate_time = None
+
+      def WillNavigateToPage(self, page, tab):
+        del page, tab # unused
+        self._will_navigate_time = time.time() * 1000
+
+      def ValidateAndMeasurePage(self, page, tab, results):
+        del results  # unused
+        latencies_by_page_in_ms[page.name] = (
+            time.time() * 1000 - self._will_navigate_time)
+
+    test = MeasureLatency()
+    options = options_for_unittests.GetCopy()
+    options.output_formats = ['none']
+    options.suppress_gtest_report = True
+    SetUpStoryRunnerArguments(options)
+    results = results_options.CreateResults(EmptyMetadataForTest(), options)
+    story_runner.Run(test, story_set, options, results)
+    # Slow page should be slower than fast page by at least 300 ms (roundtrip
+    # time of 2G) - 2 ms (roundtrip time of Wifi)
+    self.assertGreater(latencies_by_page_in_ms['slow'],
+                       latencies_by_page_in_ms['fast'] + 300 - 2)
 
   # Ensure that story_runner allows >1 tab for multi-tab test.
   @decorators.Enabled('has tabs')

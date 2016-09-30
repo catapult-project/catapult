@@ -51,6 +51,8 @@ class Page(story.Story):
     if cache_temperature != cache_temperature_module.ANY:
       self.grouping_keys['cache_temperature'] = cache_temperature
 
+    assert traffic_setting in traffic_setting_module.NETWORK_CONFIGS, (
+        'Invalid traffic setting: %s' % traffic_setting)
     self._traffic_setting = traffic_setting
 
     # Whether to collect garbage on the page before navigating & performing
