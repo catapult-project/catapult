@@ -8,6 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/counter_series.html">
+<link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/process.html">
 
 <script>
 'use strict';
@@ -103,6 +105,19 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ret[1].avg, (10 + 15 + 12 + 16) / 4);
     assert.equal(ret[1].start, 10);
     assert.equal(ret[1].end, 16);
+  });
+
+  test('testCounterSortRemainInOrder', function() {
+    var model = new tr.Model();
+    var process = new tr.model.Process(model, 4);
+    var ctr1 = new Counter(process, 0, '', 'a');
+    var ctr2 = new Counter(process, 0, '', 'b');
+
+    var array = [ ctr1, ctr2 ];
+    array.sort(tr.model.Counter.compare);
+
+    assert.equal(array[0], ctr1);
+    assert.equal(array[1], ctr2);
   });
 });
 </script>

@@ -179,7 +179,7 @@ tr.exportTo('tr.model', function() {
    * Comparison between counters that orders by parent.compareTo, then name.
    */
   Counter.compare = function(x, y) {
-    var tmp = x.parent.compareTo(y);
+    var tmp = x.parent.compareTo(y.parent);
     if (tmp != 0)
       return tmp;
     var tmp = x.name.localeCompare(y.name);
