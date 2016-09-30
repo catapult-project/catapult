@@ -25,8 +25,7 @@ _DEFAULT_RETRIES = 3
 
 _DEVICE_PROFILES = [
   {
-    'name': 'Nexus 4',
-    'witness_file': '/sys/module/pm8921_charger/parameters/disabled',
+    'name': ['Nexus 4'],
     'enable_command': (
         'echo 0 > /sys/module/pm8921_charger/parameters/disabled && '
         'dumpsys battery reset'),
@@ -38,12 +37,11 @@ _DEVICE_PROFILES = [
     'current': None,
   },
   {
-    'name': 'Nexus 5',
+    'name': ['Nexus 5'],
     # Nexus 5
     # Setting the HIZ bit of the bq24192 causes the charger to actually ignore
     # energy coming from USB. Setting the power_supply offline just updates the
     # Android system to reflect that.
-    'witness_file': '/sys/kernel/debug/bq24192/INPUT_SRC_CONT',
     'enable_command': (
         'echo 0x4A > /sys/kernel/debug/bq24192/INPUT_SRC_CONT && '
         'chmod 644 /sys/class/power_supply/usb/online && '
@@ -59,8 +57,7 @@ _DEVICE_PROFILES = [
     'current': None,
   },
   {
-    'name': 'Nexus 6',
-    'witness_file': None,
+    'name': ['Nexus 6'],
     'enable_command': (
         'echo 1 > /sys/class/power_supply/battery/charging_enabled && '
         'dumpsys battery reset'),
@@ -73,8 +70,7 @@ _DEVICE_PROFILES = [
     'current': '/sys/class/power_supply/max170xx_battery/current_now',
   },
   {
-    'name': 'Nexus 9',
-    'witness_file': None,
+    'name': ['Nexus 9'],
     'enable_command': (
         'echo Disconnected > '
         '/sys/bus/i2c/drivers/bq2419x/0-006b/input_cable_state && '
@@ -88,8 +84,7 @@ _DEVICE_PROFILES = [
     'current': '/sys/class/power_supply/battery/current_now',
   },
   {
-    'name': 'Nexus 10',
-    'witness_file': None,
+    'name': ['Nexus 10'],
     'enable_command': None,
     'disable_command': None,
     'charge_counter': None,
@@ -98,8 +93,7 @@ _DEVICE_PROFILES = [
 
   },
   {
-    'name': 'Nexus 5X',
-    'witness_file': None,
+    'name': ['Nexus 5X'],
     'enable_command': (
         'echo 1 > /sys/class/power_supply/battery/charging_enabled && '
         'dumpsys battery reset'),
@@ -109,6 +103,42 @@ _DEVICE_PROFILES = [
     'charge_counter': None,
     'voltage': None,
     'current': None,
+  },
+  { # Galaxy s5
+    'name': ['SM-G900H'],
+    'enable_command': (
+        'chmod 644 /sys/class/power_supply/battery/test_mode && '
+        'chmod 644 /sys/class/power_supply/sec-charger/current_now && '
+        'echo 0 > /sys/class/power_supply/battery/test_mode && '
+        'echo 9999 > /sys/class/power_supply/sec-charger/current_now &&'
+        'dumpsys battery reset'),
+    'disable_command': (
+        'chmod 644 /sys/class/power_supply/battery/test_mode && '
+        'chmod 644 /sys/class/power_supply/sec-charger/current_now && '
+        'echo 1 > /sys/class/power_supply/battery/test_mode && '
+        'echo 0 > /sys/class/power_supply/sec-charger/current_now && '
+        'dumpsys battery set ac 0 && dumpsys battery set usb 0'),
+    'charge_counter': None,
+    'voltage': '/sys/class/power_supply/sec-fuelgauge/voltage_now',
+    'current': '/sys/class/power_supply/sec-charger/current_now',
+  },
+  { # Galaxy s6, Galaxy s6, Galaxy s6 edge
+    'name': ['SM-G920F', 'SM-G920V', 'SM-G925V'],
+    'enable_command': (
+        'chmod 644 /sys/class/power_supply/battery/test_mode && '
+        'chmod 644 /sys/class/power_supply/max77843-charger/current_now && '
+        'echo 0 > /sys/class/power_supply/battery/test_mode && '
+        'echo 9999 > /sys/class/power_supply/max77843-charger/current_now &&'
+        'dumpsys battery reset'),
+    'disable_command': (
+        'chmod 644 /sys/class/power_supply/battery/test_mode && '
+        'chmod 644 /sys/class/power_supply/max77843-charger/current_now && '
+        'echo 1 > /sys/class/power_supply/battery/test_mode && '
+        'echo 0 > /sys/class/power_supply/max77843-charger/current_now && '
+        'dumpsys battery set ac 0 && dumpsys battery set usb 0'),
+    'charge_counter': None,
+    'voltage': '/sys/class/power_supply/max77843-fuelgauge/voltage_now',
+    'current': '/sys/class/power_supply/max77843-charger/current_now',
   },
 ]
 
@@ -506,7 +536,7 @@ class BatteryUtils(object):
       if int(temp) <= target_temp:
         return True
       else:
-        if self._cache['profile']['name'] == 'Nexus 5':
+        if 'Nexus 5' in self._cache['profile']['name']:
           self._DischargeDevice(1)
         return False
 
@@ -655,12 +685,11 @@ class BatteryUtils(object):
     if 'profile' in self._cache:
       return True
     for profile in _DEVICE_PROFILES:
-      if self._device.product_model == profile['name']:
+      if self._device.product_model in profile['name']:
         self._cache['profile'] = profile
         return True
     self._cache['profile'] = {
-        'name': None,
-        'witness_file': None,
+        'name': [],
         'enable_command': None,
         'disable_command': None,
         'charge_counter': None,

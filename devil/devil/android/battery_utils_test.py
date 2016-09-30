@@ -616,13 +616,13 @@ class BatteryUtilsDiscoverDeviceProfile(BatteryUtilsTest):
     with self.patch_call(self.call.device.product_model,
                          return_value='Nexus 4'):
       self.battery._DiscoverDeviceProfile()
-      self.assertEqual(self.battery._cache['profile']['name'], "Nexus 4")
+      self.assertListEqual(self.battery._cache['profile']['name'], ["Nexus 4"])
 
   def testDiscoverDeviceProfile_unknown(self):
     with self.patch_call(self.call.device.product_model,
                          return_value='Other'):
       self.battery._DiscoverDeviceProfile()
-      self.assertEqual(self.battery._cache['profile']['name'], None)
+      self.assertListEqual(self.battery._cache['profile']['name'], [])
 
 
 class BatteryUtilsClearPowerData(BatteryUtilsTest):
