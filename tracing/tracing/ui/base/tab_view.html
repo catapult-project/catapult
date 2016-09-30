@@ -60,6 +60,11 @@ and limit users to having one option selected at a time.
         font-weight: bold;
       }
 
+      #tabs:focus input[type=radio]:checked ~ label {
+        outline: dotted 1px #8e8e8e;
+        outline-offset: -2px;
+      }
+
       #tabs input[type=radio]:checked ~ label {
         background-color: white;
         border: 1px solid #8e8e8e;
@@ -110,8 +115,14 @@ Polymer({
     },
     tabsHidden: {
       type: Boolean,
-      value: false
+      value: false,
+      observer: 'tabsHiddenChanged_'
     }
+  },
+
+  ready: function() {
+    this.$.tabs.addEventListener('keydown', this.onKeyDown_.bind(this), true);
+    this.updateFocusability_();
   },
 
   set label(newLabel) {
@@ -144,6 +155,7 @@ Polymer({
   clearSubViews: function() {
     this.splice('subViews_', 0, this.subViews_.length);
     this.selectedSubView = undefined;
+    this.updateFocusability_();
   },
 
   addSubView: function(subView) {
@@ -151,6 +163,7 @@ Polymer({
       this.selectedSubView = subView;
 
     this.push('subViews_', subView);
+    this.updateFocusability_();
   },
 
   resetSubViews: function(subViews) {
@@ -163,6 +176,7 @@ Polymer({
     else {
       this.selectedSubView = undefined;
     }
+    this.updateFocusability_();
   },
 
   onTabChanged_: function(event) {
@@ -171,6 +185,49 @@ Polymer({
 
   isChecked_: function(subView) {
     return this.selectedSubView_ === subView;
+  },
+
+  tabsHiddenChanged_: function() {
+    this.updateFocusability_();
+  },
+
+  onKeyDown_: function(e) {
+    if (this.tabsHidden || !this.selectedSubView_)
+      return;
+
+    var currentIndex = this.subViews_.indexOf(this.selectedSubView_);
+    var nextIndex = undefined;
+    switch (e.keyCode) {
+      // Arrow left.
+      case 37:
+        nextIndex = currentIndex - 1;
+        break;
+      // Arrow right.
+      case 39:
+        nextIndex = currentIndex + 1;
+        break;
+      default:
+        return;
+    }
+
+    var tab = Polymer.dom(this.root).querySelectorAll('#tabs tab')[nextIndex];
+    if (tab)
+      tab.querySelector('input').click();
+
+    e.stopPropagation();
+    e.preventDefault();
+  },
+
+  shouldBeFocusable_: function() {
+    return !this.tabsHidden && this.subViews_.length > 0;
+  },
+
+  updateFocusability_: function() {
+    if (this.shouldBeFocusable_()) {
+      Polymer.dom(this.$.tabs).setAttribute('tabindex', 0);
+    } else {
+      Polymer.dom(this.$.tabs).removeAttribute('tabindex');
+    }
   },
 
   computeRadioId_: function(subView) {
