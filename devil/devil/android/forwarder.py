@@ -141,11 +141,13 @@ class Forwarder(object):
           else: raise
         if exit_code != 0:
           try:
-            Forwarder._KillDeviceLocked(device, tool)
+            instance._KillDeviceLocked(device, tool)
           except device_errors.CommandFailedError:
             # We don't want the failure to kill the device forwarder to
             # supersede the original failure to map.
-            pass
+            logging.warning(
+                'Failed to kill the device forwarder after map failure: %s',
+                str(e))
           _LogMapFailureDiagnostics(device)
           raise HostForwarderError(
               '%s exited with %d:\n%s' % (instance._host_forwarder_path,
@@ -183,19 +185,31 @@ class Forwarder(object):
       port_pairs: A list of tuples (device_port, host_port) to unmap.
     """
     with _FileLock(Forwarder._LOCK_PATH):
-      if not Forwarder._instance:
-        return
-      adb_serial = str(device)
-      if adb_serial not in Forwarder._instance._initialized_devices:
-        return
-      port_map = Forwarder._GetInstanceLocked(
-          None)._device_to_host_port_map
-      for (device_serial, device_port) in port_map.keys():
-        if adb_serial == device_serial:
-          Forwarder._UnmapDevicePortLocked(device_port, device)
-      # There are no more ports mapped, kill the device_forwarder.
+      instance = Forwarder._GetInstanceLocked(None)
+      exit_code, output = cmd_helper.GetCmdStatusAndOutput(
+          [instance._host_forwarder_path,
+           '--adb=%s' % devil_env.config.FetchPath('adb'),
+           '--serial-id=%s' % device.serial,
+           '--unmap-all'])
+      if exit_code != 0:
+        error_msg = [
+            '%s exited with %d' % (instance._host_forwarder_path,
+                                   exit_code)]
+        error_msg += output
+        raise HostForwarderError('\n'.join(error_msg))
+
+      # Clean out any entries from the device & host map.
+      device_map = instance._device_to_host_port_map
+      host_map = instance._host_to_device_port_map
+      for device_serial_and_port, host_port in device_map.items():
+        device_serial = device_serial_and_port[0]
+        if device_serial == device.serial:
+          del device_map[device_serial_and_port]
+          del host_map[host_port]
+
+      # Kill the device forwarder.
       tool = base_tool.BaseTool()
-      Forwarder._KillDeviceLocked(device, tool)
+      instance._KillDeviceLocked(device, tool)
 
   @staticmethod
   def DevicePortForHostPort(host_port):
@@ -325,7 +339,7 @@ class Forwarder(object):
     if device_serial in self._initialized_devices:
       return
     try:
-      Forwarder._KillDeviceLocked(device, tool)
+      self._KillDeviceLocked(device, tool)
     except device_errors.CommandFailedError:
       logger.warning('Failed to kill device forwarder. Rebooting.')
       device.Reboot()
@@ -380,8 +394,7 @@ class Forwarder(object):
       Forwarder._GetInstanceLocked(None)._KillDeviceLocked(
           device, tool or base_tool.BaseTool())
 
-  @staticmethod
-  def _KillDeviceLocked(device, tool):
+  def _KillDeviceLocked(self, device, tool):
     """Kills the forwarder process running on the device.
 
     Note that the global lock must be acquired before calling this method.
@@ -392,7 +405,7 @@ class Forwarder(object):
             forwarder (see valgrind_tools.py).
     """
     logger.info('Killing device_forwarder.')
-    Forwarder._instance._initialized_devices.discard(str(device))
+    self._initialized_devices.discard(device.serial)
     if not device.FileExists(Forwarder._DEVICE_FORWARDER_PATH):
       return
 
