@@ -23,7 +23,6 @@ class CrOSTestCase(unittest.TestCase):
     self._password = options.browser_options.password
     self._gaia_id = options.browser_options.gaia_id
     self._load_extension = None
-    self._network_controller = None
 
   def _CreateBrowser(self, autotest_ext=False, auto_login=True,
                      gaia_login=False, username=None, password=None,
@@ -43,10 +42,6 @@ class CrOSTestCase(unittest.TestCase):
 
     browser_to_create = browser_finder.FindBrowser(options)
     self.assertTrue(browser_to_create)
-    if self._network_controller:
-      self._network_controller.Close()
-    self._network_controller = browser_to_create.platform.network_controller
-    self._network_controller.InitializeIfNeeded()
     browser_options = options.browser_options
     browser_options.create_browser_with_oobe = True
     browser_options.auto_login = auto_login
@@ -60,10 +55,6 @@ class CrOSTestCase(unittest.TestCase):
       browser_options.gaia_id = gaia_id
 
     return browser_to_create.Create(options)
-
-  def tearDown(self):
-    if self._network_controller:
-      self._network_controller.Close()
 
   def _GetAutotestExtension(self, browser):
     """Returns the autotest extension instance"""
