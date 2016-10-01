@@ -123,10 +123,10 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
   def GetReplayBrowserStartupArgs(self):
     replay_args = []
     network_backend = self.platform_backend.network_controller_backend
+    if not network_backend.is_initialized:
+      return []
     proxy_port = network_backend.forwarder.port_pair.remote_port
     replay_args.append('--proxy-server=socks://localhost:%s' % proxy_port)
-    if not network_backend.is_replay_active:
-      return []
     if not network_backend.is_test_ca_installed:
       # Ignore certificate errors if the platform backend has not created
       # and installed a root certificate.

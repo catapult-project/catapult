@@ -12,16 +12,19 @@ from telemetry.util import wpr_modes
 
 
 class FakePlatformBackend(object):
-  def __init__(self, is_replay_active, local_ts_proxy_port, remote_port,
+  def __init__(self, is_initialized, local_ts_proxy_port, remote_port,
                is_host_platform):
     self.is_host_platform = is_host_platform
 
     self.forwarder_factory = mock.Mock()
 
     self.network_controller_backend = mock.Mock()
-    self.network_controller_backend.is_replay_active = is_replay_active
-    self.network_controller_backend.forwarder.port_pair = forwarders.PortPair(
-        local_port=local_ts_proxy_port, remote_port=remote_port)
+    self.network_controller_backend.is_initialized = is_initialized
+    if is_initialized:
+      self.network_controller_backend.forwarder.port_pair = forwarders.PortPair(
+          local_port=local_ts_proxy_port, remote_port=remote_port)
+    else:
+      self.network_controller_backend.forwarder = None
     self.network_controller_backend.host_ip = '127.0.0.1'
     self.network_controller_backend.is_test_ca_installed = False
 
@@ -83,3 +86,15 @@ class ReplayStartupArgsTest(unittest.TestCase):
     # The result is the same regardless of whether running locally.
     self.BasicArgsHelper(is_running_locally=True)
     self.BasicArgsHelper(is_running_locally=False)
+
+  def testReplayNotActive(self):
+    browser_options = FakeBrowserOptions(wpr_mode=wpr_modes.WPR_OFF)
+    browser_backend = TestChromeBrowserBackend(
+        browser_options,
+        local_ts_proxy_port=567,
+        remote_port=789,
+        is_running_locally=True)
+    expected_args = []
+    self.assertEqual(
+        expected_args,
+        sorted(browser_backend.GetReplayBrowserStartupArgs()))

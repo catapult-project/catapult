@@ -68,7 +68,7 @@ class NetworkControllerBackend(object):
     return self._wpr_mode is not None
 
   @property
-  def is_replay_active(self):
+  def is_initialized(self):
     return self._forwarder is not None
 
   @property

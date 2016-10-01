@@ -290,7 +290,7 @@ class _FakeNetworkController(object):
   def __init__(self):
     self.wpr_mode = None
     self.extra_wpr_args = None
-    self.is_replay_active = False
+    self.is_initialized = False
     self.is_open = False
     self.use_live_traffic = None
 
@@ -309,16 +309,16 @@ class _FakeNetworkController(object):
   def Close(self):
     self.wpr_mode = None
     self.extra_wpr_args = None
-    self.is_replay_active = False
+    self.is_initialized = False
     self.is_open = False
 
   def StartReplay(self, archive_path, make_javascript_deterministic=False):
     del make_javascript_deterministic  # Unused.
     assert self.is_open
-    self.is_replay_active = archive_path is not None
+    self.is_initialized = archive_path is not None
 
   def StopReplay(self):
-    self.is_replay_active = False
+    self.is_initialized = False
 
 
 class _FakeTab(object):
