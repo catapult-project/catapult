@@ -271,7 +271,7 @@ def _MockMakeRequest(path, *args, **kwargs):  # pylint: disable=unused-argument
 
 
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
-@mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 class StartBisectTest(testing_common.TestCase):
 
   def setUp(self):
