@@ -275,7 +275,10 @@ found in the LICENSE file.
         var testPathParts = testPath.split('/');
         var botName = testPathParts[0] + '/' + testPathParts[1];
         var subtestParts = testPathParts.splice(3);
-        var subtestDict = this.subtests[botName][testPathParts[2]];
+        var subtestDict = null;
+        if (this.subtests && this.subtests[botName]) {
+          subtestDict = this.subtests[botName][testPathParts[2]];
+        }
         if (!subtestDict) {
           return null;
         }
@@ -404,9 +407,9 @@ found in the LICENSE file.
         if (keys) {
           params['keys'] = keys;
         }
-        var bug_id = uri.getParameter('bug_id');
-        if (bug_id) {
-          params['bug_id'] = bug_id;
+        var bugId = uri.getParameter('bug_id');
+        if (bugId) {
+          params['bug_id'] = bugId;
         }
         var rev = uri.getParameter('rev');
         if (rev) {

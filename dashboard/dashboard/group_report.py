@@ -170,7 +170,11 @@ class GroupReportHandler(chart_handler.ChartHandler):
 
     values = {
         'alert_list': alert_dicts[:_DISPLAY_LIMIT],
-        'subtests': _GetSubTestsForAlerts(alert_dicts),
+        # This code for getting the subtests is supposed to be used to sort out
+        # which metrics are "core" vs "non-core". But it's extremely slow, and
+        # also doesn't seem to work very well. Turn it off for now:
+        # https://github.com/catapult-project/catapult/issues/2877
+        #'subtests': _GetSubTestsForAlerts(alert_dicts),
         'bug_id': bug_id,
         'test_suites': update_test_suites.FetchCachedTestSuites(),
     }
