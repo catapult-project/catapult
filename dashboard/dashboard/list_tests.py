@@ -216,9 +216,13 @@ def GetTestsMatchingPattern(pattern, only_with_rows=False, list_entities=False):
   for index, part in enumerate(pattern_parts):
     if '*' not in part:
       query_filters.append((property_names[index], part))
-  for index in range(len(pattern_parts), 8):
+  for index in range(len(pattern_parts), 7):
     # Tests longer than the desired pattern will have non-empty property names,
     # so they can be filtered out by matching against an empty string.
+    # Bug: 'test_part5_name' was added recently, and TestMetadata entities which
+    # were created before then do not match it. Since it is the last part, and
+    # rarely used, it's okay not to test for it. See
+    # https://github.com/catapult-project/catapult/issues/2885
     query_filters.append((property_names[index], ''))
 
   # Query tests based on the above filters. Pattern parts with * won't be
