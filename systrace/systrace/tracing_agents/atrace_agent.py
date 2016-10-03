@@ -267,7 +267,8 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
     if _FIX_THREAD_IDS:
       # Issue ps command to device and patch thread names
-      ps_dump = do_preprocess_adb_cmd('ps -t',
+      ps_dump = do_preprocess_adb_cmd('ps -T -o USER,TID,PPID,VSIZE,RSS'
+                                      ',WCHAN,ADDR=PC,S,CMD || ps -t',
                                       self._config.device_serial_number)
       if ps_dump is not None:
         thread_names = extract_thread_list(ps_dump)
