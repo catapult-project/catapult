@@ -23,17 +23,8 @@ found in the LICENSE file.
 
 <dom-module id='tr-ui-a-memory-dump-heap-details-breakdown-view-tab'>
   <template>
-    <style>
-      #info_text {
-        padding: 8px;
-        color: #666;
-        font-style: italic;
-        text-align: center;
-      }
-    </style>
     <tr-v-ui-scalar-context-controller></tr-v-ui-scalar-context-controller>
     <tr-ui-b-table id="table"></tr-ui-b-table>
-    <div id="info_text"></div>
   </template>
 </dom-module>
 
@@ -41,6 +32,17 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.analysis', function() {
+
+  /** @constructor */
+  function EmptyFillerColumn() {}
+
+  EmptyFillerColumn.prototype = {
+    title: '',
+
+    value: function() {
+      return '';
+    },
+  };
 
   Polymer({
     is: 'tr-ui-a-memory-dump-heap-details-breakdown-view',
@@ -194,28 +196,18 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     onRebuild_: function() {
-      if (this.nodes_ === undefined || this.nodes_.length === 0) {
-        this.$.table.clear();
-        this.$.table.style.display = 'none';
-        this.$.info_text.style.display = 'block';
-        this.$.info_text.textContent = 'Cannot break down by ' +
-            this.dimensionLabel_.toLowerCase() + ' any further.';
-        return;
-      }
-
-      this.$.table.style.display = 'block';
-      this.$.info_text.style.display = 'none';
-      this.$.info_text.textContent = '';
-
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
-      this.$.table.tableRows = this.nodes_;
-      this.$.table.tableColumns = this.createColumns_(this.nodes_);
+      this.$.table.emptyValue = 'Cannot break down by ' +
+          this.dimensionLabel_.toLowerCase() + ' any further.';
+      var rows = this.nodes_ || [];
+      this.$.table.tableRows = rows;
+      this.$.table.tableColumns = this.createColumns_(rows);
       this.$.table.rebuild();
     },
 
     createColumns_: function(rows) {
       var titleColumn = new tr.ui.analysis.HeapDetailsTitleColumn(
-          this.tabLabel);
+          this.dimensionLabel_);
       titleColumn.width = '200px';
 
       var numericColumns = tr.ui.analysis.MemoryColumn.fromRows(rows, {
@@ -224,6 +216,9 @@ tr.exportTo('tr.ui.analysis', function() {
         rules: tr.ui.analysis.HEAP_DETAILS_COLUMN_RULES,
         shouldSetContextGroup: true
       });
+      if (numericColumns.length === 0) {
+        numericColumns.push(new EmptyFillerColumn());
+      }
       tr.ui.analysis.MemoryColumn.spaceEqually(numericColumns);
 
       var columns = [titleColumn].concat(numericColumns);
