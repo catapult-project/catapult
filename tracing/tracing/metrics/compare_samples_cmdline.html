@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/base/xhr.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
+<script>
+'use strict';
+
+var escapeChars = s => s.replace(/[\:|=\/#&,]/g, '_');
+
+function findUnescapedKey(escaped, d) {
+  for (var k of tr.b.dictionaryKeys(d)) {
+    if (escapeChars(k) === escaped) {
+      return k;
+    }
+  }
+  throw new Error('did not find key ' + escaped + ' in ' +
+      tr.b.dictionaryKeys(d));
+}
+
+function geoMeanFromHistogram(h) {
+  if (!h.hasOwnProperty('buckets')) return 0.0;
+  var count = 0;
+  var sumOfLogs = 0;
+  for (var bucket of h.buckets) {
+    if (bucket.hasOwnProperty('high')) {
+      bucket.mean = (bucket.low + bucket.high) / 2.0;
+    } else {
+      bucket.mean = bucket.low;
+    }
+
+    if (bucket.mean > 0) {
+      sumOfLogs += Math.log(bucket.mean) * bucket.count;
+      count += bucket.count;
+    }
+  }
+  if (count === 0) return 0.0;
+  return Math.exp(sumOfLogs / count);
+}
+
+function splitMetric(metricName) {
+  var parts = metricName.split('/');
+  var interactionName;
+  var traceName = 'summary';
+  var chartName = parts[0];
+  if (parts.length === 3) {
+    // parts[1] is the interactionName
+    if (parts[1]) chartName = parts[1] + '@@' + chartName;
+    traceName = parts[2];
+  } else if (parts.length === 2) {
+    if (chartName !== parts[1]) traceName = parts[1];
+  } else throw new Error('Could not parse metric name.');
+  return [chartName, traceName];
+}
+
+function valuesFromCharts(listOfCharts, metricName) {
+  var allValues = [];
+  var chartAndTrace = splitMetric(metricName);
+  for (var charts of listOfCharts) {
+    var chartName = findUnescapedKey(chartAndTrace[0], charts.charts);
+    if (chartName) {
+      var traceName = findUnescapedKey(
+          chartAndTrace[1], charts.charts[chartName]);
+      if (traceName) {
+        if (charts.charts[chartName][traceName].type ===
+            'list_of_scalar_values')
+          allValues.push(...charts.charts[chartName][traceName].values);
+        if (charts.charts[chartName][traceName].type === 'histogram')
+          allValues.push(
+              geoMeanFromHistogram(charts.charts[chartName][traceName]));
+      }
+    }
+  }
+  return allValues;
+}
+
+function rawValuesByMetricName(valueSet, metricName) {
+  var interactionRecord, valueName;
+  var [itrPlusChart, story] = splitMetric(metricName);
+  if (itrPlusChart.indexOf('@@') > -1) {
+    [interactionRecord, valueName] = itrPlusChart.split('@@');
+  } else if (itrPlusChart.indexOf('-') > -1) {
+    [interactionRecord, ...valueName] = itrPlusChart.split('-');
+    valueName = valueName.join('');
+  } else valueName = itrPlusChart;
+  var values = valueSet.getValuesNamed(valueName);
+  if (!values || values.length === 0) {
+    // If there was a dash in the chart name, but it wasn't an
+    // interaction record.
+    valueName = itrPlusChart;
+    values = valueSet.getValuesNamed(valueName);
+    interactionRecord = undefined;
+    if (!values || values.length === 0) {
+      throw new Error('No values with name ' + valueName);
+    }
+  }
+  var filtered = [];
+  for (var value of values) {
+    if (value.name !== valueName) continue;
+    var ii = tr.v.d.IterationInfo.getFromValue(value);
+    if (interactionRecord) {
+      var irParts = [];
+      var keys = Object.keys(ii.storyGroupingKeys);
+      keys.sort();
+      for (var key of keys)
+        irParts.push(ii.storyGroupingKeys[key]);
+      if (interactionRecord === irParts.join('_') &&
+          escapeChars(ii.storyDisplayName) ===
+          escapeChars(story)) {
+        filtered.push(value);
+      }
+    } else if (escapeChars(ii.storyDisplayName) ==
+               escapeChars(story)) {
+      filtered.push(value);
+    }
+  }
+
+  var rawValues = [];
+  for (var val of filtered) {
+    if (val instanceof tr.v.Histogram) {
+      rawValues = rawValues.concat(val.sampleValues);
+    } else throw new Error('Only tr.v.Histogram values are supported');
+  }
+  return rawValues;
+}
+
+function parseFiles(files) {
+  var results = [];
+  for (var path of files) {
+    var current = tr.b.getSync('file://' + path);
+    results.push(JSON.parse(current));
+  }
+  return results;
+}
+
+var escapeForRegExp = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+var strFromRE = re => re.toString().split('/')[1];
+
+function valuesFromBuildbotOutput(out, metric) {
+  if (!out)
+    return [];
+  var stringVals = [];
+  var floatVals = [];
+  var chartAndTrace = splitMetric(metric);
+  var metricRE = escapeForRegExp(
+      'RESULT ' + chartAndTrace[0] + ': ' + chartAndTrace[1] + '=');
+  var singleResultRE = new RegExp(metricRE +
+      strFromRE(/\s*([-]?[\d\.]+)/), 'g');
+  var multiResultsRE = new RegExp(metricRE +
+      strFromRE(/\s*\[\s*([\d\., -]+)\s*\]/), 'g');
+  var meanStdDevRE = new RegExp(metricRE +
+      strFromRE(/\s*\{\s*([-]?\d*(?:\.\d*)?),\s*([-]?\d*(?:\.\d*)?)\}/), 'g');
+  for (var line of out.split(/\r?\n/)) {
+    var singleResultMatch = singleResultRE.exec(line);
+    var multiResultsMatch = multiResultsRE.exec(line);
+    var meanStdDevMatch = meanStdDevRE.exec(line);
+    if (singleResultMatch && singleResultMatch.length > 1)
+      stringVals.push(singleResultMatch[1]);
+    else if (multiResultsMatch && multiResultsMatch.length > 1) {
+      var values = multiResultsMatch[1].split(',');
+      stringVals = stringVals.concat(values);
+    } else if (meanStdDevMatch && meanStdDevMatch.length > 1)
+      stringVals.push(meanStdDevMatch[1]);
+  }
+  for (var val of stringVals) {
+    var f = parseFloat(val);
+    if (!isNaN(f))
+      floatVals.push(f);
+  }
+  return floatVals;
+}
+
+function parseMultipleBuildbotStreams(files, metric) {
+  var allValues = [];
+  for (var path of files) {
+    try {
+      var contents = tr.b.getSync('file://' + path);
+    }
+    catch (ex) {
+      var err = new Error('Could not open' + path);
+      err.name = 'File loading error';
+      throw err;
+    }
+    allValues = allValues.concat(valuesFromBuildbotOutput(contents, metric));
+  }
+  return allValues;
+}
+
+var buildComparisonResultOutput = function(a, b) {
+  return {
+    sampleA: a,
+    sampleB: b,
+    result: tr.b.Statistics.mwu(
+        a, b, tr.b.Statistics.DEFAULT_ALPHA,
+        tr.b.Statistics.MAX_SUGGESTED_SAMPLE_SIZE)
+  };
+};
+
+var SampleComparison = {
+
+  compareBuildbotOutputs: function(
+      buildbotOutputAPathList, buildbotOutputBPathList, metric) {
+    var aPaths = buildbotOutputAPathList.split(',');
+    var bPaths = buildbotOutputBPathList.split(',');
+    var sampleA = parseMultipleBuildbotStreams(aPaths, metric);
+    var sampleB = parseMultipleBuildbotStreams(bPaths, metric);
+    return buildComparisonResultOutput(sampleA, sampleB);
+  },
+
+  compareValuesets: function(valueSetAPathList, valueSetBPathList, metric) {
+    var aPaths = valueSetAPathList.split(',');
+    var bPaths = valueSetBPathList.split(',');
+    var valueSetA = new tr.v.ValueSet();
+    var valueSetB = new tr.v.ValueSet();
+    var dictsA = parseFiles(aPaths);
+    var dictsB = parseFiles(bPaths);
+    for (var d of dictsA)
+      valueSetA.addValuesFromDicts(d);
+    for (var d of dictsB)
+      valueSetB.addValuesFromDicts(d);
+
+    var sampleA = rawValuesByMetricName(valueSetA, metric);
+    var sampleB = rawValuesByMetricName(valueSetB, metric);
+    return buildComparisonResultOutput(sampleA, sampleB);
+  },
+
+  compareCharts: function(chartPathListA, chartPathListB, metric) {
+    var aPaths = chartPathListA.split(',');
+    var bPaths = chartPathListB.split(',');
+    var chartsA = parseFiles(aPaths);
+    var chartsB = parseFiles(bPaths);
+    var sampleA = valuesFromCharts(chartsA, metric);
+    var sampleB = valuesFromCharts(chartsB, metric);
+    return buildComparisonResultOutput(sampleA, sampleB);
+  }
+
+};
+
+if (tr.isHeadless) {
+  var method, rest;
+  [method, ...rest] = sys.argv.slice(1);
+  if (SampleComparison[method])
+    console.log(JSON.stringify(SampleComparison[method](...rest)));
+}
+</script>

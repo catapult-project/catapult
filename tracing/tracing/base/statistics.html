@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Copyright 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -798,14 +798,20 @@ tr.exportTo('tr.b', function() {
   };
 
   // p-values less than this indicate statistical significance.
-  Statistics.DEFAULT_ALPHA = 0.05;
+  Statistics.DEFAULT_ALPHA = 0.01;
+
+  // If a statistical significant difference has not been established with
+  // this many observations per sample, we'll assume none exists.
+  Statistics.MAX_SUGGESTED_SAMPLE_SIZE = 20;
 
   /** @enum */
   Statistics.Significance = {
-    INSIGNIFICANT: -1,
-    DONT_CARE: 0,
-    SIGNIFICANT: 1
+    SIGNIFICANT: 'REJECT',
+    INSIGNIFICANT: 'FAIL_TO_REJECT',
+    NEED_MORE_DATA: 'NEED_MORE_DATA',
+    DONT_CARE: 'DONT_CARE',
   };
+
 
   /**
    * @typedef {Object} HypothesisTestResult
@@ -818,14 +824,20 @@ tr.exportTo('tr.b', function() {
    * @param {!Array.<number>} a
    * @param {!Array.<number>} b
    * @param {number=} opt_alpha
+   * @param {number=} opt_reqSampleSize
    * @return {!HypothesisTestResult}
    */
-  Statistics.mwu = function(a, b, opt_alpha) {
+  Statistics.mwu = function(a, b, opt_alpha, opt_reqSampleSize) {
     var result = mannwhitneyu.test(a, b);
     var alpha = opt_alpha || Statistics.DEFAULT_ALPHA;
-    result.significance = (result.p < alpha) ?
-      Statistics.Significance.SIGNIFICANT :
-      Statistics.Significance.INSIGNIFICANT;
+    if (result.p < alpha) {
+      result.significance = Statistics.Significance.SIGNIFICANT;
+    } else if (opt_reqSampleSize && (a.length < opt_reqSampleSize ||
+          b.length < opt_reqSampleSize)) {
+      result.significance = Statistics.Significance.NEED_MORE_DATA;
+    } else {
+      result.significance = Statistics.Significance.INSIGNIFICANT;
+    }
     return result;
   };
 
