@@ -8,13 +8,14 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/range_utils.html">
 <link rel="import" href="/tracing/extras/chrome/cc/input_latency_async_slice.html">
 <link rel="import" href="/tracing/importer/proto_expectation.html">
+<link rel="import" href="/tracing/model/user_model/user_expectation.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.importer', function() {
   var ProtoExpectation = tr.importer.ProtoExpectation;
-
+  var INITIATOR_TYPE = tr.model.um.INITIATOR_TYPE;
   var INPUT_TYPE = tr.e.cc.INPUT_EVENT_TYPE_NAMES;
 
   var KEYBOARD_TYPE_NAMES = [
@@ -97,19 +98,6 @@ tr.exportTo('tr.importer', function() {
    * not Animation.
    */
   var MOUSE_MOVE_THRESHOLD_MS = 40;
-
-  // Strings used to name IRs.
-  var KEYBOARD_IR_NAME = 'Keyboard';
-  var MOUSE_IR_NAME = 'Mouse';
-  var MOUSEWHEEL_IR_NAME = 'MouseWheel';
-  var TAP_IR_NAME = 'Tap';
-  var PINCH_IR_NAME = 'Pinch';
-  var FLING_IR_NAME = 'Fling';
-  var TOUCH_IR_NAME = 'Touch';
-  var SCROLL_IR_NAME = 'Scroll';
-  var CSS_IR_NAME = 'CSS';
-  var WEBGL_IR_NAME = 'WebGL';
-  var VIDEO_IR_NAME = 'Video';
 
   // TODO(benjhayden) Find a better home for this.
   function compareEvents(x, y) {
@@ -202,7 +190,7 @@ tr.exportTo('tr.importer', function() {
     var protoExpectations = [];
     forEventTypesIn(sortedInputEvents, KEYBOARD_TYPE_NAMES, function(event) {
       var pe = new ProtoExpectation(
-          ProtoExpectation.RESPONSE_TYPE, KEYBOARD_IR_NAME);
+          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.KEYBOARD);
       pe.pushEvent(event);
       protoExpectations.push(pe);
     });
@@ -217,7 +205,7 @@ tr.exportTo('tr.importer', function() {
     forEventTypesIn(
         sortedInputEvents, MOUSE_RESPONSE_TYPE_NAMES, function(event) {
       var pe = new ProtoExpectation(
-          ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
       pe.pushEvent(event);
       protoExpectations.push(pe);
     });
@@ -251,14 +239,14 @@ tr.exportTo('tr.importer', function() {
           currentPE.pushEvent(event);
         } else {
           currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
-              MOUSEWHEEL_IR_NAME);
+              INITIATOR_TYPE.MOUSE_WHEEL);
           currentPE.pushEvent(event);
           protoExpectations.push(currentPE);
         }
         return;
       }
       currentPE = new ProtoExpectation(
-          ProtoExpectation.RESPONSE_TYPE, MOUSEWHEEL_IR_NAME);
+          ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE_WHEEL);
       currentPE.pushEvent(event);
       protoExpectations.push(currentPE);
     });
@@ -289,7 +277,7 @@ tr.exportTo('tr.importer', function() {
         case INPUT_TYPE.MOUSE_DOWN:
           if (causedFrame(event)) {
             var pe = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
           } else {
@@ -322,7 +310,7 @@ tr.exportTo('tr.importer', function() {
             // The first MouseMove after a MouseDown or after a while is a
             // Response.
             currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
             currentPE.pushEvent(event);
             if (mouseDownEvent) {
               currentPE.associatedEvents.push(mouseDownEvent);
@@ -335,7 +323,7 @@ tr.exportTo('tr.importer', function() {
               currentPE.pushEvent(event);
             } else {
               currentPE = new ProtoExpectation(
-                  ProtoExpectation.ANIMATION_TYPE, MOUSE_IR_NAME);
+                  ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.MOUSE);
               currentPE.pushEvent(event);
               protoExpectations.push(currentPE);
             }
@@ -347,7 +335,7 @@ tr.exportTo('tr.importer', function() {
             var pe = new ProtoExpectation(
                 causedFrame(event) ? ProtoExpectation.RESPONSE_TYPE :
                 ProtoExpectation.IGNORED_TYPE,
-                MOUSE_IR_NAME);
+                INITIATOR_TYPE.MOUSE);
             pe.pushEvent(event);
             protoExpectations.push(pe);
             break;
@@ -357,7 +345,7 @@ tr.exportTo('tr.importer', function() {
             currentPE.pushEvent(event);
           } else {
             currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, MOUSE_IR_NAME);
+                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.MOUSE);
             if (mouseDownEvent)
               currentPE.associatedEvents.push(mouseDownEvent);
             currentPE.pushEvent(event);
@@ -403,7 +391,7 @@ tr.exportTo('tr.importer', function() {
       switch (event.typeName) {
         case INPUT_TYPE.TAP_DOWN:
           currentPE = new ProtoExpectation(
-              ProtoExpectation.RESPONSE_TYPE, TAP_IR_NAME);
+              ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.TAP);
           currentPE.pushEvent(event);
           protoExpectations.push(currentPE);
           break;
@@ -415,7 +403,7 @@ tr.exportTo('tr.importer', function() {
             // Sometimes we get Tap events with no TapDown, sometimes we get
             // TapDown events. Handle both.
             currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, TAP_IR_NAME);
+                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.TAP);
             currentPE.pushEvent(event);
             protoExpectations.push(currentPE);
           }
@@ -434,7 +422,7 @@ tr.exportTo('tr.importer', function() {
             currentPE.pushEvent(event);
           } else {
             currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, TAP_IR_NAME);
+                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.TAP);
             currentPE.pushEvent(event);
             protoExpectations.push(currentPE);
           }
@@ -466,7 +454,7 @@ tr.exportTo('tr.importer', function() {
             break;
           }
           currentPE = new ProtoExpectation(
-              ProtoExpectation.RESPONSE_TYPE, PINCH_IR_NAME);
+              ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.PINCH);
           currentPE.pushEvent(event);
           currentPE.isAnimationBegin = true;
           protoExpectations.push(currentPE);
@@ -484,7 +472,7 @@ tr.exportTo('tr.importer', function() {
                 sawFirstUpdate) ||
               !currentPE.isNear(event, INPUT_MERGE_THRESHOLD_MS)) {
             currentPE = new ProtoExpectation(
-                ProtoExpectation.ANIMATION_TYPE, PINCH_IR_NAME);
+                ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.PINCH);
             currentPE.pushEvent(event);
             protoExpectations.push(currentPE);
           } else {
@@ -544,7 +532,7 @@ tr.exportTo('tr.importer', function() {
           currentPE.pushEvent(event);
         } else {
           currentPE = new ProtoExpectation(
-              ProtoExpectation.ANIMATION_TYPE, FLING_IR_NAME);
+              ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.FLING);
           currentPE.pushEvent(event);
           protoExpectations.push(currentPE);
         }
@@ -558,7 +546,7 @@ tr.exportTo('tr.importer', function() {
             currentPE.pushEvent(event);
           } else {
             currentPE = new ProtoExpectation(
-                ProtoExpectation.ANIMATION_TYPE, FLING_IR_NAME);
+                ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.FLING);
             currentPE.pushEvent(event);
             // Set end to an invalid value so that it can be noticed and fixed
             // later.
@@ -623,7 +611,7 @@ tr.exportTo('tr.importer', function() {
             currentPE.pushEvent(event);
           } else {
             currentPE = new ProtoExpectation(
-                ProtoExpectation.RESPONSE_TYPE, TOUCH_IR_NAME);
+                ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.TOUCH);
             currentPE.pushEvent(event);
             currentPE.isAnimationBegin = true;
             protoExpectations.push(currentPE);
@@ -634,7 +622,7 @@ tr.exportTo('tr.importer', function() {
         case INPUT_TYPE.TOUCH_MOVE:
           if (!currentPE) {
             currentPE = new ProtoExpectation(
-                ProtoExpectation.ANIMATION_TYPE, TOUCH_IR_NAME);
+                ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.TOUCH);
             currentPE.pushEvent(event);
             protoExpectations.push(currentPE);
             break;
@@ -650,7 +638,7 @@ tr.exportTo('tr.importer', function() {
             // near event, then finish it and start a new animation.
             var prevEnd = currentPE.end;
             currentPE = new ProtoExpectation(
-                ProtoExpectation.ANIMATION_TYPE, TOUCH_IR_NAME);
+                ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.TOUCH);
             currentPE.pushEvent(event);
             // It's possible for there to be a gap between TouchMoves, but
             // that doesn't mean that there should be an Idle IR there.
@@ -700,7 +688,7 @@ tr.exportTo('tr.importer', function() {
           // Always begin a new PE even if there already is one, unlike
           // PinchBegin.
           currentPE = new ProtoExpectation(
-              ProtoExpectation.RESPONSE_TYPE, SCROLL_IR_NAME);
+              ProtoExpectation.RESPONSE_TYPE, INITIATOR_TYPE.SCROLL);
           currentPE.pushEvent(event);
           currentPE.isAnimationBegin = true;
           protoExpectations.push(currentPE);
@@ -716,14 +704,14 @@ tr.exportTo('tr.importer', function() {
               sawFirstUpdate = true;
             } else {
               currentPE = new ProtoExpectation(ProtoExpectation.ANIMATION_TYPE,
-                  SCROLL_IR_NAME);
+                  INITIATOR_TYPE.SCROLL);
               currentPE.pushEvent(event);
               protoExpectations.push(currentPE);
             }
           } else {
              // ScrollUpdate without ScrollBegin.
             currentPE = new ProtoExpectation(
-                ProtoExpectation.ANIMATION_TYPE, SCROLL_IR_NAME);
+                ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.SCROLL);
             currentPE.pushEvent(event);
             protoExpectations.push(currentPE);
           }
@@ -767,7 +755,7 @@ tr.exportTo('tr.importer', function() {
     var protoExpectations = [];
     for (var event of events) {
       var currentPE = new ProtoExpectation(
-          ProtoExpectation.ANIMATION_TYPE, VIDEO_IR_NAME);
+          ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.VIDEO);
       currentPE.start = event.start;
       currentPE.end = event.end;
       currentPE.pushEvent(event);
@@ -849,7 +837,7 @@ tr.exportTo('tr.importer', function() {
 
     return animationRanges.map(function(range) {
       var protoExpectation = new ProtoExpectation(
-          ProtoExpectation.ANIMATION_TYPE, CSS_IR_NAME);
+          ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.CSS);
       protoExpectation.start = range.min;
       protoExpectation.end = range.max;
       protoExpectation.associatedEvents.push(range.animation);
@@ -929,7 +917,7 @@ tr.exportTo('tr.importer', function() {
       if (currentPE === undefined || !currentPE.isNear(
           event, ANIMATION_MERGE_THRESHOLD_MS)) {
         currentPE = new ProtoExpectation(
-            ProtoExpectation.ANIMATION_TYPE, WEBGL_IR_NAME);
+            ProtoExpectation.ANIMATION_TYPE, INITIATOR_TYPE.WEBGL);
         currentPE.pushEvent(event);
         protoExpectations.push(currentPE);
       }
@@ -1044,7 +1032,7 @@ tr.exportTo('tr.importer', function() {
 
       var isCSS = pe.containsSliceTitle(CSS_ANIMATION_TITLE);
       var isFling = pe.containsTypeNames([INPUT_TYPE.FLING_START]);
-      var isVideo = pe.containsTypeNames([VIDEO_IR_NAME]);
+      var isVideo = pe.containsTypeNames([INITIATOR_TYPE.VIDEO]);
 
       for (var i = 0; i < protoExpectations.length; ++i) {
         var otherPE = protoExpectations[i];
@@ -1068,7 +1056,7 @@ tr.exportTo('tr.importer', function() {
           continue;
 
         // Don't merge Video Animations with any other types.
-        if (isVideo !== otherPE.containsTypeNames([VIDEO_IR_NAME]))
+        if (isVideo !== otherPE.containsTypeNames([INITIATOR_TYPE.VIDEO]))
           continue;
 
         pe.merge(otherPE);
@@ -1197,7 +1185,8 @@ tr.exportTo('tr.importer', function() {
       // don't remove them if it's a WebGL animation.
       // TODO(alexandermont): Identify what the correct frame event to
       // use here is.
-      if (frameEvents.length === 0 && !pe.names.has(WEBGL_IR_NAME)) {
+      if (frameEvents.length === 0 &&
+              !(pe.initiatorType === INITIATOR_TYPE.WEBGL)) {
         pe.irType = ProtoExpectation.IGNORED_TYPE;
         newPEs.push(pe);
         continue;
@@ -1263,7 +1252,8 @@ tr.exportTo('tr.importer', function() {
   return {
     findInputExpectations: findInputExpectations,
     compareEvents: compareEvents,
-    CSS_ANIMATION_TITLE: CSS_ANIMATION_TITLE
+    CSS_ANIMATION_TITLE: CSS_ANIMATION_TITLE,
+    INITIATOR_TYPE: INITIATOR_TYPE
   };
 });
 </script>

@@ -281,13 +281,13 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 919, eventCount: 1},
-      {title: 'Scroll,Tap,Touch Response', start: 919, end: 1054,
+      {title: 'Scroll Response', start: 919, end: 1054,
           eventCount: 6, isAnimationBegin: true},
-      {title: 'Scroll,Touch Animation', start: 1054, end: 1068,
+      {title: 'Scroll Animation', start: 1054, end: 1068,
           eventCount: 11},
       {title: 'Fling Animation', start: 1054, end: 1432,
           eventCount: 4},
-      {title: 'Scroll,Touch Response', start: 1432, end: 2605,
+      {title: 'Scroll Response', start: 1432, end: 2605,
           eventCount: 5, isAnimationBegin: true},
       {title: 'Scroll Animation', start: 1549, end: 2310,
           eventCount: 3},
@@ -1064,9 +1064,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 20, eventCount: 1},
-      {title: 'Pinch,Scroll,Tap,Touch Response', start: 20, end: 110,
+      {title: 'Pinch Response', start: 20, end: 110,
           eventCount: 9, isAnimationBegin: true},
-      {title: 'Scroll,Touch Animation', start: 110, end: 210,
+      {title: 'Scroll Animation', start: 110, end: 210,
           eventCount: 7},
       {title: 'Fling Animation', start: 180, end: 220, eventCount: 4}
     ];
@@ -1143,9 +1143,9 @@ tr.b.unittest.testSuite(function() {
     };
     verifier.expectedIRs = [
       {title: 'Idle', start: 0, end: 1274, eventCount: 0},
-      {title: 'Scroll,Tap,Touch Response', start: 1274, end: 1387,
+      {title: 'Scroll Response', start: 1274, end: 1387,
           eventCount: 6, isAnimationBegin: true},
-      {title: 'Scroll,Touch Animation', start: 1387, end: 1474,
+      {title: 'Scroll Animation', start: 1387, end: 1474,
           eventCount: 12},
       {title: 'Fling Animation', start: 1427, end: 2300,
           eventCount: 4},
@@ -1168,7 +1168,7 @@ tr.b.unittest.testSuite(function() {
           {start: 15, end: 100});
     };
     verifier.expectedIRs = [
-      {title: 'Tap,Touch Response', start: 0, end: 100,
+      {title: 'Tap Response', start: 0, end: 100,
           eventCount: 5}
     ];
     verifier.verify();

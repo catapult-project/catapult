@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/importer/find_input_expectations.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
 <link rel="import" href="/tracing/value/histogram.html">
@@ -221,13 +222,15 @@ tr.exportTo('tr.metrics.sh', function() {
         hists.railStageToPowerHist.get(currTitle));
 
     // If this is a scroll stage, add the sample for the scroll metrics.
-    if (exp.title.indexOf("Scroll") !== -1) {
+    // TODO(alexandermont): Treat scroll responses different from
+    // scroll animations?
+    if (exp.initiatorType === tr.importer.INITIATOR_TYPE.SCROLL) {
       storePowerData_(data, hists.scrollTimeHist,
           hists.scrollEnergyHist, hists.scrollPowerHist);
     }
 
     // If this is a video stage, add the sample for the video metrics.
-    if (exp.title.indexOf("Video") !== -1)
+    if (exp.initiatorType === tr.importer.INITIATOR_TYPE.VIDEO)
       storePowerData_(data, undefined, undefined, hists.videoPowerHist)
   }
 
