@@ -105,6 +105,11 @@ tr.exportTo('tr.ui.analysis', function() {
         return;
       }
 
+      if (this.$.table.tableRows.includes(this.selectedNode_)) {
+        this.$.table.selectedTableRow = this.selectedNode_;
+        return;
+      }
+
       this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.$.table.userCanModifySortOrder = false;
       var rows = this.createRows_(this.selectedNode_);

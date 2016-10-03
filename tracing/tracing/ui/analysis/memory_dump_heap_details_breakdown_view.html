@@ -54,6 +54,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     ready: function() {
       this.scheduleRebuild_();
+      this.root.addEventListener('keydown', this.onKeyDown_.bind(this), true);
     },
 
     get displayedNode() {
@@ -110,6 +111,21 @@ tr.exportTo('tr.ui.analysis', function() {
         this.$.tabs.label = 'Break selected node further by:';
       else
         this.$.tabs.label = 'Selected node cannot be broken down any further.';
+    },
+
+    onKeyDown_: function(keyEvent) {
+      if (keyEvent.keyCode !== 8 /* backspace */)
+        return;
+      if (!this.displayedNode_ || !this.displayedNode_.parentNode)
+        return;
+
+      // Enter the parent node upon pressing backspace.
+      var viewEvent = new tr.b.Event('enter-node');
+      viewEvent.node = this.displayedNode_.parentNode;
+      this.dispatchEvent(viewEvent);
+
+      keyEvent.stopPropagation();
+      keyEvent.preventDefault();
     }
   });
 
