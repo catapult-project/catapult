@@ -114,16 +114,34 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     onKeyDown_: function(keyEvent) {
-      if (keyEvent.keyCode !== 8 /* backspace */)
-        return;
-      if (!this.displayedNode_ || !this.displayedNode_.parentNode)
+      if (!this.displayedNode_)
         return;
 
-      // Enter the parent node upon pressing backspace.
-      var viewEvent = new tr.b.Event('enter-node');
-      viewEvent.node = this.displayedNode_.parentNode;
-      this.dispatchEvent(viewEvent);
+      var keyHandled = false;
+      switch (keyEvent.keyCode) {
+        case 8:  // Backspace.
+          if (!this.displayedNode_.parentNode)
+            break;
 
+          // Enter the parent node upon pressing backspace.
+          var viewEvent = new tr.b.Event('enter-node');
+          viewEvent.node = this.displayedNode_.parentNode;
+          this.dispatchEvent(viewEvent);
+          keyHandled = true;
+          break;
+
+        case 37:  // Left arrow.
+        case 39:  // Right arrow.
+          var wasFocused = this.$.tabs.selectedSubView.isFocused;
+          keyHandled = keyEvent.keyCode === 37 ?
+              this.$.tabs.selectPreviousTabIfPossible() :
+              this.$.tabs.selectNextTabIfPossible();
+          if (wasFocused && keyHandled)
+            this.$.tabs.selectedSubView.focus();  // Restore focus to new tab.
+      }
+
+      if (!keyHandled)
+        return;
       keyEvent.stopPropagation();
       keyEvent.preventDefault();
     }

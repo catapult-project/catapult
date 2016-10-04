@@ -141,13 +141,24 @@ Polymer({
     if (subView === this.selectedSubView_)
       return;
 
-    if (this.selectedSubView_)
+    if (this.selectedSubView_) {
       Polymer.dom(this.$.subView).removeChild(this.selectedSubView_);
+      var oldInput = this.root.getElementById(this.computeRadioId_(
+          this.selectedSubView_));
+      if (oldInput) {
+        oldInput.checked = false;
+      }
+    }
 
     this.set('selectedSubView_', subView);
 
-    if (subView)
+    if (subView) {
       Polymer.dom(this.$.subView).appendChild(subView);
+      var newInput = this.root.getElementById(this.computeRadioId_(subView));
+      if (newInput) {
+        newInput.checked = true;
+      }
+    }
 
     this.fire('selected-tab-change');
   },
@@ -159,10 +170,10 @@ Polymer({
   },
 
   addSubView: function(subView) {
+    this.push('subViews_', subView);
     if (!this.selectedSubView_)
       this.selectedSubView = subView;
 
-    this.push('subViews_', subView);
     this.updateFocusability_();
   },
 
@@ -192,30 +203,45 @@ Polymer({
   },
 
   onKeyDown_: function(e) {
-    if (this.tabsHidden || !this.selectedSubView_)
+    if (this.tabsHidden)
       return;
 
-    var currentIndex = this.subViews_.indexOf(this.selectedSubView_);
-    var nextIndex = undefined;
+    var keyHandled = false;
     switch (e.keyCode) {
       // Arrow left.
       case 37:
-        nextIndex = currentIndex - 1;
+        keyHandled = this.selectPreviousTabIfPossible();
         break;
+
       // Arrow right.
       case 39:
-        nextIndex = currentIndex + 1;
+        keyHandled = this.selectNextTabIfPossible();
         break;
-      default:
-        return;
     }
 
-    var tab = Polymer.dom(this.root).querySelectorAll('#tabs tab')[nextIndex];
-    if (tab)
-      tab.querySelector('input').click();
-
+    if (!keyHandled)
+      return;
     e.stopPropagation();
     e.preventDefault();
+  },
+
+  selectNextTabIfPossible: function() {
+    return this.selectTabByOffsetIfPossible_(1);
+  },
+
+  selectPreviousTabIfPossible: function() {
+    return this.selectTabByOffsetIfPossible_(-1);
+  },
+
+  selectTabByOffsetIfPossible_: function(offset) {
+    if (!this.selectedSubView_)
+      return false;
+    var currentIndex = this.subViews_.indexOf(this.selectedSubView_);
+    var newSubView = this.tabs[currentIndex + offset];
+    if (!newSubView)
+      return false;
+    this.selectedSubView = newSubView;
+    return true;
   },
 
   shouldBeFocusable_: function() {

@@ -97,5 +97,30 @@ tr.b.unittest.testSuite(function() {
 
     assert.isUndefined(tabView.selectedSubView);
   });
+
+  test('changeSelectedSubView', function() {
+    var selectedTabChangeEventCount = 0;
+    var tabView = document.createElement('tr-ui-b-tab-view');
+    tabView.addEventListener('selected-tab-change', function() {
+      selectedTabChangeEventCount++;
+    });
+
+    assert.isUndefined(tabView.selectedSubView);
+    assert.strictEqual(selectedTabChangeEventCount, 0);
+
+    var view1 = createPowerSampleSubView();
+    tabView.addSubView(view1);
+    assert.strictEqual(tabView.selectedSubView, view1);
+    assert.strictEqual(selectedTabChangeEventCount, 1);
+
+    var view2 = createAlertSubView();
+    tabView.addSubView(view2);
+    assert.strictEqual(tabView.selectedSubView, view1);
+    assert.strictEqual(selectedTabChangeEventCount, 1);
+
+    tabView.selectedSubView = view2;
+    assert.strictEqual(tabView.selectedSubView, view2);
+    assert.strictEqual(selectedTabChangeEventCount, 2);
+  })
 });
 </script>
