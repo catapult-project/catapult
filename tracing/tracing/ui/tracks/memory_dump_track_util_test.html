@@ -80,36 +80,36 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sb.points[0].x, 0);
     assert.equal(sc.points[0].x, 0);
     assert.equal(sa.points[0].y, 111);
-    assert.equal(sb.points[0].y, 111);
-    assert.equal(sc.points[0].y, 111);
+    assert.equal(sb.points[0].y, 0);
+    assert.equal(sc.points[0].y, 0);
     assert.equal(sa.points[0].yBase, 0);
-    assert.equal(sb.points[0].yBase, 111);
-    assert.equal(sc.points[0].yBase, 111);
+    assert.equal(sb.points[0].yBase, 0);
+    assert.equal(sc.points[0].yBase, 0);
 
     // Process A: VM regions undefined -> assume previous value (111).
-    // Process B: VM regions defined -> sum their PSS values (555).
+    // Process B: VM regions defined -> sum their PSS values (100 + 50).
     // Process C: VM regions undefined -> assume previous value (0).
     assert.equal(sa.points[1].x, 5);
     assert.equal(sb.points[1].x, 5);
     assert.equal(sc.points[1].x, 5);
-    assert.equal(sa.points[1].y, 111);
-    assert.equal(sb.points[1].y, 261);
-    assert.equal(sc.points[1].y, 261);
-    assert.equal(sa.points[1].yBase, 0);
-    assert.equal(sb.points[1].yBase, 111);
-    assert.equal(sc.points[1].yBase, 261);
+    assert.equal(sa.points[1].y, 150 + 111);
+    assert.equal(sb.points[1].y, 150);
+    assert.equal(sc.points[1].y, 0);
+    assert.equal(sa.points[1].yBase, 150);
+    assert.equal(sb.points[1].yBase, 0);
+    assert.equal(sc.points[1].yBase, 0);
 
     // Process A: VM regions defined -> sum their PSS values (0).
     // Process B: Memory dump not present -> assume process not alive (0).
-    // Process C: VM regions defined -> sum their PSS values (999).
+    // Process C: VM regions defined -> sum their PSS values (70 + 70 + 70).
     assert.equal(sa.points[2].x, 15);
     assert.equal(sb.points[2].x, 15);
     assert.equal(sc.points[2].x, 15);
-    assert.equal(sa.points[2].y, 0);
-    assert.equal(sb.points[2].y, 0);
+    assert.equal(sa.points[2].y, 210);
+    assert.equal(sb.points[2].y, 210);
     assert.equal(sc.points[2].y, 210);
-    assert.equal(sa.points[2].yBase, 0);
-    assert.equal(sb.points[2].yBase, 0);
+    assert.equal(sa.points[2].yBase, 210);
+    assert.equal(sb.points[2].yBase, 210);
     assert.equal(sc.points[2].yBase, 0);
 
     // All processes: Memory dump not present -> assume process not alive (0).
@@ -130,11 +130,11 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sb.points[4].x, 20);
     assert.equal(sc.points[4].x, 20);
     assert.equal(sa.points[4].y, 105);
-    assert.equal(sb.points[4].y, 105);
-    assert.equal(sc.points[4].y, 105);
+    assert.equal(sb.points[4].y, 0);
+    assert.equal(sc.points[4].y, 0);
     assert.equal(sa.points[4].yBase, 0);
-    assert.equal(sb.points[4].yBase, 105);
-    assert.equal(sc.points[4].yBase, 105);
+    assert.equal(sb.points[4].yBase, 0);
+    assert.equal(sc.points[4].yBase, 0);
 
     // Check model mapping.
     assert.equal(sa.points[1].selectionState, SelectionState.HIGHLIGHTED);
@@ -157,8 +157,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.lengthOf(series, 2);
 
-    var so = series[0];
-    var sv = series[1];
+    var so = series[1];
+    var sv = series[0];
 
     assert.lengthOf(so.points, 5);
     assert.lengthOf(sv.points, 5);
@@ -169,27 +169,35 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sv.points[0].x, 0);
     assert.equal(so.points[0].y, 1024);
     assert.equal(sv.points[0].y, 0);
+    assert.equal(so.points[0].yBase, 0);
+    assert.equal(sv.points[0].yBase, 0);
 
     // Oilpan: Process B did not provide a value and process C dumps (128).
     // V8: Processes B and C dump (512 + 256).
     assert.equal(so.points[1].x, 5);
     assert.equal(sv.points[1].x, 5);
-    assert.equal(so.points[1].y, 128);
+    assert.equal(so.points[1].y, 768 + 128);
     assert.equal(sv.points[1].y, 768);
+    assert.equal(so.points[1].yBase, 768);
+    assert.equal(sv.points[1].yBase, 0);
 
     // Oilpan: Process B assumed not alive and process C dumps (512)
     // V8: Process A dumps now, process B assumed not alive, process C did not
     // provide a value (768).
     assert.equal(so.points[2].x, 15);
     assert.equal(sv.points[2].x, 15);
-    assert.equal(so.points[2].y, 512);
+    assert.equal(so.points[2].y, 768 + 512);
     assert.equal(sv.points[2].y, 768);
+    assert.equal(so.points[2].yBase, 768);
+    assert.equal(sv.points[2].yBase, 0);
 
     // All processes: Memory dump not present -> assume process not alive (0).
     assert.equal(so.points[3].x, 18);
     assert.equal(sv.points[3].x, 18);
     assert.equal(so.points[3].y, 0);
     assert.equal(sv.points[3].y, 0);
+    assert.equal(so.points[3].yBase, 0);
+    assert.equal(sv.points[3].yBase, 0);
 
     // Oilpan: Only process B dumps allocated objects size (100).
     // V8: No process dumps allocated objects size (0).
@@ -221,8 +229,8 @@ tr.b.unittest.testSuite(function() {
     // charts).
     assert.lengthOf(series, 2);
 
-    var so = series[0];
-    var sv = series[1];
+    var so = series[1];
+    var sv = series[0];
 
     assert.lengthOf(so.points, 2);
     assert.lengthOf(sv.points, 2);
@@ -231,8 +239,10 @@ tr.b.unittest.testSuite(function() {
     // V8: Process dumps (256).
     assert.equal(so.points[0].x, 5.12);
     assert.equal(sv.points[0].x, 5.12);
-    assert.equal(so.points[0].y, 128);
+    assert.equal(so.points[0].y, 256 + 128);
     assert.equal(sv.points[0].y, 256);
+    assert.equal(so.points[0].yBase, 256);
+    assert.equal(sv.points[0].yBase, 0);
 
     // Oilpan: Process dumps (512).
     // V8: Process did not provide a value (0).
@@ -240,6 +250,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sv.points[1].x, 14.5);
     assert.equal(so.points[1].y, 512);
     assert.equal(sv.points[1].y, 0);
+    assert.equal(so.points[1].yBase, 0);
+    assert.equal(sv.points[1].yBase, 0);
 
     // Check model mapping.
     assert.equal(so.points[1].selectionState, SelectionState.HIGHLIGHTED);
