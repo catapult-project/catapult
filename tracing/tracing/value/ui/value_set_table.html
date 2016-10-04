@@ -237,6 +237,13 @@ tr.exportTo('tr.ui', function() {
     },
 
     set isHistogramOpen(open) {
+      if (!this.histogram ||
+          this.histogram === UNMERGEABLE ||
+          !(this.histogram instanceof tr.v.Histogram) ||
+          (this.histogram.numValues === 0)) {
+        return;
+      }
+
       // Unfortunately, we can't use a css attribute for this since this stuff
       // is tied up in all the possible states of this.histogram. See
       // updateContents_().
@@ -267,9 +274,9 @@ tr.exportTo('tr.ui', function() {
       this.$.empty.style.display = 'none';
       this.$.unmergeable.style.display = 'none';
       this.$.scalar.style.display = 'none';
-
       this.$.histogram.style.display = 'none';
       this.$.close_histogram.style.display = 'none';
+      this.$.open_histogram.style.visibility = 'hidden';
 
       if (!this.histogram) {
         this.$.missing.style.display = 'block';
@@ -293,6 +300,7 @@ tr.exportTo('tr.ui', function() {
       }
 
       this.$.open_histogram.style.display = 'block';
+      this.$.open_histogram.style.visibility = 'visible';
       this.$.scalar.style.display = 'block';
 
       if ((this.referenceHistogram instanceof tr.v.Histogram) &&
