@@ -18,8 +18,8 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  var RESPONSIVENESS_THRESHOLD = 50;
-  var INTERACTIVE_WINDOW_SIZE = 5 * 1000;
+  var RESPONSIVENESS_THRESHOLD_MS = 50;
+  var INTERACTIVE_WINDOW_SIZE_MS = 5 * 1000;
   var timeDurationInMs_smallerIsBetter =
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter;
   var RelatedEventSet = tr.v.d.RelatedEventSet;
@@ -270,9 +270,9 @@ tr.exportTo('tr.metrics.sh', function() {
     var firstInteractiveCandidate = firstMeaningfulPaint;
     var lastLongTaskEvent = undefined;
     // Find the first interactive point X after firstMeaningfulPaint so that
-    // range [X, X + INTERACTIVE_WINDOW_SIZE] contains no
+    // range [X, X + INTERACTIVE_WINDOW_SIZE_MS] contains no
     // 'TaskQueueManager::ProcessTaskFromWorkQueues' slice which takes more than
-    // RESPONSIVENESS_THRESHOLD.
+    // RESPONSIVENESS_THRESHOLD_MS.
     // For more details on why TaskQueueManager::ProcessTaskFromWorkQueue is
     // chosen as a proxy for all un-interruptable task on renderer thread, see
     // https://github.com/GoogleChrome/lighthouse/issues/489
@@ -283,12 +283,12 @@ tr.exportTo('tr.metrics.sh', function() {
       if (ev.start < firstInteractiveCandidate)
         continue;
       var interactiveDurationSoFar = ev.start - firstInteractiveCandidate;
-      if (interactiveDurationSoFar >= INTERACTIVE_WINDOW_SIZE) {
+      if (interactiveDurationSoFar >= INTERACTIVE_WINDOW_SIZE_MS) {
         firstInteractive = firstInteractiveCandidate;
         break;
       }
       if (ev.title === 'TaskQueueManager::ProcessTaskFromWorkQueue' &&
-          ev.duration > RESPONSIVENESS_THRESHOLD) {
+          ev.duration > RESPONSIVENESS_THRESHOLD_MS) {
           firstInteractiveCandidate = ev.end - 50;
           lastLongTaskEvent = ev;
       }
@@ -323,9 +323,9 @@ tr.exportTo('tr.metrics.sh', function() {
    * Design doc: https://goo.gl/vpaxv6
    *
    * TTI is computed as the starting time of the timed window with size
-   * INTERACTIVE_WINDOW_SIZE that happens after FMP in which there is no
+   * INTERACTIVE_WINDOW_SIZE_MS that happens after FMP in which there is no
    * uninterruptable task on the main thread with size more than
-   * RESPONSIVENESS_THRESHOLD.
+   * RESPONSIVENESS_THRESHOLD_MS.
    *
    * Design doc: https://goo.gl/ISWndc
    */
@@ -429,7 +429,9 @@ tr.exportTo('tr.metrics.sh', function() {
   tr.metrics.MetricRegistry.register(loadingMetric);
 
   return {
-    loadingMetric: loadingMetric
+    loadingMetric: loadingMetric,
+    RESPONSIVENESS_THRESHOLD_MS: RESPONSIVENESS_THRESHOLD_MS,
+    INTERACTIVE_WINDOW_SIZE_MS: INTERACTIVE_WINDOW_SIZE_MS
   };
 });
 </script>
