@@ -38,22 +38,41 @@ class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
 
 
 class CrOSLoginTest(cros_test_case.CrOSTestCase):
-  def _GetCredentials(self):
+  def _GetCredentials(self, credentials=None):
     """Read username and password from credentials.txt. The file is a single
-    line of the format username:password"""
-    username = None
-    password = None
+    line of the format username:password. Alternatively, |credentials| is used,
+    also of the same format."""
     credentials_file = os.path.join(os.path.dirname(__file__),
                                     'credentials.txt')
-    if os.path.exists(credentials_file):
+    if not credentials and os.path.exists(credentials_file):
       with open(credentials_file) as f:
-        username, password = f.read().strip().split(':')
-        # Remove dots.
-        username = username.replace('.', '')
-        # Canonicalize.
-        if username.find('@') == -1:
-          username += '@gmail.com'
-    return (username, password)
+        credentials = f.read().strip()
+
+    if not credentials:
+      return (None, None)
+
+    user, password = credentials.split(':')
+    # Canonicalize.
+    if user.find('@') == -1:
+      username = user
+      domain = 'gmail.com'
+    else:
+      username, domain = user.split('@')
+
+    # Remove dots.
+    if domain == 'gmail.com':
+      username = username.replace('.', '')
+    return ('%s@%s' % (username, domain), password)
+
+  @decorators.Enabled('chromeos')
+  def testGetCredentials(self):
+    (username, password) = self._GetCredentials('user.1:foo.1')
+    self.assertEquals(username, 'user1@gmail.com')
+    self.assertEquals(password, 'foo.1')
+
+    (username, password) = self._GetCredentials('user.1@chromium.org:bar.1')
+    self.assertEquals(username, 'user.1@chromium.org')
+    self.assertEquals(password, 'bar.1')
 
   @decorators.Enabled('chromeos')
   def testLoginStatus(self):
