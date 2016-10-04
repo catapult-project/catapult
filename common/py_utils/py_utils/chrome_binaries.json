@@ -6,22 +6,22 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "mac_x86_64": {
-          "cloud_storage_hash": "26e8d9d1c26bdb32664d16768a5439ec96868590",
+          "cloud_storage_hash": "d089c68aebd104ec440ae3bd1745f6013d0f423f",
           "download_path": "bin/reference_builds/chrome-mac64.zip",
           "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "51.0.2702.0"
+          "version_in_cs": "55.0.2880.0"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "b0e70644a0c0cd399e0dcdfdef7583ae2c3a913e",
-          "download_path": "bin\\reference_build\\chrome-win64.zip",
-          "path_within_archive": "chrome-win64\\chrome.exe",
-          "version_in_cs": "51.0.2702.0"
+          "cloud_storage_hash": "473bfe2f5875a22b8eefa7618c10eca0c97a528f",
+          "download_path": "bin\\reference_build\\chrome-win64-pgo.zip",
+          "path_within_archive": "chrome-win64-pgo\\chrome.exe",
+          "version_in_cs": "55.0.2880.0"
         },
         "win_x86": {
-          "cloud_storage_hash": "3e9804166f3291726112410dbd8de51016b8d988",
-          "download_path": "bin\\reference_build\\chrome-win32.zip",
-          "path_within_archive": "chrome-win32\\chrome.exe",
-          "version_in_cs": "51.0.2702.0"
+          "cloud_storage_hash": "b58fd921049f243ee2779046a57ae31bedee6f0d",
+          "download_path": "bin\\reference_build\\chrome-win32-pgo.zip",
+          "path_within_archive": "chrome-win32-pgo\\chrome.exe",
+          "version_in_cs": "55.0.2880.0"
         }
       }
     },
@@ -45,10 +45,10 @@
           "version_in_cs": "51.0.2700.2"
         },
         "linux_x86_64": {
-          "cloud_storage_hash": "814040060381e2ca6d6e570e7cb0a880ae239096",
+          "cloud_storage_hash": "27a2a476a41b629a6479e7226f0872916a391846",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-precise64/chrome",
-          "version_in_cs": "51.0.2700.0"
+          "version_in_cs": "54.0.2837.0"
         },
         "mac_x86_64": {
           "cloud_storage_hash": "ae6d92afaf57f77e0bc39b9179610f528042ba76",
