@@ -29,44 +29,11 @@
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
-        "android_k_armeabi-v7a": {
-          "cloud_storage_hash": "87588c19bd1634fd2a9e21aedd5ad31fc47e10db",
-          "download_path": "bin/reference_build/android_k_armeabi-v7a/ChromeStable.apk",
-          "version_in_cs": "51.0.2700.2"
-        },
-        "android_l_arm64-v8a": {
-          "cloud_storage_hash": "fd54f185354e614b94e201d1d72de41b86f550b4",
-          "download_path": "bin/reference_build/android_l_arm64-v8a/ChromeStable.apk",
-          "version_in_cs": "51.0.2700.2"
-        },
-        "android_l_armeabi-v7a": {
-          "cloud_storage_hash": "4a332a47651f986e65ddc3b736c682dc3f7eaa0a",
-          "download_path": "bin/reference_build/android_l_armeabi-v7a/ChromeStable.apk",
-          "version_in_cs": "51.0.2700.2"
-        },
         "linux_x86_64": {
           "cloud_storage_hash": "27a2a476a41b629a6479e7226f0872916a391846",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-precise64/chrome",
           "version_in_cs": "54.0.2837.0"
-        },
-        "mac_x86_64": {
-          "cloud_storage_hash": "ae6d92afaf57f77e0bc39b9179610f528042ba76",
-          "download_path": "bin/reference_builds/chrome-mac64.zip",
-          "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "51.0.2700.0"
-        },
-        "win_AMD64": {
-          "cloud_storage_hash": "dbce7907a3b7840d6fd9d016e47ffdc1f675c70e",
-          "download_path": "bin\\reference_build\\chrome-win64.zip",
-          "path_within_archive": "chrome-win64\\chrome.exe",
-          "version_in_cs": "51.0.2700.0"
-        },
-        "win_x86": {
-          "cloud_storage_hash": "93c4267434aad8fd2b9336490fd00e4e4f4c100e",
-          "download_path": "bin\\reference_build\\chrome-win32.zip",
-          "path_within_archive": "chrome-win32\\chrome.exe",
-          "version_in_cs": "51.0.2700.0"
         }
       }
     },
