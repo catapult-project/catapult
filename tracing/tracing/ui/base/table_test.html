@@ -1118,8 +1118,15 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(table.selectedTableRow);
     assert.isUndefined(table.selectedColumnIndex);
 
-    // Manually focus again (for interactive testing).
-    table.focus();
+    // Programatically select row (should NOT steal focus).
+    table.selectedTableRow = table.tableRows[0];
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.isUndefined(table.selectedColumnIndex);
+
+    // Trigger focus on the already selected row by clicking.
+    table.$.body.children[0].children[0].click();
     assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
     assert.isTrue(table.isFocused);
     assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
@@ -1178,8 +1185,15 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(table.selectedTableRow);
     assert.isUndefined(table.selectedColumnIndex);
 
-    // Manually focus again (for interactive testing).
-    table.focus();
+    // Programatically select cell (should NOT steal focus).
+    table.selectedTableRow = table.tableRows[0];
+    assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
+    assert.isFalse(table.isFocused);
+    assert.strictEqual(table.selectedTableRow, table.tableRows[0]);
+    assert.strictEqual(table.selectedColumnIndex, 1);
+
+    // Trigger focus on the already selected cell by clicking.
+    table.$.body.children[0].children[1].click();
     assert.strictEqual(table.$.body.getAttribute('tabindex'), '0');
     assert.isTrue(table.isFocused);
     assert.strictEqual(table.selectedTableRow, table.tableRows[0]);

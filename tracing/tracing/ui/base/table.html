@@ -749,19 +749,25 @@ tr.exportTo('tr.ui.b', function() {
             // select it.
             if (isBodyRow && this.selectionMode_ !== SelectionMode.NONE) {
               var shouldSelect = false;
+              var shouldFocus = false;
               switch (this.selectionMode_) {
                 case SelectionMode.ROW:
                   shouldSelect = this.selectedTableRowInfo_ !== rowInfo;
+                  shouldFocus = true;
                   break;
                 case SelectionMode.CELL:
                   if (this.doesColumnIndexSupportSelection(i)) {
                     shouldSelect = this.selectedTableRowInfo_ !== rowInfo ||
                         this.selectedColumnIndex_ !== i;
+                    shouldFocus = true;
                   }
                   break;
                 default:
                   throw new Error('Invalid selection mode ' +
                       this.selectionMode_);
+              }
+              if (shouldFocus) {
+                this.focus();
               }
               if (shouldSelect) {
                 this.didTableRowInfoGetClicked_(rowInfo, i);
@@ -1144,7 +1150,6 @@ tr.exportTo('tr.ui.b', function() {
         case SelectionMode.ROW:
           if (this.selectedTableRowInfo_ !== rowInfo)
             this.selectedTableRow = rowInfo.userRow;
-          this.$.body.focus();
       }
     },
 
