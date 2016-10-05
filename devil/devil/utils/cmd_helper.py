@@ -261,6 +261,8 @@ def GetCmdStatusAndOutputWithTimeout(args, timeout, cwd=None, shell=False,
 
   Returns:
     The 2-tuple (exit code, output).
+  Raises:
+    TimeoutError on timeout.
   """
   _ValidateAndLogCommand(args, cwd, shell)
   output = StringIO.StringIO()

@@ -96,6 +96,8 @@ class Forwarder(object):
   # Defined in host_forwarder_main.cc
   _HOST_FORWARDER_LOG = '/tmp/host_forwarder_log'
 
+  _TIMEOUT = 60  # seconds
+
   _instance = None
 
   @staticmethod
@@ -122,17 +124,21 @@ class Forwarder(object):
       instance._InitDeviceLocked(device, tool)
 
       device_serial = str(device)
-      redirection_commands = [
+      map_arg_lists = [
           ['--adb=' + devil_env.config.FetchPath('adb'),
            '--serial-id=' + device_serial,
            '--map', str(device_port), str(host_port)]
           for device_port, host_port in port_pairs]
-      logger.info('Forwarding using commands: %s', redirection_commands)
+      logger.info('Forwarding using commands: %s', map_arg_lists)
 
-      for redirection_command in redirection_commands:
+      for map_arg_list in map_arg_lists:
         try:
-          (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
-              [instance._host_forwarder_path] + redirection_command)
+          map_cmd = [instance._host_forwarder_path] + map_arg_list
+          (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+              map_cmd, Forwarder._TIMEOUT)
+        except cmd_helper.TimeoutError as e:
+          raise HostForwarderError(
+              '`%s` timed out:\n%s' % (' '.join(map_cmd), e.output))
         except OSError as e:
           if e.errno == 2:
             raise HostForwarderError(
@@ -150,8 +156,10 @@ class Forwarder(object):
                 str(e))
           _LogMapFailureDiagnostics(device)
           raise HostForwarderError(
-              '%s exited with %d:\n%s' % (instance._host_forwarder_path,
-                                          exit_code, '\n'.join(output)))
+              '`%s` exited with %d:\n%s' % (
+                  ' '.join(map_cmd),
+                  exit_code,
+                  '\n'.join(output)))
         tokens = output.split(':')
         if len(tokens) != 2:
           raise HostForwarderError(
@@ -186,15 +194,21 @@ class Forwarder(object):
     """
     with _FileLock(Forwarder._LOCK_PATH):
       instance = Forwarder._GetInstanceLocked(None)
-      exit_code, output = cmd_helper.GetCmdStatusAndOutput(
-          [instance._host_forwarder_path,
-           '--adb=%s' % devil_env.config.FetchPath('adb'),
-           '--serial-id=%s' % device.serial,
-           '--unmap-all'])
+      unmap_all_cmd = [
+          instance._host_forwarder_path,
+          '--adb=%s' % devil_env.config.FetchPath('adb'),
+          '--serial-id=%s' % device.serial,
+          '--unmap-all'
+      ]
+      try:
+        exit_code, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+            unmap_all_cmd, Forwarder._TIMEOUT)
+      except cmd_helper.TimeoutError as e:
+        raise HostForwarderError(
+            '`%s` timed out:\n%s' % (' '.join(unmap_all_cmd), e.output))
       if exit_code != 0:
         error_msg = [
-            '%s exited with %d' % (instance._host_forwarder_path,
-                                   exit_code)]
+            '`%s` exited with %d' % (' '.join(unmap_all_cmd), exit_code)]
         error_msg += output
         raise HostForwarderError('\n'.join(error_msg))
 
@@ -276,19 +290,29 @@ class Forwarder(object):
     if not serial_with_port in instance._device_to_host_port_map:
       logger.error('Trying to unmap non-forwarded port %d', device_port)
       return
-    redirection_command = ['--adb=' + devil_env.config.FetchPath('adb'),
-                           '--serial-id=' + serial,
-                           '--unmap', str(device_port)]
-    logger.info('Undo forwarding using command: %s', redirection_command)
-    (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
-        [instance._host_forwarder_path] + redirection_command)
-    if exit_code != 0:
-      logger.error(
-          '%s exited with %d:\n%s',
-          instance._host_forwarder_path, exit_code, '\n'.join(output))
+
     host_port = instance._device_to_host_port_map[serial_with_port]
     del instance._device_to_host_port_map[serial_with_port]
     del instance._host_to_device_port_map[host_port]
+
+    unmap_cmd = [
+        instance._host_forwarder_path,
+        '--adb=%s' % devil_env.config.FetchPath('adb'),
+        '--serial-id=%s' % serial,
+        '--unmap', str(device_port)
+    ]
+    try:
+      (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+          unmap_cmd, Forwarder._TIMEOUT)
+    except cmd_helper.TimeoutError as e:
+      raise HostForwarderError(
+          '`%s` timed out:\n%s' % (' '.join(unmap_cmd), e.output))
+    if exit_code != 0:
+      logger.error(
+          '`%s` exited with %d:\n%s',
+          ' '.join(unmap_cmd),
+          exit_code,
+          '\n'.join(output))
 
   @staticmethod
   def _GetPidForLock():
@@ -371,15 +395,21 @@ class Forwarder(object):
     Note that the global lock must be acquired before calling this method.
     """
     logger.info('Killing host_forwarder.')
-    (exit_code, _o, _e) = cmd_helper.GetCmdStatusOutputAndError(
-        [self._host_forwarder_path, '--kill-server'])
-    if exit_code != 0:
-      (exit_code, output) = cmd_helper.GetCmdStatusAndOutput(
-          ['pkill', '-9', 'host_forwarder'])
+    try:
+      kill_cmd = [self._host_forwarder_path, '--kill-server']
+      (exit_code, _o) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+          kill_cmd, Forwarder._TIMEOUT)
       if exit_code != 0:
-        raise HostForwarderError(
-            '%s exited with %d:\n%s' % (self._host_forwarder_path, exit_code,
-                                        '\n'.join(output)))
+        kill_cmd = ['pkill', '-9', 'host_forwarder']
+        (exit_code, output) = cmd_helper.GetCmdStatusAndOutputWithTimeout(
+            kill_cmd, Forwarder._TIMEOUT)
+        if exit_code != 0:
+          raise HostForwarderError(
+              '%s exited with %d:\n%s' % (self._host_forwarder_path, exit_code,
+                                          '\n'.join(output)))
+    except cmd_helper.TimeoutError as e:
+      raise HostForwarderError(
+          '`%s` timed out:\n%s' % (' '.join(kill_cmd), e.output))
 
   @staticmethod
   def KillDevice(device, tool=None):
