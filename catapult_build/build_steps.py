@@ -86,8 +86,8 @@ _CATAPULT_TESTS = [
         'disabled': ['mac', 'win'],
     },
     {
-        'name': 'Node Smoke Test',
-        'path': 'common/node_runner/bin/test_node_for_smoke',
+        'name': 'eslint Tests',
+        'path': 'common/eslint/bin/run_tests',
         'disabled': ['android'],
     },
     {

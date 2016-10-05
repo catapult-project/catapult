@@ -4,7 +4,7 @@
 
 import re
 
-from node_runner import node_util
+import eslint
 from py_vulcanize import strip_js_comments
 
 from catapult_build import parse_html
@@ -84,7 +84,7 @@ class JSChecker(object):
         error_lines += filter(None, [self.ConstCheck(i, line)])
 
     if affected_js_files:
-      eslint_output = node_util.RunEslint(
+      eslint_output = eslint.RunEslintOnFiles(
           [f.AbsoluteLocalPath() for f in affected_js_files]).rstrip()
 
       if eslint_output:
