@@ -236,6 +236,10 @@ tr.exportTo('tr.ui.analysis', function() {
       var rows = this.nodes_ || [];
       this.$.table.tableRows = rows;
       this.$.table.tableColumns = this.createColumns_(rows);
+      if (this.$.table.sortColumnIndex === undefined) {
+        this.$.table.sortColumnIndex = 0;
+        this.$.table.sortDescending = false;
+      }
       this.$.table.rebuild();
     },
 
