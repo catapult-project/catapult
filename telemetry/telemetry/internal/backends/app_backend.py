@@ -46,6 +46,9 @@ class AppBackend(object):
     pass  # pylint: disable=unnecessary-pass
     raise NotImplementedError
 
+  def Background(self):
+    raise NotImplementedError
+
   def Close(self):
     raise NotImplementedError
 

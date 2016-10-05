@@ -170,6 +170,9 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     logging.info('Browser is up!')
 
+  def Background(self):
+    raise NotImplementedError
+
   def Close(self):
     super(CrOSBrowserBackend, self).Close()
 

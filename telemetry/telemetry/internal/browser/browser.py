@@ -269,6 +269,10 @@ class Browser(app.App):
     """Ensure the browser application is moved to the foreground."""
     return self._browser_backend.Foreground()
 
+  def Background(self):
+    """Ensure the browser application is moved to the background."""
+    return self._browser_backend.Background()
+
   def GetStandardOutput(self):
     return self._browser_backend.GetStandardOutput()
 

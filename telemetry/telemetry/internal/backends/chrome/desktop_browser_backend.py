@@ -578,6 +578,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           logging.warning('Failed to cooperatively shutdown. ' +
                           'Proceeding to terminate: ' + str(e))
 
+  def Background(self):
+    raise NotImplementedError
+
   def Close(self):
     super(DesktopBrowserBackend, self).Close()
 

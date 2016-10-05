@@ -171,6 +171,16 @@ class AndroidBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       raise exceptions.BrowserGoneException(self.browser,
           'Timed out waiting for browser to come back foreground.')
 
+  def Background(self):
+    # Launch clock app, pushing Chrome to the background.
+    # TODO(crbug.com/586148): The clock app isn't necessarily on every phone,
+    # replace this with the PushAppsToBackground instead.
+    self.device.StartActivity(
+        intent.Intent(package='com.google.android.deskclock',
+                      activity='com.android.deskclock.DeskClock',
+                      action=None,
+                      flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
+        blocking=True)
 
   def GetBrowserStartupArgs(self):
     args = super(AndroidBrowserBackend, self).GetBrowserStartupArgs()
