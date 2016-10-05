@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/extras/v8/v8_gc_stats_thread_slice.html">
+<link rel="import" href="/tracing/ui/base/table.html">
+
+<dom-module id='tr-ui-e-v8-gc-objects-stats-table'>
+  <template>
+    <style>
+    tr-ui-b-table {
+      flex: 0 0 auto;
+      align-self: stretch;
+      margin-top: 1em;
+      font-size: 12px;
+    }
+    </style>
+    <tr-ui-b-table id="table"></tr-ui-b-table>
+  </template>
+</dom-module>
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.e.v8', function() {
+
+  // The constant variables below should be consistent with
+  // https://github.com/mlippautz/v8-heap-stats/blob/master/app/utils.js#L120
+  var InstanceTypeGroups = {
+    Rest: [
+      "ACCESSOR_INFO_TYPE",
+      "ACCESSOR_PAIR_TYPE",
+      "ACCESS_CHECK_INFO_TYPE",
+      "ALLOCATION_MEMENTO_TYPE",
+      "ALLOCATION_SITE_TYPE",
+      "CALL_HANDLER_INFO_TYPE",
+      "CELL_TYPE",
+      "FIXED_INT8_ARRAY_TYPE",
+      "FIXED_UINT8_ARRAY_TYPE",
+      "FIXED_UINT8_CLAMPED_ARRAY_TYPE",
+      "FIXED_INT16_ARRAY_TYPE",
+      "FIXED_UINT16_ARRAY_TYPE",
+      "FIXED_INT32_ARRAY_TYPE",
+      "FIXED_UINT32_ARRAY_TYPE",
+      "FIXED_FLOAT32_ARRAY_TYPE",
+      "FIXED_FLOAT64_ARRAY_TYPE",
+      "FIXED_DOUBLE_ARRAY_TYPE",
+      "FOREIGN_TYPE",
+      "FUNCTION_TEMPLATE_INFO_TYPE",
+      "HEAP_NUMBER_TYPE",
+      "INTERCEPTOR_INFO_TYPE",
+      "MUTABLE_HEAP_NUMBER_TYPE",
+      "OBJECT_TEMPLATE_INFO_TYPE",
+      "ODDBALL_TYPE",
+      "PROPERTY_CELL_TYPE",
+      "PROTOTYPE_INFO_TYPE",
+      "SCRIPT_TYPE",
+      "SYMBOL_TYPE",
+      "TRANSITION_ARRAY_TYPE",
+      "TYPE_FEEDBACK_INFO_TYPE"
+    ],
+    Strings: [
+      "CONS_ONE_BYTE_STRING_TYPE",
+      "CONS_STRING_TYPE",
+      "EXTERNAL_ONE_BYTE_INTERNALIZED_STRING_TYPE",
+      "EXTERNAL_ONE_BYTE_STRING_TYPE",
+      "EXTERNAL_INTERNALIZED_STRING_TYPE",
+      "EXTERNAL_STRING_TYPE",
+      "INTERNALIZED_STRING_TYPE",
+      "ONE_BYTE_INTERNALIZED_STRING_TYPE",
+      "ONE_BYTE_STRING_TYPE",
+      "SHORT_EXTERNAL_INTERNALIZED_STRING_TYPE",
+      "SHORT_EXTERNAL_ONE_BYTE_STRING_TYPE",
+      "SHORT_EXTERNAL_ONE_BYTE_INTERNALIZED_STRING_TYPE",
+      "SHORT_EXTERNAL_STRING_TYPE",
+      "SLICED_ONE_BYTE_STRING_TYPE",
+      "SLICED_STRING_TYPE",
+      "STRING_TYPE"
+    ],
+    JS_OTHER: [
+      "JS_API_OBJECT_TYPE",
+      "JS_ARGUMENTS_TYPE",
+      "JS_ARRAY_BUFFER_TYPE",
+      "JS_ARRAY_TYPE",
+      "JS_BOUND_FUNCTION_TYPE",
+      "JS_ERROR_TYPE",
+      "JS_DATE_TYPE",
+      "JS_FUNCTION_TYPE",
+      "JS_GLOBAL_OBJECT_TYPE",
+      "JS_GLOBAL_PROXY_TYPE",
+      "JS_MAP_ITERATOR_TYPE",
+      "JS_MAP_TYPE",
+      "JS_MESSAGE_OBJECT_TYPE",
+      "JS_PROMISE_TYPE",
+      "JS_REGEXP_TYPE",
+      "JS_SPECIAL_API_OBJECT_TYPE",
+      "JS_TYPED_ARRAY_TYPE",
+      "JS_VALUE_TYPE",
+      "JS_WEAK_MAP_TYPE"
+    ],
+    FIXED_ARRAY_TYPE: [
+      "*FIXED_ARRAY_CODE_STUBS_TABLE_SUB_TYPE",
+      "*FIXED_ARRAY_COMPILATION_CACHE_TABLE_SUB_TYPE",
+      "*FIXED_ARRAY_CONTEXT_SUB_TYPE",
+      "*FIXED_ARRAY_COPY_ON_WRITE_SUB_TYPE",
+      "*FIXED_ARRAY_DEOPTIMIZATION_DATA_SUB_TYPE",
+      "*FIXED_ARRAY_DESCRIPTOR_ARRAY_SUB_TYPE",
+      "*FIXED_ARRAY_EMBEDDED_OBJECT_SUB_TYPE",
+      "*FIXED_ARRAY_ENUM_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_ENUM_INDICES_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_DEPENDENT_CODE_SUB_TYPE",
+      "*FIXED_ARRAY_DICTIONARY_ELEMENTS_SUB_TYPE",
+      "*FIXED_ARRAY_DICTIONARY_PROPERTIES_SUB_TYPE",
+      "*FIXED_ARRAY_EMPTY_PROPERTIES_DICTIONARY_SUB_TYPE",
+      "*FIXED_ARRAY_FAST_ELEMENTS_SUB_TYPE",
+      "*FIXED_ARRAY_FAST_PROPERTIES_SUB_TYPE",
+      "*FIXED_ARRAY_HANDLER_TABLE_SUB_TYPE",
+      "*FIXED_ARRAY_INTRINSIC_FUNCTION_NAMES_SUB_TYPE",
+      "*FIXED_ARRAY_JS_COLLECTION_SUB_TYPE",
+      "*FIXED_ARRAY_JS_WEAK_COLLECTION_SUB_TYPE",
+      "*FIXED_ARRAY_LITERALS_ARRAY_SUB_TYPE",
+      "*FIXED_ARRAY_MAP_CODE_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_NOSCRIPT_SHARED_FUNCTION_INFOS_SUB_TYPE",
+      "*FIXED_ARRAY_NUMBER_STRING_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_OBJECT_TO_CODE_SUB_TYPE",
+      "*FIXED_ARRAY_OPTIMIZED_CODE_LITERALS_TUB_TYPE",
+      "*FIXED_ARRAY_OPTIMIZED_CODE_MAP_SUB_TYPE",
+      "*FIXED_ARRAY_PROTOTYPE_USERS_SUB_TYPE",
+      "*FIXED_ARRAY_REGEXP_MULTIPLE_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_RETAINED_MAPS_SUB_TYPE",
+      "*FIXED_ARRAY_SCOPE_INFO_SUB_TYPE",
+      "*FIXED_ARRAY_SCRIPT_LIST_SUB_TYPE",
+      "*FIXED_ARRAY_SERIALIZED_TEMPLATES_SUB_TYPE",
+      "*FIXED_ARRAY_SHARED_FUNCTION_INFOS_SUB_TYPE",
+      "*FIXED_ARRAY_SINGLE_CHARACTER_STRING_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_STRING_SPLIT_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_STRING_TABLE_SUB_TYPE",
+      "*FIXED_ARRAY_TEMPLATE_INFO_SUB_TYPE",
+      "*FIXED_ARRAY_TEMPLATE_INSTANTIATIONS_CACHE_SUB_TYPE",
+      "*FIXED_ARRAY_TYPE_FEEDBACK_VECTOR_SUB_TYPE",
+      "*FIXED_ARRAY_TYPE_FEEDBACK_METADATA_SUB_TYPE",
+      "*FIXED_ARRAY_WEAK_NEW_SPACE_OBJECT_TO_CODE_SUB_TYPE",
+      "*FIXED_ARRAY_UNKNOWN_SUB_TYPE"
+    ],
+    CODE_TYPE: [
+      "*CODE_FUNCTION",
+      "*CODE_OPTIMIZED_FUNCTION",
+      "*CODE_BYTECODE_HANDLER",
+      "*CODE_STUB",
+      "*CODE_HANDLER",
+      "*CODE_BUILTIN",
+      "*CODE_REGEXP",
+      "*CODE_WASM_FUNCTION",
+      "*CODE_WASM_TO_JS_FUNCTION",
+      "*CODE_JS_TO_WASM_FUNCTION",
+      "*CODE_LOAD_IC",
+      "*CODE_LOAD_GLOBAL_IC",
+      "*CODE_KEYED_LOAD_IC",
+      "*CODE_CALL_IC",
+      "*CODE_STORE_IC",
+      "*CODE_KEYED_STORE_IC",
+      "*CODE_BINARY_OP_IC",
+      "*CODE_COMPARE_IC",
+      "*CODE_TO_BOOLEAN_IC"
+    ],
+    CONTEXT_EXTENSION_TYPE: [
+      'CONTEXT_EXTENSION_TYPE'
+    ],
+    MAP_TYPE: [
+      'MAP_TYPE'
+    ],
+    BYTE_ARRAY_TYPE: [
+      'BYTE_ARRAY_TYPE'
+    ],
+    SHARED_FUNCTION_INFO_TYPE: [
+      'SHARED_FUNCTION_INFO_TYPE'
+    ],
+    WEAK_CELL_TYPE: [
+      'WEAK_CELL_TYPE'
+    ],
+    JS_OBJECT_TYPE: [
+      'JS_OBJECT_TYPE'
+    ],
+    JS_CONTEXT_EXTENSION_OBJECT_TYPE: [
+      'JS_CONTEXT_EXTENSION_OBJECT_TYPE'
+    ]
+  };
+
+  var InstanceSubTypeNames = {
+    FIXED_ARRAY_TYPE: {
+      keyToName: key => key.slice("*FIXED_ARRAY_".length)
+        .slice(0, -("_SUB_TYPE".length)),
+      nameToKey: name => "*FIXED_ARRAY_" + name + "_SUB_TYPE"
+    },
+    CODE_TYPE: {
+      keyToName: key => key.slice("*CODE_".length),
+      nameToKey: name => "*CODE_" + name
+    },
+    Strings: {
+      keyToName: key => key,
+      nameToKey: name => name
+    },
+    Rest: {
+      keyToName: key => key,
+      nameToKey: name => name
+    },
+    JS_OTHER: {
+      keyToName: key => key,
+      nameToKey: name => name
+    }
+  };
+
+  class Entry {
+    constructor(title, count, overall, overAllocated, histogram,
+                overAllocatedHistogram) {
+      this.title_ = title;
+      this.overall_ = overall;
+      this.count_ = count;
+      this.overAllocated_ = overAllocated;
+      this.histogram_ = histogram;
+      this.overAllocatedHistogram_ = overAllocatedHistogram;
+      this.bucketSize_ = this.histogram_.length;
+      this.overallPercent_ = 100;
+      this.overAllocatedPercent_ = 100;
+    }
+
+    get title() {
+      return this.title_;
+    }
+
+    get overall() {
+      return this.overall_;
+    }
+
+    get count() {
+      return this.count_;
+    }
+
+    get overAllocated() {
+      return this.overAllocated_;
+    }
+
+    get histogram() {
+      return this.histogram_;
+    }
+
+    get overAllocatedHistogram() {
+      return this.overAllocatedHistogram_;
+    }
+
+    get bucketSize() {
+      return this.bucketSize_;
+    }
+
+    get overallPercent() {
+      return this.overallPercent_;
+    }
+
+    set overallPercent(value) {
+      this.overallPercent_ = value;
+    }
+
+    get overAllocatedPercent() {
+      return this.overAllocatedPercent_;
+    }
+
+    set overAllocatedPercent(value) {
+      this.overAllocatedPercent_ = value;
+    }
+
+    setFromObject(obj) {
+      this.count_ = obj.count;
+      this.overall_ = obj.overall;
+      this.overAllocated_ = obj.over_allocated;
+      this.histogram_ = obj.histogram;
+      this.overAllocatedHistogram_ = obj.over_allocated_histogram;
+    }
+  }
+
+  class GroupedEntry extends Entry {
+    constructor(title, count, overall, overAllocated, histogram,
+                overAllocatedHistogram) {
+      super(title, count, overall, overAllocated, histogram,
+            overAllocatedHistogram);
+      this.histogram_.fill(0);
+      this.overAllocatedHistogram_.fill(0);
+      this.entries_ = new Map();
+    }
+
+    get subRows() {
+      return Array.from(this.entries_.values());
+    }
+
+    getEntryFromTitle(title) {
+      return this.entries_.get(title);
+    }
+
+    add(entry) {
+      this.count_ += entry.count;
+      this.overall_ += entry.overall;
+      this.overAllocated_ += entry.overAllocated;
+      if (this.bucketSize_ === entry.bucketSize) {
+        for (var i = 0; i < this.bucketSize_; ++i) {
+          this.histogram_[i] += entry.histogram[i];
+          this.overAllocatedHistogram_[i] += entry.overAllocatedHistogram[i];
+        }
+      }
+      this.entries_.set(entry.title, entry);
+    }
+
+    accumulateUnknown(title) {
+      var unknownCount = this.count_;
+      var unknownOverall = this.overall_;
+      var unknownOverAllocated = this.overAllocated_;
+      var unknownHistogram = tr.b.deepCopy(this.histogram_);
+      var unknownOverAllocatedHistogram =
+          tr.b.deepCopy(this.overAllocatedHistogram_);
+      for (var entry of this.entries_.values()) {
+        unknownCount -= entry.count;
+        unknownOverall -= entry.overall;
+        unknownOverAllocated -= entry.overAllocated;
+        for (var i = 0; i < this.bucketSize_; ++i) {
+          unknownHistogram[i] -= entry.histogram[i];
+          unknownOverAllocatedHistogram[i] -= entry.overAllocatedHistogram[i];
+        }
+      }
+      this.entries_.set(title, new Entry(title, unknownCount, unknownOverall,
+                                         unknownOverAllocated, unknownHistogram,
+                                         unknownOverAllocatedHistogram));
+    }
+
+    calculatePercentage() {
+      for (var entry of this.entries_.values()) {
+        if (this.overall_ > 0) {
+          entry.overallPercent =
+              (entry.overall / this.overall_ * 100).toFixed(3);
+        } else {
+          entry.overallPercent = 0;
+        }
+
+        if (this.overAllocated_ > 0) {
+          entry.overAllocatedPercent =
+              (entry.overAllocated / this.overAllocated_ * 100).toFixed(3);
+        } else {
+          entry.overAllocatedPercent = 0;
+        }
+
+        if (entry instanceof GroupedEntry) entry.calculatePercentage();
+      }
+    }
+  }
+
+  Polymer({
+    is: 'tr-ui-e-v8-gc-objects-stats-table',
+
+    ready: function() {
+      this.isolateEntries_ = [];
+    },
+
+    constructTable_: function() {
+      this.$.table.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.table.tableColumns = [
+        {
+          title: 'Component',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.title;
+            return typeEl;
+          },
+          showExpandButtons: true
+        },
+        {
+          title: 'Overall Memory (KB)',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = (row.overall / 1024).toFixed(3);
+            return typeEl;
+          },
+          cmp: function(a, b) {
+            return a.overall - b.overall;
+          }
+        },
+        {
+          title: 'Over Allocated Memory (KB)',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = (row.overAllocated / 1024).toFixed(3);
+            return typeEl;
+          },
+          cmp: function(a, b) {
+            return a.overAllocated - b.overAllocated;
+          }
+        },
+        {
+          title: 'Overall Count',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.count;
+            return typeEl;
+          },
+          cmp: function(a, b) {
+            return a.count - b.count;
+          }
+        },
+        {
+          title: 'Overall Memory Percent',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.overallPercent + '%';
+            return typeEl;
+          },
+          cmp: function(a, b) {
+            return a.overall - b.overall;
+          }
+        },
+        {
+          title: 'Overall Allocated Memory Percent',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.overAllocatedPercent + '%';
+            return typeEl;
+          },
+          cmp: function(a, b) {
+            return a.overAllocated - b.overAllocated;
+          }
+        }
+      ];
+
+      this.$.table.sortColumnIndex = 1;
+      this.$.table.sortDescending = true;
+    },
+
+    buildSubEntry_: function(objects, groupEntry, keyToName) {
+      var typeGroup = InstanceTypeGroups[groupEntry.title];
+      for (var instanceType of typeGroup) {
+        var e = objects[instanceType];
+        delete objects[instanceType];
+        if (e === undefined) continue;
+        var title = instanceType;
+        if (keyToName !== undefined) title = keyToName(title);
+        groupEntry.add(new Entry(title, e.count, e.overall, e.over_allocated,
+                                 e.histogram, e.over_allocated_histogram));
+      }
+    },
+
+    buildOthers_: function(objects, groupEntry) {
+      for (var title of Object.getOwnPropertyNames(objects)) {
+        if (title === 'END') continue;
+        var obj = objects[title];
+        groupEntry.add(new Entry(title, obj.count, obj.overall,
+                                 obj.over_allocated, obj.histogram,
+                                 obj.over_allocated_histogram))
+      }
+    },
+
+    build_: function(objects, objectEntry, bucketSize) {
+      var fixedArrayObject = objects['FIXED_ARRAY_TYPE'];
+      if (fixedArrayObject === undefined)
+        throw new Error('Fixed Array Object not found.');
+
+      var groupEntries = {
+        restEntry: new GroupedEntry('Rest', 0, 0, 0, new Array(bucketSize),
+                                    new Array(bucketSize)),
+        stringEntry: new GroupedEntry('Strings', 0, 0, 0, new Array(bucketSize),
+                                      new Array(bucketSize)),
+        jsEntry: new GroupedEntry('JS_OTHER', 0, 0, 0, new Array(bucketSize),
+                                  new Array(bucketSize)),
+        fixedArrayEntry: new GroupedEntry('FIXED_ARRAY_TYPE', 0, 0, 0,
+                                          new Array(bucketSize),
+                                          new Array(bucketSize)),
+        codeEntry: new GroupedEntry('CODE_TYPE', 0, 0, 0, new Array(bucketSize),
+                                    new Array(bucketSize)),
+        contextExtensionEntry: new GroupedEntry('CONTEXT_EXTENSION_TYPE', 0, 0,
+                                                0, new Array(bucketSize),
+                                                new Array(bucketSize)),
+        mapEntry: new GroupedEntry('MAP_TYPE', 0, 0, 0, new Array(bucketSize),
+                                   new Array(bucketSize)),
+        byteArrayEntry: new GroupedEntry('BYTE_ARRAY_TYPE', 0, 0, 0,
+                                         new Array(bucketSize),
+                                         new Array(bucketSize)),
+        sharedFunctionInfoEntry: new GroupedEntry('SHARED_FUNCTION_INFO_TYPE',
+                                                  0, 0, 0,
+                                                  new Array(bucketSize),
+                                                  new Array(bucketSize)),
+        weakCellEntry: new GroupedEntry('WEAK_CELL_TYPE', 0, 0, 0,
+                                        new Array(bucketSize),
+                                        new Array(bucketSize)),
+        jsObjectEntry: new GroupedEntry('JS_OBJECT_TYPE', 0, 0, 0,
+                                        new Array(bucketSize),
+                                        new Array(bucketSize)),
+        jsContextExtensionObjectEntry: new GroupedEntry(
+            'JS_CONTEXT_EXTENSION_OBJECT_TYPE', 0, 0, 0, new Array(bucketSize),
+            new Array(bucketSize))
+      };
+      for (var name of Object.getOwnPropertyNames(groupEntries)) {
+        var groupEntry = groupEntries[name];
+        var keyToName = undefined;
+        if (InstanceSubTypeNames[groupEntry.title] !== undefined) {
+          keyToName = InstanceSubTypeNames[groupEntry.title].keyToName;
+        }
+        this.buildSubEntry_(objects, groupEntry, keyToName);
+        if (name === 'fixedArrayEntry') {
+          groupEntry.setFromObject(fixedArrayObject);
+          groupEntry.accumulateUnknown('UNKNOWN');
+        }
+        objectEntry.add(groupEntry);
+      }
+    },
+
+    set selection(slices) {
+      slices.sortEvents(function(a, b) {
+        return b.start - a.start;
+      });
+      var previous = undefined;
+      for (let slice of slices) {
+        if (!slice instanceof tr.e.v8.V8GCStatsThreadSlice) continue;
+        var liveObjects = slice.liveObjects;
+        var deadObjects = slice.deadObjects;
+        var isolate = liveObjects.isolate;
+
+        var isolateEntry =
+            new GroupedEntry(
+              'Isolate_' + isolate + ' at ' + slice.start.toFixed(3) + ' ms',
+              0, 0, 0, [], []);
+        var liveEntry = new GroupedEntry('live objects', 0, 0, 0, [], []);
+        var deadEntry = new GroupedEntry('dead objects', 0, 0, 0, [], []);
+
+        var liveBucketSize = liveObjects.bucket_sizes.length;
+        var deadBucketSize = deadObjects.bucket_sizes.length;
+
+        this.build_(tr.b.deepCopy(liveObjects.type_data), liveEntry,
+                    liveBucketSize);
+        isolateEntry.add(liveEntry);
+
+        this.build_(tr.b.deepCopy(deadObjects.type_data), deadEntry,
+                    deadBucketSize);
+        isolateEntry.add(deadEntry);
+
+        isolateEntry.calculatePercentage();
+        this.isolateEntries_.push(isolateEntry);
+      }
+      this.updateTable_();
+    },
+
+    updateTable_: function() {
+      this.constructTable_();
+      this.$.table.tableRows = this.isolateEntries_;
+      this.$.table.rebuild();
+    },
+  });
+
+  return {};
+});
+</script>

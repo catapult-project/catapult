@@ -98,6 +98,7 @@ Polymer({
     this.cancelAllTasks_();
     this.eventGroups_ = [];
     this.addRuntimeCallStats_(eventSet);
+    this.addV8GCObjectStats_(eventSet);
     this.addV8Slices_(eventSet);
     this.addConnectedFlows_(eventSet);
     this.addConnectedEvents_(eventSet);
@@ -291,6 +292,21 @@ Polymer({
         type: 'Runtime call stats table',
         // eslint-disable-next-line
         tooltip: 'All V8 slices containing runtime call stats table in the selected slice(s).',
+        selection: slices
+      });
+    }
+  },
+
+  addV8GCObjectStats_: function(eventSet) {
+    var slices = new tr.model.EventSet;
+    for (var slice of eventSet) {
+      if (slice.title === 'V8.GC_Objects_Stats')
+        slices.push(slice);
+    }
+    if (slices.length > 0) {
+      this.eventGroups_.push({
+        type: 'V8 GC stats table',
+        tooltip: 'All V8 GC statistics slices in the selected set.',
         selection: slices
       });
     }

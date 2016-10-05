@@ -50,7 +50,7 @@ tr.exportTo('tr.ui.b', function() {
         spanEl.style.color = opt_dictionary.color;
     }
     return spanEl;
-  };
+  }
 
   function createDiv(opt_dictionary) {
     var divEl = document.createElement('div');
@@ -66,7 +66,7 @@ tr.exportTo('tr.ui.b', function() {
         divEl.style.maxWidth = opt_dictionary.maxWidth;
     }
     return divEl;
-  };
+  }
 
   function createScopedStyle(styleContent) {
     var styleEl = document.createElement('style');
@@ -234,13 +234,18 @@ tr.exportTo('tr.ui.b', function() {
     var buttonEl = document.createElement('input');
     buttonEl.type = 'checkbox';
 
-    var initialValue = tr.b.Settings.get(settingsKey, defaultValue);
-    buttonEl.checked = !!initialValue;
+    var initialValue = defaultValue;
+    if (settingsKey !== undefined) {
+      initialValue = tr.b.Settings.get(settingsKey, defaultValue);
+      buttonEl.checked = !!initialValue;
+    }
     if (targetEl)
       targetEl[targetElProperty] = initialValue;
 
     function onChange() {
-      tr.b.Settings.set(settingsKey, buttonEl.checked);
+      if (settingsKey !== undefined) {
+        tr.b.Settings.set(settingsKey, buttonEl.checked);
+      }
       if (targetEl)
         targetEl[targetElProperty] = buttonEl.checked;
       if (opt_changeCb)
