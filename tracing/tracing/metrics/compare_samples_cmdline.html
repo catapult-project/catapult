@@ -116,7 +116,7 @@ function rawValuesByMetricName(valueSet, metricName) {
           escapeChars(story)) {
         filtered.push(value);
       }
-    } else if (escapeChars(ii.storyDisplayName) ==
+    } else if (escapeChars(ii.storyDisplayName) ===
                escapeChars(story)) {
       filtered.push(value);
     }

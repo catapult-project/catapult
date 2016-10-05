@@ -42,7 +42,7 @@ tr.exportTo('tr.v', function() {
       if (!(unit instanceof tr.b.Unit))
         throw new Error('Expected Unit');
 
-      if (!(typeof(value) == 'number'))
+      if (!(typeof(value) === 'number'))
         throw new Error('Expected value to be number');
 
       super(unit);

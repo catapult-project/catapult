@@ -4,8 +4,8 @@ Copyright (c) 2014 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
-<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/base/unittest/constants.html">
+<link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 <script>
 'use strict';
@@ -91,12 +91,12 @@ tr.exportTo('tr.b.unittest', function() {
         this.write_('Ran ' + this.numTestsThatRan + ' tests\n');
 
       if (this.numTestsThatFailed > 0) {
-        var flakyString = this.numFlakyTests == 0 ? '' :
+        var flakyString = this.numFlakyTests === 0 ? '' :
             ' flaky=' + this.numFlakyTests;
         this.write_('\nFAILED (errors=' + this.numTestsThatFailed +
             flakyString + ')');
       } else {
-        var flakyString = this.numFlakyTests == 0 ? '' :
+        var flakyString = this.numFlakyTests === 0 ? '' :
             ' (flaky=' + this.numFlakyTests + ')';
         this.write_('\nOK' + flakyString);
       }

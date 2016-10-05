@@ -264,7 +264,7 @@ tr.exportTo('tr.ui.b', function() {
 
     onClose_: function(e) {
       this.visible = false;
-      if ((e.type != 'keydown') ||
+      if ((e.type !== 'keydown') ||
           (e.type === 'keydown' && e.keyCode === 27))
         e.stopPropagation();
       e.preventDefault();

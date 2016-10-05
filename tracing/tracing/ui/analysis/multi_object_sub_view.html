@@ -69,7 +69,7 @@ Polymer({
               marginLeft: '4px',
               marginRight: '4px'
           }));
-          if (event.deletionTs != Number.MAX_VALUE) {
+          if (event.deletionTs !== Number.MAX_VALUE) {
             Polymer.dom(spanEl).appendChild(tr.v.ui.createScalarSpan(
                 event.deletionTs, timeSpanConfig));
           }

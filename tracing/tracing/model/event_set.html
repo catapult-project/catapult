@@ -75,7 +75,7 @@ tr.exportTo('tr.model', function() {
     // push pushes only unique events.
     // If an event has been already pushed, do nothing.
     push: function(event) {
-      if (event.guid == undefined)
+      if (event.guid === undefined)
         throw new Error('Event must have a GUID');
 
       if (!this.events_.has(event)) {
@@ -139,7 +139,7 @@ tr.exportTo('tr.model', function() {
           }
         });
 
-        if (maxEventIndex == -1) {
+        if (maxEventIndex === -1) {
           console.log(event);
           throw new Error('Unrecognized event type');
         }

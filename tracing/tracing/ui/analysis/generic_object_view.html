@@ -44,7 +44,7 @@ function isTable(object) {
     for (var colName in object[i]) {
       if (i && (object[0][colName] === undefined)) return false;
       var cellType = typeof object[i][colName];
-      if (cellType !== 'string' && cellType != 'number') return false;
+      if (cellType !== 'string' && cellType !== 'number') return false;
     }
     if (i) {
       for (var colName in object[0]) {
@@ -96,10 +96,10 @@ Polymer({
 
     if (!(object instanceof Object)) {
       var type = typeof object;
-      if (type == 'string') {
+      if (type === 'string') {
         var objectReplaced = false;
-        if ((object[0] == '{' && object[object.length - 1] == '}') ||
-            (object[0] == '[' && object[object.length - 1] == ']')) {
+        if ((object[0] === '{' && object[object.length - 1] === '}') ||
+            (object[0] === '[' && object[object.length - 1] === ']')) {
           try {
             object = JSON.parse(object);
             objectReplaced = true;
@@ -111,7 +111,7 @@ Polymer({
             var lines = object.split('\n');
             lines.forEach(function(line, i) {
               var text, ioff, ll, ss;
-              if (i == 0) {
+              if (i === 0) {
                 text = '"' + line;
                 ioff = 0;
                 ll = label;
@@ -192,7 +192,7 @@ Polymer({
 
   appendElementsForArray_: function(
       label, object, indent, depth, maxDepth, suffix) {
-    if (object.length == 0) {
+    if (object.length === 0) {
       this.appendSimpleText_(label, indent, '[]', suffix);
       return;
     }
@@ -255,7 +255,7 @@ Polymer({
   appendElementsForObject_: function(
       label, object, indent, depth, maxDepth, suffix) {
     var keys = tr.b.dictionaryKeys(object);
-    if (keys.length == 0) {
+    if (keys.length === 0) {
       this.appendSimpleText_(label, indent, '{}', suffix);
       return;
     }

@@ -50,9 +50,9 @@ tr.exportTo('tr.e.importer', function() {
       header = JSZip.utils.transformTo('uint8array', header);
     } else
       return false;
-    return header[0] == GZIP_HEADER_ID1 &&
-        header[1] == GZIP_HEADER_ID2 &&
-        header[2] == GZIP_DEFLATE_COMPRESSION;
+    return header[0] === GZIP_HEADER_ID1 &&
+        header[1] === GZIP_HEADER_ID2 &&
+        header[2] === GZIP_DEFLATE_COMPRESSION;
   };
 
   /**
@@ -79,7 +79,7 @@ tr.exportTo('tr.e.importer', function() {
     }
 
     function skipZeroTerminatedString() {
-      while (getByte() != 0) {}
+      while (getByte() !== 0) {}
     }
 
     var id1 = getByte();

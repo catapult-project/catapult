@@ -113,7 +113,7 @@ Polymer({
     }
 
     var colWidthPercentage;
-    if (columns.length == 1)
+    if (columns.length === 1)
       colWidthPercentage = '100%';
     else
       colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';

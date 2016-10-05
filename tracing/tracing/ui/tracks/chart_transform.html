@@ -26,7 +26,7 @@ tr.exportTo('tr.ui.tracks', function() {
    *      outerTopViewY -> +--------------------/-\-------+ <- Top padding
    *      innerTopViewY -> + - - - - - - - - - -| |- - - -+ <- Axis max
    *                       | ..               ==\-/==     |
-   *                       |   ==       Series       ==   |
+   *                       |   ===       Series       ===   |
    *                       |     ==/-\==               .. |
    *   innerBottomViewY -> + - - -Point- - - - - - - - - -+ <- Axis min
    *   outerBottomViewY -> +-------\-/--------------------+ <- Bottom padding
@@ -60,7 +60,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     this.axis_ = axis;
     this.innerHeight_ = this.innerBottomViewY - this.innerTopViewY;
-  };
+  }
 
   ChartTransform.prototype = {
     worldXToViewX: function(worldX) {

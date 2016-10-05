@@ -18,14 +18,14 @@ tr.exportTo('tr.e.cc', function() {
     if (name in convertedNameCache)
       return convertedNameCache[name];
 
-    if (name[0] == '_' ||
-        name[name.length - 1] == '_') {
+    if (name[0] === '_' ||
+        name[name.length - 1] === '_') {
       convertedNameCache[name] = name;
       return name;
     }
 
     var words = name.split('_');
-    if (words.length == 1) {
+    if (words.length === 1) {
       convertedNameCache[name] = words[0];
       return words[0];
     }
@@ -104,7 +104,7 @@ tr.exportTo('tr.e.cc', function() {
 
     for (var key in object) {
       var newKey = convertNameToJSConvention(key);
-      if (newKey != key) {
+      if (newKey !== key) {
         var value = object[key];
         delete object[key];
         object[newKey] = value;

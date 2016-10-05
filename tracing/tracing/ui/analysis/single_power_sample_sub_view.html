@@ -103,7 +103,7 @@ Polymer({
   },
 
   updateContents_: function() {
-    if (this.selection.length != 1)
+    if (this.selection.length !== 1)
       throw 'Cannot pass multiple samples to sample table.';
     this.$.samplesTable.sample = tr.b.getOnlyElement(this.selection);
   }

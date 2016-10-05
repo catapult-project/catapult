@@ -251,7 +251,7 @@ tr.exportTo('tr.ui.b', function() {
       this.yLogScaleMin_ = undefined;
       if (this.dataRange_.min !== undefined) {
         var minValue = this.dataRange_.min;
-        if (minValue == 0)
+        if (minValue === 0)
           minValue = 1;
 
         var onePowerLess = Math.floor(
@@ -285,7 +285,7 @@ tr.exportTo('tr.ui.b', function() {
         if (this.yLogScaleMin_ === undefined)
           return;
         var minValue = this.dataRange_.min;
-        if (minValue == 0)
+        if (minValue === 0)
           minValue = 1;
 
         var largestPower = Math.ceil(

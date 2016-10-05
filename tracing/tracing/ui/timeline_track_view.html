@@ -764,8 +764,8 @@ Polymer({
       return;
     }
 
-    if (this.viewport_.interestRange.min == selectionBounds.min &&
-        this.viewport_.interestRange.max == selectionBounds.max)
+    if (this.viewport_.interestRange.min === selectionBounds.min &&
+        this.viewport_.interestRange.max === selectionBounds.max)
       this.viewport_.interestRange.reset();
     else
       this.viewport_.interestRange.set(selectionBounds);

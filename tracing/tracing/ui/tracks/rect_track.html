@@ -163,7 +163,7 @@ tr.exportTo('tr.ui.tracks', function() {
       var instantEventWidth = 2 * viewPixWidthWorld;
       tr.b.iterateOverIntersectingIntervals(this.rects_,
           function(x) { return x.start; },
-          function(x) { return x.duration == 0 ?
+          function(x) { return x.duration === 0 ?
                                x.duration + instantEventWidth :
                                x.duration; },
           loWX, hiWX,
@@ -237,7 +237,7 @@ tr.exportTo('tr.ui.tracks', function() {
     this.start = start;
     this.duration = duration;
     this.end = start + duration;
-  };
+  }
 
   Rect.prototype = {
     __proto__: tr.model.ProxySelectableItem.prototype

@@ -183,9 +183,9 @@ tr.exportTo('tr.e.importer.v8', function() {
     }
     var min = this.dynamics_.findMin();
     var max = this.dynamics_.findMax();
-    if (max != null && addr < (max.key + max.value.size) && addr >= min.key) {
+    if (max !== null && addr < (max.key + max.value.size) && addr >= min.key) {
       var dynaEntry = this.findInTree_(this.dynamics_, addr);
-      if (dynaEntry == null) return null;
+      if (dynaEntry === null) return null;
       // Dedupe entry name.
       if (!dynaEntry.nameUpdated_) {
         dynaEntry.name = this.dynamicsNameGen_.getName(dynaEntry.name);
@@ -348,9 +348,9 @@ tr.exportTo('tr.e.importer.v8', function() {
      */
     get name() {
       var name = this.name_;
-      if (name.length == 0) {
+      if (name.length === 0) {
         name = '<anonymous>';
-      } else if (name.charAt(0) == ' ') {
+      } else if (name.charAt(0) === ' ') {
         // An anonymous function with location: " aaa.js:10".
         name = '<anonymous>' + name;
       }

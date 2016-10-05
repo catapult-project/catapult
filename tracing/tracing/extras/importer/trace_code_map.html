@@ -47,7 +47,7 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     getAddress_: function(addressHex) {
-      // 13 hex digits == 52 bits, double mantissa fits 53 bits.
+      // 13 hex digits === 52 bits, double mantissa fits 53 bits.
       var bankSizeHexDigits = 13;
       addressHex = addressHex.slice(2);  // cut 0x prefix.
       return parseInt(addressHex.slice(-bankSizeHexDigits), 16);
@@ -56,7 +56,7 @@ tr.exportTo('tr.e.importer', function() {
     getBank_: function(addressHex) {
       addressHex = addressHex.slice(2);  // cut 0x prefix.
 
-      // 13 hex digits == 52 bits, double mantissa fits 53 bits.
+      // 13 hex digits === 52 bits, double mantissa fits 53 bits.
       var bankSizeHexDigits = 13;
       var maxHexDigits = 16;
       var bankName = addressHex.slice(-maxHexDigits, -bankSizeHexDigits);

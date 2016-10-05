@@ -143,7 +143,7 @@ Polymer({
     }.bind(this));
 
     this.latencyChart_.addEventListener('item-mousemove', function(e) {
-      if (e.button == undefined)
+      if (e.button === undefined)
         return;
       this.curMouseIndex_ = e.index;
       this.updateBrushedRange_();
@@ -203,7 +203,7 @@ Polymer({
   createLatencyLineChart: function(data, title) {
     var chart = new tr.ui.b.LineChart();
     var width = 600;
-    if (document.body.clientWidth != undefined)
+    if (document.body.clientWidth !== undefined)
       width = document.body.clientWidth * 0.5;
     chart.setSize({width: width, height: chart.height});
     chart.chartTitle = title;
@@ -277,7 +277,7 @@ Polymer({
       Polymer.dom(resultArea).appendChild(this.latencyChart_);
     }
 
-    if (frametimeData.length != 0) {
+    if (frametimeData.length !== 0) {
       this.frametimeChart_ = this.createLatencyLineChart(
           frametimeData, 'Frame Times');
       Polymer.dom(resultArea).appendChild(this.frametimeChart_);
@@ -294,7 +294,7 @@ Polymer({
   },
 
   supportsModel: function(m) {
-    if (m == undefined) {
+    if (m === undefined) {
       return {
         supported: false,
         reason: 'Unknown tracing model'

@@ -81,7 +81,7 @@ tr.exportTo('tr.metrics.v8.utils', function() {
     // Low memory notification is handled specially because it contains
     // several full mark compact events.
     return event.title && event.title.startsWith(GC_EVENT_PREFIX) &&
-           event.title != LOW_MEMORY_EVENT;
+           event.title !== LOW_MEMORY_EVENT;
   }
 
   function isTopGarbageCollectionEvent(event) {

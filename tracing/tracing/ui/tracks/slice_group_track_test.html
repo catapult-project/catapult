@@ -163,7 +163,7 @@ tr.b.unittest.testSuite(function() {
 
     // Pattern being tested:
     // [    a    ]
-    // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end == a.end.
+    // [  b1 ]  []<- b2 where b2.duration = 0 and b2.end === a.end.
     var sA = group.pushSlice(newSliceEx({title: 'a', start: 1, duration: 3}));
     var sB1 = group.pushSlice(newSliceEx({title: 'b1', start: 1, duration: 2}));
     var sB2 = group.pushSlice(newSliceEx({title: 'b2', start: 4, duration: 0}));

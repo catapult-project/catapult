@@ -370,7 +370,7 @@ Polymer({
   },
 
   set model(model) {
-    var modelInstanceChanged = model != this.model;
+    var modelInstanceChanged = model !== this.model;
     var modelValid = model && !model.bounds.isEmpty;
 
     var importWarningsEl = Polymer.dom(this.root).querySelector(

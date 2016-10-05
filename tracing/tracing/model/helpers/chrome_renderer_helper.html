@@ -119,7 +119,7 @@ tr.exportTo('tr.model.helpers', function() {
           try {
             var v8RuntimeObject = JSON.parse(v8Runtime);
             for (var runtimeCall in v8RuntimeObject) {
-              if (v8RuntimeObject[runtimeCall].length == 2) {
+              if (v8RuntimeObject[runtimeCall].length === 2) {
                 if (breakdownMap['v8_runtime'].events[runtimeCall] ===
                     undefined) {
                   breakdownMap['v8_runtime'].events[runtimeCall] = 0;

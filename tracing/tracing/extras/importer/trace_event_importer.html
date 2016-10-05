@@ -469,7 +469,7 @@ tr.exportTo('tr.e.importer', function() {
             this.toModelTimeFromUs_(event.ts),
             this.toModelTimeFromUs_(event.tts),
             getEventColor(event));
-        if (event.name && slice.title != event.name) {
+        if (event.name && slice.title !== event.name) {
           this.model_.importWarning({
             type: 'title_match_error',
             message: 'Titles do not match. Title is ' +
@@ -902,8 +902,8 @@ tr.exportTo('tr.e.importer', function() {
           event.name.startsWith(ASYNC_CLOCK_SYNC_EVENT_TITLE_PREFIX) &&
           event.ph === 'F')
           this.asyncClockSyncFinish_ = event;
-      if (this.asyncClockSyncStart_ == undefined ||
-          this.asyncClockSyncFinish_ == undefined)
+      if (this.asyncClockSyncStart_ === undefined ||
+          this.asyncClockSyncFinish_ === undefined)
         return;
 
       // Older version of Chrome doesn't support clock sync API, hence
@@ -1367,7 +1367,7 @@ tr.exportTo('tr.e.importer', function() {
 
       legacyEvents.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
-        if (d != 0)
+        if (d !== 0)
           return d;
         return x.sequenceNumber - y.sequenceNumber;
       });
@@ -1674,7 +1674,7 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     assertStepTypeMatches_: function(stepType, event) {
-      if (stepType != event.event.ph) {
+      if (stepType !== event.event.ph) {
         this.model_.importWarning({
           type: 'async_slice_parse_error',
           message: 'At ' + event.event.ts + ', a slice named ' +
@@ -1845,7 +1845,7 @@ tr.exportTo('tr.e.importer', function() {
       // Actual import.
       this.allFlowEvents_.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
-        if (d != 0)
+        if (d !== 0)
           return d;
         return x.sequenceNumber - y.sequenceNumber;
       });
@@ -2064,7 +2064,7 @@ tr.exportTo('tr.e.importer', function() {
 
       this.allObjectEvents_.sort(function(x, y) {
         var d = x.event.ts - y.event.ts;
-        if (d != 0)
+        if (d !== 0)
           return d;
         return x.sequenceNumber - y.sequenceNumber;
       });

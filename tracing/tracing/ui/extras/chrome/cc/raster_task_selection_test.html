@@ -23,7 +23,7 @@ tr.b.unittest.testSuite(function() {
     var m = tr.c.TestUtils.newModelWithEvents([g_catLTHIEvents]);
     var p = m.processes[1];
     var rasterTasks = p.threads[1].sliceGroup.slices.filter(function(slice) {
-      return slice.title == 'RasterTask';
+      return slice.title === 'RasterTask';
     });
 
     var selection = new tr.model.EventSet();

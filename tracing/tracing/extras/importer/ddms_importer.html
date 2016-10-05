@@ -133,11 +133,11 @@ tr.exportTo('tr.e.importer.ddms', function() {
 
       var traceReader = new Reader(this.data_.slice(divider));
       var magic = traceReader.uint32();
-      if (magic != kTraceMagicValue) {
+      if (magic !== kTraceMagicValue) {
         throw Error('Failed to match magic value');
       }
       this.version_ = traceReader.uint16();
-      if (this.version_ != kTraceVersionDualClock) {
+      if (this.version_ !== kTraceVersionDualClock) {
         throw Error('Unknown version');
       }
       var dataOffest = traceReader.uint16();
@@ -160,7 +160,7 @@ tr.exportTo('tr.e.importer.ddms', function() {
       var action = methodPacked & kTraceMethodActionMask;
       var thread = this.getTid(tid);
       method = this.getMethodName(method);
-      if (action == kTraceMethodEnter) {
+      if (action === kTraceMethodEnter) {
         thread.sliceGroup.beginSlice(kCategory, method, wallClockSinceStart,
             undefined, cpuSinceStart);
       } else if (thread.sliceGroup.openSliceCount) {

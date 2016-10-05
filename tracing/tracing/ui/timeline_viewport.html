@@ -113,7 +113,7 @@ tr.exportTo('tr.ui', function() {
      * and then runs the pendingSetFunction_, if present.
      */
     checkForAttach_: function() {
-      if (!this.isAttachedToDocumentOrInTestMode || this.clientWidth == 0)
+      if (!this.isAttachedToDocumentOrInTestMode || this.clientWidth === 0)
         return;
 
       window.addEventListener('resize', this.dispatchChangeEvent.bind(this));
@@ -287,7 +287,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set gridEnabled(enabled) {
-      if (this.gridEnabled_ == enabled)
+      if (this.gridEnabled_ === enabled)
         return;
 
       this.gridEnabled_ = enabled && true;
@@ -299,7 +299,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set gridTimebase(timebase) {
-      if (this.gridTimebase_ == timebase)
+      if (this.gridTimebase_ === timebase)
         return;
       this.gridTimebase_ = timebase;
       this.dispatchChangeEvent();
@@ -388,7 +388,7 @@ tr.exportTo('tr.ui', function() {
             event, offset, newSelection);
       }
 
-      if (newSelection.length == 0)
+      if (newSelection.length === 0)
         return undefined;
       return newSelection;
     },

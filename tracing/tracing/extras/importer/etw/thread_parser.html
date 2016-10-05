@@ -82,10 +82,10 @@ tr.exportTo('tr.e.importer.etw', function() {
       var threadFlags;
       var waitMode;
 
-      if (header.version == 1) {
+      if (header.version === 1) {
         // On version 1, only start events have extended information.
-        if (header.opcode == kThreadStartOpcode ||
-            header.opcode == kThreadDCStartOpcode) {
+        if (header.opcode === kThreadStartOpcode ||
+            header.opcode === kThreadDCStartOpcode) {
           stackBase = decoder.decodeUInteger(header.is64);
           stackLimit = decoder.decodeUInteger(header.is64);
           userStackBase = decoder.decodeUInteger(header.is64);
@@ -102,7 +102,7 @@ tr.exportTo('tr.e.importer.etw', function() {
         userStackLimit = decoder.decodeUInteger(header.is64);
 
         // Version 2 produces a field named 'startAddr'.
-        if (header.version == 2)
+        if (header.version === 2)
           startAddr = decoder.decodeUInteger(header.is64);
         else
           affinity = decoder.decodeUInteger(header.is64);
@@ -111,7 +111,7 @@ tr.exportTo('tr.e.importer.etw', function() {
         tebBase = decoder.decodeUInteger(header.is64);
         subProcessTag = decoder.decodeUInt32();
 
-        if (header.version == 3) {
+        if (header.version === 3) {
           basePriority = decoder.decodeUInt8();
           pagePriority = decoder.decodeUInt8();
           ioPriority = decoder.decodeUInt8();
@@ -140,7 +140,7 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     decodeCSwitchFields: function(header, decoder) {
-      if (header.version != 2)
+      if (header.version !== 2)
         throw new Error('Incompatible Thread event version.');
 
       // Decode CSwitch payload.

@@ -64,7 +64,7 @@ tr.exportTo('tr.model', function() {
       var lastSnapshot;
       if (this.snapshots.length > 0) {
         lastSnapshot = this.snapshots[this.snapshots.length - 1];
-        if (lastSnapshot.ts == ts)
+        if (lastSnapshot.ts === ts)
           throw new Error('Snapshots already exists at this time!');
         if (ts < lastSnapshot.ts) {
           throw new Error(
@@ -74,10 +74,10 @@ tr.exportTo('tr.model', function() {
 
       // Update baseTypeName if needed.
       if (opt_name &&
-          (this.name != opt_name)) {
+          (this.name !== opt_name)) {
         if (!opt_baseTypeName)
           throw new Error('Must provide base type name for name update');
-        if (this.baseTypeName != opt_baseTypeName)
+        if (this.baseTypeName !== opt_baseTypeName)
           throw new Error('Cannot update type name: base types dont match');
         this.name = opt_name;
       }
@@ -142,7 +142,7 @@ tr.exportTo('tr.model', function() {
           snapshots,
           function(snapshot) { return snapshot.ts; },
           function(snapshot, i) {
-            if (i == snapshots.length - 1)
+            if (i === snapshots.length - 1)
               return snapshots[i].objectInstance.deletionTs;
             return snapshots[i + 1].ts - snapshots[i].ts;
           },
@@ -163,7 +163,7 @@ tr.exportTo('tr.model', function() {
     updateBounds: function() {
       this.bounds.reset();
       this.bounds.addValue(this.creationTs);
-      if (this.deletionTs != Number.MAX_VALUE)
+      if (this.deletionTs !== Number.MAX_VALUE)
         this.bounds.addValue(this.deletionTs);
       else if (this.snapshots.length > 0)
         this.bounds.addValue(this.snapshots[this.snapshots.length - 1].ts);
@@ -171,7 +171,7 @@ tr.exportTo('tr.model', function() {
 
     shiftTimestampsForward: function(amount) {
       this.creationTs += amount;
-      if (this.deletionTs != Number.MAX_VALUE)
+      if (this.deletionTs !== Number.MAX_VALUE)
         this.deletionTs += amount;
       this.snapshots.forEach(function(snapshot) {
         snapshot.ts += amount;

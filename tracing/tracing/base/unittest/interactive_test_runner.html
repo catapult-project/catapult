@@ -420,7 +420,7 @@ tr.exportTo('tr.b.unittest', function() {
 
       var tests = this.allTests_.filter(function(test) {
         var i = test.fullyQualifiedName.indexOf(this.testFilterString_);
-        if (i == -1)
+        if (i === -1)
           return false;
         if (this.testTypeToRun_ !== ALL_TEST_TYPES &&
             test.testType !== this.testTypeToRun_)
@@ -521,16 +521,16 @@ tr.exportTo('tr.b.unittest', function() {
     function stateFromSearchString(string) {
       var state = {};
       string.split('&').forEach(function(part) {
-        if (part == '')
+        if (part === '')
           return;
         var kv = part.split('=');
         var k, v;
-        if (kv.length == 1) {
+        if (kv.length === 1) {
           k = kv[0];
           v = true;
         } else {
           k = kv[0];
-          if (kv[1] == 'false')
+          if (kv[1] === 'false')
             v = false;
           else
             v = kv[1];
@@ -661,7 +661,7 @@ tr.exportTo('tr.b.unittest', function() {
         var state = runner.getState();
         var stateString = stateToSearchString(runner.getDefaultState(),
                                               state);
-        if (window.location.search.substring(1) == stateString)
+        if (window.location.search.substring(1) === stateString)
           return;
 
         updateTitle(state);

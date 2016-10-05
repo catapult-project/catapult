@@ -246,7 +246,7 @@ tr.exportTo('tr.metrics.sh', function() {
       var loadData = getPowerData_(model, interval.min, interval.max);
       storePowerData_(loadData, hists.loadTimeHist, hists.loadEnergyHist,
           undefined);
-      lastLoadTime = (lastLoadTime == undefined ? interval.max :
+      lastLoadTime = (lastLoadTime === undefined ? interval.max :
           Math.max(lastLoadTime, interval.max));
     }
     if (lastLoadTime !== undefined) {

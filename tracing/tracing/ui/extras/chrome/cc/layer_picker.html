@@ -82,7 +82,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     set whichTree(whichTree) {
       this.whichTree_ = whichTree;
-      this.renderPassQuads_ = (whichTree == RENDER_PASS_QUADS);
+      this.renderPassQuads_ = (whichTree === RENDER_PASS_QUADS);
       this.updateContents_();
       tr.b.dispatchSimpleEvent(this, 'selection-change', false);
     },
@@ -142,8 +142,8 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
       function isPureTransformLayer(layer) {
         if (layer.args.compositingReasons &&
-            layer.args.compositingReasons.length != 1 &&
-            layer.args.compositingReasons[0] != 'No reasons given')
+            layer.args.compositingReasons.length !== 1 &&
+            layer.args.compositingReasons[0] !== 'No reasons given')
           return false;
 
         if (layer.args.drawsContent)
@@ -205,7 +205,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         item.renderPassId = id;
         Polymer.dom(this.itemList_).appendChild(item);
 
-        if (id == selectedRenderPassId) {
+        if (id === selectedRenderPassId) {
           renderPass.selectionState =
               tr.model.SelectionState.SELECTED;
         }
@@ -247,7 +247,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           item.layer = layer;
           Polymer.dom(this.itemList_).appendChild(item);
 
-          if (layer.layerId == selectedLayerId) {
+          if (layer.layerId === selectedLayerId) {
             layer.selectionState = tr.model.SelectionState.SELECTED;
             item.selected = true;
           }
@@ -312,7 +312,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     set selection(selection) {
-      if (this.selection_ == selection)
+      if (this.selection_ === selection)
         return;
       this.selection_ = selection;
       this.updateContents_();

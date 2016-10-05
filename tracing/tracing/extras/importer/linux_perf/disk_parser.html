@@ -207,7 +207,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       var device = event[1];
       var inode = parseInt(event[2]);
-      var datasync = event[4] == 1;
+      var datasync = (event[4] === '1') || (event[4] === 1);
       var key = device + '-' + inode;
       var action = datasync ? 'fdatasync' : 'fsync';
       this.openAsyncSlice(ts, 'ext4', eventBase.threadName, eventBase.pid,
@@ -261,16 +261,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (event[2]) {
         action += ' flush';
       }
-      if (event[4] == 'F') {
+      if (event[4] === 'F') {
         action += ' fua';
       }
-      if (event[5] == 'A') {
+      if (event[5] === 'A') {
         action += ' ahead';
       }
-      if (event[6] == 'S') {
+      if (event[6] === 'S') {
         action += ' sync';
       }
-      if (event[7] == 'M') {
+      if (event[7] === 'M') {
         action += ' meta';
       }
       var device = event[1];

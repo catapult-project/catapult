@@ -400,7 +400,7 @@ tr.exportTo('tr.ui.b', function() {
       }, this);
 
       // Hide dropdown if needed.
-      if (tr.b.dictionaryLength(unusedGroups) == 0) {
+      if (tr.b.dictionaryLength(unusedGroups) === 0) {
         this.$.add_group.style.display = 'none';
       } else {
         this.$.add_group.style.display = '';

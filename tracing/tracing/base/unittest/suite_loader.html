@@ -52,9 +52,9 @@ tr.exportTo('tr.b.unittest', function() {
       if (!m)
         throw new Error('Guessing module name failed');
       var path = m[1];
-      if (path[0] != '/')
+      if (path[0] !== '/')
         throw new Error('malformed path');
-      if (path.substring(path.length - 5) != '.html')
+      if (path.substring(path.length - 5) !== '.html')
         throw new Error('Cannot define testSuites outside html imports');
       var parts = path.substring(1, path.length - 5).split('/');
       return parts.join('.');
@@ -228,7 +228,7 @@ tr.exportTo('tr.b.unittest', function() {
         var suite = this.testSuites[i];
         for (var j = 0; j < suite.tests.length; j++) {
           var test = suite.tests[j];
-          if (test.fullyQualifiedName == fullyQualifiedName)
+          if (test.fullyQualifiedName === fullyQualifiedName)
             return test;
         }
       }

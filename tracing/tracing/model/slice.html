@@ -90,7 +90,7 @@ tr.exportTo('tr.model', function() {
         return undefined;
 
       for (var i = 0; i < this.subSlices.length; i++) {
-        if (this.subSlices[i].title == targetTitle)
+        if (this.subSlices[i].title === targetTitle)
           return this.subSlices[i];
         var slice = this.subSlices[i].findDescendentSlice(targetTitle);
         if (slice) return slice;

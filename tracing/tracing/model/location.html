@@ -41,7 +41,7 @@ tr.exportTo('tr.model', function() {
   function Location(xWorld, yComponents) {
     this.xWorld_ = xWorld;
     this.yComponents_ = yComponents;
-  };
+  }
 
   /**
    * Returns a new Location given by x and y coordinates with respect to
@@ -69,7 +69,7 @@ tr.exportTo('tr.model', function() {
       elem = elem.parentElement;
     }
 
-    if (yComponents.length == 0)
+    if (yComponents.length === 0)
       return;
     return new Location(xWorld, yComponents);
   }
@@ -96,7 +96,7 @@ tr.exportTo('tr.model', function() {
       elem = elem.parentElement;
     }
 
-    if (yComponents.length == 0)
+    if (yComponents.length === 0)
       return;
     return new Location(xWorld, yComponents);
   }

@@ -326,17 +326,17 @@ tr.exportTo('tr.ui.tracks', function() {
       var startBounds = startTrack.getBoundingClientRect();
       var endBounds = endTrack.getBoundingClientRect();
 
-      if (flowEvent.selectionState == SelectionState.SELECTED) {
+      if (flowEvent.selectionState === SelectionState.SELECTED) {
         ctx.shadowBlur = 1;
         ctx.shadowColor = 'red';
         ctx.shadowOffsety = 2;
         ctx.strokeStyle = 'red';
-      } else if (flowEvent.selectionState == SelectionState.HIGHLIGHTED) {
+      } else if (flowEvent.selectionState === SelectionState.HIGHLIGHTED) {
         ctx.shadowBlur = 1;
         ctx.shadowColor = 'red';
         ctx.shadowOffsety = 2;
         ctx.strokeStyle = 'red';
-      } else if (flowEvent.selectionState == SelectionState.DIMMED) {
+      } else if (flowEvent.selectionState === SelectionState.DIMMED) {
         ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';

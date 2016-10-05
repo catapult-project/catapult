@@ -86,7 +86,7 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get hasSourceFrameBeenDrawnBefore() {
-      if (this.whichTree == tr.e.cc.constants.PENDING_TREE)
+      if (this.whichTree === tr.e.cc.constants.PENDING_TREE)
         return false;
 
       // Old chrome's don't produce sourceFrameNumber.
@@ -107,11 +107,11 @@ tr.exportTo('tr.e.cc', function() {
       // Old chrome's don't produce sourceFrameNumber.
       if (prevLTHI.activeTree.sourceFrameNumber === undefined)
         return;
-      return prevLTHI.activeTree.sourceFrameNumber == this.sourceFrameNumber;
+      return prevLTHI.activeTree.sourceFrameNumber === this.sourceFrameNumber;
     },
 
     get otherTree() {
-      var other = this.whichTree == constants.ACTIVE_TREE ?
+      var other = this.whichTree === constants.ACTIVE_TREE ?
           constants.PENDING_TREE : constants.ACTIVE_TREE;
       return this.layerTreeHostImpl.getTree(other);
     },
@@ -151,7 +151,7 @@ tr.exportTo('tr.e.cc', function() {
     findLayerWithId: function(id) {
       var foundLayer = undefined;
       function visitLayer(layer) {
-        if (layer.layerId == id)
+        if (layer.layerId === id)
           foundLayer = layer;
       }
       this.iterLayers(visitLayer);

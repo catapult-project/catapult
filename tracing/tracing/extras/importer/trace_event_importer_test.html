@@ -442,7 +442,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('taskColoring', function() {
-    // The test below depends on hashing of 'a' != 'b'. Fail early if that
+    // The test below depends on hashing of 'a' !== 'b'. Fail early if that
     // assumption is incorrect.
     assert.notEqual(ColorScheme.getStringHash('a'),
                     ColorScheme.getStringHash('b'));

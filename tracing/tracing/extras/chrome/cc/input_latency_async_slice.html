@@ -455,7 +455,7 @@ tr.exportTo('tr.e.cc', function() {
       }
 
       // Trace PostTask from rasterizer tasks.
-      while (pendingEventQueue.length != 0) {
+      while (pendingEventQueue.length !== 0) {
         var event = pendingEventQueue.pop();
 
         this.addEntireSliceHierarchy(event);
@@ -480,7 +480,7 @@ tr.exportTo('tr.e.cc', function() {
         }
       }, this);
 
-      while (pendingEventQueue.length != 0) {
+      while (pendingEventQueue.length !== 0) {
         var event = pendingEventQueue.pop();
 
         // Push the current event chunk into associatedEvents.

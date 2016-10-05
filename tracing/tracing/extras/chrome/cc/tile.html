@@ -69,7 +69,7 @@ tr.exportTo('tr.e.cc', function() {
 
     getTypeForLayer: function(layer) {
       var type = this.type_;
-      if (type == tr.e.cc.tileTypes.unknown) {
+      if (type === tr.e.cc.tileTypes.unknown) {
         if (this.contentsScale < layer.idealContentsScale)
           type = tr.e.cc.tileTypes.extraLowRes;
         else if (this.contentsScale > layer.idealContentsScale)

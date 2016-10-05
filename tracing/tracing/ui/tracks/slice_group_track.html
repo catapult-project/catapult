@@ -111,7 +111,7 @@ tr.exportTo('tr.ui.tracks', function() {
       ops.sort(function(ix, iy) {
         var x = slices[ix];
         var y = slices[iy];
-        if (x.start != y.start)
+        if (x.start !== y.start)
           return x.start - y.start;
 
         // Elements get inserted into the slices array in order of when the
@@ -131,7 +131,7 @@ tr.exportTo('tr.ui.tracks', function() {
         // Try to fit the slice into the existing subrows.
         var inserted = false;
         for (var j = subRows.length - 1; j >= 0; j--) {
-          if (subRows[j].length == 0)
+          if (subRows[j].length === 0)
             continue;
 
           var insertedSlice = subRows[j][subRows[j].length - 1];

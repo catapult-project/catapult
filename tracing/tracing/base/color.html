@@ -23,30 +23,30 @@ tr.exportTo('tr.b', function() {
   Color.fromString = function(str) {
     var tmp;
     var values;
-    if (str.substr(0, 4) == 'rgb(') {
+    if (str.substr(0, 4) === 'rgb(') {
       tmp = str.substr(4, str.length - 5);
       values = tmp.split(',').map(function(v) {
         return v.replace(/^\s+/, '', 'g');
       });
-      if (values.length != 3)
+      if (values.length !== 3)
         throw new Error('Malformatted rgb-expression');
       return new Color(
           parseInt(values[0]),
           parseInt(values[1]),
           parseInt(values[2]));
-    } else if (str.substr(0, 5) == 'rgba(') {
+    } else if (str.substr(0, 5) === 'rgba(') {
       tmp = str.substr(5, str.length - 6);
       values = tmp.split(',').map(function(v) {
         return v.replace(/^\s+/, '', 'g');
       });
-      if (values.length != 4)
+      if (values.length !== 4)
         throw new Error('Malformatted rgb-expression');
       return new Color(
           parseInt(values[0]),
           parseInt(values[1]),
           parseInt(values[2]),
           parseFloat(values[3]));
-    } else if (str[0] == '#' && str.length == 7) {
+    } else if (str[0] === '#' && str.length === 7) {
       return new Color(
           parseInt(str.substr(1, 2), 16),
           parseInt(str.substr(3, 2), 16),

@@ -76,7 +76,7 @@ tr.exportTo('tr.model.helpers', function() {
         uiDrawSlice.start,
         uiDrawSlice.end,
         function(rtDrawSlice) {
-          if (rtDrawSlice.title == RENDER_THREAD_DRAW_NAME) {
+          if (rtDrawSlice.title === RENDER_THREAD_DRAW_NAME) {
             var rtSyncSlice = rtDrawSlice.findDescendentSlice(THREAD_SYNC_NAME);
             if (rtSyncSlice &&
                 rtSyncSlice.start >= uiDrawSlice.start &&
@@ -103,14 +103,14 @@ tr.exportTo('tr.model.helpers', function() {
     // gather all frame work that occurs outside of performTraversals
     var preFrameEvents = [];
     uiThread.sliceGroup.slices.forEach(function(slice) {
-      if (slice.title == 'obtainView' ||
-          slice.title == 'setupListItem' ||
-          slice.title == 'deliverInputEvent' ||
-          slice.title == 'RV Scroll')
+      if (slice.title === 'obtainView' ||
+          slice.title === 'setupListItem' ||
+          slice.title === 'deliverInputEvent' ||
+          slice.title === 'RV Scroll')
         preFrameEvents.push(slice);
     });
     uiThread.asyncSliceGroup.slices.forEach(function(slice) {
-      if (slice.title == 'deliverInputEvent')
+      if (slice.title === 'deliverInputEvent')
         preFrameEvents.push(slice);
     });
 
@@ -159,7 +159,7 @@ tr.exportTo('tr.model.helpers', function() {
       return [];
 
     var preTraversalWorkRanges = [];
-    if (app.uiDrawType == UI_DRAW_TYPE.LEGACY)
+    if (app.uiDrawType === UI_DRAW_TYPE.LEGACY)
       preTraversalWorkRanges = getPreTraversalWorkRanges(app.uiThread);
 
     var frames = [];
@@ -234,7 +234,7 @@ tr.exportTo('tr.model.helpers', function() {
     var samples = undefined;
     for (var counterName in process.counters) {
           if (/^android\.aq\:pending/.test(counterName) &&
-        process.counters[counterName].numSeries == 1) {
+        process.counters[counterName].numSeries === 1) {
         samples = process.counters[counterName].series[0].samples;
         break;
       }
@@ -286,11 +286,12 @@ tr.exportTo('tr.model.helpers', function() {
   AndroidApp.createForProcessIfPossible = function(process, surfaceFlinger) {
     var uiThread = process.getThread(process.pid);
     var uiDrawType = getUiDrawType(uiThread);
-    if (uiDrawType == UI_DRAW_TYPE.NONE) {
+    if (uiDrawType === UI_DRAW_TYPE.NONE) {
       uiThread = undefined;
     }
     var renderThreads = process.findAllThreadsNamed('RenderThread');
-    var renderThread = renderThreads.length == 1 ? renderThreads[0] : undefined;
+    var renderThread = (renderThreads.length === 1 ?
+        renderThreads[0] : undefined);
 
     if (uiThread || renderThread) {
       return new AndroidApp(process, uiThread, renderThread, surfaceFlinger,

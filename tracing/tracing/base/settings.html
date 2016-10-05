@@ -103,7 +103,7 @@ tr.exportTo('tr.b', function() {
     };
 
     inputClass.isnamespaced_ = function(key, opt_namespace) {
-      return key.indexOf(inputClass.normalize_(opt_namespace)) == 0;
+      return key.indexOf(inputClass.normalize_(opt_namespace)) === 0;
     };
 
     inputClass.namespace_ = function(key, opt_namespace) {

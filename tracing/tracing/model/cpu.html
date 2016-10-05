@@ -134,7 +134,7 @@ tr.exportTo('tr.model', function() {
 
     createSubSlices: function() {
       this.samples_ = this.kernel.model.samples.filter(function(sample) {
-        return sample.cpu == this;
+        return sample.cpu === this;
       }, this);
     },
 
@@ -169,7 +169,7 @@ tr.exportTo('tr.model', function() {
      */
     closeActiveThread: function(endTimestamp, args) {
       // Don't generate a slice if the last active thread is the idle task.
-      if (this.lastActiveThread_ == undefined || this.lastActiveThread_ == 0)
+      if (this.lastActiveThread_ === undefined || this.lastActiveThread_ === 0)
         return;
 
       if (endTimestamp < this.lastActiveTimestamp_) {

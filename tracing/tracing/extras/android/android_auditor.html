@@ -163,7 +163,7 @@ tr.exportTo('tr.e.audits', function() {
     var uploadRegEx = /^Generate Path Texture$/;
 
     var events = frame.associatedEvents.filter(function(event) {
-      return event.title == 'Generate Path Texture';
+      return event.title === 'Generate Path Texture';
     });
     var start = Statistics.min(events, getStart);
     var duration = Statistics.sum(events, getDuration);
@@ -196,7 +196,7 @@ tr.exportTo('tr.e.audits', function() {
         pixelsUploaded += parseInt(match[1]) * parseInt(match[2]);
       }
     });
-    if (events.length == 0 || duration < 3)
+    if (events.length === 0 || duration < 3)
       return undefined;
 
     var mPixels = (pixelsUploaded / 1000000).toFixed(2) + ' million';
@@ -222,7 +222,7 @@ tr.exportTo('tr.e.audits', function() {
     });
     var duration = Statistics.sum(events, getCpuDuration);
 
-    if (events.length == 0 || duration < 3)
+    if (events.length === 0 || duration < 3)
       return undefined;
 
     // simplifying assumption - check for *any* inflation.
@@ -255,7 +255,7 @@ tr.exportTo('tr.e.audits', function() {
     });
     var duration = Statistics.sum(events, getCpuDuration);
 
-    if (events.length == 0 || duration < 3)
+    if (events.length === 0 || duration < 3)
       return undefined;
 
     var start = Statistics.min(events, getStart);
@@ -304,8 +304,8 @@ tr.exportTo('tr.e.audits', function() {
           .build());
   AndroidAuditor.getBlockingGcAlert_ = function(frame) {
     var events = frame.associatedEvents.filter(function(event) {
-      return event.title == 'DVM Suspend' ||
-          event.title == 'GC: Wait For Concurrent';
+      return event.title === 'DVM Suspend' ||
+          event.title === 'GC: Wait For Concurrent';
     });
     var blockedDuration = Statistics.sum(events, getDuration);
     if (blockedDuration < 3)
@@ -357,7 +357,7 @@ tr.exportTo('tr.e.audits', function() {
     // only alert if frame not running for > 3ms. Note that we expect a frame
     // to never describe intentionally idle time.
     if (!(SCHEDULING_STATE.RUNNING in totalStats) ||
-        totalDuration == 0 ||
+        totalDuration === 0 ||
         totalDuration - totalStats[SCHEDULING_STATE.RUNNING] < 3)
       return;
 
@@ -382,7 +382,7 @@ tr.exportTo('tr.e.audits', function() {
       // SurfaceFlinger first, other processes sorted by slice count
       this.model.getAllProcesses().forEach(function(process) {
         if (this.helper.surfaceFlinger &&
-            process == this.helper.surfaceFlinger.process) {
+            process === this.helper.surfaceFlinger.process) {
           if (!process.name)
             process.name = 'SurfaceFlinger';
           process.sortIndex = Number.NEGATIVE_INFINITY;
@@ -407,9 +407,9 @@ tr.exportTo('tr.e.audits', function() {
 
       // ensure sequential, relative order for UI/Render/Worker threads
       this.model.getAllThreads().forEach(function(thread) {
-        if (thread.tid == thread.parent.pid)
+        if (thread.tid === thread.parent.pid)
           thread.sortIndex = -3;
-        if (thread.name == 'RenderThread')
+        if (thread.name === 'RenderThread')
           thread.sortIndex = -2;
         if (/^hwuiTask/.test(thread.name))
           thread.sortIndex = -1;
@@ -484,8 +484,8 @@ tr.exportTo('tr.e.audits', function() {
           alerts.push.apply(alerts, AndroidAuditor.getSaveLayerAlerts_(frame));
 
           // skip most alerts for neutral or good frames
-          if (frame.perfClass == FRAME_PERF_CLASS.NEUTRAL ||
-              frame.perfClass == FRAME_PERF_CLASS.GOOD)
+          if (frame.perfClass === FRAME_PERF_CLASS.NEUTRAL ||
+              frame.perfClass === FRAME_PERF_CLASS.GOOD)
             return;
 
           var alert = AndroidAuditor.getPathAlert_(frame);
@@ -736,7 +736,7 @@ tr.exportTo('tr.e.audits', function() {
 
         // Decrement title in parentName dict.
         parentNames.set(slice.title, parentNames.get(slice.title) - 1);
-        if (parentNames.get(slice.title) == 0)
+        if (parentNames.get(slice.title) === 0)
           delete parentNames[slice.title];
       }
     },

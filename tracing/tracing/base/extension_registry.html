@@ -45,9 +45,9 @@ tr.exportTo('tr.b', function() {
       throw new Error('Already has registry');
 
     registryOptions.freeze();
-    if (registryOptions.mode == tr.b.BASIC_REGISTRY_MODE) {
+    if (registryOptions.mode === tr.b.BASIC_REGISTRY_MODE) {
       tr.b._decorateBasicExtensionRegistry(registry, registryOptions);
-    } else if (registryOptions.mode == tr.b.TYPE_BASED_REGISTRY_MODE) {
+    } else if (registryOptions.mode === tr.b.TYPE_BASED_REGISTRY_MODE) {
       tr.b._decorateTypeBasedExtensionRegistry(registry, registryOptions);
     } else {
       throw new Error('Unrecognized mode');

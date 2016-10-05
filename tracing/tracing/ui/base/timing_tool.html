@@ -33,7 +33,7 @@ tr.exportTo('tr.ui.b', function() {
 
     // Valid only during mousedown.
     this.isMovingLeftEdge_ = false;
-  };
+  }
 
   TimingTool.prototype = {
 
@@ -189,7 +189,7 @@ tr.exportTo('tr.ui.b', function() {
       else
         ir.setMinAndMax(b, a);
 
-      if (ir.min == newWorldX) {
+      if (ir.min === newWorldX) {
         this.isMovingLeftEdge_ = true;
         ir.leftSelected = true;
         ir.rightSelected = false;

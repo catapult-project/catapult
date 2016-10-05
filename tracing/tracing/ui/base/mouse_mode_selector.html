@@ -213,7 +213,7 @@ tr.exportTo('tr.ui.b', function() {
       this.supportedModeMask_ = supportedModeMask;
       Polymer.dom(this.buttonsEl_).textContent = '';
       for (var modeName in MOUSE_SELECTOR_MODE) {
-        if (modeName == 'ALL_MODES')
+        if (modeName === 'ALL_MODES')
           continue;
         var mode = MOUSE_SELECTOR_MODE[modeName];
         if ((this.supportedModeMask_ & mode) === 0)
@@ -404,7 +404,7 @@ tr.exportTo('tr.ui.b', function() {
     onKeyDown_: function(e) {
       // Keys dispatched to INPUT elements still bubble, even when they're
       // handled. So, skip any events that targeted the input element.
-      if (e.path[0].tagName == 'INPUT')
+      if (e.path[0].tagName === 'INPUT')
         return;
 
       if (e.keyCode === ' '.charCodeAt(0))
@@ -415,7 +415,7 @@ tr.exportTo('tr.ui.b', function() {
     onKeyUp_: function(e) {
       // Keys dispatched to INPUT elements still bubble, even when they're
       // handled. So, skip any events that targeted the input element.
-      if (e.path[0].tagName == 'INPUT')
+      if (e.path[0].tagName === 'INPUT')
         return;
 
       if (e.keyCode === ' '.charCodeAt(0))

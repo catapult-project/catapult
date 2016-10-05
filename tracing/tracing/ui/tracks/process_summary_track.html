@@ -76,7 +76,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       if (currentSlice) {
         // simply find end of current important slice
-        if (!op.isStart && op.slice == currentSlice) {
+        if (!op.isStart && op.slice === currentSlice) {
           // important slice has ended
           pushRect(lastStart, op.time, currentSlice);
           lastStart = depth >= 1 ? op.time : undefined;
@@ -84,19 +84,19 @@ tr.exportTo('tr.ui.tracks', function() {
         }
       } else {
         if (op.isStart) {
-          if (depth == 1) {
+          if (depth === 1) {
             lastStart = op.time;
             currentSlice = op.slice;
           } else if (op.slice) {
             // switch to slice
-            if (op.time != lastStart) {
+            if (op.time !== lastStart) {
               pushRect(lastStart, op.time, undefined);
               lastStart = op.time;
             }
             currentSlice = op.slice;
           }
         } else {
-          if (depth == 0) {
+          if (depth === 0) {
             pushRect(lastStart, op.time, undefined);
             lastStart = undefined;
           }

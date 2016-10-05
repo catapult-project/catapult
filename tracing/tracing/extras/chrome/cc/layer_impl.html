@@ -102,14 +102,14 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     get activeLayer() {
-      if (this.layerTreeImpl.whichTree == constants.ACTIVE_TREE)
+      if (this.layerTreeImpl.whichTree === constants.ACTIVE_TREE)
         return this;
       var activeTree = this.layerTreeImpl.layerTreeHostImpl.activeTree;
       return activeTree.findLayerWithId(this.layerId);
     },
 
     get pendingLayer() {
-      if (this.layerTreeImpl.whichTree == constants.PENDING_TREE)
+      if (this.layerTreeImpl.whichTree === constants.PENDING_TREE)
         return this;
       var pendingTree = this.layerTreeImpl.layerTreeHostImpl.pendingTree;
       return pendingTree.findLayerWithId(this.layerId);

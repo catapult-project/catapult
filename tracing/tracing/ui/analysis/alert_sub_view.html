@@ -120,7 +120,7 @@ Polymer({
   },
 
   getRowsForAlerts_: function(alerts) {
-    if (alerts.length == 1) {
+    if (alerts.length === 1) {
       var rows = [{
         name: 'Alert',
         value: tr.b.getOnlyElement(alerts).title

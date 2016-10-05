@@ -132,7 +132,7 @@ tr.exportTo('tr.b', function() {
   };
 
   Statistics.stddev = function(ary, opt_func, opt_this) {
-    if (ary.length == 0)
+    if (ary.length === 0)
       return undefined;
     return Math.sqrt(
         Statistics.variance(ary, opt_func, opt_this));

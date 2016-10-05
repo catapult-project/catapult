@@ -25,7 +25,7 @@ tr.exportTo('tr.b', function() {
   }
   EventTarget.decorate = function(target) {
     for (var k in EventTarget.prototype) {
-      if (k == 'decorate')
+      if (k === 'decorate')
         continue;
       var v = EventTarget.prototype[k];
       if (typeof v !== 'function')
@@ -68,7 +68,7 @@ tr.exportTo('tr.b', function() {
         var index = handlers.indexOf(handler);
         if (index >= 0) {
           // Clean up if this was the last listener.
-          if (handlers.length == 1)
+          if (handlers.length === 1)
             delete this.listeners_[type];
           else
             handlers.splice(index, 1);
@@ -123,7 +123,7 @@ tr.exportTo('tr.b', function() {
   var EventTargetHelper = {
     decorate: function(target) {
       for (var k in EventTargetHelper) {
-        if (k == 'decorate')
+        if (k === 'decorate')
           continue;
         var v = EventTargetHelper[k];
         if (typeof v !== 'function')

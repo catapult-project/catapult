@@ -288,7 +288,7 @@ tr.b.unittest.testSuite(function() {
     var that = this;
     var k = tr.b.findFirstKeyInDictMatching(dict, function(key, value) {
       assert.equal(this, that);
-      return value == 2;
+      return value === 2;
     }, this);
     assert.equal(k, 'b');
 

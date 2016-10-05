@@ -84,7 +84,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     set expanded(expanded) {
-      if (this.expanded_ == expanded)
+      if (this.expanded_ === expanded)
         return;
       this.expanded_ = expanded;
       this.expandedStateChanged_();
@@ -201,10 +201,10 @@ tr.exportTo('tr.ui.tracks', function() {
         return false;
       if (!a.length || !b.length)
         return false;
-      if (a.length != b.length)
+      if (a.length !== b.length)
         return false;
       for (var i = 0; i < a.length; ++i) {
-        if (a[i] != b[i])
+        if (a[i] !== b[i])
           return false;
       }
       return true;

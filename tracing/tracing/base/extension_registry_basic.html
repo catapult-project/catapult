@@ -65,7 +65,7 @@ tr.exportTo('tr.b', function() {
 
     registry.findIndexOfRegisteredConstructor = function(constructor) {
       for (var i = 0; i < registry.registeredTypeInfos_.length; i++)
-        if (registry.registeredTypeInfos_[i].constructor == constructor)
+        if (registry.registeredTypeInfos_[i].constructor === constructor)
           return i;
       return undefined;
     };

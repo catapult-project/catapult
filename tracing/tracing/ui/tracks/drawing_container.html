@@ -128,12 +128,12 @@ tr.exportTo('tr.ui.tracks', function() {
       var innerHeight = lastChildTrackBounds.bottom - firstChildTrackBounds.top;
 
       var pixelRatio = window.devicePixelRatio || 1;
-      if (this.canvas_.width != innerWidth * pixelRatio) {
+      if (this.canvas_.width !== innerWidth * pixelRatio) {
         this.canvas_.width = innerWidth * pixelRatio;
         this.canvas_.style.width = innerWidth + 'px';
       }
 
-      if (this.canvas_.height != innerHeight * pixelRatio) {
+      if (this.canvas_.height !== innerHeight * pixelRatio) {
         this.canvas_.height = innerHeight * pixelRatio;
         this.canvas_.style.height = innerHeight + 'px';
       }

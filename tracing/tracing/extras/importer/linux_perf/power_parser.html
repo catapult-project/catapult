@@ -46,7 +46,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     cpuStateSlice: function(ts, targetCpuNumber, eventType, cpuState) {
       var targetCpu = this.importer.getOrCreateCpu(targetCpuNumber);
       var powerCounter;
-      if (eventType != '1') {
+      if (eventType !== '1') {
         this.importer.model.importWarning({
           type: 'parse_error',
           message: 'Don\'t understand power_start events of ' +
@@ -73,7 +73,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             ColorScheme.getColorIdForGeneralPurposeString(powerCounter.name)));
       }
       // NB: 4294967295/-1 means an exit from the current state
-      var val = (cpuState != 4294967295 ? cpuState + 1 : 0);
+      var val = (cpuState !== 4294967295 ? cpuState + 1 : 0);
       powerCounter.series.forEach(function(series) {
         series.addCounterSample(ts, val);
       });
@@ -106,9 +106,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
                 powerCounter.name + '.' + 'Max Frequency')));
       }
       powerCounter.series.forEach(function(series) {
-        if (series.name == 'Min Frequency')
+        if (series.name === 'Min Frequency')
           series.addCounterSample(ts, minFreq);
-        if (series.name == 'Max Frequency')
+        if (series.name === 'Max Frequency')
           series.addCounterSample(ts, maxFreq);
       });
     },

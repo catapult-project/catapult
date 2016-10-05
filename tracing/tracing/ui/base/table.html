@@ -715,7 +715,7 @@ tr.exportTo('tr.ui.b', function() {
         if (this.doesColumnIndexSupportSelection(i))
           Polymer.dom(td).classList.add('supports-selection');
 
-        if (this.columnsWithExpandButtons_.indexOf(i) != -1) {
+        if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
           if (rowInfo.userRow[this.subRowsPropertyName_] &&
               rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
             td.style.paddingLeft = INDENT_SPACE + 'px';
@@ -918,7 +918,8 @@ tr.exportTo('tr.ui.b', function() {
         return false;
       if (userRow.isExpanded)
         return true;
-      if (userRow.isExpanded === false)
+      if ((userRow.isExpanded !== undefined) &&
+          (userRow.isExpanded === false))
         return false;
 
       var rowInfo = this.tableRowsInfo_.get(userRow);

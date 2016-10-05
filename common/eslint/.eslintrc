@@ -18,7 +18,7 @@
       "default-case": "off",
       "dot-location": "off",
       "dot-notation": "off",
-      "eqeqeq": "off",
+      "eqeqeq": "error",
       "generator-star-spacing": "off",
       "guard-for-in": "off",
       "handle-callback-err": "off",

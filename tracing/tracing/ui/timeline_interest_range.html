@@ -95,7 +95,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set leftSelected(leftSelected) {
-      if (this.leftSelected_ == leftSelected)
+      if (this.leftSelected_ === leftSelected)
         return;
       this.leftSelected_ = leftSelected;
       this.viewport_.dispatchChangeEvent();
@@ -106,7 +106,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     set rightSelected(rightSelected) {
-      if (this.rightSelected_ == rightSelected)
+      if (this.rightSelected_ === rightSelected)
         return;
       this.rightSelected_ = rightSelected;
       this.viewport_.dispatchChangeEvent();

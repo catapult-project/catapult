@@ -18,7 +18,7 @@ tr.exportTo('tr.e.cc', function() {
   }
 
   Region.fromArray = function(array) {
-    if (array.length % 4 != 0)
+    if (array.length % 4 !== 0)
       throw new Error('Array must consist be a multiple of 4 in length');
 
     var r = new Region();

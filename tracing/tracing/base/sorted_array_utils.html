@@ -30,7 +30,7 @@ tr.exportTo('tr.b', function() {
    *     the array.
    */
   function findLowIndexInSortedArray(ary, mapFn, loVal) {
-    if (ary.length == 0)
+    if (ary.length === 0)
       return 1;
 
     var low = 0;
@@ -50,7 +50,7 @@ tr.exportTo('tr.b', function() {
       }
     }
     // return where we hit, or failing that the low pos
-    return hitPos != -1 ? hitPos : low;
+    return hitPos !== -1 ? hitPos : low;
   }
 
   // From devtools/front_end/platform/utilities.js upperBound
@@ -91,7 +91,7 @@ tr.exportTo('tr.b', function() {
    */
   function findIndexInSortedIntervals(ary, mapLoFn, mapWidthFn, loVal) {
     var first = findLowIndexInSortedArray(ary, mapLoFn, loVal);
-    if (first == 0) {
+    if (first === 0) {
       if (loVal >= mapLoFn(ary[0]) &&
           loVal < mapLoFn(ary[0]) + mapWidthFn(ary[0], 0)) {
         return 0;
@@ -109,7 +109,7 @@ tr.exportTo('tr.b', function() {
       } else {
         return ary.length;
       }
-    } else if (first == ary.length) {
+    } else if (first === ary.length) {
       if (loVal >= mapLoFn(ary[first - 1]) &&
           loVal < mapLoFn(ary[first - 1]) +
           mapWidthFn(ary[first - 1], first - 1)) {
@@ -165,7 +165,7 @@ tr.exportTo('tr.b', function() {
       } else {
         return ary.length;
       }
-    } else if (i == ary.length) {
+    } else if (i === ary.length) {
       if (val >= mapLoFn(ary[i - 1], i - 1) &&
           val <= mapHiFn(ary[i - 1], i - 1)) {
         return i - 1;
@@ -198,13 +198,13 @@ tr.exportTo('tr.b', function() {
    */
   function iterateOverIntersectingIntervals(ary, mapLoFn, mapWidthFn, loVal,
                                             hiVal, cb) {
-    if (ary.length == 0)
+    if (ary.length === 0)
       return;
 
     if (loVal > hiVal) return;
 
     var i = findLowIndexInSortedArray(ary, mapLoFn, loVal);
-    if (i == -1) {
+    if (i === -1) {
       return;
     }
     if (i > 0) {
@@ -213,7 +213,7 @@ tr.exportTo('tr.b', function() {
         cb(ary[i - 1], i - 1);
       }
     }
-    if (i == ary.length) {
+    if (i === ary.length) {
       return;
     }
 

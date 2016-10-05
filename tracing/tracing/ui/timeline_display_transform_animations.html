@@ -130,7 +130,7 @@ tr.exportTo('tr.ui', function() {
     __proto__: tr.ui.b.Animation.prototype,
 
     get affectsPanY() {
-      return this.startPanY != this.goalFocalPointY;
+      return this.startPanY !== this.goalFocalPointY;
     },
 
     canTakeOverFor: function(existingAnimation) {

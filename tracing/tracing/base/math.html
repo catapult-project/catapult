@@ -93,7 +93,7 @@ tr.exportTo('tr.b', function() {
   var tmpMat2d = mat2d.create();
 
   vec2.createFromArray = function(arr) {
-    if (arr.length != 2)
+    if (arr.length !== 2)
       throw new Error('Should be length 2');
     var v = vec2.create();
     vec2.set(v, arr[0], arr[1]);

@@ -44,7 +44,7 @@ tr.exportTo('tr.b', function() {
     }
 
     get mean() {
-      if (this.count_ == 0)
+      if (this.count_ === 0)
         return undefined;
       return this.mean_;
     }
@@ -62,15 +62,15 @@ tr.exportTo('tr.b', function() {
     }
 
     get variance() {
-      if (this.count_ == 0)
+      if (this.count_ === 0)
         return undefined;
-      if (this.count_ == 1)
+      if (this.count_ === 1)
         return 0;
       return this.variance_ / (this.count_ - 1);
     }
 
     get stddev() {
-      if (this.count_ == 0)
+      if (this.count_ === 0)
         return undefined;
       return Math.sqrt(this.variance);
     }
@@ -157,7 +157,7 @@ tr.exportTo('tr.b', function() {
 
     static fromDict(dict) {
       var result = new RunningStatistics();
-      if (dict.length != 7) {
+      if (dict.length !== 7) {
         return result;
       }
       [

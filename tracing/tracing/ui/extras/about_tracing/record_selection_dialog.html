@@ -457,7 +457,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         var categories = [];
         var allCategories = this.allCategories_();
         for (var category in allCategories) {
-          var disabled = category.indexOf('disabled-by-default-') == 0;
+          var disabled = category.indexOf('disabled-by-default-') === 0;
           if (this.currentlyChosenPreset_.indexOf(category) >= 0) {
             if (disabled)
               categories.push(category);
@@ -587,7 +587,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       var categories = [];
       var disabledCategories = [];
       for (var category in allCategories) {
-        if (category.indexOf('disabled-by-default-') == 0)
+        if (category.indexOf('disabled-by-default-') === 0)
           disabledCategories.push(category);
         else
           categories.push(category);
@@ -595,7 +595,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       disabledCategories = disabledCategories.sort(ignoreCaseCompare);
       categories = categories.sort(ignoreCaseCompare);
 
-      if (this.categories_.length == 0) {
+      if (this.categories_.length === 0) {
         this.infoBarGroup_.addMessage(
             'No categories found; recording will use default categories.');
       }

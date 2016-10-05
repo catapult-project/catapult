@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
 
     for (testIndex = 0; testIndex < numTests; ++testIndex) {
       var process = model.getOrCreateProcess(10000 + testIndex);
-      if (testIndex % 2 == 0) {
+      if (testIndex % 2 === 0) {
         var thread = process.getOrCreateThread('Thread Name Here');
         thread.sliceGroup.pushSlice(new tr.model.ThreadSlice(
             'foo', 'a', 0, startTime, {}, 1));

@@ -15,7 +15,7 @@ tr.exportTo('tr.e.importer.v8', function() {
   /**
    * Creates a CSV lines parser.
    */
-  function CsvParser() { };
+  function CsvParser() { }
 
   /**
    * A regex for matching a CSV field.
@@ -84,7 +84,7 @@ tr.exportTo('tr.e.importer.v8', function() {
      * @type {CsvParser}
      */
     this.csvParser_ = new CsvParser();
-  };
+  }
 
   /**
    * Used for printing error messages.
@@ -127,12 +127,12 @@ tr.exportTo('tr.e.importer.v8', function() {
     for (var i = 0, n = stack.length; i < n; ++i) {
       var frame = stack[i];
       var firstChar = frame.charAt(0);
-      if (firstChar == '+' || firstChar == '-') {
+      if (firstChar === '+' || firstChar === '-') {
         // An offset from the previous frame.
         prevFrame += parseInt(frame, 16);
         fullStack.push(prevFrame);
       // Filter out possible 'overflow' string.
-      } else if (firstChar != 'o') {
+      } else if (firstChar !== 'o') {
         fullStack.push(parseInt(frame, 16));
       }
     }
@@ -172,7 +172,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       var parser = dispatch.parsers[i];
       if (parser === null) {
         parsedFields.push(fields[1 + i]);
-      } else if (typeof parser == 'function') {
+      } else if (typeof parser === 'function') {
         parsedFields.push(parser(fields[1 + i]));
       } else {
         // var-args

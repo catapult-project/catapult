@@ -52,7 +52,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       if (!referenceSnapshot) {
         referenceSnapshot = tile.containingSnapshot;
       } else {
-        if (tile.containingSnapshot != referenceSnapshot) {
+        if (tile.containingSnapshot !== referenceSnapshot) {
           return {
             ok: false,
             why: 'Raster tasks are from different compositor instances'
@@ -77,7 +77,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     get associatedLayerId() {
       var tile0 = this.tiles_[0];
       var allSameLayer = this.tiles_.every(function(tile) {
-        tile.layerId == tile0.layerId;
+        tile.layerId === tile0.layerId;
       });
       if (allSameLayer)
         return tile0.layerId;
@@ -105,7 +105,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       });
 
       var analysis;
-      if (sel.length == 1)
+      if (sel.length === 1)
         analysis = document.createElement('tr-ui-a-single-event-sub-view');
       else
         analysis = document.createElement('tr-ui-e-chrome-cc-raster-task-view');

@@ -49,7 +49,7 @@ tr.exportTo('tr.b.unittest', function() {
       var testName = testCaseOrName;
       var testFn = opt_testFn;
       var options = opt_options || {};
-      if (testFn == undefined)
+      if (testFn === undefined)
         throw new Error('Must provide opt_testFn');
 
       // If the test cares about DPI settings then we first push a test

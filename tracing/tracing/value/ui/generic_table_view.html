@@ -214,7 +214,7 @@ tr.exportTo('tr.v.ui', function() {
       // Set sizes. This is convoluted by the fact that the first
       // table column must have fixed size.
       var colWidthPercentage;
-      if (columns.length == 1)
+      if (columns.length === 1)
         colWidthPercentage = '100%';
       else
         colWidthPercentage = (100 / (columns.length - 1)).toFixed(3) + '%';

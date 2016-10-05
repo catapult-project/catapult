@@ -90,7 +90,7 @@ tr.exportTo('tr.model', function() {
       var instanceMap = this.getOrCreateInstanceMap_(scopedId);
       var snapshot = instanceMap.addSnapshot(
           category, name, ts, args, opt_baseTypeName);
-      if (snapshot.objectInstance.category != category) {
+      if (snapshot.objectInstance.category !== category) {
         var msg = 'Added snapshot name=' + name + ' with cat=' + category +
             ' impossible. It instance was created/snapshotted with cat=' +
             snapshot.objectInstance.category + ' name=' +
@@ -98,13 +98,13 @@ tr.exportTo('tr.model', function() {
         throw new Error(msg);
       }
       if (opt_baseTypeName &&
-          snapshot.objectInstance.baseTypeName != opt_baseTypeName) {
+          snapshot.objectInstance.baseTypeName !== opt_baseTypeName) {
         throw new Error('Could not add snapshot with baseTypeName=' +
                         opt_baseTypeName + '. It ' +
                         'was previously created with name=' +
                         snapshot.objectInstance.baseTypeName);
       }
-      if (snapshot.objectInstance.name != name) {
+      if (snapshot.objectInstance.name !== name) {
         throw new Error('Could not add snapshot with name=' + name + '. It ' +
                         'was previously created with name=' +
                         snapshot.objectInstance.name);
@@ -117,7 +117,7 @@ tr.exportTo('tr.model', function() {
       var deletedInstance = instanceMap.idWasDeleted(category, name, ts);
       if (!deletedInstance)
         return;
-      if (deletedInstance.category != category) {
+      if (deletedInstance.category !== category) {
         var msg = 'Deleting object ' + deletedInstance.name +
             ' with a different category ' +
             'than when it was created. It previous had cat=' +
@@ -125,7 +125,7 @@ tr.exportTo('tr.model', function() {
             'had cat=' + category;
         throw new Error(msg);
       }
-      if (deletedInstance.baseTypeName != name) {
+      if (deletedInstance.baseTypeName !== name) {
         throw new Error('Deletion requested for name=' +
                         name + ' could not proceed: ' +
                         'An existing object with baseTypeName=' +
@@ -137,7 +137,7 @@ tr.exportTo('tr.model', function() {
       tr.b.iterItems(this.instanceMapsByScopedId_, function(scope, imapById) {
         tr.b.iterItems(imapById, function(id, i2imap) {
           var lastInstance = i2imap.lastInstance;
-          if (lastInstance.deletionTs != Number.MAX_VALUE)
+          if (lastInstance.deletionTs !== Number.MAX_VALUE)
             return;
           i2imap.idWasDeleted(
               lastInstance.category, lastInstance.name, maxTimestamp);

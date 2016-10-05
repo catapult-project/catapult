@@ -233,7 +233,7 @@ Polymer({
   onKey_: function(useCapture, e) {
     // Keys dispatched to INPUT elements still bubble, even when they're
     // handled. So, skip any events that targeted the input element.
-    if (useCapture == false && e.path[0].tagName == 'INPUT')
+    if (!useCapture && e.path[0].tagName === 'INPUT')
       return;
 
     var sortedControllers;

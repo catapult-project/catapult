@@ -95,9 +95,9 @@ tr.exportTo('tr.model.helpers', function() {
       this.modelHelper.model.getAllThreads().forEach(function(thread) {
         thread.asyncSliceGroup.slices.forEach(function(slice) {
           var match = false;
-          if (slice.category == 'net' ||  // old-style URLRequest/Resource
-              slice.category == 'disabled-by-default-netlog' ||
-              slice.category == 'netlog') {
+          if (slice.category === 'net' ||  // old-style URLRequest/Resource
+              slice.category === 'disabled-by-default-netlog' ||
+              slice.category === 'netlog') {
             match = true;
           }
 

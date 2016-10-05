@@ -106,7 +106,7 @@ tr.exportTo('tr.ui.b', function() {
           Polymer.dom(itemEl).textContent = this.list_[i][this.listProperty_];
       }
 
-      if (this.children[1] == this.placeholder_) {
+      if (this.children[1] === this.placeholder_) {
         this.replaceChild(this.view_,
                           this.children[1]);
       }

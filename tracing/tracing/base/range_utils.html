@@ -29,7 +29,7 @@ tr.exportTo('tr.b', function() {
 
     if (remainingEvents.length <= 1) {
       var merged = [];
-      if (remainingEvents.length == 1) {
+      if (remainingEvents.length === 1) {
         merged.push(mergeFunction(remainingEvents));
       }
       return merged;
@@ -46,14 +46,14 @@ tr.exportTo('tr.b', function() {
     }
 
     function flushCurrentMergeBuffer() {
-      if (currentMergeBuffer.length == 0)
+      if (currentMergeBuffer.length === 0)
         return;
 
       mergedEvents.push(mergeFunction(currentMergeBuffer));
       currentMergeBuffer = [];
 
       // Refill merge buffer if needed.
-      if (remainingEvents.length != 0)
+      if (remainingEvents.length !== 0)
         beginMerging();
     }
 

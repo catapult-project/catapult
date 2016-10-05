@@ -384,14 +384,14 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(table);
 
     var a1El = tr.b.findDeepElementMatchingPredicate(table, function(element) {
-      return Polymer.dom(element).textContent == 'a1';
+      return Polymer.dom(element).textContent === 'a1';
     });
     assert.isDefined(a1El);
 
     var bToplevelEl = tr.b.findDeepElementMatchingPredicate(
         table,
         function(element) {
-          return Polymer.dom(element).textContent == 'bToplevel';
+          return Polymer.dom(element).textContent === 'bToplevel';
         });
     assert.isDefined(bToplevelEl);
     var expandButton = Polymer.dom(bToplevelEl.parentElement)

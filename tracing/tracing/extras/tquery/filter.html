@@ -19,7 +19,7 @@ tr.exportTo('tr.e.tquery', function() {
     // Shortcut: naked strings and regexps can be used to match against slice
     // titles.
     if (filterExpression instanceof String ||
-        typeof(filterExpression) == 'string' ||
+        typeof(filterExpression) === 'string' ||
         filterExpression instanceof RegExp) {
       var filter = new tr.e.tquery.FilterHasTitle(filterExpression);
       return filter;

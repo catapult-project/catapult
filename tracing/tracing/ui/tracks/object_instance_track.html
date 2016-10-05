@@ -61,7 +61,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     set objectInstances(objectInstances) {
-      if (!objectInstances || objectInstances.length == 0) {
+      if (!objectInstances || objectInstances.length === 0) {
         this.heading = '';
         this.objectInstances_ = [];
         this.objectSnapshots_ = [];
@@ -133,7 +133,7 @@ tr.exportTo('tr.ui.tracks', function() {
         if (x > viewRWorld)
           break;
 
-        var right = instance.deletionTs == Number.MAX_VALUE ?
+        var right = instance.deletionTs === Number.MAX_VALUE ?
             viewRWorld : instance.deletionTs;
         ctx.fillStyle = EventPresenter.getObjectInstanceColor(instance);
         ctx.fillRect(x, pixelRatio, right - x, height - 2 * pixelRatio);

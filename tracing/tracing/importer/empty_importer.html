@@ -20,13 +20,13 @@ tr.exportTo('tr.importer', function() {
    */
   function EmptyImporter(events) {
     this.importPriority = 0;
-  };
+  }
 
   EmptyImporter.canImport = function(eventData) {
-    if (eventData instanceof Array && eventData.length == 0)
+    if (eventData instanceof Array && eventData.length === 0)
       return true;
     if (typeof(eventData) === 'string' || eventData instanceof String) {
-      return eventData.length == 0;
+      return eventData.length === 0;
     }
     return false;
   };

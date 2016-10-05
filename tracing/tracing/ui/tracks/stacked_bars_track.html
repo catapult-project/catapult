@@ -69,8 +69,8 @@ tr.exportTo('tr.ui.tracks', function() {
           snapshots,
           function(x) { return x.ts; },
           function(x, i) {
-            if (i == snapshots.length - 1) {
-              if (snapshots.length == 1)
+            if (i === snapshots.length - 1) {
+              if (snapshots.length === 1)
                 return maxBounds;
 
               return snapshots[i].ts - snapshots[i - 1].ts;

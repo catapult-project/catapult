@@ -275,7 +275,7 @@ tr.exportTo('tr.e.importer.android', function() {
             this.getFullActivityName(match[1]), match[2]);
       } else if (action === 'am_destroy_activity') {
         match = amDestroyRE.exec(data);
-        if (match && match.length == 2) {
+        if (match && match.length === 2) {
           this.handleDestroyActivity(monotonicTs,
              this.getFullActivityName(match[1]));
         }
@@ -303,7 +303,7 @@ tr.exportTo('tr.e.importer.android', function() {
       for (var activityName in activityMap) {
         var activity = activityMap[activityName];
         // If we're still in the foreground, store the activity anyway
-        if (activity.state == ACTIVITY_STATE.RESUMED) {
+        if (activity.state === ACTIVITY_STATE.RESUMED) {
           // Set the pause timestamp to the end of the model bounds
           activity.lastPauseTs = this.model_.bounds.max;
           this.addActivityToProcess(activity);

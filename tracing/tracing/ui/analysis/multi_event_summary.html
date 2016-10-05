@@ -29,11 +29,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
     this.untotallableArgs_ = [];
     this.totalledArgs_ = undefined;
-  };
+  }
   MultiEventSummary.prototype = {
 
     set title(title) {
-      if (title == 'Totals')
+      if (title === 'Totals')
         this.totalsRow = true;
       this.title_ = title;
     },

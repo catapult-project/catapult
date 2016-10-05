@@ -63,7 +63,7 @@ tr.exportTo('tr.e.importer.etw', function() {
         throw new Error('Incompatible Process event version.');
 
       var pageDirectoryBase;
-      if (header.version == 1)
+      if (header.version === 1)
         pageDirectoryBase = decoder.decodeUInteger(header.is64);
 
       var uniqueProcessKey;
@@ -106,7 +106,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       var exitTime;
-      if (header.version == 5 && header.opcode == kProcessDefunctOpcode)
+      if (header.version === 5 && header.opcode === kProcessDefunctOpcode)
         exitTime = decoder.decodeUInt64ToString();
 
       return {

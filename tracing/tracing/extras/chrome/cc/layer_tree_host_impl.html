@@ -83,9 +83,9 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     getTree: function(whichTree) {
-      if (whichTree == constants.ACTIVE_TREE)
+      if (whichTree === constants.ACTIVE_TREE)
         return this.activeTree;
-      if (whichTree == constants.PENDING_TREE)
+      if (whichTree === constants.PENDING_TREE)
         return this.pendingTree;
       throw new Exception('Unknown tree type + ' + whichTree);
     },

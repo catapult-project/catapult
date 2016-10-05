@@ -196,7 +196,7 @@ found in the LICENSE file.
     // Use the Google API Loader script to load the google.picker script.
     onAPIClientLoaded_ = function() {
       var driveState = parseGETParameter('state');
-      if (driveState != null) {
+      if (driveState !== null) {
         var driveStateJson = JSON.parse(driveState);
         fileIdToLoad_ = String(driveStateJson.ids);
       }
@@ -222,12 +222,12 @@ found in the LICENSE file.
 
     function onPickerApiLoad() {
       pickerApiLoaded_ = true;
-      if (fileIdToLoad_ == null)
+      if (fileIdToLoad_ === null)
         createPicker();
     }
 
     function onAuthResultSuccess() {
-      if (fileIdToLoad_ == null)
+      if (fileIdToLoad_ === null)
         createPicker();
       else
         loadFileFromDrive(fileIdToLoad_);
@@ -261,7 +261,7 @@ found in the LICENSE file.
     }
 
     function pickerCallback(data) {
-      if (data.action == google.picker.Action.PICKED) {
+      if (data.action === google.picker.Action.PICKED) {
         loadFileFromDrive(data.docs[0].id);
       }
     }

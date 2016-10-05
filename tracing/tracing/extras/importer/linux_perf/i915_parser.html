@@ -337,7 +337,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
       var plane = parseInt(event[1]);
       var obj = event[2];
-      if (eventName == 'i915_flip_request')
+      if (eventName === 'i915_flip_request')
         this.i915FlipOpenSlice(ts, obj, plane);
       else
         this.i915FlipCloseSlice(ts,

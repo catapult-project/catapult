@@ -50,7 +50,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var thread = this.importer.getOrCreatePseudoThread('gesture').thread;
       if (thread.sliceGroup.openSliceCount) {
         var slice = thread.sliceGroup.mostRecentlyOpenedPartialSlice;
-        if (slice.title != title) {
+        if (slice.title !== title) {
           this.importer.model.importWarning({
             type: 'title_match_error',
             message: 'Titles do not match. Title is ' +

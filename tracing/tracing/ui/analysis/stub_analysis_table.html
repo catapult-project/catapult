@@ -23,8 +23,8 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     appendChild: function(node) {
-      if (node.tagName == 'TFOOT' || node.tagName == 'THEAD' ||
-              node.tagName == 'TBODY') {
+      if (node.tagName === 'TFOOT' || node.tagName === 'THEAD' ||
+              node.tagName === 'TBODY') {
         node.__proto__ = StubAnalysisTable.prototype;
         node.nodes_ = [];
         node.ownerDocument_ = document;

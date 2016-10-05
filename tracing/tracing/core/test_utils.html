@@ -286,7 +286,7 @@ tr.exportTo('tr.c', function() {
     if (slices instanceof tr.model.SliceGroup)
       slices = slices.slices;
     for (var i = 0; i < slices.length; i++)
-      if (slices[i].title == name)
+      if (slices[i].title === name)
         return slices[i];
       return undefined;
   };

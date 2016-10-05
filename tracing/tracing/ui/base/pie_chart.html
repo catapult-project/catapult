@@ -91,7 +91,7 @@ tr.exportTo('tr.ui.b', function() {
       labelSel.each(function(l) {
         var r = this.getBoundingClientRect();
         maxLabelWidth = Math.max(maxLabelWidth, r.width + 32);
-        if (this.style.textAnchor == 'end') {
+        if (this.style.textAnchor === 'end') {
           leftTextHeightSum += r.height;
         } else {
           rightTextHeightSum += r.height;
@@ -260,7 +260,7 @@ tr.exportTo('tr.ui.b', function() {
       pathsGroupSel.selectAll('.arc').each(function(d, i) {
         var origData = that.data_[i];
         var dataSeries = that.getDataSeries(origData.label);
-        if (origData.label == that.currentHighlightedLegendKey)
+        if (origData.label === that.currentHighlightedLegendKey)
           this.style.fill = dataSeries.highlightedColor;
         else
           this.style.fill = dataSeries.color;

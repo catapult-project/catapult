@@ -98,7 +98,7 @@ Polymer({
     html += '<tr>';
     html += '<tr><td>creationTs:</td><td>' +
         instance.creationTs + '</td></tr>\n';
-    if (instance.deletionTs != Number.MAX_VALUE) {
+    if (instance.deletionTs !== Number.MAX_VALUE) {
       html += '<tr><td>deletionTs:</td><td>' +
           instance.deletionTs + '</td></tr>\n';
     } else {

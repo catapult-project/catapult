@@ -454,7 +454,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     popTempHighlightedLegendKey: function(key) {
-      if (this.tempHighlightedLegendKey_ != key)
+      if (this.tempHighlightedLegendKey_ !== key)
         throw new Error('pop cannot happen');
       this.tempHighlightedLegendKey_ = undefined;
       this.updateHighlight_();

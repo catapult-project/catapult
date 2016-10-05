@@ -168,7 +168,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
    * recognized; otherwise undefined.
    */
   function autoDetectLineParser(line) {
-    if (line[0] == '{')
+    if (line[0] === '{')
       return false;
     if (lineREWithTGID.test(line))
       return lineParserWithTGID;
@@ -217,7 +217,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (produceResult === undefined)
       produceResult = true;
 
-    if (/^<!DOCTYPE html>/.test(incomingEvents) == false)
+    if (!/^<!DOCTYPE html>/.test(incomingEvents))
       return failure;
     var r = new tr.importer.SimpleLineReader(incomingEvents);
 
@@ -267,7 +267,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     // treating absence of that trailing string as a failure.
     var oldLastEvent = events[events.length - 1];
     var newLastEvent = stripSuffix(oldLastEvent, '\\n";');
-    if (newLastEvent == oldLastEvent)
+    if (newLastEvent === oldLastEvent)
       return failure;
     events[events.length - 1] = newLastEvent;
 
@@ -282,7 +282,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
     if (produceResult === undefined)
       produceResult = true;
 
-    if (new RegExp('^<!DOCTYPE HTML>', 'i').test(incomingEvents) == false)
+    if (!(new RegExp('^<!DOCTYPE HTML>', 'i').test(incomingEvents)))
       return failure;
 
     var r = new tr.importer.SimpleLineReader(incomingEvents);
@@ -629,46 +629,46 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
             }
           };
 
-          if (prevSlice.args.stateWhenDescheduled == 'S') {
+          if (prevSlice.args.stateWhenDescheduled === 'S') {
             pushSleep(SCHEDULING_STATE.SLEEPING);
-          } else if (prevSlice.args.stateWhenDescheduled == 'R' ||
-                     prevSlice.args.stateWhenDescheduled == 'R+') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'R' ||
+                     prevSlice.args.stateWhenDescheduled === 'R+') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.RUNNABLE, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'D') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'D') {
             pushSleep(SCHEDULING_STATE.UNINTR_SLEEP);
-          } else if (prevSlice.args.stateWhenDescheduled == 'T') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'T') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.STOPPED, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 't') {
+          } else if (prevSlice.args.stateWhenDescheduled === 't') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.DEBUG, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'Z') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'Z') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.ZOMBIE, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'X') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'X') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.EXIT_DEAD, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'x') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'x') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.TASK_DEAD, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'K') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'K') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.WAKE_KILL, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'W') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'W') {
             slices.push(new tr.model.ThreadTimeSlice(
                 thread, SCHEDULING_STATE.WAKING, '',
                 prevSlice.end, {}, midDuration));
-          } else if (prevSlice.args.stateWhenDescheduled == 'D|K') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'D|K') {
             pushSleep(SCHEDULING_STATE.UNINTR_SLEEP_WAKE_KILL);
-          } else if (prevSlice.args.stateWhenDescheduled == 'D|W') {
+          } else if (prevSlice.args.stateWhenDescheduled === 'D|W') {
             pushSleep(SCHEDULING_STATE.UNINTR_SLEEP_WAKING);
           } else {
             slices.push(new tr.model.ThreadTimeSlice(
@@ -739,7 +739,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
         };
         for (var i = 0; i < pieces.length; i++) {
           var parts = pieces[i].split('=');
-          if (parts.length != 2)
+          if (parts.length !== 2)
             throw new Error('omgbbq');
           args[parts[0]] = parts[1];
         }
@@ -804,8 +804,8 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (!event) {
         // Check if the event matches events traced by the Android framework
         var tag = eventBase.details.substring(0, 2);
-        if (tag == 'B|' || tag == 'E' || tag == 'E|' || tag == 'X|' ||
-            tag == 'C|' || tag == 'S|' || tag == 'F|') {
+        if (tag === 'B|' || tag === 'E' || tag === 'E|' || tag === 'X|' ||
+            tag === 'C|' || tag === 'S|' || tag === 'F|') {
           eventBase.subEventName = 'android';
         } else {
           return false;
@@ -867,7 +867,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var lineParser = undefined;
       for (var lineNumber = 0; lineNumber < lines.length; ++lineNumber) {
         var line = lines[lineNumber].trim();
-        if (line.length == 0 || /^#/.test(line))
+        if (line.length === 0 || /^#/.test(line))
           continue;
 
         if (!lineParser) {

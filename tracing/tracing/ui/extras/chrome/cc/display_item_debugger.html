@@ -353,7 +353,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     onDisplayItemInfoClick_: function(e) {
-      if (e && e.target == this.displayItemInfo_) {
+      if (e && e.target === this.displayItemInfo_) {
         this.displayItemListView_.selectedElement = undefined;
       }
     },

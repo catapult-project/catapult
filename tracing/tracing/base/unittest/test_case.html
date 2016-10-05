@@ -29,7 +29,7 @@ tr.exportTo('tr.b.unittest', function() {
 
   TestCase.parseFullyQualifiedName = function(fqn) {
     var i = fqn.lastIndexOf('.');
-    if (i == -1)
+    if (i === -1)
       throw new Error('FullyQualifiedNames must have a period in them');
     return {
       suiteName: fqn.substr(0, i),

@@ -30,7 +30,7 @@ tr.exportTo('tr.model.helpers', function() {
     if (!vsync)
       vsync = process.counters[VSYNC_FALLBACK_NAME];
 
-    if (vsync && vsync.numSeries == 1 && vsync.numSamples > 1)
+    if (vsync && vsync.numSeries === 1 && vsync.numSamples > 1)
       return vsync.series[0].timestamps;
     return undefined;
   }
@@ -53,7 +53,7 @@ tr.exportTo('tr.model.helpers', function() {
     this.deadlineDelayMs_ =
         this.appVsyncTimestamps_ !== this.sfVsyncTimestamps_ ?
         5 : TIMESTAMP_FUDGE_MS;
-  };
+  }
 
   AndroidSurfaceFlinger.createForProcessIfPossible = function(process) {
     var mainThread = process.getThread(process.pid);
@@ -65,7 +65,7 @@ tr.exportTo('tr.model.helpers', function() {
 
     // older versions - another thread is named SurfaceFlinger
     var primaryThreads = process.findAllThreadsNamed('SurfaceFlinger');
-    if (primaryThreads.length == 1)
+    if (primaryThreads.length === 1)
       return new AndroidSurfaceFlinger(process, primaryThreads[0]);
     return undefined;
   };

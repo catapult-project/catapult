@@ -197,7 +197,7 @@ tr.exportTo('tr.e.importer.etw', function() {
       this.decodeUInt16();
       this.decodeUInt32();
 
-      if (revision != 1)
+      if (revision !== 1)
         throw 'Invalid SID revision: could not decode the SID structure.';
 
       var sid = this.decodeBytes(4 * subAuthorityCount);
@@ -317,10 +317,10 @@ tr.exportTo('tr.e.importer.etw', function() {
     },
 
     getPidFromWindowsTid: function(tid) {
-      if (tid == 0)
+      if (tid === 0)
         return 0;
       var pid = this.tidsToPid_[tid];
-      if (pid == undefined) {
+      if (pid === undefined) {
         // Kernel threads are not defined.
         return 0;
       }
@@ -350,10 +350,10 @@ tr.exportTo('tr.e.importer.etw', function() {
     importEvents: function() {
       this.events_.content.forEach(this.parseInfo.bind(this));
 
-      if (this.walltime_ == undefined || this.ticks_ == undefined)
+      if (this.walltime_ === undefined || this.ticks_ === undefined)
         throw Error('Cannot find clock sync information in the system trace.');
 
-      if (this.is64bit_ == undefined)
+      if (this.is64bit_ === undefined)
         throw Error('Cannot determine pointer size of the system trace.');
 
       this.events_.content.forEach(this.parseEvent.bind(this));
@@ -375,26 +375,26 @@ tr.exportTo('tr.e.importer.etw', function() {
       }
 
       // Retrieve pointer size information from a Thread.DCStart event.
-      if (this.is64bit_ == undefined &&
+      if (this.is64bit_ === undefined &&
           event.hasOwnProperty('guid') &&
           event.hasOwnProperty('op') &&
           event.hasOwnProperty('ver') &&
           event.hasOwnProperty('payload') &&
           event.guid === kThreadGuid &&
-          event.op == kThreadDCStartOpcode) {
+          event.op === kThreadDCStartOpcode) {
         var decodedSize = tr.b.Base64.getDecodedBufferLength(event.payload);
 
-        if (event.ver == 1) {
+        if (event.ver === 1) {
           if (decodedSize >= 52)
             this.is64bit_ = true;
           else
             this.is64bit_ = false;
-        } else if (event.ver == 2) {
+        } else if (event.ver === 2) {
           if (decodedSize >= 64)
             this.is64bit_ = true;
           else
             this.is64bit_ = false;
-        } else if (event.ver == 3) {
+        } else if (event.ver === 3) {
           if (decodedSize >= 60)
             this.is64bit_ = true;
           else
@@ -451,7 +451,7 @@ tr.exportTo('tr.e.importer.etw', function() {
      * Registers a windows ETW event handler used by parseEvent().
      */
     registerEventHandler: function(guid, opcode, handler) {
-      if (this.handlers_[guid] == undefined)
+      if (this.handlers_[guid] === undefined)
         this.handlers_[guid] = [];
       this.handlers_[guid][opcode] = handler;
     },
@@ -460,7 +460,7 @@ tr.exportTo('tr.e.importer.etw', function() {
      * Retrieves a registered event handler.
      */
     getEventHandler: function(guid, opcode) {
-      if (this.handlers_[guid] == undefined)
+      if (this.handlers_[guid] === undefined)
         return undefined;
       return this.handlers_[guid][opcode];
     }

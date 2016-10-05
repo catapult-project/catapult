@@ -382,7 +382,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       var selectableQuads = e.quads.filter(function(q) {
         return q.selectionToSetIfClicked !== undefined;
       });
-      if (selectableQuads.length == 0) {
+      if (selectableQuads.length === 0) {
         this.selection = undefined;
         return;
       }
@@ -390,7 +390,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       // Sort the quads low to high on stackingGroupId.
       selectableQuads.sort(function(x, y) {
         var z = x.stackingGroupId - y.stackingGroupId;
-        if (z != 0)
+        if (z !== 0)
           return z;
         return x.selectionToSetIfClicked.specicifity -
             y.selectionToSetIfClicked.specicifity;
@@ -865,11 +865,11 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
     },
 
     getValueForHeatmap_: function(tile, heatmapType) {
-      if (heatmapType == TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY) {
-        return tile.scheduledPriority == 0 ?
+      if (heatmapType === TILE_HEATMAP_TYPE.SCHEDULED_PRIORITY) {
+        return tile.scheduledPriority === 0 ?
             undefined :
             tile.scheduledPriority;
-      } else if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
+      } else if (heatmapType === TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         if (tile.isSolidColor)
           return 0.5;
         return tile.isUsingGpuMemory ? 0 : 1;
@@ -878,7 +878,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
     getMinMaxForHeatmap_: function(tiles, heatmapType) {
       var range = new tr.b.Range();
-      if (heatmapType == TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
+      if (heatmapType === TILE_HEATMAP_TYPE.USING_GPU_MEMORY) {
         range.addValue(0);
         range.addValue(1);
         return range;
@@ -933,7 +933,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
 
         // TODO(vmpstr): Make the stiching of tiles and layers a part of
         // tile construction (issue 346)
-        if (layer.layerId != tile.layerId)
+        if (layer.layerId !== tile.layerId)
           continue;
 
         tiles.push(tile);
@@ -1037,7 +1037,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         // Generate quads back-to-front.
         var layer = layers[layers.length - i];
         alreadyVisitedLayerIds[layer.layerId] = true;
-        if (layer.objectInstance.name == 'cc::NinePatchLayerImpl')
+        if (layer.objectInstance.name === 'cc::NinePatchLayerImpl')
           continue;
 
         var layerQuad = layer.layerQuad.clone();
@@ -1051,7 +1051,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         layerQuad.stackingGroupId = nextStackingGroupId++;
         layerQuad.selectionToSetIfClicked = new cc.LayerSelection(layer);
         layerQuad.layer = layer;
-        if (this.showOtherLayers && this.selectedLayer == layer)
+        if (this.showOtherLayers && this.selectedLayer === layer)
           layerQuad.upperBorderColor = 'rgb(156,189,45)';
 
         if (this.showAnimationBounds)
@@ -1095,7 +1095,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
       }
 
       this.layerTreeImpl.iterLayers(function(layer, depth, isMask, isReplica) {
-        if (!this.showOtherLayers && this.selectedLayer != layer)
+        if (!this.showOtherLayers && this.selectedLayer !== layer)
           return;
         if (alreadyVisitedLayerIds[layer.layerId])
           return;
@@ -1167,7 +1167,7 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         if (tile === undefined)
           continue;
 
-        if (tile.containingSnapshot == lthi)
+        if (tile.containingSnapshot === lthi)
           tasks.push(event);
       }
       return tasks;

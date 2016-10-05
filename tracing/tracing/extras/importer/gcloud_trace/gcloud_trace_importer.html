@@ -32,7 +32,7 @@ tr.exportTo('tr.e.importer.gcloud_trace', function() {
     if (normalizedEventData.length < 14)
       return false;
 
-    return normalizedEventData.slice(0, 14) == '{"projectId":"';
+    return normalizedEventData.slice(0, 14) === '{"projectId":"';
   };
 
   GcloudTraceImporter.prototype = {

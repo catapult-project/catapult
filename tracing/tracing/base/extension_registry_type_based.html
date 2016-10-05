@@ -108,7 +108,7 @@ tr.exportTo('tr.b', function() {
     registry.unregister = function(constructor) {
       var typeInfoIndex = -1;
       for (var i = 0; i < registry.registeredTypeInfos_.length; i++) {
-        if (registry.registeredTypeInfos_[i].constructor == constructor) {
+        if (registry.registeredTypeInfos_[i].constructor === constructor) {
           typeInfoIndex = i;
           break;
         }

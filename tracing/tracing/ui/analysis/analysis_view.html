@@ -85,7 +85,7 @@ using custom elements specialized for different event types.
 
   function createSubView(subViewTypeInfo, selection) {
     var tagName;
-    if (selection.length == 1)
+    if (selection.length === 1)
       tagName = subViewTypeInfo.singleTagName;
     else
       tagName = subViewTypeInfo.multiTagName;

@@ -1041,7 +1041,7 @@ tr.exportTo('tr.importer', function() {
           continue;
 
         // Don't merge CSS Animations with any other types.
-        if (isCSS != otherPE.containsSliceTitle(CSS_ANIMATION_TITLE))
+        if (isCSS !== otherPE.containsSliceTitle(CSS_ANIMATION_TITLE))
           continue;
 
         if (isCSS) {

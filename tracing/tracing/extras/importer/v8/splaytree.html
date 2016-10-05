@@ -20,7 +20,7 @@ tr.exportTo('tr.e.importer.v8', function() {
    *
    * @constructor
    */
-  function SplayTree() { };
+  function SplayTree() { }
 
   /**
    * Pointer to the root node of the tree.
@@ -53,7 +53,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     // Splay on the key to move the last node on the search path for
     // the key to the root of the tree.
     this.splay_(key);
-    if (this.root_.key == key) {
+    if (this.root_.key === key) {
       return;
     }
     var node = new SplayTree.Node(key, value);
@@ -83,7 +83,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       throw Error('Key not found: ' + key);
     }
     this.splay_(key);
-    if (this.root_.key != key) {
+    if (this.root_.key !== key) {
       throw Error('Key not found: ' + key);
     }
     var removed = this.root_;
@@ -115,7 +115,7 @@ tr.exportTo('tr.e.importer.v8', function() {
       return null;
     }
     this.splay_(key);
-    return this.root_.key == key ? this.root_ : null;
+    return this.root_.key === key ? this.root_ : null;
   };
 
   /**
@@ -269,7 +269,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     var nodesToVisit = [this.root_];
     while (nodesToVisit.length > 0) {
       var node = nodesToVisit.shift();
-      if (node == null) {
+      if (node === null) {
         continue;
       }
       f(node);

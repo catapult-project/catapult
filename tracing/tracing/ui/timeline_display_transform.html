@@ -57,7 +57,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     xPanWorldPosToViewPos: function(worldX, viewX, viewWidth) {
-      if (typeof viewX == 'string') {
+      if (typeof viewX === 'string') {
         if (viewX === 'left') {
           viewX = 0;
         } else if (viewX === 'center') {

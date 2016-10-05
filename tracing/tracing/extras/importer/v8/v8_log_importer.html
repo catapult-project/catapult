@@ -68,12 +68,12 @@ tr.exportTo('tr.e.importer.v8', function() {
     if (typeof(eventData) !== 'string' && !(eventData instanceof String))
       return false;
 
-    return eventData.substring(0, 11) == 'v8-version,' ||
-           eventData.substring(0, 12) == 'timer-event,' ||
-           eventData.substring(0, 5) == 'tick,' ||
-           eventData.substring(0, 15) == 'shared-library,' ||
-           eventData.substring(0, 9) == 'profiler,' ||
-           eventData.substring(0, 14) == 'code-creation,';
+    return eventData.substring(0, 11) === 'v8-version,' ||
+           eventData.substring(0, 12) === 'timer-event,' ||
+           eventData.substring(0, 5) === 'tick,' ||
+           eventData.substring(0, 15) === 'shared-library,' ||
+           eventData.substring(0, 9) === 'profiler,' ||
+           eventData.substring(0, 14) === 'code-creation,';
   };
 
   V8LogImporter.prototype = {
@@ -188,7 +188,7 @@ tr.exportTo('tr.e.importer.v8', function() {
 
       function findChildWithEntryID(stackFrame, entryID) {
         for (var i = 0; i < stackFrame.children.length; i++) {
-          if (stackFrame.children[i].entryID == entryID)
+          if (stackFrame.children[i].entryID === entryID)
             return stackFrame.children[i];
         }
         return undefined;

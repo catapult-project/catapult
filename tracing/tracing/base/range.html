@@ -103,7 +103,7 @@ tr.exportTo('tr.b', function() {
     equals: function(that) {
       if (this.isEmpty && that.isEmpty)
         return true;
-      if (this.isEmpty != that.isEmpty)
+      if (this.isEmpty !== that.isEmpty)
         return false;
       return (tr.b.approximately(this.min, that.min) &&
           tr.b.approximately(this.max, that.max));

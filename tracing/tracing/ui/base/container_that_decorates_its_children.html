@@ -55,7 +55,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     onSetTextContent_: function(textContent) {
-      if (textContent != '')
+      if (textContent !== '')
         throw new Error('textContent can only be set to \'\'.');
       this.clear();
     },

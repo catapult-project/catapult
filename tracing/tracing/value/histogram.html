@@ -330,7 +330,7 @@ tr.exportTo('tr.v', function() {
     getApproximatePercentile(percent) {
       if (!(percent >= 0 && percent <= 1))
         throw new Error('percent must be [0,1]');
-      if (this.numValues == 0)
+      if (this.numValues === 0)
         return 0;
       var valuesToSkip = Math.floor((this.numValues - 1) * percent);
       for (var i = 0; i < this.allBins.length; i++) {

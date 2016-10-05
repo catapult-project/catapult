@@ -278,9 +278,9 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
      *   gles/src/texture/mali_gles_texture_slave.c@1505:
      */
     maliDDKEvent: function(eventName, cpuNumber, pid, ts, eventBase) {
-      if (this.lineRE == null) {
+      if (this.lineRE === null) {
         this.lineRE = this.autoDetectLineRE(eventBase.details);
-        if (this.lineRE == null)
+        if (this.lineRE === null)
           return false;
       }
       var maliEvent = this.lineRE.exec(eventBase.details);

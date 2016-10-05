@@ -304,7 +304,7 @@ tr.exportTo('tr.model', function() {
     getSlicesOfName: function(title) {
       var slices = [];
       for (var i = 0; i < this.slices.length; i++) {
-        if (this.slices[i].title == title) {
+        if (this.slices[i].title === title) {
           slices.push(this.slices[i]);
         }
       }
@@ -342,7 +342,7 @@ tr.exportTo('tr.model', function() {
           this.topLevelSlices,
           getSliceLo, getSliceHi,
           ts);
-      if (i == -1 || i == this.topLevelSlices.length)
+      if (i === -1 || i === this.topLevelSlices.length)
         return undefined;
 
       var curSlice = this.topLevelSlices[i];
@@ -353,7 +353,7 @@ tr.exportTo('tr.model', function() {
             curSlice.subSlices,
             getSliceLo, getSliceHi,
             ts);
-        if (i == -1 || i == curSlice.subSlices.length)
+        if (i === -1 || i === curSlice.subSlices.length)
           return curSlice;
         curSlice = curSlice.subSlices[i];
       }
@@ -435,7 +435,7 @@ tr.exportTo('tr.model', function() {
       ops.sort(function(ix, iy) {
         var x = originalSlices[ix];
         var y = originalSlices[iy];
-        if (x.start != y.start)
+        if (x.start !== y.start)
           return x.start - y.start;
 
         // Elements get inserted into the slices array in order of when the
@@ -475,7 +475,7 @@ tr.exportTo('tr.model', function() {
       var SCHEDULING_STATE = tr.model.SCHEDULING_STATE;
       var sliceIdx = 0;
       timeSlices.forEach(function(timeSlice) {
-        if (timeSlice.schedulingState == SCHEDULING_STATE.RUNNING) {
+        if (timeSlice.schedulingState === SCHEDULING_STATE.RUNNING) {
           while (sliceIdx < this.topLevelSlices.length) {
             if (this.addCpuTimeToSubslice_(this.topLevelSlices[sliceIdx],
                 timeSlice)) {
@@ -577,10 +577,10 @@ tr.exportTo('tr.model', function() {
     if (groupB.openPartialSlices_.length > 0)
       throw new Error('groupB has open partial slices');
 
-    if (groupA.parentContainer != groupB.parentContainer)
+    if (groupA.parentContainer !== groupB.parentContainer)
       throw new Error('Different parent threads. Cannot merge');
 
-    if (groupA.sliceConstructor != groupB.sliceConstructor)
+    if (groupA.sliceConstructor !== groupB.sliceConstructor)
       throw new Error('Different slice constructors. Cannot merge');
 
     var result = new SliceGroup(groupA.parentContainer,
@@ -605,7 +605,7 @@ tr.exportTo('tr.model', function() {
         var newSlice = result.copySlice(oldSlice);
         newSlice.start = when;
         newSlice.duration = oldEnd - when;
-        if (newSlice.title.indexOf(' (cont.)') == -1)
+        if (newSlice.title.indexOf(' (cont.)') === -1)
           newSlice.title += ' (cont.)';
         oldSlice.duration = when - oldSlice.start;
         openB[i] = newSlice;

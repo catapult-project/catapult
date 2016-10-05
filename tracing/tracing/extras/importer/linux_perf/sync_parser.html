@@ -58,7 +58,7 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       if (thread.lastActiveTs !== undefined) {
         var duration = ts - thread.lastActiveTs;
         var value = thread.lastActiveValue;
-        if (value == undefined)
+        if (value === undefined)
           value = ' ';
         var slice = new tr.model.ThreadSlice(
             '', value,
@@ -96,11 +96,11 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       }
 
       var name = 'fence_wait("' + event[2] + '")';
-      if (event[1] == 'begin') {
+      if (event[1] === 'begin') {
         var slice = slices.beginSlice(null, name, ts, {
           'Start state': event[3]
         });
-      } else if (event[1] == 'end') {
+      } else if (event[1] === 'end') {
         if (slices.openSliceCount > 0) {
           slices.endSlice(ts);
         }

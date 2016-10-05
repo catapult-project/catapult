@@ -100,7 +100,7 @@ tr.exportTo('tr.e.cc', function() {
         opTimings[iteration] = this.getOpTimings();
         if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
           return ops;
-        if (opTimings[iteration].cmd_times.length != ops.length)
+        if (opTimings[iteration].cmd_times.length !== ops.length)
           return ops;
       }
 

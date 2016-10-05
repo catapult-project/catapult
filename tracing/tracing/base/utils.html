@@ -27,11 +27,11 @@ tr.exportTo('tr.b', function() {
     if (!(value instanceof Object)) {
       if (value === undefined || value === null)
         return value;
-      if (typeof value == 'string')
+      if (typeof value === 'string')
         return value.substring();
-      if (typeof value == 'boolean')
+      if (typeof value === 'boolean')
         return value;
-      if (typeof value == 'number')
+      if (typeof value === 'number')
         return value;
       throw new Error('Unrecognized: ' + typeof value);
     }
@@ -44,7 +44,7 @@ tr.exportTo('tr.b', function() {
       return res;
     }
 
-    if (object.__proto__ != Object.prototype)
+    if (object.__proto__ !== Object.prototype)
       throw new Error('Can only clone simple types');
     var res = {};
     for (var key in object) {
@@ -62,7 +62,7 @@ tr.exportTo('tr.b', function() {
       };
     }
 
-    if (typeof(e) == 'string') {
+    if (typeof(e) === 'string') {
       return {
         typeName: 'StringError',
         message: e,

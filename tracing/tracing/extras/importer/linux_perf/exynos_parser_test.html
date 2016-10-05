@@ -67,8 +67,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(threads.length, 2);
 
     // in the test data, event of fb=26 occurs first, so it's thread[0]
-    var gfxFbId26Thread = threads[0]; // thread where fb == 26
-    var gfxFbId25Thread = threads[1]; // thread where fb == 25
+    var gfxFbId26Thread = threads[0]; // thread where fb === 26
+    var gfxFbId25Thread = threads[1]; // thread where fb === 25
     assert.equal(gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
     assert.equal(gfxFbId26Thread.name, 'exynos_flip_state (pipe:0, fb:26)');
     // Every state (except for 'flipped') will start a new slice.
@@ -114,8 +114,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(threads.length, 2);
 
     // in the test data, event of fb=26 occurs first, so it's thread[0]
-    var gfxFbId26Thread = threads[0]; // thread where fb == 26
-    var gfxFbId25Thread = threads[1]; // thread where fb == 25
+    var gfxFbId26Thread = threads[0]; // thread where fb === 26
+    var gfxFbId25Thread = threads[1]; // thread where fb === 25
     assert.equal(gfxFbId25Thread.name, 'exynos_flip_state (pipe:0, fb:25)');
     assert.equal(gfxFbId26Thread.name, 'exynos_flip_state (pipe:0, fb:26)');
     // Every state (except for 'flipped') will start a new slice.

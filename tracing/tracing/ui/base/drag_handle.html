@@ -64,7 +64,7 @@ Polymer({
   },
 
   get modeKey_() {
-    return this.target_.className == '' ? '.' : this.target_.className;
+    return this.target_.className === '' ? '.' : this.target_.className;
   },
 
   get target() {

@@ -83,7 +83,7 @@ found in the LICENSE file.
     },
 
     appendGroupContents: function(group) {
-      if (group.model != this.model)
+      if (group.model !== this.model)
         throw new Error('Models must be the same');
 
       group.allSlices.forEach(function(slice) {
@@ -165,7 +165,7 @@ found in the LICENSE file.
     trimPieChartData: function(groups, otherGroup, getValue, opt_extraValue) {
       // Copy the array so it can be mutated.
       groups = groups.filter(function(d) {
-        return getValue(d) != 0;
+        return getValue(d) !== 0;
       });
 
       // Figure out total array range.
@@ -294,7 +294,7 @@ found in the LICENSE file.
     updateShowCpuIdleTimeCheckboxVisibility_: function() {
       if (!this.showCpuIdleTimeCheckbox_)
         return;
-      var visible = this.groupingUnit_ == CPU_TIME_GROUPING_UNIT;
+      var visible = this.groupingUnit_ === CPU_TIME_GROUPING_UNIT;
       if (visible)
         this.showCpuIdleTimeCheckbox_.style.display = '';
       else
@@ -302,10 +302,10 @@ found in the LICENSE file.
     },
 
     getGroupNameForThread_: function(thread) {
-      if (this.groupBy_ == GROUP_BY_THREAD_NAME)
+      if (this.groupBy_ === GROUP_BY_THREAD_NAME)
         return thread.name ? thread.name : thread.userFriendlyName;
 
-      if (this.groupBy_ == GROUP_BY_PROCESS_NAME)
+      if (this.groupBy_ === GROUP_BY_PROCESS_NAME)
         return thread.parent.userFriendlyName;
     },
 
@@ -339,7 +339,7 @@ found in the LICENSE file.
 
       // Helper function for working with the produced group.
       var getValueFromGroup = function(group) {
-        if (this.groupingUnit_ == WALL_TIME_GROUPING_UNIT)
+        if (this.groupingUnit_ === WALL_TIME_GROUPING_UNIT)
           return group.wallTime;
         return group.cpuTime;
       }.bind(this);
@@ -381,7 +381,7 @@ found in the LICENSE file.
           getValueFromGroup,
           extraValue);
 
-      if (groups.length == 0) {
+      if (groups.length === 0) {
         Polymer.dom(resultArea).appendChild(
             tr.ui.b.createSpan({textContent: 'No data'}));
         return undefined;

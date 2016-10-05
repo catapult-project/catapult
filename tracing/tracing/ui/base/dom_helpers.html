@@ -122,7 +122,7 @@ tr.exportTo('tr.ui.b', function() {
       for (var i = 0; i < selectorEl.children.length; i++) {
         var value = selectorEl.children[i].targetPropertyValue;
         if (valuesEqual(value, v)) {
-          var changed = selectorEl.selectedIndex != i;
+          var changed = selectorEl.selectedIndex !== i;
           if (changed) {
             selectorEl.selectedIndex = i;
             onChange();
