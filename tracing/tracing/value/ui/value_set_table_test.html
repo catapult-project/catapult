@@ -24,9 +24,120 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
-  // TODO(benjhayden): Test requestSelectionChange.
-  // TODO(benjhayden): Test search keyup.
-  // TODO(benjhayden): Test referenceDisplayLabel.
+  test('requestSelectionChange', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+
+    var barHist = new tr.v.Histogram('bar',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    barHist.addSample(1);
+
+    var fooHist = new tr.v.Histogram('foo',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    fooHist.addSample(1);
+    var breakdown = new tr.v.d.RelatedHistogramBreakdown();
+    breakdown.set('bar', barHist);
+
+    fooHist.diagnostics.set('breakdown', breakdown);
+    values.addHistogram(fooHist);
+    values.addHistogram(barHist);
+
+    table.values = values;
+    this.addHTMLOutput(table);
+
+    var fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    var barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isUndefined(barCell);
+
+    fooCell.isHistogramOpen = true;
+
+    var barLink = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-A-ANALYSIS-LINK');
+    assert.isDefined(barLink);
+    barLink.click();
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+  });
+
+  test('search', function() {
+    var table = document.createElement('tr-v-ui-value-set-table');
+    var values = new tr.v.ValueSet();
+
+    var barHist = new tr.v.Histogram('bar',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    barHist.addSample(1);
+
+    var fooHist = new tr.v.Histogram('foo',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
+    fooHist.addSample(1);
+
+    values.addHistogram(fooHist);
+    values.addHistogram(barHist);
+
+    table.values = values;
+    this.addHTMLOutput(table);
+
+    var search = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.id === 'search');
+    search.value = 'bar';
+
+    var fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    var barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+
+    var search = tr.b.findDeepElementMatchingPredicate(
+        table, elem => elem.id === 'search');
+
+    search.value = 'bar';
+    table.onSearch_();
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isUndefined(fooCell);
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isDefined(barCell);
+
+    search.value = 'foo';
+    table.onSearch_();
+
+    fooCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === fooHist)));
+    assert.isDefined(fooCell);
+
+    barCell = tr.b.findDeepElementMatchingPredicate(
+        table, elem => (
+          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.histogram === barHist)));
+    assert.isUndefined(barCell);
+  });
 
   test('implicitUndefinedValues', function() {
     var table = document.createElement('tr-v-ui-value-set-table');
@@ -274,6 +385,22 @@ tr.b.unittest.testSuite(function() {
         baseTable.tableColumns[1].title);
     assert.strictEqual('iteration B',
         baseTable.tableColumns[2].title);
+
+    table.referenceDisplayLabel = 'iteration A';
+    baseTable.rebuild();
+    assert.strictEqual(1, baseTable.selectedTableColumnIndex);
+    assert.strictEqual(table.rows_[0].cells['iteration B'].referenceHistogram,
+        table.rows_[0].cells['iteration A'].histogram);
+    assert.strictEqual(table.rows_[1].cells['iteration B'].referenceHistogram,
+        table.rows_[1].cells['iteration A'].histogram);
+
+    table.referenceDisplayLabel = 'iteration B';
+    baseTable.rebuild();
+    assert.strictEqual(2, baseTable.selectedTableColumnIndex);
+    assert.strictEqual(table.rows_[0].cells['iteration A'].referenceHistogram,
+        table.rows_[0].cells['iteration B'].histogram);
+    assert.strictEqual(table.rows_[1].cells['iteration A'].referenceHistogram,
+        table.rows_[1].cells['iteration B'].histogram);
   });
 
   test('instantiation_mergeNumerics', function() {
