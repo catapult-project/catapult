@@ -24,7 +24,7 @@
       "handle-callback-err": "off",
       "indent": "off",
       "key-spacing": "off",
-      "keyword-spacing": "off",
+      "keyword-spacing": "error",
       "max-len": ["error", {
         "ignorePattern": "((// @suppress longLineCheck)|:)$",
         "ignoreUrls": true

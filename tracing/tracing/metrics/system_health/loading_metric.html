@@ -279,7 +279,7 @@ tr.exportTo('tr.metrics.sh', function() {
     // TODO(nedn): replace this with just "var ev of rendererHelper..." once
     // canary binary is updated.
     // (https://github.com/catapult-project/catapult/issues/2586)
-    for (var ev of[...rendererHelper.mainThread.sliceGroup.childEvents()]) {
+    for (var ev of [...rendererHelper.mainThread.sliceGroup.childEvents()]) {
       if (ev.start < firstInteractiveCandidate)
         continue;
       var interactiveDurationSoFar = ev.start - firstInteractiveCandidate;

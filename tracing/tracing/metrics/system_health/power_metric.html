@@ -275,7 +275,7 @@ tr.exportTo('tr.metrics.sh', function() {
       return;
 
     var hists = createHistograms_(model, values);
-    for(var exp of model.userModel.expectations)
+    for (var exp of model.userModel.expectations)
       processInteractionRecord_(exp, model, hists);
 
     // The following two metrics aren't based directly on the IR intervals,
