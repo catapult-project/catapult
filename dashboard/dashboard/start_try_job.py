@@ -449,6 +449,7 @@ def _GuessCommandTelemetry(
       '--browser=%s' % _GuessBrowserName(bisect_bot),
       '--output-format=chartjson',
       '--upload-results',
+      '--pageset-repeat=1',
       '--also-run-disabled-tests',
   ])
 

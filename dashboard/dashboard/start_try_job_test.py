@@ -41,7 +41,7 @@ _EXPECTED_BISECT_CONFIG_DIFF = """config = {
 +  "bisect_mode": "mean",
 +  "bug_id": "12345",
 +  "builder_type": "",
-+  "command": "src/tools/perf/run_benchmark -v --browser=release --output-format=chartjson --upload-results --also-run-disabled-tests dromaeo.jslibstylejquery",
++  "command": "src/tools/perf/run_benchmark -v --browser=release --output-format=chartjson --upload-results --pageset-repeat=1 --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "20",
 +  "metric": "jslib/jslib",
@@ -57,7 +57,7 @@ _EXPECTED_PERF_CONFIG_DIFF = """config = {
 -  'repeat_count': '',
 -  'max_time_minutes': '',
 +  "bad_revision": "215828",
-+  "command": "src/tools/perf/run_benchmark -v --browser=release --output-format=chartjson --upload-results --also-run-disabled-tests dromaeo.jslibstylejquery",
++  "command": "src/tools/perf/run_benchmark -v --browser=release --output-format=chartjson --upload-results --pageset-repeat=1 --also-run-disabled-tests dromaeo.jslibstylejquery",
 +  "good_revision": "215806",
 +  "max_time_minutes": "60",
 +  "repeat_count": "1",
@@ -464,6 +464,7 @@ class StartBisectTest(testing_common.TestCase):
             'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release --output-format=chartjson '
                         '--upload-results '
+                        '--pageset-repeat=1 '
                         '--also-run-disabled-tests '
                         'page_cycler.moz'),
             'good_revision': '265549',
@@ -498,6 +499,7 @@ class StartBisectTest(testing_common.TestCase):
             'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release --output-format=chartjson '
                         '--upload-results '
+                        '--pageset-repeat=1 '
                         '--also-run-disabled-tests '
                         'page_cycler.moz'),
             'good_revision': '265549',
@@ -529,6 +531,7 @@ class StartBisectTest(testing_common.TestCase):
             'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release --output-format=chartjson '
                         '--upload-results '
+                        '--pageset-repeat=1 '
                         '--also-run-disabled-tests '
                         'page_cycler.morejs'),
             'good_revision': '12345',
@@ -562,6 +565,7 @@ class StartBisectTest(testing_common.TestCase):
             'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release --output-format=chartjson '
                         '--upload-results '
+                        '--pageset-repeat=1 '
                         '--also-run-disabled-tests '
                         'page_cycler.moz'),
             'good_revision': '265549',
@@ -839,6 +843,7 @@ class StartBisectTest(testing_common.TestCase):
             'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release --output-format=chartjson '
                         '--upload-results '
+                        '--pageset-repeat=1 '
                         '--also-run-disabled-tests '
                         'page_cycler.morejs'),
             'good_revision': '12345',
@@ -871,6 +876,7 @@ class StartBisectTest(testing_common.TestCase):
             'command': ('src/tools/perf/run_benchmark -v '
                         '--browser=release_x64 --output-format=chartjson '
                         '--upload-results '
+                        '--pageset-repeat=1 '
                         '--also-run-disabled-tests '
                         'page_cycler.moz'),
             'good_revision': '265549',
@@ -890,6 +896,7 @@ class StartBisectTest(testing_common.TestCase):
         ('src/tools/perf/run_benchmark -v '
          '--browser=android-chromium --output-format=chartjson '
          '--upload-results '
+         '--pageset-repeat=1 '
          '--also-run-disabled-tests '
          'page_cycler.morejs'),
         bisect_bot='android_nexus7_perf_bisect',
