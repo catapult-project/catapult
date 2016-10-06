@@ -1860,6 +1860,48 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(table, isB));
   });
 
+  test('shouldPreserveSortWhenColumnsChange', function() {
+    var name = {
+      title: 'Name',
+      value: function(row) { return row.name; },
+    };
+
+    var count = {
+      title: 'Count',
+      value: function(row) { return row.count; },
+      cmp: (rowA, rowB) => rowA.a - rowB.a,
+    };
+
+    var otherCount = {
+      title: 'Count',
+      value: function(row) { return row.count; },
+      cmp: (rowA, rowB) => rowA.a - rowB.a,
+    };
+
+    var table = document.createElement('tr-ui-b-table');
+    table.tableColumns = [count];
+    table.sortColumnIndex = 0;
+    table.sortDescending = true;
+    table.rebuild();
+
+    this.addHTMLOutput(table);
+
+    table.tableColumns = [name, count];
+    table.rebuild();
+    assert.strictEqual(1, table.sortColumnIndex);
+    assert.isTrue(table.sortDescending);
+
+    table.sortDescending = false;
+    table.tableColumns = [otherCount, name];
+    table.rebuild();
+    assert.strictEqual(0, table.sortColumnIndex);
+    assert.isFalse(table.sortDescending);
+
+    table.tableColumns = [name];
+    table.rebuild();
+    assert.isUndefined(table.sortColumnIndex);
+  });
+
   test('userCanModifySortOrder', function() {
     var table = document.createElement('tr-ui-b-table');
     table.tableColumns = [
