@@ -10,9 +10,9 @@ import time
 from google.appengine.api import mail
 
 from dashboard import auto_bisect
-from dashboard import request_handler
 from dashboard import start_try_job
 from dashboard.common import datastore_hooks
+from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import try_job

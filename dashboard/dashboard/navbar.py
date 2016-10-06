@@ -6,7 +6,7 @@
 
 import json
 
-from dashboard import request_handler
+from dashboard.common import request_handler
 
 
 class NavbarHandler(request_handler.RequestHandler):

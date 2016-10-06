@@ -9,7 +9,7 @@ import logging
 import re
 
 from dashboard import quick_logger
-from dashboard import request_handler
+from dashboard.common import request_handler
 
 
 class GetLogsHandler(request_handler.RequestHandler):

@@ -10,8 +10,8 @@ import webtest
 from google.appengine.api import users
 
 from dashboard import edit_bug_labels
-from dashboard import xsrf
 from dashboard.common import testing_common
+from dashboard.common import xsrf
 from dashboard.models import bug_label_patterns
 
 

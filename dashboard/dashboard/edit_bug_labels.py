@@ -6,8 +6,8 @@
 
 import json
 
-from dashboard import request_handler
-from dashboard import xsrf
+from dashboard.common import request_handler
+from dashboard.common import xsrf
 from dashboard.models import bug_label_patterns
 
 

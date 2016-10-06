@@ -8,9 +8,9 @@ import datetime
 import logging
 
 from dashboard import can_bisect
-from dashboard import request_handler
 from dashboard import start_try_job
 from dashboard.common import datastore_hooks
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data

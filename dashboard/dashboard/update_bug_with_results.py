@@ -18,8 +18,8 @@ from dashboard import bisect_report
 from dashboard import email_template
 from dashboard import layered_cache
 from dashboard import quick_logger
-from dashboard import request_handler
 from dashboard.common import datastore_hooks
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data

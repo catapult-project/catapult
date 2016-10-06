@@ -12,12 +12,14 @@ import webapp2
 
 from google.appengine.api import users
 
-from dashboard import xsrf
 from dashboard.common import utils
+from dashboard.common import xsrf
+
+_DASHBOARD_PYTHON_DIR = os.path.dirname(os.path.dirname(__file__))
 
 JINJA2_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(
-        [os.path.join(os.path.dirname(__file__), 'templates')]),
+        [os.path.join(_DASHBOARD_PYTHON_DIR, 'templates')]),
     # Security team suggests that autoescaping be enabled.
     autoescape=True,
     extensions=['jinja2.ext.autoescape'])
@@ -41,7 +43,7 @@ class RequestHandler(webapp2.RequestHandler):
     self.response.out.write(template.render(template_values))
 
   def RenderStaticHtml(self, filename):
-    filename = os.path.join(os.path.dirname(__file__), 'static', filename)
+    filename = os.path.join(_DASHBOARD_PYTHON_DIR, 'static', filename)
     contents = open(filename, 'r')
     self.response.out.write(contents.read())
     contents.close()

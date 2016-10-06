@@ -7,7 +7,7 @@
 import json
 import time
 
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.services import buildbucket_service
 
 

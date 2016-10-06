@@ -18,8 +18,8 @@ from dashboard import buildbucket_job
 from dashboard import can_bisect
 from dashboard import list_tests
 from dashboard import quick_logger
-from dashboard import request_handler
 from dashboard.common import namespaced_stored_object
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import try_job

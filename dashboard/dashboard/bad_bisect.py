@@ -10,9 +10,9 @@ from google.appengine.api import users
 from google.appengine.ext.webapp import util
 
 from dashboard import quick_logger
-from dashboard import request_handler
-from dashboard import xsrf
+from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.common import xsrf
 from dashboard.models import try_job
 
 

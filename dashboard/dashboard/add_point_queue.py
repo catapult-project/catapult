@@ -13,9 +13,9 @@ from google.appengine.ext import ndb
 from dashboard import add_point
 from dashboard import find_anomalies
 from dashboard import graph_revisions
-from dashboard import request_handler
 from dashboard import units_to_direction
 from dashboard.common import datastore_hooks
+from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import anomaly

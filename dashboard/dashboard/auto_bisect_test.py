@@ -10,7 +10,7 @@ import webapp2
 import webtest
 
 from dashboard import auto_bisect
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import testing_common
 from dashboard.common import utils
 from dashboard.models import anomaly

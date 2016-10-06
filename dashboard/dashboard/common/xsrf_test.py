@@ -9,9 +9,9 @@ import webtest
 
 from google.appengine.api import users
 
-from dashboard import request_handler
-from dashboard import xsrf
+from dashboard.common import request_handler
 from dashboard.common import testing_common
+from dashboard.common import xsrf
 
 
 class ExampleHandler(request_handler.RequestHandler):

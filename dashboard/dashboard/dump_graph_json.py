@@ -14,7 +14,7 @@ import json
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import model
 
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data

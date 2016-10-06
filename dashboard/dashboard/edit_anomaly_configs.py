@@ -7,7 +7,7 @@
 import json
 
 from dashboard import edit_config_handler
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.models import anomaly_config
 
 

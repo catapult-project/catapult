@@ -9,7 +9,7 @@ warning messages when parts of our infrastructure are down.
 """
 
 from dashboard import layered_cache
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 
 _DAYS_TO_SHOW_MESSAGE = 3

@@ -7,9 +7,9 @@
 from google.appengine.api import taskqueue
 
 from dashboard import list_tests
-from dashboard import request_handler
-from dashboard import xsrf
+from dashboard.common import request_handler
 from dashboard.common import utils
+from dashboard.common import xsrf
 
 # Max number of entities to put in one request to /put_entities_task.
 _MAX_TESTS_TO_PUT_AT_ONCE = 25

@@ -9,7 +9,7 @@ import json
 
 from google.appengine.ext import ndb
 
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.models import page_state
 
 

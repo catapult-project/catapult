@@ -13,8 +13,8 @@ from google.appengine.api import users
 
 from dashboard import bad_bisect
 from dashboard import quick_logger
-from dashboard import xsrf
 from dashboard.common import testing_common
+from dashboard.common import xsrf
 from dashboard.models import try_job
 
 

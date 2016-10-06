@@ -9,8 +9,8 @@ import urllib
 
 from dashboard import find_anomalies
 from dashboard import find_change_points
-from dashboard import request_handler
 from dashboard.common import datastore_hooks
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config

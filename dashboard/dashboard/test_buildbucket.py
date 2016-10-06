@@ -7,7 +7,7 @@
 import json
 
 from dashboard import buildbucket_job
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.services import buildbucket_service
 

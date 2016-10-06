@@ -10,7 +10,7 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard import oauth2_decorator
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import stoppage_alert

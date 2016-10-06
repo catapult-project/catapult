@@ -8,7 +8,7 @@ import datetime
 import json
 
 from dashboard import layered_cache
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 
 _BISECT_STATS_CACHE_KEY = 'bisect_stats'

@@ -10,7 +10,7 @@ import sys
 from google.appengine.api import mail
 
 from dashboard import email_template
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.models import anomaly
 from dashboard.models import sheriff
 

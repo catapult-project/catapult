@@ -14,7 +14,7 @@ from google.appengine.ext import ndb
 
 from dashboard import auto_bisect
 from dashboard import oauth2_decorator
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import alert
 from dashboard.models import bug_data

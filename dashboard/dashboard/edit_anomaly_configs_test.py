@@ -13,8 +13,8 @@ from dashboard import edit_anomaly_configs
 from dashboard import edit_config_handler
 from dashboard import list_tests
 from dashboard import put_entities_task
-from dashboard import xsrf
 from dashboard.common import testing_common
+from dashboard.common import xsrf
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data
 

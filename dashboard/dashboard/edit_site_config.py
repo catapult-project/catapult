@@ -15,11 +15,11 @@ from google.appengine.api import app_identity
 from google.appengine.api import mail
 from google.appengine.api import users
 
-from dashboard import request_handler
-from dashboard import xsrf
 from dashboard.common import namespaced_stored_object
+from dashboard.common import request_handler
 from dashboard.common import stored_object
 from dashboard.common import utils
+from dashboard.common import xsrf
 
 _NOTIFICATION_EMAIL_BODY = """
 The configuration of %(hostname)s was changed by %(user)s.

@@ -8,8 +8,8 @@ from google.appengine.api import mail
 from google.appengine.ext import ndb
 
 from dashboard import email_template
-from dashboard import request_handler
 from dashboard.common import datastore_hooks
+from dashboard.common import request_handler
 from dashboard.common import utils
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert

@@ -6,7 +6,7 @@
 
 import logging
 
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import utils
 
 

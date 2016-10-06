@@ -9,7 +9,7 @@ import webtest
 
 from dashboard import edit_config_handler
 from dashboard import put_entities_task
-from dashboard import request_handler
+from dashboard.common import request_handler
 from dashboard.common import testing_common
 from dashboard.models import graph_data
 
