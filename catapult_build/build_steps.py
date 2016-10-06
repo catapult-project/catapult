@@ -88,7 +88,8 @@ _CATAPULT_TESTS = [
     {
         'name': 'eslint Tests',
         'path': 'common/eslint/bin/run_tests',
-        'disabled': ['android'],
+        # https://github.com/catapult-project/catapult/issues/2908
+        'disabled': ['android', 'win'],
     },
     {
         'name': 'Py-vulcanize Tests',
