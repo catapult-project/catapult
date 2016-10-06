@@ -179,14 +179,12 @@ tr.exportTo('tr.ui.b', function() {
 
       expand-button {
         -webkit-user-select: none;
-        display: inline-block;
         cursor: pointer;
-        font-size: 9px;
-        min-width: 8px;
-        max-width: 8px;
+        margin-right: 3px;
+        font-size: smaller;
       }
 
-      .button-expanded {
+      expand-button.button-expanded {
         transform: rotate(90deg);
       }
     </style>
@@ -209,7 +207,6 @@ tr.exportTo('tr.ui.b', function() {
   var UNSORTED_ARROW = String.fromCharCode(0x25BF);
   var ASCENDING_ARROW = String.fromCharCode(0x25B4);
   var DESCENDING_ARROW = String.fromCharCode(0x25BE);
-  var BASIC_INDENTATION = 8;
 
   var SelectionMode = tr.ui.b.TableFormat.SelectionMode;
   var HighlightStyle = tr.ui.b.TableFormat.HighlightStyle;
@@ -559,8 +556,8 @@ tr.exportTo('tr.ui.b', function() {
 
         var delta;
         if (this.columnsWithExpandButtons_.indexOf(i) !== -1) {
-          td.style.paddingLeft = BASIC_INDENTATION + 'px';
-          delta = BASIC_INDENTATION + 'px';
+          td.style.paddingLeft = this.basicIndentation_ + 'px';
+          delta = this.basicIndentation_ + 'px';
         } else {
           delta = undefined;
         }
@@ -670,6 +667,11 @@ tr.exportTo('tr.ui.b', function() {
       this.customizeTableRowCallback_(userRow, trElement);
     },
 
+    get basicIndentation_() {
+      var px = parseInt(getComputedStyle(this).fontSize) || 16;
+      return px - 2;
+    },
+
     getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
                                      rowInfoMap, indentation) {
       if (rowInfo.htmlNode) {
@@ -678,7 +680,7 @@ tr.exportTo('tr.ui.b', function() {
       }
 
       var INDENT_SPACE = indentation * 16;
-      var INDENT_SPACE_NO_BUTTON = indentation * 16 + BASIC_INDENTATION;
+      var INDENT_SPACE_NO_BUTTON = indentation * 16 + this.basicIndentation_;
       var trElement = this.ownerDocument.createElement('tr');
       rowInfo.htmlNode = trElement;
       rowInfo.indentation = indentation;
@@ -719,8 +721,8 @@ tr.exportTo('tr.ui.b', function() {
           if (rowInfo.userRow[this.subRowsPropertyName_] &&
               rowInfo.userRow[this.subRowsPropertyName_].length > 0) {
             td.style.paddingLeft = INDENT_SPACE + 'px';
-            var expandButton = this.appendNewElement_(td,
-                'expand-button');
+            td.style.display = 'flex';
+            var expandButton = this.appendNewElement_(td, 'expand-button');
             Polymer.dom(expandButton).textContent = RIGHT_ARROW;
             if (rowInfo.isExpanded)
               Polymer.dom(expandButton).classList.add('button-expanded');
