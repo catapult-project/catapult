@@ -63,9 +63,11 @@ def PrintBenchmarkList(benchmarks, possible_browser, output_pipe=sys.stdout):
   if not benchmarks:
     print >> output_pipe, 'No benchmarks found!'
     return
-  b = None  # Need this to stop pylint from complaining undefined variable.
-  if any(not issubclass(b, benchmark.Benchmark) for b in benchmarks):
-    assert False, '|benchmarks| param contains non benchmark class: %s' % b
+
+  bad_benchmark = next(
+    (b for b in benchmarks if not issubclass(b, benchmark.Benchmark)), None)
+  assert bad_benchmark is None, (
+    '|benchmarks| param contains non benchmark class: %s' % bad_benchmark)
 
   # Align the benchmark names to the longest one.
   format_string = '  %%-%ds %%s' % max(len(b.Name()) for b in benchmarks)
