@@ -1,0 +1,12 @@
+module: pinpoint
+
+runtime: python27
+api_version: 1
+threadsafe: true
+instance_class: F1
+
+handlers:
+
+- url: /.*
+  script: dashboard.pinpoint.dispatcher.APP
+  secure: always

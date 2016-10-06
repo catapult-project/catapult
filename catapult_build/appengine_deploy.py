@@ -6,6 +6,7 @@
 # TODO(qyearsley): Add a step to put static files in a versioned
 # directory and modify app.yaml and request_handler as needed.
 
+import os
 import subprocess
 import sys
 
@@ -13,7 +14,7 @@ from catapult_build import module_finder
 from catapult_build import temp_deployment_dir
 
 
-def AppcfgUpdate(paths, app_id):
+def AppcfgUpdate(paths, app_id, service_name=None):
   """Deploys a new version of an App Engine app from a temporary directory.
 
   Args:
@@ -37,7 +38,7 @@ def AppcfgUpdate(paths, app_id):
         '--application=%s' % app_id,
         '--version=%s' % _VersionName(),
         'update',
-        temp_dir,
+        os.path.join(temp_dir, service_name) if service_name else temp_dir,
     ])
 
 

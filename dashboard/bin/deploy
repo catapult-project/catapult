@@ -18,6 +18,7 @@ def Main():
       os.path.dirname(__file__), '..', '..'))
   parser = argparse.ArgumentParser()
   parser.add_argument('--appid', default='chromeperf')
+  parser.add_argument('--service', default=None)
   args = parser.parse_args()
 
   _AddToPathIfNeeded(os.path.join(catapult_path, 'dashboard'))
@@ -26,7 +27,8 @@ def Main():
 
   _AddToPathIfNeeded(catapult_path)
   from catapult_build import appengine_deploy
-  appengine_deploy.AppcfgUpdate(paths, app_id=args.appid)
+  appengine_deploy.AppcfgUpdate(paths, app_id=args.appid,
+                                service_name=args.service)
 
 
 if __name__ == '__main__':
