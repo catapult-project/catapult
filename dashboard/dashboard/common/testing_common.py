@@ -17,12 +17,12 @@ from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 from google.appengine.ext import testbed
 
-from dashboard import rietveld_service
-from dashboard import stored_object
-from dashboard import utils
+from dashboard.common import stored_object
+from dashboard.common import utils
 from dashboard.models import graph_data
+from dashboard.services import rietveld_service
 
-_QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), '..')
+_QUEUE_YAML_DIR = os.path.join(os.path.dirname(__file__), '..', '..')
 
 
 class FakeRequestObject(object):

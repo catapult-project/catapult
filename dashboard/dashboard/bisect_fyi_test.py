@@ -9,10 +9,10 @@ import webapp2
 import webtest
 
 from dashboard import bisect_fyi
-from dashboard import issue_tracker_service
-from dashboard import stored_object
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
+from dashboard.common import stored_object
+from dashboard.services import issue_tracker_service
 
 TEST_FYI_CONFIGS = {
     'positive_culprit': {

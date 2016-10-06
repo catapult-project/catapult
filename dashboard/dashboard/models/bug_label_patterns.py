@@ -10,7 +10,7 @@ to bugs filed for alerts on particular tests.
 
 from google.appengine.ext import ndb
 
-from dashboard import utils
+from dashboard.common import utils
 
 # String ID for the single BugLabelPatterns entity.
 _ID = 'patterns'

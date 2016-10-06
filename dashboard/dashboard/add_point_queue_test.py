@@ -5,8 +5,8 @@
 import unittest
 
 from dashboard import add_point_queue
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import stoppage_alert
 

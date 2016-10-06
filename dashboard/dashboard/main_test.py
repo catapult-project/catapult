@@ -8,8 +8,8 @@ import webapp2
 import webtest
 
 from dashboard import main
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 
 

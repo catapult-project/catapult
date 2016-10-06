@@ -15,17 +15,17 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_fyi
 from dashboard import bisect_report
-from dashboard import buildbucket_service
-from dashboard import datastore_hooks
 from dashboard import email_template
-from dashboard import issue_tracker_service
 from dashboard import layered_cache
 from dashboard import quick_logger
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
+from dashboard.services import buildbucket_service
+from dashboard.services import issue_tracker_service
 
 
 COMPLETED, FAILED, PENDING, ABORTED = ('completed', 'failed', 'pending',

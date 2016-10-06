@@ -9,12 +9,12 @@ import re
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
-from dashboard import issue_tracker_service
 from dashboard import oauth2_decorator
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import stoppage_alert
+from dashboard.services import issue_tracker_service
 
 
 class AssociateAlertsHandler(request_handler.RequestHandler):

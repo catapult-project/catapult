@@ -7,9 +7,9 @@ import unittest
 
 import mock
 
-from dashboard import buildbucket_service
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
+from dashboard.services import buildbucket_service
 
 
 class BuildbucketServiceTest(testing_common.TestCase):

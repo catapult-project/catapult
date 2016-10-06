@@ -18,10 +18,10 @@ from google.appengine.ext import ndb
 
 from dashboard import alerts
 from dashboard import can_bisect
-from dashboard import datastore_hooks
 from dashboard import list_tests
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 

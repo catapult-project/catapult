@@ -8,7 +8,7 @@ import logging
 
 from google.appengine.ext import ndb
 
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import alert
 from dashboard.models import alert_group
 

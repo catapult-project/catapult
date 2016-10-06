@@ -9,7 +9,7 @@ import logging
 from google.appengine.ext import ndb
 
 from dashboard import quick_logger
-from dashboard import utils
+from dashboard.common import utils
 
 # Max number of AlertGroup entities to fetch.
 _MAX_GROUPS_TO_FETCH = 2000

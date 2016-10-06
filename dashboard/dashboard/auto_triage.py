@@ -14,17 +14,17 @@ from google.appengine.api import app_identity
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
 from dashboard import find_anomalies
-from dashboard import issue_tracker_service
 from dashboard import math_utils
 from dashboard import quick_logger
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
+from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import bug_data
 from dashboard.models import sheriff
+from dashboard.services import issue_tracker_service
 
 _TASK_QUEUE_NAME = 'auto-triage-queue'
 

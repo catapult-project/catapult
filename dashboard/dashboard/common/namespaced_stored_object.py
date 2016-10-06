@@ -4,8 +4,8 @@
 
 """A wrapper for stored_object that separates internal and external."""
 
-from dashboard import datastore_hooks
-from dashboard import stored_object
+from dashboard.common import datastore_hooks
+from dashboard.common import stored_object
 
 
 def Get(key):

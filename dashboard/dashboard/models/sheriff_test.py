@@ -4,7 +4,7 @@
 
 import unittest
 
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import sheriff
 
 

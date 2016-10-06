@@ -9,11 +9,11 @@ import webtest
 
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
-from dashboard import stored_object
-from dashboard import testing_common
 from dashboard import update_test_suites
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import stored_object
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import graph_data
 
 

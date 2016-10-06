@@ -13,13 +13,13 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard import auto_bisect
-from dashboard import issue_tracker_service
 from dashboard import oauth2_decorator
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import alert
 from dashboard.models import bug_data
 from dashboard.models import bug_label_patterns
+from dashboard.services import issue_tracker_service
 
 # A list of bug labels to suggest for all performance regression bugs.
 _DEFAULT_LABELS = [

@@ -8,7 +8,7 @@ import json
 
 from apiclient import discovery
 
-from dashboard import utils
+from dashboard.common import utils
 
 _DISCOVERY_URL = (
     'https://cr-buildbucket.appspot.com'

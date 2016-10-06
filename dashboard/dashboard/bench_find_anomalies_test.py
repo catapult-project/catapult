@@ -12,8 +12,8 @@ from google.appengine.ext import testbed
 from dashboard import bench_find_anomalies
 from dashboard import find_change_points_exp
 from dashboard import layered_cache
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data

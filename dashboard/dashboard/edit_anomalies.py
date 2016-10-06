@@ -10,8 +10,8 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from dashboard import request_handler
-from dashboard import utils
 from dashboard import xsrf
+from dashboard.common import utils
 
 
 class EditAnomaliesHandler(request_handler.RequestHandler):

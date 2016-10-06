@@ -10,10 +10,10 @@ import webtest
 from google.appengine.api import users
 
 from dashboard import edit_site_config
-from dashboard import namespaced_stored_object
-from dashboard import stored_object
-from dashboard import testing_common
 from dashboard import xsrf
+from dashboard.common import namespaced_stored_object
+from dashboard.common import stored_object
+from dashboard.common import testing_common
 
 
 class EditSiteConfigTest(testing_common.TestCase):

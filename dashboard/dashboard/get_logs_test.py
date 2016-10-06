@@ -9,7 +9,7 @@ import webtest
 
 from dashboard import get_logs
 from dashboard import quick_logger
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class GetLogsTest(testing_common.TestCase):

@@ -10,10 +10,10 @@ import logging
 from google.appengine.api import app_identity
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
 from dashboard import post_data_handler
 from dashboard import update_bug_with_results
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import utils
 from dashboard.models import try_job
 
 _EXPECTED_RESULT_PROPERTIES = {

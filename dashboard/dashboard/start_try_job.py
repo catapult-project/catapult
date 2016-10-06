@@ -15,17 +15,17 @@ from google.appengine.api import users
 from google.appengine.api import app_identity
 
 from dashboard import buildbucket_job
-from dashboard import buildbucket_service
 from dashboard import can_bisect
-from dashboard import issue_tracker_service
 from dashboard import list_tests
-from dashboard import namespaced_stored_object
 from dashboard import quick_logger
 from dashboard import request_handler
-from dashboard import rietveld_service
-from dashboard import utils
+from dashboard.common import namespaced_stored_object
+from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import try_job
+from dashboard.services import buildbucket_service
+from dashboard.services import issue_tracker_service
+from dashboard.services import rietveld_service
 
 
 # Path to the perf bisect script config file, relative to chromium/src.

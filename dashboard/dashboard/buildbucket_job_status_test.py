@@ -11,7 +11,7 @@ import webapp2
 import webtest
 
 from dashboard import buildbucket_job_status
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 SAMPLE_RESPONSE = r"""{

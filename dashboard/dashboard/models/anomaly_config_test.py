@@ -8,8 +8,8 @@ import mock
 
 from google.appengine.ext import ndb
 
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly_config
 
 

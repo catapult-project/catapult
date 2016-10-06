@@ -9,10 +9,10 @@ import unittest
 import webapp2
 import webtest
 
-from dashboard import datastore_hooks
 from dashboard import graph_csv
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import graph_data
 
 

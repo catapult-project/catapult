@@ -11,8 +11,8 @@ from mapreduce import operation as op
 
 from dashboard import delete_test_data
 from dashboard import mr
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert

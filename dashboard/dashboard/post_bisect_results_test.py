@@ -8,9 +8,9 @@ import webapp2
 import webtest
 
 from dashboard import post_bisect_results
-from dashboard import rietveld_service
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import try_job
+from dashboard.services import rietveld_service
 
 _SAMPLE_BISECT_RESULTS_JSON = {
     'try_job_id': 6789,

@@ -10,8 +10,8 @@ import mock
 
 from google.appengine.ext import ndb
 
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import graph_data
 
 
@@ -253,7 +253,7 @@ class UtilsTest(testing_common.TestCase):
     utils.Validate([1], '1')
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
-  @mock.patch('utils.discovery.build')
+  @mock.patch('common.utils.discovery.build')
   def testIsGroupMember_PositiveCase(self, mock_discovery_build):
     mock_request = mock.MagicMock()
     mock_request.execute = mock.MagicMock(return_value={'is_member': True})
@@ -267,7 +267,7 @@ class UtilsTest(testing_common.TestCase):
 
   @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch('logging.error')
-  @mock.patch('utils.discovery.build')
+  @mock.patch('common.utils.discovery.build')
   def testIsGroupMember_RequestFails_LogsErrorAndReturnsFalse(
       self, mock_discovery_build, mock_logging_error):
     mock_service = mock.MagicMock()

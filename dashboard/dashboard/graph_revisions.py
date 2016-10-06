@@ -17,10 +17,10 @@ long time. This module also provides a function for updating the cache.
 import bisect
 import json
 
-from dashboard import datastore_hooks
-from dashboard import namespaced_stored_object
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import namespaced_stored_object
+from dashboard.common import utils
 from dashboard.models import graph_data
 
 _CACHE_KEY = 'num_revisions_%s'

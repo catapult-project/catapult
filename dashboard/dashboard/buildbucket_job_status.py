@@ -7,8 +7,8 @@
 import json
 import time
 
-from dashboard import buildbucket_service
 from dashboard import request_handler
+from dashboard.services import buildbucket_service
 
 
 class BuildbucketJobStatusHandler(request_handler.RequestHandler):

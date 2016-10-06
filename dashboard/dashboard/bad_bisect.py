@@ -11,8 +11,8 @@ from google.appengine.ext.webapp import util
 
 from dashboard import quick_logger
 from dashboard import request_handler
-from dashboard import utils
 from dashboard import xsrf
+from dashboard.common import utils
 from dashboard.models import try_job
 
 

@@ -12,8 +12,8 @@ import webapp2
 
 from google.appengine.api import users
 
-from dashboard import utils
 from dashboard import xsrf
+from dashboard.common import utils
 
 JINJA2_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(

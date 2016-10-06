@@ -7,9 +7,9 @@
 import json
 
 from dashboard import buildbucket_job
-from dashboard import buildbucket_service
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
+from dashboard.services import buildbucket_service
 
 
 class TestBuildbucketHandler(request_handler.RequestHandler):

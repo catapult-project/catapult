@@ -6,7 +6,7 @@ import unittest
 
 from dashboard import find_change_points
 from dashboard import find_change_points_exp
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import graph_data
 
 

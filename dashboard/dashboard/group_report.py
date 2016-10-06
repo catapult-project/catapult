@@ -13,7 +13,7 @@ from dashboard import chart_handler
 from dashboard import list_tests
 from dashboard import request_handler
 from dashboard import update_test_suites
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import stoppage_alert
 

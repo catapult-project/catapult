@@ -11,7 +11,7 @@ import urllib
 
 from google.appengine.ext import ndb
 
-from dashboard import utils
+from dashboard.common import utils
 
 _DESCRIPTION = """This patch was automatically uploaded by the Chrome Perf
 Dashboard (https://chromeperf.appspot.com). It is being used to run a perf

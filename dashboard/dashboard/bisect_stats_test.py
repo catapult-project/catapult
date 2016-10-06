@@ -9,7 +9,7 @@ import webapp2
 import webtest
 
 from dashboard import bisect_stats
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class BisectStatsTest(testing_common.TestCase):

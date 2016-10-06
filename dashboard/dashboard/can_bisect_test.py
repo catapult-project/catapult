@@ -5,8 +5,8 @@
 import unittest
 
 from dashboard import can_bisect
-from dashboard import testing_common
-from dashboard import namespaced_stored_object
+from dashboard.common import namespaced_stored_object
+from dashboard.common import testing_common
 
 
 class CanBisectTest(testing_common.TestCase):

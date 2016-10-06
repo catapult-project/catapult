@@ -11,7 +11,7 @@ from google.appengine.ext import ndb
 
 from dashboard import email_template
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert

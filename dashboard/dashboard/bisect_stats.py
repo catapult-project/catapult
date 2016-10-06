@@ -9,7 +9,7 @@ import json
 
 from dashboard import layered_cache
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
 
 _BISECT_STATS_CACHE_KEY = 'bisect_stats'
 _NUM_POINTS_TO_DISPLAY = 52

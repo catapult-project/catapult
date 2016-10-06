@@ -14,16 +14,16 @@ import webtest
 
 from dashboard import bisect_fyi
 from dashboard import bisect_fyi_test
-from dashboard import buildbucket_service
 from dashboard import layered_cache
-from dashboard import rietveld_service
-from dashboard import stored_object
-from dashboard import testing_common
 from dashboard import update_bug_with_results
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
+from dashboard.common import stored_object
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
+from dashboard.services import buildbucket_service
+from dashboard.services import rietveld_service
 
 _SAMPLE_BISECT_RESULTS_JSON = {
     'try_job_id': 6789,

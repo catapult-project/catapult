@@ -5,7 +5,7 @@
 import unittest
 
 from dashboard import quick_logger
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class QuickLoggerTest(testing_common.TestCase):

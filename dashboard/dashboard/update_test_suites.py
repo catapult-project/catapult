@@ -8,9 +8,9 @@ import logging
 
 from google.appengine.api import datastore_errors
 
-from dashboard import datastore_hooks
 from dashboard import request_handler
-from dashboard import stored_object
+from dashboard.common import datastore_hooks
+from dashboard.common import stored_object
 from dashboard.models import graph_data
 
 # TestMetadata suite cache key.

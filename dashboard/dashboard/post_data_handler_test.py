@@ -9,7 +9,7 @@ import webapp2
 import webtest
 
 from dashboard import post_data_handler
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 _SAMPLE_POINT = {
     'master': 'ChromiumPerf',

@@ -22,7 +22,7 @@ from google.appengine.ext import ndb
 import httplib2
 from oauth2client import client
 
-from dashboard import stored_object
+from dashboard.common import stored_object
 
 SHERIFF_DOMAINS_KEY = 'sheriff_domains_key'
 IP_WHITELIST_KEY = 'ip_whitelist'

@@ -5,7 +5,7 @@
 import unittest
 
 from dashboard import buildbucket_job
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class BuildbucketJobTest(testing_common.TestCase):

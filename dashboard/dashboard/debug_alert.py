@@ -7,11 +7,11 @@
 import json
 import urllib
 
-from dashboard import datastore_hooks
 from dashboard import find_anomalies
 from dashboard import find_change_points
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import datastore_hooks
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data

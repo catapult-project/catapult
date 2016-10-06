@@ -4,8 +4,8 @@
 
 import unittest
 
-from dashboard import testing_common
 from dashboard import units_to_direction
+from dashboard.common import testing_common
 from dashboard.models import anomaly
 
 

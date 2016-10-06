@@ -11,8 +11,8 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import report
-from dashboard import testing_common
 from dashboard import update_test_suites
+from dashboard.common import testing_common
 from dashboard.models import page_state
 
 

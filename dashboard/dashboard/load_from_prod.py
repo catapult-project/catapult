@@ -17,9 +17,9 @@ from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import model
 
-from dashboard import datastore_hooks
 from dashboard import request_handler
 from dashboard import update_test_suites
+from dashboard.common import datastore_hooks
 
 _DEV_APP_ID = 'dev~' + app_identity.get_application_id()
 

@@ -9,7 +9,7 @@ import webtest
 
 from dashboard import layered_cache
 from dashboard import set_warning_message
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class SetWarningMessageTest(testing_common.TestCase):

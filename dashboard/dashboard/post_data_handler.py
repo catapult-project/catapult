@@ -7,7 +7,7 @@
 import logging
 
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
 
 
 class PostDataHandler(request_handler.RequestHandler):

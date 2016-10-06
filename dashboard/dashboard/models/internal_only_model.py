@@ -6,7 +6,7 @@
 
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
+from dashboard.common import datastore_hooks
 
 
 class InternalOnlyModel(ndb.Model):

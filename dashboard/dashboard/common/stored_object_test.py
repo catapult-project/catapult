@@ -6,8 +6,8 @@ import unittest
 
 from google.appengine.api import memcache
 
-from dashboard import stored_object
-from dashboard import testing_common
+from dashboard.common import stored_object
+from dashboard.common import testing_common
 
 
 class SampleSerializableClass(object):

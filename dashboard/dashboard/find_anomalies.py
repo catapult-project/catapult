@@ -15,7 +15,7 @@ from google.appengine.ext import ndb
 
 from dashboard import email_sheriff
 from dashboard import find_change_points
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import alert_group
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config

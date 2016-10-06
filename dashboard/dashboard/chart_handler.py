@@ -7,8 +7,8 @@
 import json
 
 from dashboard import layered_cache
-from dashboard import namespaced_stored_object
 from dashboard import request_handler
+from dashboard.common import namespaced_stored_object
 
 # The revision info (stored in datastore) is a dict mapping of revision type,
 # which should be a string starting with "r_", to a dict of properties for

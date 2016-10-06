@@ -15,8 +15,8 @@ entities with a field that needs to be indexed.
 
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
 from dashboard import request_handler
+from dashboard.common import datastore_hooks
 
 
 class PutEntitiesTaskHandler(request_handler.RequestHandler):

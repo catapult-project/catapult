@@ -11,8 +11,8 @@ import webtest
 
 from dashboard import auto_bisect
 from dashboard import request_handler
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import try_job
 

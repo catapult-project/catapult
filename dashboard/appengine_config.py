@@ -46,5 +46,5 @@ _AddThirdPartyLibraries()
 
 # This is at the bottom because datastore_hooks may depend on third_party
 # modules.
-from dashboard import datastore_hooks
+from dashboard.common import datastore_hooks
 datastore_hooks.InstallHooks()

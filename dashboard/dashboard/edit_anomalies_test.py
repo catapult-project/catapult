@@ -12,9 +12,9 @@ import webtest
 from google.appengine.api import users
 
 from dashboard import edit_anomalies
-from dashboard import testing_common
-from dashboard import utils
 from dashboard import xsrf
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 
 

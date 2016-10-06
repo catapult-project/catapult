@@ -9,7 +9,7 @@ import webapp2
 import webtest
 
 from dashboard import list_monitored_tests
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import graph_data
 from dashboard.models import sheriff
 

@@ -9,7 +9,7 @@ import webapp2
 import webtest
 
 from dashboard import short_uri
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class ShortUriTest(testing_common.TestCase):

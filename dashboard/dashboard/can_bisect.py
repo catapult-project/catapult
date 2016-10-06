@@ -6,7 +6,7 @@
 
 import re
 
-from dashboard import namespaced_stored_object
+from dashboard.common import namespaced_stored_object
 
 # A set of suites for which we can't do performance bisects.
 _UNBISECTABLE_SUITES = [

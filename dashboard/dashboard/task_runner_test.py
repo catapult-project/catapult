@@ -5,7 +5,7 @@
 import mock
 
 from dashboard import task_runner
-from dashboard import testing_common
+from dashboard.common import testing_common
 
 
 class TaskRunnerTest(testing_common.TestCase):

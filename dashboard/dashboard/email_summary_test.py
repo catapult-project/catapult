@@ -11,7 +11,7 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import email_summary
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
 from dashboard.models import sheriff

@@ -15,7 +15,7 @@ from google.appengine.ext import ndb
 
 from dashboard import layered_cache
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import graph_data
 
 

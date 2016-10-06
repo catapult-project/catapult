@@ -12,9 +12,9 @@ from google.appengine.api import users
 from dashboard import edit_config_handler
 from dashboard import edit_sheriffs
 from dashboard import put_entities_task
-from dashboard import testing_common
-from dashboard import utils
 from dashboard import xsrf
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import sheriff
 

@@ -17,9 +17,9 @@ import logging
 from google.appengine.ext import ndb
 
 from dashboard import bisect_stats
-from dashboard import buildbucket_service
 from dashboard.models import bug_data
 from dashboard.models import internal_only_model
+from dashboard.services import buildbucket_service
 
 
 class TryJob(internal_only_model.InternalOnlyModel):

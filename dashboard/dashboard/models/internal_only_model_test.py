@@ -8,7 +8,7 @@ import mock
 
 from google.appengine.ext import ndb
 
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import internal_only_model
 
 

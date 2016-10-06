@@ -38,9 +38,9 @@ from google.appengine.api import datastore_errors
 from google.appengine.runtime import apiproxy_errors
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
 from dashboard import request_handler
-from dashboard import stored_object
+from dashboard.common import datastore_hooks
+from dashboard.common import stored_object
 
 
 class DeleteExpiredEntitiesHandler(request_handler.RequestHandler):

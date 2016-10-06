@@ -6,7 +6,7 @@
 
 from oauth2client.appengine import OAuth2Decorator
 
-from dashboard import utils
+from dashboard.common import utils
 
 DECORATOR = OAuth2Decorator(
     client_id='425761728072.apps.googleusercontent.com',

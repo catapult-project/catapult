@@ -10,9 +10,9 @@ from google.appengine.api import taskqueue
 from google.appengine.datastore import datastore_query
 from google.appengine.ext import ndb
 
-from dashboard import datastore_hooks
 from dashboard import request_handler
-from dashboard import utils
+from dashboard.common import utils
+from dashboard.common import datastore_hooks
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 

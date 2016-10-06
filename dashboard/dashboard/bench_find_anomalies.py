@@ -51,7 +51,7 @@ from dashboard import find_change_points
 from dashboard import find_change_points_exp
 from dashboard import layered_cache
 from dashboard import quick_logger
-from dashboard import utils
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import anomaly_config
 from dashboard.models import graph_data

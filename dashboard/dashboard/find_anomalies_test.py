@@ -9,8 +9,8 @@ import mock
 
 from dashboard import find_anomalies
 from dashboard import find_change_points
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import sheriff

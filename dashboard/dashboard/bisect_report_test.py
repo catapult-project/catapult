@@ -6,7 +6,7 @@ import copy
 import unittest
 
 from dashboard import bisect_report
-from dashboard import testing_common
+from dashboard.common import testing_common
 from dashboard.models import try_job
 
 _SAMPLE_BISECT_RESULTS_JSON = {

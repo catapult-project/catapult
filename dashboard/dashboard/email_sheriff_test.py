@@ -11,8 +11,8 @@ import mock
 from google.appengine.ext import ndb
 
 from dashboard import email_sheriff
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_label_patterns
 from dashboard.models import sheriff

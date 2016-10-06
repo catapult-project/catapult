@@ -4,8 +4,8 @@
 
 import unittest
 
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import bug_label_patterns
 
 

@@ -14,15 +14,15 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import can_bisect
-from dashboard import issue_tracker_service
-from dashboard import namespaced_stored_object
-from dashboard import rietveld_service
 from dashboard import start_try_job
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
+from dashboard.common import namespaced_stored_object
 from dashboard.models import bug_data
 from dashboard.models import graph_data
 from dashboard.models import try_job
+from dashboard.services import issue_tracker_service
+from dashboard.services import rietveld_service
 
 # TODO(qyearsley): Shorten this module.
 # See https://github.com/catapult-project/catapult/issues/1917

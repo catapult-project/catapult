@@ -13,12 +13,12 @@ from dashboard import mock_oauth2_decorator
 # pylint: enable=unused-import
 
 from dashboard import associate_alerts
-from dashboard import issue_tracker_service
-from dashboard import testing_common
-from dashboard import utils
+from dashboard.common import testing_common
+from dashboard.common import utils
 from dashboard.models import anomaly
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert
+from dashboard.services import issue_tracker_service
 
 
 class AssociateAlertsTest(testing_common.TestCase):
@@ -96,7 +96,8 @@ class AssociateAlertsTest(testing_common.TestCase):
     self.assertIn('Invalid bug ID', response.body)
 
   # Mocks fetching bugs from issue tracker.
-  @mock.patch('issue_tracker_service.discovery.build', mock.MagicMock())
+  @mock.patch('services.issue_tracker_service.discovery.build',
+              mock.MagicMock())
   @mock.patch.object(
       issue_tracker_service.IssueTrackerService, 'List',
       mock.MagicMock(return_value={
