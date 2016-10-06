@@ -129,6 +129,10 @@ def main_impl(arguments):
       raise RuntimeError('Categories are only valid for atrace/ftrace. Target '
                          'platform must be either Android or Linux.')
 
+  # Include atrace categories by default in Systrace.
+  if options.target == 'android' and not options.atrace_categories:
+    options.atrace_categories = atrace_agent.DEFAULT_CATEGORIES
+
   if options.target == 'android' and not options.from_file:
     initialize_devil()
     if not options.device_serial_number:
