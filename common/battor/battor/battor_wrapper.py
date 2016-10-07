@@ -138,7 +138,10 @@ class BattorWrapper(object):
     assert not self._battor_shell, 'Attempting to start running BattOr shell.'
     battor_cmd = [self._battor_agent_binary]
     if self._serial_log_bucket:
-      self._serial_log_file = tempfile.NamedTemporaryFile()
+      # Create and immediately close a temp file in order to get a filename
+      # for the serial log.
+      self._serial_log_file = tempfile.NamedTemporaryFile(delete=False)
+      self._serial_log_file.close()
       battor_cmd.append('--battor-serial-log=%s' % self._serial_log_file.name)
     if self._battor_path:
       battor_cmd.append('--battor-path=%s' % self._battor_path)
