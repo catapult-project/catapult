@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/assert_utils.html">
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/estimated_input_latency.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+
+  var getPostInteractiveTaskWindows = tr.e.chrome.getPostInteractiveTaskWindows;
+  var assertRangeEquals = tr.b.assertRangeEquals;
+
+  test('singlePostInteractiveWindow', () => {
+    var interactiveTimestamps = [50];
+    var navStartTimestamps = [0];
+    var traceEndTimestamp = [100];
+    var windows = getPostInteractiveTaskWindows(
+        interactiveTimestamps, navStartTimestamps, traceEndTimestamp);
+    assert.equal(windows.length, 1);
+    assertRangeEquals(windows[0], tr.b.Range.fromExplicitRange(50, 100));
+  });
+
+  test('multiplePostInteractiveWindows', () => {
+    var interactiveTimestamps = [50, 80];
+    var navStartTimestamps = [0, 70];
+    var traceEndTimestamp = [100];
+    var windows = getPostInteractiveTaskWindows(
+        interactiveTimestamps, navStartTimestamps, traceEndTimestamp);
+    assert.equal(windows.length, 2);
+    assertRangeEquals(windows[0], tr.b.Range.fromExplicitRange(50, 70));
+    assertRangeEquals(windows[1], tr.b.Range.fromExplicitRange(80, 100));
+  });
+
+  test('postInteractiveWindowWithOneNavigationNeverReachingInteractive', () => {
+    var interactiveTimestamps = [50, 90];
+    var navStartTimestamps = [0, 60, 70];
+    var traceEndTimestamp = [100];
+    var windows = getPostInteractiveTaskWindows(
+      interactiveTimestamps, navStartTimestamps, traceEndTimestamp);
+    assert.equal(windows.length, 2);
+    assertRangeEquals(windows[0], tr.b.Range.fromExplicitRange(50, 60));
+    assertRangeEquals(windows[1], tr.b.Range.fromExplicitRange(90, 100));
+  });
+
+  test('twoInteractiveTimeStampsWithNoNavStartInBetween', () => {
+    var interactiveTimestamps = [50, 75];
+    var navStartTimestamps = [0];
+    var traceEndTimestamp = [100];
+    assert.throws(() => getPostInteractiveTaskWindows(
+        interactiveTimestamps, navStartTimestamps, traceEndTimestamp));
+  });
+});
+</script>

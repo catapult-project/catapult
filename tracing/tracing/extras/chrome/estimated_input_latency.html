@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<script>
+'use strict';
+tr.exportTo('tr.e.chrome', function() {
+
+  /**
+   * Returns an Array of task windows that start with the supplied interactive
+   * timestamps.
+   *
+   * A task window is defined as the range of time from the time when the page
+   * became interactive until either
+   *
+   *   1. The beginning of the next navigationStart event or
+   *   2. The end of the trace
+   *
+   * This function only works when timestamps are from the same renderer. If
+   * windows for multiple renderers need to be computed, the timestamps should
+   * be separated for each renderer and this function should be called
+   * separately for each.
+   *
+   * @param {!Array.<number>} interactiveTimestamps
+   * @param {!Array.<number>} navStartTimestamps
+   * @param {!number} traceEndTimestamp
+   * @returns {!Array.<tr.b.Range>}
+   */
+  function getPostInteractiveTaskWindows(
+      interactiveTimestamps, navStartTimestamps, traceEndTimestamp) {
+    var navStartTsIndex = 0;
+    var lastTaskWindowEndTs = undefined;
+    var taskWindows = [];
+    for (var currTTI of interactiveTimestamps) {
+      // Find the first navigation start event after the interactive
+      // timestamp.
+      while (navStartTsIndex < navStartTimestamps.length &&
+          navStartTimestamps[navStartTsIndex] < currTTI) {
+        navStartTsIndex++;
+      }
+
+      var taskWindowEndTs = navStartTsIndex < navStartTimestamps.length ?
+          navStartTimestamps[navStartTsIndex] : traceEndTimestamp;
+
+      if (taskWindowEndTs === lastTaskWindowEndTs) {
+        // This is the case where we have two different interactive timestamps
+        // with no navigationStart event between them. This is only possible
+        // when two different pages are sharing the same renderer process (and
+        // therefore the same renderer scheduler). We cannot define a proper
+        // task window in this case to calculate Estimated Input Latency.
+        throw Error("Encountered two consecutive interactive timestamps " +
+            "with no navigationStart between them. " +
+            "PostInteractiveTaskWindow is not well defined in this case.");
+      }
+
+      taskWindows.push(tr.b.Range.fromExplicitRange(
+          currTTI, taskWindowEndTs));
+      lastTaskWindowEndTs = taskWindowEndTs;
+    }
+    return taskWindows;
+  }
+
+  return {
+    getPostInteractiveTaskWindows: getPostInteractiveTaskWindows
+  };
+});
+</script>
