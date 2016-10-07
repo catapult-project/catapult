@@ -25,42 +25,40 @@ tr.b.unittest.testSuite(function() {
     model.clockSyncManager.addClockSyncMarker(
         tr.model.ClockDomainId.WIN_QPC, 'ID02', 5.0);
 
-    var battorName = 'clock_sync_latency_' +
-        tr.model.ClockDomainId.BATTOR.toLowerCase();
-    var winQpcName = 'clock_sync_latency_' +
+    var battorToWinQpcName = 'clock_sync_latency_' +
+        tr.model.ClockDomainId.BATTOR.toLowerCase() + '_to_' +
         tr.model.ClockDomainId.WIN_QPC.toLowerCase();
+    var winQpcToTelemetryName = 'clock_sync_latency_' +
+        tr.model.ClockDomainId.TELEMETRY.toLowerCase() + '_to_' +
+        tr.model.ClockDomainId.WIN_QPC.toLowerCase();
+    var battorToTelemetryName = 'clock_sync_latency_' +
+        tr.model.ClockDomainId.BATTOR.toLowerCase() + '_to_' +
+        tr.model.ClockDomainId.TELEMETRY.toLowerCase();
 
     var valueSet = new tr.v.ValueSet();
     tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
 
-    var battorValue = undefined;
-    var winQpcValue = undefined;
+    var battorToWinQpcValue = undefined;
+    var winQpcToTelemetryValue = undefined;
+    var battorToTelemetryValue = undefined;
     for (var value of valueSet) {
-      if (value.name === battorName)
-        battorValue = value;
-      else if (value.name === winQpcName)
-        winQpcValue = value;
+      if (value.name === battorToWinQpcName)
+        battorToWinQpcValue = value;
+      else if (value.name === winQpcToTelemetryName)
+        winQpcToTelemetryValue = value;
+      else if (value.name === battorToTelemetryName)
+        battorToTelemetryValue = value;
     }
 
-    assert.isDefined(battorValue);
-    assert.isDefined(winQpcValue);
-    assert.closeTo(battorValue.average, 3.0, 1e-5);
-    assert.closeTo(winQpcValue.average, 6.0, 1e-5);
-  });
+    // Clock sync graph is:
+    // [WIN_QPC] --6ms-> [TELEMETRY] --3ms-> [BATTOR]
 
-  test('clockSyncLatencyMetric_noTelemetry', function() {
-    var model = new tr.Model();
-    model.clockSyncManager.addClockSyncMarker(
-        tr.model.ClockDomainId.TELEMETRY, 'ID01', 1.0, 4.0);
-    model.clockSyncManager.addClockSyncMarker(
-        tr.model.ClockDomainId.BATTOR, 'ID02', 2.5);
-    model.clockSyncManager.addClockSyncMarker(
-        tr.model.ClockDomainId.WIN_QPC, 'ID02', 5.0);
-
-    var valueSet = new tr.v.ValueSet();
-    tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
-
-    assert.lengthOf(valueSet.valueDicts, 0);
+    assert.isDefined(battorToWinQpcValue);
+    assert.isDefined(winQpcToTelemetryValue);
+    assert.isDefined(battorToTelemetryValue);
+    assert.closeTo(battorToWinQpcValue.average, 9.0, 1e-5);
+    assert.closeTo(winQpcToTelemetryValue.average, 6.0, 1e-5);
+    assert.closeTo(battorToTelemetryValue.average, 3.0, 1e-5);
   });
 });
 </script>

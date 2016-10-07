@@ -14,39 +14,35 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.metrics.sh', function() {
-  function syncIsComplete(markers) {
-    return markers.length === 2;
-  }
 
-  function syncInvolvesTelemetry(markers) {
-    for (var marker of markers)
-      if (marker.domainId === tr.model.ClockDomainId.TELEMETRY)
-        return true;
-
-    return false;
-  }
+  // Bin boundaries for clock sync latency. 0-20 ms with 0.2 ms bins.
+  // 20 ms is a good upper limit because the highest latencies we've seen are
+  // around 10-15 ms, and we expect average latency to go down as we improve
+  // the clock sync mechanism.
+  var LATENCY_BOUNDS = tr.v.HistogramBinBoundaries.createLinear(0, 20, 100);
 
   function clockSyncLatencyMetric(values, model) {
-    for (var markers of model.clockSyncManager.markersBySyncId.values()) {
-      var latency = undefined;
-      var targetDomain = undefined;
-      if (!syncIsComplete(markers) || !syncInvolvesTelemetry(markers))
-        continue;
-
-      for (var marker of markers) {
-        var domain = marker.domainId;
-        if (domain === tr.model.ClockDomainId.TELEMETRY)
-          latency = (marker.endTs - marker.startTs);
-        else
-          targetDomain = domain.toLowerCase();
+    var domains = Array.from(model.clockSyncManager.domainsSeen).sort();
+    for (var i = 0; i < domains.length; i++) {
+      for (var j = i + 1; j < domains.length; j++) {
+        var latency = model.clockSyncManager.getTimeTransformerError(
+            domains[i], domains[j]);
+        var hist = new tr.v.Histogram('clock_sync_latency_' +
+            domains[i].toLowerCase() + '_to_' + domains[j].toLowerCase(),
+            tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, LATENCY_BOUNDS);
+        hist.customizeSummaryOptions({
+            avg: true,
+            count: false,
+            max: false,
+            min: false,
+            std: false,
+            sum: false,
+        });
+        hist.description = 'Clock sync latency for domain ' + domains[i] +
+            ' to domain ' + domains[j];
+        hist.addSample(latency);
+        values.addHistogram(hist);
       }
-
-      var hist = new tr.v.Histogram('clock_sync_latency_' + targetDomain,
-          tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
-          tr.v.HistogramBinBoundaries.createExponential(1e-3, 1e3, 30));
-      hist.description = 'Clock sync latency for domain ' + targetDomain;
-      hist.addSample(latency);
-      values.addHistogram(hist);
     }
   }
 

@@ -90,8 +90,8 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(function() {
       mgr.getModelTimeTransformer(ClockDomainId.DOMAIN_2);
-    }, 'No clock sync markers exist pairing clock domain "DOMAIN2" with model' +
-        ' clock domain "DOMAIN1".');
+    }, 'No clock sync markers exist pairing clock domain "DOMAIN2" with' +
+        ' target clock domain "DOMAIN1".');
   }, testOptions);
 
   test('getModelTimeTransformer_noMarkersChromeLegacyFirst', function() {

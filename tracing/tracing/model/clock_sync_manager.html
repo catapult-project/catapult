@@ -148,29 +148,31 @@ tr.exportTo('tr.model', function() {
      * the first alphabetically is selected.
      */
     getModelTimeTransformer: function(domainId) {
-      return this.getModelTimeTransformerRaw_(domainId).fn;
+      this.onDomainSeen_(domainId);
+
+      if (!this.modelDomainId_)
+        this.selectModelDomainId_();
+
+      return this.getTimeTransformerRaw_(domainId, this.modelDomainId_).fn;
     },
 
     /**
      * Returns the error associated with the transformation given by
      * |getModelTimeTransformer(domainId)|.
      */
-    getModelTimeTransformerError: function(domainId) {
-      return this.getModelTimeTransformerRaw_(domainId).error;
+    getTimeTransformerError: function(fromDomainId, toDomainId) {
+      this.onDomainSeen_(fromDomainId);
+      this.onDomainSeen_(toDomainId);
+      return this.getTimeTransformerRaw_(fromDomainId, toDomainId).error;
     },
 
-    getModelTimeTransformerRaw_: function(domainId) {
-      this.onDomainSeen_(domainId);
-
-      if (!this.modelDomainId_)
-        this.selectModelDomainId_();
-
+    getTimeTransformerRaw_: function(fromDomainId, toDomainId) {
       var transformer =
-          this.getTransformerBetween_(domainId, this.modelDomainId_);
+          this.getTransformerBetween_(fromDomainId, toDomainId);
       if (!transformer) {
         throw new Error('No clock sync markers exist pairing clock domain "' +
-            domainId + '" ' + 'with model clock domain "' +
-            this.modelDomainId_ + '".');
+            fromDomainId + '" ' + 'with target clock domain "' +
+            toDomainId + '".');
       }
 
       return transformer;
