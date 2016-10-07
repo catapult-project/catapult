@@ -33,3 +33,8 @@ class MacPlatformBackendTest(unittest.TestCase):
     self.assertTrue(cpu_stats.has_key('ContextSwitches'))
     if backend.GetOSVersionName() >= os_version.MAVERICKS:
       self.assertTrue(cpu_stats.has_key('IdleWakeupCount'))
+
+  @decorators.Enabled('mac')
+  def testGetSystemLogSmoke(self):
+    platform = platform_module.GetHostPlatform()
+    self.assertTrue(platform.GetSystemLog())

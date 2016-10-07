@@ -91,6 +91,9 @@ class PlatformBackend(object):
   def GetRemotePort(self, port):
     return port
 
+  def GetSystemLog(self):
+    return None
+
   def DidCreateBrowser(self, browser, browser_backend):
     browser_options = browser_backend.browser_options
     self.SetFullPerformanceModeEnabled(browser_options.full_performance_mode)

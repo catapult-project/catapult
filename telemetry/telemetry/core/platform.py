@@ -110,6 +110,9 @@ class Platform(object):
     """
     return self._platform_backend.CanMonitorThermalThrottling()
 
+  def GetSystemLog(self):
+    return self._platform_backend.GetSystemLog()
+
   def IsThermallyThrottled(self):
     """Returns True if the device is currently thermally throttled."""
     return self._platform_backend.IsThermallyThrottled()

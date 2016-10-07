@@ -29,6 +29,11 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
     self._power_monitor = powermetrics_power_monitor.PowerMetricsPowerMonitor(
         self)
 
+  def GetSystemLog(self):
+    # Since the log file can be very large, only show the last 1000 lines.
+    return subprocess.check_output(
+        ['tail', '-n', '1000', '/var/log/system.log'])
+
   @classmethod
   def IsPlatformBackendForHost(cls):
     return sys.platform == 'darwin'

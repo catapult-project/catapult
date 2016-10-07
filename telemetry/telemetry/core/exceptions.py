@@ -60,8 +60,12 @@ class AppCrashException(Error):
     self._stack_trace = []
     self._app_stdout = []
     self._minidump_path = ''
+    self._system_log = '(Not implemented)'
     if app:
       try:
+        system_log = app.platform.GetSystemLog()
+        if system_log:
+          self._system_log = system_log
         self._is_valid_dump, trace_output = app.GetStackTrace()
         self._stack_trace = trace_output.splitlines()
         self._minidump_path = app.GetMostRecentMinidumpPath()
@@ -97,6 +101,8 @@ class AppCrashException(Error):
     debug_messages.append(divider)
     debug_messages.extend(('\t%s' % l) for l in self._app_stdout)
     debug_messages.append(divider)
+    debug_messages.append('System log:')
+    debug_messages.append(self._system_log)
     return '\n'.join(debug_messages)
 
 class DevtoolsTargetCrashException(AppCrashException):
