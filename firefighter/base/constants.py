@@ -19,6 +19,7 @@ DEFAULT_HISTORY_DURATION_SECONDS = 60 * 60 * 12
 
 BUILDBOT_BASE_URL = 'https://build.chromium.org/p'
 
+CBE_BASE_URL = 'https://chrome-build-extract.appspot.com/p'
 
 MASTER_NAMES = (
     'chromium.perf',

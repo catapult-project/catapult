@@ -60,27 +60,17 @@ class Builds(object):
       if build_number < 0:
         raise ValueError('Invalid build number: %d' % build_number)
 
-    build_query = urllib.urlencode(
-        [('select', build_number) for build_number in build_numbers])
-    url = 'json/builders/%s/builds/?%s' % (
-        urllib.quote(self._builder_name), build_query)
-    url = network.BuildUrl(self._master_name, url)
-    try:
-      builds = network.FetchData(url).values()
-    except (ValueError, urlfetch.ResponseTooLargeError):
-      # The JSON decode failed, or the data was too large.
-      # Try downloading the builds individually instead.
-      builds = []
-      for build_number in build_numbers:
-        url = 'json/builders/%s/builds/%d' % (
-            urllib.quote(self._builder_name), build_number)
-        url = network.BuildUrl(self._master_name, url)
-        try:
-          builds.append(network.FetchData(url))
-        except (ValueError, urlfetch.ResponseTooLargeError):
-          logging.warning('Unable to fetch %s build %d',
-                          self._master_name, build_number)
-          continue
+    builds = []
+    for build_number in build_numbers:
+      url = 'json/builders/%s/builds/%d' % (
+          urllib.quote(self._builder_name), build_number)
+      url = network.BuildUrl(self._master_name, url, use_cbe=True)
+      try:
+        builds.append(network.FetchData(url))
+      except (ValueError, urlfetch.ResponseTooLargeError):
+        logging.warning('Unable to fetch %s/%s build %d',
+                        self._master_name, self._builder_name, build_number)
+        continue
 
     for build_data in builds:
       if 'error' in build_data:
