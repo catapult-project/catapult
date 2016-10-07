@@ -130,10 +130,7 @@ class BattorWrapper(object):
 
   def GetShellReturnCode(self):
     """Gets the return code of the BattOr agent shell."""
-    # TODO(rnephew): Get rid of logging after crbug.com/645106 is fixed.
-    logging.critical('Finding return code for BattOr shell.')
     rc = self._battor_shell.poll()
-    logging.critical('Found return code: %s' % rc)
     return rc
 
   def StartShell(self):
