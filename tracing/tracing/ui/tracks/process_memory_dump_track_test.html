@@ -43,7 +43,7 @@ tr.b.unittest.testSuite(function() {
     track.viewport.setDisplayTransformImmediately(dt);
 
     assert.lengthOf(track.tracks_, expectedTrackCount);
-  };
+  }
 
   test('instantiate_withoutMemoryAllocatorDumps', function() {
     instantiateTrack.call(this, false, false, 0);

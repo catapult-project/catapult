@@ -16,7 +16,7 @@ tr.exportTo('tr.e.tquery', function() {
   function FilterAnyOf(opt_subExpressions) {
     tr.e.tquery.Filter.call(this);
     this.subExpressions = opt_subExpressions || [];
-  };
+  }
 
   FilterAnyOf.prototype = {
     __proto__: tr.e.tquery.Filter.prototype,

@@ -29,7 +29,7 @@ tr.b.unittest.testSuite(function() {
     var STEP = 0.001;
     function timeToIndex(time) {
       return Math.floor((time - start) / STEP);
-    };
+    }
     var N = timeToIndex(end) + 1;
     // bitmap[i] === true means that GC is active at time i.
     var bitmap = new Array(N);

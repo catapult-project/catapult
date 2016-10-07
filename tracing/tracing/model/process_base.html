@@ -39,7 +39,7 @@ tr.exportTo('tr.model', function() {
     this.counters = {};
     this.objects = new tr.model.ObjectCollection(this);
     this.sortIndex = 0;
-  };
+  }
 
   ProcessBase.compare = function(x, y) {
     return x.sortIndex - y.sortIndex;

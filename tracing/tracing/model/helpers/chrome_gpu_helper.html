@@ -18,7 +18,7 @@ tr.exportTo('tr.model.helpers', function() {
     this.mainThread_ = process.findAtMostOneThreadNamed('CrGpuMain');
     if (!process.name)
       process.name = ChromeGpuHelper.PROCESS_NAME;
-  };
+  }
 
   ChromeGpuHelper.PROCESS_NAME = 'GPU Process';
 

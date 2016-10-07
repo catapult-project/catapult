@@ -25,7 +25,7 @@ tr.exportTo('tr.model', function() {
 
     this.memoryAllocatorDumps_ = undefined;
     this.memoryAllocatorDumpsByFullName_ = undefined;
-  };
+  }
 
   /**
    * Memory dump level of detail. See base::trace_event::MemoryDumpLevelOfDetail
@@ -67,7 +67,7 @@ tr.exportTo('tr.model', function() {
             index[dump.fullName] = dump;
             addDumpsToIndex(dump.children);
           });
-        };
+        }
         addDumpsToIndex(this.memoryAllocatorDumps_);
         this.memoryAllocatorDumpsByFullName_ = index;
       }

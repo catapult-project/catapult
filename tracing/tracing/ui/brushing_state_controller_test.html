@@ -45,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     var didFire = false;
     function didFireCb() {
       didFire = true;
-    };
+    }
     brushingStateController.addEventListener('change', didFireCb);
     cb.call(opt_this);
     brushingStateController.removeEventListener('change', didFireCb);

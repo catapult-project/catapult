@@ -42,7 +42,7 @@ this.tr = (function() {
       }
     }
     return cur;
-  };
+  }
 
   function isExported(name) {
     var parts = name.split('.');
@@ -154,7 +154,7 @@ this.tr = (function() {
       if (propertyDescriptor)
         Object.defineProperty(obj, propertyName, propertyDescriptor);
     }
-  };
+  }
 
   /**
    * Initialization which must be deferred until run-time.

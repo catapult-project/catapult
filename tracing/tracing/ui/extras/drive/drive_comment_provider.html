@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 <link rel="import" href="/tracing/model/comment_box_annotation.html">
 
 <link rel="import" href="/tracing/ui/extras/drive/comments_side_panel.html">
+<link rel="import" href="/tracing/ui/side_panel/side_panel.html">
 
 <script>
 'use strict';
@@ -37,11 +37,11 @@ found in the LICENSE file.
         });
       });
     });
-  };
+  }
 
   function onCommentWithUIState(e) {
     addDriveCommentWithUIState_(e.detail.name, e.detail.location);
-  };
+  }
 
   document.addEventListener('commentWithUIState',
                             onCommentWithUIState.bind(this));

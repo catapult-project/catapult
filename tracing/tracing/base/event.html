@@ -33,7 +33,7 @@ tr.exportTo('tr.b', function() {
 
       this.defaultPrevented = false;
       this.cancelBubble = false;
-    };
+    }
 
     HeadlessEvent.prototype = {
       preventDefault: function() {
@@ -62,7 +62,7 @@ tr.exportTo('tr.b', function() {
       e.initEvent(type, !!opt_bubbles, !!opt_preventable);
       e.__proto__ = global.Event.prototype;
       return e;
-    };
+    }
 
     TrEvent.prototype = {
       __proto__: global.Event.prototype
