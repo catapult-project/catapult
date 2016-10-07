@@ -197,7 +197,7 @@ class Run(command_line.OptparseCommand):
       matching_benchmark.SetArgumentDefaults(parser)
 
   @classmethod
-  def _FindBenchmark(cls, parser, args, environment):
+  def ProcessCommandLineArgs(cls, parser, args, environment):
     all_benchmarks = _Benchmarks(environment)
     if not args.positional_args:
       possible_browser = (
@@ -232,12 +232,6 @@ class Run(command_line.OptparseCommand):
     assert issubclass(benchmark_class, benchmark.Benchmark), (
         'Trying to run a non-Benchmark?!')
 
-    return benchmark_class
-
-  @classmethod
-  def ProcessCommandLineArgs(cls, parser, args, environment):
-    benchmark_class = cls._FindBenchmark(parser, args, environment)
-
     benchmark.ProcessCommandLineArgs(parser, args)
     benchmark_class.ProcessCommandLineArgs(parser, args)
 
@@ -245,22 +239,6 @@ class Run(command_line.OptparseCommand):
 
   def Run(self, args):
     return min(255, self._benchmark().Run(args))
-
-
-class CheckIndependent(Run):
-  """Return 0 if benchmark stories are independent, 1 if not."""
-
-  usage = '[benchmark_name]'
-
-  @classmethod
-  def ProcessCommandLineArgs(cls, parser, args, environment):
-    cls._benchmark = cls._FindBenchmark(parser, args, environment)
-
-  def Run(self, args):
-    if self._benchmark.ShouldTearDownStateAfterEachStoryRun():
-      sys.exit(0)
-    else:
-      sys.exit(1)
 
 
 def _ScriptName():
@@ -424,7 +402,7 @@ def main(environment, extra_commands=None, **log_config_kwargs):
 
   if extra_commands is None:
     extra_commands = []
-  all_commands = [Help, CheckIndependent, List, Run] + extra_commands
+  all_commands = [Help, List, Run] + extra_commands
 
   # Validate and interpret the command name.
   commands = _MatchingCommands(command_name, all_commands)
@@ -440,8 +418,7 @@ def main(environment, extra_commands=None, **log_config_kwargs):
   else:
     command = Run
 
-  if binary_manager.NeedsInit():
-    binary_manager.InitDependencyManager(environment.client_configs)
+  binary_manager.InitDependencyManager(environment.client_configs)
 
   # Parse and run the command.
   parser = command.CreateParser()
