@@ -99,10 +99,6 @@ When in doubt, just try out --trace-frame-viewer.
   options.device = device
   options.package_info = package_info
 
-  # Include Chrome categories by default in profile_chrome.
-  if not options.chrome_categories:
-    options.chrome_categories = chrome_tracing_agent.DEFAULT_CHROME_CATEGORIES
-
   if options.chrome_categories in ['list', 'help']:
     ui.PrintMessage('Collecting record categories list...', eol='')
     record_categories = []
