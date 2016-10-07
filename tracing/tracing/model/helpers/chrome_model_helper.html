@@ -36,9 +36,6 @@ tr.exportTo('tr.model.helpers', function() {
     return gpuProcesses[0];
   }
 
-  /**
-   * @constructor
-   */
   function ChromeModelHelper(model) {
     this.model_ = model;
 
@@ -117,19 +114,18 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
 
+    // TODO(dproy): Remove this when loading_metric supports all renderers.
+    // https://github.com/catapult-project/catapult/issues/2820
     /**
-     * Returns renderer with largest pid that is not chrome tracing ui.
+     * Returns the renderer with the largest PID that is not the Chrome tracing
+     * UI.
      *
      * This is a very hacky approach to find the "target" renderer in metrics
-     * calculation. Often in telemetry tests we are only interested in
+     * calculation. Often in Telemetry tests we are only interested in
      * calculating metrics for the page opened by the automated testing system,
-     * but currently in tbmv2 there is no way to reliably single out this
-     * renderer. One useful heuristic is that the page telemetry opens is opened
-     * after all the other renderers in chrome were opened, and therefore has
-     * the largest pid.
-     *
-     * TODO(dproy): Remove this when loading_metric supports all renderers.
-     * https://github.com/catapult-project/catapult/issues/2820
+     * but there's currently no reliable way to find this renderer. One useful
+     * heuristic is that the page Telemetry opens is opened after all the other
+     * renderers in Chrome were opened, and therefore has the largest PID.
      */
     get rendererWithLargestPid() {
       var largestPid = -1;
