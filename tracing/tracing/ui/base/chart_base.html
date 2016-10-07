@@ -185,8 +185,8 @@ tr.exportTo('tr.ui.b', function() {
 
   function getColorOfKey(key, selected) {
     var id = ColorScheme.getColorIdForGeneralPurposeString(key);
-    if (selected)
-      id += ColorScheme.properties.brightenedOffsets[0];
+    if (selected) id += ColorScheme.properties.brightenedOffsets[0];
+
     return ColorScheme.colorsAsStrings[id];
   }
 
@@ -235,8 +235,7 @@ tr.exportTo('tr.ui.b', function() {
     set enabled(enabled) {
       // If the caller is disabling a data series, but it wasn't optional, then
       // force it to be optional.
-      if (!this.optional && !enabled)
-        this.optional = true;
+      if (!this.optional && !enabled) this.optional = true;
       this.enabled_ = enabled;
     },
 
@@ -261,8 +260,9 @@ tr.exportTo('tr.ui.b', function() {
     __proto__: HTMLUnknownElement.prototype,
 
     getDataSeries: function(key) {
-      if (!this.seriesByKey_.has(key))
+      if (!this.seriesByKey_.has(key)) {
         this.seriesByKey_.set(key, new DataSeries(key));
+      }
       return this.seriesByKey_.get(key);
     },
 
@@ -281,9 +281,10 @@ tr.exportTo('tr.ui.b', function() {
       var template =
           Polymer.dom(THIS_DOC).querySelector('#chart-base-template');
       var svgEl = Polymer.dom(template.content).querySelector('svg');
-      for (var i = 0; i < Polymer.dom(svgEl).children.length; i++)
+      for (var i = 0; i < Polymer.dom(svgEl).children.length; i++) {
         Polymer.dom(this).appendChild(
             Polymer.dom(svgEl.children[i]).cloneNode(true));
+      }
 
       // svg likes to take over width & height properties for some reason. This
       // works around it.
@@ -334,10 +335,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set chartTitle(chartTitle) {
-      if (chartTitle && !this.chartTitle_)
+      if (chartTitle && !this.chartTitle_) {
         this.margin.top += this.titleMarginPx;
-      else if (this.chartTitle_ && !chartTitle)
+      } else if (this.chartTitle_ && !chartTitle) {
         this.margin.top -= this.titleMarginPx;
+      }
 
       this.chartTitle_ = chartTitle;
       this.updateContents_();
@@ -400,8 +402,7 @@ tr.exportTo('tr.ui.b', function() {
     updateLegend_: function() {
       var chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.legend').remove();
-      if (this.hideLegend)
-        return;
+      if (this.hideLegend) return;
 
       var series = [...this.seriesByKey_.values()].reverse();
       var legendEntriesSel = chartAreaSel.selectAll('.legend').data(series);
@@ -419,15 +420,16 @@ tr.exportTo('tr.ui.b', function() {
           .append('xhtml:body')
           .append('tr-ui-b-chart-legend-key')
           .property('color', function(series) {
-            if (this.currentHighlightedLegendKey === series.key)
+            if (this.currentHighlightedLegendKey === series.key) {
               return series.highlightedColor;
+            }
             return series.color;
           }.bind(this))
           .property('width', width)
-          .property('target', function(series) { return series.target; })
-          .property('optional', function(series) { return series.optional; })
-          .property('enabled', function(series) { return series.enabled; })
-          .text(function(series) { return series.key; });
+          .property('target', series => series.target)
+          .property('optional', series => series.optional)
+          .property('enabled', series => series.enabled)
+          .text(series => series.key);
       legendEntriesSel.exit().remove();
     },
 
@@ -441,21 +443,24 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get currentHighlightedLegendKey() {
-      if (this.tempHighlightedLegendKey_)
+      if (this.tempHighlightedLegendKey_) {
         return this.tempHighlightedLegendKey_;
+      }
       return this.highlightedLegendKey_;
     },
 
     pushTempHighlightedLegendKey: function(key) {
-      if (this.tempHighlightedLegendKey_)
+      if (this.tempHighlightedLegendKey_) {
         throw new Error('push cannot nest');
+      }
       this.tempHighlightedLegendKey_ = key;
       this.updateHighlight_();
     },
 
     popTempHighlightedLegendKey: function(key) {
-      if (this.tempHighlightedLegendKey_ !== key)
+      if (this.tempHighlightedLegendKey_ !== key) {
         throw new Error('pop cannot happen');
+      }
       this.tempHighlightedLegendKey_ = undefined;
       this.updateHighlight_();
     },

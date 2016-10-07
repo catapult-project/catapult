@@ -7,14 +7,14 @@
       "array-callback-return": "off",
       "arrow-parens": "off",
       "block-scoped-var": "off",
-      "brace-style": "off",
       "camelcase": "off",
+      "brace-style": ["error", "1tbs", {"allowSingleLine": false}],
+      "curly": ["error", "multi-line", "consistent"],
       "catapult-camelcase": ["error", {
         "properties": "never"
       }],
       "comma-dangle": "off",
       "comma-spacing": "off",
-      "curly": "off",
       "default-case": "off",
       "dot-location": "off",
       "dot-notation": "off",
