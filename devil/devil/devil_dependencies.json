@@ -66,11 +66,11 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "android_arm64-v8a": {
-          "cloud_storage_hash": "02cc3ffd809b3d2b5eadef8a6e0473e789a8da50",
+          "cloud_storage_hash": "90cc60cefb497512d95d774045146754c477b433",
           "download_path": "../bin/deps/android/arm64-v8a/bin/forwarder_device"
         },
         "android_armeabi-v7a": {
-          "cloud_storage_hash": "42f67e7defe3c3262ad43ff68157295d32955fb1",
+          "cloud_storage_hash": "3a5ade8fbaffea3b0670bffaa845288db5e4d567",
           "download_path": "../bin/deps/android/armeabi-v7a/bin/forwarder_device"
         }
       }
@@ -80,7 +80,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "linux2_x86_64": {
-          "cloud_storage_hash": "99f97bc3c30b2793477ffc5a52fde10168036277",
+          "cloud_storage_hash": "63653293098d7fe17aa115b147c8d9aa253b0912",
           "download_path": "../bin/deps/linux2/x86_64/forwarder_host"
         }
       }
