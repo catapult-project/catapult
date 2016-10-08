@@ -79,6 +79,9 @@ def try_create_agent(config):
   if config.from_file is not None:
     return None
 
+  if not config.atrace_categories:
+    return None
+
   # Check device SDK version.
   device_sdk_version = util.get_device_sdk_version()
   if device_sdk_version <= 17:
@@ -155,12 +158,11 @@ class AtraceAgent(tracing_agents.TracingAgent):
 
   @py_utils.Timeout(tracing_agents.START_STOP_TIMEOUT)
   def StartAgentTracing(self, config, timeout=None):
+    assert config.atrace_categories, 'Atrace categories are missing!'
     self._config = config
     self._categories = config.atrace_categories
     if isinstance(self._categories, list):
       self._categories = ','.join(self._categories)
-    if not self._categories:
-      self._categories = DEFAULT_CATEGORIES
     avail_cats = get_available_categories(config)
     unavailable = [x for x in self._categories.split(',') if
         x not in avail_cats]
