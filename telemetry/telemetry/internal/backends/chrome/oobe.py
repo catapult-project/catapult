@@ -107,7 +107,7 @@ class Oobe(web_contents.WebContents):
     self._NavigateWebViewEntry('identifierId', username, 'identifierNext')
     self._NavigateWebViewEntry('password', password, 'passwordNext')
     if wait_for_close:
-      util.WaitFor(lambda: not self._GaiaWebviewContext(), 20)
+      util.WaitFor(lambda: not self._GaiaWebviewContext(), 60)
 
   def _NavigateWebViewEntry(self, field, value, nextField):
     self._WaitForField(field)
