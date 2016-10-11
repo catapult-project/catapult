@@ -355,14 +355,6 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
         'perf_dashboard_id': perf_dashboard_id,
       }
 
-  # Make sure that page_cycler_v2.typical_25 is assigned to the same device
-  # as page_cycler.typical_25 benchmark.
-  # TODO(nednguyen): remove this hack when crbug.com/618156 is resolved.
-  if ('page_cycler_v2.typical_25' in output['steps'] and
-      'page_cycler.typical_25' in output['steps']):
-    output['steps']['page_cycler_v2.typical_25']['device_affinity'] = (
-      output['steps']['page_cycler.typical_25']['device_affinity'])
-
   return json.dumps(output, indent=2, sort_keys=True)
 
 
