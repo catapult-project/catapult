@@ -5724,11 +5724,11 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
 
     m.clockSyncManager.addClockSyncMarker(
-        ClockDomainId.LINUX_CLOCK_MONOTONIC, 'abc', 10);
+        ClockDomainId.LINUX_CLOCK_MONOTONIC, 'abc', 15);
 
     assert.equal(
         m.clockSyncManager.getModelTimeTransformer(
-            ClockDomainId.TELEMETRY)(15),
+            ClockDomainId.TELEMETRY)(10),
         10);
     assert.equal(
         m.clockSyncManager.getModelTimeTransformer(
@@ -5747,8 +5747,54 @@ tr.b.unittest.testSuite(function() {
     assert.isTrue(m.hasImportWarnings);
   });
 
+  test('clockSync_legacyChrome', function() {
+    var events = {
+      traceEvents: [
+        {
+          name: 'ClockSyncEvent.abc', ts: 5000,
+          cat: 'blink.user_timing', pid: 1, tid: 2, ph: 'S'
+        },
+        {
+          name: 'ClockSyncEvent.abc', ts: 15000,
+          cat: 'blink.user_timing', pid: 1, tid: 2, ph: 'F'
+        }
+      ]
+    };
+
+    var m = makeModel(events);
+
+    m.clockSyncManager.addClockSyncMarker(
+        ClockDomainId.TELEMETRY, 'abc', 15);
+
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.UNKNOWN_CHROME_LEGACY)(10),
+        10);
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.TELEMETRY)(15),
+        10);
+  });
+
+  test('clockSync_legacyChromeThrowsWithInconsistentSyncID', function() {
+    var events = {
+      traceEvents: [
+        {
+          name: 'ClockSyncEvent.abc', ts: 5000,
+          cat: 'blink.user_timing', pid: 1, tid: 2, ph: 'S'
+        },
+        {
+          name: 'ClockSyncEvent.def', ts: 15000,
+          cat: 'blink.user_timing', pid: 1, tid: 2, ph: 'F'
+        }
+      ]
+    };
+
+    assert.throws(() => makeModel(events),
+        'Inconsistent clock sync ID of legacy Chrome clock sync events');
+  });
+
   // TODO(nduca): one slice, two threads
   // TODO(nduca): one slice, two pids
-
 });
 </script>

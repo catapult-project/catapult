@@ -54,6 +54,12 @@ tr.exportTo('tr.e.importer', function() {
     }
   }
 
+  function isLegacyChromeClockSyncEvent(event) {
+    return event.name !== undefined &&
+        event.name.startsWith(LEGACY_CHROME_CLOCK_SYNC_EVENT_NAME_PREFIX) &&
+        ((event.ph === 'S') || (event.ph === 'F'));
+  }
+
   var PRODUCER = 'producer';
   var CONSUMER = 'consumer';
   var STEP = 'step';
@@ -66,7 +72,7 @@ tr.exportTo('tr.e.importer', function() {
 
   var GLOBAL_MEMORY_ALLOCATOR_DUMP_PREFIX = 'global/';
 
-  var ASYNC_CLOCK_SYNC_EVENT_TITLE_PREFIX = 'ClockSyncEvent.';
+  var LEGACY_CHROME_CLOCK_SYNC_EVENT_NAME_PREFIX = 'ClockSyncEvent.';
 
   // Map from raw memory dump byte stat names to model byte stat names. See
   // //base/trace_event/process_memory_maps.cc in Chromium.
@@ -144,8 +150,8 @@ tr.exportTo('tr.e.importer', function() {
 
     // For tracking async events that is used to create back-compat clock sync
     // event.
-    this.asyncClockSyncStart_ = undefined;
-    this.asyncClockSyncFinish_ = undefined;
+    this.legacyChromeClockSyncStartEvent_ = undefined;
+    this.legacyChromeClockSyncFinishEvent_ = undefined;
 
     // Dump ID -> PID -> [process memory dump events].
     this.allMemoryDumpEvents_ = {};
@@ -866,6 +872,38 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
+    processLegacyChromeClockSyncEvent: function(event) {
+      // Older versions of Chrome don't support the devtools clock sync API, but
+      // Telemetry can work around this by creating clock sync events via
+      // console.time & console.timeEnd, which issue trace events as long as the
+      // 'blink.console' category is enabled. When we encounter async events
+      // with names starting with the prefix 'ClockSyncEvent.' , treat these as
+      // clock sync markers.
+      if (event.ph === 'S')
+        this.legacyChromeClockSyncStartEvent_ = event;
+      else if (event.ph === 'F')
+        this.legacyChromeClockSyncFinishEvent_ = event;
+
+      if (this.legacyChromeClockSyncStartEvent_ === undefined ||
+          this.legacyChromeClockSyncFinishEvent_ === undefined)
+        return;
+
+      var startSyncId = this.legacyChromeClockSyncStartEvent_.name.substring(
+          LEGACY_CHROME_CLOCK_SYNC_EVENT_NAME_PREFIX.length);
+      var finishSyncId = this.legacyChromeClockSyncFinishEvent_.name.substring(
+          LEGACY_CHROME_CLOCK_SYNC_EVENT_NAME_PREFIX.length);
+
+      if (startSyncId !== finishSyncId) {
+        throw new Error(
+            'Inconsistent clock sync ID of legacy Chrome clock sync events');
+      }
+
+      this.model_.clockSyncManager.addClockSyncMarker(
+          this.clockDomainId_, startSyncId,
+          tr.b.Unit.timestampFromUs(this.legacyChromeClockSyncStartEvent_.ts),
+          tr.b.Unit.timestampFromUs(this.legacyChromeClockSyncFinishEvent_.ts));
+    },
+
     // Because the order of Jit code events and V8 samples are not guaranteed,
     // We store them in an array, sort by timestamp, and then process them.
     processV8Events: function() {
@@ -889,58 +927,12 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    initBackcompatClockSyncEventTracker_: function(event) {
-      if (event.name !== undefined &&
-          event.name.startsWith(ASYNC_CLOCK_SYNC_EVENT_TITLE_PREFIX) &&
-          event.ph === 'S')
-        this.asyncClockSyncStart_ = event;
-
-      if (event.name !== undefined &&
-          event.name.startsWith(ASYNC_CLOCK_SYNC_EVENT_TITLE_PREFIX) &&
-          event.ph === 'F')
-          this.asyncClockSyncFinish_ = event;
-      if (this.asyncClockSyncStart_ === undefined ||
-          this.asyncClockSyncFinish_ === undefined)
-        return;
-
-      // Older version of Chrome doesn't support clock sync API, hence
-      // telemetry get around it by marking the clock sync events with
-      // console.time & console.timeEnd. When we encounter async events
-      // with named started with 'ClockSyncEvent.' prefix, create a
-      // synthetic clock sync events based on their timestamps.
-      var syncId =
-          this.asyncClockSyncStart_.name.substring(
-              ASYNC_CLOCK_SYNC_EVENT_TITLE_PREFIX.length);
-      if (syncId !==
-          this.asyncClockSyncFinish_.name.substring(
-              ASYNC_CLOCK_SYNC_EVENT_TITLE_PREFIX.length)) {
-         throw new Error('Inconsistent clock sync id of async clock sync ' +
-                         'events.');
-      }
-      var clockSyncEvent = {
-          ph: 'c',
-          args: {
-            sync_id: syncId,
-            issue_ts: this.asyncClockSyncStart_.ts
-          },
-          ts: this.asyncClockSyncFinish_.ts,
-      };
-      this.asyncClockSyncStart_ = undefined;
-      this.asyncClockSyncFinish_ = undefined;
-      return clockSyncEvent;
-    },
-
     importClockSyncMarkers: function() {
-      var asyncClockSyncStart, asyncClockSyncFinish;
       for (var i = 0; i < this.events_.length; i++) {
         var event = this.events_[i];
 
-        var possibleBackCompatClockSyncEvent =
-            this.initBackcompatClockSyncEventTracker_(event);
-        if (possibleBackCompatClockSyncEvent)
-            this.processClockSyncEvent(possibleBackCompatClockSyncEvent);
-
-        if (event.ph !== 'c')
+        var isLegacyChromeClockSync = isLegacyChromeClockSyncEvent(event);
+        if (event.ph !== 'c' && !isLegacyChromeClockSync)
           continue;
 
         var eventSizeInBytes =
@@ -949,7 +941,11 @@ tr.exportTo('tr.e.importer', function() {
 
         this.model_.stats.willProcessBasicTraceEvent(
             'clock_sync', event.cat, event.name, event.ts, eventSizeInBytes);
-        this.processClockSyncEvent(event);
+
+        if (isLegacyChromeClockSync)
+          this.processLegacyChromeClockSyncEvent(event);
+        else
+          this.processClockSyncEvent(event);
       }
     },
 
