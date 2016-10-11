@@ -151,7 +151,7 @@ tr.exportTo('tr.mre', function() {
     // Verify a new function was registered.
     var numFunctionsNow = FunctionRegistry.allFunctions.length;
     if (numFunctionsNow !== (numFunctionsBefore + 1)) {
-      var err = new Error(filename + " didn't call FunctionRegistry.register");
+      var err = new Error(filename + ' didn\'t call FunctionRegistry.register');
       err.name = 'FunctionNotDefinedError';
       throw err;
     }

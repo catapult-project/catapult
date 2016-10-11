@@ -51,9 +51,9 @@ tr.exportTo('tr.e.chrome', function() {
         // when two different pages are sharing the same renderer process (and
         // therefore the same renderer scheduler). We cannot define a proper
         // task window in this case to calculate Estimated Input Latency.
-        throw Error("Encountered two consecutive interactive timestamps " +
-            "with no navigationStart between them. " +
-            "PostInteractiveTaskWindow is not well defined in this case.");
+        throw Error('Encountered two consecutive interactive timestamps ' +
+            'with no navigationStart between them. ' +
+            'PostInteractiveTaskWindow is not well defined in this case.');
       }
 
       taskWindows.push(tr.b.Range.fromExplicitRange(

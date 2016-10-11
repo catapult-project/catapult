@@ -25,7 +25,7 @@ tr.exportTo('tr.model', function() {
                  opt_cpuStart, opt_cpuDuration, opt_argsStripped,
                  opt_bindId) {
     if (new.target) {
-      throw new Error("Can't instantiate pure virtual class Slice");
+      throw new Error('Can\'t instantiate pure virtual class Slice');
     }
     tr.model.TimedEvent.call(this, start);
 

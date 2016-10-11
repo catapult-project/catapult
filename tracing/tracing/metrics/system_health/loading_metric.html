@@ -300,12 +300,12 @@ tr.exportTo('tr.metrics.sh', function() {
     histogram.addSample(
         timeToFirstInteractive,
         {
-          "Start": new RelatedEventSet(navigationStart),
-          "Last long task": new RelatedEventSet(lastLongTaskEvent),
-          "Navigation infos": new tr.v.d.Generic(
+          'Start': new RelatedEventSet(navigationStart),
+          'Last long task': new RelatedEventSet(lastLongTaskEvent),
+          'Navigation infos': new tr.v.d.Generic(
               {url: url, pid: rendererHelper.pid,
                start: navigationStartTime, interactive: firstInteractive}),
-          "Breakdown of [navStart, Interactive]": breakdownDiagnostic,
+          'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
         });
   }
 
@@ -362,10 +362,10 @@ tr.exportTo('tr.metrics.sh', function() {
           rendererHelper, navigationStart.start, fmpMarkerEvent.start);
       firstMeaningfulPaintHistogram.addSample(timeToFirstMeaningfulPaint,
           {
-            "Breakdown of [navStart, FMP]": breakdownDiagnostic,
-            "Start": new RelatedEventSet(navigationStart),
-            "End": new RelatedEventSet(fmpMarkerEvent),
-            "Navigation infos": new tr.v.d.Generic(
+            'Breakdown of [navStart, FMP]': breakdownDiagnostic,
+            'Start': new RelatedEventSet(navigationStart),
+            'End': new RelatedEventSet(fmpMarkerEvent),
+            'Navigation infos': new tr.v.d.Generic(
                 {url: url, pid: rendererHelper.pid,
                  start: navigationStart.start, fmp: fmpMarkerEvent.start}),
           });
