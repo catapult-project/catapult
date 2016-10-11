@@ -17,7 +17,16 @@ found in the LICENSE file.
       margin-top: 1em;
       font-size: 12px;
     }
+    .diff {
+      display: inline-block;
+      margin-top: 1em;
+      margin-left: 0.8em;
+    }
     </style>
+    <div class="diff" id="diffOption">
+      Diff
+    </div>
+    <tr-ui-b-table id="diffTable"></tr-ui-b-table>
     <tr-ui-b-table id="table"></tr-ui-b-table>
   </template>
 </dom-module>
@@ -212,6 +221,50 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
   };
 
+  var DIFF_COLOR = {
+    GREEN: '#64DD17',
+    RED: '#D50000'
+  };
+
+  function computePercentage(valueA, valueB) {
+    if (valueA === 0) return 0;
+    return valueA / valueB * 100;
+  }
+
+  class DiffEntry {
+    constructor(originalEntry, diffEntry) {
+      this.originalEntry_ = originalEntry;
+      this.diffEntry_ = diffEntry;
+    }
+    get title() {
+      return this.diffEntry_.title;
+    }
+    get overall() {
+      return this.diffEntry_.overall;
+    }
+    get overAllocated() {
+      return this.diffEntry_.overAllocated;
+    }
+    get count() {
+      return this.diffEntry_.count;
+    }
+    get overallPercent() {
+      return this.diffEntry_.overallPercent;
+    }
+    get overAllocatedPercent() {
+      return this.diffEntry_.overAllocatedPercent;
+    }
+    get origin() {
+      return this.originalEntry_;
+    }
+    get diff() {
+      return this.diffEntry_;
+    }
+    get subRows() {
+      return this.diffEntry_.subRows;
+    }
+  }
+
   class Entry {
     constructor(title, count, overall, overAllocated, histogram,
                 overAllocatedHistogram) {
@@ -272,10 +325,21 @@ tr.exportTo('tr.ui.e.v8', function() {
 
     setFromObject(obj) {
       this.count_ = obj.count;
-      this.overall_ = obj.overall;
-      this.overAllocated_ = obj.over_allocated;
+      // Calculate memory in KB.
+      this.overall_ = obj.overall / 1024;
+      this.overAllocated_ = obj.over_allocated / 1024;
       this.histogram_ = obj.histogram;
       this.overAllocatedHistogram_ = obj.over_allocated_histogram;
+    }
+
+    diff(other) {
+      var entry =  new Entry(this.title_, other.count_ - this.count,
+                             other.overall_ - this.overall,
+                             other.overAllocated_ - this.overAllocated, [], []);
+      entry.overallPercent = computePercentage(entry.overall, this.overall);
+      entry.overAllocatedPercent = computePercentage(entry.overAllocated,
+                                                     this.overAllocated);
+      return new DiffEntry(this, entry);
     }
   }
 
@@ -287,6 +351,14 @@ tr.exportTo('tr.ui.e.v8', function() {
       this.histogram_.fill(0);
       this.overAllocatedHistogram_.fill(0);
       this.entries_ = new Map();
+    }
+
+    get title() {
+      return this.title_;
+    }
+
+    set title(value) {
+      this.title_ = value;
     }
 
     get subRows() {
@@ -326,6 +398,8 @@ tr.exportTo('tr.ui.e.v8', function() {
           unknownOverAllocatedHistogram[i] -= entry.overAllocatedHistogram[i];
         }
       }
+      unknownOverAllocated =
+        unknownOverAllocated < 0 ? 0 : unknownOverAllocated;
       this.entries_.set(title, new Entry(title, unknownCount, unknownOverall,
                                          unknownOverAllocated, unknownHistogram,
                                          unknownOverAllocatedHistogram));
@@ -333,30 +407,258 @@ tr.exportTo('tr.ui.e.v8', function() {
 
     calculatePercentage() {
       for (var entry of this.entries_.values()) {
-        if (this.overall_ > 0) {
-          entry.overallPercent =
-              (entry.overall / this.overall_ * 100).toFixed(3);
-        } else {
-          entry.overallPercent = 0;
-        }
-
-        if (this.overAllocated_ > 0) {
-          entry.overAllocatedPercent =
-              (entry.overAllocated / this.overAllocated_ * 100).toFixed(3);
-        } else {
-          entry.overAllocatedPercent = 0;
-        }
+        entry.overallPercent = computePercentage(entry.overall, this.overall_);
+        entry.overAllocatedPercent =
+          computePercentage(entry.overAllocated, this.overAllocated_);
 
         if (entry instanceof GroupedEntry) entry.calculatePercentage();
       }
     }
+
+    diff(other) {
+      if (this.title_.startsWith('Isolate')) {
+        var newTitle = 'Total';
+      } else {
+        var newTitle = this.title_;
+      }
+      var result = new GroupedEntry(newTitle, 0, 0, 0, [], []);
+      for (var entry of this.entries_) {
+        var otherEntry = other.getEntryFromTitle(entry[0]);
+        if (otherEntry === undefined) continue;
+        result.add(entry[1].diff(otherEntry));
+      }
+      result.overallPercent = computePercentage(result.overall, this.overall);
+      result.overAllocatedPercent = computePercentage(result.overAllocated,
+                                                      this.overAllocated);
+      return new DiffEntry(this, result);
+    }
+  }
+
+  function createSelector(targetEl, defaultValue, items, callback) {
+    var selectorEl = document.createElement('select');
+    selectorEl.addEventListener('change', callback.bind(targetEl));
+    var defaultOptionEl = document.createElement('option');
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var optionEl = document.createElement('option');
+      Polymer.dom(optionEl).textContent = item.label;
+      optionEl.targetPropertyValue = item.value;
+      optionEl.item = item;
+      Polymer.dom(selectorEl).appendChild(optionEl);
+    }
+    selectorEl.__defineGetter__('selectedValue', function(v) {
+      if (selectorEl.children[selectorEl.selectedIndex] === undefined) {
+        return undefined;
+      }
+      return selectorEl.children[selectorEl.selectedIndex].targetPropertyValue;
+    });
+    selectorEl.__defineGetter__('selectedItem', function(v) {
+      if (selectorEl.children[selectorEl.selectedIndex] === undefined) {
+        return undefined;
+      }
+      return selectorEl.children[selectorEl.selectedIndex].item;
+    });
+    selectorEl.__defineSetter__('selectedValue', function(v) {
+      for (var i = 0; i < selectorEl.children.length; i++) {
+        var value = selectorEl.children[i].targetPropertyValue;
+        if (value === v) {
+          var changed = selectorEl.selectedIndex !== i;
+          if (changed) {
+            selectorEl.selectedIndex = i;
+            callback();
+          }
+          return;
+        }
+      }
+      throw new Error('Not a valid value');
+    });
+    selectorEl.selectedIndex = -1;
+
+    return selectorEl;
+  }
+
+  function plusMinus(value, toFixed = 3) {
+    return (value > 0 ? '+' : '') + value.toFixed(toFixed);
+  }
+
+  function addArrow(value) {
+    if (value === 0) return value;
+    if (value === Number.NEGATIVE_INFINITY) return '\u2193\u221E';
+    if (value === Number.POSITIVE_INFINITY) return '\u2191\u221E';
+    return (value > 0 ? '\u2191' : '\u2193') + Math.abs(value.toFixed(3));
   }
 
   Polymer({
     is: 'tr-ui-e-v8-gc-objects-stats-table',
 
     ready: function() {
+      this.$.diffOption.style.display = 'none';
       this.isolateEntries_ = [];
+      this.selector1_ = undefined;
+      this.selector2_ = undefined;
+    },
+
+    constructDiffTable_: function(table) {
+      this.$.diffTable.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
+      this.$.diffTable.tableColumns = [
+        {
+          title: 'Component',
+          value: function(row) {
+            var typeEl = document.createElement('span');
+            typeEl.innerText = row.title;
+            return typeEl;
+          },
+          showExpandButtons: true
+        },
+        {
+          title: 'Overall Memory(KB)',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = row.origin.overall.toFixed(3);
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.origin.overall - b.origin.overall;
+          }
+        },
+        {
+          title: 'diff(KB)',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = plusMinus(row.overall);
+            if (row.overall > 0) {
+              spanEl.style.color = DIFF_COLOR.RED;
+            } else if (row.overall < 0) {
+              spanEl.style.color = DIFF_COLOR.GREEN;
+            }
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.overall - b.overall;
+          }
+        },
+        {
+          title: 'diff(%)',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = addArrow(row.overallPercent);
+            if (row.overall > 0) {
+              spanEl.style.color = DIFF_COLOR.RED;
+            } else if (row.overall < 0) {
+              spanEl.style.color = DIFF_COLOR.GREEN;
+            }
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.overall - b.overall;
+          }
+        },
+        {
+          title: 'Over Allocated Memory(KB)',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = row.origin.overAllocated.toFixed(3);
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.origin.overAllocated - b.origin.overAllocated;
+          }
+        },
+        {
+          title: 'diff(KB)',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = plusMinus(row.overAllocated);
+            if (row.overAllocated > 0) {
+              spanEl.style.color = DIFF_COLOR.RED;
+            } else if (row.overAllocated < 0) {
+              spanEl.style.color = DIFF_COLOR.GREEN;
+            }
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.overAllocated - b.overAllocated;
+          }
+        },
+        {
+          title: 'diff(%)',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = addArrow(row.overAllocatedPercent);
+            if (row.overAllocated > 0) {
+              spanEl.style.color = DIFF_COLOR.RED;
+            } else if (row.overAllocated < 0) {
+              spanEl.style.color = DIFF_COLOR.GREEN;
+            }
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.overAllocated - b.overAllocated;
+          }
+        },
+        {
+          title: 'Count',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = row.origin.count;
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.origin.count - b.origin.count;
+          }
+        },
+        {
+          title: 'diff',
+          value: function(row) {
+            var spanEl = tr.ui.b.createSpan();
+            spanEl.innerText = plusMinus(row.count, 0);
+            if (row.count > 0) {
+              spanEl.style.color = DIFF_COLOR.RED;
+            } else if (row.count < 0) {
+              spanEl.style.color = DIFF_COLOR.GREEN;
+            }
+            return spanEl;
+          },
+          cmp: function(a, b) {
+            return a.count - b.count;
+          }
+        },
+      ]
+    },
+
+    buildOptions_: function() {
+      var items = [];
+      for (var isolateEntry of this.isolateEntries_) {
+        items.push({
+          label: isolateEntry.title,
+          value: isolateEntry
+        });
+      }
+      this.$.diffOption.style.display = 'inline-block';
+      this.selector1_ = createSelector(
+        this, '', items, this.diffOptionChanged_);
+      Polymer.dom(this.$.diffOption).appendChild(this.selector1_);
+      var spanEl = tr.ui.b.createSpan();
+      spanEl.innerText = ' VS ';
+      Polymer.dom(this.$.diffOption).appendChild(spanEl);
+      this.selector2_ = createSelector(
+        this, '', items, this.diffOptionChanged_);
+      Polymer.dom(this.$.diffOption).appendChild(this.selector2_);
+    },
+
+    diffOptionChanged_: function() {
+      var isolateEntry1 = this.selector1_.selectedValue;
+      var isolateEntry2 = this.selector2_.selectedValue;
+      if (isolateEntry1 === undefined || isolateEntry2 === undefined) {
+        return;
+      }
+      if (isolateEntry1 === isolateEntry2) {
+        this.$.diffTable.tableRows = [];
+        this.$.diffTable.rebuild();
+        return;
+      }
+      this.$.diffTable.tableRows = [isolateEntry1.diff(isolateEntry2)];
+      this.$.diffTable.rebuild();
     },
 
     constructTable_: function() {
@@ -375,7 +677,7 @@ tr.exportTo('tr.ui.e.v8', function() {
           title: 'Overall Memory (KB)',
           value: function(row) {
             var typeEl = document.createElement('span');
-            typeEl.innerText = (row.overall / 1024).toFixed(3);
+            typeEl.innerText = row.overall.toFixed(3);
             return typeEl;
           },
           cmp: function(a, b) {
@@ -386,7 +688,7 @@ tr.exportTo('tr.ui.e.v8', function() {
           title: 'Over Allocated Memory (KB)',
           value: function(row) {
             var typeEl = document.createElement('span');
-            typeEl.innerText = (row.overAllocated / 1024).toFixed(3);
+            typeEl.innerText = row.overAllocated.toFixed(3);
             return typeEl;
           },
           cmp: function(a, b) {
@@ -408,7 +710,7 @@ tr.exportTo('tr.ui.e.v8', function() {
           title: 'Overall Memory Percent',
           value: function(row) {
             var typeEl = document.createElement('span');
-            typeEl.innerText = row.overallPercent + '%';
+            typeEl.innerText = row.overallPercent.toFixed(3) + '%';
             return typeEl;
           },
           cmp: function(a, b) {
@@ -419,7 +721,7 @@ tr.exportTo('tr.ui.e.v8', function() {
           title: 'Overall Allocated Memory Percent',
           value: function(row) {
             var typeEl = document.createElement('span');
-            typeEl.innerText = row.overAllocatedPercent + '%';
+            typeEl.innerText = row.overAllocatedPercent.toFixed(3) + '%';
             return typeEl;
           },
           cmp: function(a, b) {
@@ -440,8 +742,10 @@ tr.exportTo('tr.ui.e.v8', function() {
         if (e === undefined) continue;
         var title = instanceType;
         if (keyToName !== undefined) title = keyToName(title);
-        groupEntry.add(new Entry(title, e.count, e.overall, e.over_allocated,
-                                 e.histogram, e.over_allocated_histogram));
+        // Represent memery in KB unit.
+        groupEntry.add(new Entry(title, e.count, e.overall / 1024,
+                                 e.over_allocated / 1024, e.histogram,
+                                 e.over_allocated_histogram));
       }
     },
 
@@ -542,6 +846,11 @@ tr.exportTo('tr.ui.e.v8', function() {
         this.isolateEntries_.push(isolateEntry);
       }
       this.updateTable_();
+
+      if (slices.length > 1) {
+        this.buildOptions_();
+        this.constructDiffTable_();
+      }
     },
 
     updateTable_: function() {

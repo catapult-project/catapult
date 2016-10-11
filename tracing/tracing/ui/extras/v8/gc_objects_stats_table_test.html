@@ -14,15 +14,6 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   var newSliceEx = tr.c.TestUtils.newSliceEx;
-  var apiObjectGet = [1, 123];
-  var functionCallback = [2, 234];
-  var compileFullCode = [3, 345];
-  var allocateInTargetSpace = [4, 456];
-  var loadIcMiss = [5, 567];
-  var jsExecution = [6, 678];
-  var optimizeCode = [7, 789];
-  var parseLazy = [8, 890];
-  var handleApiCall = [9, 901];
 
   function createModel() {
     var m = tr.c.TestUtils.newModel(function(m) {
@@ -75,16 +66,16 @@ tr.b.unittest.testSuite(function() {
     var rows = viewEl.$.table.tableRows;
     assert.lengthOf(rows, 1);
     var row = rows[0];
-    assert.equal(row.overall, 11);
+    assert.equal(row.overall, 0.0107421875);
     assert.equal(row.count, 13);
     assert.equal(row.overAllocated, 0);
     var subRows = row.subRows;
     var live = subRows[0];
-    assert.equal(live.overall, 7);
+    assert.equal(live.overall, 0.0068359375);
     assert.equal(live.count, 9);
     assert.equal(live.overAllocated, 0);
     var dead = subRows[1];
-    assert.equal(dead.overall, 4);
+    assert.equal(dead.overall, 0.00390625);
     assert.equal(dead.count, 4);
     assert.equal(dead.overAllocated, 0);
   });
@@ -103,32 +94,54 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rows, 2);
 
     var row = rows[0];
-    assert.equal(row.overall, 15);
+    assert.equal(row.overall, 0.0146484375);
     assert.equal(row.count, 17);
     assert.equal(row.overAllocated, 0);
     var subRows = row.subRows;
     var live = subRows[0];
-    assert.equal(live.overall, 9);
+    assert.equal(live.overall, 0.0087890625);
     assert.equal(live.count, 11);
     assert.equal(live.overAllocated, 0);
     var dead = subRows[1];
-    assert.equal(dead.overall, 6);
+    assert.equal(dead.overall, 0.005859375);
     assert.equal(dead.count, 6);
     assert.equal(dead.overAllocated, 0);
 
     row = rows[1];
-    assert.equal(row.overall, 11);
+    assert.equal(row.overall, 0.0107421875);
     assert.equal(row.count, 13);
     assert.equal(row.overAllocated, 0);
     subRows = row.subRows;
     live = subRows[0];
-    assert.equal(live.overall, 7);
+    assert.equal(live.overall, 0.0068359375);
     assert.equal(live.count, 9);
     assert.equal(live.overAllocated, 0);
     dead = subRows[1];
-    assert.equal(dead.overall, 4);
+    assert.equal(dead.overall, 0.00390625);
     assert.equal(dead.count, 4);
     assert.equal(dead.overAllocated, 0);
+  });
+
+  test('GCObjectTableDiff', function() {
+    var m = createModel();
+
+    var viewEl = document.createElement('tr-ui-e-v8-gc-objects-stats-table');
+    var eventSet = new tr.model.EventSet();
+    eventSet.push(m.s1);
+    eventSet.push(m.s2);
+    viewEl.selection = eventSet;
+    this.addHTMLOutput(viewEl);
+    tr.b.forceAllPendingTasksToRunForTest();
+    var rows = viewEl.$.table.tableRows;
+    assert.lengthOf(rows, 2);
+    var diffEntry = rows[0].diff(rows[1]);
+
+    assert.equal(diffEntry.origin.overall.toFixed(3), '0.015');
+    assert.equal(diffEntry.origin.overAllocated, 0);
+    assert.equal(diffEntry.overall.toFixed(3), '-0.004');
+    assert.equal(diffEntry.overAllocated, 0);
+    assert.equal(diffEntry.overallPercent.toFixed(3), '-26.667');
+    assert.equal(diffEntry.overAllocatedPercent, 0);
   });
 });
 </script>
