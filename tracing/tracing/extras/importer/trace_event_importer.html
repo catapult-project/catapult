@@ -115,12 +115,9 @@ tr.exportTo('tr.e.importer', function() {
     'samples',
     'stackFrames',
     'traceAnnotations',
-    'traceEvents'
+    'traceEvents',
+    ...SUBTRACE_FIELDS
   ]);
-  // TODO(charliea): Replace this with the spread (...) operator in literal
-  // above once v8 is updated to a sufficiently recent version (>M45).
-  for (var subtraceField in SUBTRACE_FIELDS)
-    NON_METADATA_FIELDS.add(subtraceField);
 
   function TraceEventImporter(model, eventData) {
     this.importPriority = 1;
