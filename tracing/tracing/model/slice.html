@@ -138,7 +138,7 @@ tr.exportTo('tr.model', function() {
      * [      D     ]
      *   [C1]  [C2]
      */
-    findTopmostSlicesRelativeToThisSlice: function*(eventPredicate) {
+    findTopmostSlicesRelativeToThisSlice: function* (eventPredicate) {
       if (eventPredicate(this)) {
         yield this;
         return;
@@ -211,7 +211,7 @@ tr.exportTo('tr.model', function() {
      *  [C] [E][F]  [H]
      * will yield D, then A, in the order from the leaves to the root.
      */
-    enumerateAllAncestors: function*() {
+    enumerateAllAncestors: function* () {
       var curSlice = this;
 
       while (curSlice.parentSlice) {
@@ -268,7 +268,7 @@ tr.exportTo('tr.model', function() {
       return res;
     },
 
-    enumerateAllDescendents: function*() {
+    enumerateAllDescendents: function* () {
       for (var slice of this.subSlices)
         yield slice;
       for (var slice of this.subSlices)

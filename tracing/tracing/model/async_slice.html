@@ -102,7 +102,7 @@ tr.exportTo('tr.model', function() {
           parentAsyncSliceGroup.slices.indexOf(this);
     },
 
-    findTopmostSlicesRelativeToThisSlice: function*(eventPredicate, opt_this) {
+    findTopmostSlicesRelativeToThisSlice: function* (eventPredicate, opt_this) {
       if (eventPredicate(this)) {
         yield this;
         return;
@@ -124,7 +124,7 @@ tr.exportTo('tr.model', function() {
       return undefined;
     },
 
-    enumerateAllDescendents: function*() {
+    enumerateAllDescendents: function* () {
       for (var slice of this.subSlices)
         yield slice;
       for (var slice of this.subSlices)

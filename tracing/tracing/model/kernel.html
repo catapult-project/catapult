@@ -121,7 +121,7 @@ tr.exportTo('tr.model', function() {
       return 'kernel';
     },
 
-    childEventContainers: function*() {
+    childEventContainers: function* () {
       yield * ProcessBase.prototype.childEventContainers.call(this);
       yield * tr.b.dictionaryValues(this.cpus);
     },

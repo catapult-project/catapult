@@ -152,7 +152,7 @@ Polymer({
         'Add all events that have led to the selected one(s), connected by ' +
             'flow arrows or by call stack.',
         eventSet,
-        function*(event) {
+        function* (event) {
           yield * getEventInFlowEvents(event);
           yield * getEventAncestors(event);
           if (event.startSlice)
@@ -163,7 +163,7 @@ Polymer({
         'Add all events that have been caused by the selected one(s), ' +
             'connected by flow arrows or by call stack.',
         eventSet,
-        function*(event) {
+        function* (event) {
           yield * getEventOutFlowEvents(event);
           yield * getEventDescendents(event);
           if (event.endSlice)
@@ -174,7 +174,7 @@ Polymer({
         'Add all events connected to the selected one(s) by flow arrows or ' +
             'by call stack.',
         eventSet,
-        function*(event) {
+        function* (event) {
           yield * getEventInFlowEvents(event);
           yield * getEventOutFlowEvents(event);
           yield * getEventAncestors(event);

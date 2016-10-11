@@ -62,7 +62,7 @@ tr.exportTo('tr.model', function() {
       return this.guid_;
     },
 
-    *[Symbol.iterator]() {
+    * [Symbol.iterator]() {
       for (var event of this.events_)
         yield event;
     },

@@ -40,7 +40,7 @@ tr.exportTo('tr.v.d', function() {
       return this.values_.get(name) || 0;
     }
 
-    *[Symbol.iterator]() {
+    * [Symbol.iterator]() {
       for (var pair of this.values_)
         yield pair;
     }

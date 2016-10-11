@@ -286,7 +286,7 @@ tr.exportTo('tr.model', function() {
       return newSlice;
     },
 
-    findTopmostSlicesInThisContainer: function*(eventPredicate, opt_this) {
+    findTopmostSlicesInThisContainer: function* (eventPredicate, opt_this) {
       if (!this.haveTopLevelSlicesBeenBuilt)
         throw new Error('Nope');
 
@@ -294,11 +294,11 @@ tr.exportTo('tr.model', function() {
         yield * s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
     },
 
-    childEvents: function*() {
+    childEvents: function* () {
       yield * this.slices;
     },
 
-    childEventContainers: function*() {
+    childEventContainers: function* () {
     },
 
     getSlicesOfName: function(title) {

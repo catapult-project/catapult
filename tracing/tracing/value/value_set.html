@@ -54,7 +54,7 @@ tr.exportTo('tr.v', function() {
       return [...this];
     }
 
-    *[Symbol.iterator]() {
+    * [Symbol.iterator]() {
       for (var [guid, value] of this.values_)
         yield value;
     }

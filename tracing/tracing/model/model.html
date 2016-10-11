@@ -145,7 +145,7 @@ tr.exportTo('tr', function() {
       return this.helpersByConstructorGUID_[constructor.guid];
     },
 
-    childEvents: function*() {
+    childEvents: function* () {
       yield * this.globalMemoryDumps;
       yield * this.instantEvents;
       yield * this.flowEvents;
@@ -153,7 +153,7 @@ tr.exportTo('tr', function() {
       yield * this.samples;
     },
 
-    childEventContainers: function*() {
+    childEventContainers: function* () {
       yield this.userModel;
       yield this.device;
       yield this.kernel;

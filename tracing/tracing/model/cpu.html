@@ -60,7 +60,7 @@ tr.exportTo('tr.model', function() {
       return 'CPU ' + this.cpuNumber;
     },
 
-    findTopmostSlicesInThisContainer: function*(eventPredicate, opt_this) {
+    findTopmostSlicesInThisContainer: function* (eventPredicate, opt_this) {
       // All CpuSlices are toplevel since CpuSlices do not nest.
       for (var s of this.slices) {
         yield * s.findTopmostSlicesRelativeToThisSlice(
@@ -68,14 +68,14 @@ tr.exportTo('tr.model', function() {
       }
     },
 
-    childEvents: function*() {
+    childEvents: function* () {
       yield * this.slices;
 
       if (this.samples_)
         yield * this.samples_;
     },
 
-    childEventContainers: function*() {
+    childEventContainers: function* () {
       yield * tr.b.dictionaryValues(this.counters);
     },
 

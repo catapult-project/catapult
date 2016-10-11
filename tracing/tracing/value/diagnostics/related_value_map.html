@@ -56,7 +56,7 @@ tr.exportTo('tr.v.d', function() {
       return this.valuesByName_.size;
     }
 
-    *[Symbol.iterator]() {
+    * [Symbol.iterator]() {
       for (var pair of this.valuesByName_)
         yield pair;
     }

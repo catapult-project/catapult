@@ -52,7 +52,7 @@ tr.exportTo('tr.model', function() {
       throw new Error('Not implemented');
     },
 
-    childEventContainers: function*() {
+    childEventContainers: function* () {
       yield * tr.b.dictionaryValues(this.threads);
       yield * tr.b.dictionaryValues(this.counters);
       yield this.objects;

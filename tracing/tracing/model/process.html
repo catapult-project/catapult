@@ -73,7 +73,7 @@ tr.exportTo('tr.model', function() {
       return Process.compare(this, that);
     },
 
-    childEvents: function*() {
+    childEvents: function* () {
       yield * ProcessBase.prototype.childEvents.call(this);
       yield * this.instantEvents;
       yield * this.frames;

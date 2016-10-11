@@ -19,7 +19,7 @@
       "dot-location": "off",
       "dot-notation": "off",
       "eqeqeq": "error",
-      "generator-star-spacing": "off",
+      "generator-star-spacing": ["error", "after"],
       "guard-for-in": "off",
       "handle-callback-err": "off",
       "indent": "off",

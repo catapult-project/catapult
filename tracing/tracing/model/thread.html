@@ -72,7 +72,7 @@ tr.exportTo('tr.model', function() {
       return Thread.compare(this, that);
     },
 
-    childEventContainers: function*() {
+    childEventContainers: function* () {
       if (this.sliceGroup.length)
         yield this.sliceGroup;
       if (this.kernelSliceGroup.length)
@@ -81,7 +81,7 @@ tr.exportTo('tr.model', function() {
         yield this.asyncSliceGroup;
     },
 
-    childEvents: function*() {
+    childEvents: function* () {
       if (this.timeSlices)
         yield * this.timeSlices;
     },

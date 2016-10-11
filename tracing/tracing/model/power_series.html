@@ -116,7 +116,7 @@ tr.exportTo('tr.model', function() {
       this.bounds.addValue(this.samples_[this.samples_.length - 1].start);
     },
 
-    childEvents: function*() {
+    childEvents: function* () {
       yield * this.samples_;
     },
   };

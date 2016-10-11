@@ -40,7 +40,7 @@ tr.exportTo('tr.model', function() {
   ObjectCollection.prototype = {
     __proto__: tr.model.EventContainer.prototype,
 
-    childEvents: function*() {
+    childEvents: function* () {
       for (var instance of this.getAllObjectInstances()) {
         yield instance;
         yield * instance.snapshots;

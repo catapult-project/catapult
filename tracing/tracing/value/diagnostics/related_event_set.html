@@ -57,7 +57,7 @@ tr.exportTo('tr.v.d', function() {
       return this.eventsByStableId_.size;
     }
 
-    *[Symbol.iterator]() {
+    * [Symbol.iterator]() {
       for (var [stableId, event] of this.eventsByStableId_)
         yield event;
     }
