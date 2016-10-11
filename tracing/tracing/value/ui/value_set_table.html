@@ -75,7 +75,7 @@ found in the LICENSE file.
       <rect x="16" y="88" width="64" height="16"/>
     </svg>
 
-    <tr-v-ui-histogram-span id="histogram"></tr-v-ui-histogram-span>
+    <span id="histogram"></span>
 
     <svg viewbox="0 0 128 128" id="close_histogram" on-click="closeHistogram_">
       <line x1="28" y1="28" x2="100" y2="100"/>
@@ -193,6 +193,7 @@ tr.exportTo('tr.ui', function() {
     created: function() {
       this.histogram_ = undefined;
       this.referenceHistogram_ = undefined;
+      this.histogramSpan_ = undefined;
     },
 
     ready: function() {
@@ -233,7 +234,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     get isHistogramOpen() {
-      return this.$.histogram.style.display === 'block';
+      return this.histogramSpan_ &&
+        (this.$.histogram.style.display === 'block');
     },
 
     set isHistogramOpen(open) {
@@ -254,11 +256,16 @@ tr.exportTo('tr.ui', function() {
       this.$.close_histogram.style.display = open ? 'block' : 'none';
       this.$.histogram.style.display = open ? 'block' : 'none';
 
-      if (open) {
-        // Wait to pass the Histogram to the histogram-span until it's displayed
-        // so that it can size its BarChart appropriately.
-        this.$.histogram.referenceHistogram = this.referenceHistogram;
-        this.$.histogram.histogram = this.histogram;
+      // Wait to create the histogram-span until the user wants to display it
+      // in order to speed up creating lots of value-set-table-cells when
+      // building the table.
+      // Wait to pass the Histogram to the histogram-span until it's displayed
+      // so that it can size its BarChart appropriately.
+      if (open && this.histogramSpan_ === undefined) {
+        this.histogramSpan_ = document.createElement('tr-v-ui-histogram-span');
+        this.$.histogram.appendChild(this.histogramSpan_);
+        this.histogramSpan_.referenceHistogram = this.referenceHistogram;
+        this.histogramSpan_.histogram = this.histogram;
       }
     },
 
