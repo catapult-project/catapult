@@ -82,15 +82,19 @@ tr.exportTo('tr.ui.b', function() {
       var keyHeightPx = 0;
       if (seriesKeys.length > 1) {
         keyWidthPx = tr.ui.b.getSVGTextWidth(
-            this.chartAreaElement, rect.key) + 5;
+            this.chartAreaElement, rect.key);
         keyHeightPx = 16;
       }
+      var xWidthPx = tr.ui.b.getSVGTextWidth(
+          this.chartAreaElement, '' + rect.datum.x);
       var valueWidthPx = tr.ui.b.getSVGTextWidth(
-          this.chartAreaElement, rect.value) + 5;
+          this.chartAreaElement, rect.value);
       var valueHeightPx = 16;
-      var hoverWidthPx = Math.max(keyWidthPx, valueWidthPx);
+      var xHeightPx = 16;
+      var hoverWidthPx = Math.max(keyWidthPx, xWidthPx, valueWidthPx) + 5;
       var hoverTopPx = rect.topPx + (rect.heightPx / 2);
       var hoverLeftPx = rect.leftPx + rect.widthPx - hoverWidthPx;
+
       chartAreaSel
         .append('rect')
         .attr('class', 'hover')
@@ -98,7 +102,8 @@ tr.exportTo('tr.ui.b', function() {
         .attr('x', hoverLeftPx)
         .attr('y', hoverTopPx)
         .attr('width', hoverWidthPx)
-        .attr('height', keyHeightPx + valueHeightPx);
+        .attr('height', keyHeightPx + xHeightPx + valueHeightPx);
+
       if (seriesKeys.length > 1) {
         chartAreaSel
           .append('text')
@@ -115,12 +120,22 @@ tr.exportTo('tr.ui.b', function() {
         .attr('fill', rect.color)
         .attr('x', hoverLeftPx + 2)
         .attr('y', hoverTopPx + keyHeightPx + valueHeightPx - 3)
+        .text('' + rect.datum.x);
+
+      chartAreaSel
+        .append('text')
+        .attr('class', 'hover')
+        .attr('fill', rect.color)
+        .attr('x', hoverLeftPx + 2)
+        .attr('y', hoverTopPx + xHeightPx + keyHeightPx + valueHeightPx - 3)
         .text(rect.value);
     },
 
     drawRect_: function(rect, sel) {
       // Flip |rect| around |y=x|.
       var colRect = {
+        datum: rect.datum,
+        index: rect.index,
         key: rect.key,
         value: rect.value,
         color: rect.color,

@@ -6,81 +6,69 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/raf.html">
-<link rel="import" href="/tracing/ui/base/column_chart.html">
+<link rel="import" href="/tracing/ui/base/bar_chart.html">
 <link rel="import" href="/tracing/ui/base/d3.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ColumnChart = tr.ui.b.ColumnChart;
+  var BarChart = tr.ui.b.BarChart;
 
   // @constructor
-  var NameBarChart = tr.ui.b.define('name-bar-chart', ColumnChart);
+  var NameBarChart = tr.ui.b.define('name-bar-chart', BarChart);
 
   NameBarChart.prototype = {
-    __proto__: ColumnChart.prototype,
+    __proto__: BarChart.prototype,
 
-    decorate: function() {
-      ColumnChart.prototype.decorate.call(this);
-      Polymer.dom(this).classList.remove('bar-chart');
-      Polymer.dom(this).classList.add('name-bar-chart');
+    get barHeight() {
+      return (this.height - this.margin.top - this.margin.bottom) /
+        this.data.length;
     },
 
-    isDatumFieldSeries_: function(fieldName) {
-      return fieldName !== 'x';
+    getDataPointAtChartPoint_: function(chartPoint) {
+      return {
+        x: BarChart.prototype.getDataPointAtChartPoint_.call(
+            this, chartPoint).x,
+        y: parseInt(Math.floor(
+            (this.chartAreaSize.height - chartPoint.y) / this.barHeight))
+      };
     },
 
     getXForDatum_: function(datum, index) {
       return index;
     },
 
-    updateXAxis_: function(xAxis) {
-      xAxis.selectAll('*').remove();
-      var y = this.chartAreaSize.height + 10;
-      var nameTexts = xAxis.selectAll('text')
-        .data(this.data_);
-      nameTexts
-        .enter()
-        .append('text')
-        .attr('transform', function(d, index) {
-            var cx = this.xScale_(index);
-            // If you change the angle, then check the Math.cos() below.
-            return 'rotate(45 ' + cx + ' ' + y + ')';
-          }.bind(this))
-        .attr('x', function(d, index) {
-            return this.xScale_(index);
-          }.bind(this))
-        .attr('y', function(d) {
-            return y;
-          }.bind(this))
-        .text(function(d, index) {
-            return d.x;
-          }.bind(this));
-      nameTexts.exit().remove();
+    get maxYAxisWidth() {
+      return tr.b.Statistics.max(
+          this.data_, d => tr.ui.b.getSVGTextWidth(this, d.x));
+    },
 
-      // If the nameTexts extend past the bottom of the chart, then increase
-      // this.bottomMargin_ and re-render.
-      // TODO(benjhayden): Refactor with the code that is very similar to this
-      // in chart_base_2d.
-      var bottomMargin = this.margin.bottom;
-      tr.b.requestAnimationFrame(function() {
-        nameTexts[0].forEach(function(t) {
-          var box = t.getBBox();
-          // When the text is rotated, its height is the hypotenuse
-          // of a small triangle H, and its width is the hypotenuse of a larger
-          // triangle W. The bottomMargin must be equal to a side of H plus a
-          // side of W.
-          var h = Math.cos(Math.PI / 4) * (box.height + box.width);
-          bottomMargin = Math.max(bottomMargin, h);
-        }, this);
+    updateYAxis_: function(yAxis) {
+      tr.b.requestAnimationFrame(() => {
+        var maxTextWidth = this.maxYAxisWidth;
+        yAxis.selectAll('*').remove();
+        var nameTexts = yAxis.selectAll('text').data(this.data_);
+        nameTexts
+          .enter()
+          .append('text')
+          .attr('x', d => maxTextWidth - tr.ui.b.getSVGTextWidth(this, d.x) -
+              this.margin.left)
+          .attr('y', (d, index) => this.verticalScale_(index))
+          .text(d => d.x);
+        nameTexts.exit().remove();
 
-        bottomMargin = parseInt(Math.ceil(bottomMargin));
-        if (bottomMargin > this.margin.bottom) {
-          this.margin.bottom = bottomMargin;
-          this.updateContents_();
+        var previousTop = undefined;
+        for (var text of nameTexts[0]) {
+          var bbox = text.getBBox();
+          if ((previousTop === undefined) ||
+              (previousTop > (bbox.y + bbox.height))) {
+            previousTop = bbox.y;
+          } else {
+            text.style.opacity = 0;
+          }
         }
-      }, this);
+      });
     }
   };
 

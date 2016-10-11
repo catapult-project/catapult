@@ -30,6 +30,10 @@ tr.exportTo('tr.ui.b', function() {
       this.updateContents_();
     },
 
+    get brushedRange() {
+      return this.brushedRange_;
+    },
+
     computeBrushRangeFromIndices: function(indexA, indexB) {
       indexA = tr.b.clamp(indexA, 0, this.data_.length - 1);
       indexB = tr.b.clamp(indexB, 0, this.data_.length - 1);

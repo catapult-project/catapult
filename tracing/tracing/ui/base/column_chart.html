@@ -231,6 +231,8 @@ tr.exportTo('tr.ui.b', function() {
           width = this.xCushion_;
         }
         for (var rect of this.getRectsForDatum_(datum, index)) {
+          rect.datum = datum;
+          rect.index = index;
           rect.leftPx = this.xScale_(currentX);
           rect.rightPx = this.xScale_(currentX + width);
           rect.widthPx = rect.rightPx - rect.leftPx;

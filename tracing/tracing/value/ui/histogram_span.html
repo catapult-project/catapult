@@ -6,7 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/drag_handle.html">
+<link rel="import" href="/tracing/ui/base/name_bar_chart.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_map_table.html">
@@ -20,6 +21,10 @@ found in the LICENSE file.
     }
     #chart {
       flex-grow: 1;
+      display: none;
+    }
+    #drag_handle {
+      display: none;
     }
     #chart svg {
       display: block;
@@ -32,6 +37,7 @@ found in the LICENSE file.
         <tr-v-ui-scalar-map-table id="stats"></tr-v-ui-scalar-map-table>
       </div>
     </div>
+    <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
 
     <tr-v-ui-diagnostic-map-table id="histogram_diagnostics"></tr-v-ui-diagnostic-map-table>
     <tr-v-ui-diagnostic-map-table id="sample_diagnostics"></tr-v-ui-diagnostic-map-table>
@@ -45,18 +51,21 @@ var DELTA = String.fromCharCode(916);
 
 var ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
 
+var DEFAULT_BAR_HEIGHT_PX = 5;
+
 Polymer({
   is: 'tr-v-ui-histogram-span',
 
   created: function() {
     this.histogram_ = undefined;
     this.referenceHistogram_ = undefined;
-    this.chart_ = new tr.ui.b.BarChart();
+    this.isChartHeightOverridden_ = false;
+    this.chart_ = new tr.ui.b.NameBarChart();
     this.chart_.width = 300;
     this.chart_.height = 200;
     this.chart_.margin.top = 20;
     this.chart_.margin.bottom = 28;
-    this.chart_.margin.left = 30;
+    this.chart_.margin.left = 70;
     this.chart_.margin.right = 30;
     this.mouseDownBin_ = undefined;
     this.brushedBins_ = [];
@@ -67,10 +76,24 @@ Polymer({
     this.chart_.addEventListener('item-mouseup',
         this.onMouseUp_.bind(this));
     this.chart_.hideLegend = true;
+    this.chart_.getDataSeries('y').color = 'blue';
   },
 
   ready: function() {
     Polymer.dom(this.$.chart).appendChild(this.chart_);
+    this.$.drag_handle.target = this.$.container;
+    this.$.drag_handle.addEventListener(
+        'drag-handle-resize', this.onResize_.bind(this));
+  },
+
+  onResize_: function(event) {
+    event.stopPropagation();
+    var heightPx = parseInt(this.$.container.style.height);
+    if (heightPx < this.defaultChartHeight) {
+      heightPx = this.defaultChartHeight;
+      this.$.container.style.height = this.defaultChartHeight + 'px';
+    }
+    this.chart_.height = heightPx;
   },
 
   get chartWidth() {
@@ -86,83 +109,82 @@ Polymer({
   },
 
   set chartHeight(height) {
+    this.isChartHeightOverridden_ = true;
     this.chart_.height = height;
+  },
+
+  get barHeight() {
+    return this.chart_.barHeight;
+  },
+
+  set barHeight(px) {
+    this.isChartHeightOverridden_ = true;
+    this.chart_.height = this.computeChartHeight_(px);
+  },
+
+  computeChartHeight_: function(barHeightPx) {
+    return (this.chart_.margin.top +
+        this.chart_.margin.bottom +
+        (barHeightPx * this.histogram.allBins.length));
+  },
+
+  get defaultChartHeight() {
+    return this.computeChartHeight_(DEFAULT_BAR_HEIGHT_PX);
   },
 
   get brushedBins() {
     return this.brushedBins_;
   },
 
-  updateBrushedRange_: function(currentX) {
-    this.brushedBins_ = [this.histogram_.getBinForValue(currentX)];
-    var r = new tr.b.Range();
-    r.addValue(this.mouseDownX_);
-    r.addValue(currentX);
+  updateBrushedRange_: function(binIndex) {
+    var brushedBinIndices = new tr.b.Range();
+    brushedBinIndices.addValue(tr.b.clamp(
+        this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
+    brushedBinIndices.addValue(tr.b.clamp(
+        binIndex, 0, this.histogram.allBins.length - 1));
+    brushedBinIndices.max += 1;
+    this.chart_.brushedRange = brushedBinIndices;
 
-    // Collect bins:
-    var centralMin = Number.MAX_VALUE;
-    var centralMax = -Number.MAX_VALUE;
-    this.histogram_.centralBins.forEach(function(bin) {
-      centralMin = Math.min(centralMin, bin.range.min);
-      centralMax = Math.max(centralMax, bin.range.max);
-      if ((bin.range.max > r.min) &&
-          (bin.range.min < r.max) &&
-          (this.brushedBins_.indexOf(bin) < 0))
-        this.brushedBins_.push(bin);
-    }, this);
-    if ((this.histogram_.underflowBin.range.max > r.min) &&
-        (this.brushedBins_.indexOf(this.histogram_.underflowBin) < 0)) {
-      this.brushedBins_.push(this.histogram_.underflowBin);
+    this.brushedBins_ = [];
+    for (var i = brushedBinIndices.min; i < brushedBinIndices.max; ++i) {
+      this.brushedBins.push(this.histogram.allBins[i]);
     }
-    if ((this.histogram_.overflowBin.range.min < r.max) &&
-        (this.brushedBins_.indexOf(this.histogram_.overflowBin) < 0)) {
-      this.brushedBins_.push(this.histogram_.overflowBin);
-    }
-    this.brushedBins_.sort(function(a, b) {
-      return a.range.min - b.range.min;
-    });
-
-    // Prevent Infinity:
-    var minBin = this.histogram_.getBinForValue(r.min);
-    var maxBin = this.histogram_.getBinForValue(r.max);
-    var binWidth = this.histogram_.centralBins[0].range.range;
-    r.min = minBin ? Math.max(centralMin - binWidth, minBin.range.min) :
-      centralMin - binWidth;
-    r.max = maxBin ? Math.min(centralMax + binWidth, maxBin.range.max) :
-      centralMax + binWidth;
-
-    this.chart_.brushedRange = r;
   },
 
   onMouseDown_: function(chartEvent) {
     chartEvent.stopPropagation();
-    if (!this.histogram_)
+    if (!this.histogram) {
       return;
-    this.mouseDownX_ = chartEvent.x;
-    this.updateBrushedRange_(chartEvent.x);
+    }
+    this.mouseDownBinIndex_ = chartEvent.y;
+    this.updateBrushedRange_(chartEvent.y);
   },
 
   onMouseMove_: function(chartEvent) {
     chartEvent.stopPropagation();
-    if (!this.histogram_)
+    if (!this.histogram) {
       return;
-    this.updateBrushedRange_(chartEvent.x);
+    }
+    this.updateBrushedRange_(chartEvent.y);
   },
 
   onMouseUp_: function(chartEvent) {
     chartEvent.stopPropagation();
-    if (!this.histogram_)
+    if (!this.histogram) {
       return;
-    this.updateBrushedRange_(chartEvent.x);
+    }
+    this.updateBrushedRange_(chartEvent.y);
     this.updateDiagnostics_(this.brushedBins);
-    this.mouseDownX_ = undefined;
+    this.mouseDownBinIndex_ = undefined;
   },
 
   updateDiagnostics_: function(bins) {
     var maps = [];
-    for (var bin of bins)
-      for (var map of bin.diagnosticMaps)
+    for (var bin of bins) {
+      for (var map of bin.diagnosticMaps) {
         maps.push(map);
+      }
+    }
 
     if (maps.length === 0) {
       this.$.sample_diagnostics.style.display = 'none';
@@ -244,18 +266,31 @@ Polymer({
     this.chart_.isYLogScale = logScale;
   },
 
+  get binWidth_() {
+    return (this.histogram.overflowBin.range.min -
+        this.histogram.underflowBin.range.max) /
+      this.histogram.centralBins.length;
+  },
+
   updateContents_: function() {
-    this.$.chart.style.display = this.histogram_ ? '' : 'none';
+    this.$.chart.style.display = '';
+    this.$.drag_handle.style.display = '';
     this.$.sample_diagnostics.style.display = 'none';
     this.brushedBins_ = [];
-    if (!this.histogram_)
-      return;
 
+    if (!this.histogram) {
+      return;
+    }
+
+    if (this.histogram.numValues) {
+      this.$.chart.style.display = 'block';
+      this.$.drag_handle.style.display = 'block';
+    }
     this.$.container.style.display = '';
 
     var scalarMap = new Map();
     this.getDeltaScalars_(scalarMap);
-    for (var [name, scalar] of this.histogram_.statisticsScalars) {
+    for (var [name, scalar] of this.histogram.statisticsScalars) {
       scalarMap.set(name, scalar);
     }
     this.$.stats.scalarMap = scalarMap;
@@ -263,33 +298,29 @@ Polymer({
     this.chart_.xAxisLabel = '#';
     this.chart_.yAxisLabel = this.histogram.unit.unitString;
 
-    // https://github.com/catapult-project/catapult/issues/2859
-    // TODO(benjhayden) Compute chart_.height more intelligently:
-    // consider number of bins; |set chartHeight| should override this logic
-    // even when called before |set histogram|.
-    this.chart_.height = Math.max(200,
-        this.$.stats.getBoundingClientRect().height);
+    if (!this.isChartHeightOverridden_) {
+      this.chart_.height = this.defaultChartHeight;
+    }
 
-    var maximumBinValue = tr.b.Statistics.max(
-        this.histogram_.allBins, bin => bin.count);
     var chartData = [];
-    var binWidth = this.histogram_.centralBins[0].range.range;
-    this.histogram_.allBins.forEach(function(bin) {
+    for (var bin of this.histogram.allBins) {
       var x = bin.range.min;
       if (x === -Number.MAX_VALUE) {
-        if (!bin.count)
-          return;
-        x = bin.range.max - binWidth;
+        x = '<' + bin.range.max;
+      } else {
+        x = new tr.v.ScalarNumeric(this.histogram.unit, x).toString();
       }
       chartData.push({x: x, y: bin.count});
-    });
-    chartData.sort((x, y) => x.x - y.x);
+    }
     this.chart_.data = chartData;
+    tr.b.requestAnimationFrame(() => {
+      this.chart_.margin.left = this.chart_.maxYAxisWidth + 2;
+    });
     this.chart_.brushedRange = new tr.b.Range();
 
-    if (this.histogram_.diagnostics.size > 0) {
+    if (this.histogram.diagnostics.size > 0) {
       this.$.histogram_diagnostics.diagnosticMaps = [
-        this.histogram_.diagnostics];
+        this.histogram.diagnostics];
       this.$.histogram_diagnostics.style.display = 'block';
     } else {
       this.$.histogram_diagnostics.style.display = 'none';

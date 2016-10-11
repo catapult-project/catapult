@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2014 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/raf.html">
+<link rel="import" href="/tracing/ui/base/column_chart.html">
+<link rel="import" href="/tracing/ui/base/d3.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var ColumnChart = tr.ui.b.ColumnChart;
+
+  // @constructor
+  var NameColumnChart = tr.ui.b.define('name-column-chart', ColumnChart);
+
+  NameColumnChart.prototype = {
+    __proto__: ColumnChart.prototype,
+
+    getXForDatum_: function(datum, index) {
+      return index;
+    },
+
+    updateXAxis_: function(xAxis) {
+      xAxis.selectAll('*').remove();
+      var y = this.chartAreaSize.height + 10;
+      var nameTexts = xAxis.selectAll('text')
+        .data(this.data_);
+      nameTexts
+        .enter()
+        .append('text')
+        .attr('transform', (d, index) =>
+            // If you change the angle, then update the Math.cos() below.
+            'rotate(45 ' + this.xScale_(index) + ' ' + y + ')')
+        .attr('x', (d, index) => this.xScale_(index))
+        .attr('y', d => y)
+        .text(d => d.x);
+      nameTexts.exit().remove();
+
+      // If the nameTexts extend past the bottom of the chart, then increase
+      // this.bottomMargin_ and re-render.
+      // TODO(benjhayden): Refactor with the code that is very similar to this
+      // in chart_base_2d.
+      var bottomMargin = this.margin.bottom;
+      tr.b.requestAnimationFrame(function() {
+        nameTexts[0].forEach(function(t) {
+          var box = t.getBBox();
+          // When the text is rotated, its height is the hypotenuse
+          // of a small triangle H, and its width is the hypotenuse of a larger
+          // triangle W. The bottomMargin must be equal to a side of H plus a
+          // side of W.
+          var h = Math.cos(Math.PI / 4) * (box.height + box.width);
+          bottomMargin = Math.max(bottomMargin, h);
+        }, this);
+
+        bottomMargin = parseInt(Math.ceil(bottomMargin));
+        if (bottomMargin > this.margin.bottom) {
+          this.margin.bottom = bottomMargin;
+          this.updateContents_();
+        }
+      }, this);
+    }
+  };
+
+  return {
+    NameColumnChart: NameColumnChart
+  };
+});
+</script>
