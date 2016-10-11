@@ -353,6 +353,9 @@ class _FakeTab(object):
   def WaitForDocumentReadyStateToBeInteractiveOrBetter(self, timeout=0):
     pass
 
+  def WaitForFrameToBeDisplayed(self, timeout=0):
+    pass
+
   def IsAlive(self):
     return True
 
