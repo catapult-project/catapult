@@ -34,11 +34,10 @@ THIRD_PARTY_LIBRARIES_IN_SDK = [
 DASHBOARD_FILES = [
     'appengine_config.py',
     'app.yaml',
-    'bisect',
-    'bisect.yaml',
     'dashboard',
     'index.yaml',
     'mapreduce.yaml',
+    'pinpoint.yaml',
     'queue.yaml',
 ]
 
