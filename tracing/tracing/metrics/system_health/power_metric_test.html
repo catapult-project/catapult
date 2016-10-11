@@ -35,16 +35,66 @@ function getMetricValueAvg(values, name) {
 
 tr.b.unittest.testSuite(function() {
   test('powerMetric_noPowerSeries', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    tr.metrics.sh.powerMetric(valueSet, model);
-    assert.lengthOf(valueSet, 0);
+    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
   });
 
-  test('powerMetric_generic_oneStageEachType', function() {
+  test('powerMetric_emptyPowerSeries', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+    });
+    var valueSet = new tr.v.ValueSet();
+    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+  });
+
+  test('powerMetric_noChromeTrace', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+    });
+    var valueSet = new tr.v.ValueSet();
+    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+  });
+
+  test('powerMetric_emptyChromeTrace', function() {
     var model = new tr.Model();
     var valueSet = new tr.v.ValueSet();
     var rendererProcess = model.getOrCreateProcess(1234);
@@ -58,6 +108,102 @@ tr.b.unittest.testSuite(function() {
         model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
     model.userModel.expectations.push(new tr.model.um.IdleExpectation(
         model, 500, 500));
+    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+  });
+
+  test('powerMetric_powerSeriesStartsLate', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 300; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+          model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 500));
+    });
+    var valueSet = new tr.v.ValueSet();
+    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+  });
+
+  test('powerMetric_powerSeriesEndsEarly', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 700; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+          model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 500));
+    });
+    var valueSet = new tr.v.ValueSet();
+    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+  });
+
+  test('powerMetric_generic_oneStageEachType_irBeyondChrome', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+          model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 1500));
+    });
+    var valueSet = new tr.v.ValueSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.equal(getMetricValueSum(valueSet,
@@ -75,23 +221,38 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_generic_multipleStagesEachType', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+        var rendererProcess = model.getOrCreateProcess(1234);
+        var mainThread = rendererProcess.getOrCreateThread(1);
+        mainThread.name = 'CrRendererMain';
+        mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+            cat: 'blink.user_timing',
+            title: 'navigationStart',
+            start: 0,
+            duration: 0.0,
+            args: {frame: '0xdeadbeef'}
+          }));
+        mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+            cat: 'blink.user_timing',
+            title: 'navigationStart',
+            start: 1000,
+            duration: 0.0,
+            args: {frame: '0xdeadbeef'}
+          }));
+        model.device.powerSeries = new tr.model.PowerSeries(model.device);
+        for (var i = 0; i <= 1000; i++) {
+            model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+        }
+        model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+            model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 200));
+        model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+            model, 200, 300));
+        model.userModel.expectations.push(new tr.model.um.LoadExpectation(
+            model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 500, 200));
+        model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+            model, 700, 300));
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-    }
-    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
-        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 200));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 200, 300));
-    model.userModel.expectations.push(new tr.model.um.LoadExpectation(
-        model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 500, 200));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 700, 300));
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.equal(getMetricValueSum(valueSet,
@@ -108,7 +269,7 @@ tr.b.unittest.testSuite(function() {
         'idle:power'), 600, 0.5);
   });
 
-  test('powerMetric_loading_oneInterval', function() {
+  test('powerMetric_loading_oneInterval_samplesBeyondChrome', function() {
     // Interval of load is [200, 15400].
     // Trace goes until 22150.
     var model = tr.c.TestUtils.newModel(function(model) {
@@ -181,6 +342,8 @@ tr.b.unittest.testSuite(function() {
       for (var i = 0; i <= 15400; i++)
         model.device.powerSeries.addPowerSample(i.toString(), '20');
       for (var i = 15401; i <= 22160; i++)
+        model.device.powerSeries.addPowerSample(i.toString(), '10');
+      for (var i = 22160; i <= 30000; i++)
         model.device.powerSeries.addPowerSample(i.toString(), '10');
     });
 
@@ -264,19 +427,34 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_scroll_oneStageEachType', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 500));
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-    }
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 500));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 500, 500));
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.equal(getMetricValueSum(valueSet,
@@ -288,23 +466,38 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_scroll_multipleStagesEachType', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 200, 300));
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 200));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 700, 300));
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-    }
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, tr.importer.INITIATOR_TYPE.SCROLL, 0, 200));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 200, 300));
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 200));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 700, 300));
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.equal(getMetricValueSum(valueSet,
@@ -316,22 +509,37 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_frameBased_multipleFrames', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 70,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, "Video", 1, 69));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      // We want values in different frames, so they must go up by more than
+      // 16.66 milliseconds.
+      model.device.powerSeries.addPowerSample('1', '.1');
+      model.device.powerSeries.addPowerSample('2', '.1');
+      model.device.powerSeries.addPowerSample('18', '.2');
+      model.device.powerSeries.addPowerSample('36', '.3');
+      model.device.powerSeries.addPowerSample('53', '.4');
+      model.device.powerSeries.addPowerSample('70', '.5');
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, "Video", 1, 70));
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    // We want values in different frames, so they must go up by more than 16.66
-    // milliseconds.
-    model.device.powerSeries.addPowerSample('1', '.1');
-    model.device.powerSeries.addPowerSample('2', '.1');
-    model.device.powerSeries.addPowerSample('18', '.2');
-    model.device.powerSeries.addPowerSample('36', '.3');
-    model.device.powerSeries.addPowerSample('53', '.4');
-    model.device.powerSeries.addPowerSample('70', '.5');
     tr.metrics.sh.powerMetric(valueSet, model);
     assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
         0.00344, 1e-4)
@@ -340,22 +548,37 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_frameBased_oneFrame', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 6,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, "Video", 1, 5));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      // We want values in the same frame, so they must go up by less than 16.66
+      // milliseconds.
+      model.device.powerSeries.addPowerSample('1', '.1');
+      model.device.powerSeries.addPowerSample('2', '.1');
+      model.device.powerSeries.addPowerSample('3', '.2');
+      model.device.powerSeries.addPowerSample('4', '.3');
+      model.device.powerSeries.addPowerSample('5', '.4');
+      model.device.powerSeries.addPowerSample('6', '.5');
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, "Video", 1, 6));
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    // We want values in the same frame, so they must go up by less than 16.66
-    // milliseconds.
-    model.device.powerSeries.addPowerSample('1', '.1');
-    model.device.powerSeries.addPowerSample('2', '.1');
-    model.device.powerSeries.addPowerSample('3', '.2');
-    model.device.powerSeries.addPowerSample('4', '.3');
-    model.device.powerSeries.addPowerSample('5', '.4');
-    model.device.powerSeries.addPowerSample('6', '.5');
     tr.metrics.sh.powerMetric(valueSet, model);
     assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
         0.0011, 1e-4)
@@ -364,42 +587,72 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('powerMetric_video_oneStageEachType', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, "Video", 0, 500));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 500, 500));
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain';
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-    }
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, "Video", 0, 500));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 500, 500));
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet, 'video:power'), 250, 0.5);
   });
 
   test('powerMetric_video_multipleStagesEachType', function() {
-    var model = new tr.Model();
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 0,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 200));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 200, 300));
+      model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
+          model, tr.importer.INITIATOR_TYPE.VIDEO, 500, 200));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 700, 300));
+    });
     var valueSet = new tr.v.ValueSet();
-    var rendererProcess = model.getOrCreateProcess(1234);
-    var mainThread = rendererProcess.getOrCreateThread(1);
-    mainThread.name = 'CrRendererMain'
-    model.device.powerSeries = new tr.model.PowerSeries(model.device);
-    for (var i = 0; i <= 1000; i++) {
-        model.device.powerSeries.addPowerSample(i.toString(), i.toString());
-    }
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, tr.importer.INITIATOR_TYPE.VIDEO, 0, 200));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 200, 300));
-    model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-        model, tr.importer.INITIATOR_TYPE.VIDEO, 500, 200));
-    model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-        model, 700, 300));
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet, 'video:power'), 350, 0.5);
