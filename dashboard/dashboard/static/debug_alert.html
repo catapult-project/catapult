@@ -14,6 +14,10 @@ found in the LICENSE file.
  * This file defines an initialize function which should be called
  * when the debug_alert page is loaded.
  */
+
+// This variable name is supposed to not be camelCased, in order for it
+// to match up with the file name.
+// eslint-disable-next-line
 var debug_alert = (function() {
 
   var ANOMALY_POINTS_INDEX = 1;
@@ -94,10 +98,10 @@ var debug_alert = (function() {
    * distanced evenly regardless of how far about the revision numbers are.
    *
    * @param {number} val An index in the data series to plot.
-   * @param {Object} unused_axis A Flot axis object, not used here.
+   * @param {Object} unusedAxis A Flot axis object, not used here.
    * @return {number|undefined} A revision number to display.
    */
-  var xAxisTickFormatter = function(val, unused_axis) {
+  var xAxisTickFormatter = function(val, unusedAxis) {
     val = Math.round(val);
     val = Math.max(0, val);
     return window['LOOKUP'][val];

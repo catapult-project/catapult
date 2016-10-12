@@ -824,7 +824,9 @@ found in the LICENSE file.
           if (numA && numB) {
             var result = numA - numB;
           } else {
-            var result = (valA < valB) ? -1 : (valA > valB) ? 1 : 0;
+            var result = 0;
+            if (valA < valB) result = -1;
+            if (valA > valB) result = 1;
           }
 
           // If the alerts are equivalent on the current column, sort by their

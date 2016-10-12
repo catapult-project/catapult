@@ -8,7 +8,10 @@ found in the LICENSE file.
 <script>
 'use strict';
 
-var simple_xhr = (function() {
+// This variable name is supposed to not be camelCased, in order for it
+// to match up with the file name.
+// eslint-disable-next-line
+var simple_xhr = (function() { 
 
   var LOGIN_ERROR_MESSAGE = 'Please check if you are logged in with a ' +
                             'google.com or chromium.org account in the ' +

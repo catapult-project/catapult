@@ -124,11 +124,11 @@ var uri = (function() {
         }
       }
     }
-    var uri_str = getCurrentPathWithParams(params);
-    if (uri_str == window.location.pathname + uri.getQueryString()) {
+    var URIStr = getCurrentPathWithParams(params);
+    if (URIStr == window.location.pathname + uri.getQueryString()) {
       return;
     }
-    window.history.pushState(state, '', uri_str);
+    window.history.pushState(state, '', URIStr);
   };
 
   /**

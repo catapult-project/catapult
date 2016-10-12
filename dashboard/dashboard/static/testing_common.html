@@ -8,6 +8,9 @@ found in the LICENSE file.
 <script>
 'use strict';
 
+// This variable name is supposed to not be camelCased, in order for it
+// to match up with the file name.
+// eslint-disable-next-line
 var testing_common = (function() {
 
   var originalXMLHttpRequest = window.XMLHttpRequest;
@@ -78,12 +81,12 @@ var testing_common = (function() {
       xhrMock = new XMLHttpRequestMock();
     }
     xhrMock.add(param, response);
-  };
+  }
 
   function clearXhrMock() {
     window.XMLHttpRequest = originalXMLHttpRequest;
     xhrMock = null;
-  };
+  }
 
   /**
    * Does a deep copy of the object.
@@ -92,7 +95,7 @@ var testing_common = (function() {
    */
   function deepCopy(obj) {
     return JSON.parse(JSON.stringify(obj));
-  };
+  }
 
   function addToFixture(node) {
     if (!fixture) {
@@ -100,13 +103,13 @@ var testing_common = (function() {
       Polymer.dom(document.body).appendChild(fixture);
     }
     Polymer.dom(fixture).appendChild(node);
-  };
+  }
 
   function clearFixture() {
     if (fixture) {
       Polymer.dom(fixture).innerHTML = '';
     }
-  };
+  }
 
   var paramString = function(params) {
     var keys = Object.keys(params).sort();
