@@ -33,9 +33,11 @@ tr.exportTo('tr.v', function() {
     constructor(opt_values) {
       this.values_ = new Map();
 
-      if (opt_values !== undefined)
-        for (var value of opt_values)
+      if (opt_values !== undefined) {
+        for (var value of opt_values) {
           this.addHistogram(value);
+        }
+      }
     }
 
     get valueDicts() {
@@ -67,43 +69,42 @@ tr.exportTo('tr.v', function() {
       return this.toArray().map(callback, opt_this || this);
     }
 
+    resolveRelatedHistograms() {
+      var valueSet = this;
+      function handleDiagnosticMap(dm) {
+        for (var [name, diagnostic] of dm) {
+          if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
+              (diagnostic instanceof tr.v.d.RelatedValueMap)) {
+            diagnostic.resolve(valueSet);
+          }
+        }
+      }
+
+      for (var hist of this) {
+        handleDiagnosticMap(hist.diagnostics);
+
+        for (var dm of hist.nanDiagnosticMaps) {
+          handleDiagnosticMap(dm);
+        }
+
+        for (var bin of hist.allBins) {
+          for (var dm of bin.diagnosticMaps) {
+            handleDiagnosticMap(dm);
+          }
+        }
+      }
+    }
+
     /**
-     * Convert Values from dicts and add them.
-     * Resolve RelatedValueSet references.
+     * Convert Histograms from dicts and add them.
+     * Does not resolve RelatedValueSet/RelatedValueMap diagnostics. See
+     * resolveRelatedHistograms().
      *
      * @param {Array.<Object>} dicts
      */
     addValuesFromDicts(dicts) {
-      for (var dict of dicts)
+      for (var dict of dicts) {
         this.addHistogram(tr.v.Histogram.fromDict(dict));
-
-      // Now resolve the RelatedValueSet references between values.
-      // This resolution process must wait until all new values are added in
-      // case a value refers to another that comes after it in dicts.
-      // Iterate over all values, old and new, in case an old value contained a
-      // reference to a new value. Don't worry, resolve() is idempotent.
-      // The expected running time is this: for each value (hundreds to
-      // thousands?), for each diagnostic that is a RelatedValueSet (0-5?), for
-      // each ValueRef (0-10?), do a hash lookup (constant time?).
-      for (var value of this) {
-        for (var [name, diagnostic] of value.diagnostics) {
-          if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
-              (diagnostic instanceof tr.v.d.RelatedValueMap)) {
-            diagnostic.resolve(this);
-          }
-        }
-
-        // In addition to Values, we must also look inside of Histogram samples.
-        for (var bin of value.allBins) {
-          for (var dm of bin.diagnosticMaps) {
-            for (var [name, diagnostic] of dm) {
-              if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
-                  (diagnostic instanceof tr.v.d.RelatedValueMap)) {
-                diagnostic.resolve(this);
-              }
-            }
-          }
-        }
       }
     }
 

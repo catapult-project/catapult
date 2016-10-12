@@ -57,6 +57,7 @@ tr.b.unittest.testSuite(function() {
 
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
+    values2.resolveRelatedHistograms();
 
     var a2 = values2.getValuesNamed('a');
     assert.lengthOf(a2, 1);
@@ -90,6 +91,7 @@ tr.b.unittest.testSuite(function() {
     // Related value resolution is idempotent.
     // Old values can refer to new values.
     values2.addValuesFromDicts([c.asDict()]);
+    values2.resolveRelatedHistograms();
 
     var c2 = values2.getValuesNamed('c');
     assert.lengthOf(c2, 1);
@@ -124,6 +126,7 @@ tr.b.unittest.testSuite(function() {
 
     var values2 = new tr.v.ValueSet();
     values2.addValuesFromDicts(values.valueDicts);
+    values2.resolveRelatedHistograms();
 
     var a2 = values2.getValuesNamed('a');
     assert.lengthOf(a2, 1);
@@ -152,6 +155,7 @@ tr.b.unittest.testSuite(function() {
     // Related value resolution is idempotent.
     // Old values can refer to new values.
     values2.addValuesFromDicts([c.asDict()]);
+    values2.resolveRelatedHistograms();
 
     var c2 = values2.getValuesNamed('c');
     assert.lengthOf(c2, 1);

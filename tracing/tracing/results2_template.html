@@ -10,23 +10,28 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/value_set.html">
 
 <style>
-#value-set-json {
+div.histogram-json {
   display: none;
 }
 </style>
 
 <script>
 'use strict';
-
-document.addEventListener('DOMContentLoaded', function() {
-  var valueSetJson = document.getElementById('value-set-json');
+document.addEventListener('DOMContentLoaded', () => {
+  var jsonDivs = tr.b.asArray(
+      document.getElementsByClassName('histogram-json'));
   var values = new tr.v.ValueSet();
-  values.addValuesFromDicts(JSON.parse(valueSetJson.textContent));
-  valueSetJson.parentNode.removeChild(valueSetJson);
+  for (var div of jsonDivs) {
+    values.addHistogram(tr.v.Histogram.fromDict(JSON.parse(div.innerHTML)));
+  }
+
+  values.resolveRelatedHistograms();
   document.getElementById('values').values = values;
+
+  for (var div of jsonDivs) {
+    document.body.removeChild(div);
+  }
 });
 </script>
 
 <tr-v-ui-value-set-view id="values"></tr-v-ui-value-set-view>
-
-<div id="value-set-json"></div>
