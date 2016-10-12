@@ -18,6 +18,7 @@ found in the LICENSE file.
     #container {
       display: flex;
       flex-direction: row;
+      justify-content: space-between;
     }
     #chart {
       flex-grow: 1;
@@ -276,15 +277,11 @@ Polymer({
     this.$.chart.style.display = '';
     this.$.drag_handle.style.display = '';
     this.$.sample_diagnostics.style.display = 'none';
+    this.$.container.style.justifyContent = '';
     this.brushedBins_ = [];
 
     if (!this.histogram) {
       return;
-    }
-
-    if (this.histogram.numValues) {
-      this.$.chart.style.display = 'block';
-      this.$.drag_handle.style.display = 'block';
     }
     this.$.container.style.display = '';
 
@@ -295,8 +292,25 @@ Polymer({
     }
     this.$.stats.scalarMap = scalarMap;
 
+    if (this.histogram.diagnostics.size > 0) {
+      this.$.histogram_diagnostics.diagnosticMaps = [
+        this.histogram.diagnostics];
+      this.$.histogram_diagnostics.style.display = 'block';
+    } else {
+      this.$.histogram_diagnostics.style.display = 'none';
+    }
+
+    if (this.histogram.numValues <= 1) {
+      this.updateDiagnostics_(this.histogram.allBins);
+      this.$.container.style.justifyContent = 'flex-end';
+      return;
+    }
+
+    this.$.chart.style.display = 'block';
+    this.$.drag_handle.style.display = 'block';
+
     this.chart_.xAxisLabel = '#';
-    this.chart_.yAxisLabel = this.histogram.unit.unitString;
+    this.chart_.brushedRange = new tr.b.Range();
 
     if (!this.isChartHeightOverridden_) {
       this.chart_.height = this.defaultChartHeight;
@@ -313,19 +327,17 @@ Polymer({
       }
       chartData.push({x: x, y: bin.count});
     }
+
+    // Set the data to render the chart in order to compute maxYAxisWidth,
+    // then set the left margin and re-render the chart.
+    // TODO(benjhayden) Make NameBarChart handle this? Move the names into the
+    // chart area?
     this.chart_.data = chartData;
     tr.b.requestAnimationFrame(() => {
       this.chart_.margin.left = this.chart_.maxYAxisWidth + 2;
+      // Reset the chart data to force it to take the new margin into account.
+      this.chart_.data = chartData;
     });
-    this.chart_.brushedRange = new tr.b.Range();
-
-    if (this.histogram.diagnostics.size > 0) {
-      this.$.histogram_diagnostics.diagnosticMaps = [
-        this.histogram.diagnostics];
-      this.$.histogram_diagnostics.style.display = 'block';
-    } else {
-      this.$.histogram_diagnostics.style.display = 'none';
-    }
   }
 });
 </script>
