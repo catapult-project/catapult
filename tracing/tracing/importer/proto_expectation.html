@@ -79,7 +79,7 @@ tr.exportTo('tr.importer', function() {
     },
 
     createInteractionRecord: function(model) {
-      if (!this.isValid) {
+      if (this.irType !== ProtoExpectation.IGNORED_TYPE && !this.isValid) {
         console.error('Invalid ProtoExpectation: ' + this.debug() +
                       ' File a bug with this trace!');
         return undefined;
