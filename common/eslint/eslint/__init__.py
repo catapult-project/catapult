@@ -36,30 +36,24 @@ BASE_ESLINT_CMD = [
 ]
 
 
-DEFAULT_ESLINT_CONFIG = os.path.join(
-    py_utils.GetCatapultDir(), 'common', 'eslint', '.eslintrc')
-
-
 DEFAULT_ESLINT_RULES_DIR = os.path.join(
     py_utils.GetCatapultDir(), 'common', 'eslint', 'rules')
 
 
-def _CreateEslintCommand(config, rulesdir):
+def _CreateEslintCommand(rulesdir):
   return BASE_ESLINT_CMD + [
-      '--config', config,
       '--rulesdir', rulesdir
   ]
 
 
 def RunEslintOnDirs(dirs,
-                    config=DEFAULT_ESLINT_CONFIG,
                     rules_dir=DEFAULT_ESLINT_RULES_DIR):
   if type(dirs) is not list or len(dirs) == 0:
     raise ValueError('Must specify a non-empty list of directories to lint.')
 
   try:
     find_cmd = ['find'] + dirs + ['-name', '*.html']
-    eslint_cmd = _CreateEslintCommand(config, rules_dir)
+    eslint_cmd = _CreateEslintCommand(rules_dir)
     p1 = subprocess.Popen(find_cmd, stdout=subprocess.PIPE)
     output = subprocess.check_output(['xargs'] + eslint_cmd, stdin=p1.stdout)
     p1.wait()
@@ -69,13 +63,12 @@ def RunEslintOnDirs(dirs,
 
 
 def RunEslintOnFiles(filenames,
-                     config=DEFAULT_ESLINT_CONFIG,
                      rules_dir=DEFAULT_ESLINT_RULES_DIR):
   if type(filenames) is not list or len(filenames) == 0:
     raise ValueError('Must specify a non-empty list of files to lint.')
 
   try:
-    eslint_cmd = _CreateEslintCommand(config, rules_dir)
+    eslint_cmd = _CreateEslintCommand(rules_dir)
     return subprocess.check_output(eslint_cmd + filenames,
                                    stderr=subprocess.STDOUT)
   except subprocess.CalledProcessError as e:

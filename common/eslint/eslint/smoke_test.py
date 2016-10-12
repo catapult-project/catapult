@@ -24,7 +24,8 @@ var non_camel_case = 0;
 class SmokeTest(unittest.TestCase):
   def testEslintFindsError(self):
     try:
-      tmp_file =  tempfile.NamedTemporaryFile(delete=False, suffix=".html")
+      tmp_file =  tempfile.NamedTemporaryFile(
+          delete=False, dir=os.path.dirname(__file__), suffix=".html")
       tmp_file.write(_TEMP_FILE_CONTENTS)
       tmp_file.close()
 
