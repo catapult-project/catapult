@@ -14,7 +14,7 @@ from systrace import tracing_controller
 
 def _GetResults(trace_results, controller, output, compress, write_json,
                 interval):
-  ui.PrintMessage('Downloading...', eol='')
+  ui.PrintMessage('Downloading...')
 
   # Wait for the trace file to get written.
   time.sleep(1)
@@ -35,10 +35,10 @@ def _GetResults(trace_results, controller, output, compress, write_json,
   result = None
   trace_results = output_generator.MergeTraceResultsIfNeeded(trace_results)
   if not write_json:
-    print 'Writing trace HTML'
+    ui.PrintMessage('Writing trace HTML...')
     html_file = trace_results[0].source_name + '.html'
     result = output_generator.GenerateHTMLOutput(trace_results, html_file)
-    print '\nWrote file://%s\n' % result
+    ui.PrintMessage('\nWrote file://%s' % result)
   elif compress and len(trace_results) == 1:
     result = output or trace_results[0].source_name + '.gz'
     util.WriteDataToCompressedFile(trace_results[0].raw_data, result)
@@ -88,15 +88,17 @@ def CaptureProfile(options, interval, modules, output=None,
     result = controller.StartTracing()
     trace_type = controller.GetTraceType()
     if not result:
-      print 'Trace starting failed.'
+      ui.PrintMessage('Trace starting failed.')
     if interval:
       ui.PrintMessage(('Capturing %d-second %s. Press Enter to stop early...' %
                      (interval, trace_type)), eol='')
       ui.WaitForEnter(interval)
     else:
       ui.PrintMessage('Capturing %s. Press Enter to stop...' % trace_type,
-                     eol='')
+                      eol='')
       raw_input()
+
+    ui.PrintMessage('Stopping...')
     all_results = controller.StopTracing()
   finally:
     if interval:
