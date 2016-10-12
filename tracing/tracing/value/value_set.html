@@ -40,20 +40,32 @@ tr.exportTo('tr.v', function() {
       }
     }
 
-    get valueDicts() {
-      return this.map(v => v.asDict());
-    }
+    /**
+     * @param {!tr.v.Histogram} hist
+     * @param {(!Object|!tr.v.d.DiagnosticMap)=} opt_diagnostics
+     */
+    addHistogram(hist, opt_diagnostics) {
+      if (this.values_.has(hist.guid)) {
+        throw new Error('Cannot add same Histogram twice');
+      }
 
-    lookup(guid) {
-      return this.values_.get(guid);
+      if (opt_diagnostics !== undefined) {
+        if (opt_diagnostics instanceof tr.v.d.DiagnosticMap) {
+          for (var [name, diagnostic] of opt_diagnostics) {
+            hist.diagnostics.set(name, diagnostic);
+          }
+        } else {
+          tr.b.iterItems(opt_diagnostics, (name, diagnostic) =>
+              hist.diagnostics.set(name, diagnostic));
+        }
+      }
+
+
+      this.values_.set(hist.guid, hist);
     }
 
     get length() {
       return this.values_.size;
-    }
-
-    toArray() {
-      return [...this];
     }
 
     * [Symbol.iterator]() {
@@ -62,11 +74,23 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * @param {!function(!tr.v.Histogram):*} callback
-     * @param {*=} opt_this
+     * Filters Histograms by matching their name exactly.
+     *
+     * @param {string} name Histogram name.
+     * @return {!Array.<!tr.v.Histogram>}
      */
-    map(callback, opt_this) {
-      return this.toArray().map(callback, opt_this || this);
+    getValuesNamed(name) {
+      return [...this].filter(h => h.name === name);
+    }
+
+    /**
+     * Lookup a Histogram by its guid.
+     *
+     * @param {string} guid
+     * @return {!tr.v.Histogram|undefined}
+     */
+    lookup(guid) {
+      return this.values_.get(guid);
     }
 
     resolveRelatedHistograms() {
@@ -141,20 +165,6 @@ tr.exportTo('tr.v', function() {
       return new ValueSet([...sourceValues.values()]);
     }
 
-    getValuesNamed(name) {
-      return this.toArray().filter(h => h.name === name);
-    }
-
-    /**
-     * @param {!tr.v.Histogram} h
-     */
-    addHistogram(h) {
-      if (this.values_.get(h.guid))
-        throw new Error('Cannot add same Histogram twice');
-
-      this.values_.set(h.guid, h);
-    }
-
     /**
      * Return a nested Map, whose keys are strings and leaf values are Arrays of
      * Histograms.
@@ -195,7 +205,7 @@ tr.exportTo('tr.v', function() {
         return groupedHistograms;
       }
 
-      return recurse(this.toArray(), 0);
+      return recurse([...this], 0);
     }
   }
 

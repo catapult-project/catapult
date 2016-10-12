@@ -22,7 +22,7 @@ tr.b.unittest.testSuite(function() {
     var n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
     var values = new tr.v.ValueSet([n]);
     var values2 = new tr.v.ValueSet();
-    values2.addValuesFromDicts(values.valueDicts);
+    values2.addValuesFromDicts([...values].map(h => h.asDict()));
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
   });
 
@@ -32,7 +32,7 @@ tr.b.unittest.testSuite(function() {
 
     var values = new tr.v.ValueSet([n]);
     var values2 = new tr.v.ValueSet();
-    values2.addValuesFromDicts(values.valueDicts);
+    values2.addValuesFromDicts([...values].map(h => h.asDict()));
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
     var v = values2.getValuesNamed('foo')[0];
     assert.lengthOf(v.getBinForValue(10).diagnosticMaps, 1);
@@ -56,7 +56,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
 
     var values2 = new tr.v.ValueSet();
-    values2.addValuesFromDicts(values.valueDicts);
+    values2.addValuesFromDicts([...values].map(h => h.asDict()));
     values2.resolveRelatedHistograms();
 
     var a2 = values2.getValuesNamed('a');
@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
 
     var values2 = new tr.v.ValueSet();
-    values2.addValuesFromDicts(values.valueDicts);
+    values2.addValuesFromDicts([...values].map(h => h.asDict()));
     values2.resolveRelatedHistograms();
 
     var a2 = values2.getValuesNamed('a');

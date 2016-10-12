@@ -58,7 +58,9 @@ tr.exportTo('tr.metrics', function() {
     }
     // Values can be separated from their ValueSet and mixed into ValueSets
     // with Values from other iterations, so add IterationInfo to each Value.
-    values.map(v => iterationInfo.addToValue(v));
+    for (var hist of values) {
+      iterationInfo.addToValue(hist);
+    }
   }
 
   /**
@@ -71,7 +73,7 @@ tr.exportTo('tr.metrics', function() {
     var values = runMetrics(model, options);
     addIterationInfo(values, model);
 
-    result.addPair('histograms', values.valueDicts);
+    result.addPair('histograms', [...values].map(h => h.asDict()));
 
     var scalarDicts = [];
     for (var value of values) {
