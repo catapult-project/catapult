@@ -306,7 +306,8 @@ Polymer({
     for (var bin of this.histogram.allBins) {
       var x = bin.range.min;
       if (x === -Number.MAX_VALUE) {
-        x = '<' + bin.range.max;
+        x = '<' + new tr.v.ScalarNumeric(
+            this.histogram.unit, bin.range.max).toString();
       } else {
         x = new tr.v.ScalarNumeric(this.histogram.unit, x).toString();
       }
