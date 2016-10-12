@@ -20,7 +20,7 @@ from devil.utils import find_usb_devices
 
 _SUPPORTED_CQ_PLATFORMS = ['win', 'linux', 'mac']
 
-class BattorWrapperDeviceTest(unittest.TestCase):
+class BattOrWrapperDeviceTest(unittest.TestCase):
   def setUp(self):
     test_platform = platform.system()
     self._battor_list = None
@@ -29,7 +29,7 @@ class BattorWrapperDeviceTest(unittest.TestCase):
     elif 'Linux' in test_platform:
       self._platform = 'linux'
       device_tree  = find_usb_devices.GetBusNumberToDeviceTreeMap()
-      self._battor_list = battor_device_mapping.GetBattorList(device_tree)
+      self._battor_list = battor_device_mapping.GetBattOrList(device_tree)
     elif 'Darwin' in test_platform:
       self._platform = 'mac'
 
@@ -49,7 +49,7 @@ class BattorWrapperDeviceTest(unittest.TestCase):
 
     battor_path = (None if not self._battor_list
                    else '/dev/%s' % self._battor_list[0])
-    battor = battor_wrapper.BattorWrapper(self._platform,
+    battor = battor_wrapper.BattOrWrapper(self._platform,
                                           battor_path=battor_path)
     try:
       battor.StartShell()
@@ -65,7 +65,7 @@ class BattorWrapperDeviceTest(unittest.TestCase):
 
       # Below is a work around for crbug.com/603309. On this short of a trace, 5
       # seconds is enough to ensure that the trace will finish flushing to the
-      # file. The process is then killed so that BattorWrapper knows that the
+      # file. The process is then killed so that BattOrWrapper knows that the
       # process has been closed after tracing stops.
       if self._platform == 'win':
         time.sleep(5)

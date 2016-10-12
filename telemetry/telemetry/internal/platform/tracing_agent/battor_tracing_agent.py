@@ -37,7 +37,7 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     self._battery = (
         battery_utils.BatteryUtils(platform_backend.device)
         if platform_backend.GetOSName() == 'android' else None)
-    self._battor = battor_wrapper.BattorWrapper(
+    self._battor = battor_wrapper.BattOrWrapper(
         platform_backend.GetOSName(), android_device=android_device,
         serial_log_bucket=cloud_storage.TELEMETRY_OUTPUT)
 
@@ -72,7 +72,7 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
       self._battor.StartShell()
       self._battor.StartTracing()
       return True
-    except battor_error.BattorError:
+    except battor_error.BattOrError:
       if self._battery:
         self._battery.SetCharging(True)
       raise
@@ -101,7 +101,7 @@ class BattOrTracingAgent(tracing_agent.TracingAgent):
     timestamp = trace_time.Now()
     try:
       self._battor.RecordClockSyncMarker(sync_id)
-    except battor_error.BattorError:
+    except battor_error.BattOrError:
       logging.critical(
           'Error while clock syncing with BattOr. Killing BattOr shell.')
       self._battor.KillBattOrShell()

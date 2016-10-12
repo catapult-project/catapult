@@ -21,11 +21,11 @@ def try_create_agent(config):
   if config.from_file is not None:
     return None
   if config.battor:
-    return BattorTraceAgent()
+    return BattOrTraceAgent()
   return None
 
 
-class BattorConfig(tracing_agents.TracingConfig):
+class BattOrConfig(tracing_agents.TracingConfig):
   def __init__(self, battor_categories, hub_types, serial_map, battor_path,
                update_map, battor, target, from_file):
     tracing_agents.TracingConfig.__init__(self)
@@ -40,7 +40,7 @@ class BattorConfig(tracing_agents.TracingConfig):
 
 
 def add_options(parser):
-  options = optparse.OptionGroup(parser, 'Battor trace options')
+  options = optparse.OptionGroup(parser, 'BattOr trace options')
   options.add_option('--battor-categories', dest='battor_categories',
                      help='Select battor categories with a comma-delimited '
                      'list, e.g. --battor-categories=cat1,cat2,cat3')
@@ -61,7 +61,7 @@ def add_options(parser):
   return options
 
 def get_config(options):
-  return BattorConfig(options.battor_categories, options.hub_types,
+  return BattOrConfig(options.battor_categories, options.hub_types,
                       options.serial_map, options.battor_path,
                       options.update_map, options.battor, options.target,
                       options.from_file)
@@ -72,11 +72,11 @@ def _reenable_charging_if_needed(battery):
   logging.info('Charging status checked at exit.')
 
 
-class BattorTraceAgent(tracing_agents.TracingAgent):
+class BattOrTraceAgent(tracing_agents.TracingAgent):
   # Class representing tracing agent that gets data from a BattOr.
   # BattOrs are high-frequency power monitors used for battery testing.
   def __init__(self):
-    super(BattorTraceAgent, self).__init__()
+    super(BattOrTraceAgent, self).__init__()
     self._collection_process = None
     self._recording_error = None
     self._battor_wrapper = None
@@ -95,7 +95,7 @@ class BattorTraceAgent(tracing_agents.TracingAgent):
     if config.update_map or not path.isfile(config.serial_map):
       battor_device_mapping.GenerateSerialMapFile(config.serial_map,
                                                   config.hub_types)
-    self._battor_wrapper = battor_wrapper.BattorWrapper(
+    self._battor_wrapper = battor_wrapper.BattOrWrapper(
         target_platform=config.target,
         android_device=config.device_serial_number,
         battor_path=config.battor_path,

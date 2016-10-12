@@ -4,5 +4,5 @@
 
 from devil import base_error
 
-class BattorError(base_error.BaseError):
+class BattOrError(base_error.BaseError):
   pass

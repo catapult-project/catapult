@@ -33,7 +33,7 @@ def IsBattOrConnected(test_platform, android_device=None,
 
     if not android_device_map:
       device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap()
-      if len(battor_device_mapping.GetBattorList(device_tree)) == 1:
+      if len(battor_device_mapping.GetBattOrList(device_tree)) == 1:
         return True
       if android_device_file:
         android_device_map = battor_device_mapping.ReadSerialMapFile(
@@ -41,7 +41,7 @@ def IsBattOrConnected(test_platform, android_device=None,
       else:
         try:
           android_device_map = battor_device_mapping.GenerateSerialMap()
-        except battor_error.BattorError:
+        except battor_error.BattOrError:
           return False
 
     # If neither if statement above is triggered, it means that an
@@ -64,12 +64,12 @@ def IsBattOrConnected(test_platform, android_device=None,
 
   elif test_platform == 'linux':
     device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
-    return bool(battor_device_mapping.GetBattorList(device_tree))
+    return bool(battor_device_mapping.GetBattOrList(device_tree))
 
   return False
 
 
-class BattorWrapper(object):
+class BattOrWrapper(object):
   """A class for communicating with a BattOr in python."""
   _START_TRACING_CMD = 'StartTracing'
   _STOP_TRACING_CMD = 'StopTracing'
@@ -101,7 +101,7 @@ class BattorWrapper(object):
         are uploaded on failure.
       _serial_log_file: Temp file for the BattOr agent serial log.
     """
-    self._battor_path = self._GetBattorPath(target_platform, android_device,
+    self._battor_path = self._GetBattOrPath(target_platform, android_device,
         battor_path, battor_map_file, battor_map)
     config = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
@@ -152,7 +152,7 @@ class BattorWrapper(object):
     """Start tracing on the BattOr."""
     assert self._battor_shell, 'Must start shell before tracing'
     assert not self._tracing, 'Tracing already started.'
-    self._SendBattorCommand(self._START_TRACING_CMD)
+    self._SendBattOrCommand(self._START_TRACING_CMD)
     self._tracing = True
     self._start_tracing_time = int(time.time())
 
@@ -163,7 +163,7 @@ class BattorWrapper(object):
     temp_file = tempfile.NamedTemporaryFile(delete=False)
     self._trace_results_path = temp_file.name
     temp_file.close()
-    self._SendBattorCommand(
+    self._SendBattOrCommand(
         '%s %s' % (self._STOP_TRACING_CMD, self._trace_results_path),
         check_return=False)
     self._tracing = False
@@ -191,20 +191,20 @@ class BattorWrapper(object):
 
   def SupportsExplicitClockSync(self):
     """Returns if BattOr supports Clock Sync events."""
-    return bool(int(self._SendBattorCommand(self._SUPPORTS_CLOCKSYNC_CMD,
+    return bool(int(self._SendBattOrCommand(self._SUPPORTS_CLOCKSYNC_CMD,
                                             check_return=False)))
 
   def RecordClockSyncMarker(self, sync_id):
     """Record clock sync event on BattOr."""
     if not isinstance(sync_id, basestring):
       raise TypeError('sync_id must be a string.')
-    self._SendBattorCommand('%s %s' % (self._RECORD_CLOCKSYNC_CMD, sync_id))
+    self._SendBattOrCommand('%s %s' % (self._RECORD_CLOCKSYNC_CMD, sync_id))
 
-  def _GetBattorPath(self, target_platform, android_device=None,
+  def _GetBattOrPath(self, target_platform, android_device=None,
                      battor_path=None, battor_map_file=None, battor_map=None):
     """Determines most likely path to the correct BattOr."""
     if target_platform not in self._SUPPORTED_PLATFORMS:
-      raise battor_error.BattorError(
+      raise battor_error.BattOrError(
           '%s is an unsupported platform.' % target_platform)
     if target_platform in ['win']:
       # Right now, the BattOr agent binary isn't able to automatically detect
@@ -214,7 +214,7 @@ class BattorWrapper(object):
       for (port, desc, _) in serial.tools.list_ports.comports():
         if 'USB Serial Port' in desc:
           return port
-      raise battor_error.BattorError(
+      raise battor_error.BattOrError(
           'Could not find BattOr attached to machine.')
     if target_platform in ['mac']:
       for (port, desc, _) in serial.tools.list_ports.comports():
@@ -225,26 +225,26 @@ class BattorWrapper(object):
       device_tree = find_usb_devices.GetBusNumberToDeviceTreeMap(fast=True)
       if battor_path:
         if not isinstance(battor_path, basestring):
-          raise battor_error.BattorError(
+          raise battor_error.BattOrError(
               'An invalid BattOr path was specified.')
         return battor_path
 
       if target_platform == 'android':
         if not android_device:
-          raise battor_error.BattorError(
+          raise battor_error.BattOrError(
               'Must specify device for Android platform.')
         if not battor_map_file and not battor_map:
           # No map was passed, so must create one.
           battor_map = battor_device_mapping.GenerateSerialMap()
 
-        return battor_device_mapping.GetBattorPathFromPhoneSerial(
+        return battor_device_mapping.GetBattOrPathFromPhoneSerial(
             str(android_device), serial_map_file=battor_map_file,
             serial_map=battor_map)
 
       # Not Android and no explicitly passed BattOr.
-      battors = battor_device_mapping.GetBattorList(device_tree)
+      battors = battor_device_mapping.GetBattOrList(device_tree)
       if len(battors) != 1:
-        raise battor_error.BattorError(
+        raise battor_error.BattOrError(
             'For non-Android platforms, exactly one BattOr must be '
             'attached unless address is explicitly given.')
       return '/dev/%s' % battors.pop()
@@ -252,20 +252,20 @@ class BattorWrapper(object):
     raise NotImplementedError(
         'BattOr Wrapper not implemented for given platform')
 
-  def _SendBattorCommandImpl(self, cmd):
+  def _SendBattOrCommandImpl(self, cmd):
     """Sends command to the BattOr."""
     self._battor_shell.stdin.write('%s\n' % cmd)
     self._battor_shell.stdin.flush()
     return self._battor_shell.stdout.readline()
 
-  def _SendBattorCommand(self, cmd, check_return=True):
-    status = self._SendBattorCommandImpl(cmd)
+  def _SendBattOrCommand(self, cmd, check_return=True):
+    status = self._SendBattOrCommandImpl(cmd)
 
     if check_return and not 'Done.' in status:
       self.KillBattOrShell()
       self._UploadSerialLogToCloudStorage()
       self._serial_log_file = None
-      raise battor_error.BattorError(
+      raise battor_error.BattOrError(
           'BattOr did not complete command \'%s\' correctly.\n'
           'Outputted: %s' % (cmd, status))
     return status

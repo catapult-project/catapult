@@ -32,16 +32,16 @@ battor_device_mapping.GenerateSerialMapFile = raise_error
 
 def setup_battor_test(StartShell_error, StartTracing_error,
                       StopTracing_error, CollectTraceData_error):
-  wrapper = MockBattorWrapper(StartShell_error, StartTracing_error,
+  wrapper = MockBattOrWrapper(StartShell_error, StartTracing_error,
                               StopTracing_error, CollectTraceData_error)
   def wrapper_maker(*args, **kwargs):
     del args
     del kwargs
     return wrapper
-  battor_wrapper.BattorWrapper = wrapper_maker
+  battor_wrapper.BattOrWrapper = wrapper_maker
 
 
-class MockBattorWrapper(object):
+class MockBattOrWrapper(object):
   def __init__(self, StartShell_error=False, StartTracing_error=False,
                StopTracing_error=False, CollectTraceData_error=False):
     self._StartShell_error = StartShell_error
@@ -98,13 +98,13 @@ class MockBatteryUtils(object):
 battery_utils.BatteryUtils = MockBatteryUtils
 
 
-class BattorAgentTest(unittest.TestCase):
+class BattOrAgentTest(unittest.TestCase):
 
   @decorators.HostOnlyTest
   def test_trace_double_start(self):
     setup_battor_test(StartShell_error=False, StartTracing_error=False,
                       StopTracing_error=False, CollectTraceData_error=False)
-    agent = battor_trace_agent.BattorTraceAgent()
+    agent = battor_trace_agent.BattOrTraceAgent()
     agent.StartAgentTracing(OPTIONS, CATEGORIES)
     self.assertRaises(AssertionError,
                       lambda: agent.StartAgentTracing(OPTIONS, CATEGORIES))
@@ -113,7 +113,7 @@ class BattorAgentTest(unittest.TestCase):
   def test_trace_error_start_shell(self):
     setup_battor_test(StartShell_error=True, StartTracing_error=False,
                       StopTracing_error=False, CollectTraceData_error=False)
-    agent = battor_trace_agent.BattorTraceAgent()
+    agent = battor_trace_agent.BattOrTraceAgent()
     self.assertRaises(RuntimeError,
                       lambda: agent.StartAgentTracing(OPTIONS, CATEGORIES))
 
@@ -121,7 +121,7 @@ class BattorAgentTest(unittest.TestCase):
   def test_trace_error_start_tracing(self):
     setup_battor_test(StartShell_error=False, StartTracing_error=True,
                       StopTracing_error=False, CollectTraceData_error=False)
-    agent = battor_trace_agent.BattorTraceAgent()
+    agent = battor_trace_agent.BattOrTraceAgent()
     self.assertRaises(RuntimeError,
                       lambda: agent.StartAgentTracing(OPTIONS, CATEGORIES))
 
@@ -129,7 +129,7 @@ class BattorAgentTest(unittest.TestCase):
   def test_trace_error_stop_tracing(self):
     setup_battor_test(StartShell_error=False, StartTracing_error=False,
                       StopTracing_error=True, CollectTraceData_error=False)
-    agent = battor_trace_agent.BattorTraceAgent()
+    agent = battor_trace_agent.BattOrTraceAgent()
     agent.StartAgentTracing(OPTIONS, CATEGORIES)
     self.assertRaises(RuntimeError, agent.StopAgentTracing)
 
@@ -137,7 +137,7 @@ class BattorAgentTest(unittest.TestCase):
   def test_trace_error_get_results(self):
     setup_battor_test(StartShell_error=False, StartTracing_error=False,
                       StopTracing_error=False, CollectTraceData_error=True)
-    agent = battor_trace_agent.BattorTraceAgent()
+    agent = battor_trace_agent.BattOrTraceAgent()
     agent.StartAgentTracing(OPTIONS, CATEGORIES)
     agent.StopAgentTracing()
     self.assertRaises(RuntimeError, agent.GetResults)
@@ -146,7 +146,7 @@ class BattorAgentTest(unittest.TestCase):
   def test_trace_complete(self):
     setup_battor_test(StartShell_error=False, StartTracing_error=False,
                       StopTracing_error=False, CollectTraceData_error=False)
-    agent = battor_trace_agent.BattorTraceAgent()
+    agent = battor_trace_agent.BattOrTraceAgent()
     agent.StartAgentTracing(OPTIONS, CATEGORIES)
     agent.StopAgentTracing()
     x = agent.GetResults()

@@ -118,7 +118,7 @@ class ValueTest(TestBase):
 
   def testFindTraceParts(self):
     raw_data = {
-      'powerTraceAsString': 'Battor Data',
+      'powerTraceAsString': 'BattOr Data',
       'traceEvents': 'Chrome Data',
       'tabIds': 'Tab Data',
     }
