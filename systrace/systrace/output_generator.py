@@ -143,7 +143,7 @@ def MergeTraceResultsIfNeeded(trace_results):
   for candidate in merge_candidates[1:]:
     json_data = candidate.raw_data
     for key, value in json_data.items():
-      if not str(key) in merged_data or str(key) in json_data:
+      if not str(key) in merged_data or not merged_data[str(key)]:
         merged_data[str(key)] = value
 
   return ([trace_result.TraceResult('merged-data', json.dumps(merged_data))]
