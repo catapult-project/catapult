@@ -6,8 +6,15 @@
 
 import webapp2
 
+from dashboard.pinpoint.handlers import job
+from dashboard.pinpoint.handlers import new
+from dashboard.pinpoint.handlers import run
+
 
 _URL_MAPPING = [
+    (r'/job/(\w+)', job.JobHandler),
+    (r'/new', new.NewHandler),
+    (r'/run/(\w+)', run.RunHandler),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

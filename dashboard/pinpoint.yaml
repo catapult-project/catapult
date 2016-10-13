@@ -7,6 +7,11 @@ instance_class: F1
 
 handlers:
 
+- url: /run/.*
+  script: dashboard.pinpoint.dispatcher.APP
+  login: admin
+  secure: always
+
 - url: /.*
   script: dashboard.pinpoint.dispatcher.APP
   secure: always
