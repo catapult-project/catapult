@@ -55,7 +55,9 @@ tr.b.unittest.testSuite(function() {
         }));
     });
     var valueSet = new tr.v.ValueSet();
-    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.lengthOf(valueSet, 0);
   });
 
   test('powerMetric_emptyPowerSeries', function() {
@@ -80,7 +82,9 @@ tr.b.unittest.testSuite(function() {
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
     });
     var valueSet = new tr.v.ValueSet();
-    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.lengthOf(valueSet, 0);
   });
 
   test('powerMetric_noChromeTrace', function() {
@@ -91,7 +95,9 @@ tr.b.unittest.testSuite(function() {
       }
     });
     var valueSet = new tr.v.ValueSet();
-    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.lengthOf(valueSet, 0);
   });
 
   test('powerMetric_emptyChromeTrace', function() {
@@ -108,7 +114,9 @@ tr.b.unittest.testSuite(function() {
         model, tr.model.um.LOAD_SUBTYPE_NAMES.SUCCESSFUL, 0, 500));
     model.userModel.expectations.push(new tr.model.um.IdleExpectation(
         model, 500, 500));
-    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.lengthOf(valueSet, 0);
   });
 
   test('powerMetric_powerSeriesStartsLate', function() {
@@ -140,7 +148,9 @@ tr.b.unittest.testSuite(function() {
           model, 500, 500));
     });
     var valueSet = new tr.v.ValueSet();
-    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.lengthOf(valueSet, 0);
   });
 
   test('powerMetric_powerSeriesEndsEarly', function() {
@@ -172,7 +182,9 @@ tr.b.unittest.testSuite(function() {
           model, 500, 500));
     });
     var valueSet = new tr.v.ValueSet();
-    assert.throws(() => {tr.metrics.sh.powerMetric(valueSet, model)});
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.lengthOf(valueSet, 0);
   });
 
   test('powerMetric_generic_oneStageEachType_irBeyondChrome', function() {

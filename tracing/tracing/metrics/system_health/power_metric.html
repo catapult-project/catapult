@@ -290,39 +290,27 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function powerMetric(values, model) {
-    // Fail gracefully if there's no Chrome trace available.
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
     var powerSeries = model.device.powerSeries;
-    if (chromeHelper === undefined) {
-      throw new Error('Cannot calculate power metric: No Chrome trace');
+    if (chromeHelper === undefined || powerSeries === undefined ||
+        powerSeries.samples.length === 0) {
+      // There's no Chrome trace or no power trace.
+      return;
     }
 
-    // Fail gracefully if there's no power series available.
-    if (powerSeries === undefined) {
-      throw new Error('Cannot calculate power metric: ' +
-          'No power series available');
-    }
-
-    if (powerSeries.samples.length === 0) {
-      throw new Error('Cannot calculate power metric: ' +
-          'Power series has no samples');
-    }
-
-    // Fail gracefully if the power series doesn't cover the entire trace.
-    // (add 1 ms grace period at each end)
     var chromeBounds = computeChromeBounds(model);
     if (chromeBounds.isEmpty) {
-      throw new Error('Cannot calculate power metric: ' +
-          'No events in Chrome trace');
+      // There are no events in the Chrome trace.
+      return;
     }
 
     var powerSeriesBoundsWithGracePeriod = tr.b.Range.fromExplicitRange(
-      powerSeries.bounds.min - 1, powerSeries.bounds.max + 1);
+        powerSeries.bounds.min - 1, powerSeries.bounds.max + 1);
     if (!powerSeriesBoundsWithGracePeriod.containsRangeExclusive(
-      chromeBounds)) {
-      throw new Error('Cannot calculate power metric: ' +
-          'Power series does not cover entire Chrome trace');
+        chromeBounds)) {
+      // The power series doesn't cover the entire Chrome trace.
+      return;
     }
 
     var hists = createHistograms_(model, values);
