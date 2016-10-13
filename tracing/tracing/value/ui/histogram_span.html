@@ -293,8 +293,14 @@ Polymer({
     this.$.stats.scalarMap = scalarMap;
 
     if (this.histogram.diagnostics.size > 0) {
-      this.$.histogram_diagnostics.diagnosticMaps = [
-        this.histogram.diagnostics];
+      var diagnosticMap = new tr.v.d.DiagnosticMap();
+      for (var [key, diagnostic] of this.histogram.diagnostics) {
+        // Hide the 'merged from' diagnostic, which is an implementation detail.
+        if (key !== tr.v.MERGED_FROM_DIAGNOSTIC_KEY) {
+          diagnosticMap.set(key, diagnostic);
+        }
+      }
+      this.$.histogram_diagnostics.diagnosticMaps = [diagnosticMap];
       this.$.histogram_diagnostics.style.display = 'block';
     } else {
       this.$.histogram_diagnostics.style.display = 'none';

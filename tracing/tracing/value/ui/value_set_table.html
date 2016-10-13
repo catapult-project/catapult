@@ -682,7 +682,7 @@ tr.exportTo('tr.ui', function() {
                 row.description = value.description;
               }
 
-              if (!row.columns[name]) {
+              if (row.columns[name] === undefined) {
                 row.columns[name] = value;
                 continue;
               }
@@ -699,11 +699,11 @@ tr.exportTo('tr.ui', function() {
               // either Histogram's diagnostics.
               // |value.name| might not necessarily equal |row.columns[name]|,
               // but that shouldn't matter for this dom-module.
-              // TODO(eakuefner) When MergedFrom diagnostic lands, only create a
-              // new Histogram if |row.columns[name]| doesn't have it so that we
-              // don't create new Histograms unnecessarily.
-              var merged = value.cloneEmpty();
-              merged.addHistogram(row.columns[name]);
+              var merged = row.columns[name];
+              if (!merged.diagnostics.has(tr.v.MERGED_FROM_DIAGNOSTIC_KEY)) {
+                merged = merged.cloneEmpty();
+                merged.addHistogram(row.columns[name]);
+              }
               merged.addHistogram(value);
               row.columns[name] = merged;
             }

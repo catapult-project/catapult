@@ -145,17 +145,23 @@ tr.exportTo('tr.v', function() {
       // source Histogram.
       function deleteSourceValues(diagnosticMap) {
         for (var [name, diagnostic] of diagnosticMap) {
-          if (diagnostic instanceof tr.v.d.RelatedValueSet)
-            for (var relatedValue of diagnostic)
+          if (diagnostic instanceof tr.v.d.RelatedValueSet) {
+            for (var relatedValue of diagnostic) {
               sourceValues.delete(relatedValue.guid);
-          else if (diagnostic instanceof tr.v.d.RelatedValueMap)
-            for (var [name, relatedValue] of diagnostic)
+            }
+          } else if (diagnostic instanceof tr.v.d.RelatedValueMap) {
+            for (var [name, relatedValue] of diagnostic) {
               sourceValues.delete(relatedValue.guid);
+            }
+          }
         }
       }
 
       for (var hist of this) {
         deleteSourceValues(hist.diagnostics);
+        for (var dm of hist.nanDiagnosticMaps) {
+          deleteSourceValues(dm);
+        }
         for (var b of hist.allBins) {
           for (var dm of b.diagnosticMaps) {
             deleteSourceValues(dm);

@@ -22,6 +22,8 @@ tr.exportTo('tr.v', function() {
 
   var DEFAULT_BOUNDARIES_FOR_UNIT = new Map();
 
+  var MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
+
   class HistogramBin {
     /**
      * @param {!tr.b.Range} range
@@ -141,13 +143,12 @@ tr.exportTo('tr.v', function() {
       this.overflowBin = new HistogramBin(tr.b.Range.fromExplicitRange(
           binBoundaries.range.max, Number.MAX_VALUE));
 
-      for (var range of binBoundaries.binRanges()) {
-        this.centralBins.push(new HistogramBin(range));
-      }
-
       this.allBins = [this.underflowBin];
-      for (var bin of this.centralBins)
+      for (var range of binBoundaries.binRanges()) {
+        var bin = new HistogramBin(range);
+        this.centralBins.push(bin);
         this.allBins.push(bin);
+      }
       this.allBins.push(this.overflowBin);
 
       this.maxNumSampleValues_ = this.defaultMaxNumSampleValues_;
@@ -263,9 +264,7 @@ tr.exportTo('tr.v', function() {
     }
 
     get numValues() {
-      return tr.b.Statistics.sum(this.allBins, function(e) {
-        return e.count;
-      });
+      return this.running.count;
     }
 
     get average() {
@@ -397,15 +396,37 @@ tr.exportTo('tr.v', function() {
      * @return {boolean}
      */
     canAddHistogram(other) {
-      if (this.unit !== other.unit)
+      if (this.unit !== other.unit) {
         return false;
-      if (this.allBins.length !== other.allBins.length)
+      }
+      if (this.binBoundariesDict_ === other.binBoundariesDict_) {
+        return true;
+      }
+      // |binBoundariesDict_| may be equal even if they are not the same object.
+      if (this.binBoundariesDict_.length !== other.binBoundariesDict_.length) {
         return false;
-
-      for (var i = 0; i < this.allBins.length; ++i)
-        if (!this.allBins[i].range.equals(other.allBins[i].range))
-          return false;
-
+      }
+      for (var i = 0; i < this.binBoundariesDict_.length; ++i) {
+        var slice = this.binBoundariesDict_[i];
+        var otherSlice = other.binBoundariesDict_[i];
+        if (slice instanceof Array) {
+          if (!(otherSlice instanceof Array)) {
+            return false;
+          }
+          if (slice[0] !== otherSlice[0] ||
+              !tr.b.approximately(slice[1], otherSlice[1]) ||
+              slice[2] !== otherSlice[2]) {
+            return false;
+          }
+        } else {
+          if (otherSlice instanceof Array) {
+            return false;
+          }
+          if (!tr.b.approximately(slice, otherSlice)) {
+            return false;
+          }
+        }
+      }
       return true;
     }
 
@@ -423,13 +444,20 @@ tr.exportTo('tr.v', function() {
           other.nanDiagnosticMaps, other.numNans, MAX_DIAGNOSTIC_MAPS);
       tr.b.Statistics.mergeSampledStreams(
           this.sampleValues, this.numValues,
-          other.sampleValues, other.numValues, tr.b.Statistics.mean(
-              [this.maxNumSampleValues, other.maxNumSampleValues]));
+          other.sampleValues, other.numValues,
+          (this.maxNumSampleValues + other.maxNumSampleValues) / 2);
       this.numNans += other.numNans;
       this.running = this.running.merge(other.running);
       for (var i = 0; i < this.allBins.length; ++i) {
         this.allBins[i].addBin(other.allBins[i]);
       }
+
+      var mergedFrom = this.diagnostics.get(MERGED_FROM_DIAGNOSTIC_KEY);
+      if (!mergedFrom) {
+        mergedFrom = new tr.v.d.RelatedValueSet();
+        this.diagnostics.set(MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
+      }
+      mergedFrom.add(other);
     }
 
     /**
@@ -757,8 +785,16 @@ tr.exportTo('tr.v', function() {
     }
 
     asDict() {
-      // Copy builder_ in case ours is modified later.
-      return this.builder_.slice();
+      // Don't copy builder_ here so that Histogram.canAddHistogram() can test
+      // for object identity.
+      return this.builder_;
+    }
+
+    pushBuilderSlice_(slice) {
+      this.builder_.push(slice);
+      // Copy builder_ when it's modified so that Histogram.canAddHistogram()
+      // can test for object identity.
+      this.builder_ = this.builder_.slice();
     }
 
     static fromDict(dict) {
@@ -866,7 +902,7 @@ tr.exportTo('tr.v', function() {
       // If boundaries_ had been built, then clear them.
       this.boundaries_ = undefined;
 
-      this.builder_.push(nextMaxBinBoundary);
+      this.pushBuilderSlice_(nextMaxBinBoundary);
       this.range.addValue(nextMaxBinBoundary);
       return this;
     }
@@ -905,7 +941,8 @@ tr.exportTo('tr.v', function() {
       // If boundaries_ had been built, then clear them.
       this.boundaries_ = undefined;
 
-      this.builder_.push([HistogramBinBoundaries.SLICE_TYPE.LINEAR,
+      this.pushBuilderSlice_([
+          HistogramBinBoundaries.SLICE_TYPE.LINEAR,
           nextMaxBinBoundary, binCount]);
       this.range.addValue(nextMaxBinBoundary);
       return this;
@@ -950,7 +987,8 @@ tr.exportTo('tr.v', function() {
       // If boundaries_ had been built, then clear them.
       this.boundaries_ = undefined;
 
-      this.builder_.push([HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL,
+      this.pushBuilderSlice_([
+          HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL,
           nextMaxBinBoundary, binCount]);
       this.range.addValue(nextMaxBinBoundary);
       return this;
@@ -997,6 +1035,7 @@ tr.exportTo('tr.v', function() {
   return {
     Histogram: Histogram,
     HistogramBinBoundaries: HistogramBinBoundaries,
+    MERGED_FROM_DIAGNOSTIC_KEY: MERGED_FROM_DIAGNOSTIC_KEY
   };
 });
 </script>

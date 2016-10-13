@@ -237,6 +237,7 @@ tr.exportTo('tr.ui.b', function() {
       this.customizeTableRowCallback_ = undefined;
       this.defaultExpansionStateCallback_ = undefined;
       this.userCanModifySortOrder_ = true;
+      this.computedFontSizePx_ = undefined;
     },
 
     ready: function() {
@@ -683,8 +684,11 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     get basicIndentation_() {
-      var px = parseInt(getComputedStyle(this).fontSize) || 16;
-      return px - 2;
+      if (this.computedFontSizePx_ === undefined) {
+        this.computedFontSizePx_ = parseInt(
+            getComputedStyle(this).fontSize) || 16;
+      }
+      return this.computedFontSizePx_ - 2;
     },
 
     getHTMLNodeForRowInfo_: function(tableSection, rowInfo,
