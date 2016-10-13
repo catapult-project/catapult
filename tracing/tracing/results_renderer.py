@@ -10,19 +10,39 @@ import tracing_project
 from py_vulcanize import generate
 
 
-_JSON_TAG = '<div class="histogram-json">%s</div>'
+# If you change this, please update "Fall-back to old formats."
+_JSON_TAG = '<histogram-json>%s</histogram-json>'
 
 
-def ReadExistingResults(output_stream):
-  output_stream.seek(0)
-  results_html = output_stream.read()
-  if not results_html:
-    return []
+def ExtractJSON(results_html, json_tag=_JSON_TAG):
   histograms = []
-  pattern = '(.*?)'.join(re.escape(part) for part in _JSON_TAG.split('%s'))
+  pattern = '(.*?)'.join(re.escape(part) for part in json_tag.split('%s'))
   flags = re.MULTILINE | re.DOTALL
   for match in re.finditer(pattern, results_html, flags):
     histograms.append(json.loads(match.group(1)))
+  return histograms
+
+
+def ReadExistingResults(results_html):
+  if not isinstance(results_html, basestring):
+    results_html.seek(0)
+    results_html = results_html.read()
+
+  if not results_html:
+    return []
+
+  histograms = ExtractJSON(results_html)
+
+  # Fall-back to old formats.
+  if not histograms:
+    histograms = ExtractJSON(
+        results_html, json_tag='<div class="histogram-json">%s</div>')
+  if not histograms:
+    match = re.search('<div id="value-set-json">(.*?)</div>', results_html,
+                      re.MULTILINE | re.DOTALL)
+    if match:
+      histograms = json.loads(match.group(1))
+
   if not histograms:
     logging.warn('Failed to extract previous results from HTML output')
   return histograms
@@ -39,11 +59,12 @@ def RenderHTMLView(histograms, output_stream, reset_results=False):
   html = generate.GenerateStandaloneHTMLAsString(load_sequence)
   output_stream.write(html)
 
+  output_stream.write('<div style="display:none;">')
   json_tag_newline = '\n%s' % _JSON_TAG
   for histogram in histograms:
     hist_json = json.dumps(histogram, separators=(',', ':'))
     output_stream.write(json_tag_newline % hist_json)
-  output_stream.write('\n')
+  output_stream.write('\n</div>\n')
 
   # If the output file already existed and was longer than the new contents,
   # discard the old contents after this point.
