@@ -161,7 +161,9 @@ class TraceValue(value_module.Value):
       file_name = self.page.file_safe_name
     else:
       file_name = ''
-    file_name += str(self._temp_file.id) + self._temp_file.extension
+    file_name += str(self._temp_file.id)
+    file_name += datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    file_name += self._temp_file.extension
     file_path = os.path.abspath(os.path.join(dir_path, file_name))
     shutil.copy(self._temp_file.GetAbsPath(), file_path)
     self._serialized_file_handle = file_handle.FromFilePath(file_path)
