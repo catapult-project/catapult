@@ -21,7 +21,7 @@ tr.b.unittest.testSuite(function() {
 
   test('modelMapping', function() {
     var track = new SampleTrack(new tr.ui.TimelineViewport());
-    var fA = new StackFrame(undefined, 1, 'cat', 'a', 7);
+    var fA = new StackFrame(undefined, 1, 'a', 7);
     var sample = new Sample(undefined, undefined, 'instructions_retired',
                             10, fA, 10);
     track.samples = [sample];
