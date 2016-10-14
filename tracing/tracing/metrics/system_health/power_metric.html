@@ -39,7 +39,7 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
     var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(start, end);
     var powerInW = energyInJ / durationInS;
-    return {duration: durationInMs, energy: energyInJ, power: powerInW};
+    return {energy: energyInJ, power: powerInW};
   }
 
   // TODO(alexandermont): When LoadExpectation v1.0 is released,
@@ -130,12 +130,10 @@ tr.exportTo('tr.metrics.sh', function() {
    * data is not stored.
    *
    * @param {!Object} data - Power data (obtained from getPowerData_)
-   * @param {tr.v.Histogram} timeHist - Histogram to store time data.
    * @param {tr.v.Histogram} energyHist - Histogram to store energy data.
    * @param {tr.v.Histogram} powerHist - Histogram to store power data.
    */
-  function storePowerData_(data, timeHist, energyHist, powerHist) {
-    if (timeHist !== undefined) timeHist.addSample(data.duration);
+  function storePowerData_(data, energyHist, powerHist) {
     if (energyHist !== undefined) energyHist.addSample(data.energy);
     if (powerHist !== undefined) powerHist.addSample(data.power);
   }
@@ -145,38 +143,19 @@ tr.exportTo('tr.metrics.sh', function() {
 
     // "Generic" RAIL stage metrics. These give time, energy, and power
     // for each RAIL stage, indexed by name. For instance, "Tap Animation"
-    // is different from "Tap, Touch Animation". There is one histogram
+    // is different from "Scroll Animation". There is one histogram
     // for each RAIL stage name; if there are multiple RAIL stages with
     // the same name, these are different samples in the histogram.
-    hists.railStageToTimeHist = new Map();
     hists.railStageToEnergyHist = new Map();
     hists.railStageToPowerHist = new Map();
-
-    // Metrics for scrolling. A scroll stage is any stage with the
-    // string "Scroll" in its name. For instance, "Scroll Response",
-    // "Scroll Animation", and "Scroll, Touch Animation" are all
-    // scroll stages. Histograms for scroll metrics contain one
-    // sample for each scroll stage.
-    hists.scrollTimeHist = makeTimeHistogram_(values, 'scroll','scrolling');
-    hists.scrollEnergyHist = makeEnergyHistogram_(values, 'scroll','scrolling');
-    hists.scrollPowerHist = makePowerHistogram_(values, 'scroll','scrolling');
 
     // Metrics for loading. Loading intervals are defined by the intervals
     // between navigation and TTI (time-to-interactive) given by
     // getNavigationTTIIntervals_. We also have a metric for the energy
     // consumed after load.
-    hists.loadTimeHist = makeTimeHistogram_(values, 'load', 'page loads');
     hists.loadEnergyHist = makeEnergyHistogram_(values, 'load', 'page loads');
-    hists.afterLoadTimeHist = makeTimeHistogram_(values, 'after_load',
-        'period after load');
     hists.afterLoadPowerHist = makePowerHistogram_(values, 'after_load',
         'period after load');
-
-    // Metrics for video. A video stage is any stage with the string "Video"
-    // in its name. Histograms for video metrics contain one sample for each
-    // video stage. Only power metrics are available for video stages.
-    hists.videoPowerHist = makePowerHistogram_(values, 'video',
-        'video playback')
 
     // Frame based power metric.
     hists.frameEnergyHist = makeEnergyHistogram_(values, 'per_frame',
@@ -187,17 +166,30 @@ tr.exportTo('tr.metrics.sh', function() {
       // If we haven't seen a RAIL stage with this title before,
       // we have to create a new set of histograms for the "generic"
       // RAIL stage metrics.
-      if (!hists.railStageToTimeHist.has(currTitle)) {
-        var timeHist = makeTimeHistogram_(values, currTitle,
-            'RAIL stage ' + currTitle);
+      if (!hists.railStageToEnergyHist.has(currTitle)) {
+        var energyHist = undefined;
+        // Response stages keep track of energy, since response stages
+        // represent a particular event that happens at a specific time.
+        // If a change causes a response to take longer to process, then
+        // we want to count that as taking the energy over a longer
+        // period of time.
+        if (currTitle.indexOf('response') !== -1) {
+          var energyHist = makeEnergyHistogram_(values, currTitle,
+              'RAIL stage ' + currTitle);
+        }
 
-        var energyHist = makeEnergyHistogram_(values, currTitle,
-            'RAIL stage ' + currTitle);
+        var powerHist = undefined;
+        // Animation and idle stages keep track of power, since these
+        // types of stages represents events that occur over a period
+        // of time. For instance, "the energy it takes to play a video"
+        // does not have meaning because it depends on how long the video
+        // is; thus a more meaningful metric is power.
+        if (currTitle.indexOf('animation') !== -1 ||
+            currTitle.indexOf('idle') !== -1) {
+          var powerHist = makePowerHistogram_(values, currTitle,
+              'RAIL stage ' + currTitle);
+        }
 
-        var powerHist = makePowerHistogram_(values, currTitle,
-            'RAIL stage ' + currTitle);
-
-        hists.railStageToTimeHist.set(currTitle, timeHist);
         hists.railStageToEnergyHist.set(currTitle, energyHist);
         hists.railStageToPowerHist.set(currTitle, powerHist);
       }
@@ -216,23 +208,9 @@ tr.exportTo('tr.metrics.sh', function() {
         .findIntersection(chromeBounds);
     var data = getPowerData_(model, interval.min, interval.max);
 
-    // Add the samples for the "generic" RAIL stage metrics.
-    storePowerData_(data, hists.railStageToTimeHist.get(currTitle),
-        hists.railStageToEnergyHist.get(currTitle),
+    storePowerData_(data, hists.railStageToEnergyHist.get(currTitle),
         hists.railStageToPowerHist.get(currTitle));
 
-    // If this is a scroll stage, add the sample for the scroll metrics.
-    // TODO(alexandermont): Treat scroll responses different from
-    // scroll animations?
-    if (exp.initiatorType === tr.importer.INITIATOR_TYPE.SCROLL) {
-      storePowerData_(data, hists.scrollTimeHist,
-          hists.scrollEnergyHist, hists.scrollPowerHist);
-    }
-
-    // If this is a video stage, add the sample for the video metrics.
-    if (exp.initiatorType === tr.importer.INITIATOR_TYPE.VIDEO) {
-      storePowerData_(data, undefined, undefined, hists.videoPowerHist)
-    }
   }
 
   /**
@@ -246,15 +224,13 @@ tr.exportTo('tr.metrics.sh', function() {
     for (var ttiInterval of ttiIntervals) {
       var interval = ttiInterval.findIntersection(chromeBounds);
       var loadData = getPowerData_(model, interval.min, interval.max);
-      storePowerData_(loadData, hists.loadTimeHist, hists.loadEnergyHist,
-          undefined);
+      storePowerData_(loadData, hists.loadEnergyHist, undefined);
       lastLoadTime = (lastLoadTime === undefined ? interval.max :
           Math.max(lastLoadTime, interval.max));
     }
     if (lastLoadTime !== undefined) {
       var afterLoadData = getPowerData_(model, lastLoadTime, chromeBounds.max);
-      storePowerData_(afterLoadData, hists.afterLoadTimeHist,
-          undefined, hists.afterLoadPowerHist);
+      storePowerData_(afterLoadData, undefined, hists.afterLoadPowerHist);
     }
   }
 
