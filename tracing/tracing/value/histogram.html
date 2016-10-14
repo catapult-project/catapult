@@ -131,7 +131,7 @@ tr.exportTo('tr.v', function() {
       this.name_ = name;
       this.nanDiagnosticMaps = [];
       this.numNans = 0;
-      this.running = new tr.b.RunningStatistics();
+      this.running_ = undefined;
       this.sampleValues_ = [];
       this.shortName = undefined;
       this.summaryOptions = new Map(DEFAULT_SUMMARY_OPTIONS);
@@ -143,15 +143,21 @@ tr.exportTo('tr.v', function() {
       this.overflowBin = new HistogramBin(tr.b.Range.fromExplicitRange(
           binBoundaries.range.max, Number.MAX_VALUE));
 
+      this.centralBins.length = binBoundaries.binRanges.length;
       this.allBins = [this.underflowBin];
-      for (var range of binBoundaries.binRanges()) {
-        var bin = new HistogramBin(range);
-        this.centralBins.push(bin);
-        this.allBins.push(bin);
+      this.allBins.length = 2 + this.centralBins.length;
+      this.allBins[this.allBins.length - 1] = this.overflowBin;
+      for (var i = 0; i < this.centralBins.length; ++i) {
+        var bin = new HistogramBin(binBoundaries.binRanges[i]);
+        this.centralBins[i] = bin;
+        this.allBins[i + 1] = bin;
       }
-      this.allBins.push(this.overflowBin);
 
       this.maxNumSampleValues_ = this.defaultMaxNumSampleValues_;
+    }
+
+    get running() {
+      return this.running_;
     }
 
     get maxNumSampleValues() {
@@ -218,7 +224,7 @@ tr.exportTo('tr.v', function() {
         hist.maxCount_ = Math.max(hist.maxCount_, bin.count);
       }
       if (dict.running) {
-        hist.running = tr.b.RunningStatistics.fromDict(dict.running);
+        hist.running_ = tr.b.RunningStatistics.fromDict(dict.running);
       }
       if (dict.summaryOptions) {
         hist.customizeSummaryOptions(dict.summaryOptions);
@@ -264,23 +270,23 @@ tr.exportTo('tr.v', function() {
     }
 
     get numValues() {
-      return this.running.count;
+      return this.running_ ? this.running_.count : 0;
     }
 
     get average() {
-      return this.running.mean;
+      return this.running_ ? this.running_.mean : undefined;
     }
 
     get standardDeviation() {
-      return this.running.stddev;
+      return this.running_ ? this.running_.stddev : undefined;
     }
 
     get geometricMean() {
-      return this.running.geometricMean;
+      return this.running_ ? this.running_.geometricMean : 0;
     }
 
     get sum() {
-      return this.running.sum;
+      return this.running_ ? this.running_.sum : 0;
     }
 
     get maxCount() {
@@ -332,8 +338,7 @@ tr.exportTo('tr.v', function() {
       if (this.numValues === 0)
         return 0;
       var valuesToSkip = Math.floor((this.numValues - 1) * percent);
-      for (var i = 0; i < this.allBins.length; i++) {
-        var bin = this.allBins[i];
+      for (var bin of this.allBins) {
         valuesToSkip -= bin.count;
         if (valuesToSkip < 0) {
           if (bin === this.underflowBin)
@@ -370,7 +375,10 @@ tr.exportTo('tr.v', function() {
               this.numNans, opt_diagnostics, MAX_DIAGNOSTIC_MAPS);
         }
       } else {
-        this.running.add(value);
+        if (this.running_ === undefined) {
+          this.running_ = new tr.b.RunningStatistics();
+        }
+        this.running_.add(value);
 
         var bin = this.getBinForValue(value);
         bin.addSample(value);
@@ -447,7 +455,14 @@ tr.exportTo('tr.v', function() {
           other.sampleValues, other.numValues,
           (this.maxNumSampleValues + other.maxNumSampleValues) / 2);
       this.numNans += other.numNans;
-      this.running = this.running.merge(other.running);
+
+      if (other.running_ !== undefined) {
+        if (this.running_ === undefined) {
+          this.running_ = new tr.b.RunningStatistics();
+        }
+        this.running_ = this.running_.merge(other.running_);
+      }
+
       for (var i = 0; i < this.allBins.length; ++i) {
         this.allBins[i].addBin(other.allBins[i]);
       }
@@ -537,7 +552,10 @@ tr.exportTo('tr.v', function() {
           var statUnit = stat === 'count' ?
               tr.b.Unit.byName.count_smallerIsBetter : this.unit;
           var key = statNameToKey(stat);
-          var statValue = this.running[key];
+          if (this.running_ === undefined) {
+            this.running_ = new tr.b.RunningStatistics();
+          }
+          var statValue = this.running_[key];
 
           if (typeof(statValue) === 'number') {
             results.set(stat, new tr.v.ScalarNumeric(statUnit, statValue));
@@ -606,7 +624,7 @@ tr.exportTo('tr.v', function() {
 
       if (this.numValues) {
         dict.sampleValues = this.sampleValues.slice();
-        dict.running = this.running.asDict();
+        dict.running = this.running_.asDict();
         dict.centralBins = this.centralBinsAsDict_();
       }
 
@@ -774,10 +792,10 @@ tr.exportTo('tr.v', function() {
      *     no other boundaries are added later).
      */
     constructor(minBinBoundary) {
-      this.boundaries_ = undefined;
       this.builder_ = [minBinBoundary];
       this.range_ = new tr.b.Range();
       this.range_.addValue(minBinBoundary);
+      this.binRanges_ = undefined;
     }
 
     get range() {
@@ -831,56 +849,62 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Yield Ranges of adjacent boundaries.
+     * @return {!Array.<!tr.b.Range>}
      */
-    * binRanges() {
-      if (this.boundaries_ === undefined) {
+    get binRanges() {
+      if (this.binRanges_ === undefined) {
         this.build_();
       }
-      for (var i = 0; i < this.boundaries_.length - 1; ++i) {
-        yield tr.b.Range.fromExplicitRange(
-            this.boundaries_[i], this.boundaries_[i + 1]);
-      }
+      return this.binRanges_;
     }
 
     build_() {
       if (typeof this.builder_[0] !== 'number') {
         throw new Error('Invalid start of builder_');
       }
-      this.boundaries_ = [this.builder_[0]];
+      this.binRanges_ = [];
+      var prevBoundary = this.builder_[0];
 
       for (var slice of this.builder_.slice(1)) {
         if (!(slice instanceof Array)) {
-          this.boundaries_.push(slice);
+          this.binRanges_.push(
+              tr.b.Range.fromExplicitRange(prevBoundary, slice));
+          prevBoundary = slice;
           continue;
         }
         var nextMaxBinBoundary = slice[1];
         var binCount = slice[2];
-        var curMaxBinBoundary = this.boundaries_[
-            this.boundaries_.length - 1];
+        var sliceMinBinBoundary = prevBoundary;
 
         switch (slice[0]) {
           case HistogramBinBoundaries.SLICE_TYPE.LINEAR:
-            var binWidth = (nextMaxBinBoundary - curMaxBinBoundary) / binCount;
+            var binWidth = (nextMaxBinBoundary - prevBoundary) / binCount;
             for (var i = 1; i < binCount; i++) {
-              var boundary = curMaxBinBoundary + i * binWidth;
-              this.boundaries_.push(boundary);
+              var boundary = sliceMinBinBoundary + i * binWidth;
+              this.binRanges_.push(tr.b.Range.fromExplicitRange(
+                    prevBoundary, boundary));
+              prevBoundary = boundary;
             }
             break;
 
           case HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL:
             var binExponentWidth =
-                Math.log(nextMaxBinBoundary / curMaxBinBoundary) / binCount;
+                Math.log(nextMaxBinBoundary / prevBoundary) / binCount;
             for (var i = 1; i < binCount; i++) {
-              var boundary = curMaxBinBoundary * Math.exp(i * binExponentWidth)
-              this.boundaries_.push(boundary);
+              var boundary = sliceMinBinBoundary * Math.exp(
+                  i * binExponentWidth)
+              this.binRanges_.push(tr.b.Range.fromExplicitRange(
+                    prevBoundary, boundary));
+              prevBoundary = boundary;
             }
             break;
 
           default:
             throw new Error('Unrecognized HistogramBinBoundaries slice type');
         }
-        this.boundaries_.push(nextMaxBinBoundary);
+        this.binRanges_.push(tr.b.Range.fromExplicitRange(
+            prevBoundary, nextMaxBinBoundary));
+        prevBoundary = nextMaxBinBoundary;
       }
     }
 
@@ -899,8 +923,8 @@ tr.exportTo('tr.v', function() {
             'the current max boundary');
       }
 
-      // If boundaries_ had been built, then clear them.
-      this.boundaries_ = undefined;
+      // If binRanges_ had been built, then clear them.
+      this.binRanges_ = undefined;
 
       this.pushBuilderSlice_(nextMaxBinBoundary);
       this.range.addValue(nextMaxBinBoundary);
@@ -938,8 +962,8 @@ tr.exportTo('tr.v', function() {
             'the previous max bin boundary');
       }
 
-      // If boundaries_ had been built, then clear them.
-      this.boundaries_ = undefined;
+      // If binRanges_ had been built, then clear them.
+      this.binRanges_ = undefined;
 
       this.pushBuilderSlice_([
           HistogramBinBoundaries.SLICE_TYPE.LINEAR,
@@ -984,8 +1008,8 @@ tr.exportTo('tr.v', function() {
             'the current max boundary boundary');
       }
 
-      // If boundaries_ had been built, then clear them.
-      this.boundaries_ = undefined;
+      // If binRanges_ had been built, then clear them.
+      this.binRanges_ = undefined;
 
       this.pushBuilderSlice_([
           HistogramBinBoundaries.SLICE_TYPE.EXPONENTIAL,
