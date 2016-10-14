@@ -484,9 +484,14 @@ class AndroidPlatformBackend(
   def StopForwardingHost(self, host_port):
     for line in self._device.adb.ForwardList().strip().splitlines():
       line = line.split(' ')
-      if line[0] == self._device and line[1] == 'tcp:%s' % host_port:
-        self._device.adb.ForwardRemove('tcp:%d' % host_port)
-        break
+      if len(line) >= 2:
+        if line[0] == self._device and line[1] == 'tcp:%s' % host_port:
+          self._device.adb.ForwardRemove('tcp:%d' % host_port)
+          break
+      else:
+        logging.warning('ADB forwarder list output format unexpected. Expected '
+                        'format "<device id> tcp:<host port> but got:\n%s',
+                        line)
     else:
       logging.warning('Port %s not found in adb forward --list for device %s',
                       host_port, self._device)
