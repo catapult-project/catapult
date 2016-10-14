@@ -88,6 +88,10 @@ the bisect process after the user clicks on the bisect button.
             </td>
           </tr>
           <tr>
+            <td>Story filter:</td>
+            <td><input type="text" value="{{storyFilter::input}}"></td>
+          </tr>
+          <tr>
             <td>Bug ID:</td>
             <td><input type="number" value="{{bugId::input}}"></td>
           </tr>
@@ -243,6 +247,7 @@ the bisect process after the user clicks on the bisect button.
               this.botList = info['all_bots'];
               this.metric = info['default_metric'];
               this.metricList = info['all_metrics'];
+              this.storyFilter = info['story_filter'];
               this.canUseArchive = info['use_archive'];
               this.email = info['email'];
               this.suite = info['suite'];
@@ -271,6 +276,7 @@ the bisect process after the user clicks on the bisect button.
               'bisect_bot': this.bot,
               'suite': this.suite,
               'metric': this.metric,
+              'story_filter': this.storyFilter,
               'good_revision': this.earlierRevision,
               'bad_revision': this.laterRevision,
               'repeat_count': this.REPEAT_COUNT,

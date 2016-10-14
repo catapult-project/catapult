@@ -8,6 +8,8 @@ import difflib
 import hashlib
 import json
 import logging
+import pipes
+import re
 
 import httplib2
 
@@ -139,6 +141,7 @@ class StartBisectHandler(request_handler.RequestHandler):
         repeat_count=self.request.get('repeat_count', 10),
         max_time_minutes=self.request.get('max_time_minutes', 20),
         bug_id=bug_id,
+        story_filter=self.request.get('story_filter'),
         use_archive=self.request.get('use_archive'),
         bisect_mode=self.request.get('bisect_mode', 'mean'),
         bypass_no_repro_check=bypass_no_repro_check)
@@ -236,19 +239,38 @@ def _PrefillInfo(test_path):
 
   info['all_metrics'] = []
   metric_keys = list_tests.GetTestDescendants(graph_key, has_rows=True)
+
+  should_add_story_filter = (
+      suite.test_name not in _NON_TELEMETRY_TEST_COMMANDS and
+      # is not a top-level test_path, those are usually not story names
+      '/' in test_path)
+  test_path_prefix = test_path + '/'
+
   for metric_key in metric_keys:
     metric_path = utils.TestPath(metric_key)
     if metric_path.endswith('/ref') or metric_path.endswith('_ref'):
       continue
+    if metric_path.startswith(test_path_prefix):
+      should_add_story_filter = False  # Stories do not have sub-tests.
     info['all_metrics'].append(GuessMetric(metric_path))
   info['default_metric'] = GuessMetric(test_path)
+
+  if should_add_story_filter:
+    _, story_name = test_path.rsplit('/', 1)
+    # During import, some chars in story names got replaced by "_" so they
+    # could be safely included in the test_path. At this point we don't know
+    # what the original characters were, so we pass a regex where each
+    # underscore is replaced back with a match-any-character dot.
+    info['story_filter'] = re.sub(r'\\_', '.', re.escape(story_name))
+  else:
+    info['story_filter'] = ''
 
   return info
 
 
 def GetBisectConfig(
     bisect_bot, master_name, suite, metric, good_revision, bad_revision,
-    repeat_count, max_time_minutes, bug_id, use_archive=None,
+    repeat_count, max_time_minutes, bug_id, story_filter=None, use_archive=None,
     bisect_mode='mean', bypass_no_repro_check=False):
   """Fills in a JSON response with the filled-in config file.
 
@@ -272,7 +294,7 @@ def GetBisectConfig(
     A dictionary with the result; if successful, this will contain "config",
     which is a config string; if there's an error, this will contain "error".
   """
-  command = GuessCommand(bisect_bot, suite, metric=metric)
+  command = GuessCommand(bisect_bot, suite, story_filter=story_filter)
   if not command:
     return {'error': 'Could not guess command for %r.' % suite}
 
@@ -401,11 +423,11 @@ def GuessBisectBot(master_name, bot_name):
 
 
 def GuessCommand(
-    bisect_bot, suite, metric=None, rerun_option=None):
+    bisect_bot, suite, story_filter=None, rerun_option=None):
   """Returns a command to use in the bisect configuration."""
   if suite in _NON_TELEMETRY_TEST_COMMANDS:
     return _GuessCommandNonTelemetry(suite, bisect_bot)
-  return _GuessCommandTelemetry(suite, bisect_bot, metric, rerun_option)
+  return _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option)
 
 
 def _GuessCommandNonTelemetry(suite, bisect_bot):
@@ -433,12 +455,8 @@ def _GuessCommandNonTelemetry(suite, bisect_bot):
   return ' '.join(command)
 
 
-def _GuessCommandTelemetry(
-    suite, bisect_bot, metric,  # pylint: disable=unused-argument
-    rerun_option):
+def _GuessCommandTelemetry(suite, bisect_bot, story_filter, rerun_option):
   """Returns a command to use given that |suite| is a Telemetry benchmark."""
-  # TODO(qyearsley): Use metric to add a --story-filter flag for Telemetry.
-  # See: http://crbug.com/448628
   command = []
 
   test_cmd = 'src/tools/perf/run_benchmark'
@@ -452,6 +470,8 @@ def _GuessCommandTelemetry(
       '--pageset-repeat=1',
       '--also-run-disabled-tests',
   ])
+  if story_filter:
+    command.append('--story-filter=%s' % pipes.quote(story_filter))
 
   # Test command might be a little different from the test name on the bots.
   if suite == 'blink_perf':
