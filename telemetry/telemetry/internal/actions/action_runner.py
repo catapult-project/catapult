@@ -28,11 +28,15 @@ from telemetry.internal.actions.tap import TapAction
 from telemetry.internal.actions.wait import WaitForElementAction
 from telemetry.web_perf import timeline_interaction_record
 
+from py_trace_event import trace_event
+
 
 _DUMP_WAIT_TIME = 3
 
 
 class ActionRunner(object):
+
+  __metaclass__ = trace_event.TracedMetaClass
 
   def __init__(self, tab, skip_waits=False):
     self._tab = tab
