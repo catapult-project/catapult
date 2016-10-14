@@ -22,6 +22,7 @@ from telemetry.internal.actions.repaint_continuously import (
 from telemetry.internal.actions.repeatable_scroll import RepeatableScrollAction
 from telemetry.internal.actions.scroll import ScrollAction
 from telemetry.internal.actions.scroll_bounce import ScrollBounceAction
+from telemetry.internal.actions.scroll_to_element import ScrollToElementAction
 from telemetry.internal.actions.seek import SeekAction
 from telemetry.internal.actions.swipe import SwipeAction
 from telemetry.internal.actions.tap import TapAction
@@ -396,6 +397,21 @@ class ActionRunner(object):
         direction=direction, distance=distance, distance_expr=distance_expr,
         speed_in_pixels_per_second=speed_in_pixels_per_second,
         use_touch=use_touch, synthetic_gesture_source=synthetic_gesture_source))
+
+  def ScrollPageToElement(self, selector=None, element_function=None,
+                          speed_in_pixels_per_second=800):
+    """Perform scroll gesture on page until an element is in view.
+
+    Args:
+      selector: A CSS selector describing the element.
+      element_function: A JavaScript function (as string) that is used
+          to retrieve the element. For example:
+          'function() { return foo.element; }'.
+      speed_in_pixels_per_second: Speed to scroll.
+    """
+    self._RunAction(ScrollToElementAction(
+        selector=selector, element_function=element_function,
+        speed_in_pixels_per_second=speed_in_pixels_per_second))
 
   def RepeatableBrowserDrivenScroll(self, x_scroll_distance_ratio=0.0,
                                     y_scroll_distance_ratio=0.5,

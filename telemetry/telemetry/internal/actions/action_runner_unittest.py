@@ -260,6 +260,51 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
       action_runner.TapElement('#notfound')
     self.assertRaises(exceptions.EvaluateException, WillFail)
 
+
+  def testScrollToElement(self):
+    self.Navigate('page_with_swipeables.html')
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
+
+    off_screen_element = 'document.querySelectorAll("#off-screen")[0]'
+    top_bottom_element = 'document.querySelector("#top-bottom")'
+    viewport_comparator_js_template = '''
+      (function(elem) {
+        var rect = elem.getBoundingClientRect();
+
+        if (rect.bottom < 0) {
+          // The bottom of the element is above the viewport.
+          return -1;
+        }
+        if (rect.top - window.innerHeight > 0) {
+          // rect.top provides the pixel offset of the element from the
+          // top of the page. Because that exceeds the viewport's height,
+          // we know that the element is below the viewport.
+          return 1;
+        }
+        return 0;
+      })(
+    '''
+    viewport_comparator_off_screen_js = (
+        viewport_comparator_js_template + '%s);' % off_screen_element)
+    viewport_comparator_top_bottom_js = (
+        viewport_comparator_js_template + '%s);' % top_bottom_element)
+
+    self.assertEqual(
+        action_runner.EvaluateJavaScript(viewport_comparator_off_screen_js), 1)
+    action_runner.ScrollPageToElement(selector='#off-screen',
+                                      speed_in_pixels_per_second=5000)
+    self.assertEqual(
+        action_runner.EvaluateJavaScript(viewport_comparator_off_screen_js), 0)
+
+    self.assertEqual(
+        action_runner.EvaluateJavaScript(viewport_comparator_top_bottom_js), -1)
+    action_runner.ScrollPageToElement(selector='#top-bottom',
+                                      speed_in_pixels_per_second=5000)
+    self.assertEqual(
+        action_runner.EvaluateJavaScript(viewport_comparator_top_bottom_js), 0)
+
+
   @decorators.Disabled('android',   # crbug.com/437065.
                        'chromeos')  # crbug.com/483212.
   def testScroll(self):
