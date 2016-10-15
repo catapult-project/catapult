@@ -15,6 +15,7 @@ import logging
 import os
 import posixpath
 import re
+import socket
 import subprocess
 
 from devil import devil_env
@@ -40,6 +41,15 @@ _EMULATOR_RE = re.compile(r'^emulator-[0-9]+$')
 _READY_STATE = 'device'
 _VERITY_DISABLE_RE = re.compile('Verity (already)? disabled')
 _VERITY_ENABLE_RE = re.compile('Verity (already)? enabled')
+
+
+def _GetFreePort():
+  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+  s.bind(('', 0))
+  s.listen(1)
+  port = s.getsockname()[1]
+  s.close()
+  return port
 
 
 def VerifyLocalFileExists(path):
@@ -226,12 +236,15 @@ class AdbWrapper(object):
     return cls._adb_version.read()
 
   @classmethod
-  def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None):
+  def _BuildAdbCmd(cls, args, device_serial, cpu_affinity=None,
+                   use_random_port=False):
     if cpu_affinity is not None:
       cmd = ['taskset', '-c', str(cpu_affinity)]
     else:
       cmd = []
     cmd.append(cls.GetAdbPath())
+    if use_random_port:
+      cmd.extend(['-P', str(_GetFreePort())])
     if device_serial is not None:
       cmd.extend(['-s', device_serial])
     cmd.extend(args)
@@ -239,13 +252,13 @@ class AdbWrapper(object):
 
   # pylint: disable=unused-argument
   @classmethod
-  @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
-  def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
-                 check_error=True, cpu_affinity=None):
-    # pylint: disable=no-member
+  def _RunAdbCmdWithouRetries(cls, args, timeout=None, retries=None,
+                              device_serial=None, check_error=True,
+                              cpu_affinity=None, use_random_port=False):
     try:
       status, output = cmd_helper.GetCmdStatusAndOutputWithTimeout(
-          cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity),
+          cls._BuildAdbCmd(args, device_serial, cpu_affinity=cpu_affinity,
+                           use_random_port=use_random_port),
           timeout_retry.CurrentTimeoutThreadGroup().GetRemainingTime())
     except OSError as e:
       if e.errno in (errno.ENOENT, errno.ENOEXEC):
@@ -263,6 +276,22 @@ class AdbWrapper(object):
       raise device_errors.AdbCommandFailedError(args, output)
     return output
   # pylint: enable=unused-argument
+
+  @classmethod
+  @decorators.WithTimeoutAndConditionalRetries(_ShouldRetryAdbCmd)
+  def _RunAdbCmd(cls, args, timeout=None, retries=None, device_serial=None,
+                 check_error=True, cpu_affinity=None):
+    try:
+      return cls._RunAdbCmdWithouRetries(
+          args, timeout, retries, device_serial, check_error, cpu_affinity)
+    except device_errors.AdbCommandFailedError as err:
+      if 'Address already in use' in err.output:
+        return cls._RunAdbCmdWithouRetries(
+            args, timeout, retries, device_serial, check_error, cpu_affinity,
+            use_random_port=True)
+      else:
+        raise
+
 
   def _RunDeviceAdbCmd(self, args, timeout, retries, check_error=True):
     """Runs an adb command on the device associated with this object.
