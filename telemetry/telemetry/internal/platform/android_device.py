@@ -4,6 +4,7 @@
 
 import logging
 import os
+import subprocess
 
 from telemetry.core import util
 from telemetry.internal.platform import cros_device
@@ -14,6 +15,11 @@ from devil.android import device_blacklist
 from devil.android import device_errors
 from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
+
+
+def _KillStrayADBProcesses():
+  p = subprocess.Popen(['killall', 'adb'])
+  p.communicate()
 
 
 class AndroidDevice(device.Device):
@@ -34,6 +40,7 @@ class AndroidDevice(device.Device):
 
   @classmethod
   def GetAllConnectedDevices(cls, blacklist):
+    _KillStrayADBProcesses()
     device_serials = GetDeviceSerials(blacklist)
     return [cls(s) for s in device_serials]
 
