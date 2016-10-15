@@ -20,7 +20,7 @@ from devil.android.sdk import adb_wrapper
 def _KillStrayADBProcesses():
   p = subprocess.Popen(['killall', 'adb'])
   p.communicate()
-  if p.exitcode:
+  if p.returncode:
     logging.info('No adb process was killed')
   else:
     logging.info('Some adb process was killed')
