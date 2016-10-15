@@ -149,6 +149,10 @@ class List(command_line.OptparseCommand):
       parser.error('Must provide at most one benchmark name.')
 
   def Run(self, args):
+    # Set at least log info level for List command.
+    # TODO(nedn): remove this once crbug.com/656224 is resolved. The recipe
+    # should be change to use verbose logging instead.
+    logging.getLogger().setLevel(logging.INFO)
     possible_browser = browser_finder.FindBrowser(args)
     if args.browser_type in (
         'release', 'release_x64', 'debug', 'debug_x64', 'canary',
