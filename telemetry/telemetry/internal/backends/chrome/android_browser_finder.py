@@ -6,6 +6,7 @@
 
 import logging
 import os
+import subprocess
 import sys
 
 from py_utils import dependency_util
@@ -262,4 +263,6 @@ def FindAllAvailableBrowsers(finder_options, device):
     return _FindAllPossibleBrowsers(finder_options, android_platform)
   except base_error.BaseError as e:
     logging.error('Unable to find browsers on %s: %s', device.device_id, str(e))
+    ps_output = subprocess.check_output(['ps', '-e'])
+    logging.error('Ongoing processes:\n%s', ps_output)
   return []
