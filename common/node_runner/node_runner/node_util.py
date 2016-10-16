@@ -24,9 +24,7 @@ class _NodeManager(object):
     self.arch_name = dependency_util.GetArchForCurrentDesktopPlatform(
         self.os_name)
     self.node_path = self.bm.FetchPath('node', self.os_name, self.arch_name)
-    self.npm_path = os.path.abspath(os.path.join(
-        os.path.dirname(self.node_path), '..', 'lib', 'node_modules', 'npm',
-        'bin', 'npm-cli.js'))
+    self.npm_path = self.bm.FetchPath('npm', self.os_name, self.arch_name)
 
     self.node_initialized = False
 
