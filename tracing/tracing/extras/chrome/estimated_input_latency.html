@@ -9,6 +9,26 @@ found in the LICENSE file.
 'use strict';
 tr.exportTo('tr.e.chrome', function() {
 
+  // TODO(dproy): Because title and category are properties of TimedEvent
+  // subclasses and not TimedEvent itself, we have to write our own "has title
+  // and category" function rather than having it provided by TimedEvent.
+  // This should be fixed.
+  // https://github.com/catapult-project/catapult/issues/2784
+  function hasTitleAndCategory(event, title, category) {
+    return event.title === title && event.category &&
+      tr.b.getCategoryParts(event.category).indexOf(category) !== -1;
+  }
+
+  function getNavStartTimestamps(rendererHelper) {
+    var navStartTimestamps = [];
+    for (var e of rendererHelper.mainThread.sliceGroup.childEvents()) {
+      if (hasTitleAndCategory(e, 'navigationStart', 'blink.user_timing')) {
+        navStartTimestamps.push(e.start);
+      }
+    }
+    return navStartTimestamps;
+  }
+
   /**
    * Returns an Array of task windows that start with the supplied interactive
    * timestamps.
@@ -64,7 +84,8 @@ tr.exportTo('tr.e.chrome', function() {
   }
 
   return {
-    getPostInteractiveTaskWindows: getPostInteractiveTaskWindows
+    getPostInteractiveTaskWindows: getPostInteractiveTaskWindows,
+    getNavStartTimestamps: getNavStartTimestamps
   };
 });
 </script>
