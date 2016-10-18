@@ -2,13 +2,14 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import webapp2
+
 from google.appengine.api import taskqueue
 
-from dashboard.common import request_handler
 from dashboard.pinpoint.models import job as job_module
 
 
-class RunHandler(request_handler.RequestHandler):
+class RunHandler(webapp2.RequestHandler):
   """Handler for the Pinpoint job.
 
   This is our raison d'etre, folks. The thread that runs the job."""

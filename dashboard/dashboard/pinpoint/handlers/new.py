@@ -2,14 +2,15 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import webapp2
+
 from google.appengine.api import taskqueue
 
-from dashboard.common import request_handler
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
 
 
-class NewHandler(request_handler.RequestHandler):
+class NewHandler(webapp2.RequestHandler):
 
   def post(self):
     # TODO(dtu): Read the parameters from the request object.

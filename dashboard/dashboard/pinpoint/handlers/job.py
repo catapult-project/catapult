@@ -2,11 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from dashboard.common import request_handler
+import webapp2
+
 from dashboard.pinpoint.models import job as job_module
 
 
-class JobHandler(request_handler.RequestHandler):
+class JobHandler(webapp2.RequestHandler):
 
   def get(self, job_id):
     # Validate parameters.
