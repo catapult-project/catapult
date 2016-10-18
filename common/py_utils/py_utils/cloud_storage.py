@@ -233,7 +233,6 @@ _CLOUD_STORAGE_GLOBAL_LOCK = os.path.join(
 
 @contextlib.contextmanager
 def _FileLock(base_path):
-  logger.info('Try to lock %s', base_path)
   pseudo_lock_path = '%s.pseudo_lock' % base_path
   _CreateDirectoryIfNecessary(os.path.dirname(pseudo_lock_path))
 
@@ -248,9 +247,6 @@ def _FileLock(base_path):
   # to make sure that there is no race condition on creating the file.
   with open(_CLOUD_STORAGE_GLOBAL_LOCK) as global_file:
     with lock.FileLock(global_file, lock.LOCK_EX):
-      logger.info(
-          'Global file lock acquired, try to create pseudo_lock_path: %s',
-          pseudo_lock_path)
       fd = open(pseudo_lock_path, 'w')
       lock.AcquireFileLock(fd, lock.LOCK_EX)
   try:
@@ -259,9 +255,7 @@ def _FileLock(base_path):
     lock.ReleaseFileLock(fd)
     try:
       fd.close()
-      logger.info('Try to remove pseudo_lock_path: %s', pseudo_lock_path)
       os.remove(pseudo_lock_path)
-      logger.info('Done locking %s', base_path)
     except OSError:
       # We don't care if the pseudo-lock gets removed elsewhere before we have
       # a chance to do so.
