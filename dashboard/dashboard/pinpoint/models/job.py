@@ -4,51 +4,41 @@
 
 from google.appengine.ext import ndb
 
-from dashboard.models import internal_only_model
+from dashboard.pinpoint.models import change
+from dashboard.pinpoint.models import quest
 
 
 def JobFromId(job_id):
+  """Get a Job object from its ID. Its ID is currently just its urlsafe key.
+
+  Users of Job should not have to import ndb. This function maintains an
+  abstraction layer that separates users from the Datastore details.
+  """
   job_key = ndb.Key(urlsafe=job_id)
   return job_key.get()
 
 
-class Dep(ndb.Model):
-  repository = ndb.StringProperty(required=True)
-  git_hash = ndb.StringProperty(required=True)
-
-
-class Change(ndb.Model):
-  deps = ndb.StructuredProperty(Dep, repeated=True)
-  patch = ndb.StringProperty()  # TODO: Placeholder.
-
-
-class Task(ndb.Model):
-  # The ID given to the task in its Distributor.
-  # If it is a local task, task_id is 0.
-  # If it is a Swarming task, task_id is [a-z0-9]{16}.
-  # If it is a Buildbucket task, task_id is [0-9]{19}.
-  task_id = ndb.StringProperty(required=True)
-
+class Job(ndb.Model):
   created = ndb.DateTimeProperty(required=True, auto_now_add=True)
   updated = ndb.DateTimeProperty(required=True, auto_now=True)
 
-  change = ndb.StructuredProperty(Change, required=True)
-  results = ndb.FloatProperty(repeated=True)
-
-
-class Job(internal_only_model.InternalOnlyModel):
-  internal_only = ndb.BooleanProperty()
-  created = ndb.DateTimeProperty(required=True, auto_now_add=True)
-  updated = ndb.DateTimeProperty(required=True, auto_now=True)
+  # The name of the Task Queue task this job is running on. If it's not present,
+  # the job isn't running.
+  task = ndb.StringProperty()
 
   # Request parameters.
   configuration = ndb.StringProperty(required=True)
-  changes = ndb.KeyProperty(kind=Change, repeated=True)
   test_suite = ndb.StringProperty()
   test = ndb.StringProperty()
   metric = ndb.StringProperty()
 
-  # State.
-  # TODO: Flesh out the state fields.
-  hostname = ndb.StringProperty()
-  tasks = ndb.KeyProperty(kind=Task, repeated=True)
+  # If True, the service should pick additional Changes to run (bisect).
+  # If False, only run the Changes explicitly added by the user.
+  auto_explore = ndb.BooleanProperty(required=True)
+
+  # What Changes to run.
+  # A Change may be added by the user or by the bisect algorithm at any time.
+  changes = ndb.LocalStructuredProperty(change.Change, repeated=True)
+
+  # What work needs to be done on each Change. This is fixed at Job creation.
+  quests = ndb.LocalStructuredProperty(quest.Quest, repeated=True)
