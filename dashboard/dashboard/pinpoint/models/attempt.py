@@ -17,5 +17,5 @@ class Attempt(ndb.Model):
 
   quest_index = ndb.IntegerProperty(required=True)
 
-  # TODO: replace with a Values JSON.
-  results = ndb.FloatProperty(repeated=True)
+  result_values = ndb.JsonProperty()
+  result_parameters = ndb.JsonProperty(required=True)

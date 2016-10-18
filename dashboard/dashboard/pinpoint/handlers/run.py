@@ -17,14 +17,6 @@ class RunHandler(webapp2.RequestHandler):
   def post(self, job_id):
     job = job_module.JobFromId(job_id)
 
-    # Get list of quests.
-    # TODO: Define the quests.
-    #quests = [quest.FindIsolated(job.configuration)]
-    #if job.test_suite:
-    #  quests.append(quest.RunTest(job.test_suite, job.test))
-    #if job.metric:
-    #  quests.append(quest.ReadTestResults(job.metric))
-
     # Run task.
     # TODO: Do.
     if True:

@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+from google.appengine.ext import ndb
 from google.appengine.ext.ndb import polymodel
 
 
@@ -14,3 +15,31 @@ class Quest(polymodel.PolyModel):
   Change linearly (e.g. build, then test, then read test results). We'd like to
   replace this model with Dungeon Master entirely, when it's ready.
   """
+
+  def Run(self, *args):
+    raise NotImplementedError()
+
+
+class FindIsolated(Quest):
+  configuration = ndb.StringProperty(required=True)
+
+  def Run(self):
+    # TODO
+    return (0,), ()
+
+
+class RunTest(Quest):
+  test_suite = ndb.StringProperty(required=True)
+  test = ndb.StringProperty()
+
+  def Run(self):
+    # TODO
+    return (0,), ()
+
+
+class ReadTestResults(Quest):
+  metric = ndb.StringProperty(required=True)
+
+  def Run(self):
+    # TODO
+    return (0,), ()
