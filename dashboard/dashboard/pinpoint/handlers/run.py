@@ -5,7 +5,7 @@
 from google.appengine.api import taskqueue
 
 from dashboard.common import request_handler
-from dashboard.models import job_module
+from dashboard.pinpoint.models import job as job_module
 
 
 class RunHandler(request_handler.RequestHandler):

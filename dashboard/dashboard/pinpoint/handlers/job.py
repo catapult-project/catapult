@@ -3,14 +3,25 @@
 # found in the LICENSE file.
 
 from dashboard.common import request_handler
-from dashboard.models import job_module
+from dashboard.pinpoint.models import job as job_module
 
 
-class StatusHandler(request_handler.RequestHandler):
+class JobHandler(request_handler.RequestHandler):
 
   def get(self, job_id):
-    job = job_module.JobFromId(job_id)
-    # TODO: Generate an excellent Polymer UI.
+    # Validate parameters.
+    try:
+      job = job_module.JobFromId(job_id)
+    except:  # pylint: disable=bare-except
+      # There's no narrower exception we can catch. Catching
+      # google.net.proto.ProtocolBuffer.ProtocolBufferDecodeError
+      # doesn't appear to work here.
+      # https://github.com/googlecloudplatform/datastore-ndb-python/issues/143
+      self.response.write('Unknown job id.')
+      return
+
+    # Generate an excellent Polymer UI.
+    # TODO: This.
     del job
 
   def post(self):

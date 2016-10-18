@@ -18,7 +18,7 @@ class Dep(ndb.Model):
 
 
 class Change(ndb.Model):
-  deps = ndb.StructuredProperty(Dep, required=True, repeated=True)
+  deps = ndb.StructuredProperty(Dep, repeated=True)
   patch = ndb.StringProperty()  # TODO: Placeholder.
 
 
@@ -43,7 +43,7 @@ class Job(internal_only_model.InternalOnlyModel):
 
   # Request parameters.
   configuration = ndb.StringProperty(required=True)
-  changes = ndb.StructuredProperty(Change, required=True, repeated=True)
+  changes = ndb.KeyProperty(kind=Change, repeated=True)
   test_suite = ndb.StringProperty()
   test = ndb.StringProperty()
   metric = ndb.StringProperty()

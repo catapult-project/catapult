@@ -12,9 +12,9 @@ from dashboard.pinpoint.handlers import run
 
 
 _URL_MAPPING = [
-    (r'/job/(\w+)', job.JobHandler),
+    (r'/job/(.+)', job.JobHandler),
     (r'/new', new.NewHandler),
-    (r'/run/(\w+)', run.RunHandler),
+    (r'/run/(.+)', run.RunHandler),
 ]
 
 APP = webapp2.WSGIApplication(_URL_MAPPING, debug=False)

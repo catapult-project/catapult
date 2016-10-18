@@ -5,7 +5,7 @@
 from google.appengine.api import taskqueue
 
 from dashboard.common import request_handler
-from dashboard.models import job_module
+from dashboard.pinpoint.models import job as job_module
 
 
 class NewHandler(request_handler.RequestHandler):
@@ -24,11 +24,15 @@ class NewHandler(request_handler.RequestHandler):
       raise ValueError("Specified a metric but there's no test_suite to run.")
 
     # Create job.
-    commits = tuple(job_module.Commit(repository=repository, git_hash=git_hash)
-                    for repository, git_hash in commits)
+    change_keys = []
+    for repository, git_hash in commits:
+      dep = job_module.Dep(repository=repository, git_hash=git_hash)
+      change = job_module.Change(deps=(dep,))
+      change_keys.append(change.put())
+
     job = job_module.Job(
         configuration=configuration,
-        commits=commits,
+        changes=change_keys,
         test_suite=test_suite,
         test=test,
         metric=metric)
