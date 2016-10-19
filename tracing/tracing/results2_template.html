@@ -6,23 +6,108 @@ found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/ui/base/base.html" data-suppress-import-order>
 
+<div id="loading">Loading framework...</div>
+
 <link rel="import" href="/tracing/value/ui/value_set_view.html">
 <link rel="import" href="/tracing/value/value_set.html">
 
 <script>
 'use strict';
-document.addEventListener('DOMContentLoaded', () => {
-  var jsonDivs = tr.b.asArray(document.getElementsByTagName('histogram-json'));
-  var values = new tr.v.ValueSet();
-  for (var div of jsonDivs) {
-    values.addHistogram(tr.v.Histogram.fromDict(JSON.parse(div.innerHTML)));
+
+(function() {
+class HistogramImporter {
+  constructor() {
+    // This object is created as early as possible, which may be before |tr|
+    // exists, and is definitely before the json divs exist.
+    this.loadingDiv_ = document.getElementById('loading');
+    this.histograms_ = undefined;
+    this.jsonDivs_ = [];
+    this.view_ = undefined;
+
+    this.update_('Parsing HTML...');
+    // The json divs appear after this script tag in results2.html, so the
+    // browser will parse them into DOM now.
   }
 
-  values.resolveRelatedHistograms();
-  document.getElementById('values').values = values;
+  update_(message) {
+    this.loadingDiv_.textContent = message;
+  }
 
-  document.body.removeChild(jsonDivs[0].parentNode);
+  /**
+   * Wait for the browser to display |message|, then do the work that |message|
+   * describes.
+   *
+   * @param {string} message
+   * @param {!function} method
+   */
+  schedule_(message, method) {
+    this.update_(message);
+    tr.b.requestAnimationFrame(method, this);
+  }
+
+  importHistograms() {
+    this.histograms_ = new tr.v.ValueSet();
+    this.view_ = document.getElementById('values');
+    this.schedule_('Gathering JSON...', this.getJsonDivs_);
+  }
+
+  getJsonDivs_() {
+    this.jsonDivs_ = document.getElementsByTagName('histogram-json');
+
+    this.schedule_('Loading Histogram 0 of ' + this.jsonDivs_.length,
+        this.loadSomeHistograms_);
+  }
+
+  get isDoneLoadingHistograms_() {
+    return this.histograms_.length === this.jsonDivs_.length;
+  }
+
+  loadSomeHistograms_() {
+    var startIndex = this.histograms_.length;
+    var stopIndex = Math.min(startIndex + 100, this.jsonDivs_.length);
+    for (var i = startIndex; i < stopIndex; ++i) {
+      var dict = JSON.parse(this.jsonDivs_[i].innerHTML);
+      this.histograms_.addHistogram(tr.v.Histogram.fromDict(dict));
+    }
+
+    if (!this.isDoneLoadingHistograms_) {
+      this.schedule_(
+          'Loading Histogram ' + stopIndex + ' of ' + this.jsonDivs_.length,
+          this.loadSomeHistograms_);
+      return;
+    }
+
+    this.schedule_('Resolving Histogram relationships...',
+        this.resolveRelationships_);
+  }
+
+  resolveRelationships_() {
+    this.histograms_.resolveRelatedHistograms();
+    this.schedule_('Displaying Histogram table...', this.displayValues_);
+  }
+
+  displayValues_() {
+    this.view_.values = this.histograms_;
+
+    this.loadingDiv_.style.display = 'none';
+    this.view_.style.display = 'block';
+
+    tr.b.requestAnimationFrame(this.removeJsonDivs_, this);
+  }
+
+  removeJsonDivs_() {
+    document.body.removeChild(this.jsonDivs_[0].parentNode);
+    delete this.jsonDivs_;
+  }
+}
+
+var importer = new HistogramImporter();
+
+document.addEventListener('DOMContentLoaded', () => {
+  importer.importHistograms();
 });
+
+})();
 </script>
 
-<tr-v-ui-value-set-view id="values"></tr-v-ui-value-set-view>
+<tr-v-ui-value-set-view id="values" style="display: none;"></tr-v-ui-value-set-view>
