@@ -5,6 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
+<link rel="import" href="/tracing/value/value_set.html">
+
 <script>
 'use strict';
 tr.exportTo('tr.e.chrome', function() {
@@ -27,6 +30,32 @@ tr.exportTo('tr.e.chrome', function() {
       }
     }
     return navStartTimestamps;
+  }
+
+  /**
+   * Returns a map of renderer PIDs to array of timestamps at which the
+   * renderer became interactive.
+   */
+  function getInteractiveTimestamps(model) {
+    // TODO(dproy): When LoadExpectation v.1.0 is released,
+    // update this function to use the new LoadExpectation rather
+    // than calling loading_metric.html.
+
+    var values = new tr.v.ValueSet();
+    tr.metrics.sh.loadingMetric(values, model);
+    var ttiValues = values.getValuesNamed('timeToFirstInteractive');
+    var interactiveTimestampsMap = new Map();
+    for (var bin of tr.b.getOnlyElement(ttiValues).allBins) {
+      for (var diagnostics of bin.diagnosticMaps) {
+        var value = diagnostics.get('Navigation infos').value;
+        var pid = value.pid;
+        var interactiveTimestampsForProcess =
+            interactiveTimestampsMap.get(pid) || [];
+        interactiveTimestampsForProcess.push(value.interactive);
+        interactiveTimestampsMap.set(pid, interactiveTimestampsForProcess);
+      }
+    }
+    return interactiveTimestampsMap;
   }
 
   /**
@@ -85,7 +114,8 @@ tr.exportTo('tr.e.chrome', function() {
 
   return {
     getPostInteractiveTaskWindows: getPostInteractiveTaskWindows,
-    getNavStartTimestamps: getNavStartTimestamps
+    getNavStartTimestamps: getNavStartTimestamps,
+    getInteractiveTimestamps: getInteractiveTimestamps
   };
 });
 </script>
