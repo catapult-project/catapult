@@ -288,29 +288,5 @@ def _MakeMockFetch(base64_encoded=True, status=200):
   return _MockFetch
 
 
-class DownloadChromiumFileTest(testing_common.TestCase):
-
-  @mock.patch('google.appengine.api.urlfetch.fetch',
-              _MakeMockFetch())
-  def testDownloadChromiumFile_BasicCase(self):
-    self.assertEqual(
-        json.dumps({'key': 'this is well-formed JSON.'}),
-        utils.DownloadChromiumFile('some/file'))
-
-  @mock.patch('google.appengine.api.urlfetch.fetch',
-              _MakeMockFetch(base64_encoded=False))
-  @mock.patch('logging.error')
-  def testDownloadChromiumFile_BadEncoding(self, mock_logging_error):
-    self.assertIsNone(utils.DownloadChromiumFile('some/file'))
-    self.assertEqual(1, mock_logging_error.call_count)
-
-  @mock.patch('google.appengine.api.urlfetch.fetch',
-              _MakeMockFetch(status=400))
-  @mock.patch('logging.error')
-  def testDownloadChromiumFile_Non200Status(self, mock_logging_error):
-    self.assertIsNone(utils.DownloadChromiumFile('some/file'))
-    self.assertEqual(1, mock_logging_error.call_count)
-
-
 if __name__ == '__main__':
   unittest.main()

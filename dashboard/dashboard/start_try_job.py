@@ -15,6 +15,7 @@ import httplib2
 
 from google.appengine.api import users
 from google.appengine.api import app_identity
+from google.appengine.api import urlfetch
 
 from dashboard import buildbucket_job
 from dashboard import can_bisect
@@ -26,6 +27,7 @@ from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import try_job
 from dashboard.services import buildbucket_service
+from dashboard.services import gitiles_service
 from dashboard.services import issue_tracker_service
 from dashboard.services import rietveld_service
 
@@ -639,7 +641,12 @@ def _PerformPerfTryJob(perf_job):
   perf_job.config = utils.BisectConfigPythonString(config_dict)
 
   # Get the base config file contents and make a patch.
-  base_config = utils.DownloadChromiumFile(_PERF_CONFIG_PATH)
+  try:
+    base_config = gitiles_service.FileContents('chromium/src', 'master',
+                                               _PERF_CONFIG_PATH)
+  except urlfetch.Error:
+    base_config = None
+
   if not base_config:
     return {'error': 'Error downloading base config'}
   patch, base_checksum, base_hashes = _CreatePatch(
