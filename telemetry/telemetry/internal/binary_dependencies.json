@@ -285,6 +285,20 @@
         }
       }
     },
+    "push_apps_to_background_apk": {
+      "cloud_storage_base_folder": "binary_dependencies",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "android_arm64-v8a": {
+          "cloud_storage_hash": "5b724ddcb63405d1e23de80da9152bf84e72524d",
+          "download_path": "bin/android/arm64-v8a/PushAppsToBackground.apk"
+        },
+        "android_armeabi-v7a": {
+          "cloud_storage_hash": "5b724ddcb63405d1e23de80da9152bf84e72524d",
+          "download_path": "bin/android/armeabi-v7a/PushAppsToBackground.apk"
+        }
+      }
+    },
     "tcpdump": {
       "cloud_storage_base_folder": "binary_dependencies",
       "cloud_storage_bucket": "chromium-telemetry",

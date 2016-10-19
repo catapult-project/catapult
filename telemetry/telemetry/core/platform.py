@@ -101,6 +101,9 @@ class Platform(object):
   def tracing_controller(self):
     return self._tracing_controller
 
+  def Initialize(self):
+    pass
+
   def CanMonitorThermalThrottling(self):
     """Platforms may be able to detect thermal throttling.
 

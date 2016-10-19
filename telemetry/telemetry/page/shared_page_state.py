@@ -102,6 +102,7 @@ class SharedPageState(story.SharedState):
         use_live_traffic=use_live_traffic)
     self.platform.network_controller.Open(wpr_mode,
                                           browser_options.extra_wpr_args)
+    self.platform.Initialize()
 
   @property
   def possible_browser(self):

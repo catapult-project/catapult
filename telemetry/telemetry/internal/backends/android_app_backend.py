@@ -85,14 +85,14 @@ class AndroidAppBackend(app_backend.AppBackend):
         blocking=True)
 
   def Background(self):
-    # Launch clock app, pushing the app to the background.
-    # TODO(crbug.com/586148): The clock app isn't necessarily on every phone,
-    # replace this with the PushAppsToBackground instead.
+    package = 'org.chromium.push_apps_to_background'
+    activity = package + '.PushAppsToBackgroundActivity'
     self.device.StartActivity(
-        intent.Intent(package='com.google.android.deskclock',
-                      activity='com.android.deskclock.DeskClock',
-                      action=None,
-                      flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
+        intent.Intent(
+            package=package,
+            activity=activity,
+            action=None,
+            flags=[intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED]),
         blocking=True)
 
   def Close(self):

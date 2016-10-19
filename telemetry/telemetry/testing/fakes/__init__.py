@@ -42,6 +42,9 @@ class FakePlatform(object):
       self._tracing_controller = _FakeTracingController()
     return  self._tracing_controller
 
+  def Initialize(self):
+    pass
+
   def CanMonitorThermalThrottling(self):
     return False
 

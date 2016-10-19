@@ -27,6 +27,7 @@ from telemetry.internal.platform.power_monitor import (
   android_power_monitor_controller)
 from telemetry.internal.platform.power_monitor import sysfs_power_monitor
 from telemetry.internal.platform.profiler import android_prebuilt_profiler_helper
+from telemetry.internal.util import binary_manager
 from telemetry.internal.util import external_modules
 
 psutil = external_modules.ImportOptionalModule('psutil')
@@ -142,6 +143,9 @@ class AndroidPlatformBackend(
   def device(self):
     return self._device
 
+  def Initialize(self):
+    self.EnsureBackgroundApkInstalled()
+
   def GetSystemUi(self):
     if self._system_ui is None:
       self._system_ui = app_ui.AppUi(self.device, 'com.android.systemui')
@@ -237,6 +241,14 @@ class AndroidPlatformBackend(
     self._device.RunShellCommand([
       android_prebuilt_profiler_helper.GetDevicePath('memtrack_helper'),
       '-d'], as_root=True, check_return=True)
+
+  def EnsureBackgroundApkInstalled(self):
+    app = 'push_apps_to_background_apk'
+    arch_name = self._device.GetABI()
+    host_path = binary_manager.FetchPath(app, arch_name, 'android')
+    if not host_path:
+      raise Exception('Error installing PushAppsToBackground.apk.')
+    self.InstallApplication(host_path)
 
   def PurgeUnpinnedMemory(self):
     """Purges the unpinned ashmem memory for the whole system.

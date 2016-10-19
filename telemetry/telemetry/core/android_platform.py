@@ -15,6 +15,9 @@ class AndroidPlatform(platform.Platform):
     self._android_action_runner = android_action_runner.AndroidActionRunner(
         platform_backend)
 
+  def Initialize(self):
+    self._platform_backend.Initialize()
+
   @property
   def android_action_runner(self):
     return self._android_action_runner
