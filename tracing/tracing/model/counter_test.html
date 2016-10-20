@@ -113,7 +113,7 @@ tr.b.unittest.testSuite(function() {
     var ctr1 = new Counter(process, 0, '', 'a');
     var ctr2 = new Counter(process, 0, '', 'b');
 
-    var array = [ ctr1, ctr2 ];
+    var array = [ctr1, ctr2];
     array.sort(tr.model.Counter.compare);
 
     assert.equal(array[0], ctr1);

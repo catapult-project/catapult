@@ -766,14 +766,14 @@ tr.b.unittest.testSuite(function() {
 
     // Single field value.
     var row = {x: buildScalarCell(sizeInBytes_smallerIsBetter,
-        [5.4975581e13 /* 50 TiB */])};
+        [5.4975581e13/* 50 TiB */])};
     checkCellValue(this, c.value(row), sizeSpanMatcher(5.4975581e13),
         'rgb(0, 153, 153)', infos1);
 
     // Multiple field values.
     var row = {
       x: buildScalarCell(sizeInBytes_smallerIsBetter,
-          [5.4975581e13 /* 50 TiB */, undefined, 2.1990233e13 /* 20 TiB */])
+          [5.4975581e13/* 50 TiB */, undefined, 2.1990233e13/* 20 TiB */])
     };
     checkCellValue(this, c.value(row),
         sizeSpanMatcher(-3.2985348e13, true /* opt_expectedIsDelta */),
