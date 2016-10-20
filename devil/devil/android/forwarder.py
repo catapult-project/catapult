@@ -155,11 +155,13 @@ class Forwarder(object):
                 'Failed to kill the device forwarder after map failure: %s',
                 str(e))
           _LogMapFailureDiagnostics(device)
+          formatted_output = ('\n'.join(output) if isinstance(output, list)
+                              else output)
           raise HostForwarderError(
               '`%s` exited with %d:\n%s' % (
                   ' '.join(map_cmd),
                   exit_code,
-                  '\n'.join(output)))
+                  formatted_output))
         tokens = output.split(':')
         if len(tokens) != 2:
           raise HostForwarderError(
