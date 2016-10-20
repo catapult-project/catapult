@@ -609,6 +609,15 @@ tr.exportTo('tr.ui', function() {
       // |set groupingKeys| filter out the keys that are no longer in
       // possibleGroups.
       var groupingKeys = this.groupingKeys;
+      if (groupingKeys.length === 0 &&
+          groups.length > 0) {
+        // This can happen if the settings key contains an empty Array,
+        // which *should* never happen, but somehow sometimes does.
+        // When |groupingKeys| is empty, then the entire table will be
+        // mysteriously empty, so recover by ensuring that |groupingKeys| is
+        // never empty.
+        groupingKeys = [groups[0].key];
+      }
       this.$.picker.possibleGroups = groups;
       this.$.picker.currentGroupKeys = groupingKeys;
 
