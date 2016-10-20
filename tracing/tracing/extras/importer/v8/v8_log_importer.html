@@ -10,6 +10,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/v8/log_reader.html">
 <link rel="import" href="/tracing/importer/importer.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/profile_node.html">
+<link rel="import" href="/tracing/model/profile_tree.html">
 <link rel="import" href="/tracing/model/slice.html">
 
 <script>
@@ -25,6 +27,9 @@ tr.exportTo('tr.e.importer.v8', function() {
   var ColorScheme = tr.b.ColorScheme;
   var DynamicFuncCodeEntry = tr.e.importer.v8.CodeMap.DynamicFuncCodeEntry;
   var FunctionEntry = tr.e.importer.v8.CodeMap.FunctionEntry;
+  var ProfileNodeType =
+      tr.model.ProfileNode.subTypes.getConstructor(undefined,
+                                                   'legacySample');
 
   function V8LogImporter(model, eventData) {
     this.importPriority = 3;
@@ -36,8 +41,15 @@ tr.exportTo('tr.e.importer.v8', function() {
     this.v8_timer_thread_ = undefined;
     this.v8_thread_ = undefined;
 
-    this.root_stack_frame_ = new tr.model.StackFrame(
-        undefined, 'v8-root-stack-frame', 'v8-root-stack-frame', 0);
+    this.profileTree_ = new tr.model.ProfileTree();
+    // We predefine a unknown Profile Node so that when a stack address
+    // can't be symbolized, we make it attach to the unknown Profile Node.
+    this.profileTree_.add(new ProfileNodeType(
+        -1, {
+          url: '',
+          functionName: 'unknown'
+        }
+    ));
 
     // We reconstruct the stack timeline from ticks.
     this.v8_stack_timeline_ = new Array();
@@ -229,7 +241,8 @@ tr.exportTo('tr.e.importer.v8', function() {
       }
 
       var processedStack = processStack(pc, tosOrExternalCallback, stack);
-      var lastStackFrame = this.root_stack_frame_;
+      var node = undefined;
+      var lastNode = undefined;
       // v8 log stacks are inverted, leaf first and the root at the end.
       processedStack = processedStack.reverse();
       for (var i = 0, n = processedStack.length; i < n; i++) {
@@ -245,31 +258,30 @@ tr.exportTo('tr.e.importer.v8', function() {
         var sourceInfo = undefined;
         if (entry && entry.type === CodeEntry.TYPE.CPP) {
           var libEntry = this.code_map_.findEntryInLibraries(frame);
-          if (libEntry)
-            sourceInfo = libEntry.name;
+          if (libEntry) {
+            sourceInfo = {
+              file: libEntry.name
+            }
+          }
         }
-
-        var entryID = entry ? entry.id : 'Unknown';
-        var childFrame = findChildWithEntryID(lastStackFrame, entryID);
-        if (childFrame === undefined) {
-          var entryName = entry ? entry.name : 'Unknown';
-          lastStackFrame = new tr.model.StackFrame(
-            lastStackFrame, 'v8sf-' + tr.b.GUID.allocateSimple(), entryName,
-            ColorScheme.getColorIdForGeneralPurposeString(entryName),
-            sourceInfo);
-          lastStackFrame.entryID = entryID;
-          this.model_.addStackFrame(lastStackFrame);
-        } else {
-          lastStackFrame = childFrame;
+        var entryId = entry ? entry.id : -1;
+        var node = this.profileTree_.getNode(entryId);
+        if (node === undefined) {
+          node = this.profileTree_.add(new ProfileNodeType(
+            entryId, {
+              functionName: entry.name,
+              url: sourceInfo ? sourceInfo.file : '',
+              lineNumber: sourceInfo ? sourceInfo.line : undefined,
+              columnNumber: sourceInfo ? sourceInfo.column : undefined,
+              scriptId: sourceInfo ? sourceInfo.scriptId : undefined
+            }, lastNode));
         }
+        lastNode = node;
       }
-
-      if (lastStackFrame !== this.root_stack_frame_) {
-        var sample = new tr.model.Sample(
-          undefined, this.v8_thread_, 'V8 PC',
-          startInMs, lastStackFrame, 1);
-        this.model_.samples.push(sample);
-      }
+      this.model_.samples.push(
+        new tr.model.Sample(
+          startInMs, 'V8 PC', node, this.v8_thread_,
+          undefined, 1));
     },
 
     processDistortion_: function(distortionInPicoseconds) {
@@ -352,11 +364,6 @@ tr.exportTo('tr.e.importer.v8', function() {
       for (var i = 0; i < lines.length; i++) {
         logreader.processLogLine(lines[i]);
       }
-
-      // The processing of samples adds all the root stack frame to
-      // this.root_stack_frame_. But, we don't want that stack frame in the real
-      // model. So get rid of it.
-      this.root_stack_frame_.removeAllChildren();
 
       function addSlices(slices, thread) {
         for (var i = 0; i < slices.length; i++) {

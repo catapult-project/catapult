@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -36,13 +36,13 @@ Polymer({
   ready: function() {
     this.$.content.tableColumns = [
       {
-        title: 'FirstColumn',
-        value: function(row) { return row.title; },
-        width: '250px'
+        title: '',
+        value: row => row.title,
+        width: '100px'
       },
       {
-        title: 'SecondColumn',
-        value: function(row) { return row.value; },
+        title: '',
+        value: row => row.value,
         width: '100%'
       }
     ];
@@ -78,11 +78,22 @@ Polymer({
         })
     });
 
-    var sfEl = document.createElement('tr-ui-a-stack-frame');
-    sfEl.stackFrame = sample.leafStackFrame;
+    var callStackTableEl = document.createElement('tr-ui-b-table');
+    callStackTableEl.tableRows = sample.getNodesAsArray().reverse();
+    callStackTableEl.tableColumns = [
+      {
+        title: 'function name',
+        value: row => row.functionName || '(anonymous function)'
+      },
+      {
+        title: 'location',
+        value: row => row.url
+      }
+    ];
+    callStackTableEl.rebuild();
     rows.push({
-      title: 'Stack trace',
-      value: sfEl
+      title: 'Call stack',
+      value: callStackTableEl
     });
     table.tableRows = rows;
     table.rebuild();

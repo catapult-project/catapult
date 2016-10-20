@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-Copyright (c) 2013 The Chromium Authors. All rights reserved.
+Copyright (c) 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
@@ -48,14 +48,6 @@ found in the LICENSE file.
 
 (function() {
   var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
-  var SAMPLE_TYPE = {
-    COMPILER: 'compiler',
-    EXTERNAL: 'external',
-    GC: 'gc',
-    NATIVEV8: '[native v8]',
-    OTHER: 'other',
-    UNKNOWN: 'unknown'
-  };
 
   Polymer({
     is: 'tr-ui-a-multi-sample-sub-view',
@@ -109,88 +101,41 @@ found in the LICENSE file.
     createSamplingSummary_: function(selection, viewOption) {
       var builder = new MultiDimensionalViewBuilder(
           1 /* dimensions */, 1 /* valueCount */);
-      var samples = selection.filter(function(event) {
-        return event instanceof tr.model.Sample;
-      });
+      var samples = selection.filter(
+        event => event instanceof tr.model.Sample);
 
       samples.forEach(function(sample) {
-        builder.addPath([sample.getUserFriendlyStackTrace().reverse()],
+        builder.addPath([sample.userFriendlyStack.reverse()],
             [1], MultiDimensionalViewBuilder.ValueKind.SELF);
       });
 
       return builder.buildView(viewOption);
     },
 
-    // Constructs function name and file name of sample
-    // if it is compiler, external, gc, other, or unknown.
-    processTypedSampleRow_: function(row) {
-      var title = row.title[0];
-      switch (title) {
-        case SAMPLE_TYPE.COMPILER:
-        case SAMPLE_TYPE.EXTERNAL:
-        case SAMPLE_TYPE.GC:
-        case SAMPLE_TYPE.OTHER:
-          row.functionName = title;
-          row.fileName = 'N/A';
-          return true;
-        case SAMPLE_TYPE.UNKNOWN:
-          row.functionName = SAMPLE_TYPE.UNKNOWN;
-          row.fileName = SAMPLE_TYPE.UNKNOWN;
-          return true;
-        default:
-          return false;
-      }
-    },
-
-    // Constructs function name and file name of native v8 sample.
-    processNativeV8SampleRow_: function(row) {
-      var title = row.title[0];
-      if (!title.includes(SAMPLE_TYPE.NATIVEV8))
-        return false;
-      var arr = title.split(SAMPLE_TYPE.NATIVEV8);
-      row.functionName = arr[0].trim();
-      if (row.functionName === '')
-        row.functionName = '(anonymous function)';
-      row.fileName = SAMPLE_TYPE.NATIVEV8;
-      var fileNameSuffix = arr[1].trim();
-      if (fileNameSuffix !== '')
-        row.fileName += ' ' + fileNameSuffix;
-      return true;
-    },
-
-    // Constructs function name and file name for sample.
-    processGeneralSampleRow_: function(row) {
-      var title = row.title[0];
-      var idx = title.lastIndexOf(' ');
-      if (idx === -1) {
-        row.functionName = title;
-        row.fileName = 'unknown';
-        return;
-      }
-      var prefix = title.substr(0, idx);
-      var suffix = title.substr(idx + 1);
-      if (suffix.startsWith('v8/')) {
-        row.functionName = suffix;
-        row.fileName = 'unknown';
-      } else if (suffix === '') {
-        row.functionName = prefix;
-        row.fileName = 'unknown';
-      } else if (prefix === '') {
-        row.functionName = '(anonymous function)';
-        row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
-      } else {
-        row.functionName = prefix;
-        row.fileName = suffix.substr(suffix.lastIndexOf('/') + 1);
-      }
-    },
-
     processSampleRows_: function(rows) {
-      rows.forEach(function(row) {
-        if (!this.processTypedSampleRow_(row) &&
-            !this.processNativeV8SampleRow_(row))
-          this.processGeneralSampleRow_(row);
+      for (var row of rows) {
+        var title = row.title[0];
+        var results = /(.*) (Deoptimized reason: .*)/.exec(title);
+        if (results !== null) {
+          row.deoptReason = results[2];
+          title = results[1];
+        }
+        results = /(.*) url: (.*)/.exec(title);
+        if (results !== null) {
+          row.functionName = results[1];
+          row.url = results[2];
+          if (row.functionName === '') {
+            row.functionName = '(anonymous function)';
+          }
+          if (row.url === '') {
+            row.url = 'unknown';
+          }
+        } else {
+          row.functionName = title;
+          row.url = 'unknown';
+        }
         this.processSampleRows_(row.subRows);
-      }, this);
+      }
     },
 
     updateContents_: function() {
@@ -211,20 +156,30 @@ found in the LICENSE file.
         this.createSamplesColumn_('Self'),
         {
           title: 'Function Name',
-          value: function(row) { return row.functionName; },
-          width: '150px',
-          cmp: function(a, b) {
-            return a.functionName.localeCompare(b.functionName);
+          value: function(row) {
+            // For function that got deoptimized, show function name
+            // as red italic with a tooltip
+            if (row.deoptReason !== undefined) {
+              var spanEl = tr.ui.b.createSpan({
+                italic: true,
+                color: '#F44336',
+                tooltip: row.deoptReason
+              });
+              spanEl.innerText = row.functionName;
+              return spanEl;
+            } else {
+              return row.functionName;
+            }
           },
+          width: '150px',
+          cmp: (a, b) => a.functionName.localeCompare(b.functionName),
           showExpandButtons: true
         },
         {
           title: 'Location',
-          value: function(row) { return row.fileName; },
+          value: function(row) { return row.url; },
           width: '250px',
-          cmp: function(a, b) {
-            return a.fileName.localeCompare(b.fileName);
-          }
+          cmp: (a, b) => a.url.localeCompare(b.url),
         }
       ];
 
@@ -250,9 +205,7 @@ found in the LICENSE file.
               });
         },
         width: '60px',
-        cmp: function(a, b) {
-          return a.values[0][field] - b.values[0][field];
-        }
+        cmp: (a, b) => a.values[0][field] - b.values[0][field]
       };
     },
 
@@ -268,9 +221,7 @@ found in the LICENSE file.
           });
         },
         width: '60px',
-        cmp: function(a, b) {
-          return a.values[0][field] - b.values[0][field];
-        }
+        cmp: (a, b) => a.values[0][field] - b.values[0][field]
       };
     }
   });

@@ -9,6 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/model.html">
+<link rel="import" href="/tracing/model/profile_node.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/stack_frame.html">
@@ -220,11 +221,8 @@ tr.exportTo('tr.c', function() {
       model = thread.parent.model;
     else
       model = undefined;
-    var sf = TestUtils.newStackTrace(model, frameNames);
-    var s = new tr.model.Sample(undefined, thread,
-                                        sampleName, start,
-                                        sf,
-                                        1);
+    var node = TestUtils.newProfileNodes(model, frameNames);
+    var s = new tr.model.Sample(start, sampleName, node, thread, undefined, 1);
     return s;
   };
 
@@ -269,6 +267,19 @@ tr.exportTo('tr.c', function() {
         model.addStackFrame(frame);
     });
     return frame;
+  };
+
+  TestUtils.newProfileNode = function(model, title, parentNode) {
+    return new tr.model.ProfileNode(
+      tr.b.GUID.allocateSimple(), title, parentNode);
+  };
+
+  TestUtils.newProfileNodes = function(model, titles) {
+    var node = undefined;
+    for (var title of titles) {
+      node = TestUtils.newProfileNode(model, title, node);
+    }
+    return node;
   };
 
   TestUtils.newSnapshot = function(model, options) {

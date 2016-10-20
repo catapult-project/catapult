@@ -50,11 +50,13 @@ tr.b.unittest.testSuite(function() {
 
     var rows = table.tableRows;
     assert.equal(rows.length, 3);
-
     assert.equal(rows[0].value, 'X');
     assert.equal(rows[1].value.value, 0.184);
     assert.strictEqual(rows[1].value.unit, tr.b.Unit.byName.timeStampInMs);
-    assert.equal(rows[2].value.stackFrame, t53.samples[0].leafStackFrame);
+
+    var callStackRows = rows[2].value.tableRows;
+    assert.lengthOf(callStackRows, 3);
+    assert.deepEqual(callStackRows.map(x => x.title), ['a', 'b', 'c']);
   });
 });
 </script>

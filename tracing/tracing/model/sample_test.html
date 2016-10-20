@@ -20,14 +20,11 @@ tr.b.unittest.testSuite(function() {
     var thread = tr.c.TestUtils.newFakeThread();
 
     var model = new tr.Model();
-    var fABC = tr.c.TestUtils.newStackTrace(model, ['a', 'b', 'c']);
+    var node = tr.c.TestUtils.newProfileNodes(model, ['a', 'b', 'c']);
 
-    var s = new Sample(undefined, thread, 'instructions_retired',
-                       10, fABC, 10);
-    var stackTrace = s.stackTrace;
-    var stackTraceNames = stackTrace.map(function(f) { return f.title; });
+    var s = new Sample(10, 'instructions_retired', node, thread, undefined, 10);
     assert.deepEqual(
-        stackTraceNames,
+        s.userFriendlyStack,
         ['c', 'b', 'a']);
   });
 });

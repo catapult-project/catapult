@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/extras/importer/v8/v8_log_importer.html">
+<link rel="import" href="/tracing/extras/v8_config.html">
 
 <script>
 
@@ -31,7 +32,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples.length, 1);
     assert.equal(t.samples[0].title, 'V8 PC');
     assert.equal(t.samples[0].start, 12158 / 1000);
-    assert.equal(t.samples[0].leafStackFrame.title, '/usr/lib/libc++.1.dylib');
+    assert.equal(t.samples[0].leafNode.title, '/usr/lib/libc++.1.dylib');
   });
 
   test('tickEventInGeneratedCode', function() {
@@ -44,7 +45,7 @@ tr.b.unittest.testSuite(function() {
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
     assert.equal(t.samples.length, 1);
-    assert.equal(t.samples[0].leafStackFrame.title, 'StringAddStub');
+    assert.equal(t.samples[0].leafNode.title, 'StringAddStub');
   });
 
   test('tickEventInUknownCode', function() {
@@ -57,7 +58,7 @@ tr.b.unittest.testSuite(function() {
     var threads = p.findAllThreadsNamed('V8');
     var t = threads[0];
     assert.equal(t.samples.length, 1);
-    assert.equal(t.samples[0].leafStackFrame.title, 'Unknown');
+    assert.equal(t.samples[0].leafNode.title, 'unknown');
   });
 
   test('tickEventWithStack', function() {
@@ -69,8 +70,8 @@ tr.b.unittest.testSuite(function() {
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 1);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29'],
-        t.samples[0].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown'],
+        t.samples[0].userFriendlyStack);
   });
 
   test('twoTickEventsWithStack', function() {
@@ -85,13 +86,13 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[0].start, 528674 / 1000);
     assert.equal(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29'],
-        t.samples[0].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown'],
+        t.samples[0].userFriendlyStack);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29'],
-        t.samples[1].getUserFriendlyStackTrace());
-    assert.equal(t.samples[0].leafStackFrame,
-                 t.samples[1].leafStackFrame);
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown'],
+        t.samples[1].userFriendlyStack);
+    assert.equal(t.samples[0].leafNode,
+                 t.samples[1].leafNode);
   });
 
   test('twoTickEventsWithTwoStackFrames', function() {
@@ -108,22 +109,15 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[0].start, 528674 / 1000);
     assert.equal(t.samples[1].start, 536213 / 1000);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29',
-        '~Instantiate native apinatives.js:9:21'],
-        t.samples[0].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown',
+        '~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[0].userFriendlyStack);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29',
-        '~Instantiate native apinatives.js:9:21'],
-        t.samples[1].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown',
+        '~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[1].userFriendlyStack);
 
-    var childStackFrame = t.samples[0].leafStackFrame;
-    assert.equal(childStackFrame, t.samples[1].leafStackFrame);
-    assert.equal(childStackFrame.children.length, 0);
-
-    var parentStackFrame = childStackFrame.parentFrame;
-    assert.equal(parentStackFrame.children.length, 1);
-    assert.equal(childStackFrame, parentStackFrame.children[0]);
-
+    assert.equal(t.samples[0].leafNode, t.samples[1].leafNode);
   });
 
   test('threeTickEventsWithTwoStackFrames', function() {
@@ -143,24 +137,21 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[1].start, 528674 / 1000);
     assert.equal(t.samples[2].start, 536213 / 1000);
     assert.deepEqual(
-        ['~Instantiate native apinatives.js:9:21'],
-        t.samples[0].getUserFriendlyStackTrace());
+        ['~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[0].userFriendlyStack);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29',
-        '~Instantiate native apinatives.js:9:21'],
-        t.samples[1].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown',
+        '~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[1].userFriendlyStack);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29',
-        '~Instantiate native apinatives.js:9:21'],
-        t.samples[2].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown',
+        '~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[2].userFriendlyStack);
 
-    var topLevelStackFrame = t.samples[0].leafStackFrame;
-    var childStackFrame = t.samples[1].leafStackFrame;
-    assert.equal(t.samples[2].leafStackFrame, childStackFrame);
-    assert.equal(topLevelStackFrame, childStackFrame.parentFrame);
-    assert.equal(topLevelStackFrame.children.length, 1);
-    assert.equal(childStackFrame.children.length, 0);
-    assert.equal(childStackFrame, topLevelStackFrame.children[0]);
+    var topLevelNode = t.samples[0].leafNode;
+    var leafNode = t.samples[1].leafNode;
+    assert.equal(t.samples[2].leafNode, leafNode);
+    assert.equal(topLevelNode, leafNode.parentNode);
   });
 
   test('twoSubStacks', function() {
@@ -187,35 +178,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples[4].start, 799145 / 1000);
 
     assert.deepEqual(
-        ['~Instantiate native apinatives.js:9:21'],
-        t.samples[0].getUserFriendlyStackTrace());
+        ['~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[0].userFriendlyStack);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29',
-        '~Instantiate native apinatives.js:9:21'],
-        t.samples[1].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown',
+        '~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[1].userFriendlyStack);
     assert.deepEqual(
-        ['InstantiateFunction native apinatives.js:26:29',
-        '~Instantiate native apinatives.js:9:21'],
-        t.samples[2].getUserFriendlyStackTrace());
-    assert.deepEqual(['~http://www.google.com/'],
-                      t.samples[3].getUserFriendlyStackTrace());
-    assert.deepEqual(['~http://www.google.com/'],
-                      t.samples[4].getUserFriendlyStackTrace());
+        ['InstantiateFunction native apinatives.js:26:29 url: unknown',
+        '~Instantiate native apinatives.js:9:21 url: unknown'],
+        t.samples[2].userFriendlyStack);
+    assert.deepEqual(['~http://www.google.com/ url: unknown'],
+                      t.samples[3].userFriendlyStack);
+    assert.deepEqual(['~http://www.google.com/ url: unknown'],
+                      t.samples[4].userFriendlyStack);
 
-    var firsStackTopLevelStackFrame = t.samples[0].leafStackFrame;
-    var firsStackChildStackFrame = t.samples[1].leafStackFrame;
-    assert.equal(firsStackChildStackFrame, t.samples[2].leafStackFrame);
-    assert.equal(firsStackTopLevelStackFrame,
-                 firsStackChildStackFrame.parentFrame);
-    assert.equal(firsStackTopLevelStackFrame.children.length, 1);
-    assert.equal(firsStackChildStackFrame.children.length, 0);
-    assert.equal(firsStackChildStackFrame,
-                 firsStackTopLevelStackFrame.children[0]);
+    var firstNode = t.samples[0].leafNode;
+    var firstChildNode = t.samples[1].leafNode;
+    assert.equal(firstChildNode, t.samples[2].leafNode);
+    assert.equal(firstNode, firstChildNode.parentNode);
 
-    var secondStackStackFrame = t.samples[3].leafStackFrame;
-    assert.equal(secondStackStackFrame, t.samples[4].leafStackFrame);
-    assert.equal(secondStackStackFrame.children.length, 0);
-    assert.isUndefined(secondStackStackFrame.parentFrame);
+    var secondNode = t.samples[3].leafNode;
+    assert.equal(secondNode, t.samples[4].leafNode);
+    assert.isUndefined(secondNode.parentNode);
   });
 
   test('timerEventSliceCreation', function() {
@@ -262,11 +247,11 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 3);
-    assert.equal(t.samples[0].leafStackFrame.title,
-                 'v8::internal::Heap::AllocateByteArray /usr/loca/v8/out/native/d8');  // @suppress longLineCheck
-    assert.equal(t.samples[1].leafStackFrame.title,
-                 'v8::internal::Utf8StringKey::AsHandle /usr/loca/v8/out/native/d8');  // @suppress longLineCheck
-    assert.equal(t.samples[2].leafStackFrame.title,
+    assert.equal(t.samples[0].leafNode.title,
+                 'v8::internal::Heap::AllocateByteArray');
+    assert.equal(t.samples[1].leafNode.title,
+                 'v8::internal::Utf8StringKey::AsHandle');
+    assert.equal(t.samples[2].leafNode.title,
                  '/usr/loca/v8/out/native/d8');
   });
 
@@ -284,20 +269,20 @@ tr.b.unittest.testSuite(function() {
     var p = m.processes[-32];
     var t = p.findAllThreadsNamed('V8')[0];
     assert.equal(t.samples.length, 4);
-    assert.deepEqual(t.samples[0].stackTrace.map(r => r.title), [
-      'v8::internal::Utf8StringKey::AsHandle /usr/loca/v8/out/native/d8',
-      'InstantiateFunction native apinatives.js:26:29'
+    assert.deepEqual(t.samples[0].userFriendlyStack, [
+      'v8::internal::Utf8StringKey::AsHandle url: /usr/loca/v8/out/native/d8',
+      'InstantiateFunction native apinatives.js:26:29 url: unknown'
     ]);
-    assert.deepEqual(t.samples[1].stackTrace.map(r => r.title), [
-      'v8::internal::Heap::AllocateByteArray /usr/loca/v8/out/native/d8',
-      'InstantiateFunction native apinatives.js:26:29'
+    assert.deepEqual(t.samples[1].userFriendlyStack, [
+      'v8::internal::Heap::AllocateByteArray url: /usr/loca/v8/out/native/d8',
+      'InstantiateFunction native apinatives.js:26:29 url: unknown'
     ]);
-    assert.deepEqual(t.samples[2].stackTrace.map(r => r.title), [
-      '/usr/loca/v8/out/native/d8',
-      'InstantiateFunction native apinatives.js:26:29'
+    assert.deepEqual(t.samples[2].userFriendlyStack, [
+      '/usr/loca/v8/out/native/d8 url: unknown',
+      'InstantiateFunction native apinatives.js:26:29 url: unknown'
     ]);
-    assert.deepEqual(t.samples[3].stackTrace.map(r => r.title), [
-      'InstantiateFunction native apinatives.js:26:29'
+    assert.deepEqual(t.samples[3].userFriendlyStack, [
+      'InstantiateFunction native apinatives.js:26:29 url: unknown'
     ]);
   });
 });

@@ -28,6 +28,7 @@ tr.b.unittest.testSuite(function() {
       m.t2 = m.p1.getOrCreateThread(2);
       m.t3 = m.p1.getOrCreateThread(3);
       m.t4 = m.p1.getOrCreateThread(4);
+      var node = tr.c.TestUtils.newProfileNodes(m, ['fake']);
 
       // Setup samples and slices in this way:
       //     0    5    10   15   20
@@ -44,14 +45,14 @@ tr.b.unittest.testSuite(function() {
       // t4                      |c
       // -----------------------------
       m.samples.push(
-        new tr.model.Sample(null, m.t3, 'b10_1', 10),
-        new tr.model.Sample(null, m.t3, 'b7', 7),
-        new tr.model.Sample(null, m.t3, 'b12', 12),
-        new tr.model.Sample(null, m.t3, 'b20', 20),
-        new tr.model.Sample(null, m.t3, 'b10_2', 10),
-        new tr.model.Sample(null, m.t3, 'b15_1', 15),
-        new tr.model.Sample(null, m.t3, 'b15_2', 15),
-        new tr.model.Sample(null, m.t2, 'a12', 12)
+        new tr.model.Sample(10, 'b10_1', node, m.t3),
+        new tr.model.Sample(7, 'b7', node, m.t3),
+        new tr.model.Sample(12, 'b12', node, m.t3),
+        new tr.model.Sample(20, 'b20', node, m.t3),
+        new tr.model.Sample(10, 'b10_2', node, m.t3),
+        new tr.model.Sample(15, 'b15_1', node, m.t3),
+        new tr.model.Sample(15, 'b15_2', node, m.t3),
+        new tr.model.Sample(12, 'a12', node, m.t2)
       );
 
       m.sA = m.t2.sliceGroup.pushSlice(

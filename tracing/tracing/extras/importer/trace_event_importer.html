@@ -26,6 +26,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import" href="/tracing/model/model.html">
 <link rel="import" href="/tracing/model/process_memory_dump.html">
+<link rel="import" href="/tracing/model/profile_node.html">
+<link rel="import" href="/tracing/model/profile_tree.html">
 <link rel="import" href="/tracing/model/rect_annotation.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
@@ -131,6 +133,7 @@ tr.exportTo('tr.e.importer', function() {
     this.events_ = undefined;
     this.sampleEvents_ = undefined;
     this.stackFrameEvents_ = undefined;
+    this.stackFrameTree_ = new tr.model.ProfileTree();
     this.subtraces_ = [];
     this.eventsWereFromString_ = false;
     this.softwareMeasuredCpuCount_ = undefined;
@@ -147,6 +150,12 @@ tr.exportTo('tr.e.importer', function() {
     this.v8ProcessCodeMaps_ = {};
     this.v8ProcessRootStackFrame_ = {};
     this.v8SamplingData_ = [];
+
+    // Profile Tree Map.
+    // Type of Profile Tree -> Map(ID -> Profile Tree)
+    this.profileTrees_ = new Map();
+    // ID -> Info Object
+    this.profileInfo_ = new Map();
 
     // For tracking async events that is used to create back-compat clock sync
     // event.
@@ -673,116 +682,192 @@ tr.exportTo('tr.e.importer', function() {
       }
     },
 
-    processV8Sample: function(event) {
+    getOrCreateProfileTree_: function(sampleType, id) {
+      if (!this.profileTrees_.has(sampleType)) {
+        this.profileTrees_.set(sampleType, new Map());
+      }
+      var profileTreeMap = this.profileTrees_.get(sampleType);
+      if (profileTreeMap.has(id)) {
+        return profileTreeMap.get(id);
+      }
+      var profileTree = new tr.model.ProfileTree();
+      profileTreeMap.set(id, profileTree);
+      let info = this.profileInfo_.get(id);
+      if (info !== undefined) {
+        profileTree.startTime = info.startTime;
+        profileTree.pid = info.pid;
+        profileTree.tid = info.tid;
+      }
+      return profileTree;
+    },
+
+    processSample: function(event) {
+      if (event.args === undefined || event.args.data === undefined)
+        return;
+      if (event.id === undefined)
+        throw new Error('No event ID in sample');
+
       var data = event.args.data;
+      // Sampling usually happens in a separate thread, but start time is issued
+      // in the main thread, in order to get the correct thread object,
+      // we should use pid and tid from main thread.
+      if (data['startTime'] !== undefined) {
+        this.profileInfo_.set(event.id, {
+          startTime: data['startTime'],
+          pid: event.pid,
+          tid: event.tid
+        });
+      }
+      let timeDeltas = data['timeDeltas'];
+      for (let sampleType in data) {
+        if (sampleType === 'timeDeltas' || sampleType === 'startTime') {
+          continue;
+        }
+        // The length of samples array and the length of timeDeltas array
+        // should be the same.
+        if (data[sampleType]['samples'] && timeDeltas &&
+            data[sampleType]['samples'].length !== timeDeltas.length) {
+          // eslint-disable-next-line
+          throw new Error('samples and timeDeltas array should have same length');
+        }
+
+        let profileTree = this.getOrCreateProfileTree_(sampleType, event['id']);
+        let nodes = data[sampleType]['nodes'];
+        let samples = data[sampleType]['samples'];
+        if (nodes !== undefined) {
+          for (let node of nodes) {
+            // Get the sepcific ProfileNode type based on sampleType.
+            var ProfileNodeType =
+                tr.model.ProfileNode.subTypes.getConstructor(undefined,
+                                                             sampleType);
+            let profileNode = ProfileNodeType.constructFromObject(profileTree,
+                                                                  node);
+            if (profileNode === undefined) {
+              continue;
+            }
+            profileTree.add(profileNode);
+          }
+        }
+        // The samples array contains id pointing to the profile node.
+        if (samples !== undefined) {
+          let thread = this.model_.getOrCreateProcess(profileTree.pid)
+              .getOrCreateThread(profileTree.tid);
+          for (let i = 0, len = samples.length; i < len; ++i) {
+            let node = profileTree.getNode(samples[i]);
+            profileTree.endTime += timeDeltas[i];
+            let start = this.toModelTimeFromUs_(profileTree.endTime);
+            this.model_.samples.push(
+              new tr.model.Sample(start, node.sampleTitle, node, thread));
+          }
+        }
+      }
+    },
+
+    processLegacyV8Sample: function(event) {
+      var data = event.args.data;
+      var sampleType = 'legacySample';
+      var ProfileNodeType =
+          tr.model.ProfileNode.subTypes.getConstructor(undefined, sampleType);
 
       // As-per DevTools, the backend sometimes creates bogus samples. Skip it.
       if (data.vm_state === 'js' && !data.stack.length)
         return;
 
-      var rootStackFrame = this.v8ProcessRootStackFrame_[event.pid];
-      if (!rootStackFrame) {
-        rootStackFrame = new tr.model.StackFrame(
-            undefined /* parent */, 'v8-root-stack-frame' /* id */,
-            'v8-root-stack-frame' /* title */, 0 /* colorId */);
-        this.v8ProcessRootStackFrame_[event.pid] = rootStackFrame;
+      var profileTree = this.getOrCreateProfileTree_(sampleType, event.pid);
+      if (profileTree.getNode(-1) === undefined) {
+        profileTree.add(
+          new ProfileNodeType(-1, {
+            url: '',
+            scriptId: -1,
+            functionName: 'unknown'
+          }, undefined));
       }
-
-      function findChildWithEntryID(stackFrame, entryID) {
-        return tr.b.findFirstInArray(stackFrame.children, function(child) {
-          return child.entryID === entryID;
-        });
-      }
-
-      var model = this.model_;
-      function addStackFrame(lastStackFrame, entry) {
-        var childFrame = findChildWithEntryID(lastStackFrame, entry.id);
-        if (childFrame)
-          return childFrame;
-
-        var frame = new tr.model.StackFrame(
-            lastStackFrame, tr.b.GUID.allocateSimple(), entry.name,
-            ColorScheme.getColorIdForGeneralPurposeString(entry.name),
-            entry.sourceInfo);
-
-        frame.entryID = entry.id;
-        model.addStackFrame(frame);
-        return frame;
-      }
-
-      var lastStackFrame = rootStackFrame;
-
       // There are several types of v8 sample events, gc, native, compiler, etc.
       // Some of these types have stacks and some don't, we handle those two
       // cases differently. For types that don't have any stack frames attached
       // we synthesize one based on the type of thing that's happening so when
       // we view all the samples we'll see something like 'external' or 'gc'
       // as a fraction of the time spent.
+      let node = undefined;
       if (data.stack.length > 0 && this.v8ProcessCodeMaps_[event.pid]) {
-        var map = this.v8ProcessCodeMaps_[event.pid];
-
+        let map = this.v8ProcessCodeMaps_[event.pid];
         // Stacks have the leaf node first, flip them around so the root
         // comes first.
         data.stack.reverse();
-
-        for (var i = 0; i < data.stack.length; i++) {
-          var entry = map.lookupEntry(data.stack[i]);
+        let parentNode = undefined;
+        for (let i = 0; i < data.stack.length; i++) {
+          let entry = map.lookupEntry(data.stack[i]);
           if (entry === undefined) {
-            entry = {
-              id: 'unknown',
-              name: 'unknown',
-              sourceInfo: undefined
-            };
+            node = profileTree.getNode(-1);
+          } else {
+            node = profileTree.getNode(entry.id);
+            if (node === undefined) {
+              let sourceInfo = entry.sourceInfo;
+              node = new ProfileNodeType(entry.id, {
+                functionName: entry.name,
+                url: entry.sourceInfo.file,
+                lineNumber: sourceInfo.line !== -1 ? sourceInfo.line :
+                                                     undefined,
+                columnNumber: sourceInfo.column !== -1 ? sourceInfo.column :
+                                                         undefined,
+                scriptid: entry.sourceInfo.scriptId
+              }, parentNode);
+              profileTree.add(node);
+            }
           }
-
-          lastStackFrame = addStackFrame(lastStackFrame, entry);
+          parentNode = node;
         }
       } else {
-        var entry = {
-          id: data.vm_state,
-          name: data.vm_state,
-          sourceInfo: undefined
-        };
-        lastStackFrame = addStackFrame(lastStackFrame, entry);
+        node = profileTree.getNode(data.vm_state);
+        if (node === undefined) {
+          node = new ProfileNodeType(data.vm_state, {
+            url: '',
+            functionName: data.vm_state
+          }, undefined);
+          profileTree.add(node);
+        }
       }
 
       var thread = this.model_.getOrCreateProcess(event.pid)
-        .getOrCreateThread(event.tid);
+          .getOrCreateThread(event.tid);
 
-      var sample = new tr.model.Sample(
-          undefined /* cpu */, thread, 'V8 Sample',
-          this.toModelTimeFromUs_(event.ts), lastStackFrame, 1 /* weight */,
-          this.deepCopyIfNeeded_(event.args));
-      this.model_.samples.push(sample);
+      this.model_.samples.push(
+        new tr.model.Sample(this.toModelTimeFromUs_(event.ts),
+                            node.sampleTitle, node, thread));
     },
 
     processTraceSampleEvent: function(event) {
-      if (event.name === 'V8Sample') {
+      if (event.name === 'V8Sample' || event.name.startsWith('Profile')) {
         this.v8SamplingData_.push(event);
         return;
       }
 
-      var stackFrame = this.getStackFrameForEvent_(event);
-      if (stackFrame === undefined) {
-        stackFrame = this.traceEventSampleStackFramesByName_[
-            event.name];
-      }
-      if (stackFrame === undefined) {
-        var id = 'te-' + tr.b.GUID.allocateSimple();
-        stackFrame = new tr.model.StackFrame(
-            undefined, id, event.name,
-            ColorScheme.getColorIdForGeneralPurposeString(event.name));
-        this.model_.addStackFrame(stackFrame);
-        this.traceEventSampleStackFramesByName_[event.name] = stackFrame;
+      var node = this.stackFrameTree_.getNode(event.name);
+      if (node === undefined && event.sf !== undefined) {
+        node = this.stackFrameTree_.getNode('g' + event.sf);
       }
 
+      if (node === undefined) {
+        var id = event.name;
+        if (event.sf) {
+          id = 'g' + event.sf;
+        }
+        var ProfileNodeType =
+            tr.model.ProfileNode.subTypes.getConstructor(undefined,
+                                                         'legacySample');
+        node = this.stackFrameTree_.add(new ProfileNodeType(
+          id, {
+            functionName: event.name
+          }, undefined
+        ));
+      }
       var thread = this.model_.getOrCreateProcess(event.pid)
-        .getOrCreateThread(event.tid);
+          .getOrCreateThread(event.tid);
 
       var sample = new tr.model.Sample(
-          undefined, thread, 'Trace Event Sample',
-          this.toModelTimeFromUs_(event.ts), stackFrame, 1,
-          this.deepCopyIfNeeded_(event.args));
+        this.toModelTimeFromUs_(event.ts), 'Trace Event Sample',
+        node, thread, undefined, 1,
+        this.deepCopyIfNeeded_(event.args));
       this.setContextsFromThread_(thread, sample);
       this.model_.samples.push(sample);
     },
@@ -922,7 +1007,14 @@ tr.exportTo('tr.e.importer', function() {
         if (event.ph === 'M' || event.ph === 'I') {
           this.processJitCodeEvent(event);
         } else if (event.ph === 'P') {
-          this.processV8Sample(event);
+          // The current sampling format and legacy sampling format
+          // have the same ph, but the current sampling format will
+          // start with 'Profile' in its name.
+          if (event.name.startsWith('Profile')) {
+            this.processSample(event);
+          } else {
+            this.processLegacyV8Sample(event);
+          }
         }
       }
     },
@@ -1103,6 +1195,45 @@ tr.exportTo('tr.e.importer', function() {
         }
         stackFrame.parentFrame = parentStackFrame;
       }
+
+      // This section is a reimplementation of the above behaviour but using
+      // the new ProfileNode type instead of StackFrame.
+      // We keep the StackFrame version for compatibility for now.
+      var ProfileNodeType =
+          tr.model.ProfileNode.subTypes.getConstructor(undefined,
+                                                       'legacySample');
+      if (idPrefix === 'g') {
+        for (var id in rawStackFrames) {
+          var rawStackFrame = rawStackFrames[id];
+          var textForColor = rawStackFrame.category ?
+              rawStackFrame.category : rawStackFrame.name;
+          var node = this.stackFrameTree_.add(new ProfileNodeType(
+            'g' + id, {
+              functionName: rawStackFrame.name
+            }, undefined));
+          node.colorId =
+            ColorScheme.getColorIdForGeneralPurposeString(textForColor);
+          node.parentId = rawStackFrame.parent;
+        }
+
+        for (var id in rawStackFrames) {
+          var node = this.stackFrameTree_.getNode('g' + id);
+          var parentId = node.parentId;
+          var parentNode = undefined;
+          if (parentId !== undefined) {
+            parentNode = this.stackFrameTree_.getNode('g' + parentId);
+            if (parentNode === undefined) {
+              this.model_.importWarning({
+                type: 'metadata_parse_error',
+                message: 'Missing parent frame with ID ' + parent +
+                  ' for stack frame \'' + node.name + '\' (ID ' + node.id +
+                  ').'
+              });
+            }
+            node.parentNode = parentNode;
+          }
+        }
+      }
     },
 
     importObjectTypeNameMap_: function(rawObjectTypeNameMap, pid) {
@@ -1264,14 +1395,16 @@ tr.exportTo('tr.e.importer', function() {
         if (event.cpu !== undefined)
           cpu = m.kernel.getOrCreateCpu(event.cpu);
 
-        var stackFrame = this.getStackFrameForEvent_(event);
+        var leafNode = this.stackFrameTree_.getNode('g' + event.sf);
 
         var sample = new tr.model.Sample(
-            cpu, thread,
-            event.name,
-            this.toModelTimeFromUs_(event.ts),
-            stackFrame,
-            event.weight);
+          this.toModelTimeFromUs_(event.ts),
+          event.name,
+          leafNode,
+          thread,
+          cpu,
+          event.weight
+        );
         m.samples.push(sample);
       }
     },

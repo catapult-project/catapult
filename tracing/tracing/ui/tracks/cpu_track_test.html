@@ -55,24 +55,24 @@ tr.b.unittest.testSuite(function() {
         cpu = model.kernel.getOrCreateCpu(1);
         thread = model.getOrCreateProcess(1).getOrCreateThread(2);
 
-        var fA = model.addStackFrame(new StackFrame(undefined, 1, 'a', 7));
-        var fAB = model.addStackFrame(new StackFrame(fA, 2, 'b', 7));
-        var fABC = model.addStackFrame(new StackFrame(fAB, 3, 'c', 7));
-        var fAD = model.addStackFrame(new StackFrame(fA, 4, 'd', 7));
+        var nodeA = tr.c.TestUtils.newProfileNode(model, 'a');
+        var nodeB = tr.c.TestUtils.newProfileNode(model, 'b', nodeA);
+        var nodeC = tr.c.TestUtils.newProfileNode(model, 'c', nodeB);
+        var nodeD = tr.c.TestUtils.newProfileNode(model, 'd', nodeA);
 
-        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                      10, fABC, 10));
-        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                      20, fAB, 10));
-        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                      30, fAB, 10));
-        model.samples.push(new Sample(undefined, thread, 'instructions_retired',
-                                      40, fAD, 10));
+        model.samples.push(new Sample(10, 'instructions_retired', nodeC, thread,
+                                      undefined, 10));
+        model.samples.push(new Sample(20, 'instructions_retired', nodeB, thread,
+                                      undefined, 10));
+        model.samples.push(new Sample(30, 'instructions_retired', nodeB, thread,
+                                      undefined, 10));
+        model.samples.push(new Sample(40, 'instructions_retired', nodeD, thread,
+                                      undefined, 10));
 
-        model.samples.push(new Sample(undefined, thread, 'page_fault',
-                                      25, fAB, 10));
-        model.samples.push(new Sample(undefined, thread, 'page_fault',
-                                      35, fAD, 10));
+        model.samples.push(new Sample(25, 'page_fault', nodeB, thread,
+                                      undefined, 10));
+        model.samples.push(new Sample(35, 'page_fault', nodeD, thread,
+                                      undefined, 10));
       }
     });
 

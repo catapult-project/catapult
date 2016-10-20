@@ -11,6 +11,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/battor_importer.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
+<link rel="import" href="/tracing/extras/v8_config.html">
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
@@ -1890,10 +1891,10 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples_[0].start, 0.0);
     assert.equal(t.samples_[1].start, 0.0);
     assert.closeTo(0.01, t.samples_[2].start, 1e-5);
-    assert.equal(t.samples_[0].leafStackFrame.title, 'a');
-    assert.equal(t.samples_[1].leafStackFrame.title, 'b');
-    assert.equal(t.samples_[2].leafStackFrame.title, 'c');
-    assert.equal(t.samples_[3].leafStackFrame, t.samples[0].leafStackFrame);
+    assert.equal(t.samples_[0].leafNode.title, 'a');
+    assert.equal(t.samples_[1].leafNode.title, 'b');
+    assert.equal(t.samples_[2].leafNode.title, 'c');
+    assert.equal(t.samples_[3].leafNode, t.samples[0].leafNode);
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -1922,7 +1923,7 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(t.samples.length, 1);
     assert.equal(t.samples_[0].start, 0.0);
-    assert.equal(t.samples_[0].leafStackFrame.title, 'frame7');
+    assert.equal(t.samples_[0].leafNode.title, 'frame7');
     assert.isFalse(m.hasImportWarnings);
   });
 
@@ -1962,12 +1963,11 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples.length, 2);
 
     var sample = t.samples_[0];
-    assert.equal(sample.leafStackFrame.title,
-        'foo http://example.com/bar.js:22');
-    assert.equal(sample.leafStackFrame.parentFrame.title, 'bar');
+    assert.deepEqual(sample.userFriendlyStack,
+                     ['foo url: http://example.com/bar.js:22', 'bar url: unknown']);
 
     var sample = t.samples_[1];
-    assert.equal(sample.leafStackFrame.title, 'gc');
+    assert.deepEqual(sample.userFriendlyStack, ['gc url: unknown']);
   });
 
   test('importOldFormatV8Samples', function() {
@@ -1990,12 +1990,11 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.samples.length, 2);
 
     var sample = t.samples_[0];
-    assert.equal(sample.leafStackFrame.title,
-        'foo http://example.com/bar.js:22');
-    assert.equal(sample.leafStackFrame.parentFrame.title, 'bar');
+    assert.deepEqual(sample.userFriendlyStack,
+                     ['foo url: http://example.com/bar.js:22', 'bar url: unknown']);
 
     var sample = t.samples_[1];
-    assert.equal(sample.leafStackFrame.title, 'gc');
+    assert.deepEqual(sample.userFriendlyStack, ['gc url: unknown']);
   });
 
   test('importSimpleObject', function() {
@@ -2842,7 +2841,6 @@ tr.b.unittest.testSuite(function() {
     assert.isDefined(m.kernel.cpus[0]);
     assert.equal(m.getAllThreads().length, 1);
 
-    assert.equal(tr.b.dictionaryKeys(m.stackFrames).length, 4);
     assert.equal(m.samples.length, 3);
 
     var t1 = m.processes[1].threads[1];
@@ -2858,8 +2856,9 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.samples[0].title, 'cycles:HG');
     assert.equal(m.samples[0].start, 1);
     assert.deepEqual(
-        ['a_sub', 'a', 'main'],
-        m.samples[0].stackTrace.map(function(x) { return x.title; }));
+      ['a_sub', 'a', 'main'],
+      m.samples[0].userFriendlyStack
+        .map(x => x.substr(0, x.indexOf('url') - 1)));
     assert.equal(m.samples[0].weight, 1);
   });
 
@@ -5792,6 +5791,84 @@ tr.b.unittest.testSuite(function() {
 
     assert.throws(() => makeModel(events),
         'Inconsistent clock sync ID of legacy Chrome clock sync events');
+  });
+
+  test('importV8SamplesInStreamingFormat', function() {
+    var events = {
+      'traceEvents': [
+        {'pid': 1, 'tid': 2, 'ts': 3, 'ph': 'P',
+         'cat': 'disabled-by-default-v8.cpu_profiler',
+         'name': 'Profile',
+         'args': {'data': {'startTime': 10}},
+         'id': 123
+        },
+        {'pid': 1, 'tid': 3, 'ts': 4, 'ph': 'P',
+         'cat': 'disabled-by-default-v8.cpu_profiler',
+         'name': 'Profile',
+         'args': {
+           'data': {
+             'timeDeltas': [1, 1],
+             'cpuProfile': {
+               'nodes': [
+                 // eslint-disable-next-line
+                 {'callFrame': {'functionName': '(root)', 'scriptId': 0}, 'id': 1},
+                 // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'a', 'url': 'a.js', 'scriptId': 1, 'lineNumber': 1, 'columnNumber': 2}, 'id': 2, 'parent': 1},
+                 // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'b', 'url': 'b.js', 'scriptId': 2, 'lineNumber': 1, 'columnNumber': 2}, 'deoptReason': 'a reason', 'id': 3, 'parent': 2}
+               ],
+               'samples': [3, 2]
+             }
+           }
+         },
+         'id': 123
+        },
+        {'pid': 1, 'tid': 3, 'ts': 4, 'ph': 'P',
+         'cat': 'disabled-by-default-v8.cpu_profiler',
+         'name': 'Profile',
+         'args': {
+           'data': {
+             'timeDeltas': [3, 3],
+             'cpuProfile': {
+               'nodes': [
+                 // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'c', 'url': 'c.js', 'scriptId': 3, 'lineNumber': 2, 'columnNumber': 3}, 'id': 4, 'parent': 2},
+                 // eslint-disable-next-line
+                 {'callFrame': {'functionName': 'd', 'url': 'd.js', 'scriptId': 4, 'lineNumber': 2, 'columnNumber': 3}, 'deoptReason': 'another reason', 'id': 5, 'parent': 3}
+               ],
+               'samples': [5, 4]
+             }
+           }
+         },
+         'id': 123
+        }
+      ]
+    };
+    var m = makeModel(events, false);
+    var samples = m.samples;
+    assert.equal(m.samples.length, 4);
+    assert.deepEqual(samples.map(sample => sample.start.toFixed(3)), [
+      '0.011',
+      '0.012',
+      '0.015',
+      '0.018'
+    ]);
+    assert.deepEqual(samples[0].userFriendlyStack, [
+      'b url: b.js:1:2 Deoptimized reason: a reason',
+      'a url: a.js:1:2'
+    ]);
+    assert.deepEqual(samples[1].userFriendlyStack, [
+      'a url: a.js:1:2'
+    ]);
+    assert.deepEqual(samples[2].userFriendlyStack, [
+      'd url: d.js:2:3 Deoptimized reason: another reason',
+      'b url: b.js:1:2 Deoptimized reason: a reason',
+      'a url: a.js:1:2'
+    ]);
+    assert.deepEqual(samples[3].userFriendlyStack, [
+      'c url: c.js:2:3',
+      'a url: a.js:1:2'
+    ]);
   });
 
   // TODO(nduca): one slice, two threads

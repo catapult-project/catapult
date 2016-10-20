@@ -6,8 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/model/profile_node.html">
 <link rel="import" href="/tracing/model/sample.html">
-<link rel="import" href="/tracing/model/stack_frame.html">
 <link rel="import" href="/tracing/ui/timeline_track_view.html">
 <link rel="import" href="/tracing/ui/tracks/sample_track.html">
 
@@ -17,13 +17,14 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var SampleTrack = tr.ui.tracks.SampleTrack;
   var Sample = tr.model.Sample;
-  var StackFrame = tr.model.StackFrame;
+  var ProfileNode = tr.model.ProfileNode;
 
   test('modelMapping', function() {
     var track = new SampleTrack(new tr.ui.TimelineViewport());
-    var fA = new StackFrame(undefined, 1, 'a', 7);
-    var sample = new Sample(undefined, undefined, 'instructions_retired',
-                            10, fA, 10);
+    var node = new ProfileNode(1, {
+      functionName: 'a'
+    }, undefined);
+    var sample = new Sample(10, 'instructions_retired', node);
     track.samples = [sample];
     var me0 = track.rects[0].modelItem;
     assert.equal(me0, sample);
