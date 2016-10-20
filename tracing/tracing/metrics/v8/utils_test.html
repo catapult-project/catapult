@@ -75,7 +75,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('unionOfIntervals', function() {
-    var list, union;
+    var list;
+    var union;
     assert.deepEqual(unionOfIntervals([]), []);
     assert.deepEqual(unionOfIntervals([interval(1, 1)]), [interval(1, 1)]);
     assert.deepEqual(
@@ -126,16 +127,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('mutatorUtilization', function() {
-    var pauses, actual, expected;
-    pauses = [interval(10, 20),
-              interval(15, 23),
-              interval(30, 31),
-              interval(33, 34),
-              interval(60, 61),
-              interval(61, 63),
-              interval(80, 88)];
-    actual = tr.metrics.v8.utils.mutatorUtilization(0, 100, 7, pauses);
-    expected = mutatorUtilizationSlow(0, 100, 7, pauses);
+    var pauses = [interval(10, 20),
+                  interval(15, 23),
+                  interval(30, 31),
+                  interval(33, 34),
+                  interval(60, 61),
+                  interval(61, 63),
+                  interval(80, 88)];
+    var actual = tr.metrics.v8.utils.mutatorUtilization(0, 100, 7, pauses);
+    var expected = mutatorUtilizationSlow(0, 100, 7, pauses);
     assert.closeTo(expected.average, actual.average, 1e-3);
     assert.closeTo(expected.max, actual.max, 1e-3);
     assert.closeTo(expected.min, actual.min, 1e-3);

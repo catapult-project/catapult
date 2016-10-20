@@ -116,12 +116,10 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('merge', function() {
-    var data1, data2, data, stats;
-
-    data1 = [];
-    data2 = [];
-    data = data1.concat(data2);
-    stats = run(data1).merge(run(data2));
+    var data1 = [];
+    var data2 = [];
+    var data = data1.concat(data2);
+    var stats = run(data1).merge(run(data2));
     assert.equal(Statistics.sum(data), stats.sum);
     assert.equal(Statistics.min(data), stats.min);
     assert.equal(Statistics.max(data), stats.max);

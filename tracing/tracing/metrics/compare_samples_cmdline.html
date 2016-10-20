@@ -82,7 +82,8 @@ function valuesFromCharts(listOfCharts, metricName) {
 }
 
 function rawValuesByMetricName(valueSet, metricName) {
-  var interactionRecord, valueName;
+  var interactionRecord;
+  var valueName;
   var [itrPlusChart, story] = splitMetric(metricName);
   if (itrPlusChart.indexOf('@@') > -1) {
     [interactionRecord, valueName] = itrPlusChart.split('@@');
@@ -245,7 +246,8 @@ var SampleComparison = {
 };
 
 if (tr.isHeadless) {
-  var method, rest;
+  var method;
+  var rest;
   [method, ...rest] = sys.argv.slice(1);
   if (SampleComparison[method])
     console.log(JSON.stringify(SampleComparison[method](...rest)));

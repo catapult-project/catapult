@@ -637,7 +637,8 @@ tr.exportTo('tr.model', function() {
     while (idxA < slicesA.length || idxB < slicesB.length) {
       var sA = slicesA[idxA];
       var sB = slicesB[idxB];
-      var nextSlice, isFromB;
+      var nextSlice;
+      var isFromB;
 
       if (sA === undefined || (sB !== undefined && sA.start > sB.start)) {
         nextSlice = result.copySlice(sB);

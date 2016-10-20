@@ -207,7 +207,9 @@ tr.exportTo('tr.e.importer.v8', function() {
     // the L tree of the algorithm.  The left child of the dummy node
     // will hold the R tree of the algorithm.  Using a dummy node, left
     // and right will always be nodes and we avoid special cases.
-    var dummy, left, right;
+    var dummy;
+    var left;
+    var right;
     dummy = left = right = new SplayTree.Node(null, null);
     var current = this.root_;
     while (true) {

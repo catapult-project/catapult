@@ -167,8 +167,10 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
 
     binderLocked: function(eventName, cpuNumber, pid, ts, eventBase) {
       var binderThread = isBinderThread(eventBase.threadName);
-      var tgid, name;
-      var kthread, rthread;
+      var tgid;
+      var name;
+      var kthread;
+      var rthread;
 
       tgid = parseInt(eventBase.tgid);
       name = eventBase.threadName;

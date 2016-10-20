@@ -403,7 +403,8 @@ Polymer({
 
     // Draw the sparkline.
     this.$.sparkline.style.display = 'block';
-    var left, width;
+    var left;
+    var width;
     if (this.value > 0) {
       width = Math.min(this.value, rightPoint);
       left = -leftPoint;

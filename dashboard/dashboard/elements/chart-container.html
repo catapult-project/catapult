@@ -1336,7 +1336,8 @@ triaging functionality in the chart.
          */
         addAxisMargin: function(axis) {
           var margin = 0.2; // Flot's default for autoscaleMargin.
-          var min = axis.min, max = axis.max;
+          var min = axis.min;
+          var max = axis.max;
           var delta = max - min;
           if (delta == 0.0) {
             min -= axis.min == 0 ? 1 : margin;
@@ -1746,7 +1747,8 @@ triaging functionality in the chart.
               // Flot sends a spurious click event at the end of the selection.
               return;
             }
-            var min = Math.min(from, to), max = Math.max(from, to);
+            var min = Math.min(from, to);
+            var max = Math.max(from, to);
             if (pos.y > min && pos.y < max) {
               this.chartOptions.yaxis.min = min;
               this.chartOptions.yaxis.max = max;
@@ -1831,7 +1833,8 @@ triaging functionality in the chart.
           // The alerts and triaged lists are attributes of chart-tooltip
           // which are used for showing information about anomalies. The alerts
           // list is also used for showing the triage dialog.
-          var alerts = null, triaged = null;
+          var alerts = null;
+          var triaged = null;
           if (anomalyInfo.bug_id) {
             triaged = [anomalyInfo];
           } else {

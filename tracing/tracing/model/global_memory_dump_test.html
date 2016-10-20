@@ -3604,7 +3604,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('indicesUpdatedCorrectly', function() {
-    var gmd, rootDump, childDump;
+    var gmd;
+    var rootDump;
+    var childDump;
     var model = tr.c.TestUtils.newModel(function(model) {
       gmd = new GlobalMemoryDump(model, 10);
       model.globalMemoryDumps.push(gmd);

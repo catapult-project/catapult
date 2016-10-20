@@ -130,7 +130,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     getSampleWidth_: function(data, index, leftSide) {
-      var leftIndex, rightIndex;
+      var leftIndex;
+      var rightIndex;
       if (leftSide) {
         leftIndex = Math.max(index - 1, 0);
         rightIndex = index;

@@ -133,7 +133,8 @@ tr.exportTo('tr.e.importer.v8', function() {
     while (addr >= start) {
       var node = tree.findGreatestLessThan(addr);
       if (!node) break;
-      var start2 = node.key, end2 = start2 + node.value.size;
+      var start2 = node.key;
+      var end2 = start2 + node.value.size;
       if (start2 < end && start < end2) toDelete.push(start2);
       addr = start2 - 1;
     }

@@ -1855,7 +1855,9 @@ tr.exportTo('tr.e.importer', function() {
       }
 
       var createFlowEvent = function(thread, event, opt_slice) {
-        var startSlice, flowId, flowStartTs;
+        var startSlice;
+        var flowId;
+        var flowStartTs;
 
         if (event.bind_id) {
           // Support Flow API v2.

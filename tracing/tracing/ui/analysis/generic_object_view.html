@@ -110,7 +110,10 @@ Polymer({
           if (object.indexOf('\n') !== -1) {
             var lines = object.split('\n');
             lines.forEach(function(line, i) {
-              var text, ioff, ll, ss;
+              var text;
+              var ioff;
+              var ll;
+              var ss;
               if (i === 0) {
                 text = '"' + line;
                 ioff = 0;

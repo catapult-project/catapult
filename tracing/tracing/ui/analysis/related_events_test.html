@@ -127,7 +127,9 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
 
-    var inFlows, outFlows, internalFlows;
+    var inFlows;
+    var outFlows;
+    var internalFlows;
     viewEl.$.table.tableRows.forEach(function(row) {
       if (row.type === 'Incoming flow') {
         assert.isUndefined(inFlows);
@@ -158,7 +160,9 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(viewEl);
     tr.b.forceAllPendingTasksToRunForTest();
 
-    var precedingEvents, followingEvents, allEvents;
+    var precedingEvents;
+    var followingEvents;
+    var allEvents;
     viewEl.$.table.tableRows.forEach(function(row) {
       if (row.type === 'Preceding events') {
         assert.isUndefined(precedingEvents);

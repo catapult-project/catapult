@@ -108,17 +108,17 @@ tr.exportTo('tr.ui.b', function() {
     tmpT2[0] -= tmpT0[0];
     tmpT2[1] -= tmpT0[1];
 
-    var det = 1 / (tmpT1[0] * tmpT2[1] - tmpT2[0] * tmpT1[1]),
+    var det = 1 / (tmpT1[0] * tmpT2[1] - tmpT2[0] * tmpT1[1]);
 
-        // linear transformation
-        a = (tmpT2[1] * tmpP1[0] - tmpT1[1] * tmpP2[0]) * det,
-        b = (tmpT2[1] * tmpP1[1] - tmpT1[1] * tmpP2[1]) * det,
-        c = (tmpT1[0] * tmpP2[0] - tmpT2[0] * tmpP1[0]) * det,
-        d = (tmpT1[0] * tmpP2[1] - tmpT2[0] * tmpP1[1]) * det,
+    // linear transformation
+    var a = (tmpT2[1] * tmpP1[0] - tmpT1[1] * tmpP2[0]) * det;
+    var b = (tmpT2[1] * tmpP1[1] - tmpT1[1] * tmpP2[1]) * det;
+    var c = (tmpT1[0] * tmpP2[0] - tmpT2[0] * tmpP1[0]) * det;
+    var d = (tmpT1[0] * tmpP2[1] - tmpT2[0] * tmpP1[1]) * det;
 
-        // translation
-        e = tmpP0[0] - a * tmpT0[0] - c * tmpT0[1],
-        f = tmpP0[1] - b * tmpT0[0] - d * tmpT0[1];
+    // translation
+    var e = tmpP0[0] - a * tmpT0[0] - c * tmpT0[1];
+    var f = tmpP0[1] - b * tmpT0[0] - d * tmpT0[1];
 
     ctx.save();
     ctx.transform(a, b, c, d, e, f);

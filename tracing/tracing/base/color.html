@@ -89,7 +89,9 @@ tr.exportTo('tr.b', function() {
    * |a| Alpha in [0, 1]
    */
   Color.fromHSLExplicit = function(h, s, l, a) {
-    var r, g, b;
+    var r;
+    var g;
+    var b;
     function hue2rgb(p, q, t) {
       if (t < 0) t += 1;
       if (t > 1) t -= 1;
@@ -211,7 +213,8 @@ tr.exportTo('tr.b', function() {
       var max = Math.max(r, g, b);
       var min = Math.min(r, g, b);
 
-      var h, s;
+      var h;
+      var s;
       var l = (max + min) / 2;
       if (min === max) {
         h = 0;

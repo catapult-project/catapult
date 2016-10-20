@@ -896,7 +896,9 @@ found in the LICENSE file.
           if (this.previousCheckboxId == this.currentCheckboxId) {
             return;
           }
-          var prevIndex = 0, currentIndex = 0, isChecked = null;
+          var prevIndex = 0;
+          var currentIndex = 0;
+          var isChecked = null;
           for (var i = 0; i < this.alertList.length; i++) {
             if (this.alertList[i].key == this.previousCheckboxId) {
               prevIndex = i;

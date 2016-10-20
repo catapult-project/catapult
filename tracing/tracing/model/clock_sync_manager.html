@@ -396,7 +396,8 @@ tr.exportTo('tr.model', function() {
    * returns a timestamp in |toMarker|'s domain.
    */
   Transformer.fromMarkers = function(fromMarker, toMarker) {
-    var fromTs = fromMarker.ts, toTs = toMarker.ts;
+    var fromTs = fromMarker.ts;
+    var toTs = toMarker.ts;
 
     // TODO(charliea): Usually, we estimate that the clock sync marker is
     // issued by the agent exactly in the middle of the controller's start and
