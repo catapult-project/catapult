@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/extras/v8/runtime_stats_entry.html">
 <link rel="import" href="/tracing/extras/v8/v8_thread_slice.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 
@@ -35,72 +36,6 @@ tr.exportTo('tr.ui.e.v8', function() {
     window.open(url, '_blank');
   }
 
-  var Entry = function(name, count, time) {
-    this.name_ = name;
-    this.count_ = count;
-    this.time_ = time;
-  };
-
-  Entry.prototype = {
-    __proto__: Object.prototype,
-
-    get name() {
-      return this.name_;
-    },
-
-    get count() {
-      return this.count_;
-    },
-
-    get time() {
-      return this.time_;
-    },
-
-    accumulate: function(count, time) {
-      this.count_ += count;
-      this.time_ += time;
-    },
-
-    reset: function() {
-      this.count_ = 0;
-      this.time_ = 0;
-    }
-  };
-
-  var GroupedEntry = function(name, matchRegex) {
-    Entry.call(this, name, 0, 0);
-    this.regex_ = matchRegex;
-    this.entries_ = new Map();
-  };
-
-  GroupedEntry.prototype = {
-    __proto__: Entry.prototype,
-
-    match: function(name) {
-      return this.regex_ && !(!name.match(this.regex_));
-    },
-
-    add: function(entry) {
-      var value = this.entries_.get(entry.name);
-      if (value !== undefined)
-        value.accumulate(entry.count, entry.time);
-      else
-        this.entries_.set(entry.name, entry);
-      this.count_ += entry.count;
-      this.time_ += entry.time;
-    },
-
-    get subRows() {
-      return Array.from(this.entries_.values());
-    },
-
-    reset: function(entry) {
-      this.time_ = 0;
-      this.count_ = 0;
-      this.entries_.clear();
-    }
-  };
-
   Polymer({
     is: 'tr-ui-e-v8-runtime-call-stats-table',
 
@@ -109,8 +44,7 @@ tr.exportTo('tr.ui.e.v8', function() {
       this.totalTime_ = 0;
     },
 
-    constructTable_: function() {
-      var totalTime = this.totalTime_;
+    constructTable_: function(totalTime) {
       this.table_.selectionMode = tr.ui.b.TableFormat.SelectionMode.ROW;
       this.table_.tableColumns = [
         {
@@ -118,7 +52,7 @@ tr.exportTo('tr.ui.e.v8', function() {
           value: function(row) {
             var typeEl = document.createElement('span');
             typeEl.innerText = row.name;
-            if (!(row instanceof GroupedEntry)) {
+            if (!(row instanceof tr.e.v8.RuntimeStatsGroup)) {
               typeEl.title = 'click ? for code search';
               typeEl.entryName = row.name;
               var codeSearchEl = document.createElement('span');
@@ -175,51 +109,15 @@ tr.exportTo('tr.ui.e.v8', function() {
 
       this.table_.sortColumnIndex = 1;
       this.table_.sortDescending = true;
+      this.table_.subRowsPropertyName = 'values';
     },
 
     set slices(slices) {
-      var groups = new Array(
-        new GroupedEntry('Total'),
-        new GroupedEntry('IC', /.*IC.*/),
-        new GroupedEntry('Optimize',
-                         /StackGuard|.*Optimize.*|.*Deoptimize.*|Recompile.*/),
-        new GroupedEntry('Compile', /.*Compile.*/),
-        new GroupedEntry('Parse', /.*Parse.*/),
-        new GroupedEntry('Callback', /.*Callback$/),
-        new GroupedEntry('API', /.*API.*/),
-        new GroupedEntry('GC', /GC|AllocateInTargetSpace/),
-        new GroupedEntry('JavaScript', /JS_Execution/),
-        new GroupedEntry('Runtime', /.*/)
-      );
-
-      slices.forEach(function(slice) {
-        if (!(slice instanceof tr.e.v8.V8ThreadSlice)) return;
-        try {
-          var runtimeCallStats = JSON.parse(slice.runtimeCallStats);
-        } catch (e) {
-          var runtimeCallStats = slice.runtimeCallStats;
-        }
-        if (runtimeCallStats !== undefined) {
-          Object.getOwnPropertyNames(runtimeCallStats).forEach(
-            function(runtimeCallStatName) {
-              for (var i = 1; i < groups.length; ++i) {
-                if (groups[i].match(runtimeCallStatName)) {
-                  var runtimeCallStat = runtimeCallStats[runtimeCallStatName];
-                  if (runtimeCallStat.length !== 2) break;
-                  var entry = new Entry(runtimeCallStatName, runtimeCallStat[0],
-                                        runtimeCallStat[1]);
-                  groups[0].accumulate(runtimeCallStat[0], runtimeCallStat[1]);
-                  groups[i].add(entry);
-                  break;
-                }
-              }
-            }, this);
-        }
-      }, this);
-      this.totalTime_ = groups[0].time;
-      if (this.totalTime_ > 0) {
-        this.constructTable_();
-        this.table_.tableRows = groups;
+      var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
+      runtimeGroupCollection.addSlices(slices);
+      if (runtimeGroupCollection.totalTime > 0) {
+        this.constructTable_(runtimeGroupCollection.totalTime);
+        this.table_.tableRows = runtimeGroupCollection.runtimeGroups;
         this.table_.rebuild();
       }
     }
