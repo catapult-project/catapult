@@ -123,8 +123,8 @@ tr.exportTo('tr.e.audits', function() {
         // due to bug in tracing code on SDK 22, ignore
         // presence of 'unclipped' string in View alpha slices
         var args = { 'view name': match[1],
-                     width: parseInt(match[3]),
-                     height: parseInt(match[4]) };
+                     'width': parseInt(match[3]),
+                     'height': parseInt(match[4]) };
         ret.push(new Alert(AndroidAuditor.viewAlphaAlertInfo_,
                            slice.start, [slice], args));
       } else if (saveLayerRegEx.test(slice.title))

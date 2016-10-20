@@ -54,7 +54,7 @@ an alert from an issue on the issue tracker.
         var params = {
           'keys': this.key,
           'bug_id': 'REMOVE',
-          xsrf_token: this.xsrfToken
+          'xsrf_token': this.xsrfToken
         };
         simple_xhr.send('/edit_anomalies', params,
           function(info) {

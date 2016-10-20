@@ -66,13 +66,13 @@ tr.b.unittest.testSuite(function() {
     importer.registerEventHandler('aaaa', 42, dummyHandler);
 
     // Try to parse an invalid event with missing fields.
-    var incompleteEvent = { guid: 'aaaa', 'op': 42, 'ver': 0 };
+    var incompleteEvent = { 'guid': 'aaaa', 'op': 42, 'ver': 0 };
     assert.isFalse(importer.parseEvent(incompleteEvent));
     assert.isFalse(handlerCalled);
 
     // Try to parse a valid event.
     var validEvent = {
-      guid: 'aaaa', 'op': 42, 'ver': 0, 'cpu': 0, 'ts': 0,
+      'guid': 'aaaa', 'op': 42, 'ver': 0, 'cpu': 0, 'ts': 0,
       'payload': Base64.btoa('0')
     };
     assert.isTrue(importer.parseEvent(validEvent));
