@@ -168,8 +168,8 @@ Consumers of Histograms
 
 Histograms are consumed by
 
- * [value-set-table](/tracing/tracing/value/ui/value-set-table.html) in both
-   results2.html and the Metrics side panel in trace viewer,
+ * [histogram-set-table](/tracing/tracing/value/ui/histogram_set_table.html) in
+   both results2.html and the Metrics side panel in trace viewer,
  * the [dashboard](https://chromeperf.appspot.com) indirectly via their statistics.
 
 Currently, telemetry discards Histograms and Diagnostics, and only passes their

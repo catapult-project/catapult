@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/webview_startup_metric.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -36,7 +36,7 @@ function makeTestModel() {
 
 tr.b.unittest.testSuite(function() {
   test('webviewStartupMetric', function() {
-    var values = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet();
     tr.metrics.sh.webviewStartupMetric(values, makeTestModel());
     assert.closeTo(42, values.getValuesNamed(
         'webview_startup_wall_time')[0].average, 1e-2);

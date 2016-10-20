@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/clock_sync_latency_metric.html">
 <link rel="import" href="/tracing/model/model.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -35,7 +35,7 @@ tr.b.unittest.testSuite(function() {
         tr.model.ClockDomainId.BATTOR.toLowerCase() + '_to_' +
         tr.model.ClockDomainId.TELEMETRY.toLowerCase();
 
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.clockSyncLatencyMetric(valueSet, model);
 
     var battorToWinQpcValue = undefined;

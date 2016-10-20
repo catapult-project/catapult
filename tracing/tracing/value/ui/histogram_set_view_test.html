@@ -6,25 +6,25 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/ui/value_set_table.html">
-<link rel="import" href="/tracing/value/ui/value_set_view.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_table.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_view.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   test('instantiate0', function() {
-    var view = document.createElement('tr-v-ui-value-set-view');
-    var values = new tr.v.ValueSet();
+    var view = document.createElement('tr-v-ui-histogram-set-view');
+    var histograms = new tr.v.HistogramSet();
 
     var hist = new tr.v.Histogram('foo', tr.b.Unit.byName.normalizedPercentage);
     for (var i = 0; i < 1e2; ++i)
       hist.addSample(Math.random());
-    values.addHistogram(hist);
+    histograms.addHistogram(hist);
 
     this.addHTMLOutput(view);
-    view.values = values;
+    view.histograms = histograms;
   });
 });
 </script>

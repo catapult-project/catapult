@@ -8,8 +8,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/utils.html">
 <link rel="import" href="/tracing/ui/base/deep_utils.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/ui/value_set_table.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_table.html">
 
 <script>
 'use strict';
@@ -25,8 +25,8 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('requestSelectionChange', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var barHist = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -39,21 +39,21 @@ tr.b.unittest.testSuite(function() {
     breakdown.set('bar', barHist);
 
     fooHist.diagnostics.set('breakdown', breakdown);
-    values.addHistogram(fooHist);
-    values.addHistogram(barHist);
+    histograms.addHistogram(fooHist);
+    histograms.addHistogram(barHist);
 
-    table.values = values;
+    table.histograms = histograms;
     this.addHTMLOutput(table);
 
     var fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === fooHist)));
     assert.isDefined(fooCell);
 
     var barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isUndefined(barCell);
 
@@ -66,14 +66,14 @@ tr.b.unittest.testSuite(function() {
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isDefined(barCell);
   });
 
   test('search', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var barHist = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -83,10 +83,10 @@ tr.b.unittest.testSuite(function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     fooHist.addSample(1);
 
-    values.addHistogram(fooHist);
-    values.addHistogram(barHist);
+    histograms.addHistogram(fooHist);
+    histograms.addHistogram(barHist);
 
-    table.values = values;
+    table.histograms = histograms;
     this.addHTMLOutput(table);
 
     var search = tr.b.findDeepElementMatchingPredicate(
@@ -95,13 +95,13 @@ tr.b.unittest.testSuite(function() {
 
     var fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === fooHist)));
     assert.isDefined(fooCell);
 
     var barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isDefined(barCell);
 
@@ -113,13 +113,13 @@ tr.b.unittest.testSuite(function() {
 
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === fooHist)));
     assert.isUndefined(fooCell);
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isDefined(barCell);
 
@@ -128,19 +128,19 @@ tr.b.unittest.testSuite(function() {
 
     fooCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === fooHist)));
     assert.isDefined(fooCell);
 
     barCell = tr.b.findDeepElementMatchingPredicate(
         table, elem => (
-          (elem.tagName === 'TR-V-UI-VALUE-SET-TABLE-CELL') &&
+          (elem.tagName === 'TR-V-UI-HISTOGRAM-SET-TABLE-CELL') &&
           (elem.histogram === barHist)));
     assert.isUndefined(barCell);
   });
 
   test('implicitUndefinedValues', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
+    var table = document.createElement('tr-v-ui-histogram-set-table');
     this.addHTMLOutput(table);
     assert.strictEqual('block', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
@@ -151,8 +151,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('explicitUndefinedValues', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    table.values = undefined;
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    table.histograms = undefined;
     this.addHTMLOutput(table);
     assert.strictEqual('block', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
@@ -163,9 +163,9 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('emptyValues', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
-    table.values = values;
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
+    table.histograms = histograms;
     this.addHTMLOutput(table);
     assert.strictEqual('block', getComputedStyle(
         tr.b.findDeepElementMatchingPredicate(
@@ -178,11 +178,12 @@ tr.b.unittest.testSuite(function() {
   test('shortName', function() {
     // One value has |name|='long name' and |shortName|='short name',
     // another value has |name|='short name' to demonstrate the fundamental
-    // ambiguity that arises when Values can have multiple different "names".
+    // ambiguity that arises when Histograms can have multiple different
+    // "names".
 
     var now = new Date().getTime();
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var histA = new tr.v.Histogram('long name',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -193,7 +194,7 @@ tr.b.unittest.testSuite(function() {
       label: 'iteration A',
       benchmarkStartMs: now,
     }).addToValue(histA);
-    values.addHistogram(histA);
+    histograms.addHistogram(histA);
 
     var histB = new tr.v.Histogram('short name',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -203,9 +204,9 @@ tr.b.unittest.testSuite(function() {
       label: 'iteration B',
       benchmarkStartMs: now,
     }).addToValue(histB);
-    values.addHistogram(histB);
+    histograms.addHistogram(histB);
 
-    table.values = values;
+    table.histograms = histograms;
     this.addHTMLOutput(table);
 
     assert.strictEqual('none', getComputedStyle(
@@ -222,8 +223,8 @@ tr.b.unittest.testSuite(function() {
 
   test('emptyAndMissing', function() {
     var now = new Date().getTime();
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var histA = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -233,7 +234,7 @@ tr.b.unittest.testSuite(function() {
       label: 'iteration A',
       benchmarkStartMs: now,
     }).addToValue(histA);
-    values.addHistogram(histA);
+    histograms.addHistogram(histA);
 
     var histB = new tr.v.Histogram('histogram B',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -243,7 +244,7 @@ tr.b.unittest.testSuite(function() {
       label: 'iteration B',
       benchmarkStartMs: now,
     }).addToValue(histB);
-    values.addHistogram(histB);
+    histograms.addHistogram(histB);
 
     var histC = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -251,9 +252,9 @@ tr.b.unittest.testSuite(function() {
       label: 'iteration B',
       benchmarkStartMs: now,
     }).addToValue(histC);
-    values.addHistogram(histC);
+    histograms.addHistogram(histC);
 
-    table.values = values;
+    table.histograms = histograms;
     this.addHTMLOutput(table);
 
     assert.isDefined(tr.b.findDeepElementMatchingPredicate(
@@ -263,16 +264,16 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_1x1', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var hist = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       hist.addSample(Math.random() * 1e3);
-    values.addHistogram(hist);
+    histograms.addHistogram(hist);
 
-    table.values = values;
+    table.histograms = histograms;
     this.addHTMLOutput(table);
 
     var baseTable = tr.b.findDeepElementMatchingPredicate(
@@ -282,8 +283,8 @@ tr.b.unittest.testSuite(function() {
 
   test('merge_unmergeable', function() {
     var now = new Date().getTime();
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var histA = new tr.v.Histogram('histogram A',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -294,7 +295,7 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: now,
       storyDisplayName: 'story A'
     }).addToValue(histA);
-    values.addHistogram(histA);
+    histograms.addHistogram(histA);
 
     var histB = new tr.v.Histogram('histogram B',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -306,7 +307,7 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: now,
       storyDisplayName: 'story A'
     }).addToValue(histB);
-    values.addHistogram(histB);
+    histograms.addHistogram(histB);
 
     var histC = new tr.v.Histogram('histogram C',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
@@ -318,10 +319,10 @@ tr.b.unittest.testSuite(function() {
       benchmarkStartMs: now,
       storyDisplayName: 'story B'
     }).addToValue(histC);
-    values.addHistogram(histC);
+    histograms.addHistogram(histC);
 
-    table.values = values;
-    table.groupingKeys = [tr.v.ValueSet.GROUPINGS.STORY_NAME.key];
+    table.histograms = histograms;
+    table.groupingKeys = [tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
     this.addHTMLOutput(table);
 
     var baseTable = tr.b.findDeepElementMatchingPredicate(
@@ -330,14 +331,14 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('instantiate_2x2', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
 
     var hist0a = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       hist0a.addSample(Math.random() * 1e3);
-    values.addHistogram(hist0a);
+    histograms.addHistogram(hist0a);
     new tr.v.d.IterationInfo({
       label: 'iteration A',
       benchmarkStartMs: new Date().getTime(),
@@ -347,7 +348,7 @@ tr.b.unittest.testSuite(function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       hist1a.addSample(Math.random() * 1e3);
-    values.addHistogram(hist1a);
+    histograms.addHistogram(hist1a);
     new tr.v.d.IterationInfo({
       label: 'iteration A',
       benchmarkStartMs: new Date().getTime(),
@@ -357,7 +358,7 @@ tr.b.unittest.testSuite(function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       hist0b.addSample(Math.random() * 1e3);
-    values.addHistogram(hist0b);
+    histograms.addHistogram(hist0b);
     new tr.v.d.IterationInfo({
       label: 'iteration B',
       benchmarkStartMs: new Date().getTime(),
@@ -367,13 +368,13 @@ tr.b.unittest.testSuite(function() {
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
     for (var i = 0; i < 100; ++i)
       hist1b.addSample(Math.random() * 1e3);
-    values.addHistogram(hist1b);
+    histograms.addHistogram(hist1b);
     new tr.v.d.IterationInfo({
       label: 'iteration B',
       benchmarkStartMs: new Date().getTime(),
     }).addToValue(hist1b);
 
-    table.values = values;
+    table.histograms = histograms;
     this.addHTMLOutput(table);
 
     var baseTable = tr.b.findDeepElementMatchingPredicate(
@@ -404,8 +405,8 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('merge', function() {
-    var table = document.createElement('tr-v-ui-value-set-table');
-    var values = new tr.v.ValueSet();
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    var histograms = new tr.v.HistogramSet();
     // Add 64 Histograms, all named 'foo', with different IterationInfos.
     var benchmarkNames = ['bm A', 'bm B'];
     var storyGroupingKeys0 = ['A', 'B'];
@@ -431,7 +432,7 @@ tr.b.unittest.testSuite(function() {
                         sample_diagnostic: new tr.v.d.Generic(i)});
                     }
 
-                    values.addHistogram(hist);
+                    histograms.addHistogram(hist);
 
                     new tr.v.d.IterationInfo({
                       storyGroupingKeys: {
@@ -454,16 +455,16 @@ tr.b.unittest.testSuite(function() {
       }
     }
 
-    table.values = values;
+    table.histograms = histograms;
     table.groupingKeys = [
-      tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
-      tr.v.ValueSet.GROUPINGS.BENCHMARK_NAME.key,
+      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
+      tr.v.HistogramSet.GROUPINGS.BENCHMARK_NAME.key,
       'storyGroupingKey_storyGroupingKey0',
       'storyGroupingKey_storyGroupingKey1',
-      tr.v.ValueSet.GROUPINGS.STORY_NAME.key,
-      tr.v.ValueSet.GROUPINGS.BENCHMARK_START.key,
-      tr.v.ValueSet.GROUPINGS.STORYSET_REPEAT.key,
-      tr.v.ValueSet.GROUPINGS.STORY_REPEAT.key,
+      tr.v.HistogramSet.GROUPINGS.STORY_NAME.key,
+      tr.v.HistogramSet.GROUPINGS.BENCHMARK_START.key,
+      tr.v.HistogramSet.GROUPINGS.STORYSET_REPEAT.key,
+      tr.v.HistogramSet.GROUPINGS.STORY_REPEAT.key,
     ];
     this.addHTMLOutput(table);
     var baseTable = tr.b.findDeepElementMatchingPredicate(

@@ -13,7 +13,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.v', function() {
   /*
-   * See ValueSet.groupHistogramsRecursively() and
+   * See HistogramSet.groupHistogramsRecursively() and
    * tr-ui-b-grouping-table-groupby-picker.
    */
   class HistogramGrouping {
@@ -29,7 +29,7 @@ tr.exportTo('tr.v', function() {
     }
   }
 
-  class ValueSet {
+  class HistogramSet {
     constructor(opt_values) {
       this.values_ = new Map();
 
@@ -168,7 +168,7 @@ tr.exportTo('tr.v', function() {
           }
         }
       }
-      return new ValueSet([...sourceValues.values()]);
+      return new HistogramSet([...sourceValues.values()]);
     }
 
     /**
@@ -216,7 +216,7 @@ tr.exportTo('tr.v', function() {
   }
 
   // This does not contain storyGroupingKeys!
-  ValueSet.GROUPINGS = {
+  HistogramSet.GROUPINGS = {
     HISTOGRAM_NAME: new HistogramGrouping('name', h => h.name),
 
     BENCHMARK_NAME: new HistogramGrouping('benchmark',
@@ -242,7 +242,7 @@ tr.exportTo('tr.v', function() {
 
   return {
     HistogramGrouping: HistogramGrouping,
-    ValueSet: ValueSet
+    HistogramSet: HistogramSet
   };
 });
 </script>

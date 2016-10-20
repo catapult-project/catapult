@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/value/diagnostics/diagnostic_map.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/histogram.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -20,8 +20,8 @@ tr.b.unittest.testSuite(function() {
 
   test('addValuesFromDicts', function() {
     var n = new tr.v.Histogram('foo', tr.b.Unit.byName.unitlessNumber);
-    var values = new tr.v.ValueSet([n]);
-    var values2 = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet([n]);
+    var values2 = new tr.v.HistogramSet();
     values2.addValuesFromDicts([...values].map(h => h.asDict()));
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
   });
@@ -30,8 +30,8 @@ tr.b.unittest.testSuite(function() {
     var n = new tr.v.Histogram('foo', tr.b.Unit.byName.count);
     n.addSample(10, {bar: new tr.v.d.Generic('baz')});
 
-    var values = new tr.v.ValueSet([n]);
-    var values2 = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet([n]);
+    var values2 = new tr.v.HistogramSet();
     values2.addValuesFromDicts([...values].map(h => h.asDict()));
     assert.lengthOf(values2.getValuesNamed('foo'), 1);
     var v = values2.getValuesNamed('foo')[0];
@@ -50,12 +50,12 @@ tr.b.unittest.testSuite(function() {
     a.diagnostics.set('rvs', new tr.v.d.RelatedValueSet([b, c]));
 
     // Don't serialize c just yet.
-    var values = new tr.v.ValueSet([a, b]);
+    var values = new tr.v.HistogramSet([a, b]);
 
     var sourceValues = values.sourceValues;
     assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
 
-    var values2 = new tr.v.ValueSet();
+    var values2 = new tr.v.HistogramSet();
     values2.addValuesFromDicts([...values].map(h => h.asDict()));
     values2.resolveRelatedHistograms();
 
@@ -119,12 +119,12 @@ tr.b.unittest.testSuite(function() {
     a.diagnostics.set('rvm', rvm);
 
     // Don't serialize c just yet.
-    var values = new tr.v.ValueSet([a, b]);
+    var values = new tr.v.HistogramSet([a, b]);
 
     var sourceValues = values.sourceValues;
     assert.strictEqual(tr.b.getOnlyElement(sourceValues), a);
 
-    var values2 = new tr.v.ValueSet();
+    var values2 = new tr.v.HistogramSet();
     values2.addValuesFromDicts([...values].map(h => h.asDict()));
     values2.resolveRelatedHistograms();
 
@@ -179,7 +179,7 @@ tr.b.unittest.testSuite(function() {
     var numeric = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
     numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([aHist])});
 
-    var values = new tr.v.ValueSet([aHist, numeric]);
+    var values = new tr.v.HistogramSet([aHist, numeric]);
     assert.strictEqual(tr.b.getOnlyElement(values.sourceValues), numeric);
   });
 });

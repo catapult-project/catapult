@@ -53,7 +53,7 @@ tr.exportTo('tr.metrics.sh', function() {
    * interactive.
    */
   function getNavigationTTIIntervals_(model) {
-    var values = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet();
     tr.metrics.sh.loadingMetric(values, model);
     var ttiValues = values.getValuesNamed('timeToFirstInteractive');
     var intervals = [];

@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/all_metrics.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/mre/function_handle.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -18,7 +18,7 @@ tr.exportTo('tr.metrics', function() {
    * @param {!tr.model.Model} model
    * @param {!Object} options
    * @param {!Array.<string>} options.metrics
-   * @return {!tr.v.ValueSet}
+   * @return {!tr.v.HistogramSet}
    */
   function runMetrics(model, options) {
     if (options === undefined)
@@ -28,7 +28,7 @@ tr.exportTo('tr.metrics', function() {
     if (!metricNames)
       throw new Error('Metric names should be specified.');
 
-    var values = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet();
 
     for (var metricName of metricNames) {
       var metric = tr.metrics.MetricRegistry.findTypeInfoWithName(metricName);
@@ -41,7 +41,7 @@ tr.exportTo('tr.metrics', function() {
   }
 
   /**
-   * @param {!tr.v.ValueSet} values
+   * @param {!tr.v.HistogramSet} values
    * @param {!tr.model.Model} model
    */
   function addIterationInfo(values, model) {
@@ -56,7 +56,7 @@ tr.exportTo('tr.metrics', function() {
       if (metadata.value['os-version'])
         iterationInfo.addInfo(metadata.value);
     }
-    // Values can be separated from their ValueSet and mixed into ValueSets
+    // Values can be separated from their HistogramSet and mixed into ValueSets
     // with Values from other iterations, so add IterationInfo to each Value.
     for (var hist of values) {
       iterationInfo.addToValue(hist);

@@ -8,8 +8,8 @@ found in the LICENSE file.
 
 <div id="loading">Loading framework...</div>
 
-<link rel="import" href="/tracing/value/ui/value_set_view.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_view.html">
 
 <script>
 'use strict';
@@ -46,8 +46,8 @@ class HistogramImporter {
   }
 
   importHistograms() {
-    this.histograms_ = new tr.v.ValueSet();
-    this.view_ = document.getElementById('values');
+    this.histograms_ = new tr.v.HistogramSet();
+    this.view_ = document.getElementById('histograms');
     this.schedule_('Gathering JSON...', this.getJsonDivs_);
   }
 
@@ -83,11 +83,11 @@ class HistogramImporter {
 
   resolveRelationships_() {
     this.histograms_.resolveRelatedHistograms();
-    this.schedule_('Displaying Histogram table...', this.displayValues_);
+    this.schedule_('Displaying Histogram table...', this.displayHistograms);
   }
 
-  displayValues_() {
-    this.view_.values = this.histograms_;
+  displayHistograms() {
+    this.view_.histograms = this.histograms_;
 
     this.loadingDiv_.style.display = 'none';
     this.view_.style.display = 'block';
@@ -110,4 +110,4 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
-<tr-v-ui-value-set-view id="values" style="display: none;"></tr-v-ui-value-set-view>
+<tr-v-ui-histogram-set-view id="histograms" style="display: none;"></tr-v-ui-histogram-set-view>

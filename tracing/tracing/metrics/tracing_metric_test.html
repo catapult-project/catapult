@@ -9,7 +9,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/metrics/tracing_metric.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -34,7 +34,7 @@ tr.b.unittest.testSuite(function() {
   }
 
   test('hasEventSizesInBytes', function() {
-    var allValues = new tr.v.ValueSet();
+    var allValues = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
@@ -52,7 +52,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('totalTraceSize', function() {
-    var allValues = new tr.v.ValueSet();
+    var allValues = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 560, cat: 'foo', tid: 53, ph: 'B'}
@@ -77,7 +77,7 @@ tr.b.unittest.testSuite(function() {
       {name: 'a', pid: 52, ts: 2 * ONE_SEC_IN_US + 2, cat: 'foo', ph: 'B'}
     ];
     var model = makeModel(JSON.stringify(events), true);
-    var allValues = new tr.v.ValueSet();
+    var allValues = new tr.v.HistogramSet();
     tr.metrics.tracingMetric(allValues, model);
 
     var maxEventCountPerSec = 3;
@@ -92,7 +92,7 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('diagnostics', function() {
-    var allValues = new tr.v.ValueSet();
+    var allValues = new tr.v.HistogramSet();
     var events = [
       {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53, ph: 'B'},
       {name: 'a', args: {}, pid: 52, ts: 535, cat: 'foo', tid: 53, ph: 'B'},
@@ -114,7 +114,7 @@ tr.b.unittest.testSuite(function() {
   test('testMemoryInfraTracingMetrics', function() {
     var MEMORY_INFRA_TRACING_CATEGORY =
         tr.metrics.MEMORY_INFRA_TRACING_CATEGORY;
-    var allValues = new tr.v.ValueSet();
+    var allValues = new tr.v.HistogramSet();
     var events = [
       {name: 'OnMemoryDump', pid: 1, ts: 510, tid: 1, ph: 'X', cat: MEMORY_INFRA_TRACING_CATEGORY, args: {'dump_provider.name': 'mdp1'}, dur: 4}, // @suppress longLineCheck
       {name: 'OnMemoryDump', pid: 1, ts: 520, tid: 7, ph: 'X', cat: MEMORY_INFRA_TRACING_CATEGORY, args: {'dump_provider.name': 'mdp2'}, dur: 15}, // @suppress longLineCheck

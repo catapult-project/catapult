@@ -15,8 +15,9 @@ from tracing import results_renderer
 
 
 def main():
-  parser = argparse.ArgumentParser(description='Upgrade a results2 instance or '
-                                   'add a new ValueSet JSON.', add_help=False)
+  parser = argparse.ArgumentParser(
+      description='Upgrade a results2 instance or add a new HistogramSet.',
+      add_help=False)
   parser.add_argument('html_path', metavar='HTML_PATH',
                       help='HTML file path (output).')
   parser.add_argument('-h', '--help', action='help',

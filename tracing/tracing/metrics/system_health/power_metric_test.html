@@ -10,7 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/metrics/system_health/power_metric.html">
 <link rel="import" href="/tracing/model/user_model/idle_expectation.html">
 <link rel="import" href="/tracing/model/user_model/load_expectation.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -54,7 +54,7 @@ tr.b.unittest.testSuite(function() {
           args: {frame: '0xdeadbeef'}
         }));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.lengthOf(valueSet, 0);
@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
         }));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.lengthOf(valueSet, 0);
@@ -94,7 +94,7 @@ tr.b.unittest.testSuite(function() {
           model.device.powerSeries.addPowerSample(i.toString(), i.toString());
       }
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.lengthOf(valueSet, 0);
@@ -102,7 +102,7 @@ tr.b.unittest.testSuite(function() {
 
   test('powerMetric_emptyChromeTrace', function() {
     var model = new tr.Model();
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     var rendererProcess = model.getOrCreateProcess(1234);
     var mainThread = rendererProcess.getOrCreateThread(1);
     mainThread.name = 'CrRendererMain';
@@ -147,7 +147,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.lengthOf(valueSet, 0);
@@ -181,7 +181,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.lengthOf(valueSet, 0);
@@ -215,7 +215,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 1500));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueSum(valueSet,
@@ -256,7 +256,7 @@ tr.b.unittest.testSuite(function() {
         model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 700, 300));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueSum(valueSet,
@@ -343,7 +343,7 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i.toString(), '10');
     });
 
-  var valueSet = new tr.v.ValueSet();
+  var valueSet = new tr.v.HistogramSet();
   tr.metrics.sh.powerMetric(valueSet, model);
   // Energy for first load is 20 W * 15.2 s
   // (interval from 0.2 s to 15.4 s)
@@ -411,7 +411,7 @@ tr.b.unittest.testSuite(function() {
         model.device.powerSeries.addPowerSample(i.toString(), '10');
     });
 
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     // Energy for first load is 20 W * 15.2 s
     // (interval from 0.2 s to 15.4 s)
@@ -446,7 +446,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet,
@@ -485,7 +485,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 700, 300));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet,
@@ -523,7 +523,7 @@ tr.b.unittest.testSuite(function() {
       model.device.powerSeries.addPowerSample('53', '.4');
       model.device.powerSeries.addPowerSample('70', '.5');
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
         0.00344, 1e-4)
@@ -562,7 +562,7 @@ tr.b.unittest.testSuite(function() {
       model.device.powerSeries.addPowerSample('5', '.4');
       model.device.powerSeries.addPowerSample('6', '.5');
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
         0.0011, 1e-4)
@@ -598,7 +598,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 500, 500));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet, 'video_animation:power'),
@@ -637,7 +637,7 @@ tr.b.unittest.testSuite(function() {
       model.userModel.expectations.push(new tr.model.um.IdleExpectation(
           model, 700, 300));
     });
-    var valueSet = new tr.v.ValueSet();
+    var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet, 'video_animation:power'),

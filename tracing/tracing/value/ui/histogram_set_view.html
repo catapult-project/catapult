@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/tab_view.html">
 <link rel="import" href="/tracing/ui/brushing_state_controller.html">
-<link rel="import" href="/tracing/value/ui/value_set_table.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_table.html">
 
-<dom-module id="tr-v-ui-value-set-view">
+<dom-module id="tr-v-ui-histogram-set-view">
   <template>
     <style>
       :host {
@@ -17,7 +17,7 @@ found in the LICENSE file.
       };
     </style>
 
-    <tr-v-ui-value-set-table id="valueSetTable"></tr-v-ui-value-set-table>
+    <tr-v-ui-histogram-set-table id="histograms"></tr-v-ui-histogram-set-table>
   </template>
 </dom-module>
 
@@ -185,7 +185,7 @@ tr.exportTo('tr.v.ui', function() {
   };
 
   Polymer({
-    is: 'tr-v-ui-value-set-view',
+    is: 'tr-v-ui-histogram-set-view',
 
     ready: function() {
       this.brushingStateController = new NullBrushingStateController();
@@ -197,10 +197,10 @@ tr.exportTo('tr.v.ui', function() {
     },
 
     /**
-     * @param {!tr.v.ValueSet} values
+     * @param {!tr.v.HistogramSet} histograms
      */
-    set values(values) {
-      this.$.valueSetTable.values = values;
+    set histograms(histograms) {
+      this.$.histograms.histograms = histograms;
     }
   });
 

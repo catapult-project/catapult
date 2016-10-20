@@ -8,7 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/base/xhr.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -218,8 +218,8 @@ var SampleComparison = {
   compareValuesets: function(valueSetAPathList, valueSetBPathList, metric) {
     var aPaths = valueSetAPathList.split(',');
     var bPaths = valueSetBPathList.split(',');
-    var valueSetA = new tr.v.ValueSet();
-    var valueSetB = new tr.v.ValueSet();
+    var valueSetA = new tr.v.HistogramSet();
+    var valueSetB = new tr.v.HistogramSet();
     var dictsA = parseFiles(aPaths);
     var dictsB = parseFiles(bPaths);
     for (var d of dictsA)

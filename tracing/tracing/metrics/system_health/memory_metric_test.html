@@ -12,7 +12,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/vm_region.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -3251,7 +3251,7 @@ tr.b.unittest.testSuite(function() {
       addProcessMemoryDump(gmd, pWebView, {ts: 9});
       addProcessMemoryDump(gmd, pChrome, {ts: 11});
     });
-    var values = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet();
 
     assert.throws(function() {
       tr.metrics.sh.memoryMetric(values, model);

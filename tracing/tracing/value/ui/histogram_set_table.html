@@ -9,12 +9,12 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
 <link rel="import" href="/tracing/value/ui/histogram_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
-<link rel="import" href="/tracing/value/value_set.html">
 
-<dom-module id="tr-v-ui-value-set-table-cell">
+<dom-module id="tr-v-ui-histogram-set-table-cell">
   <template>
     <style>
     :host {
@@ -84,7 +84,7 @@ found in the LICENSE file.
   </template>
 </dom-module>
 
-<dom-module id="tr-v-ui-value-set-table">
+<dom-module id="tr-v-ui-histogram-set-table">
   <template>
     <style>
     :host {
@@ -109,7 +109,7 @@ found in the LICENSE file.
 
     #zero {
       color: red;
-      /* value-set-table is used by both metrics-side-panel and results2.html.
+      /* histogram-set-table is used by both metrics-side-panel and results2.html.
        * This font-size rule has no effect in results2.html, but improves
        * legibility in the metrics-side-panel, which sets font-size in order to
        * make this table denser.
@@ -167,28 +167,28 @@ tr.exportTo('tr.ui', function() {
         v, storyGroupingKey);
   }
 
-  var getDisplayLabel = tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL.callback;
+  var getDisplayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback;
 
   var DEFAULT_POSSIBLE_GROUPS = [];
   DEFAULT_POSSIBLE_GROUPS.push(new tr.v.HistogramGrouping(
-      tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
+      tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
       h => h.shortName || h.name));
 
-  tr.b.iterItems(tr.v.ValueSet.GROUPINGS, function(name, group) {
+  tr.b.iterItems(tr.v.HistogramSet.GROUPINGS, function(name, group) {
     // DISPLAY_LABEL is used to define the columns, so don't allow grouping
     // rows by it.
     // Override HISTOGRAM_NAME so that we can display shortName.
-    if (group !== tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL &&
-        group !== tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME)
+    if (group !== tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL &&
+        group !== tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME)
       DEFAULT_POSSIBLE_GROUPS.push(group);
   });
 
-  var SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-value-set-table-show-all';
+  var SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
 
   var UNMERGEABLE = '(unmergeable)';
 
   Polymer({
-    is: 'tr-v-ui-value-set-table-cell',
+    is: 'tr-v-ui-histogram-set-table-cell',
 
     created: function() {
       this.histogram_ = undefined;
@@ -201,7 +201,7 @@ tr.exportTo('tr.ui', function() {
     },
 
     onClick_: function(event) {
-      // Since the value-set-table's table doesn't support any kind of
+      // Since the histogram-set-table's table doesn't support any kind of
       // selection, clicking anywhere within a row that has subRows will
       // expand/collapse that row, which can relayout the table and move things
       // around. Prevent table relayout by preventing the tr-ui-b-table from
@@ -257,7 +257,7 @@ tr.exportTo('tr.ui', function() {
       this.$.histogram.style.display = open ? 'block' : 'none';
 
       // Wait to create the histogram-span until the user wants to display it
-      // in order to speed up creating lots of value-set-table-cells when
+      // in order to speed up creating lots of histogram-set-table-cells when
       // building the table.
       // Wait to pass the Histogram to the histogram-span until it's displayed
       // so that it can size its BarChart appropriately.
@@ -326,10 +326,10 @@ tr.exportTo('tr.ui', function() {
   });
 
   Polymer({
-    is: 'tr-v-ui-value-set-table',
+    is: 'tr-v-ui-histogram-set-table',
 
     /**
-     * This can optionally depend on the ValueSet.
+     * This can optionally depend on the HistogramSet.
      *
      * @return {string}
      */
@@ -338,10 +338,10 @@ tr.exportTo('tr.ui', function() {
     },
 
     created: function() {
-      /** @type {undefined|!tr.v.ValueSet} */
-      this.values_ = undefined;
+      /** @type {undefined|!tr.v.HistogramSet} */
+      this.histograms_ = undefined;
 
-      /** @type {undefined|!tr.v.ValueSet} */
+      /** @type {undefined|!tr.v.HistogramSet} */
       this.sourceValues_ = undefined;
 
       this.rows_ = undefined;
@@ -357,12 +357,12 @@ tr.exportTo('tr.ui', function() {
       this.addEventListener('requestSelectionChange',
           this.onRelatedValueSelected_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
-      this.$.picker.settingsKey = 'tr-v-ui-value-set-table-groupby-picker';
+      this.$.picker.settingsKey = 'tr-v-ui-histogram-set-table-groupby-picker';
 
       this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
       this.$.picker.defaultGroupKeys = [
-        tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key,
-        tr.v.ValueSet.GROUPINGS.STORY_NAME.key];
+        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
+        tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
       this.$.picker.addEventListener('current-groups-changed',
                                      this.currentGroupsChanged_.bind(this));
     },
@@ -513,7 +513,7 @@ tr.exportTo('tr.ui', function() {
         return;
 
       // Search hidden values for |value|.
-      for (var test of this.values) {
+      for (var test of this.histograms) {
         if (test === value) {
           found = true;
           this.$.show_all.checked = true;
@@ -524,16 +524,17 @@ tr.exportTo('tr.ui', function() {
       }
     },
 
-    get values() {
-      return this.values_;
+    get histograms() {
+      return this.histograms_;
     },
 
     /**
-     * @param {!tr.v.ValueSet} values
+     * @param {!tr.v.HistogramSet} histograms
      */
-    set values(values) {
-      this.values_ = values;
-      this.sourceValues_ = values ? values.sourceValues : new tr.v.ValueSet();
+    set histograms(histograms) {
+      this.histograms_ = histograms;
+      this.sourceValues_ = histograms ? histograms.sourceValues :
+        new tr.v.HistogramSet();
       this.displayLabels_ = undefined;
       this.referenceDisplayLabel_ = undefined;
       this.maybeDisableShowAll_();
@@ -571,7 +572,7 @@ tr.exportTo('tr.ui', function() {
         options.push({value: displayLabel, label: displayLabel});
 
       var settingsKey =
-        'tr-v-ui-value-set-table-reference-display-label';
+        'tr-v-ui-histogram-set-table-reference-display-label';
       Polymer.dom(this.$.reference_column_container).appendChild(
           tr.ui.b.createSelector(
             this, 'referenceDisplayLabel', settingsKey, '', options));
@@ -581,11 +582,11 @@ tr.exportTo('tr.ui', function() {
       var groups = DEFAULT_POSSIBLE_GROUPS.filter(function(group) {
         // Remove groups for which there is only one value, except
         // HISTOGRAM_NAME.
-        if (group.key === tr.v.ValueSet.GROUPINGS.HISTOGRAM_NAME.key)
+        if (group.key === tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key)
           return true;
 
         var values = new Set();
-        for (var value of this.values_) {
+        for (var value of this.histograms_) {
           value = group.callback(value);
           if (!value)
             continue;
@@ -628,7 +629,7 @@ tr.exportTo('tr.ui', function() {
       if (this.updatingContents_)
         return;
 
-      if (!this.values_ || (this.values_.length === 0)) {
+      if (!this.histograms_ || (this.histograms_.length === 0)) {
         this.$.container.style.display = '';
         this.$.zero.style.display = '';
         return;
@@ -656,8 +657,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     maybeDisableShowAll_: function() {
-      var allValuesAreSource = !this.values ||
-          (this.values.length === this.sourceValues_.length);
+      var allValuesAreSource = !this.histograms ||
+          (this.histograms.length === this.sourceValues_.length);
 
       // Disable show_all if all values are sourceValues.
       // Re-enable show_all if this changes.
@@ -734,7 +735,7 @@ tr.exportTo('tr.ui', function() {
 
     get storyGroupingKeys() {
       var keys = new Set();
-      for (var value of this.values) {
+      for (var value of this.histograms) {
         var iteration = tr.v.d.IterationInfo.getFromValue(value);
         if (!(iteration instanceof tr.v.d.IterationInfo) ||
             !iteration.storyGroupingKeys)
@@ -747,8 +748,8 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * A ValueSet is a flat set of Values. Value-set-table must present a
-     * hierarchical view. This method recursively groups this.values as an
+     * A HistogramSet is a flat set of Values. histogram-set-table must present
+     * a hierarchical view. This method recursively groups this.histograms as an
      * intermediate step towards building tableRows in buildRow_().
      * {
      *   valueA: {
@@ -770,10 +771,10 @@ tr.exportTo('tr.ui', function() {
      */
     get organizedValues_() {
       var showingValueSet = this.$.show_all.checked ?
-          this.values : this.sourceValues_;
+          this.histograms : this.sourceValues_;
 
       var groupings = this.$.picker.currentGroups.slice();
-      groupings.push(tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL);
+      groupings.push(tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL);
 
       function canSkipGrouping(grouping, groupedHistograms) {
         // Never skip meaningful groupings.
@@ -785,7 +786,7 @@ tr.exportTo('tr.ui', function() {
           return false;
 
         // Never skip the grouping that defines the table columns.
-        if (grouping.key === tr.v.ValueSet.GROUPINGS.DISPLAY_LABEL.key)
+        if (grouping.key === tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.key)
           return false;
 
         // Skip meaningless groupings.
@@ -864,7 +865,7 @@ tr.exportTo('tr.ui', function() {
 
     get startTimesForDisplayLabels() {
       var startTimesForDisplayLabels = {};
-      for (var value of this.values) {
+      for (var value of this.histograms) {
         var displayLabel = getDisplayLabel(value);
         startTimesForDisplayLabels[displayLabel] = Math.min(
             startTimesForDisplayLabels[displayLabel] || 0,
@@ -891,7 +892,7 @@ tr.exportTo('tr.ui', function() {
         align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
 
         value: row => {
-          var cell = document.createElement('tr-v-ui-value-set-table-cell');
+          var cell = document.createElement('tr-v-ui-histogram-set-table-cell');
           cell.histogram = row.columns[displayLabel];
           if (this.referenceDisplayLabel &&
               this.referenceDisplayLabel !== displayLabel) {
