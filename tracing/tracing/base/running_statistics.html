@@ -11,14 +11,14 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  /***
-  * An object of this class computes basic statistics online in O(1).
-  * Usage:
-  * 1. Create an instance.
-  * 2. Add numbers using the |add| method.
-  * 3. Query statistics.
-  * 4. Repeat from step 2.
-  */
+  /**
+   * An object of this class computes basic statistics online in O(1).
+   * Usage:
+   * 1. Create an instance.
+   * 2. Add numbers using the |add| method.
+   * 3. Query statistics.
+   * 4. Repeat from step 2.
+   */
   class RunningStatistics {
     constructor() {
       this.mean_ = 0;

@@ -92,7 +92,11 @@
       "semi": "off",
       "semi-spacing": "error",
       "space-unary-ops": "off",
-      "spaced-comment": "off",
+      "spaced-comment": ["error", "always", {
+        "line": {
+          "exceptions": ["/"],
+        },
+      }],
       "valid-jsdoc": "off",
       "wrap-iife": "off",
       "yoda": "off"
