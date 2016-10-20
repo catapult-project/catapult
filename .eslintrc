@@ -64,7 +64,7 @@
       "no-return-assign": "off",
       "no-sequences": "off",
       "no-spaced-func": "off",
-      "no-throw-literal": "off",
+      "no-throw-literal": "error",
       "no-undef": "off",
       "no-undef-init": "off",
       "no-unneeded-ternary": "off",

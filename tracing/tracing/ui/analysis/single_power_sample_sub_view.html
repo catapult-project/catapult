@@ -104,7 +104,7 @@ Polymer({
 
   updateContents_: function() {
     if (this.selection.length !== 1)
-      throw 'Cannot pass multiple samples to sample table.';
+      throw new Error('Cannot pass multiple samples to sample table.');
     this.$.samplesTable.sample = tr.b.getOnlyElement(this.selection);
   }
 });

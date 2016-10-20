@@ -197,8 +197,10 @@ tr.exportTo('tr.e.importer.etw', function() {
       this.decodeUInt16();
       this.decodeUInt32();
 
-      if (revision !== 1)
-        throw 'Invalid SID revision: could not decode the SID structure.';
+      if (revision !== 1) {
+        throw new Error(
+            'Invalid SID revision: could not decode the SID structure.');
+      }
 
       var sid = this.decodeBytes(4 * subAuthorityCount);
 

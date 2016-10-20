@@ -197,7 +197,7 @@ tr.exportTo('tr.b', function() {
   ColorScheme.getColorIdForReservedName = function(name) {
     var id = reservedColorNameToIdMap.get(name);
     if (id === undefined)
-      throw new Error('Unrecognized color ') + name;
+      throw new Error('Unrecognized color ' + name);
     return id;
   };
 

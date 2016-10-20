@@ -92,7 +92,7 @@ tr.exportTo('tr.e.cc', function() {
 
     checkTypeName_: function() {
       if (!this.typeName_)
-        throw 'Unable to determine typeName';
+        throw new Error('Unable to determine typeName');
       var found = false;
       for (var typeName in INPUT_EVENT_TYPE_NAMES) {
         if (this.typeName === INPUT_EVENT_TYPE_NAMES[typeName]) {
@@ -141,8 +141,9 @@ tr.exportTo('tr.e.cc', function() {
           var subSliceHasDifferentTypeName = (
               this.typeName_ !== subSlice.typeName_);
           if (subSliceHasDifferentTypeName) {
-            throw 'InputLatencyAsyncSlice.determineLegacyTypeName_() ' +
-              ' found multiple typeNames';
+            throw new Error(
+                'InputLatencyAsyncSlice.determineLegacyTypeName_() ' +
+                ' found multiple typeNames');
           }
         }
 
@@ -152,8 +153,10 @@ tr.exportTo('tr.e.cc', function() {
       }
 
       // If typeName could not be determined, then explode!
-      if (!this.typeName_)
-        throw 'InputLatencyAsyncSlice.determineLegacyTypeName_() failed';
+      if (!this.typeName_) {
+        throw new Error(
+            'InputLatencyAsyncSlice.determineLegacyTypeName_() failed');
+      }
 
       // Check that the determined typeName is known.
       this.checkTypeName_();

@@ -162,8 +162,9 @@ tr.exportTo('tr.importer', function() {
         modelLines.push('        title: \'Animation\', ' + startAndEnd);
         return;
       } else {
-        throw ('You must extend createCustomizeModelLinesFromModel()' +
-               'to support this event:\n' + event.title + '\n');
+        throw new Error(
+            'You must extend createCustomizeModelLinesFromModel()' +
+            'to support this event:\n' + event.title + '\n');
       }
       modelLines.push('          {' + startAndEnd);
     });
