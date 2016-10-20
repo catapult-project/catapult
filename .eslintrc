@@ -51,7 +51,7 @@
       "no-lonely-if": "off",
       "no-loop-func": "off",
       "no-multi-spaces": "off",
-      "no-multiple-empty-lines": "off",
+      "no-multiple-empty-lines": ["error", {max: 2}],
       "no-negated-condition": "off",
       "no-new": "off",
       "no-new-func": "off",
