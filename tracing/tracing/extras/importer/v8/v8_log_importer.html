@@ -302,7 +302,7 @@ tr.exportTo('tr.e.importer.v8', function() {
      */
     importEvents: function() {
       var logreader = new tr.e.importer.v8.LogReader(
-          { 'timer-event' : {
+          { 'timer-event': {
             parsers: [null, parseInt, parseInt],
             processor: this.processTimerEvent_.bind(this)
           },
@@ -310,11 +310,11 @@ tr.exportTo('tr.e.importer.v8', function() {
             parsers: [null, parseInt, parseInt],
             processor: this.processSharedLibrary_.bind(this)
           },
-          'timer-event-start' : {
+          'timer-event-start': {
             parsers: [null, parseInt],
             processor: this.processTimerEventStart_.bind(this)
           },
-          'timer-event-end' : {
+          'timer-event-end': {
             parsers: [null, parseInt],
             processor: this.processTimerEventEnd_.bind(this)
           },

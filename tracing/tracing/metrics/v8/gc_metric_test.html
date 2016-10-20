@@ -53,7 +53,7 @@ tr.b.unittest.testSuite(function() {
       'V8.GCIncrementalMarking': 'v8-gc-incremental-step',
       'V8.GCIncrementalMarkingFinalize': 'v8-gc-incremental-finalize',
       'V8.GCIncrementalMarkingStart': 'v8-gc-incremental-start',
-      'V8.GCPhantomHandleProcessingCallback' : 'v8-gc-phantom-handle-callback',
+      'V8.GCPhantomHandleProcessingCallback': 'v8-gc-phantom-handle-callback',
       'V8.GCScavenger': 'v8-gc-scavenger'
     };
     tr.b.iterItems(events, function(timelineName, telemetryName) {
@@ -96,7 +96,7 @@ tr.b.unittest.testSuite(function() {
     var slices = [
       {
         title: 'SingleThreadIdleTaskRunner::RunTask',
-        args: {'allotted_time_ms' : 100}, start: 100, end: 200,
+        args: {'allotted_time_ms': 100}, start: 100, end: 200,
         cpuStart: 100, cpuEnd: 200
       },
       {
@@ -135,7 +135,7 @@ tr.b.unittest.testSuite(function() {
     var slices = [
       {
         title: 'SingleThreadIdleTaskRunner::RunTask',
-        args: {'allotted_time_ms' : 10}, start: 100, end: 200,
+        args: {'allotted_time_ms': 10}, start: 100, end: 200,
         cpuStart: 100, cpuEnd: 200
       },
       {

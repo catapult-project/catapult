@@ -23,17 +23,17 @@ tr.exportTo('tr.model.helpers', function() {
   var AndroidSurfaceFlinger = tr.model.helpers.AndroidSurfaceFlinger;
 
   var IMPORTANT_SURFACE_FLINGER_SLICES = {
-    'doComposition' : true,
-    'updateTexImage' : true,
-    'postFramebuffer' : true
+    'doComposition': true,
+    'updateTexImage': true,
+    'postFramebuffer': true
   };
   var IMPORTANT_UI_THREAD_SLICES = {
-    'Choreographer#doFrame' : true,
-    'performTraversals' : true,
-    'deliverInputEvent' : true
+    'Choreographer#doFrame': true,
+    'performTraversals': true,
+    'deliverInputEvent': true
   };
   var IMPORTANT_RENDER_THREAD_SLICES = {
-    'doFrame' : true
+    'doFrame': true
   };
 
   function iterateImportantThreadSlices(thread, important, callback) {
