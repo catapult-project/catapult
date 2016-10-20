@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/v8/v8_thread_slice.html">
+<link rel="import" href="/tracing/metrics/v8/runtime_stats_metric.html">
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  function checkRuntimeHistogram_(values, name, count, duration,
+    breakdownHistograms) {
+    var countHistogram = tr.b.getOnlyElement(values.getValuesNamed(name +
+      ':count'));
+    assert.equal(tr.b.getOnlyElement(countHistogram.sampleValues), count);
+    var durationHistogram = tr.b.getOnlyElement(values.getValuesNamed(name +
+      ':duration'));
+    assert.equal(tr.b.getOnlyElement(durationHistogram.sampleValues), duration);
+
+    if (breakdownHistograms === undefined) return;
+    var countBin = tr.b.getOnlyElement(countHistogram.allBins.filter(
+      bin => bin.diagnosticMaps.length > 0));
+    var durationBin = tr.b.getOnlyElement(durationHistogram.allBins.filter(
+      bin => bin.diagnosticMaps.length > 0));
+    for (var name of breakdownHistograms) {
+      assert.notEqual(tr.b.getOnlyElement(countBin.diagnosticMaps)
+        .get('samples').get(name + ':count'), undefined);
+      assert.notEqual(tr.b.getOnlyElement(durationBin.diagnosticMaps)
+        .get('samples').get(name + ':duration'), undefined);
+    }
+  }
+
+  test('runtimeStatsMetric', function() {
+    // The renderer thread timeline looks like:
+    //
+    // *   [V8.NewInstance]         *  [  V8.Execute ]        * ...[V8.Ignored]
+    // |                            |                         |
+    // |                            |                         |
+    // v                            v                         v
+    // First navigation             FMP                       TTI
+    // 200                          9200                     15400
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1984);
+      var mainThread = rendererProcess.getOrCreateThread(2);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'blink.user_timing',
+        title: 'navigationStart',
+        start: 200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+      rendererProcess.objects.addSnapshot('ptr', 'loading', 'FrameLoader', 300,
+          {isLoadingMainFrame: true, frame: {id_ref: '0xdeadbeef'},
+            documentLoaderURL: 'http://example.com'});
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'V8.newInstance',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 12555,
+        duration: 990,
+        args: {
+          'runtime-call-stats': {
+              JS_Execution: [1, 11],
+              HandleApiCall: [2, 22],
+              CompileFullCode: [3, 33],
+              LoadIC_Miss: [4, 44],
+              ParseLazy: [5, 55],
+              OptimizeCode: [6, 66],
+              FunctionCallback: [7, 77],
+              AllocateInTargetSpace: [8, 88],
+              API_Object_Get: [9, 99]
+          }
+        }
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9180,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'loading',
+        title: 'firstMeaningfulPaintCandidate',
+        start: 9200,
+        duration: 0.0,
+        args: {frame: '0xdeadbeef'}
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 9350,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 11150,
+        duration: 100,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 12550,
+        duration: 1000,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'V8.Execute',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 12555,
+        duration: 990,
+        args: {
+          'runtime-call-stats': {
+              JS_Execution: [1, 11],
+              HandleApiCall: [2, 22],
+              CompileFullCode: [3, 33],
+              StoreIC_Miss: [4, 44],
+              ParseLazy: [5, 55],
+              OptimizeCode: [6, 66],
+              FunctionCallback: [7, 77],
+              AllocateInTargetSpace: [8, 88],
+              API_Object_Get: [9, 99]
+          }
+        }
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 14950,
+        duration: 500,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'toplevel',
+        title: 'TaskQueueManager::ProcessTaskFromWorkQueue',
+        start: 22150,
+        duration: 10,
+      }));
+
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        cat: 'v8',
+        title: 'V8.Ignored',
+        type: tr.e.v8.V8ThreadSlice,
+        start: 30000,
+        duration: 1000,
+        args: {
+          'runtime-call-stats': {
+              JS_Execution: [1, 11],
+              HandleApiCall: [2, 22],
+              CompileFullCode: [3, 33],
+              LoadIC_Miss: [4, 44],
+              ParseLazy: [5, 55],
+              OptimizeCode: [6, 66],
+              FunctionCallback: [7, 77],
+              AllocateInTargetSpace: [8, 88],
+              API_Object_Get: [9, 99]
+          }
+        }
+      }));
+    });
+
+    var values = new tr.v.HistogramSet();
+    tr.metrics.v8.runtimeStatsMetric(values, model);
+    assert.equal(values.length, 40);
+    assert.equal(values.sourceValues.length, 20);
+
+    // A few of the top level ones.
+    checkRuntimeHistogram_(values, 'IC', 8, 0.088, ['LoadIC_Miss',
+        'StoreIC_Miss']);
+    checkRuntimeHistogram_(values, 'API', 18, 0.198, ['API_Object_Get']);
+    checkRuntimeHistogram_(values, 'Total', 90, 0.99);
+    // And a couple of the lower level ones
+    checkRuntimeHistogram_(values, 'LoadIC_Miss', 4, 0.044);
+    checkRuntimeHistogram_(values, 'API_Object_Get', 18, 0.198);
+  });
+});
+</script>
