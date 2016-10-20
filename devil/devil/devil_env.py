@@ -179,9 +179,13 @@ class _Environment(object):
       self.Initialize()
     return self._dm.LocalPath(dependency, GetPlatform(arch, device))
 
+  def PrefetchPaths(self, dependencies=None, arch=None, device=None):
+    return self._dm.PrefetchPaths(
+        GetPlatform(arch, device), dependencies=dependencies)
+
 
 def GetPlatform(arch=None, device=None):
-  if device:
+  if arch or device:
     return 'android_%s' % (arch or device.product_cpu_abi)
   return '%s_%s' % (sys.platform, platform.machine())
 

@@ -132,13 +132,10 @@ def FetchBinaryDepdencies(platform, client_configs,
       logging.error('Error when trying to prefetch paths for %s: %s',
                     target_platform, e.message)
 
-  # TODO(aiolos, jbudorick): we should have a devil pre-fetch API to call here
-  # and/or switch devil to use the same platform names so we can include it in
-  # the primary loop.
   if fetch_devil_deps:
     devil_env.config.Initialize()
-    devil_env.config._dm.PrefetchPaths(target_platform)
-    devil_env.config._dm.PrefetchPaths('linux2_x86_64')
+    devil_env.config.PrefetchPaths(arch=platform.GetArchName())
+    devil_env.config.PrefetchPaths()
 
 
 def _FetchReferenceBrowserBinary(platform):
