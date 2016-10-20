@@ -617,7 +617,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
       // preset mode if and only if currently user is in preset record mode
       // and user selects/deselects any category in 'Edit Categories' mode.
       if (this.usingPreset_()) {
-        this.currentlyChosenPreset_ = [] /* manually select settings */;
+        this.currentlyChosenPreset_ = []; /* manually select settings */
         var categoryEl = this.querySelector(
             '#category-preset-Manually-select-settings');
         categoryEl.checked = true;

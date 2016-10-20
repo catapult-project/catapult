@@ -2668,12 +2668,12 @@ tr.exportTo('tr.e.importer', function() {
             //   Undefined index        -> / (root)
             //   Defined index for /A/B -> /A/B/<self>
             if (leafStackFrameIndex === undefined) {
-              leafStackFrame = undefined /* root */;
+              leafStackFrame = undefined; /* root */
             } else {
               // Get the leaf stack frame corresponding to the provided index.
               var leafStackFrameId = idPrefix + leafStackFrameIndex;
               if (leafStackFrameIndex === '') {
-                leafStackFrame = undefined /* root */;
+                leafStackFrame = undefined; /* root */
               } else {
                 leafStackFrame = model.stackFrames[leafStackFrameId];
                 if (leafStackFrame === undefined) {
@@ -2718,7 +2718,7 @@ tr.exportTo('tr.e.importer', function() {
             // Get the leaf stack frame corresponding to the provided index.
             var leafStackFrameId = idPrefix + leafStackFrameIndex;
             if (leafStackFrameIndex === '') {
-              leafStackFrame = undefined /* root */;
+              leafStackFrame = undefined; /* root */
             } else {
               leafStackFrame = model.stackFrames[leafStackFrameId];
               if (leafStackFrame === undefined) {
@@ -2736,7 +2736,7 @@ tr.exportTo('tr.e.importer', function() {
           var objectTypeId = entry.type;
           var objectTypeName;
           if (objectTypeId === undefined) {
-            objectTypeName = undefined /* total over all types */;
+            objectTypeName = undefined; /* total over all types */
           } else if (objectTypeNameMap === undefined) {
             // This can only happen when the old format is used.
             continue;

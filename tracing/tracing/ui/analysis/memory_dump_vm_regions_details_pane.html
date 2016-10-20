@@ -245,7 +245,7 @@ tr.exportTo('tr.ui.analysis', function() {
         return vmRegionTree.someRegion(function(region) {
           if (region.startAddress === undefined)
             return false;
-          return region.startAddress >= 4294967296 /* 2^32 */;
+          return region.startAddress >= 4294967296; /* 2^32 */
         });
       });
 

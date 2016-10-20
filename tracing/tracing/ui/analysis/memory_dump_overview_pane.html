@@ -266,8 +266,8 @@ tr.exportTo('tr.ui.analysis', function() {
         return;  // There are no older values.
 
       var infoQuantifier = olderValueCount < numerics.length ?
-          ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER /* some values are older */ :
-          '' /* all values are older */;
+          ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : /* some values are older */
+          ''; /* all values are older */
 
       // Emit an info if there was at least one older value (i.e. at least one
       // defined process memory dump did not have own VM regions).
