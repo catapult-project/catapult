@@ -187,6 +187,8 @@ tr.exportTo('tr.ui', function() {
 
   var UNMERGEABLE = '(unmergeable)';
 
+  var NAME_COLUMN_WIDTH_PX = 300;
+
   Polymer({
     is: 'tr-v-ui-histogram-set-table-cell',
 
@@ -720,7 +722,13 @@ tr.exportTo('tr.ui', function() {
           }
         } else if (values instanceof Map) {
           // |values| is actually a nested organizedValues.
-          var row = {name: name, subRows: [], columns: {}, cells: {}};
+          var row = {
+            name: name,
+            subRows: [],
+            columns: {},
+            cells: {},
+            depth: hierarchy.length,
+          };
           hierarchy.push(row);
           this.buildRow_(values, hierarchy);
           hierarchy.pop();
@@ -938,13 +946,23 @@ tr.exportTo('tr.ui', function() {
           title: 'Name',
 
           value: function(row) {
-            var nameEl = document.createElement('span');
-            Polymer.dom(nameEl).textContent = row.name;
+            var nameDiv = document.createElement('div');
+            nameDiv.style.overflow = 'hidden';
+            nameDiv.style.whiteSpace = 'nowrap';
+            nameDiv.style.textOverflow = 'ellipsis';
+
+            // tr-ui-b-table adds 16px of padding for each additional level of
+            // subRows nesting, so outer nameDivs can be wider than inner
+            // nameDivs.
+            var widthPx = NAME_COLUMN_WIDTH_PX - (16 * row.depth);
+            nameDiv.style.maxWidth = widthPx + 'px';
+
+            Polymer.dom(nameDiv).textContent = row.name;
+            nameDiv.title = row.name;
             if (row.description) {
-              nameEl.title = row.description;
+              nameDiv.title += '\n' + row.description;
             }
-            nameEl.style.whiteSpace = 'nowrap';
-            return nameEl;
+            return nameDiv;
           },
 
           cmp: (a, b) => a.name.localeCompare(b.name)
