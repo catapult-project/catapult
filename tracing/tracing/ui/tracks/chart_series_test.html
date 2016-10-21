@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_set.html">
+<link rel="import" href="/tracing/model/selection_state.html">
 <link rel="import" href="/tracing/ui/timeline_display_transform.html">
 <link rel="import" href="/tracing/ui/tracks/chart_axis.html">
 <link rel="import" href="/tracing/ui/tracks/chart_point.html">
@@ -21,6 +22,7 @@ tr.b.unittest.testSuite(function() {
   var EventSet = tr.model.EventSet;
   var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
   var Event = tr.model.Event;
+  var SelectionState = tr.model.SelectionState;
   var ChartAxis = tr.ui.tracks.ChartAxis;
   var ChartPoint = tr.ui.tracks.ChartPoint;
   var ChartSeries = tr.ui.tracks.ChartSeries;
@@ -29,6 +31,15 @@ tr.b.unittest.testSuite(function() {
 
   var CANVAS_WIDTH = 800;
   var CANVAS_HEIGHT = 80;
+
+  function getSelectionStateForTesting(index) {
+    index = index % 7
+    if (index < 5) {
+      return SelectionState.getFromBrighteningLevel(index % 4);
+    } else {
+      return SelectionState.getFromDimmingLevel(index % 3);
+    }
+  }
 
   function buildSeries(renderingConfig) {
     var points = [];
@@ -122,7 +133,7 @@ tr.b.unittest.testSuite(function() {
       colorId: 10
     });
     series.points.forEach(function(point, index) {
-      point.modelItem.selectionState = index % 4;
+      point.modelItem.selectionState = getSelectionStateForTesting(index);
     });
     drawSeries(this, series);
   });
@@ -140,7 +151,7 @@ tr.b.unittest.testSuite(function() {
       backgroundOpacity: 0.8
     });
     series.points.forEach(function(point, index) {
-      point.modelItem.selectionState = index % 4;
+      point.modelItem.selectionState = getSelectionStateForTesting(index);
     });
     drawSeries(this, series);
   });
