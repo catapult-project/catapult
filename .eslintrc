@@ -55,7 +55,7 @@
       "no-negated-condition": "off",
       "no-new": "off",
       "no-new-func": "off",
-      "no-new-object": "off",
+      "no-new-object": "error",
       "no-new-wrappers": "off",
       "no-proto": "off",
       "no-redeclare": "off",

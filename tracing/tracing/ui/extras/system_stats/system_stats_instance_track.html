@@ -139,7 +139,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
     },
 
     computeMaxStats_: function(snapshots) {
-      var maxStats = new Object();
+      var maxStats = {};
       statCount = 0;
 
       for (var i = 0; i < snapshots.length; i++) {
@@ -157,7 +157,7 @@ tr.exportTo('tr.ui.e.system_stats', function() {
       for (var statName in stats) {
         if (stats[statName] instanceof Object) {
           if (!(statName in maxStats))
-            maxStats[statName] = new Object();
+            maxStats[statName] = {};
 
           var excludedNested;
           if (excludedStats && statName in excludedStats)
