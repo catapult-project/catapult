@@ -186,7 +186,7 @@ tr.exportTo('tr.ui', function() {
 
       var startDate = new Date();
       try {
-        var values = tr.metrics.runMetrics(this.model_, options);
+        var histograms = tr.metrics.runMetrics(this.model_, options);
       } catch (err) {
         console.warn(
             this.currentMetricName_ +
@@ -203,7 +203,7 @@ tr.exportTo('tr.ui', function() {
       this.recomputeButton_.style.background = '';
 
       this.$.results.style.display = '';
-      this.$.results.values = values;
+      this.$.results.histograms = histograms;
     }
   });
 
