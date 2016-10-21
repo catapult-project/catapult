@@ -178,7 +178,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Object.keys(cpu.slices[4].args).length, 0);
   });
 
-  test('getFrequencyStats', function()  {
+  test('getFrequencyStats', function() {
     var m = new tr.Model();
     var cpu = m.kernel.getOrCreateCpu(1);
     var powerCounter = cpu.getOrCreateCounter('', 'Clock Frequency');

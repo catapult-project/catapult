@@ -333,7 +333,7 @@ tr.exportTo('tr.ui.e.v8', function() {
     }
 
     diff(other) {
-      var entry =  new Entry(this.title_, other.count_ - this.count,
+      var entry = new Entry(this.title_, other.count_ - this.count,
                              other.overall_ - this.overall,
                              other.overAllocated_ - this.overAllocated, [], []);
       entry.overallPercent = computePercentage(entry.overall, this.overall);
