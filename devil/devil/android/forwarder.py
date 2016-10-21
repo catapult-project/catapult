@@ -211,7 +211,10 @@ class Forwarder(object):
       if exit_code != 0:
         error_msg = [
             '`%s` exited with %d' % (' '.join(unmap_all_cmd), exit_code)]
-        error_msg += output
+        if isinstance(list, output):
+          error_msg += output
+        else:
+          error_msg += [output]
         raise HostForwarderError('\n'.join(error_msg))
 
       # Clean out any entries from the device & host map.
