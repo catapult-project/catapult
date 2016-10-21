@@ -335,6 +335,15 @@ class CrOSInterface(object):
         logging.debug("GetFileContents(%s)->%s" % (filename, res))
         return res
 
+  def HasSystemd(self):
+    """Return True or False to indicate if systemd is used.
+
+    Note: This function checks to see if the 'systemctl' utilitary
+    is installed. This is only installed along with the systemd daemon.
+    """
+    _, stderr = self.RunCmdOnDevice(['systemctl'], quiet=True)
+    return stderr == ''
+
   def ListProcesses(self):
     """Returns (pid, cmd, ppid, state) of all processes on the device."""
     stdout, stderr = self.RunCmdOnDevice(
@@ -416,9 +425,17 @@ class CrOSInterface(object):
     return len(kills) - 2
 
   def IsServiceRunning(self, service_name):
-    stdout, stderr = self.RunCmdOnDevice(['status', service_name], quiet=True)
+    """Check with the init daemon if the given service is running."""
+    if self.HasSystemd():
+      # Querying for the pid of the service will return 'MainPID=0' if
+      # the service is not running.
+      stdout, stderr = self.RunCmdOnDevice(
+          ['systemctl', 'show', '-p', 'MainPID', service_name], quiet=True)
+      running = int(stdout.split('=')[1]) != 0
+    else:
+      stdout, stderr = self.RunCmdOnDevice(['status', service_name], quiet=True)
+      running = 'running, process' in stdout
     assert stderr == '', stderr
-    running = 'running, process' in stdout
     logging.debug("IsServiceRunning(%s)->%s" % (service_name, running))
     return running
 
@@ -520,15 +537,22 @@ class CrOSInterface(object):
 
   def RestartUI(self, clear_enterprise_policy):
     logging.info('(Re)starting the ui (logs the user out)')
+    start_cmd = ['start', 'ui']
+    restart_cmd = ['restart', 'ui']
+    stop_cmd = ['stop', 'ui']
+    if self.HasSystemd():
+      start_cmd.insert(0, 'systemctl')
+      restart_cmd.insert(0, 'systemctl')
+      stop_cmd.insert(0, 'systemctl')
     if clear_enterprise_policy:
-      self.RunCmdOnDevice(['stop', 'ui'])
+      self.RunCmdOnDevice(stop_cmd)
       self.RmRF('/var/lib/whitelist/*')
       self.RmRF(r'/home/chronos/Local\ State')
 
     if self.IsServiceRunning('ui'):
-      self.RunCmdOnDevice(['restart', 'ui'])
+      self.RunCmdOnDevice(restart_cmd)
     else:
-      self.RunCmdOnDevice(['start', 'ui'])
+      self.RunCmdOnDevice(start_cmd)
 
   def CloseConnection(self):
     if not self.local:
