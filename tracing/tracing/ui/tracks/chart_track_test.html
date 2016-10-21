@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
   function buildTrack(opt_viewport) {
     var viewport = opt_viewport || new Viewport(document.createElement('div'));
 
-    var axis1 = new ChartAxis(0, 2);
+    var axis1 = new ChartAxis(0, 2.5);
     var axis2 = new ChartAxis(-100, 100);
 
     var points1 = [
@@ -226,7 +226,7 @@ tr.b.unittest.testSuite(function() {
 
     // First axis should not have been modified.
     assert.equal(axis1.bounds.min, 0);
-    assert.equal(axis1.bounds.max, 2);
+    assert.equal(axis1.bounds.max, 2.5);
 
     // Second axis should have been modified.
     assert.equal(axis2.bounds.min, -50);
