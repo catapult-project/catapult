@@ -2774,7 +2774,7 @@ tr.b.unittest.testSuite(function() {
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 0, ph: 'S', args: {'seq': 0}});  // @suppress longLineCheck
 
     for (var i = 1; i <= 1000; i++)
-      events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: Math.round(i / 2) , ph: 'T', args: {'seq': i}});  // @suppress longLineCheck
+      events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: Math.round(i / 2), ph: 'T', args: {'seq': i}});  // @suppress longLineCheck
 
     events.push({name: 'a', cat: 'foo', id: 72, pid: 52, tid: 53, ts: 1000, ph: 'F', args: {'seq': 1001}});  // @suppress longLineCheck
 

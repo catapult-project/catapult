@@ -13,7 +13,7 @@
         "properties": "never"
       }],
       "comma-dangle": "off",
-      "comma-spacing": "off",
+      "comma-spacing": "error",
       "curly": "off",
       "default-case": "off",
       "dot-location": "off",
