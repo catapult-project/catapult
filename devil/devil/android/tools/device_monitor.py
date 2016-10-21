@@ -13,6 +13,7 @@ import argparse
 import collections
 import json
 import logging
+import logging.handlers
 import os
 import re
 import sys
@@ -185,6 +186,15 @@ def main(argv):
   parser.add_argument('--blacklist-file', help='Path to device blacklist file.')
   args = parser.parse_args(argv)
 
+  logger = logging.getLogger()
+  logger.setLevel(logging.DEBUG)
+  handler = logging.handlers.RotatingFileHandler(
+      '/tmp/device_monitor.log', maxBytes=10 * 1024 * 1024, backupCount=5)
+  fmt = logging.Formatter('%(asctime)s %(levelname)s %(message)s',
+                          datefmt='%y%m%d %H:%M:%S')
+  handler.setFormatter(fmt)
+  logger.addHandler(handler)
+
   devil_dynamic_config = devil_env.EmptyConfig()
   if args.adb_path:
     devil_dynamic_config['dependencies'].update(
@@ -195,10 +205,15 @@ def main(argv):
 
   blacklist = (device_blacklist.Blacklist(args.blacklist_file)
                if args.blacklist_file else None)
+
+  logging.info('Device monitor running with pid %d, adb: %s, blacklist: %s',
+               os.getpid(), args.adb_path, args.blacklist_file)
   while True:
+    start = time.time()
     status_dict = get_all_status(blacklist)
     with open(DEVICE_FILE, 'wb') as f:
       json.dump(status_dict, f, indent=2, sort_keys=True)
+    logging.info('Got status of all devices in %.2fs.', time.time() - start)
     time.sleep(60)
 
 
