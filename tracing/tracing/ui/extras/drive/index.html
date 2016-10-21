@@ -360,7 +360,7 @@ found in the LICENSE file.
         function visibilityDelegate(element, visibility) {
           return function() {
             element.style.visibility = visibility;
-          }
+          };
         }
         imageList[i].image.addEventListener(
             'mouseover', visibilityDelegate(collabTooltip, 'visible'));

@@ -71,8 +71,8 @@ tr.exportTo('tr.model.helpers', function() {
     var overlappingDrawFrame;
     var slices = tr.b.iterateOverIntersectingIntervals(
         renderThread.sliceGroup.slices,
-        function(range) { return range.start },
-        function(range) { return range.end },
+        function(range) { return range.start; },
+        function(range) { return range.end; },
         uiDrawSlice.start,
         uiDrawSlice.end,
         function(rtDrawSlice) {
@@ -128,8 +128,8 @@ tr.exportTo('tr.model.helpers', function() {
   function getFrameStartTime(traversalStart, preTraversalWorkRanges) {
     var preTraversalWorkRange = tr.b.findClosestIntervalInSortedIntervals(
         preTraversalWorkRanges,
-        function(range) { return range.start },
-        function(range) { return range.end },
+        function(range) { return range.start; },
+        function(range) { return range.end; },
         traversalStart,
         3);
 
@@ -311,7 +311,7 @@ tr.exportTo('tr.model.helpers', function() {
         this.frames_ = uiFrames.concat(rtFrames);
 
         // merge frames by sorting by end timestamp
-        this.frames_.sort(function(a, b) { a.end - b.end });
+        this.frames_.sort(function(a, b) { a.end - b.end; });
       }
       return this.frames_;
     },

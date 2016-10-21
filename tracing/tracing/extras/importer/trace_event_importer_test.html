@@ -2564,7 +2564,7 @@ tr.b.unittest.testSuite(function() {
     var m = makeModel(events);
     assert.equal(m.flowIntervalTree.size, 3);
 
-    var order = m.flowEvents.map(function(x) { return x.start });
+    var order = m.flowEvents.map(function(x) { return x.start; });
     for (var i = 0; i < expected.length; ++i)
       assert.closeTo(expected[i], order[i], 1e-5);
   });
@@ -4258,7 +4258,7 @@ tr.b.unittest.testSuite(function() {
 
     // Stack frames.
     assert.deepEqual(
-        tr.b.mapItems(m.stackFrames, function(id, f) { return f.title }),
+        tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
         {
           'p21:0': 'FrameView::layout',
           'p21:0:self': '<self>',
@@ -4588,7 +4588,7 @@ tr.b.unittest.testSuite(function() {
 
     // Stack frames.
     assert.deepEqual(
-        tr.b.mapItems(m.stackFrames, function(id, f) { return f.title }),
+        tr.b.mapItems(m.stackFrames, function(id, f) { return f.title; }),
         {
           'p21:0': 'FrameView::layout',
           'p21:A': '<self>',

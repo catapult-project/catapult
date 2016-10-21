@@ -114,11 +114,11 @@ tr.exportTo('tr.b', function() {
     return new Color(Math.floor(r * 255),
                      Math.floor(g * 255),
                      Math.floor(b * 255), a);
-  }
+  };
 
   Color.fromHSL = function(hsl) {
     return Color.fromHSLExplicit(hsl.h, hsl.s, hsl.l, hsl.a);
-  }
+  };
 
   Color.prototype = {
     clone: function() {

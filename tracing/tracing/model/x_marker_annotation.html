@@ -22,7 +22,7 @@ tr.exportTo('tr.model', function() {
 
   XMarkerAnnotation.fromDict = function(dict) {
     return new XMarkerAnnotation(dict.args.timestamp);
-  }
+  };
 
   XMarkerAnnotation.prototype = {
     __proto__: tr.model.Annotation.prototype,

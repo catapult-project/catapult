@@ -892,7 +892,7 @@ tr.exportTo('tr.v', function() {
                 Math.log(nextMaxBinBoundary / prevBoundary) / binCount;
             for (var i = 1; i < binCount; i++) {
               var boundary = sliceMinBinBoundary * Math.exp(
-                  i * binExponentWidth)
+                  i * binExponentWidth);
               this.binRanges_.push(tr.b.Range.fromExplicitRange(
                     prevBoundary, boundary));
               prevBoundary = boundary;

@@ -5,8 +5,8 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/location.html">
 <link rel="import" href="/tracing/model/annotation.html">
+<link rel="import" href="/tracing/model/location.html">
 <link rel="import" href="/tracing/ui/annotations/rect_annotation_view.html">
 
 <script>
@@ -29,7 +29,7 @@ tr.exportTo('tr.model', function() {
     var endLoc =
         new tr.model.Location(args.end.xWorld, args.end.yComponents);
     return new tr.model.RectAnnotation(startLoc, endLoc);
-  }
+  };
 
   RectAnnotation.prototype = {
     __proto__: tr.model.Annotation.prototype,

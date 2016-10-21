@@ -21,6 +21,7 @@ tr.exportTo('tr.b', function() {
     this.width = 0;
     this.height = 0;
   }
+
   Rect.fromXYWH = function(x, y, w, h) {
     var rect = new Rect();
     rect.x = x;
@@ -28,7 +29,8 @@ tr.exportTo('tr.b', function() {
     rect.width = w;
     rect.height = h;
     return rect;
-  }
+  };
+
   Rect.fromArray = function(ary) {
     if (ary.length !== 4)
       throw new Error('ary.length must be 4');
@@ -38,7 +40,7 @@ tr.exportTo('tr.b', function() {
     rect.width = ary[2];
     rect.height = ary[3];
     return rect;
-  }
+  };
 
   Rect.prototype = {
     __proto__: Object.prototype,

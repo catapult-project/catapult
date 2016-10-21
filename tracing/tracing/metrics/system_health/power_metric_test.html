@@ -526,9 +526,9 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
-        0.00344, 1e-4)
+        0.00344, 1e-4);
     assert.closeTo(getMetricValueSum(valueSet, 'per_frame:energy'),
-        0.0172, 1e-4)
+        0.0172, 1e-4);
   });
 
   test('powerMetric_frameBased_oneFrame', function() {
@@ -565,9 +565,9 @@ tr.b.unittest.testSuite(function() {
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
     assert.closeTo(getMetricValueAvg(valueSet, 'per_frame:energy'),
-        0.0011, 1e-4)
+        0.0011, 1e-4);
     assert.closeTo(getMetricValueSum(valueSet, 'per_frame:energy'),
-        0.0011, 1e-4)
+        0.0011, 1e-4);
   });
 
   test('powerMetric_video_oneStageEachType', function() {

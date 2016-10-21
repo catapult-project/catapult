@@ -59,7 +59,7 @@ tr.exportTo('tr.importer', function() {
   function combineInitiatorTypes(title1, title2) {
     for (var item of INITIATOR_HIERARCHY)
       if (title1 === item || title2 === item) return item;
-    console.error('Invalid titles in combineInitiatorTypes')
+    console.error('Invalid titles in combineInitiatorTypes');
     return undefined;
   }
 
@@ -131,7 +131,7 @@ tr.exportTo('tr.importer', function() {
     // into Tap Responses.
     merge: function(other) {
       this.initiatorType = combineInitiatorTypes(
-          this.initiatorType, other.initiatorType)
+          this.initiatorType, other.initiatorType);
 
       // Don't use pushEvent(), which would lose special start, end.
       this.associatedEvents.addEventSet(other.associatedEvents);

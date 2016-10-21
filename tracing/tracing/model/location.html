@@ -72,7 +72,7 @@ tr.exportTo('tr.model', function() {
     if (yComponents.length === 0)
       return;
     return new Location(xWorld, yComponents);
-  }
+  };
 
   Location.fromStableIdAndTimestamp = function(viewport, stableId, ts) {
     var xWorld = ts;
@@ -99,7 +99,7 @@ tr.exportTo('tr.model', function() {
     if (yComponents.length === 0)
       return;
     return new Location(xWorld, yComponents);
-  }
+  };
 
   Location.prototype = {
 

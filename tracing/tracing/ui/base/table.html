@@ -440,7 +440,7 @@ tr.exportTo('tr.ui.b', function() {
     set userCanModifySortOrder(userCanModifySortOrder) {
       var newUserCanModifySortOrder = !!userCanModifySortOrder;
       if (newUserCanModifySortOrder === this.userCanModifySortOrder_)
-        return
+        return;
 
       this.userCanModifySortOrder_ = newUserCanModifySortOrder;
       this.scheduleRebuildHeaders_();
@@ -1516,7 +1516,7 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     selectNextOrFirstRowIfPossible_: function() {
-      this.getFirstSelectableColumnIndex_
+      this.getFirstSelectableColumnIndex_;
       var next = this.selectedTableRowInfo_ ?
           this.selectedTableRowInfo_.htmlNode.nextElementSibling :
           this.$.body.firstChild;

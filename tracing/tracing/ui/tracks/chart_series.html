@@ -6,9 +6,9 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
-<link rel="import" href="/tracing/ui/base/event_presenter.html">
 <link rel="import" href="/tracing/model/proxy_selectable_item.html">
 <link rel="import" href="/tracing/model/selection_state.html">
+<link rel="import" href="/tracing/ui/base/event_presenter.html">
 
 <script>
 'use strict';
@@ -443,7 +443,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       tr.b.iterateOverIntersectingIntervals(
           this.points,
-          function(point) { return point.x },
+          function(point) { return point.x; },
           getPointWidth,
           loWX,
           hiWX,
@@ -475,7 +475,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
       var item = tr.b.findClosestElementInSortedArray(
           this.points,
-          function(point) { return point.x },
+          function(point) { return point.x; },
           worldX,
           worldMaxDist);
 

@@ -252,7 +252,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return b.importance - a.importance;
     });
 
-    return positions.map(function(position) { return position.column });
+    return positions.map(function(position) { return position.column; });
   };
 
   MemoryColumn.spaceEqually = function(columns) {

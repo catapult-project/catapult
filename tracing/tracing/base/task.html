@@ -150,7 +150,7 @@ tr.exportTo('tr.b', function() {
     var curTask = task;
     while (curTask)
       curTask = curTask.run();
-  }
+  };
 
   /**
    * Runs a task using raf.requestIdleCallback, returning
@@ -177,7 +177,7 @@ tr.exportTo('tr.b', function() {
       }
       tr.b.requestIdleCallback(runAnother);
     });
-  }
+  };
 
   return {
     Task: Task

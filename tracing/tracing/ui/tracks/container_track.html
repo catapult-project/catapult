@@ -91,7 +91,7 @@ tr.exportTo('tr.ui.tracks', function() {
         task.subTask(function(i) { return function() {
           this.tracks_[i].addAllEventsMatchingFilterToSelection(
               filter, selection);
-        } }(i), this);
+        }; }(i), this);
       }
       return task;
     },

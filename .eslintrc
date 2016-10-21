@@ -90,7 +90,7 @@
       "quote-props": ["error", "consistent"], ## TODO(alexandermont): want to eventually make this disallowQuotedKeysInObjects
       "radix": "off",
       "require-jsdoc": "off",
-      "semi": "off",
+      "semi": "error",
       "semi-spacing": "error",
       "space-unary-ops": "off",
       "spaced-comment": ["error", "always", {

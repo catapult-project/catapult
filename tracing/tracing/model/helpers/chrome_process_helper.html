@@ -54,7 +54,7 @@ tr.exportTo('tr.model.helpers', function() {
           if (range.intersectsExplicitRangeInclusive(event.start, event.end))
             frameEvents.push(event);
 
-      frameEvents.sort(function(a, b) {return a.start - b.start});
+      frameEvents.sort(function(a, b) {return a.start - b.start;});
       return frameEvents;
     }
   };

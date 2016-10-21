@@ -55,8 +55,8 @@ tr.b.unittest.testSuite(function() {
     var sliceDuration = 50;
     var totalDuration = 3000;
     var rangeOfInterest = new tr.b.Range.fromExplicitRange(-10, 30);
-    var options = {}
-    options.rangeOfInterest = rangeOfInterest
+    var options = {};
+    options.rangeOfInterest = rangeOfInterest;
     var value = computeCpuTime(function(model) {
       model.rendererProcess = model.getOrCreateProcess(2);
       model.rendererMain = model.rendererProcess.getOrCreateThread(3);

@@ -52,13 +52,13 @@ tr.exportTo('tr.b', function() {
     vec2.set(q.p3, x + w, y + h);
     vec2.set(q.p4, x, y + h);
     return q;
-  }
+  };
 
   Quad.fromRect = function(r) {
     return new Quad.fromXYWH(
         r.x, r.y,
         r.width, r.height);
-  }
+  };
 
   Quad.from4Vecs = function(p1, p2, p3, p4) {
     var q = new Quad();
@@ -67,7 +67,7 @@ tr.exportTo('tr.b', function() {
     vec2.set(q.p3, p3[0], p3[1]);
     vec2.set(q.p4, p4[0], p4[1]);
     return q;
-  }
+  };
 
   Quad.from8Array = function(arr) {
     if (arr.length !== 8)

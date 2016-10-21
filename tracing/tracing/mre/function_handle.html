@@ -84,7 +84,7 @@ tr.exportTo('tr.mre', function() {
     },
 
     asUserFriendlyString: function() {
-      var parts = this.modulesToLoad.map(function(mtl) {return mtl.filename});
+      var parts = this.modulesToLoad.map(function(mtl) {return mtl.filename;});
       parts.push(this.functionName);
       parts.push(JSON.stringify(this.options_));
       return parts.join(',');

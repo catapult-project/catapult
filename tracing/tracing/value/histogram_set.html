@@ -195,7 +195,7 @@ tr.exportTo('tr.v', function() {
           return histograms;  // recursion base case
         }
 
-        var grouping = groupings[level]
+        var grouping = groupings[level];
         var groupedHistograms = tr.b.groupIntoMap(
             histograms, grouping.callback);
 
