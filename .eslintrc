@@ -34,7 +34,7 @@
       "new-cap": "off",
       "new-parens": "off",
       "no-alert": "off",
-      "no-array-constructor": "off",
+      "no-array-constructor": "error",
       "no-cond-assign": "off",
       "no-constant-condition": "off",
       "no-control-regex": "off",

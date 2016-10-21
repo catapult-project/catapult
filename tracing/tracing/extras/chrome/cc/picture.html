@@ -95,7 +95,7 @@ tr.exportTo('tr.e.cc', function() {
      *         for a given op.
      */
     tagOpsWithTimings: function(ops) {
-      var opTimings = new Array();
+      var opTimings = [];
       for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
         if (!opTimings[iteration] || !opTimings[iteration].cmd_times)
@@ -227,7 +227,7 @@ tr.exportTo('tr.e.cc', function() {
     },
 
     tagOpsWithTimings: function(ops) {
-      var opTimings = new Array();
+      var opTimings = [];
       for (var iteration = 0; iteration < OPS_TIMING_ITERATIONS; iteration++) {
         opTimings[iteration] = this.getOpTimings();
         if (!opTimings[iteration] || !opTimings[iteration].cmd_times)

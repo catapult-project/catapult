@@ -52,7 +52,7 @@ tr.exportTo('tr.e.importer.v8', function() {
     ));
 
     // We reconstruct the stack timeline from ticks.
-    this.v8_stack_timeline_ = new Array();
+    this.v8_stack_timeline_ = [];
   }
 
   var kV8BinarySuffixes = ['/d8', '/libv8.so'];

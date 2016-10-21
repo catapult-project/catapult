@@ -68,7 +68,7 @@ tr.exportTo('tr.e.v8', function() {
 
   class RuntimeStatsGroupCollection {
     constructor() {
-      this.groups_ = new Array(
+      this.groups_ = [
         new RuntimeStatsGroup('Total'),
         new RuntimeStatsGroup('IC', /.*IC.*/),
         new RuntimeStatsGroup('Optimize',
@@ -80,7 +80,7 @@ tr.exportTo('tr.e.v8', function() {
         new RuntimeStatsGroup('GC', /GC|AllocateInTargetSpace/),
         new RuntimeStatsGroup('JavaScript', /JS_Execution/),
         new RuntimeStatsGroup('Runtime', /.*/)
-      );
+      ];
     }
 
     addSlices(slices) {
