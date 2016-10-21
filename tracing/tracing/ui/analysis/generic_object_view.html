@@ -179,6 +179,7 @@ Polymer({
     if (object instanceof tr.v.ScalarNumeric) {
       var el = this.ownerDocument.createElement('tr-v-ui-scalar-span');
       el.value = object;
+      el.inline = true;
       this.appendElementWithLabel_(label, indent, el, suffix);
       return;
     }

@@ -38,14 +38,13 @@ Polymer({
         }
       },
       {
-        align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
         value: function(row) {
           var span = tr.v.ui.createScalarSpan(row.value);
           if (row.significance !== undefined) {
             span.significance = row.significance;
           } else if (row.anyRowsHaveSignificance) {
             // Ensure vertical alignment.
-            span.style.marginRight = '14px';
+            span.style.marginRight = '18px';
           }
           span.style.whiteSpace = 'nowrap';
           return span;

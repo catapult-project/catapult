@@ -352,7 +352,8 @@ found in the LICENSE file.
       Polymer.dom(summaryText).appendChild(tr.v.ui.createScalarSpan(
           getValueFromGroup(allGroup), {
             unit: tr.b.Unit.byName.timeDurationInMs,
-            ownerDocument: this.ownerDocument
+            ownerDocument: this.ownerDocument,
+            inline: true,
           }));
       Polymer.dom(resultArea).appendChild(summaryText);
 

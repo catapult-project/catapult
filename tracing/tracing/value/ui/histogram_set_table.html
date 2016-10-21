@@ -250,7 +250,7 @@ tr.exportTo('tr.ui', function() {
       // is tied up in all the possible states of this.histogram. See
       // updateContents_().
 
-      this.$.scalar.style.display = open ? 'none' : 'block';
+      this.$.scalar.style.display = open ? 'none' : 'flex';
       this.$.open_histogram.style.display = open ? 'none' : 'block';
 
       this.$.close_histogram.style.display = open ? 'block' : 'none';
@@ -308,7 +308,7 @@ tr.exportTo('tr.ui', function() {
 
       this.$.open_histogram.style.display = 'block';
       this.$.open_histogram.style.visibility = 'visible';
-      this.$.scalar.style.display = 'block';
+      this.$.scalar.style.display = 'flex';
 
       if ((this.referenceHistogram instanceof tr.v.Histogram) &&
           (this.histogram.unit === this.referenceHistogram.unit) &&
@@ -889,7 +889,6 @@ tr.exportTo('tr.ui', function() {
     buildColumn_: function(displayLabel) {
       return {
         title: displayLabel,
-        align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
 
         value: row => {
           var cell = document.createElement('tr-v-ui-histogram-set-table-cell');

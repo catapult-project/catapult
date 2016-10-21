@@ -180,6 +180,7 @@ tr.b.unittest.testSuite(function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object =
         new tr.v.ScalarNumeric(tr.b.Unit.byName.timeDurationInMs, 3);
+    this.addHTMLOutput(view);
     assert.isDefined(tr.b.findDeepElementMatching(
       view.$.content, 'tr-v-ui-scalar-span'));
   });
@@ -187,6 +188,7 @@ tr.b.unittest.testSuite(function() {
   test('timeStampValue', function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object = new tr.v.ScalarNumeric(tr.b.Unit.byName.timeStampInMs, 3);
+    this.addHTMLOutput(view);
     assert.isDefined(tr.b.findDeepElementMatching(
       view.$.content, 'tr-v-ui-scalar-span'));
   });
@@ -195,6 +197,7 @@ tr.b.unittest.testSuite(function() {
     var view = document.createElement('tr-ui-a-generic-object-view');
     view.object =
         new tr.v.ScalarNumeric(tr.b.Unit.byName.normalizedPercentage, .3);
+    this.addHTMLOutput(view);
     var m = tr.b.findDeepElementMatching(
         view.$.content, 'tr-v-ui-scalar-span');
     assert.isDefined(m);

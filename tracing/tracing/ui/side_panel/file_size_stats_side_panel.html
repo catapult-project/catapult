@@ -161,7 +161,6 @@ found in the LICENSE file.
       if (stats && stats.hasEventSizesinBytes) {
         columns.push({
           title: 'Bytes',
-          align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
           value: function(row) {
             var value = new tr.v.ScalarNumeric(tr.b.Unit.byName.sizeInBytes,
                 row.rowStats.totalEventSizeinBytes);

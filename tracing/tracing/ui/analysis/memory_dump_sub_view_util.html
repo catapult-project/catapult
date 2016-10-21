@@ -739,16 +739,11 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     formatSingleField: function(numeric) {
-      var formattingContext = this.getFormattingContext(numeric.unit);
-      var contextGroup = this.shouldSetContextGroup ? this.name : undefined;
-      var config = undefined;
-      if (formattingContext || contextGroup) {
-        config = {
-          context: formattingContext,
-          contextGroup: contextGroup
-        };
-      }
-      return tr.v.ui.createScalarSpan(numeric, config);
+      return tr.v.ui.createScalarSpan(numeric, {
+        context: this.getFormattingContext(numeric.unit),
+        contextGroup: this.shouldSetContextGroup ? this.name : undefined,
+        inline: true,
+      });
     },
 
     getFormattingContext: function(unit) {

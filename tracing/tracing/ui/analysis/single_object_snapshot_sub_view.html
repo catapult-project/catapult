@@ -105,7 +105,8 @@ Polymer({
 
     Polymer.dom(titleEl).appendChild(tr.v.ui.createScalarSpan(snapshot.ts, {
       unit: tr.b.Unit.byName.timeStampInMs,
-      ownerDocument: this.ownerDocument
+      ownerDocument: this.ownerDocument,
+      inline: true,
     }));
 
     var tableEl = document.createElement('table');
