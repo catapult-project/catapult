@@ -88,6 +88,7 @@
       "operator-assignment": "off",
       "padded-blocks": "off",
       "quote-props": ["error", "consistent"], ## TODO(alexandermont): want to eventually make this disallowQuotedKeysInObjects
+      "quotes": ["error", "single"],
       "radix": "off",
       "require-jsdoc": "off",
       "semi": "error",

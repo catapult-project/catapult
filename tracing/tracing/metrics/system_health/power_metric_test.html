@@ -512,7 +512,7 @@ tr.b.unittest.testSuite(function() {
           args: {frame: '0xdeadbeef'}
         }));
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, "Video", 1, 69));
+          model, tr.importer.INITIATOR_TYPE.VIDEO, 1, 69));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       // We want values in different frames, so they must go up by more than
       // 16.66 milliseconds.
@@ -551,7 +551,7 @@ tr.b.unittest.testSuite(function() {
           args: {frame: '0xdeadbeef'}
         }));
       model.userModel.expectations.push(new tr.model.um.AnimationExpectation(
-          model, "Video", 1, 5));
+          model, tr.importer.INITIATOR_TYPE.VIDEO, 1, 5));
       model.device.powerSeries = new tr.model.PowerSeries(model.device);
       // We want values in the same frame, so they must go up by less than 16.66
       // milliseconds.
