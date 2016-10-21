@@ -75,6 +75,7 @@
       "no-useless-call": "off",
       "no-useless-concat": "off",
       "no-useless-escape": "off",
+      "no-var": "off",
       "no-warning-comments": "off",
       "no-whitespace-before-property": "off",
       "object-curly-spacing": "off",
@@ -99,6 +100,7 @@
       }],
       "valid-jsdoc": "off",
       "wrap-iife": "off",
+      "yield-star-spacing": ["error", "after"],
       "yoda": "off"
     }
 }

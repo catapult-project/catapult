@@ -146,18 +146,18 @@ tr.exportTo('tr', function() {
     },
 
     childEvents: function* () {
-      yield * this.globalMemoryDumps;
-      yield * this.instantEvents;
-      yield * this.flowEvents;
-      yield * this.alerts;
-      yield * this.samples;
+      yield* this.globalMemoryDumps;
+      yield* this.instantEvents;
+      yield* this.flowEvents;
+      yield* this.alerts;
+      yield* this.samples;
     },
 
     childEventContainers: function* () {
       yield this.userModel;
       yield this.device;
       yield this.kernel;
-      yield * tr.b.dictionaryValues(this.processes);
+      yield* tr.b.dictionaryValues(this.processes);
     },
 
     /**

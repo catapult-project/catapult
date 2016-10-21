@@ -144,7 +144,7 @@ tr.exportTo('tr.model', function() {
         return;
       }
       for (var s of this.subSlices)
-        yield * s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
+        yield* s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
     },
 
     /**
@@ -272,7 +272,7 @@ tr.exportTo('tr.model', function() {
       for (var slice of this.subSlices)
         yield slice;
       for (var slice of this.subSlices)
-        yield * slice.enumerateAllDescendents();
+        yield* slice.enumerateAllDescendents();
     },
 
     get descendentSlices() {

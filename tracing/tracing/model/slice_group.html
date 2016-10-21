@@ -291,11 +291,11 @@ tr.exportTo('tr.model', function() {
         throw new Error('Nope');
 
       for (var s of this.topLevelSlices)
-        yield * s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
+        yield* s.findTopmostSlicesRelativeToThisSlice(eventPredicate);
     },
 
     childEvents: function* () {
-      yield * this.slices;
+      yield* this.slices;
     },
 
     childEventContainers: function* () {

@@ -74,10 +74,10 @@ tr.exportTo('tr.model', function() {
     },
 
     childEvents: function* () {
-      yield * ProcessBase.prototype.childEvents.call(this);
-      yield * this.instantEvents;
-      yield * this.frames;
-      yield * this.memoryDumps;
+      yield* ProcessBase.prototype.childEvents.call(this);
+      yield* this.instantEvents;
+      yield* this.frames;
+      yield* this.memoryDumps;
     },
 
     addLabelIfNeeded: function(labelName) {

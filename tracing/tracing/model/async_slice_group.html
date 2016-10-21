@@ -137,7 +137,7 @@ tr.exportTo('tr.model', function() {
     findTopmostSlicesInThisContainer: function* (eventPredicate, opt_this) {
       for (var slice of this.slices) {
         if (slice.isTopLevel) {
-          yield * slice.findTopmostSlicesRelativeToThisSlice(
+          yield* slice.findTopmostSlicesRelativeToThisSlice(
               eventPredicate, opt_this);
         }
       }
@@ -151,7 +151,7 @@ tr.exportTo('tr.model', function() {
       for (var slice of this.slices) {
         yield slice;
         if (slice.subSlices)
-          yield * slice.subSlices;
+          yield* slice.subSlices;
       }
     },
 

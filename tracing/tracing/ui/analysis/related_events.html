@@ -35,25 +35,25 @@ found in the LICENSE file.
 function* getEventInFlowEvents(event) {
   if (!event.inFlowEvents)
     return;
-  yield * event.inFlowEvents;
+  yield* event.inFlowEvents;
 }
 
 function* getEventOutFlowEvents(event) {
   if (!event.outFlowEvents)
     return;
-  yield * event.outFlowEvents;
+  yield* event.outFlowEvents;
 }
 
 function* getEventAncestors(event) {
   if (!event.enumerateAllAncestors)
     return;
-  yield * event.enumerateAllAncestors();
+  yield* event.enumerateAllAncestors();
 }
 
 function* getEventDescendents(event) {
   if (!event.enumerateAllDescendents)
     return;
-  yield * event.enumerateAllDescendents();
+  yield* event.enumerateAllDescendents();
 }
 
 Polymer({
@@ -153,8 +153,8 @@ Polymer({
             'flow arrows or by call stack.',
         eventSet,
         function* (event) {
-          yield * getEventInFlowEvents(event);
-          yield * getEventAncestors(event);
+          yield* getEventInFlowEvents(event);
+          yield* getEventAncestors(event);
           if (event.startSlice)
             yield event.startSlice;
         }.bind(this)));
@@ -164,8 +164,8 @@ Polymer({
             'connected by flow arrows or by call stack.',
         eventSet,
         function* (event) {
-          yield * getEventOutFlowEvents(event);
-          yield * getEventDescendents(event);
+          yield* getEventOutFlowEvents(event);
+          yield* getEventDescendents(event);
           if (event.endSlice)
             yield event.endSlice;
         }.bind(this)));
@@ -175,10 +175,10 @@ Polymer({
             'by call stack.',
         eventSet,
         function* (event) {
-          yield * getEventInFlowEvents(event);
-          yield * getEventOutFlowEvents(event);
-          yield * getEventAncestors(event);
-          yield * getEventDescendents(event);
+          yield* getEventInFlowEvents(event);
+          yield* getEventOutFlowEvents(event);
+          yield* getEventAncestors(event);
+          yield* getEventDescendents(event);
           if (event.startSlice)
             yield event.startSlice;
           if (event.endSlice)

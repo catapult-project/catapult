@@ -43,7 +43,7 @@ tr.exportTo('tr.model', function() {
     childEvents: function* () {
       for (var instance of this.getAllObjectInstances()) {
         yield instance;
-        yield * instance.snapshots;
+        yield* instance.snapshots;
       }
     },
 
