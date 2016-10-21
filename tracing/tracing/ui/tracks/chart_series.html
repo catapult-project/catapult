@@ -39,6 +39,10 @@ tr.exportTo('tr.ui.tracks', function() {
     // width/height).
     unselectedPointSize: 3,
 
+    // Whether the selected dots should be solid circles of the line color, or
+    // filled with the background's selection color.
+    solidSelectedDots: false,
+
     // The color of the chart.
     colorId: 0,
 
@@ -309,8 +313,12 @@ tr.exportTo('tr.ui.tracks', function() {
             // beginning).
             if (currentSelectionState !== lastSelectionState) {
               if (currentSelectionState === SelectionState.SELECTED) {
-                ctx.fillStyle = EventPresenter.getCounterSeriesColor(
-                    this.colorId_, currentSelectionState);
+                if (this.solidSelectedDots_) {
+                  ctx.fillStyle = ctx.strokeStyle;
+                } else {
+                  ctx.fillStyle = EventPresenter.getCounterSeriesColor(
+                      this.colorId_, currentSelectionState);
+                }
               } else if (squareOpacity > 0) {
                 ctx.fillStyle = EventPresenter.getCounterSeriesColor(
                     this.colorId_, currentSelectionState, squareOpacity);

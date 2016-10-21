@@ -33,7 +33,7 @@ tr.b.unittest.testSuite(function() {
   var CANVAS_HEIGHT = 80;
 
   function getSelectionStateForTesting(index) {
-    index = index % 7
+    index = index % 7;
     if (index < 5) {
       return SelectionState.getFromBrighteningLevel(index % 4);
     } else {
@@ -130,6 +130,20 @@ tr.b.unittest.testSuite(function() {
   test('instantiate_selection', function() {
     var series = buildSeries({
       chartType: ChartSeriesType.AREA,
+      colorId: 10
+    });
+    series.points.forEach(function(point, index) {
+      point.modelItem.selectionState = getSelectionStateForTesting(index);
+    });
+    drawSeries(this, series);
+  });
+
+  test('instantiate_selectionWithSolidDots', function() {
+    var series = buildSeries({
+      chartType: ChartSeriesType.AREA,
+      selectedPointSize: 10,
+      unselectedPointSize: 6,
+      solidSelectedDots: true,
       colorId: 10
     });
     series.points.forEach(function(point, index) {
