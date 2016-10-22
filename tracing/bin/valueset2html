@@ -5,6 +5,7 @@
 
 import argparse
 import codecs
+import json
 import sys
 import os
 
@@ -22,12 +23,25 @@ def main():
                       help='HTML file path (output).')
   parser.add_argument('-h', '--help', action='help',
                       help='Show this help message and exit.')
+  parser.add_argument('--html', nargs='+', default=[],
+                      help='Zero or more HTML file paths (input).')
+  parser.add_argument('--json', nargs='+', default=[],
+                      help='Zero or more JSON file paths (input).')
   args = parser.parse_args()
+
+  histograms = []
+
+  for html_path in args.html:
+    histograms.extend(results_renderer.ReadExistingResults(
+        open(html_path, 'r')))
+
+  for json_path in args.json:
+    histograms.extend(json.load(open(json_path, 'r')))
 
   open(args.html_path, 'a').close() # Create file if it doesn't exist.
   with codecs.open(args.html_path,
                    mode='r+', encoding='utf-8') as output_stream:
-    results_renderer.RenderHTMLView([], output_stream)
+    results_renderer.RenderHTMLView(histograms, output_stream)
 
 if __name__ == '__main__':
   sys.exit(main())
