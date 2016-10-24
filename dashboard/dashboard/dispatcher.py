@@ -37,6 +37,7 @@ from dashboard import list_monitored_tests
 from dashboard import list_tests
 from dashboard import load_from_prod
 from dashboard import main
+from dashboard import memory_report
 from dashboard import migrate_test_names
 from dashboard import mr
 from dashboard import navbar
@@ -87,6 +88,7 @@ _URL_MAPPING = [
     ('/list_tests', list_tests.ListTestsHandler),
     ('/load_from_prod', load_from_prod.LoadFromProdHandler),
     ('/', main.MainHandler),
+    ('/memory_report', memory_report.MemoryReportHandler),
     ('/migrate_test_names', migrate_test_names.MigrateTestNamesHandler),
     ('/mr_deprecate_tests', mr.MRDeprecateTestsHandler),
     ('/navbar', navbar.NavbarHandler),
