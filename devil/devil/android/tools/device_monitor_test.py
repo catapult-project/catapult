@@ -54,7 +54,7 @@ class DeviceMonitorTest(unittest.TestCase):
       'device_cereal': {
         'processes': 5,
         'temp': {
-          'CPU-therm': '30'
+          'CPU-therm': 30.0
          },
          'battery': {
            'temperature': 123,
@@ -156,6 +156,19 @@ class DeviceMonitorTest(unittest.TestCase):
 
     status = device_monitor.get_all_status(blacklist)
     self.assertEquals(expected_status, status['devices'])
+
+  @mock.patch('devil.android.battery_utils.BatteryUtils')
+  @mock.patch('devil.android.device_utils.DeviceUtils.HealthyDevices')
+  def test_brokenTempValue(self, get_devices, get_battery):
+    self.file_contents['/sys/class/thermal/thermal_zone0/temp'] = 'n0t a numb3r'
+    get_devices.return_value = [self.device]
+    get_battery.return_value = self.battery
+
+    expected_status_no_temp = self.expected_status.copy()
+    expected_status_no_temp['device_cereal'].pop('temp')
+
+    status = device_monitor.get_all_status(None)
+    self.assertEquals(self.expected_status, status['devices'])
 
 
 if __name__ == '__main__':

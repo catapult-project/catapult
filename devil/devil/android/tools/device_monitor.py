@@ -134,9 +134,9 @@ def get_device_status(device):
   for f in files:
     try:
       sensor_name = device.ReadFile(f).strip()
-      temp = device.ReadFile(f[:-4] + 'temp').strip() # s/type^/temp
+      temp = float(device.ReadFile(f[:-4] + 'temp').strip()) # s/type^/temp
       status['temp'][sensor_name] = temp
-    except device_errors.AdbShellCommandFailedError:
+    except (device_errors.AdbShellCommandFailedError, ValueError):
       logging.exception('Unable to read thermal sensor %s', f)
 
   # Uptime
