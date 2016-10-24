@@ -90,6 +90,9 @@ tr.b.unittest.testSuite(function() {
   function drawSeries(test, series) {
     drawSeriesWithDetails(test, series, false);
     drawSeriesWithDetails(test, series, true);
+    series.stepGraph_ = !series.stepGraph_;
+    drawSeriesWithDetails(test, series, false);
+    drawSeriesWithDetails(test, series, true);
   }
 
   test('instantiate_defaultConfig', function() {

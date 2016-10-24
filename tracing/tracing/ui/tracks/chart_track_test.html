@@ -36,8 +36,12 @@ tr.b.unittest.testSuite(function() {
     return new ChartPoint(event, x, y);
   }
 
-  function buildTrack(opt_viewport) {
-    var viewport = opt_viewport || new Viewport(document.createElement('div'));
+  function buildTrack(opt_args) {
+    if (opt_args && opt_args.viewport) {
+      var viewport = opt_args.viewport;
+    } else {
+      var viewport = new Viewport(document.createElement('div'));
+    }
 
     var axis1 = new ChartAxis(0, 2.5);
     var axis2 = new ChartAxis(-100, 100);
@@ -55,6 +59,9 @@ tr.b.unittest.testSuite(function() {
       colorId: 6,
       selectedPointSize: 7
     };
+    if (opt_args && opt_args.stepGraph !== undefined) {
+      renderingConfig1.stepGraph = opt_args.stepGraph;
+    }
     var series1 = new ChartSeries(points1, axis1, renderingConfig1);
 
     var points2 = [
@@ -70,6 +77,9 @@ tr.b.unittest.testSuite(function() {
       colorId: 4,
       selectedPointSize: 10
     };
+    if (opt_args && opt_args.stepGraph !== undefined) {
+      renderingConfig2.stepGraph = opt_args.stepGraph;
+    }
     var series2 = new ChartSeries(points2, axis1, renderingConfig2);
 
     var points3 = [
@@ -89,6 +99,9 @@ tr.b.unittest.testSuite(function() {
       chartType: ChartSeriesType.LINE,
       lineWidth: 2
     };
+    if (opt_args && opt_args.stepGraph !== undefined) {
+      renderingConfig3.stepGraph = opt_args.stepGraph;
+    }
     var series3 = new ChartSeries(points3, axis2, renderingConfig3);
 
     var track = new ChartTrack(viewport);
@@ -128,11 +141,39 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(drawingContainer).appendChild(track);
 
     track.series[0].points[1].modelItem.selectionState =
-      SelectionState.SELECTED;
+        SelectionState.SELECTED;
     track.series[1].points[1].modelItem.selectionState =
-      SelectionState.SELECTED;
+        SelectionState.SELECTED;
     track.series[2].points[3].modelItem.selectionState =
-      SelectionState.SELECTED;
+        SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '100px';
+  });
+
+  test('instantiate_highDetailsNoStepGraphWithSelection', function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    viewport.highDetails = true;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = buildTrack({viewport: viewport, stepGraph: false});
+    Polymer.dom(drawingContainer).appendChild(track);
+
+    track.series[0].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+    track.series[1].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+    track.series[2].points[3].modelItem.selectionState =
+        SelectionState.SELECTED;
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();

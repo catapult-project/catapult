@@ -62,7 +62,10 @@ tr.exportTo('tr.ui.tracks', function() {
     unselectedPointDensityOpaque: 0.05,
 
     // Opacity of area chart background.
-    backgroundOpacity: 0.5
+    backgroundOpacity: 0.5,
+
+    // Whether to graph steps between points. Set to false for lines instead.
+    stepGraph: true
   };
 
   // The virtual width of the last point in a series (whose rectangle has zero
@@ -344,7 +347,7 @@ tr.exportTo('tr.ui.tracks', function() {
             if (previousViewX === undefined) {
               ctx.beginPath();
               ctx.moveTo(currentViewX, currentViewY);
-            } else {
+            } else if (this.stepGraph_) {
               ctx.lineTo(currentViewX, previousViewY);
             }
 
@@ -354,8 +357,11 @@ tr.exportTo('tr.ui.tracks', function() {
 
           case ChartSeriesComponent.BACKGROUND:
             // Draw the background for the previous point (if applicable).
-            if (previousViewX !== undefined)
+            if (previousViewX !== undefined && this.stepGraph_) {
               ctx.lineTo(currentViewX, previousViewY);
+            } else {
+              ctx.lineTo(currentViewX, currentViewY);
+            }
 
             // Finish the bottom part of the backgound polygon, change
             // background color and start a new polygon when the selection state
