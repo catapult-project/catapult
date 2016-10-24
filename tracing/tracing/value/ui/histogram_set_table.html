@@ -895,8 +895,18 @@ tr.exportTo('tr.ui', function() {
     },
 
     buildColumn_: function(displayLabel) {
+      var title = displayLabel;
+      if (displayLabel.indexOf('\n') > 0) {
+        title = document.createElement('div');
+        for (var line of displayLabel.split('\n')) {
+          var lineDiv = document.createElement('div');
+          lineDiv.appendChild(document.createTextNode(line));
+          title.appendChild(lineDiv);
+        }
+      }
+
       return {
-        title: displayLabel,
+        title: title,
 
         value: row => {
           var cell = document.createElement('tr-v-ui-histogram-set-table-cell');

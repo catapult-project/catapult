@@ -404,6 +404,42 @@ tr.b.unittest.testSuite(function() {
         table.rows_[1].cells['iteration B'].histogram);
   });
 
+  test('defaultDisplayLabel', function() {
+    var histograms = new tr.v.HistogramSet();
+
+    var hist = new tr.v.Histogram('foo',
+        tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        TEST_BOUNDARIES);
+    for (var i = 0; i < 100; ++i) {
+      hist.addSample(Math.random() * 1e3, {
+        sample_diagnostic: new tr.v.d.Generic(i),
+      });
+    }
+
+    histograms.addHistogram(hist);
+
+    new tr.v.d.IterationInfo({
+      benchmarkName: 'benchmarkName',
+      benchmarkStartMs: 1439708400000,
+    }).addToValue(hist);
+
+    var table = document.createElement('tr-v-ui-histogram-set-table');
+    table.histograms = histograms;
+    this.addHTMLOutput(table);
+
+    // When IterationInfo.label is undefined, displayLabel defaults to
+    // benchmarkName + '\n' + benchmarkStartString, which
+    // histogram-set-table.buildColumn_ should render as a div containing 2
+    // divs.
+    var headerCell = tr.b.findDeepElementsMatchingPredicate(
+        table, elem => elem.tagName === 'TR-UI-B-TABLE-HEADER-CELL')[1];
+    var titleSpan = tr.b.findDeepElementMatching(headerCell, 'span#title');
+    assert.strictEqual(titleSpan.children[0].tagName, 'DIV');
+    assert.lengthOf(titleSpan.children[0].children, 2);
+    assert.strictEqual(titleSpan.children[0].children[0].tagName, 'DIV');
+    assert.strictEqual(titleSpan.children[0].children[1].tagName, 'DIV');
+  });
+
   test('merge', function() {
     var table = document.createElement('tr-v-ui-histogram-set-table');
     var histograms = new tr.v.HistogramSet();
