@@ -847,7 +847,7 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
       self.assertEquals([payload],
                         self.device.RunShellCommand(['echo', payload]))
 
-  def testRunShellCommand_withHugeCmdAndSU(self):
+  def testRunShellCommand_withHugeCmdAndSu(self):
     payload = 'hi! ' * 1024
     expected_cmd_without_su = """sh -c 'echo '"'"'%s'"'"''""" % payload
     expected_cmd = 'su -c %s' % expected_cmd_without_su
@@ -870,6 +870,31 @@ class DeviceUtilsRunShellCommandTest(DeviceUtilsTest):
         (self.call.device._Su(expected_cmd_without_su), expected_cmd),
         (self.call.adb.Shell(expected_cmd), '')):
       self.device.RunShellCommand('setprop service.adb.root 0', as_root=True)
+
+  def testRunShellCommand_withRunAs(self):
+    expected_cmd_without_run_as = "sh -c 'mkdir -p files'"
+    expected_cmd = (
+        'run-as org.devil.test_package %s' % expected_cmd_without_run_as)
+    with self.assertCall(self.call.adb.Shell(expected_cmd), ''):
+      self.device.RunShellCommand(
+          ['mkdir', '-p', 'files'],
+          run_as='org.devil.test_package')
+
+  def testRunShellCommand_withRunAsAndSu(self):
+    expected_cmd_with_nothing = "sh -c 'mkdir -p files'"
+    expected_cmd_with_run_as = (
+        'run-as org.devil.test_package %s' % expected_cmd_with_nothing)
+    expected_cmd_without_su = (
+        'sh -c %s' % cmd_helper.SingleQuote(expected_cmd_with_run_as))
+    expected_cmd = 'su -c %s' % expected_cmd_without_su
+    with self.assertCalls(
+        (self.call.device.NeedsSU(), True),
+        (self.call.device._Su(expected_cmd_without_su), expected_cmd),
+        (self.call.adb.Shell(expected_cmd), '')):
+      self.device.RunShellCommand(
+          ['mkdir', '-p', 'files'],
+          run_as='org.devil.test_package',
+          as_root=True)
 
   def testRunShellCommand_manyLines(self):
     cmd = 'ls /some/path'

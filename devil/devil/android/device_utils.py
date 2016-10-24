@@ -794,8 +794,9 @@ class DeviceUtils(object):
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RunShellCommand(self, cmd, check_return=False, cwd=None, env=None,
-                      as_root=False, single_line=False, large_output=False,
-                      raw_output=False, timeout=None, retries=None):
+                      run_as=None, as_root=False, single_line=False,
+                      large_output=False, raw_output=False, timeout=None,
+                      retries=None):
     """Run an ADB shell command.
 
     The command to run |cmd| should be a sequence of program arguments or else
@@ -824,6 +825,8 @@ class DeviceUtils(object):
         be checked.
       cwd: The device directory in which the command should be run.
       env: The environment variables with which the command should be run.
+      run_as: A string containing the package as which the command should be
+        run.
       as_root: A boolean indicating whether the shell command should be run
         with root privileges.
       single_line: A boolean indicating if only a single line of output is
@@ -904,6 +907,9 @@ class DeviceUtils(object):
       cmd = '%s %s' % (env, cmd)
     if cwd:
       cmd = 'cd %s && %s' % (cmd_helper.SingleQuote(cwd), cmd)
+    if run_as:
+      cmd = 'run-as %s sh -c %s' % (cmd_helper.SingleQuote(run_as),
+                                    cmd_helper.SingleQuote(cmd))
     if as_root and self.NeedsSU():
       # "su -c sh -c" allows using shell features in |cmd|
       cmd = self._Su('sh -c %s' % cmd_helper.SingleQuote(cmd))
