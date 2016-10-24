@@ -637,7 +637,20 @@ class AdbWrapper(object):
     Args:
       timeout: (optional) Timeout per try in seconds.
       retries: (optional) Number of retries to attempt.
+    Returns:
+      The output of adb forward --list as a string.
     """
+    if (distutils.version.LooseVersion(self.Version()) >=
+        distutils.version.LooseVersion('1.0.36')):
+      # Starting in 1.0.36, this can occasionally fail with a protocol fault.
+      # As this interrupts all connections with all devices, we instead just
+      # return an empty list. This may give clients an inaccurate result, but
+      # that's usually better than crashing the adb server.
+
+      # TODO(jbudorick): Determine an appropriate upper version bound for this
+      # once b/31811775 is fixed.
+      return ''
+
     return self._RunDeviceAdbCmd(['forward', '--list'], timeout, retries)
 
   def JDWP(self, timeout=DEFAULT_TIMEOUT, retries=DEFAULT_RETRIES):
