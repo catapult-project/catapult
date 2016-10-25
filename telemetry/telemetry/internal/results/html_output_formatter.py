@@ -12,6 +12,7 @@ from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
+from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import output_formatter
 from telemetry import value as value_module
 from telemetry.value import list_of_scalar_values
@@ -45,7 +46,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     self._reset_results = reset_results
     self._upload_results = upload_results
     self._build_time = self._GetBuildTime()
-    self._existing_results = self._ReadExistingResults(output_stream)
+    self._combined_results = []
     if results_label:
       self._results_label = results_label
     else:
@@ -152,11 +153,15 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     return self._result
 
   def GetCombinedResults(self):
-    all_results = list(self._existing_results)
-    all_results.append(self.GetResults())
-    return all_results
+    return self._combined_results
 
   def Format(self, page_test_results):
+    if page_test_results.value_set:
+      html2_formatter = html2_output_formatter.Html2OutputFormatter(
+          self._output_stream, self._reset_results, self._upload_results)
+      html2_formatter.Format(page_test_results)
+      return
+
     chart_json_dict = chart_json_output_formatter.ResultsAsChartDict(
         self._metadata, page_test_results.all_page_specific_values,
         page_test_results.all_summary_values)
@@ -165,6 +170,9 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     self._PrintPerfResult('telemetry_page_measurement_results', 'num_failed',
                           [len(page_test_results.failures)], 'count',
                           'unimportant')
+
+    self._combined_results = self._ReadExistingResults(self._output_stream)
+    self._combined_results.append(self._result)
 
     html = self._GetHtmlTemplate()
     html = html.replace('%json_results%', json.dumps(self.GetCombinedResults()))
