@@ -3,14 +3,15 @@
      found in the LICENSE file.
 -->
 
+# How to Write Metrics
+
 Timeline-Based Measurement v2 is a system for computing metrics from traces.
 
 A TBM2 metric is a Javascript function that takes a trace Model and produces
 Histograms.
 
 
-Coding Practices
-==============
+## Coding Practices
 
 Please follow the [Catapult Javascript style guide](/docs/style-guide.md) so
 that the TBM2 maintainers can refactor your metric when we need to update the TBM2
@@ -36,8 +37,7 @@ Use the dev server to develop and debug your metric.
  * Open different traces to explore corner cases in your metric.
 
 
-Trace Model
-===========
+## Trace Model
 
 Trace logs are JSON files produced by tracing systems in Chrome, Android, linux
 perf, BattOr, etc. The trace model is an object-level representation of events
@@ -60,8 +60,7 @@ representing
  * and [more](/tracing/tracing/model/model.html)!
 
 
-Histograms
-==========
+## Histograms
 
 A [Histogram](/tracing/tracing/value/histogram.html) is basically a common
 [histogram](https://en.wikipedia.org/wiki/Histogram), but with a few extra bells
@@ -84,8 +83,7 @@ and whistles that are particularly useful for TBM2 metrics.
 But the most complex special feature of Histograms is their Diagnostics.
 
 
-Diagnostics
-===========
+## Diagnostics
 
 When a metric significantly regresses, you then need to diagnose why it
 regressed. Diagnostics are pieces of information that metrics attach to
@@ -163,8 +161,7 @@ The types of Diagnostics are
    HistogramDiagnostic that supports merging.
 
 
-Consumers of Histograms
-=======================
+## Consumers of Histograms
 
 Histograms are consumed by
 
@@ -175,3 +172,28 @@ Histograms are consumed by
 Currently, telemetry discards Histograms and Diagnostics, and only passes their
 statistics scalars to the dashboard. Histograms and their Diagnostics will be
 passed directly to the dashboard early 2017.
+
+
+## How histogram-set-table Uses Merging and IterationInfo
+
+The histogram-set-table element uses the fields of IterationInfo, along with the
+merging capabilities of Histograms, to allow dynamic, hierarchical
+organization of histograms:
+
+* IterationInfo has mostly string/number (story name, story/set repeat count,
+  etc.) fields and one dict field that specifies the names of any story grouping
+  keys together with their histogram.
+* After loading histograms, histogram-set-table computes categories to be
+  displayed by the groupby picker at the top of the UI:
+  * Categories are fields of IterationInfo that have more than one value across
+    all histograms in the HistogramSet.
+  * Instead of having one category for all story grouping keys, each grouping
+    individual grouping key may be listed as a category. For example, in Page
+    Cycler v2 benchmarks, the "cache_temperature" grouping key would be
+    displayed as a category.
+* Choosing groups builds a hierarchy of histograms that is filled in by merging
+  histograms from the bottom up. Expanding the rows of histogram-set-table, any
+  leaf nodes are histograms that were loaded, and their ancestors are computed by
+  merging.
+* histogram-set-table uses the "label" property of IterationInfo to define the
+  columns of the table.
