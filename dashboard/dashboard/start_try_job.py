@@ -259,6 +259,10 @@ def _PrefillInfo(test_path):
 
   if should_add_story_filter:
     _, story_name = test_path.rsplit('/', 1)
+    if story_name.startswith('after_'):
+      # TODO(perezju,#1811): Remove this hack after deprecating the
+      # memory.top_10_mobile benchmark.
+      story_name = story_name[len('after_'):]
     # During import, some chars in story names got replaced by "_" so they
     # could be safely included in the test_path. At this point we don't know
     # what the original characters were, so we pass a regex where each
