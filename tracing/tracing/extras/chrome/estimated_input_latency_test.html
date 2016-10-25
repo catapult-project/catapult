@@ -161,11 +161,11 @@ tr.b.unittest.testSuite(function() {
     });
 
     var interactiveTimestampsMap = getInteractiveTimestamps(model);
-    for (var [pid, interactiveTimestamps] of interactiveTimestampsMap) {
-      assert.deepEqual(
-          interactiveTimestamps.sort((a, b) => a - b),
-          [pid * 1000 + 2000, pid * 2000 + 2000]);
-    }
+    assert.deepEqual(interactiveTimestampsMap.get(1), [4000]);
+    assert.deepEqual(interactiveTimestampsMap.get(2), [6000]);
+    assert.deepEqual(interactiveTimestampsMap.get(3), [5000, 8000]);
+    assert.deepEqual(interactiveTimestampsMap.get(4), [6000, 10000]);
+    assert.deepEqual(interactiveTimestampsMap.get(5), [7000, 12000]);
   });
 
   test('singlePostInteractiveWindow', () => {
