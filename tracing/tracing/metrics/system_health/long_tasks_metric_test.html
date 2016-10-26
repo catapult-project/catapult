@@ -66,10 +66,10 @@ tr.b.unittest.testSuite(function() {
     var longTaskHist = tr.b.getOnlyElement(
         valueSet.getValuesNamed('long tasks'));
     assert.strictEqual(1, longTaskHist.numValues);
-    assert.strictEqual(1, longTaskHist.centralBins[0].count);
-    assert.lengthOf(longTaskHist.centralBins[0].diagnosticMaps, 1);
+    assert.strictEqual(1, longTaskHist.allBins[1].count);
+    assert.lengthOf(longTaskHist.allBins[1].diagnosticMaps, 1);
     var events =
-      longTaskHist.centralBins[0].diagnosticMaps[0].get('relatedEvents');
+      longTaskHist.allBins[1].diagnosticMaps[0].get('relatedEvents');
     assert.instanceOf(events, tr.v.d.RelatedEventSet);
     assert.strictEqual(tr.b.getOnlyElement(events).title,
         'foo');
@@ -83,7 +83,7 @@ tr.b.unittest.testSuite(function() {
         hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.centralBins[0].count);
+    assert.strictEqual(1, hist.allBins[1].count);
 
     hist = breakdown.get('gc');
     assert.instanceOf(hist, tr.v.Histogram);
@@ -91,7 +91,7 @@ tr.b.unittest.testSuite(function() {
         hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.centralBins[0].count);
+    assert.strictEqual(1, hist.allBins[1].count);
 
     hist = breakdown.get('composite');
     assert.instanceOf(hist, tr.v.Histogram);
@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
         hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.centralBins[0].count);
+    assert.strictEqual(1, hist.allBins[1].count);
 
     hist = breakdown.get('imageDecode');
     assert.instanceOf(hist, tr.v.Histogram);
@@ -107,7 +107,7 @@ tr.b.unittest.testSuite(function() {
         hist);
     assert.strictEqual(0, hist.name.indexOf(longTaskHist.name));
     assert.strictEqual(1, hist.numValues);
-    assert.strictEqual(1, hist.centralBins[0].count);
+    assert.strictEqual(1, hist.allBins[1].count);
   });
 });
 </script>

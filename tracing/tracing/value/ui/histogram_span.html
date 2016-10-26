@@ -267,12 +267,6 @@ Polymer({
     this.chart_.isYLogScale = logScale;
   },
 
-  get binWidth_() {
-    return (this.histogram.overflowBin.range.min -
-        this.histogram.underflowBin.range.max) /
-      this.histogram.centralBins.length;
-  },
-
   updateContents_: function() {
     this.$.chart.style.display = '';
     this.$.drag_handle.style.display = '';

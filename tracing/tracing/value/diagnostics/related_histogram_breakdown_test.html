@@ -55,25 +55,25 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(diagnostic, 2);
     var scriptValue = values.getValuesNamed('foo-script_execute')[0];
     assert.instanceOf(scriptValue, tr.v.Histogram);
-    assert.lengthOf(scriptValue.centralBins[1].diagnosticMaps, 1);
+    assert.lengthOf(scriptValue.allBins[2].diagnosticMaps, 1);
     assert.strictEqual(scriptValue, diagnostic.get('script_execute'));
     events = [...events];
-    var relatedEvents = scriptValue.centralBins[1].diagnosticMaps[0]
+    var relatedEvents = scriptValue.allBins[2].diagnosticMaps[0]
         .get('relatedEvents');
     assert.lengthOf(relatedEvents, 1);
     assert.strictEqual(events[0], [...relatedEvents][0]);
-    assert.lengthOf(scriptValue.centralBins[2].diagnosticMaps, 1);
+    assert.lengthOf(scriptValue.allBins[3].diagnosticMaps, 1);
     assert.lengthOf(
-        scriptValue.centralBins[2].diagnosticMaps[0]
+        scriptValue.allBins[3].diagnosticMaps[0]
         .get('relatedEvents'), 1);
     assert.strictEqual(events[1],
-        [...scriptValue.centralBins[2].diagnosticMaps[0]
+        [...scriptValue.allBins[3].diagnosticMaps[0]
         .get('relatedEvents')][0]);
 
     var styleValue = values.getValuesNamed('foo-style')[0];
     assert.instanceOf(styleValue, tr.v.Histogram);
-    assert.lengthOf(styleValue.centralBins[3].diagnosticMaps, 1);
-    relatedEvents = styleValue.centralBins[3].diagnosticMaps[0]
+    assert.lengthOf(styleValue.allBins[4].diagnosticMaps, 1);
+    relatedEvents = styleValue.allBins[4].diagnosticMaps[0]
         .get('relatedEvents');
     assert.strictEqual(styleValue, diagnostic.get('style'));
     assert.lengthOf(relatedEvents, 1);
