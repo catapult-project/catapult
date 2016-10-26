@@ -39,7 +39,7 @@ tr.exportTo('tr.metrics.sh', function() {
         tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
     var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(start, end);
     var powerInW = energyInJ / durationInS;
-    return {energy: energyInJ, power: powerInW};
+    return {time: durationInS, energy: energyInJ, power: powerInW};
   }
 
   // TODO(alexandermont): When LoadExpectation v1.0 is released,
@@ -202,15 +202,31 @@ tr.exportTo('tr.metrics.sh', function() {
    * purposes. This function only keeps track of metrics that are based
    * on the start and end time of the RAIL stages.
    */
-  function processInteractionRecord_(exp, model, hists, chromeBounds) {
-    var currTitle = exp.title.toLowerCase().replace(' ', '_');
-    var interval = tr.b.Range.fromExplicitRange(exp.start, exp.end)
-        .findIntersection(chromeBounds);
-    var data = getPowerData_(model, interval.min, interval.max);
+  function computeRailStageMetrics_(model, hists, chromeBounds) {
+    var railStageResults = new Map();
+    for (var name of hists.railStageToEnergyHist.keys()) {
+      railStageResults.set(name, {totalTime: 0.0, totalEnergy: 0.0});
+    }
 
-    storePowerData_(data, hists.railStageToEnergyHist.get(currTitle),
-        hists.railStageToPowerHist.get(currTitle));
+    for (var exp of model.userModel.expectations) {
+      var currTitle = exp.title.toLowerCase().replace(' ', '_');
+      var interval = tr.b.Range.fromExplicitRange(exp.start, exp.end)
+          .findIntersection(chromeBounds);
+      var data = getPowerData_(model, interval.min, interval.max);
+      railStageResults.get(currTitle).totalTime += data.time;
+      railStageResults.get(currTitle).totalEnergy += data.energy;
+    }
 
+    for (var name of hists.railStageToEnergyHist.keys()) {
+      var totalTime = railStageResults.get(name).totalTime;
+      var totalEnergy = railStageResults.get(name).totalEnergy;
+      if (totalTime > 0.0) {
+        storePowerData_({'time': totalTime, 'energy': totalEnergy,
+            'power': totalEnergy / totalTime},
+            hists.railStageToEnergyHist.get(name),
+            hists.railStageToPowerHist.get(name));
+      }
+    }
   }
 
   /**
@@ -221,13 +237,15 @@ tr.exportTo('tr.metrics.sh', function() {
   function computeLoadingMetric_(model, hists, chromeBounds) {
     var ttiIntervals = getNavigationTTIIntervals_(model);
     var lastLoadTime = undefined;
+    var totalLoadEnergy = 0.0;
     for (var ttiInterval of ttiIntervals) {
       var interval = ttiInterval.findIntersection(chromeBounds);
       var loadData = getPowerData_(model, interval.min, interval.max);
-      storePowerData_(loadData, hists.loadEnergyHist, undefined);
+      totalLoadEnergy += loadData.energy;
       lastLoadTime = (lastLoadTime === undefined ? interval.max :
           Math.max(lastLoadTime, interval.max));
     }
+    hists.loadEnergyHist.addSample(totalLoadEnergy);
     if (lastLoadTime !== undefined) {
       var afterLoadData = getPowerData_(model, lastLoadTime, chromeBounds.max);
       storePowerData_(afterLoadData, undefined, hists.afterLoadPowerHist);
@@ -290,12 +308,8 @@ tr.exportTo('tr.metrics.sh', function() {
     }
 
     var hists = createHistograms_(model, values);
-    for (var exp of model.userModel.expectations) {
-      processInteractionRecord_(exp, model, hists, chromeBounds);
-    }
 
-    // The following two metrics aren't based directly on the IR intervals,
-    // and so need to be computed outside the processInteractionRecord_ loop.
+    computeRailStageMetrics_(model, hists, chromeBounds);
     computeLoadingMetric_(model, hists, chromeBounds);
     computeFrameBasedPowerMetric_(model, hists, chromeBounds);
   }

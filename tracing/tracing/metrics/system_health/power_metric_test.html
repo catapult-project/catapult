@@ -252,17 +252,17 @@ tr.b.unittest.testSuite(function() {
         model.userModel.expectations.push(new tr.model.um.IdleExpectation(
             model, 200, 300));
         model.userModel.expectations.push(new tr.model.um.ResponseExpectation(
-            model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 200));
+            model, tr.importer.INITIATOR_TYPE.SCROLL, 500, 400));
         model.userModel.expectations.push(new tr.model.um.IdleExpectation(
-            model, 700, 300));
+            model, 900, 100));
     });
     var valueSet = new tr.v.HistogramSet();
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueSum(valueSet,
-        'scroll_response:energy'), 140, 0.5);
+        'scroll_response:energy'), 300, 0.6);
     assert.closeTo(getMetricValueAvg(valueSet,
-        'idle:power'), 600, 0.5);
+        'idle:power'), 500, 0.6);
   });
 
   test('powerMetric_loading_oneInterval_samplesBeyondChrome', function() {
