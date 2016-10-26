@@ -116,7 +116,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = buildTrack(viewport);
+    var track = buildTrack({viewport: viewport});
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
@@ -137,7 +137,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = buildTrack(viewport);
+    var track = buildTrack({viewport: viewport});
     Polymer.dom(drawingContainer).appendChild(track);
 
     track.series[0].points[1].modelItem.selectionState =
@@ -146,6 +146,26 @@ tr.b.unittest.testSuite(function() {
         SelectionState.SELECTED;
     track.series[2].points[3].modelItem.selectionState =
         SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '100px';
+  });
+
+  test('instantiate_lowDetailsNoStepGraphWithoutSelection', function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = buildTrack({viewport: viewport, stepGraph: false});
+    Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
     drawingContainer.invalidate();
