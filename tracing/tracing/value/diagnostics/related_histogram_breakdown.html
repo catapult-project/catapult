@@ -46,11 +46,6 @@ tr.exportTo('tr.v.d', function() {
               'RelatedHistogramBreakdown can only contain Histograms');
         }
 
-        if (value.name.indexOf(name) !== (value.name.length - name.length)) {
-          throw new Error(
-              'RelatedHistogramBreakdown name must be a suffix of value.name');
-        }
-
         if ((this.length > 0) &&
             (value.unit !==
              tr.b.getFirstElement(this)[1].unit)) {

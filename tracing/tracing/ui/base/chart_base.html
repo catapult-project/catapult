@@ -132,6 +132,10 @@ Polymer({
     return this.$.link.selection;
   },
 
+  set title(title) {
+    this.$.link.title = title;
+  },
+
   updateContents_: function() {
     this.$.link.style.display = this.target ? '' : 'none';
     this.$.label.style.display = this.target ? 'none' : '';
@@ -193,6 +197,7 @@ tr.exportTo('tr.ui.b', function() {
   function DataSeries(key) {
     this.key_ = key;
     this.target_ = undefined;
+    this.title_ = '';
     this.optional_ = false;
     this.enabled_ = true;
     this.color_ = getColorOfKey(key, false);
@@ -202,6 +207,14 @@ tr.exportTo('tr.ui.b', function() {
   DataSeries.prototype = {
     get key() {
       return this.key_;
+    },
+
+    get title() {
+      return this.title_;
+    },
+
+    set title(t) {
+      this.title_ = t;
     },
 
     get color() {
@@ -425,6 +438,7 @@ tr.exportTo('tr.ui.b', function() {
           }.bind(this))
           .property('width', width)
           .property('target', function(series) { return series.target; })
+          .property('title', function(series) { return series.title; })
           .property('optional', function(series) { return series.optional; })
           .property('enabled', function(series) { return series.enabled; })
           .text(function(series) { return series.key; });

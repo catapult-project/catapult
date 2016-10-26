@@ -123,6 +123,7 @@ Polymer({
 
       if (value instanceof tr.v.Histogram) {
         dataSeries.target = value;
+        dataSeries.title = value.name;
         data[name] = value.sum;
       } else if (typeof value === 'number') {
         data[name] = value;

@@ -40,6 +40,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiation_legendTargets', function() {
     var chart = new tr.ui.b.ColumnChart();
     chart.getDataSeries('lorem_ipsum').target = 'lorem_ipsumTarget';
+    chart.getDataSeries('lorem_ipsum').title = 'lorem ipsum';
     chart.getDataSeries('qux').target = 'quxTarget';
     chart.getDataSeries('lorem_ipsum').optional = true;
     chart.getDataSeries('bar').optional = true;
