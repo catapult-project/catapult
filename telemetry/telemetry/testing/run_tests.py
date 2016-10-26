@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import fnmatch
 import logging
 import os
 import sys
@@ -64,11 +65,13 @@ class RunTestsCommand(command_line.OptparseCommand):
                       action='append', default=[])
     parser.add_option('--disable-logging-config', action='store_true',
                       default=False, help='Configure logging (default on)')
-
+    parser.add_option('--skip', metavar='glob', default=[],
+                      action='append', help=(
+                          'Globs of test names to skip (defaults to '
+                          '%(default)s).'))
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for running the tests",
                                         running=True,
-                                        discovery=True,
                                         skip=['-d', '-v', '--verbose'])
     typ.ArgumentParser.add_option_group(parser,
                                         "Options for reporting the results",
@@ -159,6 +162,7 @@ class RunTestsCommand(command_line.OptparseCommand):
     else:
       runner.args.jobs = max(int(args.jobs) // 2, 1)
 
+    runner.args.skip = args.skip
     runner.args.metadata = args.metadata
     runner.args.passthrough = args.passthrough
     runner.args.path = args.path
@@ -191,10 +195,18 @@ class RunTestsCommand(command_line.OptparseCommand):
     return ret
 
 
+def _SkipMatch(name, skipGlobs):
+  return any(fnmatch.fnmatch(name, glob) for glob in skipGlobs)
+
+
 def GetClassifier(args, possible_browser):
 
   def ClassifyTestWithoutBrowser(test_set, test):
     name = test.id()
+    if _SkipMatch(name, args.skip):
+      test_set.tests_to_skip.append(
+          typ.TestInput(name, 'skipped because matched --skip'))
+      return
     if (not args.positional_args
         or _MatchesSelectedTest(name, args.positional_args,
                                   args.exact_test_filter)):
@@ -209,6 +221,10 @@ def GetClassifier(args, possible_browser):
 
   def ClassifyTestWithBrowser(test_set, test):
     name = test.id()
+    if _SkipMatch(name, args.skip):
+      test_set.tests_to_skip.append(
+          typ.TestInput(name, 'skipped because matched --skip'))
+      return
     if (not args.positional_args
         or _MatchesSelectedTest(name, args.positional_args,
                                 args.exact_test_filter)):

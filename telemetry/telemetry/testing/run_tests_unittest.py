@@ -13,6 +13,7 @@ class MockArgs(object):
     self.positional_args = []
     self.exact_test_filter = True
     self.run_disabled_tests = False
+    self.skip = []
 
 
 class MockPossibleBrowser(object):
@@ -38,8 +39,9 @@ class MockPlatform(object):
 class RunTestsUnitTest(unittest.TestCase):
 
   def _GetEnabledTests(self, browser_type, os_name, os_version_name,
-                       supports_tab_control):
-
+                       supports_tab_control, args=None):
+    if not args:
+      args = MockArgs()
     runner = run_tests.typ.Runner()
     host = runner.host
     runner.top_level_dir = util.GetTelemetryDir()
@@ -47,7 +49,7 @@ class RunTestsUnitTest(unittest.TestCase):
         'telemetry', 'testing', 'disabled_cases.py')]
     possible_browser = MockPossibleBrowser(
         browser_type, os_name, os_version_name, supports_tab_control)
-    runner.classifier = run_tests.GetClassifier(MockArgs(), possible_browser)
+    runner.classifier = run_tests.GetClassifier(args, possible_browser)
     _, test_set = runner.find_tests(runner.args)
     return set(test.name.split('.')[-1] for test in test_set.parallel_tests)
 
@@ -104,3 +106,14 @@ class RunTestsUnitTest(unittest.TestCase):
              'testNoSystem',
              'testWinOrLinuxOnly']),
         self._GetEnabledTests('canary', 'win', 'win7', False))
+
+  def testSkip(self):
+    args = MockArgs()
+    args.skip = ['telemetry.*testNoMac', '*NoMavericks',
+                 'telemetry.testing.disabled_cases.DisabledCases.testNoSystem']
+    self.assertEquals(
+        set(['testAllEnabled',
+             'testNoChromeOS',
+             'testWinOrLinuxOnly',
+             'testHasTabs']),
+        self._GetEnabledTests('canary', 'win', 'win7', True, args))
