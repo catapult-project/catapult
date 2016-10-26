@@ -718,9 +718,13 @@ class AndroidPlatformBackend(
     tombstones = os.path.join(util.GetChromiumSrcDir(), 'build', 'android',
                               'tombstones.py')
     if os.path.exists(tombstones):
+      tombstones_cmd = [
+          tombstones, '-w',
+          '--device', self._device.adb.GetDeviceSerial(),
+          '--adb-path', self._device.adb.GetAdbPath(),
+      ]
       ret += Decorate('Tombstones',
-                      subprocess.Popen([tombstones, '-w', '--device',
-                                        self._device.adb.GetDeviceSerial()],
+                      subprocess.Popen(tombstones_cmd,
                                        stdout=subprocess.PIPE).communicate()[0])
     return (True, ret)
 
