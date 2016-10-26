@@ -11,9 +11,10 @@ import tempfile
 import xml.parsers.expat
 
 from telemetry.core import os_version
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.platform import power_monitor
+
+import py_utils
 
 
 # TODO: rename this class (seems like this is used by mac)
@@ -52,7 +53,7 @@ class PowerMetricsPowerMonitor(power_monitor.PowerMonitor):
     # synchronous in respect to powermetrics starting.
     def _OutputFileExists():
       return os.path.isfile(self._output_filename)
-    util.WaitFor(_OutputFileExists, 1)
+    py_utils.WaitFor(_OutputFileExists, 1)
 
   @decorators.Cache
   def CanMonitorPower(self):

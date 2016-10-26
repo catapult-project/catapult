@@ -2,10 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.actions import seek
 from telemetry.testing import tab_test_case
+
+import py_utils
+
 
 AUDIO_1_SEEKED_CHECK = 'window.__hasEventCompleted("#audio_1", "seeked");'
 VIDEO_1_SEEKED_CHECK = 'window.__hasEventCompleted("#video_1", "seeked");'
@@ -63,4 +65,4 @@ class SeekActionTest(tab_test_case.TabTestCase):
     action.WillRunAction(self._tab)
     self._tab.EvaluateJavaScript('document.getElementById("video_1").src = ""')
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_SEEKED_CHECK))
-    self.assertRaises(exceptions.TimeoutException, action.RunAction, self._tab)
+    self.assertRaises(py_utils.TimeoutException, action.RunAction, self._tab)

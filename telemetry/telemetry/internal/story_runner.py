@@ -8,6 +8,7 @@ import os
 import sys
 import time
 
+import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import exceptions
@@ -87,7 +88,8 @@ def _RunStoryAndProcessErrorIfNeeded(story, results, state, test):
     if isinstance(test, story_test.StoryTest):
       test.Measure(state.platform, results)
   except (legacy_page_test.Failure, exceptions.TimeoutException,
-          exceptions.LoginException, exceptions.ProfilingException):
+          exceptions.LoginException, exceptions.ProfilingException,
+          py_utils.TimeoutException):
     ProcessError()
   except exceptions.Error:
     ProcessError()

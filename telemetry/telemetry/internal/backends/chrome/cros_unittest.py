@@ -7,9 +7,10 @@ import urllib2
 import os
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.backends.chrome import cros_test_case
+
+import py_utils
 
 
 class CrOSCryptohomeTest(cros_test_case.CrOSTestCase):
@@ -99,7 +100,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
         extension.ExecuteJavaScript('chrome.autotestPrivate.logout();')
       except exceptions.Error:
         pass
-      util.WaitFor(lambda: not self._IsCryptohomeMounted(), 20)
+      py_utils.WaitFor(lambda: not self._IsCryptohomeMounted(), 20)
 
   @decorators.Disabled('all')
   def testGaiaLogin(self):
@@ -116,7 +117,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
     with self._CreateBrowser(gaia_login=True,
                              username=username,
                              password=password):
-      self.assertTrue(util.WaitFor(self._IsCryptohomeMounted, 10))
+      self.assertTrue(py_utils.WaitFor(self._IsCryptohomeMounted, 10))
 
   @decorators.Enabled('chromeos')
   def testEnterpriseEnroll(self):
@@ -136,7 +137,7 @@ class CrOSLoginTest(cros_test_case.CrOSTestCase):
                                      for_user_triggered_enrollment=True)
 
     # Check for the existence of the device policy file.
-    self.assertTrue(util.WaitFor(lambda: self._cri.FileExistsOnDevice(
+    self.assertTrue(py_utils.WaitFor(lambda: self._cri.FileExistsOnDevice(
         '/home/.shadow/install_attributes.pb'), 15))
 
 
@@ -159,7 +160,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
           browser.oobe.EvaluateJavaScript("typeof Oobe == 'function'") and
           browser.oobe.EvaluateJavaScript(
           "typeof Oobe.authenticateForTesting == 'function'"))
-    util.WaitFor(ScreenLocked, 10)
+    py_utils.WaitFor(ScreenLocked, 10)
     self.assertTrue(self._IsScreenLocked(browser))
 
   def _AttemptUnlockBadPassword(self, browser):
@@ -172,7 +173,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     browser.oobe.ExecuteJavaScript('''
         Oobe.authenticateForTesting('%s', 'bad');
     ''' % self._username)
-    util.WaitFor(ErrorBubbleVisible, 10)
+    py_utils.WaitFor(ErrorBubbleVisible, 10)
     self.assertTrue(self._IsScreenLocked(browser))
 
   def _UnlockScreen(self, browser):
@@ -180,7 +181,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
     browser.oobe.ExecuteJavaScript('''
         Oobe.authenticateForTesting('%s', '%s');
     ''' % (self._username, self._password))
-    util.WaitFor(lambda: not browser.oobe_exists, 10)
+    py_utils.WaitFor(lambda: not browser.oobe_exists, 10)
     self.assertFalse(self._IsScreenLocked(browser))
 
   @decorators.Disabled('all')

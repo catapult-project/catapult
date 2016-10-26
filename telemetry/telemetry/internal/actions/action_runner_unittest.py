@@ -14,6 +14,8 @@ from telemetry.timeline import model
 from telemetry.timeline import tracing_config
 from telemetry.web_perf import timeline_interaction_record as tir_module
 
+import py_utils
+
 
 class ActionRunnerInteractionTest(tab_test_case.TabTestCase):
 
@@ -211,7 +213,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     action_runner.WaitForElement('#test1', timeout_in_seconds=0.2)
     def WaitForElement():
       action_runner.WaitForElement(text='oo', timeout_in_seconds=0.2)
-    self.assertRaises(exceptions.TimeoutException, WaitForElement)
+    self.assertRaises(py_utils.TimeoutException, WaitForElement)
 
   def testClickElement(self):
     self.Navigate('page_with_clickables.html')

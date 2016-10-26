@@ -9,7 +9,6 @@ import sys
 from telemetry import benchmark
 from telemetry import story
 from telemetry.core import discover
-from telemetry.core import util
 from telemetry.internal.browser import browser_options
 from telemetry.internal.results import results_options
 from telemetry.internal import story_runner
@@ -19,6 +18,8 @@ from telemetry.util import matching
 from telemetry.util import wpr_modes
 from telemetry.web_perf import timeline_based_measurement
 from telemetry.web_perf import timeline_based_page_test
+
+import py_utils
 
 DEFAULT_LOG_FORMAT = (
   '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
@@ -52,7 +53,7 @@ class RecorderPageTest(legacy_page_test.LegacyPageTest):
     if self.page_test:
       self.page_test.DidNavigateToPage(page, tab)
     tab.WaitForDocumentReadyStateToBeComplete()
-    util.WaitFor(tab.HasReachedQuiescence, 30)
+    py_utils.WaitFor(tab.HasReachedQuiescence, 30)
 
   def CleanUpAfterPage(self, page, tab):
     if self.page_test:

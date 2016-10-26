@@ -4,7 +4,6 @@
 
 import re
 
-from telemetry.core import util
 from telemetry.internal.app import android_process
 from telemetry.internal.backends import android_browser_backend_settings
 from telemetry.internal.backends import android_command_line_backend
@@ -12,6 +11,8 @@ from telemetry.internal.backends import app_backend
 
 from devil.android import app_ui
 from devil.android.sdk import intent
+
+import py_utils
 
 
 class AndroidAppBackend(app_backend.AppBackend):
@@ -53,7 +54,7 @@ class AndroidAppBackend(app_backend.AppBackend):
         force_stop=True,  # Ensure app was not running.
     )
     if has_ready_predicate:
-      util.WaitFor(is_app_ready, timeout=60)
+      py_utils.WaitFor(is_app_ready, timeout=60)
 
   def Start(self):
     """Start an Android app and wait for it to finish launching.

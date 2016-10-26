@@ -5,7 +5,7 @@
 import logging
 import time
 
-from telemetry.core import util
+import py_utils
 
 
 class ActionNotSupported(Exception):
@@ -125,7 +125,7 @@ class AndroidActionRunner(object):
       Timeout: If the screen is off and device fails to turn screen on.
     """
     self._platform_backend.device.SetScreen(True)
-    util.WaitFor(self._platform_backend.device.IsScreenOn, 5)
+    py_utils.WaitFor(self._platform_backend.device.IsScreenOn, 5)
 
   def TurnScreenOff(self):
     """If device screen is on, turn screen off.
@@ -139,7 +139,7 @@ class AndroidActionRunner(object):
       return not self._platform_backend.device.IsScreenOn()
 
     self._platform_backend.device.SetScreen(False)
-    util.WaitFor(is_screen_off, 5)
+    py_utils.WaitFor(is_screen_off, 5)
 
   def UnlockScreen(self):
     """If device screen is locked, unlocks it.
@@ -158,4 +158,4 @@ class AndroidActionRunner(object):
       logging.warning('Screen not locked when expected.')
       return
 
-    util.WaitFor(is_screen_unlocked, 5)
+    py_utils.WaitFor(is_screen_unlocked, 5)

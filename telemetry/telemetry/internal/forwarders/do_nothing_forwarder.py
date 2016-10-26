@@ -6,9 +6,9 @@ import contextlib
 import logging
 import socket
 
-from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.internal import forwarders
+
+import py_utils
 
 
 class Error(Exception):
@@ -54,7 +54,7 @@ class DoNothingForwarder(forwarders.Forwarder):
       logging.debug(
           'Connection test succeeded for %s:%d',
           self.host_ip, self._port_pair.local_port)
-    except exceptions.TimeoutException:
+    except py_utils.TimeoutException:
       raise ConnectionError(
           'Unable to connect to address: %s:%d',
           self.host_ip, self._port_pair.local_port)
@@ -63,4 +63,4 @@ class DoNothingForwarder(forwarders.Forwarder):
     def CanConnect():
       with contextlib.closing(socket.socket()) as s:
         return s.connect_ex(address) == 0
-    util.WaitFor(CanConnect, timeout)
+    py_utils.WaitFor(CanConnect, timeout)

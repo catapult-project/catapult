@@ -109,6 +109,10 @@ def WaitFor(condition, timeout):
         pass
     return condition.__name__
 
+  # Do an initial check to see if its true.
+  res = condition()
+  if res:
+    return res
   start_time = time.time()
   last_output_time = start_time
   elapsed_time = time.time() - start_time

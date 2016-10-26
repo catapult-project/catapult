@@ -8,10 +8,11 @@ import subprocess
 import threading
 
 from telemetry.core import platform
-from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
 from telemetry.internal.util import binary_manager
+
+import py_utils
 
 try:
   from devil.android import device_errors  # pylint: disable=import-error
@@ -87,7 +88,7 @@ class JavaHeapProfiler(profiler.Profiler):
       self._browser_backend.device.RunShellCommand('am dumpheap %s %s' %
                                                    (pid, device_dump_file))
     if device_dump_file and wait_for_completion:
-      util.WaitFor(lambda: self._FileSize(device_dump_file) > 0, timeout=2)
+      py_utils.WaitFor(lambda: self._FileSize(device_dump_file) > 0, timeout=2)
     self._run_count += 1
 
   def _FileSize(self, file_name):

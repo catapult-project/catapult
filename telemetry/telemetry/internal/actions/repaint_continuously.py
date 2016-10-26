@@ -4,8 +4,9 @@
 
 import time
 
-from telemetry.core import util
 from telemetry.internal.actions import page_action
+
+import py_utils
 
 
 class RepaintContinuouslyAction(page_action.PageAction):
@@ -32,4 +33,4 @@ class RepaintContinuouslyAction(page_action.PageAction):
     time.sleep(self._seconds)
     def HasMinRafs():
       return tab.EvaluateJavaScript('window.__rafCount;') >= 3
-    util.WaitFor(HasMinRafs, max(60 - self._seconds, 0))
+    py_utils.WaitFor(HasMinRafs, max(60 - self._seconds, 0))

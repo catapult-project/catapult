@@ -5,9 +5,10 @@
 import logging
 import subprocess
 
-from telemetry.core import util
 from telemetry.internal import forwarders
 from telemetry.internal.forwarders import do_nothing_forwarder
+
+import py_utils
 
 
 class CrOsForwarderFactory(forwarders.ForwarderFactory):
@@ -37,7 +38,7 @@ class CrOsSshForwarder(forwarders.Forwarder):
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE,
         shell=False)
-    util.WaitFor(
+    py_utils.WaitFor(
         lambda: self._cri.IsHTTPServerRunningOnPort(self.host_port), 60)
     logging.debug('Server started on %s:%d', self.host_ip, self.host_port)
 

@@ -20,6 +20,8 @@ from telemetry.internal.backends.chrome_inspector import inspector_runtime
 from telemetry.internal.backends.chrome_inspector import inspector_websocket
 from telemetry.internal.backends.chrome_inspector import websocket
 
+import py_utils
+
 
 def _HandleInspectorWebSocketExceptions(func):
   """Decorator for converting inspector_websocket exceptions.
@@ -69,7 +71,8 @@ class InspectorBackend(object):
       self._page = inspector_page.InspectorPage(
           self._websocket, timeout=timeout)
       self._runtime = inspector_runtime.InspectorRuntime(self._websocket)
-    except (websocket.WebSocketException, exceptions.TimeoutException) as e:
+    except (websocket.WebSocketException, exceptions.TimeoutException,
+            py_utils.TimeoutException) as e:
       self._ConvertExceptionFromInspectorWebsocket(e)
 
   def Disconnect(self):

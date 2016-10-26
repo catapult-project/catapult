@@ -3,8 +3,9 @@
 # found in the LICENSE file.
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.testing import tab_test_case
+
+import py_utils
 
 
 class InspectorRuntimeTest(tab_test_case.TabTestCase):
@@ -42,7 +43,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     test_defined_js = "typeof(testVar) != 'undefined'"
     self._tab.WaitForJavaScriptExpression(test_defined_js, timeout=10)
 
-    util.WaitFor(lambda: self._tab.EnableAllContexts() != starting_contexts,
+    py_utils.WaitFor(lambda: self._tab.EnableAllContexts() != starting_contexts,
                  timeout=10)
 
     self.assertEquals(self._tab.EvaluateJavaScript('testVar'), 'host')
@@ -59,7 +60,7 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     def TestVar(context_id):
       """Waits for testVar and the context to be ready, then returns the value
       of testVar."""
-      util.WaitFor(lambda: TestVarReady(context_id), timeout=10)
+      py_utils.WaitFor(lambda: TestVarReady(context_id), timeout=10)
       return self._tab.EvaluateJavaScriptInContext('testVar', context_id)
 
     all_contexts = self._tab.EnableAllContexts()

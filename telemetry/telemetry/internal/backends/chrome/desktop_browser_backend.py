@@ -16,12 +16,12 @@ import sys
 import tempfile
 import time
 
+import py_utils
 from py_utils import cloud_storage  # pylint: disable=import-error
 import dependency_manager  # pylint: disable=import-error
 
 from telemetry.internal.util import binary_manager
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.internal.backends import browser_backend
 from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.util import path
@@ -572,9 +572,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       # now, just solve this particular problem. See Issue 424024.
       if self.browser.platform.CooperativelyShutdown(self._proc, "chrome"):
         try:
-          util.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
+          py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
           logging.info('Successfully shut down browser cooperatively')
-        except exceptions.TimeoutException as e:
+        except py_utils.TimeoutException as e:
           logging.warning('Failed to cooperatively shutdown. ' +
                           'Proceeding to terminate: ' + str(e))
 
@@ -592,9 +592,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self.IsBrowserRunning():
       self._proc.terminate()
       try:
-        util.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
+        py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
         self._proc = None
-      except exceptions.TimeoutException:
+      except py_utils.TimeoutException:
         logging.warning('Failed to gracefully shutdown.')
 
     # Shutdown aggressively if all above failed.

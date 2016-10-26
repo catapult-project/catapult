@@ -7,8 +7,9 @@ import signal
 import sys
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.internal.platform import profiler
+
+import py_utils
 
 try:
   import pexpect  # pylint: disable=import-error
@@ -46,7 +47,7 @@ class _SingleProcessIprofilerProfiler(object):
       print
       def Echo():
         return self._proc.getecho()
-      util.WaitFor(Echo, timeout=5)
+      py_utils.WaitFor(Echo, timeout=5)
 
   def CollectProfile(self):
     self._proc.kill(signal.SIGINT)

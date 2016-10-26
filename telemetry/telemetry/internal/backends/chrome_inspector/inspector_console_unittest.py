@@ -4,8 +4,9 @@
 
 import re
 
-from telemetry.core import util
 from telemetry.testing import tab_test_case
+
+import py_utils
 
 
 class TabConsoleTest(tab_test_case.TabTestCase):
@@ -16,7 +17,7 @@ class TabConsoleTest(tab_test_case.TabTestCase):
     def GotLog():
       current = self._tab.EvaluateJavaScript('window.__logCount')
       return current > initial
-    util.WaitFor(GotLog, 5)
+    py_utils.WaitFor(GotLog, 5)
 
     console_output = (
         self._tab._inspector_backend.GetCurrentConsoleOutputBuffer())

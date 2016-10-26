@@ -4,7 +4,8 @@
 import logging
 
 from telemetry import decorators
-from telemetry.core import exceptions
+
+import py_utils
 
 
 class FormBasedCredentialsBackend(object):
@@ -118,7 +119,7 @@ class FormBasedCredentialsBackend(object):
 
       self._logged_in = True
       return True
-    except exceptions.TimeoutException:
+    except py_utils.TimeoutException:
       logging.warning('Timed out while loading: %s', url)
       return False
 

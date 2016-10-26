@@ -7,7 +7,6 @@ import tempfile
 import time
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.image_processing import video
 from telemetry.testing import tab_test_case
@@ -15,6 +14,8 @@ from telemetry.timeline import model
 from telemetry.timeline import tracing_config
 from telemetry.util import image_util
 from telemetry.util import rgba_color
+
+import py_utils
 
 
 def _IsDocumentVisible(tab):
@@ -77,7 +78,7 @@ class TabTest(tab_test_case.TabTestCase):
         setTimeout(buggyReference, 200);""")
     self._tab.WaitForJavaScriptExpression(
         'window.__set_timeout_called === true', 5)
-    with self.assertRaises(exceptions.TimeoutException) as context:
+    with self.assertRaises(py_utils.TimeoutException) as context:
       self._tab.WaitForJavaScriptExpression(
           'window.__one === 1', 1)
       self.assertIn(
@@ -87,13 +88,13 @@ class TabTest(tab_test_case.TabTestCase):
 
   @decorators.Enabled('has tabs')
   def testActivateTab(self):
-    util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
+    py_utils.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     new_tab = self._browser.tabs.New()
     new_tab.Navigate('about:blank')
-    util.WaitFor(lambda: _IsDocumentVisible(new_tab), timeout=5)
+    py_utils.WaitFor(lambda: _IsDocumentVisible(new_tab), timeout=5)
     self.assertFalse(_IsDocumentVisible(self._tab))
     self._tab.Activate()
-    util.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
+    py_utils.WaitFor(lambda: _IsDocumentVisible(self._tab), timeout=5)
     self.assertFalse(_IsDocumentVisible(new_tab))
 
   def testTabUrl(self):

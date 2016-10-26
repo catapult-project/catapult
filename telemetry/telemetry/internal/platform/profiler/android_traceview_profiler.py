@@ -5,9 +5,10 @@
 import logging
 import os
 
-from telemetry.core import util
 from telemetry.internal.backends.chrome import android_browser_finder
 from telemetry.internal.platform import profiler
+
+import py_utils
 
 try:
   from devil.android import device_errors  # pylint: disable=import-error
@@ -56,7 +57,7 @@ class AndroidTraceviewProfiler(profiler.Profiler):
     for pid, trace_file in self._trace_files:
       self._browser_backend.device.RunShellCommand('am profile %s stop' % pid)
       # pylint: disable=cell-var-from-loop
-      util.WaitFor(lambda: self._FileSize(trace_file) > 0, timeout=10)
+      py_utils.WaitFor(lambda: self._FileSize(trace_file) > 0, timeout=10)
       output_files.append(trace_file)
     try:
       self._browser_backend.device.PullFile(

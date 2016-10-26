@@ -8,8 +8,9 @@ import sys
 import tempfile
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.internal.platform import profiler
+
+import py_utils
 
 
 class _SingleProcessSampleProfiler(object):
@@ -27,7 +28,7 @@ class _SingleProcessSampleProfiler(object):
             'Failed to start sample for process %s\n' %
             self._output_path.split('.')[1])
       return 'Sampling process' in stdout
-    util.WaitFor(IsStarted, 120)
+    py_utils.WaitFor(IsStarted, 120)
 
   def CollectProfile(self):
     self._proc.send_signal(signal.SIGINT)

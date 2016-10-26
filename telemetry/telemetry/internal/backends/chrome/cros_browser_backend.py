@@ -12,6 +12,8 @@ from telemetry.internal.backends.chrome import chrome_browser_backend
 from telemetry.internal.backends.chrome import misc_web_contents_backend
 from telemetry.internal import forwarders
 
+import py_utils
+
 
 class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def __init__(self, cros_platform_backend, browser_options, cri, is_guest):
@@ -40,7 +42,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       cri.Chown(extension_dir)
 
     self._cri.RestartUI(self.browser_options.clear_enterprise_policy)
-    util.WaitFor(self.IsBrowserRunning, 20)
+    py_utils.WaitFor(self.IsBrowserRunning, 20)
 
     # Delete test user's cryptohome vault (user data directory).
     if not self.browser_options.dont_override_profile:
@@ -136,11 +138,11 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
           use_remote_port_forwarding=False)
 
     # Wait for new chrome and oobe.
-    util.WaitFor(lambda: pid != self.pid, 15)
+    py_utils.WaitFor(lambda: pid != self.pid, 15)
     self._WaitForBrowserToComeUp()
     self._InitDevtoolsClientBackend(
         remote_devtools_port=self._remote_debugging_port)
-    util.WaitFor(lambda: self.oobe_exists, 30)
+    py_utils.WaitFor(lambda: self.oobe_exists, 30)
 
     if self.browser_options.auto_login:
       if self._is_guest:
@@ -151,8 +153,8 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         try:
           # TODO(achuith): Reduce this timeout to 15 sec after crbug.com/631640
           # is resolved.
-          util.WaitFor(lambda: pid != self.pid, 60)
-        except exceptions.TimeoutException:
+          py_utils.WaitFor(lambda: pid != self.pid, 60)
+        except py_utils.TimeoutException:
           self._RaiseOnLoginFailure(
               'Failed to restart browser in guest mode (pid %d).' % pid)
 
@@ -164,7 +166,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
       try:
         self._WaitForLogin()
-      except exceptions.TimeoutException:
+      except py_utils.TimeoutException:
         self._RaiseOnLoginFailure('Timed out going through login screen. '
                                   + self._GetLoginStatus())
 
@@ -180,7 +182,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       self._cri.RestartUI(False) # Logs out.
       self._cri.CloseConnection()
 
-    util.WaitFor(lambda: not self._IsCryptohomeMounted(), 180)
+    py_utils.WaitFor(lambda: not self._IsCryptohomeMounted(), 180)
 
     if self._forwarder:
       self._forwarder.Close()
@@ -261,7 +263,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _WaitForLogin(self):
     # Wait for cryptohome to mount.
-    util.WaitFor(self._IsLoggedIn, 900)
+    py_utils.WaitFor(self._IsLoggedIn, 900)
 
     # For incognito mode, the session manager actually relaunches chrome with
     # new arguments, so we have to wait for the browser to come up.

@@ -2,10 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-from telemetry.core import exceptions
 from telemetry import decorators
 from telemetry.internal.actions import loop
 from telemetry.testing import tab_test_case
+
+import py_utils
+
 
 AUDIO_1_LOOP_CHECK = 'window.__hasEventCompleted("#audio_1", "loop");'
 VIDEO_1_LOOP_CHECK = 'window.__hasEventCompleted("#video_1", "loop");'
@@ -49,4 +51,4 @@ class LoopActionTest(tab_test_case.TabTestCase):
                              timeout_in_seconds=1)
     action.WillRunAction(self._tab)
     self.assertFalse(self._tab.EvaluateJavaScript(VIDEO_1_LOOP_CHECK))
-    self.assertRaises(exceptions.TimeoutException, action.RunAction, self._tab)
+    self.assertRaises(py_utils.TimeoutException, action.RunAction, self._tab)

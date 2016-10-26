@@ -10,9 +10,10 @@ import re
 import subprocess
 import sys
 
-from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.util import atexit_with_log
+
+import py_utils
 
 
 _TSPROXY_PATH = os.path.join(
@@ -69,10 +70,10 @@ class TsProxyServer(object):
         stderr=subprocess.PIPE, bufsize=1)
     atexit_with_log.Register(self.StopServer)
     try:
-      util.WaitFor(self._IsStarted, timeout)
+      py_utils.WaitFor(self._IsStarted, timeout)
       logging.info('TsProxy port: %s', self._port)
       self._is_running = True
-    except exceptions.TimeoutException:
+    except py_utils.TimeoutException:
       err = self.StopServer()
       raise RuntimeError(
           'Error starting tsproxy: %s' % err)
@@ -98,7 +99,7 @@ class TsProxyServer(object):
       command_output.append(self._proc.stdout.readline().strip())
       return (
           command_output[-1] == 'OK' or command_output[-1] == 'ERROR')
-    util.WaitFor(CommandStatusIsRead, timeout)
+    py_utils.WaitFor(CommandStatusIsRead, timeout)
     if not 'OK' in command_output:
       raise RuntimeError('Failed to execute command %s:\n%s' %
                          (repr(command_string), '\n'.join(command_output)))

@@ -11,7 +11,8 @@ https://docs.google.com/document/u/1/d/12D7tkhZi887g9d0U2askU9JypU_wYiEI7Lw0bfwx
 """
 
 import logging
-from telemetry.core import util
+
+import py_utils
 
 # Default Cache Temperature. The page doesn't care which browser cache state
 # it is run on.
@@ -85,7 +86,7 @@ def EnsurePageCacheTemperature(page, browser, previous_page=None):
     with MarkTelemetryInternal(browser, 'warmCache'):
       tab = browser.tabs[0]
       tab.Navigate(page.url)
-      util.WaitFor(tab.HasReachedQuiescence, 60)
+      py_utils.WaitFor(tab.HasReachedQuiescence, 60)
       tab.WaitForDocumentReadyStateToBeComplete()
       tab.Navigate("about:blank")
       tab.WaitForDocumentReadyStateToBeComplete()

@@ -11,6 +11,8 @@ from telemetry.internal.browser import browser_finder
 from telemetry.internal.browser import extension_to_load
 from telemetry.testing import options_for_unittests
 
+import py_utils
+
 
 class CrOSTestCase(unittest.TestCase):
   def setUp(self):
@@ -78,5 +80,5 @@ class CrOSTestCase(unittest.TestCase):
           window.__login_status = s;
         });
     ''')
-    return util.WaitFor(
+    return py_utils.WaitFor(
         lambda: extension.EvaluateJavaScript('window.__login_status'), 10)

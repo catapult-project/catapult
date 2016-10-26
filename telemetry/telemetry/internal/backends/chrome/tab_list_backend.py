@@ -5,9 +5,10 @@
 import json
 
 from telemetry.core import exceptions
-from telemetry.core import util
 from telemetry.internal.backends.chrome_inspector import inspector_backend_list
 from telemetry.internal.browser import tab
+
+import py_utils
 
 
 class TabUnexpectedResponseException(exceptions.DevtoolsTargetCrashException):
@@ -48,7 +49,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
       devtools_http.DevToolsClientConnectionError
       devtools_client_backend.TabNotFoundError
       TabUnexpectedResponseException
-      exceptions.TimeoutException
+      py_utils.TimeoutException
     """
     assert self._browser_backend.supports_tab_control
     # TODO(dtu): crbug.com/160946, allow closing the last tab on some platforms.
@@ -63,7 +64,7 @@ class TabListBackend(inspector_backend_list.InspectorBackendList):
           app=self._browser_backend.browser,
           msg='Received response: %s' % response)
 
-    util.WaitFor(lambda: tab_id not in self.IterContextIds(), timeout=5)
+    py_utils.WaitFor(lambda: tab_id not in self.IterContextIds(), timeout=5)
 
   def ActivateTab(self, tab_id, timeout=30):
     """Activates the tab with the given debugger_url.
