@@ -83,8 +83,10 @@ class _SingleProcessPerfProfiler(object):
     cmd_prefix = []
     perf_args = ['record', '--pid', str(pid)]
     if self._is_android:
-      cmd_prefix = ['adb', '-s', browser_backend.device.adb.GetDeviceSerial(),
-                   'shell', perf_binary]
+      cmd_prefix = [
+          browser_backend.device.adb.GetAdbPath(),
+          '-s', browser_backend.device.adb.GetDeviceSerial(),
+          'shell', perf_binary]
       perf_args += _PERF_OPTIONS_ANDROID
       output_file = os.path.join('/sdcard', 'perf_profiles',
                                  os.path.basename(output_file))

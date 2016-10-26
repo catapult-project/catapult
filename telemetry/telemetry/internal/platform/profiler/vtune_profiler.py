@@ -12,6 +12,8 @@ from telemetry.core import exceptions
 from telemetry.internal.platform import profiler
 from telemetry.internal.platform.profiler import android_profiling_helper
 
+from devil.android.sdk import adb_wrapper
+
 
 class _SingleProcessVTuneProfiler(object):
   """An internal class for using vtune for a given process."""
@@ -132,9 +134,11 @@ class VTuneProfiler(profiler.Profiler):
 
       if browser_type.startswith('android'):
         # VTune checks if 'su' is available on the device.
-        proc = subprocess.Popen(['adb', 'shell', 'su', '-c', 'id'],
-                                stderr=subprocess.STDOUT,
-                                stdout=subprocess.PIPE)
+        proc = subprocess.Popen(
+            [adb_wrapper.AdbWrapper.GetAdbPath(),
+             'shell', 'su', '-c', 'id'],
+            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE)
         return 'not found' not in proc.communicate()[0]
 
       return True

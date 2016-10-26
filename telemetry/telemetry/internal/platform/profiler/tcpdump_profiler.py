@@ -30,7 +30,8 @@ class _TCPDumpProfilerAndroid(object):
     self._device.RunShellCommand('mkdir -p ' +
                                  os.path.dirname(self._DEVICE_DUMP_FILE))
     self._proc = subprocess.Popen(
-        ['adb', '-s', self._device.adb.GetDeviceSerial(),
+        [self._device.adb.GetAdbPath(),
+         '-s', self._device.adb.GetDeviceSerial(),
          'shell', android_prebuilt_profiler_helper.GetDevicePath('tcpdump')] +
          _TCP_DUMP_BASE_OPTS +
          [self._DEVICE_DUMP_FILE])
