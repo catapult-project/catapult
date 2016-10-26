@@ -39,7 +39,7 @@ tr.b.unittest.testSuite(function() {
     }
   }
 
-  test('serialization', function() {
+  test('serializationSize', function() {
     // Ensure that serialized Histograms don't take up too much more space than
     // necessary.
     var hist = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
@@ -48,36 +48,36 @@ tr.b.unittest.testSuite(function() {
     // description why they changed.
     var dict = hist.asDict();
     assert.strictEqual(107, JSON.stringify(dict).length);
-    assert.isUndefined(dict.centralBins);
+    assert.isUndefined(dict.allBins);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
 
     hist.addSample(100);
     dict = hist.asDict();
-    assert.strictEqual(202, JSON.stringify(dict).length);
-    assert.isUndefined(dict.centralBins.length);
+    assert.strictEqual(198, JSON.stringify(dict).length);
+    assert.isUndefined(dict.allBins.length);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
 
     hist.addSample(100);
     dict = hist.asDict();
     // SAMPLE_VALUES grew by "100,"
-    assert.strictEqual(206, JSON.stringify(dict).length);
-    assert.isUndefined(dict.centralBins.length);
+    assert.strictEqual(202, JSON.stringify(dict).length);
+    assert.isUndefined(dict.allBins.length);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
 
     hist.addSample(271, {foo: new tr.v.d.Generic('bar')});
     dict = hist.asDict();
-    assert.strictEqual(266, JSON.stringify(dict).length);
-    assert.isUndefined(dict.centralBins.length);
+    assert.strictEqual(262, JSON.stringify(dict).length);
+    assert.isUndefined(dict.allBins.length);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
 
-    // Add samples to most bins so that centralBinsArray is more efficient than
-    // centralBinsDict.
+    // Add samples to most bins so that allBinsArray is more efficient than
+    // allBinsDict.
     for (var i = 10; i < 100; ++i) {
       hist.addSample(10 * i);
     }
     dict = hist.asDict();
-    assert.strictEqual(687, JSON.stringify(hist.asDict()).length);
-    assert.lengthOf(dict.centralBins, 10);
+    assert.strictEqual(691, JSON.stringify(hist.asDict()).length);
+    assert.lengthOf(dict.allBins, 12);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
 
     // Lowering maxNumSampleValues takes a random sub-sample of the existing
@@ -86,8 +86,8 @@ tr.b.unittest.testSuite(function() {
     // retained.
     hist.maxNumSampleValues = 10;
     dict = hist.asDict();
-    assert.strictEqual(379, JSON.stringify(dict).length);
-    assert.lengthOf(dict.centralBins, 10);
+    assert.strictEqual(383, JSON.stringify(dict).length);
+    assert.lengthOf(dict.allBins, 12);
     assert.deepEqual(dict, tr.v.Histogram.fromDict(dict).asDict());
   });
 
@@ -128,7 +128,7 @@ tr.b.unittest.testSuite(function() {
     n.addSample(500, {foo: new tr.v.d.Generic('c')});
     n.addSample(999, {foo: new tr.v.d.Generic('d')});
     n.addSample(1000, {foo: new tr.v.d.Generic('d')});
-    assert.equal(n.underflowBin.count, 1);
+    assert.equal(n.allBins[0].count, 1);
 
     assert.equal(n.getBinForValue(0).count, 2);
     assert.deepEqual(
@@ -138,7 +138,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(n.getBinForValue(500).count, 1);
     assert.equal(n.getBinForValue(999).count, 1);
 
-    assert.equal(n.overflowBin.count, 1);
+    assert.equal(n.allBins[n.allBins.length - 1].count, 1);
     assert.equal(n.numValues, 6);
     assert.closeTo(n.average, 416.3, 0.1);
   });
@@ -184,9 +184,9 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(n0.nanDiagnosticMaps.map(dmd => dmd.get('foo').value),
                      ['e0', 'e1']);
 
-    assert.equal(n0.underflowBin.count, 2);
+    assert.equal(n0.allBins[0].count, 2);
     assert.deepEqual(
-        n0.underflowBin.diagnosticMaps.map(dmd => dmd.get('foo').value),
+        n0.allBins[0].diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['a0', 'a1']);
 
     assert.equal(n0.getBinForValue(0).count, 4);
@@ -204,10 +204,9 @@ tr.b.unittest.testSuite(function() {
         n0.getBinForValue(999).diagnosticMaps.map(dmd => dmd.get('foo').value),
         ['d1']);
 
-    assert.equal(n0.overflowBin.count, 2);
-    assert.deepEqual(
-        n0.overflowBin.diagnosticMaps.map(dmd => dmd.get('foo').value),
-        ['d0', 'd1']);
+    assert.equal(n0.allBins[n0.allBins.length - 1].count, 2);
+    assert.deepEqual(n0.allBins[n0.allBins.length - 1].diagnosticMaps.map(
+        dmd => dmd.get('foo').value), ['d0', 'd1']);
 
     assert.equal(n0.numValues, 10);
     assert.closeTo(n0.average, 349.7, 0.1);
@@ -216,8 +215,8 @@ tr.b.unittest.testSuite(function() {
     assert.equal(2, n1.maxCount);
 
     var n02 = n0.clone();
-    assert.instanceOf(n02.underflowBin.diagnosticMaps[0], tr.v.d.DiagnosticMap);
-    assert.instanceOf(n02.underflowBin.diagnosticMaps[0].get('foo'),
+    assert.instanceOf(n02.allBins[0].diagnosticMaps[0], tr.v.d.DiagnosticMap);
+    assert.instanceOf(n02.allBins[0].diagnosticMaps[0].get('foo'),
                       tr.v.d.Generic);
   });
 
@@ -473,7 +472,7 @@ tr.b.unittest.testSuite(function() {
     var n0 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     var n1 = new tr.v.Histogram('', unitlessNumber, TEST_BOUNDARIES);
     // maxNumSampleValues defaults to numBins * 10, which, including the
-    // underflowBin and overflowBin plus this builder's 10 central bins,
+    // underflow bin and overflow bin plus this builder's 10 central bins,
     // is 12 * 10.
     assert.strictEqual(n0.maxNumSampleValues, 120);
     assert.strictEqual(n1.maxNumSampleValues, 120);
@@ -503,6 +502,12 @@ tr.b.unittest.testSuite(function() {
     for (var i = 0; i < 100; ++i)
       n3.addSample(i);
     assert.strictEqual(n3.sampleValues.length, 10);
+  });
+
+  test('singularBin', function() {
+    var hist = new tr.v.Histogram('', unitlessNumber,
+        tr.v.HistogramBinBoundaries.SINGULAR);
+    assert.lengthOf(hist.allBins, 1);
   });
 });
 </script>
