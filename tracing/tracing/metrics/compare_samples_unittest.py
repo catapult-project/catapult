@@ -178,18 +178,18 @@ class CompareSamplesUnittest(unittest.TestCase):
     higher_values = ','.join([self.MakeChart(metric=metric, seed='higher',
                                              mu=20, sigma=2, n=5)])
     metric = ('some_chart', 'missing_trace')
-    with self.assertRaises(RuntimeError):
-      compare_samples.CompareSamples(
-          lower_values, higher_values, '/'.join(metric))
+    result = json.loads(compare_samples.CompareSamples(
+        lower_values, higher_values, '/'.join(metric)).stdout)
+    self.assertEqual(result['result']['significance'], NEED_MORE_DATA)
 
   def testCompareBadChart(self):
     metric = ('some_chart', 'some_trace')
     lower_values = ','.join([self.MakeChart(metric=metric, seed='lower',
                                             mu=10, sigma=1, n=5)])
     higher_values = self.NewJsonTempfile(['obviously', 'not', 'a', 'chart]'])
-    with self.assertRaises(RuntimeError):
-      compare_samples.CompareSamples(
-          lower_values, higher_values, '/'.join(metric))
+    result = json.loads(compare_samples.CompareSamples(
+        lower_values, higher_values, '/'.join(metric)).stdout)
+    self.assertEqual(result['result']['significance'], NEED_MORE_DATA)
 
   def testCompareValuesets(self):
     vs = os.path.join(os.path.dirname(__file__),

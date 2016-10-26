@@ -21,8 +21,6 @@ function findUnescapedKey(escaped, d) {
       return k;
     }
   }
-  throw new Error('did not find key ' + escaped + ' in ' +
-      tr.b.dictionaryKeys(d));
 }
 
 function geoMeanFromHistogram(h) {
@@ -196,12 +194,19 @@ function parseMultipleBuildbotStreams(files, metric) {
 }
 
 var buildComparisonResultOutput = function(a, b) {
+  if (!a.length || !b.length) {
+    var comparisonResult = {
+      significance: tr.b.Statistics.Significance.NEED_MORE_DATA
+    };
+  } else {
+    var comparisonResult = tr.b.Statistics.mwu(
+        a, b, tr.b.Statistics.DEFAULT_ALPHA,
+        tr.b.Statistics.MAX_SUGGESTED_SAMPLE_SIZE);
+  }
   return {
     sampleA: a,
     sampleB: b,
-    result: tr.b.Statistics.mwu(
-        a, b, tr.b.Statistics.DEFAULT_ALPHA,
-        tr.b.Statistics.MAX_SUGGESTED_SAMPLE_SIZE)
+    result: comparisonResult
   };
 };
 
