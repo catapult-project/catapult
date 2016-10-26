@@ -304,6 +304,10 @@ class OptionsWrapper(object):
 
 
 def replay(options, replay_filename):
+  if options.record and sys.version_info < (2, 7, 9):
+    print ('Need Python 2.7.9 or greater for recording mode.\n'
+           'For instructions on how to upgrade Python on Ubuntu 14.04, see:\n'
+           'http://mbless.de/blog/2016/01/09/upgrade-to-python-2711-on-ubuntu-1404-lts.html\n')
   if options.admin_check and options.IsRootRequired():
     platformsettings.rerun_as_administrator()
   configure_logging(options.log_level, options.log_file)
