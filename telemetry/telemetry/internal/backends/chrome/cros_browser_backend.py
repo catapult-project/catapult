@@ -261,7 +261,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _WaitForLogin(self):
     # Wait for cryptohome to mount.
-    util.WaitFor(self._IsLoggedIn, 300)
+    util.WaitFor(self._IsLoggedIn, 900)
 
     # For incognito mode, the session manager actually relaunches chrome with
     # new arguments, so we have to wait for the browser to come up.
