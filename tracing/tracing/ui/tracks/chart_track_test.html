@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/xhr.html">
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/model/event.html">
 <link rel="import" href="/tracing/model/event_set.html">
@@ -110,6 +111,33 @@ tr.b.unittest.testSuite(function() {
     return track;
   }
 
+  function buildDashboardTrack(opt_viewport) {
+    var viewport = opt_viewport || new Viewport(document.createElement('div'));
+
+    var axis = new ChartAxis(0, 1.1);
+    var fileUrl = '/test_data/dashboard_test_points.json';
+    var pointsArray = JSON.parse(tr.b.getSync(fileUrl));
+    var points = [];
+    for (var i = 0; i < pointsArray.length; i++) {
+      points.push(buildPoint(pointsArray[i][0], pointsArray[i][1]));
+    }
+    var renderingConfig = {
+      chartType: ChartSeriesType.LINE,
+      lineWidth: 1,
+      stepGraph: false,
+      selectedPointSize: 10,
+      solidSelectedDots: true,
+      highDetail: false,
+      skipDistance: 0.4
+    };
+    var series = new ChartSeries(points, axis, renderingConfig);
+
+    var track = new ChartTrack(viewport);
+    track.series = [series];
+
+    return track;
+  }
+
   test('instantiate_lowDetailsWithoutSelection', function() {
     var div = document.createElement('div');
     var viewport = new Viewport(div);
@@ -201,6 +229,31 @@ tr.b.unittest.testSuite(function() {
     var dt = new tr.ui.TimelineDisplayTransform();
     var pixelRatio = window.devicePixelRatio || 1;
     dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '100px';
+  });
+
+  test('instantiate_dashboardChartStyleWithSelection', function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    viewport.highDetails = true;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = buildDashboardTrack(viewport);
+    Polymer.dom(drawingContainer).appendChild(track);
+
+    track.series[0].points[40].modelItem.selectionState =
+        SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(
+        26610390797802200, 28950000891700000, track.clientWidth * pixelRatio);
     track.viewport.setDisplayTransformImmediately(dt);
 
     track.height = '100px';
