@@ -5,8 +5,10 @@
 # found in the LICENSE file.
 
 import functools
+import inspect
 import os
 import sys
+import time
 
 
 def GetCatapultDir():
@@ -85,3 +87,50 @@ def TimeoutDeco(func, default_timeout):
       print '%s timed out.' % func.__name__
       return False
   return RunWithTimeout
+
+
+MIN_POLL_INTERVAL_IN_SECONDS = 0.1
+MAX_POLL_INTERVAL_IN_SECONDS = 5
+OUTPUT_INTERVAL_IN_SECONDS = 300
+
+def WaitFor(condition, timeout):
+  """Waits for up to |timeout| secs for the function |condition| to return True.
+
+  Polling frequency is (elapsed_time / 10), with a min of .1s and max of 5s.
+
+  Returns:
+    Result of |condition| function (if present).
+  """
+  def GetConditionString():
+    if condition.__name__ == '<lambda>':
+      try:
+        return inspect.getsource(condition).strip()
+      except IOError:
+        pass
+    return condition.__name__
+
+  start_time = time.time()
+  last_output_time = start_time
+  elapsed_time = time.time() - start_time
+  while elapsed_time < timeout:
+    res = condition()
+    if res:
+      return res
+    now = time.time()
+    elapsed_time = now - start_time
+    last_output_elapsed_time = now - last_output_time
+    if last_output_elapsed_time > OUTPUT_INTERVAL_IN_SECONDS:
+      last_output_time = time.time()
+    poll_interval = min(max(elapsed_time / 10., MIN_POLL_INTERVAL_IN_SECONDS),
+                        MAX_POLL_INTERVAL_IN_SECONDS)
+    time.sleep(poll_interval)
+  raise TimeoutException('Timed out while waiting %ds for %s.' %
+                         (timeout, GetConditionString()))
+
+class TimeoutException(Exception):
+  """The operation failed to complete because of a timeout.
+
+  It is possible that waiting for a longer period of time would result in a
+  successful operation.
+  """
+  pass
