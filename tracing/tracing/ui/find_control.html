@@ -57,8 +57,6 @@ found in the LICENSE file.
         border-bottom: 2px solid rgba(0, 0, 0, 0.5);
         border-right: 2px solid rgba(0, 0, 0, 0.5);
         border-radius: 50%;
-
-        animation: spin 1s linear infinite;
       }
       @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
@@ -138,8 +136,10 @@ Polymer({
   filterTextChanged: function() {
     Polymer.dom(this.$.hitCount).textContent = '';
     this.$.spinner.style.visibility = 'visible';
+    this.$.spinner.style.animation = 'spin 1s linear infinite';
     this.controller.startFiltering(this.$.filter.value).then(function() {
       this.$.spinner.style.visibility = 'hidden';
+      this.$.spinner.style.animation = '';
       this.updateHitCountEl();
     }.bind(this));
   },
