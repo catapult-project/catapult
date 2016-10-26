@@ -15,7 +15,6 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import html_output_formatter
-from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
@@ -23,14 +22,13 @@ from telemetry.internal.results import valueset_output_formatter
 
 # Allowed output formats. The default is the first item in the list.
 
-_OUTPUT_FORMAT_CHOICES = ('html', 'html2', 'gtest', 'json',
-    'chartjson', 'csv-pivot-table', 'valueset', 'none')
+_OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'chartjson',
+    'csv-pivot-table', 'valueset', 'none')
 
 
 # Filenames to use for given output formats.
 _OUTPUT_FILENAME_LOOKUP = {
     'html': 'results.html',
-    'html2': 'results2.html',
     'json': 'results.json',
     'chartjson': 'results-chart.json',
     'csv-pivot-table': 'results-pivot-table.csv',
@@ -98,7 +96,7 @@ def _GetOutputStream(output_format, output_dir):
   output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
 
   # TODO(eakuefner): Factor this hack out after we rewrite HTMLOutputFormatter.
-  if output_format == 'html' or output_format == 'html2':
+  if output_format == 'html':
     open(output_file, 'a').close() # Create file if it doesn't exist.
     return codecs.open(output_file, mode='r+', encoding='utf-8')
   else:
@@ -138,9 +136,6 @@ def CreateResults(benchmark_metadata, options,
           output_stream, benchmark_metadata, options.reset_results,
           options.upload_results, options.browser_type,
           options.results_label))
-    elif output_format == 'html2':
-      output_formatters.append(html2_output_formatter.Html2OutputFormatter(
-          output_stream, options.reset_results, options.upload_results))
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
           output_stream, benchmark_metadata))
