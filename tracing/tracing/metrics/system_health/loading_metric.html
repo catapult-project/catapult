@@ -258,7 +258,35 @@ tr.exportTo('tr.metrics.sh', function() {
       values.addHistogram(histograms[metric.valueName]);
   }
 
-  function addTimeToInteractiveSampleToHistogram(histogram, rendererHelper,
+  function addFirstMeaningfulPaintSample(samples, rendererHelper,
+      frameIdRef, navigationStart, fmpMarkerEvent) {
+    var snapshot = findFrameLoaderSnapshotAt(
+        rendererHelper, frameIdRef, fmpMarkerEvent.start);
+    if (snapshot === undefined || !snapshot.args.isLoadingMainFrame)
+      return;
+    var url = snapshot.args.documentLoaderURL;
+    if (shouldIgnoreURL(url))
+      return;
+
+    var timeToFirstMeaningfulPaint =
+        fmpMarkerEvent.start - navigationStart.start;
+    var breakdownDiagnostic = createBreakdownDiagnostic(
+        rendererHelper, navigationStart.start, fmpMarkerEvent.start);
+    samples.push({
+        value: timeToFirstMeaningfulPaint,
+        diagnostics: {
+            'Breakdown of [navStart, FMP]': breakdownDiagnostic,
+            'Start': new RelatedEventSet(navigationStart),
+            'End': new RelatedEventSet(fmpMarkerEvent),
+            'Navigation infos': new tr.v.d.Generic(
+                {url: url, pid: rendererHelper.pid,
+                 start: navigationStart.start, fmp: fmpMarkerEvent.start}),
+        }
+    });
+    return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
+  }
+
+  function addFirstInteractiveSample(samples, rendererHelper,
     navigationStart, firstMeaningfulPaint, url) {
     if (shouldIgnoreURL(url))
       return;
@@ -294,16 +322,71 @@ tr.exportTo('tr.metrics.sh', function() {
         rendererHelper, navigationStartTime, firstInteractive);
 
     var timeToFirstInteractive = firstInteractive - navigationStartTime;
-    histogram.addSample(
-        timeToFirstInteractive,
-        {
+    samples.push({
+        value: timeToFirstInteractive,
+        diagnostics: {
           'Start': new RelatedEventSet(navigationStart),
           'Last long task': new RelatedEventSet(lastLongTaskEvent),
           'Navigation infos': new tr.v.d.Generic(
               {url: url, pid: rendererHelper.pid,
                start: navigationStartTime, interactive: firstInteractive}),
           'Breakdown of [navStart, Interactive]': breakdownDiagnostic,
-        });
+        }
+    });
+  }
+
+  function collectLoadingMetricsForRenderer(rendererHelper) {
+    var firstMeaningfulPaintSamples = [];
+    var firstInteractiveSamples = [];
+
+    function addSamples(frameIdRef, navigationStart, fmpMarkerEvent) {
+      var data = addFirstMeaningfulPaintSample(
+          firstMeaningfulPaintSamples, rendererHelper,
+          frameIdRef, navigationStart, fmpMarkerEvent);
+      if (data !== undefined) {
+        addFirstInteractiveSample(
+            firstInteractiveSamples, rendererHelper,
+            navigationStart, data.firstMeaningfulPaint, data.url);
+      }
+    }
+
+    var navigationStartFinder = new NavigationStartFinder(rendererHelper);
+
+    var candidatesForFrameId =
+        findFirstMeaningfulPaintCandidates(rendererHelper);
+
+    for (var frameIdRef in candidatesForFrameId) {
+      var navigationStart = undefined;
+      var lastCandidate = undefined;
+
+      // Iterate over the FMP candidates, remembering the last one.
+      for (var ev of candidatesForFrameId[frameIdRef]) {
+        var navigationStartForThisCandidate = navigationStartFinder.
+          findNavigationStartEventForFrameBeforeTimestamp(
+              frameIdRef, ev.start);
+        // Ignore candidate w/o preceding navigationStart, as they are not
+        // attributed to any TTFMP.
+        if (navigationStartForThisCandidate === undefined)
+          continue;
+
+        if (navigationStart !== navigationStartForThisCandidate) {
+          // New navigation is found. Compute TTFMP for current navigation,
+          // and reset the state variables.
+          if (navigationStart !== undefined && lastCandidate !== undefined) {
+            addSamples(frameIdRef, navigationStart, lastCandidate);
+          }
+          navigationStart = navigationStartForThisCandidate;
+        }
+        lastCandidate = ev;
+      }
+
+      // Compute TTFMP for the last navigation.
+      if (lastCandidate !== undefined) {
+        addSamples(frameIdRef, navigationStart, lastCandidate);
+      }
+    }
+    return {firstMeaningfulPaintSamples: firstMeaningfulPaintSamples,
+            firstInteractiveSamples: firstInteractiveSamples};
   }
 
   /**
@@ -331,7 +414,7 @@ tr.exportTo('tr.metrics.sh', function() {
     var firstMeaningfulPaintHistogram = createHistogram(
         'timeToFirstMeaningfulPaint');
     firstMeaningfulPaintHistogram.description =
-      'time to first meaningful paint';
+        'time to first meaningful paint';
     var firstInteractiveHistogram = createHistogram('timeToFirstInteractive');
     firstInteractiveHistogram.description = 'time to first interactive';
 
@@ -341,83 +424,15 @@ tr.exportTo('tr.metrics.sh', function() {
       var rendererHelper = chromeHelper.rendererHelpers[pid];
       if (rendererHelper.isChromeTracingUI)
         continue;
-      var navigationStartFinder = new NavigationStartFinder(rendererHelper);
 
-      function addFirstMeaningfulPaintSampleToHistogram(
-          frameIdRef, navigationStart, fmpMarkerEvent) {
-        var snapshot = findFrameLoaderSnapshotAt(
-            rendererHelper, frameIdRef, fmpMarkerEvent.start);
-        if (snapshot === undefined || !snapshot.args.isLoadingMainFrame)
-          return;
-        var url = snapshot.args.documentLoaderURL;
-        if (shouldIgnoreURL(url))
-          return;
-
-        var timeToFirstMeaningfulPaint =
-            fmpMarkerEvent.start - navigationStart.start;
-        var extraDiagnostic = {
-            url: url,
-            pid: rendererHelper.pid
-        };
-        var breakdownDiagnostic = createBreakdownDiagnostic(
-            rendererHelper, navigationStart.start, fmpMarkerEvent.start);
-        firstMeaningfulPaintHistogram.addSample(timeToFirstMeaningfulPaint,
-            {
-              'Breakdown of [navStart, FMP]': breakdownDiagnostic,
-              'Start': new RelatedEventSet(navigationStart),
-              'End': new RelatedEventSet(fmpMarkerEvent),
-              'Navigation infos': new tr.v.d.Generic(
-                  {url: url, pid: rendererHelper.pid,
-                   start: navigationStart.start, fmp: fmpMarkerEvent.start}),
-            });
-        return {firstMeaningfulPaint: fmpMarkerEvent.start, url: url};
-      }
-
-      var candidatesForFrameId =
-          findFirstMeaningfulPaintCandidates(rendererHelper);
-
-      for (var frameIdRef in candidatesForFrameId) {
-        var navigationStart = undefined;
-        var lastCandidate = undefined;
-
-        // Iterate over the FMP candidates, remembering the last one.
-        for (var ev of candidatesForFrameId[frameIdRef]) {
-          var navigationStartForThisCandidate = navigationStartFinder.
-            findNavigationStartEventForFrameBeforeTimestamp(
-                frameIdRef, ev.start);
-          // Ignore candidate w/o preceding navigationStart, as they are not
-          // attributed to any TTFMP.
-          if (navigationStartForThisCandidate === undefined)
-            continue;
-
-          if (navigationStart !== navigationStartForThisCandidate) {
-            // New navigation is found. Compute TTFMP for current navigation,
-            // and reset the state variables.
-            if (navigationStart !== undefined && lastCandidate !== undefined) {
-              data = addFirstMeaningfulPaintSampleToHistogram(
-                    frameIdRef, navigationStart, lastCandidate);
-              if (data !== undefined)
-                addTimeToInteractiveSampleToHistogram(
-                    firstInteractiveHistogram, rendererHelper,
-                    navigationStart,
-                    data.firstMeaningfulPaint, data.url);
-            }
-            navigationStart = navigationStartForThisCandidate;
-          }
-          lastCandidate = ev;
-        }
-
-        // Emit TTFMP for the last navigation.
-        if (lastCandidate !== undefined) {
-          var data = addFirstMeaningfulPaintSampleToHistogram(
-            frameIdRef, navigationStart, lastCandidate);
-
-          if (data !== undefined)
-            addTimeToInteractiveSampleToHistogram(
-                firstInteractiveHistogram, rendererHelper, navigationStart,
-                data.firstMeaningfulPaint, data.url);
-        }
-      }
+      var {firstMeaningfulPaintSamples, firstInteractiveSamples} =
+          collectLoadingMetricsForRenderer(rendererHelper,
+              firstMeaningfulPaintHistogram, firstInteractiveHistogram);
+      for (var sample of firstMeaningfulPaintSamples)
+          firstMeaningfulPaintHistogram.addSample(sample.value,
+                                                  sample.diagnostics);
+      for (var sample of firstInteractiveSamples)
+          firstInteractiveHistogram.addSample(sample.value, sample.diagnostics);
     }
 
     values.addHistogram(firstMeaningfulPaintHistogram);
