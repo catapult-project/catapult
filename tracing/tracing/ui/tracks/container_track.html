@@ -75,8 +75,9 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     addEventsToTrackMap: function(eventToTrackMap) {
-      for (var i = 0; i < this.children.length; ++i)
-        this.children[i].addEventsToTrackMap(eventToTrackMap);
+      for (var track of this.tracks_) {
+        track.addEventsToTrackMap(eventToTrackMap);
+      }
     },
 
     addAllEventsMatchingFilterToSelection: function(filter, selection) {

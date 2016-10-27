@@ -15,6 +15,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/tracks/counter_track.html">
 <link rel="import" href="/tracing/ui/tracks/frame_track.html">
 <link rel="import" href="/tracing/ui/tracks/object_instance_group_track.html">
+<link rel="import" href="/tracing/ui/tracks/other_threads_track.html">
 <link rel="import" href="/tracing/ui/tracks/process_summary_track.html">
 <link rel="import" href="/tracing/ui/tracks/spacing_track.html">
 <link rel="import" href="/tracing/ui/tracks/thread_track.html">
@@ -137,12 +138,6 @@ tr.exportTo('tr.ui.tracks', function() {
       this.didAppendTracks_();
     },
 
-    addEventsToTrackMap: function(eventToTrackMap) {
-      this.tracks_.forEach(function(track) {
-        track.addEventsToTrackMap(eventToTrackMap);
-      });
-    },
-
     willAppendTracks_: function() {
     },
 
@@ -256,14 +251,33 @@ tr.exportTo('tr.ui.tracks', function() {
       threads.sort(tr.model.Thread.compare);
 
       // Create the threads.
+      var otherThreads = [];
+      var hasVisibleThreads = false;
       threads.forEach(function(thread) {
         var track = new tr.ui.tracks.ThreadTrack(this.viewport);
         track.thread = thread;
         if (!track.hasVisibleContent)
           return;
-        Polymer.dom(this).appendChild(track);
-        Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
+        if (track.hasSlices) {
+          hasVisibleThreads = true;
+          Polymer.dom(this).appendChild(track);
+          Polymer.dom(this).appendChild(new SpacingTrack(this.viewport));
+        } else if (track.hasTimeSlices) {
+          otherThreads.push(thread);
+        }
       }.bind(this));
+
+      if (otherThreads.length > 0) {
+        // If there's only 1 thread with scheduling-only information don't
+        // bother making a group, just display it directly
+        // Similarly if we are a process with only scheduling-only threads
+        // don't bother making a group as the process itself serves
+        // as the collapsable group
+        var track = new tr.ui.tracks.OtherThreadsTrack(this.viewport);
+        track.threads = otherThreads;
+        track.collapsible = otherThreads.length > 1 && hasVisibleThreads;
+        Polymer.dom(this).appendChild(track);
+      }
     }
   };
 

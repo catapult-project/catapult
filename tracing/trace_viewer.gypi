@@ -477,6 +477,7 @@
       'tracing/ui/tracks/multi_row_track.html',
       'tracing/ui/tracks/object_instance_group_track.html',
       'tracing/ui/tracks/object_instance_track.html',
+      'tracing/ui/tracks/other_threads_track.html',
       'tracing/ui/tracks/power_series_track.html',
       'tracing/ui/tracks/process_memory_dump_track.html',
       'tracing/ui/tracks/process_summary_track.html',

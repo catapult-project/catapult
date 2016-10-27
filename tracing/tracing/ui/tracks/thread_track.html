@@ -33,6 +33,7 @@ tr.exportTo('tr.ui.tracks', function() {
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('thread-track');
+      this.heading_ = document.createElement('tr-ui-heading');
     },
 
     get thread() {
@@ -46,6 +47,15 @@ tr.exportTo('tr.ui.tracks', function() {
 
     get hasVisibleContent() {
       return this.tracks_.length > 0;
+    },
+
+    get hasSlices() {
+      return this.thread_.asyncSliceGroup.length > 0 ||
+          this.thread_.sliceGroup.length > 0;
+    },
+
+    get hasTimeSlices() {
+      return this.thread_.timeSlices;
     },
 
     get eventContainer() {
@@ -64,21 +74,24 @@ tr.exportTo('tr.ui.tracks', function() {
       if (!this.thread_)
         return;
 
-      this.heading = this.thread_.userFriendlyName + ': ';
-      this.tooltip = this.thread_.userFriendlyDetails;
+      this.heading_.heading = this.thread_.userFriendlyName;
+      this.heading_.tooltip = this.thread_.userFriendlyDetails;
 
       if (this.thread_.asyncSliceGroup.length)
         this.appendAsyncSliceTracks_();
 
       this.appendThreadSamplesTracks_();
 
+      var needsHeading = false;
       if (this.thread_.timeSlices) {
         var timeSlicesTrack = new tr.ui.tracks.SliceTrack(this.viewport);
         timeSlicesTrack.heading = '';
         timeSlicesTrack.height = tr.ui.b.THIN_SLICE_HEIGHT + 'px';
         timeSlicesTrack.slices = this.thread_.timeSlices;
-        if (timeSlicesTrack.hasVisibleContent)
+        if (timeSlicesTrack.hasVisibleContent) {
+          needsHeading = true;
           Polymer.dom(this).appendChild(timeSlicesTrack);
+        }
       }
 
       if (this.thread_.sliceGroup.length) {
@@ -86,8 +99,14 @@ tr.exportTo('tr.ui.tracks', function() {
         track.heading = this.thread_.userFriendlyName;
         track.tooltip = this.thread_.userFriendlyDetails;
         track.group = this.thread_.sliceGroup;
-        if (track.hasVisibleContent)
+        if (track.hasVisibleContent) {
+          needsHeading = false;
           Polymer.dom(this).appendChild(track);
+        }
+      }
+
+      if (needsHeading) {
+        Polymer.dom(this).appendChild(this.heading_);
       }
     },
 

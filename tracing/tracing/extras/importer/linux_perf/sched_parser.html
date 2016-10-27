@@ -68,6 +68,14 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var nextPid = parseInt(event[6]);
       var nextPrio = parseInt(event[7]);
 
+      if (eventBase.tgid !== undefined) {
+        var process = this.importer.model_.getOrCreateProcess(eventBase.tgid);
+        if (!process.getThread(pid)) {
+          var thread = process.getOrCreateThread(pid);
+          thread.name = eventBase.threadName;
+        }
+      }
+
       var nextThread = this.importer.threadsByLinuxPid[nextPid];
       var nextName;
       if (nextThread)
@@ -147,4 +155,3 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
   };
 });
 </script>
-
