@@ -31,6 +31,8 @@ from telemetry.web_perf import timeline_interaction_record
 
 from py_trace_event import trace_event
 
+import py_utils
+
 
 _DUMP_WAIT_TIME = 3
 
@@ -112,6 +114,19 @@ class ActionRunner(object):
       An instance of action_runner.Interaction
     """
     return self.CreateInteraction('Gesture_' + label, repeatable)
+
+  def WaitForNetworkQuiescence(self, timeout_in_seconds=10):
+    """ Wait for network quiesence on the page.
+    Args:
+      timeout_in_seconds: maximum amount of time (seconds) to wait for network
+        quiesence unil raising exception.
+
+    Raises:
+      py_utils.TimeoutException when the timeout is reached but the page's
+        network is not quiet.
+    """
+
+    py_utils.WaitFor(self.tab.HasReachedQuiescence, timeout_in_seconds)
 
   def MeasureMemory(self, deterministic_mode=False):
     """Add a memory measurement to the trace being recorded.

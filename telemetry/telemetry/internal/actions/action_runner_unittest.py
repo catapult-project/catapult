@@ -356,6 +356,14 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
     self.assertTrue(action_runner.EvaluateJavaScript(
         '(document.scrollingElement || document.body).scrollLeft') > 75)
 
+  def testWaitForNetworkQuiescenceSmoke(self):
+    self.Navigate('blank.html')
+    action_runner = action_runner_module.ActionRunner(self._tab)
+    action_runner.WaitForNetworkQuiescence()
+    self.assertEqual(
+        self._tab.EvaluateJavaScript('document.location.pathname;'),
+        '/blank.html')
+
   def testEnterText(self):
     self.Navigate('blank.html')
     self._tab.ExecuteJavaScript(
