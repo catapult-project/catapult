@@ -272,6 +272,43 @@ tr.exportTo('tr.e.importer', function() {
     return false;
   };
 
+  /**
+   * Extracts a scoped ID from an event.
+   *
+   * In legacy trace files, the ID of an event is always stored in the 'id'
+   * field and the event phase determines if the ID is process-local or
+   * global. For example, async event IDs are considered global and object
+   * event IDs are considered process-local.
+   *
+   * New trace files can explicitly specify whether an event ID is
+   * process-local or global. These new IDs are stored in the 'id2' field so
+   * that old trace importers that do not implement this logic break when they
+   * try to import a new trace file. The value of id2 can be either of the
+   * form '{global: 0x1000}' or of the form '{local: 0x1000}'.
+   *
+   * @param {!Object} event A trace event.
+   * @return {!tr.model.ScopedId}
+   */
+  TraceEventImporter.scopedIdForEvent_ = function(event) {
+    var scope = event.scope || tr.model.OBJECT_DEFAULT_SCOPE;
+    var pid = undefined;
+    if (event.id !== undefined) {
+      if (event.id2 !== undefined)
+        throw new Error('Event has both id and id2');
+      var pid = tr.model.LOCAL_ID_PHASES.has(event.ph) ? event.pid : undefined;
+      return new tr.model.ScopedId(scope, event.id, pid);
+    } else if (event.id2 !== undefined) {
+      if (event.id2.global !== undefined) {
+        return new tr.model.ScopedId(scope, event.id2.global);
+      } else if (event.id2.local !== undefined) {
+        return new tr.model.ScopedId(scope, event.id2.local, event.pid);
+      }
+      throw new Error(
+          'Event that uses id2 must have either a global or local ID');
+    }
+    return undefined;
+  };
+
   TraceEventImporter.prototype = {
     __proto__: tr.importer.Importer.prototype,
 
@@ -378,11 +415,6 @@ tr.exportTo('tr.e.importer', function() {
       });
     },
 
-    scopedIdForEvent_: function(event) {
-      return new tr.model.ScopedId(
-          event.scope || tr.model.OBJECT_DEFAULT_SCOPE, event.id);
-    },
-
     processObjectEvent: function(event) {
       var thread = this.model_.getOrCreateProcess(event.pid).
           getOrCreateThread(event.tid);
@@ -392,7 +424,7 @@ tr.exportTo('tr.e.importer', function() {
         thread: thread});
       if (thread.guid in this.contextProcessorPerThread) {
         var processor = this.contextProcessorPerThread[thread.guid];
-        var scopedId = this.scopedIdForEvent_(event);
+        var scopedId = TraceEventImporter.scopedIdForEvent_(event);
         if (event.ph === 'D')
           processor.destroyContext(scopedId);
         // The context processor maintains a cache of unique context objects and
@@ -411,7 +443,7 @@ tr.exportTo('tr.e.importer', function() {
         this.contextProcessorPerThread[thread.guid] =
             new tr.importer.ContextProcessor(this.model_);
       }
-      var scopedId = this.scopedIdForEvent_(event);
+      var scopedId = TraceEventImporter.scopedIdForEvent_(event);
       var contextType = event.name;
       var processor = this.contextProcessorPerThread[thread.guid];
       if (event.ph === '(') {
@@ -873,6 +905,9 @@ tr.exportTo('tr.e.importer', function() {
     },
 
     processMemoryDumpEvent: function(event) {
+      // TODO(chiniforooshan): Make memory dumps either use local or global IDs
+      // instead of the generic IDs with different phases.
+      // https://github.com/catapult-project/catapult/issues/2957
       if (event.ph !== 'v')
         throw new Error('Invalid memory dump event phase "' + event.ph + '".');
 
@@ -1451,7 +1486,8 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         }
 
-        if (event.id === undefined) {
+        var id = TraceEventImporter.scopedIdForEvent_(event);
+        if (id === undefined) {
           this.model_.importWarning({
             type: 'async_slice_parse_error',
             message: 'Nestable async events (ph: b, e, or n) require an ' +
@@ -1472,7 +1508,7 @@ tr.exportTo('tr.e.importer', function() {
           }
         }
 
-        var key = event.cat + ':' + event.id;
+        var key = event.cat + ':' + id.toStringWithDelimiter(':');
         if (nestableAsyncEventsByKey[key] === undefined)
            nestableAsyncEventsByKey[key] = [];
         nestableAsyncEventsByKey[key].push(asyncEventState);
@@ -1514,7 +1550,7 @@ tr.exportTo('tr.e.importer', function() {
           continue;
         }
 
-        var id = event.id;
+        var id = TraceEventImporter.scopedIdForEvent_(event);
         if (id === undefined) {
           this.model_.importWarning({
             type: 'async_slice_parse_error',
@@ -1522,13 +1558,13 @@ tr.exportTo('tr.e.importer', function() {
           });
           continue;
         }
-
+        var key = id.toStringWithDelimiter(':');
         // TODO(simonjam): Add a synchronous tick on the appropriate thread.
 
         if (event.ph === 'S') {
           if (asyncEventStatesByNameThenID[name] === undefined)
             asyncEventStatesByNameThenID[name] = {};
-          if (asyncEventStatesByNameThenID[name][id]) {
+          if (asyncEventStatesByNameThenID[name][key]) {
             this.model_.importWarning({
               type: 'async_slice_parse_error',
               message: 'At ' + event.ts + ', a slice of the same id ' + id +
@@ -1536,8 +1572,8 @@ tr.exportTo('tr.e.importer', function() {
             });
             continue;
           }
-          asyncEventStatesByNameThenID[name][id] = [];
-          asyncEventStatesByNameThenID[name][id].push(asyncEventState);
+          asyncEventStatesByNameThenID[name][key] = [];
+          asyncEventStatesByNameThenID[name][key].push(asyncEventState);
         } else {
           if (asyncEventStatesByNameThenID[name] === undefined) {
             this.model_.importWarning({
@@ -1547,7 +1583,7 @@ tr.exportTo('tr.e.importer', function() {
             });
             continue;
           }
-          if (asyncEventStatesByNameThenID[name][id] === undefined) {
+          if (asyncEventStatesByNameThenID[name][key] === undefined) {
             this.model_.importWarning({
               type: 'async_slice_parse_error',
               message: 'At ' + event.ts + ', no slice named ' + name +
@@ -1555,7 +1591,7 @@ tr.exportTo('tr.e.importer', function() {
             });
             continue;
           }
-          var events = asyncEventStatesByNameThenID[name][id];
+          var events = asyncEventStatesByNameThenID[name][key];
           events.push(asyncEventState);
 
           if (event.ph === 'F') {
@@ -1575,7 +1611,7 @@ tr.exportTo('tr.e.importer', function() {
                 true, undefined, undefined, events[0].event.argsStripped);
             slice.startThread = events[0].thread;
             slice.endThread = asyncEventState.thread;
-            slice.id = id;
+            slice.id = key;
 
             var stepType = events[1].event.ph;
             var isValid = true;
@@ -1592,8 +1628,8 @@ tr.exportTo('tr.e.importer', function() {
               if (events[j].event.ph === 'S') {
                 this.model_.importWarning({
                   type: 'async_slice_parse_error',
-                  message: 'At ' + event.event.ts + ', a slice named ' +
-                      event.event.name + ' with id=' + event.event.id +
+                  message: 'At ' + events[j].event.ts + ', a slice named ' +
+                      name + ' with id=' + id +
                       ' had a step before the start event.'
                 });
                 continue;
@@ -1602,8 +1638,8 @@ tr.exportTo('tr.e.importer', function() {
               if (events[j].event.ph === 'F') {
                 this.model_.importWarning({
                   type: 'async_slice_parse_error',
-                  message: 'At ' + event.event.ts + ', a slice named ' +
-                      event.event.name + ' with id=' + event.event.id +
+                  message: 'At ' + events[j].event.ts + ', a slice named ' +
+                      name + ' with id=' + id +
                       ' had a step after the finish event.'
                 });
                 continue;
@@ -1612,7 +1648,7 @@ tr.exportTo('tr.e.importer', function() {
               var startIndex = j + (stepType === 'T' ? 0 : -1);
               var endIndex = startIndex + 1;
 
-              var subName = events[j].event.name;
+              var subName = name;
               if (!events[j].event.argsStripped &&
                   (events[j].event.ph === 'T' || events[j].event.ph === 'p'))
                 subName = subName + ':' + events[j].event.args.step;
@@ -1633,7 +1669,7 @@ tr.exportTo('tr.e.importer', function() {
                       events[startIndex].event.argsStripped);
               subSlice.startThread = events[startIndex].thread;
               subSlice.endThread = events[endIndex].thread;
-              subSlice.id = id;
+              subSlice.id = key;
 
               slice.subSlices.push(subSlice);
             }
@@ -1643,7 +1679,7 @@ tr.exportTo('tr.e.importer', function() {
               slice.startThread.asyncSliceGroup.push(slice);
             }
 
-            delete asyncEventStatesByNameThenID[name][id];
+            delete asyncEventStatesByNameThenID[name][key];
           }
         }
       }
@@ -1698,6 +1734,7 @@ tr.exportTo('tr.e.importer', function() {
           var endState = undefined;
           var sliceArgs = eventStateEntry.event.args || {};
           var sliceError = undefined;
+          var id = TraceEventImporter.scopedIdForEvent_(eventStateEntry.event);
           if (eventStateEntry.event.ph === 'n') {
             startState = eventStateEntry;
             endState = eventStateEntry;
@@ -1712,8 +1749,8 @@ tr.exportTo('tr.e.importer', function() {
                 type: 'async_slice_parse_error',
                 message: 'Nestable async BEGIN event at ' +
                   eventStateEntry.event.ts + ' with name=' +
-                  eventStateEntry.event.name +
-                  ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+                  eventStateEntry.event.name + ' and id=' + id +
+                  ' was unmatched.'
               });
             } else {
               // Include args for both END and BEGIN for a matched pair.
@@ -1740,7 +1777,7 @@ tr.exportTo('tr.e.importer', function() {
               message: 'Nestable async END event at ' +
                 eventStateEntry.event.ts + ' with name=' +
                 eventStateEntry.event.name +
-                ' and id=' + eventStateEntry.event.id + ' was unmatched.'
+                ' and id=' + id + ' was unmatched.'
             });
             startState = eventStateEntries[0];
             endState = eventStateEntry;
@@ -1804,7 +1841,8 @@ tr.exportTo('tr.e.importer', function() {
         this.model_.importWarning({
           type: 'async_slice_parse_error',
           message: 'At ' + event.event.ts + ', a slice named ' +
-              event.event.name + ' with id=' + event.event.id +
+              event.event.name + ' with id=' +
+              TraceEventImporter.scopedIdForEvent_(event.event) +
               ' had both begin and end steps, which is not allowed.'
         });
         return false;
@@ -2100,7 +2138,7 @@ tr.exportTo('tr.e.importer', function() {
 
       var processEvent = function(objectEventState) {
         var event = objectEventState.event;
-        var scopedId = this.scopedIdForEvent_(event);
+        var scopedId = TraceEventImporter.scopedIdForEvent_(event);
         var thread = objectEventState.thread;
         if (event.name === undefined) {
           this.model_.importWarning({
@@ -2110,7 +2148,7 @@ tr.exportTo('tr.e.importer', function() {
           });
         }
 
-        if (scopedId.id === undefined) {
+        if (scopedId === undefined || scopedId.id === undefined) {
           this.model_.importWarning({
             type: 'object_parse_error',
             message: 'While processing ' + JSON.stringify(event) + ': ' +

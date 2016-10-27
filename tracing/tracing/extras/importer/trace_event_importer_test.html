@@ -1141,7 +1141,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.asyncSliceGroup.slices[0].title, 'a');
     assert.equal(t.asyncSliceGroup.slices[0].category, 'cat');
     assert.isTrue(t.asyncSliceGroup.slices[0].isTopLevel);
-    assert.equal(t.asyncSliceGroup.slices[0].id, 72);
+    assert.equal(t.asyncSliceGroup.slices[0].id, ':ptr:72');
     assert.equal(t.asyncSliceGroup.slices[0].args.foo, 'bar');
     assert.equal(t.asyncSliceGroup.slices[0].start, 0);
     assert.closeTo(
@@ -1830,7 +1830,7 @@ tr.b.unittest.testSuite(function() {
     var eventASlice = t.asyncSliceGroup.slices[0];
     assert.equal(eventASlice.title, 'EVENT_A');
     assert.equal(eventASlice.category, 'foo');
-    assert.equal(eventASlice.id, 'foo:72');
+    assert.equal(eventASlice.id, 'foo::ptr:72');
     assert.isTrue(eventASlice.isTopLevel);
     assert.equal(eventASlice.args['x'], 1);
     assert.sameMembers(eventASlice.subSlices, []);
@@ -1838,7 +1838,7 @@ tr.b.unittest.testSuite(function() {
     var eventBSlice = t.asyncSliceGroup.slices[1];
     assert.equal(eventBSlice.title, 'EVENT_B');
     assert.equal(eventBSlice.category, 'bar');
-    assert.equal(eventBSlice.id, 'bar:72');
+    assert.equal(eventBSlice.id, 'bar::ptr:72');
     assert.isTrue(eventBSlice.isTopLevel);
     assert.equal(eventBSlice.args['y'], 2);
     assert.sameMembers(eventBSlice.subSlices, []);
@@ -1873,6 +1873,75 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(slice.startStackFrame.title, 'main');
     assert.equal(slice.endStackFrame.title, 'frame7');
+  });
+
+  test('processLocalAsync', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id2: {local: 72}},
+      {name: 'b', args: {x: 1}, pid: 54, ts: 525, cat: 'foo', tid: 55,
+        ph: 'b', id2: {local: 72}},
+      {name: 'b', args: {y: 2}, pid: 54, ts: 560, cat: 'foo', tid: 55,
+        ph: 'e', id2: {local: 72}},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id2: {local: 72}}
+    ];
+
+    var m = makeModel(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 0);
+
+    t = m.processes[54].threads[55];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'b');
+    assert.equal(parentSlice.category, 'foo');
+    assert.equal(parentSlice.args['x'], 1);
+    assert.equal(parentSlice.args['y'], 2);
+    assert.isTrue(parentSlice.isTopLevel);
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 0);
+  });
+
+  test('globalAsync', function() {
+    var events = [
+      {name: 'a', args: {}, pid: 52, ts: 524, cat: 'foo', tid: 53,
+        ph: 'b', id2: {global: 72}},
+      {name: 'b', args: {x: 1}, pid: 54, ts: 525, cat: 'foo', tid: 55,
+        ph: 'b', id2: {global: 72}},
+      {name: 'b', args: {y: 2}, pid: 54, ts: 560, cat: 'foo', tid: 55,
+        ph: 'e', id2: {global: 72}},
+      {name: 'a', args: {}, pid: 52, ts: 565, cat: 'foo', tid: 53,
+        ph: 'e', id2: {global: 72}}
+    ];
+
+    var m = makeModel(events);
+    var t = m.processes[52].threads[53];
+    assert.isDefined(t);
+    assert.equal(t.asyncSliceGroup.slices.length, 1);
+    var parentSlice = t.asyncSliceGroup.slices[0];
+    assert.equal(parentSlice.title, 'a');
+    assert.equal(parentSlice.category, 'foo');
+    assert.isTrue(parentSlice.isTopLevel);
+
+    assert.isDefined(parentSlice.subSlices);
+    assert.equal(parentSlice.subSlices.length, 1);
+    var subSlice = parentSlice.subSlices[0];
+    assert.isFalse(subSlice.isTopLevel);
+    // Arguments should include both BEGIN and END event.
+    assert.equal(subSlice.args['x'], 1);
+    assert.equal(subSlice.args['y'], 2);
+    assert.sameMembers(subSlice.subSlices, []);
+
+    assert.isUndefined(m.processes[54].threads[55]);
   });
 
   test('importSamples', function() {
@@ -5869,6 +5938,51 @@ tr.b.unittest.testSuite(function() {
       'c url: c.js:2:3',
       'a url: a.js:1:2'
     ]);
+  });
+
+  test('scopedIdForEvent_defaultScopeAsyncEvent', function() {
+    var event = {pid: 1, ph: 'b', id: '0x1000'};
+    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    assert.isDefined(id);
+    assert.equal('0x1000', id.id);
+    assert.equal('ptr', id.scope);
+    assert.isUndefined(id.pid);
+  });
+
+  test('scopedIdForEvent_defaultScopeContextEvent', function() {
+    var event = {pid: 1, ph: '(', id: '0x1000'};
+    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    assert.isDefined(id);
+    assert.equal('0x1000', id.id);
+    assert.equal('ptr', id.scope);
+    assert.equal(1, id.pid);
+  });
+
+  test('scopedIdForEvent_defaultScopeProcessLocalId', function() {
+    var event = {pid: 1, ph: 'b', id2: {local: '0x1000'}};
+    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    assert.isDefined(id);
+    assert.equal('0x1000', id.id);
+    assert.equal('ptr', id.scope);
+    assert.equal(1, id.pid);
+  });
+
+  test('scopedIdForEvent_defaultScopeGlobalId', function() {
+    var event = {pid: 1, ph: '(', id2: {global: '0x1000'}};
+    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    assert.isDefined(id);
+    assert.equal('0x1000', id.id);
+    assert.equal('ptr', id.scope);
+    assert.isUndefined(id.pid);
+  });
+
+  test('scopedIdForEvent_explicitScopeGlobalId', function() {
+    var event = {pid: 1, ph: '(', id2: {global: '0x1000'}, scope: 'scope'};
+    var id = tr.e.importer.TraceEventImporter.scopedIdForEvent_(event);
+    assert.isDefined(id);
+    assert.equal('0x1000', id.id);
+    assert.equal('scope', id.scope);
+    assert.isUndefined(id.pid);
   });
 
   // TODO(nduca): one slice, two threads

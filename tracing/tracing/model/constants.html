@@ -18,7 +18,11 @@ tr.exportTo('tr.model', function() {
     BROWSER_PROCESS_PID_REF: -1,
 
     // The default scope of object events, when not explicitly specified.
-    OBJECT_DEFAULT_SCOPE: 'ptr'
+    OBJECT_DEFAULT_SCOPE: 'ptr',
+
+    // Event phases that have process-local IDs, unless a global ID is
+    // explicitly specified.
+    LOCAL_ID_PHASES: new Set(['N', 'D', 'O', '(', ')'])
   };
 });
 </script>
