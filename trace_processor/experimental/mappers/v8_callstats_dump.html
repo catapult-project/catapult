@@ -5,9 +5,9 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 <link rel="import" href="/tracing/base/iteration_helpers.html">
-<link rel="import" href="/tracing/metrics/system_health/loading_metric.html">
+<link rel="import" href="/tracing/metrics/v8/runtime_stats_metric.html">
 <link rel="import" href="/tracing/mre/function_handle.html">
-<link rel="import" href="/tracing/value/value_set.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
 
 <script>
 'use strict';
@@ -15,64 +15,24 @@ found in the LICENSE file.
 
 tr.exportTo('tr.mre', function() {
   function v8CallStatsDump(result, model) {
-    var v8_runtime_map = {};
-    var totalCount = 0;
-    var totalTime = 0;
-    var values = new tr.v.ValueSet();
+    var values = new tr.v.HistogramSet();
 
-    tr.metrics.sh.loadingMetric(values, model);
-    var ttiEntries = values.valueDicts.filter(
-        (dict) => dict.name === 'timeToFirstInteractive');
-    var numeric = ttiEntries[0].numeric;
-    if (numeric.running.count > 1) {
-      throw 'Unable to work with a trace that has more than one navigation';
-    }
-
-    var binsWithSampleDiagnosticMaps = numeric.centralBins.filter(
-        (bin) => bin.diagnosticMaps.length > 0);
-    var diagnostic = binsWithSampleDiagnosticMaps[0]
-        .diagnosticMaps[0]['breakdown'];
-
-    var tti = diagnostic.value.interactive;
-
-    for (var event of model.getDescendantEvents()) {
-      if (!(event instanceof tr.model.ThreadSlice) || event.start > tti)
-        continue;
-      var v8_runtime = event.args['runtime-call-stats'];
-
-      // For older traces, check if we had an arg called 'runtime-call-stat'
-      // instead.
-      if (v8_runtime === undefined)
-        v8_runtime = event.args['runtime-call-stat'];
-
-      if (v8_runtime !== undefined) {
-        try {
-          var v8_runtime_object = JSON.parse(v8_runtime);
-          for (var runtime_call in v8_runtime_object) {
-            // exclude "END" and malformed entries.
-            if (v8_runtime_object[runtime_call].length == 2) {
-              if (v8_runtime_map[runtime_call] === undefined) {
-                v8_runtime_map[runtime_call] = {count: 0, time: 0};
-              }
-              var runtime_count = v8_runtime_object[runtime_call][0];
-              v8_runtime_map[runtime_call].count += runtime_count;
-              var runtime_time = v8_runtime_object[runtime_call][1] / 1000;
-              v8_runtime_map[runtime_call].time += runtime_time;
-              totalCount += runtime_count;
-              totalTime += runtime_time;
-            }
-          }
-        } catch (e) {
-           console.warn(e);
-        }
+    tr.metrics.v8.runtimeStatsMetric(values, model);
+    var runtimeStatsMap = new Map();
+    for (var value of values.sourceValues) {
+      var arr = value.name.split(':');
+      if (runtimeStatsMap[arr[0]] === undefined) {
+        runtimeStatsMap[arr[0]] = {time: null, count: null};
+      }
+      if (arr[1] === 'count') {
+        runtimeStatsMap[arr[0]].count = value.sum;
+      } else {
+        runtimeStatsMap[arr[0]].time = Number(value.sum).toFixed(2);
       }
     }
-    for (var i in v8_runtime_map) {
-      result.addPair(i, {time: Number(v8_runtime_map[i].time).toFixed(2),
-                         count: v8_runtime_map[i].count});
+    for (var entry in runtimeStatsMap) {
+      result.addPair(entry, runtimeStatsMap[entry]);
     }
-    result.addPair('Total', {time: Number(totalTime).toFixed(2),
-                             count: totalCount});
   }
 
   tr.mre.FunctionRegistry.register(v8CallStatsDump);
