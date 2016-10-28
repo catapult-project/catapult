@@ -145,11 +145,14 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.CaptureFormattedException()
     story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
+        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='foo'))
     story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
+        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='bar'))
     story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
+        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='baz'))
 
     class Test(legacy_page_test.LegacyPageTest):
 
@@ -185,9 +188,11 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
     self.CaptureFormattedException()
     story_set = story.StorySet()
     story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
+        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='foo'))
     story_set.AddStory(page_module.Page(
-        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir()))
+        'file://blank.html', story_set, base_dir=util.GetUnittestDataDir(),
+        name='bar'))
 
     class Test(legacy_page_test.LegacyPageTest):
 
@@ -571,10 +576,10 @@ class ActualPageRunEndToEndTests(unittest.TestCase):
         raise exceptions.AppCrashException
 
     story_set = story.StorySet()
-    for _ in range(5):
+    for i in range(5):
       story_set.AddStory(
           TestPage('file://blank.html', story_set,
-                   base_dir=util.GetUnittestDataDir()))
+                   base_dir=util.GetUnittestDataDir(), name='foo%d' % i))
     options = options_for_unittests.GetCopy()
     options.output_formats = ['none']
     options.suppress_gtest_report = True
