@@ -206,7 +206,8 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     drawRect_: function(rect, sel) {
-      sel.append('rect')
+      sel = sel.data([rect]);
+      sel.enter().append('rect')
         .attr('fill', rect.color)
         .attr('x', rect.leftPx)
         .attr('y', rect.topPx)
@@ -214,13 +215,14 @@ tr.exportTo('tr.ui.b', function() {
         .attr('height', rect.heightPx)
         .on('mouseenter', this.drawHoverValueBox_.bind(this, rect))
         .on('mouseleave', this.clearHoverValueBox_.bind(this));
+      sel.exit().remove();
     },
 
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
       var chartAreaSel = d3.select(this.chartAreaElement);
       var seriesKeys = [...this.seriesByKey_.keys()];
-      var rectsSel = dataSel.selectAll('path').data(seriesKeys);
+      var rectsSel = dataSel.selectAll('path');
       this.data_.forEach(function(datum, index) {
         var currentX = this.getXForDatum_(datum, index);
         var width = undefined;
@@ -236,10 +238,9 @@ tr.exportTo('tr.ui.b', function() {
           rect.leftPx = this.xScale_(currentX);
           rect.rightPx = this.xScale_(currentX + width);
           rect.widthPx = rect.rightPx - rect.leftPx;
-          this.drawRect_(rect, rectsSel.enter());
+          this.drawRect_(rect, rectsSel);
         }
       }, this);
-      rectsSel.exit().remove();
     }
   };
 
