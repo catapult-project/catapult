@@ -119,7 +119,7 @@ tr.exportTo('tr.metrics.sh', function() {
       std: false,
       sum: false,
     });
-    hist.description = 'Energy consumption rate in ' + description;
+    hist.description = 'Energy consumption rate for ' + description;
     values.addHistogram(hist);
     return hist;
   }
@@ -160,6 +160,10 @@ tr.exportTo('tr.metrics.sh', function() {
     // Frame based power metric.
     hists.frameEnergyHist = makeEnergyHistogram_(values, 'per_frame',
         'each frame');
+
+    // Whole trace average power metric.
+    hists.wholeTracePowerHist = makePowerHistogram_(values, 'story',
+        'user story');
 
     for (var exp of model.userModel.expectations) {
       var currTitle = exp.title.toLowerCase().replace(' ', '_');
@@ -264,6 +268,11 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
+  function computeWholeTracePowerMetric_(model, hists, chromeBounds) {
+    var traceData = getPowerData_(model, chromeBounds.min, chromeBounds.max);
+    hists.wholeTracePowerHist.addSample(traceData.power);
+  }
+
   function computeChromeBounds(model) {
     var chromeBounds = new tr.b.Range();
     var chromeHelper = model.getOrCreateHelper(
@@ -312,6 +321,7 @@ tr.exportTo('tr.metrics.sh', function() {
     computeRailStageMetrics_(model, hists, chromeBounds);
     computeLoadingMetric_(model, hists, chromeBounds);
     computeFrameBasedPowerMetric_(model, hists, chromeBounds);
+    computeWholeTracePowerMetric_(model, hists, chromeBounds);
   }
 
   tr.metrics.MetricRegistry.register(powerMetric);

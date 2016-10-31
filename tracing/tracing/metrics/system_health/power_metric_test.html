@@ -222,6 +222,8 @@ tr.b.unittest.testSuite(function() {
         'scroll_response:energy'), 125, 0.5);
     assert.closeTo(getMetricValueAvg(valueSet,
         'idle:power'), 750, 0.5);
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'story:power'), 500, 0.5);
   });
 
   test('powerMetric_generic_multipleStagesEachType', function() {
