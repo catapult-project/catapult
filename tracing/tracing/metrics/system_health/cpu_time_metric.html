@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/metrics/metric_registry.html">
+<link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -30,8 +31,23 @@ tr.exportTo('tr.metrics.sh', function() {
    */
   function cpuTimeMetric(values, model, opt_options) {
     var rangeOfInterest = model.bounds;
-    if (opt_options && opt_options.rangeOfInterest)
+
+    if (opt_options && opt_options.rangeOfInterest) {
       rangeOfInterest = opt_options.rangeOfInterest;
+    } else {
+      // If no range of interest is provided, limit the relevant range to
+      // Chrome processes. This prevents us from normalizing against non-Chrome
+      // related slices in the trace.
+      var chromeHelper = model.getOrCreateHelper(
+          tr.model.helpers.ChromeModelHelper);
+      if (chromeHelper) {
+        var chromeBounds = chromeHelper.chromeBounds;
+        if (chromeBounds) {
+          rangeOfInterest = chromeBounds;
+        }
+      }
+    }
+
     var allProcessCpuTime = 0;
 
     for (var pid in model.processes) {

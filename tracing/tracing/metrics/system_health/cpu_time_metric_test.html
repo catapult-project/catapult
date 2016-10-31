@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/chrome/chrome_test_utils.html">
 <link rel="import" href="/tracing/metrics/system_health/cpu_time_metric.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 
@@ -48,6 +49,41 @@ tr.b.unittest.testSuite(function() {
       }));
     });
     assert.closeTo(value, 0.033, 0.001);
+  });
+
+  // Normalize against the browser process, whose non-CPU slice goes from 2900
+  // to 3000.
+  test('cpuTimeMetric_browserProcess', function() {
+    var sliceDuration = 50;
+    var totalDuration = 3000;
+    var model = tr.e.chrome.ChromeTestUtils.newChromeModel(function(model) {
+      model.browserMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: totalDuration - 2 * sliceDuration,
+        duration: 2 * sliceDuration,
+      }));
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: 0,
+        duration: sliceDuration,
+        cpuStart: 0,
+        cpuDuration: sliceDuration,
+      }));
+      model.rendererMain.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+        type: tr.model.ThreadSlice,
+        isTopLevel: true,
+        start: totalDuration - sliceDuration,
+        duration: sliceDuration,
+        cpuStart: totalDuration - sliceDuration,
+        cpuDuration: sliceDuration,
+      }));
+    });
+    var values = new tr.v.HistogramSet();
+    tr.metrics.sh.cpuTimeMetric(values, model);
+    var value = tr.b.getOnlyElement(values).average;
+    assert.closeTo(value, 0.5, 0.001);
   });
 
   // Makes sure that rangeOfInterest works correctly.
