@@ -158,6 +158,8 @@ class MacPlatformBackend(posix_platform_backend.PosixPlatformBackend):
       return os_version_module.YOSEMITE
     if os_version.startswith('15.'):
       return os_version_module.ELCAPITAN
+    if os_version.startswith('16.'):
+      return os_version_module.SIERRA
 
     raise NotImplementedError('Unknown mac version %s.' % os_version)
 
