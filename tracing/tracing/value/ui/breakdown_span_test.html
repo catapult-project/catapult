@@ -51,5 +51,25 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
     this.addHTMLOutput(span);
   });
+
+  test('empty', function() {
+    var breakdown = new tr.v.d.Breakdown();
+    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
+
+  test('emptyExceptForWeirdNumbers', function() {
+    var breakdown = new tr.v.d.Breakdown();
+    breakdown.set('ba---a', NaN);
+    breakdown.set('inf', Infinity);
+    breakdown.set('-inf', -Infinity);
+    breakdown.set('goose egg', 0);
+    breakdown.set('<0', -1);
+
+    var span = tr.v.ui.createDiagnosticSpan(breakdown);
+    assert.strictEqual('TR-V-UI-BREAKDOWN-SPAN', span.tagName);
+    this.addHTMLOutput(span);
+  });
 });
 </script>

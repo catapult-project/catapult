@@ -26,6 +26,7 @@ found in the LICENSE file.
       <div id="container"></div>
       <tr-ui-b-drag-handle id="drag_handle"></tr-ui-b-drag-handle>
     </div>
+    <div id="empty">(empty)</div>
     <div id="nans">
       <div id="nans_message">Invalid categories:</div>
       <tr-ui-b-table id="table"></tr-ui-b-table>
@@ -88,6 +89,9 @@ Polymer({
   },
 
   updateContents_: function() {
+    this.$.outer.style.display = 'none';
+    this.$.empty.style.display = 'block';
+
     if (!this.diagnostic_) {
       this.chart_.data = [];
       return;
@@ -132,7 +136,14 @@ Polymer({
       }
     }
 
-    this.chart_.data = [data];
+    if (tr.b.dictionaryLength(data) > 1) {
+      this.chart_.data = [data];
+      this.$.outer.style.display = 'block';
+      this.$.empty.style.display = 'none';
+    }
+    if (tableRows.length) {
+      this.$.empty.style.display = 'none';
+    }
     this.$.nans.style.display = tableRows.length ? 'block' : 'none';
     this.$.table.tableRows = tableRows;
   }
