@@ -109,6 +109,7 @@
       'tracing/extras/importer/etw/thread_parser.html',
       'tracing/extras/importer/gcloud_trace/gcloud_trace_importer.html',
       'tracing/extras/importer/gzip_importer.html',
+      'tracing/extras/importer/heap_dump_trace_event_importer.html',
       'tracing/extras/importer/jszip.html',
       'tracing/extras/importer/linux_perf/android_parser.html',
       'tracing/extras/importer/linux_perf/binder_parser.html',
