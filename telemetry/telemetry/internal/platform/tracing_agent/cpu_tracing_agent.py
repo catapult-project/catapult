@@ -159,7 +159,10 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
   @classmethod
   def IsSupported(cls, platform_backend):
     os_name = platform_backend.GetOSName()
-    return (os_name in ['mac', 'linux']) or (os_name == 'win' and psutil)
+    # TODO(charliea): Reenable this once the CPU tracing agent is fixed on
+    # Windows.
+    # http://crbug.com/647443
+    return (os_name in ['mac', 'linux'])
 
   def StartAgentTracing(self, config, timeout):
     assert not self._snapshot_ongoing, (
