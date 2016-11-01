@@ -8,11 +8,16 @@ from telemetry.core import exceptions
 
 import py_utils
 
+from py_trace_event import trace_event
+
 DEFAULT_WEB_CONTENTS_TIMEOUT = 90
 
 # TODO(achuith, dtu, nduca): Add unit tests specifically for WebContents,
 # independent of Tab.
 class WebContents(object):
+
+  __metaclass__ = trace_event.TracedMetaClass
+
   """Represents web contents in the browser"""
   def __init__(self, inspector_backend):
     self._inspector_backend = inspector_backend
