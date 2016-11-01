@@ -32,10 +32,10 @@ class MarkTelemetryInternal(object):
 
   def __enter__(self):
     self.browser.tabs[0].ExecuteJavaScript(
-        """console.time('telemetry.{0}.warmCache.start');""".format(
+        """console.time('telemetry.internal.{0}.start');""".format(
           self.identifier))
     self.browser.tabs[0].ExecuteJavaScript(
-        """console.timeEnd('telemetry.{0}.warmCache.start');""".format(
+        """console.timeEnd('telemetry.internal.{0}.start');""".format(
           self.identifier))
     return self
 
@@ -44,10 +44,10 @@ class MarkTelemetryInternal(object):
       return True
 
     self.browser.tabs[0].ExecuteJavaScript(
-        """console.time('telemetry.{0}.warmCache.end');""".format(
+        """console.time('telemetry.internal.{0}.end');""".format(
           self.identifier))
     self.browser.tabs[0].ExecuteJavaScript(
-        """console.timeEnd('telemetry.{0}.warmCache.end');""".format(
+        """console.timeEnd('telemetry.internal.{0}.end');""".format(
           self.identifier))
     return True
 
