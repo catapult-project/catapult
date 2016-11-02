@@ -12,7 +12,6 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/tracks/cpu_usage_track.html">
 <link rel="import" href="/tracing/ui/tracks/device_track.html">
 <link rel="import" href="/tracing/ui/tracks/global_memory_dump_track.html">
-<link rel="import" href="/tracing/ui/tracks/highlighter.html">
 <link rel="import" href="/tracing/ui/tracks/interaction_track.html">
 <link rel="import" href="/tracing/ui/tracks/kernel_track.html">
 <link rel="import" href="/tracing/ui/tracks/process_track.html">
@@ -36,6 +35,45 @@ tr.exportTo('tr.ui.tracks', function() {
    */
   var ModelTrack = tr.ui.b.define('model-track', tr.ui.tracks.ContainerTrack);
 
+    ModelTrack.VSYNC_HIGHLIGHT_ALPHA = 0.1;
+    ModelTrack.VSYNC_DENSITY_TRANSPARENT = 0.20;
+    ModelTrack.VSYNC_DENSITY_OPAQUE = 0.10;
+    ModelTrack.VSYNC_DENSITY_RANGE =
+        ModelTrack.VSYNC_DENSITY_TRANSPARENT - ModelTrack.VSYNC_DENSITY_OPAQUE;
+  /**
+   * Generate a zebra striping from a list of times.
+   *
+   * @param {!Array.<number>} times A sorted array of timestamps.
+   * @param {number} minTime the lower bound of time to start striping at.
+   * @param {number} maxTime the upper bound of time to stop striping at.
+   *     of |times|.
+   *
+   * @returns {!Array.<tr.b.Range>} An array of ranges where each element
+   *     represents the time range that a stripe covers. Each range is a subset
+   *     of the interval [minTime, maxTime].
+   */
+  ModelTrack.generateStripes_ = function(times, minTime, maxTime) {
+    if (times.length === 0) return [];
+
+    // Find the lowest and highest index within the viewport.
+    var lowIndex =
+        tr.b.findLowIndexInSortedArray(times, tr.b.identity, minTime);
+    var highIndex = lowIndex - 1;
+    while (times[highIndex + 1] <= maxTime) {
+      highIndex++;
+    }
+
+    var stripes = [];
+    // Must start at an even index and end at an odd index.
+    for (var i = lowIndex - (lowIndex % 2); i <= highIndex; i += 2) {
+      var left = i < lowIndex ? minTime : times[i];
+      var right = i + 1 > highIndex ? maxTime : times[i + 1];
+      stripes.push(tr.b.Range.fromExplicitRange(left, right));
+    }
+
+    return stripes;
+  };
+
 
   ModelTrack.prototype = {
 
@@ -45,14 +83,9 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('model-track');
 
-      var typeInfos = tr.ui.tracks.Highlighter.getAllRegisteredTypeInfos();
-      this.highlighters_ = typeInfos.map(
-        function(typeInfo) {
-          return new typeInfo.constructor(viewport);
-        });
-
       this.upperMode_ = false;
       this.annotationViews_ = [];
+      this.vSyncTimes_ = [];
     },
 
     // upperMode is true if the track is being used on the ruler.
@@ -138,10 +171,7 @@ tr.exportTo('tr.ui.tracks', function() {
       }
       this.viewport_.rebuildEventToTrackMap();
       this.viewport_.rebuildContainerToTrackMap();
-
-      for (var i = 0; i < this.highlighters_.length; i++) {
-        this.highlighters_[i].processModel(this.model_);
-      }
+      this.vSyncTimes_ = this.model_.device.vSyncTimestamps;
 
       this.updateAnnotations_();
     },
@@ -266,10 +296,8 @@ tr.exportTo('tr.ui.tracks', function() {
           return;
 
         case tr.ui.tracks.DrawType.HIGHLIGHTS:
-          for (var i = 0; i < this.highlighters_.length; i++) {
-            this.highlighters_[i].drawHighlight(ctx, dt, viewLWorld, viewRWorld,
-                bounds.height);
-          }
+          this.drawVSyncHighlight(
+              ctx, dt, viewLWorld, viewRWorld, bounds.height);
           ctx.restore();
           return;
 
@@ -396,6 +424,49 @@ tr.exportTo('tr.ui.tracks', function() {
           tipX - arrowWidth, tipY - arrowHeight,
           tipX - arrowWidth, tipY + arrowHeight);
       ctx.fill();
+    },
+
+    /**
+     * Highlights VSync events on the model track (using "zebra" striping).
+     */
+    drawVSyncHighlight: function(ctx, dt, viewLWorld, viewRWorld, viewHeight) {
+      if (!this.viewport_.highlightVSync) {
+        return;
+      }
+
+      var stripes = ModelTrack.generateStripes_(
+          this.vSyncTimes_, viewLWorld, viewRWorld);
+      if (stripes.length === 0) {
+        return;
+      }
+
+      var vSyncHighlightColor =
+          ColorScheme.getColorIdForReservedName(vsync_highlight_color);
+
+      var stripeRange = stripes[stripes.length - 1].max - stripes[0].min;
+      var stripeDensity =
+        stripeRange ? stripes.length / (dt.scaleX * stripeRange) : 0;
+      var clampedStripeDensity =
+          tr.b.clamp(stripeDensity, ModelTrack.VSYNC_DENSITY_OPAQUE,
+              ModelTrack.VSYNC_DENSITY_TRANSPARENT);
+      var opacity =
+          (ModelTrack.VSYNC_DENSITY_TRANSPARENT - clampedStripeDensity) /
+          ModelTrack.VSYNC_DENSITY_RANGE;
+      if (opacity === 0) {
+        return;
+      }
+
+      var pixelRatio = window.devicePixelRatio || 1;
+      var height = viewHeight * pixelRatio;
+
+      ctx.fillStyle = vSyncHighlightColor.toStringWithAlphaOverride(
+          ModelTrack.VSYNC_HIGHLIGHT_ALPHA * opacity);
+
+      for (var i = 0; i < stripes.length; i++) {
+        var xLeftView = dt.xWorldToView(stripes[i].min);
+        var xRightView = dt.xWorldToView(stripes[i].max);
+        ctx.fillRect(xLeftView, 0, xRightView - xLeftView, height);
+      }
     },
 
     calculateTrackY_: function(track, canvasBounds) {
