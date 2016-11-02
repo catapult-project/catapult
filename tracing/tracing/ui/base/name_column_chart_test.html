@@ -13,17 +13,17 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
     var chart = new tr.ui.b.NameColumnChart();
-    chart.width = 200;
+    chart.width = 400;
     chart.height = 200;
-    chart.chartTitle = 'Chart title';
     var data = [
-      {x: 'apple', value: 100},
-      {x: 'ball', value: 110},
-      {x: 'cat', value: 100},
-      {x: 'dog', value: 50}
+      {x: 'a'.repeat(27) + 'A', value: 100},
+      {x: 'b'.repeat(23) + 'B', value: 110},
+      {x: 'c'.repeat(21) + 'C', value: 100},
+      {x: 'd'.repeat(15) + 'D', value: 50}
     ];
-    chart.data = data;
+    chart.margin.bottom = data.length * 18;
     this.addHTMLOutput(chart);
+    chart.data = data;
   });
 
   test('undefined', function() {
@@ -45,14 +45,14 @@ tr.b.unittest.testSuite(function() {
       {x: 'cat', alpha: 100, beta: 125},
       {x: 'dog', alpha: 50, beta: 125}
     ];
+    chart.margin.bottom = data.length * 18;
+    this.addHTMLOutput(chart);
     chart.data = data;
 
     var r = new tr.b.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
-
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
@@ -68,9 +68,9 @@ tr.b.unittest.testSuite(function() {
       {x: 'dog', alpha: undefined, beta: 20},
       {x: 'echo', alpha: 30, beta: 30}
     ];
-    chart.data = data;
-
+    chart.margin.bottom = data.length * 18;
     this.addHTMLOutput(chart);
+    chart.data = data;
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
@@ -86,9 +86,9 @@ tr.b.unittest.testSuite(function() {
       {x: 'dog', alpha: undefined, beta: 20},
       {x: 'echo', alpha: 30, beta: undefined}
     ];
-    chart.data = data;
-
+    chart.margin.bottom = data.length * 18;
     this.addHTMLOutput(chart);
+    chart.data = data;
   });
 
   test('brushRangeFromIndices', function() {
@@ -125,7 +125,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiation_interactiveBrushing', function() {
     var chart = new tr.ui.b.NameColumnChart();
     chart.width = 300;
-    chart.height = 200;
+    chart.height = 300;
     chart.chartTitle = 'Chart title';
     var data = [
       {x: 'apple', value: 50},
@@ -137,6 +137,8 @@ tr.b.unittest.testSuite(function() {
       {x: 'gpu', value: 15},
       {x: 'happy', value: 20}
     ];
+    chart.margin.bottom = data.length * 18;
+    this.addHTMLOutput(chart);
     chart.data = data;
 
     var mouseDownIndex = undefined;
@@ -165,7 +167,6 @@ tr.b.unittest.testSuite(function() {
       currentMouseIndex = e.index;
       updateBrushedRange();
     });
-    this.addHTMLOutput(chart);
   });
 });
 </script>

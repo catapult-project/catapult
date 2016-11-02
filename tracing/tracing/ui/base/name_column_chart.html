@@ -15,6 +15,13 @@ found in the LICENSE file.
 tr.exportTo('tr.ui.b', function() {
   var ColumnChart = tr.ui.b.ColumnChart;
 
+  var MIN_GUIDELINE_HEIGHT_PX = 3;
+
+  // TODO(benjhayden): Compute these using a generalization of
+  // getSVGTextWidth().
+  var TEXT_HEIGHT_PX = 17;
+  var CHECKBOX_WIDTH_PX = 18;
+
   // @constructor
   var NameColumnChart = tr.ui.b.define('name-column-chart', ColumnChart);
 
@@ -27,42 +34,33 @@ tr.exportTo('tr.ui.b', function() {
 
     updateXAxis_: function(xAxis) {
       xAxis.selectAll('*').remove();
-      var y = this.chartAreaSize.height + 10;
+
+      // Draw the tick labels from |this.data_[*].x|.
+      // Lay them out so that the text doesn't overlap.
+      // They may overhang into |this.margin.right|.
       var nameTexts = xAxis.selectAll('text')
         .data(this.data_);
       nameTexts
         .enter()
         .append('text')
-        .attr('transform', (d, index) =>
-            // If you change the angle, then update the Math.cos() below.
-            'rotate(45 ' + this.xScale_(index) + ' ' + y + ')')
+        .attr('transform', (d, index) => 'translate(0, ' +
+            TEXT_HEIGHT_PX * (this.data_.length - index) + ')')
         .attr('x', (d, index) => this.xScale_(index))
-        .attr('y', d => y)
+        .attr('y', d => this.chartAreaSize.height)
         .text(d => d.x);
       nameTexts.exit().remove();
 
-      // If the nameTexts extend past the bottom of the chart, then increase
-      // this.bottomMargin_ and re-render.
-      // TODO(benjhayden): Refactor with the code that is very similar to this
-      // in chart_base_2d.
-      var bottomMargin = this.margin.bottom;
-      tr.b.requestAnimationFrame(function() {
-        nameTexts[0].forEach(function(t) {
-          var box = t.getBBox();
-          // When the text is rotated, its height is the hypotenuse
-          // of a small triangle H, and its width is the hypotenuse of a larger
-          // triangle W. The bottomMargin must be equal to a side of H plus a
-          // side of W.
-          var h = Math.cos(Math.PI / 4) * (box.height + box.width);
-          bottomMargin = Math.max(bottomMargin, h);
-        }, this);
-
-        bottomMargin = parseInt(Math.ceil(bottomMargin));
-        if (bottomMargin > this.margin.bottom) {
-          this.margin.bottom = bottomMargin;
-          this.updateContents_();
-        }
-      }, this);
+      // Draw lines to guide the eye from bottom center of the column to the
+      // tick label.
+      var guideLines = xAxis.selectAll('line.guide').data(this.data_);
+      guideLines.enter()
+        .append('line')
+        .attr('x1', (d, index) => this.xScale_(index + 0.5))
+        .attr('x2', (d, index) => this.xScale_(index + 0.5))
+        .attr('y1', () => this.chartAreaSize.height)
+        .attr('y2', (d, index) => this.chartAreaSize.height + Math.max(
+            MIN_GUIDELINE_HEIGHT_PX,
+            (TEXT_HEIGHT_PX * (this.data_.length - index - 1))));
     }
   };
 
