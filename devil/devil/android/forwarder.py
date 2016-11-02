@@ -211,7 +211,7 @@ class Forwarder(object):
       if exit_code != 0:
         error_msg = [
             '`%s` exited with %d' % (' '.join(unmap_all_cmd), exit_code)]
-        if isinstance(list, output):
+        if isinstance(output, list):
           error_msg += output
         else:
           error_msg += [output]
@@ -317,7 +317,7 @@ class Forwarder(object):
           '`%s` exited with %d:\n%s',
           ' '.join(unmap_cmd),
           exit_code,
-          '\n'.join(output))
+          '\n'.join(output) if isinstance(output, list) else output)
 
   @staticmethod
   def _GetPidForLock():
@@ -410,8 +410,10 @@ class Forwarder(object):
             kill_cmd, Forwarder._TIMEOUT)
         if exit_code != 0:
           raise HostForwarderError(
-              '%s exited with %d:\n%s' % (self._host_forwarder_path, exit_code,
-                                          '\n'.join(output)))
+              '%s exited with %d:\n%s' % (
+                  self._host_forwarder_path,
+                  exit_code,
+                  '\n'.join(output) if isinstance(output, list) else output))
     except cmd_helper.TimeoutError as e:
       raise HostForwarderError(
           '`%s` timed out:\n%s' % (' '.join(kill_cmd), e.output))
