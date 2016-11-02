@@ -161,7 +161,7 @@ def RecoverDevices(devices, blacklist, enable_usb_reset=False):
 
   device_utils.DeviceUtils.parallel(devices).pMap(
       RecoverDevice, blacklist,
-      should_reboot=lambda device: device in should_reboot_device)
+      should_reboot=lambda device: device.serial in should_reboot_device)
 
 
 def main():
