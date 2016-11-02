@@ -5,16 +5,16 @@
       "cloud_storage_base_folder": "binary_dependencies/battor",
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
-        "linux2_x86_64": {
-          "cloud_storage_hash": "136ed6d947e7edcf82e212f6a0cdddffbbe9a8d5",
-          "download_path": "../bin/linux2/x86_64/battor_agent",
+        "darwin_x86_64": {
+          "cloud_storage_hash": "6923bb851fe57f5880d5dac78add6939134e5514",
+          "download_path": "../bin/darwin/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
         },
-        "darwin_x86_64": {
-          "cloud_storage_hash": "6923bb851fe57f5880d5dac78add6939134e5514",
-          "download_path": "../bin/darwin/x86_64/battor_agent",
+        "linux2_x86_64": {
+          "cloud_storage_hash": "4e79023ea45829568d0f62e81146de334338914f",
+          "download_path": "../bin/linux2/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
           ]
