@@ -38,9 +38,8 @@ class UnixProcessCollector(ProcessCollector):
     'path': 1
   }
 
-  def __init__(self, min_pcpu, binary_output=False):
+  def __init__(self, min_pcpu):
     super(UnixProcessCollector, self).__init__(min_pcpu)
-    self._binary_output = binary_output
 
   def _ParseLine(self, line):
     """Parses a line from top output
@@ -64,11 +63,7 @@ class UnixProcessCollector(ProcessCollector):
     Returns:
       A list of dictionaries, each representing one of the top processes.
     """
-    if self._binary_output:
-      processes = subprocess.check_output(self._SHELL_COMMAND).decode(
-        'ascii').split('\n')
-    else:
-      processes = subprocess.check_output(self._SHELL_COMMAND).split('\n')
+    processes = subprocess.check_output(self._SHELL_COMMAND).split('\n')
     process_lines = processes[self._START_LINE_NUMBER:]
     top_processes = []
     for process_line in process_lines:
@@ -137,7 +132,7 @@ class MacProcessCollector(UnixProcessCollector):
   _SHELL_COMMAND = ['ps', '-arcwwwxo', 'pid command %cpu %mem']
 
   def __init__(self, min_pcpu):
-    super(MacProcessCollector, self).__init__(min_pcpu, binary_output=True)
+    super(MacProcessCollector, self).__init__(min_pcpu)
 
 
 class CpuTracingAgent(tracing_agent.TracingAgent):
