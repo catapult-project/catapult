@@ -362,9 +362,13 @@ tr.exportTo('tr.ui', function() {
       this.$.picker.settingsKey = 'tr-v-ui-histogram-set-table-groupby-picker';
 
       this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
-      this.$.picker.defaultGroupKeys = [
-        tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
-        tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
+      // If the picker did not restore currentGroupKeys from Settings,
+      // then set default currentGroupKeys.
+      if (this.$.picker.currentGroupKeys.length === 0) {
+        this.$.picker.currentGroupKeys = [
+          tr.v.HistogramSet.GROUPINGS.HISTOGRAM_NAME.key,
+          tr.v.HistogramSet.GROUPINGS.STORY_NAME.key];
+      }
       this.$.picker.addEventListener('current-groups-changed',
                                      this.currentGroupsChanged_.bind(this));
     },
