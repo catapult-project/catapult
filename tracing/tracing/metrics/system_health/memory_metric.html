@@ -1023,79 +1023,110 @@ tr.exportTo('tr.metrics.sh', function() {
 
   function reportDataAsValues(sourceToPropertyToBuilder, browserName,
       customComponentTreeModifier, values) {
+
     // For each source name (e.g. 'reported_by_os')...
     sourceToPropertyToBuilder.forEach(function(propertyToBuilder, sourceName) {
       // For each property (e.g. EFFECTIVE_SIZE)...
       propertyToBuilder.forEach(function(builders, property) {
         var tree = builders.buildTopDownTreeView();
-
-        // Total over 'all' processes...
-        customComponentTreeModifier(tree);
-        reportComponentDataAsValues(browserName, sourceName,
-            property, 'all_processes', [] /* componentPath */, tree, values);
-
-        // For each process name (e.g. 'renderer')...
-        tree.children[0].forEach(function(processTree, processName) {
-          if (processTree.children[0].size > 0) {
-            throw new Error('Multi-dimensional view node for source=' +
-                sourceName + ', property=' +
-                (propertyName === undefined ? '(undefined)' : propertyName) +
-                ', process=' + processName +
-                ' has children wrt the process name dimension');
-          }
-          customComponentTreeModifier(processTree);
-          reportComponentDataAsValues(browserName, sourceName,
-              property, processName, [] /* componentPath */, processTree,
-              values);
-        });
+        reportComponentDataAsValues(browserName, sourceName, property,
+            [] /* componentPath */, tree, values, customComponentTreeModifier);
       });
     });
   }
 
   /**
-   * For the given |browserName| (e.g. 'chrome'), |processName|
-   * (e.g. 'gpu_process'), |property| (e.g. EFFECTIVE_SIZE), |componentPath|
-   * (e.g. ['v8']), add a tr.v.Histogram with |unit| aggregating the total
+   * For the given |browserName| (e.g. 'chrome'), |property|
+   * (e.g. EFFECTIVE_SIZE), |componentPath| (e.g. ['v8']), add
+   * a tr.v.Histogram with |unit| aggregating the total
    * values of the associated |componentNode| across all timestamps
    * (corresponding to global memory dumps associated with the given browser)
-   * to |values|.
+   * |values| for each process (e.g. 'gpu_process', 'browser_process', etc).
+   * We also report a special 'all_processes' histogram which agregates all
+   * others, this has a RelatedHistogramBreakdown diagnostic explaining
+   * how it is built from the other histograms.
    *
    * See addMemoryDumpValues for more details.
    */
-  function reportComponentDataAsValues(
-      browserName, sourceName, property, processName, componentPath,
-      componentNode, values) {
-    // Construct the name of the memory value.
-    var nameParts = ['memory', browserName, processName, sourceName].concat(
-        componentPath);
-    if (property.name !== undefined)
-      nameParts.push(property.name);
-    var name = nameParts.join(':');
+  function reportComponentDataAsValues(browserName, sourceName, property,
+      componentPath, tree, values, customComponentTreeModifier) {
 
-    // Build the underlying numeric for the memory value.
-    var numeric = buildMemoryNumericFromNode(name, componentNode,
-        property.unit);
+    var breakdown = new tr.v.d.RelatedHistogramBreakdown();
 
-    // Build the options for the memory value.
-    numeric.description = [
-      property.buildDescriptionPrefix(componentPath, processName),
-      'in',
-      convertBrowserNameToUserFriendlyName(browserName)
-    ].join(' ');
+    // For each process report the value for this component.
+    tree.children[0].forEach(function(processTree, processName) {
+      customComponentTreeModifier(processTree);
+      var numeric = buildNamedMemoryNumericFromNode(browserName,
+          sourceName, property, processName, componentPath, processTree);
+      // Report the memory value.
+      values.addHistogram(numeric);
+      // Add it to the breakdown.
+      breakdown.set(processName, numeric);
+    });
 
-    // Report the memory value.
+    // Report the total over 'all' processes.
+    customComponentTreeModifier(tree);
+    var numeric = buildNamedMemoryNumericFromNode(browserName, sourceName,
+        property, 'all_processes', componentPath, tree);
+    numeric.diagnostics.set('processes', breakdown);
     values.addHistogram(numeric);
 
     // Recursively report memory values for sub-components.
     var depth = componentPath.length;
     componentPath.push(undefined);
-    componentNode.children[1].forEach(function(childNode, childName) {
+    tree.children[1].forEach(function(childNode, childName) {
       componentPath[depth] = childName;
       reportComponentDataAsValues(
-          browserName, sourceName, property, processName, componentPath,
-          childNode, values);
+          browserName, sourceName, property, componentPath,
+          childNode, values, customComponentTreeModifier);
     });
     componentPath.pop();
+  }
+
+  /**
+   * Gets the name for a histogram.
+   * The histograms have the following naming scheme:
+   * memory:chrome:browser_process:reported_by_chrome:v8:heap:effective_size_avg
+   *        ^browser ^process      ^source            ^component  ^property
+   */
+  function getNumericName(
+      browserName, sourceName, propertyName, processName, componentPath) {
+    // Construct the name of the memory value.
+    var nameParts = ['memory', browserName, processName, sourceName].concat(
+        componentPath);
+    if (propertyName !== undefined) nameParts.push(propertyName);
+    return nameParts.join(':');
+  }
+
+  /**
+   * Gets the description of a histogram.
+   */
+  function getNumericDescription(
+      property, browserName, processName, componentPath) {
+    return [
+      property.buildDescriptionPrefix(componentPath, processName),
+      'in',
+      convertBrowserNameToUserFriendlyName(browserName)
+    ].join(' ');
+  }
+
+  /**
+   * Create a memory tr.v.Histogram with |unit| and add all total values in
+   * |node| to it. Names and describes the histogram according to the
+   * |browserName|, |sourceName|, |property|, |processName| and
+   * |componentPath|.
+   */
+  function buildNamedMemoryNumericFromNode(
+        browserName, sourceName, property, processName, componentPath, node) {
+    var name = getNumericName(
+        browserName, sourceName, property.name, processName, componentPath);
+    var description = getNumericDescription(
+        property, browserName, processName, componentPath);
+
+    // Build the underlying numeric for the memory value.
+    var numeric = buildMemoryNumericFromNode(name, node, property.unit);
+    numeric.description = description;
+    return numeric;
   }
 
   /**

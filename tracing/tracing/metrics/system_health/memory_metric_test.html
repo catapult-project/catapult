@@ -3242,6 +3242,52 @@ tr.b.unittest.testSuite(function() {
     }
   });
 
+  test('allProcessesHasBreakdown', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var pBrowser = createChromeBrowserProcess(model);
+      var pRenderer = createProcessWithName(model, 'Renderer');
+      var pGpu = createProcessWithName(model, 'GPU Process');
+
+      var gmd = addGlobalMemoryDump(model, {ts: 20});
+      var pmdBrowser = addProcessMemoryDump(gmd, pBrowser, {ts: 19});
+      pmdBrowser.memoryAllocatorDumps = [
+        newAllocatorDump(pmdBrowser, 'malloc', {numerics: {
+          size: 8,
+          allocated_objects_size: 4
+        }})
+      ];
+
+      var pmdRenderer = addProcessMemoryDump(gmd, pRenderer, {ts: 20});
+      pmdRenderer.memoryAllocatorDumps = [
+        newAllocatorDump(pmdRenderer, 'malloc', {numerics: {size: 16}})
+      ];
+
+      var pmdGpu = addProcessMemoryDump(gmd, pGpu, {ts: 21});
+      pmdGpu.memoryAllocatorDumps = [
+        newAllocatorDump(pmdGpu, 'gpu', {numerics: {
+          size: 30,
+          allocated_objects_size: 25
+        }})
+      ];
+    });
+
+    var values = new tr.v.HistogramSet();
+    function get(name) {
+      return tr.b.getOnlyElement(values.getValuesNamed(name));
+    }
+    tr.metrics.sh.memoryMetric(values, model);
+    var prefix = 'memory:chrome:';
+    var suffix = ':reported_by_chrome:malloc:effective_size';
+    var allHistogram = get(prefix + 'all_processes' + suffix);
+    var rendererHistogram = get(prefix + 'renderer_processes' + suffix);
+    var browserHistogram = get(prefix + 'browser_process' + suffix);
+
+    var breakdown = allHistogram.diagnostics.get('processes');
+    assert.strictEqual(breakdown.get('browser_process'), browserHistogram);
+    assert.strictEqual(breakdown.get('renderer_processes'), rendererHistogram);
+    assert.strictEqual(breakdown.get('gpu_process'), undefined);
+  });
+
   test('dumpIdBrowserClashThrows', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
       var pWebView = createWebViewProcess(model);
