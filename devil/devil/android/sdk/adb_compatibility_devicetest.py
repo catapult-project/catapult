@@ -83,7 +83,7 @@ class AdbCompatibilityTest(device_test_case.DeviceTestCase):
       adb_wrapper.AdbWrapper.StartServer()
 
     adb_pids = _hostAdbPids()
-    self.assertEqual(1, len(adb_pids))
+    self.assertGreaterEqual(len(adb_pids), 1)
 
     kill_server_status, _ = cmd_helper.GetCmdStatusAndOutput(
         [adb_wrapper.AdbWrapper.GetAdbPath(), 'kill-server'])
