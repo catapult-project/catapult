@@ -30,32 +30,24 @@ class UnixProcessCollector(ProcessCollector):
 
   _SHELL_COMMAND = NotImplemented
   _START_LINE_NUMBER = 1
-  _TOKEN_COUNT = 4
-  _TOKEN_MAP = {
-    'pCpu': 2,
-    'pid': 0,
-    'pMem': 3,
-    'path': 1
-  }
 
   def __init__(self, min_pcpu):
     super(UnixProcessCollector, self).__init__(min_pcpu)
 
   def _ParseLine(self, line):
-    """Parses a line from top output
+    """Parses a line from `ps` output."""
 
-    Args:
-      line(str): a line from top output that contains the information about a
-                 process.
 
-    Returns:
-      An dictionary with useful information about the process.
-    """
     token_list = line.strip().split()
-    if len(token_list) != self._TOKEN_COUNT:
-      return None
-    return {attribute_name: token_list[index]
-            for attribute_name, index in self._TOKEN_MAP.items()}
+    if len(token_list) < 4:
+      raise ValueError('Line has too few tokens: %s.' % token_list)
+
+    return {
+      'pCpu': token_list[0],
+      'pMem': token_list[1],
+      'pid': token_list[2],
+      'name': ' '.join(token_list[3:])
+    }
 
   def GetProcesses(self):
     """Fetches the top processes returned by top command.
@@ -63,14 +55,14 @@ class UnixProcessCollector(ProcessCollector):
     Returns:
       A list of dictionaries, each representing one of the top processes.
     """
-    processes = subprocess.check_output(self._SHELL_COMMAND).split('\n')
-    process_lines = processes[self._START_LINE_NUMBER:]
+    lines = subprocess.check_output(self._SHELL_COMMAND).strip().split('\n')
+    process_lines = lines[self._START_LINE_NUMBER:]
+
     top_processes = []
     for process_line in process_lines:
       process = self._ParseLine(process_line)
       if (not process) or (float(process['pCpu']) < self._min_pcpu):
         continue
-      process['name'] = os.path.split(process['path'])[1]
       top_processes.append(process)
     return top_processes
 
@@ -114,9 +106,17 @@ class WindowsProcessCollector(ProcessCollector):
 class LinuxProcessCollector(UnixProcessCollector):
   """Class for collecting information about processes on Linux.
 
-  Example of Linux command output: '31887 com.app.Webkit 3.4 8.0'"""
+  Example of Linux command output:
+  '3.4 8.0 31887 com.app.Webkit'
+  """
 
-  _SHELL_COMMAND = ["ps", "axo", "pid,cmd,pcpu,pmem", "--sort=-pcpu"]
+  _SHELL_COMMAND = [
+    'ps',
+    '-a', # Include processes that aren't session leaders.
+    '-x', # List all processes, even those not owned by the user.
+    '-o', # Show the output in the specified format.
+    'pcpu,pmem,pid,cmd'
+  ]
 
 
   def __init__(self, min_pcpu):
@@ -127,9 +127,17 @@ class MacProcessCollector(UnixProcessCollector):
   """Class for collecting information about processes on Mac.
 
   Example of Mac command output:
-  '31887 com.app.Webkit 3.4 8.0'"""
+  '3.4 8.0 31887 com.app.Webkit'
+  """
 
-  _SHELL_COMMAND = ['ps', '-arcwwwxo', 'pid command %cpu %mem']
+  _SHELL_COMMAND = [
+    'ps',
+    '-a', # Include all users' processes.
+    '-ww', # Don't limit the length of each line.
+    '-x', # Include processes that aren't associated with a terminal.
+    '-o', # Show the output in the specified format.
+    '%cpu %mem pid command' # Put the command last to avoid truncation.
+  ]
 
   def __init__(self, min_pcpu):
     super(MacProcessCollector, self).__init__(min_pcpu)
