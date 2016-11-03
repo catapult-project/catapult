@@ -120,9 +120,17 @@ tr.exportTo('tr.b', function() {
     }
 
     // Vinn.
-    if (isBinary)
-      return readbuffer(filename);
-    return read(filename);
+    try {
+      if (isBinary)
+        return readbuffer(filename);
+      return read(filename);
+    } catch (ex) {
+      if (ex.message) {
+        ex.message += ' when reading ' + filename;
+        throw ex;
+      }
+      throw new Error(ex + ' when reading' + filename);
+    }
   }
 
   function postAsync(url, data) {
