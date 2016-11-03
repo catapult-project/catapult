@@ -130,4 +130,4 @@ class CpuTracingAgentTest(unittest.TestCase):
     self.assertTrue(data)
     for snapshot in data:
       for process in snapshot['args']['snapshot']['processes']:
-        self.assertTrue(process['pCpu'] >= cpu_tracing_agent.DEFAULT_MIN_PCPU)
+        self.assertTrue(process['pCpu'] > 0 or process['pMem'] > 0)

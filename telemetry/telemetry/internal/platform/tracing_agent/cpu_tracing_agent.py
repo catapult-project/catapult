@@ -3,12 +3,7 @@
 # found in the LICENSE file.
 
 import json
-import logging
 import os
-try:
-  import psutil
-except ImportError:
-  psutil = None
 import subprocess
 from threading import Timer
 
@@ -16,100 +11,79 @@ from py_trace_event import trace_time
 from telemetry.internal.platform import tracing_agent
 from telemetry.timeline import trace_data
 
-DEFAULT_MIN_PCPU = 0.1
+
+def _ParsePsProcessString(line):
+  """Parses a process line from the output of `ps`.
+
+  Example of `ps` command output:
+  '3.4 8.0 31887 com.app.Webkit'
+  """
+  token_list = line.strip().split()
+  if len(token_list) < 4:
+    raise ValueError('Line has too few tokens: %s.' % token_list)
+
+  return {
+    'pCpu': token_list[0],
+    'pMem': token_list[1],
+    'pid': token_list[2],
+    'name': ' '.join(token_list[3:])
+  }
+
 
 class ProcessCollector(object):
+  def _GetProcessesAsStrings(self):
+    """Returns a list of strings, each of which contains info about a
+    process.
+    """
+    raise NotImplementedError
 
-  def __init__(self, min_pcpu):
-    self._min_pcpu = min_pcpu
+  def _ParseProcessString(self, proc_string):
+    """Parses an individual process string returned by _GetProcessesAsStrings().
 
-  def GetProcesses(self):
-    return NotImplemented
-
-class UnixProcessCollector(ProcessCollector):
-
-  _SHELL_COMMAND = NotImplemented
-  _START_LINE_NUMBER = 1
-
-  def __init__(self, min_pcpu):
-    super(UnixProcessCollector, self).__init__(min_pcpu)
-
-  def _ParseLine(self, line):
-    """Parses a line from `ps` output."""
-
-
-    token_list = line.strip().split()
-    if len(token_list) < 4:
-      raise ValueError('Line has too few tokens: %s.' % token_list)
-
-    return {
-      'pCpu': token_list[0],
-      'pMem': token_list[1],
-      'pid': token_list[2],
-      'name': ' '.join(token_list[3:])
-    }
+    Returns:
+      A dictionary containing keys of 'pid' (a string process ID), 'name' (a
+      string for the process name), 'pCpu' (a float for the percent CPU load
+      incurred by the process), and 'pMem' (a float for the percent memory load
+      caused by the process).
+    """
+    raise NotImplementedError
 
   def GetProcesses(self):
     """Fetches the top processes returned by top command.
 
     Returns:
-      A list of dictionaries, each representing one of the top processes.
+      A list of dictionaries, each containing 'pid' (a string process ID), 'name
+      (a string for the process name), pCpu' (a float for the percent CPU load
+      incurred by the process), and 'pMem' (a float for the percent memory load
+      caused by the process).
     """
-    lines = subprocess.check_output(self._SHELL_COMMAND).strip().split('\n')
-    process_lines = lines[self._START_LINE_NUMBER:]
+    proc_strings = self._GetProcessesAsStrings()
+    raw_procs = [
+        self._ParseProcessString(proc_string) for proc_string in proc_strings
+    ]
 
-    top_processes = []
-    for process_line in process_lines:
-      process = self._ParseLine(process_line)
-      if (not process) or (float(process['pCpu']) < self._min_pcpu):
-        continue
-      top_processes.append(process)
-    return top_processes
+    # TODO(charliea): Aggregate all processes with the same name into a single
+    # entry and add a 'count' key indicating how many processes exist with that
+    # name. That way, we can easily see things like "Chrome had 25 processes
+    # which, combined, took up 25 percent of memory and 40 percent of CPU".
+    return [proc for proc in raw_procs if proc['pCpu'] > 0 or proc['pMem'] > 0]
+
 
 class WindowsProcessCollector(ProcessCollector):
-  """Class for collecting information about processes on Windows.
+  """Class for collecting information about processes on Windows."""
+  def _GetProcessesAsStrings(self):
+    raise NotImplementedError
 
-  Windows does not have a fast and simple command to list processes, so psutil
-  package is used instead."""
-
-  def __init__(self, min_pcpu):
-    super(WindowsProcessCollector, self).__init__(min_pcpu)
-
-  def GetProcesses(self):
-    data = []
-    for p in psutil.process_iter():
-      try:
-        cpu_percent = p.get_cpu_percent(interval=0)
-        if cpu_percent >= self._min_pcpu:
-          # Get full path of the process. p.exe often throws AccessDenied
-          # and should have its own try block so that the dictionary literal
-          # can be added to returned data whether p.exe throws an exception
-          # ot not.
-          try:
-            path = p.exe
-          except psutil.Error:
-            path = None
-          data.append({
-            'pCpu': cpu_percent,
-            'pMem': p.get_memory_percent(),
-            'name': p.name,
-            'pid': p.pid,
-            'path': path
-          })
-      except psutil.Error:
-        logging.exception('Failed to get process data')
-    data = sorted(data, key=lambda d: d['pCpu'],
-                  reverse=True)
-    return data
+  def _ParseProcessString(self, proc_string):
+    raise NotImplementedError
 
 
-class LinuxProcessCollector(UnixProcessCollector):
+class LinuxProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Linux.
 
   Example of Linux command output:
   '3.4 8.0 31887 com.app.Webkit'
   """
-
   _SHELL_COMMAND = [
     'ps',
     '-a', # Include processes that aren't session leaders.
@@ -118,12 +92,15 @@ class LinuxProcessCollector(UnixProcessCollector):
     'pcpu,pmem,pid,cmd'
   ]
 
+  def _GetProcessesAsStrings(self):
+    # Skip the header row and strip the trailing newline.
+    return subprocess.check_output(self._SHELL_COMMAND).strip().split('\n')[1:]
 
-  def __init__(self, min_pcpu):
-    super(LinuxProcessCollector, self).__init__(min_pcpu)
+  def _ParseProcessString(self, proc_string):
+    return _ParsePsProcessString(proc_string)
 
 
-class MacProcessCollector(UnixProcessCollector):
+class MacProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Mac.
 
   Example of Mac command output:
@@ -139,25 +116,29 @@ class MacProcessCollector(UnixProcessCollector):
     '%cpu %mem pid command' # Put the command last to avoid truncation.
   ]
 
-  def __init__(self, min_pcpu):
-    super(MacProcessCollector, self).__init__(min_pcpu)
+  def _GetProcessesAsStrings(self):
+    # Skip the header row and strip the trailing newline.
+    return subprocess.check_output(self._SHELL_COMMAND).strip().split('\n')[1:]
+
+  def _ParseProcessString(self, proc_string):
+    return _ParsePsProcessString(proc_string)
 
 
 class CpuTracingAgent(tracing_agent.TracingAgent):
 
   SNAPSHOT_FREQUENCY = 1.0
 
-  def __init__(self, platform_backend, min_pcpu=DEFAULT_MIN_PCPU):
+  def __init__(self, platform_backend):
     super(CpuTracingAgent, self).__init__(platform_backend)
     self._snapshot_ongoing = False
     self._snapshots = []
     self._os_name = platform_backend.GetOSName()
     if  self._os_name == 'win':
-      self._collector = WindowsProcessCollector(min_pcpu)
+      self._collector = WindowsProcessCollector()
     elif self._os_name == 'mac':
-      self._collector = MacProcessCollector(min_pcpu)
+      self._collector = MacProcessCollector()
     else:
-      self._collector = LinuxProcessCollector(min_pcpu)
+      self._collector = LinuxProcessCollector()
 
   @classmethod
   def IsSupported(cls, platform_backend):
@@ -194,8 +175,6 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     assert not self._snapshot_ongoing, (
            'Agent is still taking snapshots when data is collected.')
     self._snapshot_ongoing = False
-    if self._os_name == 'win' and self._snapshots:
-      self._snapshots.pop(0)
     data = json.dumps(self._FormatSnapshotsData())
     trace_data_builder.SetTraceFor(trace_data.CPU_TRACE_DATA, data)
 
