@@ -44,11 +44,6 @@ from devil.android.sdk import version_codes
 from devil.android.tools import video_recorder
 
 try:
-  from devil.android import forwarder
-except ImportError:
-  forwarder = None
-
-try:
   from devil.android.perf import surface_stats_collector
 except Exception:
   surface_stats_collector = None
@@ -162,9 +157,6 @@ class AndroidPlatformBackend(
       return 'svelte' in description
     else:
       return False
-
-  def GetRemotePort(self, port):
-    return forwarder.DevicePortForHostPort(port) or 0
 
   def IsDisplayTracingSupported(self):
     return bool(self.GetOSVersionName() >= 'J')
