@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 <link rel="import" href="/tracing/ui/timeline_display_transform.html">
-<link rel="import" href="/tracing/ui/tracks/chart_axis.html">
+<link rel="import" href="/tracing/ui/tracks/chart_series_y_axis.html">
 <link rel="import" href="/tracing/ui/tracks/chart_transform.html">
 
 <script>
@@ -16,18 +16,18 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
   var ChartTransform = tr.ui.tracks.ChartTransform;
-  var ChartAxis = tr.ui.tracks.ChartAxis;
+  var ChartSeriesYAxis = tr.ui.tracks.ChartSeriesYAxis;
 
   function buildChartTransform() {
     var displayTransform = new TimelineDisplayTransform();
     displayTransform.panX = -20;
     displayTransform.scaleX = 0.5;
 
-    var axis = new ChartAxis(-100, 100);
+    var seriesYAxis = new ChartSeriesYAxis(-100, 100);
 
     var chartTransform = new ChartTransform(
         displayTransform,
-        axis,
+        seriesYAxis,
         500, /* trackWidth */
         80, /* trackHeight */
         15, /* topPadding */

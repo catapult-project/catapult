@@ -11,9 +11,9 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/model/event_set.html">
 <link rel="import" href="/tracing/model/selection_state.html">
 <link rel="import" href="/tracing/ui/timeline_track_view.html">
-<link rel="import" href="/tracing/ui/tracks/chart_axis.html">
 <link rel="import" href="/tracing/ui/tracks/chart_point.html">
 <link rel="import" href="/tracing/ui/tracks/chart_series.html">
+<link rel="import" href="/tracing/ui/tracks/chart_series_y_axis.html">
 <link rel="import" href="/tracing/ui/tracks/chart_track.html">
 <link rel="import" href="/tracing/ui/tracks/event_to_track_map.html">
 
@@ -21,7 +21,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
-  var ChartAxis = tr.ui.tracks.ChartAxis;
+  var ChartSeriesYAxis = tr.ui.tracks.ChartSeriesYAxis;
   var ChartPoint = tr.ui.tracks.ChartPoint;
   var ChartSeries = tr.ui.tracks.ChartSeries;
   var ChartSeriesType = tr.ui.tracks.ChartSeriesType;
@@ -44,8 +44,8 @@ tr.b.unittest.testSuite(function() {
       var viewport = new Viewport(document.createElement('div'));
     }
 
-    var axis1 = new ChartAxis(0, 2.5);
-    var axis2 = new ChartAxis(-100, 100);
+    var seriesYAxis1 = new ChartSeriesYAxis(0, 2.5);
+    var seriesYAxis2 = new ChartSeriesYAxis(-100, 100);
 
     var points1 = [
       buildPoint(-2.5, 2),
@@ -63,7 +63,7 @@ tr.b.unittest.testSuite(function() {
     if (opt_args && opt_args.stepGraph !== undefined) {
       renderingConfig1.stepGraph = opt_args.stepGraph;
     }
-    var series1 = new ChartSeries(points1, axis1, renderingConfig1);
+    var series1 = new ChartSeries(points1, seriesYAxis1, renderingConfig1);
 
     var points2 = [
       buildPoint(-2.3, 0.2),
@@ -81,7 +81,7 @@ tr.b.unittest.testSuite(function() {
     if (opt_args && opt_args.stepGraph !== undefined) {
       renderingConfig2.stepGraph = opt_args.stepGraph;
     }
-    var series2 = new ChartSeries(points2, axis1, renderingConfig2);
+    var series2 = new ChartSeries(points2, seriesYAxis1, renderingConfig2);
 
     var points3 = [
       buildPoint(-3, -50),
@@ -103,7 +103,7 @@ tr.b.unittest.testSuite(function() {
     if (opt_args && opt_args.stepGraph !== undefined) {
       renderingConfig3.stepGraph = opt_args.stepGraph;
     }
-    var series3 = new ChartSeries(points3, axis2, renderingConfig3);
+    var series3 = new ChartSeries(points3, seriesYAxis2, renderingConfig3);
 
     var track = new ChartTrack(viewport);
     track.series = [series1, series2, series3];
@@ -114,7 +114,7 @@ tr.b.unittest.testSuite(function() {
   function buildDashboardTrack(opt_viewport) {
     var viewport = opt_viewport || new Viewport(document.createElement('div'));
 
-    var axis = new ChartAxis(0, 1.1);
+    var seriesYAxis = new ChartSeriesYAxis(0, 1.1);
     var fileUrl = '/test_data/dashboard_test_points.json';
     var pointsArray = JSON.parse(tr.b.getSync(fileUrl));
     var points = [];
@@ -130,7 +130,7 @@ tr.b.unittest.testSuite(function() {
       highDetail: false,
       skipDistance: 0.4
     };
-    var series = new ChartSeries(points, axis, renderingConfig);
+    var series = new ChartSeries(points, seriesYAxis, renderingConfig);
 
     var track = new ChartTrack(viewport);
     track.series = [series];
@@ -316,35 +316,35 @@ tr.b.unittest.testSuite(function() {
 
   test('checkAutoSetAllAxes', function() {
     var track = buildTrack();
-    var axis1 = track.series[0].axis;
-    var axis2 = track.series[2].axis;
+    var seriesYAxis1 = track.series[0].seriesYAxis;
+    var seriesYAxis2 = track.series[2].seriesYAxis;
 
     track.autoSetAllAxes({expandMax: true, shrinkMax: true});
 
     // Min bounds of both axes should not have been modified.
-    assert.equal(axis1.bounds.min, 0);
-    assert.equal(axis2.bounds.min, -100);
+    assert.equal(seriesYAxis1.bounds.min, 0);
+    assert.equal(seriesYAxis2.bounds.min, -100);
 
     // Max bounds of both axes should have been modified.
-    assert.equal(axis1.bounds.max, 2.2);
-    assert.equal(axis2.bounds.max, 50);
+    assert.equal(seriesYAxis1.bounds.max, 2.2);
+    assert.equal(seriesYAxis2.bounds.max, 50);
   });
 
   test('checkAutoSetAxis', function() {
     var track = buildTrack();
-    var axis1 = track.series[0].axis;
-    var axis2 = track.series[2].axis;
+    var seriesYAxis1 = track.series[0].seriesYAxis;
+    var seriesYAxis2 = track.series[2].seriesYAxis;
 
-    track.autoSetAxis(axis2,
+    track.autoSetAxis(seriesYAxis2,
         {expandMin: true, shrinkMin: true, expandMax: true, shrinkMax: true});
 
     // First axis should not have been modified.
-    assert.equal(axis1.bounds.min, 0);
-    assert.equal(axis1.bounds.max, 2.5);
+    assert.equal(seriesYAxis1.bounds.min, 0);
+    assert.equal(seriesYAxis1.bounds.max, 2.5);
 
     // Second axis should have been modified.
-    assert.equal(axis2.bounds.min, -50);
-    assert.equal(axis2.bounds.max, 50);
+    assert.equal(seriesYAxis2.bounds.min, -50);
+    assert.equal(seriesYAxis2.bounds.max, 50);
   });
 });
 </script>

@@ -7,9 +7,9 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
-<link rel="import" href="/tracing/ui/tracks/chart_axis.html">
 <link rel="import" href="/tracing/ui/tracks/chart_point.html">
 <link rel="import" href="/tracing/ui/tracks/chart_series.html">
+<link rel="import" href="/tracing/ui/tracks/chart_series_y_axis.html">
 <link rel="import" href="/tracing/ui/tracks/chart_track.html">
 
 <style>
@@ -63,7 +63,7 @@ tr.exportTo('tr.ui.tracks', function() {
       if (!this.hasVisibleContent)
         return [];
 
-      var axis = new tr.ui.tracks.ChartAxis(0, undefined);
+      var seriesYAxis = new tr.ui.tracks.ChartSeriesYAxis(0, undefined);
       var pts = this.powerSeries_.samples.map(function(smpl) {
         return new tr.ui.tracks.ChartPoint(smpl, smpl.start, smpl.powerInW);
       });
@@ -72,7 +72,7 @@ tr.exportTo('tr.ui.tracks', function() {
         colorId: ColorScheme.getColorIdForGeneralPurposeString(this.heading)
       };
 
-      return [new tr.ui.tracks.ChartSeries(pts, axis, renderingConfig)];
+      return [new tr.ui.tracks.ChartSeries(pts, seriesYAxis, renderingConfig)];
     }
   };
 

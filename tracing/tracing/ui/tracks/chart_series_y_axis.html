@@ -18,7 +18,7 @@ tr.exportTo('tr.ui.tracks', function() {
    *
    * @constructor
    */
-  function ChartAxis(opt_min, opt_max) {
+  function ChartSeriesYAxis(opt_min, opt_max) {
     this.guid_ = tr.b.GUID.allocateSimple();
     this.bounds = new tr.b.Range();
     if (opt_min !== undefined)
@@ -27,14 +27,14 @@ tr.exportTo('tr.ui.tracks', function() {
       this.bounds.addValue(opt_max);
   }
 
-  ChartAxis.prototype = {
+  ChartSeriesYAxis.prototype = {
     get guid() {
       return this.guid_;
     },
 
     valueToUnitRange: function(value) {
       if (this.bounds.isEmpty)
-        throw new Error('Chart axis bounds are empty');
+        throw new Error('Chart series y-axis bounds are empty');
       var bounds = this.bounds;
       if (bounds.range === 0)
         return 0;
@@ -42,8 +42,8 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     /**
-     * Automatically set the axis bounds from the range of values of all series
-     * in a list.
+     * Automatically set the y-axis bounds from the range of values of all
+     * series in a list.
      *
      * See the description of autoSetFromRange for the optional configuration
      * argument flags.
@@ -57,7 +57,7 @@ tr.exportTo('tr.ui.tracks', function() {
     },
 
     /**
-     * Automatically set the axis bound from a range of values.
+     * Automatically set the y-axis bound from a range of values.
      *
      * The following four flags, which affect the behavior of this method with
      * respect to already defined bounds, can be present in the optional
@@ -121,7 +121,7 @@ tr.exportTo('tr.ui.tracks', function() {
   };
 
   return {
-    ChartAxis: ChartAxis
+    ChartSeriesYAxis: ChartSeriesYAxis
   };
 });
 </script>

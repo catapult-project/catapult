@@ -88,9 +88,9 @@ tr.exportTo('tr.ui.tracks', function() {
    *
    * @constructor
    */
-  function ChartSeries(points, axis, opt_renderingConfig) {
+  function ChartSeries(points, seriesYAxis, opt_renderingConfig) {
     this.points = points;
-    this.axis = axis;
+    this.seriesYAxis = seriesYAxis;
 
     this.useRenderingConfig_(opt_renderingConfig);
   }
