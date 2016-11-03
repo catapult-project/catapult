@@ -35,10 +35,20 @@ Fields:
  * path after master/bot. Can contain slashes.
  * `format_version` (string): Allows dashboard to know how to process
  the structure.
- * `revisions` (dict): Maps repo name to revision.
+ * `versions` (dict): Maps repo name to revision. Ping dashboard admins to
+   get a new revision type added; here are some available ones:
+   * `chrome_version`: Version number of Chrome, like 54.0.2840.71
+   * `chromium_git`: Chromium git hash
+   * `chromium_commit_pos`: Chromium commit position
+   * `v8_git`: v8 git hash
  * `supplemental` (dict): Unstructured key-value pairs which may be
  displayed on the dashboard. Used to describe bot hardware, OS,
  Chrome feature status, etc.
+   * `default_rev`: This is used to specify which version type to show as the
+      default in tooltips and x-axis. It maps to one of the keys in the
+      `versions` dict, with an `r_` prepended. For example, if you want to
+      set the default version to chrome_version, you'd specify
+      `default-rev`: `r_chrome_version`.
  * `chart_data` (dict): The chart JSON as output by Telemetry.
 
 ### Chart data:
