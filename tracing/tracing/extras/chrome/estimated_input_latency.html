@@ -37,24 +37,19 @@ tr.exportTo('tr.e.chrome', function() {
    * renderer became interactive.
    */
   function getInteractiveTimestamps(model) {
-    // TODO(dproy): When LoadExpectation v.1.0 is released,
-    // update this function to use the new LoadExpectation rather
-    // than calling loading_metric.html.
-
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.loadingMetric(values, model);
-    var ttiValues = values.getValuesNamed('timeToFirstInteractive');
     var interactiveTimestampsMap = new Map();
-    for (var bin of tr.b.getOnlyElement(ttiValues).allBins) {
-      for (var diagnostics of bin.diagnosticMaps) {
-        var value = diagnostics.get('Navigation infos').value;
-        var pid = value.pid;
-        var interactiveTimestampsForProcess =
-            interactiveTimestampsMap.get(pid) || [];
-        interactiveTimestampsForProcess.push(value.interactive);
-        interactiveTimestampsMap.set(pid, interactiveTimestampsForProcess);
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+      var timestamps = [];
+      interactiveTimestampsMap.set(rendererHelper.pid, timestamps);
+      var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
+          rendererHelper).firstInteractiveSamples;
+      for (var sample of samples) {
+        timestamps.push(
+            sample.diagnostics['Navigation infos'].value.interactive);
       }
-    }
+    });
     return interactiveTimestampsMap;
   }
 
