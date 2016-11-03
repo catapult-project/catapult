@@ -374,6 +374,7 @@
       'tracing/ui/base/mouse_modes.html',
       'tracing/ui/base/mouse_tracker.html',
       'tracing/ui/base/name_bar_chart.html',
+      'tracing/ui/base/name_line_chart.html',
       'tracing/ui/base/overlay.html',
       'tracing/ui/base/pie_chart.html',
       'tracing/ui/base/polymer_postload.html',

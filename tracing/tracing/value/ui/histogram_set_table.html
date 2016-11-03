@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
+<link rel="import" href="/tracing/ui/base/name_line_chart.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_span.html">
@@ -17,7 +18,7 @@ found in the LICENSE file.
 <dom-module id="tr-v-ui-histogram-set-table-cell">
   <template>
     <style>
-    :host {
+    #histogram_container {
       display: flex;
       flex-direction: row;
     }
@@ -26,7 +27,7 @@ found in the LICENSE file.
       flex-grow: 1;
     }
 
-    svg {
+    #open_histogram, #close_histogram{
       height: 1em;
     }
 
@@ -61,26 +62,96 @@ found in the LICENSE file.
     #close_histogram:hover line {
       stroke: white;
     }
+
+    #overview_container {
+      display: none;
+    }
     </style>
 
-    <span id="missing">(missing)</span>
-    <span id="empty">(empty)</span>
-    <span id="unmergeable">(unmergeable)</span>
+    <div id="histogram_container">
+      <span id="missing">(missing)</span>
+      <span id="empty">(empty)</span>
+      <span id="unmergeable">(unmergeable)</span>
 
-    <tr-v-ui-scalar-span id="scalar" on-click="openHistogram_"></tr-v-ui-scalar-span>
+      <tr-v-ui-scalar-span id="scalar" on-click="openHistogram_"></tr-v-ui-scalar-span>
 
-    <svg viewbox="0 0 128 128" id="open_histogram" on-click="openHistogram_">
-      <rect x="16" y="24" width="32" height="16"/>
-      <rect x="16" y="56" width="96" height="16"/>
-      <rect x="16" y="88" width="64" height="16"/>
-    </svg>
+      <svg viewbox="0 0 128 128" id="open_histogram" on-click="openHistogram_">
+        <rect x="16" y="24" width="32" height="16"/>
+        <rect x="16" y="56" width="96" height="16"/>
+        <rect x="16" y="88" width="64" height="16"/>
+      </svg>
 
-    <span id="histogram"></span>
+      <span id="histogram"></span>
 
-    <svg viewbox="0 0 128 128" id="close_histogram" on-click="closeHistogram_">
-      <line x1="28" y1="28" x2="100" y2="100"/>
-      <line x1="28" y1="100" x2="100" y2="28"/>
-    </svg>
+      <svg viewbox="0 0 128 128" id="close_histogram" on-click="closeHistogram_">
+        <line x1="28" y1="28" x2="100" y2="100"/>
+        <line x1="28" y1="100" x2="100" y2="28"/>
+      </svg>
+    </div>
+
+    <div id="overview_container">
+    </div>
+  </template>
+</dom-module>
+
+<dom-module id="tr-v-ui-histogram-set-table-name-cell">
+  <template>
+    <style>
+    #name_container {
+      display: flex;
+    }
+
+    #name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    #show_overview, #hide_overview {
+      height: 1em;
+    }
+
+    #show_overview {
+      stroke: blue;
+      stroke-width: 16;
+    }
+
+    #show_overview:hover {
+      background: blue;
+      stroke: white;
+    }
+
+    #hide_overview {
+      display: none;
+      stroke-width: 18;
+      stroke: black;
+    }
+
+    #hide_overview:hover {
+      background: black;
+      stroke: white;
+    }
+
+    #overview_container {
+      display: none;
+    }
+    </style>
+
+    <div id="name_container">
+      <span id="name"></span>
+      <svg viewbox="0 0 128 128" id="show_overview" on-click="showOverview_">
+        <line x1="19" y1="109" x2="49" y2="49"/>
+        <line x1="49" y1="49" x2="79" y2="79"/>
+        <line x1="79" y1="79" x2="109" y2="19"/>
+      </svg>
+      <svg viewbox="0 0 128 128" id="hide_overview" on-click="hideOverview_">
+        <line x1="28" y1="28" x2="100" y2="100"/>
+        <line x1="28" y1="100" x2="100" y2="28"/>
+      </svg>
+    </div>
+
+    <div id="overview_container">
+    </div>
   </template>
 </dom-module>
 
@@ -126,6 +197,32 @@ found in the LICENSE file.
       white-space: nowrap;
     }
 
+    #show_overview, #hide_overview {
+      height: 1em;
+      margin-right: 20px;
+    }
+
+    #show_overview {
+      stroke: blue;
+      stroke-width: 16;
+    }
+
+    #show_overview:hover {
+      background: blue;
+      stroke: white;
+    }
+
+    #hide_overview {
+      display: none;
+      stroke-width: 18;
+      stroke: black;
+    }
+
+    #hide_overview:hover {
+      background: black;
+      stroke: white;
+    }
+
     #reference_column_container * {
       margin-right: 20px;
     }
@@ -136,6 +233,16 @@ found in the LICENSE file.
     <div id="container">
       <div id="controls">
         <input id="search" placeholder="Find Histogram name" on-keyup="onSearch_">
+
+        <svg viewbox="0 0 128 128" id="show_overview" on-click="showOverview_">
+          <line x1="19" y1="109" x2="49" y2="49"/>
+          <line x1="49" y1="49" x2="79" y2="79"/>
+          <line x1="79" y1="79" x2="109" y2="19"/>
+        </svg>
+        <svg viewbox="0 0 128 128" id="hide_overview" on-click="hideOverview_">
+          <line x1="28" y1="28" x2="100" y2="100"/>
+          <line x1="28" y1="100" x2="100" y2="28"/>
+        </svg>
 
         <span id="reference_column_container"></span>
 
@@ -190,12 +297,94 @@ tr.exportTo('tr.ui', function() {
   var NAME_COLUMN_WIDTH_PX = 300;
 
   Polymer({
+    is: 'tr-v-ui-histogram-set-table-name-cell',
+
+    created: function() {
+      this.row_ = undefined;
+      this.overviewChart_ = undefined;
+    },
+
+    get row() {
+      return this.row_;
+    },
+
+    set row(row) {
+      this.row_ = row;
+      Polymer.dom(this.$.name).textContent = this.row.name;
+
+      this.title = this.row.name;
+      if (this.row.description) {
+        this.title += '\n' + this.row.description;
+      }
+
+      var widthPx = this.nameWidthPx;
+      this.$.name.style.maxWidth = widthPx + 'px';
+      this.$.name.style.width = widthPx + 'px';
+    },
+
+    get nameWidthPx() {
+      // tr-ui-b-table adds 16px of padding for each additional level of subRows
+      // nesting, so outer nameDivs can be wider than inner nameDivs.
+      return NAME_COLUMN_WIDTH_PX - (16 * this.row.depth);
+    },
+
+    hideOverview_: function(opt_event) {
+      if (opt_event) {
+        opt_event.stopPropagation();
+      }
+      this.$.overview_container.style.display = 'none';
+      this.$.hide_overview.style.display = 'none';
+      this.$.show_overview.style.display = 'block';
+
+      tr.b.iterItems(this.row.cells, (displayLabel, cell) => {
+        cell.hideOverview();
+      });
+    },
+
+    showOverview_: function(opt_event) {
+      if (opt_event) {
+        opt_event.preventDefault();
+        opt_event.stopPropagation();
+      }
+      if (this.overviewChart_ === undefined) {
+        var data = [];
+        var unitString = undefined;
+        tr.b.iterItems(this.row.columns, (displayLabel, hist) => {
+          data.push({x: displayLabel, y: hist.average});
+          unitString = hist.unit.unitString;
+        });
+        if (data.length < 2) {
+          return;
+        }
+
+        this.overviewChart_ = new tr.ui.b.NameLineChart();
+        this.overviewChart_.width = this.nameWidthPx;
+        this.overviewChart_.height = 150;
+        this.overviewChart_.margin.right = 0;
+        this.overviewChart_.hideLegend = true;
+        this.$.overview_container.appendChild(this.overviewChart_);
+        this.overviewChart_.yAxisLabel = unitString;
+        this.overviewChart_.data = data;
+      }
+      this.$.overview_container.style.display = 'block';
+      this.$.hide_overview.style.display = 'block';
+      this.$.show_overview.style.display = 'none';
+
+      tr.b.iterItems(this.row.cells, (displayLabel, cell) => {
+        cell.showOverview();
+      });
+    }
+  });
+
+  Polymer({
     is: 'tr-v-ui-histogram-set-table-cell',
 
     created: function() {
       this.histogram_ = undefined;
       this.referenceHistogram_ = undefined;
       this.histogramSpan_ = undefined;
+      this.overviewChart_ = undefined;
+      this.row_ = undefined;
     },
 
     ready: function() {
@@ -209,6 +398,14 @@ tr.exportTo('tr.ui', function() {
       // around. Prevent table relayout by preventing the tr-ui-b-table from
       // receiving the click event.
       event.stopPropagation();
+    },
+
+    set row(row) {
+      this.row_ = row;
+    },
+
+    get row() {
+      return this.row_;
     },
 
     get histogram() {
@@ -324,6 +521,45 @@ tr.exportTo('tr.ui', function() {
         this.$.scalar.setValueAndUnit(
             this.histogram.average, this.histogram.unit);
       }
+    },
+
+    showOverview: function() {
+      if (this.overviewChart_ === undefined) {
+        // TODO var displayLabel = getDisplayLabel(this.histogram);
+        var displayLabel = undefined;
+        tr.b.iterItems(this.row.columns, (label, hist) => {
+          if (hist === this.histogram) {
+            displayLabel = label;
+          }
+        });
+
+        var data = [];
+        var unitString = undefined;
+        for (var subRow of this.row.subRows) {
+          var subHist = subRow.columns[displayLabel];
+          if (subHist) {
+            data.push({x: subRow.name, y: subHist.average});
+            unitString = subHist.unit.unitString;
+          }
+        }
+        if (data.length < 2) {
+          return;
+        }
+
+        this.overviewChart_ = new tr.ui.b.NameLineChart();
+        this.overviewChart_.width = 200;
+        this.overviewChart_.height = 200;
+        this.overviewChart_.margin.right = 0;
+        this.overviewChart_.hideLegend = true;
+        this.$.overview_container.appendChild(this.overviewChart_);
+        this.overviewChart_.yAxisLabel = unitString;
+        this.overviewChart_.data = data;
+      }
+      this.$.overview_container.style.display = 'block';
+    },
+
+    hideOverview: function() {
+      this.$.overview_container.style.display = 'none';
     }
   });
 
@@ -468,6 +704,40 @@ tr.exportTo('tr.ui', function() {
         var row = this.rows_[i];
         recurse(row, rowStates);
       }
+    },
+
+    showOverview_: function() {
+      var table = this.$.table;
+      function recurse(row) {
+        row.nameCell.showOverview_();
+        if (table.getExpandedForTableRow(row)) {
+          for (var subrow of row.subRows) {
+            recurse(subrow);
+          }
+        }
+      }
+      for (var i = 0; i < this.rows_.length; ++i) {
+        recurse(this.rows_[i]);
+      }
+      this.$.hide_overview.style.display = 'inline';
+      this.$.show_overview.style.display = 'none';
+    },
+
+    hideOverview_: function() {
+      var table = this.$.table;
+      function recurse(row) {
+        row.nameCell.hideOverview_();
+        if (table.getExpandedForTableRow(row)) {
+          for (var subrow of row.subRows) {
+            recurse(subrow);
+          }
+        }
+      }
+      for (var i = 0; i < this.rows_.length; ++i) {
+        recurse(this.rows_[i]);
+      }
+      this.$.hide_overview.style.display = 'none';
+      this.$.show_overview.style.display = 'inline';
     },
 
     onSearch_: function() {
@@ -728,10 +998,12 @@ tr.exportTo('tr.ui', function() {
           // |values| is actually a nested organizedValues.
           var row = {
             name: name,
+            description: '',
+            depth: hierarchy.length,
             subRows: [],
             columns: {},
+            nameCell: undefined,
             cells: {},
-            depth: hierarchy.length,
           };
           hierarchy.push(row);
           this.buildRow_(values, hierarchy);
@@ -914,6 +1186,7 @@ tr.exportTo('tr.ui', function() {
 
         value: row => {
           var cell = document.createElement('tr-v-ui-histogram-set-table-cell');
+          cell.row = row;
           cell.histogram = row.columns[displayLabel];
           if (this.referenceDisplayLabel &&
               this.referenceDisplayLabel !== displayLabel) {
@@ -960,23 +1233,12 @@ tr.exportTo('tr.ui', function() {
           title: 'Name',
 
           value: function(row) {
-            var nameDiv = document.createElement('div');
-            nameDiv.style.overflow = 'hidden';
-            nameDiv.style.whiteSpace = 'nowrap';
-            nameDiv.style.textOverflow = 'ellipsis';
-
-            // tr-ui-b-table adds 16px of padding for each additional level of
-            // subRows nesting, so outer nameDivs can be wider than inner
-            // nameDivs.
-            var widthPx = NAME_COLUMN_WIDTH_PX - (16 * row.depth);
-            nameDiv.style.maxWidth = widthPx + 'px';
-
-            Polymer.dom(nameDiv).textContent = row.name;
-            nameDiv.title = row.name;
-            if (row.description) {
-              nameDiv.title += '\n' + row.description;
+            if (row.nameCell === undefined) {
+              row.nameCell = document.createElement(
+                  'tr-v-ui-histogram-set-table-name-cell');
+              row.nameCell.row = row;
             }
-            return nameDiv;
+            return row.nameCell;
           },
 
           cmp: (a, b) => a.name.localeCompare(b.name)

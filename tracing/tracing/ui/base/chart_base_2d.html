@@ -206,6 +206,7 @@ tr.exportTo('tr.ui.b', function() {
       tr.b.requestAnimationFrame(() => {
         this.drawXAxisTicks_(xAxis);
         this.drawXAxisLabel_(label);
+        xAxis[0][0].style.opacity = 1;
       });
     },
 
@@ -235,7 +236,6 @@ tr.exportTo('tr.ui.b', function() {
           tick.style.opacity = 0;
         }
       });
-      xAxis[0][0].style.opacity = 1;
     },
 
     updateDataRange_: function() {
