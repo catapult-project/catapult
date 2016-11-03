@@ -19,7 +19,11 @@ def ExtractJSON(results_html, json_tag=_JSON_TAG):
   pattern = '(.*?)'.join(re.escape(part) for part in json_tag.split('%s'))
   flags = re.MULTILINE | re.DOTALL
   for match in re.finditer(pattern, results_html, flags):
-    histograms.append(json.loads(match.group(1)))
+    try:
+      histograms.append(json.loads(match.group(1)))
+    except ValueError:
+      logging.warn('Found existing results json, but failed to parse it.')
+      return []
   return histograms
 
 
