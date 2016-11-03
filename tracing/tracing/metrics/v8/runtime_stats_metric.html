@@ -22,18 +22,23 @@ tr.exportTo('tr.metrics.v8', function() {
       .createExponential(0.1, 10000, 50);
 
   function computeInteractiveTime_(model) {
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.loadingMetric(values, model);
-    var ttiEntries = values.getValuesNamed('timeToFirstInteractive');
-
-    // This metric requires traces to contain only one navigation.
-    var histogram = tr.b.getOnlyElement(ttiEntries);
-    var binsWithSampleDiagnosticMaps = histogram.allBins.filter(
-        bin => bin.diagnosticMaps.length > 0);
-    var diagnosticBin = tr.b.getOnlyElement(binsWithSampleDiagnosticMaps);
-    var diagnostic = tr.b.getOnlyElement(diagnosticBin.diagnosticMaps).get(
-      'Navigation infos');
-    return diagnostic.value.interactive;
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    var interactiveTime = 0;
+    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+      var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
+          rendererHelper).firstInteractiveSamples;
+      // TODO(fmeawad): Support multiple navigations.
+      if (samples.length === 0) {
+        return;
+      }
+      if (interactiveTime !== 0) {
+        throw new Error('Too many navigations');
+      }
+      interactiveTime = tr.b.getOnlyElement(samples).diagnostics[
+        'Navigation infos'].value.interactive;
+    });
+    return interactiveTime;
   }
 
   function createDurationHistogram_(name) {
