@@ -273,14 +273,6 @@ should:
 If fixing the problem is hard but a simple workaround is possible, then using
 the workaround is OK so long as:
 
-  1. An issue is created to track the problem
-  2. The defensive code is wrapped in a `// TODO` linking to the issue
-  3. The TODO and defensive code are removed after the problem is fixed
-
-## Issues
-
-Issues should either:
-
-  * Not have a BUG= tag
-  * Have a BUG=catapult:#123 bug referring to issue 123 in our github tracker.
-  * Have a BUG=chromium:456 bug referring to issue 456 in the chromium tracker.
+  1. An issue is created to track the problem.
+  2. The defensive patch is wrapped in a `// TODO` linking to that issue.
+  3. The todo and defensive patch are removed after the problem is fixed.
