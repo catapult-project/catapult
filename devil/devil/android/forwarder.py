@@ -234,9 +234,9 @@ class Forwarder(object):
   def DevicePortForHostPort(host_port):
     """Returns the device port that corresponds to a given host port."""
     with _FileLock(Forwarder._LOCK_PATH):
-      _, device_port = Forwarder._GetInstanceLocked(
+      serial_and_port = Forwarder._GetInstanceLocked(
           None)._host_to_device_port_map.get(host_port)
-      return device_port
+      return serial_and_port[1] if serial_and_port else None
 
   @staticmethod
   def RemoveHostLog():
