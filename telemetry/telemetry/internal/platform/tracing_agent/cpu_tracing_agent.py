@@ -4,6 +4,7 @@
 
 import json
 import os
+import re
 import subprocess
 from threading import Timer
 
@@ -37,6 +38,7 @@ class ProcessCollector(object):
     """
     raise NotImplementedError
 
+  # pylint: disable=unused-argument
   def _ParseProcessString(self, proc_string):
     """Parses an individual process string returned by _GetProcessesAsStrings().
 
@@ -47,6 +49,10 @@ class ProcessCollector(object):
       caused by the process).
     """
     raise NotImplementedError
+
+  def Init(self):
+    """Performs any required initialization before starting tracing."""
+    pass
 
   def GetProcesses(self):
     """Fetches the top processes returned by top command.
@@ -70,13 +76,81 @@ class ProcessCollector(object):
 
 
 class WindowsProcessCollector(ProcessCollector):
-  """Class for collecting information about processes on Windows."""
+  """Class for collecting information about processes on Windows.
+
+  Example of Windows command output:
+  'chrome#1                 8'
+  'chrome#2                 4'
+  """
+  _GET_PROCESSES_SHELL_COMMAND = [
+    'wmic',
+    'path', # Retrieve a WMI object from the following path.
+    'Win32_PerfFormattedData_PerfProc_Process', # Contains process perf data.
+    'get',
+    'IDProcess,Name,PercentProcessorTime,WorkingSet'
+  ]
+
+  _GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND = [
+    'wmic',
+    'ComputerSystem',
+    'get',
+    'TotalPhysicalMemory'
+  ]
+
+  def __init__(self):
+    self._physicalMemoryBytes = None
+
+  def Init(self):
+    if not self._physicalMemoryBytes:
+      self._physicalMemoryBytes = self._GetPhysicalMemoryBytes()
+
+    # The command to get the per-process perf data takes significantly longer
+    # the first time that it's run (~10s, compared to ~60ms for subsequent
+    # runs). In order to avoid having this affect tracing, we run it once ahead
+    # of time.
+    self._GetProcessesAsStrings()
+
+  def _GetPhysicalMemoryBytes(self):
+    """Returns the number of bytes of physical memory on the computer."""
+    raw_output = subprocess.check_output(
+        self._GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND)
+    # The bytes of physical memory is on the second row (after the header row).
+    return int(raw_output.strip().split('\n')[1])
+
   def _GetProcessesAsStrings(self):
-    raise NotImplementedError
+    # Skip the header and total rows and strip the trailing newline.
+    return subprocess.check_output(
+        self._GET_PROCESSES_SHELL_COMMAND).strip().split('\n')[2:]
 
   def _ParseProcessString(self, proc_string):
-    raise NotImplementedError
+    assert self._physicalMemoryBytes, 'Must call Init() before using collector'
 
+    token_list = proc_string.strip().split()
+    if len(token_list) != 4:
+      raise ValueError('Line does not have four tokens: %s.' % token_list)
+
+    # Process names are given in the form:
+    #
+    #   windowsUpdate
+    #   chrome#1
+    #   chrome#2
+    #
+    # In order to match other platforms, where multiple processes can have the
+    # same name and can be easily grouped based on that name, we strip any
+    # pound sign and number.
+    name = re.sub(r'#[0-9]+$', '', token_list[1])
+    # The working set size (roughly equivalent to the resident set size on Unix)
+    # is given in bytes. In order to convert this to percent of physical memory
+    # occupied by the process, we divide by the amount of total physical memory
+    # on the machine.
+    percent_memory = float(token_list[3]) / self._physicalMemoryBytes
+
+    return {
+      'pid': int(token_list[0]),
+      'name': name,
+      'pCpu': float(token_list[2]),
+      'pMem': percent_memory
+    }
 
 class LinuxProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Linux.
@@ -125,8 +199,13 @@ class MacProcessCollector(ProcessCollector):
 
 
 class CpuTracingAgent(tracing_agent.TracingAgent):
-
-  SNAPSHOT_FREQUENCY = 1.0
+  _SNAPSHOT_INTERVAL_BY_OS = {
+    # Sampling via wmic on Windows is about twice as expensive as sampling via
+    # ps on Linux and Mac, so we halve the sampling frequency.
+    'win': 2.0,
+    'mac': 1.0,
+    'linux': 1.0
+  }
 
   def __init__(self, platform_backend):
     super(CpuTracingAgent, self).__init__(platform_backend)
@@ -143,16 +222,15 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
   @classmethod
   def IsSupported(cls, platform_backend):
     os_name = platform_backend.GetOSName()
-    # TODO(charliea): Reenable this once the CPU tracing agent is fixed on
-    # Windows.
-    # http://crbug.com/647443
-    return (os_name in ['mac', 'linux'])
+    return (os_name in ['mac', 'linux', 'win'])
 
   def StartAgentTracing(self, config, timeout):
     assert not self._snapshot_ongoing, (
            'Agent is already taking snapshots when tracing is started.')
     if not config.enable_cpu_trace:
       return False
+
+    self._collector.Init()
     self._snapshot_ongoing = True
     self._KeepTakingSnapshots()
     return True
@@ -164,7 +242,8 @@ class CpuTracingAgent(tracing_agent.TracingAgent):
     # Assume CpuTracingAgent shares the same clock domain as telemetry
     self._snapshots.append(
         (self._collector.GetProcesses(), trace_time.Now()))
-    Timer(self.SNAPSHOT_FREQUENCY, self._KeepTakingSnapshots).start()
+    interval = self._SNAPSHOT_INTERVAL_BY_OS[self._os_name]
+    Timer(interval, self._KeepTakingSnapshots).start()
 
   def StopAgentTracing(self):
     assert self._snapshot_ongoing, (
