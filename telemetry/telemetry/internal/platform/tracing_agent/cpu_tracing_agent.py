@@ -143,7 +143,7 @@ class WindowsProcessCollector(ProcessCollector):
     # is given in bytes. In order to convert this to percent of physical memory
     # occupied by the process, we divide by the amount of total physical memory
     # on the machine.
-    percent_memory = float(token_list[3]) / self._physicalMemoryBytes
+    percent_memory = float(token_list[3]) / self._physicalMemoryBytes * 100
 
     return {
       'pid': int(token_list[0]),
