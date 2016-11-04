@@ -23,9 +23,9 @@ def _ParsePsProcessString(line):
     raise ValueError('Line has too few tokens: %s.' % token_list)
 
   return {
-    'pCpu': token_list[0],
-    'pMem': token_list[1],
-    'pid': token_list[2],
+    'pCpu': float(token_list[0]),
+    'pMem': float(token_list[1]),
+    'pid': int(token_list[2]),
     'name': ' '.join(token_list[3:])
   }
 
