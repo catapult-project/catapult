@@ -192,7 +192,11 @@ tr.exportTo('tr.ui.analysis', function() {
         this.$.radioPicker.style.display = 'block';
         this.$.histogramSpan.histogram =
           this.buildHistogram_(this.$.radioPicker.selectedKey);
-        this.$.histogramContainer.style.display = 'flex';
+        if (this.$.histogramSpan.histogram.numValues !== 0) {
+          this.$.histogramContainer.style.display = 'flex';
+        } else {
+          this.$.histogramContainer.style.display = 'none';
+        }
       } else {
         this.$.radioPicker.style.display = 'none';
         this.$.histogramContainer.style.display = 'none';
