@@ -6,7 +6,7 @@
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
         "darwin_x86_64": {
-          "cloud_storage_hash": "6923bb851fe57f5880d5dac78add6939134e5514",
+          "cloud_storage_hash": "1e953cd2c173f46c5ffb252d1fb97dab0f629bc0",
           "download_path": "../bin/darwin/x86_64/battor_agent",
           "local_paths": [
             "../bin/override/battor_agent"
