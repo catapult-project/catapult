@@ -1261,7 +1261,7 @@ tr.exportTo('tr.e.importer', function() {
             if (parentNode === undefined) {
               this.model_.importWarning({
                 type: 'metadata_parse_error',
-                message: 'Missing parent frame with ID ' + parent +
+                message: 'Missing parent frame with ID ' + parentId +
                   ' for stack frame \'' + node.name + '\' (ID ' + node.id +
                   ').'
               });
