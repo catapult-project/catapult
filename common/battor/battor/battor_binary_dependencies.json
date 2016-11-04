@@ -1,6 +1,26 @@
 {
   "config_type": "BaseConfig",
   "dependencies": {
+    "avrdude_binary":{
+      "cloud_storage_base_folder": "binary_dependencies/battor",
+      "cloud_storage_bucket": "chromium-telemetry",
+      "file_info": {
+        "linux2_x86_64": {
+          "cloud_storage_hash": "db29526605f6f95a75ab33f4060b8c330152de69",
+          "download_path": "../bin/linux2/x86_64/avrdude",
+          "local_paths": [
+            "../bin/override/avrdude"
+          ]
+        },
+        "darwin_x86_64": {
+          "cloud_storage_hash": "6de6324c279ea75c79c68cab4c2ddcc68da1b286",
+          "download_path": "../bin/darwin/x86_64/avrdude",
+          "local_paths": [
+            "../bin/override/avrdude"
+          ]
+        }
+      }
+    },
     "battor_agent_binary": {
       "cloud_storage_base_folder": "binary_dependencies/battor",
       "cloud_storage_bucket": "chromium-telemetry",

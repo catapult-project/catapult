@@ -17,6 +17,7 @@ from battor import battor_error
 from py_utils import cloud_storage
 import dependency_manager
 from devil.utils import battor_device_mapping
+from devil.utils import cmd_helper
 from devil.utils import find_usb_devices
 
 import serial
@@ -77,6 +78,11 @@ class BattOrWrapper(object):
   _RECORD_CLOCKSYNC_CMD = 'RecordClockSyncMarker'
   _SUPPORTED_PLATFORMS = ['android', 'chromeos', 'linux', 'mac', 'win']
 
+  _SUPPORTED_AUTOFLASHING_PLATFORMS = ['linux', 'mac']
+  _BATTOR_PARTNO = 'x192a3u'
+  _BATTOR_PROGRAMMER = 'avr109'
+  _BATTOR_BAUDRATE = '115200'
+
   def __init__(self, target_platform, android_device=None, battor_path=None,
                battor_map_file=None, battor_map=None, serial_log_bucket=None):
     """Constructor.
@@ -111,8 +117,14 @@ class BattOrWrapper(object):
         [dependency_manager.BaseConfig(config)])
     self._battor_agent_binary = dm.FetchPath(
         'battor_agent_binary', '%s_%s' % (sys.platform, platform.machine()))
-    self._serial_log_bucket = serial_log_bucket
 
+    # Remove this when we have windows avrdude binary uploaded.
+    # https://github.com/catapult-project/catapult/issues/2972
+    if target_platform in self._SUPPORTED_AUTOFLASHING_PLATFORMS:
+      self._avrdude_binary = dm.FetchPath(
+          'avrdude_binary', '%s_%s' % (sys.platform, platform.machine()))
+
+    self._serial_log_bucket = serial_log_bucket
     self._tracing = False
     self._battor_shell = None
     self._trace_results_path = None
@@ -120,6 +132,7 @@ class BattOrWrapper(object):
     self._stop_tracing_time = None
     self._trace_results = None
     self._serial_log_file = None
+    self._target_platform = target_platform
 
     atexit.register(self.KillBattOrShell)
 
@@ -291,3 +304,35 @@ class BattOrWrapper(object):
     except cloud_storage.PermissionError as e:
       logging.error('Cannot upload BattOr serial log file to cloud storage due '
                     'to permission error: %s' % e.message)
+
+  def FlashFirmware(self, hex_path, avrdude_config_path):
+    """Flashes the BattOr using an avrdude config at config_path with the new
+       firmware at hex_path.
+    """
+    assert not self._battor_shell, 'Cannot flash BattOr with open shell'
+    if self._target_platform not in self._SUPPORTED_AUTOFLASHING_PLATFORMS:
+      logging.critical('Flashing firmware on this platform is not supported.')
+      return False
+    avr_cmd = [
+        self._avrdude_binary,
+        '-e',  # Specify to erase data on chip.
+        '-p', self._BATTOR_PARTNO,  # Specify AVR device.
+        # Specify which microcontroller programmer to use.
+        '-c', self._BATTOR_PROGRAMMER,
+        '-b', self._BATTOR_BAUDRATE,  # Specify the baud rate to communicate at.
+        '-P', self._battor_path,  # Serial path to the battor.
+        # Command to execute with hex file and path to hex file.
+        '-U', 'flash:w:%s' % hex_path,
+        '-C', avrdude_config_path, # AVRdude config file path.
+        '2>&1'  # All output goes to stderr for some reason.
+    ]
+    status, output = cmd_helper.GetCmdStatusAndOutput(' '.join(avr_cmd),
+                                                      shell=True)
+    logging.critical(output)
+    if status != 0:
+      raise BattOrFlashError('BattOr flash failed with error code: %d' % status)
+    return True
+
+
+class BattOrFlashError(Exception):
+  pass
