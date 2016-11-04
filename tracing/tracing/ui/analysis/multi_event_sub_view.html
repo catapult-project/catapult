@@ -75,11 +75,11 @@ tr.exportTo('tr.ui.analysis', function() {
     {key: 'selfTime', label: 'Self Time'}
   ];
 
-  function buildDiagnostics_(slice, selectedKey) {
+  function buildDiagnostics_(slice) {
     var diagnostics = {};
     for (var item of EVENT_FIELD) {
       var fieldName = item.key;
-      if (fieldName === selectedKey || slice[fieldName] === undefined)
+      if (slice[fieldName] === undefined)
         continue;
       diagnostics[fieldName] = new tr.v.d.Scalar(new tr.v.ScalarNumeric(
         tr.b.Unit.byName.timeDurationInMs, slice[fieldName]));
@@ -164,7 +164,7 @@ tr.exportTo('tr.ui.analysis', function() {
       histogram.customizeSummaryOptions({sum: false});
       for (var slice of this.currentSelection_) {
         histogram.addSample(slice[selectedKey],
-                            buildDiagnostics_(slice, selectedKey));
+                            buildDiagnostics_(slice));
       }
 
       return histogram;
