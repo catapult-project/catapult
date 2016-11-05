@@ -42,28 +42,23 @@ tr.exportTo('tr.metrics.sh', function() {
     return {time: durationInS, energy: energyInJ, power: powerInW};
   }
 
-  // TODO(alexandermont): When LoadExpectation v1.0 is released,
-  // update this function to use the new LoadExpectation rather
-  // than calling loading_metric.html. If we set the end of the loading
-  // RAIL stage to be the TTI, then we may not even need to treat the loading
-  // events separately; we can just treat them like any other RAIL stage
-  // (and the RAIL stage boundaries will be the intervals that we want.)
   /**
    * Returns the intervals of time between navigation event and time to
    * interactive.
    */
   function getNavigationTTIIntervals_(model) {
-    var values = new tr.v.HistogramSet();
-    tr.metrics.sh.loadingMetric(values, model);
-    var ttiValues = values.getValuesNamed('timeToFirstInteractive');
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
     var intervals = [];
-    for (var bin of tr.b.getOnlyElement(ttiValues).allBins) {
-      for (var diagnostics of bin.diagnosticMaps) {
-        var breakdown = diagnostics.get('Navigation infos');
+    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+      var samples = tr.metrics.sh.collectLoadingMetricsForRenderer(
+          rendererHelper).firstInteractiveSamples;
+      for (var sample of samples) {
+        var info = sample.diagnostics['Navigation infos'].value;
         intervals.push(tr.b.Range.fromExplicitRange(
-            breakdown.value.start, breakdown.value.interactive));
+            info.start, info.interactive));
       }
-    }
+    });
     return intervals.sort((x, y) => x.min - y.min);
   }
 
