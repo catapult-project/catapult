@@ -26,10 +26,6 @@ tr.exportTo('tr.model.helpers', function() {
       return false;
     });
 
-    this.isChromeTracingUI_ =
-        process.labels !== undefined &&
-        process.labels.length === 1 &&
-        process.labels[0] === 'chrome://tracing';
     if (!process.name)
       process.name = ChromeRendererHelper.PROCESS_NAME;
   }
@@ -43,6 +39,12 @@ tr.exportTo('tr.model.helpers', function() {
     if (process.findAtMostOneThreadNamed('Compositor'))
       return true;
     return false;
+  };
+
+  ChromeRendererHelper.isTracingProcess = function(process) {
+    return process.labels !== undefined &&
+        process.labels.length === 1 &&
+        process.labels[0] === 'chrome://tracing';
   };
 
   ChromeRendererHelper.prototype = {
@@ -64,7 +66,7 @@ tr.exportTo('tr.model.helpers', function() {
     },
 
     get isChromeTracingUI() {
-      return this.isChromeTracingUI_;
+      return ChromeRendererHelper.isTracingProcess(this.process);
     },
 
     /**

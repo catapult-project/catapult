@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/metrics/metric_registry.html">
 <link rel="import" href="/tracing/model/helpers/chrome_model_helper.html">
+<link rel="import" href="/tracing/model/helpers/chrome_renderer_helper.html">
 <link rel="import" href="/tracing/value/histogram.html">
 
 <script>
@@ -52,6 +53,10 @@ tr.exportTo('tr.metrics.sh', function() {
 
     for (var pid in model.processes) {
       var process = model.processes[pid];
+      if (tr.model.helpers.ChromeRendererHelper.isTracingProcess(process)) {
+        continue;
+      }
+
       var processCpuTime = 0;
       for (var tid in process.threads) {
         var thread = process.threads[tid];
