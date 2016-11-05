@@ -265,7 +265,7 @@ class MemoryCacheHTTPServer(local_server.LocalServer):
 
   @property
   def url(self):
-    return self.forwarder.url
+    return 'http://127.0.0.1:%s' % self.port
 
   def UrlOf(self, path):
     if os.path.isabs(path):
