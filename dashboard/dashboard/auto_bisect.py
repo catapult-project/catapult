@@ -118,6 +118,7 @@ def StartNewBisectForBug(bug_id):
   try:
     bisect_job = _MakeBisectTryJob(bug_id)
   except NotBisectableError as e:
+    logging.info('New bisect errored out with message: ' + e.message)
     return {'error': e.message}
   bisect_job_key = bisect_job.put()
 

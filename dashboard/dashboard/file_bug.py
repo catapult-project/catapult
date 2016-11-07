@@ -151,11 +151,22 @@ class FileBugHandler(request_handler.RequestHandler):
 
     template_params = {'bug_id': bug_id}
     if all(k.kind() == 'Anomaly' for k in alert_keys):
+      logging.info('Kicking bisect for bug ' + str(bug_id))
       bisect_result = auto_bisect.StartNewBisectForBug(bug_id)
       if 'error' in bisect_result:
+        logging.info('Failed to kick bisect for ' + str(bug_id))
         template_params['bisect_error'] = bisect_result['error']
       else:
+        logging.info('Successfully kicked bisect for ' + str(bug_id))
         template_params.update(bisect_result)
+    else:
+      kinds = set()
+      for k in alert_keys:
+        kinds.add(k.kind())
+      logging.info(
+          'Didn\'t kick bisect for bug id %s because alerts had kinds %s',
+          bug_id, list(kinds))
+
     self.RenderHtml('bug_result.html', template_params)
 
 
