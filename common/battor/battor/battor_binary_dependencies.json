@@ -1,20 +1,20 @@
 {
   "config_type": "BaseConfig",
   "dependencies": {
-    "avrdude_binary":{
+    "avrdude_binary": {
       "cloud_storage_base_folder": "binary_dependencies/battor",
       "cloud_storage_bucket": "chromium-telemetry",
       "file_info": {
-        "linux2_x86_64": {
-          "cloud_storage_hash": "db29526605f6f95a75ab33f4060b8c330152de69",
-          "download_path": "../bin/linux2/x86_64/avrdude",
+        "darwin_x86_64": {
+          "cloud_storage_hash": "6de6324c279ea75c79c68cab4c2ddcc68da1b286",
+          "download_path": "../bin/darwin/x86_64/avrdude",
           "local_paths": [
             "../bin/override/avrdude"
           ]
         },
-        "darwin_x86_64": {
-          "cloud_storage_hash": "6de6324c279ea75c79c68cab4c2ddcc68da1b286",
-          "download_path": "../bin/darwin/x86_64/avrdude",
+        "linux2_x86_64": {
+          "cloud_storage_hash": "db29526605f6f95a75ab33f4060b8c330152de69",
+          "download_path": "../bin/linux2/x86_64/avrdude",
           "local_paths": [
             "../bin/override/avrdude"
           ]
@@ -40,21 +40,21 @@
           ]
         },
         "win32_AMD64": {
-          "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
+          "cloud_storage_hash": "cf77aaf576437520a6e3902d60a7d8644d48f9ba",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
           ]
         },
         "win32_x86": {
-          "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
+          "cloud_storage_hash": "cf77aaf576437520a6e3902d60a7d8644d48f9ba",
           "download_path": "../bin/win/x86_64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
           ]
         },
         "win_AMD64": {
-          "cloud_storage_hash": "65e728f774c25958ccff2ec4613ca387413e26b5",
+          "cloud_storage_hash": "cf77aaf576437520a6e3902d60a7d8644d48f9ba",
           "download_path": "../bin/win/AMD64/battor_agent.exe",
           "local_paths": [
             "../bin/override/battor_agent.exe"
