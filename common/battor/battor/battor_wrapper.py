@@ -72,6 +72,8 @@ def IsBattOrConnected(test_platform, android_device=None,
 
 class BattOrWrapper(object):
   """A class for communicating with a BattOr in python."""
+  _EXIT_CMD = 'Exit'
+  _GET_FIRMWARE_GIT_HASH_CMD = 'GetFirmwareGitHash'
   _START_TRACING_CMD = 'StartTracing'
   _STOP_TRACING_CMD = 'StopTracing'
   _SUPPORTS_CLOCKSYNC_CMD = 'SupportsExplicitClockSync'
@@ -160,6 +162,23 @@ class BattOrWrapper(object):
       battor_cmd.append('--battor-path=%s' % self._battor_path)
     self._battor_shell = self._StartShellImpl(battor_cmd)
     assert self.GetShellReturnCode() is None, 'Shell failed to start.'
+
+  def StopShell(self, timeout=60):
+    """Stop BattOr binary shell."""
+    assert self._battor_shell, 'Attempting to stop a non-running BattOr shell.'
+    assert not self._tracing, 'Attempting to stop a BattOr shell while tracing.'
+    self._SendBattOrCommand(self._EXIT_CMD, check_return=False)
+    seconds_waited = 0
+    # TODO(rnephew): Move to using waitfor after porting to common/py_utils.
+    # https://github.com/catapult-project/catapult/issues/2955
+    while self.GetShellReturnCode() == None:
+      time.sleep(1)
+      seconds_waited += 1
+      if seconds_waited >= timeout:
+        break
+    if self.GetShellReturnCode() == None:
+      self.KillBattOrShell()
+    self._battor_shell = None
 
   def StartTracing(self):
     """Start tracing on the BattOr."""
@@ -304,6 +323,13 @@ class BattOrWrapper(object):
     except cloud_storage.PermissionError as e:
       logging.error('Cannot upload BattOr serial log file to cloud storage due '
                     'to permission error: %s' % e.message)
+
+  def GetFirmwareGitHash(self):
+    """Gets the git hash for the BattOr firmware"""
+    assert self._battor_shell, ('Must start shell before getting firmware git '
+                                'hash')
+    return self._SendBattOrCommand(self._GET_FIRMWARE_GIT_HASH_CMD,
+                                   check_return=False).strip()
 
   def FlashFirmware(self, hex_path, avrdude_config_path):
     """Flashes the BattOr using an avrdude config at config_path with the new

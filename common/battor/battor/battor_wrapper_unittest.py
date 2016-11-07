@@ -4,6 +4,7 @@
 
 import dependency_manager
 import logging
+import mock
 import unittest
 
 from battor import battor_error
@@ -136,6 +137,7 @@ class BattOrWrapperTest(unittest.TestCase):
     self._battor_list = ['battor1']
     self._should_pass = True
     self._fake_map = {'battor1': 'device1'}
+    self._fake_return_code = None
 
     self._get_battor_path_from_phone_serial = (
         battor_device_mapping.GetBattOrPathFromPhoneSerial)
@@ -146,7 +148,6 @@ class BattOrWrapperTest(unittest.TestCase):
     self._is_battor = battor_device_mapping.IsBattOr
     self._generate_serial_map = battor_device_mapping.GenerateSerialMap
     self._serial_tools = serial.tools.list_ports.comports
-
 
     battor_device_mapping.GetBattOrPathFromPhoneSerial = (
         lambda x, serial_map_file=None, serial_map=None: x + '_battor')
@@ -175,7 +176,7 @@ class BattOrWrapperTest(unittest.TestCase):
 
   def _DefaultBattOrReplacements(self):
     self._battor._StartShellImpl = lambda *unused: PopenMock()
-    self._battor.GetShellReturnCode = lambda *unused: None
+    self._battor.GetShellReturnCode = lambda *unused: self._fake_return_code
     self._battor._SendBattOrCommandImpl = lambda x: 'Done.\n'
     self._battor._StopTracingImpl = lambda *unused: ('Done.\n', None)
 
@@ -300,6 +301,40 @@ class BattOrWrapperTest(unittest.TestCase):
     self._battor.StartShell()
     with self.assertRaises(AssertionError):
       self._battor.FlashFirmware('hex_path', 'config_path')
+
+  def testGetFirmwareGitHashNotRunning(self):
+    self._battor = battor_wrapper.BattOrWrapper('win')
+    self._DefaultBattOrReplacements()
+    with self.assertRaises(AssertionError):
+      self._battor.GetFirmwareGitHash()
+
+  def testGetFirmwareGitHashPass(self):
+    self._battor = battor_wrapper.BattOrWrapper('win')
+    self._DefaultBattOrReplacements()
+    self._battor.StartShell()
+    self.assertTrue(isinstance(self._battor.GetFirmwareGitHash(), basestring))
+
+  def testStopShellPass(self):
+    self._battor = battor_wrapper.BattOrWrapper('win')
+    self._DefaultBattOrReplacements()
+    self._battor.StartShell()
+    self._fake_return_code = 0
+    self._battor.StopShell()
+    self.assertIsNone(self._battor._battor_shell)
+
+  @mock.patch('time.sleep', mock.Mock)
+  def testStopShellTimeOutAndKill(self):
+    self._battor = battor_wrapper.BattOrWrapper('win')
+    self._DefaultBattOrReplacements()
+    self._battor.StartShell()
+    self._battor.StopShell()
+    self.assertIsNone(self._battor._battor_shell)
+
+  def testStopShellNotStarted(self):
+    self._battor = battor_wrapper.BattOrWrapper('win')
+    self._DefaultBattOrReplacements()
+    with self.assertRaises(AssertionError):
+      self._battor.StopShell()
 
 
 if __name__ == '__main__':

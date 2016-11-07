@@ -53,6 +53,14 @@ class BattOrWrapperDeviceTest(unittest.TestCase):
                                           battor_path=battor_path)
     try:
       battor.StartShell()
+      self.assertTrue(isinstance(battor.GetFirmwareGitHash(), basestring))
+      # We expect the git hash to be a valid 6 character hexstring. This will
+      # throw a ValueError exception otherwise.
+      int(battor.GetFirmwareGitHash(), 16)
+      self.assertTrue(len(battor.GetFirmwareGitHash()) == 7)
+      battor.StopShell()
+
+      battor.StartShell()
       battor.StartTracing()
       # TODO(rnephew): This sleep is required for now because crbug.com/602266
       # causes the BattOr to crash when the trace time is too short. Once that
@@ -76,6 +84,7 @@ class BattOrWrapperDeviceTest(unittest.TestCase):
         battor._battor_shell.kill()
         battor._battor_shell = None
       raise
+
     self.assertTrue('# BattOr' in results[0])
     self.assertTrue('# voltage_range' in results[1])
     self.assertTrue('# current_range' in results[2])
