@@ -348,7 +348,8 @@ class StartBisectTest(testing_common.TestCase):
                     'blog.chromium.org': {},
                     'dev.chromium.org': {},
                     'test.blogspot.com': {},
-                    'http___test.com_': {}
+                    'http___test.com_': {},
+                    'Wikipedia (1 tab)': {}
                 },
                 'vm_final_size_renderer': {
                     'ref': {},
@@ -369,14 +370,14 @@ class StartBisectTest(testing_common.TestCase):
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/win7/page_cycler.morejs/'
-                      'times/http___test.com_'),
+                      'times/Wikipedia (1 tab)'),
         'step': 'prefill-info',
     })
     info = json.loads(response.body)
     self.assertEqual('win_perf_bisect', info['bisect_bot'])
     self.assertEqual('foo@chromium.org', info['email'])
     self.assertEqual('page_cycler.morejs', info['suite'])
-    self.assertEqual('times/http___test.com_', info['default_metric'])
+    self.assertEqual('times/Wikipedia (1 tab)', info['default_metric'])
     self.assertEqual('ChromiumPerf', info['master'])
     self.assertFalse(info['internal_only'])
     self.assertTrue(info['use_archive'])
@@ -392,6 +393,7 @@ class StartBisectTest(testing_common.TestCase):
         ], info['all_bots'])
     self.assertEqual(
         [
+            'times/Wikipedia (1 tab)',
             'times/blog.chromium.org',
             'times/dev.chromium.org',
             'times/http___test.com_',
@@ -399,8 +401,7 @@ class StartBisectTest(testing_common.TestCase):
             'times/test.blogspot.com'
         ],
         info['all_metrics'])
-    # Filter matches story: http://test.com/
-    self.assertEqual(info['story_filter'], 'http...test\\.com.')
+    self.assertEqual(info['story_filter'], 'Wikipedia..1.tab.')
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/win7/page_cycler.morejs/'

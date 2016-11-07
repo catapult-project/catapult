@@ -265,9 +265,11 @@ def _PrefillInfo(test_path):
       story_name = story_name[len('after_'):]
     # During import, some chars in story names got replaced by "_" so they
     # could be safely included in the test_path. At this point we don't know
-    # what the original characters were, so we pass a regex where each
-    # underscore is replaced back with a match-any-character dot.
-    info['story_filter'] = re.sub(r'\\_', '.', re.escape(story_name))
+    # what the original characters were. Additionally, some special characters
+    # and argument quoting are not interpreted correctly, e.g. by bisect
+    # scripts (crbug.com/662472). We thus keep only a small set of "safe chars"
+    # and replace all others with match-any-character regex dots.
+    info['story_filter'] = re.sub(r'[^a-zA-Z0-9]', '.', story_name)
   else:
     info['story_filter'] = ''
 
