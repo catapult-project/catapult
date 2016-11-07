@@ -6,6 +6,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
+<link rel="import" href="/tracing/ui/base/box_chart.html">
 <link rel="import" href="/tracing/ui/base/drag_handle.html">
 <link rel="import" href="/tracing/ui/base/name_bar_chart.html">
 <link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
@@ -60,28 +61,13 @@ Polymer({
   created: function() {
     this.histogram_ = undefined;
     this.referenceHistogram_ = undefined;
-    this.isChartHeightOverridden_ = false;
-    this.chart_ = new tr.ui.b.NameBarChart();
-    this.chart_.width = 300;
-    this.chart_.height = 200;
-    this.chart_.margin.top = 20;
-    this.chart_.margin.bottom = 28;
-    this.chart_.margin.left = 70;
-    this.chart_.margin.right = 30;
+    this.chartWidth_ = undefined;
+    this.chartHeight_ = undefined;
     this.mouseDownBin_ = undefined;
     this.brushedBins_ = [];
-    this.chart_.addEventListener('item-mousedown',
-        this.onMouseDown_.bind(this));
-    this.chart_.addEventListener('item-mousemove',
-        this.onMouseMove_.bind(this));
-    this.chart_.addEventListener('item-mouseup',
-        this.onMouseUp_.bind(this));
-    this.chart_.hideLegend = true;
-    this.chart_.getDataSeries('y').color = 'blue';
   },
 
   ready: function() {
-    Polymer.dom(this.$.chart).appendChild(this.chart_);
     this.$.drag_handle.target = this.$.container;
     this.$.drag_handle.addEventListener(
         'drag-handle-resize', this.onResize_.bind(this));
@@ -98,20 +84,19 @@ Polymer({
   },
 
   get chartWidth() {
-    return this.chart_.width;
+    return this.chartWidth_ || this.defaultChartWidth;
   },
 
   set chartWidth(width) {
-    this.chart_.width = width;
+    this.chartWidth_ = width;
   },
 
   get chartHeight() {
-    return this.chart_.height;
+    return this.chartHeight_ || this.defaultChartHeight;
   },
 
   set chartHeight(height) {
-    this.isChartHeightOverridden_ = true;
-    this.chart_.height = height;
+    this.chartHeight_ = height;
   },
 
   get barHeight() {
@@ -119,8 +104,7 @@ Polymer({
   },
 
   set barHeight(px) {
-    this.isChartHeightOverridden_ = true;
-    this.chart_.height = this.computeChartHeight_(px);
+    this.chartHeight = this.computeChartHeight_(px);
   },
 
   computeChartHeight_: function(barHeightPx) {
@@ -130,7 +114,14 @@ Polymer({
   },
 
   get defaultChartHeight() {
+    if (this.histogram && this.histogram.allBins.length === 1) {
+      return 150;
+    }
     return this.computeChartHeight_(DEFAULT_BAR_HEIGHT_PX);
+  },
+
+  get defaultChartWidth() {
+    return 300;
   },
 
   get brushedBins() {
@@ -269,7 +260,7 @@ Polymer({
 
   updateContents_: function() {
     this.$.chart.style.display = '';
-    this.$.drag_handle.style.display = '';
+    this.$.drag_handle.style.display = 'none';
     this.$.sample_diagnostics.style.display = 'none';
     this.$.container.style.justifyContent = '';
     this.brushedBins_ = [];
@@ -309,12 +300,47 @@ Polymer({
     this.$.chart.style.display = 'block';
     this.$.drag_handle.style.display = 'block';
 
+    if (this.histogram.allBins.length === 1) {
+      this.chart_ = new tr.ui.b.BoxChart();
+      this.chart_.width = this.chartWidth;
+      this.chart_.height = this.chartHeight;
+      this.chart_.hideXAxis = true;
+      this.chart_.margin.top = 10;
+      this.chart_.margin.bottom = 10;
+      this.chart_.margin.right = 0;
+      this.chart_.data = [
+        {
+          x: '',
+          color: 'blue',
+          percentile_0: this.histogram.running.min,
+          percentile_25: this.histogram.getApproximatePercentile(0.25),
+          percentile_50: this.histogram.getApproximatePercentile(0.5),
+          percentile_75: this.histogram.getApproximatePercentile(0.75),
+          percentile_100: this.histogram.running.max,
+        }
+      ];
+      Polymer.dom(this.$.chart).appendChild(this.chart_);
+      return;
+    }
+
+    this.chart_ = new tr.ui.b.NameBarChart();
+    this.chart_.width = this.chartWidth;
+    this.chart_.height = this.chartHeight;
+    this.chart_.margin.top = 20;
+    this.chart_.margin.bottom = 28;
+    this.chart_.margin.left = 70;
+    this.chart_.margin.right = 30;
+    this.chart_.addEventListener('item-mousedown',
+        this.onMouseDown_.bind(this));
+    this.chart_.addEventListener('item-mousemove',
+        this.onMouseMove_.bind(this));
+    this.chart_.addEventListener('item-mouseup',
+        this.onMouseUp_.bind(this));
+    this.chart_.hideLegend = true;
+    this.chart_.getDataSeries('y').color = 'blue';
     this.chart_.xAxisLabel = '#';
     this.chart_.brushedRange = new tr.b.Range();
-
-    if (!this.isChartHeightOverridden_) {
-      this.chart_.height = this.defaultChartHeight;
-    }
+    Polymer.dom(this.$.chart).appendChild(this.chart_);
 
     var chartData = [];
     for (var bin of this.histogram.allBins) {
@@ -330,8 +356,7 @@ Polymer({
 
     // Set the data to render the chart in order to compute maxYAxisWidth,
     // then set the left margin and re-render the chart.
-    // TODO(benjhayden) Make NameBarChart handle this? Move the names into the
-    // chart area?
+    // https://github.com/catapult-project/catapult/issues/2958
     this.chart_.data = chartData;
     tr.b.requestAnimationFrame(() => {
       this.chart_.margin.left = this.chart_.maxYAxisWidth + 2;

@@ -73,5 +73,19 @@ tr.b.unittest.testSuite(function() {
     this.addHTMLOutput(span);
   });
 
+  test('singleBin', function() {
+    var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber,
+        tr.v.HistogramBinBoundaries.SINGULAR);
+    h.addSample(0);
+    h.addSample(25);
+    h.addSample(100);
+    h.addSample(100);
+    h.addSample(25);
+    h.addSample(50);
+    h.addSample(75);
+    var span = document.createElement('tr-v-ui-histogram-span');
+    span.histogram = h;
+    this.addHTMLOutput(span);
+  });
 });
 </script>

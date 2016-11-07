@@ -315,10 +315,20 @@ tr.exportTo('tr.v', function() {
      * @param {number} percent The percent must be between 0.0 and 1.0.
      */
     getApproximatePercentile(percent) {
-      if (!(percent >= 0 && percent <= 1))
+      if (!(percent >= 0 && percent <= 1)) {
         throw new Error('percent must be [0,1]');
-      if (this.numValues === 0)
+      }
+      if (this.numValues === 0) {
         return 0;
+      }
+      if (this.allBins.length === 1) {
+        // Copy sampleValues, don't sort them in place, in order to preserve
+        // insertion order.
+        var sortedSampleValues = this.sampleValues.slice().sort(
+            (x, y) => x - y);
+        return sortedSampleValues[Math.floor((sortedSampleValues.length - 1) *
+            percent)];
+      }
       var valuesToSkip = Math.floor((this.numValues - 1) * percent);
       for (var bin of this.allBins) {
         valuesToSkip -= bin.count;

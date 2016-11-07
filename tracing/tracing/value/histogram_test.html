@@ -508,11 +508,36 @@ tr.b.unittest.testSuite(function() {
     var hist = new tr.v.Histogram('', unitlessNumber,
         tr.v.HistogramBinBoundaries.SINGULAR);
     assert.lengthOf(hist.allBins, 1);
+
     var dict = hist.asDict();
     assert.isUndefined(dict.binBoundaries);
     var clone = tr.v.Histogram.fromDict(dict);
     assert.lengthOf(clone.allBins, 1);
     assert.deepEqual(dict, clone.asDict());
+
+    assert.strictEqual(0, hist.getApproximatePercentile(0));
+    assert.strictEqual(0, hist.getApproximatePercentile(1));
+    hist.addSample(0);
+    assert.strictEqual(0, hist.getApproximatePercentile(0));
+    assert.strictEqual(0, hist.getApproximatePercentile(1));
+    hist.addSample(1);
+    assert.strictEqual(0, hist.getApproximatePercentile(0));
+    assert.strictEqual(1, hist.getApproximatePercentile(1));
+    hist.addSample(2);
+    assert.strictEqual(0, hist.getApproximatePercentile(0));
+    assert.strictEqual(1, hist.getApproximatePercentile(0.5));
+    assert.strictEqual(2, hist.getApproximatePercentile(1));
+    hist.addSample(3);
+    assert.strictEqual(0, hist.getApproximatePercentile(0));
+    assert.strictEqual(1, hist.getApproximatePercentile(0.5));
+    assert.strictEqual(2, hist.getApproximatePercentile(0.9));
+    assert.strictEqual(3, hist.getApproximatePercentile(1));
+    hist.addSample(4);
+    assert.strictEqual(0, hist.getApproximatePercentile(0));
+    assert.strictEqual(1, hist.getApproximatePercentile(0.4));
+    assert.strictEqual(2, hist.getApproximatePercentile(0.7));
+    assert.strictEqual(3, hist.getApproximatePercentile(0.9));
+    assert.strictEqual(4, hist.getApproximatePercentile(1));
   });
 });
 </script>

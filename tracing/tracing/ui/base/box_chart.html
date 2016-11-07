@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/name_column_chart.html">
+<link rel="import" href="/tracing/ui/base/name_line_chart.html">
+
+<script>
+'use strict';
+
+tr.exportTo('tr.ui.b', function() {
+  var NameLineChart = tr.ui.b.NameLineChart;
+
+  // @constructor
+  var BoxChart = tr.ui.b.define('box-chart', NameLineChart);
+
+  BoxChart.prototype = {
+    __proto__: NameLineChart.prototype,
+
+    get hideLegend() {
+      return true;
+    },
+
+    updateScales_: function() {
+      NameLineChart.prototype.updateScales_.call(this);
+      this.xScale_.domain([0, this.data_.length]);
+    },
+
+    updateXAxis_: function(xAxis) {
+      xAxis.selectAll('*').remove();
+      if (this.hideXAxis) {
+        return;
+      }
+
+      tr.ui.b.NameColumnChart.prototype.updateXAxis_.call(this, xAxis);
+
+      var baseline = xAxis.selectAll('path').data([this]);
+      baseline.enter().append('line')
+        .attr('stroke', 'black')
+        .attr('x1', this.xScale_(0))
+        .attr('x2', this.xScale_(this.data_.length))
+        .attr('y1', this.chartAreaSize.height)
+        .attr('y2', this.chartAreaSize.height);
+      baseline.exit().remove();
+    },
+
+    updateDataContents_: function(dataSel) {
+      dataSel.selectAll('*').remove();
+      var boxesSel = dataSel.selectAll('path');
+      for (var index = 0; index < this.data_.length; ++index) {
+        var datum = this.data_[index];
+        var color = datum.color || 'black';
+
+        // Draw a box between percentiles 25 and 75:
+        var sel = boxesSel.data([datum]);
+        sel.enter().append('rect')
+          .attr('fill', color)
+          .attr('x', this.xScale_(index + 0.2))
+          .attr('width', this.xScale_(index + 0.8) - this.xScale_(index + 0.2))
+          .attr('y', this.yScale_(datum.percentile_75))
+          .attr('height', this.yScale_(datum.percentile_25) -
+              this.yScale_(datum.percentile_75));
+        sel.exit().remove();
+
+        // Draw a horizontal line for percentile_50:
+        sel = boxesSel.data([datum]);
+        sel.enter().append('line')
+          .attr('stroke', color)
+          .attr('x1', this.xScale_(index))
+          .attr('x2', this.xScale_(index + 1))
+          .attr('y1', this.yScale_(datum.percentile_50))
+          .attr('y2', this.yScale_(datum.percentile_50));
+        sel.exit().remove();
+
+        // Draw two shorter horizontal lines for percentiles 0 and 100:
+        sel = boxesSel.data([datum]);
+        sel.enter().append('line')
+          .attr('stroke', color)
+          .attr('x1', this.xScale_(index + 0.4))
+          .attr('x2', this.xScale_(index + 0.6))
+          .attr('y1', this.yScale_(datum.percentile_0))
+          .attr('y2', this.yScale_(datum.percentile_0));
+        sel.exit().remove();
+        sel = boxesSel.data([datum]);
+        sel.enter().append('line')
+          .attr('stroke', color)
+          .attr('x1', this.xScale_(index + 0.4))
+          .attr('x2', this.xScale_(index + 0.6))
+          .attr('y1', this.yScale_(datum.percentile_100))
+          .attr('y2', this.yScale_(datum.percentile_100));
+        sel.exit().remove();
+
+        // Draw a vertical line between percentiles 0 and 100.
+        sel = boxesSel.data([datum]);
+        sel.enter().append('line')
+          .attr('stroke', color)
+          .attr('x1', this.xScale_(index + 0.5))
+          .attr('x2', this.xScale_(index + 0.5))
+          .attr('y1', this.yScale_(datum.percentile_100))
+          .attr('y2', this.yScale_(datum.percentile_0));
+        sel.exit().remove();
+      }
+    }
+  };
+
+  return {
+    BoxChart: BoxChart
+  };
+});
+</script>
