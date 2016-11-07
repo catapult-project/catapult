@@ -82,6 +82,8 @@ For detailed study of ubercompositor, pass --trace-ubercompositor.
 When in doubt, just try out --trace-frame-viewer.
 """)
 
+  logging.basicConfig()
+
   if options.verbose:
     logging.getLogger().setLevel(logging.DEBUG)
 
