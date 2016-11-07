@@ -26,7 +26,14 @@ class DeviceTempFile(object):
       suffix: The suffix of the name of the temp file.
       prefix: The prefix of the name of the temp file.
       dir: The directory on the device where to place the temp file.
+    Raises:
+      ValueError if any of suffix, prefix, or dir are None.
     """
+    if None in (dir, prefix, suffix):
+      m = 'Provided None path component. (dir: %s, prefix: %s, suffix: %s)' % (
+          dir, prefix, suffix)
+      raise ValueError(m)
+
     self._adb = adb
     # Python's random module use 52-bit numbers according to its docs.
     random_hex = hex(random.randint(0, 2 ** 52))[2:]

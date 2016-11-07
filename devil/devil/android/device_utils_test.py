@@ -417,7 +417,8 @@ class DeviceUtilsGetApplicationDataDirectoryTest(DeviceUtilsTest):
         self.call.device._RunPipedShellCommand(
             'pm dump foo.bar.baz | grep dataDir='),
         self.ShellError()):
-      self.assertIsNone(self.device.GetApplicationDataDirectory('foo.bar.baz'))
+      with self.assertRaises(device_errors.CommandFailedError):
+        self.device.GetApplicationDataDirectory('foo.bar.baz')
 
 
 @mock.patch('time.sleep', mock.Mock())
