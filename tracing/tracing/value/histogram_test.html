@@ -508,6 +508,11 @@ tr.b.unittest.testSuite(function() {
     var hist = new tr.v.Histogram('', unitlessNumber,
         tr.v.HistogramBinBoundaries.SINGULAR);
     assert.lengthOf(hist.allBins, 1);
+    var dict = hist.asDict();
+    assert.isUndefined(dict.binBoundaries);
+    var clone = tr.v.Histogram.fromDict(dict);
+    assert.lengthOf(clone.allBins, 1);
+    assert.deepEqual(dict, clone.asDict());
   });
 });
 </script>

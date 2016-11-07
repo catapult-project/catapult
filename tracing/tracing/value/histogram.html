@@ -179,10 +179,8 @@ tr.exportTo('tr.v', function() {
     }
 
     static fromDict(dict) {
-      var hist = new Histogram(dict.name,
-          tr.b.Unit.fromJSON(dict.unit),
-          HistogramBinBoundaries.fromDict(
-              dict.binBoundaries));
+      var hist = new Histogram(dict.name, tr.b.Unit.fromJSON(dict.unit),
+          HistogramBinBoundaries.fromDict(dict.binBoundaries));
       hist.guid = dict.guid;
       if (dict.shortName) {
         hist.shortName = dict.shortName;
@@ -577,10 +575,12 @@ tr.exportTo('tr.v', function() {
 
     asDict() {
       var dict = {};
-      dict.binBoundaries = this.binBoundariesDict_;
       dict.name = this.name;
       dict.unit = this.unit.asJSON();
       dict.guid = this.guid;
+      if (this.binBoundariesDict_ !== undefined) {
+        dict.binBoundaries = this.binBoundariesDict_;
+      }
       if (this.shortName) {
         dict.shortName = this.shortName;
       }
@@ -797,6 +797,10 @@ tr.exportTo('tr.v', function() {
     }
 
     asDict() {
+      if (this.builder_.length === 1 && this.builder_[0] === Number.MAX_VALUE) {
+        return undefined;
+      }
+
       // Don't copy builder_ here so that Histogram.canAddHistogram() can test
       // for object identity.
       return this.builder_;
@@ -810,6 +814,10 @@ tr.exportTo('tr.v', function() {
     }
 
     static fromDict(dict) {
+      if (dict === undefined) {
+        return HistogramBinBoundaries.SINGULAR;
+      }
+
       // When loading a results2.html with many Histograms with the same bin
       // boundaries, caching the HistogramBinBoundaries not only speeds up
       // loading, but also prevents a bug where build_ is occasionally
