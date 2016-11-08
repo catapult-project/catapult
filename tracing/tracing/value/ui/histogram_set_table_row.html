@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/ui/histogram_set_table_cell.html">
+<link rel="import" href="/tracing/value/ui/histogram_set_table_name_cell.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
+  class HistogramSetTableRow {
+    constructor(name) {
+      this.name = name;
+      this.description = '';
+      this.depth = 0;
+      this.subRows = [];
+      this.columns = new Map();
+      this.nameCell_ = undefined;
+      this.cells = new Map();
+    }
+
+    /**
+     * Build table rows recursively from grouped Histograms.
+     *
+     * @param {!(HistogramArray|HistogramArrayMap)}
+     * @returns {!Array.<!HistogramSetTableRow>}
+     */
+    static build(histogramArrayMap) {
+      var rootRows = [];
+      HistogramSetTableRow.buildInternal_(histogramArrayMap, [], rootRows);
+      return rootRows;
+    }
+
+    static buildInternal_(histogramArrayMap, hierarchy, rootRows) {
+      for (var [name, histograms] of histogramArrayMap) {
+        if (histograms instanceof Array) {
+          // This recursion base case corresponds to the recursion base case of
+          // groupHistogramsRecursively(). The last groupingCallback is always
+          // getDisplayLabel, which defines the columns of the table and is
+          // unskippable.
+          for (var histogram of histograms) {
+            // Merge histograms up the grouping hierarchy.
+            for (var row of hierarchy) {
+              if (!row.description) {
+                row.description = histogram.description;
+              }
+
+              if (row.columns.get(name) === undefined) {
+                row.columns.set(name, histogram);
+                continue;
+              }
+              if (row.columns.get(name) === tr.v.ui.UNMERGEABLE) {
+                continue;
+              }
+              if (!row.columns.get(name).canAddHistogram(histogram)) {
+                row.columns.set(name, tr.v.ui.UNMERGEABLE);
+                continue;
+              }
+
+              // Create a new Histogram with a new uuid instead of cloning
+              // either |histogram| or |row.columns.get(name)| so that we don't
+              // clone either Histogram's diagnostics.  |histogram.name| might
+              // not necessarily equal |row.columns.get(name)|, but that
+              // shouldn't matter for this dom-module.
+              var merged = row.columns.get(name);
+              if (!merged.diagnostics.has(tr.v.MERGED_FROM_DIAGNOSTIC_KEY)) {
+                merged = merged.cloneEmpty();
+                merged.addHistogram(row.columns.get(name));
+              }
+              merged.addHistogram(histogram);
+              row.columns.set(name, merged);
+            }
+          }
+        } else if (histograms instanceof Map) {
+          // |histograms| is actually a nested histogramArrayMap.
+          var row = new HistogramSetTableRow(name);
+          row.depth = hierarchy.length;
+          hierarchy.push(row);
+          HistogramSetTableRow.buildInternal_(histograms, hierarchy, rootRows);
+          hierarchy.pop();
+
+          if (hierarchy.length === 0) {
+            rootRows.push(row);
+          } else {
+            hierarchy[hierarchy.length - 1].subRows.push(row);
+          }
+        }
+      }
+    }
+
+    get nameCell() {
+      if (this.nameCell_ === undefined) {
+        this.nameCell_ = document.createElement(
+            'tr-v-ui-histogram-set-table-name-cell');
+        this.nameCell_.row = this;
+      }
+      return this.nameCell_;
+    }
+
+    buildCell(displayLabel, referenceDisplayLabel) {
+      var cell = document.createElement('tr-v-ui-histogram-set-table-cell');
+      cell.row = this;
+      cell.histogram = this.columns.get(displayLabel);
+      if (referenceDisplayLabel &&
+          referenceDisplayLabel !== displayLabel) {
+        cell.referenceHistogram = this.columns.get(
+            referenceDisplayLabel);
+      }
+      this.cells.set(displayLabel, cell);
+      return cell;
+    }
+
+    compareNames(other) {
+      return this.name.localeCompare(other.name);
+    }
+
+    compareCells(other, displayLabel, referenceDisplayLabel) {
+      var cellA = this.columns.get(displayLabel);
+      var cellB = other.columns.get(displayLabel);
+      if (!(cellA instanceof tr.v.Histogram) ||
+          !(cellB instanceof tr.v.Histogram)) {
+        return undefined;
+      }
+
+      var valueA = cellA.average;
+      var valueB = cellB.average;
+
+      // If a reference column is selected, compare the absolute deltas
+      // between the two cells and their references.
+      if (referenceDisplayLabel &&
+          referenceDisplayLabel !== displayLabel) {
+        var referenceCellA = this.columns.get(referenceDisplayLabel);
+        var referenceCellB = other.columns.get(referenceDisplayLabel);
+        if (referenceCellA instanceof tr.v.Histogram &&
+            referenceCellB instanceof tr.v.Histogram &&
+            cellA.unit === referenceCellA.unit &&
+            cellB.unit === referenceCellB.unit) {
+          valueA -= referenceCellA.average;
+          valueB -= referenceCellB.average;
+        }
+      }
+
+      return valueA - valueB;
+    }
+
+    getExpansionStates(table) {
+      var states = {
+        expanded: table.getExpandedForTableRow(this),
+        cells: new Map(),
+        subRows: new Map(),
+      };
+
+      for (var [displayLabel, cell] of this.cells) {
+        if (cell.isHistogramOpen) {
+          states.cells.set(displayLabel, true);
+        }
+      }
+
+      if (states.expanded) {
+        for (var i = 0; i < this.subRows.length; ++i) {
+          states.subRows.set(i, this.subRows[i].getExpansionStates(table));
+        }
+      }
+      return states;
+    }
+
+    setExpansionStates(states, table) {
+      if (states.expanded) {
+        if (this.subRows.length) {
+          table.setExpandedForTableRow(this, true);
+          for (var [index, subStates] of states.subRows) {
+            this.subRows[index].setExpansionStates(subStates, table);
+          }
+        }
+      }
+
+      for (var [displayLabel, isHistogramOpen] of states.cells) {
+        var cell = this.cells.get(displayLabel);
+        if (cell) {
+          cell.isHistogramOpen = isHistogramOpen;
+        }
+      }
+    }
+  }
+
+  return {
+    HistogramSetTableRow: HistogramSetTableRow,
+  };
+});
+</script>

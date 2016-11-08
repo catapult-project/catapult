@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/ui/base/name_line_chart.html">
+
+<dom-module id="tr-v-ui-histogram-set-table-name-cell">
+  <template>
+    <style>
+    #name_container {
+      display: flex;
+    }
+
+    #name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    #show_overview, #hide_overview {
+      height: 1em;
+    }
+
+    #show_overview {
+      stroke: blue;
+      stroke-width: 16;
+    }
+
+    #show_overview:hover {
+      background: blue;
+      stroke: white;
+    }
+
+    #hide_overview {
+      display: none;
+      stroke-width: 18;
+      stroke: black;
+    }
+
+    #hide_overview:hover {
+      background: black;
+      stroke: white;
+    }
+
+    #overview_container {
+      display: none;
+    }
+    </style>
+
+    <div id="name_container">
+      <span id="name"></span>
+      <svg viewbox="0 0 128 128" id="show_overview" on-click="showOverview_">
+        <line x1="19" y1="109" x2="49" y2="49"/>
+        <line x1="49" y1="49" x2="79" y2="79"/>
+        <line x1="79" y1="79" x2="109" y2="19"/>
+      </svg>
+      <svg viewbox="0 0 128 128" id="hide_overview" on-click="hideOverview_">
+        <line x1="28" y1="28" x2="100" y2="100"/>
+        <line x1="28" y1="100" x2="100" y2="28"/>
+      </svg>
+    </div>
+
+    <div id="overview_container">
+    </div>
+  </template>
+</dom-module>
+
+<script>
+'use strict';
+tr.exportTo('tr.v.ui', function() {
+  var NAME_COLUMN_WIDTH_PX = 300;
+
+  Polymer({
+    is: 'tr-v-ui-histogram-set-table-name-cell',
+
+    created: function() {
+      this.row_ = undefined;
+      this.overviewChart_ = undefined;
+    },
+
+    get row() {
+      return this.row_;
+    },
+
+    set row(row) {
+      this.row_ = row;
+      Polymer.dom(this.$.name).textContent = this.row.name;
+
+      this.title = this.row.name;
+      if (this.row.description) {
+        this.title += '\n' + this.row.description;
+      }
+
+      var widthPx = this.nameWidthPx;
+      this.$.name.style.maxWidth = widthPx + 'px';
+      this.$.name.style.width = widthPx + 'px';
+    },
+
+    get nameWidthPx() {
+      // tr-ui-b-table adds 16px of padding for each additional level of subRows
+      // nesting, so outer nameDivs can be wider than inner nameDivs.
+      return NAME_COLUMN_WIDTH_PX - (16 * this.row.depth);
+    },
+
+    hideOverview_: function(opt_event) {
+      if (opt_event) {
+        opt_event.stopPropagation();
+      }
+      this.$.overview_container.style.display = 'none';
+      this.$.hide_overview.style.display = 'none';
+      this.$.show_overview.style.display = 'block';
+
+      for (var [displayLabel, cell] of this.row.cells) {
+        cell.hideOverview();
+      }
+    },
+
+    showOverview_: function(opt_event) {
+      if (opt_event) {
+        opt_event.preventDefault();
+        opt_event.stopPropagation();
+      }
+      if (this.overviewChart_ === undefined) {
+        var data = [];
+        var unitString = undefined;
+        for (var [displayLabel, hist] of this.row.columns) {
+          data.push({x: displayLabel, y: hist.average});
+          unitString = hist.unit.unitString;
+        }
+        if (data.length < 2) {
+          return;
+        }
+
+        this.overviewChart_ = new tr.ui.b.NameLineChart();
+        this.overviewChart_.width = this.nameWidthPx;
+        this.overviewChart_.height = 150;
+        this.overviewChart_.margin.right = 0;
+        this.overviewChart_.hideLegend = true;
+        this.$.overview_container.appendChild(this.overviewChart_);
+        this.overviewChart_.yAxisLabel = unitString;
+        this.overviewChart_.data = data;
+      }
+      this.$.overview_container.style.display = 'block';
+      this.$.hide_overview.style.display = 'block';
+      this.$.show_overview.style.display = 'none';
+
+      for (var [displayLabel, cell] of this.row.cells) {
+        cell.showOverview();
+      }
+    }
+  });
+
+  return {};
+});
+</script>

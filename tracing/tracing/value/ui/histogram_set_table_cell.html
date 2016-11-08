@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/ui/base/name_line_chart.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
+<link rel="import" href="/tracing/value/ui/scalar_span.html">
+
+<dom-module id="tr-v-ui-histogram-set-table-cell">
+  <template>
+    <style>
+    #histogram_container {
+      display: flex;
+      flex-direction: row;
+    }
+
+    #missing, #empty, #unmergeable, #scalar {
+      flex-grow: 1;
+    }
+
+    #open_histogram, #close_histogram{
+      height: 1em;
+    }
+
+    #open_histogram {
+      margin-left: 4px;
+      stroke-width: 0;
+      stroke: blue;
+      fill: blue;
+    }
+    :host(:hover) #open_histogram {
+      background: blue;
+      stroke: white;
+      fill: white;
+    }
+
+    #scalar {
+      flex-grow: 1;
+      white-space: nowrap;
+    }
+
+    #histogram {
+      flex-grow: 1;
+    }
+
+    #close_histogram line {
+      stroke-width: 18;
+      stroke: black;
+    }
+    #close_histogram:hover {
+      background: black;
+    }
+    #close_histogram:hover line {
+      stroke: white;
+    }
+
+    #overview_container {
+      display: none;
+    }
+    </style>
+
+    <div id="histogram_container">
+      <span id="missing">(missing)</span>
+      <span id="empty">(empty)</span>
+      <span id="unmergeable">(unmergeable)</span>
+
+      <tr-v-ui-scalar-span id="scalar" on-click="openHistogram_"></tr-v-ui-scalar-span>
+
+      <svg viewbox="0 0 128 128" id="open_histogram" on-click="openHistogram_">
+        <rect x="16" y="24" width="32" height="16"/>
+        <rect x="16" y="56" width="96" height="16"/>
+        <rect x="16" y="88" width="64" height="16"/>
+      </svg>
+
+      <span id="histogram"></span>
+
+      <svg viewbox="0 0 128 128" id="close_histogram" on-click="closeHistogram_">
+        <line x1="28" y1="28" x2="100" y2="100"/>
+        <line x1="28" y1="100" x2="100" y2="28"/>
+      </svg>
+    </div>
+
+    <div id="overview_container">
+    </div>
+  </template>
+</dom-module>
+
+<script>
+'use strict';
+tr.exportTo('tr.ui', function() {
+  Polymer({
+    is: 'tr-v-ui-histogram-set-table-cell',
+
+    created: function() {
+      this.histogram_ = undefined;
+      this.referenceHistogram_ = undefined;
+      this.histogramSpan_ = undefined;
+      this.overviewChart_ = undefined;
+      this.row_ = undefined;
+    },
+
+    ready: function() {
+      this.addEventListener('click', this.onClick_.bind(this));
+    },
+
+    onClick_: function(event) {
+      // Since the histogram-set-table's table doesn't support any kind of
+      // selection, clicking anywhere within a row that has subRows will
+      // expand/collapse that row, which can relayout the table and move things
+      // around. Prevent table relayout by preventing the tr-ui-b-table from
+      // receiving the click event.
+      event.stopPropagation();
+    },
+
+    set row(row) {
+      this.row_ = row;
+    },
+
+    get row() {
+      return this.row_;
+    },
+
+    get histogram() {
+      return this.histogram_;
+    },
+
+    /**
+     * @param {undefined|string|!tr.v.Histogram} h
+     */
+    set histogram(h) {
+      this.histogram_ = h;
+      this.updateContents_();
+    },
+
+    /**
+     * @param {undefined|string|!tr.v.Histogram} rh
+     */
+    set referenceHistogram(rh) {
+      this.referenceHistogram_ = rh;
+      this.updateContents_();
+    },
+
+    get referenceHistogram() {
+      return this.referenceHistogram_;
+    },
+
+    get isHistogramOpen() {
+      return this.histogramSpan_ &&
+        (this.$.histogram.style.display === 'block');
+    },
+
+    set isHistogramOpen(open) {
+      if (!this.histogram ||
+          this.histogram === tr.v.ui.UNMERGEABLE ||
+          !(this.histogram instanceof tr.v.Histogram) ||
+          (this.histogram.numValues === 0)) {
+        return;
+      }
+
+      // Unfortunately, we can't use a css attribute for this since this stuff
+      // is tied up in all the possible states of this.histogram. See
+      // updateContents_().
+
+      this.$.scalar.style.display = open ? 'none' : 'flex';
+      this.$.open_histogram.style.display = open ? 'none' : 'block';
+
+      this.$.close_histogram.style.display = open ? 'block' : 'none';
+      this.$.histogram.style.display = open ? 'block' : 'none';
+
+      // Wait to create the histogram-span until the user wants to display it
+      // in order to speed up creating lots of histogram-set-table-cells when
+      // building the table.
+      // Wait to pass the Histogram to the histogram-span until it's displayed
+      // so that it can size its BarChart appropriately.
+      if (open && this.histogramSpan_ === undefined) {
+        this.histogramSpan_ = document.createElement('tr-v-ui-histogram-span');
+        this.$.histogram.appendChild(this.histogramSpan_);
+        this.histogramSpan_.referenceHistogram = this.referenceHistogram;
+        this.histogramSpan_.histogram = this.histogram;
+      }
+    },
+
+    openHistogram_: function() {
+      this.isHistogramOpen = true;
+    },
+
+    closeHistogram_: function() {
+      this.isHistogramOpen = false;
+    },
+
+    updateContents_: function() {
+      this.$.empty.style.display = 'none';
+      this.$.unmergeable.style.display = 'none';
+      this.$.scalar.style.display = 'none';
+      this.$.histogram.style.display = 'none';
+      this.$.close_histogram.style.display = 'none';
+      this.$.open_histogram.style.visibility = 'hidden';
+
+      if (!this.histogram) {
+        this.$.missing.style.display = 'block';
+        return;
+      }
+
+      this.$.missing.style.display = 'none';
+
+      if (this.histogram === tr.v.ui.UNMERGEABLE) {
+        this.$.unmergeable.style.display = 'block';
+        return;
+      }
+
+      if (!(this.histogram instanceof tr.v.Histogram)) {
+        throw new Error('Invalid Histogram: ' + this.histogram);
+      }
+
+      if (this.histogram.numValues === 0) {
+        this.$.empty.style.display = 'block';
+        return;
+      }
+
+      this.$.open_histogram.style.display = 'block';
+      this.$.open_histogram.style.visibility = 'visible';
+      this.$.scalar.style.display = 'flex';
+
+      if ((this.referenceHistogram instanceof tr.v.Histogram) &&
+          (this.histogram.unit === this.referenceHistogram.unit) &&
+          (this.referenceHistogram.numValues > 0)) {
+        this.$.scalar.setValueAndUnit(
+            this.histogram.average - this.referenceHistogram.average,
+            this.histogram.unit.correspondingDeltaUnit);
+        this.$.scalar.significance = this.histogram.getDifferenceSignificance(
+            this.referenceHistogram);
+      } else {
+        this.$.scalar.setValueAndUnit(
+            this.histogram.average, this.histogram.unit);
+      }
+    },
+
+    showOverview: function() {
+      if (this.overviewChart_ === undefined) {
+        // TODO var displayLabel = getDisplayLabel(this.histogram);
+        var displayLabel = undefined;
+        for (var [label, hist] of this.row.columns) {
+          if (hist === this.histogram) {
+            displayLabel = label;
+          }
+        }
+
+        var data = [];
+        var unitString = undefined;
+        for (var subRow of this.row.subRows) {
+          var subHist = subRow.columns.get(displayLabel);
+          if (subHist) {
+            data.push({x: subRow.name, y: subHist.average});
+            unitString = subHist.unit.unitString;
+          }
+        }
+        if (data.length < 2) {
+          return;
+        }
+
+        this.overviewChart_ = new tr.ui.b.NameLineChart();
+        this.overviewChart_.width = 200;
+        this.overviewChart_.height = 200;
+        this.overviewChart_.margin.right = 0;
+        this.overviewChart_.hideLegend = true;
+        this.$.overview_container.appendChild(this.overviewChart_);
+        this.overviewChart_.yAxisLabel = unitString;
+        this.overviewChart_.data = data;
+      }
+      this.$.overview_container.style.display = 'block';
+    },
+
+    hideOverview: function() {
+      this.$.overview_container.style.display = 'none';
+    }
+  });
+
+  return {};
+});
+</script>
