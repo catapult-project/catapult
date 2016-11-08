@@ -187,7 +187,7 @@ tr.exportTo('tr.model', function() {
       }
 
       var eventsByBaseType = this.getEventsOrganizedByBaseType(true);
-      var eventTypeName = tr.b.dictionaryKeys(eventsByBaseType)[0];
+      var eventTypeName = Object.keys(eventsByBaseType)[0];
 
       if (this.length === 1) {
         var tmp = EventRegistry.getUserFriendlySingularName(eventTypeName);

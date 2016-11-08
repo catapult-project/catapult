@@ -38,7 +38,7 @@ tr.exportTo('tr.model', function() {
       return sample.timestamp;
     });
 
-    var timestamps = tr.b.dictionaryKeys(samplesByTimestamp);
+    var timestamps = Object.keys(samplesByTimestamp);
     timestamps.sort();
     var groups = [];
     for (var i = 0; i < timestamps.length; i++) {

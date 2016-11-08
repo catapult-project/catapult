@@ -193,7 +193,7 @@ tr.exportTo('tr.ui.analysis', function() {
           totalledArgs[argName] += argVal;
         }
       }
-      this.untotallableArgs_ = tr.b.dictionaryKeys(untotallableArgs);
+      this.untotallableArgs_ = Object.keys(untotallableArgs);
       this.totalledArgs_ = totalledArgs;
     }
   };

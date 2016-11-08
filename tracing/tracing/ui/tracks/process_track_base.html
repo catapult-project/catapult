@@ -169,7 +169,7 @@ tr.exportTo('tr.ui.tracks', function() {
     appendObjectInstanceTracks_: function() {
       var instancesByTypeName =
           this.processBase_.objects.getAllInstancesByTypeName();
-      var instanceTypeNames = tr.b.dictionaryKeys(instancesByTypeName);
+      var instanceTypeNames = Object.keys(instancesByTypeName);
       instanceTypeNames.sort();
 
       var didAppendAtLeastOneTrack = false;

@@ -58,7 +58,7 @@ tr.exportTo('tr.model', function() {
       }
 
       var nonuniqueKeys = {};
-      tr.b.dictionaryKeys(objectsByKey).forEach(function(objectKey) {
+      Object.keys(objectsByKey).forEach(function(objectKey) {
         if (objectsByKey[objectKey] !== NONUNIQUE_KEY)
           return;
         delete objectsByKey[objectKey];
@@ -72,7 +72,7 @@ tr.exportTo('tr.model', function() {
     removeNonuniqueKeysFromSettings_: function() {
       var settings = Settings.get('trace_model_settings', {});
       var settingsChanged = false;
-      tr.b.dictionaryKeys(settings).forEach(function(objectKey) {
+      Object.keys(settings).forEach(function(objectKey) {
         if (!this.nonuniqueKeys[objectKey])
           return;
         settingsChanged = true;

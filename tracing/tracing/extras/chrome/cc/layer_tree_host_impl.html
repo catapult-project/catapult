@@ -156,7 +156,7 @@ tr.exportTo('tr.e.cc', function() {
         var tileHistory = this.allTileHistories_[tileID];
         scales[tileHistory.contentsScale] = true;
       }
-      this.allContentsScales_ = tr.b.dictionaryKeys(scales);
+      this.allContentsScales_ = Object.keys(scales);
       return this.allContentsScales_;
     },
 

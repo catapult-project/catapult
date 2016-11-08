@@ -16,7 +16,11 @@ found in the LICENSE file.
 var escapeChars = s => s.replace(/[\:|=\/#&,]/g, '_');
 
 function findUnescapedKey(escaped, d) {
-  for (var k of tr.b.dictionaryKeys(d)) {
+  if (!d) {
+    return undefined;
+  }
+
+  for (var k of Object.keys(d)) {
     if (escapeChars(k) === escaped) {
       return k;
     }

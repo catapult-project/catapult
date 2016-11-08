@@ -105,7 +105,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(picture.category, 'skia');
     assert.equal(picture.name, 'Picture');
 
-    var typeNames = tr.b.dictionaryKeys(collection.getAllInstancesByTypeName());
+    var typeNames = Object.keys(collection.getAllInstancesByTypeName());
     typeNames.sort();
     assert.deepEqual(
         ['Frame', 'Picture'],
@@ -228,4 +228,3 @@ tr.b.unittest.testSuite(function() {
   });
 });
 </script>
-

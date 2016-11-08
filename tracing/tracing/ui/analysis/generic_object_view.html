@@ -258,7 +258,7 @@ Polymer({
 
   appendElementsForObject_: function(
       label, object, indent, depth, maxDepth, suffix) {
-    var keys = tr.b.dictionaryKeys(object);
+    var keys = Object.keys(object);
     if (keys.length === 0) {
       this.appendSimpleText_(label, indent, '{}', suffix);
       return;

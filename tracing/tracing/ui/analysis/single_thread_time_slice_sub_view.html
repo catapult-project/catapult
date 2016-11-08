@@ -162,7 +162,7 @@ Polymer({
     }
 
     var argsEl = root.querySelector('#args');
-    if (tr.b.dictionaryKeys(timeSlice.args).length > 0) {
+    if (tr.b.dictionaryLength(timeSlice.args) > 0) {
       var argsView =
           document.createElement('tr-ui-a-generic-object-view');
       argsView.object = timeSlice.args;

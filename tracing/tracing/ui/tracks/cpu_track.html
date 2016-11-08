@@ -109,7 +109,7 @@ tr.exportTo('tr.ui.tracks', function() {
         samplesByTitle[sample.title].push(sample);
       });
 
-      var sampleTitles = tr.b.dictionaryKeys(samplesByTitle);
+      var sampleTitles = Object.keys(samplesByTitle);
       sampleTitles.sort();
 
       sampleTitles.forEach(function(sampleTitle) {
