@@ -144,13 +144,11 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function findFirstMeaningfulPaintCandidates(rendererHelper) {
-    var isTelemetryInternalEvent =
-        prepareTelemetryInternalEventPredicate(rendererHelper);
     var candidatesForFrameId = {};
     for (var ev of rendererHelper.process.getDescendantEvents()) {
       if (!hasCategoryAndName(ev, 'loading', 'firstMeaningfulPaintCandidate'))
         continue;
-      if (isTelemetryInternalEvent(ev))
+      if (rendererHelper.isTelemetryInternalEvent(ev))
         continue;
       var frameIdRef = ev.args['frame'];
       if (frameIdRef === undefined)
@@ -163,29 +161,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return candidatesForFrameId;
   }
 
-  function prepareTelemetryInternalEventPredicate(rendererHelper) {
-    var ignoreRegions = [];
-
-    var internalRegionStart;
-    for (var slice of
-        rendererHelper.mainThread.asyncSliceGroup.getDescendantEvents()) {
-          if (!!slice.title.match(/^telemetry\.internal\.[^.]*\.start$/))
-            internalRegionStart = slice.start;
-          if (!!slice.title.match(/^telemetry\.internal\.[^.]*\.end$/)) {
-            var timedEvent = new tr.model.TimedEvent(internalRegionStart);
-            timedEvent.duration = slice.end - internalRegionStart;
-            ignoreRegions.push(timedEvent);
-          }
-        }
-
-    return function isTelemetryInternalEvent(slice) {
-      for (var region of ignoreRegions)
-        if (region.bounds(slice))
-          return true;
-      return false;
-    };
-  }
-
   var URL_BLACKLIST = [
     'about:blank',
     // Chrome on Android creates main frames with the below URL for plugins.
@@ -195,13 +170,13 @@ tr.exportTo('tr.metrics.sh', function() {
     return URL_BLACKLIST.indexOf(url) >= 0;
   }
 
-  function collectTimeToEvent(eventName, rendererHelper,
-      isTelemetryInternalEvent, navigationStartFinder) {
+  function collectTimeToEvent(
+      eventName, rendererHelper, navigationStartFinder) {
     var targetEvents =
         findAllUserTimingEvents(rendererHelper, eventName);
     var samples = [];
     for (var ev of targetEvents) {
-      if (isTelemetryInternalEvent(ev))
+      if (rendererHelper.isTelemetryInternalEvent(ev))
         continue;
       var frameIdRef = ev.args['frame'];
       var snapshot =
@@ -380,14 +355,12 @@ tr.exportTo('tr.metrics.sh', function() {
   }
 
   function collectLoadingMetricsForRenderer(rendererHelper) {
-    var isTelemetryInternalEvent =
-        prepareTelemetryInternalEventPredicate(rendererHelper);
     var navigationStartFinder = new NavigationStartFinder(rendererHelper);
 
-    var firstContentfulPaintSamples = collectTimeToEvent('firstContentfulPaint',
-        rendererHelper, isTelemetryInternalEvent, navigationStartFinder);
-    var onLoadSamples = collectTimeToEvent('loadEventStart',
-        rendererHelper, isTelemetryInternalEvent, navigationStartFinder);
+    var firstContentfulPaintSamples = collectTimeToEvent(
+        'firstContentfulPaint', rendererHelper, navigationStartFinder);
+    var onLoadSamples = collectTimeToEvent(
+        'loadEventStart', rendererHelper, navigationStartFinder);
     var {firstMeaningfulPaintSamples, firstInteractiveSamples} =
         collectFirstMeaningfulPaintAndTimeToInteractiveForRenderer(
               rendererHelper, navigationStartFinder);

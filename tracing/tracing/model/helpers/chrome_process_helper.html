@@ -37,11 +37,41 @@ tr.exportTo('tr.model.helpers', function() {
   function ChromeProcessHelper(modelHelper, process) {
     this.modelHelper = modelHelper;
     this.process = process;
+    this.telemetryInternalRanges_ = undefined;
   }
 
   ChromeProcessHelper.prototype = {
     get pid() {
       return this.process.pid;
+    },
+
+    isTelemetryInternalEvent: function(slice) {
+      if (this.telemetryInternalRanges_ === undefined) {
+        this.findTelemetryInternalRanges_();
+      }
+      for (var range of this.telemetryInternalRanges_) {
+        if (range.containsExplicitRangeInclusive(slice.start, slice.end)) {
+          return true;
+        }
+      }
+      return false;
+    },
+
+    findTelemetryInternalRanges_: function() {
+      this.telemetryInternalRanges_ = [];
+      var start = 0;
+      tr.b.iterItems(this.process.threads, (tid, thread) => {
+        for (var slice of thread.asyncSliceGroup.getDescendantEvents()) {
+          if (/^telemetry\.internal\.[^.]*\.start$/.test(slice.title)) {
+            start = slice.start;
+          } else if (/^telemetry\.internal\.[^.]*\.end$/.test(slice.title) &&
+              start !== undefined) {
+            this.telemetryInternalRanges_.push(tr.b.Range.fromExplicitRange(
+                start, slice.end));
+            start = undefined;
+          }
+        }
+      });
     },
 
     getFrameEventsInRange: function(frametimeType, range) {
