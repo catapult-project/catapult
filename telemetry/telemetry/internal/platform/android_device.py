@@ -4,7 +4,6 @@
 
 import logging
 import os
-import subprocess
 
 from telemetry.internal.platform import cros_device
 from telemetry.internal.platform import device
@@ -16,16 +15,6 @@ from devil.android import device_utils
 from devil.android.sdk import adb_wrapper
 
 import py_utils
-
-def _KillStrayADBProcesses():
-  p = subprocess.Popen(['killall', 'adb'])
-  p.communicate()
-  if p.returncode:
-    logging.info('No adb process was killed')
-  else:
-    logging.info('Some adb process was killed')
-
-
 
 class AndroidDevice(device.Device):
   """ Class represents information for connecting to an android device.
@@ -70,12 +59,7 @@ def GetDeviceSerials(blacklist):
   the returned list. The arguments specify what devices to include in the list.
   """
 
-  try:
-    device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
-  # Sometimes stray adb processes can interfere with using adb.
-  except device_errors.AdbCommandFailedError:
-    _KillStrayADBProcesses()
-    device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
+  device_serials = _ListSerialsOfHealthyOnlineDevices(blacklist)
 
   # The monsoon provides power for the device, so for devices with no
   # real battery, we need to turn them on after the monsoon enables voltage
