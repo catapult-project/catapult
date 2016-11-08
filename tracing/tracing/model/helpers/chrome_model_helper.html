@@ -62,6 +62,8 @@ tr.exportTo('tr.model.helpers', function() {
           this, renderProcess);
       this.rendererHelpers_[rendererHelper.pid] = rendererHelper;
     }, this);
+
+    this.chromeBounds_ = undefined;
   }
 
   ChromeModelHelper.guid = tr.b.GUID.allocateSimple();
@@ -140,27 +142,26 @@ tr.exportTo('tr.model.helpers', function() {
       return this.rendererHelpers[largestPid];
     },
 
-    // Returns the minimal bounds that includes all Chrome-related slices. This
-    // relies on the assumption that all Chrome-relevant traces are bounded by
-    // the browser process. Returns null if the minimal bounds could not be
-    // established.
+    /**
+     * Returns the minimal bounds that includes all Chrome-related slices, or
+     * undefined if no such minimal bounds could be established. This relies on
+     * the assumption that all Chrome-relevant traces are bounded by the browser
+     * process.
+     */
     get chromeBounds() {
-      if (!this.cachedChromeBounds_) {
-        var bounds = new tr.b.Range();
-
-        function updateBounds(process) {
-          for (var tid in process.threads) {
-            bounds.addRange(process.threads[tid].bounds);
-          }
+      if (!this.chromeBounds_) {
+        this.chromeBounds_ = new tr.b.Range();
+        for (var browserHelper of
+             tr.b.dictionaryValues(this.browserHelpers)) {
+          this.chromeBounds_.addRange(browserHelper.process.bounds);
         }
-        for (var pid in this.browserHelpers) {
-          updateBounds(this.browserHelpers[pid].process);
-        }
-        this.cachedChromeBounds_ = bounds;
       }
-      if (this.cachedChromeBounds_.isEmpty)
-        return null;
-      return this.cachedChromeBounds_;
+
+      if (this.chromeBounds_.isEmpty) {
+        return undefined;
+      }
+
+      return this.chromeBounds_;
     }
   };
 
