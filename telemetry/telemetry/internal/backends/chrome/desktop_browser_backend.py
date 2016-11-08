@@ -458,25 +458,26 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
       if not cdb:
         logging.warning('cdb.exe not found.')
         return None
-      # Include all the threads' stacks ("~*kb30") in addition to the
-      # ostensibly crashed stack associated with the exception context
-      # record (".ecxr;kb30"). Note that stack dumps, including that
-      # for the crashed thread, may not be as precise as the one
-      # starting from the exception context record.
+      # Move to the thread which triggered the exception (".ecxr"). Then include
+      # a description of the exception (".lastevent"). Also include all the
+      # threads' stacks ("~*kb30") as well as the ostensibly crashed stack
+      # associated with the exception context record ("kb30"). Note that stack
+      # dumps, including that for the crashed thread, may not be as precise as
+      # the one starting from the exception context record.
       # Specify kb instead of k in order to get four arguments listed, for
       # easier diagnosis from stacks.
       output = subprocess.check_output([cdb, '-y', self._browser_directory,
-                                        '-c', '.ecxr;kb30;~*kb30;q',
+                                        '-c', '.ecxr;.lastevent;kb30;~*kb30;q',
                                         '-z', minidump])
-      # cdb output can start the stack with "ChildEBP", "Child-SP", and possibly
+      # The output we care about starts with "Last event:" or possibly
       # other things we haven't seen yet. If we can't find the start of the
-      # stack, include output from the beginning.
-      stack_start = 0
-      stack_start_match = re.search("^Child(?:EBP|-SP)", output, re.MULTILINE)
-      if stack_start_match:
-        stack_start = stack_start_match.start()
-      stack_end = output.find('quit:')
-      return output[stack_start:stack_end]
+      # last event entry, include output from the beginning.
+      info_start = 0
+      info_start_match = re.search("Last event:", output, re.MULTILINE)
+      if info_start_match:
+        info_start = info_start_match.start()
+      info_end = output.find('quit:')
+      return output[info_start:info_end]
 
     arch_name = self.browser.platform.GetArchName()
     stackwalk = binary_manager.FetchPath(
