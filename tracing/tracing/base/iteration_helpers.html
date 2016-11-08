@@ -90,30 +90,6 @@ tr.exportTo('tr.b', function() {
     return 0;
   }
 
-  /**
-   * Compares two numeric values when one or both might be undefined or NaNs.
-   * Undefined / NaN values are sorted after others.
-   */
-  function compareNumericWithNaNs(x, y) {
-    if (!isNaN(x) && !isNaN(y))
-      return x - y;
-    if (isNaN(x))
-      return 1;
-    if (isNaN(y))
-      return -1;
-    return 0;
-  }
-
-  function concatenateArrays(/* arguments */) {
-    var values = [];
-    for (var i = 0; i < arguments.length; i++) {
-      if (!(arguments[i] instanceof Array))
-        throw new Error('Arguments ' + i + 'is not an array');
-      values.push.apply(values, arguments[i]);
-    }
-    return values;
-  }
-
   function concatenateObjects(/* arguments */) {
     var result = {};
     for (var i = 0; i < arguments.length; i++) {
@@ -123,14 +99,6 @@ tr.exportTo('tr.b', function() {
       }
     }
     return result;
-  }
-
-  function cloneDictionary(dict) {
-    var clone = {};
-    for (var k in dict) {
-      clone[k] = dict[k];
-    }
-    return clone;
   }
 
   function dictionaryValues(dict) {
@@ -152,16 +120,6 @@ tr.exportTo('tr.b', function() {
       if (dict[key] === value)
         return true;
     return false;
-  }
-
-  /**
-   * Returns true if all the elements of the iterable pass the predicate.
-   */
-  function every(iterable, predicate) {
-    for (var x of iterable)
-      if (!predicate(x))
-        return false;
-    return true;
   }
 
   /**
@@ -416,33 +374,14 @@ tr.exportTo('tr.b', function() {
     return values;
   }
 
-  /**
-   * Calls |fn| on each entry in an ES6 Map.
-   *
-   * @param {!Map} The map whose entries are being processed.
-   * @param {function(*, *): *} The function which accepts a map key as its
-   *     first parameter and a map value as its second parameter. Any return
-   *     value is ignored.
-   * @param {*=} opt_this Optional 'this' context for fn.
-   */
-  function iterMapItems(map, fn, opt_this) {
-    opt_this = opt_this || this;
-    for (var key of map.keys())
-      fn.call(opt_this, key, map.get(key));
-  }
-
   return {
     asArray: asArray,
-    concatenateArrays: concatenateArrays,
     concatenateObjects: concatenateObjects,
     compareArrays: compareArrays,
     comparePossiblyUndefinedValues: comparePossiblyUndefinedValues,
-    compareNumericWithNaNs: compareNumericWithNaNs,
-    cloneDictionary: cloneDictionary,
     dictionaryLength: dictionaryLength,
     dictionaryValues: dictionaryValues,
     dictionaryContainsValue: dictionaryContainsValue,
-    every: every,
     getOnlyElement: getOnlyElement,
     getFirstElement: getFirstElement,
     group: group,
@@ -457,8 +396,7 @@ tr.exportTo('tr.b', function() {
     findFirstIndexInArray: findFirstIndexInArray,
     findFirstInArray: findFirstInArray,
     findFirstKeyInDictMatching: findFirstKeyInDictMatching,
-    mapValues: mapValues,
-    iterMapItems: iterMapItems
+    mapValues: mapValues
   };
 });
 </script>

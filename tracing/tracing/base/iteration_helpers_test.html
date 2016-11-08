@@ -13,7 +13,6 @@ tr.b.unittest.testSuite(function() {
   var compareArrays = tr.b.compareArrays;
   var asArray = tr.b.asArray;
   var getOnlyElement = tr.b.getOnlyElement;
-  var every = tr.b.every;
   var getFirstElement = tr.b.getFirstElement;
 
   test('asArray_indexed', function() {
@@ -65,18 +64,6 @@ tr.b.unittest.testSuite(function() {
 
     assert.equal(compareArrays([], [], cmp), 0);
     assert.equal(compareArrays([1], [1], cmp), 0);
-  });
-
-  test('every_empty', function() {
-    assert.isTrue(every([], x => false));
-  });
-
-  test('every_true', function() {
-    assert.isTrue(every([2, 4, 6], x => x % 2 === 0));
-  });
-
-  test('every_false', function() {
-    assert.isTrue(!every([2, 3, 4], x => x % 2 === 0));
   });
 
   test('getOnlyElement_throwsIfEmpty', function() {
@@ -319,33 +306,6 @@ tr.b.unittest.testSuite(function() {
     var values = tr.b.mapValues(map);
     assert.strictEqual(values.length, 3);
     assert.sameMembers([1, 2, 3], values);
-  });
-
-  test('iterMapItems', function() {
-    var map = new Map();
-    map.set('a', 'aa');
-    map.set('b', 'bb');
-    map.set('c', 'cc');
-    var counter = 0;
-    var keyCheck = ['a', 'b', 'c'];
-    var valueCheck = ['aa', 'bb', 'cc'];
-    tr.b.iterMapItems(map, function(key, value) {
-      assert.strictEqual(key, keyCheck[counter]);
-      assert.strictEqual(value, valueCheck[counter]);
-      ++counter;
-    });
-    assert.strictEqual(counter, 3);
-
-    // Optional 'this' argument.
-    var retObj = {delimiter: '=', result: {}};
-    assert.lengthOf(Object.keys(retObj.result), 0);
-    tr.b.iterMapItems(map, function(key, value) {
-      this.result[key] = key + this.delimiter + value;
-    }, retObj);
-    assert.lengthOf(Object.keys(retObj.result), 3);
-    assert.equal(retObj.result.a, 'a=aa');
-    assert.equal(retObj.result.b, 'b=bb');
-    assert.equal(retObj.result.c, 'c=cc');
   });
 });
 </script>
