@@ -191,6 +191,8 @@ tr.exportTo('tr.ui.b', function() {
       for (i = 0; i < newKeys.length; ++i) {
         var group = possibleGroups.get(newKeys[i]);
         if (group === undefined) {
+          newKeys.splice(i, 1);
+          --i;
           continue;
         }
         groupEls[i].group = group;

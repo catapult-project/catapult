@@ -12,9 +12,11 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('groupby-picker', function() {
+    var settingsKey = 'tr-ui-b-grouping-table-groupby-picker-test';
     var picker = document.createElement(
         'tr-ui-b-grouping-table-groupby-picker');
-    picker.settingsKey = 'tr-ui-b-grouping-table-groupby-picker-test';
+    tr.b.Settings.set(settingsKey, []);
+    picker.settingsKey = settingsKey;
     picker.possibleGroups = [
       {key: 'a', label: 'A'},
       {key: 'b', label: 'B'},
@@ -22,6 +24,7 @@ tr.b.unittest.testSuite(function() {
       {key: 'd', label: 'D'},
       {key: 'e', label: 'E'}
     ];
+    assert.deepEqual([], picker.currentGroupKeys);
     this.addHTMLOutput(picker);
 
     var keys = ['a', 'b', 'c', 'd', 'e'];
@@ -39,6 +42,14 @@ tr.b.unittest.testSuite(function() {
     var keys = ['a', 'b', 'd'];
     picker.currentGroupKeys = keys;
     assert.deepEqual(keys, picker.currentGroupKeys);
+
+    tr.b.Settings.set(settingsKey, ['foo']);
+    picker.settingsKey = settingsKey;
+    assert.deepEqual([], picker.currentGroupKeys);
+
+    tr.b.Settings.set(settingsKey, ['e']);
+    picker.settingsKey = settingsKey;
+    assert.deepEqual(['e'], picker.currentGroupKeys);
   });
 });
 </script>
