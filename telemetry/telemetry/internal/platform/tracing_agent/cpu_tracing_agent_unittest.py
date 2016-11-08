@@ -15,7 +15,7 @@ from telemetry.internal.platform import win_platform_backend
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
 
-SNAPSHOT_KEYS = ['pid', 'name', 'pCpu', 'pMem']
+SNAPSHOT_KEYS = ['pid', 'ppid', 'name', 'pCpu', 'pMem']
 TRACE_EVENT_KEYS = ['name', 'tid', 'pid', 'ph', 'args', 'local', 'id', 'ts']
 
 
@@ -129,5 +129,5 @@ class CpuTracingAgentTest(unittest.TestCase):
     data = json.loads(builder.GetTraceFor(trace_data.CPU_TRACE_DATA))
     self.assertTrue(data)
     for snapshot in data:
-      for process in snapshot['args']['snapshot']['processes']:
-        self.assertTrue(process['pCpu'] > 0 or process['pMem'] > 0)
+      # We know that at least Python is running in every snapshot.
+      self.assertTrue(len(snapshot['args']['snapshot']['processes']) > 0)

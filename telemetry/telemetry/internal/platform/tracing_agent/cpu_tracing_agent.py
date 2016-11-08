@@ -17,17 +17,18 @@ def _ParsePsProcessString(line):
   """Parses a process line from the output of `ps`.
 
   Example of `ps` command output:
-  '3.4 8.0 31887 com.app.Webkit'
+  '3.4 8.0 31887 31447 com.app.Webkit'
   """
   token_list = line.strip().split()
-  if len(token_list) < 4:
+  if len(token_list) < 5:
     raise ValueError('Line has too few tokens: %s.' % token_list)
 
   return {
     'pCpu': float(token_list[0]),
     'pMem': float(token_list[1]),
     'pid': int(token_list[2]),
-    'name': ' '.join(token_list[3:])
+    'ppid': int(token_list[3]),
+    'name': ' '.join(token_list[4:])
   }
 
 
@@ -43,10 +44,10 @@ class ProcessCollector(object):
     """Parses an individual process string returned by _GetProcessesAsStrings().
 
     Returns:
-      A dictionary containing keys of 'pid' (a string process ID), 'name' (a
-      string for the process name), 'pCpu' (a float for the percent CPU load
-      incurred by the process), and 'pMem' (a float for the percent memory load
-      caused by the process).
+      A dictionary containing keys of 'pid' (an integer process ID), 'ppid' (an
+      integer parent process ID), 'name' (a string for the process name), 'pCpu'
+      (a float for the percent CPU load incurred by the process), and 'pMem' (a
+      float for the percent memory load caused by the process).
     """
     raise NotImplementedError
 
@@ -58,36 +59,30 @@ class ProcessCollector(object):
     """Fetches the top processes returned by top command.
 
     Returns:
-      A list of dictionaries, each containing 'pid' (a string process ID), 'name
-      (a string for the process name), pCpu' (a float for the percent CPU load
-      incurred by the process), and 'pMem' (a float for the percent memory load
-      caused by the process).
+      A list of dictionaries, each containing 'pid' (an integer process ID),
+      'ppid' (an integer parent process ID), 'name (a string for the process
+      name), pCpu' (a float for the percent CPU load incurred by the process),
+      and 'pMem' (a float for the percent memory load caused by the process).
     """
     proc_strings = self._GetProcessesAsStrings()
-    raw_procs = [
+    return [
         self._ParseProcessString(proc_string) for proc_string in proc_strings
     ]
-
-    # TODO(charliea): Aggregate all processes with the same name into a single
-    # entry and add a 'count' key indicating how many processes exist with that
-    # name. That way, we can easily see things like "Chrome had 25 processes
-    # which, combined, took up 25 percent of memory and 40 percent of CPU".
-    return [proc for proc in raw_procs if proc['pCpu'] > 0 or proc['pMem'] > 0]
 
 
 class WindowsProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Windows.
 
   Example of Windows command output:
-  'chrome#1                 8'
-  'chrome#2                 4'
+  '3644      1724   chrome#1                 8           84497'
+  '3644      832    chrome#2                 4           34872'
   """
   _GET_PROCESSES_SHELL_COMMAND = [
     'wmic',
     'path', # Retrieve a WMI object from the following path.
     'Win32_PerfFormattedData_PerfProc_Process', # Contains process perf data.
     'get',
-    'IDProcess,Name,PercentProcessorTime,WorkingSet'
+    'CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet'
   ]
 
   _GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND = [
@@ -126,8 +121,8 @@ class WindowsProcessCollector(ProcessCollector):
     assert self._physicalMemoryBytes, 'Must call Init() before using collector'
 
     token_list = proc_string.strip().split()
-    if len(token_list) != 4:
-      raise ValueError('Line does not have four tokens: %s.' % token_list)
+    if len(token_list) != 5:
+      raise ValueError('Line does not have five tokens: %s.' % token_list)
 
     # Process names are given in the form:
     #
@@ -138,17 +133,18 @@ class WindowsProcessCollector(ProcessCollector):
     # In order to match other platforms, where multiple processes can have the
     # same name and can be easily grouped based on that name, we strip any
     # pound sign and number.
-    name = re.sub(r'#[0-9]+$', '', token_list[1])
+    name = re.sub(r'#[0-9]+$', '', token_list[2])
     # The working set size (roughly equivalent to the resident set size on Unix)
     # is given in bytes. In order to convert this to percent of physical memory
     # occupied by the process, we divide by the amount of total physical memory
     # on the machine.
-    percent_memory = float(token_list[3]) / self._physicalMemoryBytes * 100
+    percent_memory = float(token_list[4]) / self._physicalMemoryBytes * 100
 
     return {
-      'pid': int(token_list[0]),
+      'ppid': int(token_list[0]),
+      'pid': int(token_list[1]),
       'name': name,
-      'pCpu': float(token_list[2]),
+      'pCpu': float(token_list[3]),
       'pMem': percent_memory
     }
 
@@ -156,14 +152,14 @@ class LinuxProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Linux.
 
   Example of Linux command output:
-  '3.4 8.0 31887 com.app.Webkit'
+  '3.4 8.0 31887 31447 com.app.Webkit'
   """
   _SHELL_COMMAND = [
     'ps',
     '-a', # Include processes that aren't session leaders.
     '-x', # List all processes, even those not owned by the user.
     '-o', # Show the output in the specified format.
-    'pcpu,pmem,pid,cmd'
+    'pcpu,pmem,pid,ppid,cmd'
   ]
 
   def _GetProcessesAsStrings(self):
@@ -178,7 +174,7 @@ class MacProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Mac.
 
   Example of Mac command output:
-  '3.4 8.0 31887 com.app.Webkit'
+  '3.4 8.0 31887 31447 com.app.Webkit'
   """
 
   _SHELL_COMMAND = [
@@ -187,7 +183,7 @@ class MacProcessCollector(ProcessCollector):
     '-ww', # Don't limit the length of each line.
     '-x', # Include processes that aren't associated with a terminal.
     '-o', # Show the output in the specified format.
-    '%cpu %mem pid command' # Put the command last to avoid truncation.
+    '%cpu %mem pid ppid command' # Put the command last to avoid truncation.
   ]
 
   def _GetProcessesAsStrings(self):
