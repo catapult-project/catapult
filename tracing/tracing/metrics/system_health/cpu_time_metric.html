@@ -95,6 +95,14 @@ tr.exportTo('tr.metrics.sh', function() {
     cpuTimeHist.description =
         'Percent CPU utilization, normalized against a single core. Can be ' +
         'greater than 100% if machine has multiple cores.';
+    cpuTimeHist.customizeSummaryOptions({
+      avg: true,
+      count: false,
+      max: false,
+      min: false,
+      std: false,
+      sum: false
+    });
     cpuTimeHist.addSample(normalizedAllProcessCpuTime);
     values.addHistogram(cpuTimeHist);
   }
