@@ -32,13 +32,26 @@ class AndroidForwarderFactory(forwarders.ForwarderFactory):
       except Exception:
         logging.warning('Exception raised while listing forwarded connections.')
 
-      logging.warning('Device tcp sockets in use:')
+      logging.warning('Relevant device tcp sockets in use:')
       try:
+        proc_net_tcp_target = ':%s ' % hex(port_pair.remote_port)[2:]
         for line in self._device.ReadFile('/proc/net/tcp', as_root=True,
                                           force_pull=True).splitlines():
-          logging.warning('  %s', line)
+          if proc_net_tcp_target in line:
+            logging.warning('  %s', line)
       except Exception:
         logging.warning('Exception raised while listing tcp sockets.')
+
+      logging.warning('Possibly relevant lsof entries:')
+      try:
+        lsof_output = self._device.RunShellCommand(
+            ['lsof'], as_root=True, check_return=True)
+        lsof_target = str(port_pair.remote_port)
+        for line in lsof_output:
+          if lsof_target in line:
+            logging.warning('  %s', line)
+      except Exception:
+        logging.warning('Exception raised running lsof.')
 
       logging.warning('Alive webpagereplay instances:')
       try:
