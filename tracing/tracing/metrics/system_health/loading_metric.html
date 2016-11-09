@@ -164,7 +164,9 @@ tr.exportTo('tr.metrics.sh', function() {
   var URL_BLACKLIST = [
     'about:blank',
     // Chrome on Android creates main frames with the below URL for plugins.
-    'data:text/html,pluginplaceholderdata'
+    'data:text/html,pluginplaceholderdata',
+    // Special URL used to start a navigation to an unreachable error page.
+    'data:text/html,chromewebdata'
   ];
   function shouldIgnoreURL(url) {
     return URL_BLACKLIST.indexOf(url) >= 0;
