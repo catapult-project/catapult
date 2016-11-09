@@ -85,9 +85,6 @@ class _TBMResultWrapper(ResultsWrapperInterface):
     if value.tir_label:
       assert value.tir_label == self._tir_label
     else:
-      logging.warning(
-          'TimelineBasedMetric should create the interaction record label '
-          'for %r values.' % value.name)
       value.tir_label = self._tir_label
     self._results.AddValue(value)
 
