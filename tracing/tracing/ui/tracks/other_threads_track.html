@@ -34,7 +34,7 @@ tr.exportTo('tr.ui.tracks', function() {
     decorate: function(viewport) {
       tr.ui.tracks.ContainerTrack.prototype.decorate.call(this, viewport);
 
-      this.header_ = document.createElement('tr-ui-heading');
+      this.header_ = document.createElement('tr-ui-b-heading');
       this.header_.addEventListener('click', this.onHeaderClick_.bind(this));
       this.header_.heading = 'Other Threads';
       this.header_.tooltip = 'Threads with only scheduling information';

@@ -42,7 +42,7 @@ tr.exportTo('tr.ui.tracks', function() {
       this.viewportChange_ = this.viewportChange_.bind(this);
       viewport.addEventListener('change', this.viewportChange_);
 
-      var heading = document.createElement('tr-ui-heading');
+      var heading = document.createElement('tr-ui-b-heading');
       heading.arrowVisible = false;
       Polymer.dom(this).appendChild(heading);
     },
