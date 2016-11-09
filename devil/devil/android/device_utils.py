@@ -2357,7 +2357,7 @@ class DeviceUtils(object):
       A device serial, or a list of device serials (optional).
 
     Returns:
-      A list of one or more DeviceUtils instances.
+      A list of DeviceUtils instances.
 
     Raises:
       NoDevicesError: Raised when no non-blacklisted devices exist and
