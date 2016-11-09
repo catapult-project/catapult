@@ -75,9 +75,14 @@ def RecoverDevice(device, blacklist, should_reboot=lambda device: True):
                        'Attempting alternative reboot.', str(device))
         # The device drops offline before we can grab the exit code, so
         # we don't check for status.
-        device.adb.Root()
-        device.adb.Shell('echo b > /proc/sysrq-trigger', expect_status=None,
-                         timeout=5, retries=0)
+        try:
+          device.adb.Root()
+        finally:
+          # We are already in a failure mode, attempt to reboot regardless of
+          # what device.adb.Root() returns. If the sysrq reboot fails an
+          # exception willbe thrown at that level.
+          device.adb.Shell('echo b > /proc/sysrq-trigger', expect_status=None,
+                           timeout=5, retries=0)
     except device_errors.CommandFailedError:
       logger.exception('Failed to reboot %s.', str(device))
       if blacklist:
