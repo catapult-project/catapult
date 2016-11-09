@@ -69,11 +69,16 @@ To list available browsers, use:
 
 `telemetry/run_benchmark --browser=list`
 
+For ease of use, you can use default system browsers on desktop:
+
+`telemetry/run_benchmark --browser=system`
+
+and on Android:
+
+`telemetry/run_benchmark --browser=android-system-chrome`
+
 If you're running telemetry from within a Chromium checkout, the release and
 debug browsers are what's built in out/Release and out/Debug, respectively.
-If you are trying to run on Android, you should see an entry similar to
-android-jb-system-chrome in this list. If it's not there, the device is not set
-up correctly.
 
 To run a specific browser executable:
 
