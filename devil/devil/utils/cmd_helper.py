@@ -236,9 +236,10 @@ def _IterProcessStdout(process, timeout=None, buffer_size=4096,
         break
   finally:
     try:
-      # Make sure the process doesn't stick around if we fail with an
-      # exception.
-      process.kill()
+      if process.returncode is None:
+        # Make sure the process doesn't stick around if we fail with an
+        # exception.
+        process.kill()
     except OSError:
       pass
     process.wait()
