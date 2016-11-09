@@ -90,25 +90,12 @@ tr.exportTo('tr.c', function() {
     return s;
   };
 
-  function getColorId(colorId) {
-    if (colorId) {
-      if (colorId === 'random') {
-        colorId = Math.floor(
-            Math.random() *
-            ColorScheme.proprties.numGeneralPurposeColorIds);
-      }
-    } else {
-      colorId = 0;
-    }
-    return colorId;
-  }
-
   TestUtils.newAsyncSliceEx = function(options) {
     var sd = TestUtils.getStartAndDurationFromDict(options);
 
     var cat = options.cat ? options.cat : 'cat';
     var title = options.title ? options.title : 'a';
-    var colorId = getColorId(options.colorId);
+    var colorId = options.colorId || 0;
 
     var isTopLevel;
     if (options.isTopLevel !== undefined)
@@ -483,7 +470,7 @@ tr.exportTo('tr.c', function() {
       throw new Error('too little information');
 
     var category = options.category || 'category';
-    var colorId = getColorId(options.colorId);
+    var colorId = options.colorId || 0;
     var args = options.args || {};
     return new tr.model.InstantEvent(
         category, title, colorId, start, args);
