@@ -239,5 +239,31 @@ tr.b.unittest.testSuite(function() {
     });
     this.addHTMLOutput(chart);
   });
+
+  test('overrideDataRange', function() {
+    var chart = new tr.ui.b.BarChart();
+    chart.width = 300;
+    chart.height = 70;
+    chart.overrideDataRange = tr.b.Range.fromExplicitRange(10, 90);
+    var data = [
+      {x: 0, value: -20},
+      {x: 1, value: 100},
+      {x: 2, value: -40},
+      {x: 3, value: 100},
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+
+    chart = new tr.ui.b.BarChart();
+    chart.width = 300;
+    chart.height = 100;
+    chart.overrideDataRange = tr.b.Range.fromExplicitRange(-10, 100);
+    var data = [
+      {x: 0, value: 0},
+      {x: 1, value: 50},
+    ];
+    chart.data = data;
+    this.addHTMLOutput(chart);
+  });
 });
 </script>

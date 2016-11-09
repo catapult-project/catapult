@@ -62,18 +62,11 @@ tr.exportTo('tr.ui.b', function() {
       var xDifferences = 0;
       var currentX = undefined;
       var previousX = undefined;
-      var yRange = new tr.b.Range();
       this.data_.forEach(function(datum, index) {
         previousX = currentX;
         currentX = this.getXForDatum_(datum, index);
         if (previousX !== undefined) {
           xDifferences += currentX - previousX;
-        }
-
-        for (var [key, series] of this.seriesByKey_) {
-          // Allow for sparse data
-          if (datum[key] !== undefined)
-            yRange.addValue(datum[key]);
         }
       }, this);
 
@@ -90,27 +83,28 @@ tr.exportTo('tr.ui.b', function() {
 
       // Y.
       this.yScale_.range([this.chartAreaSize.height, 0]);
-      this.yScale_.domain(this.getYScaleDomain_(yRange.min, yRange.max));
+      this.yScale_.domain(this.getYScaleDomain_(
+          this.dataRange.min, this.dataRange.max));
     },
 
-    getYScaleDomain_: function(minValue, maxValue) {
+    updateDataRange_: function() {
       if (!this.isStacked) {
-        return ChartBase2DBrushX.prototype.getYScaleDomain_.call(
-            this, minValue, maxValue);
+        ChartBase2DBrushX.prototype.updateDataRange_.call(this);
+        return;
       }
 
-      var range = new tr.b.Range();
-      range.addValue(0);
-      this.data_.forEach(function(datum, index) {
+      this.autoDataRange_.reset();
+      this.autoDataRange_.addValue(0);
+      for (var datum of this.data_) {
         var sum = 0;
         for (var [key, series] of this.seriesByKey_) {
-          if (datum[key] === undefined)
+          if (datum[key] === undefined) {
             continue;
+          }
           sum += datum[key];
         }
-        range.addValue(sum);
-      }, this);
-      return [range.min, range.max];
+        this.autoDataRange_.addValue(sum);
+      }
     },
 
     getStackedRectsForDatum_: function(datum, index) {
@@ -118,9 +112,11 @@ tr.exportTo('tr.ui.b', function() {
       var bottom = this.yScale_.range()[0];
       var sum = 0;
       for (var [key, series] of this.seriesByKey_) {
-        if (datum[key] === undefined || !this.isSeriesEnabled(key))
+        if (datum[key] === undefined || !this.isSeriesEnabled(key)) {
           continue;
-        sum += datum[key];
+        }
+
+        sum += this.dataRange.clamp(datum[key]);
         var heightPx = bottom - this.yScale_(sum);
         bottom -= heightPx;
         stacks.push({
@@ -128,7 +124,9 @@ tr.exportTo('tr.ui.b', function() {
           value: datum[key],
           color: this.getDataSeries(key).color,
           heightPx: heightPx,
-          topPx: bottom
+          topPx: bottom,
+          underflow: sum < this.dataRange.min,
+          overflow: sum > this.dataRange.max,
         });
       }
       return stacks;
@@ -140,15 +138,20 @@ tr.exportTo('tr.ui.b', function() {
 
       var stacks = [];
       for (var [key, series] of this.seriesByKey_) {
-        if (datum[key] === undefined || !this.isSeriesEnabled(key))
+        if (datum[key] === undefined || !this.isSeriesEnabled(key)) {
           continue;
-        var topPx = this.yScale_(Math.max(datum[key], this.getYScaleMin_()));
+        }
+
+        var clampedValue = this.dataRange.clamp(datum[key]);
+        var topPx = this.yScale_(Math.max(clampedValue, this.getYScaleMin_()));
         stacks.push({
           key: key,
           value: datum[key],
           topPx: topPx,
           heightPx: this.yScale_.range()[0] - topPx,
-          color: this.getDataSeries(key).color
+          color: this.getDataSeries(key).color,
+          underflow: datum[key] < this.dataRange.min,
+          overflow: datum[key] > this.dataRange.max,
         });
       }
       stacks.sort(function(a, b) {
@@ -218,6 +221,28 @@ tr.exportTo('tr.ui.b', function() {
       sel.exit().remove();
     },
 
+    drawUnderflow_: function(rect, sel) {
+      sel = sel.data([rect]);
+      sel.enter().append('text')
+        .text('*')
+        .attr('fill', rect.color)
+        .attr('x', rect.leftPx + (rect.widthPx / 2))
+        .attr('y', this.chartAreaSize.height)
+        .on('mouseenter', this.drawHoverValueBox_.bind(this, rect))
+        .on('mouseleave', this.clearHoverValueBox_.bind(this));
+      sel.exit().remove();
+    },
+
+    drawOverflow_: function(rect, sel) {
+      sel = sel.data([rect]);
+      sel.enter().append('text')
+        .text('*')
+        .attr('fill', rect.color)
+        .attr('x', rect.leftPx + (rect.widthPx / 2))
+        .attr('y', 0);
+      sel.exit().remove();
+    },
+
     updateDataContents_: function(dataSel) {
       dataSel.selectAll('*').remove();
       var chartAreaSel = d3.select(this.chartAreaElement);
@@ -239,6 +264,12 @@ tr.exportTo('tr.ui.b', function() {
           rect.rightPx = this.xScale_(currentX + width);
           rect.widthPx = rect.rightPx - rect.leftPx;
           this.drawRect_(rect, rectsSel);
+          if (rect.underflow) {
+            this.drawUnderflow_(rect, rectsSel);
+          }
+          if (rect.overflow) {
+            this.drawOverflow_(rect, rectsSel);
+          }
         }
       }, this);
     }

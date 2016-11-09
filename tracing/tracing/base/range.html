@@ -100,6 +100,10 @@ tr.exportTo('tr.b', function() {
       return tr.b.lerp(x, this.min, this.max);
     },
 
+    clamp: function(x) {
+      return tr.b.clamp(x, this.min, this.max);
+    },
+
     equals: function(that) {
       if (this.isEmpty && that.isEmpty)
         return true;

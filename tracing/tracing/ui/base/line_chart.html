@@ -44,15 +44,13 @@ tr.exportTo('tr.ui.b', function() {
       pathsSel.enter()
           .append('path')
           .attr('class', 'line')
-          .style('stroke', function(key) {
-              return this.getDataSeries(key).color;
-            }.bind(this))
-          .attr('d', function(key) {
+          .style('stroke', key => this.getDataSeries(key).color)
+          .attr('d', key => {
               var line = d3.svg.line()
-                .x(function(d) { return this.xScale_(d.x); }.bind(this))
-                .y(function(d) { return this.yScale_(d[key]); }.bind(this));
+                .x(d => this.xScale_(d.x))
+                .y(d => this.yScale_(this.dataRange.clamp(d[key])));
               return line(dataBySeriesKey[key]);
-            }.bind(this));
+            });
       pathsSel.exit().remove();
     }
   };

@@ -131,9 +131,9 @@ tr.exportTo('tr.ui.b', function() {
         .text(rect.value);
     },
 
-    drawRect_: function(rect, sel) {
+    flipRect_: function(rect) {
       // Flip |rect| around |y=x|.
-      var colRect = {
+      return {
         datum: rect.datum,
         index: rect.index,
         key: rect.key,
@@ -143,8 +143,48 @@ tr.exportTo('tr.ui.b', function() {
         leftPx: this.chartAreaSize.width - rect.topPx - rect.heightPx,
         widthPx: rect.heightPx,
         heightPx: rect.widthPx,
+        underflow: rect.underflow,
+        overflow: rect.overflow,
       };
-      ColumnChart.prototype.drawRect_.call(this, colRect, sel);
+    },
+
+    drawRect_: function(rect, sel) {
+      ColumnChart.prototype.drawRect_.call(
+          this, this.flipRect_(rect), sel);
+    },
+
+    drawUnderflow_: function(rect, rectsSel) {
+      var sel = rectsSel.data([rect]);
+      sel.enter().append('text')
+        .text('*')
+        .attr('fill', rect.color)
+        .attr('x', 0)
+        .attr('y', this.chartAreaSize.height - rect.leftPx +
+            3 + (rect.widthPx / 2));
+      sel.exit().remove();
+
+      sel = rectsSel.data([rect]);
+      sel.enter().append('rect')
+        .attr('fill', 'rgba(0, 0, 0, 0)')
+        .attr('x', 0)
+        .attr('y', this.chartAreaSize.height - rect.leftPx - rect.widthPx)
+        .attr('width', 10)
+        .attr('height', rect.widthPx)
+        .on('mouseenter', () => this.drawHoverValueBox_(
+              this.flipRect_(rect)))
+        .on('mouseleave', () => this.clearHoverValueBox_());
+      sel.exit().remove();
+    },
+
+    drawOverflow_: function(rect, sel) {
+      sel = sel.data([rect]);
+      sel.enter().append('text')
+        .text('*')
+        .attr('fill', rect.color)
+        .attr('x', this.chartAreaSize.width)
+        .attr('y', this.chartAreaSize.height - rect.leftPx +
+            3 + (rect.widthPx / 2));
+      sel.exit().remove();
     }
   };
 
