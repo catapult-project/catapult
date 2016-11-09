@@ -24,6 +24,8 @@ tr.b.unittest.testSuite(function() {
     return row;
   }
 
+  // TODO(benjhayden): Test constrainNameColumnWidth.
+
   test('requestSelectionChange', function() {
     var table = document.createElement('tr-v-ui-histogram-set-table');
     var histograms = new tr.v.HistogramSet();
@@ -381,7 +383,8 @@ tr.b.unittest.testSuite(function() {
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
 
     assert.lengthOf(baseTable.tableColumns, 3);
-    assert.strictEqual('Name', baseTable.tableColumns[0].title);
+    assert.strictEqual('Name',
+        baseTable.tableColumns[0].title.children[0].textContent);
     assert.strictEqual('iteration A',
         baseTable.tableColumns[1].title);
     assert.strictEqual('iteration B',
@@ -513,7 +516,8 @@ tr.b.unittest.testSuite(function() {
         table, elem => elem.tagName === 'TR-UI-B-TABLE');
 
     assert.lengthOf(baseTable.tableColumns, 3);
-    assert.strictEqual('Name', baseTable.tableColumns[0].title);
+    assert.strictEqual('Name',
+        baseTable.tableColumns[0].title.children[0].textContent);
     assert.strictEqual('label A', baseTable.tableColumns[1].title);
     assert.strictEqual('label B', baseTable.tableColumns[2].title);
 

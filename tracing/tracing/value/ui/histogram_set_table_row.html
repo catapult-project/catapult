@@ -20,6 +20,7 @@ tr.exportTo('tr.v.ui', function() {
       this.columns = new Map();
       this.nameCell_ = undefined;
       this.cells = new Map();
+      this.constrainNameColumnWidth_ = false;
     }
 
     /**
@@ -96,8 +97,19 @@ tr.exportTo('tr.v.ui', function() {
         this.nameCell_ = document.createElement(
             'tr-v-ui-histogram-set-table-name-cell');
         this.nameCell_.row = this;
+        this.nameCell_.constrainWidth = this.constrainNameColumnWidth_;
       }
       return this.nameCell_;
+    }
+
+    set constrainNameColumnWidth(constrain) {
+      this.constrainNameColumnWidth_ = constrain;
+      if (this.nameCell_ !== undefined) {
+        this.nameCell_.constrainWidth = constrain;
+      }
+      for (var row of this.subRows) {
+        row.constrainNameColumnWidth = constrain;
+      }
     }
 
     buildCell(displayLabel, referenceDisplayLabel) {

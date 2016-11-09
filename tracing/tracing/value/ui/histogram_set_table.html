@@ -146,6 +146,8 @@ tr.exportTo('tr.v.ui', function() {
   });
 
   var SHOW_ALL_SETTINGS_KEY = 'tr-v-ui-histogram-set-table-show-all';
+  var CONSTRAIN_NAME_COLUMN_WIDTH_KEY =
+    'tr-v-ui-histogram-set-table-constrain-name-column-width';
 
   var UNMERGEABLE = '(unmergeable)';
 
@@ -174,15 +176,18 @@ tr.exportTo('tr.v.ui', function() {
       this.updatingContents_ = false;
       this.displayLabels_ = undefined;
       this.referenceDisplayLabel_ = undefined;
+      this.constrainNameColumnWidth_ = tr.b.Settings.get(
+          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, true);
     },
 
     ready: function() {
       this.$.table.zebra = true;
+      this.addEventListener('name-cell-overflow',
+          this.onNameCellOverflow_.bind(this));
       this.addEventListener('requestSelectionChange',
           this.onRelatedValueSelected_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
       this.$.picker.settingsKey = 'tr-v-ui-histogram-set-table-groupby-picker';
-
       this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
       // If the picker did not restore currentGroupKeys from Settings,
       // then set default currentGroupKeys.
@@ -467,6 +472,10 @@ tr.exportTo('tr.v.ui', function() {
       this.$.table.sortColumnIndex = 0;
       this.$.table.rebuild();
 
+      for (var row of this.rows_) {
+        row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
+      }
+
       this.$.table.selectedTableColumnIndex = this.referenceDisplayLabel ?
         1 + this.displayLabels.indexOf(this.referenceDisplayLabel) : undefined;
 
@@ -600,10 +609,58 @@ tr.exportTo('tr.v.ui', function() {
       };
     },
 
+    buildNameColumnTitle_: function() {
+      var titleEl = document.createElement('span');
+      titleEl.style.display = 'inline-flex';
+
+      var nameEl = document.createElement('span');
+      nameEl.textContent = 'Name';
+      titleEl.appendChild(nameEl);
+
+      var toggleWidthEl = document.createElement('span');
+      toggleWidthEl.style.fontWeight = 'bold';
+      toggleWidthEl.style.background = '#bbb';
+      toggleWidthEl.style.color = '#333';
+      toggleWidthEl.style.padding = '0px 3px';
+      toggleWidthEl.style.marginRight = '8px';
+      toggleWidthEl.style.display = 'none';
+      toggleWidthEl.textContent = String.fromCharCode(0x22ef);
+      toggleWidthEl.addEventListener('click',
+          this.toggleNameColumnWidth_.bind(this));
+      titleEl.appendChild(toggleWidthEl);
+
+      return titleEl;
+    },
+
+    onNameCellOverflow_: function(event) {
+      var titleEl = this.columns_[0].title;
+
+      // Size the 'Name' so that the dots roughly align with the
+      // ellipses in the name-cells.
+      titleEl.children[0].style.width = '275px';
+
+      // Show the dots.
+      titleEl.children[1].style.display = 'block';
+    },
+
+    toggleNameColumnWidth_: function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      this.constrainNameColumnWidth_ = !this.constrainNameColumnWidth_;
+      tr.b.Settings.set(
+          CONSTRAIN_NAME_COLUMN_WIDTH_KEY, this.constrainNameColumnWidth_);
+      this.columns_[0].title.children[1].style.filter =
+        this.constrainNameColumnWidth_ ? '' : 'invert(100%)';
+      for (var row of this.rows_) {
+        row.constrainNameColumnWidth = this.constrainNameColumnWidth_;
+      }
+    },
+
     buildColumns_: function() {
       this.columns_ = [
         {
-          title: 'Name',
+          title: this.buildNameColumnTitle_(),
           value: row => row.nameCell,
           cmp: (a, b) => a.compareNames(b),
         }

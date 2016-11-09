@@ -22,6 +22,7 @@ found in the LICENSE file.
 
     #show_overview, #hide_overview {
       height: 1em;
+      margin-left: 5px;
     }
 
     #show_overview {
@@ -81,6 +82,10 @@ tr.exportTo('tr.v.ui', function() {
       this.overviewChart_ = undefined;
     },
 
+    attached: function() {
+      this.maybeDispatchOverflow_();
+    },
+
     get row() {
       return this.row_;
     },
@@ -93,16 +98,25 @@ tr.exportTo('tr.v.ui', function() {
       if (this.row.description) {
         this.title += '\n' + this.row.description;
       }
+    },
 
-      var widthPx = this.nameWidthPx;
-      this.$.name.style.maxWidth = widthPx + 'px';
-      this.$.name.style.width = widthPx + 'px';
+    set constrainWidth(constrain) {
+      this.$.name.style.maxWidth = constrain ?
+        (this.nameWidthPx + 'px') : 'none';
+      this.maybeDispatchOverflow_();
     },
 
     get nameWidthPx() {
       // tr-ui-b-table adds 16px of padding for each additional level of subRows
       // nesting, so outer nameDivs can be wider than inner nameDivs.
       return NAME_COLUMN_WIDTH_PX - (16 * this.row.depth);
+    },
+
+    maybeDispatchOverflow_: function() {
+      if (this.$.name.style.maxWidth !== 'none' &&
+          parseInt(getComputedStyle(this.$.name).width) === this.nameWidthPx) {
+        this.dispatchEvent(new tr.b.Event('name-cell-overflow'));
+      }
     },
 
     hideOverview_: function(opt_event) {
