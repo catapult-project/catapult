@@ -211,9 +211,11 @@ tr.exportTo('tr.metrics.sh', function() {
       var currTitle = exp.title.toLowerCase().replace(' ', '_');
       var interval = tr.b.Range.fromExplicitRange(exp.start, exp.end)
           .findIntersection(chromeBounds);
-      var data = getPowerData_(model, interval.min, interval.max);
-      railStageResults.get(currTitle).totalTime += data.time;
-      railStageResults.get(currTitle).totalEnergy += data.energy;
+      if (!interval.isEmpty) {
+        var data = getPowerData_(model, interval.min, interval.max);
+        railStageResults.get(currTitle).totalTime += data.time;
+        railStageResults.get(currTitle).totalEnergy += data.energy;
+      }
     }
 
     for (var name of hists.railStageToEnergyHist.keys()) {

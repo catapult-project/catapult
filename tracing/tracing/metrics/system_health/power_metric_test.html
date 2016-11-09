@@ -226,6 +226,41 @@ tr.b.unittest.testSuite(function() {
         'story:power'), 500, 0.5);
   });
 
+  test('powerMetric_generic_oneUEBeforeChrome', function() {
+    var model = tr.c.TestUtils.newModel(function(model) {
+      var rendererProcess = model.getOrCreateProcess(1234);
+      var mainThread = rendererProcess.getOrCreateThread(1);
+      mainThread.name = 'CrRendererMain';
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 500,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      mainThread.sliceGroup.pushSlice(tr.c.TestUtils.newSliceEx({
+          cat: 'blink.user_timing',
+          title: 'navigationStart',
+          start: 1000,
+          duration: 0.0,
+          args: {frame: '0xdeadbeef'}
+        }));
+      model.device.powerSeries = new tr.model.PowerSeries(model.device);
+      for (var i = 0; i <= 1000; i++) {
+          model.device.powerSeries.addPowerSample(i.toString(), i.toString());
+      }
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 0, 300));
+      model.userModel.expectations.push(new tr.model.um.IdleExpectation(
+          model, 300, 1000));
+    });
+    var valueSet = new tr.v.HistogramSet();
+    tr.metrics.sh.powerMetric(valueSet, model);
+
+    assert.closeTo(getMetricValueAvg(valueSet,
+        'idle:power'), 750, 0.5);
+  });
+
   test('powerMetric_generic_multipleStagesEachType', function() {
     var model = tr.c.TestUtils.newModel(function(model) {
         var rendererProcess = model.getOrCreateProcess(1234);
