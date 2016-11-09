@@ -31,8 +31,8 @@ tr.exportTo('tr.ui.b', function() {
   ChartBase2D.prototype = {
     __proto__: ChartBase.prototype,
 
-    decorate: function() {
-      ChartBase.prototype.decorate.call(this);
+    decorate() {
+      super.decorate();
       Polymer.dom(this).classList.add('chart-base-2d');
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
@@ -471,7 +471,7 @@ tr.exportTo('tr.ui.b', function() {
   };
 
   return {
-    ChartBase2D: ChartBase2D
+    ChartBase2D
   };
 });
 </script>
