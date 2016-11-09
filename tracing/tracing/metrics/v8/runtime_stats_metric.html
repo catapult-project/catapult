@@ -21,6 +21,21 @@ tr.exportTo('tr.metrics.v8', function() {
   var DURATION_CUSTOM_BOUNDARIES = tr.v.HistogramBinBoundaries
       .createExponential(0.1, 10000, 50);
 
+  function computeDomContentLoadedTime_(model) {
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+    var domContentLoadedTime = 0;
+    tr.b.iterItems(chromeHelper.rendererHelpers, (pid, rendererHelper) => {
+      for (var ev of rendererHelper.mainThread.sliceGroup.childEvents()) {
+        if (ev.title === 'domContentLoadedEventEnd' &&
+            ev.start > domContentLoadedTime) {
+          domContentLoadedTime = ev.start;
+        }
+      }
+    });
+    return domContentLoadedTime;
+  }
+
   function computeInteractiveTime_(model) {
     var chromeHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
@@ -58,10 +73,10 @@ tr.exportTo('tr.metrics.v8', function() {
       tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
   }
 
-  function computeRuntimeStats(values, model, interactiveTime) {
+  function computeRuntimeStats(values, model, endTime) {
     var slices = [...model.getDescendantEvents()].filter(event =>
-        (event instanceof tr.e.v8.V8ThreadSlice) && event.start <=
-        interactiveTime);
+        event instanceof tr.e.v8.V8ThreadSlice &&
+        event.start <= endTime);
 
     var runtimeGroupCollection = new tr.e.v8.RuntimeStatsGroupCollection();
     runtimeGroupCollection.addSlices(slices);
@@ -97,7 +112,9 @@ tr.exportTo('tr.metrics.v8', function() {
 
   function runtimeStatsMetric(values, model) {
     var interactiveTime = computeInteractiveTime_(model);
-    computeRuntimeStats(values, model, interactiveTime);
+    var domContentLoadedTime = computeDomContentLoadedTime_(model);
+    var endTime = Math.max(interactiveTime, domContentLoadedTime);
+    computeRuntimeStats(values, model, endTime);
   }
 
   tr.metrics.MetricRegistry.register(runtimeStatsMetric);

@@ -19,7 +19,14 @@ tr.exportTo('tr.mre', function() {
 
     tr.metrics.v8.runtimeStatsMetric(values, model);
     var runtimeStatsMap = new Map();
-    for (var value of values.sourceValues) {
+    var sourceValues = values.sourceValues;
+    for (var value of values) {
+      // Exclude top level ones except for 'Total' as they are
+      // recalculated by the consumer.
+      if (sourceValues.lookup(value.guid) &&
+          !value.name.startsWith('Total:')) {
+        continue;
+      }
       var arr = value.name.split(':');
       if (runtimeStatsMap[arr[0]] === undefined) {
         runtimeStatsMap[arr[0]] = {time: null, count: null};
