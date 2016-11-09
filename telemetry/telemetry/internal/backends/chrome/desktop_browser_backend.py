@@ -550,9 +550,10 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     return self._InternalSymbolizeMinidump(minidump_path)
 
   def _InternalSymbolizeMinidump(self, minidump_path):
+    cloud_storage_link = self._UploadMinidumpToCloudStorage(minidump_path)
+
     stack = self._GetStackFromMinidump(minidump_path)
     if not stack:
-      cloud_storage_link = self._UploadMinidumpToCloudStorage(minidump_path)
       error_message = ('Failed to symbolize minidump. Raw stack is uploaded to'
                        ' cloud storage: %s.' % cloud_storage_link)
       return (False, error_message)
