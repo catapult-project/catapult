@@ -86,7 +86,8 @@ class BattOrWrapper(object):
   _BATTOR_BAUDRATE = '115200'
 
   def __init__(self, target_platform, android_device=None, battor_path=None,
-               battor_map_file=None, battor_map=None, serial_log_bucket=None):
+               battor_map_file=None, battor_map=None, serial_log_bucket=None,
+               autoflash=True):
     """Constructor.
 
     Args:
@@ -115,17 +116,12 @@ class BattOrWrapper(object):
         os.path.dirname(os.path.abspath(__file__)),
         'battor_binary_dependencies.json')
 
-    dm = dependency_manager.DependencyManager(
+    self._dm = dependency_manager.DependencyManager(
         [dependency_manager.BaseConfig(config)])
-    self._battor_agent_binary = dm.FetchPath(
+    self._battor_agent_binary = self._dm.FetchPath(
         'battor_agent_binary', '%s_%s' % (sys.platform, platform.machine()))
 
-    # Remove this when we have windows avrdude binary uploaded.
-    # https://github.com/catapult-project/catapult/issues/2972
-    if target_platform in self._SUPPORTED_AUTOFLASHING_PLATFORMS:
-      self._avrdude_binary = dm.FetchPath(
-          'avrdude_binary', '%s_%s' % (sys.platform, platform.machine()))
-
+    self._autoflash = autoflash
     self._serial_log_bucket = serial_log_bucket
     self._tracing = False
     self._battor_shell = None
@@ -137,6 +133,26 @@ class BattOrWrapper(object):
     self._target_platform = target_platform
 
     atexit.register(self.KillBattOrShell)
+
+  def _FlashBattOr(self):
+    assert self._battor_shell, (
+        'Must start shell before attempting to flash BattOr')
+
+    try:
+      device_git_hash = self.GetFirmwareGitHash()
+      battor_firmware, cs_git_hash = self._dm.FetchPathWithVersion(
+          'battor_firmware', 'default')
+      if cs_git_hash != device_git_hash:
+        logging.info(
+            'Flashing BattOr with old firmware version <%s> with new '
+            'version <%s>.', device_git_hash, cs_git_hash)
+        avrdude_config = self._dm.FetchPath('avrdude_config', 'default')
+        self.StopShell()
+        return self.FlashFirmware(battor_firmware, avrdude_config)
+      return False
+    finally:
+      if not self._battor_shell:
+        self.StartShell()
 
   def KillBattOrShell(self):
     if self._battor_shell:
@@ -151,6 +167,7 @@ class BattOrWrapper(object):
   def StartShell(self):
     """Start BattOr binary shell."""
     assert not self._battor_shell, 'Attempting to start running BattOr shell.'
+
     battor_cmd = [self._battor_agent_binary]
     if self._serial_log_bucket:
       # Create and immediately close a temp file in order to get a filename
@@ -167,6 +184,7 @@ class BattOrWrapper(object):
     """Stop BattOr binary shell."""
     assert self._battor_shell, 'Attempting to stop a non-running BattOr shell.'
     assert not self._tracing, 'Attempting to stop a BattOr shell while tracing.'
+
     self._SendBattOrCommand(self._EXIT_CMD, check_return=False)
     seconds_waited = 0
     # TODO(rnephew): Move to using waitfor after porting to common/py_utils.
@@ -184,6 +202,11 @@ class BattOrWrapper(object):
     """Start tracing on the BattOr."""
     assert self._battor_shell, 'Must start shell before tracing'
     assert not self._tracing, 'Tracing already started.'
+    # TODO(rnephew): Remove this when we have windows avrdude binary uploaded.
+    # https://github.com/catapult-project/catapult/issues/2972
+    if (self._target_platform in self._SUPPORTED_AUTOFLASHING_PLATFORMS
+        and self._autoflash):
+      self._FlashBattOr()
     self._SendBattOrCommand(self._START_TRACING_CMD)
     self._tracing = True
     self._start_tracing_time = int(time.time())
@@ -339,8 +362,11 @@ class BattOrWrapper(object):
     if self._target_platform not in self._SUPPORTED_AUTOFLASHING_PLATFORMS:
       logging.critical('Flashing firmware on this platform is not supported.')
       return False
+
+    avrdude_binary = self._dm.FetchPath(
+        'avrdude_binary', '%s_%s' % (sys.platform, platform.machine()))
     avr_cmd = [
-        self._avrdude_binary,
+        avrdude_binary,
         '-e',  # Specify to erase data on chip.
         '-p', self._BATTOR_PARTNO,  # Specify AVR device.
         # Specify which microcontroller programmer to use.
