@@ -173,6 +173,25 @@ tr.b.unittest.testSuite(function() {
     drawSeries(this, series);
   });
 
+  test('instantiate_selectionWithDotLetters', function() {
+    var series = buildSeries({
+      chartType: ChartSeriesType.AREA,
+      selectedPointSize: 10,
+      unselectedPointSize: 6,
+      solidSelectedDots: true,
+      colorId: 10
+    });
+    series.points.forEach(function(point, index) {
+      point.modelItem.selectionState = getSelectionStateForTesting(index);
+      if (index % 10 === 3) {
+        point.dotLetter = 'P';
+      } else if (index % 10 === 7) {
+        point.dotLetter = '\u26A0';
+      }
+    });
+    drawSeries(this, series);
+  });
+
   test('checkRange', function() {
     var series = buildSeries();
     var range = series.range;
