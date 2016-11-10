@@ -84,6 +84,7 @@ Polymer({
     this.model_ = undefined;
 
     this.timelineView_ = undefined;
+    this.pollIfViewportAttachedInterval_ = undefined;
 
     this.viewport_ = new tr.ui.TimelineViewport(this);
     this.viewportDisplayTransformAtMouseDown_ = undefined;
@@ -248,6 +249,10 @@ Polymer({
     this.modelTrack_.detach();
     this.upperModelTrack_.detach();
 
+    if (this.pollIfViewportAttachedInterval_) {
+      window.clearInterval(this.pollIfViewportAttachedInterval_);
+      this.pollIfViewportAttachedInterval_ = undefined;
+    }
     this.viewport_.detach();
   },
 
@@ -269,13 +274,36 @@ Polymer({
     this.upperModelTrack_.model = model;
 
     // Set up a reasonable viewport.
-    if (modelInstanceChanged)
-      this.viewport_.setWhenPossible(this.setInitialViewport_.bind(this));
+    if (modelInstanceChanged) {
+      // The following code uses an interval to detect when the parent element
+      // is attached to the document. That is a trigger to run the setup
+      // function and install a resize listener.
+      this.pollIfViewportAttachedInterval_ = window.setInterval(
+          this.pollIfViewportAttached_.bind(this), 250);
+    }
   },
 
   get hasVisibleContent() {
     return this.modelTrack_.hasVisibleContent ||
         this.upperModelTrack_.hasVisibleContent;
+  },
+
+  /**
+   * Checks whether the parentNode is attached to the document.
+   * When it is, the method installs the iframe-based resize detection hook
+   * and then runs setInitialViewport_, if present.
+   */
+  pollIfViewportAttached_: function() {
+    if (!this.viewport_.isAttachedToDocumentOrInTestMode ||
+        this.viewport_.clientWidth === 0) {
+      return;
+    }
+    window.addEventListener(
+        'resize', this.viewport_.dispatchChangeEvent);
+    window.clearInterval(this.pollIfViewportAttachedInterval_);
+    this.pollIfViewportAttachedInterval_ = undefined;
+
+    this.setInitialViewport_();
   },
 
   setInitialViewport_: function() {

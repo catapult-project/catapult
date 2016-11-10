@@ -66,31 +66,17 @@ tr.exportTo('tr.ui', function() {
     this.onModelTrackControllerScroll_ =
         this.onModelTrackControllerScroll_.bind(this);
 
-    // The following code uses an interval to detect when the parent element
-    // is attached to the document. That is a trigger to run the setup function
-    // and install a resize listener.
-    this.checkForAttachInterval_ = setInterval(
-        this.checkForAttach_.bind(this), 250);
-
     this.majorMarkPositions = [];
     this.interestRange_ = new TimelineInterestRange(this);
 
     this.eventToTrackMap_ = new tr.ui.tracks.EventToTrackMap();
     this.containerToTrackMap = new tr.ui.tracks.ContainerToTrackMap();
+
+    this.dispatchChangeEvent = this.dispatchChangeEvent.bind(this);
   }
 
   TimelineViewport.prototype = {
     __proto__: tr.b.EventTarget.prototype,
-
-    /**
-     * Allows initialization of the viewport when the viewport's parent element
-     * has been attached to the document and given a size.
-     * @param {Function} fn Function to call when the viewport can be safely
-     * initialized.
-     */
-    setWhenPossible: function(fn) {
-      this.pendingSetFunction_ = fn;
-    },
 
     /**
      * @return {boolean} Whether the current timeline is attached to the
@@ -108,34 +94,6 @@ tr.exportTo('tr.ui', function() {
     },
 
     /**
-     * Checks whether the parentNode is attached to the document.
-     * When it is, it installs the iframe-based resize detection hook
-     * and then runs the pendingSetFunction_, if present.
-     */
-    checkForAttach_: function() {
-      if (!this.isAttachedToDocumentOrInTestMode || this.clientWidth === 0)
-        return;
-
-      window.addEventListener('resize', this.dispatchChangeEvent.bind(this));
-
-      var curSize = this.parentEl_.clientWidth + 'x' +
-          this.parentEl_.clientHeight;
-      if (this.pendingSetFunction_) {
-        this.lastSize_ = curSize;
-        try {
-          this.pendingSetFunction_();
-        } catch (ex) {
-          console.log('While running setWhenPossible:',
-              ex.message ? ex.message + '\n' + ex.stack : ex.stack);
-        }
-        this.pendingSetFunction_ = undefined;
-      }
-
-      window.clearInterval(this.checkForAttachInterval_);
-      this.checkForAttachInterval_ = undefined;
-    },
-
-    /**
      * Fires the change event on this viewport. Used to notify listeners
      * to redraw when the underlying model has been mutated.
      */
@@ -144,11 +102,9 @@ tr.exportTo('tr.ui', function() {
     },
 
     detach: function() {
-      if (this.checkForAttachInterval_) {
-        window.clearInterval(this.checkForAttachInterval_);
-        this.checkForAttachInterval_ = undefined;
-      }
-      window.removeEventListener('resize', this.dispatchChangeEvent.bind(this));
+      // TODO(aiolos): RemoveEventListener requires the same function as was
+      // added, but bind returns a copy.
+      window.removeEventListener('resize', this.dispatchChangeEvent);
     },
 
     initAnimationController_: function() {
