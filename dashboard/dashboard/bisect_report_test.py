@@ -21,7 +21,6 @@ _SAMPLE_BISECT_RESULTS_JSON = {
     'test_type': 'perf',
     'issue_url': 'https://test-rietveld.appspot.com/200039',
     'change': 10,
-    'score': 99.9,
     'good_revision': '306475',
     'bad_revision': '306477',
     'warnings': None,
@@ -116,7 +115,6 @@ Bug ID: 12345
 Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
 Test Metric: page_load_time
 Relative Change: 10
-Score: 99.9
 
 Buildbot stdio: http://build.chromium.org/513
 Job details: https://test-rietveld.appspot.com/200039
@@ -129,7 +127,7 @@ Job details: https://test-rietveld.appspot.com/200039
 
   def testGetReport_CompletedWithoutCulprit(self):
     results_data = self._BisectResults(6789, 12345, 'completed',
-                                       culprit_data=None, score=0)
+                                       culprit_data=None)
     job = self._AddTryJob(results_data)
 
     log_without_culprit = r"""
@@ -149,7 +147,6 @@ Bug ID: 12345
 Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
 Test Metric: page_load_time
 Relative Change: 10
-Score: 0
 
 Buildbot stdio: http://build.chromium.org/513
 Job details: https://test-rietveld.appspot.com/200039
@@ -163,7 +160,7 @@ Job details: https://test-rietveld.appspot.com/200039
 
   def testGetReport_FailedBisect(self):
     results_data = self._BisectResults(6789, 12345, 'failed',
-                                       culprit_data=None, score=0,
+                                       culprit_data=None,
                                        revision_data=None)
     job = self._AddTryJob(results_data)
 
@@ -179,7 +176,6 @@ Bug ID: 12345
 Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
 Test Metric: page_load_time
 Relative Change: 10
-Score: 0
 
 Buildbot stdio: http://build.chromium.org/513
 Job details: https://test-rietveld.appspot.com/200039
@@ -193,7 +189,7 @@ Job details: https://test-rietveld.appspot.com/200039
 
   def testGetReport_BisectWithWarnings(self):
     results_data = self._BisectResults(6789, 12345, 'failed',
-                                       culprit_data=None, score=0,
+                                       culprit_data=None,
                                        revision_data=None,
                                        warnings=['A warning.'])
     job = self._AddTryJob(results_data)
@@ -215,7 +211,6 @@ Bug ID: 12345
 Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
 Test Metric: page_load_time
 Relative Change: 10
-Score: 0
 
 Buildbot stdio: http://build.chromium.org/513
 Job details: https://test-rietveld.appspot.com/200039
@@ -229,7 +224,7 @@ Job details: https://test-rietveld.appspot.com/200039
 
   def testGetReport_BisectWithAbortedReason(self):
     results_data = self._BisectResults(6789, 12345, 'aborted',
-                                       culprit_data=None, score=0,
+                                       culprit_data=None,
                                        revision_data=None,
                                        aborted_reason='invalid revisions.')
     job = self._AddTryJob(results_data)
@@ -250,7 +245,6 @@ Bug ID: 12345
 Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
 Test Metric: page_load_time
 Relative Change: 10
-Score: 0
 
 Buildbot stdio: http://build.chromium.org/513
 Job details: https://test-rietveld.appspot.com/200039
@@ -264,7 +258,7 @@ Job details: https://test-rietveld.appspot.com/200039
 
   def testGetReport_WithBugIdBadBisectFeedback(self):
     results_data = self._BisectResults(6789, 12345, 'completed',
-                                       culprit_data=None, score=0)
+                                       culprit_data=None)
     job = self._AddTryJob(results_data, bug_id=6789)
     job_id = job.key.id()
 
@@ -285,7 +279,6 @@ Bug ID: 12345
 Test Command: tools/perf/run_benchmark -v --browser=release page_cycler
 Test Metric: page_load_time
 Relative Change: 10
-Score: 0
 
 Buildbot stdio: http://build.chromium.org/513
 Job details: https://test-rietveld.appspot.com/200039

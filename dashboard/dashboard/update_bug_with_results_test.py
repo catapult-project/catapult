@@ -35,7 +35,6 @@ _SAMPLE_BISECT_RESULTS_JSON = {
                 '--browser=release page_cycler.intl_ar_fa_he'),
     'metric': 'warm_times/page_load_time',
     'change': '',
-    'score': 99.9,
     'good_revision': '306475',
     'bad_revision': '306478',
     'warnings': None,

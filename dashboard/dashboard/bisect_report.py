@@ -21,7 +21,6 @@ Bug ID: %(bug_id)s
 Test Command: %(command)s
 Test Metric: %(metric)s
 Relative Change: %(change)s
-Score: %(score)s
 
 Buildbot stdio: %(buildbot_log_url)s
 Job details: %(issue_url)s

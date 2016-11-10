@@ -334,8 +334,6 @@ def _GetAuthorsToCC(results_data):
   Returns:
     A list of email addresses, possibly empty.
   """
-  if results_data.get('score') < _CONFIDENCE_LEVEL_TO_CC_AUTHOR:
-    return []
   culprit_data = results_data.get('culprit_data')
   if not culprit_data:
     return []
