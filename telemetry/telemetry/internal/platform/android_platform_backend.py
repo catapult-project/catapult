@@ -506,7 +506,12 @@ class AndroidPlatformBackend(
     # This used to run `adb forward --list` to check that the requested
     # port was actually being forwarded to self._device. Unfortunately,
     # starting in adb 1.0.36, a bug (b/31811775) keeps this from working.
-    self._device.adb.ForwardRemove('tcp:%d' % host_port)
+    # For now, try to remove the port forwarding and ignore failures.
+    try:
+      self._device.adb.ForwardRemove('tcp:%d' % host_port)
+    except device_errors.AdbCommandFailedError:
+      logging.critical(
+          'Attempted to unforward port tcp:%d but failed.', host_port)
 
   def DismissCrashDialogIfNeeded(self):
     """Dismiss any error dialogs.
