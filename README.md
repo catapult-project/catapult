@@ -10,7 +10,7 @@ Catapult is the home for several performance tools that span from gathering,
 displaying and analyzing performance data. This includes:
 
  * [Trace-viewer](/tracing/README.md)
- * [Performance Insights](/perf_insights/README.md)
+ * [Performance Insights](../md-pages/perf_insights/README.md)
  * [Telemetry](/telemetry/README.md)
  * [Performance Dashboard](/dashboard/README.md)
 
