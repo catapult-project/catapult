@@ -116,11 +116,13 @@ def _RevisionTable(results_data):
     culprit_commit_hash = results_data['culprit_data']['cl']
 
   def RevisionRow(r):
+    number_of_observations = r.get(
+        'n_observations', len(r.get('values', []) or None))
     result = [
         r.get('revision_string', _MakeLegacyRevisionString(r)),
         _FormatNumber(r['mean_value']),
         _FormatNumber(r['std_dev']),
-        _FormatNumber(len(r['values'])),
+        _FormatNumber(number_of_observations),
         r['result'],
         '<--' if r['commit_hash'] == culprit_commit_hash  else '',
     ]
