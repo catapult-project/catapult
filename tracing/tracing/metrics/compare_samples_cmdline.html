@@ -21,7 +21,7 @@ function findUnescapedKey(escaped, d) {
   }
 
   for (var k of Object.keys(d)) {
-    if (escapeChars(k) === escaped) {
+    if (escapeChars(k) === escapeChars(escaped)) {
       return k;
     }
   }

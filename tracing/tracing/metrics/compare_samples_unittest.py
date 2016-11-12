@@ -101,7 +101,7 @@ class CompareSamplesUnittest(unittest.TestCase):
     }
     return self.NewJsonTempfile(charts)
 
-  def MakeChart(self, metric, seed, mu, sigma, n):
+  def MakeChart(self, metric, seed, mu, sigma, n, keys=None):
     """Creates a normally distributed pseudo-random sample. (continuous).
 
     This function creates a deterministic pseudo-random sample and stores it in
@@ -126,6 +126,9 @@ class CompareSamplesUnittest(unittest.TestCase):
             }
         }
     }
+    if keys:
+      grouping_keys = dict(enumerate(keys))
+      charts['charts'][chart_name][trace_name]['grouping_keys'] = grouping_keys
     return self.NewJsonTempfile(charts)
 
   def testCompareClearRegression(self):
@@ -223,3 +226,22 @@ class CompareSamplesUnittest(unittest.TestCase):
         lower_values, higher_values, '/'.join(metric)).stdout)
     self.assertEqual(result['result']['significance'], REJECT)
 
+  def testParseComplexMetricName(self):
+    full_metric_name = ('memory:chrome:all_processes:reported_by_os:'
+                        'system_memory:native_heap:'
+                        'proportional_resident_size_avg/blank_about/'
+                        'blank_about_blank')
+    chart_name = ('blank_about@@memory:chrome:all_processes:reported_by_os:'
+                  'system_memory:native_heap:proportional_resident_size_avg')
+    trace_name = 'blank:about:blank'
+    metric = chart_name, trace_name
+    keys = 'blank', 'about'
+    lower_values = ','.join([self.MakeChart(metric=metric, seed='lower',
+                                            mu=10, sigma=1, n=10, keys=keys)])
+    higher_values = ','.join([self.MakeChart(metric=metric, seed='higher',
+                                             mu=20, sigma=2, n=10, keys=keys)])
+    result = compare_samples.CompareSamples(
+        lower_values, higher_values, full_metric_name).stdout
+    print result
+    result = json.loads(result)
+    self.assertEqual(result['result']['significance'], REJECT)
