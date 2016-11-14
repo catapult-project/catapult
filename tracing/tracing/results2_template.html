@@ -63,12 +63,20 @@ class HistogramImporter {
   }
 
   loadSomeHistograms_() {
-    var startIndex = this.histograms_.length;
-    var stopIndex = Math.min(startIndex + 100, this.jsonDivs_.length);
-    for (var i = startIndex; i < stopIndex; ++i) {
-      var dict = JSON.parse(this.jsonDivs_[i].innerHTML);
-      this.histograms_.addHistogram(tr.v.Histogram.fromDict(dict));
-    }
+    // Don't spend so long on this chunk of Histograms that the user gets
+    // frustrated, but also don't call requestAnimationFrame faster than every
+    // 16ms, so that the browser doesn't have to wait for the next vsync.
+    // Powerful computers can load several hundred Histograms in 32ms.
+    // Also don't call new Date() more often than necessary.
+    var start = new Date();
+    do {
+      var startIndex = this.histograms_.length;
+      var stopIndex = Math.min(startIndex + 100, this.jsonDivs_.length);
+      for (var i = startIndex; i < stopIndex; ++i) {
+        var dict = JSON.parse(this.jsonDivs_[i].innerHTML);
+        this.histograms_.addHistogram(tr.v.Histogram.fromDict(dict));
+      }
+    } while (new Date() - start < 50);
 
     if (!this.isDoneLoadingHistograms_) {
       this.schedule_(
