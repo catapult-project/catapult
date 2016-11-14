@@ -271,6 +271,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def Start(self):
     assert not self._proc, 'Must call Close() before Start()'
 
+    # macOS displays a blocking crash resume dialog that we need to suppress.
+    if self.browser.platform.GetOSName() == 'mac':
+      subprocess.call(['defaults', 'write', '-app', self._executable,
+                       'NSQuitAlwaysKeepsWindows', '-bool', 'false'])
+
+
     args = [self._executable]
     args.extend(self.GetBrowserStartupArgs())
     if self.browser_options.startup_url:
