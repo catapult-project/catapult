@@ -117,7 +117,7 @@ def _RevisionTable(results_data):
 
   def RevisionRow(r):
     number_of_observations = r.get(
-        'n_observations', len(r.get('values', []) or None))
+        'n_observations', len(r.get('values', [])) or None)
     result = [
         r.get('revision_string', _MakeLegacyRevisionString(r)),
         _FormatNumber(r['mean_value']),
