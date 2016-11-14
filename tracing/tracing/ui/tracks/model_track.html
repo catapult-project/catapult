@@ -28,7 +28,7 @@ found in the LICENSE file.
 
 tr.exportTo('tr.ui.tracks', function() {
   var SelectionState = tr.model.SelectionState;
-  var ColorScheme = tr.ui.b.ColorScheme;
+  var ColorScheme = tr.b.ColorScheme;
   var EventPresenter = tr.ui.b.EventPresenter;
 
   /**
@@ -443,7 +443,8 @@ tr.exportTo('tr.ui.tracks', function() {
       }
 
       var vSyncHighlightColor =
-          ColorScheme.getColorIdForReservedName(vsync_highlight_color);
+          new tr.b.Color(ColorScheme.getColorForReservedNameAsString(
+              'vsync_highlight_color'));
 
       var stripeRange = stripes[stripes.length - 1].max - stripes[0].min;
       var stripeDensity =
