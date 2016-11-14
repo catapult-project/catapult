@@ -85,7 +85,7 @@ tr.b.unittest.testSuite(function() {
 
     var c2i = rvs2guids.indexOf(c.guid);
     assert.strictEqual(rvs2vs[c2i].guid, c.guid);
-    assert.instanceOf(rvs2vs[c2i], tr.v.d.ValueRef);
+    assert.instanceOf(rvs2vs[c2i], tr.v.d.HistogramRef);
 
     // Now serialize c and add it to values2.
     // Related value resolution is idempotent.
@@ -147,9 +147,9 @@ tr.b.unittest.testSuite(function() {
     assert.lengthOf(rvm2, 2);
 
     // Assert that b and c are in a2's RelatedValueMap.
-    // |c| should still be a ValueRef since it wasn't in values2.
+    // |c| should still be a HistogramRef since it wasn't in values2.
     assert.strictEqual(rvm2.get('y'), b2);
-    assert.instanceOf(rvm2.get('z'), tr.v.d.ValueRef);
+    assert.instanceOf(rvm2.get('z'), tr.v.d.HistogramRef);
 
     // Now serialize c and add it to values2.
     // Related value resolution is idempotent.

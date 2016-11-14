@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
-<link rel="import" href="/tracing/value/diagnostics/value_ref.html">
+<link rel="import" href="/tracing/value/diagnostics/histogram_ref.html">
 
 <script>
 'use strict';
@@ -24,12 +24,14 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} v
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} v
      */
     add(value) {
       if (!(value instanceof tr.v.Histogram) &&
-          !(value instanceof tr.v.d.ValueRef))
-        throw new Error('Must be instanceof Histogram or ValueRef: ' + value);
+          !(value instanceof tr.v.d.HistogramRef)) {
+        throw new Error('Must be instanceof Histogram or HistogramRef: ' +
+            value);
+      }
 
       if (this.valuesByGuid_.get(value.guid))
         throw new Error('Tried to add same value twice');
@@ -51,19 +53,19 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-     * Resolve all ValueRefs into Values by looking up their guids in
+     * Resolve all HistogramRefs into Values by looking up their guids in
      * |valueSet|.
      * If a value cannot be found and |opt_required| is true, then throw an
      * Error.
-     * If a value cannot be found and |opt_required| is false, then the ValueRef
-     * will remain a ValueRef.
+     * If a value cannot be found and |opt_required| is false, then the
+     * HistogramRef will remain a HistogramRef.
      *
      * @param {!tr.v.HistogramSet} valueSet
      * @param {boolean=} opt_required
      */
     resolve(valueSet, opt_required) {
       for (var [guid, value] of this.valuesByGuid_) {
-        if (!(value instanceof tr.v.d.ValueRef))
+        if (!(value instanceof tr.v.d.HistogramRef))
           continue;
 
         value = valueSet.lookup(guid);
@@ -82,7 +84,7 @@ tr.exportTo('tr.v.d', function() {
 
     static fromDict(d) {
       return new RelatedValueSet(d.guids.map(
-          guid => new tr.v.d.ValueRef(guid)));
+          guid => new tr.v.d.HistogramRef(guid)));
     }
   }
 

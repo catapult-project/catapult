@@ -7,7 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/value/diagnostics/diagnostic.html">
-<link rel="import" href="/tracing/value/diagnostics/value_ref.html">
+<link rel="import" href="/tracing/value/diagnostics/histogram_ref.html">
 
 <script>
 'use strict';
@@ -23,7 +23,7 @@ tr.exportTo('tr.v.d', function() {
      * Lookup a Histogram by name. Returns undefined if |name| is not found.
      *
      * @param {string} name
-     * @return {!tr.v.d.ValueRef|!tr.v.Histogram|undefined}
+     * @return {!tr.v.d.HistogramRef|!tr.v.Histogram|undefined}
      */
     get(name) {
       return this.valuesByName_.get(name);
@@ -33,12 +33,14 @@ tr.exportTo('tr.v.d', function() {
      * Add a Histogram by an explicit name to this map.
      *
      * @param {string} name
-     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} value
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
      */
     set(name, value) {
       if (!(value instanceof tr.v.Histogram) &&
-          !(value instanceof tr.v.d.ValueRef))
-        throw new Error('Must be instanceof Histogram or ValueRef: ' + value);
+          !(value instanceof tr.v.d.HistogramRef)) {
+        throw new Error('Must be instanceof Histogram or HistogramRef: ' +
+            value);
+      }
 
       this.valuesByName_.set(name, value);
     }
@@ -46,7 +48,7 @@ tr.exportTo('tr.v.d', function() {
     /**
      * Add a Histogram implicitly by its own name to this map.
      *
-     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} value
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
      */
     add(value) {
       this.set(value.name, value);
@@ -62,19 +64,19 @@ tr.exportTo('tr.v.d', function() {
     }
 
     /**
-     * Resolve all ValueRefs into Values by looking up their guids in
+     * Resolve all HistogramRefs into Values by looking up their guids in
      * |valueSet|.
      * If a value cannot be found and |opt_required| is true, then throw an
      * Error.
-     * If a value cannot be found and |opt_required| is false, then the ValueRef
-     * will remain a ValueRef.
+     * If a value cannot be found and |opt_required| is false, then the
+     * HistogramRef will remain a HistogramRef.
      *
      * @param {!tr.v.HistogramSet} valueSet
      * @param {boolean=} opt_required
      */
     resolve(valueSet, opt_required) {
       for (var [name, value] of this) {
-        if (!(value instanceof tr.v.d.ValueRef))
+        if (!(value instanceof tr.v.d.HistogramRef))
           continue;
 
         var guid = value.guid;
@@ -95,7 +97,7 @@ tr.exportTo('tr.v.d', function() {
     static fromDict(d) {
       var map = new RelatedValueMap();
       tr.b.iterItems(d.values, function(name, guid) {
-        map.set(name, new tr.v.d.ValueRef(guid));
+        map.set(name, new tr.v.d.HistogramRef(guid));
       });
       return map;
     }

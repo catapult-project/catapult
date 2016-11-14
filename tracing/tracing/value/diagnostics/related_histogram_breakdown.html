@@ -37,10 +37,10 @@ tr.exportTo('tr.v.d', function() {
      * Add a Histogram by an explicit name to this map.
      *
      * @param {string} name
-     * @param {!(tr.v.d.ValueRef|tr.v.Histogram)} value
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
      */
     set(name, value) {
-      if (!(value instanceof tr.v.d.ValueRef)) {
+      if (!(value instanceof tr.v.d.HistogramRef)) {
         if (!(value instanceof tr.v.Histogram)) {
           throw new Error(
               'RelatedHistogramBreakdown can only contain Histograms');
@@ -66,7 +66,7 @@ tr.exportTo('tr.v.d', function() {
     static fromDict(d) {
       var diagnostic = new RelatedHistogramBreakdown();
       tr.b.iterItems(d.values, function(name, guid) {
-        diagnostic.set(name, new tr.v.d.ValueRef(guid));
+        diagnostic.set(name, new tr.v.d.HistogramRef(guid));
       });
       if (d.colorScheme)
         diagnostic.colorScheme = d.colorScheme;
