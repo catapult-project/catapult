@@ -73,7 +73,7 @@ Thread 7:     [  a     ]   [    c   ]
  * This of visualization starts as a *flat* array of slices:
 
 ```
- [{title: “a”, start: 0, end: 1), {title: “c”, start: 1.5, end: 3.5}, {title: “b”, start: 0.5, end: 0.8}[
+ [{title: “a”, start: 0, end: 1), {title: “c”, start: 1.5, end: 3.5}, {title: “b”, start: 0.5, end: 0.8}]
 ```
 
  * We call this a slice group. A slice group can be composed into subRows -- a subRow is an array of slices that are all non-overlapping. E.g. in the thread7 example above, there are two subrows:
