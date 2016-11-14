@@ -24,6 +24,18 @@ tr.exportTo('tr.ui.b', function() {
       return true;
     },
 
+    updateDataRange_: function() {
+      if (this.overrideDataRange_ !== undefined) {
+        return;
+      }
+
+      this.autoDataRange_.reset();
+      for (var datum of this.data_) {
+        this.autoDataRange_.addValue(datum.percentile_0);
+        this.autoDataRange_.addValue(datum.percentile_100);
+      }
+    },
+
     updateScales_: function() {
       NameLineChart.prototype.updateScales_.call(this);
       this.xScale_.domain([0, this.data_.length]);

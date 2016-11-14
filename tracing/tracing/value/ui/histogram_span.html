@@ -55,6 +55,8 @@ var ABS_DELTA_AVG_NAME = 'abs' + DELTA + 'avg';
 
 var DEFAULT_BAR_HEIGHT_PX = 5;
 
+var TRUNCATE_BIN_MARGIN = 0.15;
+
 Polymer({
   is: 'tr-v-ui-histogram-span',
 
@@ -343,6 +345,7 @@ Polymer({
     Polymer.dom(this.$.chart).appendChild(this.chart_);
 
     var chartData = [];
+    var binCounts = [];
     for (var bin of this.histogram.allBins) {
       var x = bin.range.min;
       if (x === -Number.MAX_VALUE) {
@@ -352,7 +355,21 @@ Polymer({
         x = new tr.v.ScalarNumeric(this.histogram.unit, x).toString();
       }
       chartData.push({x: x, y: bin.count});
+      binCounts.push(bin.count);
     }
+
+    // If the largest 1 or 2 bins are more than twice as large as the next
+    // largest bin, then set the dataRange max to TRUNCATE_BIN_MARGIN% more than
+    // that next largest bin.
+    binCounts.sort((x, y) => y - x);
+    var dataRange = tr.b.Range.fromExplicitRange(0, binCounts[0]);
+    if (binCounts[1] > 0 && binCounts[0] > (binCounts[1] * 2)) {
+      dataRange.max = binCounts[1] * (1 + TRUNCATE_BIN_MARGIN);
+    }
+    if (binCounts[2] > 0 && binCounts[1] > (binCounts[2] * 2)) {
+      dataRange.max = binCounts[2] * (1 + TRUNCATE_BIN_MARGIN);
+    }
+    this.chart_.overrideDataRange = dataRange;
 
     // Set the data to render the chart in order to compute maxYAxisWidth,
     // then set the left margin and re-render the chart.
