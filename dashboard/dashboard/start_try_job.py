@@ -23,6 +23,7 @@ from dashboard import list_tests
 from dashboard import quick_logger
 from dashboard.common import namespaced_stored_object
 from dashboard.common import request_handler
+from dashboard.common import stored_object
 from dashboard.common import utils
 from dashboard.models import graph_data
 from dashboard.models import try_job
@@ -132,6 +133,9 @@ class StartBisectHandler(request_handler.RequestHandler):
     internal_only = self.request.get('internal_only') == 'true'
     bisect_bot = self.request.get('bisect_bot')
     bypass_no_repro_check = self.request.get('bypass_no_repro_check') == 'true'
+    use_staging_bot = self.request.get('use_staging_bot') == 'true'
+    if use_staging_bot:
+      bisect_bot = _GuessStagingBot(master_name, bisect_bot) or bisect_bot
 
     bisect_config = GetBisectConfig(
         bisect_bot=bisect_bot,
@@ -236,6 +240,11 @@ def _PrefillInfo(test_path):
   # Secondary check for bisecting internal only tests.
   if suite.internal_only and not utils.IsInternalUser():
     return {'error': 'Unauthorized access, please use corp account to login.'}
+
+  if users.is_current_user_admin():
+    info['is_admin'] = True
+  else:
+    info['is_admin'] = False
 
   info['email'] = user.email()
 
@@ -777,3 +786,15 @@ def _GetTryServerBucket(bisect_job):
         'Could not get bucket to be used by buildbucket, using default.')
     return default
   return master_bucket_map.get(bisect_job.master_name, default)
+
+def _GuessStagingBot(master_name, production_bot_name):
+  staging_bot_map = stored_object.Get('staging_bot_map') or {
+      'ChromiumPerf': [
+          ['win', 'staging_win_perf_bisect'],
+          ['mac', 'staging_mac_10_10_perf_bisect'],
+          ['linux', 'staging_linux_perf_bisect'],
+          ['android', 'staging_android_nexus5X_perf_bisect']]
+  }
+  for infix, staging_bot in staging_bot_map[master_name]:
+    if infix in production_bot_name:
+      return staging_bot

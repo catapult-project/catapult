@@ -122,6 +122,15 @@ the bisect process after the user clicks on the bisect button.
             </tr>
           </template>
 
+          <template is="dom-if" if="{{isAdmin}}">
+            <tr>
+              <td>Launch on staging bots:</td>
+              <td><input type="checkbox"
+                         checked="{{useStaging::change}}">
+              </td>
+            </tr>
+          </template>
+
           <tr>
             <td>Bisect mode:</td>
             <td>
@@ -215,6 +224,10 @@ the bisect process after the user clicks on the bisect button.
             notify: true,
             observer: 'laterRevisionChanged'
           },
+          useStaging: {
+            type: Boolean,
+            value: false,
+          },
           testPath: { notify: true },
           xsrfToken: { notify: true }
         },
@@ -233,6 +246,8 @@ the bisect process after the user clicks on the bisect button.
         show: function() {
           this.canUseArchive = false,
           this.bypassNoRepro = false,
+          this.isAdmin = false,
+          this.useStaging = false,
           this.useArchive = true,
           this.loading = true;
           this.open();
@@ -253,6 +268,7 @@ the bisect process after the user clicks on the bisect button.
               this.suite = info['suite'];
               this.master = info['master'];
               this.internalOnly = info['internal_only'];
+              this.isAdmin = info['is_admin'];
 
               this.loading = false;
             }.bind(this),
@@ -282,6 +298,7 @@ the bisect process after the user clicks on the bisect button.
               'repeat_count': this.REPEAT_COUNT,
               'max_time_minutes': this.MAX_TIME_MINUTES,
               'use_archive': this.useArchive ? 'true' : '',
+              'use_staging_bot': this.useStaging ? 'true' : '',
               'bypass_no_repro_check': this.bypassNoRepro ? 'true' : '',
               'master': this.master,
               'internal_only': this.internalOnly,

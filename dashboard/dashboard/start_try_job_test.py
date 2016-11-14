@@ -380,6 +380,7 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual('times/Wikipedia (1 tab)', info['default_metric'])
     self.assertEqual('ChromiumPerf', info['master'])
     self.assertFalse(info['internal_only'])
+    self.assertFalse(info['is_admin'])
     self.assertTrue(info['use_archive'])
     self.assertEqual(
         [
