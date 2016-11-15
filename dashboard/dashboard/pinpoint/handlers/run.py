@@ -10,20 +10,22 @@ from dashboard.pinpoint.models import job as job_module
 
 
 class RunHandler(webapp2.RequestHandler):
-  """Handler for the Pinpoint job.
-
-  This is our raison d'etre, folks. The thread that runs the job."""
+  """Handler that runs a Pinpoint job."""
 
   def post(self, job_id):
     job = job_module.JobFromId(job_id)
 
-    # Run task.
-    # TODO: Do.
-    if True:
-      return
+    # Run!
+    work_left = job.ScheduleWork()
+    if job.auto_explore:
+      job.Explore()
+      work_left = job.ScheduleWork()
 
     # Schedule moar task.
-    task = taskqueue.add(queue_name='job-queue', target='pinpoint',
-                         url='/run/' + job_id, countdown=60)
-    job.task = task.name
+    if work_left:
+      task = taskqueue.add(queue_name='job-queue', target='pinpoint',
+                           url='/run/' + job_id, countdown=1)
+      job.task = task.name
+
+    # Update the datastore.
     job.put()

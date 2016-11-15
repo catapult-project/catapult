@@ -8,10 +8,10 @@ from google.appengine.api import taskqueue
 
 from dashboard.pinpoint.models import change
 from dashboard.pinpoint.models import job as job_module
-from dashboard.pinpoint.models import quest
 
 
 class NewHandler(webapp2.RequestHandler):
+  """Handler that cooks up a fresh Pinpoint job."""
 
   def post(self):
     # TODO(dtu): Read the parameters from the request object.
@@ -26,30 +26,24 @@ class NewHandler(webapp2.RequestHandler):
     if metric and not test_suite:
       raise ValueError("Specified a metric but there's no test_suite to run.")
 
+    # TODO: Validate commit hashes.
+
     # Convert parameters to canonical internal representation.
 
-    # Get list of changes.
-    changes = []
-    for repository, git_hash in commits:
-      base_commit = change.Dep(repository=repository, git_hash=git_hash)
-      changes.append(change.Change(base_commit=base_commit))
-
-    # Get list of quests.
-    quests = [quest.FindIsolated(configuration=configuration)]
-    if test_suite:
-      quests.append(quest.RunTest(test_suite=test_suite, test=test))
-    if metric:
-      quests.append(quest.ReadTestResults(metric=metric))
-
     # Create job.
-    job = job_module.Job(
+    job = job_module.Job.New(
         configuration=configuration,
         test_suite=test_suite,
         test=test,
         metric=metric,
-        auto_explore=True,
-        changes=changes,
-        quests=quests)
+        auto_explore=True)
+
+    # Add changes.
+    for repository, git_hash in commits:
+      base_commit = change.Dep(repository=repository, git_hash=git_hash)
+      job.AddChange(change.Change(base_commit=base_commit))
+
+    # Put job into datastore.
     job_id = job.put().urlsafe()
 
     # Start job.
@@ -59,4 +53,5 @@ class NewHandler(webapp2.RequestHandler):
     job.put()
 
     # Show status page.
+    # TODO: Should return a JSON result instead. Use Cloud Endpoints.
     self.redirect('/job/' + job_id)
