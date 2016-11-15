@@ -26,7 +26,9 @@ def main():
   parser.add_argument('--html', nargs='+', default=[],
                       help='Zero or more HTML file paths (input).')
   parser.add_argument('--json', nargs='+', default=[],
-                      help='Zero or more JSON file paths (input).')
+                      help='Zero or more HistogramSet JSON file paths (input).')
+  parser.add_argument('--mapresults', nargs='+', default=[],
+                      help='Zero or more map results JSON file paths (input).')
   args = parser.parse_args()
 
   histograms = []
@@ -37,6 +39,12 @@ def main():
 
   for json_path in args.json:
     histograms.extend(json.load(open(json_path, 'r')))
+
+  for json_path in args.mapresults:
+    for filename, results in json.load(open(json_path, 'r')).iteritems():
+      for histogram in results['pairs']['histograms']:
+        histogram['diagnostics']['iteration']['storyUrl'] = filename
+        histograms.append(histogram)
 
   open(args.html_path, 'a').close() # Create file if it doesn't exist.
   with codecs.open(args.html_path,
