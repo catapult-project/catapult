@@ -17,14 +17,6 @@ found in the LICENSE file.
 
 tr.exportTo('tr.metrics.sh', function() {
 
-  // TODO(alexandermont): Per-frame power metric will be deprecated once
-  // newer metrics come online.
-  // Frame rate, used to divide power sample interval into frames
-  // for purposes of per-frame power metric.
-  var FRAMES_PER_SEC = 60;
-  var FRAME_MS = tr.b.convertUnit(1.0 / FRAMES_PER_SEC,
-      tr.b.UnitScale.Metric.NONE, tr.b.UnitScale.Metric.MILLI);
-
   /**
    * Returns power data for the specified interval in the form:
    * {
@@ -152,10 +144,6 @@ tr.exportTo('tr.metrics.sh', function() {
     hists.afterLoadPowerHist = makePowerHistogram_(values, 'after_load',
         'period after load');
 
-    // Frame based power metric.
-    hists.frameEnergyHist = makeEnergyHistogram_(values, 'per_frame',
-        'each frame');
-
     // Whole trace average power metric.
     hists.wholeTracePowerHist = makePowerHistogram_(values, 'story',
         'user story');
@@ -253,18 +241,6 @@ tr.exportTo('tr.metrics.sh', function() {
     }
   }
 
-  /**
-   * Compute the per-frame power metrics and put the results in |hists|.
-   */
-  function computeFrameBasedPowerMetric_(model, hists, chromeBounds) {
-    var currentTime = chromeBounds.min;
-    while (currentTime < chromeBounds.max) {
-      var frameData = getPowerData_(model, currentTime, currentTime + FRAME_MS);
-      hists.frameEnergyHist.addSample(frameData.energy);
-      currentTime += FRAME_MS;
-    }
-  }
-
   function computeWholeTracePowerMetric_(model, hists, chromeBounds) {
     var traceData = getPowerData_(model, chromeBounds.min, chromeBounds.max);
     hists.wholeTracePowerHist.addSample(traceData.power);
@@ -317,7 +293,6 @@ tr.exportTo('tr.metrics.sh', function() {
 
     computeRailStageMetrics_(model, hists, chromeBounds);
     computeLoadingMetric_(model, hists, chromeBounds);
-    computeFrameBasedPowerMetric_(model, hists, chromeBounds);
     computeWholeTracePowerMetric_(model, hists, chromeBounds);
   }
 
