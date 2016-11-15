@@ -22,7 +22,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/timeline_viewport.html">
 <link rel="import" href="/tracing/ui/tracks/drawing_container.html">
 <link rel="import" href="/tracing/ui/tracks/model_track.html">
-<link rel="import" href="/tracing/ui/tracks/ruler_track.html">
+<link rel="import" href="/tracing/ui/tracks/x_axis_track.html">
 
 <!--
   Interactive visualizaiton of Model objects based loosely on gantt charts.
@@ -95,7 +95,7 @@ Polymer({
     Polymer.dom(this).appendChild(this.rulerTrackContainer_);
     this.rulerTrackContainer_.invalidate();
 
-    this.rulerTrack_ = new tr.ui.tracks.RulerTrack(this.viewport_);
+    this.rulerTrack_ = new tr.ui.tracks.XAxisTrack(this.viewport_);
     Polymer.dom(this.rulerTrackContainer_).appendChild(this.rulerTrack_);
 
     this.upperModelTrack_ = new tr.ui.tracks.ModelTrack(this.viewport_);

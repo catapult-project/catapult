@@ -5,35 +5,38 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="stylesheet" href="/tracing/ui/tracks/ruler_track.css">
-
 <link rel="import" href="/tracing/ui/base/draw_helpers.html">
 <link rel="import" href="/tracing/ui/base/heading.html">
 <link rel="import" href="/tracing/ui/base/ui.html">
 <link rel="import" href="/tracing/ui/tracks/track.html">
+
+<style>
+.x-axis-track {
+  height: 12px;
+}
+
+.x-axis-track.tall-mode {
+  height: 30px;
+}
+</style>
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
   /**
-   * A track that displays the ruler.
+   * A track that displays the x-axis.
    * @constructor
    * @extends {Track}
    */
-  var RulerTrack = tr.ui.b.define('ruler-track', tr.ui.tracks.Track);
+  var XAxisTrack = tr.ui.b.define('x-axis-track', tr.ui.tracks.Track);
 
-  var logOf10 = Math.log(10);
-  function log10(x) {
-    return Math.log(x) / logOf10;
-  }
-
-  RulerTrack.prototype = {
+  XAxisTrack.prototype = {
     __proto__: tr.ui.tracks.Track.prototype,
 
     decorate: function(viewport) {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
-      Polymer.dom(this).classList.add('ruler-track');
+      Polymer.dom(this).classList.add('x-axis-track');
       this.strings_secs_ = [];
       this.strings_msecs_ = [];
       this.strings_usecs_ = [];
@@ -84,63 +87,20 @@ tr.exportTo('tr.ui.tracks', function() {
 
       var hasInterestRange = !this.viewport.interestRange.isEmpty;
 
-      var rulerHeight = hasInterestRange ? (height * 2) / 5 : height;
+      var xAxisHeightPx = hasInterestRange ? (height * 2) / 5 : height;
 
       var vp = this.viewport;
       var dt = vp.currentDisplayTransform;
 
-      var idealMajorMarkDistancePix = 150 * pixelRatio;
-      var idealMajorMarkDistanceWorld =
-          dt.xViewVectorToWorld(idealMajorMarkDistancePix);
-
-      var majorMarkDistanceWorld;
-
-      // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
-      var conservativeGuess =
-          Math.pow(10, Math.ceil(log10(idealMajorMarkDistanceWorld)));
-
-      // Once we have a conservative guess, consider things that evenly add up
-      // to the conservative guess, e.g. 0.5, 0.2, 0.1 Pick the one that still
-      // exceeds the ideal mark distance.
-      var divisors = [10, 5, 2, 1];
-      for (var i = 0; i < divisors.length; ++i) {
-        var tightenedGuess = conservativeGuess / divisors[i];
-        if (dt.xWorldVectorToView(tightenedGuess) < idealMajorMarkDistancePix)
-          continue;
-        majorMarkDistanceWorld = conservativeGuess / divisors[i - 1];
-        break;
-      }
-
-      var unit;
-      var unitDivisor;
-      var tickLabels = undefined;
-      if (majorMarkDistanceWorld < 0.0001) {
-        unit = 'ns';
-        unitDivisor = 0.000001;
-        tickLabels = this.strings_nsecs_;
-      } else if (majorMarkDistanceWorld < 0.1) {
-        unit = 'us';
-        unitDivisor = 0.001;
-        tickLabels = this.strings_usecs_;
-      } else if (majorMarkDistanceWorld < 100) {
-        unit = 'ms';
-        unitDivisor = 1;
-        tickLabels = this.strings_msecs_;
-      } else {
-        unit = 's';
-        unitDivisor = 1000;
-        tickLabels = this.strings_secs_;
-      }
+      vp.updateMajorMarkData(viewLWorld, viewRWorld);
+      var majorMarkDistanceWorld = vp.majorMarkPositions.length > 1 ?
+          vp.majorMarkPositions[1] - vp.majorMarkPositions[0] : 0;
 
       var numTicksPerMajor = 5;
       var minorMarkDistanceWorld = majorMarkDistanceWorld / numTicksPerMajor;
       var minorMarkDistancePx = dt.xWorldVectorToView(minorMarkDistanceWorld);
 
-      var firstMajorMark =
-          Math.floor(viewLWorld / majorMarkDistanceWorld) *
-              majorMarkDistanceWorld;
-
-      var minorTickH = Math.floor(rulerHeight * 0.25);
+      var minorTickHeight = Math.floor(xAxisHeightPx * 0.25);
 
       ctx.save();
 
@@ -159,39 +119,34 @@ tr.exportTo('tr.ui.tracks', function() {
 
       ctx.font = (9 * pixelRatio) + 'px sans-serif';
 
-      vp.majorMarkPositions = [];
-
-      // Each iteration of this loop draws one major mark
-      // and numTicksPerMajor minor ticks.
-      //
-      // Rendering can't be done in world space because canvas transforms
-      // affect line width. So, do the conversions manually.
       ctx.beginPath();
-      for (var curX = firstMajorMark;
-           curX < viewRWorld;
-           curX += majorMarkDistanceWorld) {
+      var tickLabels = [];
+      for (var i = 0; i < vp.majorMarkPositions.length; i++) {
 
+        var curX = vp.majorMarkPositions[i];
         var curXView = Math.floor(dt.xWorldToView(curX));
 
-        var unitValue = curX / unitDivisor;
+        var unitValue = curX / vp.majorMarkUnitDivisor;
         var roundedUnitValue = Math.round(unitValue * 100000) / 100000;
 
-        if (!tickLabels[roundedUnitValue])
-          tickLabels[roundedUnitValue] = roundedUnitValue + ' ' + unit;
+        if (!tickLabels[roundedUnitValue]) {
+          tickLabels[roundedUnitValue] =
+              roundedUnitValue + ' ' + vp.majorMarkUnit;
+        }
         ctx.fillText(tickLabels[roundedUnitValue],
                      curXView + (2 * pixelRatio), 0);
 
-        vp.majorMarkPositions.push(curXView);
-
         // Major mark
-        tr.ui.b.drawLine(ctx, curXView, 0, curXView, rulerHeight);
+        tr.ui.b.drawLine(ctx, curXView, 0, curXView, xAxisHeightPx);
 
         // Minor marks
-        for (var i = 1; i < numTicksPerMajor; ++i) {
-          var xView = Math.floor(curXView + minorMarkDistancePx * i);
-          tr.ui.b.drawLine(ctx,
-              xView, rulerHeight - minorTickH,
-              xView, rulerHeight);
+        if (minorMarkDistancePx) {
+          for (var j = 1; j < numTicksPerMajor; ++j) {
+            var xView = Math.floor(curXView + minorMarkDistancePx * j);
+            tr.ui.b.drawLine(ctx,
+                xView, xAxisHeightPx - minorTickHeight,
+                xView, xAxisHeightPx);
+          }
         }
       }
 
@@ -205,7 +160,7 @@ tr.exportTo('tr.ui.tracks', function() {
         return;
 
       // Draw middle bar.
-      tr.ui.b.drawLine(ctx, 0, rulerHeight, width, rulerHeight);
+      tr.ui.b.drawLine(ctx, 0, xAxisHeightPx, width, xAxisHeightPx);
       ctx.stroke();
 
       // Distance Variables.
@@ -215,7 +170,7 @@ tr.exportTo('tr.ui.tracks', function() {
       // Arrow Variables.
       var arrowSpacing = 10 * pixelRatio;
       var arrowColor = 'rgb(128,121,121)';
-      var arrowPosY = rulerHeight * 1.75;
+      var arrowPosY = xAxisHeightPx * 1.75;
       var arrowWidthView = 3 * pixelRatio;
       var arrowLengthView = 10 * pixelRatio;
       var spaceForArrowsView = 2 * (arrowWidthView + arrowSpacing);
@@ -258,26 +213,11 @@ tr.exportTo('tr.ui.tracks', function() {
       var positionInMiddleOfMarkersView =
           leftMarkerView + (distanceBetweenMarkersView / 2);
 
-      // Determine units.
-      if (distanceBetweenMarkers < 0.0001) {
-        unit = 'ns';
-        unitDivisor = 0.000001;
-      } else if (distanceBetweenMarkers < 0.1) {
-        unit = 'us';
-        unitDivisor = 0.001;
-      } else if (distanceBetweenMarkers < 100) {
-        unit = 'ms';
-        unitDivisor = 1;
-      } else {
-        unit = 's';
-        unitDivisor = 1000;
-      }
-
       // Calculate display value to print.
-      displayDistance = distanceBetweenMarkers / unitDivisor;
+      displayDistance = distanceBetweenMarkers / vp.majorMarkUnitDivisor;
       var roundedDisplayDistance =
           Math.abs((Math.round(displayDistance * 1000) / 1000));
-      var textToDraw = roundedDisplayDistance + ' ' + unit;
+      var textToDraw = roundedDisplayDistance + ' ' + vp.majorMarkUnit;
       var textWidthView = ctx.measureText(textToDraw).width;
       var spaceForArrowsAndTextView =
           textWidthView + spaceForArrowsView + arrowSpacing;
@@ -359,7 +299,7 @@ tr.exportTo('tr.ui.tracks', function() {
      */
     addIntersectingEventsInRangeToSelection: function(
         loVX, hiVX, loY, hiY, selection) {
-      // Does nothing. There's nothing interesting to pick on the ruler
+      // Does nothing. There's nothing interesting to pick on the xAxis
       // track.
     },
 
@@ -368,7 +308,7 @@ tr.exportTo('tr.ui.tracks', function() {
   };
 
   return {
-    RulerTrack: RulerTrack
+    XAxisTrack: XAxisTrack
   };
 });
 </script>

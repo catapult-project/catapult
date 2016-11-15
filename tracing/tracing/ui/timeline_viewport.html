@@ -26,6 +26,8 @@ tr.exportTo('tr.ui', function() {
   var TimelineDisplayTransform = tr.ui.TimelineDisplayTransform;
   var TimelineInterestRange = tr.ui.TimelineInterestRange;
 
+  var IDEAL_MAJOR_MARK_DISTANCE_PX = 150;
+
   /**
    * The TimelineViewport manages the transform used for navigating
    * within the timeline. It is a simple transform:
@@ -66,7 +68,11 @@ tr.exportTo('tr.ui', function() {
     this.onModelTrackControllerScroll_ =
         this.onModelTrackControllerScroll_.bind(this);
 
-    this.majorMarkPositions = [];
+    // Major mark positions are where the gridlines/ruler marks are placed along
+    // the x-axis.
+    this.majorMarkPositions_ = [];
+    this.majorMarkUnit_ = undefined;
+    this.majorMarkUnitDivisor_ = undefined;
     this.interestRange_ = new TimelineInterestRange(this);
 
     this.eventToTrackMap_ = new tr.ui.tracks.EventToTrackMap();
@@ -102,8 +108,6 @@ tr.exportTo('tr.ui', function() {
     },
 
     detach: function() {
-      // TODO(aiolos): RemoveEventListener requires the same function as was
-      // added, but bind returns a copy.
       window.removeEventListener('resize', this.dispatchChangeEvent);
     },
 
@@ -269,6 +273,73 @@ tr.exportTo('tr.ui', function() {
       return this.interestRange_;
     },
 
+    get majorMarkPositions() {
+      return this.majorMarkPositions_;
+    },
+
+    get majorMarkUnit() {
+      return this.majorMarkUnit_;
+    },
+
+    get majorMarkUnitDivisor() {
+      return this.majorMarkUnitDivisor_;
+    },
+
+    updateMajorMarkData: function(viewLWorld, viewRWorld) {
+      var pixelRatio = window.devicePixelRatio || 1;
+      var dt = this.currentDisplayTransform;
+
+      var idealMajorMarkDistancePix =
+          IDEAL_MAJOR_MARK_DISTANCE_PX * pixelRatio;
+      var idealMajorMarkDistanceWorld =
+          dt.xViewVectorToWorld(idealMajorMarkDistancePix);
+
+      // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
+      var conservativeGuess =
+          Math.pow(10, Math.ceil(Math.log10(idealMajorMarkDistanceWorld)));
+
+      // Once we have a conservative guess, consider things that evenly add up
+      // to the conservative guess, e.g. 0.5, 0.2, 0.1. Pick the one that still
+      // exceeds the ideal mark distance.
+      var majorMarkDistanceWorld = conservativeGuess;
+      var divisors = [2, 5, 10];
+      for (var i = 0; i < divisors.length; ++i) {
+        var tightenedGuess = conservativeGuess / divisors[i];
+        if (dt.xWorldVectorToView(tightenedGuess) < idealMajorMarkDistancePix) {
+          break;
+        }
+        majorMarkDistanceWorld = tightenedGuess;
+      }
+
+      // TODO(aiolos): move these conversions to tr.b.Unit and use from there.
+      // https://github.com/catapult-project/catapult/issues/2985
+      if (majorMarkDistanceWorld < 0.0001) {
+        this.majorMarkUnit_ = 'ns';
+        this.majorMarkUnitDivisor_ = 0.000001;
+      } else if (majorMarkDistanceWorld < 0.1) {
+        this.majorMarkUnit_ = 'us';
+        this.majorMarkUnitDivisor_ = 0.001;
+      } else if (majorMarkDistanceWorld < 100) {
+        this.majorMarkUnit_ = 'ms';
+        this.majorMarkUnitDivisor_ = 1;
+      } else {
+        this.majorMarkUnit_ = 's';
+        this.majorMarkUnitDivisor_ = 1000;
+      }
+
+      var firstMajorMark = Math.floor(
+          viewLWorld / majorMarkDistanceWorld) * majorMarkDistanceWorld;
+
+      this.majorMarkPositions_ = [];
+
+      for (var curX = firstMajorMark;
+           curX < viewRWorld;
+           curX += majorMarkDistanceWorld) {
+        var curXView = Math.floor(dt.xWorldToView(curX));
+        this.majorMarkPositions_.push(curXView);
+      }
+    },
+
     drawMajorMarkLines: function(ctx) {
       // Apply subpixel translate to get crisp lines.
       // http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
@@ -276,8 +347,8 @@ tr.exportTo('tr.ui', function() {
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
       ctx.beginPath();
-      for (var idx in this.majorMarkPositions) {
-        var x = Math.floor(this.majorMarkPositions[idx]);
+      for (var majorMark of this.majorMarkPositions_) {
+        var x = Math.floor(majorMark);
         tr.ui.b.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';
