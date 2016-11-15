@@ -53,6 +53,10 @@ found in the LICENSE file.
       margin-right: 4px;
     }
 
+    .alert-togglebutton[active] {
+      background-color: #EEE;
+    }
+
     #auto-triage-log {
       padding: 15px 0 15px 0;
     }
@@ -90,11 +94,15 @@ found in the LICENSE file.
             <paper-button raised noink id="improvements-toggle"
                           class="alert-togglebutton"
                           active$="{{showingImprovements}}"
-                          on-click="onToggleImprovements">Show improvements</paper-button>
+                          on-click="onToggleImprovements">
+              {{getLabel(showingImprovements)}} improvements
+            </paper-button>
             <paper-button raised noink id="triaged-toggle"
                           class="alert-togglebutton"
                           active$="{{showingTriaged}}"
-                          on-click="onToggleTriaged">Show triaged</paper-button>
+                          on-click="onToggleTriaged">
+              {{getLabel(showingTriaged)}} triaged
+            </paper-button>
           </div>
           <template is="dom-if" if="{{anomalies.length}}">
             <h2>Performance alerts</h2>
@@ -200,6 +208,8 @@ found in the LICENSE file.
       },
 
       computeIsSingular: array => array.length === 1,
+
+      getLabel: toggleState => toggleState ? 'hide' : 'show',
 
       onSheriffChange: function(e) {
         var sheriff = e.detail.item.label;
