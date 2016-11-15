@@ -123,7 +123,7 @@ class TsProxyServer(object):
   def StopServer(self):
     """Stop TsProxy Server."""
     if not self._is_running:
-      logging.warning('Attempting to stop TsProxy server that is not running.')
+      logging.debug('Attempting to stop TsProxy server that is not running.')
       return
     if self._proc:
       self._proc.terminate()

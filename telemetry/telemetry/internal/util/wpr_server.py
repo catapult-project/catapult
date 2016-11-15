@@ -235,8 +235,6 @@ class ReplayServer(object):
       finally:
         # TODO(rnephew): Upload logs to google storage. crbug.com/525787
         self._CleanUpTempLogFilePath()
-    else:
-      logging.warning('Attempting to stop WPR server that is not running.')
 
   def _StopReplayProcess(self):
     if not self.replay_process:

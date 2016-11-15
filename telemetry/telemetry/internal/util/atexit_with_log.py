@@ -7,9 +7,9 @@ import logging
 
 def _WrapFunction(function):
   def _wrapped_function(*args, **kwargs):
-    logging.info('Try running %s', repr(function))
+    logging.debug('Try running %s', repr(function))
     function(*args, **kwargs)
-    logging.info('Did run %s', repr(function))
+    logging.debug('Did run %s', repr(function))
   return _wrapped_function
 
 def Register(function, *args, **kwargs):
