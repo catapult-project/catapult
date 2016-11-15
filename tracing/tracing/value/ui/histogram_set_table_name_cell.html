@@ -150,8 +150,9 @@ tr.exportTo('tr.v.ui', function() {
 
         this.overviewChart_ = new tr.ui.b.NameLineChart();
         this.overviewChart_.width = this.nameWidthPx;
-        this.overviewChart_.height = 150;
-        this.overviewChart_.margin.right = 0;
+        this.overviewChart_.margin.right = 50;
+        this.overviewChart_.margin.bottom = 18 * data.length;
+        this.overviewChart_.height = 150 + this.overviewChart_.margin.bottom;
         this.overviewChart_.hideLegend = true;
         this.$.overview_container.appendChild(this.overviewChart_);
         this.overviewChart_.yAxisLabel = unitString;

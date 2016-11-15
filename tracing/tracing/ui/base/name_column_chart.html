@@ -32,6 +32,10 @@ tr.exportTo('tr.ui.b', function() {
       return index;
     },
 
+    get xAxisTickOffset() {
+      return 0.5;
+    },
+
     updateXAxis_: function(xAxis) {
       xAxis.selectAll('*').remove();
 
@@ -55,8 +59,8 @@ tr.exportTo('tr.ui.b', function() {
       var guideLines = xAxis.selectAll('line.guide').data(this.data_);
       guideLines.enter()
         .append('line')
-        .attr('x1', (d, index) => this.xScale_(index + 0.5))
-        .attr('x2', (d, index) => this.xScale_(index + 0.5))
+        .attr('x1', (d, index) => this.xScale_(index + this.xAxisTickOffset))
+        .attr('x2', (d, index) => this.xScale_(index + this.xAxisTickOffset))
         .attr('y1', () => this.chartAreaSize.height)
         .attr('y2', (d, index) => this.chartAreaSize.height + Math.max(
             MIN_GUIDELINE_HEIGHT_PX,

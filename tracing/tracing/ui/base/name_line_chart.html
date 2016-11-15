@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/ui/base/line_chart.html">
+<link rel="import" href="/tracing/ui/base/name_column_chart.html">
 
 <script>
 'use strict';
@@ -24,54 +25,26 @@ tr.exportTo('tr.ui.b', function() {
       return index;
     },
 
-    drawXAxisTicks_: function(xAxis) {
-      xAxis.selectAll('.tick').remove();
-      var nameTexts = xAxis.selectAll('text.tick')
-        .data(this.data_);
-      nameTexts
-        .enter()
-        .append('text')
-        .attr('class', 'tick')
-        .attr('transform', (d, index) =>
-            // If you change the angle, then update the Math.cos() below.
-            'rotate(45 ' + this.xScale_(index) + ' 10)')
-        .attr('x', (d, index) => this.xScale_(index))
-        .attr('y', d => 10)
-        .text(d => d.x);
-      nameTexts.exit().remove();
+    get xAxisTickOffset() {
+      return 0;
+    },
 
-      var cos45 = Math.cos(Math.PI / 4);
+    updateXAxis_: function(xAxis) {
+      xAxis.selectAll('*').remove();
+      if (this.hideXAxis) {
+        return;
+      }
 
-      // If the nameTexts extend past the bottom of the chart, then increase
-      // this.bottomMargin_ and re-render.
-      // TODO(benjhayden): Refactor with the code that is very similar to this
-      // in chart_base_2d.
-      var bottomMargin = this.margin.bottom;
-      tr.b.requestAnimationFrame(function() {
-        nameTexts[0].forEach(function(t) {
-          var box = t.getBBox();
-          // When the text is rotated, its height is the hypotenuse
-          // of a small triangle H, and its width is the hypotenuse of a larger
-          // triangle W. The bottomMargin must be equal to a side of H plus a
-          // side of W.
-          var h = cos45 * (box.height + box.width);
-          bottomMargin = Math.max(bottomMargin, h);
-        }, this);
+      tr.ui.b.NameColumnChart.prototype.updateXAxis_.call(this, xAxis);
 
-        bottomMargin = parseInt(Math.ceil(bottomMargin));
-        var doUpdateContents = false;
-        if (bottomMargin > this.margin.bottom) {
-          this.margin.bottom = bottomMargin;
-          doUpdateContents = true;
-        }
-        if (bottomMargin > this.margin.right) {
-          this.margin.right = bottomMargin;
-          doUpdateContents = true;
-        }
-        if (doUpdateContents) {
-          this.updateContents_();
-        }
-      }, this);
+      var baseline = xAxis.selectAll('path').data([this]);
+      baseline.enter().append('line')
+        .attr('stroke', 'black')
+        .attr('x1', this.xScale_(0))
+        .attr('x2', this.xScale_(this.data_.length))
+        .attr('y1', this.chartAreaSize.height)
+        .attr('y2', this.chartAreaSize.height);
+      baseline.exit().remove();
     }
   };
 

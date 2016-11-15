@@ -22,6 +22,7 @@ tr.b.unittest.testSuite(function() {
       {x: 'cat', value: 100},
       {x: 'dog', value: 50}
     ];
+    chart.margin.bottom = data.length * 18;
     chart.data = data;
     this.addHTMLOutput(chart);
   });
@@ -45,6 +46,7 @@ tr.b.unittest.testSuite(function() {
       {x: 'cat', alpha: 100, beta: 125},
       {x: 'dog', alpha: 50, beta: 125}
     ];
+    chart.margin.bottom = data.length * 18;
     chart.data = data;
 
     var r = new tr.b.Range();
@@ -68,6 +70,7 @@ tr.b.unittest.testSuite(function() {
       {x: 'dog', alpha: undefined, beta: 20},
       {x: 'echo', alpha: 30, beta: 30}
     ];
+    chart.margin.bottom = data.length * 18;
     chart.data = data;
 
     this.addHTMLOutput(chart);
@@ -86,6 +89,7 @@ tr.b.unittest.testSuite(function() {
       {x: 'dog', alpha: undefined, beta: 20},
       {x: 'echo', alpha: 30, beta: undefined}
     ];
+    chart.margin.bottom = data.length * 18;
     chart.data = data;
 
     this.addHTMLOutput(chart);
@@ -100,6 +104,7 @@ tr.b.unittest.testSuite(function() {
       {x: 'dog', value: 80},
       {x: 'echo', value: 90}
     ];
+    chart.margin.bottom = data.length * 18;
     chart.data = data;
     var r = new tr.b.Range();
 
@@ -125,7 +130,7 @@ tr.b.unittest.testSuite(function() {
   test('instantiation_interactiveBrushing', function() {
     var chart = new tr.ui.b.NameLineChart();
     chart.width = 300;
-    chart.height = 200;
+    chart.height = 300;
     chart.chartTitle = 'Chart title';
     var data = [
       {x: 'apple', value: 50},
@@ -137,6 +142,7 @@ tr.b.unittest.testSuite(function() {
       {x: 'gpu', value: 15},
       {x: 'happy', value: 20}
     ];
+    chart.margin.bottom = data.length * 18;
     chart.data = data;
 
     var mouseDownIndex = undefined;
