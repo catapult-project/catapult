@@ -47,10 +47,12 @@ class InspectorRuntime(object):
       raise exceptions.EvaluateException(res['error']['message'])
 
     if 'exceptionDetails' in res['result']:
-      # TODO(nduca): propagate stacks from javascript up to the python
-      # exception.
-      text = res['result']['exceptionDetails']['text']
-      raise exceptions.EvaluateException(text)
+      details = res['result']['exceptionDetails']
+      raise exceptions.EvaluateException(
+          text=details['text'],
+          class_name=details.get('exception', {}).get('className'),
+          description=details.get('exception', {}).get('description'))
+
     if res['result']['result']['type'] == 'undefined':
       return None
     return res['result']['result']['value']

@@ -151,7 +151,16 @@ class LoginException(Error):
 
 
 class EvaluateException(Error):
-  pass
+  def __init__(self, text='', class_name='', description=None):
+    super(EvaluateException, self).__init__(text)
+    self._class_name = class_name
+    self._description = description
+
+  def __str__(self):
+    output = super(EvaluateException, self).__str__()
+    if self._class_name and self._description:
+      output += '%s:\n%s' % (self._class_name, self._description)
+    return output
 
 
 class ProfilingException(Error):
