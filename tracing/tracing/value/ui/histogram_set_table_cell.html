@@ -270,6 +270,7 @@ tr.exportTo('tr.ui', function() {
         this.overviewChart_.hideLegend = true;
         this.$.overview_container.appendChild(this.overviewChart_);
         this.overviewChart_.yAxisLabel = unitString;
+        this.overviewChart_.overrideDataRange = this.row.overviewDataRange;
         this.overviewChart_.data = data;
       }
       this.$.overview_container.style.display = 'block';

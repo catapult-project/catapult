@@ -21,6 +21,7 @@ tr.exportTo('tr.v.ui', function() {
       this.nameCell_ = undefined;
       this.cells = new Map();
       this.constrainNameColumnWidth_ = false;
+      this.overviewDataRange_ = undefined;
     }
 
     /**
@@ -123,6 +124,21 @@ tr.exportTo('tr.v.ui', function() {
       }
       this.cells.set(displayLabel, cell);
       return cell;
+    }
+
+    get overviewDataRange() {
+      if (this.overviewDataRange_ === undefined) {
+        this.overviewDataRange_ = new tr.b.Range();
+        for (var [displayLabel, hist] of this.columns) {
+          this.overviewDataRange_.addValue(hist.average);
+        }
+        for (var subRow of this.subRows) {
+          var subHist = subRow.columns.get(displayLabel);
+          if (!subHist) continue;
+          this.overviewDataRange_.addValue(subHist.average);
+        }
+      }
+      return this.overviewDataRange_;
     }
 
     compareNames(other) {
