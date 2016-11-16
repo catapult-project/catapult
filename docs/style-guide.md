@@ -223,7 +223,7 @@ UI element tests that make sure that an element is instantiable should have
 names that start with “`instantiate`”. These tests should, as a general rule,
 should not make assertions.
 
-## ES6 features
+## ECMAScript 2015 (ES6) features
 
 **Use of ES6 features is prohibited unless explicitly approved in the table below.** However, we're currently working to allow them.
 
@@ -250,6 +250,23 @@ should not make assertions.
 | [Binary and octal literals](https://github.com/lukehoban/es6features#binary-and-octal-literals)                                             | To be discussed                                                                 |
 | [Reflect API](https://github.com/lukehoban/es6features#reflect-api)                                                                         | To be discussed                                                                 |
 | [Tail calls](https://github.com/lukehoban/es6features#tail-calls)                                                                           | To be discussed                                                                 |
+
+## ECMAScript 2016 (ES7) features
+
+**Use of ES7 features is prohibited unless explicitly approved in the table below.** However, we're currently working to allow them.
+
+| Feature                  | Status          |
+|--------------------------|-----------------|
+| [Array.prototype.includes](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes) | To be discussed |
+| [Exponentiation operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Arithmetic_Operators#Exponentiation_(**))  | To be discussed |
+
+## ECMAScript 2017 (ES8) features
+
+**Use of ES8 features is prohibited unless explicitly approved in the table below.** Generally, ES8 features are still experimental and liable to change and therefore not fit for use in Catapult. However, in a few rare cases, features may be stable enough for use.
+
+| Feature                  | Status          |
+|--------------------------|-----------------|
+| [Object.entries](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries) and [Object.values](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values) | To be discussed |
 
 ### Possible feature statuses
   - **Approved**: this feature is approved for general use.
