@@ -70,7 +70,7 @@ tr.exportTo('tr.ui', function() {
 
     // Major mark positions are where the gridlines/ruler marks are placed along
     // the x-axis.
-    this.majorMarkPositions_ = [];
+    this.majorMarkWorldPositions_ = [];
     this.majorMarkUnit_ = undefined;
     this.majorMarkUnitDivisor_ = undefined;
     this.interestRange_ = new TimelineInterestRange(this);
@@ -273,8 +273,8 @@ tr.exportTo('tr.ui', function() {
       return this.interestRange_;
     },
 
-    get majorMarkPositions() {
-      return this.majorMarkPositions_;
+    get majorMarkWorldPositions() {
+      return this.majorMarkWorldPositions_;
     },
 
     get majorMarkUnit() {
@@ -330,13 +330,11 @@ tr.exportTo('tr.ui', function() {
       var firstMajorMark = Math.floor(
           viewLWorld / majorMarkDistanceWorld) * majorMarkDistanceWorld;
 
-      this.majorMarkPositions_ = [];
-
+      this.majorMarkWorldPositions_ = [];
       for (var curX = firstMajorMark;
            curX < viewRWorld;
            curX += majorMarkDistanceWorld) {
-        var curXView = Math.floor(dt.xWorldToView(curX));
-        this.majorMarkPositions_.push(curXView);
+        this.majorMarkWorldPositions_.push(Math.floor(curX));
       }
     },
 
@@ -347,8 +345,8 @@ tr.exportTo('tr.ui', function() {
       ctx.translate((Math.round(ctx.lineWidth) % 2) / 2, 0);
 
       ctx.beginPath();
-      for (var majorMark of this.majorMarkPositions_) {
-        var x = Math.floor(majorMark);
+      for (var majorMark of this.majorMarkWorldPositions_) {
+        var x = this.currentDisplayTransform.xWorldToView(majorMark);
         tr.ui.b.drawLine(ctx, x, 0, x, ctx.canvas.height);
       }
       ctx.strokeStyle = '#ddd';

@@ -93,8 +93,8 @@ tr.exportTo('tr.ui.tracks', function() {
       var dt = vp.currentDisplayTransform;
 
       vp.updateMajorMarkData(viewLWorld, viewRWorld);
-      var majorMarkDistanceWorld = vp.majorMarkPositions.length > 1 ?
-          vp.majorMarkPositions[1] - vp.majorMarkPositions[0] : 0;
+      var majorMarkDistanceWorld = vp.majorMarkWorldPositions.length > 1 ?
+          vp.majorMarkWorldPositions[1] - vp.majorMarkWorldPositions[0] : 0;
 
       var numTicksPerMajor = 5;
       var minorMarkDistanceWorld = majorMarkDistanceWorld / numTicksPerMajor;
@@ -119,15 +119,14 @@ tr.exportTo('tr.ui.tracks', function() {
 
       ctx.font = (9 * pixelRatio) + 'px sans-serif';
 
-      ctx.beginPath();
       var tickLabels = [];
-      for (var i = 0; i < vp.majorMarkPositions.length; i++) {
+      ctx.beginPath();
+      for (var i = 0; i < vp.majorMarkWorldPositions.length; i++) {
+        var curXWorld = vp.majorMarkWorldPositions[i];
+        var curXView = dt.xWorldToView(curXWorld);
 
-        var curX = vp.majorMarkPositions[i];
-        var curXView = Math.floor(dt.xWorldToView(curX));
-
-        var unitValue = curX / vp.majorMarkUnitDivisor;
-        var roundedUnitValue = Math.round(unitValue * 100000) / 100000;
+        var roundedUnitValue =
+            Math.round(curXWorld / vp.majorMarkUnitDivisor * 100000) / 100000;
 
         if (!tickLabels[roundedUnitValue]) {
           tickLabels[roundedUnitValue] =
@@ -136,10 +135,10 @@ tr.exportTo('tr.ui.tracks', function() {
         ctx.fillText(tickLabels[roundedUnitValue],
                      curXView + (2 * pixelRatio), 0);
 
-        // Major mark
+        // Draw major mark.
         tr.ui.b.drawLine(ctx, curXView, 0, curXView, xAxisHeightPx);
 
-        // Minor marks
+        // Draw minor marks.
         if (minorMarkDistancePx) {
           for (var j = 1; j < numTicksPerMajor; ++j) {
             var xView = Math.floor(curXView + minorMarkDistancePx * j);
