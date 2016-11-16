@@ -155,9 +155,11 @@ class IssueTrackerService(object):
         projectId='chromium',
         sendEmail=True,
         body=body)
+    logging.info('Making create issue request with body %s', body)
     response = self._ExecuteRequest(request)
     if response and 'id' in response:
       return response['id']
+    logging.error('Failed to create new bug; response %s', response)
     return None
 
   def GetLastBugCommentsAndTimestamp(self, bug_id):
