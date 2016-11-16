@@ -251,37 +251,13 @@ def _PrefillInfo(test_path):
   info['all_metrics'] = []
   metric_keys = list_tests.GetTestDescendants(graph_key, has_rows=True)
 
-  should_add_story_filter = (
-      suite.test_name not in _NON_TELEMETRY_TEST_COMMANDS and
-      # is not a top-level test_path, those are usually not story names
-      '/' in test_path)
-  test_path_prefix = test_path + '/'
-
   for metric_key in metric_keys:
     metric_path = utils.TestPath(metric_key)
     if metric_path.endswith('/ref') or metric_path.endswith('_ref'):
       continue
-    if metric_path.startswith(test_path_prefix):
-      should_add_story_filter = False  # Stories do not have sub-tests.
     info['all_metrics'].append(GuessMetric(metric_path))
   info['default_metric'] = GuessMetric(test_path)
-
-  if should_add_story_filter:
-    _, story_name = test_path.rsplit('/', 1)
-    if story_name.startswith('after_'):
-      # TODO(perezju,#1811): Remove this hack after deprecating the
-      # memory.top_10_mobile benchmark.
-      story_name = story_name[len('after_'):]
-    # During import, some chars in story names got replaced by "_" so they
-    # could be safely included in the test_path. At this point we don't know
-    # what the original characters were. Additionally, some special characters
-    # and argument quoting are not interpreted correctly, e.g. by bisect
-    # scripts (crbug.com/662472). We thus keep only a small set of "safe chars"
-    # and replace all others with match-any-character regex dots.
-    info['story_filter'] = re.sub(r'[^a-zA-Z0-9]', '.', story_name)
-  else:
-    info['story_filter'] = ''
-
+  info['story_filter'] = GuessStoryFilter(test_path)
   return info
 
 
@@ -517,6 +493,43 @@ def _GuessBrowserName(bisect_bot):
     if bisect_bot.startswith(bot_name_prefix):
       return browser_name
   return default
+
+
+def GuessStoryFilter(test_path):
+  """Returns a suitable "story filter" to use in the bisect config.
+
+  Args:
+    test_path: The slash-separated test path used by the dashboard.
+
+  Returns:
+    A regex pattern that matches the story referred to by the test_path, or
+    an empty string if the test_path does not refer to a story and no story
+    filter should be used.
+  """
+  test_path_parts = test_path.split('/')
+  suite_name, story_name = test_path_parts[2], test_path_parts[-1]
+  if suite_name in _NON_TELEMETRY_TEST_COMMANDS:
+    return ''
+  test_key = utils.TestKey(test_path)
+  subtest_keys = list_tests.GetTestDescendants(test_key)
+  try:
+    subtest_keys.remove(test_key)
+  except ValueError:
+    pass
+  if subtest_keys:  # Stories do not have subtests.
+    return ''
+  if story_name.startswith('after_'):
+    # TODO(perezju,#1811): Remove this hack after deprecating the
+    # memory.top_10_mobile benchmark.
+    story_name = story_name[len('after_'):]
+
+  # During import, some chars in story names got replaced by "_" so they
+  # could be safely included in the test_path. At this point we don't know
+  # what the original characters were. Additionally, some special characters
+  # and argument quoting are not interpreted correctly, e.g. by bisect
+  # scripts (crbug.com/662472). We thus keep only a small set of "safe chars"
+  # and replace all others with match-any-character regex dots.
+  return re.sub(r'[^a-zA-Z0-9]', '.', story_name)
 
 
 # TODO(eakuefner): Make bisect work with value-level summaries and delete this.

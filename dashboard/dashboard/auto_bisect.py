@@ -161,6 +161,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
     raise NotBisectableError('Could not select a test.')
 
   metric = start_try_job.GuessMetric(test.test_path)
+  story_filter = start_try_job.GuessStoryFilter(test.test_path)
 
   bisect_bot = start_try_job.GuessBisectBot(test.master_name, test.bot_name)
   if not bisect_bot or '_' not in bisect_bot:
@@ -171,6 +172,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       master_name=test.master_name,
       suite=test.suite_name,
       metric=metric,
+      story_filter=story_filter,
       good_revision=good_revision,
       bad_revision=bad_revision,
       repeat_count=10,
