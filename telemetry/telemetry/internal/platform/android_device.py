@@ -48,8 +48,7 @@ class AndroidDevice(device.Device):
 
 def _ListSerialsOfHealthyOnlineDevices(blacklist):
   return [d.adb.GetDeviceSerial()
-          for d in device_utils.DeviceUtils.HealthyDevices(blacklist)
-          if d.IsOnline()]
+          for d in device_utils.DeviceUtils.HealthyDevices(blacklist)]
 
 
 def GetDeviceSerials(blacklist):

@@ -29,9 +29,8 @@ class _BaseAndroidDeviceTest(unittest.TestCase):
     self._android_device_stub = system_stub.Override(
         android_device, ['subprocess', 'logging'])
 
-  def _GetMockDeviceUtils(self, device_serial, is_online=True):
+  def _GetMockDeviceUtils(self, device_serial):
     device = device_utils.DeviceUtils(device_serial)
-    device.IsOnline = mock.MagicMock(return_value=is_online)
     return device
 
   def tearDown(self):
@@ -44,9 +43,7 @@ class AndroidDeviceTest(_BaseAndroidDeviceTest):
   def testGetAllAttachedAndroidDevices(self):
     self._healthy_device_mock.return_value = [
         self._GetMockDeviceUtils('01'),
-        self._GetMockDeviceUtils('07', is_online=False),
-        self._GetMockDeviceUtils('02'),
-        self._GetMockDeviceUtils('03', is_online=False)]
+        self._GetMockDeviceUtils('02')]
     self.assertEquals(
         set(['01', '02']),
         set(device.device_id for device in
@@ -138,7 +135,6 @@ class FindAllAvailableDevicesTest(_BaseAndroidDeviceTest):
     with mock.patch('os.path.isabs', return_value=False):
       self._healthy_device_mock.return_value = [
           self._GetMockDeviceUtils('015d14fec128220c'),
-          self._GetMockDeviceUtils('this0should0not0show', is_online=False),
           self._GetMockDeviceUtils('015d14fec128220d'),
           self._GetMockDeviceUtils('015d14fec128220e')]
       devices = android_device.FindAllAvailableDevices(finder_options)
