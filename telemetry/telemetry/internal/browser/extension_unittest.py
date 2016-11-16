@@ -203,7 +203,8 @@ class ComponentExtensionTest(unittest.TestCase):
 class WebviewInExtensionTest(ExtensionTest):
 
   # Flaky on windows, hits an exception: http://crbug.com/508325
-  @decorators.Disabled('win', 'linux')
+  # Flaky on macOS too: http://crbug.com/661434
+  @decorators.Disabled('win', 'linux', 'mac')
   def testWebviewInExtension(self):
     """Tests GetWebviewContext() for a web app containing <webview> element."""
     if not self.CreateBrowserWithExtension('webview_app'):
