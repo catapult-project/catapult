@@ -67,6 +67,7 @@ Polymer({
     this.chartHeight_ = undefined;
     this.mouseDownBin_ = undefined;
     this.brushedBins_ = [];
+    this.prevBrushedBins_ = [];
   },
 
   ready: function() {
@@ -150,6 +151,7 @@ Polymer({
     if (!this.histogram) {
       return;
     }
+    this.prevBrushedBins_ = this.brushedBins_;
     this.mouseDownBinIndex_ = chartEvent.y;
     this.updateBrushedRange_(chartEvent.y);
   },
@@ -168,6 +170,12 @@ Polymer({
       return;
     }
     this.updateBrushedRange_(chartEvent.y);
+    if (this.prevBrushedBins_.length === 1 &&
+        this.brushedBins_.length === 1 &&
+        this.prevBrushedBins_[0] === this.brushedBins_[0]) {
+      this.brushedBins_ = [];
+      this.chart_.brushedRange = new tr.b.Range();
+    }
     this.updateDiagnostics_(this.brushedBins);
     this.mouseDownBinIndex_ = undefined;
   },
