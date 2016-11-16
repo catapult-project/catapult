@@ -58,8 +58,6 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
     logging_patterns = ['*/chromeos/net/*',
                         '*/chromeos/login/*',
-                        '*/dbus/*',
-                        'application_lifetime',
                         'chrome_browser_main_posix']
     vmodule = '--vmodule='
     for pattern in logging_patterns:
