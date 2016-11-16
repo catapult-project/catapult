@@ -23,16 +23,16 @@ tr.exportTo('tr.ui.tracks', function() {
    * The diagram below explains the meaning of the resulting fields with
    * respect to a chart track:
    *
-   *      outerTopViewY -> +--------------------/-\-------+ <- Top padding
-   *      innerTopViewY -> + - - - - - - - - - -| |- - - -+ <- Axis max
-   *                       | ..               ==\-/==     |
-   *                       |   ===       Series       ===   |
-   *                       |     ==/-\==               .. |
-   *   innerBottomViewY -> + - - -Point- - - - - - - - - -+ <- Axis min
-   *   outerBottomViewY -> +-------\-/--------------------+ <- Bottom padding
-   *                       ^                              ^
-   *                   leftViewX                      rightViewX
-   *                 leftTimeStamp                  rightTimestamp
+   *      outerTopViewY -> +--------------------/-\------+ <- Top padding
+   *      innerTopViewY -> + - - - - - - - - - -| |- - - + <- Axis max
+   *                       |  ..              ==\-/==    |
+   *                       |  ===      Series       ===  |
+   *                       |     ==/-\==              .. |
+   *   innerBottomViewY -> + - - -Point- - - - - - - - - + <- Axis min
+   *   outerBottomViewY -> +-------\-/-------------------+ <- Bottom padding
+   *                       ^                             ^
+   *                    leftViewX                    rightViewX
+   *                  leftTimeStamp                rightTimestamp
    *
    * Labels starting with a lower case letter are the resulting fields of the
    * transform object. Labels starting with an upper case letter correspond
@@ -69,6 +69,15 @@ tr.exportTo('tr.ui.tracks', function() {
 
     viewXToWorldX: function(viewX) {
       return this.displayTransform_.xViewToWorld(viewX);
+    },
+
+    vectorToWorldDistance: function(viewY) {
+        return this.axis_.bounds.range * Math.abs(viewY / this.innerHeight_);
+    },
+
+    viewYToWorldY: function(viewY) {
+      return this.axis_.unitRangeToValue(
+           1 - (viewY - this.innerTopViewY) / this.innerHeight_);
     },
 
     worldYToViewY: function(worldY) {

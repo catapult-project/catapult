@@ -5,12 +5,20 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/range.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.tracks', function() {
+
+
+  var ColorScheme = tr.b.ColorScheme;
+  var IDEAL_MAJOR_MARK_HEIGHT_PX = 30;
+  var AXIS_LABLE_MARGIN_PX = 10;
+  var AXIS_LABLE_FONT_SIZE_PX = 9;
+  var AXIS_LABLE_FONT = 'Arial';
 
   /**
    * A vertical axis for a (set of) chart series which maps an arbitrary range
@@ -39,6 +47,13 @@ tr.exportTo('tr.ui.tracks', function() {
       if (bounds.range === 0)
         return 0;
       return (value - bounds.min) / bounds.range;
+    },
+
+    unitRangeToValue: function(unitRange) {
+      if (this.bounds.isEmpty) {
+        throw new Error('Chart series y-axis bounds are empty');
+      }
+      return unitRange * this.bounds.range + this.bounds.min;
     },
 
     /**
@@ -78,7 +93,7 @@ tr.exportTo('tr.ui.tracks', function() {
      * circumstances.
      *
      * Observe that if no configuration is provided (or all flags are set to
-     * false), this method will only modify the axis bounds if they are empty.
+     * false), this method will only modify the y-axis bounds if they are empty.
      */
     autoSetFromRange: function(range, opt_config) {
       if (range.isEmpty)
@@ -117,6 +132,96 @@ tr.exportTo('tr.ui.tracks', function() {
       } else {
         bounds.max = Math.max(range.max, bounds.min);
       }
+    },
+
+
+    majorMarkHeightWorld_: function(transform, pixelRatio) {
+      var idealMajorMarkHeightPx = IDEAL_MAJOR_MARK_HEIGHT_PX * pixelRatio;
+      var idealMajorMarkHeightWorld =
+          transform.vectorToWorldDistance(idealMajorMarkHeightPx);
+
+      // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
+      var conservativeGuess =
+          Math.pow(10, Math.ceil(Math.log10(idealMajorMarkHeightWorld)));
+
+      // Once we have a conservative guess, use the 1-2-5 series to find
+      // preferred numbers that still exceed the ideal mark distance.
+      var majorMarkHeightWorld = conservativeGuess;
+      var divisors = [2, 5, 10];
+      for (var divisor of divisors) {
+        var tightenedGuess = conservativeGuess / divisor;
+        if (tightenedGuess < idealMajorMarkHeightWorld) break;
+        majorMarkHeightWorld = tightenedGuess;
+      }
+      return majorMarkHeightWorld;
+    },
+
+    draw: function(ctx, transform, showYAxisLabels, showYGridLines) {
+      if (!showYAxisLabels && !showYGridLines) return;
+
+      var pixelRatio = transform.pixelRatio;
+      var viewTop = transform.outerTopViewY;
+      var worldTop = transform.viewYToWorldY(viewTop);
+      var viewBottom = transform.outerBottomViewY;
+      var viewHeight = viewBottom - viewTop;
+      var viewLeft = transform.leftViewX;
+      var viewRight = transform.rightViewX;
+      var labelLeft = transform.leftYLabel;
+
+      ctx.save();
+      ctx.lineWidth = pixelRatio;
+      ctx.fillStyle = ColorScheme.getColorForReservedNameAsString('black');
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'center';
+
+      ctx.font =
+          (AXIS_LABLE_FONT_SIZE_PX * pixelRatio) + 'px ' + AXIS_LABLE_FONT;
+
+      // Draw left edge of chart series.
+      ctx.beginPath();
+      ctx.strokeStyle = ColorScheme.getColorForReservedNameAsString('black');
+      tr.ui.b.drawLine(
+          ctx, viewLeft, viewTop, viewLeft, viewBottom, viewLeft);
+      ctx.stroke();
+      ctx.closePath();
+
+      // Draw y-axis ticks and gridlines.
+      ctx.beginPath();
+      ctx.strokeStyle = ColorScheme.getColorForReservedNameAsString('grey');
+
+      var majorMarkHeight = this.majorMarkHeightWorld_(transform, pixelRatio);
+      var maxMajorMark = Math.max(transform.viewYToWorldY(viewTop),
+          Math.abs(transform.viewYToWorldY(viewBottom)));
+      for (var curWorldY = 0;
+          curWorldY <= maxMajorMark;
+          curWorldY += majorMarkHeight) {
+        var roundedUnitValue = Math.floor(curWorldY * 1000000) / 1000000;
+        var curViewYPositive = transform.worldYToViewY(curWorldY);
+        if (curViewYPositive >= viewTop) {
+          if (showYAxisLabels) {
+            ctx.fillText(roundedUnitValue, viewLeft + AXIS_LABLE_MARGIN_PX,
+                curViewYPositive - AXIS_LABLE_MARGIN_PX);
+          }
+          if (showYGridLines) {
+            tr.ui.b.drawLine(
+                ctx, viewLeft, curViewYPositive, viewRight, curViewYPositive);
+          }
+        }
+
+        var curViewYNegative = transform.worldYToViewY(-1 * curWorldY);
+        if (curViewYNegative <= viewBottom) {
+          if (showYAxisLabels) {
+            ctx.fillText(roundedUnitValue, viewLeft + AXIS_LABLE_MARGIN_PX,
+                curViewYNegative - AXIS_LABLE_MARGIN_PX);
+          }
+          if (showYGridLines) {
+            tr.ui.b.drawLine(
+                ctx, viewLeft, curViewYNegative, viewRight, curViewYNegative);
+          }
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
     }
   };
 

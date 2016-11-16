@@ -45,7 +45,6 @@ tr.b.unittest.testSuite(function() {
     }
 
     var seriesYAxis1 = new ChartSeriesYAxis(0, 2.5);
-    var seriesYAxis2 = new ChartSeriesYAxis(-100, 100);
 
     var points1 = [
       buildPoint(-2.5, 2),
@@ -83,30 +82,36 @@ tr.b.unittest.testSuite(function() {
     }
     var series2 = new ChartSeries(points2, seriesYAxis1, renderingConfig2);
 
-    var points3 = [
-      buildPoint(-3, -50),
-      buildPoint(-2.4, -40),
-      buildPoint(-1.8, -30),
-      buildPoint(-1.2, -20),
-      buildPoint(-0.6, -10),
-      buildPoint(0, 0),
-      buildPoint(0.6, 10),
-      buildPoint(1.2, 20),
-      buildPoint(1.8, 30),
-      buildPoint(2.4, 40),
-      buildPoint(3, 50)
-    ];
-    var renderingConfig3 = {
-      chartType: ChartSeriesType.LINE,
-      lineWidth: 2
-    };
-    if (opt_args && opt_args.stepGraph !== undefined) {
-      renderingConfig3.stepGraph = opt_args.stepGraph;
+    var seriesList = [series1, series2];
+
+    if (!opt_args || !opt_args.singleAxis) {
+      var seriesYAxis2 = new ChartSeriesYAxis(-100, 100);
+      var points3 = [
+        buildPoint(-3, -50),
+        buildPoint(-2.4, -40),
+        buildPoint(-1.8, -30),
+        buildPoint(-1.2, -20),
+        buildPoint(-0.6, -10),
+        buildPoint(0, 0),
+        buildPoint(0.6, 10),
+        buildPoint(1.2, 20),
+        buildPoint(1.8, 30),
+        buildPoint(2.4, 40),
+        buildPoint(3, 50)
+      ];
+      var renderingConfig3 = {
+        chartType: ChartSeriesType.LINE,
+        lineWidth: 2
+      };
+      if (opt_args && opt_args.stepGraph !== undefined) {
+        renderingConfig3.stepGraph = opt_args.stepGraph;
+      }
+      var series3 = new ChartSeries(points3, seriesYAxis2, renderingConfig3);
+      seriesList.push(series3);
     }
-    var series3 = new ChartSeries(points3, seriesYAxis2, renderingConfig3);
 
     var track = new ChartTrack(viewport);
-    track.series = [series1, series2, series3];
+    track.series = seriesList;
 
     return track;
   }
@@ -144,7 +149,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = buildTrack({viewport: viewport});
+    var track = buildTrack({viewport});
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
@@ -165,7 +170,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = buildTrack({viewport: viewport});
+    var track = buildTrack({viewport});
     Polymer.dom(drawingContainer).appendChild(track);
 
     track.series[0].points[1].modelItem.selectionState =
@@ -192,7 +197,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = buildTrack({viewport: viewport, stepGraph: false});
+    var track = buildTrack({viewport, stepGraph: false});
     Polymer.dom(drawingContainer).appendChild(track);
 
     this.addHTMLOutput(div);
@@ -213,7 +218,7 @@ tr.b.unittest.testSuite(function() {
     var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
     Polymer.dom(div).appendChild(drawingContainer);
 
-    var track = buildTrack({viewport: viewport, stepGraph: false});
+    var track = buildTrack({viewport, stepGraph: false});
     Polymer.dom(drawingContainer).appendChild(track);
 
     track.series[0].points[1].modelItem.selectionState =
@@ -234,6 +239,91 @@ tr.b.unittest.testSuite(function() {
     track.height = '100px';
   });
 
+  test('instantiate_highDetailsNoStepGraphWithSelectionAndYAxisLabels',
+       function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    viewport.highDetails = true;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
+    track.showYAxisLabels = true;
+    Polymer.dom(drawingContainer).appendChild(track);
+
+    track.series[0].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+    track.series[1].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '200px';
+  });
+
+  test('instantiate_highDetailsNoStepGraphWithSelectionAndGridLines',
+       function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    viewport.highDetails = true;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
+    track.showGridLines = true;
+    Polymer.dom(drawingContainer).appendChild(track);
+
+    track.series[0].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+    track.series[1].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '200px';
+  });
+
+  test('instantiate_highDetailsNoStepGraphWithSelectionYAxisLabelsAndGridLines',
+       function() {
+    var div = document.createElement('div');
+    var viewport = new Viewport(div);
+    viewport.highDetails = true;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = buildTrack({viewport, stepGraph: false, singleAxis: true});
+    track.showYAxisLabels = true;
+    track.showGridLines = true;
+    Polymer.dom(drawingContainer).appendChild(track);
+
+    track.series[0].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+    track.series[1].points[1].modelItem.selectionState =
+        SelectionState.SELECTED;
+
+    this.addHTMLOutput(div);
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    var pixelRatio = window.devicePixelRatio || 1;
+    dt.xSetWorldBounds(-3, 3, track.clientWidth * pixelRatio);
+    track.viewport.setDisplayTransformImmediately(dt);
+
+    track.height = '200px';
+  });
+
   test('instantiate_dashboardChartStyleWithSelection', function() {
     var div = document.createElement('div');
     var viewport = new Viewport(div);
@@ -242,6 +332,8 @@ tr.b.unittest.testSuite(function() {
     Polymer.dom(div).appendChild(drawingContainer);
 
     var track = buildDashboardTrack(viewport);
+    track.showYAxisLabels = true;
+    track.showGridLines = true;
     Polymer.dom(drawingContainer).appendChild(track);
 
     track.series[0].points[40].modelItem.selectionState =

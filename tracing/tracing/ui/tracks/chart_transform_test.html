@@ -82,5 +82,25 @@ tr.b.unittest.testSuite(function() {
     assert.equal(t.worldYToViewY(100), 15);
     assert.equal(t.worldYToViewY(200), -15);
   });
+
+  test('checkViewYToWorldY', function() {
+    var t = buildChartTransform();
+
+    assert.equal(t.viewYToWorldY(105), -200);
+    assert.equal(t.viewYToWorldY(75), -100);
+    assert.equal(t.viewYToWorldY(45), 0);
+    assert.equal(t.viewYToWorldY(15), 100);
+    assert.equal(t.viewYToWorldY(-15), 200);
+  });
+
+  test('checkVectorToWorldDistance', function() {
+    var t = buildChartTransform();
+
+    assert.equal(t.vectorToWorldDistance(105), 350);
+    assert.equal(t.vectorToWorldDistance(75), 250);
+    assert.equal(t.vectorToWorldDistance(45), 150);
+    assert.equal(t.vectorToWorldDistance(15), 50);
+    assert.equal(t.vectorToWorldDistance(-15), 50);
+  });
 });
 </script>

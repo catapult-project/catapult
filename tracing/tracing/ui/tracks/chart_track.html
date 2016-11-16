@@ -38,6 +38,7 @@ tr.exportTo('tr.ui.tracks', function() {
       tr.ui.tracks.Track.prototype.decorate.call(this, viewport);
       Polymer.dom(this).classList.add('chart-track');
       this.series_ = undefined;
+      this.axes_ = undefined;
 
       // GUID -> {axis: ChartSeriesYAxis, series: [ChartSeries]}.
       this.axisGuidToAxisData_ = undefined;
@@ -46,7 +47,10 @@ tr.exportTo('tr.ui.tracks', function() {
       this.topPadding_ = undefined;
       this.bottomPadding_ = undefined;
 
-      this.heading_ = document.createElement('tr-ui-b-heading');
+      this.showYAxisLabels_ = undefined;
+      this.showGridLines_ = undefined;
+
+      this.heading_ = document.createElement('tr-ui-heading');
       Polymer.dom(this).appendChild(this.heading_);
     },
 
@@ -86,12 +90,31 @@ tr.exportTo('tr.ui.tracks', function() {
       this.invalidateDrawingContainer();
     },
 
+    get showYAxisLabels() {
+      return this.showYAxisLabels_;
+    },
+
+    set showYAxisLabels(showYAxisLabels) {
+      this.showYAxisLabels_ = showYAxisLabels;
+      this.invalidateDrawingContainer();
+    },
+
+    get showGridLines() {
+      return this.showGridLines_;
+    },
+
+    set showGridLines(showGridLines) {
+      this.showGridLines_ = showGridLines;
+      this.invalidateDrawingContainer();
+    },
+
     get hasVisibleContent() {
       return !!this.series && this.series.length > 0;
     },
 
     calculateAxisDataAndPadding_: function() {
       if (!this.series_) {
+        this.axes_ = undefined;
         this.axisGuidToAxisData_ = undefined;
         this.topPadding_ = undefined;
         this.bottomPadding_ = undefined;
@@ -110,6 +133,8 @@ tr.exportTo('tr.ui.tracks', function() {
             axis: seriesYAxis,
             series: []
           };
+          if (!this.axes_) this.axes_ = [];
+          this.axes_.push(seriesYAxis);
         }
         axisGuidToAxisData[axisGuid].series.push(series);
         topPadding = Math.max(topPadding, series.topPadding);
@@ -155,13 +180,28 @@ tr.exportTo('tr.ui.tracks', function() {
       ctx.rect(0, 0, width, height);
       ctx.clip();
 
+      // TODO(aiolos): Add support for secondary y-axis on right side of chart.
+      // https://github.com/catapult-project/catapult/issues/3008
+      // Draw y-axis grid lines.
+      if ((this.showGridLines_ || this.showYAxisLabels_) &&
+          this.axes_ && this.axes_.length > 1) {
+        throw new Error('Only one axis allowed when showing grid lines.');
+      }
+      for (var yAxis of this.axes_) {
+        var chartTransform = new tr.ui.tracks.ChartTransform(
+            displayTransform, yAxis, width, height,
+            topPadding, bottomPadding, pixelRatio);
+        yAxis.draw(
+            ctx, chartTransform, this.showYAxisLabels_, this.showGridLines_);
+      }
+
       // Draw all series in the increasing z-order.
-      this.series_.forEach(function(series) {
+      for (var series of this.series) {
         var chartTransform = new tr.ui.tracks.ChartTransform(
             displayTransform, series.seriesYAxis, width, height, topPadding,
             bottomPadding, pixelRatio);
         series.draw(ctx, chartTransform, highDetails);
-      }, this);
+      }
 
       // Stop clipping.
       ctx.restore();
