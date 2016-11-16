@@ -14,8 +14,11 @@ class InspectorRuntimeTest(tab_test_case.TabTestCase):
     assert res == 2
 
   def testRuntimeEvaluateThatFails(self):
-    self.assertRaises(exceptions.EvaluateException,
-                      lambda: self._tab.EvaluateJavaScript('fsdfsdfsf'))
+    with self.assertRaises(exceptions.EvaluateException) as ex_context:
+      self._tab.EvaluateJavaScript('var x = 1;\n'
+                                   'fsdfsdfsf')
+    exception_message = str(ex_context.exception)
+    self.assertIn('ReferenceError: fsdfsdfsf is not defined', exception_message)
 
   def testRuntimeEvaluateOfSomethingThatCantJSONize(self):
 
