@@ -158,9 +158,9 @@ class ReplayServer(object):
       return ('http' not in self._started_ports or
               'https' not in self._started_ports or
               (self._use_dns_server and 'dns' not in self._started_ports))
+
     if HasIncompleteStartedPorts():
       self._started_ports = self._ParseLogFilePorts(self._LogLines())
-      logging.info('WPR ports: %s' % self._started_ports)
     if HasIncompleteStartedPorts():
       return False
     try:
@@ -216,6 +216,7 @@ class ReplayServer(object):
           preexec_fn=(_ResetInterruptHandler if is_posix else None))
     try:
       py_utils.WaitFor(self._IsStarted, 30)
+      logging.info('WPR ports: %s' % self._started_ports)
       atexit_with_log.Register(self.StopServer)
       return forwarders.PortSet(
           self._started_ports['http'],
