@@ -19,10 +19,16 @@
  - *masters*: Comma-separated list of master names
  - *bots*: Comma-separated list of bot names.
  - *tests*: Comma-separated list of test paths starting from benchmark name.
- - *rev*: Revision number (optional).
- - *num\_points*: Number of points to plot (optional).
- - *start\_rev*: Starting revision number (optional).
- - *end\_rev*: Ending revision number (optional).
+ - *rev*: Revision number (optional). Should correspond to the "Point ID" in
+   the tooltip for a data point.
+ - *num\_points*: Number of points to plot (optional). If *rev* is specified,
+   it is the number of points around *rev* to show. If *start\_rev* and
+   *end\_rev* are specified, it is not used. If no revision parameters are
+   specified, it is the number of most recent points to show.
+ - *start\_rev*: Starting revision number (optional). Must be used together with
+   *end\_rev*.
+ - *end\_rev*: Ending revision number (optional). Must be used together with
+   *start\_rev*.
  - *checked*: Series to check. Could be "core" (important + ref) or "all".
 
 **/group\_report**: View graphs for a set of alerts
@@ -42,8 +48,16 @@
 - *pattern*: A test path pattern (Master/bot/benchmark/...) with wildcards to match.
 - *max\_tests*: Maximum number of tests that match the pattern to fetch.
 
-**/stats**: View and generate stats about alert volume.
- - *key*: URL-safe key of existing previously generated stats group.
+
+**/graph\_csv**: Download data points from a chart in CSV format.
+- *test\_path*: Full test path (Master/bot/benchmark...) to get data points for.
+  This is shown in the tooltip for each data point.
+- *rev*: Revision number (optional). Should correspond to the "Point ID" in
+  the tooltip for a data point. If none is specified, will return the most
+  recent points.
+- *num_points*: The number of data points to return. Defaults to 500.
+- *attributes*: Specific attributes from `Row` entity to return (will just
+  return the revision and value if not specified).
 
 **/bisect\_stats**: View bisect job success rate stats.
 
@@ -51,23 +65,4 @@
 
 ## Administrative pages
 
- - /change\_internal\_only
- - /edit\_anomaly\_configs
- - /edit\_bug\_labels
- - /edit\_sheriffs
- - /edit\_test\_owners
- - /load\_graph\_from\_prod
- - /migrate\_test\_names
- - /get\_logs
-
-## XHR handlers
-
- - /associate\_alerts
- - /file\_bug
- - /edit\_anomalies
- - /graph\_json
- - /graph\_revisions
- - /list\_tests
- - /list\_monitored\_tests
- - /start\_try\_job
- - /graph\_csv
+See `Admin` menu when logged in as an administrator.
