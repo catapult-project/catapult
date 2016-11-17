@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/color.html">
 <link rel="import" href="/tracing/base/sinebow_color_generator.html">
 
 <script>
@@ -12,44 +13,69 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('SinebowColorGenerator', function() {
     var generator = new tr.b.SinebowColorGenerator();
-    assert.strictEqual('rgba(270,67,67,1)',
-        generator.colorForKey('z').toString());
-    assert.strictEqual('rgba(44,132,329,1)',
-        generator.colorForKey('y').toString());
-    assert.strictEqual('rgba(99,166,9,1)',
-        generator.colorForKey('x').toString());
-    assert.strictEqual('rgba(270,67,67,1)',
-        generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(270,67,67,1)', generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(44,132,329,1)', generator.colorForKey('y').toString());
+    assert.strictEqual(
+        'rgba(99,166,9,1)', generator.colorForKey('x').toString());
+    assert.strictEqual(
+        'rgba(270,67,67,1)', generator.colorForKey('z').toString());
 
     generator = new tr.b.SinebowColorGenerator(0.5);
-    assert.strictEqual('rgba(270,67,67,0.5)',
-        generator.colorForKey('z').toString());
-    assert.strictEqual('rgba(44,132,329,0.5)',
-        generator.colorForKey('y').toString());
-    assert.strictEqual('rgba(99,166,9,0.5)',
-        generator.colorForKey('x').toString());
-    assert.strictEqual('rgba(270,67,67,0.5)',
-        generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(270,67,67,0.5)', generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(44,132,329,0.5)', generator.colorForKey('y').toString());
+    assert.strictEqual(
+        'rgba(99,166,9,0.5)', generator.colorForKey('x').toString());
+    assert.strictEqual(
+        'rgba(270,67,67,0.5)', generator.colorForKey('z').toString());
 
     generator = new tr.b.SinebowColorGenerator(1, 0);
-    assert.strictEqual('rgba(0,0,0,1)',
-        generator.colorForKey('z').toString());
-    assert.strictEqual('rgba(0,0,0,1)',
-        generator.colorForKey('y').toString());
-    assert.strictEqual('rgba(0,0,0,1)',
-        generator.colorForKey('x').toString());
-    assert.strictEqual('rgba(0,0,0,1)',
-        generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(0,0,0,1)', generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(0,0,0,1)', generator.colorForKey('y').toString());
+    assert.strictEqual(
+        'rgba(0,0,0,1)', generator.colorForKey('x').toString());
+    assert.strictEqual(
+        'rgba(0,0,0,1)', generator.colorForKey('z').toString());
 
     generator = new tr.b.SinebowColorGenerator(1, 2);
-    assert.strictEqual('rgba(255,255,255,1)',
-        generator.colorForKey('z').toString());
-    assert.strictEqual('rgba(255,255,255,1)',
-        generator.colorForKey('y').toString());
-    assert.strictEqual('rgba(255,255,255,1)',
-        generator.colorForKey('x').toString());
-    assert.strictEqual('rgba(255,255,255,1)',
-        generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(255,255,255,1)', generator.colorForKey('z').toString());
+    assert.strictEqual(
+        'rgba(255,255,255,1)', generator.colorForKey('y').toString());
+    assert.strictEqual(
+        'rgba(255,255,255,1)', generator.colorForKey('x').toString());
+    assert.strictEqual(
+        'rgba(255,255,255,1)', generator.colorForKey('z').toString());
+  });
+
+  test('SinebowColorGeneratorVisual', function() {
+    if (tr.isHeadless) {
+      return;
+    }
+    var generator = new tr.b.SinebowColorGenerator();
+    var parentDiv = document.createElement('div');
+    for (var i = 0; i < 350; i++) {
+      var spanElem = document.createElement('span');
+      spanElem.style.width = '60px';
+      spanElem.style.display = 'inline-block';
+      spanElem.style.backgroundColor = generator.colorForKey(i).toString();
+      var rgb = generator.colorForKey(i).toString().split('(')[1].split(',');
+      var r = rgb[0];
+      var g = rgb[1];
+      var b = rgb[2].split(')')[0];
+      var hsl = new tr.b.Color(r, g, b, 1).toHSL();
+      spanElem.appendChild(document.createTextNode(hsl.h.toFixed(4)));
+      parentDiv.appendChild(spanElem);
+      if ((i + 1) % 21 === 0 && i) {
+        parentDiv.appendChild(document.createElement('br'));
+    }
+    this.addHTMLOutput(parentDiv);
+    }
   });
 });
 </script>
