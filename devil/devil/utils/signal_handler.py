@@ -7,6 +7,23 @@ import signal
 
 
 @contextlib.contextmanager
+def SignalHandler(signalnum, handler):
+  """Sets the signal handler for the given signal in the wrapped context.
+
+  Args:
+    signum: The signal for which a handler should be added.
+    additional_handler: The handler to add.
+  """
+  existing_handler = signal.getsignal(signalnum)
+
+  try:
+    signal.signal(signalnum, handler)
+    yield
+  finally:
+    signal.signal(signalnum, existing_handler)
+
+
+@contextlib.contextmanager
 def AddSignalHandler(signalnum, additional_handler):
   """Adds a signal handler for the given signal in the wrapped context.
 
@@ -24,7 +41,8 @@ def AddSignalHandler(signalnum, additional_handler):
       existing_handler(signum, frame)
     additional_handler(signum, frame)
 
-  signal.signal(signalnum, handler)
-  yield
-  signal.signal(signalnum, existing_handler)
-
+  try:
+    signal.signal(signalnum, handler)
+    yield
+  finally:
+    signal.signal(signalnum, existing_handler)
