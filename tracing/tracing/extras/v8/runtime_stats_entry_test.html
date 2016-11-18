@@ -14,38 +14,38 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('RuntimeStatsEntry', function() {
-    var entry = new tr.e.v8.RuntimeStatsEntry("IC_Entry", 5, 1234);
-    assert.equal(entry.name, "IC_Entry");
+    var entry = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
+    assert.equal(entry.name, 'IC_Entry');
     assert.equal(entry.count, 5);
     assert.equal(entry.time, 1234);
 
     entry.addSample(37, 8766);
-    assert.equal(entry.name, "IC_Entry");
+    assert.equal(entry.name, 'IC_Entry');
     assert.equal(entry.count, 42);
     assert.equal(entry.time, 10000);
 
     entry.addSample(58, 1);
-    assert.equal(entry.name, "IC_Entry");
+    assert.equal(entry.name, 'IC_Entry');
     assert.equal(entry.count, 100);
     assert.equal(entry.time, 10001);
   });
 
   test('RuntimeStatsGroup', function() {
     var group = new tr.e.v8.RuntimeStatsGroup('IC', /.*IC.*/);
-    assert.notEqual(group.match("IC_Entry"), undefined);
-    assert.notEqual(group.match("CallbackIC_Entry"), undefined);
-    assert.notEqual(group.match("EntryIC"), undefined);
-    assert.equal(group.match("Callback_Entry"), undefined);
+    assert.notEqual(group.match('IC_Entry'), undefined);
+    assert.notEqual(group.match('CallbackIC_Entry'), undefined);
+    assert.notEqual(group.match('EntryIC'), undefined);
+    assert.equal(group.match('Callback_Entry'), undefined);
 
-    var entry1a = new tr.e.v8.RuntimeStatsEntry("IC_Entry", 5, 1234);
+    var entry1a = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 5, 1234);
     group.add(entry1a);
     assert.deepEqual(group.values, [entry1a]);
-    var entry2 = new tr.e.v8.RuntimeStatsEntry("IC_Entry2", 2, 2048);
+    var entry2 = new tr.e.v8.RuntimeStatsEntry('IC_Entry2', 2, 2048);
     group.add(entry2);
     assert.deepEqual(group.values, [entry1a, entry2]);
-    var entry1b = new tr.e.v8.RuntimeStatsEntry("IC_Entry", 37, 8766);
+    var entry1b = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 37, 8766);
     group.add(entry1b);
-    var entry1sum = new tr.e.v8.RuntimeStatsEntry("IC_Entry", 42, 10000);
+    var entry1sum = new tr.e.v8.RuntimeStatsEntry('IC_Entry', 42, 10000);
     assert.deepEqual(group.values, [entry1sum, entry2]);
   });
 
