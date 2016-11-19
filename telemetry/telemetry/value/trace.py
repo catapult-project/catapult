@@ -65,13 +65,14 @@ class TraceValue(value_module.Value):
     trace_files = []
     counter = 0
     try:
+      trace_size_data = {}
       for trace, part in self._GetTraceParts(trace_data):
         file_path = os.path.join(temp_dir, '%s.trace' % counter)
         self._DumpTraceToFile(trace, file_path)
-        logging.info('Trace (%s) of size %d bytes saved.',
-                     part, os.path.getsize(file_path))
+        trace_size_data[part] = os.path.getsize(file_path)
         trace_files.append(file_path)
         counter += 1
+      logging.info('Trace sizes in bytes: %s', trace_size_data)
       tf = tempfile.NamedTemporaryFile(delete=False, suffix='.html')
       tf.close()
       if trace_files:
