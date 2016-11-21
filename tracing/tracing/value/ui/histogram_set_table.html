@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/grouping_table_groupby_picker.html">
 <link rel="import" href="/tracing/ui/base/table.html">
+<link rel="import" href="/tracing/value/csv_builder.html">
 <link rel="import" href="/tracing/value/histogram_set.html">
 <link rel="import" href="/tracing/value/ui/histogram_set_table_row.html">
 
@@ -81,6 +82,10 @@ found in the LICENSE file.
     #reference_column_container * {
       margin-right: 20px;
     }
+
+    #download_csv {
+      margin-right: 20px;
+    }
     </style>
 
     <div id="zero">zero Histograms</div>
@@ -100,6 +105,8 @@ found in the LICENSE file.
         </svg>
 
         <span id="reference_column_container"></span>
+
+        <button id="download_csv" on-click="downloadCSV_">&#11015; CSV</button>
 
         <input type="checkbox" id="show_all" on-change="onShowAllChange_" title="When unchecked, less important histograms are hidden.">
         <label for="show_all" title="When unchecked, less important histograms are hidden.">Show all</label>
@@ -657,6 +664,29 @@ tr.exportTo('tr.v.ui', function() {
       }
     },
 
+    get leafHistograms() {
+      var histograms = new tr.v.HistogramSet();
+      for (var row of this.rows_) {
+        row.getLeafHistograms(histograms);
+      }
+      return histograms;
+    },
+
+    downloadCSV_: function() {
+      var anchor = document.createElement('a');
+
+      var path = window.location.pathname.split('/');
+      var basename = path[path.length - 1].split('.')[0] || 'histograms';
+      anchor.download = basename + '.csv';
+
+      var csv = new tr.v.CSVBuilder(this.leafHistograms);
+      csv.build();
+      var blob = new window.Blob([csv.toString()], {type: 'text/csv'});
+      anchor.href = window.URL.createObjectURL(blob);
+
+      anchor.click();
+    },
+
     buildColumns_: function() {
       this.columns_ = [
         {
@@ -673,7 +703,7 @@ tr.exportTo('tr.v.ui', function() {
   });
 
   return {
-    UNMERGEABLE: UNMERGEABLE,
+    UNMERGEABLE,
   };
 });
 </script>

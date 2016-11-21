@@ -24,6 +24,30 @@ tr.exportTo('tr.v', function() {
 
   var MERGED_FROM_DIAGNOSTIC_KEY = 'merged from';
 
+  /**
+   * Converts the given percent to a string in the format specified above.
+   * @param {number} percent The percent must be between 0.0 and 1.0.
+   * @return {string}
+   */
+  function percentToString(percent) {
+    if (percent < 0 || percent > 1)
+      throw new Error('Percent must be between 0.0 and 1.0');
+    switch (percent) {
+      case 0:
+        return '000';
+      case 1:
+        return '100';
+    }
+    var str = percent.toString();
+    if (str[1] !== '.')
+      throw new Error('Unexpected percent');
+    // Pad short strings with zeros.
+    str = str + '0'.repeat(Math.max(4 - str.length, 0));
+    if (str.length > 4)
+      str = str.slice(0, 4) + '_' + str.slice(4);
+    return '0' + str.slice(2);
+  }
+
   class HistogramBin {
     /**
      * @param {!tr.b.Range} range
@@ -332,17 +356,16 @@ tr.exportTo('tr.v', function() {
       var valuesToSkip = Math.floor((this.numValues - 1) * percent);
       for (var bin of this.allBins) {
         valuesToSkip -= bin.count;
-        if (valuesToSkip < 0) {
-          if (bin.range.min === -Number.MAX_VALUE) {
-            return bin.range.max;
-          } else if (bin.range.max === Number.MAX_VALUE) {
-            return bin.range.min;
-          } else {
-            return bin.range.center;
-          }
+        if (valuesToSkip >= 0) continue;
+        if (bin.range.min === -Number.MAX_VALUE) {
+          return bin.range.max;
+        } else if (bin.range.max === Number.MAX_VALUE) {
+          return bin.range.min;
+        } else {
+          return bin.range.center;
         }
       }
-      throw new Error('Unreachable');
+      return this.allBins[this.allBins.length - 1].range.min;
     }
 
     getBinForValue(value) {
@@ -502,28 +525,6 @@ tr.exportTo('tr.v', function() {
             return 'mean';
         }
         return stat;
-      }
-      /**
-       * Converts the given percent to a string in the format specified above.
-       * @param {number} percent The percent must be between 0.0 and 1.0.
-       */
-      function percentToString(percent) {
-        if (percent < 0 || percent > 1)
-          throw new Error('Percent must be between 0.0 and 1.0');
-        switch (percent) {
-          case 0:
-            return '000';
-          case 1:
-            return '100';
-        }
-        var str = percent.toString();
-        if (str[1] !== '.')
-          throw new Error('Unexpected percent');
-        // Pad short strings with zeros.
-        str = str + '0'.repeat(Math.max(4 - str.length, 0));
-        if (str.length > 4)
-          str = str.slice(0, 4) + '_' + str.slice(4);
-        return '0' + str.slice(2);
       }
 
       var results = new Map();
@@ -1089,10 +1090,15 @@ tr.exportTo('tr.v', function() {
       tr.b.Unit.byName.count.unitName,
       HistogramBinBoundaries.createExponential(1, 1e3, 20));
 
+  DEFAULT_BOUNDARIES_FOR_UNIT.set(
+      tr.b.Unit.byName.sigma.unitName,
+      HistogramBinBoundaries.createLinear(-5, 5, 50));
+
   return {
-    Histogram: Histogram,
-    HistogramBinBoundaries: HistogramBinBoundaries,
-    MERGED_FROM_DIAGNOSTIC_KEY: MERGED_FROM_DIAGNOSTIC_KEY
+    Histogram,
+    HistogramBinBoundaries,
+    MERGED_FROM_DIAGNOSTIC_KEY,
+    percentToString,
   };
 });
 </script>

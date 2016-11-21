@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v', function() {
+  var CSV_ITERATION_INFO_NAMES = [
+    'benchmarkName',
+    'benchmarkStartString',
+    'label',
+    'osVersion',
+    'productVersion',
+    'storyDisplayName',
+    'storyRepeatCounter',
+    'storyUrl',
+    'storysetRepeatCounter',
+  ];
+
+  class CSVBuilder {
+    /**
+     * @param {!tr.v.HistogramSet} histograms
+     */
+    constructor(histograms) {
+      this.histograms_ = histograms;
+      this.table_ = [];
+      this.statisticsNames_ = new Set();
+      this.iterationInfoNames_ = new Set();
+      this.storyGroupingKeys_ = new Set();
+    }
+
+    build() {
+      this.prepare_();
+      this.buildHeader_();
+
+      for (var hist of this.histograms_) {
+        var row = [hist.name, hist.unit.unitString];
+        this.table_.push(row);
+
+        var stats = hist.statisticsScalars;
+        for (var name of this.statisticsNames_) {
+          row.push(stats.has(name) ? stats.get(name).value : '');
+        }
+
+        var iteration = tr.v.d.IterationInfo.getFromValue(hist);
+
+        for (var name of this.iterationInfoNames_) {
+          if (iteration === undefined ||
+              iteration[name] === undefined) {
+            row.push('');
+          } else {
+            row.push(iteration[name]);
+          }
+        }
+
+        for (var key of this.storyGroupingKeys_) {
+          if (iteration === undefined ||
+              iteration.storyGroupingKeys === undefined ||
+              iteration.storyGroupingKeys[key] === undefined) {
+            row.push('');
+          } else {
+            row.push(iteration.storyGroupingKeys[key]);
+          }
+        }
+      }
+    }
+
+    prepare_() {
+      for (var hist of this.histograms_) {
+        for (var [name, option] of hist.summaryOptions) {
+          if (name === 'percentile') {
+            for (var percent of option) {
+              this.statisticsNames_.add('pct_' + tr.v.percentToString(percent));
+            }
+          } else if (option) {
+            this.statisticsNames_.add(name);
+          }
+        }
+
+        var iteration = tr.v.d.IterationInfo.getFromValue(hist);
+        if (iteration === undefined) continue;
+
+        for (var name of CSV_ITERATION_INFO_NAMES) {
+          if (iteration[name]) {
+            this.iterationInfoNames_.add(name);
+          }
+        }
+        if (iteration.storyGroupingKeys) {
+          for (var key in iteration.storyGroupingKeys) {
+            this.storyGroupingKeys_.add(key);
+          }
+        }
+      }
+    }
+
+    buildHeader_() {
+      var header = ['name', 'unit'];
+      for (var name of this.statisticsNames_) {
+        header.push(name);
+      }
+      for (var name of this.iterationInfoNames_) {
+        header.push(name);
+      }
+      for (var key of this.storyGroupingKeys_) {
+        header.push(key);
+      }
+      this.table_.push(header);
+    }
+
+    toString() {
+      var str = '';
+      for (var row of this.table_) {
+        for (var i = 0; i < row.length; ++i) {
+          if (i > 0) {
+            str += ',';
+          }
+          var cell = '' + row[i];
+          if (cell.indexOf(',') >= 0 || cell.indexOf('"') >= 0) {
+            cell = '"' + cell.replace(/"/g, '""') + '"';
+          }
+          str += cell;
+        }
+        str += '\n';
+      }
+      return str;
+    }
+  }
+
+  return {
+    CSVBuilder,
+  };
+});
+</script>

@@ -494,6 +494,7 @@
       'tracing/ui/tracks/track.html',
       'tracing/ui/tracks/x_axis_track.html',
       'tracing/ui/view_specific_brushing_state.html',
+      'tracing/value/csv_builder.html',
       'tracing/value/diagnostics/breakdown.html',
       'tracing/value/diagnostics/diagnostic.html',
       'tracing/value/diagnostics/diagnostic_map.html',

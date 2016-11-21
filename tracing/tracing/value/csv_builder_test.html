@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/csv_builder.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('csvBuilder', function() {
+    var hist0 = new tr.v.Histogram('hist0', tr.b.Unit.byName.sizeInBytes,
+        tr.v.HistogramBinBoundaries.createLinear(0, 1e3, 10));
+    hist0.customizeSummaryOptions({
+      nans: true,
+      percentile: [0.1, 0.9],
+    });
+    new tr.v.d.IterationInfo({
+      storyGroupingKeys: {
+        storyGroupingKey0: 'sgk0',
+        storyGroupingKey1: 'sgk1',
+      },
+      benchmarkName: 'benchmark A',
+      storyDisplayName: 'story A',
+      benchmarkStartMs: 0,
+      storysetRepeatCounter: 0,
+      storyRepeatCounter: 0,
+      label: 'label A',
+    }).addToValue(hist0);
+    for (var i = 0; i <= 1e3; i += 10) {
+      hist0.addSample(i);
+    }
+    hist0.addSample(NaN);
+
+    var hist1 = new tr.v.Histogram('hist1', tr.b.Unit.byName.sigma);
+    hist0.customizeSummaryOptions({
+      std: false,
+      count: false,
+      sum: false,
+      min: false,
+      max: false,
+    });
+
+    var histograms = new tr.v.HistogramSet([hist0, hist1]);
+    var csv = new tr.v.CSVBuilder(histograms);
+    csv.build();
+    assert.strictEqual(csv.toString(), [
+      'name,unit,avg,nans,pct_010,pct_090,std,count,sum,min,' +
+        'max,benchmarkName,label,storyDisplayName,storyGroupingKey0,' +
+        'storyGroupingKey1',
+      'hist0,B,500,1,150,950,,,,,,benchmark A,label A,story A,sgk0,sgk1',
+      'hist1,σ,,,,,,0,0,Infinity,-Infinity,,,,,',
+      '',
+    ].join('\n'));
+  });
+});
+</script>

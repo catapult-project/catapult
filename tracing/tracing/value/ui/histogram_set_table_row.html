@@ -141,6 +141,18 @@ tr.exportTo('tr.v.ui', function() {
       return this.overviewDataRange_;
     }
 
+    getLeafHistograms(histograms) {
+      if (this.subRows.length === 0) {
+        for (var [displayLabel, hist] of this.columns) {
+          histograms.addHistogram(hist);
+        }
+        return;
+      }
+      for (var subRow of this.subRows) {
+        subRow.getLeafHistograms(histograms);
+      }
+    }
+
     compareNames(other) {
       return this.name.localeCompare(other.name);
     }
