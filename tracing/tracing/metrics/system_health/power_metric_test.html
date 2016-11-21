@@ -300,6 +300,10 @@ tr.b.unittest.testSuite(function() {
         'scroll_response:energy'), 300, 0.6);
     assert.closeTo(getMetricValueAvg(valueSet,
         'idle:power'), 500, 0.6);
+    assert.equal(getMetricValueCount(valueSet,
+        'scroll_response:energy'), 2);
+    assert.equal(getMetricValueCount(valueSet,
+        'idle:power'), 400);
   });
 
   test('powerMetric_loading_oneInterval_samplesBeyondChrome', function() {
@@ -526,7 +530,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet,
-        'scroll_animation:power'), 350, 0.5);
+        'scroll_animation:power'), 350, 0.6);
   });
 
   test('powerMetric_video_oneStageEachType', function() {
@@ -600,7 +604,7 @@ tr.b.unittest.testSuite(function() {
     tr.metrics.sh.powerMetric(valueSet, model);
 
     assert.closeTo(getMetricValueAvg(valueSet, 'video_animation:power'),
-        350, 0.5);
+        350, 0.6);
   });
 
 

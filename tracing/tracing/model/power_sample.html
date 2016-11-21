@@ -26,8 +26,8 @@ tr.exportTo('tr.model', function() {
     Event.call(this);
 
     this.series_ = series;
-    this.start_ = start;
-    this.powerInW_ = powerInW;
+    this.start_ = parseFloat(start);
+    this.powerInW_ = parseFloat(powerInW);
   }
 
   PowerSample.prototype = {

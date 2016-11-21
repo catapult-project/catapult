@@ -29,9 +29,11 @@ tr.exportTo('tr.metrics.sh', function() {
     var durationInMs = end - start;
     var durationInS = tr.b.convertUnit(durationInMs,
         tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+    var samples = model.device.powerSeries.getSamplesWithinRange(start, end);
     var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(start, end);
     var powerInW = energyInJ / durationInS;
-    return {time: durationInS, energy: energyInJ, power: powerInW};
+    return {samples: samples, time: durationInS,
+        energy: energyInJ, power: powerInW};
   }
 
   /**
@@ -111,20 +113,6 @@ tr.exportTo('tr.metrics.sh', function() {
     return hist;
   }
 
-  /**
-   * Stores the power data in data into the given histograms for time, energy,
-   * and power. If a histogram is undefined then the corresponding type of
-   * data is not stored.
-   *
-   * @param {!Object} data - Power data (obtained from getPowerData_)
-   * @param {tr.v.Histogram} energyHist - Histogram to store energy data.
-   * @param {tr.v.Histogram} powerHist - Histogram to store power data.
-   */
-  function storePowerData_(data, energyHist, powerHist) {
-    if (energyHist !== undefined) energyHist.addSample(data.energy);
-    if (powerHist !== undefined) powerHist.addSample(data.power);
-  }
-
   function createHistograms_(model, values) {
     var hists = {};
 
@@ -190,30 +178,22 @@ tr.exportTo('tr.metrics.sh', function() {
    * on the start and end time of the RAIL stages.
    */
   function computeRailStageMetrics_(model, hists, chromeBounds) {
-    var railStageResults = new Map();
-    for (var name of hists.railStageToEnergyHist.keys()) {
-      railStageResults.set(name, {totalTime: 0.0, totalEnergy: 0.0});
-    }
-
     for (var exp of model.userModel.expectations) {
       var currTitle = exp.title.toLowerCase().replace(' ', '_');
       var interval = tr.b.Range.fromExplicitRange(exp.start, exp.end)
           .findIntersection(chromeBounds);
       if (!interval.isEmpty) {
         var data = getPowerData_(model, interval.min, interval.max);
-        railStageResults.get(currTitle).totalTime += data.time;
-        railStageResults.get(currTitle).totalEnergy += data.energy;
-      }
-    }
-
-    for (var name of hists.railStageToEnergyHist.keys()) {
-      var totalTime = railStageResults.get(name).totalTime;
-      var totalEnergy = railStageResults.get(name).totalEnergy;
-      if (totalTime > 0.0) {
-        storePowerData_({'time': totalTime, 'energy': totalEnergy,
-            'power': totalEnergy / totalTime},
-            hists.railStageToEnergyHist.get(name),
-            hists.railStageToPowerHist.get(name));
+        var energyHist = hists.railStageToEnergyHist.get(currTitle);
+        var powerHist = hists.railStageToPowerHist.get(currTitle);
+        if (powerHist !== undefined) {
+          for (var sample of data.samples) {
+            powerHist.addSample(sample.powerInW);
+          }
+        }
+        if (energyHist !== undefined) {
+          energyHist.addSample(data.energy);
+        }
       }
     }
   }
@@ -226,18 +206,18 @@ tr.exportTo('tr.metrics.sh', function() {
   function computeLoadingMetric_(model, hists, chromeBounds) {
     var ttiIntervals = getNavigationTTIIntervals_(model);
     var lastLoadTime = undefined;
-    var totalLoadEnergy = 0.0;
     for (var ttiInterval of ttiIntervals) {
       var interval = ttiInterval.findIntersection(chromeBounds);
       var loadData = getPowerData_(model, interval.min, interval.max);
-      totalLoadEnergy += loadData.energy;
       lastLoadTime = (lastLoadTime === undefined ? interval.max :
           Math.max(lastLoadTime, interval.max));
+      hists.loadEnergyHist.addSample(loadData.energy);
     }
-    hists.loadEnergyHist.addSample(totalLoadEnergy);
     if (lastLoadTime !== undefined) {
       var afterLoadData = getPowerData_(model, lastLoadTime, chromeBounds.max);
-      storePowerData_(afterLoadData, undefined, hists.afterLoadPowerHist);
+      for (var sample of afterLoadData.samples) {
+        hists.afterLoadPowerHist.addSample(sample.powerInW);
+      }
     }
   }
 
