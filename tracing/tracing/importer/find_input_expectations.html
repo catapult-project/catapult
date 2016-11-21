@@ -743,10 +743,13 @@ tr.exportTo('tr.importer', function() {
   function handleVideoAnimations(modelHelper, sortedInputEvents) {
     var events = [];
     for (var pid in modelHelper.rendererHelpers) {
-      for (var asyncSlice of
-          modelHelper.rendererHelpers[pid].mainThread.asyncSliceGroup.slices) {
-        if (asyncSlice.title === PLAYBACK_EVENT_TITLE)
-          events.push(asyncSlice);
+      for (var tid in modelHelper.rendererHelpers[pid].process.threads) {
+        for (var asyncSlice of
+            modelHelper.rendererHelpers[pid].process.threads[tid]
+            .asyncSliceGroup.slices) {
+          if (asyncSlice.title === PLAYBACK_EVENT_TITLE)
+            events.push(asyncSlice);
+        }
       }
     }
 
