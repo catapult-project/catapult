@@ -25,6 +25,9 @@ triaging functionality in the chart.
 <link rel="import" href="/dashboard/static/testselection.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
+<link rel="import" href="/tracing/base/sinebow_color_generator.html">
+<link rel="import" href="/tracing/base/utils.html">
+
 <dom-module name="chart-container">
 
   <template>
@@ -204,6 +207,9 @@ triaging functionality in the chart.
 
       // Regex for links in series annotation which are shown in tooltip.
       var TOOLTIP_LINK_REGEX = /\[(.+?)\]\((.+?)\)/g;
+
+      // Sinebow generator for graph color picking.
+      var GENERATOR = new tr.b.SinebowColorGenerator();
 
       /**
        * Gets the mean for list of numbers.
@@ -578,7 +584,7 @@ triaging functionality in the chart.
           this.resizeHandler = this.onResize.bind(this);
 
           // The data fetched from the graph_json handler for this chart.
-          this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
+          this.json = tr.b.deepCopy(this.DEFAULT_JSON_PROPERTIES);
 
           this.chartOptions.xaxis.tickFormatter = this.formatXAxis.bind(this);
           this.chartOptions.yaxis.tickFormatter = this.formatYAxis.bind(this);
@@ -867,7 +873,7 @@ triaging functionality in the chart.
               this.nextSeriesIndex++;
             }
 
-            var color = graph.stringToColor(testPath);
+            var color = GENERATOR.colorForKey(testPath).toString();
             newJson.data[index].color = color;
             this.updateJsonDataIndex(newJson.data[index], nextIndex);
             this.json.data[nextIndex] = newJson.data[index];
@@ -1191,7 +1197,7 @@ triaging functionality in the chart.
          *     'end_rev'.
          */
         onRevisionRange: function(event, detail) {
-          var newGraphParams = deepCopy(this.graphParams);
+          var newGraphParams = tr.b.deepCopy(this.graphParams);
           newGraphParams['rev'] = null;
           newGraphParams['num_points'] = null;
           newGraphParams['start_rev'] = detail.start_rev;
@@ -1432,7 +1438,7 @@ triaging functionality in the chart.
           for (var i = 0; i < this.indicesToGraph.length; i++) {
             var index = this.indicesToGraph[i];
             if (index >= 0 && this.json.data[index]) {
-              data.push(deepCopy(this.json.data[index]));
+              data.push(tr.b.deepCopy(this.json.data[index]));
             } else {
               console.debug('getDataForFlot: indicesToGraph: ',
                             this.indicesToGraph);
@@ -1444,8 +1450,8 @@ triaging functionality in the chart.
           for (var i = 0; i < this.indicesToGraph.length; i++) {
             var index = this.indicesToGraph[i];
             if (index >= 0 && this.json['error_bars'][index]) {
-              data.push(deepCopy(this.json['error_bars'][index][0]));
-              data.push(deepCopy(this.json['error_bars'][index][1]));
+              data.push(tr.b.deepCopy(this.json['error_bars'][index][0]));
+              data.push(tr.b.deepCopy(this.json['error_bars'][index][1]));
             } else {
               console.debug('getDataForFlot: indicesToGraph: ',
                             this.indicesToGraph);
@@ -1675,7 +1681,7 @@ triaging functionality in the chart.
           var titleParts = event.detail.titleParts;
           var partIndex = event.detail.partIndex;
           var testPath = titleParts.slice(0, partIndex + 1).join('/');
-          this.json = deepCopy(this.DEFAULT_JSON_PROPERTIES);
+          this.json = tr.b.deepCopy(this.DEFAULT_JSON_PROPERTIES);
           this.set('seriesGroupList', []);
           this.set('indicesToGraph', []);
           this.addSeriesGroup([[testPath, []]], true);
