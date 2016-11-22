@@ -128,10 +128,11 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     results = self.RunMeasurement(tbm, ps, self._options)
 
     self.assertEquals(0, len(results.failures))
-    self.assertEquals(1, len(results.value_set))
-    diagnostics = results.value_set[0]['diagnostics']
+    self.assertEquals(2, len(results.value_set))
+    diagnostics = results.value_set[1]['diagnostics']
     self.assertEquals(1, len(diagnostics))
-    iter_info = diagnostics['iteration']
+    iter_info = results.value_set[0]
+    self.assertEquals(iter_info['guid'], diagnostics['iteration'])
     self.assertEqual('IterationInfo', iter_info['type'])
     self.assertEqual('', iter_info['benchmarkName'])
     self.assertEqual('interaction_enabled_page.html',

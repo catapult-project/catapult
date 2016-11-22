@@ -80,7 +80,7 @@ tr.exportTo('tr.v.d', function() {
           continue;
 
         var guid = value.guid;
-        value = valueSet.lookup(guid);
+        value = valueSet.lookupHistogram(guid);
         if (value instanceof tr.v.Histogram)
           this.valuesByName_.set(name, value);
         else if (opt_required)
@@ -108,7 +108,7 @@ tr.exportTo('tr.v.d', function() {
   });
 
   return {
-    RelatedValueMap: RelatedValueMap
+    RelatedValueMap,
   };
 });
 </script>

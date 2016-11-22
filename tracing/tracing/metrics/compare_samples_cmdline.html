@@ -233,9 +233,9 @@ var SampleComparison = {
     var dictsA = parseFiles(aPaths);
     var dictsB = parseFiles(bPaths);
     for (var d of dictsA)
-      valueSetA.addValuesFromDicts(d);
+      valueSetA.importDicts(d);
     for (var d of dictsB)
-      valueSetB.addValuesFromDicts(d);
+      valueSetB.importDicts(d);
 
     var sampleA = rawValuesByMetricName(valueSetA, metric);
     var sampleB = rawValuesByMetricName(valueSetB, metric);

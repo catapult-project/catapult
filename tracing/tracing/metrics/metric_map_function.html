@@ -56,11 +56,7 @@ tr.exportTo('tr.metrics', function() {
       if (metadata.value['os-version'])
         iterationInfo.addInfo(metadata.value);
     }
-    // Values can be separated from their HistogramSet and mixed into ValueSets
-    // with Values from other iterations, so add IterationInfo to each Value.
-    for (var hist of values) {
-      iterationInfo.addToValue(hist);
-    }
+    values.addSharedDiagnostic('iteration', iterationInfo);
   }
 
   /**
@@ -73,7 +69,7 @@ tr.exportTo('tr.metrics', function() {
     var values = runMetrics(model, options);
     addIterationInfo(values, model);
 
-    result.addPair('histograms', [...values].map(h => h.asDict()));
+    result.addPair('histograms', values.asDicts());
 
     var scalarDicts = [];
     for (var value of values) {

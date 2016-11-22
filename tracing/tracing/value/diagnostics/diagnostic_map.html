@@ -12,6 +12,7 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/value/diagnostics/breakdown.html">
+<link rel="import" href="/tracing/value/diagnostics/diagnostic_ref.html">
 <link rel="import" href="/tracing/value/diagnostics/generic.html">
 <link rel="import" href="/tracing/value/diagnostics/iteration_info.html">
 <link rel="import" href="/tracing/value/diagnostics/related_event_set.html">
@@ -32,11 +33,14 @@ tr.exportTo('tr.v.d', function() {
      * @param {!tr.v.d.Diagnostic} diagnostic
      */
     set(name, diagnostic) {
-      if (typeof(name) !== 'string')
+      if (typeof(name) !== 'string') {
         throw new Error('name must be string, not ' + name);
+      }
 
-      if (!(diagnostic instanceof tr.v.d.Diagnostic))
+      if (!(diagnostic instanceof tr.v.d.Diagnostic) &&
+          !(diagnostic instanceof tr.v.d.DiagnosticRef)) {
         throw new Error('Must be instanceof Diagnostic: ' + diagnostic);
+      }
 
       Map.prototype.set.call(this, name, diagnostic);
     }
@@ -47,15 +51,34 @@ tr.exportTo('tr.v.d', function() {
      * @param {Object} dict
      */
     addDicts(dict) {
-      tr.b.iterItems(dict, function(name, diagnosticDict) {
-        this.set(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
-      }, this);
+      tr.b.iterItems(dict, (name, diagnosticDict) => {
+        if (typeof diagnosticDict === 'string') {
+          this.set(name, new tr.v.d.DiagnosticRef(diagnosticDict));
+        } else {
+          this.set(name, tr.v.d.Diagnostic.fromDict(diagnosticDict));
+        }
+      });
+    }
+
+    resolveSharedDiagnostics(histograms, opt_required) {
+      for (var [name, diagnostic] of this) {
+        if (!(diagnostic instanceof tr.v.d.DiagnosticRef)) {
+          continue;
+        }
+
+        diagnostic = histograms.lookupDiagnostic(diagnostic.guid);
+        if (diagnostic instanceof tr.v.d.Diagnostic) {
+          this.set(name, diagnostic);
+        } else if (opt_required) {
+          throw new Error('Unable to find shared Diagnostic ' + guid);
+        }
+      }
     }
 
     asDict() {
       var dict = {};
       for (var [name, diagnostic] of this) {
-        dict[name] = diagnostic.asDict();
+        dict[name] = diagnostic.asDictOrReference();
       }
       return dict;
     }
@@ -76,7 +99,7 @@ tr.exportTo('tr.v.d', function() {
   }
 
   return {
-    DiagnosticMap: DiagnosticMap
+    DiagnosticMap,
   };
 });
 </script>

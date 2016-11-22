@@ -30,12 +30,13 @@ tr.exportTo('tr.v', function() {
   }
 
   class HistogramSet {
-    constructor(opt_values) {
-      this.values_ = new Map();
+    constructor(opt_histograms) {
+      this.histogramsByGuid_ = new Map();
+      this.sharedDiagnosticsByGuid_ = new Map();
 
-      if (opt_values !== undefined) {
-        for (var value of opt_values) {
-          this.addHistogram(value);
+      if (opt_histograms !== undefined) {
+        for (var hist of opt_histograms) {
+          this.addHistogram(hist);
         }
       }
     }
@@ -45,7 +46,7 @@ tr.exportTo('tr.v', function() {
      * @param {(!Object|!tr.v.d.DiagnosticMap)=} opt_diagnostics
      */
     addHistogram(hist, opt_diagnostics) {
-      if (this.values_.has(hist.guid)) {
+      if (this.histogramsByGuid_.has(hist.guid)) {
         throw new Error('Cannot add same Histogram twice');
       }
 
@@ -60,16 +61,32 @@ tr.exportTo('tr.v', function() {
         }
       }
 
-      this.values_.set(hist.guid, hist);
+      this.histogramsByGuid_.set(hist.guid, hist);
+    }
+
+    /**
+     * Add a Diagnostic to all Histograms in this HistogramSet in such a way
+     * that it will only be serialized once rather than once per Histogram.
+     *
+     * @param {string} name
+     * @param {!tr.v.d.Diagnostic} diagnostic
+     */
+    addSharedDiagnostic(name, diagnostic) {
+      this.sharedDiagnosticsByGuid_.set(diagnostic.guid, diagnostic);
+
+      for (var hist of this) {
+        hist.diagnostics.set(name, diagnostic);
+      }
     }
 
     get length() {
-      return this.values_.size;
+      return this.histogramsByGuid_.size;
     }
 
     * [Symbol.iterator]() {
-      for (var [guid, value] of this.values_)
-        yield value;
+      for (var hist of this.histogramsByGuid_.values()) {
+        yield hist;
+      }
     }
 
     /**
@@ -88,22 +105,34 @@ tr.exportTo('tr.v', function() {
      * @param {string} guid
      * @return {!tr.v.Histogram|undefined}
      */
-    lookup(guid) {
-      return this.values_.get(guid);
+    lookupHistogram(guid) {
+      return this.histogramsByGuid_.get(guid);
+    }
+
+    /**
+     * Lookup a Diagnostic by its guid.
+     *
+     * @param {string} guid
+     * @return {!tr.v.d.Diagnostic|undefined}
+     */
+    lookupDiagnostic(guid) {
+      return this.sharedDiagnosticsByGuid_.get(guid);
     }
 
     resolveRelatedHistograms() {
-      var valueSet = this;
+      var histogramSet = this;
       function handleDiagnosticMap(dm) {
         for (var [name, diagnostic] of dm) {
           if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
               (diagnostic instanceof tr.v.d.RelatedValueMap)) {
-            diagnostic.resolve(valueSet);
+            diagnostic.resolve(histogramSet);
           }
         }
       }
 
       for (var hist of this) {
+        hist.diagnostics.resolveSharedDiagnostics(this);
+
         handleDiagnosticMap(hist.diagnostics);
 
         for (var dm of hist.nanDiagnosticMaps) {
@@ -119,26 +148,48 @@ tr.exportTo('tr.v', function() {
     }
 
     /**
-     * Convert Histograms from dicts and add them.
+     * Convert dicts to either Histograms or shared Diagnostics.
      * Does not resolve RelatedValueSet/RelatedValueMap diagnostics. See
      * resolveRelatedHistograms().
      *
-     * @param {Array.<Object>} dicts
+     * @param {!Object} dicts
      */
-    addValuesFromDicts(dicts) {
+    importDicts(dicts) {
       for (var dict of dicts) {
-        this.addHistogram(tr.v.Histogram.fromDict(dict));
+        if (dict.type && tr.v.d.Diagnostic.findTypeInfoWithName(dict.type)) {
+          this.sharedDiagnosticsByGuid_.set(dict.guid,
+              tr.v.d.Diagnostic.fromDict(dict));
+        } else {
+          this.addHistogram(tr.v.Histogram.fromDict(dict));
+        }
       }
     }
 
     /**
-     * Find the Values that are not contained in any other Values'
+     * Serialize all of the Histograms and shared Diagnostics to an Array of
+     * dictionaries.
+     *
+     * @return {!Array.<!Object>}
+     */
+    asDicts() {
+      var dicts = [];
+      for (var diagnostic of this.sharedDiagnosticsByGuid_.values()) {
+        dicts.push(diagnostic.asDict());
+      }
+      for (var hist of this) {
+        dicts.push(hist.asDict());
+      }
+      return dicts;
+    }
+
+    /**
+     * Find the Histograms that are not contained in any other Histograms'
      * RelatedValueSet or RelatedValueMap diagnostics.
      *
      * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceValues() {
-      var sourceValues = new Map(this.values_);
+      var sourceValues = new Map(this.histogramsByGuid_);
       // If a Histogram is in a RelatedValueSet or RelatedValueMap, which can be
       // owned either by Values or by numeric samples, then it is not a
       // source Histogram.

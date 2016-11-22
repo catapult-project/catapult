@@ -498,6 +498,7 @@
       'tracing/value/diagnostics/breakdown.html',
       'tracing/value/diagnostics/diagnostic.html',
       'tracing/value/diagnostics/diagnostic_map.html',
+      'tracing/value/diagnostics/diagnostic_ref.html',
       'tracing/value/diagnostics/event_ref.html',
       'tracing/value/diagnostics/generic.html',
       'tracing/value/diagnostics/histogram_ref.html',
