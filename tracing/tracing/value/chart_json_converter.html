@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v', function() {
+  class ChartJsonConverter {
+    /**
+    * Parses Values from |charts|, converts them to Histograms, and adds those
+    * to |histograms|.
+    *
+    * @param {!Array.<!Object>} charts
+    * @param {!tr.v.HistogramSet} histograms
+    */
+    static convertChartJson(charts, histograms) {
+      tr.b.iterItems(charts.charts, (name, pageValues) => {
+        if (name === 'trace') return;
+
+        tr.b.iterItems(pageValues, (storyName, value) => {
+          if (storyName === 'summary') return;
+
+          var unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
+          var unitName = unitInfo.name || 'unitlessNumber';
+          var unitNameSuffix = tr.b.Unit.nameSuffixForImprovementDirection(
+            ChartJsonConverter.convertImprovementDirection(
+              value.improvement_direction));
+          var conversionFactor = unitInfo.conversionFactor || 1;
+
+          var hist = new tr.v.Histogram(
+              value.name,
+              tr.b.Unit.byName[unitName + unitNameSuffix],
+              tr.v.HistogramBinBoundaries.SINGULAR);
+          hist.description = value.description || '';
+          histograms.addHistogram(hist);
+
+          var iterationInfo = new tr.v.d.IterationInfo();
+          iterationInfo.addInfo({
+            storyDisplayName: storyName,
+            legacyTIRLabel: value.tir_label,
+            benchmarkName: charts.benchmark_name,
+          });
+          iterationInfo.addToValue(hist);
+
+          if (value.type === 'list_of_scalar_values') {
+            for (var sample of value.values) {
+              hist.addSample(sample * conversionFactor);
+            }
+          } else if (value.type === 'scalar') {
+            hist.addSample(value.value * conversionFactor);
+          }
+        });
+      });
+    }
+
+    static convertImprovementDirection(improvementDirection) {
+      switch (improvementDirection) {
+        case 'down': return tr.b.ImprovementDirection.SMALLER_IS_BETTER;
+        case 'up': return tr.b.ImprovementDirection.BIGGER_IS_BETTER;
+        default: return tr.b.ImprovementDirection.DONT_CARE;
+      }
+    }
+  }
+
+  return {
+    ChartJsonConverter,
+  };
+});
+</script>

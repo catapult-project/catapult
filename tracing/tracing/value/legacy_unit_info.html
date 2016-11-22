@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/base/base.html">
+
+<script>
+'use strict';
+tr.exportTo('tr.v', function() {
+  var LEGACY_UNIT_INFO = new Map();
+  LEGACY_UNIT_INFO.set('%', {name: 'normalizedPercentage'});
+  LEGACY_UNIT_INFO.set('', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('Celsius', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('Hz', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('KB', {name: 'sizeInBytes', conversionFactor: 1024});
+  LEGACY_UNIT_INFO.set('MB', {
+    name: 'sizeInBytes',
+    conversionFactor: 1024 * 1024,
+  });
+  LEGACY_UNIT_INFO.set('ObjectsAt30FPS', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('available_kB', {
+    name: 'sizeInBytes',
+    conversionFactor: 1024,
+  });
+  LEGACY_UNIT_INFO.set('bit/s', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('bytes', {name: 'sizeInBytes'});
+  LEGACY_UNIT_INFO.set('chars/s', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('commit_count', {name: 'count'});
+  LEGACY_UNIT_INFO.set('count', {name: 'count'});
+  LEGACY_UNIT_INFO.set('coverage%', {name: 'normalizedPercentage'});
+  LEGACY_UNIT_INFO.set('dB', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('files', {name: 'count'});
+  LEGACY_UNIT_INFO.set('fps', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('frame_count', {name: 'count'});
+  LEGACY_UNIT_INFO.set('frame_time', {name: 'timeDurationInMs'});
+  LEGACY_UNIT_INFO.set('frames', {name: 'count'});
+  LEGACY_UNIT_INFO.set('frames-per-second', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('garbage_collections', {name: 'count'});
+  LEGACY_UNIT_INFO.set('idle%', {name: 'normalizedPercentage'});
+  LEGACY_UNIT_INFO.set('janks', {name: 'count'});
+  LEGACY_UNIT_INFO.set('kb', {name: 'sizeInBytes', conversionFactor: 1024});
+  LEGACY_UNIT_INFO.set('lines', {name: 'count'});
+  LEGACY_UNIT_INFO.set('mWh', {name: 'energyInJoules', conversionFactor: 3.6});
+  LEGACY_UNIT_INFO.set('milliseconds', {name: 'timeDurationInMs'});
+  LEGACY_UNIT_INFO.set('milliseconds-per-frame', {name: 'timeDurationInMs'});
+  LEGACY_UNIT_INFO.set('minutes', {
+    name: 'timeDurationInMs',
+    conversionFactor: 60e3,
+  });
+  LEGACY_UNIT_INFO.set('mips', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('mpixels_sec', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('ms', {name: 'timeDurationInMs'});
+  LEGACY_UNIT_INFO.set('mtri_sec', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('mvtx_sec', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('objects (bigger is better)', {name: 'count'});
+  LEGACY_UNIT_INFO.set('packets', {name: 'count'});
+  LEGACY_UNIT_INFO.set('percent', {name: 'normalizedPercentage'});
+  LEGACY_UNIT_INFO.set('points', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('ports', {name: 'count'});
+  LEGACY_UNIT_INFO.set('reduction%', {name: 'normalizedPercentage'});
+  LEGACY_UNIT_INFO.set('relocs', {name: 'count'});
+  LEGACY_UNIT_INFO.set('runs/s', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('runs_per_s', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('runs_per_second', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('score (bigger is better)', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('score', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('score_(bigger_is_better)', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('seconds', {
+    name: 'timeDurationInMs',
+    conversionFactor: 1e3,
+  });
+  LEGACY_UNIT_INFO.set('tokens/s', {name: 'unitlessNumber'});
+  LEGACY_UNIT_INFO.set('us', {
+    name: 'timeDurationInMs',
+    conversionFactor: 1e-3,
+  });
+
+  return {
+    LEGACY_UNIT_INFO,
+  };
+});
+</script>

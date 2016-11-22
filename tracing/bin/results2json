@@ -26,7 +26,8 @@ def main():
                       help='Show this help message and exit.')
   args = parser.parse_args()
 
-  histograms = results_renderer.ReadExistingResults(open(args.html_path, 'r'))
+  histograms = results_renderer.ReadExistingResults(
+      open(args.html_path, 'r').read())
   if os.path.exists(args.json_path):
     histograms.extend(json.load(open(args.json_path, 'r')))
   json.dump(histograms, open(args.json_path, 'w'))

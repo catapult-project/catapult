@@ -19,6 +19,7 @@ tr.exportTo('tr.v.d', function() {
       this.benchmarkName_ = '';
       this.benchmarkStart_ = undefined;
       this.label_ = '';
+      this.legacyTIRLabel_ = '';
       this.osVersion_ = '';
       this.productVersion_ = '';
       this.storyDisplayName_ = '';
@@ -60,6 +61,9 @@ tr.exportTo('tr.v.d', function() {
         this.storyUrl_ = info.storyUrl;
       if (info.storysetRepeatCounter !== undefined)
         this.storysetRepeatCounter_ = info.storysetRepeatCounter;
+      if (info.legacyTIRLabel) {
+        this.legacyTIRLabel_ = info.legacyTIRLabel;
+      }
 
       // From platform tracing metadata
       if (info['os-version'])
@@ -120,6 +124,14 @@ tr.exportTo('tr.v.d', function() {
 
     get label() {
       return this.label_;
+    }
+
+    get legacyTIRLabel() {
+      return this.legacyTIRLabel_;
+    }
+
+    set legacyTIRLabel(tir) {
+      this.legacyTIRLabel_ = tir;
     }
 
     get storyGroupingKeys() {

@@ -105,7 +105,6 @@ class HistogramImporter {
 
   removeJsonDivs_() {
     document.body.removeChild(this.jsonDivs_[0].parentNode);
-    delete this.jsonDivs_;
   }
 }
 
@@ -113,6 +112,9 @@ var importer = new HistogramImporter();
 
 document.addEventListener('DOMContentLoaded', () => {
   importer.importHistograms();
+
+  // Free the objects and DOM referenced by the importer.
+  importer = undefined;
 });
 
 })();

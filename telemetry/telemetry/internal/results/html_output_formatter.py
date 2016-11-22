@@ -158,7 +158,8 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
   def Format(self, page_test_results):
     if page_test_results.value_set:
       html2_formatter = html2_output_formatter.Html2OutputFormatter(
-          self._output_stream, self._reset_results, self._upload_results)
+          self._output_stream, self._metadata, self._reset_results,
+          self._upload_results)
       html2_formatter.Format(page_test_results)
       return
 

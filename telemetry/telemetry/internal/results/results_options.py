@@ -14,7 +14,7 @@ from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
-from telemetry.internal.results import html_output_formatter
+from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
@@ -132,10 +132,9 @@ def CreateResults(benchmark_metadata, options,
           csv_pivot_table_output_formatter.CsvPivotTableOutputFormatter(
               output_stream, trace_tag=options.output_trace_tag))
     elif output_format == 'html':
-      output_formatters.append(html_output_formatter.HtmlOutputFormatter(
+      output_formatters.append(html2_output_formatter.Html2OutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
-          options.upload_results, options.browser_type,
-          options.results_label))
+          options.upload_results))
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
           output_stream, benchmark_metadata))

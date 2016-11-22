@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+Copyright 2016 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+
+<link rel="import" href="/tracing/value/chart_json_converter.html">
+<link rel="import" href="/tracing/value/histogram_set.html">
+
+<script>
+'use strict';
+
+tr.b.unittest.testSuite(function() {
+  test('convertWithoutTIRLabel', function() {
+    var charts = {
+      charts: {
+        mean_frame_time: {
+          'http://games.yahoo.com': {
+            std: 0.0,
+            name: 'mean_frame_time',
+            type: 'list_of_scalar_values',
+            improvement_direction: 'down',
+            important: true,
+            values: [42],
+            units: 'ms',
+            page_id: 16,
+            description: 'Arithmetic mean of frame times.'
+          },
+          'summary': {
+            std: 0.0,
+            name: 'mean_frame_time',
+            improvement_direction: 'down',
+            important: true,
+            values: [
+              16.693,
+              16.646,
+              16.918,
+              16.681
+            ],
+            units: 'ms',
+            type: 'list_of_scalar_values',
+            description: 'Arithmetic mean of frame times.'
+          },
+        }
+      }
+    };
+    var histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    assert.lengthOf(histograms, 1);
+    var hist = [...histograms][0];
+    assert.strictEqual('mean_frame_time', hist.name);
+    assert.strictEqual('',
+        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+    assert.strictEqual(42, hist.average);
+    assert.strictEqual(1, hist.numValues);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
+  });
+
+  test('convertWithTIRLabel', function() {
+    var charts = {
+      charts: {
+        'TIR-A@@value-name': {
+          'story-name': {
+            name: 'value-name',
+            page_id: 7,
+            improvement_direction: 'down',
+            values: [42],
+            units: 'ms',
+            tir_label: 'TIR-A',
+            type: 'list_of_scalar_values',
+          },
+          'summary': {
+            name: 'value-name',
+            improvement_direction: 'down',
+            values: [42],
+            units: 'ms',
+            tir_label: 'TIR-A',
+            type: 'list_of_scalar_values',
+          },
+        },
+      },
+    };
+    var histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    assert.lengthOf(histograms, 1);
+    var hist = [...histograms][0];
+    assert.strictEqual('value-name', hist.name);
+    assert.strictEqual('TIR-A',
+        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+    assert.strictEqual(42, hist.average);
+    assert.strictEqual(1, hist.numValues);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
+  });
+});
+</script>

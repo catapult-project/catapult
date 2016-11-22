@@ -35,7 +35,7 @@ def main():
 
   for html_path in args.html:
     histograms.extend(results_renderer.ReadExistingResults(
-        open(html_path, 'r')))
+        open(html_path, 'r').read()))
 
   for json_path in args.json:
     histograms.extend(json.load(open(json_path, 'r')))

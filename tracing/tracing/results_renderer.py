@@ -14,28 +14,24 @@ from py_vulcanize import generate
 _JSON_TAG = '<histogram-json>%s</histogram-json>'
 
 
-def ExtractJSON(results_html, json_tag=_JSON_TAG):
-  histograms = []
+def ExtractJSON(results_html, json_tag):
+  results = []
   pattern = '(.*?)'.join(re.escape(part) for part in json_tag.split('%s'))
   flags = re.MULTILINE | re.DOTALL
   for match in re.finditer(pattern, results_html, flags):
     try:
-      histograms.append(json.loads(match.group(1)))
+      results.append(json.loads(match.group(1)))
     except ValueError:
       logging.warn('Found existing results json, but failed to parse it.')
       return []
-  return histograms
+  return results
 
 
 def ReadExistingResults(results_html):
-  if not isinstance(results_html, basestring):
-    results_html.seek(0)
-    results_html = results_html.read()
-
   if not results_html:
     return []
 
-  histograms = ExtractJSON(results_html)
+  histograms = ExtractJSON(results_html, _JSON_TAG)
 
   # Fall-back to old formats.
   if not histograms:
@@ -53,9 +49,12 @@ def ReadExistingResults(results_html):
 
 
 def RenderHTMLView(histograms, output_stream, reset_results=False):
-  if not reset_results:
-    histograms += ReadExistingResults(output_stream)
   output_stream.seek(0)
+
+  if not reset_results:
+    results_html = output_stream.read()
+    output_stream.seek(0)
+    histograms += ReadExistingResults(results_html)
 
   vulcanizer = tracing_project.TracingProject().CreateVulcanizer()
   load_sequence = vulcanizer.CalcLoadSequenceForModuleNames(

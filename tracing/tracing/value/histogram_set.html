@@ -269,24 +269,34 @@ tr.exportTo('tr.v', function() {
   HistogramSet.GROUPINGS = {
     HISTOGRAM_NAME: new HistogramGrouping('name', h => h.name),
 
-    BENCHMARK_NAME: new HistogramGrouping('benchmark',
+    BENCHMARK_NAME: new HistogramGrouping(
+        'benchmark',
         h => tr.v.d.IterationInfo.getField(h, 'benchmarkName', '')),
 
-    BENCHMARK_START: new HistogramGrouping('time',
+    BENCHMARK_START: new HistogramGrouping(
+        'time',
         h => tr.v.d.IterationInfo.getField(h, 'benchmarkStartString', '')),
 
-    STORYSET_REPEAT: new HistogramGrouping('storyset repeat',
+    STORYSET_REPEAT: new HistogramGrouping(
+        'storyset repeat',
         h => tr.v.d.IterationInfo.getField(
             h, 'storysetRepeatCounterLabel', 0)),
 
-    STORY_REPEAT: new HistogramGrouping('story repeat',
+    STORY_REPEAT: new HistogramGrouping(
+        'story repeat',
         h => tr.v.d.IterationInfo.getField(
             h, 'storyRepeatCounterLabel', 0)),
 
-    STORY_NAME: new HistogramGrouping('story',
+    STORY_NAME: new HistogramGrouping(
+        'story',
         h => tr.v.d.IterationInfo.getField(h, 'storyDisplayName', '')),
 
-    DISPLAY_LABEL: new HistogramGrouping('label',
+    LEGACY_TIR_LABEL: new HistogramGrouping(
+        'tir',
+        h => tr.v.d.IterationInfo.getField(h, 'legacyTIRLabel', '')),
+
+    DISPLAY_LABEL: new HistogramGrouping(
+        'label',
         h => tr.v.d.IterationInfo.getField(h, 'displayLabel', 'Value'))
   };
 
