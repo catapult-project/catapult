@@ -121,6 +121,9 @@ found in the LICENSE file.
           </template>
           <template is="dom-if" if="{{stoppageAlerts.length}}">
             <h2>Data stoppage alerts</h2>
+            <p>
+              {{stoppageAlerts.length}} alert<span hidden$="{{computeIsSingular(stoppageAlerts)}}">s</span>.
+            </p>
             <alerts-table id="stoppage-alert-table"
                           xsrf-token="{{xsrfToken}}"
                           alert-list="{{stoppageAlerts}}"
