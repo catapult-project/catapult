@@ -107,7 +107,7 @@ class ActionRunnerMeasureMemoryTest(tab_test_case.TabTestCase):
   def testWithFailedDump(self):
     with mock.patch.object(self._tab.browser, 'DumpMemory') as mock_method:
       mock_method.return_value = False  # Dump fails!
-      with self.assertRaises(AssertionError):
+      with self.assertRaises(exceptions.Error):
         self._testWithTracing()
 
 

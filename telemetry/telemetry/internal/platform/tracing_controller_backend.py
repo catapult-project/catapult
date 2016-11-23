@@ -15,6 +15,7 @@ import uuid
 
 from py_trace_event import trace_event
 from telemetry.core import discover
+from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry.internal.platform import tracing_agent
 from telemetry.internal.platform.tracing_agent import chrome_tracing_agent
@@ -28,10 +29,6 @@ def _IterAllTracingAgentClasses():
   return discover.DiscoverClasses(
       tracing_agent_dir, util.GetTelemetryDir(),
       tracing_agent.TracingAgent).itervalues()
-
-
-class TracingControllerStoppedError(Exception):
-  pass
 
 
 class _TracingState(object):
@@ -128,7 +125,7 @@ class TracingControllerBackend(object):
     self._current_state = None
 
     if raised_exception_messages:
-      raise TracingControllerStoppedError(
+      raise exceptions.Error(
           'Exceptions raised when trying to stop tracing:\n' +
           '\n'.join(raised_exception_messages))
 
@@ -151,7 +148,7 @@ class TracingControllerBackend(object):
             ''.join(traceback.format_exception(*sys.exc_info())))
 
     if raised_exception_messages:
-      raise TracingControllerStoppedError(
+      raise exceptions.Error(
           'Exceptions raised when trying to flush tracing:\n' +
           '\n'.join(raised_exception_messages))
 
