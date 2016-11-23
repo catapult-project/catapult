@@ -332,6 +332,54 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results, '_IsJobCompleted',
       mock.MagicMock(return_value=True))
+  def testGet_BisectCulprit_PerfRegression(self, mock_update_bug):
+    # When a bisect has a culprit for a perf regression,
+    # the auto assign header should indicate that clearly.
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_RESULTS_JSON)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY, mock.ANY,
+        cc_list=['author@email.com', 'prasadv@google.com'],
+        merge_issue=None, labels=None, owner='author@email.com')
+    self.assertTrue('PERF REGRESSION' in mock_update_bug.call_args[0][1])
+    self.assertFalse('TEST FAILURE' in mock_update_bug.call_args[0][1])
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsJobCompleted',
+      mock.MagicMock(return_value=True))
+  def testGet_BisectCulprit_TestFailure(self, mock_update_bug):
+    # When a bisect has a culprit for a return code bisect,
+    # the auto assign header should indicate that clearly.
+    return_code_results_json = _SAMPLE_BISECT_RESULTS_JSON.copy()
+    return_code_results_json['test_type'] = 'return_code'
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=return_code_results_json)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY, mock.ANY,
+        cc_list=['author@email.com', 'prasadv@google.com'],
+        merge_issue=None, labels=None, owner='author@email.com')
+    self.assertFalse('PERF REGRESSION' in mock_update_bug.call_args[0][1])
+    self.assertTrue('TEST FAILURE' in mock_update_bug.call_args[0][1])
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_FailedRevisionResponse(self, mock_add_bug):
     # When a Rietveld CL link fails to respond, only update CL owner in CC
     # list.
