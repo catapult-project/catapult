@@ -345,6 +345,7 @@
       'tracing/ui/base/chart_base.html',
       'tracing/ui/base/chart_base_2d.html',
       'tracing/ui/base/chart_base_2d_brushable_x.html',
+      'tracing/ui/base/chart_legend_key.html',
       'tracing/ui/base/color_legend.html',
       'tracing/ui/base/column_chart.html',
       'tracing/ui/base/constants.html',
