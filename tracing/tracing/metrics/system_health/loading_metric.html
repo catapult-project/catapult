@@ -423,10 +423,10 @@ tr.exportTo('tr.metrics.sh', function() {
   tr.metrics.MetricRegistry.register(loadingMetric);
 
   return {
-    loadingMetric: loadingMetric,
-    collectLoadingMetricsForRenderer: collectLoadingMetricsForRenderer,
-    RESPONSIVENESS_THRESHOLD_MS: RESPONSIVENESS_THRESHOLD_MS,
-    INTERACTIVE_WINDOW_SIZE_MS: INTERACTIVE_WINDOW_SIZE_MS
+    loadingMetric,
+    collectLoadingMetricsForRenderer,
+    RESPONSIVENESS_THRESHOLD_MS,
+    INTERACTIVE_WINDOW_SIZE_MS,
   };
 });
 </script>

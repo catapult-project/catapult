@@ -201,14 +201,13 @@ tr.exportTo('tr.b', function() {
   }
 
   return {
-    onAnimationFrameError: onAnimationFrameError,
-    requestPreAnimationFrame: requestPreAnimationFrame,
-    requestAnimationFrame: requestAnimationFrame,
-    requestAnimationFrameInThisFrameIfPossible:
-        requestAnimationFrameInThisFrameIfPossible,
-    requestIdleCallback: requestIdleCallback,
-    forcePendingRAFTasksToRun: forcePendingRAFTasksToRun,
-    forceAllPendingTasksToRunForTest: forceAllPendingTasksToRunForTest
+    onAnimationFrameError,
+    requestPreAnimationFrame,
+    requestAnimationFrame,
+    requestAnimationFrameInThisFrameIfPossible,
+    requestIdleCallback,
+    forcePendingRAFTasksToRun,
+    forceAllPendingTasksToRunForTest,
   };
 });
 </script>

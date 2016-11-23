@@ -195,9 +195,9 @@ tr.exportTo('tr.metrics', function() {
   tr.metrics.MetricRegistry.register(tracingMetric);
 
   return {
-    tracingMetric: tracingMetric,
+    tracingMetric,
     // For testing only:
-    MEMORY_INFRA_TRACING_CATEGORY: MEMORY_INFRA_TRACING_CATEGORY
+    MEMORY_INFRA_TRACING_CATEGORY,
   };
 });
 </script>

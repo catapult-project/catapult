@@ -41,14 +41,16 @@ tr.exportTo('tr.model.source_info', function() {
     }
   };
 
+  var JSSourceState = {
+    COMPILED: 'compiled',
+    OPTIMIZABLE: 'optimizable',
+    OPTIMIZED: 'optimized',
+    UNKNOWN: 'unknown',
+  };
+
   return {
-    JSSourceInfo: JSSourceInfo,
-    JSSourceState: {
-      COMPILED: 'compiled',
-      OPTIMIZABLE: 'optimizable',
-      OPTIMIZED: 'optimized',
-      UNKNOWN: 'unknown'
-    }
+    JSSourceInfo,
+    JSSourceState,
   };
 });
 </script>
