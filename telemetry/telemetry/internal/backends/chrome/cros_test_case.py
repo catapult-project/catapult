@@ -38,8 +38,7 @@ class CrOSTestCase(unittest.TestCase):
       assert os.path.isdir(extension_path)
       self._load_extension = extension_to_load.ExtensionToLoad(
           path=extension_path,
-          browser_type=options.browser_type,
-          is_component=True)
+          browser_type=options.browser_type)
       options.browser_options.extensions_to_load = [self._load_extension]
 
     browser_to_create = browser_finder.FindBrowser(options)
