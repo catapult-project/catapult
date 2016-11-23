@@ -173,6 +173,23 @@ Currently, telemetry discards Histograms and Diagnostics, and only passes their
 statistics scalars to the dashboard. Histograms and their Diagnostics will be
 passed directly to the dashboard early 2017.
 
+Metrics can control which statistics are uploaded to the dashboard by passing a
+dictionary to customizeSummaryOptions() to enable or disable statistics. The
+default options are as follows:
+
+ * `avg` (average/mean): true
+ * `geometricMean`: false
+ * `std` (standard deviation): true
+ * `count` (number of samples): true
+ * `sum`: true
+ * `min`: true
+ * `max`: true
+ * `nans` (number of non-numeric samples): false
+ * `percentile`: []
+   * Unlike the other options which are booleans, percentile is an array of
+     numbers between 0 and 1. In order to upload the median, for example, a
+     metric would call `histogram.customizeSummaryOptions({percentile: [0.5]})`.
+
 
 ## How histogram-set-table Uses Merging and IterationInfo
 
