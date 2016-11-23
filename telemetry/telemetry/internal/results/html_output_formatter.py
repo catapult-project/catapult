@@ -40,11 +40,12 @@ def _ShortDatetimeInEs5CompatibleFormat(dt):
 # TODO(eakuefner): rewrite template to use Telemetry JSON directly
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
   def __init__(self, output_stream, metadata, reset_results, upload_results,
-      browser_type, results_label=None):
+      browser_type, results_label=None, upload_bucket=None):
     super(HtmlOutputFormatter, self).__init__(output_stream)
     self._metadata = metadata
     self._reset_results = reset_results
     self._upload_results = upload_results
+    self._upload_bucket = upload_bucket
     self._build_time = self._GetBuildTime()
     self._combined_results = []
     if results_label:
@@ -159,7 +160,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     if page_test_results.value_set:
       html2_formatter = html2_output_formatter.Html2OutputFormatter(
           self._output_stream, self._metadata, self._reset_results,
-          self._upload_results)
+          self._upload_results, self._upload_bucket)
       html2_formatter.Format(page_test_results)
       return
 
@@ -181,16 +182,15 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     html = html.replace('%plugins%', self._GetPlugins())
     self._SaveResults(html)
 
-    if self._upload_results:
+    if self._upload_results and self._upload_bucket:
       file_path = os.path.abspath(self._output_stream.name)
       file_name = 'html-results/results-%s' % datetime.datetime.now().strftime(
           '%Y-%m-%d_%H-%M-%S')
       try:
-        cloud_storage.Insert(cloud_storage.PUBLIC_BUCKET, file_name, file_path)
-        print
-        print ('View online at '
-               'http://storage.googleapis.com/chromium-telemetry/%s'
-               % file_name)
+        cloud_storage.Insert(self._upload_bucket, file_name, file_path)
+        print 'View online at',
+        print 'http://storage.googleapis.com/{bucket}/{path}'.format(
+            bucket=self._upload_bucket, path=file_name)
       except cloud_storage.PermissionError as e:
         logging.error('Cannot upload profiling files to cloud storage due to '
                       ' permission error: %s' % e.message)

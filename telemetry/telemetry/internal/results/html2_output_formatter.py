@@ -18,10 +18,12 @@ from tracing.value import convert_chart_json
 
 
 class Html2OutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, metadata, reset_results, upload_results):
+  def __init__(self, output_stream, metadata, reset_results, upload_results,
+               upload_bucket=None):
     super(Html2OutputFormatter, self).__init__(output_stream)
     self._metadata = metadata
     self._upload_results = upload_results
+    self._upload_bucket = upload_bucket
     self._reset_results = reset_results
 
   def ConvertChartJson_(self, page_test_results):
@@ -50,14 +52,14 @@ class Html2OutputFormatter(output_formatter.OutputFormatter):
     results_renderer.RenderHTMLView(histograms,
         self._output_stream, self._reset_results)
     file_path = os.path.abspath(self._output_stream.name)
-    if self._upload_results:
+    if self._upload_results and self._upload_bucket:
       remote_path = ('html-results/results-%s' %
                      datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
       try:
-        cloud_storage.Insert(
-            cloud_storage.PUBLIC_BUCKET, remote_path, file_path)
+        cloud_storage.Insert(self._upload_bucket, remote_path, file_path)
         print 'View online at',
-        print 'http://storage.googleapis.com/chromium-telemetry/' + remote_path
+        print 'http://storage.googleapis.com/{bucket}/{path}'.format(
+            bucket=self._upload_bucket, path=remote_path)
       except cloud_storage.PermissionError as e:
         logging.error('Cannot upload profiling files to cloud storage due ' +
                       'to permission error: ' + e.message)
