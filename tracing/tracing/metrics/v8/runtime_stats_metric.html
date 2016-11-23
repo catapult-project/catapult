@@ -57,15 +57,23 @@ tr.exportTo('tr.metrics.v8', function() {
   }
 
   function createDurationHistogram_(name) {
-    return new tr.v.Histogram(name + ':duration',
+    var histogram = new tr.v.Histogram(name + ':duration',
       tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
       DURATION_CUSTOM_BOUNDARIES);
+    histogram.customizeSummaryOptions({
+      std: false, count: false, sum: false, min: false, max: false
+    });
+    return histogram;
   }
 
   function createCountHistogram_(name) {
-    return new tr.v.Histogram(name + ':count',
+    var histogram = new tr.v.Histogram(name + ':count',
       tr.b.Unit.byName.count_smallerIsBetter,
       COUNT_CUSTOM_BOUNDARIES);
+    histogram.customizeSummaryOptions({
+      std: false, count: false, sum: false, min: false, max: false
+    });
+    return histogram;
   }
 
   function convertMicroToMilli_(time) {
