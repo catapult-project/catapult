@@ -525,7 +525,7 @@ found in the LICENSE file.
         // this.setAlertList() but since we're planning on setting the array
         // at the end of this function, we can just modify the contents of the
         // array directly.
-        for (var i = this.alertList.length - 1; i >= 0; i--) {
+        for (var i = 0; i < this.alertList.length; i++) {
           var alert = this.alertList[i];
           if (alert.group) {
             alert.index = i;
@@ -569,7 +569,7 @@ found in the LICENSE file.
         }
 
         var orderedAlertList = [];
-        for (var i = alertOrder.length - 1; i >= 0; i--) {
+        for (var i = 0; i < alertOrder.length; i++) {
           orderedAlertList.push.apply(
               orderedAlertList, groupMap[alertOrder[i]]);
         }
@@ -775,34 +775,6 @@ found in the LICENSE file.
         var order = this.sortDirection == 'down' ? 1 : -1;
         var sortBy = this.sortBy;
 
-        // Map of group id to list of alert objects.
-        var groupMap = {};
-        // List of alerts that should be sorted.  If this is a group view,
-        // only group header alerts are added.
-        var alertsToSort = [];
-        for (var i = 0; i < this.alertList.length; i++) {
-          var alert = this.alertList[i];
-          // Associate the current index with each element, to enable stable
-          // sorting.
-          // TODO(simonhatch): sort() always calls this.set('alertList')
-          // to set the array value directly, which makes calls to
-          // this.setAlertList() unnecessary and slows things down.
-          // https://github.com/catapult-project/catapult/issues/2553
-          alert.index = i;
-
-          // Create list of group header alerts to sort by group.
-          if (alert.group) {
-            if (alert.group in groupMap) {
-              groupMap[alert.group].push(alert);
-            } else {
-              groupMap[alert.group] = [alert];
-              alertsToSort.push(alert);
-            }
-          } else {
-            alertsToSort.push(alert);
-          }
-        }
-
         /**
          * Compares two alert Objects to determine which should come first.
          * @param {Object} alertA The first alert.
@@ -837,6 +809,50 @@ found in the LICENSE file.
 
           return result * order;
         };
+
+        // We have two sorting levels: alerts within groups and top level
+        // alerts. Top level alerts are either group headers (the group member
+        // with the highest sorted value) or alerts without a group.
+        // The groupMap contains these to be sorted
+        // groups (as a map of group id to list of alert obejcts); the
+        // alertsToSort contains the headers and any alerts without a group.
+        // The alertsToSort are the higher level that you see on the dashboard
+        // on page load and the groupMap contains the expanded view.
+        var groupMap = {};
+        var alertsToSort = [];
+        for (var i = 0; i < this.alertList.length; i++) {
+          var alert = this.alertList[i];
+          // Associate the current index with each element, to enable stable
+          // sorting.
+          // TODO(simonhatch): sort() always calls this.set('alertList')
+          // to set the array value directly, which makes calls to
+          // this.setAlertList() unnecessary and slows things down.
+          // https://github.com/catapult-project/catapult/issues/2553
+          alert.index = i;
+
+          if (alert.group) {
+            if (alert.group in groupMap) {
+              groupMap[alert.group].push(alert);
+            } else {
+              groupMap[alert.group] = [alert];
+            }
+          } else {
+            alertsToSort.push(alert);
+          }
+        }
+
+        // The expanded groups are sorted, and the highest ranking of each
+        // is added to the alertsToSort which allows the unexpanded
+        // view to be sorted as well.
+        for (var key in groupMap) {
+          groupMap[key].sort(compareAlerts);
+          alertsToSort.push(groupMap[key][0]);
+          // for (var k in groupMap[key]) {
+          //   // Only get the first alert in a group for alertsToSort.
+          //   break;
+          // }
+        }
+
         alertsToSort.sort(compareAlerts);
 
         var sortedAlertList = [];
