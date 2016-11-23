@@ -77,12 +77,22 @@ class WindowsProcessCollector(ProcessCollector):
   '3644      1724   chrome#1                 8           84497'
   '3644      832    chrome#2                 4           34872'
   """
-  _GET_PROCESSES_SHELL_COMMAND = [
+  _GET_PERF_DATA_SHELL_COMMAND = [
     'wmic',
     'path', # Retrieve a WMI object from the following path.
     'Win32_PerfFormattedData_PerfProc_Process', # Contains process perf data.
     'get',
     'CreatingProcessID,IDProcess,Name,PercentProcessorTime,WorkingSet'
+  ]
+
+  _GET_COMMANDS_SHELL_COMMAND = [
+    'wmic',
+    'Process',
+    'get',
+    'CommandLine,ProcessID',
+    # Formatting the result as a CSV means that if no CommandLine is available,
+    # we can at least tell by the lack of data between commas.
+    '/format:csv'
   ]
 
   _GET_PHYSICAL_MEMORY_BYTES_SHELL_COMMAND = [
@@ -105,6 +115,20 @@ class WindowsProcessCollector(ProcessCollector):
     # of time.
     self._GetProcessesAsStrings()
 
+  def GetProcesses(self):
+    processes = super(WindowsProcessCollector, self).GetProcesses()
+
+    # On Windows, the absolute minimal name of the process is given
+    # (e.g. "python" for Telemetry). In order to make this more useful, we check
+    # if a more descriptive command is available for each PID and use that
+    # command if it is.
+    pid_to_command_dict = self._GetPidToCommandDict()
+    for process in processes:
+      if process['pid'] in pid_to_command_dict:
+        process['name'] = pid_to_command_dict[process['pid']]
+
+    return processes
+
   def _GetPhysicalMemoryBytes(self):
     """Returns the number of bytes of physical memory on the computer."""
     raw_output = subprocess.check_output(
@@ -115,7 +139,7 @@ class WindowsProcessCollector(ProcessCollector):
   def _GetProcessesAsStrings(self):
     # Skip the header and total rows and strip the trailing newline.
     return subprocess.check_output(
-        self._GET_PROCESSES_SHELL_COMMAND).strip().split('\n')[2:]
+        self._GET_PERF_DATA_SHELL_COMMAND).strip().split('\n')[2:]
 
   def _ParseProcessString(self, proc_string):
     assert self._physicalMemoryBytes, 'Must call Init() before using collector'
@@ -147,6 +171,34 @@ class WindowsProcessCollector(ProcessCollector):
       'pCpu': float(token_list[3]),
       'pMem': percent_memory
     }
+
+  def _GetPidToCommandDict(self):
+    """Returns a dictionary from the PID of a process to the full command used
+    to launch that process. If no full command is available for a given process,
+    that process is omitted from the returned dictionary.
+    """
+    # Skip the header row and strip the trailing newline.
+    process_strings = subprocess.check_output(
+        self._GET_COMMANDS_SHELL_COMMAND).strip().split('\n')[1:]
+    command_by_pid = {}
+    for process_string in process_strings:
+      process_string = process_string.strip()
+      command = self._ParseCommandString(process_string)
+
+      # Only return additional information about the command if it's available.
+      if command['command']:
+        command_by_pid[command['pid']] = command['command']
+
+    return command_by_pid
+
+  def _ParseCommandString(self, command_string):
+    groups = re.match(r'^([^,]+),(.*),([0-9]+)$', command_string).groups()
+    return {
+      # Ignore groups[0]: it's the hostname.
+      'pid': int(groups[2]),
+      'command': groups[1]
+    }
+
 
 class LinuxProcessCollector(ProcessCollector):
   """Class for collecting information about processes on Linux.
