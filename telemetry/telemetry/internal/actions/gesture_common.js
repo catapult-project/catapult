@@ -13,19 +13,19 @@
 
   // Returns the bounding rectangle wrt to the top-most document.
   function getBoundingRect(el) {
-    var client_rect = el.getBoundingClientRect();
-    var bound = { left: client_rect.left,
-                  top: client_rect.top,
-                  width: client_rect.width,
-                  height: client_rect.height };
+    var clientRect = el.getBoundingClientRect();
+    var bound = { left: clientRect.left,
+                  top: clientRect.top,
+                  width: clientRect.width,
+                  height: clientRect.height };
 
     var frame = el.ownerDocument.defaultView.frameElement;
     while (frame) {
-      var frame_bound = frame.getBoundingClientRect();
+      var frameBound = frame.getBoundingClientRect();
       // This computation doesn't account for more complex CSS transforms on the
       // frame (e.g. scaling or rotations).
-      bound.left += frame_bound.left;
-      bound.top += frame_bound.top;
+      bound.left += frameBound.left;
+      bound.top += frameBound.top;
 
       frame = frame.ownerDocument.frameElement;
     }
@@ -51,14 +51,23 @@
   }
 
   function getBoundingVisibleRect(el) {
+    // Get the element bounding rect.
     var rect = getBoundingRect(el);
+
+    // Then clip the rect to the screen size.
     if (rect.top < 0) {
       rect.height += rect.top;
       rect.top = 0;
+      if (rect.height < 0) {
+        rect.height = 0;  // The whole of the element is out of screen.
+      }
     }
     if (rect.left < 0) {
       rect.width += rect.left;
       rect.left = 0;
+      if (rect.width < 0) {
+        rect.width = 0;  // The whole of the element is out of screen.
+      }
     }
 
     var windowHeight = getWindowHeight();
@@ -73,7 +82,7 @@
       rect.width -= outsideWidth;
     }
     return rect;
-  };
+  }
 
   window.__GestureCommon_GetBoundingVisibleRect = getBoundingVisibleRect;
   window.__GestureCommon_GetWindowHeight = getWindowHeight;
