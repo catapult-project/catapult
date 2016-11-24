@@ -77,6 +77,8 @@ function valuesFromCharts(listOfCharts, metricName) {
         if (charts.charts[chartName][traceName].type === 'histogram')
           allValues.push(
               geoMeanFromHistogram(charts.charts[chartName][traceName]));
+        if (charts.charts[chartName][traceName].type === 'scalar')
+          allValues.push(charts.charts[chartName][traceName].value);
       }
     }
   }

@@ -131,12 +131,52 @@ class CompareSamplesUnittest(unittest.TestCase):
       charts['charts'][chart_name][trace_name]['grouping_keys'] = grouping_keys
     return self.NewJsonTempfile(charts)
 
-  def testCompareClearRegression(self):
+  def MakeChartJSONScalar(self, metric, seed, mu, sigma, keys=None):
+    """Creates a normally distributed pseudo-random sample. (continuous).
+
+    This function creates a deterministic pseudo-random sample and stores it in
+    chartjson format to facilitate the testing of the sample comparison logic.
+
+    Args:
+      metric (str pair): name of chart, name of the trace.
+      seed (hashable obj): to make the sequences deterministic we seed the RNG.
+      mu (float): desired mean for the sample
+      sigma (float): desired standard deviation for the sample
+    """
+    chart_name, trace_name = metric
+    random.seed(seed)
+    charts = {
+        'charts': {
+            chart_name: {
+                trace_name: {
+                    'type': 'scalar',
+                    'value': random.gauss(mu, sigma)}
+            }
+        }
+    }
+    if keys:
+      grouping_keys = dict(enumerate(keys))
+      charts['charts'][chart_name][trace_name]['grouping_keys'] = grouping_keys
+    return self.NewJsonTempfile(charts)
+
+  def testCompareClearRegressionListOfScalars(self):
     metric = ('some_chart', 'some_trace')
     lower_values = ','.join([self.MakeChart(metric=metric, seed='lower',
                                             mu=10, sigma=1, n=10)])
     higher_values = ','.join([self.MakeChart(metric=metric, seed='higher',
                                              mu=20, sigma=2, n=10)])
+    result = json.loads(compare_samples.CompareSamples(
+        lower_values, higher_values, '/'.join(metric)).stdout)
+    self.assertEqual(result['result']['significance'], REJECT)
+
+  def testCompareClearRegressionScalars(self):
+    metric = ('some_chart', 'some_trace')
+    lower_values = ','.join(
+        [self.MakeChartJSONScalar(
+            metric=metric, seed='lower', mu=10, sigma=1) for _ in range(10)])
+    higher_values = ','.join(
+        [self.MakeChartJSONScalar(
+            metric=metric, seed='higher', mu=20, sigma=2) for _ in range(10)])
     result = json.loads(compare_samples.CompareSamples(
         lower_values, higher_values, '/'.join(metric)).stdout)
     self.assertEqual(result['result']['significance'], REJECT)
