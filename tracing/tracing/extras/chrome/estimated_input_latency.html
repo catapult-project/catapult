@@ -107,10 +107,67 @@ tr.exportTo('tr.e.chrome', function() {
     return taskWindows;
   }
 
+  /**
+   * Returns weighted expected queueing time (EQT) for the given time window and
+   * the given set of weighted tasks. The tasks must not overlap.
+   *
+   * The weighted EQT is computed as
+   * sum(probabilityOf(task) * expectedQueueTimeDueTo(task) * task.weight)
+   * for all tasks in weightedTasks, where
+   * - probabilityOf(task) = probability of input arriving while the given
+   *   task is running.
+   * - expectedQueueingTimeDueTo(task) = expected time until the end of the
+   *   given task for input arriving while the task is running.
+   * - task.weight = arbitrary number between 0.0 and 1.0. This is useful
+   *   for computing contribution of chrome subcomponents (e.g. GC) to
+   *   the expected queueing time for EQT diagnostics.
+   *
+   * We assume that input arrival time is uniformly distributed in the given
+   * time window.
+   *
+   * @param {!tr.b.Range} A time window.
+   * @param {!Array.<!{start: number, end: number, weight: number}>} A list of
+   *        weighted tasks. The weight of a task must be between 0.0 and 1.0.
+   * @returns {number}
+   */
+  function weightedExpectedQueueingTime(window, weightedTasks) {
+    var result = 0;
+    var totalDuration = window.max - window.min;
+    for (var task of weightedTasks) {
+      var startInWindow = Math.max(window.min, task.start);
+      var endInWindow = Math.min(window.max, task.end);
+      var durationInWindow = endInWindow - startInWindow;
+      if (durationInWindow <= 0) continue;
+      var probabilityOfTask = durationInWindow / totalDuration;
+      var minQueueingTime = task.end - endInWindow;
+      var maxQueueingTime = task.end - startInWindow;
+      var expectedQueueingTimeDueToTask =
+          (maxQueueingTime + minQueueingTime) / 2;
+      result += probabilityOfTask * expectedQueueingTimeDueToTask * task.weight;
+    }
+    return result;
+  }
+
+  /**
+   * Returns expected queueing time for the given time window and
+   * the given set of tasks. The tasks must not overlap.
+   *
+   * @param {!tr.b.Range} A time window.
+   * @param {!Array.<!{start: number, end: number}>} A list of tasks.
+   * @returns {number}
+   */
+  function expectedQueueingTime(window, tasks) {
+    return weightedExpectedQueueingTime(window, tasks.map(function(task) {
+      return { start: task.start, end: task.end, weight: 1 };
+    }));
+  }
+
   return {
     getPostInteractiveTaskWindows: getPostInteractiveTaskWindows,
     getNavStartTimestamps: getNavStartTimestamps,
-    getInteractiveTimestamps: getInteractiveTimestamps
+    getInteractiveTimestamps: getInteractiveTimestamps,
+    expectedQueueingTime: expectedQueueingTime,
+    weightedExpectedQueueingTime: weightedExpectedQueueingTime
   };
 });
 </script>
