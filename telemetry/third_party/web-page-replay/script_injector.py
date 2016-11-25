@@ -15,6 +15,7 @@
 
 """Inject javascript into html page source code."""
 
+import datetime
 import logging
 import os
 import re
@@ -28,9 +29,15 @@ HTML_RE = re.compile(r'^.{,256}?(<!--.*-->)?.{,256}?<html.*?>',
 HEAD_RE = re.compile(r'^.{,256}?(<!--.*-->)?.{,256}?<head.*?>',
                      re.IGNORECASE | re.DOTALL)
 
+# Occurences of this marker in injected scripts will be replaced with
+# recording time in javascripts' Date().toValue() format.  This allows
+# to properly set deterministic date in JS code.  See
+# https://github.com/chromium/web-page-replay/issues/71 for details.
+TIME_SEED_MARKER = '{{WPR_TIME_SEED_TIMESTAMP}}'
 
-def GetInjectScript(scripts):
-  """Loads |scripts| from disk and returns a string of their content."""
+
+def GetScriptInjector(scripts):
+  """Loads |scripts| from disk and returns an injector of their content."""
   lines = []
   if scripts:
     if not isinstance(scripts, list):
@@ -44,7 +51,12 @@ def GetInjectScript(scripts):
       else:
         raise Exception('Script does not exist: %s', script)
 
-  return jsmin.jsmin(''.join(lines), quote_chars="'\"`")
+  script_template = jsmin.jsmin(''.join(lines), quote_chars="'\"`")
+  def injector(record_time):
+    js_timestamp = int((record_time - datetime.datetime(1970, 1, 1))
+                       .total_seconds()) * 1000
+    return script_template.replace(TIME_SEED_MARKER, str(js_timestamp))
+  return injector
 
 
 def _IsHtmlContent(content):

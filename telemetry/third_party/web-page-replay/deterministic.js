@@ -1,3 +1,5 @@
+'use strict';
+
 (function () {
   var random_count = 0;
   var random_count_threshold = 25;
@@ -25,7 +27,9 @@
   var date_count = 0;
   var date_count_threshold = 25;
   var orig_date = Date;
-  var time_seed = 1204251968254;
+  // This should be replaced by web page replay by corresponding date
+  // (usually the date when the recording was done)
+  var time_seed = {{WPR_TIME_SEED_TIMESTAMP}};
   Date = function() {
     if (this instanceof Date) {
       date_count++;

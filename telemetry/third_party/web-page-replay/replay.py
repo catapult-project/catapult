@@ -123,12 +123,12 @@ def AddWebProxy(server_manager, options, host, real_dns_lookup, http_archive):
     logging.info('Parsed %s rules:\n%s', options.rules_path, rules)
   else:
     rules = rules_parser.Rules()
-  inject_script = script_injector.GetInjectScript(options.inject_scripts)
+  injector = script_injector.GetScriptInjector(options.inject_scripts)
   custom_handlers = customhandlers.CustomHandlers(options, http_archive)
   custom_handlers.add_server_manager_handler(server_manager)
   archive_fetch = httpclient.ControllableHttpArchiveFetch(
       http_archive, real_dns_lookup,
-      inject_script,
+      injector,
       options.diff_unknown_requests, options.record,
       use_closest_match=options.use_closest_match,
       scramble_images=options.scramble_images)

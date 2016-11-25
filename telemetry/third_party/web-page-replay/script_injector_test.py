@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import httparchive
+import mock
 import script_injector
 import unittest
 
@@ -123,6 +125,23 @@ class ScriptInjectorTest(unittest.TestCase):
         for parameters['comment_after_html'] in COMMENT_OR_NOT:
           template = TEMPLATE_COMMENT.format(**parameters)
           self._assert_successful_injection(template)
+
+  @mock.patch('script_injector.os.path.exists', return_value=True)
+  @mock.patch('script_injector.open',
+              mock.mock_open(read_data='var time_seed = 123;'))
+  def test_injection_function(self, _):
+    injector = script_injector.GetScriptInjector('to_inject.js')
+    self.assertEqual('var time_seed=123;',
+                     injector(datetime.datetime.utcnow()))
+
+  @mock.patch('script_injector.os.path.exists', return_value=True)
+  @mock.patch('script_injector.open',
+              mock.mock_open(
+                  read_data='var time_seed = {{WPR_TIME_SEED_TIMESTAMP}};'))
+  def test_time_seed_replacement(self, _):
+    date = datetime.datetime(2016, 11, 17)
+    injector = script_injector.GetScriptInjector('date.js')
+    self.assertEqual('var time_seed=1479340800000;', injector(date))
 
 
 if __name__ == '__main__':

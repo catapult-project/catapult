@@ -42,6 +42,7 @@ To merge multiple archives
 
 import calendar
 import certutils
+import datetime
 import cPickle
 import difflib
 import email.utils
@@ -733,8 +734,13 @@ class ArchivedHttpResponse(object):
   DELAY_EDIT_SEPARATOR = ('\n[WEB_PAGE_REPLAY_EDIT_ARCHIVE --- '
                           'Delays are above. Response content is below.]\n')
 
+  # This date was used in deterministic.js prior to switching to recorded
+  # request time.  See https://github.com/chromium/web-page-replay/issues/71
+  # for details.
+  DEFAULT_REQUEST_TIME = datetime.datetime(2008, 2, 29)
+
   def __init__(self, version, status, reason, headers, response_data,
-               delays=None):
+               delays=None, request_time=None):
     """Initialize an ArchivedHttpResponse.
 
     Args:
@@ -764,6 +770,9 @@ class ArchivedHttpResponse(object):
     self.response_data = response_data
     self.delays = delays
     self.fix_delays()
+    self.request_time = (
+        request_time or ArchivedHttpResponse.DEFAULT_REQUEST_TIME
+    )
 
   def fix_delays(self):
     """Initialize delays, or check the number of data delays."""
@@ -793,7 +802,7 @@ class ArchivedHttpResponse(object):
 
   def __repr__(self):
     return repr((self.version, self.status, self.reason, sorted(self.headers),
-                 self.response_data))
+                 self.response_data, self.request_time))
 
   def __hash__(self):
     """Return a integer hash to use for hashed collections including dict."""
@@ -821,6 +830,8 @@ class ArchivedHttpResponse(object):
       del state['server_delays']
     elif 'delays' not in state:
       state['delays'] = None
+    # Set to date that was hardcoded in deterministic.js originally.
+    state.setdefault('request_time', ArchivedHttpResponse.DEFAULT_REQUEST_TIME)
     state['original_headers'] = state['headers']
     state['headers'] = self._TrimHeaders(state['original_headers'])
     self.__dict__.update(state)

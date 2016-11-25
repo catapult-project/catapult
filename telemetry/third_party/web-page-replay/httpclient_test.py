@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import unittest
 
+import datetime
 import dnsproxy
 import httparchive
 import httpclient
@@ -205,6 +207,51 @@ class ActualNetworkFetchTest(test_utils.RealNetworkFetchTest):
         request_body=None, headers={}, is_ssl=True)
     response = fetch(request)
     self.assertIsNotNone(response)
+
+
+class HttpArchiveFetchTest(unittest.TestCase):
+
+  def createTestResponse(self):
+    return httparchive.ArchivedHttpResponse(
+        11, 200, 'OK', [('content-type', 'text/html')],
+        '<body>test</body>', request_time=datetime.datetime(2016, 11, 17))
+
+  def checkTestResponse(self, actual_response, archive, request):
+    self.assertEqual(actual_response, archive[request])
+    self.assertEqual('<body>test</body>', actual_response.response_data)
+    self.assertEqual(datetime.datetime(2016, 11, 17),
+                     actual_response.request_time)
+
+  @staticmethod
+  def dummy_injector(_):
+    return '<body>test</body>'
+
+
+class RecordHttpArchiveFetchTest(HttpArchiveFetchTest):
+
+  @mock.patch('httpclient.RealHttpFetch')
+  def testFetch(self, real_http_fetch):
+    http_fetch_instance = real_http_fetch.return_value
+    response = self.createTestResponse()
+    http_fetch_instance.return_value = response
+    archive = httparchive.HttpArchive()
+    fetch = httpclient.RecordHttpArchiveFetch(archive, self.dummy_injector)
+    request = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/', None, {})
+    self.checkTestResponse(fetch(request), archive, request)
+
+
+class ReplayHttpArchiveFetchTest(HttpArchiveFetchTest):
+
+  def testFetch(self):
+    request = httparchive.ArchivedHttpRequest(
+        'GET', 'www.test.com', '/', None, {})
+    response = self.createTestResponse()
+    archive = httparchive.HttpArchive()
+    archive[request] = response
+    fetch = httpclient.ReplayHttpArchiveFetch(
+        archive, None, self.dummy_injector)
+    self.checkTestResponse(fetch(request), archive, request)
 
 
 if __name__ == '__main__':

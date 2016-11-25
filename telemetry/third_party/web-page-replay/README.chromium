@@ -1,7 +1,7 @@
 Name: chromite
 Short Name: webpagereplay
 URL: https://github.com/chromium/web-page-replay
-Version: b01dc75b50986b8051327b52024488b4db11d45e (commit hash)
+Version: 05f94073ade712d97cc4fdddc2f57e8fbecc1373 (commit hash)
 License: BSD
 License File: NOT_SHIPPED
 Security Critical: no
