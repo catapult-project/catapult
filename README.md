@@ -10,9 +10,9 @@ Catapult is the home for several performance tools that span from gathering,
 displaying and analyzing performance data. This includes:
 
  * [Trace-viewer](/tracing/README.md)
- * [Performance Insights](/perf_insights/README.md)
  * [Telemetry](/telemetry/README.md)
  * [Performance Dashboard](/dashboard/README.md)
+ * [Systrace](/systrace/README.md)
 
 These tools were created by Chromium developers for performance analysis,
 testing, and monitoring of Chrome, but they can also be used for analyzing and
