@@ -399,20 +399,32 @@ def _CanDownloadBuilds(master_name):
 
 def GuessBisectBot(master_name, bot_name):
   """Returns a bisect bot name based on |bot_name| (perf_id) string."""
-  fallback = 'linux_perf_bisect'
+  platform_bot_pairs = []
   bisect_bot_map = namespaced_stored_object.Get(can_bisect.BISECT_BOT_MAP_KEY)
-  if not bisect_bot_map:
+  if bisect_bot_map:
+    for master, pairs in bisect_bot_map.iteritems():
+      if master_name.startswith(master):
+        platform_bot_pairs = pairs
+        break
+
+  fallback = 'linux_perf_bisect'
+  if not platform_bot_pairs:
+    # No bots available.
+    logging.error('No bisect bots defined for %s.', master_name)
     return fallback
+
   bot_name = bot_name.lower()
-  for master, platform_bot_pairs in bisect_bot_map.iteritems():
-    # Treat ChromiumPerfFyi (etc.) the same as ChromiumPerf.
-    if master_name.startswith(master):
-      for platform, bisect_bot in platform_bot_pairs:
-        if platform.lower() in bot_name:
-          return bisect_bot
+  for platform, bisect_bot in platform_bot_pairs:
+    if platform.lower() in bot_name:
+      return bisect_bot
+
+  for _, bisect_bot in platform_bot_pairs:
+    if bisect_bot == fallback:
+      return fallback
+
   # Nothing was found; log a warning and return a fall-back name.
   logging.warning('No bisect bot for %s/%s.', master_name, bot_name)
-  return fallback
+  return platform_bot_pairs[0][0]
 
 
 def GuessCommand(

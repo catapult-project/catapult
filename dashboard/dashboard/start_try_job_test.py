@@ -616,10 +616,20 @@ class StartBisectTest(testing_common.TestCase):
         'super_foo_bisect_bot',
         start_try_job.GuessBisectBot('OtherMaster', 'foo'))
 
-  def testGuessBisectBot_PlatformNotFound_UsesFallback(self):
+  def testGuessBisectBot_PlatformNotFound_UsesAvailableFallback(self):
     namespaced_stored_object.Set(
         can_bisect.BISECT_BOT_MAP_KEY,
         {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
+    self.assertEqual(
+        'foo',
+        start_try_job.GuessBisectBot('OtherMaster', 'bar'))
+
+  def testGuessBisectBot_PlatformNotFound_UsesLinuxFallback(self):
+    namespaced_stored_object.Set(
+        can_bisect.BISECT_BOT_MAP_KEY,
+        {'OtherMaster': [
+            ('foo', 'super_foo_bisect_bot'),
+            ('linux', 'linux_perf_bisect')]})
     self.assertEqual(
         'linux_perf_bisect',
         start_try_job.GuessBisectBot('OtherMaster', 'bar'))
