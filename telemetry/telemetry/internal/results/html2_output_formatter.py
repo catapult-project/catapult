@@ -30,6 +30,10 @@ class Html2OutputFormatter(output_formatter.OutputFormatter):
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
         self._metadata, page_test_results.all_page_specific_values,
         page_test_results.all_summary_values)
+    info = page_test_results.iteration_info
+    chart_json['label'] = info.label
+    chart_json['benchmarkStartMs'] = info.benchmark_start_ms
+
     file_descriptor, chart_json_path = tempfile.mkstemp()
     os.close(file_descriptor)
     json.dump(chart_json, file(chart_json_path, 'w'))
