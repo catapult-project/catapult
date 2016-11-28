@@ -86,6 +86,8 @@ _NON_TELEMETRY_TEST_COMMANDS = {
         '--build_type Release',
     ],
 }
+_DISABLE_STORY_FILTER = set(_NON_TELEMETRY_TEST_COMMANDS)
+_DISABLE_STORY_FILTER.add('octane')  # Has a single story.
 
 
 class StartBisectHandler(request_handler.RequestHandler):
@@ -520,7 +522,7 @@ def GuessStoryFilter(test_path):
   """
   test_path_parts = test_path.split('/')
   suite_name, story_name = test_path_parts[2], test_path_parts[-1]
-  if suite_name in _NON_TELEMETRY_TEST_COMMANDS:
+  if suite_name in _DISABLE_STORY_FILTER:
     return ''
   test_key = utils.TestKey(test_path)
   subtest_keys = list_tests.GetTestDescendants(test_key)

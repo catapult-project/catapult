@@ -358,6 +358,11 @@ class StartBisectTest(testing_common.TestCase):
             },
             'blink_perf': {
                 'Animation_balls': {}
+            },
+            'octane': {
+                'Total': {
+                    'Score': {},
+                }
             }
         })
     tests = graph_data.TestMetadata.query().fetch()
@@ -432,6 +437,13 @@ class StartBisectTest(testing_common.TestCase):
     info = json.loads(response.body)
     self.assertEqual('android_nexus7_perf_bisect', info['bisect_bot'])
     self.assertEqual(info['story_filter'], 'Animation.balls')
+
+    response = self.testapp.post('/start_try_job', {
+        'test_path': 'ChromiumPerf/android-nexus7/octane/Total/Score',
+        'step': 'prefill-info',
+    })
+    info = json.loads(response.body)
+    self.assertEqual(info['story_filter'], '')
 
     response = self.testapp.post('/start_try_job', {
         'test_path': ('ChromiumPerf/chromium-rel-win8-dual/'
