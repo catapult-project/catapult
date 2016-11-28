@@ -5,6 +5,9 @@
       "accessor-pairs": "off",
       "array-bracket-spacing": ["error", "never"],
       "array-callback-return": "off",
+      "arrow-body-style": ["error", "as-needed", {
+        "requireReturnForObjectLiteral": true
+      }],
       "arrow-parens": "off",
       "block-scoped-var": "off",
       "brace-style": "off",

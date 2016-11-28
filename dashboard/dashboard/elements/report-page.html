@@ -56,7 +56,7 @@ found in the LICENSE file.
         onRevisionRange: { observer: 'onRevisionRangeChanged' },
         graphParams: {
           type: Object,
-          value: () => ({})
+          value: () => { return {}; }
         },
         isInternalUser: {
           type: Boolean,
@@ -68,7 +68,7 @@ found in the LICENSE file.
         },
         revisionInfo: {
           type: Object,
-          value: () => ({})
+          value: () => { return {}; }
         },
         warningBug: {
           type: Number,
@@ -84,7 +84,7 @@ found in the LICENSE file.
         },
         testSuites: {
           type: Object,
-          value: () => ({})
+          value: () => { return {}; }
         }
       },
 
