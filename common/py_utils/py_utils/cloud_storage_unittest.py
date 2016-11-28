@@ -236,3 +236,12 @@ class CloudStorageUnitTest(fake_filesystem_unittest.TestCase):
       cloud_storage.Insert('bucket', 'foo', file_path)
     with self.assertRaises(cloud_storage.CloudStorageIODisabled):
       cloud_storage.GetFilesInDirectoryIfChanged(dir_path, 'bucket')
+
+
+  @mock.patch('py_utils.cloud_storage.PSEUDO_LOCK_ACQUISITION_TIMEOUT', .005)
+  def testPseudoLockTimeout(self):
+    self.fs.CreateFile('/tmp/test-file-path.wpr.pseudo_lock')
+    file_path = '/tmp/test-file-path.wpr'
+
+    with self.assertRaises(py_utils.TimeoutException):
+      cloud_storage.GetIfChanged(file_path, cloud_storage.PUBLIC_BUCKET)

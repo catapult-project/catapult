@@ -14,7 +14,6 @@ import stat
 import subprocess
 import sys
 import tempfile
-import time
 
 import py_utils
 from py_utils import lock
@@ -56,6 +55,9 @@ _CROS_GSUTIL_HOME_WAR = '/home/chromeos-test/'
 # calls that invoke cloud storage network io will throw exceptions.
 DISABLE_CLOUD_STORAGE_IO = 'DISABLE_CLOUD_STORAGE_IO'
 
+# The maximum number of seconds to wait to acquire the pseudo lock for a cloud
+# storage file before raising an exception.
+PSEUDO_LOCK_ACQUISITION_TIMEOUT = 10
 
 
 class CloudStorageError(Exception):
@@ -240,8 +242,8 @@ def _FileLock(base_path):
   # lock on |base_path| and has not finished before proceeding further to create
   # the |pseudo_lock_path|. Otherwise, |pseudo_lock_path| may be deleted by
   # that other process after we create it in this process.
-  while os.path.exists(pseudo_lock_path):
-    time.sleep(0.1)
+  py_utils.WaitFor(lambda: not os.path.exists(pseudo_lock_path),
+                   PSEUDO_LOCK_ACQUISITION_TIMEOUT)
 
   # Guard the creation & acquiring lock of |pseudo_lock_path| by the global lock
   # to make sure that there is no race condition on creating the file.
