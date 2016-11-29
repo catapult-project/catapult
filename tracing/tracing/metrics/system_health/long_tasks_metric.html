@@ -54,12 +54,14 @@ tr.exportTo('tr.metrics.sh', function() {
   function iterateRendererMainThreads(model, cb, opt_this) {
     var modelHelper = model.getOrCreateHelper(
         tr.model.helpers.ChromeModelHelper);
-    tr.b.dictionaryValues(modelHelper.rendererHelpers).forEach(
-        function(rendererHelper) {
-          if (!rendererHelper.mainThread)
-            return;
-          cb.call(opt_this, rendererHelper.mainThread);
-        });
+    if (modelHelper !== undefined) {
+      tr.b.dictionaryValues(modelHelper.rendererHelpers).forEach(
+          function(rendererHelper) {
+            if (!rendererHelper.mainThread)
+              return;
+            cb.call(opt_this, rendererHelper.mainThread);
+          });
+    }
   }
 
   /**
