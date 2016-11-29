@@ -249,7 +249,6 @@ should not make assertions.
 | [`Math`, `Number`, `String`, `Array`, and `Object` APIs](https://github.com/lukehoban/es6features#math--number--string--array--object-apis) | To be discussed                                                                 |
 | [Binary and octal literals](https://github.com/lukehoban/es6features#binary-and-octal-literals)                                             | To be discussed                                                                 |
 | [Reflect API](https://github.com/lukehoban/es6features#reflect-api)                                                                         | To be discussed                                                                 |
-| [Tail calls](https://github.com/lukehoban/es6features#tail-calls)                                                                           | To be discussed                                                                 |
 
 ## ECMAScript 2016 (ES7) features
 
