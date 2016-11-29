@@ -60,6 +60,11 @@ handlers:
   upload: polymer/components/.*/.*\.(html|js|css)$
   secure: always
 
+- url: /tracing/(.*)/(.*\.(html|js|css))$
+  static_files: tracing/\1/\2
+  upload: tracing/.*/.*\.(html|js|css)$
+  secure: always
+
 - url: /flot/(.*\.js)$
   static_files: flot/\1
   upload: flot/.*\.js$
@@ -68,6 +73,11 @@ handlers:
 - url: /jquery/(.*\.js)$
   static_files: jquery/\1
   upload: jquery/.*\.js$
+  secure: always
+
+- url: /gl-matrix-min.js
+  static_files: gl-matrix-min.js
+  upload: gl-matrix-min.js
   secure: always
 
 - url: /add_point_queue
