@@ -426,7 +426,7 @@ def GuessBisectBot(master_name, bot_name):
 
   # Nothing was found; log a warning and return a fall-back name.
   logging.warning('No bisect bot for %s/%s.', master_name, bot_name)
-  return platform_bot_pairs[0][0]
+  return platform_bot_pairs[0][1]
 
 
 def GuessCommand(

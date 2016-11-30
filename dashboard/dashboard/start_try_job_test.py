@@ -633,7 +633,7 @@ class StartBisectTest(testing_common.TestCase):
         can_bisect.BISECT_BOT_MAP_KEY,
         {'OtherMaster': [('foo', 'super_foo_bisect_bot')]})
     self.assertEqual(
-        'foo',
+        'super_foo_bisect_bot',
         start_try_job.GuessBisectBot('OtherMaster', 'bar'))
 
   def testGuessBisectBot_PlatformNotFound_UsesLinuxFallback(self):
