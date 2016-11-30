@@ -72,12 +72,14 @@ _RESTART_ADBD_SCRIPT = """
 
 # Not all permissions can be set.
 _PERMISSIONS_BLACKLIST = [
+    'android.permission.ACCESS_LOCATION_EXTRA_COMMANDS',
     'android.permission.ACCESS_MOCK_LOCATION',
     'android.permission.ACCESS_NETWORK_STATE',
     'android.permission.ACCESS_WIFI_STATE',
     'android.permission.AUTHENTICATE_ACCOUNTS',
     'android.permission.BLUETOOTH',
     'android.permission.BLUETOOTH_ADMIN',
+    'android.permission.DISABLE_KEYGUARD',
     'android.permission.DOWNLOAD_WITHOUT_NOTIFICATION',
     'android.permission.INTERNET',
     'android.permission.MANAGE_ACCOUNTS',
