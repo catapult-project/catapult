@@ -265,7 +265,7 @@ should not make assertions.
 
 | Feature                  | Status          |
 |--------------------------|-----------------|
-| [Object.entries](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries) and [Object.values](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values) | To be discussed |
+| [Object.entries](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries) and [Object.values](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values) | Approved |
 
 ### Possible feature statuses
   - **Approved**: this feature is approved for general use.
