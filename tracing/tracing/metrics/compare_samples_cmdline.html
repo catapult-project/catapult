@@ -47,6 +47,14 @@ function geoMeanFromHistogram(h) {
   return Math.exp(sumOfLogs / count);
 }
 
+function guessFullTIRMetricName(metricName) {
+  var parts = metricName.split('/');
+  if (parts.length === 2) {
+    return metricName + '/summary';
+  }
+  return undefined;
+}
+
 function splitMetric(metricName) {
   var parts = metricName.split('/');
   var interactionName;
@@ -83,6 +91,19 @@ function valuesFromCharts(listOfCharts, metricName) {
     }
   }
   return allValues;
+}
+
+function valuesFromChartsWithFallback(listOfCharts, metricName) {
+  var allValues = valuesFromCharts(listOfCharts, metricName);
+  if (allValues.length > 0)
+    return allValues;
+
+  // If this had a tir_label, the "summary" part may have been stripped by
+  // the dashboard during upload. We can re-add it here.
+  var fullMetricName = guessFullTIRMetricName(metricName);
+  if (!fullMetricName)
+    return [];
+  return valuesFromCharts(listOfCharts, fullMetricName);
 }
 
 function rawValuesByMetricName(valueSet, metricName) {
@@ -249,8 +270,8 @@ var SampleComparison = {
     var bPaths = chartPathListB.split(',');
     var chartsA = parseFiles(aPaths);
     var chartsB = parseFiles(bPaths);
-    var sampleA = valuesFromCharts(chartsA, metric);
-    var sampleB = valuesFromCharts(chartsB, metric);
+    var sampleA = valuesFromChartsWithFallback(chartsA, metric);
+    var sampleB = valuesFromChartsWithFallback(chartsB, metric);
     return buildComparisonResultOutput(sampleA, sampleB);
   }
 
