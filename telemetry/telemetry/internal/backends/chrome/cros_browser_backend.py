@@ -125,7 +125,7 @@ class CrOSBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
             'org.chromium.SessionManagerInterface.EnableChromeTesting',
             'boolean:true',
             'array:string:"%s"' % ','.join(startup_args)]
-    logging.info('Starting Chrome %s', args)
+    logging.info(' '.join(args))
     self._cri.RunCmdOnDevice(args)
 
     if not self._cri.local:
