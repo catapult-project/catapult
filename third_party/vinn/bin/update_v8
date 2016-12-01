@@ -34,13 +34,23 @@ V8_DST_PATH = os.path.join(V8_PATH, '{os}', '{arch}')
 V8_README_PATH = os.path.join(V8_PATH, 'README.chromium')
 
 V8_CHECKOUT_BINARY_PATH = os.path.join(
-    '{v8_root}', 'v8', '{out}', 'Release', 'd8')
-V8_GENERATE_GYP_CMD = (sys.executable + ' ' +
-                       os.path.join('gypfiles', 'gyp_v8') +
-                       ' -Dtarget_arch={arch}' +
-                       ' -Goutput_dir={out}')
+    '{v8_root}', 'v8', '{out}', 'Default', 'd8')
+V8_GN_GEN_CMD = ('gn gen ' +
+    os.path.join('out', 'Default') +
+    ' --args=\'use_goma=true is_debug=false' +
+    ' icu_use_data_file=false v8_use_snapshot=false' +
+    ' v8_use_external_startup_data=false\'')
+V8_GN_GEN_ARM_CMD = ('gn gen ' +
+    os.path.join('out_arm', 'Default') +
+    ' --args=\'use_goma=true target_cpu="arm" is_debug=false' +
+    ' icu_use_data_file=false v8_use_snapshot=false' +
+    ' v8_use_external_startup_data=false\'')
 V8_COMPILE_CMD = 'ninja -j 100 -C {out} d8'
 V8_STRIP_CMD = '{strip} -x {d8}'
+
+V8_INSTALL_SYSROOT_CMD = (
+    os.path.join('build', 'linux', 'sysroot_scripts', 'install-sysroot.py') +
+    ' --arch="arm"')
 
 VALID_CHANNEL_LIST = ['stable', 'canary', 'beta', 'dev']
 # Dict from the acceptable return values for Python's platform.system() to the
@@ -123,39 +133,27 @@ def UpdateV8Binary(v8_version, target_os, target_arch):
       with ChangeDirectory('v8'):
         _RunCommand('git checkout {0}'.format(v8_version))
         _RunCommand('gclient sync')
-        if not 'GYP_DEFINES' in os.environ:
-          os.environ['GYP_DEFINES'] = ''
-        os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
-        os.environ['GYP_DEFINES'] += ' icu_use_data_file_flag=0'
-        os.environ['GYP_GENERATORS'] = 'ninja'
-        ninja_arch = PYTHON_MACHINE_TO_NINJA_ARCH[target_arch]
+        _RunCommand(V8_GN_GEN_CMD)
         _RunCommand(
-            V8_GENERATE_GYP_CMD.format(arch=ninja_arch, out='out'))
-        _RunCommand(
-            V8_COMPILE_CMD.format(out=os.path.join('out', 'Release')))
+            V8_COMPILE_CMD.format(out=os.path.join('out', 'Default')))
 
         if target_os in ['linux', 'mac']:
           _RunCommand(
               V8_STRIP_CMD.format(strip='strip',
-                                  d8=os.path.join('out', 'Release', 'd8')))
+                                  d8=os.path.join('out', 'Default', 'd8')))
 
         # Build the cross compiled version for ARM for direct testing on
         # Chrome OS devices. For now we build 32-bit only for both armv7l
         # and aarch64.
         if (target_os == 'linux' and
             os.path.isfile('/usr/bin/arm-linux-gnueabihf-gcc')):
-
-          os.environ['GYP_DEFINES'] = ''
-          os.environ['GYP_DEFINES'] += ' v8_use_external_startup_data=0'
-          os.environ['GYP_DEFINES'] += ' icu_use_data_file_flag=0'
-          os.environ['GYP_DEFINES'] += ' v8_use_snapshot=0'
+          _RunCommand(V8_INSTALL_SYSROOT_CMD)
+          _RunCommand(V8_GN_GEN_ARM_CMD)
           _RunCommand(
-              V8_GENERATE_GYP_CMD.format(arch='arm', out='out_arm'))
-          _RunCommand(
-              V8_COMPILE_CMD.format(out=os.path.join('out_arm', 'Release')))
+              V8_COMPILE_CMD.format(out=os.path.join('out_arm', 'Default')))
           _RunCommand(
               V8_STRIP_CMD.format(strip='arm-linux-gnueabihf-strip',
-                                  d8=os.path.join('out_arm', 'Release', 'd8')))
+                                  d8=os.path.join('out_arm', 'Default', 'd8')))
 
     # Copy the d8 binary into place.
     d8_bin_src = V8_CHECKOUT_BINARY_PATH.format(v8_root=v8_checkout_path,
