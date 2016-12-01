@@ -456,7 +456,7 @@ def _GuessCommandNonTelemetry(suite, bisect_bot):
   if _GuessBrowserName(bisect_bot) == 'release_x64':
     command[0] = command[0].replace('/Release/', '/Release_x64/')
 
-  if bisect_bot.startswith('win'):
+  if bisect_bot.startswith('win') or bisect_bot.startswith('staging_win'):
     command[0] = command[0].replace('/', '\\')
     command[0] += '.exe'
   return ' '.join(command)
