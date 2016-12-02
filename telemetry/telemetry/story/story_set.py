@@ -31,7 +31,8 @@ class StorySet(object):
           containing hash files for non-wpr archive data stored in cloud
           storage.
     """
-    self.stories = []
+    self._stories = []
+    self._story_names_and_grouping_keys = set()
     self._archive_data_file = archive_data_file
     self._wpr_archive_info = None
     archive_info.AssertValidCloudStorageBucket(cloud_storage_bucket)
@@ -96,16 +97,31 @@ class StorySet(object):
           os.path.join(self.base_dir, self.archive_data_file), self.bucket)
     return self._wpr_archive_info
 
+  @property
+  def stories(self):
+    return self._stories
+
   def AddStory(self, story):
     assert isinstance(story, story_module.Story)
-    self.stories.append(story)
+    assert self._IsUnique(story), ('Tried to add story with duplicate display '
+                                   'name %s. Story display names should be '
+                                   'unique.' % story.display_name)
+    self._stories.append(story)
+    self._story_names_and_grouping_keys.add(
+        story.display_name_and_grouping_key_tuple)
+
+  def _IsUnique(self, story):
+    return (story.display_name_and_grouping_key_tuple not in
+            self._story_names_and_grouping_keys)
 
   def RemoveStory(self, story):
     """Removes a Story.
 
     Allows the stories to be filtered.
     """
-    self.stories.remove(story)
+    self._stories.remove(story)
+    self._story_names_and_grouping_keys.remove(
+        story.display_name_and_grouping_key_tuple)
 
   @classmethod
   def Name(cls):
@@ -152,4 +168,4 @@ class StorySet(object):
     return self.stories[key]
 
   def __setitem__(self, key, value):
-    self.stories[key] = value
+    self._stories[key] = value

@@ -86,6 +86,9 @@ class Story(object):
   def grouping_keys(self):
     return self._grouping_keys
 
+  @property
+  def display_name_and_grouping_key_tuple(self):
+    return self.display_name, tuple(self.grouping_keys.iteritems())
 
   def AsDict(self):
     """Converts a story object to a dict suitable for JSON output."""
