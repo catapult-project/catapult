@@ -115,6 +115,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     self._tmp_profile_dir = None
     self._tmp_output_file = None
     self._most_recent_symbolized_minidump_paths = set([])
+    self._minidump_path_crashpad_retrieval = {}
 
     self._executable = executable
     if not self._executable:
@@ -342,6 +343,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     except IOError:
       return ''
 
+  def _MinidumpObtainedFromCrashpad(self, minidump):
+    if minidump in self._minidump_path_crashpad_retrieval:
+      return self._minidump_path_crashpad_retrieval[minidump]
+    # Default to crashpad where we hope to be eventually
+    return True
+
   def _GetAllCrashpadMinidumps(self):
     if not self._tmp_minidump_dir:
       logging.warning('No _tmp_minidump_dir; browser already closed?')
@@ -422,10 +429,12 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
 
   def _GetMostRecentMinidump(self):
     # Crashpad dump layout will be the standard eventually, check it first.
+    crashpad_dump = True
     most_recent_dump = self._GetMostRecentCrashpadMinidump()
 
     # Typical breakpad format is simply dump files in a folder.
     if not most_recent_dump:
+      crashpad_dump = False
       logging.info('No minidump found via crashpad_database_util')
       dumps = self._GetBreakPadMinidumpPaths()
       if dumps:
@@ -438,6 +447,7 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
         os.path.getmtime(most_recent_dump) < (time.time() - (5 * 60))):
       logging.warning('Crash dump is older than 5 minutes. May not be correct.')
 
+    self._minidump_path_crashpad_retrieval[most_recent_dump] = crashpad_dump
     return most_recent_dump
 
   def _IsExecutableStripped(self):
@@ -491,11 +501,13 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if not stackwalk:
       logging.warning('minidump_stackwalk binary not found.')
       return None
-
-    with open(minidump, 'rb') as infile:
-      minidump += '.stripped'
-      with open(minidump, 'wb') as outfile:
-        outfile.write(''.join(infile.read().partition('MDMP')[1:]))
+    # We only want this logic on linux platforms that are still using breakpad.
+    # See crbug.com/667475
+    if not self._MinidumpObtainedFromCrashpad(minidump):
+      with open(minidump, 'rb') as infile:
+        minidump += '.stripped'
+        with open(minidump, 'wb') as outfile:
+          outfile.write(''.join(infile.read().partition('MDMP')[1:]))
 
     symbols_path = os.path.join(self._tmp_minidump_dir, 'symbols')
     GenerateBreakpadSymbols(minidump, arch_name, os_name,
@@ -536,12 +548,16 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
   def GetAllMinidumpPaths(self):
     reports_list = self._GetAllCrashpadMinidumps()
     if reports_list:
+      for report in reports_list:
+        self._minidump_path_crashpad_retrieval[report[1]] = True
       return [report[1] for report in reports_list]
     else:
       logging.info('No minidump found via crashpad_database_util')
       dumps = self._GetBreakPadMinidumpPaths()
       if dumps:
         logging.info('Found minidump via globbing in minidump dir')
+        for dump in dumps:
+          self._minidump_path_crashpad_retrieval[dump] = False
         return dumps
       return []
 
