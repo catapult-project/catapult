@@ -1911,6 +1911,7 @@ triaging functionality in the chart.
           alertInfo['end_revision'] = event.detail.endRev;
           seriesAnnotations[dataIndex]['g_anomaly'] = null;
           seriesAnnotations[newDataIndex]['g_anomaly'] = alertInfo;
+          event.detail.alerts[0].dataIndex = newDataIndex;
           this.showAlerts();
         },
 

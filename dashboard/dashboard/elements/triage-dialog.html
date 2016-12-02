@@ -20,7 +20,7 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
       #container {
         position: relative;
         margin: 10px;
-        max-height: 300px;
+        max-height: 400px;
         width: 360px;
       }
 
@@ -65,6 +65,17 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
         form {
           margin-bottom: 0;
         }
+
+        #invalidAlert {
+          float: right;
+          text-align: center;
+          width: 50px;
+        }
+
+        #nudgeSelect {
+          height: 145px;
+          overflow: hidden;
+        }
       </style>
 
       <div class="card-content">
@@ -80,14 +91,18 @@ on an alert, or clicks on a "triage" button on the alerts page. It allows the
           </fieldset>
           <fieldset name="Fix-up alert">
             <legend>Fix-up</legend>
-            <select class="kennedy-button" id="nudgeSelect" hidden$="{{computeIsEmpty(nudgeList)}}" on-change="nudgeAlert">
+            <select class="kennedy-button" id="nudgeSelect" size="2"
+                    hidden$="{{computeIsEmpty(nudgeList)}}" 
+                    on-change="nudgeAlert">
               <template is="dom-repeat" items="{{nudgeList}}">
                 <option value$="{{item.endRevision}}" selected$="{{item.selected}}">
                   Nudge {{item.amount}} {{item.displayEndRevision}} ({{item.value}})
                 </option>
               </template>
             </select>
-            <paper-button raised on-click="markInvalid">Report Invalid Alert</paper-button>
+            <paper-button id="invalidAlert" raised on-click="markInvalid">
+              Report Invalid Alert
+            </paper-button>
           </fieldset>
         </form>
       </div>
