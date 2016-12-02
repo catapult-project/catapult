@@ -133,6 +133,39 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         self._tab.EvaluateJavaScript('document.location.pathname;'),
         '/blank.html')
 
+  def testNavigateBack(self):
+    action_runner = action_runner_module.ActionRunner(self._tab,
+                                                      skip_waits=True)
+    self.Navigate('page_with_link.html')
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/page_with_link.html"')
+
+    # Test that after 3 navigations & 3 back navs, we have to be back at the
+    # initial page
+    self.Navigate('page_with_swipeables.html')
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/page_with_swipeables.html"')
+
+    self.Navigate('blank.html')
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/blank.html"')
+
+    self.Navigate('page_with_swipeables.html')
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/page_with_swipeables.html"')
+
+    action_runner.NavigateBack()
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/blank.html"')
+
+    action_runner.NavigateBack()
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/page_with_swipeables.html"')
+
+    action_runner.NavigateBack()
+    action_runner.WaitForJavaScriptCondition(
+        'document.location.pathname === "/page_with_link.html"')
+
   def testWait(self):
     action_runner = action_runner_module.ActionRunner(self._tab)
     self.Navigate('blank.html')

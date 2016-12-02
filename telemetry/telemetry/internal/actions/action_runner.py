@@ -176,6 +176,10 @@ class ActionRunner(object):
         script_to_evaluate_on_commit=script_to_evaluate_on_commit,
         timeout_in_seconds=timeout_in_seconds))
 
+  def NavigateBack(self):
+    """ Navigate back to the previous page."""
+    self.ExecuteJavaScript('window.history.back()')
+
   def WaitForNavigate(self, timeout_in_seconds_seconds=60):
     start_time = time.time()
     self._tab.WaitForNavigate(timeout_in_seconds_seconds)
