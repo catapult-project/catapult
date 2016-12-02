@@ -31,6 +31,46 @@ tr.b.unittest.testSuite(function() {
     dt.setPanAndScale(0, track.clientWidth / 1000);
     track.viewport.setDisplayTransformImmediately(dt);
   });
+
+  test('instantiate_interestRange', function() {
+    var div = document.createElement('div');
+
+    var viewport = new tr.ui.TimelineViewport(div);
+    viewport.interestRange.min = 300;
+    viewport.interestRange.max = 300;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = tr.ui.tracks.XAxisTrack(viewport);
+    Polymer.dom(drawingContainer).appendChild(track);
+    this.addHTMLOutput(div);
+
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.setPanAndScale(0, track.clientWidth / 1000);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
+
+  test('instantiate_singlePointInterestRange', function() {
+    var div = document.createElement('div');
+
+    var viewport = new tr.ui.TimelineViewport(div);
+    viewport.interestRange.min = 300;
+    viewport.interestRange.max = 400;
+    var drawingContainer = new tr.ui.tracks.DrawingContainer(viewport);
+    Polymer.dom(div).appendChild(drawingContainer);
+
+    var track = tr.ui.tracks.XAxisTrack(viewport);
+    Polymer.dom(drawingContainer).appendChild(track);
+    this.addHTMLOutput(div);
+
+    drawingContainer.invalidate();
+
+    var dt = new tr.ui.TimelineDisplayTransform();
+    dt.setPanAndScale(0, track.clientWidth / 1000);
+    track.viewport.setDisplayTransformImmediately(dt);
+  });
 });
 </script>
 

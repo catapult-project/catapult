@@ -183,16 +183,18 @@ tr.exportTo('tr.ui.tracks', function() {
       // TODO(aiolos): Add support for secondary y-axis on right side of chart.
       // https://github.com/catapult-project/catapult/issues/3008
       // Draw y-axis grid lines.
-      if ((this.showGridLines_ || this.showYAxisLabels_) &&
-          this.axes_ && this.axes_.length > 1) {
-        throw new Error('Only one axis allowed when showing grid lines.');
-      }
-      for (var yAxis of this.axes_) {
-        var chartTransform = new tr.ui.tracks.ChartTransform(
-            displayTransform, yAxis, width, height,
-            topPadding, bottomPadding, pixelRatio);
-        yAxis.draw(
-            ctx, chartTransform, this.showYAxisLabels_, this.showGridLines_);
+      if (this.axes_) {
+        if ((this.showGridLines_ || this.showYAxisLabels_) &&
+            this.axes_.length > 1) {
+          throw new Error('Only one axis allowed when showing grid lines.');
+        }
+        for (var yAxis of this.axes_) {
+          var chartTransform = new tr.ui.tracks.ChartTransform(
+              displayTransform, yAxis, width, height,
+              topPadding, bottomPadding, pixelRatio);
+          yAxis.draw(
+              ctx, chartTransform, this.showYAxisLabels_, this.showGridLines_);
+        }
       }
 
       // Draw all series in the increasing z-order.

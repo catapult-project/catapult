@@ -184,10 +184,10 @@ tr.exportTo('tr.ui.tracks', function() {
       if (interestRange.range === 0) {
         var markerWorld = interestRange.min;
         var markerView = dt.xWorldToView(markerWorld);
-        var displayValue = markerWorld / unitDivisor;
+        var displayValue = markerWorld / vp.majorMarkUnitDivisor;
         displayValue = Math.abs((Math.round(displayValue * 1000) / 1000));
 
-        var textToDraw = displayValue + ' ' + unit;
+        var textToDraw = displayValue + ' ' + vp.majorMarkUnit;
         var textLeftView = markerView + 4 * pixelRatio;
         var textWidthView = ctx.measureText(textToDraw).width;
 
