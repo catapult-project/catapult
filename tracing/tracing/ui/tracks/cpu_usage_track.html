@@ -25,7 +25,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
   var ColorScheme = tr.b.ColorScheme;
   var ChartTrack = tr.ui.tracks.ChartTrack;
-  var MAX_CPU_TRACK_INTERVAL_COUNT = 1000000;
+  var MAX_CPU_TRACK_INTERVAL_COUNT = 1e5;
 
   /**
    * A track that displays the cpu usage of a process.
@@ -38,7 +38,7 @@ tr.exportTo('tr.ui.tracks', function() {
   CpuUsageTrack.prototype = {
     __proto__: ChartTrack.prototype,
 
-    DEFAULT_INTERVAL: 5,  // in ms.
+    DEFAULT_INTERVAL: 4,  // in ms.
 
     decorate: function(viewport) {
       ChartTrack.prototype.decorate.call(this, viewport);
@@ -49,10 +49,7 @@ tr.exportTo('tr.ui.tracks', function() {
 
     // Given a tr.Model, it creates a cpu usage series and a graph.
     initialize: function(model, interval) {
-      if (interval !== undefined)
-        this.interval_ = interval;
-      else
-        this.interval_ = this.DEFAULT_INTERVAL;
+      this.interval_ = interval || this.DEFAULT_INTERVAL;
       if (model !== undefined)
         this.cpuUsageSeries_ = this.computeCpuUsage_(model);
       else
@@ -64,15 +61,15 @@ tr.exportTo('tr.ui.tracks', function() {
     // Given a tr.Model, it returns the computation of cpu usage of all the
     // processes.
     computeCpuUsage_: function(model) {
-      var intervalCount = Math.ceil(model.bounds.max / this.interval_);
-      // Rather than attempting a huge allocation and having the tab crash with
-      // an out-of-memory error, throw an error here if there are too many
-      // CPU intervals to handle.
-      if (intervalCount > MAX_CPU_TRACK_INTERVAL_COUNT) {
-        throw new Error('The trace is too long or the CPU usage counter ' +
-            'interval is too small, leading to too many CPU usage intervals.');
+      // Compute a CPU usage interval that will keep the interval count below
+      // MAX_CPU_TRACK_INTERVAL_COUNT, to avoid crashing the tab with an
+      // out-of-memory error when the trace spans a long interval.
+      var getIntervalCount = () => Math.ceil(model.bounds.max / this.interval_);
+      while (getIntervalCount() > MAX_CPU_TRACK_INTERVAL_COUNT) {
+        this.interval_ *= 2;
       }
       var cpuUsage = undefined;
+      var intervalCount = getIntervalCount();
       if (intervalCount > 0) {
         tr.b.iterItems(model.processes, function(pid, process) {
           // Iterate slices, find all the CPU samples which overlap. For each

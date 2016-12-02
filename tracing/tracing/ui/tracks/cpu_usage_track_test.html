@@ -120,16 +120,24 @@ tr.b.unittest.testSuite(function() {
     assertArrayValuesCloseTo(actualValue, expectedValue);
   });
 
-  test('computeCpuUsage_tooManyIntervals', function() {
-    var sliceA = new tr.model.ThreadSlice('', title, 0, 5, {}, 50);
-    sliceA.cpuDuration = 25;
-    var sliceB = new tr.model.ThreadSlice(
-        '', title, 0, 50000010, {}, 50000030);
-    sliceB.cpuDuration = 15;
+  test('computeCpuUsage_longDurationThreadSlice', function() {
+    // Create a slice covering 24 hours.
+    var sliceA = new tr.model.ThreadSlice(
+        '', title, 0, 0, {}, 24 * 60 * 60 * 1000);
+    sliceA.cpuDuration = sliceA.duration * 0.25;
 
-    var model = buildModel([[sliceA, sliceB]]);
+    var model = buildModel([[sliceA]]);
 
-    assert.throws(() => createCpuUsageTrack.call(this, model, 5));
+    var track = createCpuUsageTrack.call(this, model, 5);
+    var cpuSamples = track.series[0].points.map(point => point.y);
+
+    // All except the last sample is 0.25, since sliceA.cpuDuration was set to
+    // 0.25 of the total.
+    for (var cpuSample of cpuSamples.slice(0, cpuSamples.length - 1)) {
+      assert.closeTo(cpuSample, 0.25, DIFF_EPSILON);
+    }
+    // The last sample is 0.
+    assert.closeTo(cpuSamples[cpuSamples.length - 1], 0, DIFF_EPSILON);
   });
 
   test('computeCpuUsage_floatAndComplexIntervals', function() {
