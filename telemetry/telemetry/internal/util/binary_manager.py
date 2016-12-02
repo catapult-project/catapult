@@ -150,4 +150,4 @@ def _FetchReferenceBrowserBinary(platform):
         'chrome_stable', os_name, arch_name, os_version)
   else:
     manager.FetchPath(
-        'chrome_stable', os_name, arch_name)
+        'reference_build', os_name, arch_name)
