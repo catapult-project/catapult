@@ -156,6 +156,14 @@ found in the LICENSE file.
       this.updateShowCpuIdleTimeCheckboxVisibility_();
     },
 
+    attached() {
+      if (this.chart_) {
+        // If the PieChart was initialized before this polymer element was
+        // rooted in a document, then re-render the PieChart.
+        this.chart_.data = this.chart_.data;
+      }
+    },
+
     /**
      * This function takes an array of groups and merges smaller groups into
      * the provided 'Other' group item such that the remaining items are ready
@@ -393,13 +401,14 @@ found in the LICENSE file.
           this.groupingUnit_ + ' breakdown by ' + this.groupBy_,
           getValueFromGroup, extraData);
       Polymer.dom(resultArea).appendChild(this.chart_);
+      // Re-render the chart now that it is rooted in a document.
+      this.chart_.data = this.chart_.data;
 
       this.chart_.addEventListener('click', function() {
         var event = new tr.model.RequestSelectionChangeEvent();
         event.selection = new tr.c.EventSet([]);
         this.dispatchEvent(event);
       });
-      this.chart_.setSize(this.chart_.getMinSize());
     },
 
     get selection() {

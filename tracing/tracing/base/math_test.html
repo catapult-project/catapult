@@ -38,5 +38,37 @@ tr.b.unittest.testSuite(function() {
     assert.equal(1, vec2.interpolatePiecewiseFunction(points, 1));
     assert.equal(1, vec2.interpolatePiecewiseFunction(points, 2));
   });
+
+  test('powers', function() {
+    assert.strictEqual(0.01, tr.b.lesserPower(0.05));
+    assert.strictEqual(0.1, tr.b.greaterPower(0.05));
+    assert.strictEqual(0.1, tr.b.lesserPower(0.5));
+    assert.strictEqual(1, tr.b.greaterPower(0.5));
+    assert.strictEqual(1, tr.b.lesserPower(5));
+    assert.strictEqual(10, tr.b.greaterPower(5));
+    assert.strictEqual(10, tr.b.lesserPower(50));
+    assert.strictEqual(100, tr.b.greaterPower(50));
+
+    assert.strictEqual(0, tr.b.lesserPower(0));
+    assert.strictEqual(0, tr.b.greaterPower(0));
+    assert.isTrue(isNaN(tr.b.lesserPower(-1)));
+    assert.isTrue(isNaN(tr.b.greaterPower(-1)));
+
+    assert.strictEqual(0.25, tr.b.lesserPower(0.3, 2));
+    assert.strictEqual(0.5, tr.b.greaterPower(0.3, 2));
+    assert.strictEqual(0.5, tr.b.lesserPower(0.8, 2));
+    assert.strictEqual(1, tr.b.greaterPower(0.8, 2));
+    assert.strictEqual(1, tr.b.lesserPower(1.5, 2));
+    assert.strictEqual(2, tr.b.greaterPower(1.5, 2));
+    assert.strictEqual(2, tr.b.lesserPower(3, 2));
+    assert.strictEqual(4, tr.b.greaterPower(3, 2));
+    assert.strictEqual(4, tr.b.lesserPower(5, 2));
+    assert.strictEqual(8, tr.b.greaterPower(5, 2));
+
+    assert.strictEqual(0, tr.b.lesserPower(0, 2));
+    assert.strictEqual(0, tr.b.greaterPower(0, 2));
+    assert.isTrue(isNaN(tr.b.lesserPower(-1, 2)));
+    assert.isTrue(isNaN(tr.b.greaterPower(-1, 2)));
+  });
 });
 </script>

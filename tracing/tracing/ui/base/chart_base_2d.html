@@ -8,6 +8,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/raf.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/statistics.html">
 <link rel="import" href="/tracing/ui/base/chart_base.html">
 <link rel="import" href="/tracing/ui/base/mouse_tracker.html">
 
@@ -25,15 +26,28 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ChartBase = tr.ui.b.ChartBase;
-  var ChartBase2D = tr.ui.b.define('chart-base-2d', ChartBase);
+  // This does not include the tick labels.
+  var D3_Y_AXIS_WIDTH_PX = 9;
+
+  // This includes the tick labels.
+  var D3_X_AXIS_HEIGHT_PX = 23;
+
+  // For charts with log y-axes, the y-axis tick values may need to be sanitized
+  // if the data is zero or negative.
+  function sanitizePower(x, defaultValue) {
+    if (!isNaN(x) && isFinite(x) && (x !== 0)) return x;
+    return defaultValue;
+  }
+
+  var ChartBase2D = tr.ui.b.define('chart-base-2d', tr.ui.b.ChartBase);
 
   ChartBase2D.prototype = {
-    __proto__: ChartBase.prototype,
+    __proto__: tr.ui.b.ChartBase.prototype,
 
     decorate() {
       super.decorate();
       Polymer.dom(this).classList.add('chart-base-2d');
+
       this.xScale_ = d3.scale.linear();
       this.yScale_ = d3.scale.linear();
       this.isYLogScale_ = false;
@@ -45,6 +59,7 @@ tr.exportTo('tr.ui.b', function() {
       this.data_ = [];
       this.xAxisLabel_ = '';
       this.yAxisLabel_ = '';
+      this.textHeightPx_ = 0;
 
       d3.select(this.chartAreaElement)
           .append('g')
@@ -103,8 +118,9 @@ tr.exportTo('tr.ui.b', function() {
      * contain data for every series).
      */
     set data(data) {
-      if (data === undefined)
+      if (data === undefined) {
         throw new Error('data must be an Array');
+      }
 
       this.data_ = data;
       this.updateSeriesKeys_();
@@ -113,18 +129,19 @@ tr.exportTo('tr.ui.b', function() {
     },
 
     set isYLogScale(logScale) {
-      if (logScale)
+      if (logScale) {
         this.yScale_ = d3.scale.log(10);
-      else
+      } else {
         this.yScale_ = d3.scale.linear();
+      }
       this.isYLogScale_ = logScale;
     },
 
-    getYScaleMin_: function() {
+    getYScaleMin_() {
       return this.isYLogScale_ ? this.yLogScaleMin_ : 0;
     },
 
-    getYScaleDomain_: function(minValue, maxValue) {
+    getYScaleDomain_(minValue, maxValue) {
       if (this.overrideDataRange_ !== undefined) {
         return [this.dataRange.min, this.dataRange.max];
       }
@@ -134,7 +151,7 @@ tr.exportTo('tr.ui.b', function() {
       return [Math.min(minValue, this.getYScaleMin_()), maxValue];
     },
 
-    getSampleWidth_: function(data, index, leftSide) {
+    getSampleWidth_(data, index, leftSide) {
       var leftIndex;
       var rightIndex;
       if (leftSide) {
@@ -148,10 +165,10 @@ tr.exportTo('tr.ui.b', function() {
         this.getXForDatum_(data[leftIndex], leftIndex);
       var rightWidth = this.getXForDatum_(data[rightIndex], rightIndex) -
         this.getXForDatum_(data[index], index);
-      return leftWidth * 0.5 + rightWidth * 0.5;
+      return tr.b.Statistics.mean([leftWidth, rightWidth]);
     },
 
-    updateSeriesKeys_: function() {
+    updateSeriesKeys_() {
       // Don't clear seriesByKey_; the caller might have put state in it using
       // getDataSeries() before setting data.
       this.data_.forEach(function(datum) {
@@ -162,66 +179,108 @@ tr.exportTo('tr.ui.b', function() {
       }, this);
     },
 
-    isDatumFieldSeries_: function(fieldName) {
-      throw new Error('Not implemented');
+    isDatumFieldSeries_(fieldName) {
+      return fieldName !== 'x';
     },
 
-    getXForDatum_: function(datum, index) {
-      throw new Error('Not implemented');
+    getXForDatum_(datum, index) {
+      return datum.x;
     },
 
-    updateScales_: function() {
-      if (this.data_.length === 0)
-        return;
+    updateMargins_() {
+      this.margin.left = this.hideYAxis ? 0 : this.yAxisWidth;
+      this.margin.bottom = this.hideXAxis ? 0 : this.xAxisHeight;
 
-      var width = this.chartAreaSize.width;
-      var height = this.chartAreaSize.height;
+      if (this.hideXAxis && !this.hideYAxis) {
+        this.margin.bottom = 10;
+      }
+      if (this.hideYAxis && !this.hideXAxis) {
+        this.margin.left = 10;
+      }
+      this.margin.top = this.hideYAxis ? 0 : 10;
 
-      // X.
-      this.xScale_.range([0, width]);
+      if (this.yAxisLabel) {
+        this.margin.top += this.textHeightPx_;
+      }
+      if (this.xAxisLabel) {
+        this.margin.right = Math.max(this.margin.right,
+          16 + tr.ui.b.getSVGTextSize(this, this.xAxisLabel).width);
+      }
+
+      super.updateMargins_();
+    },
+
+    get xAxisHeight() {
+      return D3_X_AXIS_HEIGHT_PX;
+    },
+
+    computeScaleTickWidth_(scale) {
+      if (this.data.length === 0) return 0;
+
+      var tickValues = scale.ticks();
+      var format = scale.tickFormat();
+
+      if (this.isYLogScale_) {
+        var enclosingPowers = this.dataRange.enclosingPowers();
+        tickValues = [
+          sanitizePower(enclosingPowers.min, 1),
+          sanitizePower(enclosingPowers.max, 10),
+        ];
+        format = v => v.toString();
+      }
+
+      return D3_Y_AXIS_WIDTH_PX + Math.max(
+          tr.ui.b.getSVGTextSize(this, format(tickValues[0])).width,
+          tr.ui.b.getSVGTextSize(
+              this, format(tickValues[tickValues.length - 1])).width);
+    },
+
+    get yAxisWidth() {
+      return this.computeScaleTickWidth_(this.yScale_);
+    },
+
+    updateScales_() {
+      if (this.data_.length === 0) return;
+
+      this.xScale_.range([0, this.graphWidth]);
       this.xScale_.domain(d3.extent(this.data_, this.getXForDatum_.bind(this)));
 
-      // Y.
-      this.yScale_.range([height, 0]);
+      this.yScale_.range([this.graphHeight, 0]);
       this.yScale_.domain([this.dataRange.min, this.dataRange.max]);
     },
 
-    updateBrushContents_: function(brushSel) {
+    updateBrushContents_(brushSel) {
       brushSel.selectAll('*').remove();
     },
 
-    updateXAxis_: function(xAxis) {
+    updateXAxis_(xAxis) {
       xAxis.selectAll('*').remove();
       xAxis[0][0].style.opacity = 0;
-      if (this.hideXAxis)
-        return;
+      if (this.hideXAxis) return;
 
       this.drawXAxis_(xAxis);
 
       var label = xAxis.append('text').attr('class', 'label');
-
-      tr.b.requestAnimationFrame(() => {
-        this.drawXAxisTicks_(xAxis);
-        this.drawXAxisLabel_(label);
-        xAxis[0][0].style.opacity = 1;
-      });
+      this.drawXAxisTicks_(xAxis);
+      this.drawXAxisLabel_(label);
+      xAxis[0][0].style.opacity = 1;
     },
 
-    drawXAxis_: function(xAxis) {
-      xAxis.attr('transform', 'translate(0,' + this.chartAreaSize.height + ')')
+    drawXAxis_(xAxis) {
+      xAxis.attr('transform', 'translate(0,' + this.graphHeight + ')')
         .call(d3.svg.axis()
               .scale(this.xScale_)
               .orient('bottom'));
     },
 
-    drawXAxisLabel_: function(label) {
+    drawXAxisLabel_(label) {
       label
-        .attr('x', this.chartAreaSize.width + 16)
+        .attr('x', this.graphWidth + 16)
         .attr('y', 8)
         .text(this.xAxisLabel);
     },
 
-    drawXAxisTicks_: function(xAxis) {
+    drawXAxisTicks_(xAxis) {
       var previousRight = undefined;
       xAxis.selectAll('.tick')[0].forEach(function(tick) {
         var currentLeft = tick.transform.baseVal[0].matrix.e;
@@ -246,10 +305,8 @@ tr.exportTo('tr.ui.b', function() {
       return this.autoDataRange_;
     },
 
-    updateDataRange_: function() {
-      if (this.overrideDataRange_ !== undefined) {
-        return;
-      }
+    updateDataRange_() {
+      if (this.overrideDataRange_ !== undefined) return;
 
       var dataBySeriesKey = this.getDataBySeriesKey_();
       this.autoDataRange_.reset();
@@ -273,68 +330,60 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    updateYAxis_: function(yAxis) {
+    updateYAxis_(yAxis) {
       yAxis.selectAll('*').remove();
       yAxis[0][0].style.opacity = 0;
-      if (this.hideYAxis)
-        return;
+      if (this.hideYAxis) return;
 
       this.drawYAxis_(yAxis);
+      this.drawYAxisTicks_(yAxis);
 
       var label = yAxis.append('text').attr('class', 'label');
-
-      tr.b.requestAnimationFrame(() => {
-        this.drawYAxisTicks_(yAxis);
-        this.drawYAxisLabel_(label);
-      });
+      this.drawYAxisLabel_(label);
     },
 
-    drawYAxis_: function(yAxis) {
+    drawYAxis_(yAxis) {
       var axisModifier = d3.svg.axis()
         .scale(this.yScale_)
         .orient('left');
 
       if (this.isYLogScale_) {
-        if (this.yLogScaleMin_ === undefined)
-          return;
-        var minValue = this.dataRange.min;
-        if (minValue === 0)
-          minValue = 1;
-
-        var largestPower = Math.ceil(
-            Math.log(this.dataRange.max) / Math.log(10)) + 1;
-        var smallestPower = Math.floor(
-            Math.log(minValue) / Math.log(10));
+        if (this.yLogScaleMin_ === undefined) return;
         var tickValues = [];
-        for (var i = smallestPower; i < largestPower; i++) {
-          tickValues.push(Math.pow(10, i));
+        var enclosingPowers = this.dataRange.enclosingPowers();
+        var maxPower = sanitizePower(enclosingPowers.max, 10);
+        for (var power = sanitizePower(enclosingPowers.min, 1);
+             power <= maxPower;
+             power *= 10) {
+          tickValues.push(power);
         }
 
+        // The default tickFormat() for log scales always uses scientific
+        // notation. Override it to use Number.toString(), which only uses
+        // scientific notation for extreme values, and uses decimal notation for
+        // a broader range of values. Decimal notation is generally slightly
+        // easier to skim than scientific notation in the context of chart axes.
         axisModifier = axisModifier
           .tickValues(tickValues)
-          .tickFormat(function(d) {
-            return d;
-          });
+          .tickFormat(v => v.toString());
       }
 
       yAxis.call(axisModifier);
     },
 
-    drawYAxisLabel_: function(label) {
-      var labelWidthPx = Math.ceil(tr.ui.b.getSVGTextWidth(
-            this.chartAreaElement, this.yAxisLabel));
+    drawYAxisLabel_(label) {
+      var labelWidthPx = Math.ceil(tr.ui.b.getSVGTextSize(
+            this.chartAreaElement, this.yAxisLabel).width);
       label
         .attr('x', -labelWidthPx)
         .attr('y', -8)
         .text(this.yAxisLabel);
     },
 
-    drawYAxisTicks_: function(yAxis) {
+    drawYAxisTicks_(yAxis) {
       var previousTop = undefined;
-      var leftMargin = 0;
       yAxis.selectAll('.tick')[0].forEach(function(tick) {
         var bbox = tick.getBBox();
-        leftMargin = Math.max(leftMargin, bbox.width);
         var currentTop = tick.transform.baseVal[0].matrix.f;
         var currentBottom = currentTop + bbox.height;
         if ((previousTop === undefined) ||
@@ -344,18 +393,23 @@ tr.exportTo('tr.ui.b', function() {
           tick.style.opacity = 0;
         }
       });
-
-      leftMargin = parseInt(Math.ceil(leftMargin));
-      if (leftMargin > this.margin.left) {
-        this.margin.left = leftMargin;
-        this.updateContents_();
-      } else {
-        yAxis[0][0].style.opacity = 1;
-      }
+      yAxis[0][0].style.opacity = 1;
     },
 
-    updateContents_: function() {
-      ChartBase.prototype.updateContents_.call(this);
+    updateContents_() {
+      if (this.textHeightPx_ === 0) {
+        // Measure the height of a string that is as tall as it can be,
+        // with both an ascender and a descender.
+        // https://en.wikipedia.org/wiki/Ascender_(typography)
+        this.textHeightPx_ = tr.ui.b.getSVGTextSize(this, 'Ay').height;
+        // If the chart is not yet rooted in a document, then the height will be
+        // 0. Callers should make sure that updateContents_ is called at least
+        // once after the chart is rooted in a document so that textHeightPx_
+        // can be computed.
+      }
+
+      this.updateScales_();
+      super.updateContents_();
       var chartAreaSel = d3.select(this.chartAreaElement);
       this.updateXAxis_(chartAreaSel.select('.x.axis'));
       this.updateYAxis_(chartAreaSel.select('.y.axis'));
@@ -363,7 +417,7 @@ tr.exportTo('tr.ui.b', function() {
       this.updateDataContents_(chartAreaSel.select('#series'));
     },
 
-    updateDataContents_: function(seriesSel) {
+    updateDataContents_(seriesSel) {
       throw new Error('Not implemented');
     },
 
@@ -376,7 +430,7 @@ tr.exportTo('tr.ui.b', function() {
      * this.getDataBySeriesKey_();
      * @return {Object} A map of series data by series key.
      */
-    getDataBySeriesKey_: function() {
+    getDataBySeriesKey_() {
       var dataBySeriesKey = {};
       for (var [key, series] of this.seriesByKey_) {
         dataBySeriesKey[key] = [];
@@ -405,7 +459,7 @@ tr.exportTo('tr.ui.b', function() {
       return dataBySeriesKey;
     },
 
-    getChartPointAtClientPoint_: function(clientPoint) {
+    getChartPointAtClientPoint_(clientPoint) {
       var rect = this.getBoundingClientRect();
       return {
         x: clientPoint.x - rect.left - this.margin.left,
@@ -413,7 +467,7 @@ tr.exportTo('tr.ui.b', function() {
       };
     },
 
-    getDataPointAtChartPoint_: function(chartPoint) {
+    getDataPointAtChartPoint_(chartPoint) {
       return {
         x: tr.b.clamp(this.xScale_.invert(chartPoint.x),
                this.xScale_.domain()[0], this.xScale_.domain()[1]),
@@ -422,20 +476,20 @@ tr.exportTo('tr.ui.b', function() {
       };
     },
 
-    getDataPointAtClientPoint_: function(clientX, clientY) {
+    getDataPointAtClientPoint_(clientX, clientY) {
       var chartPoint = this.getChartPointAtClientPoint_(
           {x: clientX, y: clientY});
       return this.getDataPointAtChartPoint_(chartPoint);
     },
 
-    prepareDataEvent_: function(mouseEvent, dataEvent) {
+    prepareDataEvent_(mouseEvent, dataEvent) {
       var dataPoint = this.getDataPointAtClientPoint_(
           mouseEvent.clientX, mouseEvent.clientY);
       dataEvent.x = dataPoint.x;
       dataEvent.y = dataPoint.y;
     },
 
-    onMouseDown_: function(mouseEvent) {
+    onMouseDown_(mouseEvent) {
       tr.ui.b.trackMouseMovesUntilMouseUp(
           this.onMouseMove_.bind(this, mouseEvent.button),
           this.onMouseUp_.bind(this, mouseEvent.button));
@@ -448,7 +502,7 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchEvent(dataEvent);
     },
 
-    onMouseMove_: function(button, mouseEvent) {
+    onMouseMove_(button, mouseEvent) {
       if (mouseEvent.buttons !== undefined) {
         mouseEvent.preventDefault();
         mouseEvent.stopPropagation();
@@ -459,7 +513,7 @@ tr.exportTo('tr.ui.b', function() {
       this.dispatchEvent(dataEvent);
     },
 
-    onMouseUp_: function(button, mouseEvent) {
+    onMouseUp_(button, mouseEvent) {
       mouseEvent.preventDefault();
       mouseEvent.stopPropagation();
       var dataEvent = new tr.b.Event('item-mouseup');

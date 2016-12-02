@@ -137,6 +137,7 @@ tr.exportTo('tr.v.ui', function() {
         opt_event.preventDefault();
         opt_event.stopPropagation();
       }
+      this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ === undefined) {
         var data = [];
         var unitString = undefined;
@@ -149,17 +150,12 @@ tr.exportTo('tr.v.ui', function() {
         }
 
         this.overviewChart_ = new tr.ui.b.NameLineChart();
-        this.overviewChart_.width = this.nameWidthPx;
-        this.overviewChart_.margin.right = 50;
-        this.overviewChart_.margin.bottom = 18 * data.length;
-        this.overviewChart_.height = 150 + this.overviewChart_.margin.bottom;
-        this.overviewChart_.hideLegend = true;
         this.$.overview_container.appendChild(this.overviewChart_);
+        this.overviewChart_.hideLegend = true;
         this.overviewChart_.yAxisLabel = unitString;
         this.overviewChart_.overrideDataRange = this.row.overviewDataRange;
         this.overviewChart_.data = data;
       }
-      this.$.overview_container.style.display = 'block';
       this.$.hide_overview.style.display = 'block';
       this.$.show_overview.style.display = 'none';
 

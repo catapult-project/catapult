@@ -240,40 +240,30 @@ tr.exportTo('tr.ui', function() {
     },
 
     showOverview: function() {
-      if (this.overviewChart_ === undefined) {
-        // TODO var displayLabel = getDisplayLabel(this.histogram);
-        var displayLabel = undefined;
-        for (var [label, hist] of this.row.columns) {
-          if (hist === this.histogram) {
-            displayLabel = label;
-          }
-        }
-
-        var data = [];
-        var unitString = undefined;
-        for (var subRow of this.row.subRows) {
-          var subHist = subRow.columns.get(displayLabel);
-          if (subHist) {
-            data.push({x: subRow.name, y: subHist.average});
-            unitString = subHist.unit.unitString;
-          }
-        }
-        if (data.length < 2) {
-          return;
-        }
-
-        this.overviewChart_ = new tr.ui.b.NameLineChart();
-        this.overviewChart_.width = 200;
-        this.overviewChart_.margin.right = 50;
-        this.overviewChart_.margin.bottom = 18 * data.length;
-        this.overviewChart_.height = 150 + this.overviewChart_.margin.bottom;
-        this.overviewChart_.hideLegend = true;
-        this.$.overview_container.appendChild(this.overviewChart_);
-        this.overviewChart_.yAxisLabel = unitString;
-        this.overviewChart_.overrideDataRange = this.row.overviewDataRange;
-        this.overviewChart_.data = data;
-      }
       this.$.overview_container.style.display = 'block';
+      if (this.overviewChart_ !== undefined) return;
+
+      var displayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback(
+          this.histogram);
+      var data = [];
+      var unitString = undefined;
+      for (var subRow of this.row.subRows) {
+        var subHist = subRow.columns.get(displayLabel);
+        if (subHist) {
+          data.push({x: subRow.name, y: subHist.average});
+          unitString = subHist.unit.unitString;
+        }
+      }
+      if (data.length < 2) {
+        return;
+      }
+
+      this.overviewChart_ = new tr.ui.b.NameLineChart();
+      this.$.overview_container.appendChild(this.overviewChart_);
+      this.overviewChart_.hideLegend = true;
+      this.overviewChart_.yAxisLabel = unitString;
+      this.overviewChart_.overrideDataRange = this.row.overviewDataRange;
+      this.overviewChart_.data = data;
     },
 
     hideOverview: function() {

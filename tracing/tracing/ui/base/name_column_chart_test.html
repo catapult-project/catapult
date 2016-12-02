@@ -12,18 +12,19 @@ found in the LICENSE file.
 
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
+    this.addHTMLOutput(document.createTextNode(
+        'There should be a capital "A" at the end of the string of "a"s.'));
     var chart = new tr.ui.b.NameColumnChart();
-    chart.width = 400;
-    chart.height = 200;
-    var data = [
-      {x: 'a'.repeat(27) + 'A', value: 100},
-      {x: 'b'.repeat(23) + 'B', value: 110},
-      {x: 'c'.repeat(21) + 'C', value: 100},
-      {x: 'd'.repeat(15) + 'D', value: 50}
-    ];
-    chart.margin.bottom = data.length * 18;
     this.addHTMLOutput(chart);
-    chart.data = data;
+    // Make a x-axis tick label long enough that it would overhang past the
+    // right edge of the legend in order to test that updateMargins_ extends the
+    // right margin.
+    chart.data = [
+      {x: 'a'.repeat(20) + 'A', value: 100},
+      {x: 'b', value: 110},
+      {x: 'c', value: 100},
+      {x: 'd', value: 50}
+    ];
   });
 
   test('undefined', function() {
@@ -35,19 +36,13 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_twoSeries', function() {
     var chart = new tr.ui.b.NameColumnChart();
-
-    chart.width = 200;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 'apple', alpha: 100, beta: 50},
       {x: 'ball', alpha: 110, beta: 75},
       {x: 'cat', alpha: 100, beta: 125},
       {x: 'dog', alpha: 50, beta: 125}
     ];
-    chart.margin.bottom = data.length * 18;
-    this.addHTMLOutput(chart);
-    chart.data = data;
 
     var r = new tr.b.Range();
     r.addValue(20);
@@ -57,77 +52,32 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
     var chart = new tr.ui.b.NameColumnChart();
-
-    chart.width = 200;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 'apple', alpha: 20, beta: undefined},
       {x: 'ball', alpha: undefined, beta: 10},
       {x: 'cat', alpha: 10, beta: undefined},
       {x: 'dog', alpha: undefined, beta: 20},
       {x: 'echo', alpha: 30, beta: 30}
     ];
-    chart.margin.bottom = data.length * 18;
-    this.addHTMLOutput(chart);
-    chart.data = data;
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
     var chart = new tr.ui.b.NameColumnChart();
-
-    chart.width = 200;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 'apple', alpha: 20, beta: 40},
       {x: 'ball', alpha: undefined, beta: 10},
       {x: 'cat', alpha: 10, beta: undefined},
       {x: 'dog', alpha: undefined, beta: 20},
       {x: 'echo', alpha: 30, beta: undefined}
     ];
-    chart.margin.bottom = data.length * 18;
-    this.addHTMLOutput(chart);
-    chart.data = data;
-  });
-
-  test('brushRangeFromIndices', function() {
-    var chart = new tr.ui.b.NameColumnChart();
-    var data = [
-      {x: 'apple', value: 50},
-      {x: 'ball', value: 60},
-      {x: 'cat', value: 70},
-      {x: 'dog', value: 80},
-      {x: 'echo', value: 90}
-    ];
-    chart.data = data;
-    var r = new tr.b.Range();
-
-    // Range min should be 10.
-    r = chart.computeBrushRangeFromIndices(-2, 1);
-    assert.equal(r.min, 0);
-
-    // Range max should be 120.
-    r = chart.computeBrushRangeFromIndices(3, 10);
-    assert.equal(r.max, 4);
-
-    // Range should be [10, 120]
-    r = chart.computeBrushRangeFromIndices(-2, 10);
-    assert.equal(r.min, 0);
-    assert.equal(r.max, 4);
-
-    // Range should be [20, 100]
-    r = chart.computeBrushRangeFromIndices(1, 3);
-    assert.equal(r.min, 0.5);
-    assert.equal(r.max, 3.5);
   });
 
   test('instantiation_interactiveBrushing', function() {
     var chart = new tr.ui.b.NameColumnChart();
-    chart.width = 300;
-    chart.height = 300;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 'apple', value: 50},
       {x: 'ball', value: 60},
       {x: 'cat', value: 80},
@@ -137,9 +87,6 @@ tr.b.unittest.testSuite(function() {
       {x: 'gpu', value: 15},
       {x: 'happy', value: 20}
     ];
-    chart.margin.bottom = data.length * 18;
-    this.addHTMLOutput(chart);
-    chart.data = data;
 
     var mouseDownIndex = undefined;
     var currentMouseIndex = undefined;
@@ -147,8 +94,8 @@ tr.b.unittest.testSuite(function() {
     function updateBrushedRange() {
       var r = new tr.b.Range();
       r.min = Math.max(0, Math.min(mouseDownIndex, currentMouseIndex));
-      r.max = Math.min(data.length, Math.max(mouseDownIndex,
-            currentMouseIndex) + 1);
+      r.max = Math.min(chart.data.length,
+          Math.max(mouseDownIndex, currentMouseIndex) + 1);
       chart.brushedRange = r;
     }
 

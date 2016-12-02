@@ -30,22 +30,22 @@ tr.b.unittest.testSuite(function() {
     h.addSample(1000, {foo: new tr.v.d.Generic('d')});
 
     var span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = h;
     this.addHTMLOutput(span);
+    span.histogram = h;
   });
 
   test('undefined', function() {
     var span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = undefined;
     this.addHTMLOutput(span);
+    span.histogram = undefined;
   });
 
   test('emptyHistogram', function() {
     var h = new tr.v.Histogram('', tr.b.Unit.byName.unitlessNumber);
 
     var span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = h;
     this.addHTMLOutput(span);
+    span.histogram = h;
   });
 
   test('singleSample', function() {
@@ -58,8 +58,8 @@ tr.b.unittest.testSuite(function() {
     h.diagnostics.set('histogram diagnostic 1', new tr.v.d.Generic('qux'));
 
     var span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = h;
     this.addHTMLOutput(span);
+    span.histogram = h;
   });
 
   test('nans', function() {
@@ -69,8 +69,8 @@ tr.b.unittest.testSuite(function() {
     h.customizeSummaryOptions({nans: true});
 
     var span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = h;
     this.addHTMLOutput(span);
+    span.histogram = h;
   });
 
   test('singleBin', function() {
@@ -84,8 +84,8 @@ tr.b.unittest.testSuite(function() {
     h.addSample(50);
     h.addSample(75);
     var span = document.createElement('tr-v-ui-histogram-span');
-    span.histogram = h;
     this.addHTMLOutput(span);
+    span.histogram = h;
   });
 });
 </script>

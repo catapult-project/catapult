@@ -162,6 +162,36 @@ tr.exportTo('tr.b', function() {
     vec2.copy(out, tmpVec4);
   };
 
+  /**
+   * @param {number} x
+   * @param {number=} opt_base Defaults to 10
+   * @return {number}
+   */
+  function logOrLog10(x, base) {
+    if (base === 10) return Math.log10(x);
+    return Math.log(x) / Math.log(base);
+  }
+
+  /**
+   * @param {number} x
+   * @param {number=} opt_base Defaults to 10
+   * @return {number}
+   */
+  function lesserPower(x, opt_base) {
+    var base = opt_base || 10;
+    return Math.pow(base, Math.floor(logOrLog10(x, base)));
+  }
+
+  /**
+   * @param {number} x
+   * @param {number=} opt_base Defaults to 10
+   * @return {number}
+   */
+  function greaterPower(x, opt_base) {
+    var base = opt_base || 10;
+    return Math.pow(base, Math.ceil(logOrLog10(x, base)));
+  }
+
   return {
     approximately,
     clamp,
@@ -169,6 +199,8 @@ tr.exportTo('tr.b', function() {
     normalize,
     deg2rad,
     erf,
+    lesserPower,
+    greaterPower,
   };
 });
 </script>

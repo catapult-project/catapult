@@ -7,43 +7,32 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/ui/base/chart_base_2d_brushable_x.html">
 
-<link rel="stylesheet" href="/tracing/ui/base/line_chart.css">
-
 <script>
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
-
-  /**
-   * @constructor
-   */
-  var LineChart = tr.ui.b.define('line-chart', ChartBase2DBrushX);
+  var LineChart = tr.ui.b.define('line-chart', tr.ui.b.ChartBase2DBrushX);
 
   LineChart.prototype = {
-    __proto__: ChartBase2DBrushX.prototype,
+    __proto__: tr.ui.b.ChartBase2DBrushX.prototype,
 
-    decorate: function() {
-      ChartBase2DBrushX.prototype.decorate.call(this);
-      Polymer.dom(this).classList.add('line-chart');
+    get defaultGraphWidth() {
+      return 20 * this.data_.length;
     },
 
-    isDatumFieldSeries_: function(fieldName) {
-      return fieldName !== 'x';
+    get defaultGraphHeight() {
+      return 100;
     },
 
-    getXForDatum_: function(datum, index) {
-      return datum.x;
-    },
-
-    updateDataContents_: function(dataSel) {
+    updateDataContents_(dataSel) {
       dataSel.selectAll('*').remove();
       var dataBySeriesKey = this.getDataBySeriesKey_();
       var seriesKeys = [...this.seriesByKey_.keys()];
       var pathsSel = dataSel.selectAll('path').data(seriesKeys);
       pathsSel.enter()
           .append('path')
-          .attr('class', 'line')
+          .style('fill', 'none')
+          .style('stroke-width', '1.5px')
           .style('stroke', key => this.getDataSeries(key).color)
           .attr('d', key => {
               var line = d3.svg.line()

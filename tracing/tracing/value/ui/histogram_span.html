@@ -60,70 +60,112 @@ var TRUNCATE_BIN_MARGIN = 0.15;
 Polymer({
   is: 'tr-v-ui-histogram-span',
 
-  created: function() {
+  created() {
     this.histogram_ = undefined;
     this.referenceHistogram_ = undefined;
-    this.chartWidth_ = undefined;
-    this.chartHeight_ = undefined;
+    this.graphWidth_ = undefined;
+    this.graphHeight_ = undefined;
     this.mouseDownBin_ = undefined;
     this.brushedBins_ = [];
     this.prevBrushedBins_ = [];
   },
 
-  ready: function() {
+  ready() {
     this.$.drag_handle.target = this.$.container;
     this.$.drag_handle.addEventListener(
         'drag-handle-resize', this.onResize_.bind(this));
   },
 
-  onResize_: function(event) {
+  attached() {
+    if (this.histogram_ !== undefined) this.updateContents_();
+  },
+
+  onResize_(event) {
     event.stopPropagation();
     var heightPx = parseInt(this.$.container.style.height);
-    if (heightPx < this.defaultChartHeight) {
-      heightPx = this.defaultChartHeight;
-      this.$.container.style.height = this.defaultChartHeight + 'px';
+    if (heightPx < this.defaultGraphHeight) {
+      heightPx = this.defaultGraphHeight;
+      this.$.container.style.height = this.defaultGraphHeight + 'px';
     }
-    this.chart_.height = heightPx;
+    this.chart_.graphHeight = heightPx - (this.chart_.margin.top +
+        this.chart_.margin.bottom);
   },
 
-  get chartWidth() {
-    return this.chartWidth_ || this.defaultChartWidth;
+  /**
+   * Get the width in pixels of the widest bar in the bar chart, not the total
+   * bar chart svg tag, which includes margins containing axes and legend.
+   *
+   * @return {number}
+   */
+  get graphWidth() {
+    return this.graphWidth_ || this.defaultGraphWidth;
   },
 
-  set chartWidth(width) {
-    this.chartWidth_ = width;
+  /**
+   * Set the width in pixels of the widest bar in the bar chart, not the total
+   * bar chart svg tag, which includes margins containing axes and legend.
+   *
+   * @param {number} width
+   */
+  set graphWidth(width) {
+    this.graphWidth_ = width;
   },
 
-  get chartHeight() {
-    return this.chartHeight_ || this.defaultChartHeight;
+  /**
+   * Get the height in pixels of the bars in the bar chart, not the total
+   * bar chart svg tag, which includes margins containing axes and legend.
+   *
+   * @return {number}
+   */
+  get graphHeight() {
+    return this.graphHeight_ || this.defaultGraphHeight;
   },
 
-  set chartHeight(height) {
-    this.chartHeight_ = height;
+  /**
+   * Set the height in pixels of the bars in the bar chart, not the total
+   * bar chart svg tag, which includes margins containing axes and legend.
+   *
+   * @param {number} height
+   */
+  set graphHeight(height) {
+    this.graphHeight_ = height;
   },
 
+  /**
+   * Get the height in pixels of one bar in the bar chart.
+   *
+   * @return {number}
+   */
   get barHeight() {
     return this.chart_.barHeight;
   },
 
+  /**
+   * Set the height in pixels of one bar in the bar chart.
+   *
+   * @param {number} px
+   */
   set barHeight(px) {
-    this.chartHeight = this.computeChartHeight_(px);
+    this.graphHeight = this.computeChartHeight_(px);
   },
 
-  computeChartHeight_: function(barHeightPx) {
+  computeChartHeight_(barHeightPx) {
     return (this.chart_.margin.top +
         this.chart_.margin.bottom +
         (barHeightPx * this.histogram.allBins.length));
   },
 
-  get defaultChartHeight() {
+  get defaultGraphHeight() {
     if (this.histogram && this.histogram.allBins.length === 1) {
       return 150;
     }
     return this.computeChartHeight_(DEFAULT_BAR_HEIGHT_PX);
   },
 
-  get defaultChartWidth() {
+  get defaultGraphWidth() {
+    if (this.histogram.allBins.length === 1) {
+      return 100;
+    }
     return 300;
   },
 
@@ -131,7 +173,7 @@ Polymer({
     return this.brushedBins_;
   },
 
-  updateBrushedRange_: function(binIndex) {
+  updateBrushedRange_(binIndex) {
     var brushedBinIndices = new tr.b.Range();
     brushedBinIndices.addValue(tr.b.clamp(
         this.mouseDownBinIndex_, 0, this.histogram.allBins.length - 1));
@@ -146,7 +188,7 @@ Polymer({
     }
   },
 
-  onMouseDown_: function(chartEvent) {
+  onMouseDown_(chartEvent) {
     chartEvent.stopPropagation();
     if (!this.histogram) {
       return;
@@ -156,7 +198,7 @@ Polymer({
     this.updateBrushedRange_(chartEvent.y);
   },
 
-  onMouseMove_: function(chartEvent) {
+  onMouseMove_(chartEvent) {
     chartEvent.stopPropagation();
     if (!this.histogram) {
       return;
@@ -164,7 +206,7 @@ Polymer({
     this.updateBrushedRange_(chartEvent.y);
   },
 
-  onMouseUp_: function(chartEvent) {
+  onMouseUp_(chartEvent) {
     chartEvent.stopPropagation();
     if (!this.histogram) {
       return;
@@ -180,7 +222,7 @@ Polymer({
     this.mouseDownBinIndex_ = undefined;
   },
 
-  updateDiagnostics_: function(bins) {
+  updateDiagnostics_(bins) {
     var maps = [];
     for (var bin of bins) {
       for (var map of bin.diagnosticMaps) {
@@ -202,11 +244,9 @@ Polymer({
   },
 
   set histogram(histogram) {
-    if (histogram === this.histogram_) {
-      return;
-    }
+    if (histogram === this.histogram_) return;
     this.histogram_ = histogram;
-    this.updateContents_();
+    if (this.isAttached) this.updateContents_();
   },
 
   get referenceHistogram() {
@@ -218,12 +258,10 @@ Polymer({
       return;
     }
     this.referenceHistogram_ = histogram;
-    if (this.histogram) {
-      this.updateContents_();
-    }
+    if (this.histogram) this.updateContents_();
   },
 
-  getDeltaScalars_: function(scalarMap) {
+  getDeltaScalars_(scalarMap) {
     if (!(this.referenceHistogram instanceof tr.v.Histogram) ||
         (this.histogram.unit !== this.referenceHistogram.unit) ||
         (this.histogram.numValues === 0) &&
@@ -268,16 +306,19 @@ Polymer({
     this.chart_.isYLogScale = logScale;
   },
 
-  updateContents_: function() {
-    this.$.chart.style.display = '';
+  updateContents_() {
+    this.$.chart.style.display = 'none';
     this.$.drag_handle.style.display = 'none';
     this.$.sample_diagnostics.style.display = 'none';
     this.$.container.style.justifyContent = '';
     this.brushedBins_ = [];
 
-    if (!this.histogram) {
-      return;
+    while (Polymer.dom(this.$.chart).lastChild) {
+      Polymer.dom(this.$.chart).removeChild(
+          Polymer.dom(this.$.chart).lastChild);
     }
+
+    if (!this.histogram) return;
     this.$.container.style.display = '';
 
     var scalarMap = new Map();
@@ -312,12 +353,10 @@ Polymer({
 
     if (this.histogram.allBins.length === 1) {
       this.chart_ = new tr.ui.b.BoxChart();
-      this.chart_.width = this.chartWidth;
-      this.chart_.height = this.chartHeight;
+      Polymer.dom(this.$.chart).appendChild(this.chart_);
+      this.chart_.graphWidth = this.graphWidth;
+      this.chart_.graphHeight = this.graphHeight;
       this.chart_.hideXAxis = true;
-      this.chart_.margin.top = 10;
-      this.chart_.margin.bottom = 10;
-      this.chart_.margin.right = 0;
       this.chart_.data = [
         {
           x: '',
@@ -329,17 +368,13 @@ Polymer({
           percentile_100: this.histogram.running.max,
         }
       ];
-      Polymer.dom(this.$.chart).appendChild(this.chart_);
       return;
     }
 
     this.chart_ = new tr.ui.b.NameBarChart();
-    this.chart_.width = this.chartWidth;
-    this.chart_.height = this.chartHeight;
-    this.chart_.margin.top = 20;
-    this.chart_.margin.bottom = 28;
-    this.chart_.margin.left = 70;
-    this.chart_.margin.right = 30;
+    Polymer.dom(this.$.chart).appendChild(this.chart_);
+    this.chart_.graphWidth = this.graphWidth;
+    this.chart_.graphHeight = this.graphHeight;
     this.chart_.addEventListener('item-mousedown',
         this.onMouseDown_.bind(this));
     this.chart_.addEventListener('item-mousemove',
@@ -350,7 +385,6 @@ Polymer({
     this.chart_.getDataSeries('y').color = 'blue';
     this.chart_.xAxisLabel = '#';
     this.chart_.brushedRange = new tr.b.Range();
-    Polymer.dom(this.$.chart).appendChild(this.chart_);
 
     var chartData = [];
     var binCounts = [];
@@ -379,15 +413,7 @@ Polymer({
     }
     this.chart_.overrideDataRange = dataRange;
 
-    // Set the data to render the chart in order to compute maxYAxisWidth,
-    // then set the left margin and re-render the chart.
-    // https://github.com/catapult-project/catapult/issues/2958
     this.chart_.data = chartData;
-    tr.b.requestAnimationFrame(() => {
-      this.chart_.margin.left = this.chart_.maxYAxisWidth + 2;
-      // Reset the chart data to force it to take the new margin into account.
-      this.chart_.data = chartData;
-    });
   }
 });
 </script>

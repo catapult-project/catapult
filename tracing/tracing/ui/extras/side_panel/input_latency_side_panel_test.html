@@ -35,8 +35,10 @@ tr.b.unittest.testSuite(function() {
       }
     ];
     var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
-    var latencyChart = lc.createLatencyLineChart(latencyData, 'latency');
-    this.addHTMLOutput(latencyChart);
+    var container = document.createElement('div');
+    this.addHTMLOutput(container);
+    var latencyChart = lc.createLatencyLineChart(
+        latencyData, 'latency', container);
 
     var frametimeData = [
       {
@@ -57,8 +59,10 @@ tr.b.unittest.testSuite(function() {
       }
     ];
     var lc = document.createElement('tr-ui-e-s-input-latency-side-panel');
-    var frametimeChart = lc.createLatencyLineChart(frametimeData, 'frametime');
-    this.addHTMLOutput(frametimeChart);
+    var container = document.createElement('div');
+    this.addHTMLOutput(container);
+    var frametimeChart = lc.createLatencyLineChart(
+        frametimeData, 'frametime', container);
   });
 
   test('brushedRangeChange', function() {

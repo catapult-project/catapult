@@ -5,9 +5,7 @@
 {
   'variables': {
     'tracing_css_files': [
-      'tracing/ui/base/line_chart.css',
       'tracing/ui/base/list_view.css',
-      'tracing/ui/base/pie_chart.css',
       'tracing/ui/extras/about_tracing/common.css',
       'tracing/ui/extras/chrome/cc/display_item_list_view.css',
       'tracing/ui/extras/chrome/cc/layer_picker.css',

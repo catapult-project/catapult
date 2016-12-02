@@ -13,9 +13,8 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
     var chart = new tr.ui.b.BoxChart();
-    chart.width = 200;
-    chart.height = 200;
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {
         x: 'a'.repeat(15) + 'A',
         percentile_0: 30,
@@ -41,10 +40,6 @@ tr.b.unittest.testSuite(function() {
         percentile_100: 300,
       },
     ];
-    chart.margin.right = 0;
-    chart.margin.bottom = data.length * 18;
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 });
 </script>

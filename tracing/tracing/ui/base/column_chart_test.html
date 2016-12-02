@@ -46,11 +46,8 @@ tr.b.unittest.testSuite(function() {
     chart.getDataSeries('bar').optional = true;
     chart.isStacked = true;
     chart.hideXAxis = true;
-    chart.width = 140;
-    chart.height = 200;
-    chart.chartTitle = 'title';
-    chart.data = [{x: 0, foo: 3, lorem_ipsum: 5, bar: 1, qux: 2}];
     this.addHTMLOutput(chart);
+    chart.data = [{x: 0, foo: 3, lorem_ipsum: 5, bar: 1, qux: 2}];
     chart.addEventListener('requestSelectionChange', function(e) {
       console.debug(e);
     });
@@ -67,54 +64,40 @@ tr.b.unittest.testSuite(function() {
     var chart = new tr.ui.b.ColumnChart();
     chart.xAxisLabel = 'ms';
     chart.yAxisLabel = '#';
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, value: 100},
       {x: 20, value: 110},
       {x: 30, value: 100},
       {x: 40, value: 50}
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_singleDatum', function() {
     var chart = new tr.ui.b.ColumnChart();
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 0, value: 100},
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_stacked', function() {
     var chart = new tr.ui.b.ColumnChart();
     chart.isStacked = true;
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, foo: 10, bar: 5, qux: 7},
       {x: 20, foo: 11, bar: 6, qux: 3},
       {x: 30, foo: 10, bar: 4, qux: 8},
       {x: 40, foo: 5, bar: 1, qux: 2}
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_singleSeries_yLogScale', function() {
     var chart = new tr.ui.b.ColumnChart();
     chart.isYLogScale = true;
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, value: 100},
       {x: 20, value: 10},
       {x: 30, value: 1},
@@ -122,8 +105,6 @@ tr.b.unittest.testSuite(function() {
       {x: 50, value: 0.01},
       {x: 60, value: 0.001}
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 
   test('undefined', function() {
@@ -135,82 +116,59 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_twoSeries', function() {
     var chart = new tr.ui.b.ColumnChart();
-
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 100, beta: 50},
       {x: 20, alpha: 110, beta: 75},
       {x: 30, alpha: 100, beta: 125},
       {x: 40, alpha: 50, beta: 125}
     ];
-    chart.data = data;
 
     var r = new tr.b.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
-
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSeries_yLogScale', function() {
     var chart = new tr.ui.b.ColumnChart();
     chart.isYLogScale = true;
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 100, beta: 50},
       {x: 20, alpha: 110, beta: 75},
       {x: 30, alpha: 100, beta: 125},
       {x: 40, alpha: 50, beta: 125}
     ];
-    chart.data = data;
 
     var r = new tr.b.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
-
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
     var chart = new tr.ui.b.ColumnChart();
-
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 20, beta: undefined},
       {x: 20, alpha: undefined, beta: 10},
       {x: 30, alpha: 10, beta: undefined},
       {x: 45, alpha: undefined, beta: 20},
       {x: 50, alpha: 25, beta: 30}
     ];
-    chart.data = data;
-
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
     var chart = new tr.ui.b.ColumnChart();
-
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 20, beta: 40},
       {x: 20, alpha: undefined, beta: 10},
       {x: 30, alpha: 10, beta: undefined},
       {x: 45, alpha: undefined, beta: 20},
       {x: 50, alpha: 30, beta: undefined}
     ];
-    chart.data = data;
-
-    this.addHTMLOutput(chart);
   });
 
   test('brushRangeFromIndices', function() {
@@ -246,10 +204,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_interactiveBrushing', function() {
     var chart = new tr.ui.b.ColumnChart();
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, value: 50},
       {x: 20, value: 60},
       {x: 30, value: 80},
@@ -259,7 +215,6 @@ tr.b.unittest.testSuite(function() {
       {x: 70, value: 15},
       {x: 80, value: 20}
     ];
-    chart.data = data;
 
     var mouseDownX = undefined;
     var curMouseX = undefined;
@@ -290,31 +245,24 @@ tr.b.unittest.testSuite(function() {
       curMouseX = e.x;
       updateBrushedRange();
     });
-    this.addHTMLOutput(chart);
   });
 
   test('overrideDataRange', function() {
     var chart = new tr.ui.b.ColumnChart();
-    chart.width = 400;
-    chart.height = 200;
     chart.overrideDataRange = tr.b.Range.fromExplicitRange(10, 90);
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 0, value: 0},
       {x: 1, value: 100},
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
 
     chart = new tr.ui.b.ColumnChart();
-    chart.width = 400;
-    chart.height = 200;
     chart.overrideDataRange = tr.b.Range.fromExplicitRange(-10, 100);
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 0, value: 0},
       {x: 1, value: 50},
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 });
 </script>

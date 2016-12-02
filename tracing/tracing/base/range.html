@@ -92,6 +92,21 @@ tr.exportTo('tr.b', function() {
       return this.max_ - this.min_;
     },
 
+    /**
+     * Get a new Range spanning the powers (of opt_base || 10) that enclose
+     * |this| Range.
+     * If |this| is empty, returns a new empty Range.
+     *
+     * @param {number=} opt_base Defaults to 10.
+     * @return {!Range}
+     */
+    enclosingPowers(opt_base) {
+      if (this.isEmpty) return new Range();
+      return Range.fromExplicitRange(
+          tr.b.lesserPower(this.min_, opt_base),
+          tr.b.greaterPower(this.max_, opt_base));
+    },
+
     normalize: function(x) {
       return tr.b.normalize(x, this.min, this.max);
     },

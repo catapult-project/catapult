@@ -11,87 +11,65 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('instantiation_singleSeries', function() {
     var chart = new tr.ui.b.LineChart();
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, y: 100},
       {x: 20, y: 110},
       {x: 30, y: 100},
       {x: 40, y: 50}
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSeries', function() {
     var chart = new tr.ui.b.LineChart();
-
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 100, beta: 50},
       {x: 20, alpha: 110, beta: 75},
       {x: 30, alpha: 100, beta: 125},
       {x: 40, alpha: 50, beta: 125}
     ];
-    chart.data = data;
 
     var r = new tr.b.Range();
     r.addValue(20);
     r.addValue(40);
     chart.brushedRange = r;
-
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueSparse', function() {
     var chart = new tr.ui.b.LineChart();
-
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 20, beta: undefined},
       {x: 20, alpha: undefined, beta: 10},
       {x: 30, alpha: 10, beta: undefined},
       {x: 45, alpha: undefined, beta: 20},
       {x: 50, alpha: 30, beta: 30}
     ];
-    chart.data = data;
-
-    this.addHTMLOutput(chart);
   });
 
   test('instantiation_twoSparseSeriesWithFirstValueNotSparse', function() {
     var chart = new tr.ui.b.LineChart();
-
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, alpha: 20, beta: 40},
       {x: 20, alpha: undefined, beta: 10},
       {x: 30, alpha: 10, beta: undefined},
       {x: 45, alpha: undefined, beta: 20},
       {x: 50, alpha: 30, beta: undefined}
     ];
-    chart.data = data;
-
-    this.addHTMLOutput(chart);
   });
 
   test('brushRangeFromIndices', function() {
     var chart = new tr.ui.b.LineChart();
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, value: 50},
       {x: 30, value: 60},
       {x: 70, value: 70},
       {x: 80, value: 80},
       {x: 120, value: 90}
     ];
-    chart.data = data;
     var r = new tr.b.Range();
 
     // Range min should be 10.
@@ -115,10 +93,8 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiation_interactiveBrushing', function() {
     var chart = new tr.ui.b.LineChart();
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {x: 10, value: 50},
       {x: 20, value: 60},
       {x: 30, value: 80},
@@ -128,7 +104,6 @@ tr.b.unittest.testSuite(function() {
       {x: 70, value: 15},
       {x: 80, value: 20}
     ];
-    chart.data = data;
 
     var mouseDownIndex = undefined;
     var curMouseIndex = undefined;
@@ -157,31 +132,24 @@ tr.b.unittest.testSuite(function() {
       curMouseIndex = e.index;
       updateBrushedRange();
     });
-    this.addHTMLOutput(chart);
   });
 
   test('overrideDataRange', function() {
     var chart = new tr.ui.b.LineChart();
-    chart.width = 200;
-    chart.height = 200;
+    this.addHTMLOutput(chart);
     chart.overrideDataRange = tr.b.Range.fromExplicitRange(10, 90);
-    var data = [
+    chart.data = [
       {x: 0, value: 0},
       {x: 1, value: 100},
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
 
     chart = new tr.ui.b.LineChart();
-    chart.width = 200;
-    chart.height = 200;
+    this.addHTMLOutput(chart);
     chart.overrideDataRange = tr.b.Range.fromExplicitRange(-10, 100);
-    var data = [
+    chart.data = [
       {x: 0, value: 0},
       {x: 1, value: 50},
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 });
 </script>

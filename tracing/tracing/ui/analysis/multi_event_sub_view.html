@@ -14,6 +14,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/ui.html">
 <link rel="import" href="/tracing/value/diagnostics/scalar.html">
 <link rel="import" href="/tracing/value/histogram.html">
+<link rel="import" href="/tracing/value/ui/histogram_span.html">
 
 <dom-module id='tr-ui-a-multi-event-sub-view'>
   <template>
@@ -93,23 +94,26 @@ tr.exportTo('tr.ui.analysis', function() {
     is: 'tr-ui-a-multi-event-sub-view',
     behaviors: [tr.ui.analysis.AnalysisSubView],
 
-    created: function() {
+    created() {
       this.currentSelection_ = undefined;
       this.eventsHaveDuration_ = true;
       this.eventsHaveSubRows_ = true;
     },
 
-    ready: function() {
+    ready() {
       this.$.radioPicker.style.display = 'none';
       this.$.radioPicker.items = EVENT_FIELD;
       this.$.radioPicker.select('cpuSelfTime');
-      this.$.radioPicker.addEventListener('change', function(e) {
-        this.$.histogramSpan.histogram =
-          this.buildHistogram_(e.target.selectedKey);
-      }.bind(this));
+      this.$.radioPicker.addEventListener('change', () => {
+        if (this.isAttached) this.updateContents_();
+      });
 
-      this.$.histogramSpan.chartWidth = 400;
+      this.$.histogramSpan.graphWidth = 400;
       this.$.histogramContainer.style.display = 'none';
+    },
+
+    attached() {
+      if (this.currentSelection_ !== undefined) this.updateContents_();
     },
 
     set selection(selection) {
@@ -122,9 +126,9 @@ tr.exportTo('tr.ui.analysis', function() {
       return this.currentSelection_;
     },
 
-    setSelectionWithoutErrorChecks: function(selection) {
+    setSelectionWithoutErrorChecks(selection) {
       this.currentSelection_ = selection;
-      this.updateContents_();
+      if (this.isAttached) this.updateContents_();
     },
 
     get eventsHaveDuration() {
@@ -133,7 +137,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set eventsHaveDuration(eventsHaveDuration) {
       this.eventsHaveDuration_ = eventsHaveDuration;
-      this.updateContents_();
+      if (this.isAttached) this.updateContents_();
     },
 
     get eventsHaveSubRows() {
@@ -142,10 +146,10 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set eventsHaveSubRows(eventsHaveSubRows) {
       this.eventsHaveSubRows_ = eventsHaveSubRows;
-      this.updateContents_();
+      if (this.isAttached) this.updateContents_();
     },
 
-    buildHistogram_: function(selectedKey) {
+    buildHistogram_(selectedKey) {
       var leftBoundary = Number.MAX_VALUE;
       var rightBoundary = tr.b.Statistics.percentile(
         this.currentSelection_, 0.95,
@@ -170,11 +174,9 @@ tr.exportTo('tr.ui.analysis', function() {
       return histogram;
     },
 
-    updateContents_: function() {
+    updateContents_() {
       var selection = this.currentSelection_;
-
-      if (!selection)
-        return;
+      if (!selection) return;
 
       var eventsByTitle = selection.getEventsOrganizedByTitle();
       var numTitles = tr.b.dictionaryLength(eventsByTitle);
@@ -190,11 +192,10 @@ tr.exportTo('tr.ui.analysis', function() {
 
       if (numTitles === 1) {
         this.$.radioPicker.style.display = 'block';
+        this.$.histogramContainer.style.display = 'flex';
         this.$.histogramSpan.histogram =
           this.buildHistogram_(this.$.radioPicker.selectedKey);
-        if (this.$.histogramSpan.histogram.numValues !== 0) {
-          this.$.histogramContainer.style.display = 'flex';
-        } else {
+        if (this.$.histogramSpan.histogram.numValues === 0) {
           this.$.histogramContainer.style.display = 'none';
         }
       } else {

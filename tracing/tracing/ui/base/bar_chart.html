@@ -11,84 +11,92 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ColumnChart = tr.ui.b.ColumnChart;
-
-  // @constructor
-  var BarChart = tr.ui.b.define('bar-chart', ColumnChart);
+  var BarChart = tr.ui.b.define('bar-chart', tr.ui.b.ColumnChart);
 
   BarChart.prototype = {
-    __proto__: ColumnChart.prototype,
+    __proto__: tr.ui.b.ColumnChart.prototype,
 
-    decorate: function() {
-      ColumnChart.prototype.decorate.call(this);
-      Polymer.dom(this).classList.add('bar-chart');
+    decorate() {
+      super.decorate();
       this.verticalScale_ = undefined;
       this.horizontalScale_ = undefined;
     },
 
-    updateScales_: function() {
-      ColumnChart.prototype.updateScales_.call(this);
-      this.yScale_.range([this.chartAreaSize.width, 0]);
-      this.xScale_.range([0, this.chartAreaSize.height]);
+    updateScales_() {
+      super.updateScales_();
+      this.yScale_.range([this.graphWidth, 0]);
+      this.xScale_.range([0, this.graphHeight]);
       this.verticalScale_ = this.isYLogScale_ ? d3.scale.log(10) :
         d3.scale.linear();
       this.verticalScale_.domain(this.xScale_.domain());
-      this.verticalScale_.range([this.chartAreaSize.height, 0]);
+      this.verticalScale_.range([this.graphHeight, 0]);
       this.horizontalScale_ = d3.scale.linear();
       this.horizontalScale_.domain(this.yScale_.domain());
-      this.horizontalScale_.range([0, this.chartAreaSize.width]);
+      this.horizontalScale_.range([0, this.graphWidth]);
     },
 
-    drawBrush_: function(brushRectsSel) {
+    get defaultGraphHeight() {
+      return 10 * this.data_.length;
+    },
+
+    get defaultGraphWidth() {
+      return 100;
+    },
+
+    get barHeight() {
+      return this.graphHeight / this.data.length;
+    },
+
+    drawBrush_(brushRectsSel) {
       brushRectsSel
         .attr('x', 0)
-        .attr('width', this.chartAreaSize.width)
-        .attr('y', function(d) {
-          return this.verticalScale_(d.max);
-        }.bind(this))
-        .attr('height', function(d) {
-          return this.verticalScale_(d.min) - this.verticalScale_(d.max);
-        }.bind(this));
+        .attr('width', this.graphWidth)
+        .attr('y', d => this.verticalScale_(d.max))
+        .attr('height', d =>
+            this.verticalScale_(d.min) - this.verticalScale_(d.max));
     },
 
-    getDataPointAtChartPoint_: function(chartPoint) {
+    getDataPointAtChartPoint_(chartPoint) {
       var flippedPoint = {
-        x: this.chartAreaSize.height - chartPoint.y,
-        y: this.chartAreaSize.width - chartPoint.x
+        x: this.graphHeight - chartPoint.y,
+        y: this.graphWidth - chartPoint.x
       };
-      return ColumnChart.prototype.getDataPointAtChartPoint_.call(
-          this, flippedPoint);
+      return super.getDataPointAtChartPoint_(flippedPoint);
     },
 
-    drawXAxis_: function(xAxis) {
-      xAxis.attr('transform', 'translate(0,' + this.chartAreaSize.height + ')')
+    drawXAxis_(xAxis) {
+      xAxis.attr('transform', 'translate(0,' + this.graphHeight + ')')
         .call(d3.svg.axis()
               .scale(this.horizontalScale_)
               .orient('bottom'));
     },
 
-    drawYAxis_: function(yAxis) {
+    get yAxisWidth() {
+      return this.computeScaleTickWidth_(this.verticalScale_);
+    },
+
+    drawYAxis_(yAxis) {
       var axisModifier = d3.svg.axis()
         .scale(this.verticalScale_)
         .orient('left');
       yAxis.call(axisModifier);
     },
 
-    drawHoverValueBox_: function(rect) {
+    drawHoverValueBox_(rect) {
       var seriesKeys = [...this.seriesByKey_.keys()];
       var chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.hover').remove();
       var keyWidthPx = 0;
       var keyHeightPx = 0;
       if (seriesKeys.length > 1) {
-        keyWidthPx = tr.ui.b.getSVGTextWidth(
-            this.chartAreaElement, rect.key);
+        keyWidthPx = tr.ui.b.getSVGTextSize(
+            this.chartAreaElement, rect.key).width;
         keyHeightPx = 16;
       }
-      var xWidthPx = tr.ui.b.getSVGTextWidth(
-          this.chartAreaElement, '' + rect.datum.x);
-      var valueWidthPx = tr.ui.b.getSVGTextWidth(
-          this.chartAreaElement, rect.value);
+      var xWidthPx = tr.ui.b.getSVGTextSize(
+          this.chartAreaElement, '' + rect.datum.x).width;
+      var valueWidthPx = tr.ui.b.getSVGTextSize(
+          this.chartAreaElement, rect.value).width;
       var valueHeightPx = 16;
       var xHeightPx = 16;
       var hoverWidthPx = Math.max(keyWidthPx, xWidthPx, valueWidthPx) + 5;
@@ -131,7 +139,7 @@ tr.exportTo('tr.ui.b', function() {
         .text(rect.value);
     },
 
-    flipRect_: function(rect) {
+    flipRect_(rect) {
       // Flip |rect| around |y=x|.
       return {
         datum: rect.datum,
@@ -139,8 +147,8 @@ tr.exportTo('tr.ui.b', function() {
         key: rect.key,
         value: rect.value,
         color: rect.color,
-        topPx: this.chartAreaSize.height - rect.leftPx - rect.widthPx,
-        leftPx: this.chartAreaSize.width - rect.topPx - rect.heightPx,
+        topPx: this.graphHeight - rect.leftPx - rect.widthPx,
+        leftPx: this.graphWidth - rect.topPx - rect.heightPx,
         widthPx: rect.heightPx,
         heightPx: rect.widthPx,
         underflow: rect.underflow,
@@ -148,18 +156,17 @@ tr.exportTo('tr.ui.b', function() {
       };
     },
 
-    drawRect_: function(rect, sel) {
-      ColumnChart.prototype.drawRect_.call(
-          this, this.flipRect_(rect), sel);
+    drawRect_(rect, sel) {
+      super.drawRect_(this.flipRect_(rect), sel);
     },
 
-    drawUnderflow_: function(rect, rectsSel) {
+    drawUnderflow_(rect, rectsSel) {
       var sel = rectsSel.data([rect]);
       sel.enter().append('text')
         .text('*')
         .attr('fill', rect.color)
         .attr('x', 0)
-        .attr('y', this.chartAreaSize.height - rect.leftPx +
+        .attr('y', this.graphHeight - rect.leftPx +
             3 + (rect.widthPx / 2));
       sel.exit().remove();
 
@@ -167,22 +174,21 @@ tr.exportTo('tr.ui.b', function() {
       sel.enter().append('rect')
         .attr('fill', 'rgba(0, 0, 0, 0)')
         .attr('x', 0)
-        .attr('y', this.chartAreaSize.height - rect.leftPx - rect.widthPx)
+        .attr('y', this.graphHeight - rect.leftPx - rect.widthPx)
         .attr('width', 10)
         .attr('height', rect.widthPx)
-        .on('mouseenter', () => this.drawHoverValueBox_(
-              this.flipRect_(rect)))
+        .on('mouseenter', () => this.drawHoverValueBox_(this.flipRect_(rect)))
         .on('mouseleave', () => this.clearHoverValueBox_());
       sel.exit().remove();
     },
 
-    drawOverflow_: function(rect, sel) {
+    drawOverflow_(rect, sel) {
       sel = sel.data([rect]);
       sel.enter().append('text')
         .text('*')
         .attr('fill', rect.color)
-        .attr('x', this.chartAreaSize.width)
-        .attr('y', this.chartAreaSize.height - rect.leftPx +
+        .attr('x', this.graphWidth)
+        .attr('y', this.graphHeight - rect.leftPx +
             3 + (rect.widthPx / 2));
       sel.exit().remove();
     }

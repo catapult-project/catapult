@@ -141,8 +141,7 @@ tr.exportTo('tr.ui.tracks', function() {
           transform.vectorToWorldDistance(idealMajorMarkHeightPx);
 
       // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
-      var conservativeGuess =
-          Math.pow(10, Math.ceil(Math.log10(idealMajorMarkHeightWorld)));
+      var conservativeGuess = tr.b.greaterPower(idealMajorMarkHeightWorld);
 
       // Once we have a conservative guess, use the 1-2-5 series to find
       // preferred numbers that still exceed the ideal mark distance.

@@ -39,20 +39,21 @@ found in the LICENSE file.
 Polymer({
   is: 'tr-v-ui-breakdown-span',
 
-  created: function() {
+  created() {
     this.diagnostic_ = undefined;
     this.chart_ = new tr.ui.b.ColumnChart();
-    this.chart_.width = 190;
-    this.chart_.height = 200;
     this.chart_.isStacked = true;
     this.chart_.hideXAxis = true;
-    this.chart_.margin.top = 10;
-    this.chart_.margin.bottom = 10;
-    this.chart_.margin.right = 120;
     this.minHeightPx_ = 40;
   },
 
-  ready: function() {
+  attached() {
+    // Re-render the chart. It only renders properly if it's rooted in a
+    // document.
+    this.chart_.data = this.chart_.data;
+  },
+
+  ready() {
     Polymer.dom(this.$.container).appendChild(this.chart_);
     this.$.drag_handle.target = this.$.container;
     this.$.drag_handle.addEventListener(
@@ -69,14 +70,19 @@ Polymer({
     ];
   },
 
-  onResize_: function(event) {
+  attached() {
+    if (this.diagnostic_) this.updateContents_();
+  },
+
+  onResize_(event) {
     event.stopPropagation();
     var heightPx = parseInt(this.$.container.style.height);
     if (heightPx < this.minHeightPx_) {
       heightPx = this.minHeightPx_;
       this.$.container.style.height = this.minHeightPx_ + 'px';
     }
-    this.chart_.height = heightPx;
+    this.chart_.graphHeight = heightPx - (
+        this.chart_.margin.top + this.chart_.margin.bottom);
   },
 
   get diagnostic() {
@@ -85,10 +91,10 @@ Polymer({
 
   set diagnostic(d) {
     this.diagnostic_ = d;
-    this.updateContents_();
+    if (this.isAttached) this.updateContents_();
   },
 
-  updateContents_: function() {
+  updateContents_() {
     this.$.outer.style.display = 'none';
     this.$.empty.style.display = 'block';
 

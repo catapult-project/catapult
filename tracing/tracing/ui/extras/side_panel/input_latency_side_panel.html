@@ -200,12 +200,14 @@ Polymer({
       return this.rangeOfInterest_;
   },
 
-  createLatencyLineChart: function(data, title) {
+  createLatencyLineChart: function(data, title, parentNode) {
     var chart = new tr.ui.b.LineChart();
+    Polymer.dom(parentNode).appendChild(chart);
     var width = 600;
-    if (document.body.clientWidth !== undefined)
+    if (document.body.clientWidth !== undefined) {
       width = document.body.clientWidth * 0.5;
-    chart.setSize({width: width, height: chart.height});
+    }
+    chart.graphWidth = width;
     chart.chartTitle = title;
     chart.data = data;
     return chart;
@@ -272,15 +274,13 @@ Polymer({
 
     if (latencyData.length !== 0) {
       this.latencyChart_ = this.createLatencyLineChart(
-          latencyData, 'Latency Over Time');
+          latencyData, 'Latency Over Time', resultArea);
       this.registerMouseEventForLatencyChart_();
-      Polymer.dom(resultArea).appendChild(this.latencyChart_);
     }
 
     if (frametimeData.length !== 0) {
       this.frametimeChart_ = this.createLatencyLineChart(
-          frametimeData, 'Frame Times');
-      Polymer.dom(resultArea).appendChild(this.frametimeChart_);
+          frametimeData, 'Frame Times', resultArea);
     }
   },
 

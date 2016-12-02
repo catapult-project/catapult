@@ -168,7 +168,9 @@ tr.b.unittest.testSuite(function() {
     var chart = ce.createPieChartFromResultGroups(
         newGroups, 'Trimmed', getValueFromGroup);
     this.addHTMLOutput(chart);
-    chart.setSize(chart.getMinSize());
+    // Re-render the chart now that it is rooted in a document. The
+    // time-summary-side-panel normally handles this correctly.
+    chart.data = chart.data;
   });
 
   test('basicInWallTimeMode', function() {

@@ -11,18 +11,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var ColorScheme = tr.b.ColorScheme;
-  var ChartBase2DBrushX = tr.ui.b.ChartBase2DBrushX;
-
-  // @constructor
-  var ColumnChart = tr.ui.b.define('column-chart', ChartBase2DBrushX);
+  var ColumnChart = tr.ui.b.define('column-chart', tr.ui.b.ChartBase2DBrushX);
 
   ColumnChart.prototype = {
-    __proto__: ChartBase2DBrushX.prototype,
+    __proto__: tr.ui.b.ChartBase2DBrushX.prototype,
 
-    decorate: function() {
-      ChartBase2DBrushX.prototype.decorate.call(this);
-      Polymer.dom(this).classList.add('column-chart');
+    decorate() {
+      super.decorate();
 
       // ColumnChart allows bars to have arbitrary, non-uniform widths. Bars
       // need not all be the same width. The width of each bar is automatically
@@ -47,17 +42,16 @@ tr.exportTo('tr.ui.b', function() {
       return this.isStacked_;
     },
 
-    isDatumFieldSeries_: function(fieldName) {
-      return fieldName !== 'x';
+    get defaultGraphHeight() {
+      return 100;
     },
 
-    getXForDatum_: function(datum, index) {
-      return datum.x;
+    get defaultGraphWidth() {
+      return 10 * this.data_.length;
     },
 
-    updateScales_: function() {
-      if (this.data_.length === 0)
-        return;
+    updateScales_() {
+      if (this.data_.length === 0) return;
 
       var xDifferences = 0;
       var currentX = undefined;
@@ -74,22 +68,21 @@ tr.exportTo('tr.ui.b', function() {
       // Leave a cushion on the right so that the last rect doesn't
       // exceed the chart boundaries. The last rect's width is set to the
       // average width of the rects, which is chart.width / data.length.
-      var width = this.chartAreaSize.width;
-      this.xScale_.range([0, width]);
+      this.xScale_.range([0, this.graphWidth]);
       var domain = d3.extent(this.data_, this.getXForDatum_.bind(this));
       if (this.data_.length > 1)
         this.xCushion_ = xDifferences / (this.data_.length - 1);
       this.xScale_.domain([domain[0], domain[1] + this.xCushion_]);
 
       // Y.
-      this.yScale_.range([this.chartAreaSize.height, 0]);
+      this.yScale_.range([this.graphHeight, 0]);
       this.yScale_.domain(this.getYScaleDomain_(
           this.dataRange.min, this.dataRange.max));
     },
 
-    updateDataRange_: function() {
+    updateDataRange_() {
       if (!this.isStacked) {
-        ChartBase2DBrushX.prototype.updateDataRange_.call(this);
+        super.updateDataRange_();
         return;
       }
 
@@ -107,7 +100,7 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    getStackedRectsForDatum_: function(datum, index) {
+    getStackedRectsForDatum_(datum, index) {
       var stacks = [];
       var bottom = this.yScale_.range()[0];
       var sum = 0;
@@ -132,7 +125,7 @@ tr.exportTo('tr.ui.b', function() {
       return stacks;
     },
 
-    getRectsForDatum_: function(datum, index) {
+    getRectsForDatum_(datum, index) {
       if (this.isStacked)
         return this.getStackedRectsForDatum_(datum, index);
 
@@ -160,19 +153,19 @@ tr.exportTo('tr.ui.b', function() {
       return stacks;
     },
 
-    drawHoverValueBox_: function(rect) {
+    drawHoverValueBox_(rect) {
       var seriesKeys = [...this.seriesByKey_.keys()];
       var chartAreaSel = d3.select(this.chartAreaElement);
       chartAreaSel.selectAll('.hover').remove();
       var keyWidthPx = 0;
       var keyHeightPx = 0;
       if (seriesKeys.length > 1) {
-        keyWidthPx = tr.ui.b.getSVGTextWidth(
-            this.chartAreaElement, rect.key) + 5;
+        keyWidthPx = tr.ui.b.getSVGTextSize(
+            this.chartAreaElement, rect.key).width + 5;
         keyHeightPx = 16;
       }
-      var valueWidthPx = tr.ui.b.getSVGTextWidth(
-          this.chartAreaElement, rect.value) + 5;
+      var valueWidthPx = tr.ui.b.getSVGTextSize(
+          this.chartAreaElement, rect.value).width + 5;
       var valueHeightPx = 16;
       var hoverLeftPx = rect.leftPx + (rect.widthPx / 2);
 
@@ -204,11 +197,11 @@ tr.exportTo('tr.ui.b', function() {
         .text(rect.value);
     },
 
-    clearHoverValueBox_: function() {
+    clearHoverValueBox_() {
       d3.select(this.chartAreaElement).selectAll('.hover').remove();
     },
 
-    drawRect_: function(rect, sel) {
+    drawRect_(rect, sel) {
       sel = sel.data([rect]);
       sel.enter().append('rect')
         .attr('fill', rect.color)
@@ -221,19 +214,19 @@ tr.exportTo('tr.ui.b', function() {
       sel.exit().remove();
     },
 
-    drawUnderflow_: function(rect, sel) {
+    drawUnderflow_(rect, sel) {
       sel = sel.data([rect]);
       sel.enter().append('text')
         .text('*')
         .attr('fill', rect.color)
         .attr('x', rect.leftPx + (rect.widthPx / 2))
-        .attr('y', this.chartAreaSize.height)
+        .attr('y', this.graphHeight)
         .on('mouseenter', this.drawHoverValueBox_.bind(this, rect))
         .on('mouseleave', this.clearHoverValueBox_.bind(this));
       sel.exit().remove();
     },
 
-    drawOverflow_: function(rect, sel) {
+    drawOverflow_(rect, sel) {
       sel = sel.data([rect]);
       sel.enter().append('text')
         .text('*')
@@ -243,7 +236,7 @@ tr.exportTo('tr.ui.b', function() {
       sel.exit().remove();
     },
 
-    updateDataContents_: function(dataSel) {
+    updateDataContents_(dataSel) {
       dataSel.selectAll('*').remove();
       var chartAreaSel = d3.select(this.chartAreaElement);
       var seriesKeys = [...this.seriesByKey_.keys()];

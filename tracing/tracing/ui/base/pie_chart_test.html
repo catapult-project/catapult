@@ -11,50 +11,39 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   test('simple', function() {
     var chart = new tr.ui.b.PieChart();
-    chart.width = 400;
-    chart.height = 200;
-    assert.equal(chart.getAttribute('width'), '400');
-    assert.equal(chart.getAttribute('height'), '200');
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {label: 'a', value: 100},
       {label: 'b', value: 200},
       {label: 'c', value: 300}
     ];
-    chart.data = data;
+
     chart.highlightedLegendKey = 'a';
     chart.pushTempHighlightedLegendKey('b');
     chart.highlightedLegendKey = 'c';
     assert.equal(chart.currentHighlightedLegendKey, 'b');
     chart.popTempHighlightedLegendKey('b');
     assert.equal(chart.highlightedLegendKey, 'c');
-    this.addHTMLOutput(chart);
   });
 
   test('withValueText', function() {
     var chart = new tr.ui.b.PieChart();
-    chart.width = 400;
-    chart.height = 200;
     chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {label: 'a', value: 100, valueText: '100ms'},
       {label: 'b', value: 200, valueText: '200ms'},
       {label: 'c', value: 300, valueText: '300ms'}
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
   });
 
   test('clickEvent', function() {
     var chart = new tr.ui.b.PieChart();
-    chart.width = 400;
-    chart.height = 200;
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {label: 'a', value: 100, foo: 42},
       {label: 'b', value: 200, foo: 43}
     ];
-    chart.data = data;
 
     var didGetClick = false;
     chart.addEventListener('item-click', function(event) {
@@ -70,8 +59,8 @@ tr.b.unittest.testSuite(function() {
 
   test('lotsOfValues', function() {
     var chart = new tr.ui.b.PieChart();
-    chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {label: 'a', value: 100},
       {label: 'bb', value: 200},
       {label: 'cccc', value: 300},
@@ -85,17 +74,16 @@ tr.b.unittest.testSuite(function() {
       {label: 'kkkkkkkkk', value: 170},
       {label: 'lll', value: 220}
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
-
-    var minSize = chart.getMinSize();
-    chart.setSize(chart.getMinSize());
   });
 
   test('denseValues', function() {
+    this.addHTMLOutput(document.createTextNode(
+        '(The labels cross-talk. We recommend using stacked ColumnChart or ' +
+        'BarChart instead of PieChart.)'));
     var chart = new tr.ui.b.PieChart();
     chart.chartTitle = 'Chart title';
-    var data = [
+    this.addHTMLOutput(chart);
+    chart.data = [
       {
         valueText: '2.855ms',
         value: 2.854999999999997,
@@ -197,11 +185,6 @@ tr.b.unittest.testSuite(function() {
         label: 'Watchdog'
       }
     ];
-    chart.data = data;
-    this.addHTMLOutput(chart);
-
-    var minSize = chart.getMinSize();
-    chart.setSize(chart.getMinSize());
   });
 });
 </script>

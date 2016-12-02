@@ -12,19 +12,16 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.ui.b', function() {
-  var NameLineChart = tr.ui.b.NameLineChart;
-
-  // @constructor
-  var BoxChart = tr.ui.b.define('box-chart', NameLineChart);
+  var BoxChart = tr.ui.b.define('box-chart', tr.ui.b.NameLineChart);
 
   BoxChart.prototype = {
-    __proto__: NameLineChart.prototype,
+    __proto__: tr.ui.b.NameLineChart.prototype,
 
     get hideLegend() {
       return true;
     },
 
-    updateDataRange_: function() {
+    updateDataRange_() {
       if (this.overrideDataRange_ !== undefined) {
         return;
       }
@@ -36,8 +33,8 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    updateScales_: function() {
-      NameLineChart.prototype.updateScales_.call(this);
+    updateScales_() {
+      super.updateScales_();
       this.xScale_.domain([0, this.data_.length]);
     },
 
@@ -45,10 +42,8 @@ tr.exportTo('tr.ui.b', function() {
       return 0.5;
     },
 
-    updateDataRange_: function() {
-      if (this.overrideDataRange_ !== undefined) {
-        return;
-      }
+    updateDataRange_() {
+      if (this.overrideDataRange_ !== undefined) return;
 
       this.autoDataRange_.reset();
       for (var datum of this.data_) {
@@ -57,11 +52,9 @@ tr.exportTo('tr.ui.b', function() {
       }
     },
 
-    updateXAxis_: function(xAxis) {
+    updateXAxis_(xAxis) {
       xAxis.selectAll('*').remove();
-      if (this.hideXAxis) {
-        return;
-      }
+      if (this.hideXAxis) return;
 
       tr.ui.b.NameColumnChart.prototype.updateXAxis_.call(this, xAxis);
 
@@ -70,12 +63,12 @@ tr.exportTo('tr.ui.b', function() {
         .attr('stroke', 'black')
         .attr('x1', this.xScale_(0))
         .attr('x2', this.xScale_(this.data_.length))
-        .attr('y1', this.chartAreaSize.height)
-        .attr('y2', this.chartAreaSize.height);
+        .attr('y1', this.graphHeight)
+        .attr('y2', this.graphHeight);
       baseline.exit().remove();
     },
 
-    updateDataContents_: function(dataSel) {
+    updateDataContents_(dataSel) {
       dataSel.selectAll('*').remove();
       var boxesSel = dataSel.selectAll('path');
       for (var index = 0; index < this.data_.length; ++index) {

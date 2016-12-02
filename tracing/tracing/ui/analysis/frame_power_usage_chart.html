@@ -29,8 +29,6 @@ curve over the course of a frame or set of frames.
 var EventSet = tr.model.EventSet;
 
 var CHART_TITLE = 'Power (W) by ms since vertical sync';
-// TODO(charliea): Find out how to make this specifiable via CSS.
-var CHART_WIDTH_FRACTION_OF_BODY = 0.5;
 
 Polymer({
   is: 'tr-ui-a-frame-power-usage-chart',
@@ -39,6 +37,10 @@ Polymer({
     this.chart_ = undefined;
     this.samples_ = new EventSet();
     this.vSyncTimestamps_ = [];
+  },
+
+  attached() {
+    if (this.samples_) this.updateContents_();
   },
 
   get chart() {
@@ -61,7 +63,7 @@ Polymer({
     this.samples_ = (samples === undefined) ? new EventSet() : samples;
     this.vSyncTimestamps_ =
         (vSyncTimestamps === undefined) ? [] : vSyncTimestamps;
-    this.updateContents_();
+    if (this.isAttached) this.updateContents_();
   },
 
   updateContents_: function() {
@@ -69,27 +71,19 @@ Polymer({
 
     var data = this.getDataForLineChart_();
 
-    if (data.length === 0)
-      return;
+    if (data.length === 0) return;
 
-    this.chart_ = this.createChart_(data);
+    this.chart_ = new tr.ui.b.LineChart();
     Polymer.dom(this.$.content).appendChild(this.chart_);
-  },
-
-  createChart_: function(data) {
-    var chart = new tr.ui.b.LineChart();
-    var width = document.body.clientWidth * CHART_WIDTH_FRACTION_OF_BODY;
-    chart.setSize({width: width, height: chart.height});
-    chart.chartTitle = CHART_TITLE;
-    chart.data = data;
-
-    return chart;
+    this.chart_.chartTitle = CHART_TITLE;
+    this.chart_.data = data;
   },
 
   clearChart_: function() {
     var content = this.$.content;
-    while (Polymer.dom(content).firstChild)
+    while (Polymer.dom(content).firstChild) {
       Polymer.dom(content).removeChild(Polymer.dom(content).firstChild);
+    }
 
     this.chart_ = undefined;
   },

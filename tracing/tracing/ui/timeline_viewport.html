@@ -295,8 +295,7 @@ tr.exportTo('tr.ui', function() {
           dt.xViewVectorToWorld(idealMajorMarkDistancePix);
 
       // The conservative guess is the nearest enclosing 0.1, 1, 10, 100, etc.
-      var conservativeGuess =
-          Math.pow(10, Math.ceil(Math.log10(idealMajorMarkDistanceWorld)));
+      var conservativeGuess = tr.b.greaterPower(idealMajorMarkDistanceWorld);
 
       // Once we have a conservative guess, consider things that evenly add up
       // to the conservative guess, e.g. 0.5, 0.2, 0.1. Pick the one that still
