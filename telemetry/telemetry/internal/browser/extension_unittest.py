@@ -163,43 +163,6 @@ class MultipleExtensionTest(unittest.TestCase):
       self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
 
 
-class ComponentExtensionTest(unittest.TestCase):
-  def testComponentExtensionBasic(self):
-    extension_path = os.path.join(
-        util.GetUnittestDataDir(), 'component_extension')
-    options = options_for_unittests.GetCopy()
-    load_extension = extension_to_load.ExtensionToLoad(
-        extension_path, options.browser_type, is_component=True)
-
-    options.browser_options.extensions_to_load = [load_extension]
-    browser_to_create = browser_finder.FindBrowser(options)
-    if not browser_to_create:
-      logging.warning('Did not find a browser that supports extensions, '
-                      'skipping test.')
-      return
-
-    try:
-      browser_to_create.platform.network_controller.InitializeIfNeeded()
-      with browser_to_create.Create(options) as b:
-        extension = b.extensions[load_extension]
-        self.assertTrue(
-            extension.EvaluateJavaScript('chrome.runtime != null'))
-        extension.ExecuteJavaScript('setTestVar("abcdef")')
-        self.assertEquals('abcdef', extension.EvaluateJavaScript('_testVar'))
-    finally:
-      browser_to_create.platform.network_controller.Close()
-
-  def testComponentExtensionNoPublicKey(self):
-    # simple_extension does not have a public key.
-    extension_path = os.path.join(util.GetUnittestDataDir(), 'simple_extension')
-    options = options_for_unittests.GetCopy()
-    self.assertRaises(extension_to_load.MissingPublicKeyException,
-                      lambda: extension_to_load.ExtensionToLoad(
-                          extension_path,
-                          browser_type=options.browser_type,
-                          is_component=True))
-
-
 class WebviewInExtensionTest(ExtensionTest):
 
   # Flaky on windows, hits an exception: http://crbug.com/508325
