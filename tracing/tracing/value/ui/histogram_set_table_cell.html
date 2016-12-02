@@ -243,8 +243,14 @@ tr.exportTo('tr.ui', function() {
       this.$.overview_container.style.display = 'block';
       if (this.overviewChart_ !== undefined) return;
 
-      var displayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback(
-          this.histogram);
+      // TODO(benjhayden) When IterationInfo is merged: var displayLabel =
+      // tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback(this.histogram);
+      var displayLabel = undefined;
+      for (var [label, hist] of this.row.columns) {
+        if (hist === this.histogram) {
+          displayLabel = label;
+        }
+      }
       var data = [];
       var unitString = undefined;
       for (var subRow of this.row.subRows) {
@@ -254,9 +260,7 @@ tr.exportTo('tr.ui', function() {
           unitString = subHist.unit.unitString;
         }
       }
-      if (data.length < 2) {
-        return;
-      }
+      if (data.length < 2) return;
 
       this.overviewChart_ = new tr.ui.b.NameLineChart();
       this.$.overview_container.appendChild(this.overviewChart_);
