@@ -108,17 +108,46 @@ tr.exportTo('tr.e.chrome', function() {
   }
 
   /**
-   * Returns weighted expected queueing time (EQT) for the given time window and
-   * the given set of weighted tasks. The tasks must not overlap.
+   * Returns the contribution of the given task to expected queueing time
+   * in the given time window.
    *
-   * The weighted EQT is computed as
-   * sum(probabilityOf(task) * expectedQueueTimeDueTo(task) * task.weight)
-   * for all tasks in weightedTasks, where
+   * The result is probabilityOf(task) * expectedQueueTimeDueTo(task),
+   * where
    * - probabilityOf(task) = probability of input arriving while the given
    *   task is running.
    * - expectedQueueingTimeDueTo(task) = expected time until the end of the
    *   given task for input arriving while the task is running.
-   * - task.weight = arbitrary number between 0.0 and 1.0. This is useful
+   *
+   * We assume that input arrival time is uniformly distributed in the given
+   * time window.
+   *
+   * @param {!tr.b.Range} A time window.
+   * @param {!Array.<!{start: number, end: number, weight: number}>} A list of
+   *        weighted tasks. The weight of a task must be between 0.0 and 1.0.
+   * @returns {number}
+   */
+  function contributionToEQT(window, task) {
+    var startInWindow = Math.max(window.min, task.start);
+    var endInWindow = Math.min(window.max, task.end);
+    var durationInWindow = endInWindow - startInWindow;
+    if (durationInWindow <= 0) return 0;
+    var probabilityOfTask = durationInWindow / (window.max - window.min);
+    var minQueueingTime = task.end - endInWindow;
+    var maxQueueingTime = task.end - startInWindow;
+    var expectedQueueingTimeDueToTask =
+        (maxQueueingTime + minQueueingTime) / 2;
+    return probabilityOfTask * expectedQueueingTimeDueToTask;
+  }
+
+  /**
+   * Returns weighted expected queueing time (EQT) for the given time window and
+   * the given set of weighted tasks. The tasks must not overlap.
+   *
+   * The weighted EQT is computed as
+   *   sum(contributionToEQT(window, task) * task.weight)
+   * for all tasks in weightedTasks, where
+   * - contributionToEQT is the function defined above.
+   * - task.weight is an arbitrary number between 0.0 and 1.0. This is useful
    *   for computing contribution of chrome subcomponents (e.g. GC) to
    *   the expected queueing time for EQT diagnostics.
    *
@@ -132,18 +161,8 @@ tr.exportTo('tr.e.chrome', function() {
    */
   function weightedExpectedQueueingTime(window, weightedTasks) {
     var result = 0;
-    var totalDuration = window.max - window.min;
     for (var task of weightedTasks) {
-      var startInWindow = Math.max(window.min, task.start);
-      var endInWindow = Math.min(window.max, task.end);
-      var durationInWindow = endInWindow - startInWindow;
-      if (durationInWindow <= 0) continue;
-      var probabilityOfTask = durationInWindow / totalDuration;
-      var minQueueingTime = task.end - endInWindow;
-      var maxQueueingTime = task.end - startInWindow;
-      var expectedQueueingTimeDueToTask =
-          (maxQueueingTime + minQueueingTime) / 2;
-      result += probabilityOfTask * expectedQueueingTimeDueToTask * task.weight;
+      result += contributionToEQT(window, task) * task.weight;
     }
     return result;
   }
@@ -162,12 +181,174 @@ tr.exportTo('tr.e.chrome', function() {
     }));
   }
 
+  /**
+   * Object of this calss represents the sliding window and maintains its
+   * main invariant: windowEQT = firstTaskEQT + innerEQT + lastTaskEQT.
+   * It is intended to be used only in maxExpectedQueueingTimeInSlidingWindow().
+   */
+  class SlidingWindow {
+    /**
+     * @param {number} The starting time of the sliding window.
+     * @param {number} The window size.
+     * @param {!Array.<!{start: number, end: number}>} A list of tasks sorted by
+     *     task start time.
+     */
+    constructor(startTime, windowSize, sortedTasks) {
+      /**
+       * @private @const {number} The window size.
+       */
+      this.windowSize_ = windowSize;
+      /**
+       * @private @const {!Array.<!{start: number, end: number}>} The tasks.
+       */
+      this.sortedTasks_ = sortedTasks;
+      /**
+       * @private {!tr.b.Range} The endpoints of the sliding window.
+       */
+      this.range_ = tr.b.Range.fromExplicitRange(
+          startTime, startTime + windowSize);
+      /**
+       * @private {number} The index of the first task in the sortedTasks that
+       *     ends after this window starts:
+       *     this.range_.min < this.sortedTasks_[this.firstTaskIndex_].end.
+       */
+      this.firstTaskIndex_ =
+          sortedTasks.findIndex(task => startTime < task.end);
+      if (this.firstTaskIndex_ === -1)
+        this.firstTaskIndex_ = sortedTasks.length;
+      /**
+       * @private {number} The index of the last task in the sortedTasks that
+       *     starts before this window ends:
+       *     this.range.max > this.sortedTasks_[lastTaskIndex_].start.
+       */
+      this.lastTaskIndex_ = -1;
+      while (this.lastTaskIndex_ + 1 < sortedTasks.length &&
+          sortedTasks[this.lastTaskIndex_ + 1].start < startTime + windowSize) {
+        this.lastTaskIndex_++;
+      }
+      /**
+       * @private {number} The sum of EQT contributions for all tasks between
+       *     the first task and the last task (excluding the first and the last
+       *     tasks). All such tasks are completely inside the window.
+       */
+      this.innerEQT_ = 0;
+      for (var i = this.firstTaskIndex_ + 1; i < this.lastTaskIndex_; i++) {
+        this.innerEQT_ += contributionToEQT(this.range_, sortedTasks[i]);
+      }
+    }
+
+    /**
+     * @returns the EQT for this window.
+     */
+    get getEQT() {
+      var firstTaskEQT = 0;
+      if (this.firstTaskIndex_ < this.sortedTasks_.length) {
+        firstTaskEQT = contributionToEQT(this.range_,
+            this.sortedTasks_[this.firstTaskIndex_]);
+      }
+      var lastTaskEQT = 0;
+      if (this.firstTaskIndex_ < this.lastTaskIndex_) {
+        lastTaskEQT = contributionToEQT(this.range_,
+            this.sortedTasks_[this.lastTaskIndex_]);
+      }
+      return firstTaskEQT + this.innerEQT_ + lastTaskEQT;
+    }
+
+    /**
+     * Moves the window to the given time t.
+     * @param {number} The time.
+     */
+    slide(t) {
+      this.range_ = tr.b.Range.fromExplicitRange(t, t + this.windowSize_);
+      if (this.firstTaskIndex_ < this.sortedTasks_.length &&
+          this.sortedTasks_[this.firstTaskIndex_].end <= t) {
+        // The first task moved out of the window.
+        this.firstTaskIndex_++;
+        if (this.firstTaskIndex_ < this.lastTaskIndex_) {
+          // The new first window was accounted in innerEQT. Undo that.
+          this.innerEQT_ -= contributionToEQT(this.range_,
+              this.sortedTasks_[this.firstTaskIndex_]);
+        }
+      }
+      if (this.lastTaskIndex_ + 1 < this.sortedTasks_.length &&
+          this.sortedTasks_[this.lastTaskIndex_ + 1].start <
+              t + this.windowSize_) {
+        // A new task moved in the window.
+        if (this.firstTaskIndex_ < this.lastTaskIndex_) {
+          // The old last task is completely inside the window.
+          // Account it in innerEQT.
+          this.innerEQT_ += contributionToEQT(this.range_,
+              this.sortedTasks_[this.lastTaskIndex_]);
+        }
+        this.lastTaskIndex_++;
+      }
+    }
+  }
+
+  /**
+   * Returns maximum expected queueing time for time window of the given size
+   * that slides from the startTime to the endTime:
+   *   max { expectedQueueingTime(window(t, t + windowSize), tasks),
+   *         for all startTime <= t && t + w <= endTime }.
+   * See https://goo.gl/jmWpMl for the description of the algorithm.
+   *
+   * @param {number} start time for the sliding window.
+   * @param {number} end time for the sliding window.
+   * @param {number} the size of the sliding window.
+   * @param {!Array.<!{start: number, end: number}>} A list of tasks.
+   *        The tasks must not overlap.
+   * @returns {number}
+   */
+  function maxExpectedQueueingTimeInSlidingWindow(startTime, endTime,
+                                                  windowSize, tasks) {
+    if (windowSize <= 0) {
+      throw Error('The window size must be positive number');
+    }
+    if (startTime + windowSize > endTime) {
+      throw Error('The sliding window must fit in the specified time range');
+    }
+
+    var sortedTasks = tasks.slice().sort((a, b) => a.start - b.start);
+
+    for (var i = 1; i < sortedTasks.length; i++) {
+      if (sortedTasks[i - 1].end > sortedTasks[i].start) {
+        throw Error('Tasks must not overlap');
+      }
+    }
+
+    // Collect all time points that the sliding window needs to stop at.
+    // See https://goo.gl/jmWpMl for justification.
+    var endpoints = [];
+    endpoints.push(startTime);
+    endpoints.push(endTime - windowSize);
+    for (var task of tasks) {
+      endpoints.push(task.start - windowSize);
+      endpoints.push(task.start);
+      endpoints.push(task.end - windowSize);
+      endpoints.push(task.end);
+    }
+    endpoints = endpoints.filter(
+        x => (startTime <= x && x + windowSize <= endTime));
+    endpoints.sort((a, b) => a - b);
+
+    // Slide the window and compute maxEQT.
+    var slidingWindow = new SlidingWindow(
+        endpoints[0], windowSize, sortedTasks);
+    var maxEQT = 0;
+    for (var t of endpoints) {
+      slidingWindow.slide(t);
+      maxEQT = Math.max(maxEQT, slidingWindow.getEQT);
+    }
+    return maxEQT;
+  }
+
   return {
-    getPostInteractiveTaskWindows: getPostInteractiveTaskWindows,
-    getNavStartTimestamps: getNavStartTimestamps,
-    getInteractiveTimestamps: getInteractiveTimestamps,
-    expectedQueueingTime: expectedQueueingTime,
-    weightedExpectedQueueingTime: weightedExpectedQueueingTime
+    getPostInteractiveTaskWindows,
+    getNavStartTimestamps,
+    getInteractiveTimestamps,
+    expectedQueueingTime,
+    maxExpectedQueueingTimeInSlidingWindow,
+    weightedExpectedQueueingTime
   };
 });
 </script>
