@@ -7,9 +7,7 @@
 
 import contextlib
 import os
-import re
 import shutil
-import subprocess
 import tempfile
 import sys
 
@@ -56,7 +54,9 @@ def TempAppDir(root_dir, symlinks):
         return shutil.copy2(src, dest)
     link = Link
 
-  gcloud_lib_dir = _GcloudLibDir()
+  project_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+  third_party_source_dir = os.path.join(os.path.dirname(project_dir),
+                                        'third_party')
   temp_app_dir = tempfile.mkdtemp(prefix='app-')
   try:
     for module in Modules(root_dir):
@@ -76,19 +76,10 @@ def TempAppDir(root_dir, symlinks):
       # Copy/symlink Gcloud library dependencies into module directory.
       third_party_dest_dir = os.path.join(module_dest_dir, 'third_party')
       os.mkdir(third_party_dest_dir)
-      open(os.path.join(third_party_dest_dir, '__init__.py'), 'w').close()
-      for library in constants.GCLOUD_THIRD_PARTY_LIBRARIES:
-        link(os.path.join(gcloud_lib_dir, library),
+      for library in constants.THIRD_PARTY_LIBRARIES:
+        link(os.path.join(third_party_source_dir, library),
              os.path.join(third_party_dest_dir, library))
 
     yield temp_app_dir
   finally:
     shutil.rmtree(temp_app_dir)
-
-
-def _GcloudLibDir():
-  process = subprocess.Popen(['gcloud', 'info'], stdout=subprocess.PIPE)
-  stdout, _ = process.communicate()
-  gcloud_root_dir = re.search(r'^Installation Root: \[(.*)\]$', stdout,
-                              flags=re.MULTILINE).groups()[0]
-  return os.path.join(gcloud_root_dir, 'lib', 'third_party')

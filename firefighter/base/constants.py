@@ -32,7 +32,7 @@ MASTER_NAMES = (
 
 # Code organization / deployment constants.
 
-GCLOUD_THIRD_PARTY_LIBRARIES = (
+THIRD_PARTY_LIBRARIES = (
     'apiclient',
     'httplib2',
     'oauth2client',

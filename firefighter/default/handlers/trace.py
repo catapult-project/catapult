@@ -34,4 +34,5 @@ class Trace(webapp2.RequestHandler):
     }
 
     template = jinja.ENVIRONMENT.get_template('trace.html')
+    # pylint: disable=no-member
     self.response.out.write(template.render(template_values))

@@ -2,7 +2,12 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import os
+
 from google.appengine.ext import vendor
 
+from base import constants
 
-vendor.add('third_party')
+
+for library in constants.THIRD_PARTY_LIBRARIES:
+  vendor.add(os.path.join('third_party', library))

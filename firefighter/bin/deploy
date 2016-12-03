@@ -15,7 +15,7 @@ def main():
   root_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
   with packaging.TempAppDir(root_dir, symlinks=False) as temp_app_dir:
     yaml_files = list(packaging.Yamls(temp_app_dir))
-    args = ['gcloud', 'preview', 'app', 'deploy'] + yaml_files + sys.argv[1:]
+    args = ['gcloud', 'app', 'deploy'] + yaml_files + sys.argv[1:]
     subprocess.call(args, cwd=temp_app_dir)
 
 

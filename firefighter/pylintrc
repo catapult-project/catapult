@@ -11,6 +11,7 @@ disable=
   locally-disabled,
   locally-enabled,
   missing-docstring,
+  no-name-in-module,
   no-self-use,
   protected-access,
   star-args,
