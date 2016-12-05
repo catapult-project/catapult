@@ -34,22 +34,22 @@ if __name__ == '__main__':
 
   parser = argparse.ArgumentParser(
       description='Wrapper script to run eslint on Catapult code')
-  parser.add_argument('--files', '-f', default=None, nargs='+', metavar='FILE',
-                      help='List of files to lint')
+  parser.add_argument('--paths', '-p', default=None, nargs='+', metavar='PATH',
+                      help='List of paths to lint')
   parser.add_argument('--all', default=None, action='store_true',
                       help='Runs eslint on all applicable Catapult code')
   parser.add_argument('--extra-args', default=None, type=str,
                       help='A string of extra arguments to pass to eslint')
 
   args = parser.parse_args(sys.argv[1:])
-  if ((args.files is not None and args.all is not None) or
-      (args.files is None and args.all is None)):
-    print 'Either --files or --all must be used, but not both.\n'
+  if ((args.paths is not None and args.all is not None) or
+      (args.paths is None and args.all is None)):
+    print 'Either --paths or --all must be used, but not both.\n'
     parser.print_help()
     sys.exit(1)
 
   if args.all:
-    print eslint.RunEslintOnDirs(
-        DIRECTORIES_TO_LINT, extra_args=args.extra_args)
+    print eslint.RunEslint(
+        DIRECTORIES_TO_LINT, extra_args=args.extra_args)[0]
   else:
-    print eslint.RunEslintOnFiles(args.files, extra_args=args.extra_args)
+    print eslint.RunEslint(args.paths, extra_args=args.extra_args)[0]

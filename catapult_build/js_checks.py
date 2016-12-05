@@ -84,10 +84,10 @@ class JSChecker(object):
         error_lines += filter(None, [self.ConstCheck(i, line)])
 
     if affected_js_files:
-      eslint_output = eslint.RunEslintOnFiles(
-          [f.AbsoluteLocalPath() for f in affected_js_files]).rstrip()
+      success, eslint_output = eslint.RunEslint(
+          [f.AbsoluteLocalPath() for f in affected_js_files])
 
-      if eslint_output:
+      if not success:
         error_lines.append('\neslint found lint errors:')
         error_lines.append(eslint_output)
 

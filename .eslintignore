@@ -5,6 +5,3 @@
 /dashboard/dashboard/templates/debug_alert.html
 /dashboard/dashboard/templates/bug_result.html
 /dashboard/dashboard/templates/edit_sheriffs.html
-
-# Ignore deterministic.js from WPR which eslint does not parse.
-/telemetry/third_party/web-page-replay/deterministic.js

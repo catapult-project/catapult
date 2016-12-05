@@ -29,7 +29,8 @@ class SmokeTest(unittest.TestCase):
       tmp_file.write(_TEMP_FILE_CONTENTS)
       tmp_file.close()
 
-      output = eslint.RunEslintOnFiles([tmp_file.name])
+      success, output = eslint.RunEslint([tmp_file.name])
+      self.assertFalse(success)
       self.assertTrue('is not in camel case' in output)
     finally:
       os.remove(tmp_file.name)
