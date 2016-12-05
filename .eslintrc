@@ -45,6 +45,9 @@
       "no-array-constructor": "error",
       "no-caller": "error",
       "no-cond-assign": "off",
+      "no-confusing-arrow": ["error", {
+        "allowParens": true
+      }],
       "no-constant-condition": "off",
       "no-control-regex": "off",
       "no-dupe-keys": "off",
