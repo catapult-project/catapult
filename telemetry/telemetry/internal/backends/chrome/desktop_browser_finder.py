@@ -210,7 +210,7 @@ def FindAllAvailableBrowsers(finder_options, device):
     os_name = platform_module.GetHostPlatform().GetOSName()
     arch_name = platform_module.GetHostPlatform().GetArchName()
     reference_build = binary_manager.FetchPath(
-        'reference_build', arch_name, os_name)
+        'chrome_stable', arch_name, os_name)
 
   # Mac-specific options.
   if sys.platform == 'darwin':
