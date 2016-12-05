@@ -189,13 +189,14 @@ def _TraceEventsFromBuild(builder, build, query_time):
 def _ParseBuilderName(master_name, builder_name):
   if master_name == 'chromium.perf':
     match = re.match(r'^([A-Za-z]+)(?: ([0-9\.]+|XP))?([A-Za-z0-9-\. ]+)? '
-                     r'(Builder|Perf)(?: \([0-9]+\))?$', builder_name).groups()
+                     r'(Builder|Compile|Perf)(?: \([0-9]+\))?$', builder_name)
+    match = match.groups()
     os = match[0]
     if match[1]:
       os_version = match[1]
     else:
       os_version = None
-    if match[3] == 'Builder':
+    if match[3] == 'Builder' or match[3] == 'Compile':
       role = 'builder'
     elif match[3] == 'Perf':
       role = 'tester'
