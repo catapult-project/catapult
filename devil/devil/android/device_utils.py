@@ -16,6 +16,7 @@ import logging
 import multiprocessing
 import os
 import posixpath
+import pprint
 import re
 import shutil
 import stat
@@ -700,6 +701,12 @@ class DeviceUtils(object):
         self, base_apk.path, split_apks, allow_cached_props=allow_cached_props)
       if len(all_apks) == 1:
         logger.warning('split-select did not select any from %s', split_apks)
+
+    missing_apks = [apk for apk in all_apks if not os.path.exists(apk)]
+    if missing_apks:
+      raise device_errors.CommandFailedError(
+          'Attempted to install non-existent apks: %s'
+              % pprint.pformat(missing_apks))
 
     package_name = base_apk.GetPackageName()
     device_apk_paths = self._GetApplicationPathsInternal(package_name)
