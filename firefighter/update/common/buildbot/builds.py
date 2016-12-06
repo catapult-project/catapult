@@ -62,7 +62,7 @@ class Builds(object):
 
     builds = []
     for build_number in build_numbers:
-      url = 'json/builders/%s/builds/%d' % (
+      url = 'builders/%s/builds/%d' % (
           urllib.quote(self._builder_name), build_number)
       url = network.BuildUrl(self._master_name, url, use_cbe=True)
       try:

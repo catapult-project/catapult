@@ -14,7 +14,7 @@ from base import constants
 def BuildUrl(master_name, url, use_cbe=False):
   base = constants.BUILDBOT_BASE_URL
   if use_cbe:
-    base = constants.CBE_BASE_URL + '/p'
+    base = constants.CBE_BASE_URL
     url += '?json=1'
 
   return '%s/%s/%s' % (base, master_name, url)
