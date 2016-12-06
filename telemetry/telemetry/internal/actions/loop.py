@@ -33,6 +33,7 @@ class LoopAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       tab.ExecuteJavaScript('window.__loopMedia("%s", %i);' %
                             (self._selector, self._loop_count))
       if self._timeout_in_seconds > 0:

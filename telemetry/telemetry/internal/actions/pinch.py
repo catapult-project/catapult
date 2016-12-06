@@ -36,6 +36,7 @@ class PinchAction(page_action.PageAction):
           'Synthetic pinch not supported for this browser')
 
     done_callback = 'function() { window.__pinchActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__pinchActionDone = false;
         window.__pinchAction = new __PinchAction(%s);"""
@@ -50,6 +51,7 @@ class PinchAction(page_action.PageAction):
   def RunAction(self, tab):
     scale_factor = (self._scale_factor if self._scale_factor else
                     PinchAction._GetDefaultScaleFactorForPage(tab))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     code = '''
         function(element, info) {
           if (!element) {

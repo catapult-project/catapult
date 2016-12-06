@@ -32,6 +32,7 @@ class SimpleBrowserTest(
   def JavascriptTest(self, file_path, num_1, num_2, expected_sum):
     url = self.UrlOfStaticFilePath(file_path)
     self.action_runner.Navigate(url)
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     actual_sum = self.action_runner.EvaluateJavaScript(
         '%i + %i' % (num_1, num_2))
     self.assertEquals(expected_sum, actual_sum)

@@ -31,9 +31,11 @@ class MarkTelemetryInternal(object):
     self.identifier = identifier
 
   def __enter__(self):
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.browser.tabs[0].ExecuteJavaScript(
         """console.time('telemetry.internal.{0}.start');""".format(
           self.identifier))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.browser.tabs[0].ExecuteJavaScript(
         """console.timeEnd('telemetry.internal.{0}.start');""".format(
           self.identifier))
@@ -43,9 +45,11 @@ class MarkTelemetryInternal(object):
     if exception_type:
       return True
 
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.browser.tabs[0].ExecuteJavaScript(
         """console.time('telemetry.internal.{0}.end');""".format(
           self.identifier))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.browser.tabs[0].ExecuteJavaScript(
         """console.timeEnd('telemetry.internal.{0}.end');""".format(
           self.identifier))

@@ -320,6 +320,7 @@ class ActionRunnerTest(tab_test_case.TabTestCase):
         return 0;
       })(
     '''
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     viewport_comparator_off_screen_js = (
         viewport_comparator_js_template + '%s);' % off_screen_element)
     viewport_comparator_top_bottom_js = (

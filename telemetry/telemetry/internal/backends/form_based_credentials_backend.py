@@ -56,6 +56,7 @@ class FormBasedCredentialsBackend(object):
 
   def _WaitForLoginState(self, action_runner):
     """Waits until it can detect either the login form, or already logged in."""
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     condition = '(document.querySelector("#%s") !== null) || (%s)' % (
         self.login_form_id, self.logged_in_javascript)
     action_runner.WaitForJavaScriptCondition(condition, 60)
@@ -63,6 +64,7 @@ class FormBasedCredentialsBackend(object):
   def _SubmitLoginFormAndWait(self, action_runner, tab, username, password):
     """Submits the login form and waits for the navigation."""
     tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     email_id = 'document.querySelector("#%s #%s").value = "%s"; ' % (
         self.login_form_id, self.login_input_id, username)
     password = 'document.querySelector("#%s #%s").value = "%s"; ' % (
@@ -72,6 +74,7 @@ class FormBasedCredentialsBackend(object):
     if self.login_button_javascript:
       tab.ExecuteJavaScript(self.login_button_javascript)
     else:
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       tab.ExecuteJavaScript(
           'document.getElementById("%s").submit();' % self.login_form_id)
     # Wait for the form element to disappear as confirmation of the navigation.

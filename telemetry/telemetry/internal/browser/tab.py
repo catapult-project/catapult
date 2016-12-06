@@ -133,6 +133,7 @@ class Tab(web_contents.WebContents):
       exceptions.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.ExecuteJavaScript("""
       (function() {
         var screen = document.createElement('div');
@@ -151,6 +152,7 @@ class Tab(web_contents.WebContents):
         });
       })();
     """ % (color.r, color.g, color.b, color.a, int(color)))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.WaitForJavaScriptExpression(
         '!!window.__telemetry_screen_%d' % int(color), 5)
 
@@ -163,6 +165,7 @@ class Tab(web_contents.WebContents):
       exceptions.TimeoutException
       exceptions.DevtoolsTargetCrashException
     """
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.ExecuteJavaScript("""
       (function() {
         document.body.removeChild(window.__telemetry_screen_%d);
@@ -175,6 +178,7 @@ class Tab(web_contents.WebContents):
         });
       })();
     """ % (int(color), int(color)))
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.WaitForJavaScriptExpression(
         '!window.__telemetry_screen_%d' % int(color), 5)
 

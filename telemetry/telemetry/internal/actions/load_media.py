@@ -26,6 +26,7 @@ class LoadMediaAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       tab.ExecuteJavaScript('window.__loadMediaAndAwait("%s", "%s");'
                             % (self._selector, self._event_to_await))
       if self._timeout_in_seconds > 0:

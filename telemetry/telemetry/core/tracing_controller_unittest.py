@@ -72,7 +72,9 @@ class TracingControllerTest(tab_test_case.TabTestCase):
     tab = self._browser.tabs[0]
     def InjectMarker(index):
       marker = 'test-marker-%d' % index
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       tab.EvaluateJavaScript('console.time("%s");' % marker)
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       tab.EvaluateJavaScript('console.timeEnd("%s");' % marker)
 
     # Set up the tracing config.

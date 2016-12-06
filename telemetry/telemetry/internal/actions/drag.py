@@ -63,6 +63,7 @@ class DragAction(page_action.PageAction):
             'Drag requires touch on this page but mouse input was requested')
 
     done_callback = 'function() { window.__dragActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript('''
         window.__dragActionDone = false;
         window.__dragAction = new __DragAction(%s);'''
@@ -78,6 +79,7 @@ class DragAction(page_action.PageAction):
         not self._use_touch):
       gesture_source_type = 'chrome.gpuBenchmarking.MOUSE_INPUT'
 
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     code = '''
         function(element, info) {
           if (!element) {

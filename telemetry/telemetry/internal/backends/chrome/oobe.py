@@ -40,6 +40,7 @@ class Oobe(web_contents.WebContents):
     logging.info('Invoking %s' % api)
     self.WaitForJavaScriptExpression("typeof Oobe == 'function'", 120)
 
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     if self.EvaluateJavaScript("typeof %s == 'undefined'" % api):
       raise exceptions.LoginException('%s js api missing' % api)
 
@@ -49,6 +50,7 @@ class Oobe(web_contents.WebContents):
     #   js:             '{}({},{},{})'
     #   js.format(...): 'doLogin("username","pass",true)'
     js = '{}(' + ('{},' * len(args)).rstrip(',') + ')'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.ExecuteJavaScript(js.format(api, *map(json.dumps, args)))
 
   def NavigateGuestLogin(self):
@@ -96,6 +98,7 @@ class Oobe(web_contents.WebContents):
 
     if add_user_for_testing:
       self._ExecuteOobeApi('Oobe.showAddUserForTesting')
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.ExecuteJavaScriptInContext("""
         document.getElementById('Email').value='%s';
         document.getElementById('Passwd').value='%s';
@@ -114,6 +117,7 @@ class Oobe(web_contents.WebContents):
     self._WaitForField(field)
     self._WaitForField(nextField)
     gaia_webview_context = self._GaiaWebviewContext()
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     gaia_webview_context.EvaluateJavaScript("""
        document.getElementById('%s').value='%s';
        document.getElementById('%s').click()"""
@@ -122,5 +126,6 @@ class Oobe(web_contents.WebContents):
   def _WaitForField(self, field_id):
     gaia_webview_context = py_utils.WaitFor(self._GaiaWebviewContext, 5)
     py_utils.WaitFor(gaia_webview_context.HasReachedQuiescence, 20)
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     gaia_webview_context.WaitForJavaScriptExpression(
         "document.getElementById('%s') != null" % field_id, 20)

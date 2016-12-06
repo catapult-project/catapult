@@ -16,6 +16,7 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     self.Navigate('video_test.html')
 
   def eventFired(self, selector, event):
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     return self._tab.EvaluateJavaScript(
       'window.__hasEventCompleted("%s", "%s");' % (selector, event))
 

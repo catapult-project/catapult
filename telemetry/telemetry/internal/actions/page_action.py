@@ -84,6 +84,7 @@ def EvaluateCallbackWithElement(
   if text is not None:
     count = count + 1
     info_msg = 'using exact text match "%s"' % re.escape(text)
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     element_function = '''
         (function() {
           function _findElement(element, text) {
@@ -107,6 +108,7 @@ def EvaluateCallbackWithElement(
     raise PageActionFailed(
         'Must specify 1 way to retrieve element, but %s was specified.' % count)
 
+  # TODO(catapult:#3028): Fix interpolation of JavaScript values.
   code = '''
       (function() {
         var element = %s;
@@ -135,6 +137,7 @@ def IsGestureSourceTypeSupported(tab, gesture_source_type):
     return (tab.browser.platform.GetOSName() != 'mac' or
             gesture_source_type.lower() != 'touch')
 
+  # TODO(catapult:#3028): Fix interpolation of JavaScript values.
   return tab.EvaluateJavaScript("""
       chrome.gpuBenchmarking.gestureSourceTypeSupported(
           chrome.gpuBenchmarking.%s_INPUT)"""

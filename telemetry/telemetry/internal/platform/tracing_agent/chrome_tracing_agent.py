@@ -153,8 +153,10 @@ class ChromeTracingAgent(tracing_agent.TracingAgent):
     for backend in self._IterInspectorBackends():
       try:
         timestamp = trace_time.Now()
+        # TODO(catapult:#3028): Fix interpolation of JavaScript values.
         backend.EvaluateJavaScript(
             "console.time('ClockSyncEvent.%s');" % sync_id)
+        # TODO(catapult:#3028): Fix interpolation of JavaScript values.
         backend.EvaluateJavaScript(
             "console.timeEnd('ClockSyncEvent.%s');" % sync_id)
         has_clock_synced = True

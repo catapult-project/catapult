@@ -174,6 +174,7 @@ class ChromeBrowserBackend(browser_backend.BrowserBackend):
     # Extension pages are loaded from an about:blank page,
     # so we need to check that the document URL is the extension
     # page in addition to the ready state.
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     extension_ready_js = """
         document.URL.lastIndexOf('chrome-extension://%s/', 0) == 0 &&
         (document.readyState == 'complete' ||

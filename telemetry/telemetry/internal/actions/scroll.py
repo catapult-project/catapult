@@ -68,6 +68,7 @@ class ScrollAction(page_action.PageAction):
             'Scroll requires touch on this page but mouse input was requested')
 
     done_callback = 'function() { window.__scrollActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__scrollActionDone = false;
         window.__scrollAction = new __ScrollAction(%s, %s);"""
@@ -82,6 +83,7 @@ class ScrollAction(page_action.PageAction):
     if self._use_touch:
       gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
 
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     code = '''
         function(element, info) {
           if (!element) {

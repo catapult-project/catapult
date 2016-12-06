@@ -817,6 +817,7 @@ class Interaction(object):
   def Begin(self):
     assert not self._started
     self._started = True
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self._action_runner.ExecuteJavaScript(
         'console.time("%s");' %
         timeline_interaction_record.GetJavaScriptMarker(
@@ -825,6 +826,7 @@ class Interaction(object):
   def End(self):
     assert self._started
     self._started = False
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self._action_runner.ExecuteJavaScript(
         'console.timeEnd("%s");' %
         timeline_interaction_record.GetJavaScriptMarker(

@@ -15,6 +15,7 @@ class MouseClickAction(page_action.PageAction):
     super(MouseClickAction, self).WillRunAction(tab)
     utils.InjectJavaScript(tab, 'mouse_click.js')
     done_callback = 'function() { window.__mouseClickActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__mouseClickActionDone = false;
         window.__mouseClickAction = new __MouseClickAction(%s);"""

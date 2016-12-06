@@ -45,6 +45,7 @@ class SwipeAction(page_action.PageAction):
           'Touch input not supported for this browser')
 
     done_callback = 'function() { window.__swipeActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__swipeActionDone = false;
         window.__swipeAction = new __SwipeAction(%s);"""
@@ -54,6 +55,7 @@ class SwipeAction(page_action.PageAction):
     if (self._selector is None and self._text is None and
         self._element_function is None):
       self._element_function = '(document.scrollingElement || document.body)'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     code = '''
         function(element, info) {
           if (!element) {

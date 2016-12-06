@@ -170,6 +170,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
           document.getElementById('bubble').hidden
       ''')
     self.assertFalse(ErrorBubbleVisible())
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     browser.oobe.ExecuteJavaScript('''
         Oobe.authenticateForTesting('%s', 'bad');
     ''' % self._username)
@@ -178,6 +179,7 @@ class CrOSScreenLockerTest(cros_test_case.CrOSTestCase):
 
   def _UnlockScreen(self, browser):
     logging.info('Unlocking')
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     browser.oobe.ExecuteJavaScript('''
         Oobe.authenticateForTesting('%s', '%s');
     ''' % (self._username, self._password))

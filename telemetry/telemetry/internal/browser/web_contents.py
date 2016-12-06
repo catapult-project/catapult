@@ -98,6 +98,7 @@ class WebContents(object):
     # Generate a new id for each call of this function to ensure that we track
     # each request to wait seperately.
     self._wait_for_frame_id += 1
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self.WaitForJavaScriptExpression(self._wait_for_frame_js +
         'window.__telemetry_testHasFramePassed("' +
         str(self._wait_for_frame_id) + '")',

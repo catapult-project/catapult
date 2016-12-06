@@ -31,6 +31,7 @@ class TapAction(page_action.PageAction):
           'Synthetic tap not supported for this browser')
 
     done_callback = 'function() { window.__tapActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__tapActionDone = false;
         window.__tapAction = new __TapAction(%s);"""
@@ -44,6 +45,7 @@ class TapAction(page_action.PageAction):
     if not self.HasElementSelector():
       self.element_function = 'document.body'
 
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tap_cmd = ('''
         window.__tapAction.start({
           element: element,

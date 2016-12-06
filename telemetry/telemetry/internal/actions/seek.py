@@ -40,6 +40,7 @@ class SeekAction(media_action.MediaAction):
 
   def RunAction(self, tab):
     try:
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       tab.ExecuteJavaScript(
           'window.__seekMedia("%s", "%s", %i, "%s");' %
           (self._selector, self._seconds, self._log_time, self._label))

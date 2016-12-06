@@ -62,12 +62,14 @@ class ScrollBounceAction(page_action.PageAction):
           'ScrollBounce page action does not support mouse input')
 
     done_callback = 'function() { window.__scrollBounceActionDone = true; }'
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__scrollBounceActionDone = false;
         window.__scrollBounceAction = new __ScrollBounceAction(%s);"""
         % (done_callback))
 
   def RunAction(self, tab):
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     code = '''
         function(element, info) {
           if (!element) {

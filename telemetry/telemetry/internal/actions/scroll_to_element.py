@@ -29,10 +29,12 @@ class ScrollToElementAction(page_action.PageAction):
 
   def WillRunAction(self, tab):
     if self._selector:
+      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
       element = 'document.querySelector("%s")' % self._selector
     else:
       element = self._element_function
 
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     get_distance_js = '''
       (function(elem){
         var rect = elem.getBoundingClientRect();

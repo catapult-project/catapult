@@ -44,6 +44,7 @@ class MemoryCacheHTTPServerTest(tab_test_case.TabTestCase):
 
   def CheckContentHeaders(self, content_range_request, content_range_response,
                           content_length_response):
+    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     self._tab.ExecuteJavaScript("""
         var loaded = false;
         var xmlhttp = new XMLHttpRequest();
