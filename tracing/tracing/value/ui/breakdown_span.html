@@ -47,12 +47,6 @@ Polymer({
     this.minHeightPx_ = 40;
   },
 
-  attached() {
-    // Re-render the chart. It only renders properly if it's rooted in a
-    // document.
-    this.chart_.data = this.chart_.data;
-  },
-
   ready() {
     Polymer.dom(this.$.container).appendChild(this.chart_);
     this.$.drag_handle.target = this.$.container;
@@ -143,8 +137,8 @@ Polymer({
     }
 
     if (tr.b.dictionaryLength(data) > 1) {
-      this.chart_.data = [data];
       this.$.outer.style.display = 'block';
+      this.chart_.data = [data];
       this.$.empty.style.display = 'none';
     }
     if (tableRows.length) {
