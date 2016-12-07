@@ -71,7 +71,9 @@ class _DevToolsStreamReader(object):
       raise TracingUnrecoverableException(
           'Reading trace failed: %s' % response['error']['message'])
     result = response['result']
-    self._data.append(result['data'])
+    # Convert the trace data that's receive as UTF32 to its native encoding of
+    # UTF8 in order to reduce its size.
+    self._data.append(result['data'].encode('utf8'))
     if not result.get('eof', False):
       self._ReadChunkFromStream()
       return
