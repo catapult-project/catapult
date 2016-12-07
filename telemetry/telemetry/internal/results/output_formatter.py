@@ -2,8 +2,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import os
-
 from telemetry.value import summary as summary_module
 
 class OutputFormatter(object):
@@ -34,9 +32,6 @@ class OutputFormatter(object):
          from the current benchmark run.
     """
     raise NotImplementedError()
-
-  def PrintViewResults(self):
-    print 'View result at file://' + os.path.abspath(self.output_stream.name)
 
   def FormatDisabled(self):
     """Formats disabled results into the output stream.
