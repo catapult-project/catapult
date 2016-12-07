@@ -3,6 +3,8 @@
 # found in the LICENSE file.
 
 import codecs
+import datetime
+import logging
 import optparse
 import os
 import sys
@@ -14,16 +16,16 @@ from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
+from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
-from telemetry.internal.results import valueset_output_formatter
 
 # Allowed output formats. The default is the first item in the list.
 
 _OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'chartjson',
-    'csv-pivot-table', 'valueset', 'none')
+    'csv-pivot-table', 'histograms', 'none')
 
 
 # Filenames to use for given output formats.
@@ -32,7 +34,7 @@ _OUTPUT_FILENAME_LOOKUP = {
     'json': 'results.json',
     'chartjson': 'results-chart.json',
     'csv-pivot-table': 'results-pivot-table.csv',
-    'valueset': 'results-valueset.json'
+    'histograms': 'histograms.json',
 }
 
 
@@ -111,6 +113,19 @@ def _GetProgressReporter(output_skipped_tests_summary, suppress_gtest_report):
       sys.stdout, output_skipped_tests_summary=output_skipped_tests_summary)
 
 
+def _UploadResults(local_path, remote_prefix, bucket):
+  file_name = remote_prefix + datetime.datetime.now().strftime(
+      '%Y-%m-%d_%H-%M-%S')
+  try:
+    cloud_storage.Insert(bucket, file_name, os.path.abspath(local_path))
+    print 'View online at',
+    print 'http://storage.googleapis.com/{bucket}/{path}'.format(
+        bucket=bucket, path=file_name)
+  except cloud_storage.PermissionError as e:
+    logging.error('Cannot upload profiling files to cloud storage due to '
+                  ' permission error: %s' % e.message)
+
+
 def CreateResults(benchmark_metadata, options,
                   value_can_be_added_predicate=lambda v, is_first: True,
                   benchmark_enabled=True):
@@ -139,8 +154,10 @@ def CreateResults(benchmark_metadata, options,
               output_stream, trace_tag=options.output_trace_tag))
     elif output_format == 'html':
       output_formatters.append(html2_output_formatter.Html2OutputFormatter(
-          output_stream, benchmark_metadata, options.reset_results,
-          options.upload_results, upload_bucket=upload_bucket))
+          output_stream, benchmark_metadata, options.reset_results))
+      if upload_bucket:
+        _UploadResults(output_stream.name, 'html-results/results-',
+            upload_bucket)
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
           output_stream, benchmark_metadata))
@@ -148,10 +165,13 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
               output_stream, benchmark_metadata))
-    elif output_format == 'valueset':
+    elif output_format == 'histograms':
       output_formatters.append(
-          valueset_output_formatter.ValueSetOutputFormatter(
-              output_stream))
+          histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
+              output_stream, benchmark_metadata, options.reset_results))
+      if upload_bucket:
+        _UploadResults(output_stream.name, 'json-results/results-',
+            upload_bucket)
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'
