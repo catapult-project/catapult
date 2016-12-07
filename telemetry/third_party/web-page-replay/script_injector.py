@@ -53,8 +53,9 @@ def GetScriptInjector(scripts):
 
   script_template = jsmin.jsmin(''.join(lines), quote_chars="'\"`")
   def injector(record_time):
-    js_timestamp = int((record_time - datetime.datetime(1970, 1, 1))
-                       .total_seconds()) * 1000
+    delta = record_time - datetime.datetime(1970, 1, 1)
+    js_timestamp = \
+        int(delta.total_seconds()) * 1000 + delta.microseconds / 1000
     return script_template.replace(TIME_SEED_MARKER, str(js_timestamp))
   return injector
 

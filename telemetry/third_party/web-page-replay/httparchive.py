@@ -737,7 +737,7 @@ class ArchivedHttpResponse(object):
   # This date was used in deterministic.js prior to switching to recorded
   # request time.  See https://github.com/chromium/web-page-replay/issues/71
   # for details.
-  DEFAULT_REQUEST_TIME = datetime.datetime(2008, 2, 29)
+  DEFAULT_REQUEST_TIME = datetime.datetime(2008, 2, 29, 2, 26, 8, 254000)
 
   def __init__(self, version, status, reason, headers, response_data,
                delays=None, request_time=None):
