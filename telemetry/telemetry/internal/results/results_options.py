@@ -14,16 +14,16 @@ from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
+from telemetry.internal.results import histogram_set_json_output_formatter
 from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import json_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
-from telemetry.internal.results import valueset_output_formatter
 
 # Allowed output formats. The default is the first item in the list.
 
 _OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'chartjson',
-    'csv-pivot-table', 'valueset', 'none')
+    'csv-pivot-table', 'histograms', 'none')
 
 
 # Filenames to use for given output formats.
@@ -32,7 +32,7 @@ _OUTPUT_FILENAME_LOOKUP = {
     'json': 'results.json',
     'chartjson': 'results-chart.json',
     'csv-pivot-table': 'results-pivot-table.csv',
-    'valueset': 'results-valueset.json'
+    'histograms': 'histograms.json',
 }
 
 
@@ -140,7 +140,7 @@ def CreateResults(benchmark_metadata, options,
     elif output_format == 'html':
       output_formatters.append(html2_output_formatter.Html2OutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
-          options.upload_results, upload_bucket=upload_bucket))
+          upload_bucket))
     elif output_format == 'json':
       output_formatters.append(json_output_formatter.JsonOutputFormatter(
           output_stream, benchmark_metadata))
@@ -148,10 +148,10 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           chart_json_output_formatter.ChartJsonOutputFormatter(
               output_stream, benchmark_metadata))
-    elif output_format == 'valueset':
+    elif output_format == 'histograms':
       output_formatters.append(
-          valueset_output_formatter.ValueSetOutputFormatter(
-              output_stream))
+          histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
+              output_stream, benchmark_metadata, options.reset_results))
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'

@@ -67,7 +67,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-        output_file, FakeMetadataForTest(), False, False, 'browser_type')
+        output_file, FakeMetadataForTest(), False, 'browser_type')
     formatter.Format(results)
     expected = {
       "platform": "browser_type",
@@ -121,7 +121,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-        output_file, FakeMetadataForTest(), False, False, 'browser_type')
+        output_file, FakeMetadataForTest(), False, 'browser_type')
     formatter.Format(results)
     expected = [
       {
@@ -213,7 +213,7 @@ class HtmlOutputFormatterTest(unittest.TestCase):
     results.DidRunPage(test_story_set.stories[1])
 
     formatter = DeterministicHtmlOutputFormatter(
-       output_file, FakeMetadataForTest(), True, False, 'browser_type')
+       output_file, FakeMetadataForTest(), True, 'browser_type')
     formatter.Format(results)
     expected = [{
       "platform": "browser_type",
