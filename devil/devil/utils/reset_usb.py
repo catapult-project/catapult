@@ -47,7 +47,8 @@ def reset_android_usb(serial):
     reset_usb(bus, device)
   else:
     raise device_errors.DeviceUnreachableError(
-        'Unable to determine bus or device for device %s' % serial)
+        'Unable to determine bus(%s) or device(%s) for device %s'
+         % (bus, device, serial))
 
 
 def reset_all_android_devices():
