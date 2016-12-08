@@ -96,6 +96,7 @@ class HistogramImporter {
 
   displayHistograms() {
     this.view_.histograms = this.histograms_;
+    this.view_.helpHref = 'https://github.com/catapult-project/catapult/blob/master/docs/metrics-results-ui.md';
 
     this.loadingDiv_.style.display = 'none';
     this.view_.style.display = 'block';

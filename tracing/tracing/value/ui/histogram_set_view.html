@@ -196,6 +196,10 @@ tr.exportTo('tr.v.ui', function() {
           tr.c.BrushingStateController.getControllerForElement(this.parentNode);
     },
 
+    set helpHref(href) {
+      this.$.histograms.helpHref = href;
+    },
+
     /**
      * @param {!tr.v.HistogramSet} histograms
      */
