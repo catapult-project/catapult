@@ -14,7 +14,8 @@ found in the LICENSE file.
 tr.exportTo('tr.model.helpers', function() {
   function ChromeRendererHelper(modelHelper, process) {
     tr.model.helpers.ChromeProcessHelper.call(this, modelHelper, process);
-    this.mainThread_ = process.findAtMostOneThreadNamed('CrRendererMain');
+    this.mainThread_ = process.findAtMostOneThreadNamed('CrRendererMain') ||
+        process.findAtMostOneThreadNamed('Chrome_InProcRendererThread');
     this.compositorThread_ = process.findAtMostOneThreadNamed('Compositor');
     this.rasterWorkerThreads_ = process.findAllThreadsMatching(function(t) {
       if (t.name === undefined)
