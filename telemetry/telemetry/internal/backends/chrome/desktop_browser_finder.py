@@ -123,6 +123,8 @@ def FindAllBrowserTypes(_):
 
 def FindAllAvailableBrowsers(finder_options, device):
   """Finds all the desktop browsers available on this machine."""
+  logging.warning('sys.platform reports %s to DesktopBrowserFinder',
+                  sys.platform)
   if not isinstance(device, desktop_device.DesktopDevice):
     return []
 
