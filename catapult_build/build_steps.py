@@ -91,15 +91,6 @@ _CATAPULT_TESTS = [
         'disabled': ['android'],
     },
     {
-        'name': 'NetLog Viewer Dev Server Tests',
-        'path': 'netlog_viewer/bin/run_dev_server_tests',
-        'additional_args': [
-            '--no-install-hooks',
-            '--no-use-local-chrome',
-        ],
-        'disabled': ['android'],
-    },
-    {
         'name': 'Py-vulcanize Tests',
         'path': 'third_party/py_vulcanize/bin/run_py_tests',
         'additional_args': ['--no-install-hooks'],
@@ -166,6 +157,15 @@ _CATAPULT_TESTS = [
         'name': 'Vinn Tests',
         'path': 'third_party/vinn/bin/run_tests',
         'disabled': ['android'],
+    },
+    {
+        'name': 'NetLog Viewer Dev Server Tests',
+        'path': 'netlog_viewer/bin/run_dev_server_tests',
+        'additional_args': [
+            '--no-install-hooks',
+            '--no-use-local-chrome',
+        ],
+        'disabled': ['android', 'win', 'mac', 'linux'],
     },
 ]
 
