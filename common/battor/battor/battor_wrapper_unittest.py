@@ -317,6 +317,7 @@ class BattOrWrapperTest(unittest.TestCase):
     self._battor = battor_wrapper.BattOrWrapper('win')
     self._DefaultBattOrReplacements()
     self._battor.StartShell()
+    self._battor.GetFirmwareGitHash = lambda: 'cbaa843'
     self.assertTrue(isinstance(self._battor.GetFirmwareGitHash(), basestring))
 
   def testStopShellPass(self):

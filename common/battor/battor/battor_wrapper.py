@@ -131,6 +131,7 @@ class BattOrWrapper(object):
     self._trace_results = None
     self._serial_log_file = None
     self._target_platform = target_platform
+    self._git_hash = None
 
     atexit.register(self.KillBattOrShell)
 
@@ -150,6 +151,9 @@ class BattOrWrapper(object):
         self.StopShell()
         return self.FlashFirmware(battor_firmware, avrdude_config)
       return False
+    except ValueError:
+      logging.critical('Git hash returned from BattOr was not as expected: %s'
+                       % self._git_hash)
     finally:
       if not self._battor_shell:
         self.StartShell()
@@ -348,11 +352,22 @@ class BattOrWrapper(object):
                     'to permission error: %s' % e.message)
 
   def GetFirmwareGitHash(self):
-    """Gets the git hash for the BattOr firmware"""
+    """Gets the git hash for the BattOr firmware.
+
+    Returns: Git hash for firmware currently on the BattOr.
+        Also sets self._git_hash to this value.
+
+    Raises: ValueException if the git hash is not in hex.
+    """
     assert self._battor_shell, ('Must start shell before getting firmware git '
                                 'hash')
-    return self._SendBattOrCommand(self._GET_FIRMWARE_GIT_HASH_CMD,
-                                   check_return=False).strip()
+    self._git_hash = self._SendBattOrCommand(self._GET_FIRMWARE_GIT_HASH_CMD,
+                                       check_return=False).strip()
+    # We expect the git hash to be a valid 6 character hexstring. This will
+    # throw a ValueError exception otherwise.
+    int(self._git_hash, 16)
+    return self._git_hash
+
 
   def FlashFirmware(self, hex_path, avrdude_config_path):
     """Flashes the BattOr using an avrdude config at config_path with the new
@@ -383,6 +398,7 @@ class BattOrWrapper(object):
     logging.critical(output)
     if status != 0:
       raise BattOrFlashError('BattOr flash failed with error code: %d' % status)
+    self._git_hash = None
     return True
 
 
