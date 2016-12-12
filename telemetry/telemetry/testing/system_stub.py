@@ -16,6 +16,9 @@ import sys
 
 
 class Override(object):
+
+  _overidden_modules = set()
+
   def __init__(self, base_module, module_list):
     self.cloud_storage = None
     self.open = None
@@ -41,6 +44,9 @@ class Override(object):
     self.subprocess = None
     self.sys = None
 
+    assert base_module not in self._overidden_modules, (
+        '%s is already overridden' % base_module.__name__)
+    self._overidden_modules.add(base_module)
     self._base_module = base_module
     self._overrides = {}
 
@@ -65,6 +71,8 @@ class Override(object):
       else:
         setattr(self._base_module, module_name, original_module)
     self._overrides = {}
+    self._overidden_modules.remove(self._base_module)
+    self._base_module = None
 
 
 class AdbDevice(object):
