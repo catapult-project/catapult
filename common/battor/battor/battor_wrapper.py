@@ -154,6 +154,8 @@ class BattOrWrapper(object):
     except ValueError:
       logging.critical('Git hash returned from BattOr was not as expected: %s'
                        % self._git_hash)
+      self._UploadSerialLogToCloudStorage()
+      self._serial_log_file = None
     finally:
       if not self._battor_shell:
         self.StartShell()
