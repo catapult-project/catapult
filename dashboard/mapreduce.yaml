@@ -26,7 +26,7 @@ mapreduce:
     input_reader: mapreduce.input_readers.DatastoreInputReader
     handler: dashboard.mr.StoreUnitsInAnomalyEntity
     params:
-    - name: anomaly
+    - name: entity_kind
       default: dashboard.models.anomaly.Anomaly
     - name: filter
       value: has_rows=True
