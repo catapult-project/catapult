@@ -323,7 +323,8 @@ class Geometric(
 
 class TestLoadAllTestModules(unittest.TestCase):
   def testLoadAllTestsInModule(self):
-    tests = browser_test_runner.LoadAllTestsInModule(sys.modules[__name__])
+    tests = serially_executed_browser_test_case.LoadAllTestsInModule(
+        sys.modules[__name__])
     self.assertEquals(sorted([t.id() for t in tests]),
         ['telemetry.testing.browser_test_runner_unittest.Algebra.TestNumber',
          'telemetry.testing.browser_test_runner_unittest.Algebra.testOne',

@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import string
+import sys
 import time
 
 from telemetry.testing import serially_executed_browser_test_case
@@ -73,3 +74,9 @@ class SimpleTest(
 
   def TestException(self):
     raise Exception('Expected exception')
+
+
+def load_tests(loader, tests, pattern):
+  del loader, tests, pattern  # Unused.
+  return serially_executed_browser_test_case.LoadAllTestsInModule(
+      sys.modules[__name__])

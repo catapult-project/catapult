@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 
 from telemetry.testing import serially_executed_browser_test_case
 
@@ -38,3 +39,9 @@ class TearDownClassFailedTest(
 
   def DummyTest(self):
     pass
+
+
+def load_tests(loader, tests, pattern):
+  del loader, tests, pattern  # Unused.
+  return serially_executed_browser_test_case.LoadAllTestsInModule(
+      sys.modules[__name__])

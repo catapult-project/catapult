@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import sys
 import os
 
 from telemetry.testing import serially_executed_browser_test_case
@@ -65,3 +66,9 @@ class SimpleBrowserTest(
     self.action_runner.ExecuteJavaScript('valueSettableByTest = 1997')
     self.action_runner.ClickElement(text='Click/tap me')
     self.assertEqual(1997, self.action_runner.EvaluateJavaScript('valueToTest'))
+
+
+def load_tests(loader, tests, pattern):
+  del loader, tests, pattern  # Unused.
+  return serially_executed_browser_test_case.LoadAllTestsInModule(
+      sys.modules[__name__])

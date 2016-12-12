@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import inspect
+import re
 import unittest
 
 from py_utils import cloud_storage
@@ -106,3 +108,82 @@ class SeriallyExecutedBrowserTestCase(unittest.TestCase):
   @classmethod
   def UrlOfStaticFilePath(cls, file_path):
     return cls.platform.http_server.UrlOf(file_path)
+
+
+def LoadAllTestsInModule(module):
+  """ Load all tests & generated browser tests in a given module.
+
+  This is supposed to be invoke in load_tests() method of your test modules that
+  use browser_test_runner framework to discover & generate the tests to be
+  picked up by the test runner. Here is the example of how your test module
+  should looks like:
+
+  ################## my_awesome_browser_tests.py  ################
+  import sys
+
+  from telemetry.testing import serially_executed_browser_test_case
+  ...
+
+  class TestSimpleBrowser(
+      serially_executed_browser_test_case.SeriallyExecutedBrowserTestCase):
+  ...
+  ...
+
+  def load_tests(loader, tests, pattern):
+    return serially_executed_browser_test_case.LoadAllTestsInModule(
+        sys.modules[__name__])
+  #################################################################
+
+  Args:
+    module: the module which contains test cases classes.
+
+  Returns:
+    an instance of unittest.TestSuite, which contains all the tests & generated
+    test cases to be run.
+  """
+  suite = unittest.TestSuite()
+  for _, obj in inspect.getmembers(module):
+    if (inspect.isclass(obj) and
+        issubclass(obj, SeriallyExecutedBrowserTestCase)):
+      for test in GenerateTestCases(
+          test_class=obj, finder_options=options_for_unittests.GetCopy()):
+        suite.addTest(test)
+  return suite
+
+
+def _GenerateTestMethod(based_method, args):
+  return lambda self: based_method(self, *args)
+
+
+_TEST_GENERATOR_PREFIX = 'GenerateTestCases_'
+_INVALID_TEST_NAME_RE = re.compile(r'[^a-zA-Z0-9_]')
+
+def _ValidateTestMethodname(test_name):
+  assert not bool(_INVALID_TEST_NAME_RE.search(test_name))
+
+
+def GenerateTestCases(test_class, finder_options):
+  test_cases = []
+  for name, method in inspect.getmembers(
+      test_class, predicate=inspect.ismethod):
+    if name.startswith('test'):
+      # Do not allow method names starting with "test" in these
+      # subclasses, to avoid collisions with Python's unit test runner.
+      raise Exception('Name collision with Python\'s unittest runner: %s' %
+                      name)
+    elif name.startswith('Test'):
+      # Pass these through for the time being. We may want to rethink
+      # how they are handled in the future.
+      test_cases.append(test_class(name))
+    elif name.startswith(_TEST_GENERATOR_PREFIX):
+      based_method_name = name[len(_TEST_GENERATOR_PREFIX):]
+      assert hasattr(test_class, based_method_name), (
+          '%s is specified but based method %s does not exist' %
+          (name, based_method_name))
+      based_method = getattr(test_class, based_method_name)
+      for generated_test_name, args in method(finder_options):
+        _ValidateTestMethodname(generated_test_name)
+        setattr(test_class, generated_test_name, _GenerateTestMethod(
+            based_method, args))
+        test_cases.append(test_class(generated_test_name))
+  return test_cases
