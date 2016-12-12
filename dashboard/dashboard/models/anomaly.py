@@ -55,6 +55,9 @@ class Anomaly(alert.Alert):
   # is a corresponding step up later on, or vice versa.)
   recovered = ndb.BooleanProperty(indexed=True, default=False)
 
+  # The corresponding units from the TestMetaData entity.
+  units = ndb.StringProperty(indexed=False)
+
   @property
   def percent_changed(self):
     """The percent change from before the anomaly to after."""

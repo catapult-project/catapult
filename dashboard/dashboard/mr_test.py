@@ -13,6 +13,7 @@ from dashboard import delete_test_data
 from dashboard import mr
 from dashboard.common import testing_common
 from dashboard.common import utils
+from dashboard.models import anomaly
 from dashboard.models import graph_data
 from dashboard.models import sheriff
 from dashboard.models import stoppage_alert
@@ -195,6 +196,62 @@ class MrTest(testing_common.TestCase):
     self.assertIsNotNone(trace_b_key.get())
     self.assertIsNotNone(suite_key.get())
 
+  def _AddMockDataForTestingUnits(self, with_units, with_test=True):
+    """Adds a sample anomaly without units.
+
+    Args:
+      with_units: Boolean specifying if the anomaly.test should have units.
+    """
+    testing_common.AddTests(['ChromiumPerf'], ['mac'], _TESTS)
+    test_row = utils.TestMetadataKey(
+        'ChromiumPerf/mac/suite/graph_a/trace_a').get()
+
+    # Test row must have units.
+    if with_units:
+      test_row.units = 'ms'
+    test_row.put()
+
+    if not with_test:
+      test_row.key = None
+
+    anomaly_row = anomaly.Anomaly(
+        start_revision=12345,
+        end_revision=12355,
+        test=test_row.key,).put()
+
+    return anomaly_row
+
+  def testUnitsIntoAnomaly(self):
+    anomaly_row = self._AddMockDataForTestingUnits(True)
+    self.assertEqual(anomaly_row.get().test.get().units, 'ms')
+    self.assertIsNone(anomaly_row.get().units)
+
+    for operation in mr.StoreUnitsInAnomalyEntity(anomaly_row.get()):
+      self._ExecOperation(operation)
+
+    self.assertEqual(anomaly_row.get().units, 'ms')
+
+
+  def testUnitsIntoAnomaly_noUnitsInTest(self):
+    anomaly_row = self._AddMockDataForTestingUnits(False)
+    self.assertIsNone(anomaly_row.get().test.get().units)
+    self.assertIsNone(anomaly_row.get().units)
+
+    for operation in mr.StoreUnitsInAnomalyEntity(anomaly_row.get()):
+      self._ExecOperation(operation)
+
+    self.assertIsNone(anomaly_row.get().units)
+
+
+  def testUnitsIntoAnomaly_noTest(self):
+    anomaly_row = self._AddMockDataForTestingUnits(False, False)
+    self.assertIsNone(anomaly_row.get().test)
+    self.assertIsNone(anomaly_row.get().units)
+
+    for operation in mr.StoreUnitsInAnomalyEntity(anomaly_row.get()):
+      self._ExecOperation(operation)
+
+    self.assertIsNone(anomaly_row.get().units)
 
 if __name__ == '__main__':
   unittest.main()

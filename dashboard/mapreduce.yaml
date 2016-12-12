@@ -20,3 +20,13 @@ mapreduce:
     params:
     - name: entity_kind
       default: dashboard.models.graph_data.TestMetadata
+
+- name: Update anomaly with units.
+  mapper:
+    input_reader: mapreduce.input_readers.DatastoreInputReader
+    handler: dashboard.mr.StoreUnitsInAnomalyEntity
+    params:
+    - name: anomaly
+      default: dashboard.models.anomaly.Anomaly
+    - name: filter
+      value: has_rows=True

@@ -252,7 +252,8 @@ def _MakeAnomalyEntity(change_point, test, rows):
       is_improvement=_IsImprovement(test, median_before, median_after),
       test=test.key,
       sheriff=test.sheriff,
-      internal_only=test.internal_only)
+      internal_only=test.internal_only,
+      units=test.units)
 
 
 def FindChangePointsForTest(rows, config_dict):

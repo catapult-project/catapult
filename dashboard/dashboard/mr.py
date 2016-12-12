@@ -62,6 +62,37 @@ def SaveAllMapper(entity):
   entity.put()
 
 
+class MRStoreUnitsHandler(request_handler.RequestHandler):
+  """Handler to run a anomaly units mapper job."""
+
+  def get(self):
+    name = 'Update anomalies with units.'
+    handler = ('dashboard.mr.StoreUnitsInAnomalyEntity')
+    reader = 'mapreduce.input_readers.DatastoreInputReader'
+    mapper_parameters = {
+        'entity_kind': ('dashboard.models.graph_data.Anomaly'),
+        'filters': [],
+    }
+    mr_control.start_map(name, handler, reader, mapper_parameters)
+
+def StoreUnitsInAnomalyEntity(entity):
+  """Puts units field from the TestMetaData entity into the anomaly directly.
+
+  We would like to store the units in the anomaly directly, for speedier
+  lookup.
+
+  Args:
+    anomaly: The Anomaly entity to check.
+
+  Yields:
+    One datastore mutation operation.
+  """
+  if entity.test:
+    test = entity.test.get()
+    entity.units = test.units
+  yield op.db.Put(entity)
+
+
 class MRDeprecateTestsHandler(request_handler.RequestHandler):
   """Handler to run a deprecate tests mapper job."""
 
