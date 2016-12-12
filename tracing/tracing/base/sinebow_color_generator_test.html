@@ -54,14 +54,15 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('SinebowColorGeneratorVisual', function() {
-    if (tr.isHeadless) {
-      return;
-    }
+    if (tr.isHeadless) return;
+
     var generator = new tr.b.SinebowColorGenerator();
     var parentDiv = document.createElement('div');
+    this.addHTMLOutput(parentDiv);
+
     for (var i = 0; i < 350; i++) {
       var spanElem = document.createElement('span');
-      spanElem.style.width = '60px';
+      spanElem.style.width = '50px';
       spanElem.style.display = 'inline-block';
       spanElem.style.backgroundColor = generator.colorForKey(i).toString();
       var rgb = generator.colorForKey(i).toString().split('(')[1].split(',');
@@ -69,12 +70,12 @@ tr.b.unittest.testSuite(function() {
       var g = rgb[1];
       var b = rgb[2].split(')')[0];
       var hsl = new tr.b.Color(r, g, b, 1).toHSL();
-      spanElem.appendChild(document.createTextNode(hsl.h.toFixed(4)));
+      spanElem.appendChild(document.createTextNode(hsl.h.toFixed(3)));
+
       parentDiv.appendChild(spanElem);
-      if ((i + 1) % 21 === 0 && i) {
+      if (i % 21 === 20) {
         parentDiv.appendChild(document.createElement('br'));
-    }
-    this.addHTMLOutput(parentDiv);
+      }
     }
   });
 });
