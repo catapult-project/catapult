@@ -13,18 +13,19 @@ found in the LICENSE file.
 tr.exportTo('tr.v', function() {
   class ChartJsonConverter {
     /**
-    * Parses Values from |charts|, converts them to Histograms, and adds those
-    * to |histograms|.
-    *
-    * @param {!Array.<!Object>} charts
-    * @param {!tr.v.HistogramSet} histograms
-    */
+     * Parses Values from |charts|, converts them to Histograms, and adds those
+     * to |histograms|.
+     *
+     * @param {!Array.<!Object>} charts
+     * @param {!tr.v.HistogramSet} histograms
+     */
     static convertChartJson(charts, histograms) {
       tr.b.iterItems(charts.charts, (name, pageValues) => {
         if (name === 'trace') return;
 
+        var pageValuesCount = tr.b.dictionaryLength(pageValues);
         tr.b.iterItems(pageValues, (storyName, value) => {
-          if (storyName === 'summary') return;
+          if (pageValuesCount > 1 && storyName === 'summary') return;
 
           var unitInfo = tr.v.LEGACY_UNIT_INFO.get(value.units) || {};
           var unitName = unitInfo.name || 'unitlessNumber';
@@ -40,17 +41,24 @@ tr.exportTo('tr.v', function() {
           hist.description = value.description || '';
           histograms.addHistogram(hist);
 
-          var iterationInfo = new tr.v.d.IterationInfo();
-          iterationInfo.addInfo({
-            storyDisplayName: storyName,
+          new tr.v.d.IterationInfo({
+            storyDisplayName: pageValuesCount > 1 ? storyName : '',
             legacyTIRLabel: value.tir_label,
             benchmarkName: charts.benchmark_name,
             label: charts.label,
             benchmarkStartMs: charts.benchmarkStartMs,
-          });
-          iterationInfo.addToValue(hist);
+          }).addToValue(hist);
 
-          if (value.type === 'list_of_scalar_values') {
+          if (value.type === 'histogram') {
+            for (var bucket of value.buckets) {
+              // Take the center of the bin. This coarse granularity can amplify
+              // noise when a measurement moves from one bin to the next.
+              var sample = conversionFactor * (bucket.high + bucket.low) / 2;
+              for (var i = 0; i < bucket.count; ++i) {
+                hist.addSample(sample);
+              }
+            }
+          } else if (value.type === 'list_of_scalar_values') {
             for (var sample of value.values) {
               hist.addSample(sample * conversionFactor);
             }
