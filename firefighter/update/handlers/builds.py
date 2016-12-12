@@ -135,7 +135,7 @@ def _TraceEventsFromBuild(builder, build, query_time):
     build_end_time = build.end_time
   else:
     build_end_time = query_time
-  os, os_version, role = _ParseBuilderName(builder.master_name, builder.name)
+  os, os_version, role = _ParseBuilderName(builder.name)
   yield {
       'name': 'Build %d' % build.number,
       'start_time': build.start_time,
@@ -186,51 +186,18 @@ def _TraceEventsFromBuild(builder, build, query_time):
     }
 
 
-def _ParseBuilderName(master_name, builder_name):
-  if master_name == 'chromium.perf':
-    match = re.match(r'^([A-Za-z]+)(?: ([0-9\.]+|XP))?([A-Za-z0-9-\. ]+)? '
-                     r'(Builder|Compile|Perf)(?: \([0-9]+\))?$', builder_name)
-    match = match.groups()
-    os = match[0]
-    if match[1]:
-      os_version = match[1]
-    else:
-      os_version = None
-    if match[3] == 'Builder' or match[3] == 'Compile':
-      role = 'builder'
-    elif match[3] == 'Perf':
-      role = 'tester'
-    else:
-      raise NotImplementedError()
-  elif master_name == 'client.catapult':
-    match = re.match(r'^Catapult(?: ([A-Za-z])+)? ([A-Za-z]+)$',
-                     builder_name).groups()
-    os = match[1]
-    os_version = None
-    role = match[0]
-    if not role:
-      role = 'tester'
-  elif master_name == 'tryserver.chromium.perf':
-    match = re.match(r'^(android|linux|mac|win).*_([a-z]+)$',
-                     builder_name).groups()
-    os = match[0]
-    os_version = None
-    role = match[1]
-  elif master_name == 'tryserver.client.catapult':
-    match = re.match(r'^Catapult(?: (Android|Linux|Mac|Windows))? ([A-Za-z]+)$',
-                     builder_name).groups()
-    os = match[0]
-    os_version = None
-    role = match[1]
+def _ParseBuilderName(builder_name):
+  builder_name = builder_name.lower()
+
+  for os in ('android', 'linux', 'mac', 'win'):
+    if os in builder_name:
+      break
   else:
-    raise NotImplementedError()
+    os = None
 
-  if os:
-    os = os.lower()
-  if os == 'windows':
-    os = 'win'
-  if os_version:
-    os_version = os_version.lower()
-  role = role.lower()
+  if 'build' in builder_name or 'compile' in builder_name:
+    role = 'builder'
+  else:
+    role = 'tester'
 
-  return (os, os_version, role)
+  return (os, None, role)
