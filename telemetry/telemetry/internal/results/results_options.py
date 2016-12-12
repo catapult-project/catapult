@@ -15,15 +15,16 @@ from telemetry.internal.results import chart_json_output_formatter
 from telemetry.internal.results import csv_pivot_table_output_formatter
 from telemetry.internal.results import gtest_progress_reporter
 from telemetry.internal.results import histogram_set_json_output_formatter
-from telemetry.internal.results import html2_output_formatter
+from telemetry.internal.results import html_output_formatter
 from telemetry.internal.results import json_output_formatter
+from telemetry.internal.results import legacy_html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry.internal.results import progress_reporter
 
 # Allowed output formats. The default is the first item in the list.
 
 _OUTPUT_FORMAT_CHOICES = ('html', 'gtest', 'json', 'chartjson',
-    'csv-pivot-table', 'histograms', 'none')
+    'csv-pivot-table', 'histograms', 'legacy-html', 'none')
 
 
 # Filenames to use for given output formats.
@@ -33,6 +34,7 @@ _OUTPUT_FILENAME_LOOKUP = {
     'chartjson': 'results-chart.json',
     'csv-pivot-table': 'results-pivot-table.csv',
     'histograms': 'histograms.json',
+    'legacy-html': 'legacy-results.html'
 }
 
 
@@ -96,7 +98,7 @@ def _GetOutputStream(output_format, output_dir):
   output_file = os.path.join(output_dir, _OUTPUT_FILENAME_LOOKUP[output_format])
 
   # TODO(eakuefner): Factor this hack out after we rewrite HTMLOutputFormatter.
-  if output_format == 'html':
+  if output_format == 'html' or output_format == 'legacy-html':
     open(output_file, 'a').close() # Create file if it doesn't exist.
     return codecs.open(output_file, mode='r+', encoding='utf-8')
   else:
@@ -138,7 +140,7 @@ def CreateResults(benchmark_metadata, options,
           csv_pivot_table_output_formatter.CsvPivotTableOutputFormatter(
               output_stream, trace_tag=options.output_trace_tag))
     elif output_format == 'html':
-      output_formatters.append(html2_output_formatter.Html2OutputFormatter(
+      output_formatters.append(html_output_formatter.HtmlOutputFormatter(
           output_stream, benchmark_metadata, options.reset_results,
           upload_bucket))
     elif output_format == 'json':
@@ -152,6 +154,11 @@ def CreateResults(benchmark_metadata, options,
       output_formatters.append(
           histogram_set_json_output_formatter.HistogramSetJsonOutputFormatter(
               output_stream, benchmark_metadata, options.reset_results))
+    elif output_format == 'legacy-html':
+      output_formatters.append(
+          legacy_html_output_formatter.LegacyHtmlOutputFormatter(
+              output_stream, benchmark_metadata, options.reset_results,
+              options.browser_type, options.results_label))
     else:
       # Should never be reached. The parser enforces the choices.
       raise Exception('Invalid --output-format "%s". Valid choices are: %s'

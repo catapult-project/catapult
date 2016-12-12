@@ -8,7 +8,7 @@ import unittest
 
 from telemetry import benchmark
 from telemetry import story
-from telemetry.internal.results import html_output_formatter
+from telemetry.internal.results import legacy_html_output_formatter
 from telemetry.internal.results import page_test_results
 from telemetry import page as page_module
 from telemetry.value import improvement_direction
@@ -27,7 +27,7 @@ def _MakeStorySet():
 
 
 class DeterministicHtmlOutputFormatter(
-    html_output_formatter.HtmlOutputFormatter):
+    legacy_html_output_formatter.LegacyHtmlOutputFormatter):
   def _GetBuildTime(self):
     return datetime.datetime(1998, 9, 4, 13, 0, 0, 7777)
 
@@ -43,7 +43,7 @@ class StringIOFile(StringIO.StringIO):
   name = 'fake_output_file'
 
 
-class HtmlOutputFormatterTest(unittest.TestCase):
+class LegacyHtmlOutputFormatterTest(unittest.TestCase):
 
   def setUp(self):
     self.maxDiff = 100000

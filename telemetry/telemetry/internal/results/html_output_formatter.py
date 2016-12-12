@@ -1,4 +1,4 @@
-# Copyright 2014 The Chromium Authors. All rights reserved.
+# Copyright 2016 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -6,190 +6,63 @@ import datetime
 import json
 import logging
 import os
-import re
+import tempfile
 
-from py_utils import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage
 
-from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
-from telemetry.internal.results import html2_output_formatter
 from telemetry.internal.results import output_formatter
-from telemetry import value as value_module
-from telemetry.value import list_of_scalar_values
+
+from tracing import results_renderer
+from tracing.value import convert_chart_json
 
 
-_TEMPLATE_HTML_PATH = os.path.join(
-    util.GetTelemetryDir(), 'support', 'html_output', 'results-template.html')
-_JS_PLUGINS = [os.path.join('flot', 'jquery.flot.min.js'),
-               os.path.join('WebKit', 'PerformanceTests', 'resources',
-                            'jquery.tablesorter.min.js'),
-               os.path.join('WebKit', 'PerformanceTests', 'resources',
-                            'statistics.js')]
-_UNIT_JSON = os.path.join(
-    util.GetTelemetryDir(), 'telemetry', 'value', 'unit-info.json')
-
-
-def _DatetimeInEs5CompatibleFormat(dt):
-  return dt.strftime('%Y-%m-%dT%H:%M:%S.%f')
-
-
-def _ShortDatetimeInEs5CompatibleFormat(dt):
-  return dt.strftime('%Y-%m-%d %H:%M:%S')
-
-
-# TODO(eakuefner): rewrite template to use Telemetry JSON directly
 class HtmlOutputFormatter(output_formatter.OutputFormatter):
-  def __init__(self, output_stream, metadata, reset_results, browser_type,
-          results_label=None, upload_bucket=None):
+  def __init__(self, output_stream, metadata, reset_results,
+               upload_bucket=None):
     super(HtmlOutputFormatter, self).__init__(output_stream)
     self._metadata = metadata
-    self._reset_results = reset_results
-    self._build_time = self._GetBuildTime()
-    self._combined_results = []
-    if results_label:
-      self._results_label = results_label
-    else:
-      self._results_label = '%s (%s)' % (
-          metadata.name, _ShortDatetimeInEs5CompatibleFormat(self._build_time))
     self._upload_bucket = upload_bucket
-    self._result = {
-        'buildTime': _DatetimeInEs5CompatibleFormat(self._build_time),
-        'label': self._results_label,
-        'platform': browser_type,
-        'tests': {}
-        }
+    self._reset_results = reset_results
 
-  def _GetBuildTime(self):
-    return datetime.datetime.utcnow()
-
-  def _GetHtmlTemplate(self):
-    with open(_TEMPLATE_HTML_PATH) as f:
-      return f.read()
-
-  def _GetPlugins(self):
-    plugins = ''
-    for p in _JS_PLUGINS:
-      with open(os.path.join(util.GetTelemetryThirdPartyDir(), p)) as f:
-        plugins += f.read()
-    return plugins
-
-  def _GetUnitJson(self):
-    with open(_UNIT_JSON) as f:
-      return f.read()
-
-  def _ReadExistingResults(self, output_stream):
-    results_html = output_stream.read()
-    if self._reset_results or not results_html:
-      return []
-    m = re.search(
-        '^<script id="results-json" type="application/json">(.*?)</script>$',
-        results_html, re.MULTILINE | re.DOTALL)
-    if not m:
-      logging.warn('Failed to extract previous results from HTML output')
-      return []
-    return json.loads(m.group(1))[:512]
-
-  def _SaveResults(self, results):
-    self._output_stream.seek(0)
-    self._output_stream.write(unicode(results, 'utf-8'))
-    self._output_stream.truncate()
-
-  def _PrintPerfResult(self, measurement, trace, values, units,
-                       result_type='default', std=None):
-    metric_name = measurement
-    if trace != measurement:
-      metric_name += '.' + trace
-    self._result['tests'].setdefault(self._test_name, {})
-    self._result['tests'][self._test_name].setdefault('metrics', {})
-    metric_data = {
-        'current': values,
-        'units': units,
-        'important': result_type == 'default'
-        }
-    if std is not None:
-      metric_data['std'] = std
-    self._result['tests'][self._test_name]['metrics'][metric_name] = metric_data
-
-  def _TranslateChartJson(self, chart_json_dict):
-    dummy_dict = dict()
-
-    for chart_name, traces in chart_json_dict['charts'].iteritems():
-      for trace_name, value_dict in traces.iteritems():
-        # TODO(eakuefner): refactor summarization so we don't have to jump
-        # through hoops like this.
-        if 'page_id' in value_dict:
-          del value_dict['page_id']
-          result_type = 'nondefault'
-        else:
-          result_type = 'default'
-
-        # Note: we explicitly ignore TraceValues because Buildbot did.
-        if value_dict['type'] == 'trace':
-          continue
-        value = value_module.Value.FromDict(value_dict, dummy_dict)
-
-        perf_value = value.GetBuildbotValue()
-
-        if '@@' in chart_name:
-          chart_name_to_print = '%s-%s' % tuple(chart_name.split('@@'))
-        else:
-          chart_name_to_print = str(chart_name)
-
-        if trace_name == 'summary':
-          trace_name = chart_name_to_print
-
-        std = None
-        if isinstance(value, list_of_scalar_values.ListOfScalarValues):
-          std = value.std
-
-        self._PrintPerfResult(chart_name_to_print, trace_name, perf_value,
-                              value.units, result_type, std)
-
-  @property
-  def _test_name(self):
-    return self._metadata.name
-
-  def GetResults(self):
-    return self._result
-
-  def GetCombinedResults(self):
-    return self._combined_results
-
-  def Format(self, page_test_results):
-    if page_test_results.value_set:
-      html2_formatter = html2_output_formatter.Html2OutputFormatter(
-          self._output_stream, self._metadata, self._reset_results,
-          self._upload_bucket)
-      html2_formatter.Format(page_test_results)
-      return
-
-    chart_json_dict = chart_json_output_formatter.ResultsAsChartDict(
+  def _ConvertChartJson(self, page_test_results):
+    chart_json = chart_json_output_formatter.ResultsAsChartDict(
         self._metadata, page_test_results.all_page_specific_values,
         page_test_results.all_summary_values)
+    info = page_test_results.iteration_info
+    chart_json['label'] = info.label
+    chart_json['benchmarkStartMs'] = info.benchmark_start_ms
 
-    self._TranslateChartJson(chart_json_dict)
-    self._PrintPerfResult('telemetry_page_measurement_results', 'num_failed',
-                          [len(page_test_results.failures)], 'count',
-                          'unimportant')
+    file_descriptor, chart_json_path = tempfile.mkstemp()
+    os.close(file_descriptor)
+    json.dump(chart_json, file(chart_json_path, 'w'))
 
-    self._combined_results = self._ReadExistingResults(self._output_stream)
-    self._combined_results.append(self._result)
+    vinn_result = convert_chart_json.ConvertChartJson(chart_json_path)
 
-    html = self._GetHtmlTemplate()
-    html = html.replace('%json_results%', json.dumps(self.GetCombinedResults()))
-    html = html.replace('%json_units%', self._GetUnitJson())
-    html = html.replace('%plugins%', self._GetPlugins())
-    self._SaveResults(html)
+    os.remove(chart_json_path)
 
-    if self._upload_bucket:
-      file_name = 'html-results/results-' + datetime.datetime.now().strftime(
-          '%Y-%m-%d_%H-%M-%S')
+    if vinn_result.returncode != 0:
+      logging.error('Error converting chart json to Histograms:\n' +
+          vinn_result.stdout)
+      return []
+    return json.loads(vinn_result.stdout)
+
+  def Format(self, page_test_results):
+    histograms = page_test_results.value_set
+    if not histograms:
+      histograms = self._ConvertChartJson(page_test_results)
+
+    results_renderer.RenderHTMLView(histograms,
+        self._output_stream, self._reset_results)
+    file_path = os.path.abspath(self._output_stream.name)
+    if self._upload_results and self._upload_bucket:
+      remote_path = ('html-results/results-%s' %
+                     datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
       try:
-        cloud_storage.Insert(self._upload_bucket, file_name,
-                             os.path.abspath(self._output_stream.name))
+        cloud_storage.Insert(self._upload_bucket, remote_path, file_path)
         print 'View online at',
         print 'http://storage.googleapis.com/{bucket}/{path}'.format(
-            bucket=self._upload_bucket, path=file_name)
+            bucket=self._upload_bucket, path=remote_path)
       except cloud_storage.PermissionError as e:
         logging.error('Cannot upload profiling files to cloud storage due to '
                       ' permission error: %s' % e.message)
