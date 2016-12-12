@@ -89,6 +89,10 @@ class RunTestsCommand(command_line.OptparseCommand):
 
     if args.start_xvfb and xvfb.ShouldStartXvfb():
       cls.xvfb_process = xvfb.StartXvfb()
+      # Work around Mesa issues on Linux. See
+      # https://github.com/catapult-project/catapult/issues/3074
+      args.browser_options.AppendExtraBrowserArgs('--disable-gpu')
+
     try:
       possible_browser = browser_finder.FindBrowser(args)
     except browser_finder_exceptions.BrowserFinderException, ex:
