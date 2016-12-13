@@ -136,8 +136,6 @@ class StartBisectHandler(request_handler.RequestHandler):
     bisect_bot = self.request.get('bisect_bot')
     bypass_no_repro_check = self.request.get('bypass_no_repro_check') == 'true'
     use_staging_bot = self.request.get('use_staging_bot') == 'true'
-    if use_staging_bot:
-      bisect_bot = _GuessStagingBot(master_name, bisect_bot) or bisect_bot
 
     bisect_config = GetBisectConfig(
         bisect_bot=bisect_bot,
@@ -159,6 +157,12 @@ class StartBisectHandler(request_handler.RequestHandler):
 
     config_python_string = 'config = %s\n' % json.dumps(
         bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
+
+    # If 'use_staging_bot' was checked, we try to redirect to a staging bot.
+    # Do this here since GetBisectConfig() doesn't know about the staging bots
+    # and needs to guess bits of the command line based on the bisect_bot.
+    if use_staging_bot:
+      bisect_bot = _GuessStagingBot(master_name, bisect_bot) or bisect_bot
 
     bisect_job = try_job.TryJob(
         bot=bisect_bot,
