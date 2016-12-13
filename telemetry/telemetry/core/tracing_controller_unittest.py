@@ -167,6 +167,7 @@ class TracingControllerTest(tab_test_case.TabTestCase):
   def testStartupTracingOnDesktop(self):
     self._StartupTracing(platform_module.GetHostPlatform())
 
+  @decorators.Disabled('linux')  # crbug.com/673761
   def testBattOrTracing(self):
     test_platform = self._browser.platform.GetOSName()
     device = (self._browser.platform._platform_backend.device
