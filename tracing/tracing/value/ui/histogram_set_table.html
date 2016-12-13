@@ -128,17 +128,6 @@ found in the LICENSE file.
 <script>
 'use strict';
 tr.exportTo('tr.v.ui', function() {
-  /**
-   * Returns a closure that gets a story grouping key label from a Histogram.
-   *
-   * @param {string} storyGroupingKey
-   * @return {!function(tr.v.Histogram):string}
-   */
-  function makeStoryGroupingKeyLabelGetter(storyGroupingKey) {
-    return v => tr.v.d.IterationInfo.getStoryGroupingKeyLabel(
-        v, storyGroupingKey);
-  }
-
   var getDisplayLabel = tr.v.HistogramSet.GROUPINGS.DISPLAY_LABEL.callback;
 
   var DEFAULT_POSSIBLE_GROUPS = [];
@@ -439,7 +428,8 @@ tr.exportTo('tr.v.ui', function() {
       for (var storyGroupingKey of this.storyGroupingKeys) {
         groups.push(new tr.v.HistogramGrouping(
           'storyGroupingKey_' + storyGroupingKey,
-          makeStoryGroupingKeyLabelGetter(storyGroupingKey),
+          tr.v.d.IterationInfo.makeStoryGroupingKeyLabelGetter(
+            storyGroupingKey),
           storyGroupingKey));
       }
 

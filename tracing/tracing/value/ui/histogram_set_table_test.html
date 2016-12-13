@@ -450,7 +450,8 @@ tr.b.unittest.testSuite(function() {
   test('merge', function() {
     var table = document.createElement('tr-v-ui-histogram-set-table');
     var histograms = new tr.v.HistogramSet();
-    // Add 64 Histograms, all named 'foo', with different IterationInfos.
+    // Add 2^8=256 Histograms, all with the same name, with different
+    // IterationInfos.
     var benchmarkNames = ['bm A', 'bm B'];
     var storyGroupingKeys0 = ['A', 'B'];
     var storyGroupingKeys1 = ['C', 'D'];

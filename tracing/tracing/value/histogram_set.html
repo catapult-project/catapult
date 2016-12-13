@@ -278,14 +278,16 @@ tr.exportTo('tr.v', function() {
         h => tr.v.d.IterationInfo.getField(h, 'benchmarkStartString', '')),
 
     STORYSET_REPEAT: new HistogramGrouping(
-        'storyset repeat',
+        'storyset_repeat',
         h => tr.v.d.IterationInfo.getField(
-            h, 'storysetRepeatCounterLabel', 0)),
+            h, 'storysetRepeatCounterLabel', 0),
+        'storyset repeat'),
 
     STORY_REPEAT: new HistogramGrouping(
-        'story repeat',
+        'story_repeat',
         h => tr.v.d.IterationInfo.getField(
-            h, 'storyRepeatCounterLabel', 0)),
+            h, 'storyRepeatCounterLabel', 0),
+        'story repeat'),
 
     STORY_NAME: new HistogramGrouping(
         'story',

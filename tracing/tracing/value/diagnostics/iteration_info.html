@@ -199,6 +199,17 @@ tr.exportTo('tr.v.d', function() {
       return storyGroupingKey + ': ' +
         iteration.storyGroupingKeys[storyGroupingKey];
     }
+
+    /**
+     * Returns a closure that gets a story grouping key label from a Histogram.
+     *
+     * @param {string} storyGroupingKey
+     * @return {!function(tr.v.Histogram):string}
+     */
+    static makeStoryGroupingKeyLabelGetter(storyGroupingKey) {
+      return v => IterationInfo.getStoryGroupingKeyLabel(
+          v, storyGroupingKey);
+    }
   }
 
   // Diagnostics generally do not need a constant name or getFromValue().
