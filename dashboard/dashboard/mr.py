@@ -90,7 +90,8 @@ def StoreUnitsInAnomalyEntity(entity):
   if entity.test:
     test_key = utils.TestMetadataKey(entity.test)
     test = test_key.get()
-    entity.units = test.units
+    if test:
+      entity.units = test.units
   yield op.db.Put(entity)
 
 
