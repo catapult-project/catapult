@@ -616,7 +616,9 @@ class DesktopBrowserBackend(chrome_browser_backend.ChromeBrowserBackend):
     if self.IsBrowserRunning():
       self._proc.terminate()
       try:
-        py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=5)
+        # Increased from 5 to increase the likelihood of getting a strack trace.
+        # See https://github.com/catapult-project/catapult/issues/3074.
+        py_utils.WaitFor(lambda: not self.IsBrowserRunning(), timeout=20)
         self._proc = None
       except py_utils.TimeoutException:
         logging.warning('Failed to gracefully shutdown.')
