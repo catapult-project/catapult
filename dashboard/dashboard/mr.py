@@ -88,7 +88,8 @@ def StoreUnitsInAnomalyEntity(entity):
     One datastore mutation operation.
   """
   if entity.test:
-    test = entity.test.get()
+    test_key = utils.TestMetadataKey(entity.test)
+    test = test_key.get()
     entity.units = test.units
   yield op.db.Put(entity)
 
