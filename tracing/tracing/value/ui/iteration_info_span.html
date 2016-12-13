@@ -51,12 +51,6 @@ Polymer({
 
     var rows = [];
 
-    if (this.diagnostic.osVersion) {
-      rows.push(['OS version', this.diagnostic.osVersion]);
-    }
-    if (this.diagnostic.productVersion) {
-      rows.push(['product version', this.diagnostic.productVersion]);
-    }
     if (this.diagnostic.benchmarkName) {
       rows.push(['benchmark name', this.diagnostic.benchmarkName]);
     }

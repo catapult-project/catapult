@@ -131,6 +131,7 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedValueMap`
  * `RelatedHistogramBreakdown`
  * `IterationInfo`
+ * `DeviceInfo`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared -- it may be

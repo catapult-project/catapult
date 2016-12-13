@@ -20,8 +20,6 @@ tr.exportTo('tr.v.d', function() {
       this.benchmarkStart_ = undefined;
       this.label_ = '';
       this.legacyTIRLabel_ = '';
-      this.osVersion_ = '';
-      this.productVersion_ = '';
       this.storyDisplayName_ = '';
       this.storyGroupingKeys_ = {};
       this.storyRepeatCounter_ = undefined;
@@ -44,7 +42,6 @@ tr.exportTo('tr.v.d', function() {
      * @param {number} info.benchmarkStartMs Milliseconds since Unix epoch.
      */
     addInfo(info) {
-      // IterationInfo from Telemetry
       if (info.benchmarkName)
         this.benchmarkName_ = info.benchmarkName;
       if (info.benchmarkStartMs)
@@ -64,12 +61,6 @@ tr.exportTo('tr.v.d', function() {
       if (info.legacyTIRLabel) {
         this.legacyTIRLabel_ = info.legacyTIRLabel;
       }
-
-      // From platform tracing metadata
-      if (info['os-version'])
-        this.osVersion_ = info['os-version'];
-      if (info['product-version'])
-        this.productVersion_ = info['product-version'];
     }
 
     addToValue(value) {
@@ -94,8 +85,6 @@ tr.exportTo('tr.v.d', function() {
       d.storyRepeatCounter = this.storyRepeatCounter;
       d.storyUrl = this.storyUrl;
       d.storysetRepeatCounter = this.storysetRepeatCounter;
-      d['os-version'] = this.osVersion;
-      d['product-version'] = this.productVersion;
     }
 
     static fromDict(d) {
@@ -108,14 +97,6 @@ tr.exportTo('tr.v.d', function() {
       if (this.label)
         return this.label;
       return this.benchmarkName + '\n' + this.benchmarkStartString;
-    }
-
-    get osVersion() {
-      return this.osVersion_;
-    }
-
-    get productVersion() {
-      return this.productVersion_;
     }
 
     get benchmarkName() {

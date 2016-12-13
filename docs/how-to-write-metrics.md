@@ -148,8 +148,14 @@ The types of Diagnostics are
    Structurally, it's a class with explicit named fields.
    Conceptually, it contains information about the origins of the trace that was
    consumed by the metric that produced the Histogram, such as the benchmark
-   name, story name, benchmark start timestamp, OS version, Chrome version, etc.
+   name, story name, benchmark start timestamp, etc.
    Visually, IterationInfos are displayed as a table.
+ * [DeviceInfo](/tracing/tracing/value/diagnostics/device_info.html):
+   This is automatically attached to every Histogram produced by buildbots.
+   Structurally, it's a class with explicit named fields. Conceptually, it
+   contains information about the machine that produced the trace that was
+   consumed by the metric that produced the Histogram, such as the OS version,
+   Chrome version, etc. Visually, DeviceInfos are displayed as a table.
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
    Metrics must not use this, since it is incapable of being merged. It is
    mentioned here for completeness. It wraps a ScalarNumeric, which is just a
