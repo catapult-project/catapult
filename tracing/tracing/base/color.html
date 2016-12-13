@@ -155,7 +155,7 @@ tr.exportTo('tr.b', function() {
     lighten: function(k, opt_maxL) {
       var maxL = opt_maxL !== undefined ? opt_maxL : 1.0;
       var hsl = this.toHSL();
-      hsl.l = clamp01(hsl.l + k);
+      hsl.l = Math.min(hsl.l + k, maxL);
       return Color.fromHSL(hsl);
     },
 
