@@ -156,6 +156,13 @@ The types of Diagnostics are
    contains information about the machine that produced the trace that was
    consumed by the metric that produced the Histogram, such as the OS version,
    Chrome version, etc. Visually, DeviceInfos are displayed as a table.
+ * [RevisionInfo](/tracing/tracing/value/diagnostics/revision_info.html):
+   This is automatically attached to every Histogram produced by telemetry.
+   Structurally, it's a class with explicit named fields. Conceptually, it
+   contains ranges of revisions of the software used to produce the trace that
+   was consumed by the metric that produced the Histogram, such as the Chromium
+   revision, v8 revision, and catapult revision. Visually, RevisionInfos are
+   displayed as a table.
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
    Metrics must not use this, since it is incapable of being merged. It is
    mentioned here for completeness. It wraps a ScalarNumeric, which is just a

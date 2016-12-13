@@ -132,6 +132,7 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedHistogramBreakdown`
  * `IterationInfo`
  * `DeviceInfo`
+ * `RevisionInfo`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared -- it may be
@@ -154,6 +155,15 @@ The other fields of Diagnostic dictionaries depend on `type`.
  * `storyRepeatCounter`: number
  * `storyUrl`: string
  * `storysetRepeatCounter`: number
+
+### RevisionInfo
+
+ * `chromium`: array of 1 or 2 strings
+ * `v8`: array of 1 or 2 strings
+ * `catapult`: array of 1 or 2 strings
+ * `angle`: array of 1 or 2 strings
+ * `skia`: array of 1 or 2 strings
+ * `webrtc`: array of 1 or 2 strings
 
 ### DeviceInfo
 
