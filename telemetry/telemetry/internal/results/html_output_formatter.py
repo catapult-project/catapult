@@ -59,10 +59,8 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
       remote_path = ('html-results/results-%s' %
                      datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
       try:
-        cloud_storage.Insert(self._upload_bucket, remote_path, file_path)
-        print 'View online at',
-        print 'http://storage.googleapis.com/{bucket}/{path}'.format(
-            bucket=self._upload_bucket, path=remote_path)
+        url = cloud_storage.Insert(self._upload_bucket, remote_path, file_path)
+        print 'View HTML results online at %s' % url
       except cloud_storage.PermissionError as e:
         logging.error('Cannot upload profiling files to cloud storage due to '
                       ' permission error: %s' % e.message)
