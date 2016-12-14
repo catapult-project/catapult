@@ -55,7 +55,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     results_renderer.RenderHTMLView(histograms,
         self._output_stream, self._reset_results)
     file_path = os.path.abspath(self._output_stream.name)
-    if self._upload_results and self._upload_bucket:
+    if self._upload_bucket:
       remote_path = ('html-results/results-%s' %
                      datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
       try:
