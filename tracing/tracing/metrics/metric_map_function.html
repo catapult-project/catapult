@@ -44,16 +44,16 @@ tr.exportTo('tr.metrics', function() {
    * @param {!tr.v.HistogramSet} values
    * @param {!tr.model.Model} model
    */
-  function addIterationInfo(values, model) {
-    var iterationInfo = new tr.v.d.IterationInfo();
+  function addTelemetryInfo(values, model) {
+    var telemetry = new tr.v.d.TelemetryInfo();
     for (var metadata of model.metadata) {
       if (!metadata.value) continue;
 
-      if (metadata.value['iteration-info']) {
-        iterationInfo.addInfo(metadata.value['iteration-info']);
+      if (metadata.value.telemetry) {
+        telemetry.addInfo(metadata.value.telemetry);
       }
     }
-    values.addSharedDiagnostic('iteration', iterationInfo);
+    values.addSharedDiagnostic(tr.v.d.TelemetryInfo.NAME, telemetry);
   }
 
   /**
@@ -64,7 +64,7 @@ tr.exportTo('tr.metrics', function() {
    */
   function metricMapFunction(result, model, options) {
     var values = runMetrics(model, options);
-    addIterationInfo(values, model);
+    addTelemetryInfo(values, model);
 
     result.addPair('histograms', values.asDicts());
 

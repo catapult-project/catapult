@@ -428,7 +428,7 @@ tr.exportTo('tr.v.ui', function() {
       for (var storyGroupingKey of this.storyGroupingKeys) {
         groups.push(new tr.v.HistogramGrouping(
           'storyGroupingKey_' + storyGroupingKey,
-          tr.v.d.IterationInfo.makeStoryGroupingKeyLabelGetter(
+          tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(
             storyGroupingKey),
           storyGroupingKey));
       }
@@ -505,13 +505,15 @@ tr.exportTo('tr.v.ui', function() {
     get storyGroupingKeys() {
       var keys = new Set();
       for (var value of this.histograms) {
-        var iteration = tr.v.d.IterationInfo.getFromValue(value);
-        if (!(iteration instanceof tr.v.d.IterationInfo) ||
-            !iteration.storyGroupingKeys)
+        var telemetry = tr.v.d.TelemetryInfo.getFromValue(value);
+        if (!(telemetry instanceof tr.v.d.TelemetryInfo) ||
+            !telemetry.storyGroupingKeys) {
           continue;
+        }
 
-        for (var key in iteration.storyGroupingKeys)
+        for (var key in telemetry.storyGroupingKeys) {
           keys.add(key);
+        }
       }
       return [...keys.values()].sort();
     },
@@ -576,7 +578,7 @@ tr.exportTo('tr.v.ui', function() {
         var displayLabel = getDisplayLabel(value);
         startTimesForDisplayLabels[displayLabel] = Math.min(
             startTimesForDisplayLabels[displayLabel] || 0,
-            tr.v.d.IterationInfo.getField(
+            tr.v.d.TelemetryInfo.getField(
                 value, 'benchmarkStart', new Date(0)).getTime());
       }
       return startTimesForDisplayLabels;

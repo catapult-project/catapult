@@ -143,13 +143,13 @@ The types of Diagnostics are
    the numbers contained explicitly in the Breakdown, a
    RelatedHistogramBreakdown's stacked
    bar chart derives its data from the referenced Histograms' sums.
- * [IterationInfo](/tracing/tracing/value/diagnostics/iteration_info.html):
+ * [TelemetryInfo](/tracing/tracing/value/diagnostics/telemetry_info.html):
    This is automatically attached to every Histogram produced by telemetry.
    Structurally, it's a class with explicit named fields.
    Conceptually, it contains information about the origins of the trace that was
    consumed by the metric that produced the Histogram, such as the benchmark
    name, story name, benchmark start timestamp, etc.
-   Visually, IterationInfos are displayed as a table.
+   Visually, TelemetryInfos are displayed as a table.
  * [DeviceInfo](/tracing/tracing/value/diagnostics/device_info.html):
    This is automatically attached to every Histogram produced by buildbots.
    Structurally, it's a class with explicit named fields. Conceptually, it
@@ -204,18 +204,18 @@ default options are as follows:
      metric would call `histogram.customizeSummaryOptions({percentile: [0.5]})`.
 
 
-## How histogram-set-table Uses Merging and IterationInfo
+## How histogram-set-table Uses Merging and TelemetryInfo
 
-The histogram-set-table element uses the fields of IterationInfo, along with the
+The histogram-set-table element uses the fields of TelemetryInfo, along with the
 merging capabilities of Histograms, to allow dynamic, hierarchical
 organization of histograms:
 
-* IterationInfo has mostly string/number (story name, story/set repeat count,
+* TelemetryInfo has mostly string/number (story name, story/set repeat count,
   etc.) fields and one dict field that specifies the names of any story grouping
   keys together with their histogram.
 * After loading histograms, histogram-set-table computes categories to be
   displayed by the groupby picker at the top of the UI:
-  * Categories are fields of IterationInfo that have more than one value across
+  * Categories are fields of TelemetryInfo that have more than one value across
     all histograms in the HistogramSet.
   * Instead of having one category for all story grouping keys, each grouping
     individual grouping key may be listed as a category. For example, in Page
@@ -225,5 +225,5 @@ organization of histograms:
   histograms from the bottom up. Expanding the rows of histogram-set-table, any
   leaf nodes are histograms that were loaded, and their ancestors are computed by
   merging.
-* histogram-set-table uses the "label" property of IterationInfo to define the
+* histogram-set-table uses the "label" property of TelemetryInfo to define the
   columns of the table.

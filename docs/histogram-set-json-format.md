@@ -21,7 +21,7 @@ dictionary represents either a Histogram or a Diagnostic.
     "shortName": "my metric",
     "description": "this is my awesome amazing metric",
     "diagnostics": {
-      "iteration": "923e4567-e89b-12d3-a456-426655440000",
+      "telemetry": "923e4567-e89b-12d3-a456-426655440000",
     },
     "sampleValues": [0, 1, 42, -999999999.99999, null],
     "maxNumSampleValues": 1000,
@@ -50,7 +50,7 @@ dictionary represents either a Histogram or a Diagnostic.
   },
   {
     "guid": "923e4567-e89b-12d3-a456-426655440000",
-    "type": "IterationInfo",
+    "type": "TelemetryInfo",
     "benchmarkName": "memory",
     "benchmarkStartMs": 1234567890,
     "label": "abc",
@@ -130,7 +130,7 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `RelatedValueSet`
  * `RelatedValueMap`
  * `RelatedHistogramBreakdown`
- * `IterationInfo`
+ * `TelemetryInfo`
  * `DeviceInfo`
  * `RevisionInfo`
  * `Scalar`
@@ -144,7 +144,7 @@ field.
 
 The other fields of Diagnostic dictionaries depend on `type`.
 
-### IterationInfo
+### TelemetryInfo
 
  * `benchmarkName`: string
  * `benchmarkStartMs`: number of ms since unix epoch
@@ -167,14 +167,14 @@ The other fields of Diagnostic dictionaries depend on `type`.
 
 ### DeviceInfo
 
- * `chromeVersion`: string (to be moved from IterationInfo)
+ * `chromeVersion`: string
  * `osName`: one of
     * `mac`
     * `android`
     * `linux`
     * `chrome`
     * `win`
- * `osVersion`: string (to be moved from IterationInfo)
+ * `osVersion`: string
  * `arch`: not yet specified, but will contain bittiness (32-bit vs 64-bit)
  * `gpuInfo`: not yet specified, but will contain information about the GPU
  * `ram`: number of bytes of RAM

@@ -12,7 +12,7 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  class IterationInfo extends tr.v.d.Diagnostic {
+  class TelemetryInfo extends tr.v.d.Diagnostic {
     constructor(opt_info) {
       super();
 
@@ -64,15 +64,16 @@ tr.exportTo('tr.v.d', function() {
     }
 
     addToValue(value) {
-      value.diagnostics.set(IterationInfo.NAME, this);
+      value.diagnostics.set(TelemetryInfo.NAME, this);
     }
 
     /**
      * @param {!tr.v.Value} value
-     * @return {(undefined|!tr.v.d.IterationInfo)}
+     * @return {(undefined|!tr.v.d.TelemetryInfo)}
      */
     static getFromValue(value) {
-      return value.diagnostics.get(IterationInfo.NAME);
+      return value.diagnostics.get(TelemetryInfo.NAME) ||
+             value.diagnostics.get('iteration');
     }
 
     asDictInto_(d) {
@@ -88,7 +89,7 @@ tr.exportTo('tr.v.d', function() {
     }
 
     static fromDict(d) {
-      var info = new IterationInfo();
+      var info = new TelemetryInfo();
       info.addInfo(d);
       return info;
     }
@@ -160,12 +161,12 @@ tr.exportTo('tr.v.d', function() {
      * @return {*}
      */
     static getField(value, fieldName, defaultValue) {
-      var iteration = tr.v.d.IterationInfo.getFromValue(value);
-      if (!(iteration instanceof tr.v.d.IterationInfo) ||
-          !iteration[fieldName]) {
+      var telemetry = tr.v.d.TelemetryInfo.getFromValue(value);
+      if (!(telemetry instanceof tr.v.d.TelemetryInfo) ||
+          !telemetry[fieldName]) {
         return defaultValue;
       }
-      return iteration[fieldName];
+      return telemetry[fieldName];
     }
 
     /**
@@ -174,11 +175,11 @@ tr.exportTo('tr.v.d', function() {
      * @return {string}
      */
     static getStoryGroupingKeyLabel(value, storyGroupingKey) {
-      var iteration = tr.v.d.IterationInfo.getFromValue(value);
-      if (!(iteration instanceof tr.v.d.IterationInfo))
+      var telemetry = tr.v.d.TelemetryInfo.getFromValue(value);
+      if (!(telemetry instanceof tr.v.d.TelemetryInfo))
         return storyGroupingKey + ': undefined';
       return storyGroupingKey + ': ' +
-        iteration.storyGroupingKeys[storyGroupingKey];
+        telemetry.storyGroupingKeys[storyGroupingKey];
     }
 
     /**
@@ -188,26 +189,26 @@ tr.exportTo('tr.v.d', function() {
      * @return {!function(tr.v.Histogram):string}
      */
     static makeStoryGroupingKeyLabelGetter(storyGroupingKey) {
-      return v => IterationInfo.getStoryGroupingKeyLabel(
+      return v => TelemetryInfo.getStoryGroupingKeyLabel(
           v, storyGroupingKey);
     }
   }
 
   // Diagnostics generally do not need a constant name or getFromValue().
-  // IterationInfo is a special kind of Diagnostic that is produced by
+  // TelemetryInfo is a special kind of Diagnostic that is produced by
   // telemetry, which shepherds whole flocks of traces at once, and needs a
   // system to identify and find traces by these attributes.
 
-  // Values produced by telemetry all have a single IterationInfo at this key in
+  // Values produced by telemetry all have a single TelemetryInfo at this key in
   // their DiagnosticMap.
-  IterationInfo.NAME = 'iteration';
+  TelemetryInfo.NAME = 'telemetry';
 
-  tr.v.d.Diagnostic.register(IterationInfo, {
-    elementName: 'tr-v-ui-iteration-info-span'
+  tr.v.d.Diagnostic.register(TelemetryInfo, {
+    elementName: 'tr-v-ui-telemetry-info-span'
   });
 
   return {
-    IterationInfo,
+    TelemetryInfo,
   };
 });
 </script>

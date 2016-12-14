@@ -29,7 +29,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
         self._metadata, page_test_results.all_page_specific_values,
         page_test_results.all_summary_values)
-    info = page_test_results.iteration_info
+    info = page_test_results.telemetry_info
     chart_json['label'] = info.label
     chart_json['benchmarkStartMs'] = info.benchmark_start_ms
 

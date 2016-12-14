@@ -41,7 +41,7 @@ tr.exportTo('tr.v', function() {
           hist.description = value.description || '';
           histograms.addHistogram(hist);
 
-          new tr.v.d.IterationInfo({
+          new tr.v.d.TelemetryInfo({
             storyDisplayName: pageValuesCount > 1 ? storyName : '',
             legacyTIRLabel: value.tir_label,
             benchmarkName: charts.benchmark_name,

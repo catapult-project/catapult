@@ -178,9 +178,9 @@ def CreateResults(benchmark_metadata, options,
       value_can_be_added_predicate=value_can_be_added_predicate,
       benchmark_enabled=benchmark_enabled)
 
-  results.iteration_info.benchmark_name = benchmark_metadata.name
-  results.iteration_info.benchmark_start_ms = time.time() * 1000.0
+  results.telemetry_info.benchmark_name = benchmark_metadata.name
+  results.telemetry_info.benchmark_start_ms = time.time() * 1000.0
   if options.results_label:
-    results.iteration_info.label = options.results_label
+    results.telemetry_info.label = options.results_label
 
   return results

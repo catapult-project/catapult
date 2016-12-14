@@ -14,12 +14,12 @@ class TracingController(tracing_agent.TracingAgent):
     self._tracing_controller_backend = tracing_controller_backend
 
   @property
-  def iteration_info(self):
-    return self._tracing_controller_backend.iteration_info
+  def telemetry_info(self):
+    return self._tracing_controller_backend.telemetry_info
 
-  @iteration_info.setter
-  def iteration_info(self, ii):
-    self._tracing_controller_backend.iteration_info = ii
+  @telemetry_info.setter
+  def telemetry_info(self, ii):
+    self._tracing_controller_backend.telemetry_info = ii
 
   def StartTracing(self, tracing_config, timeout=10):
     """Starts tracing.

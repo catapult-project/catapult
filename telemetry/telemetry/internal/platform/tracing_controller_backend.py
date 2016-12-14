@@ -61,7 +61,7 @@ class TracingControllerBackend(object):
     self._active_agents_instances = []
     self._trace_log = None
     self._is_tracing_controllable = True
-    self._iteration_info = None
+    self._telemetry_info = None
 
   def StartTracing(self, config, timeout):
     if self.is_tracing_running:
@@ -120,7 +120,7 @@ class TracingControllerBackend(object):
         raised_exception_messages.append(
             ''.join(traceback.format_exception(*sys.exc_info())))
 
-    self._iteration_info = None
+    self._telemetry_info = None
     self._active_agents_instances = []
     self._current_state = None
 
@@ -236,12 +236,12 @@ class TracingControllerBackend(object):
     chrome_tracing_agent.ClearStarupTracingStateIfNeeded(self._platform_backend)
 
   @property
-  def iteration_info(self):
-    return self._iteration_info
+  def telemetry_info(self):
+    return self._telemetry_info
 
-  @iteration_info.setter
-  def iteration_info(self, ii):
-    self._iteration_info = ii
+  @telemetry_info.setter
+  def telemetry_info(self, ii):
+    self._telemetry_info = ii
 
   def CollectAgentTraceData(self, trace_data_builder):
     if not self._is_tracing_controllable:
@@ -264,8 +264,8 @@ class TracingControllerBackend(object):
             # collapse based on some (device ID, clock domain ID) tuple. Giving
             # Telemetry its own clock domain is a work-around for this.
             "clock-domain": "TELEMETRY",
-            "iteration-info": (self._iteration_info.AsDict()
-                if self._iteration_info else {}),
+            "telemetry": (self._telemetry_info.AsDict()
+                if self._telemetry_info else {}),
         }
     })
     try:

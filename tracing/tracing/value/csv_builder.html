@@ -47,7 +47,7 @@ tr.exportTo('tr.v', function() {
           row.push(stats.has(name) ? stats.get(name).value : '');
         }
 
-        var iteration = tr.v.d.IterationInfo.getFromValue(hist);
+        var iteration = tr.v.d.TelemetryInfo.getFromValue(hist);
 
         for (var name of this.iterationInfoNames_) {
           if (iteration === undefined ||
@@ -82,7 +82,7 @@ tr.exportTo('tr.v', function() {
           }
         }
 
-        var iteration = tr.v.d.IterationInfo.getFromValue(hist);
+        var iteration = tr.v.d.TelemetryInfo.getFromValue(hist);
         if (iteration === undefined) continue;
 
         for (var name of CSV_ITERATION_INFO_NAMES) {

@@ -271,35 +271,35 @@ tr.exportTo('tr.v', function() {
 
     BENCHMARK_NAME: new HistogramGrouping(
         'benchmark',
-        h => tr.v.d.IterationInfo.getField(h, 'benchmarkName', '')),
+        h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkName', '')),
 
     BENCHMARK_START: new HistogramGrouping(
         'time',
-        h => tr.v.d.IterationInfo.getField(h, 'benchmarkStartString', '')),
+        h => tr.v.d.TelemetryInfo.getField(h, 'benchmarkStartString', '')),
 
     STORYSET_REPEAT: new HistogramGrouping(
         'storyset_repeat',
-        h => tr.v.d.IterationInfo.getField(
+        h => tr.v.d.TelemetryInfo.getField(
             h, 'storysetRepeatCounterLabel', 0),
         'storyset repeat'),
 
     STORY_REPEAT: new HistogramGrouping(
         'story_repeat',
-        h => tr.v.d.IterationInfo.getField(
+        h => tr.v.d.TelemetryInfo.getField(
             h, 'storyRepeatCounterLabel', 0),
         'story repeat'),
 
     STORY_NAME: new HistogramGrouping(
         'story',
-        h => tr.v.d.IterationInfo.getField(h, 'storyDisplayName', '')),
+        h => tr.v.d.TelemetryInfo.getField(h, 'storyDisplayName', '')),
 
     LEGACY_TIR_LABEL: new HistogramGrouping(
         'tir',
-        h => tr.v.d.IterationInfo.getField(h, 'legacyTIRLabel', '')),
+        h => tr.v.d.TelemetryInfo.getField(h, 'legacyTIRLabel', '')),
 
     DISPLAY_LABEL: new HistogramGrouping(
         'label',
-        h => tr.v.d.IterationInfo.getField(h, 'displayLabel', 'Value'))
+        h => tr.v.d.TelemetryInfo.getField(h, 'displayLabel', 'Value'))
   };
 
   return {

@@ -131,17 +131,17 @@ class TimelineBasedPageTestTest(page_test_test_case.PageTestTestCase):
     self.assertEquals(2, len(results.value_set))
     diagnostics = results.value_set[1]['diagnostics']
     self.assertEquals(1, len(diagnostics))
-    iter_info = results.value_set[0]
-    self.assertEquals(iter_info['guid'], diagnostics['iteration'])
-    self.assertEqual('IterationInfo', iter_info['type'])
-    self.assertEqual('', iter_info['benchmarkName'])
+    telemetry_info = results.value_set[0]
+    self.assertEquals(telemetry_info['guid'], diagnostics['telemetry'])
+    self.assertEqual('TelemetryInfo', telemetry_info['type'])
+    self.assertEqual('', telemetry_info['benchmarkName'])
     self.assertEqual('interaction_enabled_page.html',
-                     iter_info['storyDisplayName'])
-    self.assertEqual({}, iter_info['storyGroupingKeys'])
-    self.assertEqual(0, iter_info['storyRepeatCounter'])
-    self.assertEqual(0, iter_info['storysetRepeatCounter'])
+                     telemetry_info['storyDisplayName'])
+    self.assertEqual({}, telemetry_info['storyGroupingKeys'])
+    self.assertEqual(0, telemetry_info['storyRepeatCounter'])
+    self.assertEqual(0, telemetry_info['storysetRepeatCounter'])
     self.assertEqual('file://interaction_enabled_page.html',
-                     iter_info['storyUrl'])
+                     telemetry_info['storyUrl'])
     v_foo = results.FindAllPageSpecificValuesNamed('foo_avg')
     self.assertEquals(len(v_foo), 1)
     self.assertEquals(v_foo[0].value, 50)

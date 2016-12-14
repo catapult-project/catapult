@@ -20,7 +20,7 @@ function findGrouping(key) {
     }
   }
   return new tr.v.HistogramGrouping(key,
-      tr.v.d.IterationInfo.makeStoryGroupingKeyLabelGetter(key));
+      tr.v.d.TelemetryInfo.makeStoryGroupingKeyLabelGetter(key));
 }
 
 function findMergeable(hist, candidates) {

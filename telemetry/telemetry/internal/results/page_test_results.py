@@ -26,7 +26,7 @@ from telemetry.value import trace
 
 from tracing.value import convert_chart_json
 
-class IterationInfo(object):
+class TelemetryInfo(object):
   def __init__(self):
     self._benchmark_name = None
     self._benchmark_start_ms = None
@@ -160,14 +160,14 @@ class PageTestResults(object):
     # actually need set-ness in python.
     self._value_set = []
 
-    self._iteration_info = IterationInfo()
+    self._telemetry_info = TelemetryInfo()
 
     # State of the benchmark this set of results represents.
     self._benchmark_enabled = benchmark_enabled
 
   @property
-  def iteration_info(self):
-    return self._iteration_info
+  def telemetry_info(self):
+    return self._telemetry_info
 
   @property
   def value_set(self):
@@ -179,7 +179,7 @@ class PageTestResults(object):
     chart_json = chart_json_output_formatter.ResultsAsChartDict(
         benchmark_metadata, self.all_page_specific_values,
         self.all_summary_values)
-    info = self.iteration_info
+    info = self.telemetry_info
     chart_json['label'] = info.label
     chart_json['benchmarkStartMs'] = info.benchmark_start_ms
 
@@ -293,7 +293,7 @@ class PageTestResults(object):
     assert not self._current_page_run, 'Did not call DidRunPage.'
     self._current_page_run = story_run.StoryRun(page)
     self._progress_reporter.WillRunPage(self)
-    self.iteration_info.WillRunStory(
+    self.telemetry_info.WillRunStory(
         page, storyset_repeat_counter, story_repeat_counter)
 
   def DidRunPage(self, page):  # pylint: disable=unused-argument
