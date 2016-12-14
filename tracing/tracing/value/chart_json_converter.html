@@ -59,8 +59,12 @@ tr.exportTo('tr.v', function() {
               }
             }
           } else if (value.type === 'list_of_scalar_values') {
-            for (var sample of value.values) {
-              hist.addSample(sample * conversionFactor);
+            // |value.values| is undefined if the list_of_scalar_values is
+            // empty.
+            if (value.values) {
+              for (var sample of value.values) {
+                hist.addSample(sample * conversionFactor);
+              }
             }
           } else if (value.type === 'scalar') {
             hist.addSample(value.value * conversionFactor);

@@ -12,6 +12,46 @@ found in the LICENSE file.
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  test('emptyListOfScalarValues', function() {
+    var charts = {
+      charts: {
+        mean_frame_time: {
+          'http://games.yahoo.com': {
+            std: 0.0,
+            name: 'mean_frame_time',
+            type: 'list_of_scalar_values',
+            improvement_direction: 'down',
+            important: true,
+            units: 'ms',
+            page_id: 16,
+            description: 'Arithmetic mean of frame times.'
+          },
+          'summary': {
+            std: 0.0,
+            name: 'mean_frame_time',
+            improvement_direction: 'down',
+            important: true,
+            units: 'ms',
+            type: 'list_of_scalar_values',
+            description: 'Arithmetic mean of frame times.'
+          },
+        }
+      }
+    };
+    var histograms = new tr.v.HistogramSet();
+    tr.v.ChartJsonConverter.convertChartJson(charts, histograms);
+    assert.lengthOf(histograms, 1);
+    var hist = [...histograms][0];
+    assert.strictEqual('mean_frame_time', hist.name);
+    assert.strictEqual('',
+        tr.v.HistogramSet.GROUPINGS.LEGACY_TIR_LABEL.callback(hist));
+    assert.strictEqual('http://games.yahoo.com',
+        tr.v.HistogramSet.GROUPINGS.STORY_NAME.callback(hist));
+    assert.strictEqual(0, hist.numValues);
+    assert.strictEqual(tr.b.Unit.byName.timeDurationInMs_smallerIsBetter,
+        hist.unit);
+  });
+
   test('convertWithoutTIRLabel', function() {
     var charts = {
       charts: {
