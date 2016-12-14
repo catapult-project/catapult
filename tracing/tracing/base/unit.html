@@ -10,6 +10,7 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
+<link rel="import" href="/tracing/ui/base/deep_utils.html">
 
 <script>
 'use strict';
@@ -184,13 +185,16 @@ tr.exportTo('tr.b', function() {
 
   Unit.didPreferredTimeDisplayUnitChange = function() {
     var largest = undefined;
+    // TODO(aiolos): base should not depend on ui. Move the functionality of
+    //     searching for preferred-display-unit out of Unit.
+    // https://github.com/catapult-project/catapult/issues/3092
     var els = tr.b.findDeepElementsMatching(document.body,
         'tr-v-ui-preferred-display-unit');
     els.forEach(function(el) {
       largest = max(largest, el.preferredTimeDisplayMode);
     });
 
-    Unit.currentDisplayUnit = largest === undefined ?
+    Unit.currentTimeDisplayMode = largest === undefined ?
         TimeDisplayModes.ms : largest;
   };
 

@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/base.html">
 <link rel="import" href="/tracing/base/time_display_modes.html">
 <link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/base/unit_scale.html">
@@ -37,6 +38,19 @@ tr.b.unittest.testSuite(function() {
       Unit.removeEventListener('display-mode-changed', listener);
       Unit.reset();
     }
+  });
+
+  test('Unit.didPreferredTimeDisplayUnitChange', function() {
+    if (tr.isHeadless) return;
+    var Unit = tr.b.Unit;
+    var TimeDisplayModes = tr.b.TimeDisplayModes;
+    assert.strictEqual(Unit.currentTimeDisplayMode, TimeDisplayModes.ms);
+
+    var displayUnit = document.createElement('tr-v-ui-preferred-display-unit');
+    displayUnit.preferredTimeDisplayMode = TimeDisplayModes.ns;
+    this.addHTMLOutput(displayUnit);
+    tr.b.Unit.didPreferredTimeDisplayUnitChange();
+    assert.strictEqual(Unit.currentTimeDisplayMode, TimeDisplayModes.ns);
   });
 
   function checkTimeUnit(unit) {
