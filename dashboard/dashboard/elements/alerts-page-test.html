@@ -8,7 +8,9 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/alerts-page.html">
 <link rel="import" href="/dashboard/static/testing_common.html">
 
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
 
 <script>
 'use strict';
@@ -40,6 +42,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 16,
           'master': 'ChromiumBlink',
           'percent_changed': '6.7%',
+          'absolute_delta': '1234.56789',
+          'units': 'kb',
           'test': 'video_cpu_usage_VP8\/goog_encode_usage_percent',
           'recovered': false
         },
@@ -59,6 +63,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34.05,
           'master': 'ChromiumPerf',
           'percent_changed': '1.8%',
+          'absolute_delta': '4321000.01234',
+          'units': 'kb',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         },
@@ -78,6 +84,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34.0202020202,
           'master': 'ChromiumPerf',
           'percent_changed': '1.9%',
+          'absolute_delta': '12.00034',
+          'units': 'count',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         },
@@ -97,6 +105,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34,
           'master': 'ChromiumPerf',
           'percent_changed': '1.9%',
+          'absolute_delta': '1.21578',
+          'units': 'runs/s',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         },
@@ -116,6 +126,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34.0396039604,
           'master': 'ChromiumPerf',
           'percent_changed': '1.4%',
+          'absolute_delta': '1.22448',
+          'units': 'ms',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         },
@@ -135,6 +147,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34.0396039604,
           'master': 'ChromiumPerf',
           'percent_changed': '1.6%',
+          'absolute_delta': '16789.11125',
+          'units': 'ms',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         },
@@ -154,6 +168,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34.0396039604,
           'master': 'ChromiumPerf',
           'percent_changed': '3.4%',
+          'absolute_delta': '12345654545789.21548',
+          'units': 'kb',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         },
@@ -173,6 +189,8 @@ tr.b.unittest.testSuite(function() {
           'median_after_anomaly': 34.0396039604,
           'master': 'ChromiumPerf',
           'percent_changed': '1.2%',
+          'absolute_delta': '189.21548',
+          'units': 'mWh',
           'test': 'bitrate_stats_without_min_transmit_bitrate\/bitrate_kbps',
           'recovered': false
         }

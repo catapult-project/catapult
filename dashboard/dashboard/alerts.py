@@ -155,14 +155,17 @@ def GetAnomalyDict(anomaly_entity, bisect_status=None):
   Returns:
     A dictionary which is safe to be encoded as JSON.
   """
+  print anomaly_entity
   alert_dict = _AlertDict(anomaly_entity)
   alert_dict.update({
       'median_after_anomaly': anomaly_entity.median_after_anomaly,
       'median_before_anomaly': anomaly_entity.median_before_anomaly,
       'percent_changed': '%s' % anomaly_entity.GetDisplayPercentChanged(),
+      'absolute_delta': '%s' % anomaly_entity.GetDisplayAbsoluteChanged(),
       'improvement': anomaly_entity.is_improvement,
       'bisect_status': bisect_status,
       'recovered': anomaly_entity.recovered,
+      'units': anomaly_entity.units
   })
   return alert_dict
 

@@ -141,11 +141,20 @@ found in the LICENSE file.
       properties: {
         extraColumns: {
           type: Array,
-          value: () =>
-            [{
+          value: () => ([
+            {
               'key': 'percent_changed',
               'label': 'Delta %'
-            }]
+            },
+            {
+              'key': 'absolute_delta',
+              'label': 'Abs Delta'
+            },
+            {
+              'key': 'units',
+              'label': 'Units'
+            }
+          ])
         },
         loading: {
           type: Boolean,

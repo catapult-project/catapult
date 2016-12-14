@@ -67,6 +67,11 @@ class Anomaly(alert.Alert):
     return 100 * difference / self.median_before_anomaly
 
   @property
+  def absolute_delta(self):
+    """The absolute change from before the anomaly to after."""
+    return self.median_after_anomaly - self.median_before_anomaly
+
+  @property
   def direction(self):
     """Whether the change is numerically an increase or decrease."""
     if self.median_before_anomaly < self.median_after_anomaly:
@@ -78,7 +83,14 @@ class Anomaly(alert.Alert):
     if abs(self.percent_changed) == sys.float_info.max:
       return FREAKIN_HUGE
     else:
-      return str('%.1f%%' % abs(self.percent_changed))
+      return '%.1f%%' % abs(self.percent_changed)
+
+  def GetDisplayAbsoluteChanged(self):
+    """Gets a string showing the absolute change."""
+    if abs(self.absolute_delta) == sys.float_info.max:
+      return FREAKIN_HUGE
+    else:
+      return '%f' % abs(self.absolute_delta)
 
   def SetIsImprovement(self, test=None):
     """Sets whether the alert is an improvement for the given test."""

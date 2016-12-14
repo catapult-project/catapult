@@ -15,6 +15,9 @@ found in the LICENSE file.
 <link rel="import" href="/dashboard/elements/triage-dialog.html">
 <link rel="import" href="/dashboard/static/uri.html">
 
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/value/legacy_unit_info.html">
+
 <dom-module id="alerts-table">
   <template>
     <style>
@@ -147,8 +150,13 @@ found in the LICENSE file.
         word-wrap: break-word;
       }
 
-      tr[improvement] .percent_changed {
+      tr[improvement] .percent_changed,
+      tr[improvement] .absolute_delta {
         color: #0a0;
+      }
+
+      .absolute_delta {
+        color: #a00;
       }
 
       /* Checkboxes */
@@ -288,7 +296,10 @@ found in the LICENSE file.
         <th id="testsuite" on-click="columnHeaderClicked">Test Suite</th>
         <th id="test" on-click="columnHeaderClicked">Test</th>
         <template is="dom-repeat" items="{{extraColumns}}">
-          <th id="{{item.key}}" on-click="columnHeaderClicked">{{item.label}}</th>
+          <th id="{{item.key}}" on-click="columnHeaderClicked"
+              hidden$={{hideUnitsColumn(item.key)}}>
+            {{item.label}}
+          </th>
         </template>
       </tr>
       </thead>
@@ -340,8 +351,11 @@ found in the LICENSE file.
           <td class="testsuite"><label>{{item.testsuite}}</label></td>
           <td class="test"><label>{{item.test}}</label></td>
 
-          <template is="dom-repeat" items="{{extraColumns}}" as="column" index-as="colnum">
-            <td class$="{{column.key}}"><label>{{computeExtraColumnValue(item, column.key)}}</td>
+          <template is="dom-repeat" items="{{extraColumns}}" as="column" 
+                    index-as="colnum">
+            <td class$="{{column.key}}" hidden$={{hideUnitsColumn(column.key)}}>
+              <label>{{computeExtraColumnValue(item, column.key)}}</label>
+            </td>
           </template>
         </tr>
       </template>
@@ -473,9 +487,42 @@ found in the LICENSE file.
 
       computeIsPlural: (n) => n > 1,
 
+      /**
+       * Determines how to format the unit. E.g. switching between MiB and
+       * KiB as appropriate. Accepts tbmv1 and tbmv2 units.
+       */
       computeExtraColumnValue: function(item, key) {
+        if (key === 'absolute_delta') {
+          var unitName = item.units;
+          if (tr.b.Unit.byName[unitName]) {
+            return (tr.b.Unit.byName[unitName].format(item[key]));
+          }
+
+          var unitInfo = tr.v.LEGACY_UNIT_INFO.get(unitName);
+          if (unitInfo &&
+              unitInfo.name != 'unitlessNumber' &&
+              unitInfo.name != 'count') {
+            unitInfo = unitInfo.name;
+            return (tr.b.Unit.byName[unitInfo].format(item[key]));
+          }
+          else {
+            var value = item[key];
+            value = parseFloat(value).toFixed(3);
+            if (!unitName)
+              unitName = 'units - unformatted';
+            value = value + ' ' + unitName;
+            return value;
+          }
+        }
         return item[key];
       },
+
+      /**
+       * Hides the units header and column. This column needs to remain in the
+       * data for use by the computeExtraColumnValue function so we can
+       * format the unit.
+       */
+      hideUnitsColumn: key => key === 'units',
 
       setAlertList: function(i, property, value) {
         this.set('alertList.' + i + '.' + property, value);

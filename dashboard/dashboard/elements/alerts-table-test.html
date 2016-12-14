@@ -19,10 +19,20 @@ tr.b.unittest.testSuite(function() {
 
   test('instantiate', function() {
     var table = document.createElement('alerts-table');
-    table.extraColumns = [{
-      'key': 'percent_changed',
-      'label': 'Delta %'
-    }];
+    table.extraColumns = [
+      {
+        'key': 'percent_changed',
+        'label': 'Delta %'
+      },
+      {
+        'key': 'absolute_delta',
+        'label': 'Abs Delta'
+      },
+      {
+        'key': 'units',
+        'label': 'Units'
+      }
+    ];
     table.alertList = [{
       'end_revision': 395930,
       'dashboard_link': '\/do-not-click',
@@ -39,6 +49,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 0.007778930664065,
       'master': 'ChromiumPerf',
       'percent_changed': '479.3%',
+      'absolute_delta': '1234.56789',
+      'units': 'kb',
       'test': 'audio_rates_recvonly\/expand_rate',
       'recovered': false
     },
@@ -58,6 +70,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 0.0044677734375,
       'master': 'ChromiumPerf',
       'percent_changed': '761.2%',
+      'absolute_delta': '4321000.01234',
+      'units': 'kb',
       'test': 'audio_rates\/expand_rate',
       'recovered': false
     },
@@ -77,6 +91,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 0.00677490234375,
       'master': 'ChromiumPerf',
       'percent_changed': '325.3%',
+      'absolute_delta': '12.00034',
+      'units': 'count',
       'test': 'audio_rates_recvonly\/expand_rate',
       'recovered': false
     },
@@ -96,6 +112,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 0.00344543457031,
       'master': 'ChromiumPerf',
       'percent_changed': '376.4%',
+      'absolute_delta': '1.21578',
+      'units': 'runs/s',
       'test': 'audio_rates\/expand_rate',
       'recovered': false
     },
@@ -115,6 +133,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 13144744.3,
       'master': 'ChromiumPerf',
       'percent_changed': '45.3%',
+      'absolute_delta': '1.22448',
+      'units': 'ms',
       'test': 'video_total_bytes_H264\/bytes_sent',
       'recovered': false
     },
@@ -134,6 +154,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 12987079.75,
       'master': 'ChromiumPerf',
       'percent_changed': '45.0%',
+      'absolute_delta': '16789.11125',
+      'units': 'ms',
       'test': 'video_total_bytes_H264\/bytes_sent',
       'recovered': false
     },
@@ -153,6 +175,8 @@ tr.b.unittest.testSuite(function() {
       'median_after_anomaly': 13323686.35,
       'master': 'ChromiumPerf',
       'percent_changed': '51.0%',
+      'absolute_delta': '12345654545789.21548',
+      'units': 'kb',
       'test': 'video_total_bytes_H264\/bytes_recv',
       'recovered': false
     }];

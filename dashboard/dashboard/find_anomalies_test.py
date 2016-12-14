@@ -107,6 +107,7 @@ class ProcessAlertsTest(testing_common.TestCase):
         })
     ref = utils.TestKey(
         'ChromiumGPU/linux-release/scrolling_benchmark/ref').get()
+    ref.units = 'ms'
     for i in range(9000, 10070, 5):
       # Internal-only data should be found.
       test_container_key = utils.GetTestContainerKey(ref.key)
@@ -152,7 +153,8 @@ class ProcessAlertsTest(testing_common.TestCase):
 
     def AnomalyExists(
         anomalies, test, percent_changed, direction,
-        start_revision, end_revision, sheriff_name, internal_only):
+        start_revision, end_revision, sheriff_name, internal_only, units,
+        absolute_delta):
       for a in anomalies:
         if (a.test == test and
             a.percent_changed == percent_changed and
@@ -160,7 +162,9 @@ class ProcessAlertsTest(testing_common.TestCase):
             a.start_revision == start_revision and
             a.end_revision == end_revision and
             a.sheriff.string_id() == sheriff_name and
-            a.internal_only == internal_only):
+            a.internal_only == internal_only and
+            a.units == units and
+            a.absolute_delta == absolute_delta):
           return True
       return False
 
@@ -168,26 +172,27 @@ class ProcessAlertsTest(testing_common.TestCase):
         AnomalyExists(
             anomalies, test.key, percent_changed=100, direction=anomaly.UP,
             start_revision=10007, end_revision=10011, sheriff_name='sheriff',
-            internal_only=False))
+            internal_only=False, units='ms', absolute_delta=50))
 
     self.assertTrue(
         AnomalyExists(
             anomalies, test.key, percent_changed=-50, direction=anomaly.DOWN,
             start_revision=10037, end_revision=10041, sheriff_name='sheriff',
-            internal_only=False))
+            internal_only=False, units='ms', absolute_delta=-100))
 
     self.assertTrue(
         AnomalyExists(
             anomalies, test.key, percent_changed=sys.float_info.max,
             direction=anomaly.UP, start_revision=10057, end_revision=10061,
-            sheriff_name='sheriff', internal_only=False))
+            sheriff_name='sheriff', internal_only=False, units='ms',
+            absolute_delta=100))
 
     # This is here just to verify that AnomalyExists returns False sometimes.
     self.assertFalse(
         AnomalyExists(
             anomalies, test.key, percent_changed=100, direction=anomaly.DOWN,
             start_revision=10037, end_revision=10041, sheriff_name='sheriff',
-            internal_only=False))
+            internal_only=False, units='ms', absolute_delta=500))
 
   @mock.patch.object(
       find_anomalies.find_change_points, 'FindChangePoints',
