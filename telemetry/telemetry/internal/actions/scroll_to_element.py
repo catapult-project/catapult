@@ -4,6 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions.scroll import ScrollAction
+from telemetry.util import js_template
 
 
 class ScrollToElementAction(page_action.PageAction):
@@ -29,13 +30,13 @@ class ScrollToElementAction(page_action.PageAction):
 
   def WillRunAction(self, tab):
     if self._selector:
-      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-      element = 'document.querySelector("%s")' % self._selector
+      element = js_template.Render(
+          'document.querySelector({{ selector }})', selector=self._selector)
     else:
       element = self._element_function
 
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    get_distance_js = '''
+    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
+    get_distance_js = js_template.Render('''
       (function(elem){
         var rect = elem.getBoundingClientRect();
         if (rect.bottom < 0) {
@@ -50,8 +51,8 @@ class ScrollToElementAction(page_action.PageAction):
           return rect.top - (window.innerHeight / 2);
         }
         return 0;
-      })(%s);
-    ''' % element
+      })({{ @element }});
+    ''', element=element)
 
     self._distance = tab.EvaluateJavaScript(get_distance_js)
     self._direction = 'down' if self._distance > 0 else 'up'

@@ -4,6 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class PinchAction(page_action.PageAction):
@@ -35,12 +36,11 @@ class PinchAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Synthetic pinch not supported for this browser')
 
-    done_callback = 'function() { window.__pinchActionDone = true; }'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__pinchActionDone = false;
-        window.__pinchAction = new __PinchAction(%s);"""
-        % done_callback)
+        window.__pinchAction = new __PinchAction(function() {
+          window.__pinchActionDone = true;
+        });""")
 
   @staticmethod
   def _GetDefaultScaleFactorForPage(tab):
@@ -51,23 +51,23 @@ class PinchAction(page_action.PageAction):
   def RunAction(self, tab):
     scale_factor = (self._scale_factor if self._scale_factor else
                     PinchAction._GetDefaultScaleFactorForPage(tab))
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    code = '''
+    code = js_template.Render('''
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
           }
           window.__pinchAction.start({
             element: element,
-            left_anchor_ratio: %s,
-            top_anchor_ratio: %s,
-            scale_factor: %s,
-            speed: %s
+            left_anchor_ratio: {{ left_anchor_ratio }},
+            top_anchor_ratio: {{ top_anchor_ratio }},
+            scale_factor: {{ scale_factor }},
+            speed: {{ speed }}
           });
-        }''' % (self._left_anchor_ratio,
-                self._top_anchor_ratio,
-                scale_factor,
-                self._speed)
+        }''',
+        left_anchor_ratio=self._left_anchor_ratio,
+        top_anchor_ratio=self._top_anchor_ratio,
+        scale_factor=scale_factor,
+        speed=self._speed)
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)

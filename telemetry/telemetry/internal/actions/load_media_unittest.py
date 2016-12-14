@@ -5,6 +5,7 @@
 from telemetry import decorators
 from telemetry.internal.actions.load_media import LoadMediaAction
 from telemetry.testing import tab_test_case
+from telemetry.util import js_template
 
 import py_utils
 
@@ -16,9 +17,11 @@ class LoadMediaActionTest(tab_test_case.TabTestCase):
     self.Navigate('video_test.html')
 
   def eventFired(self, selector, event):
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    return self._tab.EvaluateJavaScript(
-      'window.__hasEventCompleted("%s", "%s");' % (selector, event))
+    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
+    code = js_template.Render(
+        'window.__hasEventCompleted({{ selector }}, {{ event }});',
+        selector=selector, event=event)
+    return self._tab.EvaluateJavaScript(code)
 
   @decorators.Disabled('linux',     # crbug.com/418577
                        'chromeos')  # crbug.com/632802

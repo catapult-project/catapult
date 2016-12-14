@@ -4,6 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class ScrollBounceAction(page_action.PageAction):
@@ -61,37 +62,35 @@ class ScrollBounceAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'ScrollBounce page action does not support mouse input')
 
-    done_callback = 'function() { window.__scrollBounceActionDone = true; }'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__scrollBounceActionDone = false;
-        window.__scrollBounceAction = new __ScrollBounceAction(%s);"""
-        % (done_callback))
+        window.__scrollBounceAction = new __ScrollBounceAction(
+            function() { window.__scrollBounceActionDone = true; });""")
 
   def RunAction(self, tab):
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    code = '''
+    code = js_template.Render('''
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
           }
           window.__scrollBounceAction.start({
             element: element,
-            left_start_ratio: %s,
-            top_start_ratio: %s,
-            direction: '%s',
-            distance: %s,
-            overscroll: %s,
-            repeat_count: %s,
-            speed: %s
+            left_start_ratio: {{ left_start_ratio }},
+            top_start_ratio: {{ top_start_ratio }},
+            direction: {{ direction }},
+            distance: {{ distance }},
+            overscroll: {{ overscroll }},
+            repeat_count: {{ repeat_count }},
+            speed: {{ speed }}
           });
-        }''' % (self._left_start_ratio,
-                self._top_start_ratio,
-                self._direction,
-                self._distance,
-                self._overscroll,
-                self._repeat_count,
-                self._speed)
+        }''',
+        left_start_ratio=self._left_start_ratio,
+        top_start_ratio=self._top_start_ratio,
+        direction=self._direction,
+        distance=self._distance,
+        overscroll=self._overscroll,
+        repeat_count=self._repeat_count,
+        speed=self._speed)
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)

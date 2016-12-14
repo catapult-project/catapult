@@ -6,6 +6,7 @@ from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class LoadMediaAction(media_action.MediaAction):
@@ -25,10 +26,12 @@ class LoadMediaAction(media_action.MediaAction):
     utils.InjectJavaScript(tab, 'load_media.js')
 
   def RunAction(self, tab):
+    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
+    code = js_template.Render(
+        'window.__loadMediaAndAwait({{ selector }}, {{ event }});',
+        selector=self._selector, event=self._event_to_await)
     try:
-      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-      tab.ExecuteJavaScript('window.__loadMediaAndAwait("%s", "%s");'
-                            % (self._selector, self._event_to_await))
+      tab.ExecuteJavaScript(code)
       if self._timeout_in_seconds > 0:
         self.WaitForEvent(tab, self._selector, self._event_to_await,
                           self._timeout_in_seconds)

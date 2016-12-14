@@ -4,6 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class TapAction(page_action.PageAction):
@@ -30,12 +31,11 @@ class TapAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Synthetic tap not supported for this browser')
 
-    done_callback = 'function() { window.__tapActionDone = true; }'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__tapActionDone = false;
-        window.__tapAction = new __TapAction(%s);"""
-        % (done_callback))
+        window.__tapAction = new __TapAction(function() {
+          window.__tapActionDone = true;
+        });""")
 
   def HasElementSelector(self):
     return (self.element_function is not None or self.selector is not None or
@@ -45,26 +45,23 @@ class TapAction(page_action.PageAction):
     if not self.HasElementSelector():
       self.element_function = 'document.body'
 
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    tap_cmd = ('''
-        window.__tapAction.start({
-          element: element,
-          left_position_percentage: %s,
-          top_position_percentage: %s,
-          duration_ms: %s,
-          gesture_source_type: %s
-        });'''
-          % (self.left_position_percentage,
-             self.top_position_percentage,
-             self.duration_ms,
-             self._synthetic_gesture_source))
-    code = '''
+    code = js_template.Render('''
         function(element, errorMsg) {
           if (!element) {
             throw Error('Cannot find element: ' + errorMsg);
           }
-          %s;
-        }''' % tap_cmd
+          window.__tapAction.start({
+            element: element,
+            left_position_percentage: {{ left_position_percentage }},
+            top_position_percentage: {{ top_position_percentage }},
+            duration_ms: {{ duration_ms }},
+            gesture_source_type: {{ @gesture_source_type }}
+          });
+        }''',
+        left_position_percentage=self.left_position_percentage,
+        top_position_percentage=self.top_position_percentage,
+        duration_ms=self.duration_ms,
+        gesture_source_type=self._synthetic_gesture_source)
 
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self.selector, text=self.text,

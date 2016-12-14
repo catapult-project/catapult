@@ -20,6 +20,7 @@ Action parameters are:
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class DragAction(page_action.PageAction):
@@ -62,12 +63,11 @@ class DragAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Drag requires touch on this page but mouse input was requested')
 
-    done_callback = 'function() { window.__dragActionDone = true; }'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript('''
         window.__dragActionDone = false;
-        window.__dragAction = new __DragAction(%s);'''
-        % done_callback)
+        window.__dragAction = new __DragAction(function() {
+          window.__dragActionDone = true;
+        });''')
 
   def RunAction(self, tab):
     if (self._selector is None and self._text is None and
@@ -79,27 +79,27 @@ class DragAction(page_action.PageAction):
         not self._use_touch):
       gesture_source_type = 'chrome.gpuBenchmarking.MOUSE_INPUT'
 
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    code = '''
+    code = js_template.Render('''
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
           }
           window.__dragAction.start({
             element: element,
-            left_start_ratio: %s,
-            top_start_ratio: %s,
-            left_end_ratio: %s,
-            top_end_ratio: %s,
-            speed: %s,
-            gesture_source_type: %s
+            left_start_ratio: {{ left_start_ratio }},
+            top_start_ratio: {{ top_start_ratio }},
+            left_end_ratio: {{ left_end_ratio }},
+            top_end_ratio: {{ top_end_ratio }},
+            speed: {{ speed }},
+            gesture_source_type: {{ @gesture_source_type }}
           });
-        }''' % (self._left_start_ratio,
-                self._top_start_ratio,
-                self._left_end_ratio,
-                self._top_end_ratio,
-                self._speed,
-                gesture_source_type)
+        }''',
+        left_start_ratio=self._left_start_ratio,
+        top_start_ratio=self._top_start_ratio,
+        left_end_ratio=self._left_end_ratio,
+        top_end_ratio=self._top_end_ratio,
+        speed=self._speed,
+        gesture_source_type=gesture_source_type)
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)

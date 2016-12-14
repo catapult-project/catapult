@@ -2,11 +2,10 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import re
-
 from py_trace_event import trace_event
 
 from telemetry import decorators
+from telemetry.util import js_template
 
 
 GESTURE_SOURCE_DEFAULT = 'DEFAULT'
@@ -75,17 +74,19 @@ def EvaluateCallbackWithElement(
   info_msg = ''
   if element_function is not None:
     count = count + 1
-    info_msg = 'using element_function "%s"' % re.escape(element_function)
+    info_msg = js_template.Render(
+        'using element_function: {{ @code }}', code=element_function)
   if selector is not None:
     count = count + 1
-    info_msg = 'using selector "%s"' % _EscapeSelector(selector)
-    element_function = 'document.querySelector(\'%s\')' % _EscapeSelector(
-        selector)
+    info_msg = js_template.Render(
+        'using selector {{ selector }}', selector=selector)
+    element_function = js_template.Render(
+        'document.querySelector({{ selector }})', selector=selector)
   if text is not None:
     count = count + 1
-    info_msg = 'using exact text match "%s"' % re.escape(text)
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    element_function = '''
+    info_msg = js_template.Render(
+        'using exact text match {{ text }}', text=text)
+    element_function = js_template.Render('''
         (function() {
           function _findElement(element, text) {
             if (element.innerHTML == text) {
@@ -101,29 +102,29 @@ def EvaluateCallbackWithElement(
             }
             return null;
           }
-          return _findElement(document, '%s');
-        })()''' % text
+          return _findElement(document, {{ text }});
+        })()''',
+        text=text)
 
   if count != 1:
     raise PageActionFailed(
         'Must specify 1 way to retrieve element, but %s was specified.' % count)
 
-  # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-  code = '''
+  code = js_template.Render('''
       (function() {
-        var element = %s;
-        var callback = %s;
-        return callback(element, '%s');
-      })()''' % (element_function, callback_js, info_msg)
+        var element = {{ @element_function }};
+        var callback = {{ @callback_js }};
+        return callback(element, {{ info_msg }});
+      })()''',
+      element_function=element_function,
+      callback_js=callback_js,
+      info_msg=info_msg)
 
   if wait:
     tab.WaitForJavaScriptExpression(code, timeout_in_seconds)
     return True
   else:
     return tab.EvaluateJavaScript(code)
-
-def _EscapeSelector(selector):
-  return selector.replace('\'', '\\\'')
 
 
 @decorators.Cache
@@ -137,8 +138,9 @@ def IsGestureSourceTypeSupported(tab, gesture_source_type):
     return (tab.browser.platform.GetOSName() != 'mac' or
             gesture_source_type.lower() != 'touch')
 
-  # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-  return tab.EvaluateJavaScript("""
+  # TODO(catapult:#3028): Render in JavaScript method when supported by API.
+  code = js_template.Render("""
       chrome.gpuBenchmarking.gestureSourceTypeSupported(
-          chrome.gpuBenchmarking.%s_INPUT)"""
-      % (gesture_source_type.upper()))
+          chrome.gpuBenchmarking.{{ @gesture_source_type }}_INPUT)""",
+      gesture_source_type=gesture_source_type.upper())
+  return tab.EvaluateJavaScript(code)

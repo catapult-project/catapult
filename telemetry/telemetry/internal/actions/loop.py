@@ -16,6 +16,7 @@ from telemetry.core import exceptions
 from telemetry.internal.actions import media_action
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class LoopAction(media_action.MediaAction):
@@ -32,10 +33,12 @@ class LoopAction(media_action.MediaAction):
     utils.InjectJavaScript(tab, 'loop.js')
 
   def RunAction(self, tab):
+    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
+    code = js_template.Render(
+        'window.__loopMedia({{ selector }}, {{ loop_count }});',
+        selector=self._selector, loop_count=self._loop_count)
     try:
-      # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-      tab.ExecuteJavaScript('window.__loopMedia("%s", %i);' %
-                            (self._selector, self._loop_count))
+      tab.ExecuteJavaScript(code)
       if self._timeout_in_seconds > 0:
         self.WaitForEvent(tab, self._selector, 'loop', self._timeout_in_seconds)
     except exceptions.EvaluateException:

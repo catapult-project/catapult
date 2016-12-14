@@ -4,6 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class SwipeAction(page_action.PageAction):
@@ -44,36 +45,35 @@ class SwipeAction(page_action.PageAction):
       raise page_action.PageActionNotSupported(
           'Touch input not supported for this browser')
 
-    done_callback = 'function() { window.__swipeActionDone = true; }'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
     tab.ExecuteJavaScript("""
         window.__swipeActionDone = false;
-        window.__swipeAction = new __SwipeAction(%s);"""
-        % (done_callback))
+        window.__swipeAction = new __SwipeAction(function() {
+          window.__swipeActionDone = true;
+        });""")
 
   def RunAction(self, tab):
     if (self._selector is None and self._text is None and
         self._element_function is None):
       self._element_function = '(document.scrollingElement || document.body)'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    code = '''
+    code = js_template.Render('''
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
           }
           window.__swipeAction.start({
             element: element,
-            left_start_ratio: %s,
-            top_start_ratio: %s,
-            direction: '%s',
-            distance: %s,
-            speed: %s
+            left_start_ratio: {{ left_start_ratio }},
+            top_start_ratio: {{ top_start_ratio }},
+            direction: {{ direction }},
+            distance: {{ distance }},
+            speed: {{ speed }}
           });
-        }''' % (self._left_start_ratio,
-                self._top_start_ratio,
-                self._direction,
-                self._distance,
-                self._speed)
+        }''',
+        left_start_ratio=self._left_start_ratio,
+        top_start_ratio=self._top_start_ratio,
+        direction=self._direction,
+        distance=self._distance,
+        speed=self._speed)
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)

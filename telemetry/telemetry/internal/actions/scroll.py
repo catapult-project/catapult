@@ -4,6 +4,7 @@
 
 from telemetry.internal.actions import page_action
 from telemetry.internal.actions import utils
+from telemetry.util import js_template
 
 
 class ScrollAction(page_action.PageAction):
@@ -31,13 +32,13 @@ class ScrollAction(page_action.PageAction):
     self._synthetic_gesture_source = ('chrome.gpuBenchmarking.%s_INPUT' %
                                       synthetic_gesture_source)
 
-    self._distance_func = 'null'
+    self._distance_func = js_template.RenderValue(None)
     if distance:
       assert not distance_expr
       distance_expr = str(distance)
     if distance_expr:
-      self._distance_func = ('function() { return 0 + %s; }' %
-                             distance_expr)
+      self._distance_func = js_template.Render(
+          'function() { return 0 + {{ @expr }}; }', expr=distance_expr)
 
   def WillRunAction(self, tab):
     if self._direction in ('downleft', 'downright', 'upleft', 'upright'):
@@ -67,12 +68,14 @@ class ScrollAction(page_action.PageAction):
         raise page_action.PageActionNotSupported(
             'Scroll requires touch on this page but mouse input was requested')
 
-    done_callback = 'function() { window.__scrollActionDone = true; }'
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    tab.ExecuteJavaScript("""
+    # TODO(catapult:#3028): Render in JavaScript method when supported by API.
+    code = js_template.Render("""
         window.__scrollActionDone = false;
-        window.__scrollAction = new __ScrollAction(%s, %s);"""
-        % (done_callback, self._distance_func))
+        window.__scrollAction = new __ScrollAction(
+            {{ @callback }}, {{ @distance }});""",
+        callback='function() { window.__scrollActionDone = true; }',
+        distance=self._distance_func)
+    tab.ExecuteJavaScript(code)
 
   def RunAction(self, tab):
     if (self._selector is None and self._text is None and
@@ -83,25 +86,25 @@ class ScrollAction(page_action.PageAction):
     if self._use_touch:
       gesture_source_type = 'chrome.gpuBenchmarking.TOUCH_INPUT'
 
-    # TODO(catapult:#3028): Fix interpolation of JavaScript values.
-    code = '''
+    code = js_template.Render('''
         function(element, info) {
           if (!element) {
             throw Error('Cannot find element: ' + info);
           }
           window.__scrollAction.start({
             element: element,
-            left_start_ratio: %s,
-            top_start_ratio: %s,
-            direction: '%s',
-            speed: %s,
-            gesture_source_type: %s
+            left_start_ratio: {{ left_start_ratio }},
+            top_start_ratio: {{ top_start_ratio }},
+            direction: {{ direction }},
+            speed: {{ speed }},
+            gesture_source_type: {{ @gesture_source_type }}
           });
-        }''' % (self._left_start_ratio,
-                self._top_start_ratio,
-                self._direction,
-                self._speed,
-                gesture_source_type)
+        }''',
+        left_start_ratio=self._left_start_ratio,
+        top_start_ratio=self._top_start_ratio,
+        direction=self._direction,
+        speed=self._speed,
+        gesture_source_type=gesture_source_type)
     page_action.EvaluateCallbackWithElement(
         tab, code, selector=self._selector, text=self._text,
         element_function=self._element_function)
