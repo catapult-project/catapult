@@ -17,6 +17,13 @@ class Execution(object):
   where the Execution hasn't started running; it's either running or completed.
   """
 
+  def __init__(self):
+    self._blocked = False
+    self._completed = False
+    self._failed = False
+    self._result_values = ()
+    self._result_arguments = {}
+
   @property
   def blocked(self):
     """Returns True iff the Execution is waiting on an external task to finish.
@@ -24,7 +31,7 @@ class Execution(object):
     This accessor doesn't contact external servers. Call Poll() to update the
     Execution's blocked status.
     """
-    raise NotImplementedError()
+    return self._blocked
 
   @property
   def completed(self):
@@ -33,7 +40,7 @@ class Execution(object):
     This accessor doesn't contact external servers. Call Poll() to update the
     Execution's completed status.
     """
-    raise NotImplementedError()
+    return self._completed
 
   @property
   def failed(self):
@@ -42,7 +49,7 @@ class Execution(object):
     This accessor doesn't contact external servers. Call Poll() to update the
     Execution's failed status.
     """
-    raise NotImplementedError()
+    return self._failed
 
   @property
   def result_values(self):
@@ -53,7 +60,7 @@ class Execution(object):
     or 1 representing success or failure. For a ReadValue Execution, this is a
     list of numbers with the values.
     """
-    raise NotImplementedError()
+    return self._result_values
 
   @property
   def result_arguments(self):
@@ -62,7 +69,7 @@ class Execution(object):
     For example, the Build Execution passes the isolated hash to the Test
     Execution.
     """
-    raise NotImplementedError()
+    return self._result_arguments
 
   def Poll(self):
     """Update the Execution status."""
@@ -71,86 +78,41 @@ class Execution(object):
 
 class FindIsolated(Execution):
 
-  def __init__(self, change):
-    del change
-    # TODO: Request a build using Buildbucket if needed.
-    # TODO: Isolate lookup service.
-    self._task_id = 'foo'
-
-  @property
-  def blocked(self):
-    return False
-
-  @property
-  def completed(self):
-    return True
-
-  @property
-  def failed(self):
-    return False
-
-  @property
-  def result_values(self):
-    return (0,)
-
-  @property
-  def result_arguments(self):
-    return {'isolated_hash': 'this_is_an_isolated_hash'}
+  def __init__(self, configuration, change):
+    super(FindIsolated, self).__init__()
+    self._configuration = configuration
+    self._change = change
 
   def Poll(self):
-    pass
+    # TODO: Request a build using Buildbucket if needed.
+    # TODO: Isolate lookup service.
+    self._completed = True
+    self._result_values = (0,)
+    self._result_arguments = {'isolated_hash': 'this_is_an_isolated_hash'}
 
 
 class RunTest(Execution):
 
-  def __init__(self, isolated_hash):
+  def __init__(self, test_suite, test, isolated_hash):
+    super(RunTest, self).__init__()
+    self._test_suite = test_suite
+    self._test = test
     self._isolated_hash = isolated_hash
 
-  @property
-  def blocked(self):
-    return False
-
-  @property
-  def completed(self):
-    return True
-
-  @property
-  def failed(self):
-    return False
-
-  @property
-  def result_values(self):
-    return (0,)
-
-  @property
-  def result_arguments(self):
-    return {}
-
   def Poll(self):
-    pass
+    # TODO
+    self._completed = True
+    self._result_values = (0,)
 
 
 class ReadValue(Execution):
 
-  @property
-  def blocked(self):
-    return False
-
-  @property
-  def completed(self):
-    return True
-
-  @property
-  def failed(self):
-    return False
-
-  @property
-  def result_values(self):
-    return (0,)
-
-  @property
-  def result_arguments(self):
-    return {}
+  def __init__(self, metric, file_path):
+    super(ReadValue, self).__init__()
+    self._metric = metric
+    self._file_path = file_path
 
   def Poll(self):
-    pass
+    # TODO
+    self._completed = True
+    self._result_values = (0,)

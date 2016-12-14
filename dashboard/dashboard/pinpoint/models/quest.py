@@ -14,30 +14,15 @@ class Quest(object):
   Quest that depends on smaller Quests, we just run all the small Quests
   linearly. (E.g. build, then test, then read test results). We'd like to
   replace this model with Dungeon Master entirely, when it's ready.
-  """
 
-  @property
-  def execution_class(self):
-    raise NotImplementedError()
+  A Quest has a Start method, which takes as parameters the result_arguments
+  from the previous Quest's Execution.
+  """
 
   @property
   def retry_count(self):
     """Returns the number of retries to run if the Quest fails."""
     return 0
-
-  def Start(self, *args, **kwargs):
-    """Start an execution of the Quest.
-
-    Quests use an asynchronous model, because they often call out to other task
-    distributors.
-
-    Args:
-      args: The result_arguments from the previous Quest's Execution.
-
-    Returns:
-      An Execution object corresponding to this Quest.
-    """
-    return self.execution_class(*args, **kwargs)
 
 
 class FindIsolated(Quest):
@@ -46,12 +31,11 @@ class FindIsolated(Quest):
     self._configuration = configuration
 
   @property
-  def execution_class(self):
-    return execution.FindIsolated
-
-  @property
   def retry_count(self):
     return 1
+
+  def Start(self, change):
+    return execution.FindIsolated(self._configuration, change)
 
 
 class RunTest(Quest):
@@ -61,12 +45,11 @@ class RunTest(Quest):
     self._test = test
 
   @property
-  def execution_class(self):
-    return execution.RunTest
-
-  @property
   def retry_count(self):
     return 4
+
+  def Start(self, isolated_hash):
+    return execution.RunTest(self._test_suite, self._test, isolated_hash)
 
 
 class ReadValue(Quest):
@@ -74,6 +57,5 @@ class ReadValue(Quest):
   def __init__(self, metric):
     self._metric = metric
 
-  @property
-  def execution_class(self):
-    return execution.ReadValue
+  def Start(self, file_path):
+    return execution.ReadValue(self._metric, file_path)
