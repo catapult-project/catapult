@@ -13,9 +13,11 @@ logger = logging.getLogger(__name__)
 
 class PerfControl(object):
   """Provides methods for setting the performance mode of a device."""
+
+  _AVAILABLE_GOVERNORS_REL_PATH = 'cpufreq/scaling_available_governors'
+  _CPU_FILE_PATTERN = re.compile(r'^cpu\d+$')
   _CPU_PATH = '/sys/devices/system/cpu'
   _KERNEL_MAX = '/sys/devices/system/cpu/kernel_max'
-  _CPU_FILE_PATTERN = re.compile(r'^cpu\d+$')
 
   def __init__(self, device):
     self._device = device
@@ -26,7 +28,13 @@ class PerfControl(object):
     assert self._cpu_files, 'Failed to detect CPUs.'
     self._cpu_file_list = ' '.join(self._cpu_files)
     logger.info('CPUs found: %s', self._cpu_file_list)
+
     self._have_mpdecision = self._device.FileExists('/system/bin/mpdecision')
+
+    raw = self._ReadEachCpuFile(self._AVAILABLE_GOVERNORS_REL_PATH)
+    self._available_governors = [
+        (cpu, raw_governors.strip().split() if not exit_code else None)
+        for cpu, raw_governors, exit_code in raw]
 
   def SetHighPerfMode(self):
     """Sets the highest stable performance mode for the device."""
@@ -46,21 +54,21 @@ class PerfControl(object):
       self._ForceAllCpusOnline(True)
       if not self._AllCpusAreOnline():
         logger.warning('Failed to force CPUs online. Results may be NOISY!')
-      self._SetScalingGovernorInternal('performance')
+      self.SetScalingGovernor('performance')
     elif 'Nexus 5' == product_model:
       self._ForceAllCpusOnline(True)
       if not self._AllCpusAreOnline():
         logger.warning('Failed to force CPUs online. Results may be NOISY!')
-      self._SetScalingGovernorInternal('performance')
+      self.SetScalingGovernor('performance')
       self._SetScalingMaxFreq(1190400)
       self._SetMaxGpuClock(200000000)
     else:
-      self._SetScalingGovernorInternal('performance')
+      self.SetScalingGovernor('performance')
 
   def SetPerfProfilingMode(self):
     """Enables all cores for reliable perf profiling."""
     self._ForceAllCpusOnline(True)
-    self._SetScalingGovernorInternal('performance')
+    self.SetScalingGovernor('performance')
     if not self._AllCpusAreOnline():
       if not self._device.HasRoot():
         raise RuntimeError('Need root to force CPUs online.')
@@ -84,7 +92,7 @@ class PerfControl(object):
         'Nexus 7': 'interactive',
         'Nexus 10': 'interactive'
     }.get(product_model, 'ondemand')
-    self._SetScalingGovernorInternal(governor_mode)
+    self.SetScalingGovernor(governor_mode)
     self._ForceAllCpusOnline(False)
 
   def GetCpuInfo(self):
@@ -108,17 +116,58 @@ class PerfControl(object):
     return zip(self._cpu_files, output[0::2], (int(c) for c in output[1::2]))
 
   def _WriteEachCpuFile(self, path, value):
+    self._ConditionallyWriteEachCpuFile(path, value, condition='true')
+
+  def _ConditionallyWriteEachCpuFile(self, path, value, condition):
+    template = (
+        '{condition} && test -e "$CPU/{path}" && echo {value} > "$CPU/{path}"')
     results = self._ForEachCpu(
-        'test -e "$CPU/{path}" && echo {value} > "$CPU/{path}"'.format(
-            path=path, value=value))
+        template.format(path=path, value=value, condition=condition))
     cpus = ' '.join(cpu for (cpu, _, status) in results if status == 0)
     if cpus:
       logger.info('Successfully set %s to %r on: %s', path, value, cpus)
     else:
       logger.warning('Failed to set %s to %r on any cpus', path, value)
 
-  def _SetScalingGovernorInternal(self, value):
-    self._WriteEachCpuFile('cpufreq/scaling_governor', value)
+  def _ReadEachCpuFile(self, path):
+    return self._ForEachCpu(
+        'cat "$CPU/{path}"'.format(path=path))
+
+  def SetScalingGovernor(self, value):
+    """Sets the scaling governor to the given value on all possible CPUs.
+
+    This does not attempt to set a governor to a value not reported as available
+    on the corresponding CPU.
+
+    Args:
+      value: [string] The new governor value.
+    """
+    condition = 'test -e "{path}" && grep -q {value} {path}'.format(
+        path=('${CPU}/%s' % self._AVAILABLE_GOVERNORS_REL_PATH),
+        value=value)
+    self._ConditionallyWriteEachCpuFile(
+        'cpufreq/scaling_governor', value, condition)
+
+  def GetScalingGovernor(self):
+    """Gets the currently set governor for each CPU.
+
+    Returns:
+      An iterable of 2-tuples, each containing the cpu and the current
+      governor.
+    """
+    raw = self._ReadEachCpuFile('cpufreq/scaling_governor')
+    return [
+        (cpu, raw_governor.strip() if not exit_code else None)
+        for cpu, raw_governor, exit_code in raw]
+
+  def ListAvailableGovernors(self):
+    """Returns the list of available governors for each CPU.
+
+    Returns:
+      An iterable of 2-tuples, each containing the cpu and a list of available
+      governors for that cpu.
+    """
+    return self._available_governors
 
   def _SetScalingMaxFreq(self, value):
     self._WriteEachCpuFile('cpufreq/scaling_max_freq', '%d' % value)
