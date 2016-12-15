@@ -376,6 +376,17 @@ tr.exportTo('tr.model', function() {
     },
 
     /**
+     * This function assumes that if any slice has a cpu duration then
+     * then the group is considered to have cpu duration.
+     */
+    hasCpuDuration_: function() {
+      if (this.slices.some(function(slice) {
+          return slice.cpuDuration !== undefined;
+        })) return true;
+      return false;
+    },
+
+    /**
      * Construct subSlices for this group.
      * Populate the group topLevelSlices, parent slices get a subSlices[],
      * a selfThreadTime and a selfTime, child slices get a parentSlice
@@ -384,7 +395,10 @@ tr.exportTo('tr.model', function() {
     createSubSlices: function() {
       this.haveTopLevelSlicesBeenBuilt = true;
       this.createSubSlicesImpl_();
-      if (this.parentContainer.timeSlices)
+      // If another source has cpu time, we can augment the cpuDuration of the
+      // slices in the group with that cpu time. This should be done only if
+      // the original source does not include cpuDuration.
+      if (!this.hasCpuDuration_() && this.parentContainer.timeSlices)
         this.addCpuTimeToSubslices_(this.parentContainer.timeSlices);
       this.slices.forEach(function(slice) {
         var selfTime = slice.duration;
