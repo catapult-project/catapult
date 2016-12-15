@@ -127,8 +127,8 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `Generic`
  * `RelatedEventSet`
  * `Breakdown`
- * `RelatedValueSet`
- * `RelatedValueMap`
+ * `RelatedHistogramSet`
+ * `RelatedHistogramMap`
  * `RelatedHistogramBreakdown`
  * `TelemetryInfo`
  * `DeviceInfo`

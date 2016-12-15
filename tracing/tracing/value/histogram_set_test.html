@@ -47,7 +47,7 @@ tr.b.unittest.testSuite(function() {
     var a = new tr.v.Histogram('a', unit);
     var b = new tr.v.Histogram('b', unit);
     var c = new tr.v.Histogram('c', unit);
-    a.diagnostics.set('rvs', new tr.v.d.RelatedValueSet([b, c]));
+    a.diagnostics.set('rvs', new tr.v.d.RelatedHistogramSet([b, c]));
 
     // Don't serialize c just yet.
     var values = new tr.v.HistogramSet([a, b]);
@@ -74,10 +74,10 @@ tr.b.unittest.testSuite(function() {
     assert.notStrictEqual(b2, b);
 
     var rvs2 = a2.diagnostics.get('rvs');
-    assert.instanceOf(rvs2, tr.v.d.RelatedValueSet);
+    assert.instanceOf(rvs2, tr.v.d.RelatedHistogramSet);
     assert.lengthOf(rvs2, 2);
 
-    // Assert that b and c are in a2's RelatedValueSet.
+    // Assert that b and c are in a2's RelatedHistogramSet.
     var rvs2vs = [...rvs2];
     var rvs2guids = rvs2vs.map(v => v.guid);
     var b2i = rvs2guids.indexOf(b.guid);
@@ -99,7 +99,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(c2.guid, c.guid);
     assert.notStrictEqual(c2, c);
 
-    // Now a real c2 Value should be in a2's RelatedValueSet.
+    // Now a real c2 Value should be in a2's RelatedHistogramSet.
     rvs2vs = [...rvs2];
     rvs2guids = rvs2vs.map(v => v.guid);
     b2i = rvs2guids.indexOf(b.guid);
@@ -113,7 +113,7 @@ tr.b.unittest.testSuite(function() {
     var a = new tr.v.Histogram('a', unit);
     var b = new tr.v.Histogram('b', unit);
     var c = new tr.v.Histogram('c', unit);
-    var rvm = new tr.v.d.RelatedValueMap();
+    var rvm = new tr.v.d.RelatedHistogramMap();
     rvm.set('y', b);
     rvm.set('z', c);
     a.diagnostics.set('rvm', rvm);
@@ -143,10 +143,10 @@ tr.b.unittest.testSuite(function() {
     assert.notStrictEqual(b2, b);
 
     var rvm2 = a2.diagnostics.get('rvm');
-    assert.instanceOf(rvm2, tr.v.d.RelatedValueMap);
+    assert.instanceOf(rvm2, tr.v.d.RelatedHistogramMap);
     assert.lengthOf(rvm2, 2);
 
-    // Assert that b and c are in a2's RelatedValueMap.
+    // Assert that b and c are in a2's RelatedHistogramMap.
     // |c| should still be a HistogramRef since it wasn't in values2.
     assert.strictEqual(rvm2.get('y'), b2);
     assert.instanceOf(rvm2.get('z'), tr.v.d.HistogramRef);
@@ -164,10 +164,10 @@ tr.b.unittest.testSuite(function() {
     assert.instanceOf(c2, tr.v.Histogram);
     assert.notStrictEqual(c2, c);
 
-    // b2 should still be in a2's RelatedValueMap.
+    // b2 should still be in a2's RelatedHistogramMap.
     assert.strictEqual(rvm2.get('y'), b2);
 
-    // Now a real c2 Value should be in a2's RelatedValueMap.
+    // Now a real c2 Value should be in a2's RelatedHistogramMap.
     assert.strictEqual(rvm2.get('z'), c2);
   });
 
@@ -177,7 +177,7 @@ tr.b.unittest.testSuite(function() {
     aHist.addSample(1);
 
     var numeric = new tr.v.Histogram('b', tr.b.Unit.byName.unitlessNumber);
-    numeric.addSample(1, {rvs: new tr.v.d.RelatedValueSet([aHist])});
+    numeric.addSample(1, {rvs: new tr.v.d.RelatedHistogramSet([aHist])});
 
     var values = new tr.v.HistogramSet([aHist, numeric]);
     assert.strictEqual(tr.b.getOnlyElement(values.sourceValues), numeric);

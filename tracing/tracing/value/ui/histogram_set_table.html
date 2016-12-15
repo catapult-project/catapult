@@ -184,7 +184,7 @@ tr.exportTo('tr.v.ui', function() {
       this.addEventListener('name-cell-overflow',
           this.onNameCellOverflow_.bind(this));
       this.addEventListener('requestSelectionChange',
-          this.onRelatedValueSelected_.bind(this));
+          this.onRelatedHistogramSelected_.bind(this));
       this.$.show_all.checked = tr.b.Settings.get(SHOW_ALL_SETTINGS_KEY, false);
       this.$.picker.settingsKey = 'tr-v-ui-histogram-set-table-groupby-picker';
       this.$.picker.possibleGroups = DEFAULT_POSSIBLE_GROUPS.slice();
@@ -293,7 +293,7 @@ tr.exportTo('tr.v.ui', function() {
       this.updateContents_();
     },
 
-    onRelatedValueSelected_: function(event) {
+    onRelatedHistogramSelected_: function(event) {
       var value = event.selection;
       if (!(value instanceof tr.v.Histogram))
         return;
@@ -339,7 +339,7 @@ tr.exportTo('tr.v.ui', function() {
           found = true;
           this.$.show_all.checked = true;
           this.onShowAllChange_();
-          this.onRelatedValueSelected_(event);
+          this.onRelatedHistogramSelected_(event);
           break;
         }
       }

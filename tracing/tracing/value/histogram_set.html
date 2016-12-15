@@ -123,8 +123,8 @@ tr.exportTo('tr.v', function() {
       var histogramSet = this;
       function handleDiagnosticMap(dm) {
         for (var [name, diagnostic] of dm) {
-          if ((diagnostic instanceof tr.v.d.RelatedValueSet) ||
-              (diagnostic instanceof tr.v.d.RelatedValueMap)) {
+          if ((diagnostic instanceof tr.v.d.RelatedHistogramSet) ||
+              (diagnostic instanceof tr.v.d.RelatedHistogramMap)) {
             diagnostic.resolve(histogramSet);
           }
         }
@@ -149,7 +149,7 @@ tr.exportTo('tr.v', function() {
 
     /**
      * Convert dicts to either Histograms or shared Diagnostics.
-     * Does not resolve RelatedValueSet/RelatedValueMap diagnostics. See
+     * Does not resolve RelatedHistogramSet/RelatedHistogramMap diagnostics. See
      * resolveRelatedHistograms().
      *
      * @param {!Object} dicts
@@ -184,22 +184,22 @@ tr.exportTo('tr.v', function() {
 
     /**
      * Find the Histograms that are not contained in any other Histograms'
-     * RelatedValueSet or RelatedValueMap diagnostics.
+     * RelatedHistogramSet or RelatedHistogramMap diagnostics.
      *
      * @return {!Array.<!tr.v.Histogram>}
      */
     get sourceValues() {
       var sourceValues = new Map(this.histogramsByGuid_);
-      // If a Histogram is in a RelatedValueSet or RelatedValueMap, which can be
-      // owned either by Values or by numeric samples, then it is not a
-      // source Histogram.
+      // If a Histogram is in a RelatedHistogramSet or RelatedHistogramMap,
+      // which can be owned either by Values or by numeric samples, then it is
+      // not a source Histogram.
       function deleteSourceValues(diagnosticMap) {
         for (var [name, diagnostic] of diagnosticMap) {
-          if (diagnostic instanceof tr.v.d.RelatedValueSet) {
+          if (diagnostic instanceof tr.v.d.RelatedHistogramSet) {
             for (var relatedValue of diagnostic) {
               sourceValues.delete(relatedValue.guid);
             }
-          } else if (diagnostic instanceof tr.v.d.RelatedValueMap) {
+          } else if (diagnostic instanceof tr.v.d.RelatedHistogramMap) {
             for (var [name, relatedValue] of diagnostic) {
               sourceValues.delete(relatedValue.guid);
             }

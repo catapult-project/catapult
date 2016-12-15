@@ -5,7 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/value/diagnostics/related_value_map.html">
+<link rel="import" href="/tracing/value/diagnostics/related_histogram_map.html">
 
 <script>
 'use strict';
@@ -27,7 +27,7 @@ tr.exportTo('tr.v.d', function() {
    * buildFromEvents() for an example of how to build a
    * RelatedHistogramBreakdown from an EventSet and a grouping function.
    */
-  class RelatedHistogramBreakdown extends tr.v.d.RelatedValueMap {
+  class RelatedHistogramBreakdown extends tr.v.d.RelatedHistogramMap {
     constructor() {
       super();
       this.colorScheme = undefined;
@@ -54,11 +54,11 @@ tr.exportTo('tr.v.d', function() {
         }
       }
 
-      tr.v.d.RelatedValueMap.prototype.set.call(this, name, value);
+      tr.v.d.RelatedHistogramMap.prototype.set.call(this, name, value);
     }
 
     asDictInto_(d) {
-      tr.v.d.RelatedValueMap.prototype.asDictInto_.call(this, d);
+      tr.v.d.RelatedHistogramMap.prototype.asDictInto_.call(this, d);
       if (this.colorScheme)
         d.colorScheme = this.colorScheme;
     }

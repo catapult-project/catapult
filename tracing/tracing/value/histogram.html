@@ -371,7 +371,7 @@ tr.exportTo('tr.v', function() {
     getBinForValue(value) {
       // Don't use subtraction to avoid arithmetic overflow.
       var binIndex = tr.b.findHighIndexInSortedArray(
-          this.allBins, b => value < b.range.max ? -1 : 1);
+          this.allBins, b => ((value < b.range.max) ? -1 : 1));
       return this.allBins[binIndex] || this.allBins[this.allBins.length - 1];
     }
 
@@ -485,7 +485,7 @@ tr.exportTo('tr.v', function() {
 
       var mergedFrom = this.diagnostics.get(MERGED_FROM_DIAGNOSTIC_KEY);
       if (!mergedFrom) {
-        mergedFrom = new tr.v.d.RelatedValueSet();
+        mergedFrom = new tr.v.d.RelatedHistogramSet();
         this.diagnostics.set(MERGED_FROM_DIAGNOSTIC_KEY, mergedFrom);
       }
       mergedFrom.add(other);

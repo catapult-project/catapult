@@ -125,20 +125,20 @@ The types of Diagnostics are
    some sort of category - either a category of event, CPU sample, memory
    consumer, whathaveyou. Visually, they are a stacked bar chart with a single
    bar, which is spiritually a pie chart, but less misleading.
- * [RelatedValueSet](/tracing/tracing/value/diagnostics/related_value_set.html):
+ * [RelatedHistogramSet](/tracing/tracing/value/diagnostics/related_histogram_set.html):
    These are Sets of references to other Histograms. Visually, they are a set
    of HTML links which, when clicked, select the contained Histograms. The text
    content of the HTML link is the name of the referenced Histogram.
- * [RelatedValueMap](/tracing/tracing/value/diagnostics/related_value_map.html):
+ * [RelatedHistogramMap](/tracing/tracing/value/diagnostics/related_histogram_map.html):
    These are Maps from strings to references to other Histograms. Visually, they
-   are a set of HTML links similar to RelatedValueSet, but the text content of
+   are a set of HTML links similar to RelatedHistogramSet, but the text content of
    the link is the Map's string key instead of the Histogram's name. One example
    application is when a Histogram was produced not directly by a metric, but
    rather by merging together other Histograms, then it will have a
-   RelatedValueMap named 'merged from' that refers to the Histograms that were
+   RelatedHistogramMap named 'merged from' that refers to the Histograms that were
    merged by their grouping key, e.g. the telemetry story name.
  * [RelatedHistogramBreakdown](/tracing/tracing/value/diagnostics/related_histogram_breakdown.html):
-   Structurally, this is a RelatedValueMap, but conceptually and visually, this
+   Structurally, this is a RelatedHistogramMap, but conceptually and visually, this
    is a Breakdown. Whereas Breakdown's stacked bar chart derives its data from
    the numbers contained explicitly in the Breakdown, a
    RelatedHistogramBreakdown's stacked
@@ -169,7 +169,7 @@ The types of Diagnostics are
    unitted number. This is only to allow Histograms in other parts of the trace
    viewer to display number sample diagnostics more intelligently than Generic
    can. If a metric wants to display number sample diagnostics intelligently,
-   then it should use RelatedValueSet or RelatedValueMap; if it does not want to
+   then it should use RelatedHistogramSet or RelatedHistogramMap; if it does not want to
    monitor changes in those numbers, then the TBM2 maintainers can add a
    HistogramDiagnostic that supports merging.
 

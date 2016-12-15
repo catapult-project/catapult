@@ -13,43 +13,54 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.v.d', function() {
-  class RelatedValueSet extends tr.v.d.Diagnostic {
-    constructor(opt_values) {
+  class RelatedHistogramMap extends tr.v.d.Diagnostic {
+    constructor() {
       super();
-      this.valuesByGuid_ = new Map();
-
-      if (opt_values)
-        for (var value of opt_values)
-          this.add(value);
+      this.valuesByName_ = new Map();
     }
 
     /**
-     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} v
+     * Lookup a Histogram by name. Returns undefined if |name| is not found.
+     *
+     * @param {string} name
+     * @return {!tr.v.d.HistogramRef|!tr.v.Histogram|undefined}
      */
-    add(value) {
+    get(name) {
+      return this.valuesByName_.get(name);
+    }
+
+    /**
+     * Add a Histogram by an explicit name to this map.
+     *
+     * @param {string} name
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
+     */
+    set(name, value) {
       if (!(value instanceof tr.v.Histogram) &&
           !(value instanceof tr.v.d.HistogramRef)) {
         throw new Error('Must be instanceof Histogram or HistogramRef: ' +
             value);
       }
 
-      if (this.valuesByGuid_.get(value.guid))
-        throw new Error('Tried to add same value twice');
-
-      this.valuesByGuid_.set(value.guid, value);
+      this.valuesByName_.set(name, value);
     }
 
-    has(value) {
-      return this.valuesByGuid_.has(value.guid);
+    /**
+     * Add a Histogram implicitly by its own name to this map.
+     *
+     * @param {!(tr.v.d.HistogramRef|tr.v.Histogram)} value
+     */
+    add(value) {
+      this.set(value.name, value);
     }
 
     get length() {
-      return this.valuesByGuid_.size;
+      return this.valuesByName_.size;
     }
 
     * [Symbol.iterator]() {
-      for (var [guid, value] of this.valuesByGuid_)
-        yield value;
+      for (var pair of this.valuesByName_)
+        yield pair;
     }
 
     /**
@@ -64,36 +75,40 @@ tr.exportTo('tr.v.d', function() {
      * @param {boolean=} opt_required
      */
     resolve(valueSet, opt_required) {
-      for (var [guid, value] of this.valuesByGuid_) {
+      for (var [name, value] of this) {
         if (!(value instanceof tr.v.d.HistogramRef))
           continue;
 
+        var guid = value.guid;
         value = valueSet.lookupHistogram(guid);
         if (value instanceof tr.v.Histogram)
-          this.valuesByGuid_.set(guid, value);
+          this.valuesByName_.set(name, value);
         else if (opt_required)
           throw new Error('Unable to find Histogram ' + guid);
       }
     }
 
     asDictInto_(d) {
-      d.guids = [];
-      for (var value of this)
-        d.guids.push(value.guid);
+      d.values = {};
+      for (var [name, value] of this)
+        d.values[name] = value.guid;
     }
 
     static fromDict(d) {
-      return new RelatedValueSet(d.guids.map(
-          guid => new tr.v.d.HistogramRef(guid)));
+      var map = new RelatedHistogramMap();
+      tr.b.iterItems(d.values, function(name, guid) {
+        map.set(name, new tr.v.d.HistogramRef(guid));
+      });
+      return map;
     }
   }
 
-  tr.v.d.Diagnostic.register(RelatedValueSet, {
-    elementName: 'tr-v-ui-related-value-set-span'
+  tr.v.d.Diagnostic.register(RelatedHistogramMap, {
+    elementName: 'tr-v-ui-related-histogram-map-span'
   });
 
   return {
-    RelatedValueSet,
+    RelatedHistogramMap,
   };
 });
 </script>
