@@ -67,6 +67,24 @@ found in the LICENSE file.
         width: 100px;
       }
 
+      #alerts #test {
+        max-width:50%;
+        min-width: 20%; 
+        width: 30%;
+      }
+
+      #alerts #testsuite {
+        max-width:20%;
+        min-width: 10%; 
+        width: 15%;
+      }
+
+      #alerts #bot {
+        max-width:20%;
+        min-width: 10%; 
+        width: 10%;
+      }
+
       #alerts #percent_changed {
         text-align: right;
         width: 50px;
@@ -157,6 +175,10 @@ found in the LICENSE file.
 
       .absolute_delta {
         color: #a00;
+      }
+
+      #absolute_delta {
+        width: 100px;
       }
 
       /* Checkboxes */
@@ -509,7 +531,7 @@ found in the LICENSE file.
             var value = item[key];
             value = parseFloat(value).toFixed(3);
             if (!unitName)
-              unitName = 'units - unformatted';
+              unitName = '(unformatted)';
             value = value + ' ' + unitName;
             return value;
           }
