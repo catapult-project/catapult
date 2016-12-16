@@ -282,7 +282,7 @@ class WebContents(object):
 
   def SynthesizeScrollGesture(self, x=100, y=800, xDistance=0, yDistance=-500,
                               xOverscroll=None, yOverscroll=None,
-                              preventFling=True, speed=None,
+                              preventFling=None, speed=None,
                               gestureSourceType=None, repeatCount=None,
                               repeatDelayMs=None, interactionMarkerName=None,
                               timeout=60):

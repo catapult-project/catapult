@@ -224,7 +224,7 @@ class InspectorBackend(object):
   @_HandleInspectorWebSocketExceptions
   def SynthesizeScrollGesture(self, x=100, y=800, xDistance=0, yDistance=-500,
                               xOverscroll=None, yOverscroll=None,
-                              preventFling=True, speed=None,
+                              preventFling=None, speed=None,
                               gestureSourceType=None, repeatCount=None,
                               repeatDelayMs=None, interactionMarkerName=None,
                               timeout=60):
@@ -252,9 +252,11 @@ class InspectorBackend(object):
         'x': x,
         'y': y,
         'xDistance': xDistance,
-        'yDistance': yDistance,
-        'preventFling': preventFling,
+        'yDistance': yDistance
     }
+
+    if preventFling is not None:
+      params['preventFling'] = preventFling
 
     if xOverscroll is not None:
       params['xOverscroll'] = xOverscroll
