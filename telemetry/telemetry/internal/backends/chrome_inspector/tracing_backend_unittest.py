@@ -11,6 +11,7 @@ from telemetry.internal.backends.chrome_inspector.tracing_backend import _DevToo
 from telemetry.testing import fakes
 from telemetry.testing import simple_mock
 from telemetry.testing import tab_test_case
+from telemetry.timeline import chrome_trace_config
 from telemetry.timeline import model as model_module
 from telemetry.timeline import trace_data
 from telemetry.timeline import tracing_config
@@ -28,9 +29,6 @@ class TracingBackendTest(tab_test_case.TabTestCase):
         # Memory maps currently cannot be retrieved on sandboxed processes.
         # See crbug.com/461788.
         '--no-sandbox',
-
-        # Workaround to disable periodic memory dumps. See crbug.com/513692.
-        '--enable-memory-benchmarking'
     ])
 
   def setUp(self):
@@ -52,6 +50,8 @@ class TracingBackendTest(tab_test_case.TabTestCase):
     config = tracing_config.TracingConfig()
     config.chrome_trace_config.category_filter.AddDisabledByDefault(
         'disabled-by-default-memory-infra')
+    config.chrome_trace_config.SetMemoryDumpConfig(
+        chrome_trace_config.MemoryDumpConfig())
     config.enable_chrome_trace = True
     self._tracing_controller.StartTracing(config)
 
