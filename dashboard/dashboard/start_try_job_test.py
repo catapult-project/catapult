@@ -466,6 +466,40 @@ class StartBisectTest(testing_common.TestCase):
     response = start_try_job.GetBisectConfig(**parameters)
     self.assertEqual(expected_config_dict, response)
 
+  def testGetConfig_UseStaging_GivesStagingRecipeTester(self):
+    self._TestGetBisectConfig(
+        {
+            'bisect_bot': 'linux_perf_bisect',
+            'master_name': 'ChromiumPerf',
+            'suite': 'page_cycler.moz',
+            'metric': 'times/page_load_time',
+            'good_revision': '265549',
+            'bad_revision': '265556',
+            'repeat_count': '15',
+            'max_time_minutes': '8',
+            'bug_id': '-1',
+            'use_archive': '',
+            'use_staging_bot': 'true',
+        },
+        {
+            'command': ('src/tools/perf/run_benchmark -v '
+                        '--browser=release --output-format=chartjson '
+                        '--upload-results '
+                        '--pageset-repeat=1 '
+                        '--also-run-disabled-tests '
+                        'page_cycler.moz'),
+            'good_revision': '265549',
+            'bad_revision': '265556',
+            'metric': 'times/page_load_time',
+            'recipe_tester_name': 'staging_linux_perf_bisect',
+            'repeat_count': '15',
+            'max_time_minutes': '8',
+            'bug_id': '-1',
+            'builder_type': '',
+            'target_arch': 'ia32',
+            'bisect_mode': 'mean',
+        })
+
   def testGetConfig_EmptyUseArchiveParameter_GivesEmptyBuilderType(self):
     self._TestGetBisectConfig(
         {

@@ -150,19 +150,14 @@ class StartBisectHandler(request_handler.RequestHandler):
         story_filter=self.request.get('story_filter'),
         use_archive=self.request.get('use_archive'),
         bisect_mode=self.request.get('bisect_mode', 'mean'),
-        bypass_no_repro_check=bypass_no_repro_check)
+        bypass_no_repro_check=bypass_no_repro_check,
+        use_staging_bot=use_staging_bot)
 
     if 'error' in bisect_config:
       return bisect_config
 
     config_python_string = 'config = %s\n' % json.dumps(
         bisect_config, sort_keys=True, indent=2, separators=(',', ': '))
-
-    # If 'use_staging_bot' was checked, we try to redirect to a staging bot.
-    # Do this here since GetBisectConfig() doesn't know about the staging bots
-    # and needs to guess bits of the command line based on the bisect_bot.
-    if use_staging_bot:
-      bisect_bot = _GuessStagingBot(master_name, bisect_bot) or bisect_bot
 
     bisect_job = try_job.TryJob(
         bot=bisect_bot,
@@ -270,7 +265,7 @@ def _PrefillInfo(test_path):
 def GetBisectConfig(
     bisect_bot, master_name, suite, metric, good_revision, bad_revision,
     repeat_count, max_time_minutes, bug_id, story_filter=None, use_archive=None,
-    bisect_mode='mean', bypass_no_repro_check=False):
+    bisect_mode='mean', bypass_no_repro_check=False, use_staging_bot=False):
   """Fills in a JSON response with the filled-in config file.
 
   Args:
@@ -288,6 +283,7 @@ def GetBisectConfig(
         If this is not empty or None, then we want to use archived builds.
     bisect_mode: What aspect of the test run to bisect on; possible options are
         "mean", "std_dev", and "return_code".
+    use_staging_bot: Specifies if we should redirect to a staging bot.
 
   Returns:
     A dictionary with the result; if successful, this will contain "config",
@@ -321,6 +317,13 @@ def GetBisectConfig(
       'target_arch': GuessTargetArch(bisect_bot),
       'bisect_mode': bisect_mode,
   }
+
+  # If 'use_staging_bot' was checked, we try to redirect to a staging bot.
+  # Do this here since we need to guess parts of the command line using the
+  # bot's name.
+  if use_staging_bot:
+    bisect_bot = _GuessStagingBot(master_name, bisect_bot) or bisect_bot
+
   config_dict['recipe_tester_name'] = bisect_bot
   if bypass_no_repro_check:
     config_dict['required_initial_confidence'] = '0'
