@@ -6,22 +6,22 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "mac_x86_64": {
-          "cloud_storage_hash": "25735d1430df8d0cf822168fd4c9abfb82326fe5",
+          "cloud_storage_hash": "ccf611f8db4d86cfc9037249c8b8f67911a2be34",
           "download_path": "bin/reference_builds/chrome-mac64.zip",
           "path_within_archive": "chrome-mac/Google Chrome.app/Contents/MacOS/Google Chrome",
-          "version_in_cs": "57.0.2938.0"
+          "version_in_cs": "57.0.2952.0"
         },
         "win_AMD64": {
-          "cloud_storage_hash": "3c04a5291dcc7cab16ac510104c22a5a64370f76",
+          "cloud_storage_hash": "7412366e2bf54dd0c54ff13d6acb81f5865757af",
           "download_path": "bin\\reference_build\\chrome-win64-pgo.zip",
           "path_within_archive": "chrome-win64-pgo\\chrome.exe",
-          "version_in_cs": "57.0.2938.0"
+          "version_in_cs": "57.0.2952.0"
         },
         "win_x86": {
-          "cloud_storage_hash": "cc27fa6c3b86418bbef9bdd8ab7065b51a10aaf0",
+          "cloud_storage_hash": "82ed1fd8f3c93e5d0ecef47440f82923926269c1",
           "download_path": "bin\\reference_build\\chrome-win32-pgo.zip",
           "path_within_archive": "chrome-win32-pgo\\chrome.exe",
-          "version_in_cs": "57.0.2938.0"
+          "version_in_cs": "57.0.2952.0"
         }
       }
     },
@@ -30,10 +30,10 @@
       "cloud_storage_bucket": "chrome-telemetry",
       "file_info": {
         "linux_x86_64": {
-          "cloud_storage_hash": "25088921e47b11f64f87b0cfefe56eca0b7c64eb",
+          "cloud_storage_hash": "ac9692822154bb3aef9cbb57734efd6f847ecfd3",
           "download_path": "bin/reference_build/chrome-linux64.zip",
           "path_within_archive": "chrome-precise64/chrome",
-          "version_in_cs": "56.0.2924.10"
+          "version_in_cs": "57.0.2950.4"
         }
       }
     },
