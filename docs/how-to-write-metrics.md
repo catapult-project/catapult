@@ -163,6 +163,11 @@ The types of Diagnostics are
    was consumed by the metric that produced the Histogram, such as the Chromium
    revision, v8 revision, and catapult revision. Visually, RevisionInfos are
    displayed as a table.
+ * [BuildbotInfo](/tracing/tracing/value/diagnostics/buildbot_info.html):
+   This is automatically attached to every Histogram produced by Chrome's
+   performance testing buildbots. Structurally, it's a class with explicit named
+   fields. Conceptually, it contains information about the buildbot process that
+   ran telemetry. Visually, it is displayed as a table.
  * [Scalar](/tracing/tracing/value/diagnostics/scalar.html):
    Metrics must not use this, since it is incapable of being merged. It is
    mentioned here for completeness. It wraps a ScalarNumeric, which is just a

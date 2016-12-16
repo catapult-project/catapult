@@ -133,6 +133,7 @@ The only field that is required for all Diagnostics, `type`, must be one of
  * `TelemetryInfo`
  * `DeviceInfo`
  * `RevisionInfo`
+ * `BuildbotInfo`
  * `Scalar`
 
 If a Diagnostic is in the root array of the JSON, then it is shared -- it may be
@@ -181,8 +182,10 @@ The other fields of Diagnostic dictionaries depend on `type`.
 
 ### BuildbotInfo
 
- * `masterName`: string
- * `slaveName`: string
+ * `displayMasterName`: string
+ * `displayBotName`: string
+ * `buildbotMasterName`: string
+ * `buildbotName`: string
  * `buildNumber`: number
  * `logUri`: string
 
