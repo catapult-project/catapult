@@ -87,7 +87,13 @@ def ProvisionDevices(
   blacklist = (device_blacklist.Blacklist(blacklist_file)
                if blacklist_file
                else None)
-  devices = script_common.GetDevices(devices, blacklist)
+  try:
+    devices = script_common.GetDevices(devices, blacklist)
+  except device_errors.NoDevicesError:
+    logging.error('No available devices to provision.')
+    if blacklist:
+      logging.error('Local device blacklist: %s', blacklist.Read())
+    raise
   devices = [d for d in devices
              if not emulators or d.adb.is_emulator]
   parallel_devices = device_utils.DeviceUtils.parallel(devices)
@@ -573,6 +579,7 @@ def main(raw_args):
         remove_system_webview=args.remove_system_webview,
         wipe=not args.skip_wipe)
   except (device_errors.DeviceUnreachableError, device_errors.NoDevicesError):
+    logging.exception('Unable to provision local devices.')
     return exit_codes.INFRA
 
 

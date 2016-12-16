@@ -9,11 +9,11 @@ from devil.android import device_utils
 
 def GetDevices(requested_devices, blacklist_file):
   if not isinstance(blacklist_file, device_blacklist.Blacklist):
-    blacklist = (device_blacklist.Blacklist(blacklist_file)
-                 if blacklist_file
-                 else None)
+    blacklist_file = (device_blacklist.Blacklist(blacklist_file)
+                      if blacklist_file
+                      else None)
 
-  devices = device_utils.DeviceUtils.HealthyDevices(blacklist)
+  devices = device_utils.DeviceUtils.HealthyDevices(blacklist_file)
   if not devices:
     raise device_errors.NoDevicesError()
   elif requested_devices:
