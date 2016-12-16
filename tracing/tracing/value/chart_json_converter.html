@@ -47,7 +47,7 @@ tr.exportTo('tr.v', function() {
             benchmarkName: charts.benchmark_name,
             label: charts.label,
             benchmarkStartMs: charts.benchmarkStartMs,
-          }).addToValue(hist);
+          }).addToHistogram(hist);
 
           if (value.type === 'histogram') {
             for (var bucket of value.buckets) {

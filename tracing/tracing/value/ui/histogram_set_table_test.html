@@ -195,7 +195,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
       benchmarkStartMs: now,
-    }).addToValue(histA);
+    }).addToHistogram(histA);
     histograms.addHistogram(histA);
 
     var histB = new tr.v.Histogram('short name',
@@ -205,7 +205,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: now,
-    }).addToValue(histB);
+    }).addToHistogram(histB);
     histograms.addHistogram(histB);
 
     table.histograms = histograms;
@@ -235,7 +235,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
       benchmarkStartMs: now,
-    }).addToValue(histA);
+    }).addToHistogram(histA);
     histograms.addHistogram(histA);
 
     var histB = new tr.v.Histogram('histogram B',
@@ -245,7 +245,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: now,
-    }).addToValue(histB);
+    }).addToHistogram(histB);
     histograms.addHistogram(histB);
 
     var histC = new tr.v.Histogram('histogram A',
@@ -253,7 +253,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: now,
-    }).addToValue(histC);
+    }).addToHistogram(histC);
     histograms.addHistogram(histC);
 
     table.histograms = histograms;
@@ -296,7 +296,7 @@ tr.b.unittest.testSuite(function() {
       label: 'Value',
       benchmarkStartMs: now,
       storyDisplayName: 'story A'
-    }).addToValue(histA);
+    }).addToHistogram(histA);
     histograms.addHistogram(histA);
 
     var histB = new tr.v.Histogram('histogram B',
@@ -308,7 +308,7 @@ tr.b.unittest.testSuite(function() {
       label: 'Value',
       benchmarkStartMs: now,
       storyDisplayName: 'story A'
-    }).addToValue(histB);
+    }).addToHistogram(histB);
     histograms.addHistogram(histB);
 
     var histC = new tr.v.Histogram('histogram C',
@@ -320,7 +320,7 @@ tr.b.unittest.testSuite(function() {
       label: 'Value',
       benchmarkStartMs: now,
       storyDisplayName: 'story B'
-    }).addToValue(histC);
+    }).addToHistogram(histC);
     histograms.addHistogram(histC);
 
     table.histograms = histograms;
@@ -344,7 +344,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
       benchmarkStartMs: new Date().getTime(),
-    }).addToValue(hist0a);
+    }).addToHistogram(hist0a);
 
     var hist1a = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -354,7 +354,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration A',
       benchmarkStartMs: new Date().getTime(),
-    }).addToValue(hist1a);
+    }).addToHistogram(hist1a);
 
     var hist0b = new tr.v.Histogram('foo',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -364,7 +364,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: new Date().getTime(),
-    }).addToValue(hist0b);
+    }).addToHistogram(hist0b);
 
     var hist1b = new tr.v.Histogram('bar',
         tr.b.Unit.byName.timeDurationInMs_smallerIsBetter, TEST_BOUNDARIES);
@@ -374,7 +374,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       label: 'iteration B',
       benchmarkStartMs: new Date().getTime(),
-    }).addToValue(hist1b);
+    }).addToHistogram(hist1b);
 
     table.histograms = histograms;
     this.addHTMLOutput(table);
@@ -428,7 +428,7 @@ tr.b.unittest.testSuite(function() {
     new tr.v.d.TelemetryInfo({
       benchmarkName: 'benchmarkName',
       benchmarkStartMs: 1439708400000,
-    }).addToValue(hist);
+    }).addToHistogram(hist);
 
     var table = document.createElement('tr-v-ui-histogram-set-table');
     table.histograms = histograms;
@@ -491,7 +491,7 @@ tr.b.unittest.testSuite(function() {
                       storysetRepeatCounter: storysetCounter,
                       storyRepeatCounter: storyCounter,
                       label: label,
-                    }).addToValue(hist);
+                    }).addToHistogram(hist);
                   }
                 }
               }
