@@ -43,6 +43,9 @@ class FakePlatform(object):
   def CanMonitorThermalThrottling(self):
     return False
 
+  def WaitForTemperature(self, _):
+    pass
+
 
 class TestSharedState(story_module.SharedState):
 
@@ -129,6 +132,7 @@ class MixedStateStorySet(story_module.StorySet):
   def allow_mixed_story_states(self):
     return True
 
+
 def SetupStorySet(allow_multiple_story_states, story_state_list):
   if allow_multiple_story_states:
     story_set = MixedStateStorySet()
@@ -138,6 +142,7 @@ def SetupStorySet(allow_multiple_story_states, story_state_list):
     story_set.AddStory(DummyLocalStory(story_state,
                                        name='story%d' % i))
   return story_set
+
 
 def _GetOptionForUnittest():
   options = options_for_unittests.GetCopy()
@@ -166,7 +171,6 @@ class TestOnlyException(Exception):
 
 
 class FailureValueMatcher(object):
-
   def __init__(self, expected_exception_message):
     self._expected_exception_message = expected_exception_message
 
@@ -176,13 +180,11 @@ class FailureValueMatcher(object):
 
 
 class SkipValueMatcher(object):
-
   def __eq__(self, other):
     return isinstance(other, skip.SkipValue)
 
 
 class StoryRunnerTest(unittest.TestCase):
-
   def setUp(self):
     self.fake_stdout = StringIO.StringIO()
     self.actual_stdout = sys.stdout

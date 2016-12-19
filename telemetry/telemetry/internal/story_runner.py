@@ -59,6 +59,7 @@ def AddCommandLineArgs(parser):
                     action='store_true', default=False,
                     help='Ignore @Disabled and @Enabled restrictions.')
 
+
 def ProcessCommandLineArgs(parser, args):
   story_module.StoryFilter.ProcessCommandLineArgs(parser, args)
   results_options.ProcessCommandLineArgs(parser, args)
@@ -225,6 +226,7 @@ def Run(test, story_set, finder_options, results, max_failures=None,
             results.WillRunPage(
                 story, storyset_repeat_counter, story_repeat_counter)
             try:
+              state.platform.WaitForTemperature(35)
               _WaitForThermalThrottlingIfNeeded(state.platform)
               _RunStoryAndProcessErrorIfNeeded(story, results, state, test)
             except exceptions.Error:

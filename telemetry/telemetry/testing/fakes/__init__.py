@@ -69,6 +69,9 @@ class FakePlatform(object):
   def StopAllLocalServers(self):
     pass
 
+  def WaitForTemperature(self, _):
+    pass
+
 
 class FakeLinuxPlatform(FakePlatform):
   def __init__(self):

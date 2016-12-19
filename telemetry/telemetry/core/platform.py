@@ -420,3 +420,6 @@ class Platform(object):
 
   def HasBattOrConnected(self):
     return  self._platform_backend.HasBattOrConnected()
+
+  def WaitForTemperature(self, temp):
+    return self._platform_backend.WaitForTemperature(temp)

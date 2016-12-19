@@ -791,6 +791,10 @@ class AndroidPlatformBackend(
     return battor_wrapper.IsBattOrConnected('linux')
 
 
+  def WaitForTemperature(self, temp):
+    # Temperature is in tenths of a degree C, so we convert to that scale.
+    self._battery.LetBatteryCoolToTemperature(temp * 10)
+
 def _FixPossibleAdbInstability():
   """Host side workaround for crbug.com/268450 (adb instability).
 
