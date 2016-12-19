@@ -88,7 +88,10 @@ var ImportView = (function() {
       $(ImportView.LOADED_INFO_COMMAND_LINE_ID).textContent =
           Constants.clientInfo.command_line;
       $(ImportView.LOADED_INFO_ACTIVE_FIELD_TRIAL_GROUPS_ID).textContent =
-          Constants.activeFieldTrialGroups;
+          (Constants.activeFieldTrialGroups &&
+           Constants.activeFieldTrialGroups.constructor == Array)
+          ? Constants.activeFieldTrialGroups.join(' ')
+          : '';
 
       if (logDump.userComments != undefined) {
         $(ImportView.LOADED_INFO_USER_COMMENTS_ID).textContent =

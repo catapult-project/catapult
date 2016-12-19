@@ -35,8 +35,6 @@ var QuicView = (function() {
       'quic-view-origins-to-force-quic-on';
   QuicView.STATUS_CONNECTION_OPTIONS =
       'quic-view-connection-options';
-  QuicView.STATUS_CONSISTENT_PORT_SELECTION_ENABLED =
-      'quic-view-port-selection-enabled';
   QuicView.STATUS_LOAD_SERVER_INFO_TIMEOUT_MULTIPLIER =
       'quic-view-server-info-timeout-mult';
   QuicView.STATUS_ENABLE_CONNECTION_RACING =
@@ -50,7 +48,7 @@ var QuicView = (function() {
   QuicView.STATUS_PACKET_LOSS_THRESHOLD =
       'quic-view-packet-loss-threshold';
   QuicView.STATUS_DELAY_TCP_RACE = 'quic-view-delay-tcp-race';
-  QuicView.STATUS_STORE_SERVER_CONFIGS_IN_PROPERITES_FILE =
+  QuicView.STATUS_STORE_SERVER_CONFIGS_IN_PROPERTIES_FILE =
       'quic-view-configs-in-file';
   QuicView.STATUS_IDLE_CONNECTION_TIMEOUT_IN_SECS =
       'quic-view-connection-timeout-in-secs';
@@ -58,6 +56,7 @@ var QuicView = (function() {
       'quic-view-disable-preconnect-if-ortt';
   QuicView.STATUS_DISABLE_QUIC_ON_TIMEOUT_WITH_OPEN_STREAMS =
       'quic-view-disable-quic-on-timeout-with-open-streams';
+  QuicView.STATUS_RACE_CERT_VERIFICATION = 'quic-view-race-cert-verification';
   QuicView.STATUS_DYNAMICALLY_DISABLED_BULLET_POINT =
       'quic-view-dynamically-disabled-bullet-point';
   QuicView.STATUS_DYNAMICALLY_DISABLED_SPAN =
@@ -95,9 +94,6 @@ var QuicView = (function() {
       $(QuicView.STATUS_CONNECTION_OPTIONS).textContent =
           quicInfo.connection_options;
 
-      $(QuicView.STATUS_CONSISTENT_PORT_SELECTION_ENABLED).
-          textContent = !!quicInfo.enable_quic_port_selection;
-
       $(QuicView.STATUS_LOAD_SERVER_INFO_TIMEOUT_MULTIPLIER).
           textContent = quicInfo.load_server_info_timeout_srtt_multiplier;
 
@@ -119,7 +115,7 @@ var QuicView = (function() {
       $(QuicView.STATUS_DELAY_TCP_RACE).textContent =
           !!quicInfo.delay_tcp_race;
 
-      $(QuicView.STATUS_STORE_SERVER_CONFIGS_IN_PROPERITES_FILE).
+      $(QuicView.STATUS_STORE_SERVER_CONFIGS_IN_PROPERTIES_FILE).
           textContent = !!quicInfo.store_server_configs_in_properties;
 
       $(QuicView.STATUS_IDLE_CONNECTION_TIMEOUT_IN_SECS).textContent =
@@ -132,12 +128,14 @@ var QuicView = (function() {
           textContent =
               quicInfo.disable_quic_on_timeout_with_open_streams;
 
+      $(QuicView.STATUS_RACE_CERT_VERIFICATION).textContent =
+          !!quicInfo.race_cert_verification;
+
       setNodeDisplay($(QuicView.STATUS_DYNAMICALLY_DISABLED_BULLET_POINT),
-          quicInfo.disabled_reason && quicInfo.disabled_reason.length > 0);
-      if (quicInfo.disabled_reason &&
-          quicInfo.disabled_reason.length > 0) {
+                     !!quicInfo.is_quic_disabled);
+      if (!!quicInfo.is_quic_disabled) {
         $(QuicView.STATUS_DYNAMICALLY_DISABLED_SPAN).textContent =
-            'QUIC dynamically disabled: ' + quicInfo.disabled_reason;
+            'QUIC Dynamically Disabled: ' + !!quicInfo.is_quic_disabled;
       }
 
       var sessions = quicInfo.sessions;

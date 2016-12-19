@@ -251,7 +251,7 @@ function writeParameters(entry, privacyStripping, out) {
   }
 
   // Use any parameter writer available for this event type.
-  var paramsWriter = getParamaterWriterForEventType(entry.type);
+  var paramsWriter = getParameterWriterForEventType(entry.type);
   var consumedParams = {};
   if (paramsWriter)
     paramsWriter(entry, out, consumedParams);
@@ -274,7 +274,7 @@ function writeParameters(entry, privacyStripping, out) {
  *                    consumed. If no writer is available for |eventType| then
  *                    returns null.
  */
-function getParamaterWriterForEventType(eventType) {
+function getParameterWriterForEventType(eventType) {
   switch (eventType) {
     case EventType.HTTP_TRANSACTION_SEND_REQUEST_HEADERS:
     case EventType.HTTP_TRANSACTION_SEND_TUNNEL_HEADERS:
@@ -287,8 +287,9 @@ function getParamaterWriterForEventType(eventType) {
     case EventType.CERT_VERIFIER_JOB:
     case EventType.SSL_CERTIFICATES_RECEIVED:
       return writeParamsForCertificates;
+    case EventType.CERT_CT_COMPLIANCE_CHECKED:
     case EventType.EV_CERT_CT_COMPLIANCE_CHECKED:
-      return writeParamsForCheckedEVCertificates;
+      return writeParamsForCheckedCertificates;
 
     case EventType.SSL_VERSION_FALLBACK:
       return writeParamsForSSLVersionFallback;
@@ -650,7 +651,7 @@ function writeParamsForCertificates(entry, out, consumedParams) {
 
 }
 
-function writeParamsForCheckedEVCertificates(entry, out, consumedParams) {
+function writeParamsForCheckedCertificates(entry, out, consumedParams) {
   if (typeof(entry.params.certificate) == 'object')
     writeCertificateParam(
         entry.params.certificate, out, consumedParams, 'certificate');

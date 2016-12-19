@@ -31,8 +31,8 @@ var TabSwitcherView = (function() {
 
     this.tabIdToView_ = {};
     this.tabIdToLink_ = {};
-    // Ordered list of views.
-    this.viewList_ = [];
+    // Map from tab id to the views link visiblity.
+    this.tabIdsLinkVisibility_ = new Map();
     this.activeTabId_ = null;
 
     this.onTabSwitched_ = opt_onTabSwitched;
@@ -98,7 +98,7 @@ var TabSwitcherView = (function() {
       }
 
       this.tabIdToView_[tabId] = view;
-      this.viewList_.push(view);
+      this.tabIdsLinkVisibility_.set(tabId, true);
 
       var node = addNodeWithText($(TAB_LIST_ID), 'a', name);
       node.href = hash;
@@ -115,13 +115,16 @@ var TabSwitcherView = (function() {
       var wasActive = this.activeTabId_ == tabId;
 
       setNodeDisplay(this.tabIdToLink_[tabId], isVisible);
+      this.tabIdsLinkVisibility_.set(tabId, isVisible);
 
       if (wasActive && !isVisible) {
         // If the link for active tab is being hidden, then switch to the first
         // tab which is still visible.
-        for (var view in this.viewList_) {
-          if (view.isVisible())
-            this.switchToTab(option.value);
+        for (var [localTabId, enabled] of this.tabIdsLinkVisibility_) {
+          if (enabled) {
+            this.switchToTab(localTabId);
+            break;
+          }
         }
       }
     },

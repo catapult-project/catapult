@@ -6,6 +6,8 @@ Introduction
 ------------
 This is a WebApp that allows someone to perform post-mortem analysis of a
 saved NetLog dump. The initial code was taken out of Chromium.
+The code should contain all changes made to net-internals up to chromium commit
+8491b5b9060b61c2b06f51bb5dfcc8098c0cbad1.
 The full design doc can be found
 [here](https://docs.google.com/document/d/1Ll7T5cguj5m2DqkUTad5DWRCqtbQ3L1q9FRvTN5-Y28/edit#).
 

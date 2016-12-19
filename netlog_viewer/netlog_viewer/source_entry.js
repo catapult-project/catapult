@@ -84,7 +84,13 @@ var SourceEntry = (function() {
         case EventSourceType.HTTP_STREAM_JOB:
           this.description_ = e.params.url;
           break;
+        // TODO(davidben): Remove CONNECT_JOB after M57 is released.
         case EventSourceType.CONNECT_JOB:
+        case EventSourceType.TRANSPORT_CONNECT_JOB:
+        case EventSourceType.SSL_CONNECT_JOB:
+        case EventSourceType.SOCKS_CONNECT_JOB:
+        case EventSourceType.HTTP_PROXY_CONNECT_JOB:
+        case EventSourceType.WEB_SOCKET_TRANSPORT_CONNECT_JOB:
           this.description_ = e.params.group_name;
           break;
         case EventSourceType.HOST_RESOLVER_IMPL_JOB:

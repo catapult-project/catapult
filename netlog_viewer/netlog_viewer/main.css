@@ -1,7 +1,6 @@
 /* Copyright (c) 2012 The Chromium Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
+ * found in the LICENSE file. */
 
 /* Only common styles should be declared here. */
 
@@ -27,10 +26,8 @@ ul {
   padding-left: 2em;
 }
 
-/**
- * This class is used to create the splitter widget in
- * ResizbleVerticalSplitView.
- */
+/* This class is used to create the splitter widget in
+ * ResizbleVerticalSplitView. */
 .vertical-splitter {
   -webkit-user-select: none;
   border-left: 1px solid #afafaf;
@@ -52,10 +49,8 @@ pre {
   font-size: 133%;
 }
 
-/**
- * This class should be given to top-level content boxes (like the view's main
- * DIV). It gives them a consistent padding, and makes them scrollable.
- */
+/* This class should be given to top-level content boxes (like the view's main
+ * DIV). It gives them a consistent padding, and makes them scrollable. */
 .content-box {
   overflow: auto;
   padding: 20px 10px 10px 20px;
@@ -71,9 +66,7 @@ pre {
   margin-left: -10px;
 }
 
-/**
- * Styles for TABLE that uses a thin collapsed border.
- */
+/* Styles for TABLE that uses a thin collapsed border. */
 table.styled-table {
   border-collapse: collapse;
 }
@@ -122,9 +115,7 @@ table.styled-table,
   background: rgb(255,217,217);
 }
 
-/**
- * Styling for event logs.
- */
+/* Styling for event logs. */
 .event-log p {
   white-space: nowrap;
 }
@@ -138,16 +129,12 @@ table.styled-table,
   text-decoration: none;
 }
 
-/**
- * Styling for text indicating a potential problem or error state.
- */
+/* Styling for text indicating a potential problem or error state. */
 .warning-text {
   color: rgb(238, 0, 0);
 }
 
-/**
- * Styling for help windows that appear when mousing over an element.
- */
+/* Styling for help windows that appear when mousing over an element. */
 .mouse-over-help {
   background: #EEE;
   border: 1px solid black;
@@ -155,9 +142,7 @@ table.styled-table,
   z-index: 1;
 }
 
-/**
- * Styling for elements that show a help window on mouse over.
- */
+/* Styling for elements that show a help window on mouse over. */
 .mouse-over-help-hover {
   color: blue;
   cursor: help;

@@ -87,7 +87,7 @@ var SpdyView = (function() {
         var a = addNodeWithText(idCell, 'a', s.source_id);
         a.href = '#events&q=id:' + s.source_id;
 
-        var kFields = ['protocol_negotiated', 'active_streams',
+        var kFields = ['negotiated_protocol', 'active_streams',
           'unclaimed_pushed_streams', 'max_concurrent_streams',
           'streams_initiated_count', 'streams_pushed_count',
           'streams_pushed_and_claimed_count',
@@ -110,24 +110,16 @@ var SpdyView = (function() {
       if (!spdyStatus)
         return false;
 
-      $(SpdyView.STATUS_HTTP2_ENABLED).textContent =
-          (spdyStatus.enable_http2 == undefined ?
-           spdyStatus.spdy_enabled : spdyStatus.enable_http2);
+      $(SpdyView.STATUS_HTTP2_ENABLED).textContent = spdyStatus.enable_http2;
 
-      $(SpdyView.STATUS_SPDY31_ENABLED).textContent =
-          (spdyStatus.enable_spdy31 == undefined ?
-           spdyStatus.spdy_enabled : spdyStatus.enable_spdy31);
+      $(SpdyView.STATUS_SPDY31_ENABLED).textContent = spdyStatus.enable_spdy31;
 
       $(SpdyView.STATUS_ALTERNATE_SERVICE).textContent =
-          (spdyStatus.use_alternative_services == undefined ?
-           spdyStatus.use_alternate_protocols :
-           spdyStatus.use_alternative_services);
+          spdyStatus.use_alternative_services;
 
-      $(SpdyView.STATUS_ALPN_PROTOCOLS).textContent =
-          (spdyStatus.alpn_protos || spdyStatus.next_protos);
+      $(SpdyView.STATUS_ALPN_PROTOCOLS).textContent = spdyStatus.alpn_protos;
 
-      $(SpdyView.STATUS_NPN_PROTOCOLS).textContent =
-          (spdyStatus.npn_protos || spdyStatus.next_protos);
+      $(SpdyView.STATUS_NPN_PROTOCOLS).textContent = spdyStatus.npn_protos;
 
       return true;
     }
