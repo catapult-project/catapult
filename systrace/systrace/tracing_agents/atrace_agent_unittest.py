@@ -104,19 +104,6 @@ class AtraceAgentTest(unittest.TestCase):
     self.assertEqual(' '.join(TRACE_ARGS), ' '.join(tracer_args))
 
   @decorators.HostOnlyTest
-  def test_preprocess_trace_data(self):
-    with contextlib.nested(open(ATRACE_DATA_STRIPPED, 'r'),
-                           open(ATRACE_DATA_RAW, 'r')) as (f1, f2):
-      atrace_data = f1.read()
-      atrace_data_raw = f2.read()
-      options, categories = run_systrace.parse_options(SYSTRACE_CMD)
-      agent = atrace_agent.AtraceAgent()
-      agent._config = options
-      agent._config.atrace_categories = categories
-      trace_data = agent._preprocess_trace_data(atrace_data_raw)
-      self.assertEqual(atrace_data, trace_data)
-
-  @decorators.HostOnlyTest
   def test_extract_thread_list(self):
     with contextlib.nested(open(ATRACE_EXTRACTED_THREADS, 'r'),
                            open(ATRACE_THREAD_LIST)) as (f1, f2):
