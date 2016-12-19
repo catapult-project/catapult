@@ -18,6 +18,11 @@ from devil.utils import cmd_helper
 
 logger = logging.getLogger(__name__)
 
+# If passed as the device port, this will tell the forwarder to allocate
+# a dynamic port on the device. The actual port can then be retrieved with
+# Forwarder.DevicePortForHostPort.
+DYNAMIC_DEVICE_PORT = 0
+
 
 def _GetProcessStartTime(pid):
   return psutil.Process(pid).create_time
