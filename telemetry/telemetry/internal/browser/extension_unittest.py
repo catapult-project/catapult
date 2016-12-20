@@ -167,7 +167,8 @@ class WebviewInExtensionTest(ExtensionTest):
 
   # Flaky on windows, hits an exception: http://crbug.com/508325
   # Flaky on macOS too: http://crbug.com/661434
-  @decorators.Disabled('win', 'linux', 'mac')
+  # ChromeOS: http://crbug.com/674220
+  @decorators.Disabled('win', 'linux', 'mac', 'chromeos')
   def testWebviewInExtension(self):
     """Tests GetWebviewContext() for a web app containing <webview> element."""
     if not self.CreateBrowserWithExtension('webview_app'):
