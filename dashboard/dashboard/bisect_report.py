@@ -115,19 +115,71 @@ def _RevisionTable(results_data):
   if 'culprit_data' in results_data and results_data['culprit_data']:
     culprit_commit_hash = results_data['culprit_data']['cl']
 
-  def RevisionRow(r):
+  # Only display some rows depending on whether they're part of the failure or
+  # regression.
+  last_good = 0
+  first_bad = len(results_data['revision_data'])
+  for i in xrange(len(results_data['revision_data'])):
+    r = results_data['revision_data'][i]
+    if r['result'] == 'good':
+      last_good = i
+    if r['result'] == 'bad':
+      first_bad = i
+      break
+
+  revision_rows = []
+  for i in xrange(len(results_data['revision_data'])):
+    r = results_data['revision_data'][i]
+
     number_of_observations = r.get(
         'n_observations', len(r.get('values', [])) or None)
-    result = [
-        r.get('revision_string', _MakeLegacyRevisionString(r)),
-        _FormatNumber(r['mean_value']),
-        _FormatNumber(r['std_dev']),
-        _FormatNumber(number_of_observations),
-        r['result'],
-        '<--' if r['commit_hash'] == culprit_commit_hash  else '',
-    ]
-    return map(str, result)
-  revision_rows = [RevisionRow(r) for r in results_data['revision_data']]
+    result = None
+    if not r.get('failed'):
+      result = [
+          r.get('revision_string', _MakeLegacyRevisionString(r)),
+          _FormatNumber(r['mean_value']),
+          _FormatNumber(r['std_dev']),
+          _FormatNumber(number_of_observations),
+          r['result'],
+          '<--' if r['commit_hash'] == culprit_commit_hash  else '',
+      ]
+    else:
+      # Outside the culprit range we don't care about displaying build failures.
+      if i > last_good and i < first_bad:
+        if first_bad - last_good > 10:
+          if i == last_good + 1 or i == first_bad - 1:
+            result = [
+                r.get('revision_string', _MakeLegacyRevisionString(r)),
+                '---',
+                '---',
+                '---',
+                'build failure',
+                '',
+            ]
+          elif i == last_good + 2:
+            # Inside the culprit range, if there were more than 10 failures,
+            # just mention they all failed.
+            result = [
+                '---',
+                '---',
+                '---',
+                '---',
+                'too many build failures to list',
+                '',
+            ]
+        else:
+          result = [
+              r.get('revision_string', _MakeLegacyRevisionString(r)),
+              '---',
+              '---',
+              '---',
+              'build failure',
+              '',
+          ]
+    if result:
+      revision_rows.append(result)
+
+  revision_rows = [map(str, r) for r in revision_rows if r]
 
   headers_row = [[
       'Revision',
