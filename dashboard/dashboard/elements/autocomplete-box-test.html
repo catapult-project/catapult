@@ -9,39 +9,302 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/core/test_utils.html">
 
+<dom-module id="autocomplete-box-test-fixture">
+  <script>
+    'use strict';
+
+    Polymer({
+      id: 'autocomplete-box-test-fixture',
+      behaviors: [AutocompleteBoxBehavior],
+      _template: null,
+    });
+  </script>
+</dom-module>
+
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
+  var item = function(name, opt_group, opt_head) {
+    var item = {'name': name};
+    if (opt_group !== undefined) {
+      item['group'] = opt_group;
+    }
+    if (opt_head !== undefined) {
+      item['head'] = opt_head;
+    }
+    return item;
+  };
+
+  var testOptions = {
+    setUp: function() {
+      this.foo = {'name': 'Foo'};
+      this.fooish = {'name': 'Fooish'};
+      this.bar = {'name': 'Bar'};
+    },
+
+    tearDown: function() {
+    },
+  };
+
+  test('empty_query', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('query', '');
+    assert.deepEqual(fixture.get('suggestedItems'), [
+        {'name': 'Foo'},
+        {'name': 'Fooish'},
+        {'name': 'Bar'},
+    ]);
+  }, testOptions);
+
+  test('simple_query', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('query', 'Foo');
+    assert.deepEqual(fixture.get('suggestedItems'), [
+        {'name': 'Foo'},
+        {'name': 'Fooish'},
+    ]);
+  }, testOptions);
+
+  test('simple_update_query', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('query', 'Foo');
+    fixture.set('query', 'Foois');
+    assert.deepEqual(fixture.get('suggestedItems'), [
+        {'name': 'Fooish'},
+    ]);
+  }, testOptions);
+
+  test('simple_update_items', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('query', 'Foo');
+    fixture.shift('items');
+    assert.deepEqual(fixture.get('suggestedItems'), [
+        {'name': 'Fooish'},
+    ]);
+  }, testOptions);
+
+  test('simple_selecting_an_item', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    assert.deepEqual(fixture.get('selectedItems'), []);
+    fixture.selectItem(this.foo);
+    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+    fixture.selectItem(this.bar);
+    assert.deepEqual(fixture.get('selectedItems'), [this.bar]);
+  }, testOptions);
+
+  test('simple_deselecting_an_item', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.selectItem(this.foo);
+    fixture.deselectItem(this.bar);
+    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+    fixture.deselectItem(this.foo);
+  }, testOptions);
+
+  test('simple_selecting_head_element_does_nothing', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    var animals = item('Animals', undefined, true);
+    var lion = item('Lion', 'Animals');
+    var elephant = item('Elephant', 'Animals');
+    var cucumber = item('Cucumber');
+    fixture.set('items', [animals, lion, elephant, cucumber]);
+    fixture.selectItem(animals);
+    assert.deepEqual(fixture.get('selectedItems'), []);
+  }, testOptions);
+
+  test('multi_selecting_an_item', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('multi', true);
+    fixture.selectItem(this.foo);
+    fixture.selectItem(this.bar);
+    assert.deepEqual(fixture.get('selectedItems'), [this.foo, this.bar]);
+  }, testOptions);
+
+  test('multi_selecting_an_item_twice', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('multi', true);
+    fixture.selectItem(this.foo);
+    fixture.selectItem(this.foo);
+    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+  }, testOptions);
+
+  test('multi_deselecting_an_item', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('multi', true);
+    fixture.selectItem(this.foo);
+    fixture.selectItem(this.bar);
+    fixture.deselectItem(this.foo);
+    assert.deepEqual(fixture.get('selectedItems'), [this.bar]);
+  }, testOptions);
+
+  test('multi_selecting_head_element_selects_group', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('multi', true);
+    var animals = item('Animals', undefined, true);
+    var lion = item('Lion', 'Animals');
+    var elephant = item('Elephant', 'Animals');
+    var cucumber = item('Cucumber');
+    fixture.set('items', [animals, lion, elephant, cucumber]);
+    fixture.selectItem(animals);
+    assert.deepEqual(fixture.get('selectedItems'), [lion, elephant]);
+    fixture.selectItem(animals);
+    assert.deepEqual(fixture.get('selectedItems'), []);
+    fixture.selectItem(lion);
+    fixture.selectItem(animals);
+    assert.deepEqual(fixture.get('selectedItems'), [lion, elephant]);
+  }, testOptions);
+
+  test('preserves_selected_on_items_update', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('multi', true);
+    fixture.set('selectedItems', [this.foo, this.fooish]);
+    fixture.set('items', [item('Foo'), item('Bar')]);
+    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+  }, testOptions);
+
+  test('selecting_clears_the_query', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('query', 'foo');
+    fixture.selectItem(this.foo);
+    assert.equal(fixture.get('query'), '');
+  }, testOptions);
+
+  test('has_suggestions', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    assert.isTrue(fixture.get('hasSuggestions'));
+    fixture.set('query', 'Baz');
+    assert.isFalse(fixture.get('hasSuggestions'));
+  }, testOptions);
+
+  test('show_dropdown', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    assert.isFalse(fixture.get('showDropdown'));
+    fixture.set('dropdownOpen', true);
+    assert.isTrue(fixture.get('showDropdown'));
+    fixture.set('query', 'Zed');
+    assert.isFalse(fixture.get('showDropdown'));
+    fixture.set('dropdownOpen', false);
+    assert.isFalse(fixture.get('showDropdown'));
+  }, testOptions);
+
+  test('maybe_backspace_selection', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('selectedItems', [this.foo, this.fooish]);
+    fixture.maybeBackspaceSelection();
+    fixture.set('query', 'Zed');
+    fixture.maybeBackspaceSelection();
+    assert.deepEqual(fixture.get('selectedItems'), [this.foo]);
+  }, testOptions);
+
+  test('maybe_select_locus', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.maybeSelectLocus();
+    assert.deepEqual(fixture.get('selectedItems'), []);
+
+    fixture.set('query', 'Foo');
+    fixture.maybeSelectLocus();
+    assert.deepEqual(fixture.get('selectedItems'), []);
+
+    fixture.set('locusItem', this.bar);
+    fixture.maybeSelectLocus();
+    assert.deepEqual(fixture.get('selectedItems'), []);
+
+    fixture.set('query', 'Bar');
+    fixture.maybeSelectLocus();
+    assert.deepEqual(fixture.get('selectedItems'), [this.bar]);
+  }, testOptions);
+
+  test('selected_item', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    assert.strictEqual(fixture.get('selectedItem'), null);
+    assert.strictEqual(fixture.get('selectedName'), null);
+    fixture.set('selectedItems', [this.foo]);
+    assert.strictEqual(fixture.get('selectedItem'), this.foo);
+    assert.strictEqual(fixture.get('selectedName'), 'Foo');
+  }, testOptions);
+
+  test('multi_selected_item', function() {
+    var fixture = document.createElement('autocomplete-box-test-fixture');
+    fixture.set('items', [this.foo, this.fooish, this.bar]);
+    fixture.set('multi', true);
+    console.log('get', fixture.get('multi'));
+    assert.strictEqual(fixture.get('selectedItem'), null);
+    assert.strictEqual(fixture.get('selectedName'), null);
+    fixture.set('selectedItems', [this.foo]);
+    assert.strictEqual(fixture.get('selectedItem'), null);
+    assert.strictEqual(fixture.get('selectedName'), null);
+  }, testOptions);
 
   test('instantiate', function() {
     var box = document.createElement('autocomplete-box');
     box.placeholder = 'Placeholder text';
-    box.datalist = [
+    box.items = [
         {'name': 'Apples'},
         {'name': 'Bananas'},
         {'name': 'Carrots'}
     ];
-    box.setDataList(box.datalist); // Yes this is really the API :(
     this.addHTMLOutput(box);
   });
 
-    test('instantiateComplex', function() {
-      var box = document.createElement('autocomplete-box');
-      box.placeholder = 'Placeholder text';
-      box.multi = true;
-      box.datalist = [
-          {'name': 'ChromiumPerf', 'head': true},
-          {'name': 'windows', 'group': 'ChromiumPerf', 'tag': 'hello'},
-          {'name': 'mac', 'group': 'ChromiumPerf', 'tag': 'world'},
-          {'name': 'Android', 'head': true},
-          {'name': 'nexus5', 'group': 'Android'},
-          {'name': 'g1', 'group': 'Android'},
-          {'name': 'galaxy s6', 'group': 'Android'},
-      ];
-      box.setDataList(box.datalist); // Yes this is really the API :(
-      this.addHTMLOutput(box);
-    });
+  test('instantiate_overlapping', function() {
+    var box = document.createElement('autocomplete-box');
+    box.placeholder = 'Placeholder text';
+    box.items = [
+        {'name': 'Foo'},
+        {'name': 'Fooish'},
+        {'name': 'Food'},
+        {'name': 'Foot'},
+        {'name': 'Arm'},
+        {'name': 'Army'},
+        {'name': 'a'},
+        {'name': 'ab'},
+        {'name': 'abc'},
+        {'name': 'abcd'},
+        {'name': 'abcdef'},
+        {'name': 'abcdefg'},
+        {'name': 'abcdefgh'},
+        {'name': 'abcdefghi'},
+        {'name': 'abcdefghij'},
+        {'name': 'abcdefghijk'},
+        {'name': 'abcdefghijkl'},
+        {'name': 'abcdefghijklm'},
+        {'name': 'abcdefghijklmn'},
+    ];
+    this.addHTMLOutput(box);
+  });
+
+  test('instantiate_complex', function() {
+    var box = document.createElement('autocomplete-box');
+    box.placeholder = 'Placeholder text';
+    box.multi = true;
+    box.items = [
+        {'name': 'ChromiumPerf', 'head': true},
+        {'name': 'windows', 'group': 'ChromiumPerf', 'tag': 'hello'},
+        {'name': 'mac', 'group': 'ChromiumPerf', 'tag': 'world'},
+        {'name': 'Android', 'head': true},
+        {'name': 'nexus5', 'group': 'Android'},
+        {'name': 'g1', 'group': 'Android'},
+        {'name': 'galaxy s6', 'group': 'Android'},
+    ];
+    this.addHTMLOutput(box);
+  });
 
 });
 </script>

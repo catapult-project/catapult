@@ -10,11 +10,11 @@ The drop-down menu has support for multi-select, grouping, and tag name.
 
 Example usage:
 
-    <autocomplete-box dataList={{dataList}}
+    <autocomplete-box items={{items}}
                       placeholder="course"
                       multi></autocomplete-box>
 
-The 'dataList' is a list of object with the following properties:
+'items' is a list of object with the following properties:
 
     [
         {name: 'Skydiving'},
@@ -54,10 +54,6 @@ property 'group' sets to the header item name.
 <dom-module id="autocomplete-box">
   <template>
     <style include="iron-flex">
-      #container * {
-        margin-right: 3px;
-      }
-
       #dropdown-container {
         position: absolute;
         background-color: white;
@@ -70,7 +66,6 @@ property 'group' sets to the header item name.
         overflow-y: auto;
         overflow-x: hidden;
         max-height: 300px;
-        padding-right: 8px;
       }
 
       #dropdown paper-item {
@@ -95,30 +90,85 @@ property 'group' sets to the header item name.
         font-size: 90%;
         padding-left: 5px;
       }
+
+      paper-input .selected {
+        padding-bottom: 4px;
+        padding-top: 4px;
+        line-height: 16px;
+        font-size: 14px;
+      }
+
+      paper-input .selected span {
+        color: white;
+        border-radius: 100px;
+        background-color: #3E50B4;
+        margin: 0px 3px 0px 0px;
+        padding: 2px 4px;
+      }
+
+      /* From: paper-item/paper-item-shared-styles.html */
+      .locus:before {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: currentColor;
+        content: '';
+        opacity: 0.12;
+        pointer-events: none;
+      }
+
+      /* From: paper-item/paper-item-shared-styles.html */
+      .locus:after {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: currentColor;
+        opacity: 0.12;
+        content: '';
+        pointer-events: none;
+      }
     </style>
 
     <div id="container">
       <div id="textbox-container" class="layout vertical">
         <paper-input label="{{placeholder}}"
-                     on-click="showHideDropdown"
-                     on-keyup="onTextboxKeyup"
-                     on-keydown="onTextboxKeydown"
+                     on-click="onClickInput"
+                     on-focus="onFocusInput"
+                     on-blur="onBlurInput"
+                     on-keydown="onInputKeydown"
                      disabled$="{{disabled}}"
                      id="textbox"
-                     value="{{value::input}}"></paper-input>
+                     value="{{query::input}}">
+          <div prefix class="selected">
+            <template is="dom-repeat" items="[[selectedItems]]">
+              <span>[[item.name]]</span>
+            </template>
+          </div>
+        </paper-input>
       </div>
-      <paper-material id="dropdown-container" hidden>
+      <paper-material
+          id="dropdown-container"
+          hidden$="[[!showDropdown]]">
         <div class="dropdown-scroller" layered>
           <paper-menu id="dropdown"
+                      tabindex="-1"
+                      on-mousedown="onDropdownMouseDown"
                       on-iron-select="onDropdownSelect"
-                      on-iron-deselect="onDropdownSelect"
+                      on-iron-deselect="onDropdownDeselect"
+                      on-iron-items-changed="onItemsChanged"
                       multi$="{{multi}}">
-            <template is="dom-repeat" items="{{dataList}}">
-              <paper-item head$="{{item.head}}"
-                          hidden$="{{hidden}}"
-                          class="layout horizontal">
-                <div class="flex">{{item.name}}</div>
-                <div class="tag">{{item.tag}}</div>
+            <template is="dom-repeat" items="[[suggestedItems]]">
+                <paper-item
+                    item="[[item]]"
+                    head$="[[item.head]]"
+                    hidden$="[[!showDropdown]]"
+                    class$="layout horizontal [[locusClassIfLocus(locusItem, item)]]">
+                <div class="flex">[[item.name]]</div>
+                <div class="tag">[[item.tag]]</div>
               </paper-item>
             </template>
           </paper-menu>
@@ -130,395 +180,365 @@ property 'group' sets to the header item name.
   </template>
   <script>
     'use strict';
-    Polymer({
-      id: 'autocomplete-box',
+
+    var AutocompleteBoxBehavior = {
       properties: {
-        TEXTBOX_MIN_WIDTH: {
-          type: Number,
-          value: 152
-        },
-        dataList: {
-          notify: true,
+        items: {
           type: Array,
           value: () => []
         },
-        disabled: {
+
+        query: {
+          type: String,
           notify: true,
+          value: ''
+        },
+
+        /**
+         * The currently 'highlighted' item in the dropdown. This keeps track of
+         * which entry the user is currently on when they are using the arrow
+         * keys.
+         */
+        locusItem: {
+          type: Object,
+          notify: true
+        },
+
+        multi: {
           type: Boolean,
-          disabled: false
-        },
-        multi: { notify: true },
-        placeholder: { notify: true },
-        selectedItems: {
-          type: Array,
           notify: true,
+          value: false
+        },
+
+        suggestedItems: {
+          type: Array,
+          computed: 'computeSuggestedItems(query, items, items.*)'
+        },
+
+        dropdownOpen: {
+          type: Boolean,
+          value: false
+        },
+
+        hasSuggestions: {
+          type: Boolean,
+          computed: 'computeHasSuggestions(suggestedItems, suggestedItems.*)'
+        },
+
+        // Not quite the same thing as dropdownOpen since the dropdown can be
+        // logically open but empty in which case we don't want to show it.
+        showDropdown: {
+          type: Boolean,
+          computed: 'computeShowDropdown(hasSuggestions, dropdownOpen)'
+        },
+
+        selectedItems: {
+          notify: true,
+          type: Array,
           value: () => []
         },
-        value: {
+
+        /**
+         * The names of all the selected items.
+         */
+        selectedNames: {
           notify: true,
-          observer: 'valueChanged',
-          type: String
-        }
+          type: Object,
+          computed: 'computeSelectedNames(selectedItems, selectedItems.*)'
+        },
+
+        /**
+         * If this is a single selection dropdown (multi == false) and there is
+         * exactly one selected item this is that item otherwise null.
+         */
+        selectedItem: {
+          notify: true,
+          type: Object,
+          computed: 'computeSelectedItem(multi, selectedItems, selectedItems.*)'
+        },
+
+        /**
+         * If this is a single selection dropdown (multi == false) and there is
+         * exactly one selected item this is that items name otherwise null;
+         */
+        selectedName: {
+          notify: true,
+          type: String,
+          computed: 'computeSelectedName(selectedItem)'
+        },
       },
 
-      clearSelection: function() {
-        if (this.multi) {
-          this.$.dropdown.selected = [];
-        } else {
-          this.$.dropdown.selected = null;
-        }
-      },
-
-      ready: function() {
-        this.value = '';
-        this.clearSelection();
-        this.hasVisibleItems = true;
-        this.initAutocomplete();
-      },
-
-      /**
-       * Initializes Autocomplete class with current dataList.
-       */
-      initAutocomplete: function() {
-        if (this.dataList) {
-          this.autocomplete = new autocomplete.Trie(this.dataList);
-        } else {
-          this.autocomplete = new autocomplete.Trie([]);
-        }
-      },
-
-      /**
-       * Sets the current dataList.  This will keep selected items from
-       * previous dataList if they also exist in the new dataList.
-       * @param {Array} dataList List of drop-down items.
-       */
-      setDataList: function(dataList) {
-        this.set('dataList', dataList);
-        this.updateCurrentSelection();
-        this.initAutocomplete();
-      },
-
-      /**
-       * Handles typing text in the textbox and navigating drop-down menu with
-       * arrow keys.
-       */
-      onTextboxKeyup: function(event) {
-        var key = event.keyCode || event.charCode;
-        if (key == 8 || key == 46) {  // Backspace and Delete.
-          if (this.value.length == 0) {
-            this.set('selectedItems', []);
-            this.clearSelection();
-            this.fire('dropdownselect');
-          }
-        }
-
-        if (!this.$['dropdown-container'].hidden) {
-          switch (key) {
-            case 40:  // Arrow down.
-              this.selectNext(1);
-              return;
-            case 38:  // Arrow up.
-              this.selectNext(-1);
-              return;
-            case 13:  // Enter.
-              this.hideDropdown();
-              return;
-          }
-        }
-        this.updateAutocomplete();
-      },
-
-      onTextboxKeydown: function(event) {
-        // Since tab key loses focus of the textbox menu, we handle the event
-        // on keydown instead of keyup.
-        var key = event.keyCode || event.charCode;
-        if (key == 9) {  // Tab.
-          this.hideDropdown();
-        }
-      },
-
-      /**
-       * Handles item selected on drop-down menu.
-       */
-      onDropdownSelect: function(event, detail) {
-        this.$.textbox.focus();
-        var index = this.$.dropdown.indexOf(detail.item);
-        var item = this.dataList[index];
-        var isSelected = Polymer.dom(detail.item).classList.contains(
-            'iron-selected');
-        if (this.multi) {
-          if (item.head) {
-            this.onHeadItemSelected(item.name, isSelected);
-          } else {
-            this.onItemSelected(item.name, isSelected);
-          }
-        }
-        this.setItemSelection(item, isSelected);
-        this.value = this.getSelectedValues().join(',');
-        this.fire('dropdownselect');
-      },
-
-      /**
-       * On head item selected, either selects or unselects all of the
-       * subsequent non-head items.
-       * @param {string} headName Name of the head item.
-       * @param {boolean} isSelected Whether the head item was checked or not.
-       */
-      onHeadItemSelected: function(headName, isSelected) {
-        for (var i = 0; i < this.dataList.length; i++) {
-          var item = this.dataList[i];
-          if (!item.head && item.group == headName) {
-            this.setItemSelection(item, isSelected);
-            this.setDropdownSelection(i, isSelected);
-          }
-        }
-      },
-
-      /**
-       * On non-head item selected, either select or unselect its head item.
-       * @param {string} headName Name of the head item.
-       * @param {boolean} isSelected Whether the head item was checked or not.
-       */
-      onItemSelected: function(headName, isSelected) {
-        var allSelected = true;
-        for (var i = 0; i < this.dataList.length; i++) {
-          var it = this.dataList[i];
-          if (it.group == headName &&
-              this.$.dropdown.selected.indexOf(i) == -1) {
-            allSelected = false;
-          }
-        }
-
-        // Find head item and set selection.
-        for (var i = 0; i < this.dataList.length; i++) {
-          var it = this.dataList[i];
-          if (it.head && it.name == headName) {
-            this.setDropdownSelection(i, isSelected && allSelected);
-          }
-        }
-      },
-
-      /**
-       * Selects the next item in direction and unselect the current selected
-       * item.  For multi-selection mode, this scrolls through non-head items.
-       * @param {number} direction Either 1 to select next item or -1 to select
-       *     the previous item.
-       */
-      selectNext: function(direction) {
-        var numItems = this.dataList.length;
-        var start = (direction) ? -1 : numItems;
-        var selected = this.$.dropdown.selected;
-        if (selected instanceof Array) {
-          if (selected.length > 0) {
-            start = selected[selected.length - 1];
-          }
-        } else if (selected != null) {
-          start = selected;
-        }
-
-        // Select next item that is not the head item.
-        for (var i = start + direction; i >= 0 && i < numItems;
-             i += direction) {
-          var item = this.dataList[i];
-          if (!item.head) {
-            this.setDropdownSelection(i, true);
-            this.setItemSelection(item, true);
-            this.value = this.getSelectedValues().join(',');
-            this.fire('dropdownselect');
-            return;
-          }
-        }
-      },
-
-      /**
-       * Updates current selection from 'this.dataList'.
-       * This tries to keep the current selection when 'this.dataList'
-       * changes.
-       */
-      updateCurrentSelection: function() {
-        this.clearSelection();
-        var matchedItems = [];
-        for (var i = 0; i < this.selectedItems.length; i++) {
-          for (var j = 0; j < this.dataList.length; j++) {
-            if (this.itemEquals(this.selectedItems[i], this.dataList[j])) {
-              this.$.dropdown.selected.push(j);
-              matchedItems.push(this.selectedItems[i]);
-              break;
-            }
-          }
-        }
-        this.set('selectedItems', matchedItems);
-        this.value = this.getSelectedValues().join(',');
-      },
+      observers: [
+        'itemsChanged(items.*)',
+        'selectedItemsChanged(selectedItems, selectedItems.*)'
+      ],
 
       itemEquals: function(itemA, itemB) {
         return itemA.name == itemB.name && itemA.group == itemB.group;
       },
 
       /**
-       * Gets a list of name from current selected items.
+       * When the underlying list of items changes update the selected items
+       * to ensure we're not selecting things which are no longer in the list.
        */
-      getSelectedValues: function() {
-        var values = [];
-        this.selectedItems.forEach(function(item) {
-          values.push(item.name);
-        });
-        return values;
-      },
-
-      getSelectedItems: function() {
-        return this.selectedItems;
-      },
-
-      /**
-       * Adds or remove an index from dropbox's selected indices.
-       */
-      setDropdownSelection: function(index, isSelected) {
-        if (!this.multi) {
-          this.clearSelection();
-        }
-        var foundIndex = this.$.dropdown.selected.indexOf(index);
-        if (isSelected) {
-          if (foundIndex == -1) {
-            this.$.dropdown.selected.push(index);
-          }
-        } else if (foundIndex >= 0) {
-          this.$.dropdown.selected.splice(foundIndex, 1);
-        }
-      },
-
-      /**
-       * Adds or removes an item from 'this.selectedItems'.
-       */
-      setItemSelection: function(item, isSelected) {
-        if (!this.multi) {
-          this.set('selectedItems', []);
-        }
-        var itemIndex = this.getItemIndex(item);
-        if (isSelected) {
-          if (itemIndex == -1) {
-            this.push('selectedItems', item);
-          }
-        } else if (itemIndex > -1) {
-          this.splice('selectedItems', itemIndex, 1);
-        }
-      },
-
-      getItemIndex: function(item) {
-        for (var i = 0; i < this.selectedItems.length; i++) {
-          if (this.itemEquals(this.selectedItems[i], item)) {
-            return i;
+      itemsChanged: function(_itemsChange) {
+        var preservedSelectedItems = [];
+        var selectedItems = this.selectedItems || [];
+        var items = this.items || [];
+        for (var selectedItem of selectedItems) {
+          for (var newItem of items) {
+            if (this.itemEquals(selectedItem, newItem)) {
+              preservedSelectedItems.push(newItem);
+            }
           }
         }
-        return -1;
+        this.set('selectedItems', preservedSelectedItems);
       },
 
-      /**
-       * Updates drop-down menu with autocomplete suggestion items base on
-       * current value in the textbox.
-       */
-      updateAutocomplete: function() {
-        var currentValue = null;
-        if (this.multi && this.value.length) {
-          var currentParts = this.value.split(',');
-          currentValue = currentParts[currentParts.length - 1];
-          // Remove only the last selected item.
-          var lastItem = this.selectedItems[this.selectedItems.length - 1];
-          if (this.selectedItems.length == currentParts.length) {
-            this.pop('selectedItems');
+      selectedItemsChanged: function(_selectedItems, _selectedItemsChange) {
+        // It would be nicer if users could observe the selected-items-changed
+        // but sadly that only fires when the whole array gets set.
+        this.fire('dropdownselect');
+      },
+
+      computeSuggestedItems: function(query, items, _itemsChange) {
+        var searcher = new autocomplete.Trie(items);
+        return searcher.search(query);
+      },
+
+      computeHasSuggestions: function(_suggestedItems, _suggestedItemsChange) {
+        return this.suggestedItems.length > 0;
+      },
+
+      computeShowDropdown: function(_hasSuggestions, _dropdownOpen) {
+        return this.hasSuggestions && this.dropdownOpen;
+      },
+
+      selectItem: function(item) {
+        if (this.multi) {
+          this.selectItemMulti(item);
+        } else {
+          this.selectItemSingle(item);
+        }
+      },
+
+      selectItemMulti: function(selectedItem) {
+        this.set('query', '');
+        if (selectedItem.head) {
+          // Get items from that group:
+          var groupItems = this.suggestedItems.filter(item =>
+            selectedItem.name === item.group
+          );
+
+          // Remove head items:
+          groupItems = groupItems.filter(item => !item.head);
+          // Are all the items from the group selected?
+          var allSelected = groupItems.every(item =>
+            this.selectedItems.indexOf(item) !== -1
+          );
+
+          if (allSelected) {
+            // If everything was selected already unselect everything.
+            groupItems.forEach(item => this.deselectItem(item));
+          } else {
+            // Otherwise select everything.
+            groupItems.forEach(item => this.selectItem(item));
           }
         } else {
-          currentValue = this.value;
-        }
-        this.clearSelection();
-
-        this.set('dataList', this.autocomplete.search(currentValue));
-
-        if (this.multi) {
-          this.updateDropdownWithSelectedItems();
-        }
-        this.selectFirstMatch(currentValue);
-        this.fire('dropdownselect');
-
-        this.hasVisibleItems = this.dataList.length > 0;
-        this.showHideDropdown();
-      },
-
-      updateDropdownWithSelectedItems: function() {
-        for (var i = 0; i < this.selectedItems.length; i++) {
-          for (var j = 0; j < this.dataList.length; j++) {
-            if (this.itemEquals(this.selectedItems[i], this.dataList[j])) {
-              this.$.dropdown.selected.push(j);
-              break;
-            }
+          if (this.selectedItems.indexOf(selectedItem) === -1) {
+            this.push('selectedItems', selectedItem);
           }
         }
       },
 
-      /**
-       * Selects the first non-head item if it is an exact match.
-       */
-      selectFirstMatch: function(value) {
-        value = value.toLowerCase();
-        for (var i = 0; i < this.dataList.length; i++) {
-          var item = this.dataList[i];
-          if (!item.head) {
-            if (item.name.toLowerCase() == value) {
-              this.setItemSelection(item, true);
-              this.$.dropdown.selected.push(i);
-            }
+      selectItemSingle: function(item) {
+        if (item.head) return;
+        this.set('query', '');
+        this.set('dropdownOpen', false);
+        this.set('selectedItems', [item]);
+      },
+
+      deselectItem: function(item) {
+        var index = this.selectedItems.indexOf(item);
+        if (index === -1) return;
+        this.splice('selectedItems', index, 1);
+      },
+
+      maybeBackspaceSelection: function() {
+        if (this.get('query') === '') {
+          this.pop('selectedItems');
+        }
+      },
+
+      maybeSelectLocus: function() {
+        var suggestions = this.suggestedItems || [];
+        if (suggestions.indexOf(this.locusItem) !== -1) {
+          this.selectItem(this.locusItem);
+          this.set('dropdownOpen', false);
+        }
+      },
+
+      moveLocus: function(down) {
+        var delta = down ? 1 : -1;
+        var suggestions = this.suggestedItems || [];
+        var n = suggestions.length;
+        var index = suggestions.indexOf(this.locusItem);
+        if (index === -1 && !down) {
+          index = 0;
+        }
+        index = index + delta;
+        if (n > 0) {
+          index = ((index % n) + n) % n;
+        }
+        if (index < 0 || index >= suggestions.length) {
+          this.set('locusItem', null);
+        } else {
+          this.set('locusItem', suggestions[index]);
+        }
+      },
+
+      computeSelectedNames: function(_selectedItems, _selectedItemsChange) {
+        var items = this.selectedItems || [];
+        return items.map(item => item.name);
+      },
+
+      computeSelectedItem: function(multi, selectedItems, selectedItemsChange) {
+        if (this.multi || this.selectedItems.length !== 1) return null;
+        return selectedItems[0];
+      },
+
+      computeSelectedName: function(_selectedItem) {
+        if (!this.selectedItem) return this.selectedItem;
+        return this.selectedItem.name;
+      },
+    };
+
+    Polymer({
+      id: 'autocomplete-box',
+      behaviors: [AutocompleteBoxBehavior],
+
+      properties: {
+        disabled: {
+          notify: true,
+          type: Boolean,
+          value: false
+        },
+        placeholder: { notify: true },
+      },
+
+      observers: [
+        'updateSelected(selectedItems, selectedItems.*)',
+        'updateSelected(locusItem)',
+      ],
+
+      shouldIgnoreSelectionEvents: function() {
+        if (this.muffleSelection === undefined) this.muffleSelection = false;
+        return this.muffleSelection;
+      },
+
+      onClickInput: function() {
+        // Sometimes the dropbox is closed even when the input has focus
+        // tries to click on the input to re-open it so we support that:
+        this.set('dropdownOpen', true);
+      },
+
+      onFocusInput: function() {
+        this.set('dropdownOpen', true);
+      },
+
+      onBlurInput: function() {
+        this.set('dropdownOpen', false);
+      },
+
+      onInputKeydown: function(event) {
+        this.set('dropdownOpen', true);
+        var key = event.keyCode || event.charCode;
+        if (key === 8 || key === 46) {  // Backspace and Delete.
+        this.maybeBackspaceSelection();
+        } else if (key === 40) {
+          this.moveLocus(true /* down */);
+          this.scrollLocusIntoView();
+        } else if (key === 38) {
+          this.moveLocus(false /* down */);
+          this.scrollLocusIntoView();
+        } else if (key === 13) { // Enter.
+          this.maybeSelectLocus();
+        }
+      },
+
+      scrollLocusIntoView: function() {
+        var elements = this.$.dropdown.items || [];
+        for (var element of elements) {
+          if (element.item === this.locusItem) {
+            element.scrollIntoView();
             return;
           }
         }
       },
 
+      onItemsChanged: function() {
+        this.updateSelected();
+      },
+
+      updateSelected: function() {
+        this.muffleSelection = true;
+        var self = this;
+        (function() {
+          if (self.multi) {
+            self.$.dropdown.selectedValues = [];
+            var menuElementsArray = self.$.dropdown.items || [];
+            for (var i = 0; i < menuElementsArray.length; i++) {
+              var item = menuElementsArray[i].item;
+              if (self.selectedItems.indexOf(item) !== -1) {
+                self.$.dropdown.push('selectedValues', i);
+              }
+            }
+          } else {
+            self.$.dropdown.selected = undefined;
+            if (self.selectedItems.length === 0) return;
+            var selectedItem = self.selectedItems[0];
+            var menuItemsArray = self.$.dropdown.items || [];
+            for (var i = 0; i < menuItemsArray.length; i++) {
+              if (menuItemsArray[i].item === selectedItem) {
+                self.$.dropdown.selected = i;
+                return;
+              }
+            }
+          }
+        })();
+        this.muffleSelection = false;
+      },
+
+      locusClassIfLocus: function(locusItem, anItem) {
+        return locusItem === anItem ? 'locus' : '';
+      },
+
+      onDropdownMouseDown: function(event) {
+        // Prevent focus moving to the drop down.
+        event.preventDefault();
+      },
+
       /**
-       * Adjusts the textbox size to fit the first selected item.
+       * Handles item selected on drop-down menu.
        */
-      updateTextboxSize: function() {
-        var values = this.getSelectedValues();
-        if (values.length == 0) {
-          this.$.textbox.style.width = this.TEXTBOX_MIN_WIDTH;
-          return;
-        }
-        // A hack for auto-resizing input box.
-        Polymer.dom(this.$['size-check']).innerHTML = values[0];
-        var newWidth = this.$['size-check'].offsetWidth + 5;
-        this.$.textbox.style.width = ((newWidth > this.TEXTBOX_MIN_WIDTH) ?
-                                      newWidth : this.TEXTBOX_MIN_WIDTH);
+      onDropdownSelect: function(event, detail) {
+        if (this.shouldIgnoreSelectionEvents()) return;
+        this.$.textbox.focus();
+        var index = this.$.dropdown.indexOf(detail.item);
+        var item = this.suggestedItems[index];
+        this.selectItem(item);
       },
 
-      valueChanged: function(newValue, oldValue) {
-        // Ignore empty changes.
-        if (!oldValue && !newValue) {
-          return;
-        }
-        this.updateTextboxSize();
+      /**
+       * Handles item selected on drop-down menu.
+       */
+      onDropdownDeselect: function(event, detail) {
+        if (this.shouldIgnoreSelectionEvents()) return;
+        this.$.textbox.focus();
+        var index = this.$.dropdown.indexOf(detail.item);
+        var item = this.suggestedItems[index];
+        this.deselectItem(item);
       },
-
-      showHideDropdown: function(event) {
-        if (this.dataList.length > 0 && this.hasVisibleItems) {
-          this.showDropdown();
-        } else {
-          this.hideDropdown();
-        }
-      },
-
-      showDropdown: function() {
-        var textContainer = this.$['textbox'];
-        this.$['dropdown-container'].style.top = textContainer.offsetTop +
-            textContainer.offsetHeight + 'px';
-        this.$['dropdown-container'].style.left = textContainer.offsetLeft +
-            'px';
-        this.$['dropdown-container'].hidden = false;
-        document.addEventListener('click', this.hideDropdown.bind(this), true);
-      },
-
-      hideDropdown: function() {
-        this.$['dropdown-container'].hidden = true;
-        document.removeEventListener(
-          'click', this.hideDropdown.bind(this), true);
-      }
     });
   </script>
 </dom-module>

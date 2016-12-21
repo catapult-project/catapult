@@ -69,10 +69,10 @@ found in the LICENSE file.
 
     <div id="container" class="layout horizontal center wrap">
       <template is="dom-repeat" items="{{selectionModels}}">
-        <autocomplete-box datalist={{item.datalist}}
+        <autocomplete-box items="{{item.datalist}}"
                           placeholder="{{item.placeholder}}"
-                          disabled={{item.disabled}}
-                          multi={{item.multi}}
+                          disabled="{{item.disabled}}"
+                          multi="{{item.multi}}"
                           on-dropdownselect="onDropdownSelect"
                           id="selection-{{index}}"></autocomplete-box>
       </template>
@@ -144,14 +144,16 @@ found in the LICENSE file.
           type: Array,
           value: () => ([
             {
-              datalist: undefined,
+              datalist: [],
               placeholder: 'Test suite',
+              disabled: false,
+              multi: false,
             },
             {
-              datalist: undefined,
+              datalist: [],
               placeholder: 'Bot',
               disabled: true,
-              multi: true
+              multi: true,
             }
           ])
         },
@@ -173,7 +175,7 @@ found in the LICENSE file.
 
       testSuitesChanged: function() {
         this.set('selectionModels.0.datalist', this.getSuiteItems());
-        this.getSelectionMenu(0).setDataList(this.selectionModels[0].datalist);
+        this.getSelectionMenu(0).items = this.selectionModels[0].datalist;
       },
 
       /**
@@ -215,7 +217,7 @@ found in the LICENSE file.
        * Gets a list of bot menu items base on the selected test suite.
        */
       getBotItems: function() {
-        var suite = this.getSelectionMenu(0).value;
+        var suite = this.getSelectionMenu(0).selectedName;
         if (!this.testSuites[suite]) {
           return [];
         }
@@ -247,10 +249,12 @@ found in the LICENSE file.
       /**
        * Handles dropdown menu select; updates the subsequent menu accordingly.
        */
-      onDropdownSelect: function(event) {
+       onDropdownSelect: function(event) {
         var model = event.model;
         var boxIndex = model.index;
-        if (boxIndex == 0) {
+        if (boxIndex === undefined) {
+          return;
+        } else if (boxIndex == 0) {
           this.updateTestSuiteDescription();
           this.updateBotMenu();
         } else if (boxIndex == 1) {
@@ -264,8 +268,8 @@ found in the LICENSE file.
       updateTestSuiteDescription: function() {
         // Display the test suite description if there is one.
         var descriptionElement = this.$['suite-description'];
-        var suite = this.getSelectionMenu(0).value;
-        if (!suite || !this.testSuites[suite]) {
+        var suite = this.getSelectionMenu(0).selectedName;
+        if (!this.testSuites[suite]) {
           Polymer.dom(descriptionElement).innerHTML = '';
           return;
         }
@@ -286,11 +290,11 @@ found in the LICENSE file.
       updateBotMenu: function() {
         var menu = this.getSelectionMenu(1);
         var botItems = this.getBotItems();
-        menu.setDataList(botItems);
-        menu.disabled = false;
+        menu.set('items', botItems);
+        menu.set('disabled', botItems.length === 0);
         this.subtestDict = null;
         // If there's a selection, send a subtest request.
-        if (menu.value && menu.value.length > 0) {
+        if (menu.selectedItems && menu.selectedItems.length > 0) {
           this.sendSubtestRequest();
         } else {
           // Clear all subtest menus.
@@ -359,11 +363,11 @@ found in the LICENSE file.
           }
           var subtestItems = this.getSubtestItems(subtestDict);
           var menu = this.getSelectionMenu(i);
-          menu.setDataList(subtestItems);
+          menu.set('items', subtestItems);
 
           // If there are selected item, update next menu.
-          if (menu.value && menu.value.length > 0) {
-            subtestDict = subtestDict[menu.value]['sub_tests'];
+          if (menu.selectedItem) {
+            subtestDict = subtestDict[menu.selectedName]['sub_tests'];
           } else {
             subtestDict = null;
           }
@@ -374,11 +378,13 @@ found in the LICENSE file.
           var subtestItems = this.getSubtestItems(subtestDict);
           this.push('selectionModels', {
             placeholder: this.SUBTEST_LABEL,
-            datalist: subtestItems
+            datalist: subtestItems,
+            disabled: false,
+            multi: false,
           });
           Polymer.dom.flush();
           var menu = this.getSelectionMenu(this.selectionModels.length - 1);
-          menu.setDataList(subtestItems);
+          menu.set('items', subtestItems);
         }
 
         this.updateAddButtonState();
@@ -392,7 +398,7 @@ found in the LICENSE file.
       getSubtestAtIndex: function(index) {
         var subtestDict = this.subtestDict;
         for (var i = 2; i < index; i++) {
-          var test = this.getSelectionMenu(i).value;
+          var test = this.getSelectionMenu(i).selectedName;
           if (test in subtestDict) {
             subtestDict = subtestDict[test]['sub_tests'];
           } else {
@@ -418,7 +424,7 @@ found in the LICENSE file.
       getCheckedBots: function() {
         var bots = [];
         var botMenu = this.getSelectionMenu(1);
-        var botItems = botMenu.getSelectedItems();
+        var botItems = botMenu.selectedItems;
         for (var i = 0; i < botItems.length; i++) {
           bots.push(botItems[i]['group'] + '/' + botItems[i]['name']);
         }
@@ -427,7 +433,7 @@ found in the LICENSE file.
 
       getCheckedSuite: function() {
         var suiteMenu = this.getSelectionMenu(0);
-        return suiteMenu.value;
+        return suiteMenu.selectedName;
       },
 
       getSelectionMenu: function(index) {
@@ -462,12 +468,12 @@ found in the LICENSE file.
         // Up to subtest menu.
         for (var i = 0; i < 3; i++) {
           var menu = this.getSelectionMenu(i);
-          if (!menu || menu.getSelectedItems().length == 0) {
+          if (!menu || !menu.selectedItems || menu.selectedItems.length === 0) {
             return null;
           }
         }
 
-        var suite = this.getSelectionMenu(0).getSelectedItems()[0];
+        var suite = this.getSelectionMenu(0).selectedItem;
         var selection = new testselection.TestSelection(this.testSuites);
         var testPathAndSelected = this.addTestPathFromSubtestDict(
             this.subtestDict, suite.name, 2);
@@ -497,9 +503,9 @@ found in the LICENSE file.
         // If this is the last menu with selection.
         var isLastLevel = (level == this.selectionModels.length - 1 ||
                            !nextMenu ||
-                           nextMenu.getSelectedItems().length == 0);
+                           nextMenu.selectedItems.length == 0);
 
-        var items = this.getSelectionMenu(level).getSelectedItems();
+        var items = this.getSelectionMenu(level).selectedItems;
         for (var i = 0; i < items.length; i++) {
           var name = items[i].name;
           var nextTestPath = testPath + '/' + name;
