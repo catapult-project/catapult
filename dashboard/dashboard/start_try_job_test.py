@@ -363,6 +363,12 @@ class StartBisectTest(testing_common.TestCase):
                 'Total': {
                     'Score': {},
                 }
+            },
+            'media.tough_video_cases_extra': {
+                'seek': {
+                    'garden2_10s.webm_seek_warm': {},
+                    'video.html?src_garden2_10s.webm': {}
+                }
             }
         })
     tests = graph_data.TestMetadata.query().fetch()
@@ -443,6 +449,26 @@ class StartBisectTest(testing_common.TestCase):
         'step': 'prefill-info',
     })
     info = json.loads(response.body)
+    self.assertEqual(info['story_filter'], '')
+
+    response = self.testapp.post('/start_try_job', {
+        'test_path': (
+            'ChromiumPerf/android-nexus7/media.tough_video_cases_extra'
+            '/seek/seek/video.html?src_garden2_10s.webm'),
+        'step': 'prefill-info',
+    })
+    info = json.loads(response.body)
+    # Story filter used for pages.
+    self.assertEqual(info['story_filter'], 'video.html.src.garden2.10s.webm')
+
+    response = self.testapp.post('/start_try_job', {
+        'test_path': (
+            'ChromiumPerf/android-nexus7/media.tough_video_cases_extra'
+            '/seek/seek/garden2_10s.webm_seek_warm'),
+        'step': 'prefill-info',
+    })
+    info = json.loads(response.body)
+    # No story filter used for non-page leaf metrics.
     self.assertEqual(info['story_filter'], '')
 
     response = self.testapp.post('/start_try_job', {
