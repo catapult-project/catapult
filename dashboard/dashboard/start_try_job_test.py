@@ -392,7 +392,6 @@ class StartBisectTest(testing_common.TestCase):
     self.assertEqual('ChromiumPerf', info['master'])
     self.assertFalse(info['internal_only'])
     self.assertFalse(info['is_admin'])
-    self.assertTrue(info['use_archive'])
     self.assertEqual(
         [
             'android_nexus4_perf_bisect',
@@ -504,7 +503,6 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'use_archive': '',
             'use_staging_bot': 'true',
         },
         {
@@ -521,7 +519,7 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'builder_type': '',
+            'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
         })
@@ -538,7 +536,6 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'use_archive': '',
         },
         {
             'command': ('src/tools/perf/run_benchmark -v '
@@ -554,42 +551,7 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'builder_type': '',
-            'target_arch': 'ia32',
-            'bisect_mode': 'mean',
-        })
-
-  def testGetConfig_NonEmptyUseArchiveParameter_GivesNonEmptyBuilderType(self):
-    # Any non-empty value for use_archive means that archives should be used.
-    # Even if value of use_archive is "false", archives will still be used!
-    self._TestGetBisectConfig(
-        {
-            'bisect_bot': 'linux_perf_bisect',
-            'master_name': 'ChromiumPerf',
-            'suite': 'page_cycler.moz',
-            'metric': 'times/page_load_time',
-            'good_revision': '265549',
-            'bad_revision': '265556',
-            'repeat_count': '15',
-            'max_time_minutes': '8',
-            'bug_id': '-1',
-            'use_archive': '',
-        },
-        {
-            'command': ('src/tools/perf/run_benchmark -v '
-                        '--browser=release --output-format=chartjson '
-                        '--upload-results '
-                        '--pageset-repeat=1 '
-                        '--also-run-disabled-tests '
-                        'page_cycler.moz'),
-            'good_revision': '265549',
-            'bad_revision': '265556',
-            'metric': 'times/page_load_time',
-            'recipe_tester_name': 'linux_perf_bisect',
-            'repeat_count': '15',
-            'max_time_minutes': '8',
-            'bug_id': '-1',
-            'builder_type': '',
+            'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
         })
@@ -623,7 +585,7 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'builder_type': '',
+            'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'mean',
         })
@@ -640,7 +602,6 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'use_archive': '',
             'bisect_mode': 'return_code',
         },
         {
@@ -657,7 +618,7 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'builder_type': '',
+            'builder_type': 'perf',
             'target_arch': 'ia32',
             'bisect_mode': 'return_code',
         })
@@ -675,7 +636,6 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'use_archive': '',
         }, **params_to_override)
     response = start_try_job.GetBisectConfig(**parameters)
     self.assertEqual(expected_command, response.get('command'))
@@ -732,7 +692,6 @@ class StartBisectTest(testing_common.TestCase):
         'repeat_count': '20',
         'max_time_minutes': '20',
         'bug_id': 12345,
-        'use_archive': '',
         'step': 'perform-bisect',
     }
     response = self.testapp.post('/start_try_job', query_parameters)
@@ -784,7 +743,6 @@ class StartBisectTest(testing_common.TestCase):
         'repeat_count': '20',
         'max_time_minutes': '20',
         'bug_id': 12345,
-        'use_archive': '',
         'step': 'perform-bisect',
     }
     global _EXPECTED_CONFIG_DIFF
@@ -906,7 +864,6 @@ class StartBisectTest(testing_common.TestCase):
         'repeat_count': '20',
         'max_time_minutes': '20',
         'bug_id': 12345,
-        'use_archive': 'true',
         'bisect_mode': 'mean',
         'step': 'perform-bisect',
     }
@@ -916,39 +873,6 @@ class StartBisectTest(testing_common.TestCase):
                     'issue_url': ('https://my-dashboard.appspot.com'
                                   '/buildbucket_job_status/1234567')}),
         response.body)
-
-  def testGetBisectConfig_UseArchive(self):
-    self._TestGetBisectConfig(
-        {
-            'bisect_bot': 'win_perf_bisect',
-            'master_name': 'ChromiumPerf',
-            'suite': 'page_cycler.morejs',
-            'metric': 'times/page_load_time',
-            'good_revision': '12345',
-            'bad_revision': '23456',
-            'repeat_count': '15',
-            'max_time_minutes': '8',
-            'bug_id': '-1',
-            'use_archive': 'true',
-        },
-        {
-            'command': ('src/tools/perf/run_benchmark -v '
-                        '--browser=release --output-format=chartjson '
-                        '--upload-results '
-                        '--pageset-repeat=1 '
-                        '--also-run-disabled-tests '
-                        'page_cycler.morejs'),
-            'good_revision': '12345',
-            'bad_revision': '23456',
-            'metric': 'times/page_load_time',
-            'recipe_tester_name': 'win_perf_bisect',
-            'repeat_count': '15',
-            'max_time_minutes': '8',
-            'bug_id': '-1',
-            'builder_type': 'perf',
-            'target_arch': 'ia32',
-            'bisect_mode': 'mean',
-        })
 
   def testGetBisectConfig_WithTargetArch(self):
     self._TestGetBisectConfig(
@@ -962,7 +886,6 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'use_archive': ''
         },
         {
             'command': ('src/tools/perf/run_benchmark -v '
@@ -978,7 +901,7 @@ class StartBisectTest(testing_common.TestCase):
             'repeat_count': '15',
             'max_time_minutes': '8',
             'bug_id': '-1',
-            'builder_type': '',
+            'builder_type': 'perf',
             'target_arch': 'x64',
             'bisect_mode': 'mean',
         })

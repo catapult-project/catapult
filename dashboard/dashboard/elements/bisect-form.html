@@ -103,24 +103,14 @@ the bisect process after the user clicks on the bisect button.
             <td>Later revision:</td>
             <td><input type="text" value="{{laterRevision::input}}"></td>
           </tr>
-          <tr>
+          <tr hidden$="{{isNotReturnCode(BISECT_MODE)}}">
             <td>Repeat count:</td>
             <td><input type="number" min="1" max="100" value="{{REPEAT_COUNT::input}}"></td>
           </tr>
-          <tr>
+          <tr hidden$="{{isNotReturnCode(BISECT_MODE)}}">
             <td>Max time (min):</td>
             <td><input type="number" min="1" max="60" value="{{MAX_TIME_MINUTES::input}}"></td>
           </tr>
-
-          <template is="dom-if" if="{{canUseArchive}}">
-            <tr>
-              <td>Use archive:</td>
-              <td><input type="checkbox"
-                         on-change="{{onUseArchiveChange}}"
-                         checked="{{useArchive}}">
-              </td>
-            </tr>
-          </template>
 
           <template is="dom-if" if="{{isAdmin}}">
             <tr>
@@ -146,10 +136,6 @@ the bisect process after the user clicks on the bisect button.
                 <b>not</b> show up on the graph.
               </p>
             </td>
-          </tr>
-          <tr>
-            <td>Bypass no-repro check:</td>
-            <td><input type="checkbox" checked="{{bypassNoRepro}}"></td>
           </tr>
         </table>
         <p><a href="http://www.chromium.org/developers/speed-infra/perf-try-bots-bisect-bots/config">
@@ -243,11 +229,8 @@ the bisect process after the user clicks on the bisect button.
          * Initializes and shows the bisect form.
          */
         show: function() {
-          this.canUseArchive = false,
-          this.bypassNoRepro = false,
           this.isAdmin = false,
           this.useStaging = false,
-          this.useArchive = true,
           this.loading = true;
           this.open();
           simple_xhr.send('/start_try_job',
@@ -262,7 +245,6 @@ the bisect process after the user clicks on the bisect button.
               this.metric = info['default_metric'];
               this.metricList = info['all_metrics'];
               this.storyFilter = info['story_filter'];
-              this.canUseArchive = info['use_archive'];
               this.email = info['email'];
               this.suite = info['suite'];
               this.master = info['master'];
@@ -296,9 +278,7 @@ the bisect process after the user clicks on the bisect button.
               'bad_revision': this.laterRevision,
               'repeat_count': this.REPEAT_COUNT,
               'max_time_minutes': this.MAX_TIME_MINUTES,
-              'use_archive': this.useArchive ? 'true' : '',
               'use_staging_bot': this.useStaging ? 'true' : '',
-              'bypass_no_repro_check': this.bypassNoRepro ? 'true' : '',
               'master': this.master,
               'internal_only': this.internalOnly,
               'bisect_mode': this.BISECT_MODE,
