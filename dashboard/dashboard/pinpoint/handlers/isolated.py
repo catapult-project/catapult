@@ -37,7 +37,7 @@ class IsolatedHandler(webapp2.RequestHandler):
     self.response.write(isolated_hash)
 
   def post(self):
-    """Add new isolated information
+    """Add new isolated information.
 
     Args:
       builder_name: The name of the builder that produced the isolated.

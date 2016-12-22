@@ -27,6 +27,10 @@ class Change(object):
   def patch(self):
     return self._patch
 
+  @property
+  def most_specific_commit(self):
+    return self._deps[-1] if self._deps else self._base_commit
+
 
 class Dep(object):
   """A git repository pinned to a particular commit."""
