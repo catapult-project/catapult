@@ -55,13 +55,13 @@ class PostBisectResultsHandler(post_data_handler.PostDataHandler):
       self.ReportError('Missing "data" parameter.', status=400)
       return
 
+    logging.info('Received data: %s', data)
+
     try:
       data = json.loads(self.request.get('data'))
     except ValueError:
       self.ReportError('Invalid JSON string.', status=400)
       return
-
-    logging.info('Received data: %s', data)
 
     try:
       _ValidateResultsData(data)
