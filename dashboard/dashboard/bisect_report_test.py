@@ -41,11 +41,9 @@ _SAMPLE_BISECT_REVISION_JSON = json.loads("""
     "depot_name": "chromium",
     "failed": false,
     "failure_reason": null,
-    "mean_value": 100,
-    "n_observations": 1,
-    "result": "bad",
-    "revision_string": "",
-    "std_dev": 1.0
+    "n_observations": 0,
+    "result": "unknown",
+    "revision_string": ""
   }
 """)
 
@@ -79,11 +77,12 @@ class BisectReportTest(testing_common.TestCase):
       data['commit_hash'] = r['commit']
       data['failed'] = r.get('failed', False)
       data['failure_reason'] = r.get('failure_reason', None)
-      data['mean_value'] = r.get('mean', 0)
-      data['std_dev'] = r.get('std_dev', 0)
       data['n_observations'] = r.get('num', 0)
       data['revision_string'] = r['commit']
       data['result'] = r.get('result', 'unknown')
+      if 'mean' in r:
+        data['mean_value'] = r.get('mean', 0)
+        data['std_dev'] = r.get('std_dev', 0)
       revision_data.append(data)
     return revision_data
 
@@ -152,8 +151,8 @@ Job details: https://test-rietveld.appspot.com/200039
         revision_data=self._Revisions(
             [
                 {'commit': 100, 'mean': 100, 'num': 10, 'result': 'good'},
-                {'commit': 101, 'mean': 100, 'num': 10, 'result': 'good'},
-                {'commit': 102, 'mean': 200, 'num': 10, 'result': 'bad'},
+                {'commit': 101},
+                {'commit': 102},
                 {'commit': 103, 'mean': 200, 'num': 10, 'result': 'bad'},
             ]),
         culprit_data=None,
@@ -168,8 +167,6 @@ Status: completed
 ===== TESTED REVISIONS =====
 Revision  Mean  Std Dev  N   Good?
 100       100   0        10  good
-101       100   0        10  good
-102       200   0        10  bad
 103       200   0        10  bad
 
 Bisect job ran on: staging_android_nexus5X_perf_bisect

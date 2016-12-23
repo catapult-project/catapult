@@ -134,7 +134,7 @@ def _RevisionTable(results_data):
     number_of_observations = r.get(
         'n_observations', len(r.get('values', [])) or None)
     result = None
-    if not r.get('failed'):
+    if not r.get('failed') and number_of_observations:
       result = [
           r.get('revision_string', _MakeLegacyRevisionString(r)),
           _FormatNumber(r['mean_value']),
@@ -143,7 +143,7 @@ def _RevisionTable(results_data):
           r['result'],
           '<--' if r['commit_hash'] == culprit_commit_hash  else '',
       ]
-    else:
+    elif r.get('failed'):
       # Outside the culprit range we don't care about displaying build failures.
       if i > last_good and i < first_bad:
         if first_bad - last_good > 10:
