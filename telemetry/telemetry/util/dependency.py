@@ -13,5 +13,5 @@ def FetchTelemetryDependencies(
     binary_manager.InitDependencyManager(client_configs)
   else:
     raise Exception('Binary manager already initialized with other configs.')
-  binary_manager.FetchBinaryDepdencies(
+  binary_manager.FetchBinaryDependencies(
     platform, client_configs, chrome_reference_browser)

@@ -73,7 +73,7 @@ def LocalPath(binary_name, arch, os_name, os_version=None):
   return _binary_manager.LocalPath(binary_name, os_name, arch, os_version)
 
 
-def FetchBinaryDepdencies(platform, client_configs,
+def FetchBinaryDependencies(platform, client_configs,
                           fetch_reference_chrome_binary):
   """ Fetch all binary dependenencies for the given |platform|.
 
