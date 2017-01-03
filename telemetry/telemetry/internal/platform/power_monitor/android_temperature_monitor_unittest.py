@@ -4,24 +4,22 @@
 
 import unittest
 
+import mock
 from telemetry.internal.platform.power_monitor import android_temperature_monitor
-from telemetry.testing import simple_mock
-
-_ = simple_mock.DONT_CARE
-
 
 class AndroidTemperatureMonitorTest(unittest.TestCase):
 
   def testPowerMonitoringResultsWereUpdated(self):
-    mock_device_utils = simple_mock.MockObject()
-    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('0')
-    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('24')
+    mock_device_utils = mock.Mock()
+    mock_device_utils.ReadFile.side_effect = ['0', '24']
 
     monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         mock_device_utils)
     self.assertTrue(monitor.CanMonitorPower())
     monitor.StartMonitoringPower(None)
     measurements = monitor.StopMonitoringPower()
+    mock_device_utils.ReadFile.assert_has_calls(
+        [mock.call(mock.ANY), mock.call(mock.ANY)])
     expected_return = {
         'identifier': 'android_temperature_monitor',
         'platform_info': {'average_temperature_c': 24.0}
@@ -29,22 +27,24 @@ class AndroidTemperatureMonitorTest(unittest.TestCase):
     self.assertDictEqual(expected_return, measurements)
 
   def testSysfsReadFailed(self):
-    mock_device_utils = simple_mock.MockObject()
-    mock_device_utils.ExpectCall('ReadFile', _).WillReturn('24')
-    mock_device_utils.ExpectCall('ReadFile', _).WillReturn(None)
+    mock_device_utils = mock.Mock()
+    mock_device_utils.ReadFile.side_effect = ['24', None]
 
     monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         mock_device_utils)
     self.assertTrue(monitor.CanMonitorPower())
     monitor.StartMonitoringPower(None)
     measurements = monitor.StopMonitoringPower()
+    mock_device_utils.ReadFile.assert_has_calls(
+        [mock.call(mock.ANY), mock.call(mock.ANY)])
     self.assertTrue('identifier' in measurements)
     self.assertTrue('platform_info' not in measurements)
 
   def testSysfsReadFailedCanMonitor(self):
-    mock_device_utils = simple_mock.MockObject()
-    mock_device_utils.ExpectCall('ReadFile', _).WillReturn(None)
+    mock_device_utils = mock.Mock()
+    mock_device_utils.ReadFile.side_effect = [None]
 
     monitor = android_temperature_monitor.AndroidTemperatureMonitor(
         mock_device_utils)
     self.assertFalse(monitor.CanMonitorPower())
+    mock_device_utils.ReadFile.assert_called_once_with(mock.ANY)
