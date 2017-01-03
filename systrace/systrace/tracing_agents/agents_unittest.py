@@ -22,6 +22,11 @@ class BaseAgentTest(unittest.TestCase):
     if curr_browser == None:
       self.StartBrowser()
 
+  def tearDown(self):
+    # Stop the browser after each test to ensure that it doesn't interfere
+    # with subsequent tests, e.g. by holding the devtools socket open.
+    self.device.ForceStop(self.package_info.package)
+
   def StartBrowser(self):
     # Turn on the device screen.
     self.device.SetScreen(True)
