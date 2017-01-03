@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import re
+import warnings
 
 from telemetry.story import shared_state as shared_state_module
 
@@ -22,13 +23,15 @@ class Story(object):
     name: string name of this story that can be used for identifying this story
         in results output.
     labels: A list or set of string labels that are used for filtering. See
+        story.story_filter for more information. (Deprecated - use tags intead).
+    tags: A list or set of string labels that are used for filtering. See
         story.story_filter for more information.
     is_local: If True, the story does not require network.
     grouping_keys: A dict of grouping keys that will be added to values computed
         on this story.
   """
 
-  def __init__(self, shared_state_class, name='', labels=None,
+  def __init__(self, shared_state_class, name='', labels=None, tags=None,
                is_local=False, make_javascript_deterministic=True,
                grouping_keys=None):
     """
@@ -47,13 +50,19 @@ class Story(object):
     global _next_story_id
     self._id = _next_story_id
     _next_story_id += 1
-    if labels is None:
-      labels = set([])
-    elif isinstance(labels, list):
-      labels = set(labels)
+    if labels is not None:
+      assert tags is None, 'Cannot specify both |labels| and |tags|'
+      warnings.warn('Parameter |labels| is deprecated. It will no longer be '
+                    'supported on Jan 17th 2017. Please switch to |tags| '
+                    'instead.')
+      tags = labels
+    if tags is None:
+      tags = set()
+    elif isinstance(tags, list):
+      tags = set(tags)
     else:
-      assert isinstance(labels, set)
-    self._labels = labels
+      assert isinstance(tags, set)
+    self._tags = tags
     self._is_local = is_local
     self._make_javascript_deterministic = make_javascript_deterministic
     if grouping_keys is None:
@@ -68,7 +77,11 @@ class Story(object):
 
   @property
   def labels(self):
-    return self._labels
+    return self._tags
+
+  @property
+  def tags(self):
+    return self._tags
 
   @property
   def shared_state_class(self):

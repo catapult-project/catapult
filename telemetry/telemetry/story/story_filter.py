@@ -4,6 +4,7 @@
 
 import optparse
 import re
+import warnings
 
 from telemetry.internal.util import command_line
 
@@ -27,7 +28,7 @@ class _StoryMatcher(object):
         (story.name and self._regex.search(story.name)))
 
 
-class _StoryLabelMatcher(object):
+class _StoryTagMatcher(object):
   def __init__(self, labels_str):
     self._labels = labels_str.split(',') if labels_str else None
 
@@ -49,17 +50,39 @@ class StoryFilter(command_line.ArgumentHandlerMixIn):
     group.add_option('--story-filter-exclude',
         help='Exclude stories whose names match the given filter regexp.')
     group.add_option('--story-label-filter',
-        help='Use only stories that have any of these labels')
+        help=('Use only stories that have any of these labels '
+              '(Deprecated - Use --story-tag-filter instead'))
     group.add_option('--story-label-filter-exclude',
-        help='Exclude stories that have any of these labels')
+        help=('Exclude stories that have any of these labels '
+             '(Deprecated - Use --story-tag-filter-exclude instead'))
+    group.add_option('--story-tag-filter',
+        help='Use only stories that have any of these tags')
+    group.add_option('--story-tag-filter-exclude',
+        help='Exclude stories that have any of these tags')
     parser.add_option_group(group)
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
     cls._include_regex = _StoryMatcher(args.story_filter)
     cls._exclude_regex = _StoryMatcher(args.story_filter_exclude)
-    cls._include_labels = _StoryLabelMatcher(args.story_label_filter)
-    cls._exclude_labels = _StoryLabelMatcher(args.story_label_filter_exclude)
+    if args.story_label_filter:
+      warnings.warn('--story-label-filter flag is deprecated. It will no longer'
+                    ' be supported on Jan 17th 2017. Please switch to '
+                    '--story-tag-filter instead.')
+      assert args.story_tag_filter is None, (
+          'Cannot specify both --story-label-filter and --story-tag-filter')
+      args.story_tag_filter = args.story_label_filter
+    if args.story_label_filter_exclude:
+      warnings.warn('--story-label-filter-exclude flag is deprecated. It will '
+                    'no longer be supported on Jan 17th 2017. Please switch to '
+                    '--story-tag-filter-exclude instead.')
+      assert args.story_tag_filter_exclude is None, (
+          'Cannot specify both --story-label-filter-exclude '
+          'and --story-tag-filter-exclude')
+      args.story_tag_filter_exclude = args.story_label_filter_exclude
+
+    cls._include_labels = _StoryTagMatcher(args.story_tag_filter)
+    cls._exclude_labels = _StoryTagMatcher(args.story_tag_filter_exclude)
 
     if cls._include_regex.has_compile_error:
       raise parser.error('--story-filter: Invalid regex.')

@@ -20,7 +20,7 @@ class Page(story.Story):
   def __init__(self, url, page_set=None, base_dir=None, name='',
                credentials_path=None,
                credentials_bucket=cloud_storage.PUBLIC_BUCKET, labels=None,
-               startup_url='', make_javascript_deterministic=True,
+               tags=None, startup_url='', make_javascript_deterministic=True,
                shared_page_state_class=shared_page_state.SharedPageState,
                grouping_keys=None,
                cache_temperature=cache_temperature_module.ANY,
@@ -28,7 +28,7 @@ class Page(story.Story):
     self._url = url
 
     super(Page, self).__init__(
-        shared_page_state_class, name=name, labels=labels,
+        shared_page_state_class, name=name, labels=labels, tags=tags,
         is_local=self._scheme in ['file', 'chrome', 'about'],
         make_javascript_deterministic=make_javascript_deterministic,
         grouping_keys=grouping_keys)

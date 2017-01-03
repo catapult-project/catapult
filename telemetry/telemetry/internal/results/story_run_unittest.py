@@ -19,9 +19,9 @@ class SharedStateBar(shared_state.SharedState):
   pass
 
 class StoryFoo(story_module.Story):
-  def __init__(self, name='', labels=None):
+  def __init__(self, name='', tags=None):
     super(StoryFoo, self).__init__(
-        SharedStateBar, name, labels)
+        SharedStateBar, name, tags)
 
 class StoryRunTest(unittest.TestCase):
   def setUp(self):
