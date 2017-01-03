@@ -27,6 +27,18 @@ tr.exportTo('tr.ui.tracks', function() {
     ANNOTATIONS: 8
   };
 
+  // Must be > 1.0. This is the maximum multiple by which the size
+  // of the canvas can exceed the window dimensions. For example
+  // if window.innerHeight is 1000 and this is 1.4, then the
+  // largest the canvas height can be set to is 1400px assuming a
+  // window.devicePixelRatio of 1.
+  // Currently this value is set rather large to mostly match
+  // previous behavior & performance. This should be reduced to
+  // be as small as possible once raw drawing performance is improved
+  // such that a repaint doesn't incur a large jank
+  var MAX_OVERSIZE_MULTIPLE = 3.0;
+  var REDRAW_SLOP = (MAX_OVERSIZE_MULTIPLE - 1) / 2;
+
   var DrawingContainer = tr.ui.b.define('drawing-container',
                                         tr.ui.tracks.Track);
 
@@ -43,9 +55,13 @@ tr.exportTo('tr.ui.tracks', function() {
       Polymer.dom(this).appendChild(this.canvas_);
 
       this.ctx_ = this.canvas_.getContext('2d');
+      this.offsetY_ = 0;
 
       this.viewportChange_ = this.viewportChange_.bind(this);
       this.viewport.addEventListener('change', this.viewportChange_);
+
+      window.addEventListener('resize', this.windowResized_.bind(this));
+      this.addEventListener('scroll', this.scrollChanged_.bind(this));
     },
 
     // Needed to support the calls in TimelineTrackView.
@@ -59,6 +75,16 @@ tr.exportTo('tr.ui.tracks', function() {
 
     viewportChange_: function() {
       this.invalidate();
+    },
+
+    windowResized_: function() {
+      this.invalidate();
+    },
+
+    scrollChanged_: function() {
+      if (this.updateOffsetY_()) {
+        this.invalidate();
+      }
     },
 
     invalidate: function() {
@@ -108,6 +134,23 @@ tr.exportTo('tr.ui.tracks', function() {
       this.viewport.drawGridLines(this.ctx_, viewLWorld, viewRWorld);
     },
 
+    // Update's this.offsetY_, returning true if the value has changed
+    // and thus a redraw is needed, or false if it did not change.
+    updateOffsetY_: function() {
+      var maxYDelta = window.innerHeight * REDRAW_SLOP;
+      var newOffset = this.scrollTop - maxYDelta;
+      if (Math.abs(newOffset - this.offsetY_) <= maxYDelta) return false;
+      // Now clamp to the valid range.
+      var maxOffset = this.scrollHeight -
+          this.canvas_.getBoundingClientRect().height;
+      newOffset = Math.max(0, Math.min(newOffset, maxOffset));
+      if (newOffset !== this.offsetY_) {
+        this.offsetY_ = newOffset;
+        return true;
+      }
+      return false;
+    },
+
     updateCanvasSizeIfNeeded_: function() {
       var visibleChildTracks =
           tr.b.asArray(this.children).filter(this.visibleFilter_);
@@ -126,6 +169,8 @@ tr.exportTo('tr.ui.tracks', function() {
       var innerWidth = firstChildTrackBounds.width -
           tr.ui.b.constants.HEADING_WIDTH;
       var innerHeight = lastChildTrackBounds.bottom - firstChildTrackBounds.top;
+      var innerHeight = Math.min(innerHeight,
+          Math.floor(window.innerHeight * MAX_OVERSIZE_MULTIPLE));
 
       var pixelRatio = window.devicePixelRatio || 1;
       if (this.canvas_.width !== innerWidth * pixelRatio) {
@@ -136,6 +181,11 @@ tr.exportTo('tr.ui.tracks', function() {
       if (this.canvas_.height !== innerHeight * pixelRatio) {
         this.canvas_.height = innerHeight * pixelRatio;
         this.canvas_.style.height = innerHeight + 'px';
+      }
+
+      if (this.canvas_.top !== this.offsetY_) {
+        this.canvas_.top = this.offsetY_;
+        this.canvas_.style.top = this.offsetY_ + 'px';
       }
     },
 
