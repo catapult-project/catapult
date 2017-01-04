@@ -513,9 +513,10 @@ def GuessStoryFilter(test_path):
   """
   test_path_parts = test_path.split('/')
   suite_name, story_name = test_path_parts[2], test_path_parts[-1]
-  if suite_name in _DISABLE_STORY_FILTER:
-    return ''
-  if suite_name.startswith('media.') and '.html?' not in story_name:
+  if any([
+      suite_name in _DISABLE_STORY_FILTER,
+      suite_name.startswith('media.') and '.html?' not in story_name,
+      suite_name.startswith('webrtc.')]):
     return ''
   test_key = utils.TestKey(test_path)
   subtest_keys = list_tests.GetTestDescendants(test_key)
