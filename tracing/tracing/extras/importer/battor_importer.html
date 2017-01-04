@@ -130,9 +130,11 @@ tr.exportTo('tr.e.importer.battor', function() {
 
         var ts = parseFloat(groups[1]);
         var voltageInV = tr.b.convertUnit(parseFloat(groups[2]),
-            tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+            tr.b.UnitPrefixScale.METRIC.MILLI,
+            tr.b.UnitPrefixScale.METRIC.NONE);
         var currentInA = tr.b.convertUnit(parseFloat(groups[3]),
-            tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+            tr.b.UnitPrefixScale.METRIC.MILLI,
+            tr.b.UnitPrefixScale.METRIC.NONE);
         var syncId = groups[4];
 
         if (syncId)

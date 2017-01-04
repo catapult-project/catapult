@@ -151,7 +151,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getFormattingContext: function(unit) {
-      return { unitPrefix: tr.b.UnitScale.Binary.MEBI };
+      return { unitPrefix: tr.b.UnitPrefixScale.BINARY.MEBI };
     },
 
     color: function(numerics, processMemoryDumps) {
@@ -342,7 +342,7 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     getFormattingContext: function(unit) {
-      return { unitPrefix: tr.b.UnitScale.Binary.MEBI };
+      return { unitPrefix: tr.b.UnitPrefixScale.BINARY.MEBI };
     },
 
     addInfos: function(numerics, processMemoryDumps, infos) {

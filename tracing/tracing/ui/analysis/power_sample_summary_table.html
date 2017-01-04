@@ -119,7 +119,8 @@ Polymer({
       return 'N/A';
 
     var durationInS = tr.b.convertUnit(this.samples.bounds.duration,
-        tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+        tr.b.UnitPrefixScale.METRIC.MILLI,
+        tr.b.UnitPrefixScale.METRIC.NONE);
 
     return energyConsumedInJ / durationInS;
   },

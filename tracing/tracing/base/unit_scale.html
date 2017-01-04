@@ -14,10 +14,10 @@ var GREEK_SMALL_LETTER_MU = String.fromCharCode(956);
 
 tr.exportTo('tr.b', function() {
 
-  var UnitScale = {};
+  var UnitPrefixScale = {};
 
-  function defineUnitScale(name, prefixes) {
-    if (UnitScale[name] !== undefined)
+  function defineUnitPrefixScale(name, prefixes) {
+    if (UnitPrefixScale[name] !== undefined)
       throw new Error('Unit scale \'' + name + '\' already exists');
     if (prefixes.AUTO !== undefined) {
       throw new Error('\'AUTO\' unit prefix will be added automatically ' +
@@ -31,14 +31,14 @@ tr.exportTo('tr.b', function() {
     prefixes.AUTO = tr.b.dictionaryValues(prefixes);
     prefixes.AUTO.sort((a, b) => a.value - b.value);
 
-    UnitScale[name] = prefixes;
+    UnitPrefixScale[name] = prefixes;
   }
 
  /**
   * Converts |value| from |fromPrefix| (e.g. kilo) to |toPrefix| (e.g. mega).
   *
   * Returns undefined if |value| is undefined.
-  * |fromPrefix| and |toPrefix| need not come from the same UnitScale.
+  * |fromPrefix| and |toPrefix| need not come from the same UnitPrefixScale.
   *
   * @param {(undefined|number)} value
   * @param {!object} fromPrefix
@@ -52,7 +52,7 @@ tr.exportTo('tr.b', function() {
   }
 
   // See https://en.wikipedia.org/wiki/Binary_prefix.
-  defineUnitScale('Binary', {
+  defineUnitPrefixScale('BINARY', {
     NONE: { value: Math.pow(1024, 0), symbol: '' },
     KIBI: { value: Math.pow(1024, 1), symbol: 'Ki' },
     MEBI: { value: Math.pow(1024, 2), symbol: 'Mi' },
@@ -61,7 +61,7 @@ tr.exportTo('tr.b', function() {
   });
 
   // See https://en.wikipedia.org/wiki/Metric_prefix.
-  defineUnitScale('Metric', {
+  defineUnitPrefixScale('METRIC', {
     NANO: { value: 1e-9, symbol: 'n' },
     MICRO: { value: 1e-6, symbol: GREEK_SMALL_LETTER_MU },
     MILLI: { value: 1e-3, symbol: 'm' },
@@ -72,7 +72,7 @@ tr.exportTo('tr.b', function() {
   });
 
   return {
-    UnitScale,
+    UnitPrefixScale,
     convertUnit,
   };
 });

@@ -127,7 +127,7 @@ tr.exportTo('tr.b', function() {
           value = tr.b.convertUnit(value, this.basePrefix, selectedPrefix);
         } else {
           value = tr.b.convertUnit(value, this.basePrefix,
-              tr.b.UnitScale.Metric.NONE);
+              tr.b.UnitPrefixScale.METRIC.NONE);
         }
         unitString += formatSpec.unit;
       }
@@ -165,8 +165,8 @@ tr.exportTo('tr.b', function() {
   };
 
   Unit.timestampFromUs = function(us) {
-    return tr.b.convertUnit(us, tr.b.UnitScale.Metric.MICRO,
-        tr.b.UnitScale.Metric.MILLI);
+    return tr.b.convertUnit(us, tr.b.UnitPrefixScale.METRIC.MICRO,
+        tr.b.UnitPrefixScale.METRIC.MILLI);
   };
 
   Object.defineProperty(Unit, 'currentTimeDisplayMode', {
@@ -279,7 +279,7 @@ tr.exportTo('tr.b', function() {
       throw new Error('JSON unit \'' + jsonName + '\' alread exists');
 
     var basePrefix = params.basePrefix ?
-        params.basePrefix : tr.b.UnitScale.Metric.NONE;
+        params.basePrefix : tr.b.UnitPrefixScale.METRIC.NONE;
     var unit = new Unit(unitName, jsonName, basePrefix,
         isDelta, improvementDirection, params.formatSpec);
     Unit.byName[unitName] = unit;
@@ -297,7 +297,7 @@ tr.exportTo('tr.b', function() {
   Unit.define({
     baseUnitName: 'timeDurationInMs',
     baseJsonName: 'ms',
-    basePrefix: tr.b.UnitScale.Metric.MILLI,
+    basePrefix: tr.b.UnitPrefixScale.METRIC.MILLI,
     formatSpec: function() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
@@ -306,7 +306,7 @@ tr.exportTo('tr.b', function() {
   Unit.define({
     baseUnitName: 'timeStampInMs',
     baseJsonName: 'tsMs',
-    basePrefix: tr.b.UnitScale.Metric.MILLI,
+    basePrefix: tr.b.UnitPrefixScale.METRIC.MILLI,
     formatSpec: function() {
       return Unit.currentTimeDisplayMode_.formatSpec;
     }
@@ -329,7 +329,7 @@ tr.exportTo('tr.b', function() {
     baseJsonName: 'sizeInBytes',
     formatSpec: {
       unit: 'B',
-      unitPrefix: tr.b.UnitScale.Binary.AUTO,
+      unitPrefix: tr.b.UnitPrefixScale.BINARY.AUTO,
       minimumFractionDigits: 1,
       maximumFractionDigits: 1
     }

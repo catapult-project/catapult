@@ -28,7 +28,8 @@ tr.exportTo('tr.metrics.sh', function() {
   function getPowerData_(model, start, end) {
     var durationInMs = end - start;
     var durationInS = tr.b.convertUnit(durationInMs,
-        tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+        tr.b.UnitPrefixScale.METRIC.MILLI,
+        tr.b.UnitPrefixScale.METRIC.NONE);
     var samples = model.device.powerSeries.getSamplesWithinRange(start, end);
     var energyInJ = model.device.powerSeries.getEnergyConsumedInJ(start, end);
     var powerInW = energyInJ / durationInS;

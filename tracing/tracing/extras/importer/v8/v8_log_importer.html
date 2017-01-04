@@ -100,9 +100,11 @@ tr.exportTo('tr.e.importer.v8', function() {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
       var startInMs = tr.b.convertUnit(startInUs,
-          tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
+          tr.b.UnitPrefixScale.METRIC.MICRO,
+          tr.b.UnitPrefixScale.METRIC.MILLI);
       var lengthInMs = tr.b.convertUnit(lengthInUs,
-          tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
+          tr.b.UnitPrefixScale.METRIC.MICRO,
+          tr.b.UnitPrefixScale.METRIC.MILLI);
       var colorId = ColorScheme.getColorIdForGeneralPurposeString(name);
       var slice = new tr.model.ThreadSlice('v8', name, colorId, startInMs,
           args, lengthInMs);
@@ -113,13 +115,15 @@ tr.exportTo('tr.e.importer.v8', function() {
       var args = TimerEventDefaultArgs[name];
       if (args === undefined) return;
       var startInMs = tr.b.convertUnit(startInUs,
-          tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
+          tr.b.UnitPrefixScale.METRIC.MICRO,
+          tr.b.UnitPrefixScale.METRIC.MILLI);
       this.v8_timer_thread_.sliceGroup.beginSlice('v8', name, startInMs, args);
     },
 
     processTimerEventEnd_: function(name, endInUs) {
       var endInMs = tr.b.convertUnit(endInUs,
-          tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
+          tr.b.UnitPrefixScale.METRIC.MICRO,
+          tr.b.UnitPrefixScale.METRIC.MILLI);
       this.v8_timer_thread_.sliceGroup.endSlice(endInMs);
     },
 
@@ -196,7 +200,8 @@ tr.exportTo('tr.e.importer.v8', function() {
                                 tosOrExternalCallback, vmstate, stack) {
 
       var startInMs = tr.b.convertUnit(startInUs,
-          tr.b.UnitScale.Metric.MICRO, tr.b.UnitScale.Metric.MILLI);
+          tr.b.UnitPrefixScale.METRIC.MICRO,
+          tr.b.UnitPrefixScale.METRIC.MILLI);
 
       function findChildWithEntryID(stackFrame, entryID) {
         for (var i = 0; i < stackFrame.children.length; i++) {

@@ -351,7 +351,7 @@ tr.b.unittest.testSuite(function() {
     var span = tr.v.ui.createScalarSpan(
         new ScalarNumeric(Unit.byName.sizeInBytesDelta_smallerIsBetter,
             256 * 1024 * 1024), { context: {
-              unitPrefix: tr.b.UnitScale.Binary.KIBI,
+              unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
               minimumFractionDigits: 2
             } });
     assert.strictEqual(
@@ -360,8 +360,10 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(span.tagName, 'TR-V-UI-SCALAR-SPAN');
     assert.strictEqual(span.value, 256 * 1024 * 1024);
     assert.strictEqual(span.unit, Unit.byName.sizeInBytesDelta_smallerIsBetter);
-    assert.deepEqual(span.context,
-        { unitPrefix: tr.b.UnitScale.Binary.KIBI, minimumFractionDigits: 2 });
+    assert.deepEqual(span.context, {
+      unitPrefix: tr.b.UnitPrefixScale.BINARY.KIBI,
+      minimumFractionDigits: 2
+    });
     assert.isUndefined(span.customContextRange);
     assert.isUndefined(span.warning);
     assert.isFalse(span.leftAlign);

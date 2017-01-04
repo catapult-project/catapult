@@ -51,16 +51,16 @@ tr.exportTo('tr.e.importer.linux_perf', function() {
       var ns = parseInt(event[6]);
 
       // BW in MiB/s.
-      var sec = tr.b.convertUnit(ns, tr.b.UnitScale.Metric.NANO,
-          tr.b.UnitScale.Metric.NONE);
+      var sec = tr.b.convertUnit(ns, tr.b.UnitPrefixScale.METRIC.NANO,
+          tr.b.UnitPrefixScale.METRIC.NONE);
       var readBandwidthInBps = rBytes / sec;
       var readBandwidthInMiBps = tr.b.convertUnit(readBandwidthInBps,
-          tr.b.UnitScale.Binary.NONE,
-          tr.b.UnitScale.Binary.MEBI);
+          tr.b.UnitPrefixScale.BINARY.NONE,
+          tr.b.UnitPrefixScale.BINARY.MEBI);
       var writeBandwidthInBps = wBytes / sec;
       var writeBandwidthInMiBps = tr.b.convertUnit(writeBandwidthInBps,
-          tr.b.UnitScale.Binary.NONE,
-          tr.b.UnitScale.Binary.MEBI);
+          tr.b.UnitPrefixScale.BINARY.NONE,
+          tr.b.UnitPrefixScale.BINARY.MEBI);
 
       var ctr = this.model_.kernel
               .getOrCreateCounter(null, 'bus ' + name + ' read');

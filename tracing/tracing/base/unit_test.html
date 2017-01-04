@@ -16,7 +16,7 @@ found in the LICENSE file.
 tr.b.unittest.testSuite(function() {
   var ImprovementDirection = tr.b.ImprovementDirection;
   var Unit = tr.b.Unit;
-  var UnitScale = tr.b.UnitScale;
+  var UnitPrefixScale = tr.b.UnitPrefixScale;
 
   test('Unit.display-mode-changed', function() {
     var TimeDisplayModes = tr.b.TimeDisplayModes;
@@ -204,11 +204,12 @@ tr.b.unittest.testSuite(function() {
         '\u00B10.0 B');
     assert.strictEqual(
         Unit.byName.sizeInBytes.format(25600000000,
-            { unitPrefix: UnitScale.Binary.KIBI }),
+            { unitPrefix: UnitPrefixScale.BINARY.KIBI }),
         '25,000,000.0 KiB');
     assert.strictEqual(
         Unit.byName.sizeInBytes.format(5243,
-            { unitPrefix: UnitScale.Binary.MEBI, minimumFractionDigits: 2 }),
+            { unitPrefix: UnitPrefixScale.BINARY.MEBI,
+              minimumFractionDigits: 2 }),
         '0.01 MiB');
   });
 

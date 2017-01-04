@@ -34,7 +34,8 @@ tr.exportTo('tr.metrics.sh', function() {
                       animationExpectation.stableId);
 
     var durationInS = tr.b.convertUnit(animationExpectation.duration,
-        tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
+        tr.b.UnitPrefixScale.METRIC.MILLI,
+        tr.b.UnitPrefixScale.METRIC.NONE);
     return animationExpectation.frameEvents.length / durationInS;
   }
 

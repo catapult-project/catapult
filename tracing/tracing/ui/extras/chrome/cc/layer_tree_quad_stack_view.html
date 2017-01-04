@@ -439,20 +439,26 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
         var otherTreeUsageInBytes = lthi.gpuMemoryUsageInBytes -
             thisTreeUsageInBytes;
-        message += tr.b.convertUnit(thisTreeUsageInBytes,
-            tr.b.UnitScale.Binary.NONE,
-            tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB on this tree';
+        message +=
+            tr.b.convertUnit(thisTreeUsageInBytes,
+                tr.b.UnitPrefixScale.BINARY.NONE,
+                tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) +
+            ' MiB on this tree';
         if (otherTreeUsageInBytes) {
-          message += ', ' + tr.b.convertUnit(otherTreeUsageInBytes,
-              tr.b.UnitScale.Binary.NONE,
-              tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB on the other tree';
+          message += ', ' +
+              tr.b.convertUnit(otherTreeUsageInBytes,
+                  tr.b.UnitPrefixScale.BINARY.NONE,
+                  tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) +
+              ' MiB on the other tree';
         }
       } else {
         if (this.layerTreeImpl_) {
           var thisTreeUsageInBytes = this.layerTreeImpl_.gpuMemoryUsageInBytes;
-          message += tr.b.convertUnit(thisTreeUsageInBytes,
-              tr.b.UnitScale.Binary.NONE,
-              tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB on this tree';
+          message +=
+              tr.b.convertUnit(thisTreeUsageInBytes,
+                  tr.b.UnitPrefixScale.BINARY.NONE,
+                  tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) +
+              ' MiB on this tree';
 
           if (this.layerTreeImpl_.otherTree) {
             // Older Chromes don't report enough data to know how much memory is
@@ -471,11 +477,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
         var tmgs = lthi.args.tileManagerBasicState.globalState;
         message += ' (softMax=' +
             tr.b.convertUnit(tmgs.softMemoryLimitInBytes,
-                tr.b.UnitScale.Binary.NONE,
-                tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, hardMax=' +
+                tr.b.UnitPrefixScale.BINARY.NONE,
+                tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) +
+            ' MiB, hardMax=' +
             tr.b.convertUnit(tmgs.hardMemoryLimitInBytes,
-                tr.b.UnitScale.Binary.NONE,
-                tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, ' +
+                tr.b.UnitPrefixScale.BINARY.NONE,
+                tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) + ' MiB, ' +
             tmgs.memoryLimitPolicy + ')';
 
       } else {
@@ -500,11 +507,12 @@ tr.exportTo('tr.ui.e.chrome.cc', function() {
           var tmgs = newest.args.state.global_state;
           message += ' (softMax=' +
             tr.b.convertUnit(tmgs.softMemoryLimitInBytes,
-                tr.b.UnitScale.Binary.NONE,
-                tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, hardMax=' +
+                tr.b.UnitPrefixScale.BINARY.NONE,
+                tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) +
+            ' MiB, hardMax=' +
             tr.b.convertUnit(tmgs.hardMemoryLimitInBytes,
-                tr.b.UnitScale.Binary.NONE,
-                tr.b.UnitScale.Binary.MEBI).toFixed(1) + ' MiB, ' +
+                tr.b.UnitPrefixScale.BINARY.NONE,
+                tr.b.UnitPrefixScale.BINARY.MEBI).toFixed(1) + ' MiB, ' +
             tmgs.memoryLimitPolicy + ')';
         }
       }
