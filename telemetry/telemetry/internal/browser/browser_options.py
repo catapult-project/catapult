@@ -260,7 +260,7 @@ class BrowserOptions(object):
 
     # The amount of time Telemetry should wait for the browser to start.
     # This property is not exposed as a command line option.
-    self._browser_startup_timeout = 240
+    self._browser_startup_timeout = 60
 
     self.disable_background_networking = True
     self.browser_user_agent_type = None
@@ -463,6 +463,8 @@ class CrosBrowserOptions(ChromeBrowserOptions):
     self.username = 'test@test.test'
     self.password = ''
     self.gaia_id = '12345'
+    # For non-accelerated QEMU VMs.
+    self.browser_startup_timeout = 240
 
   def IsCrosBrowserOptions(self):
     return True
