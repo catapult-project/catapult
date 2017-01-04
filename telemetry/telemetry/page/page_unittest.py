@@ -44,6 +44,19 @@ class TestPage(unittest.TestCase):
     self.assertTrue(apage.file_path_url.endswith(os.sep) or
                     (os.altsep and apage.file_path_url.endswith(os.altsep)))
 
+  def testNameTooLong(self):
+    long_name = 'x' * 260
+    with self.assertRaises(Exception):
+      page.Page('file://somedir/otherdir/',
+                None, base_dir='basedir', name=long_name)
+
+  def testUrlTooLong(self):
+    long_name = 'x' * 260
+    long_url = 'file://somedir/otherdir/%s' % long_name
+    with self.assertRaises(Exception):
+      page.Page(long_url,
+                None, base_dir='basedir')
+
   def testSort(self):
     story_set = story.StorySet(base_dir=os.path.dirname(__file__))
     story_set.AddStory(
